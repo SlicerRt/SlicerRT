@@ -35,8 +35,24 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
 
 /// \ingroup Segmentations
+/// \brief Parameter set node for the segment editor widget
+///
+/// Stores parameters for a segment editor widget (selected segmentation, segment, master volume),
+/// and all the editor effects. The effect parameters are stored as attributes with names
+/// EffectName.ParameterName. If a parameter is changed, the node Modified event is not emitted,
+/// but the custom EffectParameterModified event that triggers update of the effect options widget only.
+///
 class VTK_SLICER_SEGMENTATIONS_MODULE_MRML_EXPORT vtkMRMLSegmentEditorNode : public vtkMRMLNode
 {
+public:
+  enum
+  {
+    /// Fired when an effect parameter is modified. As this node handles not only the effect parameters,
+    /// but also the segment editor state, a full Modified event is an overkill, because it would trigger
+    /// editor widget UI update, instead of simple update of the effect option widgets only.
+    EffectParameterModified = 62200
+  };
+
 public:
   static vtkMRMLSegmentEditorNode *New();
   vtkTypeMacro(vtkMRMLSegmentEditorNode, vtkMRMLNode);

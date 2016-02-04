@@ -52,8 +52,8 @@ public:
   static QString paintThresholdParameterName() { return QString("PaintThreshold"); };
   static QString paintThresholdMinParameterName() { return QString("PaintThresholdMin"); };
   static QString paintThresholdMaxParameterName() { return QString("PaintThresholdMax"); };
-  static QString thresholdEnabledParameterName() { return QString("ThresholdEnabled"); };
-  static QString paintOverEnabledParameterName() { return QString("PaintOverEnabled"); };
+  static QString thresholdAvailableParameterName() { return QString("ThresholdAvailable"); };
+  static QString paintOverAvailableParameterName() { return QString("PaintOverAvailable"); };
 
 public:
   /// Get name of effect
@@ -63,6 +63,9 @@ public:
   /// Clone editor effect
   /// (redefinition of pure virtual function to allow python wrapper to identify this as abstract class)
   virtual qSlicerSegmentEditorAbstractEffect* clone() = 0;
+
+  /// Perform actions needed before the edited labelmap is applied back to the segment
+  virtual void apply();
 
   /// Create options frame widgets, make connections, and add them to the main options frame using \sa addOptionsWidget
   virtual void setupOptionsFrame();

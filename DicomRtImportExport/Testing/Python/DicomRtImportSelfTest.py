@@ -35,12 +35,12 @@ class DicomRtImportSelfTestWidget(ScriptedLoadableModuleWidget):
     #TODO: TEMP CODE FOR TESTING COMPLETELY UNRELATED STUFF!
     import qSlicerSegmentationsModuleWidgetsPythonQt
     self.editor = qSlicerSegmentationsModuleWidgetsPythonQt.qMRMLSegmentEditorWidget()
-    self.editor.setMRMLScene(slicer.mrmlScene)
     
     import vtkSlicerSegmentationsModuleMRML
     paramSetNode = vtkSlicerSegmentationsModuleMRML.vtkMRMLSegmentEditorNode()
     slicer.mrmlScene.AddNode(paramSetNode)
     self.editor.setMRMLSegmentEditorNode(paramSetNode)
+    self.editor.setMRMLScene(slicer.mrmlScene)
     
     self.layout.addWidget(self.editor)
     v = slicer.util.getNode('303: Unnamed Series')

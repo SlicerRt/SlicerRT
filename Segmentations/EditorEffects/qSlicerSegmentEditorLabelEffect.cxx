@@ -23,6 +23,7 @@
 #include "qSlicerSegmentEditorLabelEffect_p.h"
 
 #include "vtkOrientedImageData.h"
+#include "vtkOrientedImageDataResample.h"
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkMRMLSegmentEditorNode.h"
 
@@ -36,6 +37,8 @@
 
 // VTK includes
 #include <vtkMatrix4x4.h>
+#include <vtkImageConstantPad.h>
+#include <vtkImageMask.h>
 
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"
@@ -67,7 +70,7 @@ void qSlicerSegmentEditorLabelEffectPrivate::masterVolumeScalarRange(double& low
   low = 0.0;
   high = 0.0;
 
-  if (q->parameterSetNode())
+  if (!q->parameterSetNode())
   {
     qCritical() << "qSlicerSegmentEditorLabelEffectPrivate::masterVolumeScalarRange: Invalid segment editor parameter set node!";
     return;
@@ -86,6 +89,37 @@ void qSlicerSegmentEditorLabelEffectPrivate::masterVolumeScalarRange(double& low
     low = range[0];
     high = range[1];
   }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorLabelEffectPrivate::applyMaskImage(vtkOrientedImageData* input, vtkOrientedImageData* mask, int notMask)
+{
+  if (!input || !mask)
+  {
+    qCritical() << "qSlicerSegmentEditorLabelEffectPrivate::applyMaskImage: Invalid inputs!";
+    return;
+  }
+
+  // Make sure mask has the same lattice as the edited labelmap
+  vtkSmartPointer<vtkOrientedImageData> resampledMask = vtkSmartPointer<vtkOrientedImageData>::New();
+  vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
+    mask, input, resampledMask);
+
+  // Make sure mask has the same extent as the edited labelmap
+  vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
+  padder->SetInputData(mask);
+  padder->SetOutputWholeExtent(input->GetExtent());
+  padder->Update();
+  mask->DeepCopy(padder->GetOutput());
+
+  // Apply mask
+  vtkSmartPointer<vtkImageMask> masker = vtkSmartPointer<vtkImageMask>::New();
+  masker->SetImageInputData(input);
+  masker->SetMaskInputData(mask);
+  masker->SetNotMask(notMask);
+  masker->SetMaskedOutputValue(0);
+  masker->Update();
+  input->DeepCopy(masker->GetOutput());
 }
 
 //-----------------------------------------------------------------------------
@@ -133,7 +167,7 @@ void qSlicerSegmentEditorLabelEffect::masterVolumeNodeChanged()
 {
   Q_D(qSlicerSegmentEditorLabelEffect);
 
-  if (this->parameterSetNode())
+  if (!this->parameterSetNode())
   {
     qCritical() << "qSlicerSegmentEditorLabelEffect::masterVolumeNodeChanged: Invalid segment editor parameter set node!";
     return;
@@ -188,8 +222,8 @@ void qSlicerSegmentEditorLabelEffect::setMRMLDefaults()
   this->setParameter(this->paintThresholdParameterName(), 0);
   this->setParameter(this->paintThresholdMinParameterName(), 0);
   this->setParameter(this->paintThresholdMaxParameterName(), 1000);
-  this->setParameter(this->thresholdEnabledParameterName(), 1);
-  this->setParameter(this->paintOverEnabledParameterName(), 1);
+  this->setParameter(this->thresholdAvailableParameterName(), 1);
+  this->setParameter(this->paintOverAvailableParameterName(), 1);
 }
 
 //-----------------------------------------------------------------------------
@@ -199,15 +233,15 @@ void qSlicerSegmentEditorLabelEffect::updateGUIFromMRML()
 
   d->PaintOverCheckbox->blockSignals(true);
   d->PaintOverCheckbox->setChecked(this->integerParameter(this->paintOverParameterName()));
-  d->PaintOverCheckbox->setVisible(this->integerParameter(this->paintOverEnabledParameterName()));
+  d->PaintOverCheckbox->setVisible(this->integerParameter(this->paintOverAvailableParameterName()));
   d->PaintOverCheckbox->blockSignals(false);
 
   d->ThresholdPaintCheckbox->blockSignals(true);
   d->ThresholdPaintCheckbox->setChecked(this->integerParameter(this->paintThresholdParameterName()));
-  d->ThresholdPaintCheckbox->setVisible(this->integerParameter(this->thresholdEnabledParameterName()));
+  d->ThresholdPaintCheckbox->setVisible(this->integerParameter(this->thresholdAvailableParameterName()));
   d->ThresholdPaintCheckbox->blockSignals(false);
 
-  bool thresholdEnabled = d->ThresholdPaintCheckbox->isChecked() && (bool)this->integerParameter(this->thresholdEnabledParameterName());
+  bool thresholdEnabled = d->ThresholdPaintCheckbox->isChecked() && (bool)this->integerParameter(this->thresholdAvailableParameterName());
   d->ThresholdLabel->setVisible(thresholdEnabled);
 
   d->ThresholdRangeWidget->blockSignals(true);
@@ -226,6 +260,39 @@ void qSlicerSegmentEditorLabelEffect::updateMRMLFromGUI()
   this->setParameter(this->paintThresholdParameterName(), (int)d->ThresholdPaintCheckbox->isChecked());
   this->setParameter(this->paintThresholdMinParameterName(), (double)d->ThresholdRangeWidget->minimumValue());
   this->setParameter(this->paintThresholdMaxParameterName(), (double)d->ThresholdRangeWidget->maximumValue());
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorLabelEffect::apply()
+{
+  Q_D(qSlicerSegmentEditorLabelEffect);
+
+  if (!this->parameterSetNode())
+  {
+    qCritical() << "qSlicerSegmentEditorLabelEffect::apply: Invalid segment editor parameter set node!";
+    return;
+  }
+
+  vtkOrientedImageData* editedLabelmap = this->parameterSetNode()->GetEditedLabelmap();
+  vtkOrientedImageData* maskLabelmap = this->parameterSetNode()->GetMaskLabelmap();
+  vtkOrientedImageData* thresholdLabelmap = this->parameterSetNode()->GetThresholdLabelmap();
+
+  // Apply mask to edited labelmap if paint over is turned off
+  if (!this->integerParameter(this->paintOverParameterName()))
+  {
+    //TODO:
+    //d->applyMaskImage(editedLabelmap, maskLabelmap, 1);
+  }
+
+  // Apply threshold mask if paint threshold is turned on
+  if (!this->integerParameter(this->paintThresholdParameterName()))
+  {
+    //TODO:
+    //d->applyMaskImage(editedLabelmap, thresholdLabelmap, 1);
+  }
+
+  // Notify editor about changes
+  Superclass::apply();
 }
 
 //-----------------------------------------------------------------------------

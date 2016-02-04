@@ -18,6 +18,7 @@ set(${KIT}_SRCS
   qSlicerSegmentEditorEffectFactory.h
   qSlicerSegmentEditorAbstractEffect.cxx
   qSlicerSegmentEditorAbstractEffect.h
+  qSlicerSegmentEditorAbstractEffect_p.h
   qSlicerSegmentEditorLabelEffect.cxx
   qSlicerSegmentEditorLabelEffect.h
   qSlicerSegmentEditorLabelEffect_p.h
@@ -31,6 +32,7 @@ set(${KIT}_SRCS
 set(${KIT}_MOC_SRCS
   qSlicerSegmentEditorEffectFactory.h
   qSlicerSegmentEditorAbstractEffect.h
+  qSlicerSegmentEditorAbstractEffect_p.h
   qSlicerSegmentEditorLabelEffect.h
   qSlicerSegmentEditorLabelEffect_p.h
   qSlicerSegmentEditorPaintEffect.h

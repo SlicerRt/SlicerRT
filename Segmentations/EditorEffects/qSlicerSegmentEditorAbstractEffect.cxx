@@ -20,6 +20,7 @@
 
 // Segmentations includes
 #include "qSlicerSegmentEditorAbstractEffect.h"
+#include "qSlicerSegmentEditorAbstractEffect_p.h"
 
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkMRMLSegmentEditorNode.h"
@@ -27,7 +28,6 @@
 
 // Qt includes
 #include <QDebug>
-#include <QCursor>
 #include <QImage>
 #include <QPixmap>
 #include <QPainter>
@@ -59,31 +59,7 @@
 #include <vtkProp.h>
 
 //-----------------------------------------------------------------------------
-class qSlicerSegmentEditorAbstractEffectPrivate: public QObject
-{
-  Q_DECLARE_PUBLIC(qSlicerSegmentEditorAbstractEffect);
-protected:
-  qSlicerSegmentEditorAbstractEffect* const q_ptr;
-public:
-  qSlicerSegmentEditorAbstractEffectPrivate(qSlicerSegmentEditorAbstractEffect& object);
-  ~qSlicerSegmentEditorAbstractEffectPrivate();
-public:
-  /// Segment editor parameter set node
-  vtkWeakPointer<vtkMRMLSegmentEditorNode> ParameterSetNode;
-
-  /// MRML scene
-  vtkMRMLScene* Scene;
-  
-  /// Cursor to restore after custom cursor is not needed any more
-  QCursor SavedCursor;
-
-  /// List of actors used by the effect. Removed when effect is deactivated
-  QMap<qMRMLWidget*, QList<vtkProp*> > Actors;
-
-  /// Frame containing the effect options UI.
-  /// Populating the frame is possible using the \sa addOptionsWidget method from the base classes
-  QFrame* OptionsFrame;
-};
+// qSlicerSegmentEditorAbstractEffectPrivate methods
 
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorAbstractEffectPrivate::qSlicerSegmentEditorAbstractEffectPrivate(qSlicerSegmentEditorAbstractEffect& object)
@@ -109,6 +85,12 @@ qSlicerSegmentEditorAbstractEffectPrivate::~qSlicerSegmentEditorAbstractEffectPr
     this->OptionsFrame = NULL;
   }
 }
+
+//-----------------------------------------------------------------------------
+
+
+//-----------------------------------------------------------------------------
+// qSlicerSegmentEditorAbstractEffect methods
 
 //----------------------------------------------------------------------------
 qSlicerSegmentEditorAbstractEffect::qSlicerSegmentEditorAbstractEffect(QObject* parent)
@@ -178,6 +160,22 @@ void qSlicerSegmentEditorAbstractEffect::deactivate()
       continue;
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::connectApply(QObject* receiver, const char* method)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  // Connect apply signal to commit changes to selected segment
+  QObject::connect(d, SIGNAL(applySignal()), receiver, method);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::apply()
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+  emit d->applySignal();
 }
 
 //-----------------------------------------------------------------------------
@@ -263,15 +261,12 @@ vtkMRMLScene* qSlicerSegmentEditorAbstractEffect::scene()
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
 
-  return d->Scene;
-}
+  if (!d->ParameterSetNode)
+  {
+    return NULL;
+  }
 
-//-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::setScene(vtkMRMLScene* scene)
-{
-  Q_D(qSlicerSegmentEditorAbstractEffect);
-
-  d->Scene = scene;
+  return d->ParameterSetNode->GetScene();
 }
 
 //-----------------------------------------------------------------------------
@@ -279,7 +274,7 @@ vtkMRMLSegmentEditorNode* qSlicerSegmentEditorAbstractEffect::parameterSetNode()
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
 
-  return d->ParameterSetNode;
+  return d->ParameterSetNode.GetPointer();
 }
 
 //-----------------------------------------------------------------------------
@@ -353,7 +348,7 @@ double qSlicerSegmentEditorAbstractEffect::doubleParameter(QString name)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString value, bool emitModifiedEvent/*=false*/)
+void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString value, bool emitParameterModifiedEvent/*=false*/)
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
   if (!d->ParameterSetNode)
@@ -362,34 +357,34 @@ void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString valu
     return;
   }
 
-  // Disable modified events if requested
+  // Disable full modified events in all cases (observe EffectParameterModified instead if necessary)
   int disableState = d->ParameterSetNode->GetDisableModifiedEvent();
-  if (!emitModifiedEvent)
-  {
-    d->ParameterSetNode->SetDisableModifiedEvent(1);
-  }
+  d->ParameterSetNode->SetDisableModifiedEvent(1);
 
   // Set parameter as attribute
   QString attributeName = QString("%1.%2").arg(this->name()).arg(name);
   d->ParameterSetNode->SetAttribute(attributeName.toLatin1().constData(), value.toLatin1().constData());
 
-  // Re-enable modified events for parameter node if disabling it for this set operation was requested
-  if (!emitModifiedEvent)
+  // Re-enable full modified events for parameter node
+  d->ParameterSetNode->SetDisableModifiedEvent(disableState);
+
+  // Emit parameter modified event if requested
+  if (emitParameterModifiedEvent)
   {
-    d->ParameterSetNode->SetDisableModifiedEvent(disableState);
+    d->ParameterSetNode->InvokeCustomModifiedEvent(vtkMRMLSegmentEditorNode::EffectParameterModified, (void*)(attributeName.toLatin1().constData()));
   }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, int value, bool emitModifiedEvent/*=false*/)
+void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, int value, bool emitParameterModifiedEvent/*=false*/)
 {
-  this->setParameter(name, QString::number(value), emitModifiedEvent);
+  this->setParameter(name, QString::number(value), emitParameterModifiedEvent);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, double value, bool emitModifiedEvent/*=false*/)
+void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, double value, bool emitParameterModifiedEvent/*=false*/)
 {
-  this->setParameter(name, QString::number(value), emitModifiedEvent);
+  this->setParameter(name, QString::number(value), emitParameterModifiedEvent);
 }
 
 //-----------------------------------------------------------------------------

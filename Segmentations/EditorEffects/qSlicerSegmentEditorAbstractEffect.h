@@ -24,15 +24,8 @@
 // Segmentations Editor Effects includes
 #include "qSlicerSegmentationsEditorEffectsExport.h"
 
-// CTK includes
-#include <ctkVTKObject.h>
-
-// VTK includes
-#include <vtkWeakPointer.h>
-
 // Qt includes
 #include <QIcon>
-#include <QPair>
 #include <QPoint>
 
 class qSlicerSegmentEditorAbstractEffectPrivate;
@@ -56,7 +49,6 @@ class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorAbstractEffect :
 {
 public:
   Q_OBJECT
-  QVTK_OBJECT
 
 public:
   /// Property identifier for soring event tags in widgets
@@ -86,6 +78,11 @@ public:
 
   /// Perform actions to deactivate the effect (hide options frame, destroy actors, etc.)
   Q_INVOKABLE virtual void deactivate();
+
+  /// Perform actions needed before the edited labelmap is applied back to the segment.
+  /// The default implementation only emits the signal. If the child classes override this function,
+  /// they must call apply from the base class too
+  virtual void apply();
 
   /// Create options frame widgets, make connections, and add them to the main options frame using \sa addOptionsWidget
   virtual void setupOptionsFrame() { };
@@ -119,23 +116,19 @@ public slots:
   /// Update parameter set node from user interface
   virtual void updateMRMLFromGUI() = 0;
 
-signals:
-  /// Signal that needs to be emitted from the effects when the edited labelmap is to be applied to the currently
-  /// edited segment. Connected to \sa qMRMLSegmentEditorWidget::applyChangesToSelectedSegment
-//TODO:
-  void apply();
-
 // Get/set methods
 public:
-  /// Get MRML scene
-  Q_INVOKABLE vtkMRMLScene* scene();
-  /// Set MRML scene
-  Q_INVOKABLE void setScene(vtkMRMLScene* scene);
-
   /// Get segment editor parameter set node
   vtkMRMLSegmentEditorNode* parameterSetNode();
   /// Set segment editor parameter set node
   Q_INVOKABLE void setParameterSetNode(vtkMRMLSegmentEditorNode* node);
+
+  /// Get MRML scene (from parameter set node)
+  Q_INVOKABLE vtkMRMLScene* scene();
+
+  /// Connect signal that is emitted when the edited labelmap is to be applied to the currently
+  /// edited segment.
+  void connectApply(QObject* receiver, const char* method);
 
   /// Simple mechanism to let the effects know that edited labelmap has changed
   virtual void editedLabelmapChanged() { };
@@ -168,26 +161,27 @@ public:
   /// Set effect parameter in effect parameter set node. This function is called by both convenience functions.
   /// \param name Parameter name string
   /// \param value Parameter value string
-  /// \param emitModifiedEvent Flag determining whether modified event is emitted when setting the parameter.
+  /// \param emitParameterModifiedEvent Flag determining whether parameter modified event is emitted
+  ///   when setting the parameter. It triggers UI update of the effect option widgets only.
   ///   It is false by default, as in most cases disabling modified events in the effects is desirable,
   ///   as they are mostly called from functions \sa setMRMLDefaults and \sa updateMRMLFromGUI
-  Q_INVOKABLE void setParameter(QString name, QString value, bool emitModifiedEvent=false);
+  Q_INVOKABLE void setParameter(QString name, QString value, bool emitParameterModifiedEvent=false);
 
   /// Convenience function to set integer parameter
   /// \param name Parameter name string
   /// \param value Parameter value integer
-  /// \param emitModifiedEvent Flag determining whether modified event is emitted when setting the parameter.
+  /// \param emitParameterModifiedEvent Flag determining whether modified event is emitted when setting the parameter.
   ///   It is false by default, as in most cases disabling modified events in the effects is desirable,
   ///   as they are mostly called from functions \sa setMRMLDefaults and \sa updateMRMLFromGUI
-  Q_INVOKABLE void setParameter(QString name, int value, bool emitModifiedEvent=false);
+  Q_INVOKABLE void setParameter(QString name, int value, bool emitParameterModifiedEvent=false);
 
   /// Convenience function to set double parameter
   /// \param name Parameter name string
   /// \param value Parameter value double
-  /// \param emitModifiedEvent Flag determining whether modified event is emitted when setting the parameter.
+  /// \param emitParameterModifiedEvent Flag determining whether modified event is emitted when setting the parameter.
   ///   It is false by default, as in most cases disabling modified events in the effects is desirable,
   ///   as they are mostly called from functions \sa setMRMLDefaults and \sa updateMRMLFromGUI
-  Q_INVOKABLE void setParameter(QString name, double value, bool emitModifiedEvent=false);
+  Q_INVOKABLE void setParameter(QString name, double value, bool emitParameterModifiedEvent=false);
 
 // Utility functions
 public:

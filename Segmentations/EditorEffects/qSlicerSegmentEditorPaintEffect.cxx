@@ -247,7 +247,8 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLSliceWidget* sliceW
     this->paintFeedback(sliceWidget);
   }
 
-  emit q->apply();
+  // Notify editor about changes
+  q->apply();
 }
 
 //-----------------------------------------------------------------------------
@@ -255,7 +256,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  if (q->parameterSetNode())
+  if (!q->parameterSetNode())
   {
     qCritical() << "qSlicerSegmentEditorPaintEffectPrivate::paintBrush: Invalid segment editor parameter set node!";
     return;
@@ -486,7 +487,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintPixel(qMRMLSliceWidget* sliceW
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  if (q->parameterSetNode())
+  if (!q->parameterSetNode())
   {
     qCritical() << "qSlicerSegmentEditorPaintEffectPrivate::paintPixel: Invalid segment editor parameter set node!";
     return;
@@ -520,7 +521,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::scaleRadius(double scaleFactor)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  q->setParameter("Radius", q->doubleParameter("Radius") * scaleFactor, true); // Emit modified event
+  q->setParameter("Radius", q->doubleParameter("Radius") * scaleFactor, true); // Emit parameter modified event
 }
 
 //-----------------------------------------------------------------------------
@@ -541,7 +542,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::onQuickRadiusButtonClicked()
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  if (q->parameterSetNode())
+  if (!q->parameterSetNode())
   {
     qCritical() << "qSlicerSegmentEditorPaintEffectPrivate::onQuickRadiusButtonClicked: Invalid segment editor parameter set node!";
     return;
@@ -575,8 +576,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::onRadiusValueChanged(double value)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  q->setParameter("Radius", value, true); // Emit modified event
-  q->updateGUIFromMRML();
+  q->setParameter("Radius", value, true); // Emit parameter modified event
 }
 
 //-----------------------------------------------------------------------------
@@ -917,8 +917,6 @@ void qSlicerSegmentEditorPaintEffect::setMRMLDefaults()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffect::updateGUIFromMRML()
 {
-  Superclass::updateGUIFromMRML();
-
   Q_D(qSlicerSegmentEditorPaintEffect);
 
   if (!this->scene())
@@ -940,8 +938,8 @@ void qSlicerSegmentEditorPaintEffect::updateGUIFromMRML()
   d->PixelModeCheckbox->blockSignals(false);
 
   // Pixel mode prevents using threshold and paint over functions
-  this->setParameter("ThresholdEnabled", !pixelMode);
-  this->setParameter("PaintOverEnabled", !pixelMode);
+  this->setParameter(this->thresholdAvailableParameterName(), !pixelMode);
+  this->setParameter(this->paintOverAvailableParameterName(), !pixelMode);
   // Update label options based on constraints set by pixel mode
   Superclass::updateGUIFromMRML();
 
@@ -989,8 +987,8 @@ void qSlicerSegmentEditorPaintEffect::updateMRMLFromGUI()
   if (pixelModeChanged)
   {
     // Pixel mode prevents using threshold and paint over functions
-    this->setParameter("ThresholdEnabled", !pixelMode);
-    this->setParameter("PaintOverEnabled", !pixelMode);
+    this->setParameter(this->thresholdAvailableParameterName(), !pixelMode);
+    this->setParameter(this->paintOverAvailableParameterName(), !pixelMode);
     // Update label options based on constraints set by pixel mode
     Superclass::updateGUIFromMRML();
 
@@ -1001,7 +999,7 @@ void qSlicerSegmentEditorPaintEffect::updateMRMLFromGUI()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffect::editedLabelmapChanged()
 {
-  if (this->parameterSetNode())
+  if (!this->parameterSetNode())
   {
     qCritical() << "qSlicerSegmentEditorPaintEffect::editedLabelmapChanged: Invalid segment editor parameter set node!";
     return;
@@ -1014,16 +1012,16 @@ void qSlicerSegmentEditorPaintEffect::editedLabelmapChanged()
     labelmap->GetSpacing(spacing);
     double minimumSpacing = qMin(spacing[0], qMin(spacing[1], spacing[2]));
     double minimumRadius = 0.5 * minimumSpacing;
-    this->setParameter("MinimumRadius", minimumRadius, true); // Emit modified event
+    this->setParameter("MinimumRadius", minimumRadius);
 
     int dimensions[3] = {0, 0, 0};
     labelmap->GetDimensions(dimensions);
     double bounds[3] = {spacing[0]*dimensions[0], spacing[1]*dimensions[1], spacing[2]*dimensions[2]};
     double maximumBounds = qMax(bounds[0], qMax(bounds[1], bounds[2]));
     double maximumRadius = 0.5 * maximumBounds;
-    this->setParameter("MaximumRadius", maximumRadius, true); // Emit modified event
+    this->setParameter("MaximumRadius", maximumRadius);
 
-    this->setParameter("Radius", qMin(50.0 * minimumRadius, 0.5 * maximumRadius), true); // Emit modified event
+    this->setParameter("Radius", qMin(50.0 * minimumRadius, 0.5 * maximumRadius));
 
     this->updateGUIFromMRML();
   }
