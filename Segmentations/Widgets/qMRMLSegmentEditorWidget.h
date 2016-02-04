@@ -48,10 +48,12 @@ class qSlicerSegmentEditorAbstractEffect;
 /// 
 /// Widget for editing segmentations that can be re-used in any module.
 /// 
-/// IMPORTANT: The embedding module is responsible to call \sa setupSliceObservations
-///   in e.g. the enter function to set up observations enabling interaction event
-///   processing, and to call \sa removeSliceObservations in e.g. the exit function to
-///   clear the observations to prevent unnecessary function calls.
+/// IMPORTANT: The embedding module is responsible for setting the MRML scene and the
+///   management of the \sa vtkMRMLSegmentEditorNode parameter set node.
+///   The empty parameter set node should be set before the MRML scene, so that the
+///   default selections can be stored in the parameter set node. Also, re-creation
+///   of the parameter set node needs to be handled after scene close, and usage of
+///   occasional existing parameter set nodes after scene import.
 /// 
 class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qMRMLSegmentEditorWidget : public qMRMLWidget
 {
