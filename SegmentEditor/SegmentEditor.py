@@ -56,20 +56,21 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     #
     import qSlicerSegmentationsModuleWidgetsPythonQt
     self.editor = qSlicerSegmentationsModuleWidgetsPythonQt.qMRMLSegmentEditorWidget()
+    # Set parameter node first so that the automatic selections made when the scene is set are saved
+    self.selectParameterNode()
     self.editor.setMRMLScene(slicer.mrmlScene)
     self.layout.addWidget(self.editor)
+    
+    # Connect observers to scene events
+    self.addObserver(slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent, self.onSceneStartClose)
+    self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndCloseEvent, self.onSceneEndClose)
+    self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndImportEvent, self.onSceneEndImport)
 
   def parameterNodeChanged(self, node):
     self.editor.setMRMLSegmentEditorNode(node)
-    self.editor.updateWidgetFromMRML()
 
-  def enter(self):
-    """Runs whenever the module is reopened
-    """
-    self.turnOffLightboxes()
-    self.installShortcutKeys()
-
-    # Set parameter set node if absent
+  def selectParameterNode(self):
+    # Select parameter set node if one is found in the scene, and create one otherwise
     import vtkSlicerSegmentationsModuleMRML
     node = slicer.mrmlScene.GetNthNodeByClass(0, "vtkMRMLSegmentEditorNode")
     if self.parameterSetNode is None:
@@ -80,17 +81,34 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         slicer.mrmlScene.AddNode(self.parameterSetNode)
       self.parameterSelector.setCurrentNode(self.parameterSetNode)
 
-    #TODO:
-    # self.addObserver(slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent, self.resetInterface)
-    # self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndImportEvent, self.resetInterface)
+  def enter(self):
+    """Runs whenever the module is reopened
+    """
+    self.turnOffLightboxes()
+    self.installShortcutKeys()
+
+    # Set parameter set node if absent
+    self.selectParameterNode()
+    self.editor.updateWidgetFromMRML()
 
   def exit(self):
-    self.removeObservers()
-    # self.resetInterface()
     self.removeShortcutKeys()
+    self.editor.removeSliceObservations()
 
+  def onSceneStartClose(self, caller, event):
+    self.parameterSetNode = None
+    self.editor.setSegmentationNode(None)
+    self.editor.removeSliceObservations()
+
+  def onSceneEndClose(self, caller, event):
+    self.enter()
+  
+  def onSceneEndImport(self, caller, event):
+    self.selectParameterNode()
+    self.enter()
+    
   def cleanup(self):
-    pass
+    self.removeObservers()
 
   def installShortcutKeys(self):
     """Turn on editor-wide shortcuts.  These are active independent

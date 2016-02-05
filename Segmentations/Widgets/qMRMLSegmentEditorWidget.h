@@ -108,7 +108,7 @@ public:
   /// Remove observations
   /// NOTE: This method should be called from the exit function of the
   ///   embedding module widget so that events are not processed unnecessarily.
-  void removeSliceObservations();
+  Q_INVOKABLE void removeSliceObservations();
 
 public slots:
   /// Set the MRML \a scene associated with the widget
