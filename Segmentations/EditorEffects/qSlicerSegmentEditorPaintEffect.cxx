@@ -947,17 +947,17 @@ void qSlicerSegmentEditorPaintEffect::updateGUIFromMRML()
   d->RadiusFrame->setEnabled(!pixelMode);
 
   d->RadiusSlider->blockSignals(true);
-  d->RadiusSlider->setValue(this->doubleParameter("Radius"));
   d->RadiusSlider->setMinimum(this->doubleParameter("MinimumRadius"));
   d->RadiusSlider->setMaximum(this->doubleParameter("MaximumRadius"));
+  d->RadiusSlider->setValue(this->doubleParameter("Radius"));
   d->RadiusSlider->setSingleStep(this->doubleParameter("MinimumRadius"));
   d->RadiusSlider->blockSignals(false);
 
   d->RadiusSpinBox->blockSignals(true);
-  d->RadiusSpinBox->setValue(this->doubleParameter("Radius"));
+  d->RadiusSpinBox->setMRMLScene(this->scene());
   d->RadiusSpinBox->setMinimum(this->doubleParameter("MinimumRadius"));
   d->RadiusSpinBox->setMaximum(this->doubleParameter("MaximumRadius"));
-  d->RadiusSpinBox->setMRMLScene(this->scene());
+  d->RadiusSpinBox->setValue(this->doubleParameter("Radius"));
   int decimals = (int)(log10(this->doubleParameter("MinimumRadius")));
   if (decimals < 0)
   {
