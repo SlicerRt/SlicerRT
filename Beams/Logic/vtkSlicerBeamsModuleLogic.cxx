@@ -653,7 +653,7 @@ void vtkSlicerBeamsModuleLogic::AddDefaultModelToRTBeamNode(vtkMRMLScene* scene,
 
   std::string rtBeamNodeName;
   std::string rtBeamModelNodeName;
-  rtBeamNodeName = std::string(beamNode->GetBeamName());
+  rtBeamNodeName = std::string(beamNode->GetName());
   rtBeamNodeName = scene->GenerateUniqueName(rtBeamNodeName);
   rtBeamModelNodeName = rtBeamNodeName + "_SurfaceModel";
 
@@ -696,7 +696,7 @@ vtkMRMLRTBeamNode* vtkSlicerBeamsModuleLogic::CreateDefaultRTBeamNode(const char
   // Create rtbeam node
   vtkSmartPointer<vtkMRMLRTBeamNode> beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
   beamNode = vtkMRMLRTBeamNode::SafeDownCast(this->GetMRMLScene()->AddNode(beamNode));
-  beamNode->SetBeamName(beamName);
+  beamNode->SetName(beamName);
   beamNode->HideFromEditorsOff();
   //beamNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName(), "1");
 

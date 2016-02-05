@@ -109,10 +109,6 @@ public:
   void UpdateReferences();
 
 public:
-  /// Set/Get structure name
-  vtkGetStringMacro(BeamName);
-  vtkSetStringMacro(BeamName);
-
   /// Get/Set Save labelmaps checkbox state
   vtkGetMacro(BeamNumber, int);
   vtkGetConstMacro(BeamNumber, int);
@@ -282,7 +278,6 @@ protected:
   void operator=(const vtkMRMLRTBeamNode&);
 
 protected:
-  char* BeamName;
   int   BeamNumber;
   char* BeamDescription;
 

@@ -251,7 +251,7 @@ std::string qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamName ()
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  return beamNode->GetBeamName ();
+  return beamNode->GetName ();
 }
 
 //-----------------------------------------------------------------------------
@@ -270,7 +270,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromRTBeam (vtkMRMLRTB
   qvtkConnect (beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
 
   /* GCS FIX, set radiation type somehow */
-  d->lineEdit_BeamName->setText(beamNode->GetBeamName());
+  d->lineEdit_BeamName->setText(beamNode->GetName());
 
   // Enable appropriate tabs and widgets for this beam type and set 
   // widget values from MRML node
@@ -365,7 +365,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromRTBeam (vtkMRMLRTB
   }
 
   // Set values into beam parameters tab
-  d->lineEdit_BeamName->setText(QString::fromStdString(beamNode->GetBeamName()));
+  d->lineEdit_BeamName->setText(QString::fromStdString(beamNode->GetName()));
   switch (beamNode->GetRadiationType())
   {
   case vtkMRMLRTBeamNode::Photon:
@@ -753,7 +753,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
     if (beamNode)
     {
       d->tableWidget_Beams->setItem(i, 0, new QTableWidgetItem( QString::number(beamNode->GetBeamNumber()) ) );
-      d->tableWidget_Beams->setItem(i, 1, new QTableWidgetItem( QString(beamNode->GetBeamName()) ) );
+      d->tableWidget_Beams->setItem(i, 1, new QTableWidgetItem( QString(beamNode->GetName()) ) );
       d->tableWidget_Beams->setItem(i, 2, new QTableWidgetItem( QString::number(beamNode->GetGantryAngle()) ) );
     }
   }
@@ -992,7 +992,7 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
 
   QString new_name = "New beam";
   new_name.append(QString::number(d->totalBeamRows));
-  beamNode->SetBeamName(new_name.toStdString().c_str());
+  beamNode->SetName(new_name.toStdString().c_str());
   beamNameChanged(new_name);
 
   /* GCS TODO FIX -- this should be called when logic is modified, maybe 
@@ -1093,7 +1093,7 @@ void qSlicerExternalBeamPlanningModuleWidget::beamNameChanged(const QString &tex
   {
     return;
   }
-  beamNode->SetBeamName(text.toStdString().c_str());
+  beamNode->SetName(text.toStdString().c_str());
 
   // Update in table
   this->updateRTBeamTableWidget();

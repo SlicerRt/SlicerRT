@@ -908,7 +908,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
   {
     unsigned int dicomBeamNumber = rtReader->GetBeamNumberForIndex(beamIndex);
     const char *beamName = rtReader->GetBeamName(dicomBeamNumber);
-  
+
     // Create the beam node
     vtkMRMLRTBeamNode* beamNode = beamsLogic->CreateDefaultRTBeamNode(beamName);
     // Add the RTBeam node to the plan.
@@ -1817,9 +1817,6 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
           segmentColor[2] = properties.Color[2];
         }
       }
-
-      printf (">>> name = %s\n", segmentName.c_str());
-      printf (">>> color = %g %g %g\n", segmentColor[0], segmentColor[1], segmentColor[2]);
 
       rtWriter->AddStructure(plmStructure->itk_uchar(), segmentName.c_str(), segmentColor);
     }

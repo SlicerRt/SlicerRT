@@ -67,8 +67,6 @@ vtkMRMLNodeNewMacro(vtkMRMLRTBeamNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 {
-  this->BeamName = 0;
-  this->SetBeamName ("Beam");
   this->BeamNumber = -1;
   this->BeamDescription = 0;
 
@@ -118,7 +116,6 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 //----------------------------------------------------------------------------
 vtkMRMLRTBeamNode::~vtkMRMLRTBeamNode()
 {
-  delete[] this->BeamName;
   delete[] this->BeamDescription;
   delete[] this->TargetSegmentID;
   this->SetAndObserveBeamModelNodeId(NULL);
@@ -133,10 +130,6 @@ void vtkMRMLRTBeamNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  if (this->GetBeamName() != NULL) 
-  {
-    of << indent << " BeamName=\"" << this->GetBeamName() << "\"";
-  }
   if (this->BeamModelNodeId != NULL) 
   {
     of << indent << " BeamModelNodeId=\"" << this->BeamModelNodeId << "\"";
@@ -161,11 +154,7 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "BeamName")) 
-    {
-      this->SetBeamName(attValue);
-    }
-    else if (!strcmp(attName, "BeamModelNodeId")) 
+    if (!strcmp(attName, "BeamModelNodeId")) 
     {
       this->SetAndObserveBeamModelNodeId(NULL); // clear any previous observers
       // Do not add observers yet because updates may be wrong before reading all the xml attributes
@@ -191,7 +180,6 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLRTBeamNode *node = (vtkMRMLRTBeamNode *) anode;
 
-  this->SetBeamName( node->GetBeamName() );
   this->SetSmearing( node->GetSmearing() );
   this->SetSAD(node->GetSAD());
   double iso[3];
@@ -288,10 +276,10 @@ bool vtkMRMLRTBeamNode::BeamNameIs (const std::string& beamName)
 //----------------------------------------------------------------------------
 bool vtkMRMLRTBeamNode::BeamNameIs (const char *beamName)
 {
-  if (this->GetBeamName() == NULL || beamName == NULL) {
+  if (this->GetName() == NULL || beamName == NULL) {
     return false;
   }
-  return !strcmp(this->GetBeamName(), beamName);
+  return !strcmp(this->GetName(), beamName);
 }
 
 //----------------------------------------------------------------------------

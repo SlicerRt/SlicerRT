@@ -412,10 +412,11 @@ void vtkMRMLRTPlanNode::AddRTBeamNode(vtkMRMLRTBeamNode *beamnode)
     this->GetRTPlanSegmentationNode());
 
   // Put the RTBeam node in the subject hierarchy
+  printf ("[Z] GCS %p %s\n", beamnode->GetSHNode(), beamnode->GetName());
   vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode (
     scene, planSHNode, 
     vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), 
-    beamnode->GetBeamName(), beamnode);
+    beamnode->GetName(), beamnode);
 }
 
 //---------------------------------------------------------------------------
