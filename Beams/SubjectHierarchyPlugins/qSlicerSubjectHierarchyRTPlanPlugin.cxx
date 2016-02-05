@@ -95,6 +95,22 @@ qSlicerSubjectHierarchyRTPlanPlugin::~qSlicerSubjectHierarchyRTPlanPlugin()
 {
 }
 
+//----------------------------------------------------------------------------
+double qSlicerSubjectHierarchyRTPlanPlugin::canAddNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/)const
+{
+  Q_UNUSED(parent);
+  if (!node)
+  {
+    qCritical() << "qSlicerSubjectHierarchyRTPlanPlugin::canAddNodeToSubjectHierarchy: Input node is NULL!";
+    return 0.0;
+  }
+  else if (node->IsA("vtkMRMLRTPlanNode"))
+  {
+    return 1.0;
+  }
+  return 0.0;
+}
+
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyRTPlanPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
 {

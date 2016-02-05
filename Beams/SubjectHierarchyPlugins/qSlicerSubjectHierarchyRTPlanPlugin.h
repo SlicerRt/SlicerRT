@@ -42,6 +42,10 @@ public:
   virtual ~qSlicerSubjectHierarchyRTPlanPlugin();
 
 public:
+  /// Determines if a non subject hierarchy node can be placed in the
+  /// hierarchy using this plugin.
+  virtual double canAddNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/) const;
+  
   /// Determines if the actual plugin can handle a subject hierarchy node. The plugin with
   /// the highest confidence number will "own" the node in the subject hierarchy (set icon, tooltip,
   /// set context menu etc.)

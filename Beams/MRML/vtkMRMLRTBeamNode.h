@@ -33,13 +33,14 @@
 // Slicer includes
 #include "vtkOrientedImageData.h"
 
-class vtkMRMLScalarVolumeNode;
 class vtkMRMLDisplayableNode;
-class vtkMRMLRTPlanNode;
-class vtkMRMLModelNode;
-class vtkMRMLMarkupsFiducialNode;
-class vtkMRMLSegmentationNode;
 class vtkMRMLDoubleArrayNode;
+class vtkMRMLMarkupsFiducialNode;
+class vtkMRMLModelNode;
+class vtkMRMLRTPlanNode;
+class vtkMRMLScalarVolumeNode;
+class vtkMRMLSegmentationNode;
+class vtkMRMLSubjectHierarchyNode;
 
 /// GCS 2015-09-04.  Why don't VTK macros support const functions?
 #define vtkGetConstMacro(name,type)             \
@@ -259,6 +260,9 @@ public:
 
   // Update the beam model for a new isocenter, gantry angle, etc.
   void UpdateBeamTransform();
+
+  /// Get Subject Hierarchy node associated with this node
+  vtkMRMLSubjectHierarchyNode* GetSHNode();
 
 protected:
   /// Copy isocenter coordinates into fiducial
