@@ -284,7 +284,7 @@ QString qSlicerSubjectHierarchySegmentsPlugin::tooltip(vtkMRMLSubjectHierarchyNo
     (int)(defaultColor[0]*255)).arg((int)(defaultColor[1]*255)).arg((int)(defaultColor[2]*255)) );
 
   // Tags
-  std::vector<std::string> tags;
+  std::map<std::string,std::string> tags;
   segment->GetTags(tags);
   tooltipString.append( QString(" (Tags: ") );
   if (tags.empty())
@@ -293,10 +293,10 @@ QString qSlicerSubjectHierarchySegmentsPlugin::tooltip(vtkMRMLSubjectHierarchyNo
   }
   else
   {
-    for (std::vector<std::string>::iterator tagIt=tags.begin(); tagIt!=tags.end(); ++tagIt)
+    for (std::map<std::string,std::string>::iterator tagIt=tags.begin(); tagIt!=tags.end(); ++tagIt)
     {
-      tooltipString.append( tagIt->c_str() );
-      tooltipString.append( ", " );
+      std::string tagString = tagIt->first + ": " + tagIt->second + ", ";
+      tooltipString.append( tagString.c_str() );
     }
     tooltipString = tooltipString.left(tooltipString.length()-2).append(")");
   }

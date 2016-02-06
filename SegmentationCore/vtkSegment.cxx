@@ -72,11 +72,11 @@ void vtkSegment::PrintSelf(ostream& os, vtkIndent indent)
     os << indent << "  " << reprIt->first << "\n";
   }
 
-  std::vector<std::string>::iterator tagIt;
+  std::map<std::string,std::string>::iterator tagIt;
   os << indent << "Tags:\n";
   for (tagIt=this->Tags.begin(); tagIt!=this->Tags.end(); ++tagIt)
   {
-    os << indent << "  " << (*tagIt) << "\n";
+    os << indent << "  " << tagIt->first << ": " << tagIt->second << "\n";
   }
 }
 
@@ -109,11 +109,12 @@ void vtkSegment::WriteXML(ostream& of, int nIndent)
     of << indent << "  " << reprIt->first << "\"";
   }
 
-  std::vector<std::string>::iterator tagIt;
+  //TODO: Implement ReadXMLAttributes to de-serialize tags
+  std::map<std::string,std::string>::iterator tagIt;
   of << indent << "Tags:\"";
   for (tagIt=this->Tags.begin(); tagIt!=this->Tags.end(); ++tagIt)
   {
-    of << indent << "  " << (*tagIt) << "\"";
+    of << indent << "  " << tagIt->first << "|" << tagIt->second << "\"";
   }
 }
 
@@ -243,25 +244,49 @@ void vtkSegment::GetContainedRepresentationNames(std::vector<std::string>& repre
 }
 
 //---------------------------------------------------------------------------
-void vtkSegment::AddTag(std::string tag)
+void vtkSegment::SetTag(std::string tag, std::string value)
 {
-  this->Tags.push_back(tag);
+  this->Tags[tag] = value;
   this->Modified();
+}
+
+//---------------------------------------------------------------------------
+void vtkSegment::SetTag(std::string tag, int value)
+{
+  std::stringstream ss;
+  ss << value;
+  this->SetTag(tag, ss.str());
 }
 
 //---------------------------------------------------------------------------
 void vtkSegment::RemoveTag(std::string tag)
 {
-  std::vector<std::string>::iterator tagsIt = std::find(this->Tags.begin(), this->Tags.end(), tag);
-  if (tagsIt != this->Tags.end())
-  {
-    this->Tags.erase(tagsIt);
-  }
+  this->Tags.erase(tag);
   this->Modified();
 }
 
 //---------------------------------------------------------------------------
-void vtkSegment::GetTags(std::vector<std::string> &tags)
+bool vtkSegment::GetTag(std::string tag, std::string &value)
+{
+  std::map<std::string,std::string>::iterator tagIt = this->Tags.find(tag);
+  if (tagIt == this->Tags.end())
+  {
+    return false;
+  }
+
+  value = tagIt->second;
+  return true;
+}
+
+//---------------------------------------------------------------------------
+bool vtkSegment::HasTag(std::string tag)
+{
+  std::string value;
+  return this->GetTag(tag, value);
+}
+
+//---------------------------------------------------------------------------
+void vtkSegment::GetTags(std::map<std::string,std::string> &tags)
 {
   tags = this->Tags;
 }

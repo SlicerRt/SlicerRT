@@ -187,6 +187,16 @@ void qSlicerSegmentEditorLabelEffect::editedLabelmapChanged()
   segmentationNode->GenerateMergedLabelmap(maskLabelmap, mergedImageToWorldMatrix, editedLabelmap);
   maskLabelmap->SetGeometryFromImageToWorldMatrix(mergedImageToWorldMatrix);
 
+  vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
+  threshold->SetInputData(maskLabelmap);
+  threshold->SetInValue(255);
+  threshold->SetOutValue(0);
+  threshold->ReplaceInOn();
+  threshold->ThresholdBetween(1, 254);
+  threshold->SetOutputScalarType(maskLabelmap->GetScalarType());
+  threshold->Update();
+  maskLabelmap->DeepCopy(threshold->GetOutput());
+
   // Set displayed image data to segmentation node
   //TODO:
 }
@@ -333,9 +343,6 @@ void qSlicerSegmentEditorLabelEffect::apply()
       qCritical() << "qSlicerSegmentEditorPaintEffect::apply: Edited labelmap should have the same geometry as the master volume!";
       return;
     }
-
-    // Get color table index for the edited segment
-    int segmentColorIndex = 3; //TODO
     
     // Create threshold image
     vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
@@ -343,7 +350,7 @@ void qSlicerSegmentEditorLabelEffect::apply()
     threshold->ThresholdBetween(
       this->doubleParameter(this->paintThresholdMinParameterName()),
       this->doubleParameter(this->paintThresholdMaxParameterName()) );
-    threshold->SetInValue(segmentColorIndex);
+    threshold->SetInValue(1);
     threshold->SetOutValue(0);
     threshold->SetOutputScalarType(editedLabelmap->GetScalarType());
     threshold->Update();

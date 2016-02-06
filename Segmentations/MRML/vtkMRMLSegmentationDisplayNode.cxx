@@ -219,12 +219,18 @@ vtkMRMLColorTableNode* vtkMRMLSegmentationDisplayNode::CreateColorTableNode(cons
   this->Scene->AddNode(segmentationColorTableNode);
 
   // Initialize color table
-  segmentationColorTableNode->SetNumberOfColors(2);
-  segmentationColorTableNode->GetLookupTable()->SetTableRange(0,1);
+  segmentationColorTableNode->SetNumberOfColors(256);
+  segmentationColorTableNode->GetLookupTable()->SetTableRange(0,255);
   segmentationColorTableNode->AddColor(this->GetSegmentationColorNameBackground(), 0.0, 0.0, 0.0, 0.0); // Black background
-  segmentationColorTableNode->AddColor(this->GetSegmentationColorNameInvalid(),
+  for (int colorIndex = 1; colorIndex < 255; ++colorIndex)
+  {
+    segmentationColorTableNode->AddColor(this->GetSegmentationColorNameEmpty(),
     vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1],
-    vtkSegment::SEGMENT_COLOR_VALUE_INVALID[2], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[3] ); // Color indicating invalid index
+    vtkSegment::SEGMENT_COLOR_VALUE_INVALID[2], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[3] ); // Color indicating empty index
+  }
+  segmentationColorTableNode->AddColor(this->GetSegmentationColorNameMask(),
+    vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1],
+    vtkSegment::SEGMENT_COLOR_VALUE_INVALID[2], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[3] ); // Color indicating mask too
 
   // Set reference to color table node
   this->SetAndObserveColorNodeID(segmentationColorTableNode->GetID());

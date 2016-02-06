@@ -152,7 +152,10 @@ public:
   std::string GetSegmentIdBySegment(vtkSegment* segment);
 
   /// Get segments that contain a certain tag
-  std::vector<vtkSegment*> GetSegmentsByTag(std::string tag);
+  /// \param tag Tag name to look for in segments
+  /// \param value Tag value to look for in segments. If omitted or empty then any value is accepted
+  /// \return Vector of segments containing the requested tag
+  std::vector<vtkSegment*> GetSegmentsByTag(std::string tag, std::string value="");
 
   /// Get representation from segment
   vtkDataObject* GetSegmentRepresentation(std::string segmentId, std::string representationName);

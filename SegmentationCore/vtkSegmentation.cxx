@@ -592,11 +592,27 @@ std::string vtkSegmentation::GetSegmentIdBySegment(vtkSegment* segment)
 }
 
 //---------------------------------------------------------------------------
-std::vector<vtkSegment*> vtkSegmentation::GetSegmentsByTag(std::string tag)
+std::vector<vtkSegment*> vtkSegmentation::GetSegmentsByTag(std::string tag, std::string value/*=""*/)
 {
-  //TODO:
-  vtkErrorMacro("Not implemented!");
-  return std::vector<vtkSegment*>();
+  std::vector<vtkSegment*> foundSegments;
+  for (SegmentMap::iterator segmentIt = this->Segments.begin(); segmentIt != this->Segments.end(); ++segmentIt)
+  {
+    std::string tagValue;
+    bool tagFound = segmentIt->second->GetTag(tag, tagValue);
+    if (!tagFound)
+    {
+      continue;
+    }
+    
+    // Add current segment to found segments if there is no requested value, or if the requested value
+    // matches the tag's value in the segment
+    if (value.empty() || !tagValue.compare(value))
+    {
+      foundSegments.push_back(segmentIt->second);
+    }
+  }
+
+  return foundSegments;
 }
 
 

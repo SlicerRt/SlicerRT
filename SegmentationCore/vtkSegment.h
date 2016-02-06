@@ -82,14 +82,23 @@ public:
   /// \param exceptionRepresentationName Exception name that will not be removed (e.g. invalidate non-master representations), empty by default
   void RemoveAllRepresentations(std::string exceptionRepresentationName="");
 
-  /// Add tag
-  void AddTag(std::string tag);
+  /// Set/add tag
+  void SetTag(std::string tag, std::string value);
+  /// Set/add integer tag
+  void SetTag(std::string tag, int value);
 
   /// Remove tag
   void RemoveTag(std::string tag);
 
+  /// Get tag
+  /// \param tag Name of requested tag
+  /// \param value Output argument for the value of the tag if found
+  /// \return True if tag is found, false otherwise
+  bool GetTag(std::string tag, std::string &value);
+  /// Determine if a tag is present
+  bool HasTag(std::string tag);
   /// Get tags
-  void GetTags(std::vector<std::string> &tags);
+  void GetTags(std::map<std::string,std::string> &tags);
 
   /// Get representation names present in this segment in an output string vector
   void GetContainedRepresentationNames(std::vector<std::string>& representationNames);
@@ -120,7 +129,7 @@ protected:
   double DefaultColor[3];
 
   /// Tags (for grouping and selection)
-  std::vector<std::string> Tags;
+  std::map<std::string,std::string> Tags;
 };
 
 #endif // __vtkSegment_h

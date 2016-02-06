@@ -524,7 +524,7 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
     displayNode = vtkSmartPointer<vtkMRMLSegmentationDisplayNode>::New();
     this->Scene->AddNode(displayNode);
     this->SetAndObserveDisplayNodeID(displayNode->GetID());
-    displayNode->SetBackfaceCulling(0); //TODO: Needed only because of the ribbon model normal vectors probably
+    displayNode->SetBackfaceCulling(0); // Needed only because of the ribbon model normal vectors
   }
   else
   {
@@ -543,20 +543,21 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
   vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(displayNode->GetColorNode());
   if (!colorTableNode)
   {
+    //TODO: Color table must be present at all times after terminology support is added
     colorTableNode = displayNode->CreateColorTableNode(this->Name);
   }
 
   int wasModifyingColorTableNode = colorTableNode->StartModify();
 
-  // Add entry in color table for segment
-  int numberOfColors = colorTableNode->GetNumberOfColors();
-  colorTableNode->SetNumberOfColors(numberOfColors+1);
-  colorTableNode->GetLookupTable()->SetTableRange(0, numberOfColors);
+  // Get first empty color
+  int colorIndex = colorTableNode->GetColorIndexByName(vtkMRMLSegmentationDisplayNode::GetSegmentationColorNameEmpty());
+  // Set color index as tag to segment
+  segment->SetTag(vtkMRMLSegmentationDisplayNode::GetColorIndexTag(), colorIndex);
 
   // Set segment color for merged labelmap
   double defaultColor[3] = {0.0,0.0,0.0};
   segment->GetDefaultColor(defaultColor);
-  colorTableNode->SetColor(numberOfColors, segmentId.c_str(), defaultColor[0], defaultColor[1], defaultColor[2], 1.0);
+  colorTableNode->SetColor(colorIndex, segmentId.c_str(), defaultColor[0], defaultColor[1], defaultColor[2], 1.0);
 
   // Add entry in segment display properties
   vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
