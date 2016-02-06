@@ -47,13 +47,11 @@ vtkMRMLNodeNewMacro(vtkMRMLSegmentEditorNode);
 vtkMRMLSegmentEditorNode::vtkMRMLSegmentEditorNode()
   : EditedLabelmap(NULL)
   , MaskLabelmap(NULL)
-  , ThresholdLabelmap(NULL)
   , SelectedSegmentID(NULL)
   , ActiveEffectName(NULL)
 {
   this->EditedLabelmap = vtkOrientedImageData::New();
   this->MaskLabelmap = vtkOrientedImageData::New();
-  this->ThresholdLabelmap = vtkOrientedImageData::New();
 }
 
 //----------------------------------------------------------------------------
@@ -71,11 +69,6 @@ vtkMRMLSegmentEditorNode::~vtkMRMLSegmentEditorNode()
   {
     this->MaskLabelmap->Delete();
     this->MaskLabelmap = NULL;
-  }
-  if (this->ThresholdLabelmap)
-  {
-    this->ThresholdLabelmap->Delete();
-    this->ThresholdLabelmap = NULL;
   }
 }
 
@@ -171,9 +164,6 @@ void vtkMRMLSegmentEditorNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "\n";
   os << indent << "MaskLabelmap:\n";
   this->MaskLabelmap->PrintSelf(os,indent);
-  os << indent << "\n";
-  os << indent << "ThresholdLabelmap:\n";
-  this->ThresholdLabelmap->PrintSelf(os,indent);
   os << indent << "\n";
 }
 

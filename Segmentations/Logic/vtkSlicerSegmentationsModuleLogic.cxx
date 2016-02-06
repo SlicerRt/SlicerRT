@@ -725,7 +725,7 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(vtkMRMLSegm
   // Generate merged labelmap for the exported segments
   vtkSmartPointer<vtkOrientedImageData> mergedImage = vtkSmartPointer<vtkOrientedImageData>::New();
   vtkSmartPointer<vtkMatrix4x4> mergedImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (!segmentationNode->GenerateMergedLabelmap(mergedImage, mergedImageToWorldMatrix, segmentIDs))
+  if (!segmentationNode->GenerateMergedLabelmap(mergedImage, mergedImageToWorldMatrix, NULL, segmentIDs))
   {
     vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToLabelmapNode: Failed to generate merged labelmap!");
     return false;

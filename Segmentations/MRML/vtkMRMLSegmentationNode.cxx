@@ -808,7 +808,12 @@ bool vtkMRMLSegmentationNode::GenerateDisplayedMergedLabelmap(vtkImageData* imag
 }
 
 //---------------------------------------------------------------------------
-bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(vtkImageData* mergedImageData, vtkMatrix4x4* mergedImageToWorldMatrix, const std::vector<std::string>& segmentIDs/*=std::vector<std::string>()*/)
+bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
+  vtkImageData* mergedImageData,
+  vtkMatrix4x4* mergedImageToWorldMatrix,
+  vtkOrientedImageData* mergedLabelmapGeometry/*=NULL*/,
+  const std::vector<std::string>& segmentIDs/*=std::vector<std::string>()*/
+  )
 {
   if (!mergedImageData)
   {
@@ -848,16 +853,25 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(vtkImageData* mergedImageDa
   }
 
   // Determine common labelmap geometry that will be used for the merged labelmap
-  std::string commonGeometryString = this->Segmentation->DetermineCommonLabelmapGeometry(mergedSegmentIDs);
-  if (commonGeometryString.empty())
+  vtkSmartPointer<vtkOrientedImageData> commonGeometryImage;
+  if (mergedLabelmapGeometry)
   {
-    // This can occur if there are only empty segments in the segmentation
-    mergedImageToWorldMatrix->Identity();
-    return true;
+    // Use merged labelmap geometry if provided
+    commonGeometryImage = mergedLabelmapGeometry;
+    mergedLabelmapGeometry->GetImageToWorldMatrix(mergedImageToWorldMatrix);
   }
-  vtkSmartPointer<vtkOrientedImageData> commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
-  vtkSegmentationConverter::DeserializeImageGeometry(commonGeometryString, commonGeometryImage);
-
+  else
+  {
+    commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
+    std::string commonGeometryString = this->Segmentation->DetermineCommonLabelmapGeometry(mergedSegmentIDs);
+    if (commonGeometryString.empty())
+    {
+      // This can occur if there are only empty segments in the segmentation
+      mergedImageToWorldMatrix->Identity();
+      return true;
+    }
+    vtkSegmentationConverter::DeserializeImageGeometry(commonGeometryString, commonGeometryImage);
+  }
   commonGeometryImage->GetImageToWorldMatrix(mergedImageToWorldMatrix);
   int referenceDimensions[3] = {0,0,0};
   commonGeometryImage->GetDimensions(referenceDimensions);

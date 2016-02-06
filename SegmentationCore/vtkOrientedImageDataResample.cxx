@@ -59,6 +59,12 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage
   {
     return false;
   }
+  // Simply copy input into output if the reference has the same geometry as the input, so no resampling is necessary
+  if (vtkOrientedImageDataResample::DoGeometriesMatch(inputImage, referenceImage))
+  {
+    outputImage->DeepCopy(inputImage);
+    return true;
+  }
 
   // Get transform between input and reference
   vtkSmartPointer<vtkTransform> inputImageToReferenceImageTransform = vtkSmartPointer<vtkTransform>::New();

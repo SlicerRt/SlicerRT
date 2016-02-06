@@ -999,6 +999,8 @@ void qSlicerSegmentEditorPaintEffect::updateMRMLFromGUI()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffect::editedLabelmapChanged()
 {
+  Superclass:: editedLabelmapChanged();
+
   if (!this->parameterSetNode())
   {
     qCritical() << "qSlicerSegmentEditorPaintEffect::editedLabelmapChanged: Invalid segment editor parameter set node!";

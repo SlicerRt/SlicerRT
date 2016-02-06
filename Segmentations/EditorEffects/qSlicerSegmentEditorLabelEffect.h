@@ -73,6 +73,9 @@ public:
   /// Set default parameters in the parameter MRML node
   virtual void setMRMLDefaults();
 
+  /// Perform actions needed on edited labelmap change
+  virtual void editedLabelmapChanged();
+
   /// Perform actions needed on master volume change
   virtual void masterVolumeNodeChanged();
 

@@ -113,9 +113,10 @@ public:
   /// \param mergedImageData Output image data for the merged labelmap image data
   /// \param mergedImageToWorldMatrix Image to world matrix for the output labelmap
   ///    (can be set to a volume node or to an oriented image data)
+  /// \param mergedLabelmapGeometry Determines geometry of merged labelmap if not NULL, automatically determined otherwise
   /// \param segmentIDs List of IDs of segments to include in the merged labelmap. If empty or missing, then all segments are included
   /// \return Success flag
-  virtual bool GenerateMergedLabelmap(vtkImageData* mergedImageData, vtkMatrix4x4* mergedImageToWorldMatrix, const std::vector<std::string>& segmentIDs=std::vector<std::string>());
+  virtual bool GenerateMergedLabelmap(vtkImageData* mergedImageData, vtkMatrix4x4* mergedImageToWorldMatrix, vtkOrientedImageData* mergedLabelmapGeometry=NULL, const std::vector<std::string>& segmentIDs=std::vector<std::string>());
 //ETX
 
   /// Re-generate displayed merged labelmap

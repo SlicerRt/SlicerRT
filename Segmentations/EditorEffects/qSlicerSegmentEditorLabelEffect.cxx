@@ -26,6 +26,7 @@
 #include "vtkOrientedImageDataResample.h"
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkMRMLSegmentEditorNode.h"
+#include "vtkSlicerSegmentationsModuleLogic.h"
 
 // Qt includes
 #include <QDebug>
@@ -39,6 +40,7 @@
 #include <vtkMatrix4x4.h>
 #include <vtkImageConstantPad.h>
 #include <vtkImageMask.h>
+#include <vtkImageThreshold.h>
 
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"
@@ -100,12 +102,12 @@ void qSlicerSegmentEditorLabelEffectPrivate::applyMaskImage(vtkOrientedImageData
     return;
   }
 
-  // Make sure mask has the same lattice as the edited labelmap
+  // Make sure mask has the same lattice as the edited editedLabelmap
   vtkSmartPointer<vtkOrientedImageData> resampledMask = vtkSmartPointer<vtkOrientedImageData>::New();
   vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
     mask, input, resampledMask);
 
-  // Make sure mask has the same extent as the edited labelmap
+  // Make sure mask has the same extent as the edited editedLabelmap
   vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
   padder->SetInputData(mask);
   padder->SetOutputWholeExtent(input->GetExtent());
@@ -115,7 +117,7 @@ void qSlicerSegmentEditorLabelEffectPrivate::applyMaskImage(vtkOrientedImageData
   // Apply mask
   vtkSmartPointer<vtkImageMask> masker = vtkSmartPointer<vtkImageMask>::New();
   masker->SetImageInputData(input);
-  masker->SetMaskInputData(mask);
+  masker->SetMaskInputData(resampledMask);
   masker->SetNotMask(notMask);
   masker->SetMaskedOutputValue(0);
   masker->Update();
@@ -160,6 +162,33 @@ qSlicerSegmentEditorLabelEffect::qSlicerSegmentEditorLabelEffect(QObject* parent
 //----------------------------------------------------------------------------
 qSlicerSegmentEditorLabelEffect::~qSlicerSegmentEditorLabelEffect()
 {
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorLabelEffect::editedLabelmapChanged()
+{
+  if (!this->parameterSetNode())
+  {
+    qCritical() << "qSlicerSegmentEditorPaintEffect::editedLabelmapChanged: Invalid segment editor parameter set node!";
+    return;
+  }
+
+  vtkOrientedImageData* editedLabelmap = this->parameterSetNode()->GetEditedLabelmap();
+  vtkMRMLSegmentationNode* segmentationNode = this->parameterSetNode()->GetSegmentationNode();
+  if (!editedLabelmap || !segmentationNode)
+  {
+    qCritical() << "qSlicerSegmentEditorPaintEffect::editedLabelmapChanged: Invalid segment selection!";
+    return;
+  }
+
+  // Update mask
+  vtkOrientedImageData* maskLabelmap = this->parameterSetNode()->GetMaskLabelmap();
+  vtkSmartPointer<vtkMatrix4x4> mergedImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  segmentationNode->GenerateMergedLabelmap(maskLabelmap, mergedImageToWorldMatrix, editedLabelmap);
+  maskLabelmap->SetGeometryFromImageToWorldMatrix(mergedImageToWorldMatrix);
+
+  // Set displayed image data to segmentation node
+  //TODO:
 }
 
 //-----------------------------------------------------------------------------
@@ -275,20 +304,57 @@ void qSlicerSegmentEditorLabelEffect::apply()
 
   vtkOrientedImageData* editedLabelmap = this->parameterSetNode()->GetEditedLabelmap();
   vtkOrientedImageData* maskLabelmap = this->parameterSetNode()->GetMaskLabelmap();
-  vtkOrientedImageData* thresholdLabelmap = this->parameterSetNode()->GetThresholdLabelmap();
 
-  // Apply mask to edited labelmap if paint over is turned off
+  // Apply mask to edited editedLabelmap if paint over is turned off
   if (!this->integerParameter(this->paintOverParameterName()))
   {
-    //TODO:
-    //d->applyMaskImage(editedLabelmap, maskLabelmap, 1);
+    d->applyMaskImage(editedLabelmap, maskLabelmap, 1);
   }
 
   // Apply threshold mask if paint threshold is turned on
-  if (!this->integerParameter(this->paintThresholdParameterName()))
+  if (this->integerParameter(this->paintThresholdParameterName()))
   {
-    //TODO:
-    //d->applyMaskImage(editedLabelmap, thresholdLabelmap, 1);
+    vtkMRMLScalarVolumeNode* masterVolumeNode = this->parameterSetNode()->GetMasterVolumeNode();
+    if (!masterVolumeNode)
+    {
+      qCritical() << "qSlicerSegmentEditorPaintEffect::apply: Invalid master volume!";
+      return;
+    }
+    vtkSmartPointer<vtkOrientedImageData> masterVolumeOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::Take(
+      vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(masterVolumeNode) );
+    if (!masterVolumeOrientedImageData)
+    {
+      qCritical() << "qSlicerSegmentEditorPaintEffect::apply: Unable to get master volume image!";
+      return;
+    }
+    // Make sure the edited labelmap has the same geometry as the master volume
+    if (!vtkOrientedImageDataResample::DoGeometriesMatch(editedLabelmap, masterVolumeOrientedImageData))
+    {
+      qCritical() << "qSlicerSegmentEditorPaintEffect::apply: Edited labelmap should have the same geometry as the master volume!";
+      return;
+    }
+
+    // Get color table index for the edited segment
+    int segmentColorIndex = 3; //TODO
+    
+    // Create threshold image
+    vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
+    threshold->SetInputData(masterVolumeOrientedImageData);
+    threshold->ThresholdBetween(
+      this->doubleParameter(this->paintThresholdMinParameterName()),
+      this->doubleParameter(this->paintThresholdMaxParameterName()) );
+    threshold->SetInValue(segmentColorIndex);
+    threshold->SetOutValue(0);
+    threshold->SetOutputScalarType(editedLabelmap->GetScalarType());
+    threshold->Update();
+
+    vtkSmartPointer<vtkOrientedImageData> thresholdMask = vtkSmartPointer<vtkOrientedImageData>::New();
+    thresholdMask->DeepCopy(threshold->GetOutput());
+    vtkSmartPointer<vtkMatrix4x4> editedLabelmapToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    editedLabelmap->GetImageToWorldMatrix(editedLabelmapToWorldMatrix);
+    thresholdMask->SetGeometryFromImageToWorldMatrix(editedLabelmapToWorldMatrix);
+
+    d->applyMaskImage(editedLabelmap, thresholdMask, 0);
   }
 
   // Notify editor about changes

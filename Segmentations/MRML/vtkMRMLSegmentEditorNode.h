@@ -98,8 +98,6 @@ public:
   vtkGetObjectMacro(EditedLabelmap, vtkOrientedImageData);
   /// Get mask labelmap
   vtkGetObjectMacro(MaskLabelmap, vtkOrientedImageData);
-  /// Get threshold labelmap
-  vtkGetObjectMacro(ThresholdLabelmap, vtkOrientedImageData);
 
 protected:
   vtkMRMLSegmentEditorNode();
@@ -120,9 +118,6 @@ protected:
   /// Mask labelmap containing a merged silhouette of all the segments other than the selected one.
   /// Used if the paint over feature is turned off.
   vtkOrientedImageData* MaskLabelmap;
-
-  /// Threshold labelmap containing the thresholded master volume based on the threshold settings.
-  vtkOrientedImageData* ThresholdLabelmap;
 };
 
 #endif // __vtkMRMLSegmentEditorNode_h
