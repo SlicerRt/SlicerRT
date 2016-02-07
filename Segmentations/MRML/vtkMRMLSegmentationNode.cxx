@@ -839,10 +839,10 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
   }
 
   // If segment IDs list is empty then include all segments
+  vtkSegmentation::SegmentMap segmentMap = this->Segmentation->GetSegments();
   std::vector<std::string> mergedSegmentIDs;
   if (segmentIDs.empty())
   {
-    vtkSegmentation::SegmentMap segmentMap = this->Segmentation->GetSegments();
     for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
     {
       mergedSegmentIDs.push_back(segmentIt->first);
@@ -909,45 +909,24 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
     return true;
   }
 
-  // Get color table node
-  vtkMRMLColorTableNode* colorTableNode = NULL;
+  // Get display node
   vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(this->GetDisplayNode());
-  if (displayNode)
+  if (!displayNode)
   {
-    // Add entry in color table for segment
-    colorTableNode = vtkMRMLColorTableNode::SafeDownCast(displayNode->GetColorNode());
-    if (!colorTableNode)
-    {
-      vtkErrorMacro("GenerateMergedLabelmap: No color table node associated with segmentation!");
-      return false;
-    }
+    vtkErrorMacro("GenerateMergedLabelmap: No display node associated with segmentation!");
+    return false;
   }
 
-  // Create merged labelmap. Use color table to determine labels for segments
-  for (unsigned short colorIndex = 2; colorIndex < colorTableNode->GetNumberOfColors(); ++colorIndex) // Color index starts from 2 (0 is background, 1 is invalid)
+  // Create merged labelmap
+  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
   {
-    std::string segmentId(colorTableNode->GetColorName(colorIndex));
-    bool segmentIncluded = ( std::find(mergedSegmentIDs.begin(), mergedSegmentIDs.end(), std::string(segmentId)) != mergedSegmentIDs.end() );
-    if (!segmentIncluded || segmentId.empty() || !segmentId.compare(vtkMRMLSegmentationDisplayNode::GetSegmentationColorNameRemoved()))
-    {
-      // Workaround for handling color node storage limitation that it replaces spaces with underscores when saving and restores when loading,
-      // so if the segment name contains underscores then those are replaced with spaces
-      std::string segmentIdNoSpaces = colorTableNode->GetColorNameWithoutSpaces(colorIndex, "_");
-      if ( std::find(mergedSegmentIDs.begin(), mergedSegmentIDs.end(), segmentIdNoSpaces) == mergedSegmentIDs.end() )
-      {
-        // No actual segment is associated with the color index (segment was removed from segmentation),
-        // or segment is not included in the list of merged segments
-        continue;
-      }
-      else
-      {
-        segmentId = segmentIdNoSpaces;
-      }
-    }
+    std::string currentSegmentId(segmentIt->first);
+    vtkSegment* currentSegment = segmentIt->second;
+    bool segmentIncluded = ( std::find(mergedSegmentIDs.begin(), mergedSegmentIDs.end(), std::string(currentSegmentId)) != mergedSegmentIDs.end() );
 
     // Skip segment if hidden
     vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-    if (!displayNode->GetSegmentDisplayProperties(segmentId, properties))
+    if (!displayNode->GetSegmentDisplayProperties(currentSegmentId, properties))
     {
       continue;
     }
@@ -956,13 +935,20 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
       continue;
     }
 
-    // Get binary labelmap from segment
-    vtkSegment* currentSegment = this->Segmentation->GetSegment(segmentId);
-    if (!currentSegment)
+    // Get color table index for the segment
+    int colorIndex = -1;
+    std::string colorIndexStr;
+    bool tagFound = currentSegment->GetTag(vtkMRMLSegmentationDisplayNode::GetColorIndexTag(), colorIndexStr);
+    if (!tagFound)
     {
-      vtkErrorMacro("GenerateMergedLabelmap: Mismatch in color names and segment IDs!");
+      vtkErrorMacro("GenerateMergedLabelmap: No color table index found for segment " << currentSegmentId);
       continue;
     }
+    std::stringstream colorSS;
+    colorSS << colorIndexStr;
+    colorSS >> colorIndex;
+
+    // Get binary labelmap from segment
     vtkOrientedImageData* representationBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
       currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
     // If binary labelmap is empty then skip
@@ -1003,7 +989,7 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
       && segmentLabelScalarType != VTK_UNSIGNED_SHORT
       && segmentLabelScalarType != VTK_SHORT )
     {
-      vtkWarningMacro("GenerateMergedLabelmap: Segment " << segmentId << " cannot be merged! Binary labelmap scalar type must be unsigned char, unsighed short, or short!");
+      vtkWarningMacro("GenerateMergedLabelmap: Segment " << currentSegmentId << " cannot be merged! Binary labelmap scalar type must be unsigned char, unsighed short, or short!");
       continue;
     }
     void* voidScalarPointer = binaryLabelmap->GetScalarPointer();
