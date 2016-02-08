@@ -94,28 +94,35 @@ bool vtkSegment::GetModifiedSinceRead(const vtkTimeStamp& storedTime)
   return false;
 }
 
+//----------------------------------------------------------------------------
+void vtkSegment::ReadXMLAttributes(const char** atts)
+{
+  // Note: Segment info is read by the storage node
+}
+
 //---------------------------------------------------------------------------
 void vtkSegment::WriteXML(ostream& of, int nIndent)
 {
+  // Note: Segment info is written by the storage node, this function is not called
   vtkIndent indent(nIndent);
 
-  of << indent << "Name:\"" << (this->Name ? this->Name : "NULL") << "\"";
+  of << indent << "Name=\"" << (this->Name ? this->Name : "NULL") << "\"";
   of << indent << "DefaultColor:\"(" << this->DefaultColor[0] << ", " << this->DefaultColor[1] << ", " << this->DefaultColor[2] << ")\"";
 
   RepresentationMap::iterator reprIt;
-  of << indent << "Representations:\"";
+  of << indent << "Representations=\"";
   for (reprIt=this->Representations.begin(); reprIt!=this->Representations.end(); ++reprIt)
   {
     of << indent << "  " << reprIt->first << "\"";
   }
 
-  //TODO: Implement ReadXMLAttributes to de-serialize tags
   std::map<std::string,std::string>::iterator tagIt;
-  of << indent << "Tags:\"";
+  of << indent << "Tags=\"";
   for (tagIt=this->Tags.begin(); tagIt!=this->Tags.end(); ++tagIt)
   {
-    of << indent << "  " << tagIt->first << "|" << tagIt->second << "\"";
+    of << tagIt->first << ":" << tagIt->second << "|";
   }
+  of << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -244,18 +251,21 @@ void vtkSegment::GetContainedRepresentationNames(std::vector<std::string>& repre
 }
 
 //---------------------------------------------------------------------------
-void vtkSegment::SetTag(std::string tag, std::string value)
+void vtkSegment::SetTag(std::string tag, std::string value, bool emitModified/*=false*/)
 {
   this->Tags[tag] = value;
-  this->Modified();
+  if (emitModified)
+  {
+    this->Modified();
+  }
 }
 
 //---------------------------------------------------------------------------
-void vtkSegment::SetTag(std::string tag, int value)
+void vtkSegment::SetTag(std::string tag, int value, bool emitModified/*=false*/)
 {
   std::stringstream ss;
   ss << value;
-  this->SetTag(tag, ss.str());
+  this->SetTag(tag, ss.str(), emitModified);
 }
 
 //---------------------------------------------------------------------------

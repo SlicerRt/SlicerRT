@@ -68,10 +68,10 @@ public:
   vtkTypeMacro(vtkSegmentation, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// Set node attributes from name/value pairs 
+  /// Set attributes from name/value pairs 
   virtual void ReadXMLAttributes(const char** atts);
 
-  /// Write this node's information to a MRML file in XML format. 
+  /// Write this object's information to a MRML file in XML format. 
   virtual void WriteXML(ostream& of, int indent);
 
   /// Deep copy one segmentation into another

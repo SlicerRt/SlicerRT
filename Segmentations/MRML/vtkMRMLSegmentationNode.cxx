@@ -517,12 +517,14 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
   }
 
   // Get display node and create it if does not exist
+  int wasModifyingDisplayNode = -1;
   vtkSmartPointer<vtkMRMLSegmentationDisplayNode> displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(this->GetDisplayNode());
   if (!displayNode)
   {
     // Create default display node if not found
     displayNode = vtkSmartPointer<vtkMRMLSegmentationDisplayNode>::New();
     this->Scene->AddNode(displayNode);
+    wasModifyingDisplayNode = displayNode->StartModify();
     this->SetAndObserveDisplayNodeID(displayNode->GetID());
     displayNode->SetBackfaceCulling(0); // Needed only because of the ribbon model normal vectors
   }
@@ -535,9 +537,8 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
       vtkDebugMacro("AddSegmentDisplayProperties: Display properties for segment " << segmentId << " was already present, leaving it unchanged");
       return true;
     }
+    wasModifyingDisplayNode = displayNode->StartModify();
   }
-
-  int wasModifyingDisplayNode = displayNode->StartModify();
 
   // Create color table for segmentation if does not exist
   vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(displayNode->GetColorNode());
@@ -793,14 +794,14 @@ bool vtkMRMLSegmentationNode::GenerateDisplayedMergedLabelmap(vtkImageData* imag
   vtkSmartPointer<vtkMatrix4x4> mergedImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   if (this->GenerateMergedLabelmap(imageData, mergedImageToWorldMatrix))
   {
+    // Save labelmap merge timestamp
+    this->LabelmapMergeTime.Modified();
+
     // Save common labelmap geometry in segmentation node
     this->SetIJKToRASMatrix(mergedImageToWorldMatrix);
 
     // Make sure merged labelmap extents starts at zeros for compatibility reasons
     vtkMRMLSegmentationNode::ShiftVolumeNodeExtentToZeroStart(this);
-
-    // Save labelmap merge timestamp
-    this->LabelmapMergeTime.Modified();
 
     return true;
   }

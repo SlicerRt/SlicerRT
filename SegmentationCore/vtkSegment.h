@@ -45,7 +45,10 @@ public:
   vtkTypeMacro(vtkSegment, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// Write this node's information to a MRML file in XML format. 
+  /// Set attributes from name/value pairs 
+  virtual void ReadXMLAttributes(const char** atts);
+
+  /// Write this object's information to a MRML file in XML format. 
   void WriteXML(ostream& of, int nIndent);
 
   /// Deep copy one segment into another
@@ -83,9 +86,12 @@ public:
   void RemoveAllRepresentations(std::string exceptionRepresentationName="");
 
   /// Set/add tag
-  void SetTag(std::string tag, std::string value);
+  /// \param emitModified Flag determining whether modified event is emitted. As usually tags are
+  ///   used to store metadata that do not trigger display or other changes (so default is false),
+  ///   modified event is not necessary. For the cases it is, the flag can be set to true.
+  void SetTag(std::string tag, std::string value, bool emitModified=false);
   /// Set/add integer tag
-  void SetTag(std::string tag, int value);
+  void SetTag(std::string tag, int value, bool emitModified=false);
 
   /// Remove tag
   void RemoveTag(std::string tag);

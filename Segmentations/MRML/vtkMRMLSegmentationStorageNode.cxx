@@ -339,12 +339,15 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmenta
     vtkSmartPointer<vtkSegment> currentSegment = vtkSmartPointer<vtkSegment>::New();
     
     // Get metadata for current segment
+
+    // ID
     std::stringstream ssIdKey;
     ssIdKey << segmentIndex << SEGMENT_ID;
     std::string idKey = ssIdKey.str();
     std::string currentSegmentID;
     itk::ExposeMetaData<std::string>(metadata, idKey.c_str(), currentSegmentID);
 
+    // Name
     std::stringstream ssNameKey;
     ssNameKey << segmentIndex << SEGMENT_NAME;
     std::string nameKey = ssNameKey.str();
@@ -352,6 +355,7 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmenta
     itk::ExposeMetaData<std::string>(metadata, nameKey.c_str(), currentSegmentName);
     currentSegment->SetName(currentSegmentName.c_str());
 
+    // DefaultColor
     std::stringstream ssDefaultColorKey;
     ssDefaultColorKey << segmentIndex << SEGMENT_DEFAULT_COLOR;
     std::string defaultColorKey = ssDefaultColorKey.str();
@@ -363,6 +367,7 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmenta
     ssDefaultColorValue >> currentSegmentDefaultColor[0] >> currentSegmentDefaultColor[1] >> currentSegmentDefaultColor[2];
     currentSegment->SetDefaultColor(currentSegmentDefaultColor);
 
+    // Extent
     std::stringstream ssExtentKey;
     ssExtentKey << segmentIndex << SEGMENT_EXTENT;
     std::string extentKey = ssExtentKey.str();
@@ -373,7 +378,26 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmenta
     int currentSegmentExtent[6] = {0,-1,0,-1,0,-1};
     ssExtentValue >> currentSegmentExtent[0] >> currentSegmentExtent[1] >> currentSegmentExtent[2] >> currentSegmentExtent[3] >> currentSegmentExtent[4] >> currentSegmentExtent[5];
 
-    //TODO: Parse tags with key SEGMENT_TAGS
+    // Tags
+    std::stringstream ssTagsKey;
+    ssTagsKey << segmentIndex << SEGMENT_TAGS;
+    std::string tagsKey = ssTagsKey.str();
+    std::string tagsValue;
+    itk::ExposeMetaData<std::string>(metadata, tagsKey.c_str(), tagsValue);
+    std::string separatorCharacter("|");
+    size_t separatorPosition = tagsValue.find(separatorCharacter);
+    while (separatorPosition != std::string::npos)
+    {
+      std::string mapPairStr = tagsValue.substr(0, separatorPosition);
+      size_t colonPosition = mapPairStr.find(":");
+      if (colonPosition == std::string::npos)
+      {
+        continue;
+      }
+      currentSegment->SetTag(mapPairStr.substr(0, colonPosition), mapPairStr.substr(colonPosition+1));
+      tagsValue = tagsValue.substr(separatorPosition+1);
+      separatorPosition = tagsValue.find(separatorCharacter);
+    }
 
     // Create binary labelmap volume
     vtkSmartPointer<vtkOrientedImageData> currentBinaryLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
@@ -509,7 +533,9 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkSegmentation* 
       currentPolyData->GetFieldData()->GetAbstractArray(SEGMENT_NAME.c_str()) );
     vtkDoubleArray* defaultColorArray = vtkDoubleArray::SafeDownCast(
       currentPolyData->GetFieldData()->GetArray(SEGMENT_DEFAULT_COLOR.c_str()) );
-    if (!idArray || !nameArray || !defaultColorArray)
+    vtkStringArray* tagsArray = vtkStringArray::SafeDownCast(
+      currentPolyData->GetFieldData()->GetAbstractArray(SEGMENT_TAGS.c_str()) );
+    if (!idArray || !nameArray || !defaultColorArray || !tagsArray)
     {
       vtkErrorMacro("ReadPolyDataRepresentation: Unable to find segment properties for segment number " << blockIndex << " referenced from segmentation file " << path);
       continue;
@@ -518,7 +544,23 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkSegmentation* 
     currentSegment->SetName(nameArray->GetValue(0).c_str());
     currentSegment->SetDefaultColor(defaultColorArray->GetComponent(0,0), defaultColorArray->GetComponent(0,1), defaultColorArray->GetComponent(0,2));
 
-    //TODO: Parse tags with key SEGMENT_TAGS
+    // Tags
+    std::string tags(tagsArray->GetValue(0).c_str());
+    std::string separatorCharacter("|");
+    size_t separatorPosition = tags.find(separatorCharacter);
+    while (separatorPosition != std::string::npos)
+    {
+      std::string mapPairStr = tags.substr(0, separatorPosition);
+      size_t colonPosition = mapPairStr.find(":");
+      if (colonPosition == std::string::npos)
+      {
+        continue;
+      }
+      currentSegment->SetTag(mapPairStr.substr(0, colonPosition), mapPairStr.substr(colonPosition+1));
+      tags = tags.substr(separatorPosition+1);
+      separatorPosition = tags.find(separatorCharacter);
+    }
+
 
     // Add segment to segmentation
     segmentation->AddSegment(currentSegment, currentSegmentID);
@@ -694,16 +736,20 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
     }
 
     // Set metadata for current segment
+
+    // ID
     std::stringstream ssIdKey;
     ssIdKey << segmentIndex << SEGMENT_ID;
     std::string idKey = ssIdKey.str();
     itk::EncapsulateMetaData<std::string>(metadata, idKey.c_str(), currentSegmentID);
 
+    // Name
     std::stringstream ssNameKey;
     ssNameKey << segmentIndex << SEGMENT_NAME;
     std::string nameKey = ssNameKey.str();
     itk::EncapsulateMetaData<std::string>(metadata, nameKey.c_str(), std::string(currentSegment->GetName()));
 
+    // DefaultColor
     std::stringstream ssDefaultColorKey;
     ssDefaultColorKey << segmentIndex << SEGMENT_DEFAULT_COLOR;
     std::string defaultColorKey = ssDefaultColorKey.str();
@@ -712,6 +758,7 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
     std::string defaultColorValue = ssDefaultColorValue.str();
     itk::EncapsulateMetaData<std::string>(metadata, defaultColorKey.c_str(), defaultColorValue);
 
+    // Extent
     std::stringstream ssExtentKey;
     ssExtentKey << segmentIndex << SEGMENT_EXTENT;
     std::string extentKey = ssExtentKey.str();
@@ -723,7 +770,20 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
     std::string extentValue = ssExtentValue.str();
     itk::EncapsulateMetaData<std::string>(metadata, extentKey.c_str(), extentValue);
 
-    //TODO: Store tags with key SEGMENT_TAGS
+    // Tags
+    std::stringstream ssTagsKey;
+    ssTagsKey << segmentIndex << SEGMENT_TAGS;
+    std::string tagsKey = ssTagsKey.str();
+    std::map<std::string,std::string> tags;
+    currentSegment->GetTags(tags);
+    std::stringstream ssTagsValue;
+    std::map<std::string,std::string>::iterator tagIt;
+    for (tagIt=tags.begin(); tagIt!=tags.end(); ++tagIt)
+    {
+      ssTagsValue << tagIt->first << ":" << tagIt->second << "|";
+    }
+    std::string tagsValue = ssTagsValue.str();
+    itk::EncapsulateMetaData<std::string>(metadata, tagsKey.c_str(), tagsValue);
 
     // Define ITK region for the current segment
     BinaryLabelmap4DImageType::IndexType segmentRegionIndex;
@@ -862,24 +922,29 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkSegmentation*
     currentPolyDataCopy->ShallowCopy(currentPolyData);
 
     // Set metadata for current segment
+
+    // MasterRepresentation
     vtkSmartPointer<vtkStringArray> masterRepresentationArray = vtkSmartPointer<vtkStringArray>::New();
     masterRepresentationArray->SetNumberOfValues(1);
     masterRepresentationArray->SetValue(0,masterRepresentation);
     masterRepresentationArray->SetName(MASTER_REPRESENTATION.c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(masterRepresentationArray);
 
+    // ID
     vtkSmartPointer<vtkStringArray> idArray = vtkSmartPointer<vtkStringArray>::New();
     idArray->SetNumberOfValues(1);
     idArray->SetValue(0,currentSegmentID.c_str());
     idArray->SetName(SEGMENT_ID.c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(idArray);
 
+    // Name
     vtkSmartPointer<vtkStringArray> nameArray = vtkSmartPointer<vtkStringArray>::New();
     nameArray->SetNumberOfValues(1);
     nameArray->SetValue(0,currentSegment->GetName());
     nameArray->SetName(SEGMENT_NAME.c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(nameArray);
 
+    // DefaultColor
     vtkSmartPointer<vtkDoubleArray> defaultColorArray = vtkSmartPointer<vtkDoubleArray>::New();
     defaultColorArray->SetNumberOfComponents(3);
     defaultColorArray->SetNumberOfTuples(1);
@@ -887,7 +952,20 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkSegmentation*
     defaultColorArray->SetName(SEGMENT_DEFAULT_COLOR.c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(defaultColorArray);
 
-    //TODO: Store tags with key SEGMENT_TAGS
+    // Tags
+    std::map<std::string,std::string> tags;
+    currentSegment->GetTags(tags);
+    std::stringstream ssTags;
+    std::map<std::string,std::string>::iterator tagIt;
+    for (tagIt=tags.begin(); tagIt!=tags.end(); ++tagIt)
+    {
+      ssTags << tagIt->first << ":" << tagIt->second << "|";
+    }
+    vtkSmartPointer<vtkStringArray> tagsArray = vtkSmartPointer<vtkStringArray>::New();
+    tagsArray->SetNumberOfValues(1);
+    tagsArray->SetValue(0,ssTags.str().c_str());
+    tagsArray->SetName(SEGMENT_TAGS.c_str());
+    currentPolyDataCopy->GetFieldData()->AddArray(tagsArray);
 
     // Save conversion parameters as metadata (save in each segment file)
     std::string conversionParameters = segmentation->SerializeAllConversionParameters();
