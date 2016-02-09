@@ -535,7 +535,7 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkSegmentation* 
       currentPolyData->GetFieldData()->GetArray(SEGMENT_DEFAULT_COLOR.c_str()) );
     vtkStringArray* tagsArray = vtkStringArray::SafeDownCast(
       currentPolyData->GetFieldData()->GetAbstractArray(SEGMENT_TAGS.c_str()) );
-    if (!idArray || !nameArray || !defaultColorArray || !tagsArray)
+    if (!idArray || !nameArray || !defaultColorArray)
     {
       vtkErrorMacro("ReadPolyDataRepresentation: Unable to find segment properties for segment number " << blockIndex << " referenced from segmentation file " << path);
       continue;
@@ -545,22 +545,24 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkSegmentation* 
     currentSegment->SetDefaultColor(defaultColorArray->GetComponent(0,0), defaultColorArray->GetComponent(0,1), defaultColorArray->GetComponent(0,2));
 
     // Tags
-    std::string tags(tagsArray->GetValue(0).c_str());
-    std::string separatorCharacter("|");
-    size_t separatorPosition = tags.find(separatorCharacter);
-    while (separatorPosition != std::string::npos)
+    if (tagsArray)
     {
-      std::string mapPairStr = tags.substr(0, separatorPosition);
-      size_t colonPosition = mapPairStr.find(":");
-      if (colonPosition == std::string::npos)
+      std::string tags(tagsArray->GetValue(0).c_str());
+      std::string separatorCharacter("|");
+      size_t separatorPosition = tags.find(separatorCharacter);
+      while (separatorPosition != std::string::npos)
       {
-        continue;
+        std::string mapPairStr = tags.substr(0, separatorPosition);
+        size_t colonPosition = mapPairStr.find(":");
+        if (colonPosition == std::string::npos)
+        {
+          continue;
+        }
+        currentSegment->SetTag(mapPairStr.substr(0, colonPosition), mapPairStr.substr(colonPosition+1));
+        tags = tags.substr(separatorPosition+1);
+        separatorPosition = tags.find(separatorCharacter);
       }
-      currentSegment->SetTag(mapPairStr.substr(0, colonPosition), mapPairStr.substr(colonPosition+1));
-      tags = tags.substr(separatorPosition+1);
-      separatorPosition = tags.find(separatorCharacter);
     }
-
 
     // Add segment to segmentation
     segmentation->AddSegment(currentSegment, currentSegmentID);
