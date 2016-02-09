@@ -481,7 +481,7 @@ void vtkMRMLSegmentationNode::OnSubjectHierarchyUIDAdded(vtkMRMLSubjectHierarchy
     if (nodeUidValueStr.find(*uidIt) != std::string::npos)
     {
       // Only set the reference once, but check all UIDs
-      if (!referencedVolumeFound)
+      if (!referencedVolumeFound && referencedVolumeNode != this)
       {
         // Set reference image geometry parameter if volume node is found
         this->SetReferenceImageGeometryParameterFromVolumeNode(referencedVolumeNode);
@@ -1130,7 +1130,7 @@ void vtkMRMLSegmentationNode::ShiftVolumeNodeExtentToZeroStart(vtkMRMLScalarVolu
 //---------------------------------------------------------------------------
 void vtkMRMLSegmentationNode::SetReferenceImageGeometryParameterFromVolumeNode(vtkMRMLScalarVolumeNode* volumeNode)
 {
-  if (!volumeNode || !volumeNode->GetImageData())
+  if (!volumeNode || volumeNode == this || !volumeNode->GetImageData())
   {
     return;
   }

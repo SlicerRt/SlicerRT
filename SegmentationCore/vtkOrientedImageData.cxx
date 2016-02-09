@@ -346,8 +346,6 @@ void vtkOrientedImageData::ComputeBounds()
   vtkNew<vtkMatrix4x4> geometryMatrix;
   this->GetImageToWorldMatrix(geometryMatrix.GetPointer());
 
-  int dims[3] = {0, 0, 0};
-  this->GetDimensions(dims);
   for (int xSide=0; xSide<2; ++xSide)
     {
     for (int ySide=0; ySide<2; ++ySide)
@@ -355,8 +353,8 @@ void vtkOrientedImageData::ComputeBounds()
       for (int zSide=0; zSide<2; ++zSide)
         {
         // Get corner point. Loop variables are either 0 or 1, so coordinate is
-        // either 0 or dimension along that axis
-        double cornerPointIJK[4] = { xSide*dims[0], ySide*dims[1], zSide*dims[2], 1.0 };
+        // either low or high extent bound along that axis
+        double cornerPointIJK[4] = { extent[xSide], extent[2+ySide], extent[4+zSide], 1.0 };
 
         // Transform IJK coordinate to get the world coordinate
         double cornerPointWorld[4] = {0.0,0.0,0.0,0.0};
