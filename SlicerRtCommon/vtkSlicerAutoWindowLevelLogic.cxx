@@ -26,6 +26,9 @@
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
 
+// STD includes
+#include <algorithm>
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerAutoWindowLevelLogic);
 
