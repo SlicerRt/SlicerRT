@@ -152,7 +152,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
     self.assertIsNotNone(displayNode)
     colorTableNode = displayNode.GetColorNode()
     self.assertIsNotNone(colorTableNode)
-    self.assertEqual(colorTableNode.GetNumberOfColors(), 4)
+    self.assertEqual(colorTableNode.GetNumberOfColors(), 3)
     # If segments are not found then the returned color is the pre-defined invalid color
     bodyColor = displayNode.GetSegmentColor('Body_Contour')
     self.assertTrue(int(bodyColor[0]*100) == 33 and int(bodyColor[1]*100) == 66 and bodyColor[2] == 0.0)
@@ -175,7 +175,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
     # Add segment to segmentation
     self.inputSegmentationNode.GetSegmentation().AddSegment(self.sphereSegment)
     self.assertEqual(self.inputSegmentationNode.GetSegmentation().GetNumberOfSegments(), 3)
-    self.assertEqual(colorTableNode.GetNumberOfColors(), 5)
+    self.assertEqual(colorTableNode.GetNumberOfColors(), 4)
     sphereColor = displayNode.GetSegmentColor(self.sphereSegmentName)
     self.assertTrue(sphereColor[0] == 0.0 and sphereColor[1] == 0.0 and sphereColor[2] == 1.0)
     
@@ -189,18 +189,19 @@ class SegmentationsModuleTest1(unittest.TestCase):
     self.assertEqual(imageStat.GetVoxelCount(), 1000)
     imageStatResult = imageStat.GetOutput()
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 814)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 0)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 175)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(3,0,0,0), 4)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 7)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 175)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 5)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(3,0,0,0), 6)
 
     # Remove segment from segmentation
     self.inputSegmentationNode.GetSegmentation().RemoveSegment(self.sphereSegmentName)
     self.assertEqual(self.inputSegmentationNode.GetSegmentation().GetNumberOfSegments(), 2)
-    self.assertEqual(colorTableNode.GetNumberOfColors(), 5)
+    self.assertEqual(colorTableNode.GetNumberOfColors(), 4)
     sphereColorArray = [0]*4
-    colorTableNode.GetColor(4,sphereColorArray)
-    self.assertTrue(int(sphereColorArray[0]*100) == 50 and int(sphereColorArray[1]*100) == 50 and int(sphereColorArray[2]*100) == 50)
+    colorTableNode.GetColor(3,sphereColorArray)
+    self.assertEqual(int(sphereColorArray[0]*100), 50)
+    self.assertEqual(int(sphereColorArray[1]*100), 50)
+    self.assertEqual(int(sphereColorArray[2]*100), 50)
     sphereColor = displayNode.GetSegmentColor(self.sphereSegmentName)
     self.assertTrue(sphereColor[0] == 0.5 and sphereColor[1] == 0.5 and sphereColor[2] == 0.5)
 
@@ -247,11 +248,10 @@ class SegmentationsModuleTest1(unittest.TestCase):
     self.assertEqual(imageStat.GetVoxelCount(), 54872000)
     imageStatResult = imageStat.GetOutput()
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 46678738)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 0)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 7618805)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(3,0,0,0), 128968)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 0) # Built from color table and color four is removed in previous test section
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(5,0,0,0), 445489)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 7618805)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 129352)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(3,0,0,0), 0) # Built from color table and color four is removed in previous test section
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 445105)
 
   #------------------------------------------------------------------------------
   def TestSection_3_ImportExportSegment(self):
@@ -304,11 +304,10 @@ class SegmentationsModuleTest1(unittest.TestCase):
     self.assertEqual(imageStat.GetVoxelCount(), 54872000)
     imageStatResult = imageStat.GetOutput()
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 46678738)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 0)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 7618805)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(3,0,0,0), 128968)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 0) # Built from color table and color four is removed in previous test section
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(5,0,0,0), 445489)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 7618805)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 129352)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(3,0,0,0), 0) # Built from color table and color four is removed in previous test section
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 445105)
 
     # Import model to segment
     modelImportSegmentationNode = vtkMRMLSegmentationNode()

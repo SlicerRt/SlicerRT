@@ -36,10 +36,7 @@ public:
   static const std::string GetColorIndexTag() { return "ColorIndex"; };
   static const char* GetSegmentationColorNameBackground() { return "Background"; };
   static const char* GetSegmentationColorNameRemoved() { return "Removed"; };
-  static const char* GetSegmentationColorNameEmpty() { return "Empty"; };
-  static const char* GetSegmentationColorNameMask() { return "Mask"; };
   static unsigned short GetSegmentationColorIndexBackground() { return 0; };
-  static unsigned short GetSegmentationColorIndexMask() { return 255; };
 
   /// Display properties per segment
   struct SegmentDisplayProperties

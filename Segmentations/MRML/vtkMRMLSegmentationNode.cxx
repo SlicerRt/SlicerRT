@@ -550,8 +550,10 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
 
   int wasModifyingColorTableNode = colorTableNode->StartModify();
 
-  // Get first empty color
-  int colorIndex = colorTableNode->GetColorIndexByName(vtkMRMLSegmentationDisplayNode::GetSegmentationColorNameEmpty());
+  // Add entry in color table for segment
+  int colorIndex = colorTableNode->GetNumberOfColors();
+  colorTableNode->SetNumberOfColors(colorIndex+1);
+  colorTableNode->GetLookupTable()->SetTableRange(0, colorIndex);
   // Set color index as tag to segment
   segment->SetTag(vtkMRMLSegmentationDisplayNode::GetColorIndexTag(), colorIndex);
 

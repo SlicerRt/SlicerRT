@@ -219,19 +219,9 @@ vtkMRMLColorTableNode* vtkMRMLSegmentationDisplayNode::CreateColorTableNode(cons
   this->Scene->AddNode(segmentationColorTableNode);
 
   // Initialize color table
-  segmentationColorTableNode->SetNumberOfColors(256);
-  segmentationColorTableNode->GetLookupTable()->SetTableRange(0,255);
+  segmentationColorTableNode->SetNumberOfColors(1);
+  segmentationColorTableNode->GetLookupTable()->SetTableRange(0,0);
   segmentationColorTableNode->AddColor(this->GetSegmentationColorNameBackground(), 0.0, 0.0, 0.0, 0.0); // Black background
-  for (int colorIndex = 1; colorIndex < 255; ++colorIndex)
-  {
-    segmentationColorTableNode->AddColor(this->GetSegmentationColorNameEmpty(),
-    vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1],
-    vtkSegment::SEGMENT_COLOR_VALUE_INVALID[2], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[3] ); // Color indicating empty index
-  }
-  //TODO: Is mask entry needed in color table after all? (if not then maybe no need for pre-allocating all empty colors)
-  segmentationColorTableNode->AddColor(this->GetSegmentationColorNameMask(),
-    vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1],
-    vtkSegment::SEGMENT_COLOR_VALUE_INVALID[2], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[3] ); // Color indicating mask too
 
   // Set reference to color table node
   this->SetAndObserveColorNodeID(segmentationColorTableNode->GetID());
