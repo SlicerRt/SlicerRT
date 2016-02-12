@@ -361,7 +361,9 @@ void qSlicerSubjectHierarchySegmentsPlugin::setDisplayVisibility(vtkMRMLSubjectH
   const char* segmentId = node->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
 
   // Set visibility
-  displayNode->SetSegmentVisibility(segmentId, (bool)visible);
+  displayNode->SetSegmentVisibility3D(segmentId, (bool)visible);
+  displayNode->SetSegmentVisibility2DFill(segmentId, (bool)visible);
+  displayNode->SetSegmentVisibility2DOutline(segmentId, (bool)visible);
 
   // Trigger update of visibility icon
   node->Modified();
@@ -396,7 +398,7 @@ int qSlicerSubjectHierarchySegmentsPlugin::getDisplayVisibility(vtkMRMLSubjectHi
   const char* segmentId = node->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
 
   // Get visibility
-  return (displayNode->GetSegmentVisibility(segmentId) ? 1 : 0);
+  return (displayNode->GetSegmentVisibility3D(segmentId) ? 1 : 0);
 }
 
 //---------------------------------------------------------------------------
@@ -496,7 +498,9 @@ void qSlicerSubjectHierarchySegmentsPlugin::showOnlyCurrentSegment()
     const char* segmentIdChars = segmentShNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
     std::string segmentId(segmentIdChars ? segmentIdChars : "");
     // Set visibility
-    displayNode->SetSegmentVisibility(segmentId, visible);
+    displayNode->SetSegmentVisibility3D(segmentId, visible);
+    displayNode->SetSegmentVisibility2DFill(segmentId, visible);
+    displayNode->SetSegmentVisibility2DOutline(segmentId, visible);
     // Trigger update of visibility icon
     segmentShNode->Modified();
   }
@@ -537,7 +541,9 @@ void qSlicerSubjectHierarchySegmentsPlugin::showAllSegments()
     const char* segmentIdChars = segmentShNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
     std::string segmentId(segmentIdChars ? segmentIdChars : "");
     // Set visibility
-    displayNode->SetSegmentVisibility(segmentId, true);
+    displayNode->SetSegmentVisibility3D(segmentId, true);
+    displayNode->SetSegmentVisibility2DFill(segmentId, true);
+    displayNode->SetSegmentVisibility2DOutline(segmentId, true);
     // Trigger update of visibility icon
     segmentShNode->Modified();
   }

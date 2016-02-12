@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>236</width>
+    <width>315</width>
     <height>74</height>
    </rect>
   </property>
@@ -77,8 +77,11 @@
      <property name="alternatingRowColors">
       <bool>true</bool>
      </property>
+     <property name="columnCount">
+      <number>6</number>
+     </property>
      <attribute name="horizontalHeaderDefaultSectionSize">
-      <number>60</number>
+      <number>48</number>
      </attribute>
      <attribute name="horizontalHeaderStretchLastSection">
       <bool>true</bool>
@@ -90,20 +93,48 @@
       <property name="text">
        <string/>
       </property>
+      <property name="toolTip">
+       <string>Segment visibility in 3D</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="toolTip">
+       <string>Segment fill visibility in 2D</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="toolTip">
+       <string>Segment outline visibility in 2D</string>
+      </property>
      </column>
      <column>
       <property name="text">
        <string>Color</string>
+      </property>
+      <property name="toolTip">
+       <string>Segment color</string>
       </property>
      </column>
      <column>
       <property name="text">
        <string>Opacity</string>
       </property>
+      <property name="toolTip">
+       <string>Segment opacity (all views)</string>
+      </property>
      </column>
      <column>
       <property name="text">
        <string>Name</string>
+      </property>
+      <property name="toolTip">
+       <string>Segment name</string>
       </property>
      </column>
     </widget>

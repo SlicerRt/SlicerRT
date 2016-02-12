@@ -645,7 +645,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
     // Arbitrary thresholds, can revisit
     if (maximumNumberOfPoints < 800000 && totalNumberOfPoints < 3000000)
     {
-      segmentationDisplayNode->SetPreferredPolyDataDisplayRepresentationName(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+      segmentationDisplayNode->SetPreferredDisplayRepresentationName3D(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+      segmentationDisplayNode->SetPreferredDisplayRepresentationName2D(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
       segmentationDisplayNode->CalculateAutoOpacitiesForSegments();
     }
     else

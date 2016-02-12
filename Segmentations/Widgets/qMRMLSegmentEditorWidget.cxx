@@ -120,6 +120,9 @@ public:
   /// Select first segment in table view
   void selectFirstSegment();
 
+  /// Show selected segment in 2D views as labelmap
+  void showSelectedSegment();
+
 public:
   /// Segment editor parameter set node containing all selections and working images
   vtkWeakPointer<vtkMRMLSegmentEditorNode> ParameterSetNode;
@@ -368,6 +371,33 @@ void qMRMLSegmentEditorWidgetPrivate::selectFirstSegment()
     firstSegmentID << QString(segmentIDs[0].c_str());
     this->SegmentsTableView->setSelectedSegmentIDs(firstSegmentID);
   }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidgetPrivate::showSelectedSegment()
+{
+  if (!this->ParameterSetNode)
+  {
+    qCritical() << "qMRMLSegmentEditorWidgetPrivate::showSelectedSegment: Invalid segment editor parameter set node!";
+    return;
+  }
+
+  // Create temporary display image
+  //TODO:
+  // Create a 2D Actor that the effects can access and change it to do custom display for editing
+  // By default it would show the edited segment
+  // Label effects shows paint over mask, Threshold and LevelTracing show previews
+  //TODO: Hide foreground volume too when selecting master?
+
+  //// Show segmentation in label layer of slice viewers
+  //vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
+  //if (!selectionNode)
+  //{
+  //  qCritical() << "qMRMLSegmentEditorWidget::showSelectedSegment: Unable to get selection node to show segmentation node " << segmentationNode->GetName();
+  //  return;
+  //}
+  //selectionNode->SetReferenceActiveLabelVolumeID(this->ParameterSetNode->GetSegmentationNode()->GetID());
+  //qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
 }
 
 //-----------------------------------------------------------------------------
@@ -748,7 +778,16 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
         return;
       }
     }
-  
+
+    // Show binary labelmap in 2D
+    vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
+      segmentationNode->GetDisplayNode());
+    if (displayNode)
+    {
+      displayNode->SetPreferredDisplayRepresentationName2D(
+        vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() );
+    }
+
     // Select first segment
     d->selectFirstSegment();
   }
@@ -765,14 +804,15 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     segmentationNode->CreateDefaultDisplayNodes();
   }
 
-  // Show segmentation in label layer of slice viewers
+  // Set label layer to empty, because edit actor will be shown in the slice views during editing
   vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
   if (!selectionNode)
   {
     qCritical() << "qMRMLSegmentEditorWidget::onSegmentationNodeChanged: Unable to get selection node to show segmentation node " << segmentationNode->GetName();
     return;
   }
-  selectionNode->SetReferenceActiveLabelVolumeID(segmentationNode->GetID());
+  //selectionNode->SetReferenceActiveLabelVolumeID(segmentationNode->GetID());
+  selectionNode->SetReferenceActiveLabelVolumeID(NULL);
   qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
 }
 
@@ -827,6 +867,7 @@ void qMRMLSegmentEditorWidget::onSegmentSelectionChanged(const QItemSelection &s
   // Create edited labelmap from selected segment, using the bounds of the master volume
   d->createEditedLabelmapFromSelectedSegment();
   d->notifyEffectsOfEditedLabelmapChange();
+  d->showSelectedSegment();
 }
 
 //-----------------------------------------------------------------------------
@@ -1017,7 +1058,7 @@ void qMRMLSegmentEditorWidget::onMakeModel()
       segmentationNode->GetDisplayNode());
     if (displayNode)
     {
-      displayNode->SetPreferredPolyDataDisplayRepresentationName(
+      displayNode->SetPreferredDisplayRepresentationName3D(
         vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
     }
   }

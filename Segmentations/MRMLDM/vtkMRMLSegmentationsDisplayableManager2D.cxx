@@ -169,7 +169,6 @@ bool vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UseDisplayNode(vtkMR
 bool vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::IsVisible(vtkMRMLSegmentationDisplayNode* displayNode)
 {
   return displayNode
-      && displayNode->GetSliceIntersectionVisibility()
       && displayNode->GetVisibility(this->External->GetMRMLSliceNode()->GetID());
 }
 
@@ -478,8 +477,8 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
   vtkMRMLSegmentationDisplayNode* segmentationDisplayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(displayNode);
 
   // Determine which representation to show
-  std::string polyDataRepresenatationName = segmentationDisplayNode->DeterminePolyDataDisplayRepresentationName();
-  if (polyDataRepresenatationName.empty())
+  std::string shownRepresenatationName = segmentationDisplayNode->GetDisplayRepresentationName2D();
+  if (shownRepresenatationName.empty())
     {
     // Hide segmentation if there is no poly data representation to show
     for (PipelineMapType::iterator pipelineIt=pipelines.begin(); pipelineIt!=pipelines.end(); ++pipelineIt)
@@ -502,7 +501,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
     return;
     }
   // Make sure the requested representation exists
-  if (!segmentation->CreateRepresentation(polyDataRepresenatationName))
+  if (!segmentation->CreateRepresentation(shownRepresenatationName))
     {
     return;
     }
@@ -518,7 +517,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
       {
       continue;
       }
-    bool segmentVisible = displayNodeVisible && properties.Visible;
+    bool segmentVisible = displayNodeVisible && properties.Visible2DOutline;
     pipeline->Actor->SetVisibility(segmentVisible);
     if (!segmentVisible)
       {
@@ -527,7 +526,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
 
     // Get poly data to display
     vtkPolyData* polyData = vtkPolyData::SafeDownCast(
-      segmentation->GetSegmentRepresentation(pipeline->SegmentID, polyDataRepresenatationName) );
+      segmentation->GetSegmentRepresentation(pipeline->SegmentID, shownRepresenatationName) );
     if (!polyData || polyData->GetNumberOfPoints() == 0)
       {
       pipeline->Actor->SetVisibility(false);

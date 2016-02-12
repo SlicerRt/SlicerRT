@@ -401,8 +401,8 @@ void vtkMRMLSegmentationsDisplayableManager3D::vtkInternal::UpdateDisplayNodePip
   vtkMRMLSegmentationDisplayNode* segmentationDisplayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(displayNode);
 
   // Determine which representation to show
-  std::string polyDataRepresenatationName = segmentationDisplayNode->DeterminePolyDataDisplayRepresentationName();
-  if (polyDataRepresenatationName.empty())
+  std::string shownRepresentationName = segmentationDisplayNode->GetDisplayRepresentationName3D();
+  if (shownRepresentationName.empty())
     {
     // Hide segmentation if there is no poly data representation to show
     for (PipelineMapType::iterator pipelineIt=pipelines.begin(); pipelineIt!=pipelines.end(); ++pipelineIt)
@@ -425,7 +425,7 @@ void vtkMRMLSegmentationsDisplayableManager3D::vtkInternal::UpdateDisplayNodePip
     return;
     }
   // Make sure the requested representation exists
-  if (!segmentation->CreateRepresentation(polyDataRepresenatationName))
+  if (!segmentation->CreateRepresentation(shownRepresentationName))
     {
     return;
     }
@@ -441,7 +441,7 @@ void vtkMRMLSegmentationsDisplayableManager3D::vtkInternal::UpdateDisplayNodePip
       {
       continue;
       }
-    bool segmentVisible = displayNodeVisible && properties.Visible;
+    bool segmentVisible = displayNodeVisible && properties.Visible3D;
     pipeline->Actor->SetVisibility(segmentVisible);
     if (!segmentVisible)
       {
@@ -450,7 +450,7 @@ void vtkMRMLSegmentationsDisplayableManager3D::vtkInternal::UpdateDisplayNodePip
 
     // Get poly data to display
     vtkPolyData* polyData = vtkPolyData::SafeDownCast(
-      segmentation->GetSegmentRepresentation(pipeline->SegmentID, polyDataRepresenatationName) );
+      segmentation->GetSegmentRepresentation(pipeline->SegmentID, shownRepresentationName) );
     if (!polyData || polyData->GetNumberOfPoints() == 0)
       {
       pipeline->Actor->SetVisibility(false);
@@ -471,7 +471,7 @@ void vtkMRMLSegmentationsDisplayableManager3D::vtkInternal::UpdateDisplayNodePip
     pipeline->Actor->GetProperty()->SetBackfaceCulling(displayNode->GetBackfaceCulling());
 
     pipeline->Actor->GetProperty()->SetColor(properties.Color[0], properties.Color[1], properties.Color[2]);
-    pipeline->Actor->GetProperty()->SetOpacity(properties.PolyDataOpacity * displayNode->GetOpacity());
+    pipeline->Actor->GetProperty()->SetOpacity(properties.Opacity3D * displayNode->GetOpacity());
 
     if (displayNode->GetSelected())
       {

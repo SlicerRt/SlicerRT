@@ -92,13 +92,15 @@ void qMRMLSegmentsTableViewPrivate::init()
   this->setMessage(QString());
 
   // Set table header properties
-  this->ColumnLabels << "Visible" << "Color" << "Opacity" << "Name";
-  this->SegmentsTable->setHorizontalHeaderLabels(
-    QStringList() << "" << "Color" << "Opacity" << "Name" );
+  this->ColumnLabels << "Visible3D" << "Visible2DFill" << "Visible2DOutline" << "Color" << "Opacity" << "Name";
   this->SegmentsTable->setColumnCount(this->ColumnLabels.size());
 
   this->SegmentsTable->horizontalHeaderItem(
-    this->columnIndex("Visible"))->setIcon(QIcon(":/Icons/Small/SlicerVisibleInvisible.png") );
+    this->columnIndex("Visible3D"))->setIcon(QIcon(":/Icons/Small/SlicerModels.png") );
+  this->SegmentsTable->horizontalHeaderItem(
+    this->columnIndex("Visible2DFill"))->setIcon(QIcon(":/Icons/SlicesLabelNoOutline.png") );
+  this->SegmentsTable->horizontalHeaderItem(
+    this->columnIndex("Visible2DOutline"))->setIcon(QIcon(":/Icons/SlicesLabelOutline.png") );
 
   this->SegmentsTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
   this->SegmentsTable->horizontalHeader()->setStretchLastSection(1);
@@ -124,6 +126,11 @@ void qMRMLSegmentsTableViewPrivate::init()
 //-----------------------------------------------------------------------------
 int qMRMLSegmentsTableViewPrivate::columnIndex(QString label)
 {
+  if (!this->ColumnLabels.contains(label))
+  {
+    qCritical() << "qMRMLSegmentsTableViewPrivate::columnIndex: Invalid column label!";
+    return -1;
+  }
   return this->ColumnLabels.indexOf(label);
 }
 
@@ -253,7 +260,9 @@ void qMRMLSegmentsTableView::setMode(SegmentTableMode mode)
     {
     d->SegmentsTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), false);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible3D"), false);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DFill"), false);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DOutline"), false);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), false);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), false);
     }
@@ -262,7 +271,9 @@ void qMRMLSegmentsTableView::setMode(SegmentTableMode mode)
     d->SegmentsTable->horizontalHeader()->setVisible(false);
     d->SegmentsTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), true);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible3D"), true);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DFill"), true);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DOutline"), true);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), true);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), true);
     }
@@ -271,7 +282,9 @@ void qMRMLSegmentsTableView::setMode(SegmentTableMode mode)
     d->SegmentsTable->horizontalHeader()->setVisible(false);
     d->SegmentsTable->setSelectionMode(QAbstractItemView::NoSelection);
 
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), true);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible3D"), true);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DFill"), true);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DOutline"), true);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), true);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), true);
     }
@@ -280,7 +293,9 @@ void qMRMLSegmentsTableView::setMode(SegmentTableMode mode)
     d->SegmentsTable->horizontalHeader()->setVisible(true);
     d->SegmentsTable->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), true);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible3D"), true);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DFill"), true);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DOutline"), true);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), false);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), true);
     }
@@ -384,23 +399,59 @@ void qMRMLSegmentsTableView::populateSegmentTable()
       continue;
       }
 
-    // Visibility
-    QTableWidgetItem* visibilityItem = new QTableWidgetItem();
-    visibilityItem->setData(VisibilityRole, QVariant(properties.Visible));
-    visibilityItem->setData(IDRole, segmentId);
-    visibilityItem->setData(Qt::CheckStateRole, QVariant());
-    visibilityItem->setFlags(visibilityItem->flags() & ~Qt::ItemIsUserCheckable);
+    // Visibility 3D
+    QTableWidgetItem* visibility3DItem = new QTableWidgetItem();
+    visibility3DItem->setData(VisibilityRole, QVariant(properties.Visible3D));
+    visibility3DItem->setData(IDRole, segmentId);
+    visibility3DItem->setData(Qt::CheckStateRole, QVariant());
+    visibility3DItem->setFlags(visibility3DItem->flags() & ~Qt::ItemIsUserCheckable);
     // Disable editing so that a double click won't bring up an entry box
-    visibilityItem->setFlags(visibilityItem->flags() & ~Qt::ItemIsEditable);
-    if (properties.Visible)
+    visibility3DItem->setFlags(visibility3DItem->flags() & ~Qt::ItemIsEditable);
+    if (properties.Visible3D)
       {
-      visibilityItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
+      visibility3DItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
       }
     else
       {
-      visibilityItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
+      visibility3DItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
       }
-    d->SegmentsTable->setItem(row, d->columnIndex("Visible"), visibilityItem);
+    d->SegmentsTable->setItem(row, d->columnIndex("Visible3D"), visibility3DItem);
+
+    // Visibility 2D fill
+    QTableWidgetItem* visibility2DFillItem = new QTableWidgetItem();
+    visibility2DFillItem->setData(VisibilityRole, QVariant(properties.Visible2DFill));
+    visibility2DFillItem->setData(IDRole, segmentId);
+    visibility2DFillItem->setData(Qt::CheckStateRole, QVariant());
+    visibility2DFillItem->setFlags(visibility2DFillItem->flags() & ~Qt::ItemIsUserCheckable);
+    // Disable editing so that a double click won't bring up an entry box
+    visibility2DFillItem->setFlags(visibility2DFillItem->flags() & ~Qt::ItemIsEditable);
+    if (properties.Visible2DFill)
+      {
+      visibility2DFillItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
+      }
+    else
+      {
+      visibility2DFillItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
+      }
+    d->SegmentsTable->setItem(row, d->columnIndex("Visible2DFill"), visibility2DFillItem);
+
+    // Visibility 2D outline
+    QTableWidgetItem* visibility2DOutlineItem = new QTableWidgetItem();
+    visibility2DOutlineItem->setData(VisibilityRole, QVariant(properties.Visible2DOutline));
+    visibility2DOutlineItem->setData(IDRole, segmentId);
+    visibility2DOutlineItem->setData(Qt::CheckStateRole, QVariant());
+    visibility2DOutlineItem->setFlags(visibility2DOutlineItem->flags() & ~Qt::ItemIsUserCheckable);
+    // Disable editing so that a double click won't bring up an entry box
+    visibility2DOutlineItem->setFlags(visibility2DOutlineItem->flags() & ~Qt::ItemIsEditable);
+    if (properties.Visible2DOutline)
+      {
+      visibility2DOutlineItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
+      }
+    else
+      {
+      visibility2DOutlineItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
+      }
+    d->SegmentsTable->setItem(row, d->columnIndex("Visible2DOutline"), visibility2DOutlineItem);
 
     // Color
     QTableWidgetItem* colorItem = new QTableWidgetItem();
@@ -410,11 +461,11 @@ void qMRMLSegmentsTableView::populateSegmentTable()
     colorItem->setToolTip("Color");
     d->SegmentsTable->setItem(row, d->columnIndex("Color"), colorItem);
 
-    // Opacity
+    // Opacity (show only 3D opacity; if the user changes it then it applies to all types of opacity)
     QTableWidgetItem* opacityItem = new QTableWidgetItem();
-    //QString displayedOpacity = QString::number(properties.PolyDataOpacity, 'f', 2);
+    //QString displayedOpacity = QString::number(properties.Opacity3D, 'f', 2);
     //opacityItem->setData(Qt::EditRole, displayedOpacity); // for qMRMLItemDelegate
-    opacityItem->setData(Qt::EditRole, properties.PolyDataOpacity); // for qMRMLDoubleSpinBoxDelegate
+    opacityItem->setData(Qt::EditRole, properties.Opacity3D); // for qMRMLDoubleSpinBoxDelegate
     opacityItem->setData(IDRole, segmentId);
     opacityItem->setToolTip("Opacity");
     d->SegmentsTable->setItem(row, d->columnIndex("Opacity"), opacityItem);
@@ -472,18 +523,48 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
       continue;
       }
 
-    // Visibility
-    QTableWidgetItem* visibilityItem = d->SegmentsTable->item(row, d->columnIndex("Visible"));
-    if (visibilityItem)
+    // Visibility 3D
+    QTableWidgetItem* visibility3DItem = d->SegmentsTable->item(row, d->columnIndex("Visible3D"));
+    if (visibility3DItem)
     {
-      visibilityItem->setData(VisibilityRole, QVariant(properties.Visible));
-      if (properties.Visible)
+      visibility3DItem->setData(VisibilityRole, QVariant(properties.Visible3D));
+      if (properties.Visible3D)
         {
-        visibilityItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
+        visibility3DItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
         }
       else
         {
-        visibilityItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
+        visibility3DItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
+        }
+    }
+
+    // Visibility 2D fill
+    QTableWidgetItem* visibility2DFillItem = d->SegmentsTable->item(row, d->columnIndex("Visible2DFill"));
+    if (visibility2DFillItem)
+    {
+      visibility2DFillItem->setData(VisibilityRole, QVariant(properties.Visible2DFill));
+      if (properties.Visible2DFill)
+        {
+        visibility2DFillItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
+        }
+      else
+        {
+        visibility2DFillItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
+        }
+    }
+
+    // Visibility 2D outline
+    QTableWidgetItem* visibility2DOutlineItem = d->SegmentsTable->item(row, d->columnIndex("Visible2DOutline"));
+    if (visibility2DOutlineItem)
+    {
+      visibility2DOutlineItem->setData(VisibilityRole, QVariant(properties.Visible2DOutline));
+      if (properties.Visible2DOutline)
+        {
+        visibility2DOutlineItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
+        }
+      else
+        {
+        visibility2DOutlineItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
         }
     }
 
@@ -495,13 +576,13 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
       colorItem->setData(Qt::DecorationRole, color);
     }
 
-    // Opacity
+    // Opacity (show only 3D opacity; if the user changes it then it applies to all types of opacity)
     QTableWidgetItem* opacityItem =  d->SegmentsTable->item(row, d->columnIndex("Opacity"));
     if (opacityItem)
     {
       //QString displayedOpacity = QString::number(properties.PolyDataOpacity, 'f', 2);
       //opacityItem->setData(Qt::EditRole, displayedOpacity); // for qMRMLItemDelegate
-      opacityItem->setData(Qt::EditRole, properties.PolyDataOpacity); // for qMRMLDoubleSpinBoxDelegate
+      opacityItem->setData(Qt::EditRole, properties.Opacity3D); // for qMRMLDoubleSpinBoxDelegate
     }
   }
 }
@@ -554,10 +635,24 @@ void qMRMLSegmentsTableView::onSegmentTableItemChanged(QTableWidgetItem* changed
     bool valueChanged = false;
 
     // Visibility changed
-    if (changedItem->column() == d->columnIndex("Visible"))
+    if (changedItem->column() == d->columnIndex("Visible3D"))
       {
       int visible = changedItem->data(VisibilityRole).toInt();
-      properties.Visible = (bool)visible;
+      properties.Visible3D = (bool)visible;
+      valueChanged = true;
+      }
+    // Visibility changed
+    else if (changedItem->column() == d->columnIndex("Visible2DFill"))
+      {
+      int visible = changedItem->data(VisibilityRole).toInt();
+      properties.Visible2DFill = (bool)visible;
+      valueChanged = true;
+      }
+    // Visibility changed
+    else if (changedItem->column() == d->columnIndex("Visible2DOutline"))
+      {
+      int visible = changedItem->data(VisibilityRole).toInt();
+      properties.Visible2DOutline = (bool)visible;
       valueChanged = true;
       }
     // Color changed
@@ -577,10 +672,13 @@ void qMRMLSegmentsTableView::onSegmentTableItemChanged(QTableWidgetItem* changed
     else if (changedItem->column() == d->columnIndex("Opacity"))
       {
       QString opacity = changedItem->data(Qt::EditRole).toString();
-      QString currentOpacity = QString::number( properties.PolyDataOpacity, 'f', 2);
+      QString currentOpacity = QString::number( properties.Opacity3D, 'f', 2);
       if (opacity != currentOpacity)
         {
-        properties.PolyDataOpacity = opacity.toDouble();
+        // Set to all kinds of opacities as they are combined on the UI
+        properties.Opacity3D = opacity.toDouble();
+        properties.Opacity2DFill = opacity.toDouble();
+        properties.Opacity2DOutline = opacity.toDouble();
         valueChanged = true;
         }
       }
@@ -603,7 +701,9 @@ void qMRMLSegmentsTableView::onSegmentTableItemClicked(QTableWidgetItem* item)
     }
 
   int column = item->column();
-  if (column == d->columnIndex(QString("Visible")))
+  if ( column == d->columnIndex(QString("Visible3D"))
+    || column == d->columnIndex(QString("Visible2DFill"))
+    || column == d->columnIndex(QString("Visible2DOutline")) )
     {
     // Toggle the visibility role, the icon update is triggered by this change
     if (item->data(VisibilityRole) == QVariant(false))

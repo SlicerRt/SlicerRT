@@ -139,12 +139,9 @@
        <number>4</number>
       </property>
       <item row="4" column="1">
-       <widget class="QSpinBox" name="spinBox_SliceIntersectionThickness">
-        <property name="suffix">
-         <string> px</string>
-        </property>
-        <property name="maximum">
-         <number>10</number>
+       <widget class="QComboBox" name="comboBox_DisplayedRepresentation3D">
+        <property name="toolTip">
+         <string>Representation that is shown in 3D (models only)</string>
         </property>
        </widget>
       </item>
@@ -155,37 +152,6 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="qMRMLDisplayNodeViewComboBox" name="DisplayNodeViewComboBox"/>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_SliceIntersectionThickness">
-        <property name="text">
-         <string>Slice intersection thickness:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="QComboBox" name="comboBox_DisplayedModelRepresentation">
-        <property name="toolTip">
-         <string>Representation that is shown as a model in 3D and as slice intersections in 2D</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_SliceIntersectionVisible">
-        <property name="text">
-         <string>Slice intersection visible:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QCheckBox" name="checkBox_SliceIntersectionVisible">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label_Views">
         <property name="text">
@@ -193,13 +159,40 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_Representation">
+      <item row="2" column="1">
+       <widget class="qMRMLDisplayNodeViewComboBox" name="DisplayNodeViewComboBox"/>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_Representation3D">
         <property name="toolTip">
          <string>Representation that is shown as a model in 3D and as slice intersections in 2D if exists</string>
         </property>
         <property name="text">
-         <string>Model representation:</string>
+         <string>Representation in 3D views:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QSpinBox" name="spinBox_SliceIntersectionThickness">
+        <property name="suffix">
+         <string> px</string>
+        </property>
+        <property name="maximum">
+         <number>10</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_SliceIntersectionThickness">
+        <property name="text">
+         <string>Slice intersection thickness:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QCheckBox" name="checkBox_Visible">
+        <property name="text">
+         <string/>
         </property>
        </widget>
       </item>
@@ -226,10 +219,17 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QCheckBox" name="checkBox_Visible">
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_Representation2D">
         <property name="text">
-         <string/>
+         <string>Representation in 2D views:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QComboBox" name="comboBox_DisplayedRepresentation2D">
+        <property name="toolTip">
+         <string>Representation that is shown in the 2D slice views</string>
         </property>
        </widget>
       </item>

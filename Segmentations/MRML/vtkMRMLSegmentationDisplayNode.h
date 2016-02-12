@@ -41,12 +41,16 @@ public:
   /// Display properties per segment
   struct SegmentDisplayProperties
   {
-    /// Visibility
-    bool Visible;
     /// Displayed segment color (may be different than default color stored in segment)
     double Color[3];
-    /// Segment opacity when displayed as poly data (labelmap will be opaque)
-    double PolyDataOpacity;
+    /// Visibility
+    bool Visible3D;
+    bool Visible2DFill; // This one is used for labelmap volume related operations (color table, merged labelmap)
+    bool Visible2DOutline;
+    /// Opacity
+    double Opacity3D;
+    double Opacity2DFill; // This one is used for labelmap volume related operations (color table, merged labelmap)
+    double Opacity2DOutline;
   };
 
   typedef std::map<std::string, SegmentDisplayProperties> SegmentDisplayPropertiesMap;
@@ -70,16 +74,16 @@ public:
   /// Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() { return "SegmentationDisplay"; };
 
-  /// Alternative method to propagate events generated in Display nodes
-  virtual void ProcessMRMLEvents ( vtkObject * /*caller*/,
-                                   unsigned long /*event*/,
-                                   void * /*callData*/ );
-
 public:
-  /// Get name of representation that is preferably displayed as poly data
-  vtkGetStringMacro(PreferredPolyDataDisplayRepresentationName);
-  /// Set name of representation that is preferably displayed as poly data
-  vtkSetStringMacro(PreferredPolyDataDisplayRepresentationName);
+  /// Get name of representation that is displayed in the 2D view if exists
+  /// To get the actually displayed 2D representation call \sa 
+  vtkGetStringMacro(PreferredDisplayRepresentationName2D);
+  /// Set name of representation that is displayed in the 2D view if exists
+  vtkSetStringMacro(PreferredDisplayRepresentationName2D);
+  /// Get name of representation that is displayed in the 3D view if exists
+  vtkGetStringMacro(PreferredDisplayRepresentationName3D);
+  /// Set name of representation that is displayed in the 3D view if exists
+  vtkSetStringMacro(PreferredDisplayRepresentationName3D);
 
   /// Get enable transparency flag
   vtkGetMacro(EnableTransparencyInColorTable, bool);
@@ -123,32 +127,61 @@ public:
   /// Collect representation names that are stored as poly data
   void GetPolyDataRepresentationNames(std::set<std::string> &representationNames);
 
-  /// Decide which poly data representation to use for 3D display
-  /// If preferred representation exists \sa PreferredPolyDataDisplayRepresentationName, then return that.
+  /// Decide which poly data representation to use for 3D display.
+  /// If preferred representation exists \sa PreferredDisplayRepresentationName3D, then return that.
   /// Otherwise if master representation is a poly data then return master representation type.
   /// Otherwise return first poly data representation if any.
   /// Otherwise return empty string meaning there is no poly data representation to display.
-  std::string DeterminePolyDataDisplayRepresentationName();
+  std::string GetDisplayRepresentationName3D();
+
+  /// Decide which representation to use for 2D display.
+  /// If preferred representation exists \sa PreferredDisplayRepresentationName2D, then return that.
+  /// Otherwise return master representation.
+  std::string GetDisplayRepresentationName2D();
 
 // Python compatibility functions
 public:
-  /// Get segment visibility by segment ID. Convenience function for python compatibility.
-  /// \return Segment visibility if segment found, otherwise false
-  bool GetSegmentVisibility(std::string segmentID);
-  /// Set segment visibility by segment ID. Convenience function for python compatibility.
-  void SetSegmentVisibility(std::string segmentID, bool visible);
-
   /// Get segment color by segment ID. Convenience function for python compatibility.
   /// \return Segment color if segment found, otherwise the pre-defined invalid color
   vtkVector3d GetSegmentColor(std::string segmentID);
   /// Set segment color by segment ID. Convenience function for python compatibility.
   void SetSegmentColor(std::string segmentID, vtkVector3d color);
 
-  /// Get segment poly data opacity by segment ID. Convenience function for python compatibility.
-  /// \return Segment poly data opacity if segment found, otherwise 0
-  double GetSegmentPolyDataOpacity(std::string segmentID);
-  /// Set segment poly data opacity by segment ID. Convenience function for python compatibility.
-  void SetSegmentPolyDataOpacity(std::string segmentID, double opacity);
+  /// Get segment 3D visibility by segment ID. Convenience function for python compatibility.
+  /// \return Segment 3D visibility if segment found, otherwise false
+  bool GetSegmentVisibility3D(std::string segmentID);
+  /// Set segment 3D visibility by segment ID. Convenience function for python compatibility.
+  void SetSegmentVisibility3D(std::string segmentID, bool visible);
+
+  /// Get segment 2D fill visibility by segment ID. Convenience function for python compatibility.
+  /// \return Segment 2D fill visibility if segment found, otherwise false
+  bool GetSegmentVisibility2DFill(std::string segmentID);
+  /// Set segment 2D fill visibility by segment ID. Convenience function for python compatibility.
+  void SetSegmentVisibility2DFill(std::string segmentID, bool visible);
+
+  /// Get segment 2D outline visibility by segment ID. Convenience function for python compatibility.
+  /// \return Segment 2D outline visibility if segment found, otherwise false
+  bool GetSegmentVisibility2DOutline(std::string segmentID);
+  /// Set segment 2D outline visibility by segment ID. Convenience function for python compatibility.
+  void SetSegmentVisibility2DOutline(std::string segmentID, bool visible);
+
+  /// Get segment 3D opacity by segment ID. Convenience function for python compatibility.
+  /// \return Segment 3D opacity if segment found, otherwise false
+  double GetSegmentOpacity3D(std::string segmentID);
+  /// Set segment 3D opacity by segment ID. Convenience function for python compatibility.
+  void SetSegmentOpacity3D(std::string segmentID, double opacity);
+
+  /// Get segment 2D fill opacity by segment ID. Convenience function for python compatibility.
+  /// \return Segment 2D fill opacity if segment found, otherwise false
+  double GetSegmentOpacity2DFill(std::string segmentID);
+  /// Set segment 2D fill opacity by segment ID. Convenience function for python compatibility.
+  void SetSegmentOpacity2DFill(std::string segmentID, double opacity);
+
+  /// Get segment 2D outline opacity by segment ID. Convenience function for python compatibility.
+  /// \return Segment 2D outline opacity if segment found, otherwise false
+  double GetSegmentOpacity2DOutline(std::string segmentID);
+  /// Set segment 2D outline opacity by segment ID. Convenience function for python compatibility.
+  void SetSegmentOpacity2DOutline(std::string segmentID, double opacity);
 
 protected:
   /// Set segment color in associated color table
@@ -162,10 +195,14 @@ protected:
   void operator=(const vtkMRMLSegmentationDisplayNode&);
 
 protected:
-  /// Name of representation that is displayed as poly data in the 3D view and in 2D views as slice
-  /// intersection if exists. If does not exist, then master representation is displayed if poly data,
+  /// Name of representation that is displayed in 2D views as outline or filled area
+  /// if exists. If does not exist, then master representation is displayed.
+  char* PreferredDisplayRepresentationName2D;
+
+  /// Name of representation that is displayed as poly data in the 3D view.
+  /// If does not exist, then master representation is displayed if poly data,
   /// otherwise the first poly data representation if any.
-  char* PreferredPolyDataDisplayRepresentationName;
+  char* PreferredDisplayRepresentationName3D;
 
   /// List of segment display properties for all segments in associated segmentation.
   /// Maps segment identifier string (segment name by default) to properties.

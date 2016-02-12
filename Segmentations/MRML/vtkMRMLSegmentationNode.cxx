@@ -406,7 +406,7 @@ void vtkMRMLSegmentationNode::OnRepresentationCreated(vtkObject* vtkNotUsed(call
     self->ReGenerateDisplayedMergedLabelmap();
   }
 
-  // Show new representation if model
+  // Show new representation in 3D if model
   vtkSmartPointer<vtkMRMLSegmentationDisplayNode> displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(self->GetDisplayNode());
   if (displayNode)
   {
@@ -414,7 +414,7 @@ void vtkMRMLSegmentationNode::OnRepresentationCreated(vtkObject* vtkNotUsed(call
     displayNode->GetPolyDataRepresentationNames(modelRepresentationNames);
     if (modelRepresentationNames.find(std::string(targetRepresentationName)) != modelRepresentationNames.end())
     {
-      displayNode->SetPreferredPolyDataDisplayRepresentationName(targetRepresentationName);
+      displayNode->SetPreferredDisplayRepresentationName3D(targetRepresentationName);
     }
   }
 
@@ -564,11 +564,15 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
 
   // Add entry in segment display properties
   vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-  properties.Visible = true;
   properties.Color[0] = defaultColor[0];
   properties.Color[1] = defaultColor[1];
   properties.Color[2] = defaultColor[2];
-  properties.PolyDataOpacity = 1.0;
+  properties.Visible3D = true;
+  properties.Visible2DFill = true;
+  properties.Visible2DOutline = true;
+  properties.Opacity3D = 1.0;
+  properties.Opacity2DFill = 0.5; // By default the 2D fill is semi-transparent, but it does not apply to the merged labelmap as long as EnableTransparencyInColorTable is off
+  properties.Opacity2DOutline = 1.0;
   displayNode->SetSegmentDisplayProperties(segmentId, properties);
 
   colorTableNode->EndModify(wasModifyingColorTableNode);
@@ -658,15 +662,20 @@ void vtkMRMLSegmentationNode::ApplyTransform(vtkAbstractTransform* transform)
     this->Segmentation->ApplyNonLinearTransform(transform);
   }
 
-  // Make sure preferred poly data display representation exists after transformation
+  // Make sure preferred display representations exist after transformation
   // (it was invalidated in the process unless it is the master representation)
   vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(this->GetDisplayNode());
   if (displayNode)
   {
-    std::string preferredPolyDataDisplayRepresentation(displayNode->GetPreferredPolyDataDisplayRepresentationName());
-    if (!preferredPolyDataDisplayRepresentation.empty())
+    std::string preferredDisplayRepresentation2D(displayNode->GetPreferredDisplayRepresentationName2D());
+    if (!preferredDisplayRepresentation2D.empty())
     {
-      this->Segmentation->CreateRepresentation(preferredPolyDataDisplayRepresentation);
+      this->Segmentation->CreateRepresentation(preferredDisplayRepresentation2D);
+    }
+    std::string preferredDisplayRepresentation3D(displayNode->GetPreferredDisplayRepresentationName3D());
+    if (!preferredDisplayRepresentation3D.empty())
+    {
+      this->Segmentation->CreateRepresentation(preferredDisplayRepresentation3D);
     }
   }
 }
@@ -933,7 +942,7 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
     {
       continue;
     }
-    if (properties.Visible == false)
+    if (properties.Visible2DFill == false)
     {
       continue;
     }

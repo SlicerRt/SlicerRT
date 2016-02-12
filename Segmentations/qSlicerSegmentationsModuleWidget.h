@@ -107,8 +107,10 @@ protected slots:
   /// Update copy/move/import/export buttons based on selection
   void updateCopyMoveButtonStates();
 
-  /// Populate checkboxes that contain representation names
-  void populateRepresentationsCombobox();
+  /// Populate combobox that contain possible 3D representation names
+  void populate3DRepresentationsCombobox();
+  /// Populate combobox that contain possible 2D representation names
+  void populate2DRepresentationsCombobox();
 
   /// Callback function for selection changes in the main segment table view
   void onSegmentSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
@@ -119,9 +121,9 @@ protected slots:
 
   void onVisibilityChanged(int);
   void onOpacityChanged(double);
-  void onSliceIntersectionVisibilityChanged(int);
   void onSliceIntersectionThicknessChanged(int);
-  void onDisplayedModelRepresentationChanged(int);
+  void onRepresentation3DChanged(int);
+  void onRepresentation2DChanged(int);
 
   void onAddLabelmap();
   void onAddModel();
