@@ -50,7 +50,6 @@ vtkMRMLSegmentationDisplayNode::vtkMRMLSegmentationDisplayNode()
 {
   this->PreferredDisplayRepresentationName2D = NULL;
   this->PreferredDisplayRepresentationName3D = NULL;
-  this->EnableTransparencyInColorTable = false;
   this->SliceIntersectionVisibility = true;
 
   this->SegmentationDisplayProperties.clear();
@@ -72,8 +71,6 @@ void vtkMRMLSegmentationDisplayNode::WriteXML(ostream& of, int nIndent)
 
   of << indent << " PreferredDisplayRepresentationName2D=\"" << (this->PreferredDisplayRepresentationName2D ? this->PreferredDisplayRepresentationName2D : "NULL") << "\"";
   of << indent << " PreferredDisplayRepresentationName3D=\"" << (this->PreferredDisplayRepresentationName3D ? this->PreferredDisplayRepresentationName3D : "NULL") << "\"";
-
-  of << indent << " EnableTransparencyInColorTable=\"" << (this->EnableTransparencyInColorTable ? "true" : "false") << "\"";
 
   of << indent << " SegmentationDisplayProperties=\"";
   for (SegmentDisplayPropertiesMap::iterator propIt = this->SegmentationDisplayProperties.begin();
@@ -113,10 +110,6 @@ void vtkMRMLSegmentationDisplayNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "PreferredDisplayRepresentationName3D")) 
     {
       this->SetPreferredDisplayRepresentationName3D(attValue);
-    }
-    else if (!strcmp(attName, "EnableTransparencyInColorTable")) 
-    {
-      this->EnableTransparencyInColorTable = (strcmp(attValue,"true") ? false : true);
     }
     else if (!strcmp(attName, "SegmentationDisplayProperties")) 
     {
@@ -182,7 +175,6 @@ void vtkMRMLSegmentationDisplayNode::Copy(vtkMRMLNode *anode)
     this->SetPreferredDisplayRepresentationName2D(node->GetPreferredDisplayRepresentationName2D());
     this->SetPreferredDisplayRepresentationName3D(node->GetPreferredDisplayRepresentationName3D());
     this->SegmentationDisplayProperties = node->SegmentationDisplayProperties;
-    this->EnableTransparencyInColorTable = node->EnableTransparencyInColorTable;
   }
 
   this->EndModify(wasModifying);
@@ -195,8 +187,6 @@ void vtkMRMLSegmentationDisplayNode::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << " PreferredDisplayRepresentationName2D:   " << (this->PreferredDisplayRepresentationName2D ? this->PreferredDisplayRepresentationName2D : "NULL") << "\n";
   os << indent << " PreferredDisplayRepresentationName3D:   " << (this->PreferredDisplayRepresentationName3D ? this->PreferredDisplayRepresentationName3D : "NULL") << "\n";
-
-  os << indent << " EnableTransparencyInColorTable:   " << (this->EnableTransparencyInColorTable ? "true" : "false") << "\n";
 
   os << indent << " SegmentationDisplayProperties:\n";
   for (SegmentDisplayPropertiesMap::iterator propIt = this->SegmentationDisplayProperties.begin();
@@ -279,7 +269,8 @@ bool vtkMRMLSegmentationDisplayNode::SetSegmentColorTableEntry(std::string segme
     vtkWarningMacro("SetSegmentColorTableEntry: No color table entry found for segment " << segmentId);
     return false;
   }
-  colorTableNode->SetColor(colorIndex, r, g, b, (this->EnableTransparencyInColorTable) ? a : (a>0.0 ? 1.0 : 0.0));
+  // Do not support opacity in color table. If advanced display is needed then use the displayable manager
+  colorTableNode->SetColor(colorIndex, r, g, b, 1.0);
   return true;
 }
 
@@ -583,7 +574,6 @@ bool vtkMRMLSegmentationDisplayNode::CalculateAutoOpacitiesForSegments()
     segmentPolyDataCollection->AddItem(currentPolyData);
   }
     
-
   // Set opacities according to topological hierarchy levels
   vtkSmartPointer<vtkTopologicalHierarchy> topologicalHierarchy = vtkSmartPointer<vtkTopologicalHierarchy>::New();
   topologicalHierarchy->SetInputPolyDataCollection(segmentPolyDataCollection);

@@ -571,7 +571,7 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
   properties.Visible2DFill = true;
   properties.Visible2DOutline = true;
   properties.Opacity3D = 1.0;
-  properties.Opacity2DFill = 0.5; // By default the 2D fill is semi-transparent, but it does not apply to the merged labelmap
+  properties.Opacity2DFill = 1.0;
   properties.Opacity2DOutline = 1.0;
   displayNode->SetSegmentDisplayProperties(segmentId, properties);
 

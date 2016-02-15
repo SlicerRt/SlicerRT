@@ -85,13 +85,6 @@ public:
   /// Set name of representation that is displayed in the 3D view if exists
   vtkSetStringMacro(PreferredDisplayRepresentationName3D);
 
-  /// Get enable transparency flag
-  vtkGetMacro(EnableTransparencyInColorTable, bool);
-  /// Set enable transparency flag
-  vtkSetMacro(EnableTransparencyInColorTable, bool);
-  /// Set enable transparency flag boolean functions
-  vtkBooleanMacro(EnableTransparencyInColorTable, bool);
-
 public:
   /// Create color table node for segmentation
   /// First two values are fixed: 0=Background, 1=Invalid
@@ -207,10 +200,6 @@ protected:
   /// List of segment display properties for all segments in associated segmentation.
   /// Maps segment identifier string (segment name by default) to properties.
   SegmentDisplayPropertiesMap SegmentationDisplayProperties;
-
-  /// Flag determining whether transparency is allowed in the color table
-  /// (thus the merged labelmap)
-  bool EnableTransparencyInColorTable;
 };
 
 #endif

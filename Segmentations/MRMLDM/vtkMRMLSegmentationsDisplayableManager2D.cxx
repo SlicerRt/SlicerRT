@@ -71,6 +71,48 @@
 vtkStandardNewMacro(vtkMRMLSegmentationsDisplayableManager2D );
 
 //---------------------------------------------------------------------------
+// Convert a linear transform that is almost exactly a permute transform
+// to an exact permute transform.
+// vtkImageReslice works about 10-20% faster if it reslices along an axis
+// (transformation is just a permutation). However, vtkImageReslice
+// checks for strict (floatValue!=0) to consider a matrix element zero.
+// Here we set a small floatValue to 0 if it is several magnitudes
+// (controlled by SUPPRESSION_FACTOR parameter) smaller than the
+// maximum norm of the axis.
+//----------------------------------------------------------------------------
+void SnapToPermuteMatrix(vtkTransform* transform)
+{
+  const double SUPPRESSION_FACTOR = 1e-3;
+  vtkHomogeneousTransform* linearTransform = vtkHomogeneousTransform::SafeDownCast(transform);
+  if (!linearTransform)
+    {
+    // it is not a simple linear transform, so it cannot be snapped to a permute matrix
+    return;
+    }
+  bool modified = false;
+  vtkNew<vtkMatrix4x4> transformMatrix;
+  linearTransform->GetMatrix(transformMatrix.GetPointer());
+  for (int c=0; c<3; c++)
+    {
+    double absValues[3] = {fabs(transformMatrix->Element[0][c]), fabs(transformMatrix->Element[1][c]), fabs(transformMatrix->Element[2][c])};
+    double maxValue = std::max(absValues[0], std::max(absValues[1], absValues[2]));
+    double zeroThreshold = SUPPRESSION_FACTOR * maxValue;
+    for (int r=0; r<3; r++)
+      {
+      if (absValues[r]!=0 && absValues[r]<zeroThreshold)
+        {
+        transformMatrix->Element[r][c]=0;
+        modified = true;
+        }
+      }
+    }
+  if (modified)
+  {
+    transform->SetMatrix(transformMatrix.GetPointer());
+  }
+}
+
+//---------------------------------------------------------------------------
 class vtkMRMLSegmentationsDisplayableManager2D::vtkInternal
 {
 public:
@@ -396,11 +438,11 @@ vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::CreateSegmentPipeline(std
   pipeline->Plane = vtkSmartPointer<vtkPlane>::New();
 
   // Set up poly data pipeline
-  pipeline->Transformer->SetTransform(pipeline->WorldToSliceTransform);
-  pipeline->Transformer->SetInputConnection(pipeline->Cutter->GetOutputPort());
   pipeline->Cutter->SetCutFunction(pipeline->Plane);
   pipeline->Cutter->SetGenerateCutScalars(0);
   pipeline->Cutter->SetInputConnection(pipeline->ModelWarper->GetOutputPort());
+  pipeline->Transformer->SetTransform(pipeline->WorldToSliceTransform);
+  pipeline->Transformer->SetInputConnection(pipeline->Cutter->GetOutputPort());
   vtkSmartPointer<vtkPolyDataMapper2D> polyDataOutlineMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
   polyDataOutlineMapper->SetInputConnection(pipeline->Transformer->GetOutputPort());
   pipeline->PolyDataOutlineActor->SetMapper(polyDataOutlineMapper);
@@ -677,7 +719,6 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
       vtkSmartPointer<vtkMatrix4x4> worldToImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
       imageData->GetWorldToImageMatrix(worldToImageMatrix);
       pipeline->SliceToImageTransform->Concatenate(worldToImageMatrix);
-      //TODO: See SnapToPermuteMatrix in vtkMRMLSliceLayerLogic for optimization
 
       // Create temporary copy of the segment image with default origin and spacing
       vtkSmartPointer<vtkImageData> identityImageData = vtkSmartPointer<vtkImageData>::New();
@@ -686,7 +727,19 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
       identityImageData->SetSpacing(1.0, 1.0, 1.0);
 
       // Set Reslice transform
-      pipeline->Reslice->SetResliceTransform(pipeline->SliceToImageTransform);
+      // vtkImageReslice works faster if the input is a linear transform, so try to convert it
+      // to a linear transform.
+      // Also attempt to make it a permute transform, as it makes reslicing even faster.
+      vtkSmartPointer<vtkTransform> linearSliceToImageTransform = vtkSmartPointer<vtkTransform>::New();
+      if (vtkMRMLTransformNode::IsGeneralTransformLinear(pipeline->SliceToImageTransform, linearSliceToImageTransform))
+        {
+        SnapToPermuteMatrix(linearSliceToImageTransform);
+        pipeline->Reslice->SetResliceTransform(linearSliceToImageTransform);
+        }
+      else
+        {
+        pipeline->Reslice->SetResliceTransform(pipeline->SliceToImageTransform);
+        }
       //TODO: Interpolate fractional labelmaps
       pipeline->Reslice->SetInterpolationModeToNearestNeighbor();
       pipeline->Reslice->SetInputData(identityImageData);
@@ -694,17 +747,21 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
       this->SliceNode->GetDimensions(dimensions);
       pipeline->Reslice->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
 
-      //TODO: turn off outline filter is not shown?
-      pipeline->LabelOutline->SetOutline(displayNode->GetSliceIntersectionThickness());
+      // Set outline properties and turn it off if not shown
+      if (segmentOutlineVisible)
+        {
+        pipeline->LabelOutline->SetInputConnection(pipeline->Reslice->GetOutputPort());
+        pipeline->LabelOutline->SetOutline(displayNode->GetSliceIntersectionThickness());
+        }
+      else
+        {
+        pipeline->LabelOutline->SetInputConnection(NULL);
+        }
 
       // Update pipeline actors
       pipeline->ImageOutlineActor->SetVisibility(segmentOutlineVisible);
-      //pipeline->ImageOutlineActor->GetProperty()->SetColor(properties.Color[0], properties.Color[1], properties.Color[2]);
-      //pipeline->ImageOutlineActor->GetProperty()->SetOpacity(properties.Opacity2DOutline * displayNode->GetOpacity());
       pipeline->ImageOutlineActor->SetPosition(0,0);
       pipeline->ImageFillActor->SetVisibility(segmentFillVisible);
-      //pipeline->ImageFillActor->GetProperty()->SetColor(properties.Color[0], properties.Color[1], properties.Color[2]);
-      //pipeline->ImageFillActor->GetProperty()->SetOpacity(properties.Opacity2DFill * displayNode->GetOpacity());
       pipeline->ImageFillActor->SetPosition(0,0);
       }
     }
@@ -777,6 +834,7 @@ bool vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UseDisplayableNode(v
   bool use = node && node->IsA("vtkMRMLSegmentationNode");
   return use;
 }
+
 
 //---------------------------------------------------------------------------
 // vtkMRMLSegmentationsDisplayableManager2D methods
