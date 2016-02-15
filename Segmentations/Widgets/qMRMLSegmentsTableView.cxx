@@ -115,6 +115,8 @@ void qMRMLSegmentsTableViewPrivate::init()
                    q, SLOT(onSegmentTableItemClicked(QTableWidgetItem*)));
   QObject::connect(this->SegmentsTable->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
                    q, SIGNAL(selectionChanged(QItemSelection,QItemSelection)));
+  QObject::connect(this->SegmentsTable->horizontalHeader(), SIGNAL(sectionClicked(int)),
+                   q, SLOT(onHeaderSectionClicked(int)) );
 
   // Set item delegate to handle color and opacity changes
   qMRMLItemDelegate* itemDelegate = new qMRMLItemDelegate(this->SegmentsTable);
@@ -788,5 +790,68 @@ void qMRMLSegmentsTableView::clearSelection()
   foreach (QTableWidgetItem* item, selectedItems)
   {
     d->SegmentsTable->setItemSelected(item, false);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentsTableView::onHeaderSectionClicked(int column)
+{
+  Q_D(qMRMLSegmentsTableView);
+
+  if (!d->SegmentationNode || d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() == 0)
+  {
+    return;
+  }
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
+    d->SegmentationNode->GetDisplayNode() );
+  if (!displayNode)
+  {
+    qCritical() << "qMRMLSegmentsTableView::onHeaderSectionClicked: No display node for segmentation!";
+    return;
+  }
+  // Handle only visibility actions
+  if ( column != d->columnIndex(QString("Visible3D"))
+    && column != d->columnIndex(QString("Visible2DFill"))
+    && column != d->columnIndex(QString("Visible2DOutline")) )
+  {
+    return;
+  }
+
+  // Determine if any segment has visibility on in the column.
+  // If yes, then all will be hidden, otherwise all will be shown.
+  bool visible = true;
+  vtkSegmentation::SegmentMap segmentMap = d->SegmentationNode->GetSegmentation()->GetSegments();
+  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+  {
+    std::string segmentId(segmentIt->first);
+
+    if ( ( column == d->columnIndex(QString("Visible3D")) 
+        && displayNode->GetSegmentVisibility3D(segmentId) )
+      || (column == d->columnIndex(QString("Visible2DFill"))
+        && displayNode->GetSegmentVisibility2DFill(segmentId) )
+      || (column == d->columnIndex(QString("Visible2DOutline"))
+        && displayNode->GetSegmentVisibility2DOutline(segmentId) ) )
+    {
+      visible = false;
+      break;
+    }
+  }
+
+  // Set visibility to all segments
+  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+  {
+    std::string segmentId(segmentIt->first);
+    if (column == d->columnIndex(QString("Visible3D")))
+    {
+      displayNode->SetSegmentVisibility3D(segmentId, visible);
+    }
+    else if (column == d->columnIndex(QString("Visible2DFill")))
+    {
+      displayNode->SetSegmentVisibility2DFill(segmentId, visible);
+    }
+    else if (column == d->columnIndex(QString("Visible2DOutline")))
+    {
+      displayNode->SetSegmentVisibility2DOutline(segmentId, visible);
+    }
   }
 }

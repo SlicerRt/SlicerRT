@@ -119,6 +119,9 @@ protected slots:
   /// Handles clicks on a table cell (visibility)
   void onSegmentTableItemClicked(QTableWidgetItem* item);
 
+  /// Handles clicks on header items
+  void onHeaderSectionClicked(int column);
+
   /// Populate segment table according to the segmentation node
   void populateSegmentTable();
 

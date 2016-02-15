@@ -406,16 +406,20 @@ void vtkMRMLSegmentationNode::OnRepresentationCreated(vtkObject* vtkNotUsed(call
     self->ReGenerateDisplayedMergedLabelmap();
   }
 
-  // Show new representation in 3D if model
+  // Show new representation (it is assumed that the representation was created intentionally, and is needed to visualize)
   vtkSmartPointer<vtkMRMLSegmentationDisplayNode> displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(self->GetDisplayNode());
   if (displayNode)
   {
+    // Show new representation in 3D if model
     std::set<std::string> modelRepresentationNames;
     displayNode->GetPolyDataRepresentationNames(modelRepresentationNames);
     if (modelRepresentationNames.find(std::string(targetRepresentationName)) != modelRepresentationNames.end())
     {
       displayNode->SetPreferredDisplayRepresentationName3D(targetRepresentationName);
     }
+
+    // Show new representation in 2D in every case
+    displayNode->SetPreferredDisplayRepresentationName2D(targetRepresentationName);
   }
 
   // Invoke node event

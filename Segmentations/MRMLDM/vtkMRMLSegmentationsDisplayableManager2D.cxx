@@ -57,6 +57,8 @@
 #include <vtkPointData.h>
 #include <vtkDataSetAttributes.h>
 #include <vtkCutter.h>
+#include <vtkClipPolyData.h>
+#include <vtkCleanPolyData.h>
 #include <vtkImageReslice.h>
 #include <vtkImageMapper.h>
 #include <vtkImageMapToRGBA.h>
@@ -127,11 +129,11 @@ public:
     vtkSmartPointer<vtkGeneralTransform> NodeToWorldTransform;
 
     vtkSmartPointer<vtkActor2D> PolyDataOutlineActor;
-    vtkSmartPointer<vtkActor2D> PolyDataFillActor; //TODO: Implement polydata fill
-    vtkSmartPointer<vtkTransformPolyDataFilter> Transformer;
+    vtkSmartPointer<vtkActor2D> PolyDataFillActor;
     vtkSmartPointer<vtkTransformPolyDataFilter> ModelWarper;
     vtkSmartPointer<vtkPlane> Plane;
     vtkSmartPointer<vtkCutter> Cutter;
+    vtkSmartPointer<vtkClipPolyData> Clipper;
 
     vtkSmartPointer<vtkActor2D> ImageOutlineActor;
     vtkSmartPointer<vtkActor2D> ImageFillActor;
@@ -376,6 +378,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::RemoveDisplayNode(vt
     {
     const Pipeline* pipeline = pipelineIt->second;
     this->External->GetRenderer()->RemoveActor(pipeline->PolyDataOutlineActor);
+    this->External->GetRenderer()->RemoveActor(pipeline->PolyDataFillActor);
     this->External->GetRenderer()->RemoveActor(pipeline->ImageOutlineActor);
     this->External->GetRenderer()->RemoveActor(pipeline->ImageFillActor);
     delete pipeline;
@@ -432,22 +435,36 @@ vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::CreateSegmentPipeline(std
 
   // Create poly data pipeline
   pipeline->PolyDataOutlineActor = vtkSmartPointer<vtkActor2D>::New();
-  pipeline->Transformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  pipeline->PolyDataFillActor = vtkSmartPointer<vtkActor2D>::New();
   pipeline->Cutter = vtkSmartPointer<vtkCutter>::New();
   pipeline->ModelWarper = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   pipeline->Plane = vtkSmartPointer<vtkPlane>::New();
 
-  // Set up poly data pipeline
+  // Set up poly data outline pipeline
+  pipeline->Cutter->SetInputConnection(pipeline->ModelWarper->GetOutputPort());
   pipeline->Cutter->SetCutFunction(pipeline->Plane);
   pipeline->Cutter->SetGenerateCutScalars(0);
-  pipeline->Cutter->SetInputConnection(pipeline->ModelWarper->GetOutputPort());
-  pipeline->Transformer->SetTransform(pipeline->WorldToSliceTransform);
-  pipeline->Transformer->SetInputConnection(pipeline->Cutter->GetOutputPort());
+  vtkSmartPointer<vtkTransformPolyDataFilter> polyDataOutlineTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  polyDataOutlineTransformer->SetInputConnection(pipeline->Cutter->GetOutputPort());
+  polyDataOutlineTransformer->SetTransform(pipeline->WorldToSliceTransform);
   vtkSmartPointer<vtkPolyDataMapper2D> polyDataOutlineMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
-  polyDataOutlineMapper->SetInputConnection(pipeline->Transformer->GetOutputPort());
+  polyDataOutlineMapper->SetInputConnection(polyDataOutlineTransformer->GetOutputPort());
   pipeline->PolyDataOutlineActor->SetMapper(polyDataOutlineMapper);
   pipeline->PolyDataOutlineActor->SetVisibility(0);
-  //TODO: Poly data fill pipeline
+
+  // Set up poly data fill pipeline
+  pipeline->Clipper = vtkSmartPointer<vtkClipPolyData>::New();
+  pipeline->Clipper->SetInputConnection(pipeline->ModelWarper->GetOutputPort());
+  pipeline->Clipper->SetClipFunction(pipeline->Plane);
+  vtkSmartPointer<vtkCleanPolyData> cleanPolyData = vtkSmartPointer<vtkCleanPolyData>::New();
+  cleanPolyData->SetInputConnection(pipeline->Clipper->GetOutputPort());
+  vtkSmartPointer<vtkTransformPolyDataFilter> polyDataFillTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  polyDataFillTransformer->SetInputConnection(cleanPolyData->GetOutputPort());
+  polyDataFillTransformer->SetTransform(pipeline->WorldToSliceTransform);
+  vtkSmartPointer<vtkPolyDataMapper2D> polyDataFillMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
+  polyDataFillMapper->SetInputConnection(polyDataFillTransformer->GetOutputPort());
+  pipeline->PolyDataFillActor->SetMapper(polyDataFillMapper);
+  pipeline->PolyDataFillActor->SetVisibility(0);
 
   // Create image pipeline
   pipeline->ImageOutlineActor = vtkSmartPointer<vtkActor2D>::New();
@@ -507,7 +524,8 @@ vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::CreateSegmentPipeline(std
 
   // Add actors to Renderer
   this->External->GetRenderer()->AddActor( pipeline->PolyDataOutlineActor );
-  //TODO: Poly data fill
+  //TODO: Fix poly data fill (shows all planes not just the current, and gives No data error messages when outside a segment's bounds)
+  //this->External->GetRenderer()->AddActor( pipeline->PolyDataFillActor );
   this->External->GetRenderer()->AddActor( pipeline->ImageOutlineActor );
   this->External->GetRenderer()->AddActor( pipeline->ImageFillActor );
 
@@ -575,6 +593,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateSegmentPipelin
       ++pipelineIt;
       pipelines.erase(erasedIt);
       this->External->GetRenderer()->RemoveActor(pipeline->PolyDataOutlineActor);
+      this->External->GetRenderer()->RemoveActor(pipeline->PolyDataFillActor);
       this->External->GetRenderer()->RemoveActor(pipeline->ImageOutlineActor);
       this->External->GetRenderer()->RemoveActor(pipeline->ImageFillActor);
       delete pipeline;
@@ -607,6 +626,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
     for (PipelineMapType::iterator pipelineIt=pipelines.begin(); pipelineIt!=pipelines.end(); ++pipelineIt)
       {
       pipelineIt->second->PolyDataOutlineActor->SetVisibility(false);
+      pipelineIt->second->PolyDataFillActor->SetVisibility(false);
       pipelineIt->second->ImageOutlineActor->SetVisibility(false);
       pipelineIt->second->ImageFillActor->SetVisibility(false);
       }
@@ -655,6 +675,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
       || ((!polyData || polyData->GetNumberOfPoints() == 0) && !imageData) )
       {
       pipelineIt->second->PolyDataOutlineActor->SetVisibility(false);
+      pipelineIt->second->PolyDataFillActor->SetVisibility(false);
       pipelineIt->second->ImageOutlineActor->SetVisibility(false);
       pipelineIt->second->ImageFillActor->SetVisibility(false);
       continue;
@@ -663,10 +684,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
     // If shown representation is poly data
     if (polyData)
       {
-      //TODO: Implement polydata fill
-
       // Turn off image visibility when showing poly data
-      pipeline->PolyDataOutlineActor->SetVisibility(false);
       pipeline->ImageOutlineActor->SetVisibility(false);
       pipeline->ImageFillActor->SetVisibility(false);
 
@@ -682,9 +700,11 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
       vtkMatrix4x4::Invert(this->SliceXYToRAS, rasToSliceXY.GetPointer());
       pipeline->WorldToSliceTransform->SetMatrix(rasToSliceXY.GetPointer());
 
+      // Set up cutter and disable it if outline is not shown
       // Optimization for slice to slice intersections which are 1 quad polydatas
       // no need for 50^3 default locator divisions
-      if (polyData->GetPoints() != NULL && polyData->GetNumberOfPoints() <= 4)
+      if ( segmentOutlineVisible
+        && polyData->GetPoints() != NULL && polyData->GetNumberOfPoints() <= 4 )
         {
         vtkNew<vtkPointLocator> locator;
         double *bounds = polyData->GetBounds();
@@ -699,12 +719,17 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
       pipeline->PolyDataOutlineActor->GetProperty()->SetOpacity(properties.Opacity2DOutline * displayNode->GetOpacity());
       pipeline->PolyDataOutlineActor->GetProperty()->SetLineWidth(displayNode->GetSliceIntersectionThickness());
       pipeline->PolyDataOutlineActor->SetPosition(0,0);
+      pipeline->PolyDataFillActor->SetVisibility(segmentFillVisible);
+      pipeline->PolyDataFillActor->GetProperty()->SetColor(properties.Color[0], properties.Color[1], properties.Color[2]);
+      pipeline->PolyDataFillActor->GetProperty()->SetOpacity(properties.Opacity2DFill * displayNode->GetOpacity());
+      pipeline->PolyDataFillActor->SetPosition(0,0);
       }
     // If shown representation is image data
     else if (imageData)
       {
       // Turn off poly data visibility when showing image
       pipeline->PolyDataOutlineActor->SetVisibility(false);
+      pipeline->PolyDataFillActor->SetVisibility(false);
 
       // Set segment color
       pipeline->LookupTableOutline->SetTableValue(1,

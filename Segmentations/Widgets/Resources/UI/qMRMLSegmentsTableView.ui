@@ -94,7 +94,7 @@
        <string/>
       </property>
       <property name="toolTip">
-       <string>Segment visibility in 3D</string>
+       <string>Segment visibility in 3D (click on header to change all)</string>
       </property>
      </column>
      <column>
@@ -102,7 +102,7 @@
        <string/>
       </property>
       <property name="toolTip">
-       <string>Segment fill visibility in 2D</string>
+       <string>Segment fill visibility in 2D (click on header to change all)</string>
       </property>
      </column>
      <column>
@@ -110,7 +110,7 @@
        <string/>
       </property>
       <property name="toolTip">
-       <string>Segment outline visibility in 2D</string>
+       <string>Segment outline visibility in 2D (click on header to change all)</string>
       </property>
      </column>
      <column>
