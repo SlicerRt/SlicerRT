@@ -381,23 +381,38 @@ void qMRMLSegmentEditorWidgetPrivate::showSelectedSegment()
     qCritical() << "qMRMLSegmentEditorWidgetPrivate::showSelectedSegment: Invalid segment editor parameter set node!";
     return;
   }
+  vtkMRMLSegmentationNode* segmentationNode = this->ParameterSetNode->GetSegmentationNode();
+  if (!segmentationNode)
+  {
+    qCritical() << "qMRMLSegmentEditorWidgetPrivate::showSelectedSegment: Invalid segmentation node!";
+    return;
+  }
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
+    segmentationNode->GetDisplayNode());
+  if (!displayNode)
+  {
+    qCritical() << "qMRMLSegmentEditorWidgetPrivate::showSelectedSegment: Invalid segmentation display node!";
+    return;
+  }
 
-  // Create temporary display image
-  //TODO:
-  // Create a 2D Actor that the effects can access and change it to do custom display for editing
-  // By default it would show the edited segment
-  // Label effects shows paint over mask, Threshold and LevelTracing show previews
-  //TODO: Hide foreground volume too when selecting master?
+  std::string selectedSegmentId(this->ParameterSetNode->GetSelectedSegmentID() ? this->ParameterSetNode->GetSelectedSegmentID() : "");
 
-  //// Show segmentation in label layer of slice viewers
-  //vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
-  //if (!selectionNode)
-  //{
-  //  qCritical() << "qMRMLSegmentEditorWidget::showSelectedSegment: Unable to get selection node to show segmentation node " << segmentationNode->GetName();
-  //  return;
-  //}
-  //selectionNode->SetReferenceActiveLabelVolumeID(this->ParameterSetNode->GetSegmentationNode()->GetID());
-  //qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
+  // Show fill for selected segment, outline of all other segments
+  vtkSegmentation::SegmentMap segmentMap = segmentationNode->GetSegmentation()->GetSegments();
+  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+  {
+    std::string currentSegmentId(segmentIt->first);
+    if (!currentSegmentId.compare(selectedSegmentId))
+    {
+      displayNode->SetSegmentVisibility2DFill(currentSegmentId, true);
+      displayNode->SetSegmentVisibility2DOutline(currentSegmentId, false);
+    }
+    else
+    {
+      displayNode->SetSegmentVisibility2DFill(currentSegmentId, false);
+      displayNode->SetSegmentVisibility2DOutline(currentSegmentId, true);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -933,8 +948,8 @@ void qMRMLSegmentEditorWidget::onMasterVolumeNodeChanged(vtkMRMLNode* node)
     qCritical() << "qMRMLSegmentEditorWidget::onMasterVolumeNodeChanged: Unable to get selection node to show volume node " << volumeNode->GetName();
     return;
   }
-  //selectionNode->SetActiveVolumeID(volumeNode->GetID());
-  selectionNode->SetReferenceActiveVolumeID(volumeNode->GetID());
+  selectionNode->SetActiveVolumeID(volumeNode->GetID());
+  selectionNode->SetSecondaryVolumeID(NULL); // Hide foreground volume
   qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
 
   // Create edited labelmap from selected segment, using the bounds of the master volume
@@ -1296,40 +1311,16 @@ void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
         selectedSegmentID, targetRepresentationName );
     }
   }
-  if (conversionHappened)
+
+  // Trigger display update
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
+  if (displayNode)
   {
-    // Trigger display update
-    vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
-    if (displayNode)
-    {
-      displayNode->Modified();
-    }
+    displayNode->Modified();
   }
 
   // Re-enable master representation modified event
   segmentationNode->GetSegmentation()->SetMasterRepresentationModifiedEnabled(true);
-
-  // Trigger update of slice view:
-  //   Mark all parts of a volume node as modified so that a correct
-  //   render is triggered.  This includes setting the modified flag on the
-  //   point data scalars so that the GetScalarRange method will return the
-  //   correct value, and certain operations like volume rendering will
-  //   know to update.
-  //   http://na-mic.org/Bug/view.php?id=3076
-  //   This method should be called any time the image data has been changed
-  //   via an editing operation.
-  //   Note that this call will typically schedule a render operation to be
-  //   performed the next time the event loop is idle.
-  if (segmentationNode->GetImageDataConnection())
-  {
-    segmentationNode->GetImageDataConnection()->GetProducer()->Update();
-  }
-  if (segmentationNode->vtkMRMLScalarVolumeNode::GetImageData()->GetPointData()->GetScalars())
-  {
-    segmentationNode->GetImageData()->GetPointData()->GetScalars()->Modified();
-  }
-  segmentationNode->vtkMRMLScalarVolumeNode::GetImageData()->Modified();
-  segmentationNode->Modified();
 }
 
 //---------------------------------------------------------------------------
