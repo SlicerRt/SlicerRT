@@ -638,22 +638,31 @@ void qMRMLSegmentsTableView::onSegmentTableItemChanged(QTableWidgetItem* changed
     if (changedItem->column() == d->columnIndex("Visible3D"))
       {
       int visible = changedItem->data(VisibilityRole).toInt();
-      properties.Visible3D = (bool)visible;
-      valueChanged = true;
+      if (properties.Visible3D != (bool)visible)
+        {
+        properties.Visible3D = (bool)visible;
+        valueChanged = true;
+        }
       }
     // Visibility changed
     else if (changedItem->column() == d->columnIndex("Visible2DFill"))
       {
       int visible = changedItem->data(VisibilityRole).toInt();
-      properties.Visible2DFill = (bool)visible;
-      valueChanged = true;
+      if (properties.Visible2DFill != (bool)visible)
+        {
+        properties.Visible2DFill = (bool)visible;
+        valueChanged = true;
+        }
       }
     // Visibility changed
     else if (changedItem->column() == d->columnIndex("Visible2DOutline"))
       {
       int visible = changedItem->data(VisibilityRole).toInt();
-      properties.Visible2DOutline = (bool)visible;
-      valueChanged = true;
+      if (properties.Visible2DOutline != (bool)visible)
+        {
+        properties.Visible2DOutline = (bool)visible;
+        valueChanged = true;
+        }
       }
     // Color changed
     else if (changedItem->column() == d->columnIndex("Color"))

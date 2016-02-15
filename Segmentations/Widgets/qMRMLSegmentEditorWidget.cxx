@@ -120,7 +120,7 @@ public:
   /// Select first segment in table view
   void selectFirstSegment();
 
-  /// Show selected segment in 2D views as labelmap
+  /// Show selected segment in 2D views as fill only, all the others as outline only
   void showSelectedSegment();
 
 public:
@@ -811,7 +811,6 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     qCritical() << "qMRMLSegmentEditorWidget::onSegmentationNodeChanged: Unable to get selection node to show segmentation node " << segmentationNode->GetName();
     return;
   }
-  //selectionNode->SetReferenceActiveLabelVolumeID(segmentationNode->GetID());
   selectionNode->SetReferenceActiveLabelVolumeID(NULL);
   qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
 }
@@ -867,6 +866,8 @@ void qMRMLSegmentEditorWidget::onSegmentSelectionChanged(const QItemSelection &s
   // Create edited labelmap from selected segment, using the bounds of the master volume
   d->createEditedLabelmapFromSelectedSegment();
   d->notifyEffectsOfEditedLabelmapChange();
+
+  // Show selected segment as fill only, all the others as outline only
   d->showSelectedSegment();
 }
 

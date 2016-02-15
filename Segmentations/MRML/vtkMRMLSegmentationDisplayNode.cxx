@@ -339,8 +339,8 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentDisplayProperties(std::string seg
   }
 
   // Set color in color table too
-  this->SetSegmentColorTableEntry(segmentId, properties.Color[0], properties.Color[1], properties.Color[2],
-    (properties.Visible2DFill ? properties.Opacity2DFill : 0.0) );
+  this->SetSegmentColorTableEntry(segmentId,
+    properties.Color[0], properties.Color[1], properties.Color[2], properties.Opacity2DFill);
 
   this->Modified();
 }
@@ -617,7 +617,6 @@ bool vtkMRMLSegmentationDisplayNode::CalculateAutoOpacitiesForSegments()
     // according to the topological hierarchy level of the segment
     double opacity = 1.0 - ((double)level) / (numberOfLevels+1);
     propIt->second.Opacity3D = opacity;
-    propIt->second.Opacity2DFill = opacity;
   }
 
   this->Modified();

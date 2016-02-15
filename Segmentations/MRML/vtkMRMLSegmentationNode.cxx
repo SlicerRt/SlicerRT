@@ -571,7 +571,7 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
   properties.Visible2DFill = true;
   properties.Visible2DOutline = true;
   properties.Opacity3D = 1.0;
-  properties.Opacity2DFill = 0.5; // By default the 2D fill is semi-transparent, but it does not apply to the merged labelmap as long as EnableTransparencyInColorTable is off
+  properties.Opacity2DFill = 0.5; // By default the 2D fill is semi-transparent, but it does not apply to the merged labelmap
   properties.Opacity2DOutline = 1.0;
   displayNode->SetSegmentDisplayProperties(segmentId, properties);
 
@@ -939,10 +939,6 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
     // Skip segment if hidden
     vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
     if (!displayNode->GetSegmentDisplayProperties(currentSegmentId, properties))
-    {
-      continue;
-    }
-    if (properties.Visible2DFill == false)
     {
       continue;
     }
