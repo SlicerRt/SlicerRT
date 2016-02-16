@@ -382,6 +382,11 @@ void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentAdded(vtkObject* calle
 
   // Get segment ID and segment
   char* segmentId = reinterpret_cast<char*>(callData);
+  if (!segmentId)
+  {
+    // Calling InvokePendingModifiedEvent loses event parameters, so in this case segment IDs are empty
+    return;
+  }
   vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(segmentId);
   if (!segment)
   {

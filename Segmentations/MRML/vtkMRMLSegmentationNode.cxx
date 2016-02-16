@@ -166,7 +166,16 @@ void vtkMRMLSegmentationNode::Copy(vtkMRMLNode *anode)
   Superclass::Copy(anode);
 
   this->DisableModifiedEventOff();
-  this->InvokePendingModifiedEvent(); // This call loses event parameters (i.e. callData)
+  this->InvokePendingModifiedEvent();
+  
+  // The InvokePendingModifiedEvent call loses event parameters (i.e. callData)
+  // Needed to invoke SegmentAdded events explicitly so that segment subject hierarchy nodes are correctly created
+  vtkSegmentation::SegmentMap segmentMap = this->Segmentation->GetSegments();
+  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+  {
+    const char* segmentIdChars = segmentIt->first.c_str();
+    this->Segmentation->InvokeEvent(vtkSegmentation::SegmentAdded, (void*)segmentIdChars);
+  }  
 }
 
 //----------------------------------------------------------------------------
