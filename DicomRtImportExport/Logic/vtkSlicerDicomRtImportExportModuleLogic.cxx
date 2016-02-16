@@ -1042,14 +1042,23 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     // Compute and set geometry of possible RT image that references the loaded beam.
     // Uses the referenced RT image if available, otherwise the geometry will be set up when loading the corresponding RT image
 
-    // GCS FIX: The RT Image code uses markups in a different way than
-    // the RT Plan code does.  This needs to be harmonized.
-    this->SetupRtImageGeometry(beamNode->GetIsocenterFiducialNode());
-
     beamsLogic->UpdateBeamGeometryModelByID(beamNode->GetID());
     beamsLogic->UpdateBeamTransformByID(beamNode->GetID());
   }
 
+  // Apply beam geometry to RT Image nodes.  The function SetupRtImageGeometry()
+  // has special logic for plans that contain only a single beam, therefore
+  // it cannot be called until the beams are loaded.
+  vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
+  RTPlanNode->GetRTBeamNodes(beams);
+  if (beams) {
+    for (int i=0; i<beams->GetNumberOfItems(); ++i)
+    {
+      vtkMRMLRTBeamNode *beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
+      this->SetupRtImageGeometry(beamNode);
+    }
+  }
+  
   // Insert plan isocenter series in subject hierarchy
   this->InsertSeriesInSubjectHierarchy(rtReader);
 
@@ -1270,6 +1279,8 @@ void vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy( vt
     seriesNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesNumberAttributeName().c_str(), rtReader->GetSeriesNumber() );
 
     // Set SOP instance UID (RT objects are in one file so have one SOP instance UID per series)
+    // TODO.  This is not correct for RTIMAGE, which may have several
+    // instances of DRRs within the same series
     seriesNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName(), rtReader->GetSOPInstanceUID());
   }
   else
@@ -1328,8 +1339,8 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
 {
   vtkMRMLScalarVolumeNode* rtImageVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
   vtkMRMLSubjectHierarchyNode* rtImageSubjectHierarchyNode = NULL;
-  vtkMRMLMarkupsFiducialNode* isocenterNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(node);
-  vtkMRMLSubjectHierarchyNode* isocenterSubjectHierarchyNode = NULL;
+  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(node);
+  vtkMRMLSubjectHierarchyNode* beamSHNode = NULL;
 
   // If the function is called from the LoadRtImage function with an RT image volume
   if (rtImageVolumeNode)
@@ -1372,15 +1383,15 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
     }
 
     // Get isocenters contained by the plan
-    std::vector<vtkMRMLHierarchyNode*> isocenterSubjectHierarchyNodes =
+    std::vector<vtkMRMLHierarchyNode*> beamSHNodes =
       rtPlanSubjectHierarchyNode->GetChildrenNodes();
 
     // Get isocenter according to referenced beam number
-    if (isocenterSubjectHierarchyNodes.size() == 1)
+    if (beamSHNodes.size() == 1)
     {
       // If there is only one beam in the plan, then we don't need to search in the list
-      isocenterSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*(isocenterSubjectHierarchyNodes.begin()));
-      isocenterNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(isocenterSubjectHierarchyNode->GetAssociatedNode());
+      beamSHNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*(beamSHNodes.begin()));
+      beamNode = vtkMRMLRTBeamNode::SafeDownCast(beamSHNode->GetAssociatedNode());
     }
     else
     {
@@ -1388,55 +1399,67 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
       const char* referencedBeamNumberChars = rtImageSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
       if (referencedBeamNumberChars)
       {
-        for (std::vector<vtkMRMLHierarchyNode*>::iterator isocenterShIt = isocenterSubjectHierarchyNodes.begin(); isocenterShIt != isocenterSubjectHierarchyNodes.end(); ++isocenterShIt)
+        for (std::vector<vtkMRMLHierarchyNode*>::iterator beamSHIt = beamSHNodes.begin(); beamSHIt != beamSHNodes.end(); ++beamSHIt)
         {
-          const char* isocenterBeamNumberChars = (*isocenterShIt)->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
-          if (!isocenterBeamNumberChars)
+          const char* beamNumberChars = (*beamSHIt)->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
+          if (!beamNumberChars)
           {
             continue;
           }
-          if (!STRCASECMP(isocenterBeamNumberChars, referencedBeamNumberChars))
+          if (!STRCASECMP(beamNumberChars, referencedBeamNumberChars))
           {
-            isocenterSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*isocenterShIt);
-            isocenterNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(isocenterSubjectHierarchyNode->GetAssociatedNode());
+            beamSHNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*beamSHIt);
+            beamNode = vtkMRMLRTBeamNode::SafeDownCast(beamSHNode->GetAssociatedNode());
             break;
           }
         }
       }
     }
-    if (!isocenterNode)
+    if (!beamNode)
     {
-      vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve isocenter node for RT image '" << rtImageVolumeNode->GetName() << "' in RT plan '" << rtPlanSubjectHierarchyNode->GetName() << "'!");
+      vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve beam node for RT image '" << rtImageVolumeNode->GetName() << "' in RT plan '" << rtPlanSubjectHierarchyNode->GetName() << "'!");
       return;
     }
   }
   // If the function is called from the LoadRtPlan function with an isocenter
-  else if (isocenterNode)
+  else if (beamNode)
   {
     // Get RT plan DICOM UID for isocenter
-    isocenterSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(isocenterNode);
-    if (!isocenterSubjectHierarchyNode || !isocenterSubjectHierarchyNode->GetParentNode())
+    beamSHNode = beamNode->GetSHNode ();
+    if (!beamSHNode || !beamSHNode->GetParentNode())
     {
-      vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid subject hierarchy node for isocenter '" << isocenterNode->GetName() << "'!");
+      vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid subject hierarchy node for beam '" << beamNode->GetName() << "'!");
       return;
     }
-    const char* rtPlanSopInstanceUid = isocenterSubjectHierarchyNode->GetParentNode()->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str());
+    vtkMRMLRTPlanNode *planNode = beamNode->GetRTPlanNode();
+    if (!planNode)
+    {
+      vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid plan node for beam '" << beamNode->GetName() << "'!");
+      return;
+    }
+    vtkMRMLSubjectHierarchyNode *planSHNode = planNode->GetSHNode();
+    if (!planSHNode)
+    {
+      vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid plan subject hierarchy node for beam '" << beamNode->GetName() << "'!");
+      return;
+    }
+    const char* rtPlanSopInstanceUid = planSHNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str());
     if (!rtPlanSopInstanceUid)
     {
-      vtkErrorMacro("SetupRtImageGeometry: Failed to get RT Plan DICOM UID for isocenter '" << isocenterNode->GetName() << "'!");
+      vtkErrorMacro("SetupRtImageGeometry: Failed to get RT Plan DICOM UID for beam '" << beamNode->GetName() << "'!");
       return;
     }
 
     // Get isocenter beam number
-    const char* isocenterBeamNumberChars = isocenterSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
+    const char* isocenterBeamNumberChars = beamSHNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
 
     // Get number of beams in the plan (if there is only one, then the beam number may nor be correctly referenced, so we cannot find it that way
     bool oneBeamInPlan = false;
-    if (isocenterSubjectHierarchyNode->GetParentNode() && isocenterSubjectHierarchyNode->GetParentNode()->GetNumberOfChildrenNodes() == 1)
+    if (planSHNode->GetNumberOfChildrenNodes() == 1)
     {
       oneBeamInPlan = true;
     }
-
+    
     // Find corresponding RT image according to beam (isocenter) UID
     vtkSmartPointer<vtkCollection> hierarchyNodes = vtkSmartPointer<vtkCollection>::Take(
       this->GetMRMLScene()->GetNodesByClass("vtkMRMLSubjectHierarchyNode") );
@@ -1469,7 +1492,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
           rtImageVolumeNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
         if (modelNode)
         {
-          vtkDebugMacro("SetupRtImageGeometry: RT image '" << rtImageVolumeNode->GetName() << "' belonging to isocenter '" << isocenterNode->GetName() << "' seems to have been set up already.");
+          vtkDebugMacro("SetupRtImageGeometry: RT image '" << rtImageVolumeNode->GetName() << "' belonging to beam '" << beamNode->GetName() << "' seems to have been set up already.");
           return;
         }
       }
@@ -1478,7 +1501,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
     if (!rtImageVolumeNode)
     {
       // RT image for the isocenter is not loaded yet. Geometry will be set up upon loading the related RT image
-      vtkDebugMacro("SetupRtImageGeometry: Cannot set up geometry of RT image corresponding to isocenter fiducial '" << isocenterNode->GetName()
+      vtkDebugMacro("SetupRtImageGeometry: Cannot set up geometry of RT image corresponding to beam '" << beamNode->GetName()
         << "' because the RT image is not loaded yet. Will be set up upon loading the related RT image");
       return;
     }
@@ -1512,7 +1535,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
 
   // Extract beam-related parameters needed to compute RT image coordinate system
   double sourceAxisDistance = 0.0;
-  const char* sourceAxisDistanceChars = isocenterSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str());
+  const char* sourceAxisDistanceChars = beamSHNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str());
   if (sourceAxisDistanceChars)
   {
     std::stringstream ss;
@@ -1520,7 +1543,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
     ss >> sourceAxisDistance;
   }
   double gantryAngle = 0.0;
-  const char* gantryAngleChars = isocenterSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str());
+  const char* gantryAngleChars = beamSHNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str());
   if (gantryAngleChars)
   {
     std::stringstream ss;
@@ -1528,7 +1551,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
     ss >> gantryAngle;
   }
   double couchAngle = 0.0;
-  const char* couchAngleChars = isocenterSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME.c_str());
+  const char* couchAngleChars = beamSHNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME.c_str());
   if (couchAngleChars != NULL)
   {
     std::stringstream ss;
@@ -1538,7 +1561,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
 
   // Get isocenter coordinates
   double isocenterWorldCoordinates[3] = {0.0, 0.0, 0.0};
-  isocenterNode->GetNthFiducialPosition(0, isocenterWorldCoordinates);
+  beamNode->GetIsocenterPosition(isocenterWorldCoordinates);
 
   // Assemble transform from isocenter IEC to RT image RAS
   vtkSmartPointer<vtkTransform> fixedToIsocenterTransform = vtkSmartPointer<vtkTransform>::New();
