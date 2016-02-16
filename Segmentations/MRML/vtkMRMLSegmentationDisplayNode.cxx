@@ -620,7 +620,6 @@ std::string vtkMRMLSegmentationDisplayNode::GetDisplayRepresentationName3D()
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(this->GetDisplayableNode());
   if (!segmentationNode)
   {
-    vtkErrorMacro("GetDisplayRepresentationName3D: No segmentation node associated to this display node!");
     return "";
   }
   // If segmentation is empty then we cannot show poly data
@@ -676,7 +675,6 @@ std::string vtkMRMLSegmentationDisplayNode::GetDisplayRepresentationName2D()
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(this->GetDisplayableNode());
   if (!segmentationNode)
   {
-    vtkErrorMacro("GetDisplayRepresentationName2D: No segmentation node associated to this display node!");
     return "";
   }
   // If segmentation is empty then return empty string

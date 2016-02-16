@@ -163,7 +163,8 @@ void vtkMRMLSegmentationNode::Copy(vtkMRMLNode *anode)
     this->CopyOrientation(otherNode);
   }
 
-  Superclass::Copy(anode);
+  // Skip the volume node stage as the merged labelmap will be generated on request
+  vtkMRMLDisplayableNode::Copy(anode);
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -214,8 +215,14 @@ void vtkMRMLSegmentationNode::SetAndObserveSegmentation(vtkSegmentation* segment
   {
     return;
   }
+  if (this->Segmentation && segmentation && this->Segmentation != segmentation)
+  {
+    // If both new and current segmentation is valid, then it's an unexpected scenario
+    // as this function should only be called at creation and destruction
+    vtkErrorMacro("SetAndObserveSegmentation: Unexpected change of contained segmentation object!");
+  }
 
-  // Remove observation from segment's master representation (in case it has changed)
+  // Remove segment event observations from previous segmentation
   if (this->Segmentation)
   {
     vtkEventBroker::GetInstance()->RemoveObservations(
@@ -232,7 +239,7 @@ void vtkMRMLSegmentationNode::SetAndObserveSegmentation(vtkSegmentation* segment
 
   this->SetSegmentation(segmentation);
 
-  // Observe segment's master representation
+  // Observe segment events in new segmentation
   if (this->Segmentation)
   {
     vtkEventBroker::GetInstance()->AddObservation(

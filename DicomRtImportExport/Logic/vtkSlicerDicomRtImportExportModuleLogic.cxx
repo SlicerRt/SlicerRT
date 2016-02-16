@@ -654,6 +654,10 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
       vtkWarningMacro("LoadRtStructureSet: Structure set contains extremely large contours that will most likely take an unreasonably long time to load. No closed surface representation is thus created for nicer display, but the raw RICOM-RT planar contours are shown. It is possible to create nicer models in Segmentations module by converting to the lighter Ribbon model or the nicest Closed surface.");
     }
   }
+  else if (segmentationNode.GetPointer())
+  {
+    vtkErrorMacro("LoadRtStructureSet: No display node was created for the segmentation node " << segmentationNode->GetName());
+  }
 
   // Insert series in subject hierarchy
   this->InsertSeriesInSubjectHierarchy(rtReader);

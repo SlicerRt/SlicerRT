@@ -132,6 +132,9 @@ public:
   /// \param segment the segment to remove from the segmentation
   void RemoveSegment(vtkSegment* segment);
 
+  /// Remove all segments
+  void RemoveAllSegments();
+
   /// Access a segment by ID
   /// \param segmentId Segment identifier in the container to access
   vtkSegment* GetSegment(std::string segmentId);
