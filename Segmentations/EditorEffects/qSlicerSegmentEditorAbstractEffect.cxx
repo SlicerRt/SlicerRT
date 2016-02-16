@@ -96,6 +96,7 @@ qSlicerSegmentEditorAbstractEffectPrivate::~qSlicerSegmentEditorAbstractEffectPr
 //----------------------------------------------------------------------------
 qSlicerSegmentEditorAbstractEffect::qSlicerSegmentEditorAbstractEffect(QObject* parent)
  : Superclass(parent)
+ , m_Name(QString())
  , d_ptr( new qSlicerSegmentEditorAbstractEffectPrivate(*this) )
 {
 }
@@ -103,6 +104,23 @@ qSlicerSegmentEditorAbstractEffect::qSlicerSegmentEditorAbstractEffect(QObject* 
 //----------------------------------------------------------------------------
 qSlicerSegmentEditorAbstractEffect::~qSlicerSegmentEditorAbstractEffect()
 {
+}
+
+//-----------------------------------------------------------------------------
+QString qSlicerSegmentEditorAbstractEffect::name()const
+{
+  if (m_Name.isEmpty())
+    {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::name: Empty effect name!";
+    }
+  return this->m_Name;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::setName(QString name)
+{
+  Q_UNUSED(name);
+  qCritical() << "qSlicerSegmentEditorAbstractEffect::setName: Cannot set effect name by method, only in constructor!";
 }
 
 //-----------------------------------------------------------------------------

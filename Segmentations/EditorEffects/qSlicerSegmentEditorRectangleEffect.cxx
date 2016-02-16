@@ -76,6 +76,8 @@ qSlicerSegmentEditorRectangleEffect::qSlicerSegmentEditorRectangleEffect(QObject
  : Superclass(parent)
  , d_ptr( new qSlicerSegmentEditorRectangleEffectPrivate(*this) )
 {
+  this->m_Name = QString("Rectangle");
+
   //this->Brush = vtkPolyData::New();
   /*
     self.createGlyph(self.brush)
@@ -98,12 +100,6 @@ qSlicerSegmentEditorRectangleEffect::~qSlicerSegmentEditorRectangleEffect()
   //  this->Brush->Delete();
   //  this->Brush = NULL;
   //}
-}
-
-//---------------------------------------------------------------------------
-QString qSlicerSegmentEditorRectangleEffect::name()
-{
-  return QString("Rectangle");
 }
 
 //---------------------------------------------------------------------------

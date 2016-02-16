@@ -679,17 +679,12 @@ qSlicerSegmentEditorPaintEffect::qSlicerSegmentEditorPaintEffect(QObject* parent
  : Superclass(parent)
  , d_ptr( new qSlicerSegmentEditorPaintEffectPrivate(*this) )
 {
+  this->m_Name = QString("Paint");
 }
 
 //----------------------------------------------------------------------------
 qSlicerSegmentEditorPaintEffect::~qSlicerSegmentEditorPaintEffect()
 {
-}
-
-//---------------------------------------------------------------------------
-QString qSlicerSegmentEditorPaintEffect::name()
-{
-  return QString("Paint");
 }
 
 //---------------------------------------------------------------------------

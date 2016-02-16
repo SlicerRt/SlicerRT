@@ -56,10 +56,6 @@ public:
   static QString paintOverAvailableParameterName() { return QString("PaintOverAvailable"); };
 
 public:
-  /// Get name of effect
-  /// (redefinition of pure virtual function to allow python wrapper to identify this as abstract class)
-  Q_INVOKABLE virtual QString name() = 0;
-
   /// Clone editor effect
   /// (redefinition of pure virtual function to allow python wrapper to identify this as abstract class)
   virtual qSlicerSegmentEditorAbstractEffect* clone() = 0;

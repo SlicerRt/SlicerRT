@@ -50,6 +50,11 @@ class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorAbstractEffect :
 public:
   Q_OBJECT
 
+  /// This property stores the name of the effect
+  /// Cannot be empty.
+  /// \sa name()
+  Q_PROPERTY(QString name READ name WRITE setName)
+
 public:
   /// Property identifier for soring event tags in widgets
   static const char* observerTagIdentifier() { return "ObserverTags"; };
@@ -61,9 +66,6 @@ public:
 
 // API: Methods that are to be reimplemented in the effect subclasses
 public:  
-  /// Get name of effect
-  Q_INVOKABLE virtual QString name() = 0;
-
   /// Get icon for effect to be displayed in segment editor
   virtual QIcon icon() { return QIcon(); };
 
@@ -89,10 +91,6 @@ public:
 
   /// Create a cursor customized for the given effect, potentially for each view
   virtual QCursor createCursor(qMRMLWidget* viewWidget);
-  /// Turn off cursor and save cursor to restore later
-  virtual void cursorOff(qMRMLWidget* viewWidget);
-  /// Restore saved cursor
-  virtual void cursorOn(qMRMLWidget* viewWidget);
 
   /// Callback function invoked when interaction happens
   /// \param callerInteractor Interactor object that was observed to catch the event
@@ -108,6 +106,11 @@ public:
 
   /// Set default parameters in the parameter MRML node
   virtual void setMRMLDefaults() = 0;
+
+  /// Simple mechanism to let the effects know that edited labelmap has changed
+  virtual void editedLabelmapChanged() { };
+  /// Simple mechanism to let the effects know that master volume has changed
+  virtual void masterVolumeNodeChanged() { };
 
 public slots:
   /// Update user interface from parameter set node
@@ -130,22 +133,29 @@ public:
   /// edited segment.
   void connectApply(QObject* receiver, const char* method);
 
-  /// Simple mechanism to let the effects know that edited labelmap has changed
-  virtual void editedLabelmapChanged() { };
-  /// Simple mechanism to let the effects know that master volume has changed
-  virtual void masterVolumeNodeChanged() { };
-
   /// Get effect options frame
   Q_INVOKABLE QFrame* optionsFrame();
 
   /// Add actor to container that needs to be cleared on deactivation
   void addActor(qMRMLWidget* viewWidget, vtkProp* actor);
 
+  /// Get name of effect
+  virtual QString name()const;
+
+  /// Set the name of the effect
+  /// NOTE: name must be defined in constructor in C++ effects, this can only be used in python scripted ones
+  virtual void setName(QString name);
+
 protected:
   /// Add effect options widget to options frame layout
   /// The implemented effects need to create their options UI widget, make the connections,
   /// then call this function to add the options UI to the effect options frame
   void addOptionsWidget(QWidget* newOptionsWidget);
+
+  /// Turn off cursor and save cursor to restore later
+  virtual void cursorOff(qMRMLWidget* viewWidget);
+  /// Restore saved cursor
+  virtual void cursorOn(qMRMLWidget* viewWidget);
 
 // Effect parameter functions
 public:
@@ -209,6 +219,10 @@ public:
   Q_INVOKABLE static void xyzToIjk(double inputXyz[3], int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
   /// Convert XY in-slice position to image IJK position
   Q_INVOKABLE static void xyToIjk(QPoint xy, int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
+
+protected:
+  /// Name of the effect
+  QString m_Name;
 
 protected:
   QScopedPointer<qSlicerSegmentEditorAbstractEffectPrivate> d_ptr;

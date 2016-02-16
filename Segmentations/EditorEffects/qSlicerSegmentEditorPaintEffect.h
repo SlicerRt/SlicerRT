@@ -42,9 +42,6 @@ public:
   virtual ~qSlicerSegmentEditorPaintEffect(); 
 
 public:
-  /// Get name of effect
-  Q_INVOKABLE virtual QString name();
-
   /// Get icon for effect to be displayed in segment editor
   virtual QIcon icon();
 
