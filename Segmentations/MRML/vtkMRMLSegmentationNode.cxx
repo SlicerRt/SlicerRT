@@ -195,10 +195,20 @@ void vtkMRMLSegmentationNode::DeepCopy(vtkMRMLNode* aNode)
     this->CopyOrientation(otherNode);
   }
 
-  Superclass::Copy(aNode);
+  // Skip the volume node stage as the merged labelmap will be generated on request
+  vtkMRMLDisplayableNode::Copy(aNode);
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent(); // This call loses event parameters (i.e. callData)
+
+  // The InvokePendingModifiedEvent call loses event parameters (i.e. callData)
+  // Needed to invoke SegmentAdded events explicitly so that segment subject hierarchy nodes are correctly created
+  vtkSegmentation::SegmentMap segmentMap = this->Segmentation->GetSegments();
+  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+  {
+    const char* segmentIdChars = segmentIt->first.c_str();
+    this->Segmentation->InvokeEvent(vtkSegmentation::SegmentAdded, (void*)segmentIdChars);
+  }  
 }
 
 //----------------------------------------------------------------------------

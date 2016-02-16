@@ -68,7 +68,6 @@ public:
     MasterVolumeNodeChangedMethod,
     UpdateGUIFromMRMLMethod,
     UpdateMRMLFromGUIMethod,
-    AddOptionsWidgetMethod
     };
 
   mutable qSlicerPythonCppAPI PythonCppAPI;
@@ -268,69 +267,130 @@ const QString qSlicerSegmentEditorScriptedEffect::helpText()const
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorScriptedEffect::clone()
 {
+  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  PyObject* result = d->PythonCppAPI.callMethod(d->CloneMethod);
+  if (!result)
+    {
+    qCritical() << d->PythonSource << ": qSlicerSegmentEditorScriptedEffect: Clone method needs to be implemented!";
+    }
+
+  // Parse result
+  QVariant resultVariant = PythonQtConv::PyObjToQVariant(result);
+  qSlicerSegmentEditorAbstractEffect* clonedEffect = qobject_cast<qSlicerSegmentEditorAbstractEffect*>(
+    resultVariant.value<QObject*>() );
+  if (!clonedEffect)
+    {
+    qCritical() << "qSlicerSegmentEditorScriptedEffect: Invalid cloned effect object returned from python!");
+    return NULL;
+    }
+  return clonedEffect;
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedEffect::activate()
 {
+  // Base class implementation needs to be called before the effect-specific one
+  this->Superclass::activate();
+
+  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  d->PythonCppAPI.callMethod(d->ActivateMethod);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedEffect::deactivate()
 {
+  // Base class implementation needs to be called before the effect-specific one
+  this->Superclass::deactivate();
+
+  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  d->PythonCppAPI.callMethod(d->DeactivateMethod);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedEffect::apply()
 {
+  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  PyObject* result = d->PythonCppAPI.callMethod(d->ApplyMethod);
+
+  // Base class implementation needs to be called after the effect-specific one
+  this->Superclass::apply();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedEffect::setupOptionsFrame()
 {
+  // Base class implementation needs to be called before the effect-specific one
+  this->Superclass::setupOptionsFrame();
+
+  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  PyObject* result = d->PythonCppAPI.callMethod(d->SetupOptionsFrameMethod);
 }
 
 //-----------------------------------------------------------------------------
 QCursor qSlicerSegmentEditorScriptedEffect::createCursor(qMRMLWidget* viewWidget)
 {
+  //TODO:
+  return QCursor();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedEffect::processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget)
 {
+  //TODO:
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedEffect::processViewNodeEvents(vtkMRMLAbstractViewNode* callerViewNode, unsigned long eid, qMRMLWidget* viewWidget)
 {
+  //TODO:
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedEffect::setMRMLDefaults()
 {
+  // Base class implementation needs to be called before the effect-specific one
+  this->Superclass::setMRMLDefaults();
+
+  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  PyObject* result = d->PythonCppAPI.callMethod(d->SetMRMLDefaultsMethod);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedEffect::editedLabelmapChanged()
 {
+  // Base class implementation needs to be called before the effect-specific one
+  this->Superclass::editedLabelmapChanged();
+
+  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  PyObject* result = d->PythonCppAPI.callMethod(d->EditedLabelmapChangedMethod);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedEffect::masterVolumeNodeChanged()
 {
+  // Base class implementation needs to be called before the effect-specific one
+  this->Superclass::masterVolumeNodeChanged();
+
+  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  PyObject* result = d->PythonCppAPI.callMethod(d->MasterVolumeNodeChangedMethod);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedEffect::updateGUIFromMRML()
 {
+  // Base class implementation needs to be called before the effect-specific one
+  this->Superclass::updateGUIFromMRML();
+
+  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  PyObject* result = d->PythonCppAPI.callMethod(d->UpdateGUIFromMRMLMethod);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedEffect::updateMRMLFromGUI()
 {
-}
+  // Base class implementation needs to be called before the effect-specific one
+  this->Superclass::updateMRMLFromGUI();
 
-//-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::addOptionsWidget(QWidget* newOptionsWidget)
-{
+  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  PyObject* result = d->PythonCppAPI.callMethod(d->UpdateMRMLFromGUIMethod);
 }

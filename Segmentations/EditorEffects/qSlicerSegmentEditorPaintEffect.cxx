@@ -994,7 +994,7 @@ void qSlicerSegmentEditorPaintEffect::updateMRMLFromGUI()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffect::editedLabelmapChanged()
 {
-  Superclass:: editedLabelmapChanged();
+  Superclass::editedLabelmapChanged();
 
   if (!this->parameterSetNode())
   {

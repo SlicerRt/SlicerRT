@@ -197,8 +197,7 @@ void qSlicerSegmentEditorLabelEffect::editedLabelmapChanged()
   threshold->Update();
   maskLabelmap->DeepCopy(threshold->GetOutput());
 
-  // Set displayed image data to segmentation node
-  //TODO:
+  //TODO: Show mask?
 }
 
 //-----------------------------------------------------------------------------

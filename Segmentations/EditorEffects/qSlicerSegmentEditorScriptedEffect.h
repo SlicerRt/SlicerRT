@@ -130,12 +130,6 @@ public slots:
   virtual void updateMRMLFromGUI();
 
 protected:
-  /// Add effect options widget to options frame layout
-  /// The implemented effects need to create their options UI widget, make the connections,
-  /// then call this function to add the options UI to the effect options frame
-  void addOptionsWidget(QWidget* newOptionsWidget);
-
-protected:
   QScopedPointer<qSlicerSegmentEditorScriptedEffectPrivate> d_ptr;
 
 private:

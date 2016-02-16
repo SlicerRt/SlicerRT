@@ -76,17 +76,20 @@ public:
   virtual qSlicerSegmentEditorAbstractEffect* clone() = 0;
 
   /// Perform actions to activate the effect (show options frame, etc.)
+  /// NOTE: Base class implementation needs to be called BEFORE the effect-specific implementation
   Q_INVOKABLE virtual void activate();
 
   /// Perform actions to deactivate the effect (hide options frame, destroy actors, etc.)
+  /// NOTE: Base class implementation needs to be called BEFORE the effect-specific implementation
   Q_INVOKABLE virtual void deactivate();
 
   /// Perform actions needed before the edited labelmap is applied back to the segment.
-  /// The default implementation only emits the signal. If the child classes override this function,
-  /// they must call apply from the base class too
+  /// NOTE: The default implementation only emits the signal. If the child classes override this function,
+  /// they must call apply from the base class too, AFTER the effect-specific implementation
   virtual void apply();
 
   /// Create options frame widgets, make connections, and add them to the main options frame using \sa addOptionsWidget
+  /// NOTE: Base class implementation needs to be called BEFORE the effect-specific implementation
   virtual void setupOptionsFrame() { };
 
   /// Create a cursor customized for the given effect, potentially for each view
@@ -105,18 +108,23 @@ public:
   virtual void processViewNodeEvents(vtkMRMLAbstractViewNode* callerViewNode, unsigned long eid, qMRMLWidget* viewWidget) { };
 
   /// Set default parameters in the parameter MRML node
+  /// NOTE: Base class implementation needs to be called with the effect-specific implementation
   virtual void setMRMLDefaults() = 0;
 
   /// Simple mechanism to let the effects know that edited labelmap has changed
+  /// NOTE: Base class implementation needs to be called with the effect-specific implementation
   virtual void editedLabelmapChanged() { };
   /// Simple mechanism to let the effects know that master volume has changed
+  /// NOTE: Base class implementation needs to be called with the effect-specific implementation
   virtual void masterVolumeNodeChanged() { };
 
 public slots:
   /// Update user interface from parameter set node
+  /// NOTE: Base class implementation needs to be called with the effect-specific implementation
   virtual void updateGUIFromMRML() = 0;
 
   /// Update parameter set node from user interface
+  /// NOTE: Base class implementation needs to be called with the effect-specific implementation
   virtual void updateMRMLFromGUI() = 0;
 
 // Get/set methods
@@ -153,9 +161,9 @@ protected:
   void addOptionsWidget(QWidget* newOptionsWidget);
 
   /// Turn off cursor and save cursor to restore later
-  virtual void cursorOff(qMRMLWidget* viewWidget);
+  void cursorOff(qMRMLWidget* viewWidget);
   /// Restore saved cursor
-  virtual void cursorOn(qMRMLWidget* viewWidget);
+  void cursorOn(qMRMLWidget* viewWidget);
 
 // Effect parameter functions
 public:
