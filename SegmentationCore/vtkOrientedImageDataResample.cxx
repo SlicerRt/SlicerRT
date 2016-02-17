@@ -60,9 +60,13 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage
     return false;
   }
   // Simply copy input into output if the reference has the same geometry as the input, so no resampling is necessary
-  if (vtkOrientedImageDataResample::DoGeometriesMatch(inputImage, referenceImage))
+  if ( vtkOrientedImageDataResample::DoGeometriesMatch(inputImage, referenceImage)
+    && vtkOrientedImageDataResample::DoExtentsMatch(inputImage, referenceImage) )
   {
-    outputImage->DeepCopy(inputImage);
+    if (inputImage != outputImage)
+    {
+      outputImage->DeepCopy(inputImage);
+    }
     return true;
   }
 
@@ -113,6 +117,7 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage
   resliceFilter->SetOutputOrigin(0, 0, 0);
   resliceFilter->SetOutputSpacing(1, 1, 1);
   resliceFilter->SetOutputExtent(unionExtent);
+  resliceFilter->SetOutputScalarType(inputImage->GetScalarType());
 
   resliceFilter->SetResliceTransform(referenceImageToInputImageTransform);
 

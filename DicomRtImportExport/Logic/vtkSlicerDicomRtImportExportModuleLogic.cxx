@@ -1810,7 +1810,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
       }
       // Make sure the labelmap dimensions match the reference dimensions
       if ( !vtkOrientedImageDataResample::DoGeometriesMatch(imageData, binaryLabelmapCopy)
-        || !SlicerRtCommon::AreExtentsEqual(imageData->GetExtent(), binaryLabelmapCopy->GetExtent()) )
+        || !vtkOrientedImageDataResample::DoExtentsMatch(imageData, binaryLabelmapCopy) )
       {
         if (!vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(binaryLabelmapCopy, imageData, binaryLabelmapCopy))
         {
