@@ -177,9 +177,19 @@ void qSlicerSegmentationsModuleWidget::updateWidgetFromDisplayNode()
   d->SliderWidget_Opacity->setValue( displayNode->GetOpacity() );
   d->spinBox_SliceIntersectionThickness->setValue( displayNode->GetSliceIntersectionThickness() );
 
-  // Populate representations comboboxes
-  this->populate3DRepresentationsCombobox();
-  this->populate2DRepresentationsCombobox();
+  // Set displayed representation selections
+  std::string displayRepresentation3D = displayNode->GetDisplayRepresentationName3D();
+  if (!displayRepresentation3D.empty())
+  {
+    d->comboBox_DisplayedRepresentation3D->setCurrentIndex( d->comboBox_DisplayedRepresentation3D->findText(
+      displayRepresentation3D.c_str() ) );
+  }
+  std::string displayRepresentation2D = displayNode->GetDisplayRepresentationName2D();
+  if (!displayRepresentation2D.empty())
+  {
+    d->comboBox_DisplayedRepresentation2D->setCurrentIndex( d->comboBox_DisplayedRepresentation2D->findText(
+      displayRepresentation2D.c_str() ) );
+  }
 
   // Set display node to display widgets
   d->DisplayNodeViewComboBox->setMRMLDisplayNode(displayNode);
@@ -257,8 +267,12 @@ void qSlicerSegmentationsModuleWidget::populate3DRepresentationsCombobox()
   d->comboBox_DisplayedRepresentation3D->blockSignals(false);
 
   // Set selection from display node
-  d->comboBox_DisplayedRepresentation3D->setCurrentIndex( d->comboBox_DisplayedRepresentation3D->findText(
-    displayNode->GetDisplayRepresentationName3D().c_str() ) );
+  std::string displayRepresentation3D = displayNode->GetDisplayRepresentationName3D();
+  if (!displayRepresentation3D.empty())
+  {
+    d->comboBox_DisplayedRepresentation3D->setCurrentIndex( d->comboBox_DisplayedRepresentation3D->findText(
+      displayRepresentation3D.c_str() ) );
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -297,8 +311,12 @@ void qSlicerSegmentationsModuleWidget::populate2DRepresentationsCombobox()
   d->comboBox_DisplayedRepresentation2D->blockSignals(false);
 
   // Set selection from display node
-  d->comboBox_DisplayedRepresentation2D->setCurrentIndex( d->comboBox_DisplayedRepresentation2D->findText(
-    displayNode->GetDisplayRepresentationName2D().c_str() ) );
+  std::string displayRepresentation2D = displayNode->GetDisplayRepresentationName2D();
+  if (!displayRepresentation2D.empty())
+  {
+    d->comboBox_DisplayedRepresentation2D->setCurrentIndex( d->comboBox_DisplayedRepresentation2D->findText(
+      displayRepresentation2D.c_str() ) );
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -403,6 +421,10 @@ void qSlicerSegmentationsModuleWidget::onSegmentationNodeChanged(vtkMRMLNode* no
     hiddenNodeIDs << QString(segmentationNode->GetID());
   }
   d->MRMLNodeComboBox_OtherSegmentationOrRepresentationNode->sortFilterProxyModel()->setHiddenNodeIDs(hiddenNodeIDs);
+
+  // Populate representations comboboxes
+  this->populate3DRepresentationsCombobox();
+  this->populate2DRepresentationsCombobox();
 
   // Update UI from selected segmentation node
   this->updateWidgetFromMRML();

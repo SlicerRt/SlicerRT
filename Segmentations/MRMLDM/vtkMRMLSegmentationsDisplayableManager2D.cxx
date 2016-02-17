@@ -127,6 +127,7 @@ public:
     std::string SegmentID;
     vtkSmartPointer<vtkTransform> WorldToSliceTransform;
     vtkSmartPointer<vtkGeneralTransform> NodeToWorldTransform;
+    vtkSmartPointer<vtkGeneralTransform> WorldToNodeTransform;
 
     vtkSmartPointer<vtkActor2D> PolyDataOutlineActor;
     vtkSmartPointer<vtkActor2D> PolyDataFillActor;
@@ -157,7 +158,7 @@ public:
 
   // Transforms
   void UpdateDisplayableTransforms(vtkMRMLSegmentationNode *node);
-  void GetNodeTransformToWorld(vtkMRMLTransformableNode* node, vtkGeneralTransform* transformToWorld);
+  void GetNodeTransformToWorld(vtkMRMLTransformableNode* node, vtkGeneralTransform* transformToWorld, vtkGeneralTransform* transformFromWorld);
 
   // Slice Node
   void SetSliceNode(vtkMRMLSliceNode* sliceNode);
@@ -328,7 +329,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::RemoveSegmentationNo
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::GetNodeTransformToWorld(vtkMRMLTransformableNode* node, vtkGeneralTransform* transformToWorld)
+void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::GetNodeTransformToWorld(vtkMRMLTransformableNode* node, vtkGeneralTransform* transformToWorld, vtkGeneralTransform* transformFromWorld)
 {
   if (!node || !transformToWorld)
     {
@@ -338,9 +339,12 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::GetNodeTransformToWo
   vtkMRMLTransformNode* tnode = node->GetParentTransformNode();
 
   transformToWorld->Identity();
+  transformFromWorld->Identity();
   if (tnode)
     {
     tnode->GetTransformToWorld(transformToWorld);
+    // Need inverse of the transform for image resampling
+    tnode->GetTransformFromWorld(transformFromWorld);
     }
 }
 
@@ -355,12 +359,12 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayableTra
     {
     if ( ((pipelinesIter = this->DisplayPipelines.find(*dnodesIter)) != this->DisplayPipelines.end()) )
       {
-      this->UpdateDisplayNodePipeline(pipelinesIter->first, pipelinesIter->second);
       for (PipelineMapType::iterator pipelineIt=pipelinesIter->second.begin(); pipelineIt!=pipelinesIter->second.end(); ++pipelineIt)
         {
         const Pipeline* currentPipeline = pipelineIt->second;
-        this->GetNodeTransformToWorld(mNode, currentPipeline->NodeToWorldTransform);
+        this->GetNodeTransformToWorld(mNode, currentPipeline->NodeToWorldTransform, currentPipeline->WorldToNodeTransform);
         }
+      this->UpdateDisplayNodePipeline(pipelinesIter->first, pipelinesIter->second);
       }
     }
 }
@@ -432,6 +436,7 @@ vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::CreateSegmentPipeline(std
   pipeline->SegmentID = segmentID;
   pipeline->WorldToSliceTransform = vtkSmartPointer<vtkTransform>::New();
   pipeline->NodeToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  pipeline->WorldToNodeTransform = vtkSmartPointer<vtkGeneralTransform>::New();
 
   // Create poly data pipeline
   pipeline->PolyDataOutlineActor = vtkSmartPointer<vtkActor2D>::New();
@@ -700,17 +705,16 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
       vtkMatrix4x4::Invert(this->SliceXYToRAS, rasToSliceXY.GetPointer());
       pipeline->WorldToSliceTransform->SetMatrix(rasToSliceXY.GetPointer());
 
-      // Set up cutter and disable it if outline is not shown
       // Optimization for slice to slice intersections which are 1 quad polydatas
       // no need for 50^3 default locator divisions
-      if ( segmentOutlineVisible
-        && polyData->GetPoints() != NULL && polyData->GetNumberOfPoints() <= 4 )
+      if (polyData->GetPoints() != NULL && polyData->GetNumberOfPoints() <= 4 )
         {
         vtkNew<vtkPointLocator> locator;
         double *bounds = polyData->GetBounds();
         locator->SetDivisions(2,2,2);
         locator->InitPointInsertion(polyData->GetPoints(), bounds);
         pipeline->Cutter->SetLocator(locator.GetPointer());
+        pipeline->Clipper->SetLocator(locator.GetPointer());
         }
 
       // Update pipeline actors
@@ -740,7 +744,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
       // Calculate image IJK to world RAS transform
       pipeline->SliceToImageTransform->Identity();
       pipeline->SliceToImageTransform->Concatenate(this->SliceXYToRAS);
-      pipeline->SliceToImageTransform->Concatenate(pipeline->NodeToWorldTransform);
+      pipeline->SliceToImageTransform->Concatenate(pipeline->WorldToNodeTransform);
       vtkSmartPointer<vtkMatrix4x4> worldToImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
       imageData->GetWorldToImageMatrix(worldToImageMatrix);
       pipeline->SliceToImageTransform->Concatenate(worldToImageMatrix);

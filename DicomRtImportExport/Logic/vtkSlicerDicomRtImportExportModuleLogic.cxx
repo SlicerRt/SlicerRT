@@ -642,8 +642,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
   // Do not set closed surface display in case of extremely large structures, to prevent unreasonably long load times
   if (segmentationDisplayNode.GetPointer())
   {
-    vtkDebugMacro("LoadRtStructureSet: Maximum number of points in a loaded segment=" << maximumNumberOfPoints << ", Total number of points in segmentation=" << totalNumberOfPoints);
     // Arbitrary thresholds, can revisit
+    vtkDebugMacro("LoadRtStructureSet: Maximum number of points in a segment = " << maximumNumberOfPoints << ", Total number of points in segmentation = " << totalNumberOfPoints);
     if (maximumNumberOfPoints < 800000 && totalNumberOfPoints < 3000000)
     {
       segmentationDisplayNode->SetPreferredDisplayRepresentationName3D(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());

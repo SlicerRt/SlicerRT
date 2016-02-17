@@ -548,7 +548,7 @@ bool vtkMRMLSegmentationDisplayNode::CalculateAutoOpacitiesForSegments()
   }
 
   // Get displayed 3D representation (always poly data)
-  std::string displayedPolyDataRepresentationName = this->GetDisplayRepresentationName2D();
+  std::string displayedPolyDataRepresentationName = this->GetDisplayRepresentationName3D();
 
   // Assemble segment poly datas into a collection that can be fed to topological hierarchy algorithm
   vtkSmartPointer<vtkPolyDataCollection> segmentPolyDataCollection = vtkSmartPointer<vtkPolyDataCollection>::New();

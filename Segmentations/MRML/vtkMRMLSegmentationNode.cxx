@@ -681,6 +681,17 @@ void vtkMRMLSegmentationNode::ApplyTransformMatrix(vtkMatrix4x4* transformMatrix
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentationNode::ApplyTransform(vtkAbstractTransform* transform)
 {
+  // Make sure preferred display representations exist after transformation
+  // (it is invalidated in the process unless it is the master representation)
+  std::string preferredDisplayRepresentation2D("");
+  std::string preferredDisplayRepresentation3D("");
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(this->GetDisplayNode());
+  if (displayNode)
+  {
+    preferredDisplayRepresentation2D = displayNode->GetPreferredDisplayRepresentationName2D();
+    preferredDisplayRepresentation3D = displayNode->GetPreferredDisplayRepresentationName3D();
+  }
+
   // Apply transform on segmentation
   vtkSmartPointer<vtkTransform> linearTransform = vtkSmartPointer<vtkTransform>::New();
   if (vtkOrientedImageDataResample::IsTransformLinear(transform, linearTransform))
@@ -694,19 +705,19 @@ void vtkMRMLSegmentationNode::ApplyTransform(vtkAbstractTransform* transform)
 
   // Make sure preferred display representations exist after transformation
   // (it was invalidated in the process unless it is the master representation)
-  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(this->GetDisplayNode());
   if (displayNode)
   {
-    std::string preferredDisplayRepresentation2D(displayNode->GetPreferredDisplayRepresentationName2D());
     if (!preferredDisplayRepresentation2D.empty())
     {
       this->Segmentation->CreateRepresentation(preferredDisplayRepresentation2D);
     }
-    std::string preferredDisplayRepresentation3D(displayNode->GetPreferredDisplayRepresentationName3D());
     if (!preferredDisplayRepresentation3D.empty())
     {
       this->Segmentation->CreateRepresentation(preferredDisplayRepresentation3D);
     }
+    // Need to set preferred representations again, as conversion sets them to the last converted one
+    displayNode->SetPreferredDisplayRepresentationName2D(preferredDisplayRepresentation2D.c_str());
+    displayNode->SetPreferredDisplayRepresentationName3D(preferredDisplayRepresentation3D.c_str());
   }
 }
 

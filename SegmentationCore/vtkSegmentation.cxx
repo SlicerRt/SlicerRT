@@ -490,7 +490,7 @@ void vtkSegmentation::RemoveSegment(SegmentMap::iterator segmentIt)
   this->Segments.erase(segmentIt);
 
   // If the segmentation became empty then clear master representation
-  //TODO: Any bad consequences? Otherwise the representation table will show a master representation with no data underneath
+  // (Otherwise the representation table will show a master representation with no data underneath)
   if (this->Segments.empty())
   {
     this->SetMasterRepresentationName(NULL);
