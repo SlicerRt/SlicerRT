@@ -132,7 +132,7 @@ namespace
 
 void SlicerRtCommon::GetTransformBetweenTransformables(vtkMRMLTransformableNode* fromNode, vtkMRMLTransformableNode* toNode, vtkGeneralTransform* fromNodeToToNodeTransform)
 {
-  if (!fromNodeToToNodeTransform|| !fromNode || !toNode)
+  if (!fromNodeToToNodeTransform || !fromNode || !toNode)
   {
     std::cerr << "SlicerRtCommon::GetTransformBetweenTransformables: Invalid input arguments!" << std::endl;
     return;
@@ -149,7 +149,7 @@ void SlicerRtCommon::GetTransformBetweenTransformables(vtkMRMLTransformableNode*
     if (fromNodeTransformNode!=NULL)
     {
       fromNodeToToNodeTransform->PostMultiply(); // GetTransformToNode assumes PostMultiply
-      fromNodeTransformNode->GetTransformToNode(toNodeTransformNode,fromNodeToToNodeTransform);
+      fromNodeTransformNode->GetTransformToNode(toNodeTransformNode, fromNodeToToNodeTransform);
     }
     else
     {

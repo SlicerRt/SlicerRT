@@ -589,7 +589,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
       if (segmentationNode.GetPointer() == NULL)
       {
         segmentationNode = vtkSmartPointer<vtkMRMLSegmentationNode>::New();
-        segmentationNode->SetName(seriesName);
+        std::string segmentationNodeName = this->GetMRMLScene()->GenerateUniqueName(seriesName);
+        segmentationNode->SetName(segmentationNodeName.c_str());
         this->GetMRMLScene()->AddNode(segmentationNode);
 
         // Set master representation to planar contour

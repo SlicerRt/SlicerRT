@@ -99,9 +99,8 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage
                          std::min(inputExtentInReferenceFrame[4],referenceExtent[4]), std::max(inputExtentInReferenceFrame[5],referenceExtent[5]) };
 
   // Invert transform for the resampling
-  vtkSmartPointer<vtkTransform> referenceImageToInputImageTransform = vtkSmartPointer<vtkTransform>::New();
-  referenceImageToInputImageTransform->Concatenate(inputImageToReferenceImageTransform);
-  referenceImageToInputImageTransform->Inverse();
+  vtkAbstractTransform* referenceImageToInputImageTransform = inputImageToReferenceImageTransform->GetInverse();
+  referenceImageToInputImageTransform->Update();
 
   // Create clone for input image that has an identity geometry
   //TODO: Creating a new vtkOrientedImageReslice class would be a better solution on the long run
@@ -193,9 +192,8 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceGeometry(vtkO
   worldToReferenceMatrix->Invert();
   referenceImageToInputImageTransform->Concatenate(worldToReferenceMatrix);
 
-  vtkSmartPointer<vtkTransform> inputImageToReferenceImageTransform = vtkSmartPointer<vtkTransform>::New();
-  inputImageToReferenceImageTransform->DeepCopy(referenceImageToInputImageTransform);
-  inputImageToReferenceImageTransform->Inverse();
+  vtkAbstractTransform* inputImageToReferenceImageTransform = referenceImageToInputImageTransform->GetInverse();
+  inputImageToReferenceImageTransform->Update();
 
   // Determine output origin and spacing using vtkOrientedImageData function
   vtkSmartPointer<vtkOrientedImageData> utilityImageData = vtkSmartPointer<vtkOrientedImageData>::New();
@@ -733,14 +731,15 @@ void vtkOrientedImageDataResample::TransformOrientedImage(vtkOrientedImageData* 
     identityInputImage->SetGeometryFromImageToWorldMatrix(identityMatrix);
 
     // Invert input transform, so it becomes transformedWorldToWorld transform
-    transform->Inverse();
+    vtkAbstractTransform* transformedWorldToWorldTransform = transform->GetInverse();
+    transformedWorldToWorldTransform->Update();
 
     // Create reslice transform
     vtkSmartPointer<vtkGeneralTransform> resliceTransform = vtkSmartPointer<vtkGeneralTransform>::New();
     resliceTransform->Identity();
     resliceTransform->PostMultiply();
     resliceTransform->Concatenate(imageToWorldMatrix);
-    resliceTransform->Concatenate(transform);
+    resliceTransform->Concatenate(transformedWorldToWorldTransform);
     resliceTransform->Concatenate(worldToImageMatrix);
 
     // Perform resampling

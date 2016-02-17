@@ -975,9 +975,8 @@ bool vtkSlicerSegmentationsModuleLogic::GetTransformBetweenRepresentationAndSegm
     vtkMRMLTransformNode* segmentationParentTransformNode = segmentationNode->GetParentTransformNode();
     if (segmentationParentTransformNode)
     {
-      segmentationParentTransformNode->GetTransformToWorld(worldToSegmentationTransform);
+      segmentationParentTransformNode->GetTransformFromWorld(worldToSegmentationTransform);
     }
-    worldToSegmentationTransform->Inverse();
   }
 
   // P[s] = T[s2w]^-1 * T[r2w] * P[r] (where s=segmentation, r=representation, w=world, square brackets for subscript)
