@@ -267,7 +267,8 @@ qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorScriptedEffect::clone()
   PyObject* result = d->PythonCppAPI.callMethod(d->CloneMethod);
   if (!result)
     {
-    qCritical() << d->PythonSource << ": clone: Clone method needs to be implemented!";
+    qCritical() << d->PythonSource << ": clone: Failed to call mandatory clone method! If it is implemented, please see python output for errors.";
+    return NULL;
     }
 
   // Parse result
@@ -328,7 +329,7 @@ QCursor qSlicerSegmentEditorScriptedEffect::createCursor(qMRMLWidget* viewWidget
   Q_D(const qSlicerSegmentEditorScriptedEffect);
   PyObject* arguments = PyTuple_New(1);
   PyTuple_SET_ITEM(arguments, 0, PythonQtConv::QVariantToPyObject(QVariant::fromValue<QObject*>((QObject*)viewWidget)));
-  PyObject* result = d->PythonCppAPI.callMethod(d->CreateCursorMethod);
+  PyObject* result = d->PythonCppAPI.callMethod(d->CreateCursorMethod, arguments);
   if (!result)
     {
     // Method call failed (probably an omitted function), call default implementation
@@ -336,9 +337,8 @@ QCursor qSlicerSegmentEditorScriptedEffect::createCursor(qMRMLWidget* viewWidget
     }
 
   // Parse result
-  QVariant resultVariant = PythonQtConv::PyObjToQVariant(result);
-  QCursor cursor = resultVariant.value<QCursor>();
-  return cursor;
+  QVariant resultVariant = PythonQtConv::PyObjToQVariant(result, QVariant::Cursor);
+  return resultVariant.value<QCursor>();
 }
 
 //-----------------------------------------------------------------------------
@@ -349,7 +349,7 @@ void qSlicerSegmentEditorScriptedEffect::processInteractionEvents(vtkRenderWindo
   PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer((vtkObject*)callerInteractor));
   PyTuple_SET_ITEM(arguments, 1, PyInt_FromLong(eid));
   PyTuple_SET_ITEM(arguments, 2, PythonQtConv::QVariantToPyObject(QVariant::fromValue<QObject*>((QObject*)viewWidget)));
-  PyObject* result = d->PythonCppAPI.callMethod(d->ProcessInteractionEventsMethod);
+  PyObject* result = d->PythonCppAPI.callMethod(d->ProcessInteractionEventsMethod, arguments);
   if (!result)
     {
     // Method call failed (probably an omitted function), call default implementation
@@ -365,7 +365,7 @@ void qSlicerSegmentEditorScriptedEffect::processViewNodeEvents(vtkMRMLAbstractVi
   PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer((vtkObject*)callerViewNode));
   PyTuple_SET_ITEM(arguments, 1, PyInt_FromLong(eid));
   PyTuple_SET_ITEM(arguments, 2, PythonQtConv::QVariantToPyObject(QVariant::fromValue<QObject*>((QObject*)viewWidget)));
-  PyObject* result = d->PythonCppAPI.callMethod(d->ProcessViewNodeEventsMethod);
+  PyObject* result = d->PythonCppAPI.callMethod(d->ProcessViewNodeEventsMethod, arguments);
   if (!result)
     {
     // Method call failed (probably an omitted function), call default implementation

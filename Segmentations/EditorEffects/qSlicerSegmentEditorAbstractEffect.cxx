@@ -204,6 +204,12 @@ QCursor qSlicerSegmentEditorAbstractEffect::createCursor(qMRMLWidget* viewWidget
 
   QImage baseImage(":Icons/CursorBaseArrow.png");
   QIcon effectIcon(this->icon());
+  if (effectIcon.isNull())
+  {
+    QPixmap cursorPixmap = QPixmap::fromImage(baseImage);
+    return QCursor(cursorPixmap, baseImage.width()/2, 0);
+  }
+
   QImage effectImage(effectIcon.pixmap(effectIcon.availableSizes()[0]).toImage());
   int width = qMax(baseImage.width(), effectImage.width());
   int pad = -9;
@@ -220,6 +226,7 @@ QCursor qSlicerSegmentEditorAbstractEffect::createCursor(qMRMLWidget* viewWidget
   point.setY(cursorImage.height() - effectImage.height());
   painter.drawImage(point, effectImage);
   painter.end();
+
   QPixmap cursorPixmap = QPixmap::fromImage(cursorImage);
   return QCursor(cursorPixmap, center, 0);
 }
