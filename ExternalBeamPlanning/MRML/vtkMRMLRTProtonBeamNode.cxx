@@ -21,13 +21,10 @@
 
 // SlicerRtCommon includes
 #include "SlicerRtCommon.h"
-#include "vtkPolyDataToLabelmapFilter.h"
-#include "vtkLabelmapToModelFilter.h"
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTProtonBeamNode.h"
 #include "vtkMRMLSegmentationNode.h"
-
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>

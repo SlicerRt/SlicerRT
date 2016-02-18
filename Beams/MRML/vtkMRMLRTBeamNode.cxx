@@ -22,8 +22,6 @@
 // SlicerRtCommon includes
 #include "PlmCommon.h"
 #include "SlicerRtCommon.h"
-#include "vtkPolyDataToLabelmapFilter.h"
-#include "vtkLabelmapToModelFilter.h"
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
