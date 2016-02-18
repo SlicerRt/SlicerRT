@@ -1,7 +1,7 @@
 import os
 import vtk, qt, ctk, slicer
 import logging
-from AbstractScriptedSegmentEditorEffect import *
+from SegmentEditorEffects import *
 
 class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
   """ ThresholdEffect is an Effect implementing the global threshold

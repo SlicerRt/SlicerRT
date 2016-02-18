@@ -30,5 +30,5 @@ class AbstractScriptedSegmentEditorEffect():
     #TODO: For some reason the instance() function cannot be called as a class function although it's static
     factory = qSlicerSegmentationsEditorEffectsPythonQt.qSlicerSegmentEditorEffectFactory()
     effectFactorySingleton = factory.instance()
-    effectFactorySingleton.registerPlugin(self.scriptedEffect)
+    effectFactorySingleton.registerEffect(self.scriptedEffect)
     logging.debug('Scripted segment editor effects registered: ' + self.scriptedEffect.name)

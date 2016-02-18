@@ -35,13 +35,6 @@ typedef _object PyObject;
 #endif
 class qSlicerSegmentEditorScriptedEffectPrivate;
 
-class vtkObject;
-class vtkMRMLNode;
-class vtkMRMLSubjectHierarchyNode;
-class QStandardItem;
-class QAction;
-class qSlicerAbstractModuleWidget;
-
 /// \ingroup SlicerRt_QtModules_Segmentations
 /// \brief Scripted abstract effect for implementing segment editor effects in python
 ///

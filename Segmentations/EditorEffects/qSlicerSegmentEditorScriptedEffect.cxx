@@ -22,13 +22,10 @@
 
 // SubjectHierarchy includes
 #include "qSlicerSegmentEditorScriptedEffect.h"
-#include "vtkMRMLSubjectHierarchyNode.h"
-#include "qSlicerSubjectHierarchyPluginHandler.h"
 
 // Qt includes
 #include <QDebug>
 #include <QFileInfo>
-#include <QAction>
 
 // SlicerQt includes
 #include "qSlicerScriptedUtils_p.h"
@@ -96,7 +93,6 @@ qSlicerSegmentEditorScriptedEffectPrivate::qSlicerSegmentEditorScriptedEffectPri
   this->PythonCppAPI.declareMethod(Self::MasterVolumeNodeChangedMethod, "masterVolumeNodeChanged");
   this->PythonCppAPI.declareMethod(Self::UpdateGUIFromMRMLMethod, "updateGUIFromMRML");
   this->PythonCppAPI.declareMethod(Self::UpdateMRMLFromGUIMethod, "updateMRMLFromGUI");
-  this->PythonCppAPI.declareMethod(Self::AddOptionsWidgetMethod, "addOptionsWidget");
 }
 
 //-----------------------------------------------------------------------------
@@ -237,7 +233,7 @@ QIcon qSlicerSegmentEditorScriptedEffect::icon()
   QVariant resultVariant = PythonQtConv::PyObjToQVariant(result, QVariant::Icon);
   if (resultVariant.isNull())
     {
-    return this->Superclass::icon(node);
+    return this->Superclass::icon();
     }
   return resultVariant.value<QIcon>();
 }
@@ -280,7 +276,7 @@ qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorScriptedEffect::clone()
     resultVariant.value<QObject*>() );
   if (!clonedEffect)
     {
-    qCritical() << d->PythonSource << ": clone: Invalid cloned effect object returned from python!");
+    qCritical() << d->PythonSource << ": clone: Invalid cloned effect object returned from python!";
     return NULL;
     }
   return clonedEffect;
@@ -331,23 +327,18 @@ QCursor qSlicerSegmentEditorScriptedEffect::createCursor(qMRMLWidget* viewWidget
 {
   Q_D(const qSlicerSegmentEditorScriptedEffect);
   PyObject* arguments = PyTuple_New(1);
-  PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer(viewWidget));
+  PyTuple_SET_ITEM(arguments, 0, PythonQtConv::QVariantToPyObject(QVariant::fromValue<QObject*>((QObject*)viewWidget)));
   PyObject* result = d->PythonCppAPI.callMethod(d->CreateCursorMethod);
   if (!result)
     {
     // Method call failed (probably an omitted function), call default implementation
-    return this->Superclass::createCursor();
+    return this->Superclass::createCursor(viewWidget);
     }
 
   // Parse result
   QVariant resultVariant = PythonQtConv::PyObjToQVariant(result);
-  qMRMLWidget* cursor = qobject_cast<qMRMLWidget*>(resultVariant.value<QObject*>());
-  if (!cursor)
-    {
-    qCritical() << d->PythonSource << ": createCursor: Invalid cursor object returned from python!");
-    return NULL;
-    }
-  return clonedEffect;
+  QCursor cursor = resultVariant.value<QCursor>();
+  return cursor;
 }
 
 //-----------------------------------------------------------------------------
@@ -355,14 +346,14 @@ void qSlicerSegmentEditorScriptedEffect::processInteractionEvents(vtkRenderWindo
 {
   Q_D(const qSlicerSegmentEditorScriptedEffect);
   PyObject* arguments = PyTuple_New(3);
-  PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer(callerInteractor));
-  PyTuple_SET_ITEM(arguments, 1, PyInt_AsLong(eid));
-  PyTuple_SET_ITEM(arguments, 2, vtkPythonUtil::GetObjectFromPointer(viewWidget));
+  PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer((vtkObject*)callerInteractor));
+  PyTuple_SET_ITEM(arguments, 1, PyInt_FromLong(eid));
+  PyTuple_SET_ITEM(arguments, 2, PythonQtConv::QVariantToPyObject(QVariant::fromValue<QObject*>((QObject*)viewWidget)));
   PyObject* result = d->PythonCppAPI.callMethod(d->ProcessInteractionEventsMethod);
   if (!result)
     {
     // Method call failed (probably an omitted function), call default implementation
-    return this->Superclass::processInteractionEvents();
+    return this->Superclass::processInteractionEvents(callerInteractor, eid, viewWidget);
     }
 }
 
@@ -371,14 +362,14 @@ void qSlicerSegmentEditorScriptedEffect::processViewNodeEvents(vtkMRMLAbstractVi
 {
   Q_D(const qSlicerSegmentEditorScriptedEffect);
   PyObject* arguments = PyTuple_New(3);
-  PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer(callerViewNode));
-  PyTuple_SET_ITEM(arguments, 1, PyInt_AsLong(eid));
-  PyTuple_SET_ITEM(arguments, 2, vtkPythonUtil::GetObjectFromPointer(viewWidget));
+  PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer((vtkObject*)callerViewNode));
+  PyTuple_SET_ITEM(arguments, 1, PyInt_FromLong(eid));
+  PyTuple_SET_ITEM(arguments, 2, PythonQtConv::QVariantToPyObject(QVariant::fromValue<QObject*>((QObject*)viewWidget)));
   PyObject* result = d->PythonCppAPI.callMethod(d->ProcessViewNodeEventsMethod);
   if (!result)
     {
     // Method call failed (probably an omitted function), call default implementation
-    return this->Superclass::processViewNodeEvents();
+    return this->Superclass::processViewNodeEvents(callerViewNode, eid, viewWidget);
     }
 }
 
@@ -386,7 +377,10 @@ void qSlicerSegmentEditorScriptedEffect::processViewNodeEvents(vtkMRMLAbstractVi
 void qSlicerSegmentEditorScriptedEffect::setMRMLDefaults()
 {
   // Base class implementation needs to be called before the effect-specific one
-  this->Superclass::setMRMLDefaults();
+  // Note: Left here as comment in case this class is used as template for adaptor
+  //  classes of effect base classes that have default implementation of this method
+  //  (such as LabelEffect, MorphologyEffect, etc.)
+  //this->Superclass::setMRMLDefaults();
 
   Q_D(const qSlicerSegmentEditorScriptedEffect);
   PyObject* result = d->PythonCppAPI.callMethod(d->SetMRMLDefaultsMethod);
@@ -416,7 +410,10 @@ void qSlicerSegmentEditorScriptedEffect::masterVolumeNodeChanged()
 void qSlicerSegmentEditorScriptedEffect::updateGUIFromMRML()
 {
   // Base class implementation needs to be called before the effect-specific one
-  this->Superclass::updateGUIFromMRML();
+  // Note: Left here as comment in case this class is used as template for adaptor
+  //  classes of effect base classes that have default implementation of this method
+  //  (such as LabelEffect, MorphologyEffect, etc.)
+  //this->Superclass::updateGUIFromMRML();
 
   Q_D(const qSlicerSegmentEditorScriptedEffect);
   PyObject* result = d->PythonCppAPI.callMethod(d->UpdateGUIFromMRMLMethod);
@@ -426,7 +423,10 @@ void qSlicerSegmentEditorScriptedEffect::updateGUIFromMRML()
 void qSlicerSegmentEditorScriptedEffect::updateMRMLFromGUI()
 {
   // Base class implementation needs to be called before the effect-specific one
-  this->Superclass::updateMRMLFromGUI();
+  // Note: Left here as comment in case this class is used as template for adaptor
+  //  classes of effect base classes that have default implementation of this method
+  //  (such as LabelEffect, MorphologyEffect, etc.)
+  //this->Superclass::updateMRMLFromGUI();
 
   Q_D(const qSlicerSegmentEditorScriptedEffect);
   PyObject* result = d->PythonCppAPI.callMethod(d->UpdateMRMLFromGUIMethod);

@@ -33,6 +33,12 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
+    # Register scripted segment editor effects
+    from qSlicerSegmentationsEditorEffectsPythonQt import *
+    #TODO:
+    #thresholdEffect = qSlicerSegmentEditorScriptedEffect(None)
+    #thresholdEffect.setPythonSource(SegmentEditorThresholdEffect.filePath)
+
     # Add margin to the sides
     self.layout.setContentsMargins(4,0,4,0)
 
