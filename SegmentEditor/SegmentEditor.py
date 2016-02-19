@@ -34,9 +34,9 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     ScriptedLoadableModuleWidget.setup(self)
 
     # Register scripted segment editor effects
-    from qSlicerSegmentationsEditorEffectsPythonQt import *
-    #TODO:
-    thresholdEffect = qSlicerSegmentEditorScriptedEffect(None)
+    import qSlicerSegmentationsEditorEffectsPythonQt
+    #TODO: Move this out of the module preferably to a separate python file that is executed on startup by the discovery mechanism
+    thresholdEffect = qSlicerSegmentationsEditorEffectsPythonQt.qSlicerSegmentEditorScriptedEffect(None)
     thresholdEffect.setPythonSource(SegmentEditorThresholdEffect.filePath)
 
     # Add margin to the sides
@@ -99,12 +99,12 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   def exit(self):
     self.removeShortcutKeys()
-    self.editor.removeSliceObservations()
+    self.editor.removeViewObservations()
 
   def onSceneStartClose(self, caller, event):
     self.parameterSetNode = None
     self.editor.setSegmentationNode(None)
-    self.editor.removeSliceObservations()
+    self.editor.removeViewObservations()
 
   def onSceneEndClose(self, caller, event):
     self.enter()
@@ -124,20 +124,20 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     Key_Space = 0x20 # not in PythonQt
     self.shortcuts = []
     keysAndCallbacks = (
-        # ('e', EditUtil.toggleLabel),
-        # ('z', self.toolsBox.undoRedo.undo),
-        # ('y', self.toolsBox.undoRedo.redo),
-        ('h', self.toggleCrosshair),
-        # ('o', EditUtil.toggleLabelOutline),
-        # ('t', EditUtil.toggleForegroundBackground),
-        (Key_Escape, lambda : self.editor.setActiveEffect(None)),
-        ('p', lambda : self.editor.setActiveEffect(self.editor.effectByName('Paint'))),
-        ('d', lambda : self.editor.setActiveEffect(self.editor.effectByName('Draw'))),
-        ('w', lambda : self.editor.setActiveEffect(self.editor.effectByName('Wand'))),
-        ('r', lambda : self.editor.setActiveEffect(self.editor.effectByName('Rectangle'))),
-        # ('c', self.toolsColor.showColorBox),
-        # (Key_Space, self.toolsBox.toggleFloatingMode),
-        )
+      # ('e', EditUtil.toggleLabel),
+      # ('z', self.toolsBox.undoRedo.undo),
+      # ('y', self.toolsBox.undoRedo.redo),
+      ('h', self.toggleCrosshair),
+      # ('o', EditUtil.toggleLabelOutline),
+      # ('t', EditUtil.toggleForegroundBackground),
+      (Key_Escape, lambda : self.editor.setActiveEffect(None)),
+      ('p', lambda : self.editor.setActiveEffect(self.editor.effectByName('Paint'))),
+      ('d', lambda : self.editor.setActiveEffect(self.editor.effectByName('Draw'))),
+      ('w', lambda : self.editor.setActiveEffect(self.editor.effectByName('Wand'))),
+      ('r', lambda : self.editor.setActiveEffect(self.editor.effectByName('Rectangle'))),
+      # ('c', self.toolsColor.showColorBox),
+      # (Key_Space, self.toolsBox.toggleFloatingMode),
+      )
     for key,callback in keysAndCallbacks:
       shortcut = qt.QShortcut(slicer.util.mainWindow())
       shortcut.setKey( qt.QKeySequence(key) )

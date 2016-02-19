@@ -120,8 +120,6 @@ bool qSlicerSegmentEditorEffectFactory::registerEffect(qSlicerSegmentEditorAbstr
     {
     if (effectToRegister->name().compare(currentEffect->name()) == 0)
       {
-      qDebug() << "qSlicerSegmentEditorEffectFactory::registerEffect: "
-                    "Segment editor effect " << effectToRegister->name() << " is already registered";
       return false;
       }
     }

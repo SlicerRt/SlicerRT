@@ -114,6 +114,8 @@ public:
   virtual void editedLabelmapChanged();
   /// Simple mechanism to let the effects know that master volume has changed
   virtual void masterVolumeNodeChanged();
+  /// Simple mechanism to let the effects know that the layout has changed
+  virtual void layoutChanged();
 
 public slots:
   /// Update user interface from parameter set node

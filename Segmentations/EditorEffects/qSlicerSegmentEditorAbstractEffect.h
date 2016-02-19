@@ -34,6 +34,7 @@ class vtkMRMLScene;
 class vtkMRMLSegmentEditorNode;
 class vtkMRMLAbstractViewNode;
 class vtkMRMLSegmentationNode;
+class vtkSegment;
 class vtkRenderer;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
@@ -42,6 +43,7 @@ class vtkProp;
 class qMRMLWidget;
 class qMRMLSliceWidget;
 class QFrame;
+class QColor;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
 /// \brief Abstract class for segment editor effects
@@ -117,6 +119,8 @@ public:
   /// Simple mechanism to let the effects know that master volume has changed
   /// NOTE: Base class implementation needs to be called with the effect-specific implementation
   virtual void masterVolumeNodeChanged() { };
+  /// Simple mechanism to let the effects know that the layout has changed
+  virtual void layoutChanged() { };
 
 public slots:
   /// Update user interface from parameter set node
@@ -130,22 +134,23 @@ public slots:
 // Get/set methods
 public:
   /// Get segment editor parameter set node
-  vtkMRMLSegmentEditorNode* parameterSetNode();
+  Q_INVOKABLE vtkMRMLSegmentEditorNode* parameterSetNode();
   /// Set segment editor parameter set node
   Q_INVOKABLE void setParameterSetNode(vtkMRMLSegmentEditorNode* node);
 
   /// Get MRML scene (from parameter set node)
   Q_INVOKABLE vtkMRMLScene* scene();
 
-  /// Connect signal that is emitted when the edited labelmap is to be applied to the currently
-  /// edited segment.
-  void connectApply(QObject* receiver, const char* method);
-
   /// Get effect options frame
   Q_INVOKABLE QFrame* optionsFrame();
 
   /// Add actor to container that needs to be cleared on deactivation
-  void addActor(qMRMLWidget* viewWidget, vtkProp* actor);
+  Q_INVOKABLE void addActor(qMRMLWidget* viewWidget, vtkProp* actor);
+
+  /// Add effect options widget to options frame layout
+  /// The implemented effects need to create their options UI widget, make the connections,
+  /// then call this function to add the options UI to the effect options frame
+  Q_INVOKABLE void addOptionsWidget(QWidget* newOptionsWidget);
 
   /// Get name of effect
   virtual QString name()const;
@@ -154,16 +159,14 @@ public:
   /// NOTE: name must be defined in constructor in C++ effects, this can only be used in python scripted ones
   virtual void setName(QString name);
 
-protected:
-  /// Add effect options widget to options frame layout
-  /// The implemented effects need to create their options UI widget, make the connections,
-  /// then call this function to add the options UI to the effect options frame
-  void addOptionsWidget(QWidget* newOptionsWidget);
-
   /// Turn off cursor and save cursor to restore later
-  void cursorOff(qMRMLWidget* viewWidget);
+  Q_INVOKABLE void cursorOff(qMRMLWidget* viewWidget);
   /// Restore saved cursor
-  void cursorOn(qMRMLWidget* viewWidget);
+  Q_INVOKABLE void cursorOn(qMRMLWidget* viewWidget);
+
+  /// Connect signal that is emitted when the edited labelmap is to be applied to the currently
+  /// edited segment.
+  void connectApply(QObject* receiver, const char* method);
 
 // Effect parameter functions
 public:
@@ -206,6 +209,13 @@ public:
   /// Set the AbortFlag on the vtkCommand associated with the event.
   /// Causes other things listening to the interactor not to receive the events
   void abortEvent(vtkRenderWindowInteractor* interactor, unsigned long eventId, qMRMLWidget* viewWidget);
+
+  /// Get image data of master volume
+  /// \return Success flag
+  Q_INVOKABLE bool masterVolumeImageData(vtkOrientedImageData* masterImageData);
+  /// Get scalar range for master volume
+  /// \return Succcess flag
+  Q_INVOKABLE bool masterVolumeScalarRange(double& low, double& high);
 
   /// Get render window for view widget
   Q_INVOKABLE static vtkRenderWindow* renderWindow(qMRMLWidget* viewWidget);

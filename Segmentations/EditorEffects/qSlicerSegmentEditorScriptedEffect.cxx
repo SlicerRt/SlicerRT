@@ -63,6 +63,7 @@ public:
     SetMRMLDefaultsMethod,
     EditedLabelmapChangedMethod,
     MasterVolumeNodeChangedMethod,
+    LayoutChangedMethod,
     UpdateGUIFromMRMLMethod,
     UpdateMRMLFromGUIMethod,
     };
@@ -91,6 +92,7 @@ qSlicerSegmentEditorScriptedEffectPrivate::qSlicerSegmentEditorScriptedEffectPri
   this->PythonCppAPI.declareMethod(Self::SetMRMLDefaultsMethod, "setMRMLDefaults");
   this->PythonCppAPI.declareMethod(Self::EditedLabelmapChangedMethod, "editedLabelmapChanged");
   this->PythonCppAPI.declareMethod(Self::MasterVolumeNodeChangedMethod, "masterVolumeNodeChanged");
+  this->PythonCppAPI.declareMethod(Self::LayoutChangedMethod, "layoutChanged");
   this->PythonCppAPI.declareMethod(Self::UpdateGUIFromMRMLMethod, "updateGUIFromMRML");
   this->PythonCppAPI.declareMethod(Self::UpdateMRMLFromGUIMethod, "updateMRMLFromGUI");
 }
@@ -404,6 +406,16 @@ void qSlicerSegmentEditorScriptedEffect::masterVolumeNodeChanged()
 
   Q_D(const qSlicerSegmentEditorScriptedEffect);
   PyObject* result = d->PythonCppAPI.callMethod(d->MasterVolumeNodeChangedMethod);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorScriptedEffect::layoutChanged()
+{
+  // Base class implementation needs to be called before the effect-specific one
+  this->Superclass::layoutChanged();
+
+  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  PyObject* result = d->PythonCppAPI.callMethod(d->LayoutChangedMethod);
 }
 
 //-----------------------------------------------------------------------------

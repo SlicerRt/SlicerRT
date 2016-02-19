@@ -11,6 +11,7 @@ set(SegmentEditorEffects_PYTHON_SCRIPTS
   )
 
 set(SegmentEditorEffects_PYTHON_RESOURCES
+  Resources/Icons/Threshold.png
   )
 
 ctkMacroCompilePythonScript(

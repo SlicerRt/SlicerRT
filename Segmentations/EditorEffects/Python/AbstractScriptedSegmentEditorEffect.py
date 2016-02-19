@@ -8,15 +8,24 @@ import vtk, qt, ctk, slicer, logging
 class AbstractScriptedSegmentEditorEffect():
   """ Abstract scripted segment editor effects for effects implemented in python
 
-      USAGE: Instantiate segment editor effect adaptor class from
-        module (e.g. from setup function), and set python source:
-
+      USAGE:
+        # Instantiate segment editor effect adaptor class from
+        # module (e.g. from setup function), and set python source:
         ...
-        scriptedEffect = slicer.qSlicerSegmentEditorScriptedEffect(None)
+        import qSlicerSegmentationsEditorEffectsPythonQt
+        scriptedEffect = qSlicerSegmentationsEditorEffectsPythonQt.qSlicerSegmentEditorScriptedEffect(None)
         scriptedEffect.setPythonSource(MyEffect.filePath)
         ...
+        # Call host C++ implementation using
+        self.scriptedEffect.functionName()
+        
+        # Most frequently used such methods are:
+        # Parameter get/set: parameter, integerParameter, doubleParameter, setParameter
+        # Add options widget: addOptionsWidget 
+        # Coordinate transforms: rasToXy, xyzToRas, xyToRas, xyzToIjk, xyToIjk
+        # Convenience getters: renderWindow, renderer, viewNode
 
-      Example can be found here: #TODO:
+      An example for a generic effect is the ThresholdEffect
   """
 
   def __init__(self, scriptedEffect):

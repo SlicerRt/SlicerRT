@@ -23,8 +23,10 @@
 #include "qSlicerSegmentEditorAbstractEffect_p.h"
 
 #include "vtkMRMLSegmentationNode.h"
+#include "vtkMRMLSegmentationDisplayNode.h"
 #include "vtkMRMLSegmentEditorNode.h"
 #include "vtkOrientedImageData.h"
+#include "vtkSlicerSegmentationsModuleLogic.h"
 
 // Qt includes
 #include <QDebug>
@@ -34,6 +36,7 @@
 #include <QPaintDevice>
 #include <QFrame>
 #include <QVBoxLayout>
+#include <QColor>
 
 // Slicer includes
 #include "qMRMLSliceWidget.h"
@@ -430,6 +433,60 @@ void qSlicerSegmentEditorAbstractEffect::abortEvent(vtkRenderWindowInteractor* i
     vtkCommand* command = interactor->GetCommand(tag);
     command->SetAbortFlag(1);
   }
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerSegmentEditorAbstractEffect::masterVolumeImageData(vtkOrientedImageData* masterImageData)
+{
+  if (!masterImageData)
+  {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::masterVolumeImageData: Invalid input image!";
+    return false;
+  }
+  vtkMRMLScalarVolumeNode* masterVolumeNode = this->parameterSetNode()->GetMasterVolumeNode();
+  if (!masterVolumeNode)
+  {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::masterVolumeImageData: Invalid master volume!";
+    return false;
+  }
+
+  // Get image data for master volume
+  vtkSmartPointer<vtkOrientedImageData> masterVolumeOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::Take(
+    vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(masterVolumeNode) );
+  // Copy it into input image data
+  masterImageData->DeepCopy(masterVolumeOrientedImageData);
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerSegmentEditorAbstractEffect::masterVolumeScalarRange(double& low, double& high)
+{
+  low = 0.0;
+  high = 0.0;
+
+  if (!this->parameterSetNode())
+  {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::masterVolumeScalarRange: Invalid segment editor parameter set node!";
+    return false;
+  }
+
+  vtkMRMLScalarVolumeNode* masterVolumeNode = this->parameterSetNode()->GetMasterVolumeNode();
+  if (!masterVolumeNode)
+  {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::masterVolumeScalarRange: Failed to get master volume!";
+    return false;
+  }
+
+  if (masterVolumeNode->GetImageData())
+  {
+    double range[2] = {0.0, 0.0};
+    masterVolumeNode->GetImageData()->GetScalarRange(range);
+    low = range[0];
+    high = range[1];
+  }
+
+  return true;
 }
 
 //-----------------------------------------------------------------------------

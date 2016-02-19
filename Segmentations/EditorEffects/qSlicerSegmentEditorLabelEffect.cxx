@@ -65,35 +65,6 @@ qSlicerSegmentEditorLabelEffectPrivate::~qSlicerSegmentEditorLabelEffectPrivate(
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffectPrivate::masterVolumeScalarRange(double& low, double& high)
-{
-  Q_Q(qSlicerSegmentEditorLabelEffect);
-
-  low = 0.0;
-  high = 0.0;
-
-  if (!q->parameterSetNode())
-  {
-    qCritical() << "qSlicerSegmentEditorLabelEffectPrivate::masterVolumeScalarRange: Invalid segment editor parameter set node!";
-    return;
-  }
-
-  vtkMRMLScalarVolumeNode* masterVolumeNode = q->parameterSetNode()->GetMasterVolumeNode();
-  if (!masterVolumeNode)
-  {
-    qCritical() << "qSlicerSegmentEditorLabelEffectPrivate::masterVolumeScalarRange: Failed to get master volume!";
-    return;
-  }
-  if (masterVolumeNode->GetImageData())
-  {
-    double range[2] = {0.0, 0.0};
-    masterVolumeNode->GetImageData()->GetScalarRange(range);
-    low = range[0];
-    high = range[1];
-  }
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerSegmentEditorLabelEffectPrivate::applyMaskImage(vtkOrientedImageData* input, vtkOrientedImageData* mask, int notMask)
 {
   if (!input || !mask)
@@ -217,7 +188,7 @@ void qSlicerSegmentEditorLabelEffect::masterVolumeNodeChanged()
   vtkMRMLScalarVolumeNode* masterVolumeNode = this->parameterSetNode()->GetMasterVolumeNode();
   if (masterVolumeNode)
   {
-    d->masterVolumeScalarRange(low, high);
+    this->masterVolumeScalarRange(low, high);
   }
 
   d->ThresholdRangeWidget->setMinimum(low);

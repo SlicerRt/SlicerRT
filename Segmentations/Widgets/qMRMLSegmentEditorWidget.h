@@ -103,12 +103,12 @@ public:
   /// The captured events are propagated to the active effect if any.
   /// NOTE: This method should be called from the enter function of the
   ///   embedding module widget so that the events are correctly processed.
-  void setupSliceObservations();
+  void setupViewObservations();
 
   /// Remove observations
   /// NOTE: This method should be called from the exit function of the
   ///   embedding module widget so that events are not processed unnecessarily.
-  Q_INVOKABLE void removeSliceObservations();
+  Q_INVOKABLE void removeViewObservations();
 
 public slots:
   /// Set the MRML \a scene associated with the widget
@@ -150,6 +150,8 @@ protected slots:
   void onRemoveSegment();
   /// Make closed surface model for the segmentation that is automatically updated when editing
   void onMakeModel();
+  /// Handle layout changes
+  void onLayoutChanged(int layoutIndex);
 
 protected:
   /// Callback function invoked when interaction happens

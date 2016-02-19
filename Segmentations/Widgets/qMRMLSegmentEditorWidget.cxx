@@ -112,6 +112,8 @@ public:
   void notifyEffectsOfEditedLabelmapChange();
   /// Simple mechanism to let the effects know that master volume has changed
   void notifyEffectsOfMasterVolumeNodeChange();
+  /// Simple mechanism to let the effects know that layout has changed
+  void notifyEffectsOfLayoutChange();
 
   /// Create edited labelmap from selected segment, using the bounds of the master volume
   /// \return Success flag
@@ -187,10 +189,11 @@ void qMRMLSegmentEditorWidgetPrivate::init()
   QObject::connect( this->MRMLNodeComboBox_MasterVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
     q, SLOT(onMasterVolumeNodeChanged(vtkMRMLNode*)) );
   QObject::connect( this->SegmentsTableView, SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-    q, SLOT(onSegmentSelectionChanged(QItemSelection,QItemSelection) ) );
-  QObject::connect( this->AddSegmentButton, SIGNAL(clicked()), q, SLOT(onAddSegment() ) );
-  QObject::connect( this->RemoveSegmentButton, SIGNAL(clicked()), q, SLOT(onRemoveSegment() ) );
-  QObject::connect( this->MakeModelButton, SIGNAL(clicked()), q, SLOT(onMakeModel() ) );
+    q, SLOT(onSegmentSelectionChanged(QItemSelection,QItemSelection)) );
+  QObject::connect( this->AddSegmentButton, SIGNAL(clicked()), q, SLOT(onAddSegment()) );
+  QObject::connect( this->RemoveSegmentButton, SIGNAL(clicked()), q, SLOT(onRemoveSegment()) );
+  QObject::connect( qSlicerApplication::application()->layoutManager(), SIGNAL(layoutChanged(int)), q, SLOT(onLayoutChanged(int)) );
+  
   
   // Widget properties
   this->SegmentsTableView->setMode(qMRMLSegmentsTableView::EditorMode);
@@ -245,6 +248,7 @@ void qMRMLSegmentEditorWidgetPrivate::initializeEffects()
     effectButton->setObjectName(effect->name());
     effectButton->setCheckable(true);
     effectButton->setIcon(effect->icon());
+    effectButton->setToolTip(effect->name());
     effectButton->setMaximumWidth(31);
     effectButton->setProperty("Effect", QVariant::fromValue<QObject*>(effect));
 
@@ -277,6 +281,15 @@ void qMRMLSegmentEditorWidgetPrivate::notifyEffectsOfMasterVolumeNodeChange()
   foreach(qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
   {
     effect->masterVolumeNodeChanged();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidgetPrivate::notifyEffectsOfLayoutChange()
+{
+  foreach(qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
+  {
+    effect->layoutChanged();
   }
 }
 
@@ -471,7 +484,7 @@ void qMRMLSegmentEditorWidget::updateWidgetFromMRML()
 
   // Create observations between view interactors and the editor widget.
   // The captured events are propagated to the active effect if any.
-  this->setupSliceObservations();
+  this->setupViewObservations();
 }
 
 //-----------------------------------------------------------------------------
@@ -1081,6 +1094,19 @@ void qMRMLSegmentEditorWidget::onMakeModel()
 }
 
 //---------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::onLayoutChanged(int layoutIndex)
+{
+  Q_D(qMRMLSegmentEditorWidget);
+  Q_UNUSED(layoutIndex);
+
+  // Refresh view observations with the new layout
+  this->setupViewObservations();
+
+  // Let effects know about the updated layout
+  d->notifyEffectsOfLayoutChange();
+}
+
+//---------------------------------------------------------------------------
 qSlicerSegmentEditorAbstractEffect* qMRMLSegmentEditorWidget::effectByName(QString name)
 {
   Q_D(qMRMLSegmentEditorWidget);
@@ -1105,12 +1131,12 @@ qSlicerSegmentEditorAbstractEffect* qMRMLSegmentEditorWidget::effectByName(QStri
 }
 
 //---------------------------------------------------------------------------
-void qMRMLSegmentEditorWidget::setupSliceObservations()
+void qMRMLSegmentEditorWidget::setupViewObservations()
 {
   Q_D(qMRMLSegmentEditorWidget);
 
   // Make sure previous observations are cleared before setting up the new ones
-  this->removeSliceObservations();
+  this->removeViewObservations();
 
   // Set up interactor observations
   qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
@@ -1189,7 +1215,7 @@ void qMRMLSegmentEditorWidget::setupSliceObservations()
 }
 
 //-----------------------------------------------------------------------------
-void qMRMLSegmentEditorWidget::removeSliceObservations()
+void qMRMLSegmentEditorWidget::removeViewObservations()
 {
   Q_D(qMRMLSegmentEditorWidget);
 
