@@ -45,42 +45,107 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     return "Set segment based on threshold range.\nNote: this replaces the current values."
 
   def activate(self):
+    # Save segment opacity and set it to zero
+    import vtkSlicerSegmentationsModuleMRML
+    segmentationNode = self.scriptedEffect.parameterSetNode().GetSegmentationNode()
+    segmentID = self.scriptedEffect.parameterSetNode().GetSelectedSegmentID()
+    displayNode = segmentationNode.GetDisplayNode()
+    if displayNode is not None:
+      self.segmentOpacity = displayNode.GetSegmentOpacity2DFill(segmentID)
+      displayNode.SetSegmentOpacity2DFill(segmentID, 0)
+
+    # Setup and start preview pulse
     self.setupPreviewDisplay()
     self.timer.start(200)
-
+    
   def deactivate(self):
+    # Restore segment opacity
+    import vtkSlicerSegmentationsModuleMRML
+    segmentationNode = self.scriptedEffect.parameterSetNode().GetSegmentationNode()
+    segmentID = self.scriptedEffect.parameterSetNode().GetSelectedSegmentID()
+    displayNode = segmentationNode.GetDisplayNode()
+    if displayNode is not None:
+      displayNode.SetSegmentOpacity2DFill(segmentID, self.segmentOpacity)
+
+    # Stop preview timer
     self.timer.stop()
 
   def setupOptionsFrame(self):
-    self.thresholdLabel = qt.QLabel("Threshold Range:")
-    self.thresholdLabel.setToolTip("Set the range of the background values that should be labeled.")
-    self.scriptedEffect.addOptionsWidget(self.thresholdLabel)
+    self.thresholdSliderLabel = qt.QLabel("Threshold Range:")
+    self.thresholdSliderLabel.setToolTip("Set the range of the background values that should be labeled.")
+    self.scriptedEffect.addOptionsWidget(self.thresholdSliderLabel)
 
-    self.threshold = ctk.ctkRangeWidget()
-    self.threshold.spinBoxAlignment = qt.Qt.AlignTop
-    self.threshold.singleStep = 0.01
-    # Set min/max based on current range
-    lo, hi = 0, 0
-    success = self.scriptedEffect.masterVolumeScalarRange(lo, hi)
+    self.thresholdSlider = ctk.ctkRangeWidget()
+    self.thresholdSlider.spinBoxAlignment = qt.Qt.AlignTop
+    self.thresholdSlider.singleStep = 0.01
+    self.scriptedEffect.addOptionsWidget(self.thresholdSlider)
+
+    self.useForPaintButton = qt.QPushButton("Use For Paint")
+    self.useForPaintButton.setToolTip("Transfer the current threshold settings to be used for labeling operations such as Paint and Draw.")
+    self.scriptedEffect.addOptionsWidget(self.useForPaintButton)
+
+    self.applyButton = qt.QPushButton("Apply")
+    self.applyButton.objectName = self.__class__.__name__ + 'Apply'
+    self.applyButton.setToolTip("Apply current threshold settings to the label map.")
+    self.scriptedEffect.addOptionsWidget(self.applyButton)
+
+    self.useForPaintButton.connect('clicked()', self.onUseForPaint)
+    self.thresholdSlider.connect('valuesChanged(double,double)', self.onThresholdValuesChanged)
+    self.applyButton.connect('clicked()', self.onApply)
+
+  def editedLabelmapChanged(self):
+    pass # For the sake of example
+
+  def masterVolumeNodeChanged(self):
+    # Set scalar range of master volume image data to threshold slider
+    import vtkSegmentationCore
+    masterImageData = vtkSegmentationCore.vtkOrientedImageData()
+    success = self.scriptedEffect.masterVolumeImageData(masterImageData)
     if success:
-      self.threshold.minimum, self.threshold.maximum = lo, hi
-      self.threshold.singleStep = (hi - lo) / 1000.
-    self.scriptedEffect.addOptionsWidget(self.threshold)
+      lo, hi = masterImageData.GetScalarRange()
+      self.thresholdSlider.minimum, self.thresholdSlider.maximum = lo, hi
+      self.thresholdSlider.singleStep = (hi - lo) / 1000.
 
-    self.useForPainting = qt.QPushButton("Use For Paint")
-    self.useForPainting.setToolTip("Transfer the current threshold settings to be used for labeling operations such as Paint and Draw.")
-    self.scriptedEffect.addOptionsWidget(self.useForPainting)
+  def layoutChanged(self):
+    self.setupPreviewDisplay()
 
-    self.apply = qt.QPushButton("Apply")
-    self.apply.objectName = self.__class__.__name__ + 'Apply'
-    self.apply.setToolTip("Apply current threshold settings to the label map.")
-    self.scriptedEffect.addOptionsWidget(self.apply)
+  def processInteractionEvents(self, callerInteractor, eventId, viewWidget):
+    pass # For the sake of example
 
-    self.useForPainting.connect('clicked()', self.onUseForPainting)
-    self.threshold.connect('valuesChanged(double,double)', self.onThresholdValuesChanged)
-    self.apply.connect('clicked()', self.apply)
+  def processViewNodeEvents(self, callerViewNode, eventId, viewWidget):
+    pass # For the sake of example
 
-  def apply(self):
+  def setMRMLDefaults(self):
+    self.scriptedEffect.setParameter("MinimumThreshold", 0.)
+    self.scriptedEffect.setParameter("MaximumThreshold", 100.)
+
+  def updateGUIFromMRML(self):
+    self.thresholdSlider.blockSignals(True)
+    self.thresholdSlider.setMinimumValue(self.scriptedEffect.doubleParameter("MinimumThreshold"))
+    self.thresholdSlider.setMaximumValue(self.scriptedEffect.doubleParameter("MaximumThreshold"))
+    self.thresholdSlider.blockSignals(False)
+
+  def updateMRMLFromGUI(self):
+    self.scriptedEffect.setParameter("MinimumThreshold", self.thresholdSlider.minimumValue)
+    self.scriptedEffect.setParameter("MaximumThreshold", self.thresholdSlider.maximumValue)
+ 
+  #
+  # Effect specific methods (the above ones are the API methods to override)
+  #
+  def onThresholdValuesChanged(self,min,max):
+    self.scriptedEffect.updateMRMLFromGUI()
+
+  def onUseForPaint(self):
+    pass #TODO:
+    # disableState = self.parameterNode.GetDisableModifiedEvent()
+    # self.parameterNode.SetDisableModifiedEvent(1)
+    # self.parameterNode.SetParameter( "LabelEffect,paintThreshold", "1" )
+    # self.parameterNode.SetParameter( "LabelEffect,paintThresholdMin", str(self.thresholdSlider.minimumValue) )
+    # self.parameterNode.SetParameter( "LabelEffect,paintThresholdMax", str(self.thresholdSlider.maximumValue) )
+    # self.parameterNode.SetDisableModifiedEvent(disableState)
+    # self.parameterNode.InvokePendingModifiedEvent()
+
+  def onApply(self):
     try:
       # Get master volume image data
       import vtkSegmentationCore
@@ -109,54 +174,9 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     #TODO: Needed?
     #self.defaultEffect()
 
-  def editedLabelmapChanged(self):
-    pass # For the sake of example
-
-  def masterVolumeNodeChanged(self):
-    lo, hi = 0, 0
-    success = self.scriptedEffect.masterVolumeScalarRange(lo, hi)
-    if success:
-      self.threshold.minimum, self.threshold.maximum = lo, hi
-      self.threshold.singleStep = (hi - lo) / 1000.
-
-  def layoutChanged(self):
-    self.setupPreviewDisplay()
-
-  def processInteractionEvents(self, callerInteractor, eventId, viewWidget):
-    pass # For the sake of example
-
-  def processViewNodeEvents(self, callerViewNode, eventId, viewWidget):
-    pass # For the sake of example
-
-  def setMRMLDefaults(self):
-    self.scriptedEffect.setParameter("MinimumThreshold", 0)
-    self.scriptedEffect.setParameter("MinimumThreshold", 100)
-
-  def updateGUIFromMRML(self):
-    self.threshold.blockSignals(True)
-    self.threshold.setMinimumValue(self.scriptedEffect.doubleParameter("MinimumThreshold"))
-    self.threshold.setMaximumValue(self.scriptedEffect.doubleParameter("MaximumThreshold"))
-    self.threshold.blockSignals(False)
-
-  def updateMRMLFromGUI(self):
-    self.scriptedEffect.setParameter("MinimumThreshold", self.threshold.minimumValue)
-    self.scriptedEffect.setParameter("MinimumThreshold", self.threshold.maximumValue)
- 
-  #
-  # Effect specific methods (the above ones are the API methods to override)
-  #
-  def onThresholdValuesChanged(self,min,max):
-    self.updateMRMLFromGUI()
-
-  def onUseForPainting(self):
-    pass #TODO:
-    # disableState = self.parameterNode.GetDisableModifiedEvent()
-    # self.parameterNode.SetDisableModifiedEvent(1)
-    # self.parameterNode.SetParameter( "LabelEffect,paintThreshold", "1" )
-    # self.parameterNode.SetParameter( "LabelEffect,paintThresholdMin", str(self.threshold.minimumValue) )
-    # self.parameterNode.SetParameter( "LabelEffect,paintThresholdMax", str(self.threshold.maximumValue) )
-    # self.parameterNode.SetDisableModifiedEvent(disableState)
-    # self.parameterNode.InvokePendingModifiedEvent()
+    # Notify editor about changes.
+    # This needs to be called so that the changes are written back to the edited segment
+    self.scriptedEffect.apply()
 
   def setupPreviewDisplay(self):
     # Clear previous pipelines before setting up the new ones
@@ -190,15 +210,20 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     displayNode = segmentationNode.GetDisplayNode()
     if displayNode is None:
       logging.error("preview: Invalid segmentation display node!")
-      color = [0.5,0.5,0.5,1]
+      color = [0.5,0.5,0.5]
     segmentID = self.scriptedEffect.parameterSetNode().GetSelectedSegmentID()
     colorVtk = displayNode.GetSegmentColor(segmentID)
-    color = [colorVtk.GetX(), colorVtk.GetY(), colorVtk.GetZ(), displayNode.GetSegmentOpacity2DFill(segmentID)]
-    r,g,b,a = color
+    color = [colorVtk.GetX(), colorVtk.GetY(), colorVtk.GetZ()]
+    r,g,b = color
 
     # Set values to pipelines
-    for sliceWidget, pipeline in self.previewPipelines:
-      pipeline.lookupTable.SetTableValue(1,  r, g, b,  a)
+    for sliceWidget in self.previewPipelines:
+      pipeline = self.previewPipelines[sliceWidget]
+      pipeline.lookupTable.SetTableValue(1,  r, g, b,  opacity)
+      sliceLogic = sliceWidget.sliceLogic()
+      backgroundLogic = sliceLogic.GetBackgroundLayer()
+      pipeline.thresholdFilter.SetInputConnection(backgroundLogic.GetReslice().GetOutputPort())
+      pipeline.thresholdFilter.ThresholdBetween(min, max)
       pipeline.actor.VisibilityOn()
       sliceWidget.sliceView().scheduleRender()
     

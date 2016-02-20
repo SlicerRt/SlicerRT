@@ -88,7 +88,7 @@ public:
   /// Perform actions needed before the edited labelmap is applied back to the segment.
   /// NOTE: The default implementation only emits the signal. If the child classes override this function,
   /// they must call apply from the base class too, AFTER the effect-specific implementation
-  virtual void apply();
+  Q_INVOKABLE virtual void apply();
 
   /// Create options frame widgets, make connections, and add them to the main options frame using \sa addOptionsWidget
   /// NOTE: Base class implementation needs to be called BEFORE the effect-specific implementation
@@ -210,12 +210,13 @@ public:
   /// Causes other things listening to the interactor not to receive the events
   void abortEvent(vtkRenderWindowInteractor* interactor, unsigned long eventId, qMRMLWidget* viewWidget);
 
-  /// Get image data of master volume
+  /// Get image data of master volume.
+  /// Use argument as the image data is temporary, because it involves the geometry of the volume
   /// \return Success flag
   Q_INVOKABLE bool masterVolumeImageData(vtkOrientedImageData* masterImageData);
   /// Get scalar range for master volume
-  /// \return Succcess flag
-  Q_INVOKABLE bool masterVolumeScalarRange(double& low, double& high);
+  /// \return Success flag
+  bool masterVolumeScalarRange(double& low, double& high);
 
   /// Get render window for view widget
   Q_INVOKABLE static vtkRenderWindow* renderWindow(qMRMLWidget* viewWidget);

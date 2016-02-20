@@ -85,9 +85,8 @@ public:
   virtual void deactivate();
 
   /// Perform actions needed before the edited labelmap is applied back to the segment.
-  /// The default implementation only emits the signal. If the child classes override this function,
-  /// they must call apply from the base class too
-  virtual void apply();
+  /// Needs to be called from the python implementation to apply changes in the edited labelmap.
+  Q_INVOKABLE virtual void apply();
 
   /// Create options frame widgets, make connections, and add them to the main options frame using \sa addOptionsWidget
   virtual void setupOptionsFrame();

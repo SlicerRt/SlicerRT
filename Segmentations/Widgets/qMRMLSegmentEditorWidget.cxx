@@ -839,7 +839,7 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     qCritical() << "qMRMLSegmentEditorWidget::onSegmentationNodeChanged: Unable to get selection node to show segmentation node " << segmentationNode->GetName();
     return;
   }
-  selectionNode->SetReferenceActiveLabelVolumeID(NULL);
+  selectionNode->SetActiveLabelVolumeID(NULL);
   qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
 }
 
@@ -1101,6 +1101,16 @@ void qMRMLSegmentEditorWidget::onLayoutChanged(int layoutIndex)
 
   // Refresh view observations with the new layout
   this->setupViewObservations();
+
+  // Set volume selection to all slice viewers in new layout
+  vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
+  if (selectionNode)
+  {
+    selectionNode->SetActiveVolumeID(d->ParameterSetNode->GetMasterVolumeNode() ? d->ParameterSetNode->GetMasterVolumeNode()->GetID() : NULL);
+    selectionNode->SetSecondaryVolumeID(NULL);
+    selectionNode->SetActiveLabelVolumeID(NULL);
+    qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection();
+  }
 
   // Let effects know about the updated layout
   d->notifyEffectsOfLayoutChange();

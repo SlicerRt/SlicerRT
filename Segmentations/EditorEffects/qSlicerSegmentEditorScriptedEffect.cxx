@@ -55,7 +55,6 @@ public:
     CloneMethod,
     ActivateMethod,
     DeactivateMethod,
-    ApplyMethod,
     SetupOptionsFrameMethod,
     CreateCursorMethod,
     ProcessInteractionEventsMethod,
@@ -84,7 +83,6 @@ qSlicerSegmentEditorScriptedEffectPrivate::qSlicerSegmentEditorScriptedEffectPri
   this->PythonCppAPI.declareMethod(Self::CloneMethod, "clone");
   this->PythonCppAPI.declareMethod(Self::ActivateMethod, "activate");
   this->PythonCppAPI.declareMethod(Self::DeactivateMethod, "deactivate");
-  this->PythonCppAPI.declareMethod(Self::ApplyMethod, "apply");
   this->PythonCppAPI.declareMethod(Self::SetupOptionsFrameMethod, "setupOptionsFrame");
   this->PythonCppAPI.declareMethod(Self::CreateCursorMethod, "createCursor");
   this->PythonCppAPI.declareMethod(Self::ProcessInteractionEventsMethod, "processInteractionEvents");
@@ -308,10 +306,8 @@ void qSlicerSegmentEditorScriptedEffect::deactivate()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedEffect::apply()
 {
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
-  PyObject* result = d->PythonCppAPI.callMethod(d->ApplyMethod);
-
-  // Base class implementation needs to be called after the effect-specific one
+  // Notify editor about changes
+  // This method needs to be called so that the changes are written back to the edited segment
   this->Superclass::apply();
 }
 
