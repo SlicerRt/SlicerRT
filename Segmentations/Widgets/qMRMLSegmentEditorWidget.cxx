@@ -510,6 +510,7 @@ void qMRMLSegmentEditorWidget::setActiveEffect(qSlicerSegmentEditorAbstractEffec
   {
     // Activate newly selected effect
     effect->activate();
+    effect->updateGUIFromMRML();
     d->ActiveEffectLabel->setText(effect->name());
     d->HelpLabel->setToolTip(effect->helpText());
 

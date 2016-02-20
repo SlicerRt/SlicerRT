@@ -43,6 +43,7 @@
 #include <vtkImageMask.h>
 #include <vtkImageThreshold.h>
 #include <vtkPolyData.h>
+#include <vtkImageMathematics.h>
 
 // Slicer includes
 #include "qMRMLSliceWidget.h"
@@ -271,7 +272,7 @@ void qSlicerSegmentEditorLabelEffect::apply()
   vtkOrientedImageData* editedLabelmap = this->parameterSetNode()->GetEditedLabelmap();
   vtkOrientedImageData* maskLabelmap = this->parameterSetNode()->GetMaskLabelmap();
 
-  // Apply mask to edited editedLabelmap if paint over is turned off
+  // Apply mask to edited labelmap if paint over is turned off
   if (!this->integerParameter(this->paintOverParameterName()))
   {
     this->applyImageMask(editedLabelmap, maskLabelmap, true);
@@ -335,12 +336,12 @@ void qSlicerSegmentEditorLabelEffect::applyImageMask(
     return;
   }
 
-  // Make sure mask has the same lattice as the edited editedLabelmap
+  // Make sure mask has the same lattice as the edited labelmap
   vtkSmartPointer<vtkOrientedImageData> resampledMask = vtkSmartPointer<vtkOrientedImageData>::New();
   vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
     mask, input, resampledMask);
 
-  // Make sure mask has the same extent as the edited editedLabelmap
+  // Make sure mask has the same extent as the edited labelmap
   vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
   padder->SetInputData(mask);
   padder->SetOutputWholeExtent(input->GetExtent());
@@ -358,29 +359,53 @@ void qSlicerSegmentEditorLabelEffect::applyImageMask(
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::applyPolyMask(vtkOrientedImageData* input, vtkPolyData* polyData, qMRMLSliceWidget* sliceWidget)
+void qSlicerSegmentEditorLabelEffect::appendPolyMask(vtkOrientedImageData* input, vtkPolyData* polyData, qMRMLSliceWidget* sliceWidget)
 {
-  // Rasterize a poly data onto the input image into the label map layer
+  // Rasterize a poly data onto the input image into the slice view
   // - Points are specified in current XY space
-  vtkSmartPointer<vtkOrientedImageData> polyMask = vtkSmartPointer<vtkOrientedImageData>::New();
-  qSlicerSegmentEditorLabelEffect::makeMaskImage(polyData, polyMask, sliceWidget);
+  vtkSmartPointer<vtkOrientedImageData> polyMaskImage = vtkSmartPointer<vtkOrientedImageData>::New();
+  qSlicerSegmentEditorLabelEffect::createMaskImageFromPolyData(polyData, polyMaskImage, sliceWidget);
 
-  qSlicerSegmentEditorLabelEffect::applyImageMask(input, polyMask);
+  // Append poly mask onto input image
+  qSlicerSegmentEditorLabelEffect::appendImage(input, polyMaskImage);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::makeMaskImage(vtkPolyData* polyData, vtkOrientedImageData* outputMask, qMRMLSliceWidget* sliceWidget)
+void qSlicerSegmentEditorLabelEffect::appendImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* appendedImage)
+{
+  if (!inputImage || !appendedImage)
+  {
+    qCritical() << "qSlicerSegmentEditorLabelEffect::appendImages: Invalid inputs!";
+    return;
+  }
+
+  // Make sure appended image has the same lattice as the input image
+  vtkSmartPointer<vtkOrientedImageData> resampledAppendedImage = vtkSmartPointer<vtkOrientedImageData>::New();
+  vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
+    appendedImage, inputImage, resampledAppendedImage);
+
+  // Append image created from poly data to input image
+  vtkSmartPointer<vtkImageMathematics> imageMath = vtkSmartPointer<vtkImageMathematics>::New();
+  imageMath->SetInput1Data(inputImage);
+  imageMath->SetInput2Data(resampledAppendedImage);
+  imageMath->SetOperationToMax();
+  imageMath->Update();
+  inputImage->DeepCopy(imageMath->GetOutput());
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorLabelEffect::createMaskImageFromPolyData(vtkPolyData* polyData, vtkOrientedImageData* outputMask, qMRMLSliceWidget* sliceWidget)
 {
   if (!polyData || !outputMask)
   {
-    qCritical() << "qSlicerSegmentEditorLabelEffect::makeMaskImage: Invalid inputs!";
+    qCritical() << "qSlicerSegmentEditorLabelEffect::createMaskImageFromPolyData: Invalid inputs!";
     return;
   }
   vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(
     qSlicerSegmentEditorAbstractEffect::viewNode(sliceWidget) );
   if (!sliceNode)
   {
-    qCritical() << "qSlicerSegmentEditorLabelEffect::makeMaskImage: Failed to get slice node!";
+    qCritical() << "qSlicerSegmentEditorLabelEffect::createMaskImageFromPolyData: Failed to get slice node!";
     return;
   }
 

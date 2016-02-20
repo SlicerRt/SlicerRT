@@ -94,10 +94,13 @@ public:
   Q_INVOKABLE static void applyImageMask(vtkOrientedImageData* input, vtkOrientedImageData* mask, bool notMask = false);
 
   /// Rasterize a poly data onto the input image into the slice view
-  Q_INVOKABLE static void applyPolyMask(vtkOrientedImageData* input, vtkPolyData* polyData, qMRMLSliceWidget* sliceWidget);
+  Q_INVOKABLE static void appendPolyMask(vtkOrientedImageData* input, vtkPolyData* polyData, qMRMLSliceWidget* sliceWidget);
 
   /// Create a slice view screen space (2D) mask image for the given polydata
-  Q_INVOKABLE static void makeMaskImage(vtkPolyData* polyData, vtkOrientedImageData* outputMask, qMRMLSliceWidget* sliceWidget);
+  Q_INVOKABLE static void createMaskImageFromPolyData(vtkPolyData* polyData, vtkOrientedImageData* outputMask, qMRMLSliceWidget* sliceWidget);
+
+  /// Append image onto image. Resamples appended image and saves result in input image
+  Q_INVOKABLE static void appendImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* appendedImage);
 
   /// Return matrix for volume node that takes into account the IJKToRAS
   /// and any linear transforms that have been applied
