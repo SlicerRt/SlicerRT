@@ -57,7 +57,7 @@ public:
 
   Q_INVOKABLE QString pythonSource()const;
 
-  /// Set python source for the implemented plugin
+  /// Set python source for the implemented effect
   /// \param newPythonSource Python file path
   Q_INVOKABLE bool setPythonSource(const QString newPythonSource);
 

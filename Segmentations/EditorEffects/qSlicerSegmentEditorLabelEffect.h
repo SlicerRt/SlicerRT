@@ -88,11 +88,10 @@ public:
   /// Apply mask image on an input image
   /// \param input Input image to apply the mask on
   /// \param mask Mask to apply
-  /// \param append If on, the masked image will be appended to the input image, otherwise replaced
   /// \param notMask If on, the mask is passed through a boolean not before it is used to mask the image.
   ///   The effect is to pass the pixels where the input mask is zero, and replace the pixels where the
   ///   input value is non zero
-  Q_INVOKABLE static void applyImageMask(vtkOrientedImageData* input, vtkOrientedImageData* mask, bool append = true, bool notMask = false);
+  Q_INVOKABLE static void applyImageMask(vtkOrientedImageData* input, vtkOrientedImageData* mask, bool notMask = false);
 
   /// Rasterize a poly data onto the input image into the slice view
   Q_INVOKABLE static void applyPolyMask(vtkOrientedImageData* input, vtkPolyData* polyData, qMRMLSliceWidget* sliceWidget);

@@ -42,7 +42,6 @@
 #include <vtkImageConstantPad.h>
 #include <vtkImageMask.h>
 #include <vtkImageThreshold.h>
-#include <vtkImageAppend.h>
 #include <vtkPolyData.h>
 
 // Slicer includes
@@ -275,7 +274,7 @@ void qSlicerSegmentEditorLabelEffect::apply()
   // Apply mask to edited editedLabelmap if paint over is turned off
   if (!this->integerParameter(this->paintOverParameterName()))
   {
-    this->applyImageMask(editedLabelmap, maskLabelmap, true, true);
+    this->applyImageMask(editedLabelmap, maskLabelmap, true);
   }
 
   // Apply threshold mask if paint threshold is turned on
@@ -328,7 +327,7 @@ void qSlicerSegmentEditorLabelEffect::apply()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorLabelEffect::applyImageMask(
   vtkOrientedImageData* input, vtkOrientedImageData* mask,
-  bool append/*=true*/, bool notMask/*=false*/ )
+  bool notMask/*=false*/ )
 {
   if (!input || !mask)
   {
@@ -354,21 +353,8 @@ void qSlicerSegmentEditorLabelEffect::applyImageMask(
   masker->SetMaskInputData(resampledMask);
   masker->SetNotMask(notMask);
   masker->SetMaskedOutputValue(0);
-
-  // Append or replace based on request
-  if (append)
-  {
-    vtkSmartPointer<vtkImageAppend> imageAppend = vtkSmartPointer<vtkImageAppend>::New();
-    imageAppend->SetInputData(input);
-    imageAppend->AddInputConnection(masker->GetOutputPort());
-    imageAppend->Update();
-    input->DeepCopy(imageAppend->GetOutput());
-  }
-  else
-  {
-    masker->Update();
-    input->DeepCopy(masker->GetOutput());
-  }
+  masker->Update();
+  input->DeepCopy(masker->GetOutput());
 }
 
 //-----------------------------------------------------------------------------

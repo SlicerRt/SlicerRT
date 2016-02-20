@@ -24,7 +24,7 @@
 #define __qSlicerSegmentEditorScriptedEffect_h
 
 // Segmentations Editor Effects includes
-#include "qSlicerSegmentEditorLabelEffect.h"
+#include "qSlicerSegmentEditorAbstractEffect.h"
 
 #include "qSlicerSegmentationsEditorEffectsExport.h"
 
@@ -44,18 +44,18 @@ class qSlicerSegmentEditorScriptedEffectPrivate;
 ///   effect subclass. One example is the ThresholdEffect.
 ///
 class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorScriptedEffect
-  : public qSlicerSegmentEditorLabelEffect
+  : public qSlicerSegmentEditorAbstractEffect
 {
   Q_OBJECT
 
 public:
-  typedef qSlicerSegmentEditorLabelEffect Superclass;
+  typedef qSlicerSegmentEditorAbstractEffect Superclass;
   qSlicerSegmentEditorScriptedEffect(QObject* parent = NULL);
   virtual ~qSlicerSegmentEditorScriptedEffect();
 
   Q_INVOKABLE QString pythonSource()const;
 
-  /// Set python source for the implemented plugin
+  /// Set python source for the implemented effect
   /// \param newPythonSource Python file path
   Q_INVOKABLE bool setPythonSource(const QString newPythonSource);
 
