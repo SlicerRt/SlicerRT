@@ -15,9 +15,9 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
   # Necessary static member to be able to set python source to scripted subject hierarchy plugin
   filePath = __file__
 
-  def __init__(self, scriptedPlugin):
-    scriptedPlugin.name = 'Threshold'
-    AbstractScriptedSegmentEditorEffect.__init__(self, scriptedPlugin)
+  def __init__(self, scriptedEffect):
+    AbstractScriptedSegmentEditorEffect.__init__(self, scriptedEffect)
+    scriptedEffect.name = 'Threshold'
 
     # Effect-specific members
     self.timer = qt.QTimer()
@@ -67,7 +67,8 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     if displayNode is not None:
       displayNode.SetSegmentOpacity2DFill(segmentID, self.segmentOpacity)
 
-    # Stop preview timer
+    # Clear preview pipeline and stop timer
+    self.previewPipelines = {}
     self.timer.stop()
 
   def setupOptionsFrame(self):
@@ -157,6 +158,10 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
       min = self.scriptedEffect.doubleParameter("MinimumThreshold")
       max = self.scriptedEffect.doubleParameter("MaximumThreshold")
 
+      # Save state for undo
+      #TODO:
+      #self.undoRedo.saveState()
+
       # Perform thresholding
       thresh = vtk.vtkImageThreshold()
       thresh.SetInputData(masterImageData)
@@ -233,8 +238,11 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     if self.previewState <= 0:
       self.previewStep = 1
 
+#
+# PreviewPipeline
+#
 class PreviewPipeline:
-  """ Visualization objects and pipeline for each slice view
+  """ Visualization objects and pipeline for each slice view for threshold preview
   """
   
   def __init__(self):

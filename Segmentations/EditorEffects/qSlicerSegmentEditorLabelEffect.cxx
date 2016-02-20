@@ -38,13 +38,21 @@
 
 // VTK includes
 #include <vtkMatrix4x4.h>
+#include <vtkTransform.h>
 #include <vtkImageConstantPad.h>
 #include <vtkImageMask.h>
 #include <vtkImageThreshold.h>
+#include <vtkImageAppend.h>
+#include <vtkPolyData.h>
+
+// Slicer includes
+#include "qMRMLSliceWidget.h"
+#include "vtkImageFillROI.h"
 
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRMLTransformNode.h"
+#include "vtkMRMLSliceNode.h"
 
 //-----------------------------------------------------------------------------
 // qSlicerSegmentEditorLabelEffectPrivate methods
@@ -62,37 +70,6 @@ qSlicerSegmentEditorLabelEffectPrivate::qSlicerSegmentEditorLabelEffectPrivate(q
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorLabelEffectPrivate::~qSlicerSegmentEditorLabelEffectPrivate()
 {
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffectPrivate::applyMaskImage(vtkOrientedImageData* input, vtkOrientedImageData* mask, int notMask)
-{
-  if (!input || !mask)
-  {
-    qCritical() << "qSlicerSegmentEditorLabelEffectPrivate::applyMaskImage: Invalid inputs!";
-    return;
-  }
-
-  // Make sure mask has the same lattice as the edited editedLabelmap
-  vtkSmartPointer<vtkOrientedImageData> resampledMask = vtkSmartPointer<vtkOrientedImageData>::New();
-  vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
-    mask, input, resampledMask);
-
-  // Make sure mask has the same extent as the edited editedLabelmap
-  vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
-  padder->SetInputData(mask);
-  padder->SetOutputWholeExtent(input->GetExtent());
-  padder->Update();
-  mask->DeepCopy(padder->GetOutput());
-
-  // Apply mask
-  vtkSmartPointer<vtkImageMask> masker = vtkSmartPointer<vtkImageMask>::New();
-  masker->SetImageInputData(input);
-  masker->SetMaskInputData(resampledMask);
-  masker->SetNotMask(notMask);
-  masker->SetMaskedOutputValue(0);
-  masker->Update();
-  input->DeepCopy(masker->GetOutput());
 }
 
 //-----------------------------------------------------------------------------
@@ -151,11 +128,21 @@ void qSlicerSegmentEditorLabelEffect::editedLabelmapChanged()
     qCritical() << "qSlicerSegmentEditorPaintEffect::editedLabelmapChanged: Invalid segment selection!";
     return;
   }
+  if (!this->parameterSetNode()->GetSelectedSegmentID())
+  {
+    return;
+  }
+
+  // Collect all segment IDs except for the current one for the mask
+  std::vector<std::string> maskSegmentIDs;
+  segmentationNode->GetSegmentation()->GetSegmentIDs(maskSegmentIDs);
+  std::string editedSegmentID(this->parameterSetNode()->GetSelectedSegmentID());
+  maskSegmentIDs.erase(std::remove(maskSegmentIDs.begin(), maskSegmentIDs.end(), editedSegmentID), maskSegmentIDs.end());
 
   // Update mask
   vtkOrientedImageData* maskLabelmap = this->parameterSetNode()->GetMaskLabelmap();
   vtkSmartPointer<vtkMatrix4x4> mergedImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  segmentationNode->GenerateMergedLabelmap(maskLabelmap, mergedImageToWorldMatrix, editedLabelmap);
+  segmentationNode->GenerateMergedLabelmap(maskLabelmap, mergedImageToWorldMatrix, editedLabelmap, maskSegmentIDs);
   maskLabelmap->SetGeometryFromImageToWorldMatrix(mergedImageToWorldMatrix);
 
   vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
@@ -288,7 +275,7 @@ void qSlicerSegmentEditorLabelEffect::apply()
   // Apply mask to edited editedLabelmap if paint over is turned off
   if (!this->integerParameter(this->paintOverParameterName()))
   {
-    d->applyMaskImage(editedLabelmap, maskLabelmap, 1);
+    this->applyImageMask(editedLabelmap, maskLabelmap, true, true);
   }
 
   // Apply threshold mask if paint threshold is turned on
@@ -331,7 +318,7 @@ void qSlicerSegmentEditorLabelEffect::apply()
     editedLabelmap->GetImageToWorldMatrix(editedLabelmapToWorldMatrix);
     thresholdMask->SetGeometryFromImageToWorldMatrix(editedLabelmapToWorldMatrix);
 
-    d->applyMaskImage(editedLabelmap, thresholdMask, 0);
+    this->applyImageMask(editedLabelmap, thresholdMask);
   }
 
   // Notify editor about changes
@@ -339,7 +326,144 @@ void qSlicerSegmentEditorLabelEffect::apply()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::ijkToRasMatrix(vtkMRMLVolumeNode* node, vtkMatrix4x4* ijkToRas)
+void qSlicerSegmentEditorLabelEffect::applyImageMask(
+  vtkOrientedImageData* input, vtkOrientedImageData* mask,
+  bool append/*=true*/, bool notMask/*=false*/ )
+{
+  if (!input || !mask)
+  {
+    qCritical() << "qSlicerSegmentEditorLabelEffect::applyImageMask: Invalid inputs!";
+    return;
+  }
+
+  // Make sure mask has the same lattice as the edited editedLabelmap
+  vtkSmartPointer<vtkOrientedImageData> resampledMask = vtkSmartPointer<vtkOrientedImageData>::New();
+  vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
+    mask, input, resampledMask);
+
+  // Make sure mask has the same extent as the edited editedLabelmap
+  vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
+  padder->SetInputData(mask);
+  padder->SetOutputWholeExtent(input->GetExtent());
+  padder->Update();
+  mask->DeepCopy(padder->GetOutput());
+
+  // Apply mask
+  vtkSmartPointer<vtkImageMask> masker = vtkSmartPointer<vtkImageMask>::New();
+  masker->SetImageInputData(input);
+  masker->SetMaskInputData(resampledMask);
+  masker->SetNotMask(notMask);
+  masker->SetMaskedOutputValue(0);
+
+  // Append or replace based on request
+  if (append)
+  {
+    vtkSmartPointer<vtkImageAppend> imageAppend = vtkSmartPointer<vtkImageAppend>::New();
+    imageAppend->SetInputData(input);
+    imageAppend->AddInputConnection(masker->GetOutputPort());
+    imageAppend->Update();
+    input->DeepCopy(imageAppend->GetOutput());
+  }
+  else
+  {
+    masker->Update();
+    input->DeepCopy(masker->GetOutput());
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorLabelEffect::applyPolyMask(vtkOrientedImageData* input, vtkPolyData* polyData, qMRMLSliceWidget* sliceWidget)
+{
+  // Rasterize a poly data onto the input image into the label map layer
+  // - Points are specified in current XY space
+  vtkSmartPointer<vtkOrientedImageData> polyMask = vtkSmartPointer<vtkOrientedImageData>::New();
+  qSlicerSegmentEditorLabelEffect::makeMaskImage(polyData, polyMask, sliceWidget);
+
+  qSlicerSegmentEditorLabelEffect::applyImageMask(input, polyMask);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorLabelEffect::makeMaskImage(vtkPolyData* polyData, vtkOrientedImageData* outputMask, qMRMLSliceWidget* sliceWidget)
+{
+  if (!polyData || !outputMask)
+  {
+    qCritical() << "qSlicerSegmentEditorLabelEffect::makeMaskImage: Invalid inputs!";
+    return;
+  }
+  vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(
+    qSlicerSegmentEditorAbstractEffect::viewNode(sliceWidget) );
+  if (!sliceNode)
+  {
+    qCritical() << "qSlicerSegmentEditorLabelEffect::makeMaskImage: Failed to get slice node!";
+    return;
+  }
+
+  // Need to know the mapping from RAS into polygon space
+  // so the painter can use this as a mask
+  // - Need the bounds in RAS space
+  // - Need to get an IJKToRAS for just the mask area
+  // - Directions are the XYToRAS for this slice
+  // - Origin is the lower left of the polygon bounds
+  // - TODO: need to account for the boundary pixels
+  //
+  // Note: uses the slicer2-based vtkImageFillROI filter
+  vtkSmartPointer<vtkMatrix4x4> maskIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  maskIjkToRasMatrix->DeepCopy(sliceNode->GetXYToRAS());
+
+  polyData->GetPoints()->Modified();
+  double bounds[6] = {0,0,0,0,0,0};
+  polyData->GetBounds(bounds);
+
+  double xlo = bounds[0] - 1.0;
+  double xhi = bounds[1];
+  double ylo = bounds[2] - 1.0;
+  double yhi = bounds[3];
+
+  double originXYZ[3] = {xlo, ylo, 0.0};
+  double originRAS[3] = {0.0,0.0,0.0};
+  qSlicerSegmentEditorAbstractEffect::xyzToRas(originXYZ, originRAS, sliceWidget);
+
+  maskIjkToRasMatrix->SetElement(0, 3, originRAS[0]);
+  maskIjkToRasMatrix->SetElement(1, 3, originRAS[1]);
+  maskIjkToRasMatrix->SetElement(2, 3, originRAS[2]);
+
+  // Get a good size for the draw buffer
+  // - Needs to include the full region of the polygon
+  // - Plus a little extra
+  //
+  // Round to int and add extra pixel for both sides
+  // TODO: figure out why we need to add buffer pixels on each
+  //   side for the width in order to end up with a single extra
+  //   pixel in the rasterized image map.  Probably has to
+  //   do with how boundary conditions are handled in the filler
+  int w = (int)(xhi - xlo) + 32;
+  int h = (int)(yhi - ylo) + 32;
+
+  vtkSmartPointer<vtkOrientedImageData> imageData = vtkSmartPointer<vtkOrientedImageData>::New();
+  imageData->SetDimensions(w, h, 1);
+  imageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+
+  // Move the points so the lower left corner of the bounding box is at 1, 1 (to avoid clipping)
+  vtkSmartPointer<vtkTransform> translate = vtkSmartPointer<vtkTransform>::New();
+  translate->Translate(-xlo, -ylo, 0.0);
+
+  vtkSmartPointer<vtkPoints> drawPoints = vtkSmartPointer<vtkPoints>::New();
+  drawPoints->Reset();
+  translate->TransformPoints(polyData->GetPoints(), drawPoints);
+  drawPoints->Modified();
+
+  vtkSmartPointer<vtkImageFillROI> fill = vtkSmartPointer<vtkImageFillROI>::New();
+  fill->SetInputData(imageData);
+  fill->SetValue(1);
+  fill->SetPoints(drawPoints);
+  fill->Update();
+
+  outputMask->DeepCopy(fill->GetOutput());
+  outputMask->SetGeometryFromImageToWorldMatrix(maskIjkToRasMatrix);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorLabelEffect::imageToWorldMatrix(vtkMRMLVolumeNode* node, vtkMatrix4x4* ijkToRas)
 {
   if (!node || !ijkToRas)
   {
@@ -365,7 +489,7 @@ void qSlicerSegmentEditorLabelEffect::ijkToRasMatrix(vtkMRMLVolumeNode* node, vt
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::ijkToRasMatrix(vtkOrientedImageData* image, vtkMRMLSegmentationNode* node, vtkMatrix4x4* ijkToRas)
+void qSlicerSegmentEditorLabelEffect::imageToWorldMatrix(vtkOrientedImageData* image, vtkMRMLSegmentationNode* node, vtkMatrix4x4* ijkToRas)
 {
   if (!image || !node || !ijkToRas)
   {

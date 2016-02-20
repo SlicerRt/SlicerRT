@@ -42,7 +42,7 @@
 #include <QList>
 #include <QMap>
 
-class PaintEffectBrush;
+class BrushPipeline;
 class QPoint;
 class QIcon;
 class QFrame;
@@ -72,14 +72,14 @@ public:
   void paintAddPoint(qMRMLSliceWidget* sliceWidget, int x, int y);
 
   /// Draw paint circle glyph
-  void createBrushGlyph(qMRMLSliceWidget* sliceWidget, PaintEffectBrush* brush);
+  void createBrushGlyph(qMRMLSliceWidget* sliceWidget, BrushPipeline* brush);
 
   /// Update brushes
   void updateBrushes();
 
 protected:
   /// Get brush object for widget. Create if does not exist
-  PaintEffectBrush* brushForWidget(qMRMLSliceWidget* sliceWidget);
+  BrushPipeline* brushForWidget(qMRMLSliceWidget* sliceWidget);
 
   /// Add a feedback actor (copy of the paint radius actor) for any points that don't
   /// have one yet. If the list is empty, clear out the old actors
@@ -110,7 +110,7 @@ public:
 
   QList<QPoint> PaintCoordinates;
   QList<vtkActor2D*> FeedbackActors;
-  QMap<qMRMLSliceWidget*, PaintEffectBrush*> Brushes;
+  QMap<qMRMLSliceWidget*, BrushPipeline*> Brushes;
   vtkImageSlicePaint* Painter;
   bool DelayedPaint;
   bool IsPainting;

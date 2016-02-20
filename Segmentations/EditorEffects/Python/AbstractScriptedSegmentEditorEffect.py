@@ -46,3 +46,33 @@ class AbstractScriptedSegmentEditorEffect():
     factory = qSlicerSegmentationsEditorEffectsPythonQt.qSlicerSegmentEditorEffectFactory()
     effectFactorySingleton = factory.instance()
     effectFactorySingleton.registerEffect(self.scriptedEffect)
+
+  #
+  # Utility functions for convenient coordinate transformations
+  #
+  def rasToXy(self, ras, viewWidget):
+    rasVector = qt.QVector3D(ras[0], ras[1], ras[2])
+    xyPoint = self.scriptedEffect.rasToXy(rasVector, viewWidget)
+    return [xyPoint.x(), xyPoint.y()]
+   
+  def xyzToRas(self, xyz, viewWidget):
+    xyzVector = qt.QVector3D(xyz[0], xyz[1], xyz[2])
+    rasVector = self.scriptedEffect.xyzToRas(xyzVector, viewWidget)
+    return [rasVector.x(), rasVector.y(), rasVector.z()]
+
+  def xyToRas(self, xy, viewWidget):
+    xyPoint = qt.QPoint(xy[0], xy[1])
+    rasVector = self.scriptedEffect.xyToRas(xyPoint, viewWidget)
+    return [rasVector.x(), rasVector.y(), rasVector.z()]
+
+  def xyzToIjk(self, xyz, viewWidget, image):
+    import vtkSegmentationCore
+    xyzVector = qt.QVector3D(xyz[0], xyz[1], xyz[2])
+    ijkVector = self.scriptedEffect.xyzToIjk(xyzVector, viewWidget, image)
+    return [ijkVector.x(), ijkVector.y(), ijkVector.z()]
+
+  def xyzToIjk(self, xy, viewWidget, image):
+    import vtkSegmentationCore
+    xyPoint = qt.QPoint(xy[0], xy[1])
+    ijkVector = self.scriptedEffect.xyzToIjk(xyPoint, viewWidget, image)
+    return [ijkVector.x(), ijkVector.y(), ijkVector.z()]

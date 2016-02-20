@@ -573,6 +573,13 @@ QPoint qSlicerSegmentEditorAbstractEffect::rasToXy(double ras[3], qMRMLSliceWidg
 }
 
 //-----------------------------------------------------------------------------
+QPoint qSlicerSegmentEditorAbstractEffect::rasToXy(QVector3D rasVector, qMRMLSliceWidget* sliceWidget)
+{
+  double ras[3] = {rasVector.x(), rasVector.y(), rasVector.z()};
+  return qSlicerSegmentEditorAbstractEffect::rasToXy(ras, sliceWidget);
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerSegmentEditorAbstractEffect::xyzToRas(double inputXyz[3], double outputRas[3], qMRMLSliceWidget* sliceWidget)
 {
   outputRas[0] = outputRas[1] = outputRas[2] = 0.0;
@@ -597,10 +604,36 @@ void qSlicerSegmentEditorAbstractEffect::xyzToRas(double inputXyz[3], double out
 }
 
 //-----------------------------------------------------------------------------
+QVector3D qSlicerSegmentEditorAbstractEffect::xyzToRas(QVector3D inputXyzVector, qMRMLSliceWidget* sliceWidget)
+{
+  double inputXyz[3] = {inputXyzVector.x(), inputXyzVector.y(), inputXyzVector.z()};
+  double outputRas[3] = {0.0, 0.0, 0.0};
+  qSlicerSegmentEditorAbstractEffect::xyzToRas(inputXyz, outputRas, sliceWidget);
+  QVector3D outputVector(outputRas[0], outputRas[1], outputRas[2]);
+  return outputVector;
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerSegmentEditorAbstractEffect::xyToRas(QPoint xy, double outputRas[3], qMRMLSliceWidget* sliceWidget)
 {
   double xyz[3] = {xy.x(), xy.y(), 0.0};
   qSlicerSegmentEditorAbstractEffect::xyzToRas(xyz, outputRas, sliceWidget);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::xyToRas(int xy[2], double outputRas[3], qMRMLSliceWidget* sliceWidget)
+{
+  double xyz[3] = {xy[0], xy[1], 0.0};
+  qSlicerSegmentEditorAbstractEffect::xyzToRas(xyz, outputRas, sliceWidget);
+}
+
+//-----------------------------------------------------------------------------
+QVector3D qSlicerSegmentEditorAbstractEffect::xyToRas(QPoint xy, qMRMLSliceWidget* sliceWidget)
+{
+  double outputRas[3] = {0.0, 0.0, 0.0};
+  qSlicerSegmentEditorAbstractEffect::xyToRas(xy, outputRas, sliceWidget);
+  QVector3D outputVector(outputRas[0], outputRas[1], outputRas[2]);
+  return outputVector;
 }
 
 //-----------------------------------------------------------------------------
@@ -631,8 +664,34 @@ void qSlicerSegmentEditorAbstractEffect::xyzToIjk(double inputXyz[3], int output
 }
 
 //-----------------------------------------------------------------------------
+QVector3D qSlicerSegmentEditorAbstractEffect::xyzToIjk(QVector3D inputXyzVector, qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image)
+{
+  double inputXyz[3] = {inputXyzVector.x(), inputXyzVector.y(), inputXyzVector.z()};
+  int outputIjk[3] = {0, 0, 0};
+  qSlicerSegmentEditorAbstractEffect::xyzToIjk(inputXyz, outputIjk, sliceWidget, image);
+  QVector3D outputVector(outputIjk[0], outputIjk[1], outputIjk[2]);
+  return outputVector;
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint xy, int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image)
 {
   double xyz[3] = {xy.x(), xy.y(), 0.0};
   qSlicerSegmentEditorAbstractEffect::xyzToIjk(xyz, outputIjk, sliceWidget, image);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::xyToIjk(int xy[2], int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image)
+{
+  double xyz[3] = {xy[0], xy[0], 0.0};
+  qSlicerSegmentEditorAbstractEffect::xyzToIjk(xyz, outputIjk, sliceWidget, image);
+}
+
+//-----------------------------------------------------------------------------
+QVector3D qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint xy, qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image)
+{
+  int outputIjk[3] = {0, 0, 0};
+  qSlicerSegmentEditorAbstractEffect::xyToIjk(xy, outputIjk, sliceWidget, image);
+  QVector3D outputVector(outputIjk[0], outputIjk[1], outputIjk[2]);
+  return outputVector;
 }

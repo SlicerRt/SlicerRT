@@ -1170,7 +1170,13 @@ void qMRMLSegmentEditorWidget::setupViewObservations()
     QList<QVariant> tags;
     tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::LeftButtonPressEvent, interactionCallbackCommand, 1.0));
     tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::RightButtonPressEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::RightButtonReleaseEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::MiddleButtonPressEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::MiddleButtonReleaseEvent, interactionCallbackCommand, 1.0));
     tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::MouseMoveEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::KeyPressEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::KeyReleaseEvent, interactionCallbackCommand, 1.0));
     tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::EnterEvent, interactionCallbackCommand, 1.0));
     tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::LeaveEvent, interactionCallbackCommand, 1.0));
     // Save tags in slice widget
@@ -1206,7 +1212,13 @@ void qMRMLSegmentEditorWidget::setupViewObservations()
     QList<QVariant> tags;
     tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::LeftButtonPressEvent, interactionCallbackCommand, 1.0));
     tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::RightButtonPressEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::RightButtonReleaseEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::MiddleButtonPressEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::MiddleButtonReleaseEvent, interactionCallbackCommand, 1.0));
     tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::MouseMoveEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::KeyPressEvent, interactionCallbackCommand, 1.0));
+    tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::KeyReleaseEvent, interactionCallbackCommand, 1.0));
     tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::EnterEvent, interactionCallbackCommand, 1.0));
     tags << QVariant((qulonglong)interactor->AddObserver(vtkCommand::LeaveEvent, interactionCallbackCommand, 1.0));
     // Save tags in view widget

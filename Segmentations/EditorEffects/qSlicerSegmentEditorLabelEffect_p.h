@@ -57,12 +57,6 @@ public:
   qSlicerSegmentEditorLabelEffectPrivate(qSlicerSegmentEditorLabelEffect& object);
   ~qSlicerSegmentEditorLabelEffectPrivate();
 
-  /// Apply mask image on an input image
-  /// \param notMask If on, the mask is passed through a boolean not before it is used to mask the image.
-  ///   The effect is to pass the pixels where the input mask is zero, and replace the pixels where the
-  ///   input value is non zero
-  void applyMaskImage(vtkOrientedImageData* input, vtkOrientedImageData* mask, int notMask);
-
 protected slots:
   /// Enable/disable threshold when checkbox is toggled
   void onThresholdChecked(bool);

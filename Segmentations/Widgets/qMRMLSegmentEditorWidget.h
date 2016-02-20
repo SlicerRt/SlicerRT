@@ -93,7 +93,7 @@ public:
   qSlicerSegmentEditorAbstractEffect* activeEffect()const;
   /// Set active effect
   /// \sa m_ActiveEffect, activeEffect()
-  void setActiveEffect(qSlicerSegmentEditorAbstractEffect* effect);
+  Q_INVOKABLE void setActiveEffect(qSlicerSegmentEditorAbstractEffect* effect);
 
   /// Get an effect object by name
   /// \return The effect instance if exists, NULL otherwise

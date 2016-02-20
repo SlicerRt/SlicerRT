@@ -21,7 +21,7 @@
 ==============================================================================*/
 
 // SubjectHierarchy includes
-#include "qSlicerSegmentEditorScriptedEffect.h"
+#include "qSlicerSegmentEditorScriptedLabelEffect.h"
 
 // Qt includes
 #include <QDebug>
@@ -42,12 +42,12 @@
 #include <vtkPythonUtil.h>
 
 //-----------------------------------------------------------------------------
-class qSlicerSegmentEditorScriptedEffectPrivate
+class qSlicerSegmentEditorScriptedLabelEffectPrivate
 {
 public:
-  typedef qSlicerSegmentEditorScriptedEffectPrivate Self;
-  qSlicerSegmentEditorScriptedEffectPrivate();
-  virtual ~qSlicerSegmentEditorScriptedEffectPrivate();
+  typedef qSlicerSegmentEditorScriptedLabelEffectPrivate Self;
+  qSlicerSegmentEditorScriptedLabelEffectPrivate();
+  virtual ~qSlicerSegmentEditorScriptedLabelEffectPrivate();
 
   enum {
     IconMethod = 0,
@@ -73,10 +73,10 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerSegmentEditorScriptedEffectPrivate methods
+// qSlicerSegmentEditorScriptedLabelEffectPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentEditorScriptedEffectPrivate::qSlicerSegmentEditorScriptedEffectPrivate()
+qSlicerSegmentEditorScriptedLabelEffectPrivate::qSlicerSegmentEditorScriptedLabelEffectPrivate()
 {
   this->PythonCppAPI.declareMethod(Self::IconMethod, "icon");
   this->PythonCppAPI.declareMethod(Self::HelpTextMethod, "helpText");
@@ -96,37 +96,37 @@ qSlicerSegmentEditorScriptedEffectPrivate::qSlicerSegmentEditorScriptedEffectPri
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentEditorScriptedEffectPrivate::~qSlicerSegmentEditorScriptedEffectPrivate()
+qSlicerSegmentEditorScriptedLabelEffectPrivate::~qSlicerSegmentEditorScriptedLabelEffectPrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-// qSlicerSegmentEditorScriptedEffect methods
+// qSlicerSegmentEditorScriptedLabelEffect methods
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentEditorScriptedEffect::qSlicerSegmentEditorScriptedEffect(QObject *parent)
+qSlicerSegmentEditorScriptedLabelEffect::qSlicerSegmentEditorScriptedLabelEffect(QObject *parent)
   : Superclass(parent)
-  , d_ptr(new qSlicerSegmentEditorScriptedEffectPrivate)
+  , d_ptr(new qSlicerSegmentEditorScriptedLabelEffectPrivate)
 {
-  this->m_Name = QString("UnnamedScriptedEffect");
+  this->m_Name = QString("UnnamedScriptedLabelEffect");
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentEditorScriptedEffect::~qSlicerSegmentEditorScriptedEffect()
+qSlicerSegmentEditorScriptedLabelEffect::~qSlicerSegmentEditorScriptedLabelEffect()
 {
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerSegmentEditorScriptedEffect::pythonSource()const
+QString qSlicerSegmentEditorScriptedLabelEffect::pythonSource()const
 {
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   return d->PythonSource;
 }
 
 //-----------------------------------------------------------------------------
-bool qSlicerSegmentEditorScriptedEffect::setPythonSource(const QString newPythonSource)
+bool qSlicerSegmentEditorScriptedLabelEffect::setPythonSource(const QString newPythonSource)
 {
-  Q_D(qSlicerSegmentEditorScriptedEffect);
+  Q_D(qSlicerSegmentEditorScriptedLabelEffect);
 
   if (!Py_IsInitialized())
     {
@@ -179,7 +179,7 @@ bool qSlicerSegmentEditorScriptedEffect::setPythonSource(const QString newPython
     {
     PythonQt::self()->handleError();
     PyErr_SetString(PyExc_RuntimeError,
-                    QString("qSlicerSegmentEditorScriptedEffect::setPythonSource - "
+                    QString("qSlicerSegmentEditorScriptedLabelEffect::setPythonSource - "
                             "Failed to load segment editor scripted effect: "
                             "class %1 was not found in %2").arg(className).arg(newPythonSource).toLatin1());
     PythonQt::self()->handleError();
@@ -206,22 +206,22 @@ bool qSlicerSegmentEditorScriptedEffect::setPythonSource(const QString newPython
 }
 
 //-----------------------------------------------------------------------------
-PyObject* qSlicerSegmentEditorScriptedEffect::self() const
+PyObject* qSlicerSegmentEditorScriptedLabelEffect::self() const
 {
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   return d->PythonCppAPI.pythonSelf();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::setName(QString name)
+void qSlicerSegmentEditorScriptedLabelEffect::setName(QString name)
 {
   this->m_Name = name;
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerSegmentEditorScriptedEffect::icon()
+QIcon qSlicerSegmentEditorScriptedLabelEffect::icon()
 {
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   PyObject* result = d->PythonCppAPI.callMethod(d->IconMethod);
   if (!result)
     {
@@ -239,9 +239,9 @@ QIcon qSlicerSegmentEditorScriptedEffect::icon()
 }
 
 //-----------------------------------------------------------------------------
-const QString qSlicerSegmentEditorScriptedEffect::helpText()const
+const QString qSlicerSegmentEditorScriptedLabelEffect::helpText()const
 {
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   PyObject* result = d->PythonCppAPI.callMethod(d->HelpTextMethod);
   if (!result)
     {
@@ -252,7 +252,7 @@ const QString qSlicerSegmentEditorScriptedEffect::helpText()const
   // Parse result
   if (!PyString_Check(result))
     {
-    qWarning() << d->PythonSource << ": qSlicerSegmentEditorScriptedEffect: Function 'helpText' is expected to return a string!";
+    qWarning() << d->PythonSource << ": qSlicerSegmentEditorScriptedLabelEffect: Function 'helpText' is expected to return a string!";
     return this->Superclass::helpText();
     }
 
@@ -261,9 +261,9 @@ const QString qSlicerSegmentEditorScriptedEffect::helpText()const
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorScriptedEffect::clone()
+qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorScriptedLabelEffect::clone()
 {
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   PyObject* result = d->PythonCppAPI.callMethod(d->CloneMethod);
   if (!result)
     {
@@ -284,27 +284,27 @@ qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorScriptedEffect::clone()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::activate()
+void qSlicerSegmentEditorScriptedLabelEffect::activate()
 {
   // Base class implementation needs to be called before the effect-specific one
   this->Superclass::activate();
 
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   d->PythonCppAPI.callMethod(d->ActivateMethod);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::deactivate()
+void qSlicerSegmentEditorScriptedLabelEffect::deactivate()
 {
   // Base class implementation needs to be called before the effect-specific one
   this->Superclass::deactivate();
 
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   d->PythonCppAPI.callMethod(d->DeactivateMethod);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::apply()
+void qSlicerSegmentEditorScriptedLabelEffect::apply()
 {
   // Notify editor about changes
   // This method needs to be called so that the changes are written back to the edited segment
@@ -312,19 +312,19 @@ void qSlicerSegmentEditorScriptedEffect::apply()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::setupOptionsFrame()
+void qSlicerSegmentEditorScriptedLabelEffect::setupOptionsFrame()
 {
   // Base class implementation needs to be called before the effect-specific one
   this->Superclass::setupOptionsFrame();
 
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   PyObject* result = d->PythonCppAPI.callMethod(d->SetupOptionsFrameMethod);
 }
 
 //-----------------------------------------------------------------------------
-QCursor qSlicerSegmentEditorScriptedEffect::createCursor(qMRMLWidget* viewWidget)
+QCursor qSlicerSegmentEditorScriptedLabelEffect::createCursor(qMRMLWidget* viewWidget)
 {
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   PyObject* arguments = PyTuple_New(1);
   PyTuple_SET_ITEM(arguments, 0, PythonQtConv::QVariantToPyObject(QVariant::fromValue<QObject*>((QObject*)viewWidget)));
   PyObject* result = d->PythonCppAPI.callMethod(d->CreateCursorMethod, arguments);
@@ -340,9 +340,9 @@ QCursor qSlicerSegmentEditorScriptedEffect::createCursor(qMRMLWidget* viewWidget
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget)
+void qSlicerSegmentEditorScriptedLabelEffect::processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget)
 {
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   PyObject* arguments = PyTuple_New(3);
   PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer((vtkObject*)callerInteractor));
   PyTuple_SET_ITEM(arguments, 1, PyInt_FromLong(eid));
@@ -356,9 +356,9 @@ void qSlicerSegmentEditorScriptedEffect::processInteractionEvents(vtkRenderWindo
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::processViewNodeEvents(vtkMRMLAbstractViewNode* callerViewNode, unsigned long eid, qMRMLWidget* viewWidget)
+void qSlicerSegmentEditorScriptedLabelEffect::processViewNodeEvents(vtkMRMLAbstractViewNode* callerViewNode, unsigned long eid, qMRMLWidget* viewWidget)
 {
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   PyObject* arguments = PyTuple_New(3);
   PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer((vtkObject*)callerViewNode));
   PyTuple_SET_ITEM(arguments, 1, PyInt_FromLong(eid));
@@ -372,70 +372,61 @@ void qSlicerSegmentEditorScriptedEffect::processViewNodeEvents(vtkMRMLAbstractVi
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::setMRMLDefaults()
+void qSlicerSegmentEditorScriptedLabelEffect::setMRMLDefaults()
 {
   // Base class implementation needs to be called before the effect-specific one
-  // Note: Left here as comment in case this class is used as template for adaptor
-  //  classes of effect base classes that have default implementation of this method
-  //  (such as LabelEffect, MorphologyEffect, etc.)
-  //this->Superclass::setMRMLDefaults();
+  this->Superclass::setMRMLDefaults();
 
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   PyObject* result = d->PythonCppAPI.callMethod(d->SetMRMLDefaultsMethod);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::editedLabelmapChanged()
+void qSlicerSegmentEditorScriptedLabelEffect::editedLabelmapChanged()
 {
   // Base class implementation needs to be called before the effect-specific one
   this->Superclass::editedLabelmapChanged();
 
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   PyObject* result = d->PythonCppAPI.callMethod(d->EditedLabelmapChangedMethod);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::masterVolumeNodeChanged()
+void qSlicerSegmentEditorScriptedLabelEffect::masterVolumeNodeChanged()
 {
   // Base class implementation needs to be called before the effect-specific one
   this->Superclass::masterVolumeNodeChanged();
 
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   PyObject* result = d->PythonCppAPI.callMethod(d->MasterVolumeNodeChangedMethod);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::layoutChanged()
+void qSlicerSegmentEditorScriptedLabelEffect::layoutChanged()
 {
   // Base class implementation needs to be called before the effect-specific one
   this->Superclass::layoutChanged();
 
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   PyObject* result = d->PythonCppAPI.callMethod(d->LayoutChangedMethod);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::updateGUIFromMRML()
+void qSlicerSegmentEditorScriptedLabelEffect::updateGUIFromMRML()
 {
   // Base class implementation needs to be called before the effect-specific one
-  // Note: Left here as comment in case this class is used as template for adaptor
-  //  classes of effect base classes that have default implementation of this method
-  //  (such as LabelEffect, MorphologyEffect, etc.)
-  //this->Superclass::updateGUIFromMRML();
+  this->Superclass::updateGUIFromMRML();
 
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   PyObject* result = d->PythonCppAPI.callMethod(d->UpdateGUIFromMRMLMethod);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::updateMRMLFromGUI()
+void qSlicerSegmentEditorScriptedLabelEffect::updateMRMLFromGUI()
 {
   // Base class implementation needs to be called before the effect-specific one
-  // Note: Left here as comment in case this class is used as template for adaptor
-  //  classes of effect base classes that have default implementation of this method
-  //  (such as LabelEffect, MorphologyEffect, etc.)
-  //this->Superclass::updateMRMLFromGUI();
+  this->Superclass::updateMRMLFromGUI();
 
-  Q_D(const qSlicerSegmentEditorScriptedEffect);
+  Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
   PyObject* result = d->PythonCppAPI.callMethod(d->UpdateMRMLFromGUIMethod);
 }

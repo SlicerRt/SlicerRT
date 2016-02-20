@@ -27,6 +27,7 @@
 // Qt includes
 #include <QIcon>
 #include <QPoint>
+#include <QVector3D>
 
 class qSlicerSegmentEditorAbstractEffectPrivate;
 
@@ -208,7 +209,7 @@ public:
 public:
   /// Set the AbortFlag on the vtkCommand associated with the event.
   /// Causes other things listening to the interactor not to receive the events
-  void abortEvent(vtkRenderWindowInteractor* interactor, unsigned long eventId, qMRMLWidget* viewWidget);
+  Q_INVOKABLE void abortEvent(vtkRenderWindowInteractor* interactor, unsigned long eventId, qMRMLWidget* viewWidget);
 
   /// Get image data of master volume.
   /// Use argument as the image data is temporary, because it involves the geometry of the volume
@@ -226,18 +227,32 @@ public:
   Q_INVOKABLE static vtkMRMLAbstractViewNode* viewNode(qMRMLWidget* viewWidget);
 
   /// Convert RAS position to XY in-slice position
-  Q_INVOKABLE static QPoint rasToXy(double ras[3], qMRMLSliceWidget* sliceWidget);
+  static QPoint rasToXy(double ras[3], qMRMLSliceWidget* sliceWidget);
+  /// Convert RAS position to XY in-slice position, python accessor method
+  Q_INVOKABLE static QPoint rasToXy(QVector3D ras, qMRMLSliceWidget* sliceWidget);
   /// Convert XYZ slice view position to RAS position:
   /// x,y uses slice (canvas) coordinate system and actually has a 3rd z component (index into the
   /// slice you're looking at), hence xyToRAS is really performing xyzToRAS. RAS is patient world
   /// coordinate system. Note the 1 is because the transform uses homogeneous coordinates.
-  Q_INVOKABLE static void xyzToRas(double inputXyz[3], double outputRas[3], qMRMLSliceWidget* sliceWidget);
+  static void xyzToRas(double inputXyz[3], double outputRas[3], qMRMLSliceWidget* sliceWidget);
+  /// Convert XYZ slice view position to RAS position, python accessor method
+  Q_INVOKABLE static QVector3D xyzToRas(QVector3D inputXyz, qMRMLSliceWidget* sliceWidget);
   /// Convert XY in-slice position to RAS position
-  Q_INVOKABLE static void xyToRas(QPoint xy, double outputRas[3], qMRMLSliceWidget* sliceWidget);
+  static void xyToRas(QPoint xy, double outputRas[3], qMRMLSliceWidget* sliceWidget);
+  /// Convert XY in-slice position to RAS position
+  static void xyToRas(int xy[2], double outputRas[3], qMRMLSliceWidget* sliceWidget);
+  /// Convert XY in-slice position to RAS position, python accessor method
+  Q_INVOKABLE static QVector3D xyToRas(QPoint xy, qMRMLSliceWidget* sliceWidget);
   /// Convert XYZ slice view position to image IJK position, \sa xyzToRas
-  Q_INVOKABLE static void xyzToIjk(double inputXyz[3], int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
+  static void xyzToIjk(double inputXyz[3], int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
+  /// Convert XYZ slice view position to image IJK position, python accessor method, \sa xyzToRas
+  Q_INVOKABLE static QVector3D xyzToIjk(QVector3D inputXyz, qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
   /// Convert XY in-slice position to image IJK position
-  Q_INVOKABLE static void xyToIjk(QPoint xy, int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
+  static void xyToIjk(QPoint xy, int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
+  /// Convert XY in-slice position to image IJK position
+  static void xyToIjk(int xy[2], int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
+  /// Convert XY in-slice position to image IJK position, python accessor method
+  Q_INVOKABLE static QVector3D xyToIjk(QPoint xy, qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
 
 protected:
   /// Name of the effect

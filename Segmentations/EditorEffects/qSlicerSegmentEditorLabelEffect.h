@@ -30,6 +30,7 @@ class qSlicerSegmentEditorLabelEffectPrivate;
 
 class vtkMatrix4x4;
 class vtkOrientedImageData;
+class vtkPolyData;
 class vtkMRMLVolumeNode;
 class vtkMRMLSegmentationNode;
 
@@ -61,7 +62,7 @@ public:
   virtual qSlicerSegmentEditorAbstractEffect* clone() = 0;
 
   /// Perform actions needed before the edited labelmap is applied back to the segment
-  virtual void apply();
+  Q_INVOKABLE virtual void apply();
 
   /// Create options frame widgets, make connections, and add them to the main options frame using \sa addOptionsWidget
   virtual void setupOptionsFrame();
@@ -84,13 +85,28 @@ public slots:
 
 // Utility functions
 public:
-  /// Return matrix for volume node that takes into account the IJKToRAS
-  /// and any linear transforms that have been applied
-  static void ijkToRasMatrix(vtkMRMLVolumeNode* node, vtkMatrix4x4* ijkToRas);
+  /// Apply mask image on an input image
+  /// \param input Input image to apply the mask on
+  /// \param mask Mask to apply
+  /// \param append If on, the masked image will be appended to the input image, otherwise replaced
+  /// \param notMask If on, the mask is passed through a boolean not before it is used to mask the image.
+  ///   The effect is to pass the pixels where the input mask is zero, and replace the pixels where the
+  ///   input value is non zero
+  Q_INVOKABLE static void applyImageMask(vtkOrientedImageData* input, vtkOrientedImageData* mask, bool append = true, bool notMask = false);
+
+  /// Rasterize a poly data onto the input image into the slice view
+  Q_INVOKABLE static void applyPolyMask(vtkOrientedImageData* input, vtkPolyData* polyData, qMRMLSliceWidget* sliceWidget);
+
+  /// Create a slice view screen space (2D) mask image for the given polydata
+  Q_INVOKABLE static void makeMaskImage(vtkPolyData* polyData, vtkOrientedImageData* outputMask, qMRMLSliceWidget* sliceWidget);
 
   /// Return matrix for volume node that takes into account the IJKToRAS
   /// and any linear transforms that have been applied
-  static void ijkToRasMatrix(vtkOrientedImageData* image, vtkMRMLSegmentationNode* node, vtkMatrix4x4* ijkToRas);
+  Q_INVOKABLE static void imageToWorldMatrix(vtkMRMLVolumeNode* node, vtkMatrix4x4* ijkToRas);
+
+  /// Return matrix for oriented image data that takes into account the image to world
+  /// and any linear transforms that have been applied on the given segmentation
+  Q_INVOKABLE static void imageToWorldMatrix(vtkOrientedImageData* image, vtkMRMLSegmentationNode* node, vtkMatrix4x4* ijkToRas);
 
 protected:
   QScopedPointer<qSlicerSegmentEditorLabelEffectPrivate> d_ptr;

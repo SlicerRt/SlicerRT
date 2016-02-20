@@ -7,10 +7,13 @@ configure_file(
 #-----------------------------------------------------------------------------
 set(SegmentEditorEffects_PYTHON_SCRIPTS
   AbstractScriptedSegmentEditorEffect
+  AbstractScriptedSegmentEditorLabelEffect
+  SegmentEditorDrawEffect
   SegmentEditorThresholdEffect
   )
 
 set(SegmentEditorEffects_PYTHON_RESOURCES
+  Resources/Icons/Draw.png
   Resources/Icons/Threshold.png
   )
 

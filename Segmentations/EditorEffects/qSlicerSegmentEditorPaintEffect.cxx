@@ -70,11 +70,11 @@
 #include "vtkImageSlicePaint.h"
 
 //-----------------------------------------------------------------------------
-/// Container class handling objects for painting for each slice view
-class PaintEffectBrush: public QObject
+/// Visualization objects and pipeline for each slice view for the paint brush
+class BrushPipeline: public QObject
 {
 public:
-  PaintEffectBrush()
+  BrushPipeline()
   {
     this->PolyData = vtkPolyData::New();
     this->Mapper = vtkPolyDataMapper2D::New();
@@ -83,7 +83,7 @@ public:
     this->Actor->SetMapper(this->Mapper);
     this->Actor->VisibilityOff();
   };
-  ~PaintEffectBrush()
+  ~BrushPipeline()
   {
     this->Actor->Delete();
     this->Actor = NULL;
@@ -135,7 +135,7 @@ qSlicerSegmentEditorPaintEffectPrivate::~qSlicerSegmentEditorPaintEffectPrivate(
   this->PaintCoordinates.clear();
   this->FeedbackActors.clear();
 
-  foreach (PaintEffectBrush* brush, this->Brushes)
+  foreach (BrushPipeline* brush, this->Brushes)
   {
     delete brush;
   }
@@ -143,7 +143,7 @@ qSlicerSegmentEditorPaintEffectPrivate::~qSlicerSegmentEditorPaintEffectPrivate(
 }
 
 //-----------------------------------------------------------------------------
-PaintEffectBrush* qSlicerSegmentEditorPaintEffectPrivate::brushForWidget(qMRMLSliceWidget* sliceWidget)
+BrushPipeline* qSlicerSegmentEditorPaintEffectPrivate::brushForWidget(qMRMLSliceWidget* sliceWidget)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
@@ -153,7 +153,7 @@ PaintEffectBrush* qSlicerSegmentEditorPaintEffectPrivate::brushForWidget(qMRMLSl
   }
 
   // Create brush if does not yet exist
-  PaintEffectBrush* brush = new PaintEffectBrush();
+  BrushPipeline* brush = new BrushPipeline();
   this->createBrushGlyph(sliceWidget, brush);
 
   vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(sliceWidget);
@@ -213,7 +213,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintFeedback(qMRMLSliceWidget* sli
     vtkSmartPointer<vtkActor2D> actor = vtkSmartPointer<vtkActor2D>::New();
     this->FeedbackActors << actor.GetPointer();
 
-    PaintEffectBrush* brush = this->brushForWidget(sliceWidget);
+    BrushPipeline* brush = this->brushForWidget(sliceWidget);
     actor->SetMapper(brush->Mapper);
     actor->SetPosition(xy.x(), xy.y());
     vtkProperty2D* property = actor->GetProperty();
@@ -273,7 +273,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
   double radius = q->doubleParameter("Radius");
 
   // Get brush for slice widget
-  PaintEffectBrush* brush = this->brushForWidget(sliceWidget);
+  BrushPipeline* brush = this->brushForWidget(sliceWidget);
 
   // Get the brush bounding box in IJK coordinates
   // - Get the xy bounds
@@ -352,11 +352,11 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
   // Get IJK to RAS transform matrices for edited labelmap and master volume
   vtkMRMLScalarVolumeNode* masterVolumeNode = q->parameterSetNode()->GetMasterVolumeNode();
   vtkSmartPointer<vtkMatrix4x4> masterIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  qSlicerSegmentEditorLabelEffect::ijkToRasMatrix(masterVolumeNode, masterIjkToRasMatrix);
+  qSlicerSegmentEditorLabelEffect::imageToWorldMatrix(masterVolumeNode, masterIjkToRasMatrix);
 
   vtkMRMLSegmentationNode* segmentationNode = q->parameterSetNode()->GetSegmentationNode();
   vtkSmartPointer<vtkMatrix4x4> labelIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  qSlicerSegmentEditorLabelEffect::ijkToRasMatrix(labelImage, segmentationNode, labelIjkToRasMatrix);
+  qSlicerSegmentEditorLabelEffect::imageToWorldMatrix(labelImage, segmentationNode, labelIjkToRasMatrix);
 
   double brushCenterRas[3] = {0.0, 0.0, 0.0};
   q->xyToRas(xy, brushCenterRas, sliceWidget);
@@ -580,7 +580,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::onRadiusValueChanged(double value)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffectPrivate::createBrushGlyph(qMRMLSliceWidget* sliceWidget, PaintEffectBrush* brush)
+void qSlicerSegmentEditorPaintEffectPrivate::createBrushGlyph(qMRMLSliceWidget* sliceWidget, BrushPipeline* brush)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
@@ -659,7 +659,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::createBrushGlyph(qMRMLSliceWidget* 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffectPrivate::updateBrushes()
 {
-  QMapIterator<qMRMLSliceWidget*, PaintEffectBrush*> brushIt(this->Brushes);
+  QMapIterator<qMRMLSliceWidget*, BrushPipeline*> brushIt(this->Brushes);
   while (brushIt.hasNext())
   {
     brushIt.next();
@@ -716,7 +716,7 @@ void qSlicerSegmentEditorPaintEffect::deactivate()
 
   // Delete brushes because actors are removed in base class deactivate call above,
   // and when re-activated, they will be thus created and added again
-  foreach (PaintEffectBrush* brush, d->Brushes)
+  foreach (BrushPipeline* brush, d->Brushes)
   {
     delete brush;
   }
@@ -737,7 +737,7 @@ void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
   {
     return;
   }
-  PaintEffectBrush* brush = d->brushForWidget(sliceWidget);
+  BrushPipeline* brush = d->brushForWidget(sliceWidget);
   if (!brush)
   {
     qCritical() << "qSlicerSegmentEditorPaintEffect::processInteractionEvents: Failed to create brush!";
@@ -818,7 +818,7 @@ void qSlicerSegmentEditorPaintEffect::processViewNodeEvents(vtkMRMLAbstractViewN
   {
     return;
   }
-  PaintEffectBrush* brush = d->brushForWidget(sliceWidget);
+  BrushPipeline* brush = d->brushForWidget(sliceWidget);
   if (!brush)
   {
     qCritical() << "qSlicerSegmentEditorPaintEffect::processViewNodeEvents: Failed to create brush!";

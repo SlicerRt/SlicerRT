@@ -20,8 +20,8 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerSegmentEditorScriptedEffect_h
-#define __qSlicerSegmentEditorScriptedEffect_h
+#ifndef __qSlicerSegmentEditorScriptedLabelEffect_h
+#define __qSlicerSegmentEditorScriptedLabelEffect_h
 
 // Segmentations Editor Effects includes
 #include "qSlicerSegmentEditorLabelEffect.h"
@@ -33,25 +33,27 @@
 struct _object;
 typedef _object PyObject;
 #endif
-class qSlicerSegmentEditorScriptedEffectPrivate;
+class qSlicerSegmentEditorScriptedLabelEffectPrivate;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
-/// \brief Scripted abstract effect for implementing segment editor effects in python
+/// \brief Scripted abstract effect for implementing label effects in python
 ///
-/// This class provides an interface to effects implemented in python.
-/// USAGE: Subclass AbstractScriptedSegmentEditorEffect in EditorEffects/Python subfolder,
+/// This class provides an interface to label effects implemented in python.
+/// Label effects are a subtype of general effects that edit the currently selected
+/// segment (i.e. for things like paint or draw, but not for things like threshold or morphology)
+/// USAGE: Subclass AbstractScriptedSegmentEditorLabelEffect in EditorEffects/Python subfolder,
 ///   and register effect by creating this class and setting python source to implemented
-///   effect subclass. One example is the ThresholdEffect.
+///   effect subclass. One example is the DrawEffect.
 ///
-class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorScriptedEffect
+class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorScriptedLabelEffect
   : public qSlicerSegmentEditorLabelEffect
 {
   Q_OBJECT
 
 public:
   typedef qSlicerSegmentEditorLabelEffect Superclass;
-  qSlicerSegmentEditorScriptedEffect(QObject* parent = NULL);
-  virtual ~qSlicerSegmentEditorScriptedEffect();
+  qSlicerSegmentEditorScriptedLabelEffect(QObject* parent = NULL);
+  virtual ~qSlicerSegmentEditorScriptedLabelEffect();
 
   Q_INVOKABLE QString pythonSource()const;
 
@@ -123,11 +125,11 @@ public slots:
   virtual void updateMRMLFromGUI();
 
 protected:
-  QScopedPointer<qSlicerSegmentEditorScriptedEffectPrivate> d_ptr;
+  QScopedPointer<qSlicerSegmentEditorScriptedLabelEffectPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerSegmentEditorScriptedEffect);
-  Q_DISABLE_COPY(qSlicerSegmentEditorScriptedEffect);
+  Q_DECLARE_PRIVATE(qSlicerSegmentEditorScriptedLabelEffect);
+  Q_DISABLE_COPY(qSlicerSegmentEditorScriptedLabelEffect);
 };
 
 #endif

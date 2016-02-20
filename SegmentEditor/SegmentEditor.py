@@ -34,10 +34,16 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     ScriptedLoadableModuleWidget.setup(self)
 
     # Register scripted segment editor effects
-    import qSlicerSegmentationsEditorEffectsPythonQt
     #TODO: Move this out of the module preferably to a separate python file that is executed on startup by the discovery mechanism
-    thresholdEffect = qSlicerSegmentationsEditorEffectsPythonQt.qSlicerSegmentEditorScriptedEffect(None)
+    import qSlicerSegmentationsEditorEffectsPythonQt as effects
+    # Generic effects
+    thresholdEffect = effects.qSlicerSegmentEditorScriptedEffect(None)
     thresholdEffect.setPythonSource(SegmentEditorThresholdEffect.filePath)
+    # Label effects
+    drawEffect = effects.qSlicerSegmentEditorScriptedLabelEffect(None)
+    drawEffect.setPythonSource(SegmentEditorDrawEffect.filePath)
+    # Morphology effects
+    #TODO:
 
     # Add margin to the sides
     self.layout.setContentsMargins(4,0,4,0)
@@ -128,8 +134,6 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       # ('z', self.toolsBox.undoRedo.undo),
       # ('y', self.toolsBox.undoRedo.redo),
       ('h', self.toggleCrosshair),
-      # ('o', EditUtil.toggleLabelOutline),
-      # ('t', EditUtil.toggleForegroundBackground),
       (Key_Escape, lambda : self.editor.setActiveEffect(None)),
       ('p', lambda : self.editor.setActiveEffect(self.editor.effectByName('Paint'))),
       ('d', lambda : self.editor.setActiveEffect(self.editor.effectByName('Draw'))),
