@@ -94,6 +94,10 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     self.thresholdSlider.connect('valuesChanged(double,double)', self.onThresholdValuesChanged)
     self.applyButton.connect('clicked()', self.onApply)
 
+  def createCursor(self, widget):
+    # Turn off effect-specific cursor for this effect
+    return slicer.util.mainWindow().cursor
+
   def editedLabelmapChanged(self):
     pass # For the sake of example
 

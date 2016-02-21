@@ -41,6 +41,10 @@ class SegmentEditorDilateEffect(AbstractScriptedSegmentEditorMorphologyEffect):
 
     self.applyButton.connect('clicked()', self.onApply)
 
+  def createCursor(self, widget):
+    # Turn off effect-specific cursor for this effect
+    return slicer.util.mainWindow().cursor
+
   def onApply(self):
     # Get parameters
     neighborMode = self.scriptedEffect.integerParameter("NeighborMode")

@@ -107,6 +107,8 @@ public:
 
   /// Create local effect clones for per-editor effect handling and create effect buttons
   void initializeEffects();
+  /// Initialize an effect. Called from \sa initializeEffects
+  void initializeEffect(qSlicerSegmentEditorAbstractEffect* effect);
 
   /// Simple mechanism to let the effects know that edited labelmap has changed
   void notifyEffectsOfEditedLabelmapChange();
@@ -128,6 +130,9 @@ public:
 public:
   /// Segment editor parameter set node containing all selections and working images
   vtkWeakPointer<vtkMRMLSegmentEditorNode> ParameterSetNode;
+
+  /// Default effect ordering
+  QStringList DefaultEffectOrder;
 
   /// List of registered effect instances
   QList<qSlicerSegmentEditorAbstractEffect*> RegisteredEffects;
@@ -211,6 +216,10 @@ void qMRMLSegmentEditorWidgetPrivate::init()
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(0);
 
+  // Define default effect order
+  this->DefaultEffectOrder << "Paint" << "Draw" << "Erase" << "Wand" << "LevelTracing"
+    << "Rectangle" << "Dilate" << "Erode" << "GrowCut" << "Threshold"; //TODO: Add island effects, etc.
+
   // Instantiate and expose effects
   this->initializeEffects();
 }
@@ -240,30 +249,53 @@ void qMRMLSegmentEditorWidgetPrivate::initializeEffects()
   effectsGroupLayout->setSpacing(4);
   this->EffectsGroupBox->setLayout(effectsGroupLayout);
 
-  // Initialize effects
-  foreach (qSlicerSegmentEditorAbstractEffect* effect, this->RegisteredEffects)
+  // Initialize effects specified in default ordering
+  QList<qSlicerSegmentEditorAbstractEffect*> registeredEffectsCopy = this->RegisteredEffects;
+  foreach (QString effectName, this->DefaultEffectOrder)
   {
-    // Create button for activating effect
-    QPushButton* effectButton = new QPushButton(this->EffectsGroupBox);
-    effectButton->setObjectName(effect->name());
-    effectButton->setCheckable(true);
-    effectButton->setIcon(effect->icon());
-    effectButton->setToolTip(effect->name());
-    effectButton->setMaximumWidth(31);
-    effectButton->setProperty("Effect", QVariant::fromValue<QObject*>(effect));
-
-    this->EffectButtonGroup.addButton(effectButton);
-    effectsGroupLayout->addWidget(effectButton);
-
-    // Connect effect apply signal to commit changes to selected segment
-    effect->connectApply(q, SLOT(applyChangesToSelectedSegment()));
-
-    // Add effect options frame to the options widget and hide them
-    effect->setupOptionsFrame();
-    QFrame* effectOptionsFrame = effect->optionsFrame();
-    effectOptionsFrame->setVisible(false);
-    this->EffectsOptionsFrame->layout()->addWidget(effectOptionsFrame);
+    qSlicerSegmentEditorAbstractEffect* effect = q->effectByName(effectName);
+    if (effect)
+    {
+      this->initializeEffect(effect);
+      registeredEffectsCopy.removeOne(effect);
+    }
   }
+  // Initialize the rest of the effects
+  foreach (qSlicerSegmentEditorAbstractEffect* effect, registeredEffectsCopy)
+  {
+    this->initializeEffect(effect);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidgetPrivate::initializeEffect(qSlicerSegmentEditorAbstractEffect* effect)
+{
+  Q_Q(qMRMLSegmentEditorWidget);
+  if (!effect)
+  {
+    return;
+  }
+
+  // Create button for activating effect
+  QPushButton* effectButton = new QPushButton(this->EffectsGroupBox);
+  effectButton->setObjectName(effect->name());
+  effectButton->setCheckable(true);
+  effectButton->setIcon(effect->icon());
+  effectButton->setToolTip(effect->name());
+  effectButton->setMaximumWidth(31);
+  effectButton->setProperty("Effect", QVariant::fromValue<QObject*>(effect));
+
+  this->EffectButtonGroup.addButton(effectButton);
+  this->EffectsGroupBox->layout()->addWidget(effectButton);
+
+  // Connect effect apply signal to commit changes to selected segment
+  effect->connectApply(q, SLOT(applyChangesToSelectedSegment()));
+
+  // Add effect options frame to the options widget and hide them
+  effect->setupOptionsFrame();
+  QFrame* effectOptionsFrame = effect->optionsFrame();
+  effectOptionsFrame->setVisible(false);
+  this->EffectsOptionsFrame->layout()->addWidget(effectOptionsFrame);
 }
 
 //-----------------------------------------------------------------------------
@@ -1137,7 +1169,6 @@ qSlicerSegmentEditorAbstractEffect* qMRMLSegmentEditorWidget::effectByName(QStri
       }
     }
 
-  qWarning() << "qMRMLSegmentEditorWidget::effectByName: Effect named '" << name << "' cannot be found!";
   return NULL;
 }
 
