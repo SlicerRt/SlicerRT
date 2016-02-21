@@ -24,7 +24,7 @@
 #define __qSlicerSegmentEditorScriptedLabelEffect_h
 
 // Segmentations Editor Effects includes
-#include "qSlicerSegmentEditorLabelEffect.h"
+#include "qSlicerSegmentEditorAbstractLabelEffect.h"
 
 #include "qSlicerSegmentationsEditorEffectsExport.h"
 
@@ -46,12 +46,12 @@ class qSlicerSegmentEditorScriptedLabelEffectPrivate;
 ///   effect subclass. One example is the DrawEffect.
 ///
 class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorScriptedLabelEffect
-  : public qSlicerSegmentEditorLabelEffect
+  : public qSlicerSegmentEditorAbstractLabelEffect
 {
   Q_OBJECT
 
 public:
-  typedef qSlicerSegmentEditorLabelEffect Superclass;
+  typedef qSlicerSegmentEditorAbstractLabelEffect Superclass;
   qSlicerSegmentEditorScriptedLabelEffect(QObject* parent = NULL);
   virtual ~qSlicerSegmentEditorScriptedLabelEffect();
 

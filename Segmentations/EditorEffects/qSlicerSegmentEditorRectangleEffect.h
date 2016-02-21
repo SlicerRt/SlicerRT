@@ -24,20 +24,20 @@
 // Segmentations Editor Effects includes
 #include "qSlicerSegmentationsEditorEffectsExport.h"
 
-#include "qSlicerSegmentEditorLabelEffect.h"
+#include "qSlicerSegmentEditorAbstractLabelEffect.h"
 
 class qSlicerSegmentEditorRectangleEffectPrivate;
 class vtkPolyData;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
 class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorRectangleEffect :
-  public qSlicerSegmentEditorLabelEffect
+  public qSlicerSegmentEditorAbstractLabelEffect
 {
 public:
   Q_OBJECT
 
 public:
-  typedef qSlicerSegmentEditorLabelEffect Superclass;
+  typedef qSlicerSegmentEditorAbstractLabelEffect Superclass;
   qSlicerSegmentEditorRectangleEffect(QObject* parent = NULL);
   virtual ~qSlicerSegmentEditorRectangleEffect(); 
 

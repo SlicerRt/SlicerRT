@@ -18,29 +18,29 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerSegmentEditorMorphologyEffect_h
-#define __qSlicerSegmentEditorMorphologyEffect_h
+#ifndef __qSlicerSegmentEditorAbstractMorphologyEffect_h
+#define __qSlicerSegmentEditorAbstractMorphologyEffect_h
 
 // Segmentations Editor Effects includes
 #include "qSlicerSegmentationsEditorEffectsExport.h"
 
 #include "qSlicerSegmentEditorAbstractEffect.h"
 
-class qSlicerSegmentEditorMorphologyEffectPrivate;
+class qSlicerSegmentEditorAbstractMorphologyEffectPrivate;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
 /// \brief Base class for all "morphology" effects.
 /// 
 /// This base class provides GUI and MRML for the options PaintOver and Threshold.
-class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorMorphologyEffect :
+class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorAbstractMorphologyEffect :
   public qSlicerSegmentEditorAbstractEffect
 {
   Q_OBJECT
 
 public:
   typedef qSlicerSegmentEditorAbstractEffect Superclass;
-  qSlicerSegmentEditorMorphologyEffect(QObject* parent = NULL);
-  virtual ~qSlicerSegmentEditorMorphologyEffect(); 
+  qSlicerSegmentEditorAbstractMorphologyEffect(QObject* parent = NULL);
+  virtual ~qSlicerSegmentEditorAbstractMorphologyEffect(); 
 
   Q_INVOKABLE static QString neighborModeParameterName() { return QString("NeighborMode"); };
   Q_INVOKABLE static QString iterationsParameterName() { return QString("Iterations"); };
@@ -64,11 +64,11 @@ public slots:
   virtual void updateMRMLFromGUI();
 
 protected:
-  QScopedPointer<qSlicerSegmentEditorMorphologyEffectPrivate> d_ptr;
+  QScopedPointer<qSlicerSegmentEditorAbstractMorphologyEffectPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerSegmentEditorMorphologyEffect);
-  Q_DISABLE_COPY(qSlicerSegmentEditorMorphologyEffect);
+  Q_DECLARE_PRIVATE(qSlicerSegmentEditorAbstractMorphologyEffect);
+  Q_DISABLE_COPY(qSlicerSegmentEditorAbstractMorphologyEffect);
 };
 
 #endif

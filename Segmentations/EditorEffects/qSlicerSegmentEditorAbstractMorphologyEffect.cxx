@@ -19,7 +19,7 @@
 ==============================================================================*/
 
 // Segmentations includes
-#include "qSlicerSegmentEditorMorphologyEffect.h"
+#include "qSlicerSegmentEditorAbstractMorphologyEffect.h"
 
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkMRMLSegmentEditorNode.h"
@@ -29,18 +29,18 @@
 #include <QRadioButton>
 
 //-----------------------------------------------------------------------------
-// qSlicerSegmentEditorMorphologyEffectPrivate methods
+// qSlicerSegmentEditorAbstractMorphologyEffectPrivate methods
 
 //-----------------------------------------------------------------------------
-class qSlicerSegmentEditorMorphologyEffectPrivate: public QObject
+class qSlicerSegmentEditorAbstractMorphologyEffectPrivate: public QObject
 {
-  Q_DECLARE_PUBLIC(qSlicerSegmentEditorMorphologyEffect);
+  Q_DECLARE_PUBLIC(qSlicerSegmentEditorAbstractMorphologyEffect);
 protected:
-  qSlicerSegmentEditorMorphologyEffect* const q_ptr;
+  qSlicerSegmentEditorAbstractMorphologyEffect* const q_ptr;
 public:
   typedef QObject Superclass;
-  qSlicerSegmentEditorMorphologyEffectPrivate(qSlicerSegmentEditorMorphologyEffect& object);
-  ~qSlicerSegmentEditorMorphologyEffectPrivate();
+  qSlicerSegmentEditorAbstractMorphologyEffectPrivate(qSlicerSegmentEditorAbstractMorphologyEffect& object);
+  ~qSlicerSegmentEditorAbstractMorphologyEffectPrivate();
 
 public:
   QRadioButton* EightNeighborsRadioButton;
@@ -48,7 +48,7 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentEditorMorphologyEffectPrivate::qSlicerSegmentEditorMorphologyEffectPrivate(qSlicerSegmentEditorMorphologyEffect& object)
+qSlicerSegmentEditorAbstractMorphologyEffectPrivate::qSlicerSegmentEditorAbstractMorphologyEffectPrivate(qSlicerSegmentEditorAbstractMorphologyEffect& object)
   : q_ptr(&object)
   , EightNeighborsRadioButton(NULL)
   , FourNeighborsRadioButton(NULL)
@@ -56,7 +56,7 @@ qSlicerSegmentEditorMorphologyEffectPrivate::qSlicerSegmentEditorMorphologyEffec
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentEditorMorphologyEffectPrivate::~qSlicerSegmentEditorMorphologyEffectPrivate()
+qSlicerSegmentEditorAbstractMorphologyEffectPrivate::~qSlicerSegmentEditorAbstractMorphologyEffectPrivate()
 {
 }
 
@@ -64,24 +64,24 @@ qSlicerSegmentEditorMorphologyEffectPrivate::~qSlicerSegmentEditorMorphologyEffe
 
 
 //-----------------------------------------------------------------------------
-// qSlicerSegmentEditorMorphologyEffect methods
+// qSlicerSegmentEditorAbstractMorphologyEffect methods
 
 //----------------------------------------------------------------------------
-qSlicerSegmentEditorMorphologyEffect::qSlicerSegmentEditorMorphologyEffect(QObject* parent)
+qSlicerSegmentEditorAbstractMorphologyEffect::qSlicerSegmentEditorAbstractMorphologyEffect(QObject* parent)
  : Superclass(parent)
- , d_ptr( new qSlicerSegmentEditorMorphologyEffectPrivate(*this) )
+ , d_ptr( new qSlicerSegmentEditorAbstractMorphologyEffectPrivate(*this) )
 {
 }
 
 //----------------------------------------------------------------------------
-qSlicerSegmentEditorMorphologyEffect::~qSlicerSegmentEditorMorphologyEffect()
+qSlicerSegmentEditorAbstractMorphologyEffect::~qSlicerSegmentEditorAbstractMorphologyEffect()
 {
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorMorphologyEffect::setupOptionsFrame()
+void qSlicerSegmentEditorAbstractMorphologyEffect::setupOptionsFrame()
 {
-  Q_D(qSlicerSegmentEditorMorphologyEffect);
+  Q_D(qSlicerSegmentEditorAbstractMorphologyEffect);
 
   d->EightNeighborsRadioButton = new QRadioButton("Eight neighbors");
   d->EightNeighborsRadioButton->setToolTip("Treat diagonally adjacent voxels as neighbors.");
@@ -98,16 +98,16 @@ void qSlicerSegmentEditorMorphologyEffect::setupOptionsFrame()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorMorphologyEffect::setMRMLDefaults()
+void qSlicerSegmentEditorAbstractMorphologyEffect::setMRMLDefaults()
 {
   this->setCommonParameter(this->neighborModeParameterName(), 4);
   this->setCommonParameter(this->iterationsParameterName(), 1);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorMorphologyEffect::updateGUIFromMRML()
+void qSlicerSegmentEditorAbstractMorphologyEffect::updateGUIFromMRML()
 {
-  Q_D(qSlicerSegmentEditorMorphologyEffect);
+  Q_D(qSlicerSegmentEditorAbstractMorphologyEffect);
 
   d->EightNeighborsRadioButton->blockSignals(true);
   d->FourNeighborsRadioButton->blockSignals(true);
@@ -129,9 +129,9 @@ void qSlicerSegmentEditorMorphologyEffect::updateGUIFromMRML()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorMorphologyEffect::updateMRMLFromGUI()
+void qSlicerSegmentEditorAbstractMorphologyEffect::updateMRMLFromGUI()
 {
-  Q_D(qSlicerSegmentEditorMorphologyEffect);
+  Q_D(qSlicerSegmentEditorAbstractMorphologyEffect);
 
   if (d->EightNeighborsRadioButton->isChecked())
   {

@@ -24,7 +24,7 @@
 #define __qSlicerSegmentEditorScriptedMorphologyEffect_h
 
 // Segmentations Editor Effects includes
-#include "qSlicerSegmentEditorMorphologyEffect.h"
+#include "qSlicerSegmentEditorAbstractMorphologyEffect.h"
 
 #include "qSlicerSegmentationsEditorEffectsExport.h"
 
@@ -46,12 +46,12 @@ class qSlicerSegmentEditorScriptedMorphologyEffectPrivate;
 ///   effect subclass. One example is the DilateEffect.
 ///
 class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorScriptedMorphologyEffect
-  : public qSlicerSegmentEditorMorphologyEffect
+  : public qSlicerSegmentEditorAbstractMorphologyEffect
 {
   Q_OBJECT
 
 public:
-  typedef qSlicerSegmentEditorMorphologyEffect Superclass;
+  typedef qSlicerSegmentEditorAbstractMorphologyEffect Superclass;
   qSlicerSegmentEditorScriptedMorphologyEffect(QObject* parent = NULL);
   virtual ~qSlicerSegmentEditorScriptedMorphologyEffect();
 

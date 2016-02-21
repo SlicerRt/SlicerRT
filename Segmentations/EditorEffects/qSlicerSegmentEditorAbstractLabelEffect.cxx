@@ -19,8 +19,8 @@
 ==============================================================================*/
 
 // Segmentations includes
-#include "qSlicerSegmentEditorLabelEffect.h"
-#include "qSlicerSegmentEditorLabelEffect_p.h"
+#include "qSlicerSegmentEditorAbstractLabelEffect.h"
+#include "qSlicerSegmentEditorAbstractLabelEffect_p.h"
 
 #include "vtkOrientedImageData.h"
 #include "vtkOrientedImageDataResample.h"
@@ -55,10 +55,10 @@
 #include "vtkMRMLSliceNode.h"
 
 //-----------------------------------------------------------------------------
-// qSlicerSegmentEditorLabelEffectPrivate methods
+// qSlicerSegmentEditorAbstractLabelEffectPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentEditorLabelEffectPrivate::qSlicerSegmentEditorLabelEffectPrivate(qSlicerSegmentEditorLabelEffect& object)
+qSlicerSegmentEditorAbstractLabelEffectPrivate::qSlicerSegmentEditorAbstractLabelEffectPrivate(qSlicerSegmentEditorAbstractLabelEffect& object)
   : q_ptr(&object)
   , PaintOverCheckbox(NULL)
   , ThresholdPaintCheckbox(NULL)
@@ -68,14 +68,14 @@ qSlicerSegmentEditorLabelEffectPrivate::qSlicerSegmentEditorLabelEffectPrivate(q
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentEditorLabelEffectPrivate::~qSlicerSegmentEditorLabelEffectPrivate()
+qSlicerSegmentEditorAbstractLabelEffectPrivate::~qSlicerSegmentEditorAbstractLabelEffectPrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffectPrivate::onThresholdChecked(bool checked)
+void qSlicerSegmentEditorAbstractLabelEffectPrivate::onThresholdChecked(bool checked)
 {
-  Q_Q(qSlicerSegmentEditorLabelEffect);
+  Q_Q(qSlicerSegmentEditorAbstractLabelEffect);
 
   this->ThresholdLabel->setVisible(checked);
 
@@ -87,9 +87,9 @@ void qSlicerSegmentEditorLabelEffectPrivate::onThresholdChecked(bool checked)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffectPrivate::onThresholdValuesChanged(double min, double max)
+void qSlicerSegmentEditorAbstractLabelEffectPrivate::onThresholdValuesChanged(double min, double max)
 {
-  Q_Q(qSlicerSegmentEditorLabelEffect);
+  Q_Q(qSlicerSegmentEditorAbstractLabelEffect);
 
   q->updateMRMLFromGUI();
 }
@@ -98,22 +98,22 @@ void qSlicerSegmentEditorLabelEffectPrivate::onThresholdValuesChanged(double min
 
 
 //-----------------------------------------------------------------------------
-// qSlicerSegmentEditorLabelEffect methods
+// qSlicerSegmentEditorAbstractLabelEffect methods
 
 //----------------------------------------------------------------------------
-qSlicerSegmentEditorLabelEffect::qSlicerSegmentEditorLabelEffect(QObject* parent)
+qSlicerSegmentEditorAbstractLabelEffect::qSlicerSegmentEditorAbstractLabelEffect(QObject* parent)
  : Superclass(parent)
- , d_ptr( new qSlicerSegmentEditorLabelEffectPrivate(*this) )
+ , d_ptr( new qSlicerSegmentEditorAbstractLabelEffectPrivate(*this) )
 {
 }
 
 //----------------------------------------------------------------------------
-qSlicerSegmentEditorLabelEffect::~qSlicerSegmentEditorLabelEffect()
+qSlicerSegmentEditorAbstractLabelEffect::~qSlicerSegmentEditorAbstractLabelEffect()
 {
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::editedLabelmapChanged()
+void qSlicerSegmentEditorAbstractLabelEffect::editedLabelmapChanged()
 {
   if (!this->parameterSetNode())
   {
@@ -159,13 +159,13 @@ void qSlicerSegmentEditorLabelEffect::editedLabelmapChanged()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::masterVolumeNodeChanged()
+void qSlicerSegmentEditorAbstractLabelEffect::masterVolumeNodeChanged()
 {
-  Q_D(qSlicerSegmentEditorLabelEffect);
+  Q_D(qSlicerSegmentEditorAbstractLabelEffect);
 
   if (!this->parameterSetNode())
   {
-    qCritical() << "qSlicerSegmentEditorLabelEffect::masterVolumeNodeChanged: Invalid segment editor parameter set node!";
+    qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::masterVolumeNodeChanged: Invalid segment editor parameter set node!";
     return;
   }
 
@@ -185,9 +185,9 @@ void qSlicerSegmentEditorLabelEffect::masterVolumeNodeChanged()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::setupOptionsFrame()
+void qSlicerSegmentEditorAbstractLabelEffect::setupOptionsFrame()
 {
-  Q_D(qSlicerSegmentEditorLabelEffect);
+  Q_D(qSlicerSegmentEditorAbstractLabelEffect);
 
   d->PaintOverCheckbox = new QCheckBox("Paint over");
   d->PaintOverCheckbox->setToolTip("Allow effect to overwrite non-zero labels.");
@@ -212,7 +212,7 @@ void qSlicerSegmentEditorLabelEffect::setupOptionsFrame()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::setMRMLDefaults()
+void qSlicerSegmentEditorAbstractLabelEffect::setMRMLDefaults()
 {
   this->setCommonParameter(this->paintOverParameterName(), 1);
   this->setCommonParameter(this->paintThresholdParameterName(), 0);
@@ -223,9 +223,9 @@ void qSlicerSegmentEditorLabelEffect::setMRMLDefaults()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::updateGUIFromMRML()
+void qSlicerSegmentEditorAbstractLabelEffect::updateGUIFromMRML()
 {
-  Q_D(qSlicerSegmentEditorLabelEffect);
+  Q_D(qSlicerSegmentEditorAbstractLabelEffect);
 
   d->PaintOverCheckbox->blockSignals(true);
   d->PaintOverCheckbox->setChecked(this->integerParameter(this->paintOverParameterName()));
@@ -248,9 +248,9 @@ void qSlicerSegmentEditorLabelEffect::updateGUIFromMRML()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::updateMRMLFromGUI()
+void qSlicerSegmentEditorAbstractLabelEffect::updateMRMLFromGUI()
 {
-  Q_D(qSlicerSegmentEditorLabelEffect);
+  Q_D(qSlicerSegmentEditorAbstractLabelEffect);
 
   this->setCommonParameter(this->paintOverParameterName(), (int)d->PaintOverCheckbox->isChecked());
   this->setCommonParameter(this->paintThresholdParameterName(), (int)d->ThresholdPaintCheckbox->isChecked());
@@ -259,13 +259,13 @@ void qSlicerSegmentEditorLabelEffect::updateMRMLFromGUI()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::apply()
+void qSlicerSegmentEditorAbstractLabelEffect::apply()
 {
-  Q_D(qSlicerSegmentEditorLabelEffect);
+  Q_D(qSlicerSegmentEditorAbstractLabelEffect);
 
   if (!this->parameterSetNode())
   {
-    qCritical() << "qSlicerSegmentEditorLabelEffect::apply: Invalid segment editor parameter set node!";
+    qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::apply: Invalid segment editor parameter set node!";
     return;
   }
 
@@ -326,13 +326,13 @@ void qSlicerSegmentEditorLabelEffect::apply()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::applyImageMask(
+void qSlicerSegmentEditorAbstractLabelEffect::applyImageMask(
   vtkOrientedImageData* input, vtkOrientedImageData* mask,
   bool notMask/*=false*/ )
 {
   if (!input || !mask)
   {
-    qCritical() << "qSlicerSegmentEditorLabelEffect::applyImageMask: Invalid inputs!";
+    qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::applyImageMask: Invalid inputs!";
     return;
   }
 
@@ -359,23 +359,23 @@ void qSlicerSegmentEditorLabelEffect::applyImageMask(
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::appendPolyMask(vtkOrientedImageData* input, vtkPolyData* polyData, qMRMLSliceWidget* sliceWidget)
+void qSlicerSegmentEditorAbstractLabelEffect::appendPolyMask(vtkOrientedImageData* input, vtkPolyData* polyData, qMRMLSliceWidget* sliceWidget)
 {
   // Rasterize a poly data onto the input image into the slice view
   // - Points are specified in current XY space
   vtkSmartPointer<vtkOrientedImageData> polyMaskImage = vtkSmartPointer<vtkOrientedImageData>::New();
-  qSlicerSegmentEditorLabelEffect::createMaskImageFromPolyData(polyData, polyMaskImage, sliceWidget);
+  qSlicerSegmentEditorAbstractLabelEffect::createMaskImageFromPolyData(polyData, polyMaskImage, sliceWidget);
 
   // Append poly mask onto input image
-  qSlicerSegmentEditorLabelEffect::appendImage(input, polyMaskImage);
+  qSlicerSegmentEditorAbstractLabelEffect::appendImage(input, polyMaskImage);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::appendImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* appendedImage)
+void qSlicerSegmentEditorAbstractLabelEffect::appendImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* appendedImage)
 {
   if (!inputImage || !appendedImage)
   {
-    qCritical() << "qSlicerSegmentEditorLabelEffect::appendImages: Invalid inputs!";
+    qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::appendImages: Invalid inputs!";
     return;
   }
 
@@ -384,7 +384,7 @@ void qSlicerSegmentEditorLabelEffect::appendImage(vtkOrientedImageData* inputIma
   vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
     appendedImage, inputImage, resampledAppendedImage);
 
-  // Append image created from poly data to input image
+  // Add image created from poly data to input image
   vtkSmartPointer<vtkImageMathematics> imageMath = vtkSmartPointer<vtkImageMathematics>::New();
   imageMath->SetInput1Data(inputImage);
   imageMath->SetInput2Data(resampledAppendedImage);
@@ -394,18 +394,18 @@ void qSlicerSegmentEditorLabelEffect::appendImage(vtkOrientedImageData* inputIma
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::createMaskImageFromPolyData(vtkPolyData* polyData, vtkOrientedImageData* outputMask, qMRMLSliceWidget* sliceWidget)
+void qSlicerSegmentEditorAbstractLabelEffect::createMaskImageFromPolyData(vtkPolyData* polyData, vtkOrientedImageData* outputMask, qMRMLSliceWidget* sliceWidget)
 {
   if (!polyData || !outputMask)
   {
-    qCritical() << "qSlicerSegmentEditorLabelEffect::createMaskImageFromPolyData: Invalid inputs!";
+    qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::createMaskImageFromPolyData: Invalid inputs!";
     return;
   }
   vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(
     qSlicerSegmentEditorAbstractEffect::viewNode(sliceWidget) );
   if (!sliceNode)
   {
-    qCritical() << "qSlicerSegmentEditorLabelEffect::createMaskImageFromPolyData: Failed to get slice node!";
+    qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::createMaskImageFromPolyData: Failed to get slice node!";
     return;
   }
 
@@ -474,7 +474,7 @@ void qSlicerSegmentEditorLabelEffect::createMaskImageFromPolyData(vtkPolyData* p
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::imageToWorldMatrix(vtkMRMLVolumeNode* node, vtkMatrix4x4* ijkToRas)
+void qSlicerSegmentEditorAbstractLabelEffect::imageToWorldMatrix(vtkMRMLVolumeNode* node, vtkMatrix4x4* ijkToRas)
 {
   if (!node || !ijkToRas)
   {
@@ -494,13 +494,13 @@ void qSlicerSegmentEditorLabelEffect::imageToWorldMatrix(vtkMRMLVolumeNode* node
     }
     else
     {
-      qCritical() << "qSlicerSegmentEditorLabelEffect::ijkToRasMatrix: Parent transform is non-linear, which cannot be handled! Skipping.";
+      qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::ijkToRasMatrix: Parent transform is non-linear, which cannot be handled! Skipping.";
     }
   }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorLabelEffect::imageToWorldMatrix(vtkOrientedImageData* image, vtkMRMLSegmentationNode* node, vtkMatrix4x4* ijkToRas)
+void qSlicerSegmentEditorAbstractLabelEffect::imageToWorldMatrix(vtkOrientedImageData* image, vtkMRMLSegmentationNode* node, vtkMatrix4x4* ijkToRas)
 {
   if (!image || !node || !ijkToRas)
   {
@@ -520,7 +520,7 @@ void qSlicerSegmentEditorLabelEffect::imageToWorldMatrix(vtkOrientedImageData* i
     }
     else
     {
-      qCritical() << "qSlicerSegmentEditorLabelEffect::ijkToRasMatrix: Parent transform is non-linear, which cannot be handled! Skipping.";
+      qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::ijkToRasMatrix: Parent transform is non-linear, which cannot be handled! Skipping.";
     }
   }
 }

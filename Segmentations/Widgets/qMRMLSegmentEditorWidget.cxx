@@ -35,6 +35,7 @@
 
 // Segment editor effects includes
 #include "qSlicerSegmentEditorAbstractEffect.h"
+#include "qSlicerSegmentEditorAbstractLabelEffect.h"
 #include "qSlicerSegmentEditorEffectFactory.h"
 
 // VTK includes
@@ -52,6 +53,7 @@
 #include <vtkTrivialProducer.h>
 #include <vtkPointData.h>
 #include <vtkDataArray.h>
+#include <vtkImageMathematics.h>
 
 // Slicer includes
 #include "qSlicerApplication.h"
@@ -1359,15 +1361,39 @@ void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
     return;
   }
 
-  // First copy the temporary padded edited labelmap to the segment.
-  // Mask and threshold was already applied on edited labelmap at this point if requested.
-  // Disable modified event so that the consequently emitted MasterRepresentationModified event that causes
-  // removal of all other representations in all segments does not get activated. Instead, explicitly create
-  // representations for the edited segment that the other segments have.
-  segmentationNode->GetSegmentation()->SetMasterRepresentationModifiedEnabled(false);
-  segmentLabelmap->DeepCopy(editedLabelmap);
+  // 1. Label effects add the edited labelmap to the segment, because they provide the paint over
+  //    and paint threshold features, and the original segment data should not be lost. Other effects replace.
+  vtkSmartPointer<vtkOrientedImageData> newSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
+  if (qobject_cast<qSlicerSegmentEditorAbstractLabelEffect*>(d->ActiveEffect))
+  {
+    if (!vtkOrientedImageDataResample::PadImageToContainImage(
+      segmentLabelmap, editedLabelmap, newSegmentLabelmap) )
+    {
+      qCritical() << "qMRMLSegmentEditorWidget::applyChangesToSelectedSegment: Failed to pad segment labelmap!";
+      return;
+    }
+    // Add original segment to edited labelmap
+    vtkSmartPointer<vtkImageMathematics> imageMath = vtkSmartPointer<vtkImageMathematics>::New();
+    imageMath->SetInput1Data(newSegmentLabelmap);
+    imageMath->SetInput2Data(editedLabelmap);
+    imageMath->SetOperationToMax();
+    imageMath->Update();
+    newSegmentLabelmap->DeepCopy(imageMath->GetOutput());
+  }
+  else
+  {
+    newSegmentLabelmap->DeepCopy(editedLabelmap);
+  }
 
-  // Then shrink the image data extent to only contain the effective data (extent of non-zero voxels)
+  // 2. Copy the temporary padded edited labelmap to the segment.
+  //    Mask and threshold was already applied on edited labelmap at this point if requested.
+  //    Disable modified event so that the consequently emitted MasterRepresentationModified event that causes
+  //    removal of all other representations in all segments does not get activated. Instead, explicitly create
+  //    representations for the edited segment that the other segments have.
+  segmentationNode->GetSegmentation()->SetMasterRepresentationModifiedEnabled(false);
+  segmentLabelmap->DeepCopy(newSegmentLabelmap);
+
+  // 3. Shrink the image data extent to only contain the effective data (extent of non-zero voxels)
   int effectiveExtent[6] = {0,-1,0,-1,0,-1};
   vtkOrientedImageDataResample::CalculateEffectiveExtent(segmentLabelmap, effectiveExtent);
 
@@ -1377,7 +1403,7 @@ void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
   padder->Update();
   segmentLabelmap->DeepCopy(padder->GetOutput());
 
-  // Re-convert all other representations
+  // 4. Re-convert all other representations
   std::vector<std::string> representationNames;
   selectedSegment->GetContainedRepresentationNames(representationNames);
   bool conversionHappened = false;

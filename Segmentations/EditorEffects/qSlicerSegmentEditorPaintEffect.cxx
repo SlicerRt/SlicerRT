@@ -262,8 +262,8 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
     return;
   }
 
-  vtkOrientedImageData* labelImage = q->parameterSetNode()->GetEditedLabelmap();
-  if (!labelImage)
+  vtkOrientedImageData* editedLabelmap = q->parameterSetNode()->GetEditedLabelmap();
+  if (!editedLabelmap)
   {
     return;
   }
@@ -291,14 +291,14 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
   int topRightIjk[3] =    {0, 0, 0};
   int bottomLeftIjk[3] =  {0, 0, 0};
   int bottomRightIjk[3] = {0, 0, 0};
-  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(left, top),     topLeftIjk, sliceWidget, labelImage);
-  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(right, top),    topRightIjk, sliceWidget, labelImage);
-  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(left, bottom),  bottomLeftIjk, sliceWidget, labelImage);
-  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(right, bottom), bottomRightIjk, sliceWidget, labelImage);
+  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(left, top),     topLeftIjk, sliceWidget, editedLabelmap);
+  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(right, top),    topRightIjk, sliceWidget, editedLabelmap);
+  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(left, bottom),  bottomLeftIjk, sliceWidget, editedLabelmap);
+  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(right, bottom), bottomRightIjk, sliceWidget, editedLabelmap);
 
   // Clamp the top, bottom, left, right to the valid dimensions of the label image
   int dims[3] = {0, 0, 0};
-  labelImage->GetDimensions(dims);
+  editedLabelmap->GetDimensions(dims);
 
   int topLeft[3] =     {0, 0, 0};
   int topRight[3] =    {0, 0, 0};
@@ -352,23 +352,23 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
   // Get IJK to RAS transform matrices for edited labelmap and master volume
   vtkMRMLScalarVolumeNode* masterVolumeNode = q->parameterSetNode()->GetMasterVolumeNode();
   vtkSmartPointer<vtkMatrix4x4> masterIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  qSlicerSegmentEditorLabelEffect::imageToWorldMatrix(masterVolumeNode, masterIjkToRasMatrix);
+  qSlicerSegmentEditorAbstractLabelEffect::imageToWorldMatrix(masterVolumeNode, masterIjkToRasMatrix);
 
   vtkMRMLSegmentationNode* segmentationNode = q->parameterSetNode()->GetSegmentationNode();
   vtkSmartPointer<vtkMatrix4x4> labelIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  qSlicerSegmentEditorLabelEffect::imageToWorldMatrix(labelImage, segmentationNode, labelIjkToRasMatrix);
+  qSlicerSegmentEditorAbstractLabelEffect::imageToWorldMatrix(editedLabelmap, segmentationNode, labelIjkToRasMatrix);
 
   double brushCenterRas[3] = {0.0, 0.0, 0.0};
   q->xyToRas(xy, brushCenterRas, sliceWidget);
 
-  int paintOver = q->integerParameter(qSlicerSegmentEditorLabelEffect::paintOverParameterName());
-  int paintThreshold = q->integerParameter(qSlicerSegmentEditorLabelEffect::paintThresholdParameterName());
-  double paintThresholdMin = q->doubleParameter(qSlicerSegmentEditorLabelEffect::paintThresholdMinParameterName());
-  double paintThresholdMax = q->doubleParameter(qSlicerSegmentEditorLabelEffect::paintThresholdMaxParameterName());
+  int paintOver = q->integerParameter(qSlicerSegmentEditorAbstractLabelEffect::paintOverParameterName());
+  int paintThreshold = q->integerParameter(qSlicerSegmentEditorAbstractLabelEffect::paintThresholdParameterName());
+  double paintThresholdMin = q->doubleParameter(qSlicerSegmentEditorAbstractLabelEffect::paintThresholdMinParameterName());
+  double paintThresholdMax = q->doubleParameter(qSlicerSegmentEditorAbstractLabelEffect::paintThresholdMaxParameterName());
 
   this->Painter->SetBackgroundImage(masterVolumeNode->GetImageData());
   this->Painter->SetBackgroundIJKToWorld(masterIjkToRasMatrix);
-  this->Painter->SetWorkingImage(labelImage);
+  this->Painter->SetWorkingImage(editedLabelmap);
   this->Painter->SetWorkingIJKToWorld(labelIjkToRasMatrix);
   this->Painter->SetTopLeft(topLeft);
   this->Painter->SetTopRight(topRight);
@@ -434,16 +434,16 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
 
         double topLeftXyz[3] = {left, top, sliceOffset};
         int currentTopLeftIjk[3] = {0, 0, 0};
-        q->xyzToIjk(topLeftXyz, currentTopLeftIjk, sliceWidget, labelImage);
+        q->xyzToIjk(topLeftXyz, currentTopLeftIjk, sliceWidget, editedLabelmap);
         double topRightXyz[3] = {right, top, sliceOffset};
         int currentTopRightIjk[3] = {0, 0, 0};
-        q->xyzToIjk(topRightXyz, currentTopRightIjk, sliceWidget, labelImage);
+        q->xyzToIjk(topRightXyz, currentTopRightIjk, sliceWidget, editedLabelmap);
         double bottomLeftXyz[3] = {left, bottom, sliceOffset};
         int currentBottomLeftIjk[3] = {0, 0, 0};
-        q->xyzToIjk(bottomLeftXyz, currentBottomLeftIjk, sliceWidget, labelImage);
+        q->xyzToIjk(bottomLeftXyz, currentBottomLeftIjk, sliceWidget, editedLabelmap);
         double bottomRightXyz[3] = {right, bottom, sliceOffset};
         int currentBottomRightIjk[3] = {0, 0, 0};
-        q->xyzToIjk(bottomRightXyz, currentBottomRightIjk, sliceWidget, labelImage);
+        q->xyzToIjk(bottomRightXyz, currentBottomRightIjk, sliceWidget, editedLabelmap);
 
         // Clamp the top, bottom, left, right to the valid dimensions of the label image
         int currentTopLeft[3] =     {0, 0, 0};

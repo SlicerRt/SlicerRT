@@ -18,8 +18,8 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerSegmentEditorLabelEffect_p_h
-#define __qSlicerSegmentEditorLabelEffect_p_h
+#ifndef __qSlicerSegmentEditorAbstractLabelEffect_p_h
+#define __qSlicerSegmentEditorAbstractLabelEffect_p_h
 
 //
 //  W A R N I N G
@@ -35,7 +35,7 @@
 // Segmentations Editor Effects includes
 #include "qSlicerSegmentationsEditorEffectsExport.h"
 
-#include "qSlicerSegmentEditorLabelEffect.h"
+#include "qSlicerSegmentEditorAbstractLabelEffect.h"
 
 // Qt includes
 #include <QObject>
@@ -46,16 +46,16 @@ class ctkRangeWidget;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
 /// \brief Private implementation of the segment editor abstract label effect
-class qSlicerSegmentEditorLabelEffectPrivate: public QObject
+class qSlicerSegmentEditorAbstractLabelEffectPrivate: public QObject
 {
   Q_OBJECT
-  Q_DECLARE_PUBLIC(qSlicerSegmentEditorLabelEffect);
+  Q_DECLARE_PUBLIC(qSlicerSegmentEditorAbstractLabelEffect);
 protected:
-  qSlicerSegmentEditorLabelEffect* const q_ptr;
+  qSlicerSegmentEditorAbstractLabelEffect* const q_ptr;
 public:
   typedef QObject Superclass;
-  qSlicerSegmentEditorLabelEffectPrivate(qSlicerSegmentEditorLabelEffect& object);
-  ~qSlicerSegmentEditorLabelEffectPrivate();
+  qSlicerSegmentEditorAbstractLabelEffectPrivate(qSlicerSegmentEditorAbstractLabelEffect& object);
+  ~qSlicerSegmentEditorAbstractLabelEffectPrivate();
 
 protected slots:
   /// Enable/disable threshold when checkbox is toggled

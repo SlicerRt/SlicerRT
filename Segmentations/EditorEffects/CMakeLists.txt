@@ -20,11 +20,11 @@ set(${KIT}_SRCS
   qSlicerSegmentEditorAbstractEffect.cxx
   qSlicerSegmentEditorAbstractEffect.h
   qSlicerSegmentEditorAbstractEffect_p.h
-  qSlicerSegmentEditorLabelEffect.cxx
-  qSlicerSegmentEditorLabelEffect.h
-  qSlicerSegmentEditorLabelEffect_p.h
-  qSlicerSegmentEditorMorphologyEffect.cxx
-  qSlicerSegmentEditorMorphologyEffect.h
+  qSlicerSegmentEditorAbstractLabelEffect.cxx
+  qSlicerSegmentEditorAbstractLabelEffect.h
+  qSlicerSegmentEditorAbstractLabelEffect_p.h
+  qSlicerSegmentEditorAbstractMorphologyEffect.cxx
+  qSlicerSegmentEditorAbstractMorphologyEffect.h
   qSlicerSegmentEditorPaintEffect.cxx
   qSlicerSegmentEditorPaintEffect.h
   qSlicerSegmentEditorPaintEffect_p.h
@@ -42,9 +42,9 @@ set(${KIT}_MOC_SRCS
   qSlicerSegmentEditorEffectFactory.h
   qSlicerSegmentEditorAbstractEffect.h
   qSlicerSegmentEditorAbstractEffect_p.h
-  qSlicerSegmentEditorLabelEffect.h
-  qSlicerSegmentEditorLabelEffect_p.h
-  qSlicerSegmentEditorMorphologyEffect.h
+  qSlicerSegmentEditorAbstractLabelEffect.h
+  qSlicerSegmentEditorAbstractLabelEffect_p.h
+  qSlicerSegmentEditorAbstractMorphologyEffect.h
   qSlicerSegmentEditorPaintEffect.h
   qSlicerSegmentEditorPaintEffect_p.h
   qSlicerSegmentEditorRectangleEffect.h

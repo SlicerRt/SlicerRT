@@ -18,15 +18,15 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerSegmentEditorLabelEffect_h
-#define __qSlicerSegmentEditorLabelEffect_h
+#ifndef __qSlicerSegmentEditorAbstractLabelEffect_h
+#define __qSlicerSegmentEditorAbstractLabelEffect_h
 
 // Segmentations Editor Effects includes
 #include "qSlicerSegmentationsEditorEffectsExport.h"
 
 #include "qSlicerSegmentEditorAbstractEffect.h"
 
-class qSlicerSegmentEditorLabelEffectPrivate;
+class qSlicerSegmentEditorAbstractLabelEffectPrivate;
 
 class vtkMatrix4x4;
 class vtkOrientedImageData;
@@ -38,7 +38,7 @@ class vtkMRMLSegmentationNode;
 /// \brief Base class for all "label" effects.
 /// 
 /// This base class provides GUI and MRML for the options PaintOver and Threshold.
-class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorLabelEffect :
+class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorAbstractLabelEffect :
   public qSlicerSegmentEditorAbstractEffect
 {
 public:
@@ -46,8 +46,8 @@ public:
 
 public:
   typedef qSlicerSegmentEditorAbstractEffect Superclass;
-  qSlicerSegmentEditorLabelEffect(QObject* parent = NULL);
-  virtual ~qSlicerSegmentEditorLabelEffect(); 
+  qSlicerSegmentEditorAbstractLabelEffect(QObject* parent = NULL);
+  virtual ~qSlicerSegmentEditorAbstractLabelEffect(); 
 
   Q_INVOKABLE static QString paintOverParameterName() { return QString("PaintOver"); };
   Q_INVOKABLE static QString paintThresholdParameterName() { return QString("PaintThreshold"); };
@@ -111,11 +111,11 @@ public:
   Q_INVOKABLE static void imageToWorldMatrix(vtkOrientedImageData* image, vtkMRMLSegmentationNode* node, vtkMatrix4x4* ijkToRas);
 
 protected:
-  QScopedPointer<qSlicerSegmentEditorLabelEffectPrivate> d_ptr;
+  QScopedPointer<qSlicerSegmentEditorAbstractLabelEffectPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerSegmentEditorLabelEffect);
-  Q_DISABLE_COPY(qSlicerSegmentEditorLabelEffect);
+  Q_DECLARE_PRIVATE(qSlicerSegmentEditorAbstractLabelEffect);
+  Q_DISABLE_COPY(qSlicerSegmentEditorAbstractLabelEffect);
 };
 
 #endif
