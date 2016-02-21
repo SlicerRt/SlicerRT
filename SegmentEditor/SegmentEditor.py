@@ -3,7 +3,6 @@ import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
-from SegmentEditorEffects import *
 
 #
 # SegmentEditor
@@ -32,21 +31,6 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
-
-    # Register scripted segment editor effects
-    #TODO: Move this out of the module preferably to a separate python file that is executed on startup by the discovery mechanism
-    import qSlicerSegmentationsEditorEffectsPythonQt as effects
-    # Generic effects
-    thresholdEffect = effects.qSlicerSegmentEditorScriptedEffect(None)
-    thresholdEffect.setPythonSource(SegmentEditorThresholdEffect.filePath)
-    # Label effects
-    drawEffect = effects.qSlicerSegmentEditorScriptedLabelEffect(None)
-    drawEffect.setPythonSource(SegmentEditorDrawEffect.filePath)
-    # Morphology effects
-    dilateEffect = effects.qSlicerSegmentEditorScriptedMorphologyEffect(None)
-    dilateEffect.setPythonSource(SegmentEditorDilateEffect.filePath)
-    erodeEffect = effects.qSlicerSegmentEditorScriptedMorphologyEffect(None)
-    erodeEffect.setPythonSource(SegmentEditorErodeEffect.filePath)
 
     # Add margin to the sides
     self.layout.setContentsMargins(4,0,4,0)

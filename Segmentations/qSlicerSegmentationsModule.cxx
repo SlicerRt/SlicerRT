@@ -49,6 +49,9 @@
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSubjectHierarchyNode.h>
 
+// PythonQt includes
+#include "PythonQt.h"
+
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerSegmentationsModule, qSlicerSegmentationsModule);
 
@@ -155,8 +158,28 @@ void qSlicerSegmentationsModule::setup()
   vtkMRMLSliceViewDisplayableManagerFactory::GetInstance()->RegisterDisplayableManager("vtkMRMLSegmentationsDisplayableManager2D");
 
   // Register default segment editor effects
+  // C++ effects
   qSlicerSegmentEditorEffectFactory::instance()->registerEffect(new qSlicerSegmentEditorPaintEffect()); 
   qSlicerSegmentEditorEffectFactory::instance()->registerEffect(new qSlicerSegmentEditorRectangleEffect());
+  // Python effects
+  // (otherwise it would be the responsibility of the module that embeds the segment editor widget)
+  PythonQt::init();
+  PythonQtObjectPtr context = PythonQt::self()->getMainModule();
+  context.evalScript( QString(
+    "from SegmentEditorEffects import * \n"
+    "import qSlicerSegmentationsEditorEffectsPythonQt as effects \n"
+    // Generic effects
+    "thresholdEffect = effects.qSlicerSegmentEditorScriptedEffect(None) \n"
+    "thresholdEffect.setPythonSource(SegmentEditorThresholdEffect.filePath) \n"
+    // Label effects
+    "drawEffect = effects.qSlicerSegmentEditorScriptedLabelEffect(None) \n"
+    "drawEffect.setPythonSource(SegmentEditorDrawEffect.filePath) \n"
+    // Morphology effects
+    "dilateEffect = effects.qSlicerSegmentEditorScriptedMorphologyEffect(None) \n"
+    "dilateEffect.setPythonSource(SegmentEditorDilateEffect.filePath) \n"
+    "erodeEffect = effects.qSlicerSegmentEditorScriptedMorphologyEffect(None) \n"
+    "erodeEffect.setPythonSource(SegmentEditorErodeEffect.filePath) \n"
+    ) );
 }
 
 //-----------------------------------------------------------------------------
