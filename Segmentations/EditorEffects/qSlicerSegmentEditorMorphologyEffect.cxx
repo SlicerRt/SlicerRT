@@ -100,8 +100,8 @@ void qSlicerSegmentEditorMorphologyEffect::setupOptionsFrame()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorMorphologyEffect::setMRMLDefaults()
 {
-  this->setParameter(this->neighborModeParameterName(), 4);
-  this->setParameter(this->iterationsParameterName(), 1);
+  this->setCommonParameter(this->neighborModeParameterName(), 4);
+  this->setCommonParameter(this->iterationsParameterName(), 1);
 }
 
 //-----------------------------------------------------------------------------
@@ -135,10 +135,10 @@ void qSlicerSegmentEditorMorphologyEffect::updateMRMLFromGUI()
 
   if (d->EightNeighborsRadioButton->isChecked())
   {
-    this->setParameter(this->neighborModeParameterName(), 8);
+    this->setCommonParameter(this->neighborModeParameterName(), 8);
   }
   else
   {
-    this->setParameter(this->neighborModeParameterName(), 4);
+    this->setCommonParameter(this->neighborModeParameterName(), 4);
   }
 }

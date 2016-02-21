@@ -141,14 +141,9 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     self.scriptedEffect.updateMRMLFromGUI()
 
   def onUseForPaint(self):
-    pass #TODO:
-    # disableState = self.parameterNode.GetDisableModifiedEvent()
-    # self.parameterNode.SetDisableModifiedEvent(1)
-    # self.parameterNode.SetParameter( "LabelEffect,paintThreshold", "1" )
-    # self.parameterNode.SetParameter( "LabelEffect,paintThresholdMin", str(self.thresholdSlider.minimumValue) )
-    # self.parameterNode.SetParameter( "LabelEffect,paintThresholdMax", str(self.thresholdSlider.maximumValue) )
-    # self.parameterNode.SetDisableModifiedEvent(disableState)
-    # self.parameterNode.InvokePendingModifiedEvent()
+    self.scriptedEffect.setCommonParameter("PaintThreshold", 1)
+    self.scriptedEffect.setCommonParameter("PaintThresholdMin", self.thresholdSlider.minimumValue)
+    self.scriptedEffect.setCommonParameter("PaintThresholdMax", self.thresholdSlider.maximumValue)
 
   def onApply(self):
     try:

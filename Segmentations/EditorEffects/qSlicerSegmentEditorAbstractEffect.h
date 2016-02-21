@@ -171,7 +171,7 @@ public:
 
 // Effect parameter functions
 public:
-  /// Get effect parameter from effect parameter set node
+  /// Get effect or common parameter from effect parameter set node
   Q_INVOKABLE QString parameter(QString name);
 
   /// Convenience function to get integer parameter
@@ -188,6 +188,13 @@ public:
   ///   It is false by default, as in most cases disabling modified events in the effects is desirable,
   ///   as they are mostly called from functions \sa setMRMLDefaults and \sa updateMRMLFromGUI
   Q_INVOKABLE void setParameter(QString name, QString value, bool emitParameterModifiedEvent=false);
+  /// Set parameters that are common for multiple effects. Typically used by base class effects, such
+  ///   as label or morphology \sa setParameter
+  /// By default the parameter names are prefixed for each effect, so they are unique for effects.
+  /// This method does not prefix the parameter, so can be the same for multiple effects.
+  /// Note: Parameter getter functions look for effect parameters first, then common parameter if the
+  ///   effect-specific is not found.
+  Q_INVOKABLE void setCommonParameter(QString name, QString value, bool emitParameterModifiedEvent=false);
 
   /// Convenience function to set integer parameter
   /// \param name Parameter name string
@@ -196,6 +203,8 @@ public:
   ///   It is false by default, as in most cases disabling modified events in the effects is desirable,
   ///   as they are mostly called from functions \sa setMRMLDefaults and \sa updateMRMLFromGUI
   Q_INVOKABLE void setParameter(QString name, int value, bool emitParameterModifiedEvent=false);
+  /// Convenience function to set integer common parameter \sa setCommonParameter
+  Q_INVOKABLE void setCommonParameter(QString name, int value, bool emitParameterModifiedEvent=false);
 
   /// Convenience function to set double parameter
   /// \param name Parameter name string
@@ -204,6 +213,8 @@ public:
   ///   It is false by default, as in most cases disabling modified events in the effects is desirable,
   ///   as they are mostly called from functions \sa setMRMLDefaults and \sa updateMRMLFromGUI
   Q_INVOKABLE void setParameter(QString name, double value, bool emitParameterModifiedEvent=false);
+  /// Convenience function to set double common parameter \sa setCommonParameter
+  Q_INVOKABLE void setCommonParameter(QString name, double value, bool emitParameterModifiedEvent=false);
 
 // Utility functions
 public:

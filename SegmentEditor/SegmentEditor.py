@@ -133,16 +133,15 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     Key_Space = 0x20 # not in PythonQt
     self.shortcuts = []
     keysAndCallbacks = (
-      # ('e', EditUtil.toggleLabel),
       # ('z', self.toolsBox.undoRedo.undo),
       # ('y', self.toolsBox.undoRedo.redo),
       ('h', self.toggleCrosshair),
       (Key_Escape, lambda : self.editor.setActiveEffect(None)),
+      ('e', lambda : self.editor.setActiveEffect(self.editor.effectByName('Erase'))),
       ('p', lambda : self.editor.setActiveEffect(self.editor.effectByName('Paint'))),
       ('d', lambda : self.editor.setActiveEffect(self.editor.effectByName('Draw'))),
       ('w', lambda : self.editor.setActiveEffect(self.editor.effectByName('Wand'))),
       ('r', lambda : self.editor.setActiveEffect(self.editor.effectByName('Rectangle'))),
-      # ('c', self.toolsColor.showColorBox),
       # (Key_Space, self.toolsBox.toggleFloatingMode),
       )
     for key,callback in keysAndCallbacks:
@@ -175,10 +174,9 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
               warned = True
             sliceNode.SetLayoutGrid(1,1)
 
-  def toggleCrosshair():
-    """Turn on or off the crosshair and enable navigation mode
-    by manipulating the scene's singleton crosshair node.
-    """
+  def toggleCrosshair(self):
+    # Turn on or off the crosshair and enable navigation mode
+    # by manipulating the scene's singleton crosshair node.
     crosshairNode = slicer.util.getNode('vtkMRMLCrosshairNode*')
     if crosshairNode:
       if crosshairNode.GetCrosshairMode() == 0:

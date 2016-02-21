@@ -180,8 +180,8 @@ void qSlicerSegmentEditorLabelEffect::masterVolumeNodeChanged()
 
   d->ThresholdRangeWidget->setMinimum(low);
   d->ThresholdRangeWidget->setMaximum(high);
-  this->setParameter(this->paintThresholdMinParameterName(), low);
-  this->setParameter(this->paintThresholdMaxParameterName(), high);
+  this->setCommonParameter(this->paintThresholdMinParameterName(), low);
+  this->setCommonParameter(this->paintThresholdMaxParameterName(), high);
 }
 
 //-----------------------------------------------------------------------------
@@ -214,12 +214,12 @@ void qSlicerSegmentEditorLabelEffect::setupOptionsFrame()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorLabelEffect::setMRMLDefaults()
 {
-  this->setParameter(this->paintOverParameterName(), 1);
-  this->setParameter(this->paintThresholdParameterName(), 0);
-  this->setParameter(this->paintThresholdMinParameterName(), 0);
-  this->setParameter(this->paintThresholdMaxParameterName(), 1000);
-  this->setParameter(this->thresholdAvailableParameterName(), 1);
-  this->setParameter(this->paintOverAvailableParameterName(), 1);
+  this->setCommonParameter(this->paintOverParameterName(), 1);
+  this->setCommonParameter(this->paintThresholdParameterName(), 0);
+  this->setCommonParameter(this->paintThresholdMinParameterName(), 0);
+  this->setCommonParameter(this->paintThresholdMaxParameterName(), 1000);
+  this->setCommonParameter(this->thresholdAvailableParameterName(), 1);
+  this->setCommonParameter(this->paintOverAvailableParameterName(), 1);
 }
 
 //-----------------------------------------------------------------------------
@@ -252,10 +252,10 @@ void qSlicerSegmentEditorLabelEffect::updateMRMLFromGUI()
 {
   Q_D(qSlicerSegmentEditorLabelEffect);
 
-  this->setParameter(this->paintOverParameterName(), (int)d->PaintOverCheckbox->isChecked());
-  this->setParameter(this->paintThresholdParameterName(), (int)d->ThresholdPaintCheckbox->isChecked());
-  this->setParameter(this->paintThresholdMinParameterName(), (double)d->ThresholdRangeWidget->minimumValue());
-  this->setParameter(this->paintThresholdMaxParameterName(), (double)d->ThresholdRangeWidget->maximumValue());
+  this->setCommonParameter(this->paintOverParameterName(), (int)d->PaintOverCheckbox->isChecked());
+  this->setCommonParameter(this->paintThresholdParameterName(), (int)d->ThresholdPaintCheckbox->isChecked());
+  this->setCommonParameter(this->paintThresholdMinParameterName(), (double)d->ThresholdRangeWidget->minimumValue());
+  this->setCommonParameter(this->paintThresholdMaxParameterName(), (double)d->ThresholdRangeWidget->maximumValue());
 }
 
 //-----------------------------------------------------------------------------

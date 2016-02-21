@@ -324,8 +324,14 @@ QString qSlicerSegmentEditorAbstractEffect::parameter(QString name)
     return QString();
   }
 
+  // Get effect-specific prefixed parameter first
   QString attributeName = QString("%1.%2").arg(this->name()).arg(name);
   const char* value = d->ParameterSetNode->GetAttribute(attributeName.toLatin1().constData());
+  // Look for common parameter if effect-specific one is not found
+  if (!value)
+  {
+    value = d->ParameterSetNode->GetAttribute(name.toLatin1().constData());
+  }
   if (!value)
   {
     qCritical() << "qSlicerSegmentEditorAbstractEffect::parameter: Parameter named " << name << " cannot be found for effect " << this->name();
@@ -406,15 +412,54 @@ void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString valu
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::setCommonParameter(QString name, QString value, bool emitParameterModifiedEvent/*=false*/)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+  if (!d->ParameterSetNode)
+  {
+    qCritical() << "qSlicerSegmentEditorAbstractEffect::setCommonParameter: Invalid segment editor parameter set node set to effect " << this->name();
+    return;
+  }
+
+  // Disable full modified events in all cases (observe EffectParameterModified instead if necessary)
+  int disableState = d->ParameterSetNode->GetDisableModifiedEvent();
+  d->ParameterSetNode->SetDisableModifiedEvent(1);
+
+  // Set parameter as attribute
+  d->ParameterSetNode->SetAttribute(name.toLatin1().constData(), value.toLatin1().constData());
+
+  // Re-enable full modified events for parameter node
+  d->ParameterSetNode->SetDisableModifiedEvent(disableState);
+
+  // Emit parameter modified event if requested
+  if (emitParameterModifiedEvent)
+  {
+    d->ParameterSetNode->InvokeCustomModifiedEvent(vtkMRMLSegmentEditorNode::EffectParameterModified, (void*)(name.toLatin1().constData()));
+  }
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, int value, bool emitParameterModifiedEvent/*=false*/)
 {
   this->setParameter(name, QString::number(value), emitParameterModifiedEvent);
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::setCommonParameter(QString name, int value, bool emitParameterModifiedEvent/*=false*/)
+{
+  this->setCommonParameter(name, QString::number(value), emitParameterModifiedEvent);
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, double value, bool emitParameterModifiedEvent/*=false*/)
 {
   this->setParameter(name, QString::number(value), emitParameterModifiedEvent);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::setCommonParameter(QString name, double value, bool emitParameterModifiedEvent/*=false*/)
+{
+  this->setCommonParameter(name, QString::number(value), emitParameterModifiedEvent);
 }
 
 //-----------------------------------------------------------------------------
