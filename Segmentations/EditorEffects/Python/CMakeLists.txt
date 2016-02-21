@@ -12,6 +12,7 @@ set(SegmentEditorEffects_PYTHON_SCRIPTS
   SegmentEditorDilateEffect
   SegmentEditorDrawEffect
   SegmentEditorErodeEffect
+  SegmentEditorLevelTracingEffect
   SegmentEditorThresholdEffect
   )
 
@@ -19,6 +20,7 @@ set(SegmentEditorEffects_PYTHON_RESOURCES
   Resources/Icons/Dilate.png
   Resources/Icons/Draw.png
   Resources/Icons/Erode.png
+  Resources/Icons/LevelTracing.png
   Resources/Icons/Threshold.png
   )
 

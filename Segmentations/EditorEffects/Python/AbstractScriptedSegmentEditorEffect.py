@@ -69,10 +69,10 @@ class AbstractScriptedSegmentEditorEffect():
     import vtkSegmentationCore
     xyzVector = qt.QVector3D(xyz[0], xyz[1], xyz[2])
     ijkVector = self.scriptedEffect.xyzToIjk(xyzVector, viewWidget, image)
-    return [ijkVector.x(), ijkVector.y(), ijkVector.z()]
+    return [int(ijkVector.x()), int(ijkVector.y()), int(ijkVector.z())]
 
-  def xyzToIjk(self, xy, viewWidget, image):
+  def xyToIjk(self, xy, viewWidget, image):
     import vtkSegmentationCore
     xyPoint = qt.QPoint(xy[0], xy[1])
-    ijkVector = self.scriptedEffect.xyzToIjk(xyPoint, viewWidget, image)
-    return [ijkVector.x(), ijkVector.y(), ijkVector.z()]
+    ijkVector = self.scriptedEffect.xyToIjk(xyPoint, viewWidget, image)
+    return [int(ijkVector.x()), int(ijkVector.y()), int(ijkVector.z())]

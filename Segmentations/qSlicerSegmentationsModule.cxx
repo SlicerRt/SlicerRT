@@ -176,6 +176,8 @@ void qSlicerSegmentationsModule::setup()
     // Label effects
     "drawEffect = effects.qSlicerSegmentEditorScriptedLabelEffect(None) \n"
     "drawEffect.setPythonSource(SegmentEditorDrawEffect.filePath) \n"
+    "levelTracingEffect = effects.qSlicerSegmentEditorScriptedLabelEffect(None) \n"
+    "levelTracingEffect.setPythonSource(SegmentEditorLevelTracingEffect.filePath) \n"
     // Morphology effects
     "dilateEffect = effects.qSlicerSegmentEditorScriptedMorphologyEffect(None) \n"
     "dilateEffect.setPythonSource(SegmentEditorDilateEffect.filePath) \n"

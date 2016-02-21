@@ -239,6 +239,8 @@ class DrawPipeline:
     # Get edited labelmap
     import vtkSegmentationCore
     editedLabelmap = self.scriptedEffect.parameterSetNode().GetEditedLabelmap()
+
+    # Apply poly data on edited labelmap
     self.scriptedEffect.appendPolyMask(editedLabelmap, self.polyData, self.sliceWidget)
     self.resetPolyData()
 

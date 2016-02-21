@@ -567,10 +567,10 @@ bool vtkOrientedImageDataResample::GetTransformBetweenOrientedImages(vtkOriented
   vtkSmartPointer<vtkMatrix4x4> image2ToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   image2->GetImageToWorldMatrix(image2ToWorldMatrix);
 
-  vtkSmartPointer<vtkMatrix4x4> worldToReferenceImageMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  worldToReferenceImageMatrix->DeepCopy(image2ToWorldMatrix);
-  worldToReferenceImageMatrix->Invert();
-  image1ToImage2Transform->Concatenate(worldToReferenceImageMatrix);
+  vtkSmartPointer<vtkMatrix4x4> worldToImage2Matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  worldToImage2Matrix->DeepCopy(image2ToWorldMatrix);
+  worldToImage2Matrix->Invert();
+  image1ToImage2Transform->Concatenate(worldToImage2Matrix);
 
   return true;
 }
