@@ -11,12 +11,14 @@ set(SegmentEditorEffects_PYTHON_SCRIPTS
   AbstractScriptedSegmentEditorMorphologyEffect
   SegmentEditorDilateEffect
   SegmentEditorDrawEffect
+  SegmentEditorErodeEffect
   SegmentEditorThresholdEffect
   )
 
 set(SegmentEditorEffects_PYTHON_RESOURCES
   Resources/Icons/Dilate.png
   Resources/Icons/Draw.png
+  Resources/Icons/Erode.png
   Resources/Icons/Threshold.png
   )
 

@@ -3,16 +3,16 @@ import vtk, qt, ctk, slicer
 import logging
 from SegmentEditorEffects import *
 
-class SegmentEditorDilateEffect(AbstractScriptedSegmentEditorMorphologyEffect):
+class SegmentEditorErodeEffect(AbstractScriptedSegmentEditorMorphologyEffect):
   """ DilateEffect is an MorphologyEffect to
-      dilate a layer of pixels from a segment
+      erode a layer of pixels from a segment
   """
   
   # Necessary static member to be able to set python source to scripted subject hierarchy plugin
   filePath = __file__
 
   def __init__(self, scriptedEffect):
-    scriptedEffect.name = 'Dilate'
+    scriptedEffect.name = 'Erode'
     AbstractScriptedSegmentEditorMorphologyEffect.__init__(self, scriptedEffect)
 
     # Effect-specific members
@@ -21,11 +21,11 @@ class SegmentEditorDilateEffect(AbstractScriptedSegmentEditorMorphologyEffect):
   def clone(self):
     import qSlicerSegmentationsEditorEffectsPythonQt as effects
     clonedEffect = effects.qSlicerSegmentEditorScriptedMorphologyEffect(None)
-    clonedEffect.setPythonSource(SegmentEditorDilateEffect.filePath)
+    clonedEffect.setPythonSource(SegmentEditorErodeEffect.filePath)
     return clonedEffect
 
   def icon(self):
-    iconPath = os.path.join(os.path.dirname(__file__), 'Resources/Icons/Dilate.png')
+    iconPath = os.path.join(os.path.dirname(__file__), 'Resources/Icons/Erode.png')
     if os.path.exists(iconPath):
       return qt.QIcon(iconPath)
     return qt.QIcon()
@@ -36,7 +36,7 @@ class SegmentEditorDilateEffect(AbstractScriptedSegmentEditorMorphologyEffect):
   def setupOptionsFrame(self):
     self.applyButton = qt.QPushButton("Apply")
     self.applyButton.objectName = self.__class__.__name__ + 'Apply'
-    self.applyButton.setToolTip("Dilate selected segment")
+    self.applyButton.setToolTip("Erode selected segment")
     self.scriptedEffect.addOptionsWidget(self.applyButton)
 
     self.applyButton.connect('clicked()', self.onApply)
@@ -49,12 +49,11 @@ class SegmentEditorDilateEffect(AbstractScriptedSegmentEditorMorphologyEffect):
     # Get edited labelmap
     editedLabelmap = self.scriptedEffect.parameterSetNode().GetEditedLabelmap()
 
-    # Perform dilation
-    # (use erode filter to dilate by eroding background)
+    # Perform erosion
     eroder = slicer.vtkImageErode()
     eroder.SetInputData(editedLabelmap)
-    eroder.SetForeground(0) # Erode becomes dilate by switching the labels
-    eroder.SetBackground(1)
+    eroder.SetForeground(1)
+    eroder.SetBackground(0)
     if neighborMode == 8:
       eroder.SetNeighborTo8()
     elif neighborMode == 4:
