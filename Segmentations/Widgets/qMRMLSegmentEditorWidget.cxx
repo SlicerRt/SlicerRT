@@ -1139,7 +1139,7 @@ void qMRMLSegmentEditorWidget::onLayoutChanged(int layoutIndex)
 
   // Set volume selection to all slice viewers in new layout
   vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
-  if (selectionNode)
+  if (selectionNode && d->ParameterSetNode)
   {
     selectionNode->SetActiveVolumeID(d->ParameterSetNode->GetMasterVolumeNode() ? d->ParameterSetNode->GetMasterVolumeNode()->GetID() : NULL);
     selectionNode->SetSecondaryVolumeID(NULL);
