@@ -4,7 +4,7 @@ import logging
 from SegmentEditorEffects import *
 
 class SegmentEditorDrawEffect(AbstractScriptedSegmentEditorLabelEffect):
-  """ DrawEffect is an Effect implementing the interactive draw
+  """ DrawEffect is a LabelEffect implementing the interactive draw
       tool in the segment editor
   """
   
@@ -19,8 +19,8 @@ class SegmentEditorDrawEffect(AbstractScriptedSegmentEditorLabelEffect):
     self.drawPipelines = {}
 
   def clone(self):
-    import qSlicerSegmentationsEditorEffectsPythonQt
-    clonedEffect = qSlicerSegmentationsEditorEffectsPythonQt.qSlicerSegmentEditorScriptedLabelEffect(None)
+    import qSlicerSegmentationsEditorEffectsPythonQt as effects
+    clonedEffect = effects.qSlicerSegmentEditorScriptedLabelEffect(None)
     clonedEffect.setPythonSource(SegmentEditorDrawEffect.filePath)
     return clonedEffect
 
@@ -133,27 +133,6 @@ class SegmentEditorDrawEffect(AbstractScriptedSegmentEditorLabelEffect):
 
     self.drawPipelines[sliceWidget] = pipeline
     return pipeline
-
-  def setupPreviewDisplay(self):
-    # Clear previous pipelines before setting up the new ones
-    self.previewPipelines = {}
-
-    # Add a pipeline for each 2D slice view
-    layoutManager = slicer.app.layoutManager()
-    for sliceViewName in layoutManager.sliceViewNames():
-      sliceWidget = layoutManager.sliceWidget(sliceViewName)
-      renderer = self.scriptedEffect.renderer(sliceWidget)
-      if renderer is None:
-        logging.error("setupPreviewDisplay: Failed to get renderer!")
-        continue
-
-      # Create pipeline
-      pipeline = PreviewPipeline()
-      self.previewPipelines[sliceWidget] = pipeline
-
-      # Add actor
-      renderer.AddActor2D(pipeline.actor)
-      self.scriptedEffect.addActor(sliceWidget, pipeline.actor)
 
 #
 # DrawPipeline

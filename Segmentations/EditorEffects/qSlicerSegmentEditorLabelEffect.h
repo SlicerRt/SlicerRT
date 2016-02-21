@@ -49,12 +49,12 @@ public:
   qSlicerSegmentEditorLabelEffect(QObject* parent = NULL);
   virtual ~qSlicerSegmentEditorLabelEffect(); 
 
-  static QString paintOverParameterName() { return QString("PaintOver"); };
-  static QString paintThresholdParameterName() { return QString("PaintThreshold"); };
-  static QString paintThresholdMinParameterName() { return QString("PaintThresholdMin"); };
-  static QString paintThresholdMaxParameterName() { return QString("PaintThresholdMax"); };
-  static QString thresholdAvailableParameterName() { return QString("ThresholdAvailable"); };
-  static QString paintOverAvailableParameterName() { return QString("PaintOverAvailable"); };
+  Q_INVOKABLE static QString paintOverParameterName() { return QString("PaintOver"); };
+  Q_INVOKABLE static QString paintThresholdParameterName() { return QString("PaintThreshold"); };
+  Q_INVOKABLE static QString paintThresholdMinParameterName() { return QString("PaintThresholdMin"); };
+  Q_INVOKABLE static QString paintThresholdMaxParameterName() { return QString("PaintThresholdMax"); };
+  Q_INVOKABLE static QString thresholdAvailableParameterName() { return QString("ThresholdAvailable"); };
+  Q_INVOKABLE static QString paintOverAvailableParameterName() { return QString("PaintOverAvailable"); };
 
 public:
   /// Clone editor effect

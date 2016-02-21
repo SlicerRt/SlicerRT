@@ -30,8 +30,8 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     self.setupPreviewDisplay()
 
   def clone(self):
-    import qSlicerSegmentationsEditorEffectsPythonQt
-    clonedEffect = qSlicerSegmentationsEditorEffectsPythonQt.qSlicerSegmentEditorScriptedEffect(None)
+    import qSlicerSegmentationsEditorEffectsPythonQt as effects
+    clonedEffect = effects.qSlicerSegmentEditorScriptedEffect(None)
     clonedEffect.setPythonSource(SegmentEditorThresholdEffect.filePath)
     return clonedEffect
 

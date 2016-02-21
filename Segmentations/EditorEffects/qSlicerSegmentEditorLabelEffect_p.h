@@ -45,7 +45,7 @@ class QLabel;
 class ctkRangeWidget;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
-/// \brief Private implementation of the segment editor paint effect
+/// \brief Private implementation of the segment editor abstract label effect
 class qSlicerSegmentEditorLabelEffectPrivate: public QObject
 {
   Q_OBJECT

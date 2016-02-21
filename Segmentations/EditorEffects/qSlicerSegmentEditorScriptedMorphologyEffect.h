@@ -20,11 +20,11 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerSegmentEditorScriptedLabelEffect_h
-#define __qSlicerSegmentEditorScriptedLabelEffect_h
+#ifndef __qSlicerSegmentEditorScriptedMorphologyEffect_h
+#define __qSlicerSegmentEditorScriptedMorphologyEffect_h
 
 // Segmentations Editor Effects includes
-#include "qSlicerSegmentEditorLabelEffect.h"
+#include "qSlicerSegmentEditorMorphologyEffect.h"
 
 #include "qSlicerSegmentationsEditorEffectsExport.h"
 
@@ -33,27 +33,27 @@
 struct _object;
 typedef _object PyObject;
 #endif
-class qSlicerSegmentEditorScriptedLabelEffectPrivate;
+class qSlicerSegmentEditorScriptedMorphologyEffectPrivate;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
-/// \brief Scripted abstract effect for implementing label effects in python
+/// \brief Scripted abstract effect for implementing morphology effects in python
 ///
-/// This class provides an interface to label effects implemented in python.
-/// Label effects are a subtype of general effects that edit the currently selected
-/// segment (i.e. for things like paint or draw, but not for things like threshold or morphology)
-/// USAGE: Subclass AbstractScriptedSegmentEditorLabelEffect in EditorEffects/Python subfolder,
+/// This class provides an interface to morphology effects implemented in python.
+/// Morphology effects are a subtype of general effects that implement math morphology
+/// operations (erode, dilate).
+/// USAGE: Subclass AbstractScriptedSegmentEditorMorphologyEffect in EditorEffects/Python subfolder,
 ///   and register effect by creating this class and setting python source to implemented
-///   effect subclass. One example is the DrawEffect.
+///   effect subclass. One example is the DilateEffect.
 ///
-class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorScriptedLabelEffect
-  : public qSlicerSegmentEditorLabelEffect
+class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorScriptedMorphologyEffect
+  : public qSlicerSegmentEditorMorphologyEffect
 {
   Q_OBJECT
 
 public:
-  typedef qSlicerSegmentEditorLabelEffect Superclass;
-  qSlicerSegmentEditorScriptedLabelEffect(QObject* parent = NULL);
-  virtual ~qSlicerSegmentEditorScriptedLabelEffect();
+  typedef qSlicerSegmentEditorMorphologyEffect Superclass;
+  qSlicerSegmentEditorScriptedMorphologyEffect(QObject* parent = NULL);
+  virtual ~qSlicerSegmentEditorScriptedMorphologyEffect();
 
   Q_INVOKABLE QString pythonSource()const;
 
@@ -125,11 +125,11 @@ public slots:
   virtual void updateMRMLFromGUI();
 
 protected:
-  QScopedPointer<qSlicerSegmentEditorScriptedLabelEffectPrivate> d_ptr;
+  QScopedPointer<qSlicerSegmentEditorScriptedMorphologyEffectPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerSegmentEditorScriptedLabelEffect);
-  Q_DISABLE_COPY(qSlicerSegmentEditorScriptedLabelEffect);
+  Q_DECLARE_PRIVATE(qSlicerSegmentEditorScriptedMorphologyEffect);
+  Q_DISABLE_COPY(qSlicerSegmentEditorScriptedMorphologyEffect);
 };
 
 #endif

@@ -12,8 +12,8 @@ class AbstractScriptedSegmentEditorEffect():
       1. Instantiation and registration
         Instantiate segment editor effect adaptor class from
         module (e.g. from setup function), and set python source:
-        > import qSlicerSegmentationsEditorEffectsPythonQt
-        > scriptedEffect = qSlicerSegmentationsEditorEffectsPythonQt.qSlicerSegmentEditorScriptedEffect(None)
+        > import qSlicerSegmentationsEditorEffectsPythonQt as effects
+        > scriptedEffect = effects.qSlicerSegmentEditorScriptedEffect(None)
         > scriptedEffect.setPythonSource(MyEffect.filePath)
         Registration is automatic
 

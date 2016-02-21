@@ -8,11 +8,14 @@ configure_file(
 set(SegmentEditorEffects_PYTHON_SCRIPTS
   AbstractScriptedSegmentEditorEffect
   AbstractScriptedSegmentEditorLabelEffect
+  AbstractScriptedSegmentEditorMorphologyEffect
+  SegmentEditorDilateEffect
   SegmentEditorDrawEffect
   SegmentEditorThresholdEffect
   )
 
 set(SegmentEditorEffects_PYTHON_RESOURCES
+  Resources/Icons/Dilate.png
   Resources/Icons/Draw.png
   Resources/Icons/Threshold.png
   )

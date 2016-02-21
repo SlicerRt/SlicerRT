@@ -1,4 +1,6 @@
 from AbstractScriptedSegmentEditorEffect import *
 from AbstractScriptedSegmentEditorLabelEffect import *
+from AbstractScriptedSegmentEditorMorphologyEffect import *
+from SegmentEditorDilateEffect import *
 from SegmentEditorDrawEffect import *
 from SegmentEditorThresholdEffect import *

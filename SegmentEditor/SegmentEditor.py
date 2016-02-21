@@ -43,7 +43,8 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     drawEffect = effects.qSlicerSegmentEditorScriptedLabelEffect(None)
     drawEffect.setPythonSource(SegmentEditorDrawEffect.filePath)
     # Morphology effects
-    #TODO:
+    dilateEffect = effects.qSlicerSegmentEditorScriptedMorphologyEffect(None)
+    dilateEffect.setPythonSource(SegmentEditorDilateEffect.filePath)
 
     # Add margin to the sides
     self.layout.setContentsMargins(4,0,4,0)
