@@ -376,7 +376,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
   this->Painter->SetBottomRight(bottomRight);
   this->Painter->SetBrushCenter(brushCenterRas);
   this->Painter->SetBrushRadius(radius);
-  this->Painter->SetPaintLabel(1); // Segment binary labelmaps all have voxel values of 1 for foreground
+  this->Painter->SetPaintLabel(q->m_Erase ? 0 : 1); // Segment binary labelmaps all have voxel values of 1 for foreground
   this->Painter->SetPaintOver(paintOver);
   this->Painter->SetThresholdPaint(paintThreshold);
   this->Painter->SetThresholdPaintRange(paintThresholdMin, paintThresholdMax);
@@ -513,7 +513,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintPixel(qMRMLSliceWidget* sliceW
     }
   }
 
-  labelImage->SetScalarComponentFromDouble(ijk[0],ijk[1],ijk[2], 0, 1); // Segment binary labelmaps all have voxel values of 1 for foreground
+  labelImage->SetScalarComponentFromDouble(ijk[0],ijk[1],ijk[2], 0, (q->m_Erase ? 0 : 1)); // Segment binary labelmaps all have voxel values of 1 for foreground
 }
 
 //-----------------------------------------------------------------------------
@@ -680,6 +680,7 @@ qSlicerSegmentEditorPaintEffect::qSlicerSegmentEditorPaintEffect(QObject* parent
  , d_ptr( new qSlicerSegmentEditorPaintEffectPrivate(*this) )
 {
   this->m_Name = QString("Paint");
+  this->m_Erase = false;
 }
 
 //----------------------------------------------------------------------------

@@ -41,6 +41,7 @@
 #include "qSlicerSegmentEditorEffectFactory.h"
 #include "qSlicerSegmentEditorPaintEffect.h"
 #include "qSlicerSegmentEditorRectangleEffect.h"
+#include "qSlicerSegmentEditorEraseEffect.h"
 
 // Subject Hierarchy includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
@@ -160,6 +161,7 @@ void qSlicerSegmentationsModule::setup()
   // Register default segment editor effects
   // C++ effects
   qSlicerSegmentEditorEffectFactory::instance()->registerEffect(new qSlicerSegmentEditorPaintEffect()); 
+  qSlicerSegmentEditorEffectFactory::instance()->registerEffect(new qSlicerSegmentEditorEraseEffect());
   qSlicerSegmentEditorEffectFactory::instance()->registerEffect(new qSlicerSegmentEditorRectangleEffect());
   // Python effects
   // (otherwise it would be the responsibility of the module that embeds the segment editor widget)

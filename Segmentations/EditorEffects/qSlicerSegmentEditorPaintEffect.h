@@ -83,6 +83,11 @@ public slots:
   virtual void updateMRMLFromGUI();
 
 protected:
+  /// Flag determining whether to paint or erase.
+  /// Overridden in the \sa qSlicerSegmentEditorEraseEffect subclass
+  bool m_Erase;
+
+protected:
   QScopedPointer<qSlicerSegmentEditorPaintEffectPrivate> d_ptr;
 
 private:

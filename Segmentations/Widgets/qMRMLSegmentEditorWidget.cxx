@@ -1362,9 +1362,11 @@ void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
   }
 
   // 1. Label effects add the edited labelmap to the segment, because they provide the paint over
-  //    and paint threshold features, and the original segment data should not be lost. Other effects replace.
+  //    and paint threshold features, and the original segment data should not be lost.
+  //    The Erase label effect and all other (non-label) effects replace.
   vtkSmartPointer<vtkOrientedImageData> newSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
-  if (qobject_cast<qSlicerSegmentEditorAbstractLabelEffect*>(d->ActiveEffect))
+  if ( qobject_cast<qSlicerSegmentEditorAbstractLabelEffect*>(d->ActiveEffect)
+    && d->ActiveEffect->name().compare("Erase") )
   {
     if (!vtkOrientedImageDataResample::PadImageToContainImage(
       segmentLabelmap, editedLabelmap, newSegmentLabelmap) )
