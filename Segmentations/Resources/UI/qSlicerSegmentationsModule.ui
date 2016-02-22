@@ -44,37 +44,21 @@
     </layout>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_Segments">
-     <property name="text">
-      <string>Segments</string>
+    <widget class="ctkExpandableWidget" name="ResizableFrame">
+     <property name="orientations">
+      <set>Qt::Vertical</set>
      </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
+     <property name="sizeGripInside">
+      <bool>false</bool>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <property name="margin">
-       <number>4</number>
-      </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="8" column="0">
-       <widget class="qMRMLSegmentsTableView" name="SegmentsTableView">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
-          <horstretch>0</horstretch>
-          <verstretch>3</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>86</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
          <widget class="QPushButton" name="pushButton_AddSegment">
@@ -117,11 +101,24 @@
         </item>
        </layout>
       </item>
+      <item>
+       <widget class="qMRMLSegmentsTableView" name="SegmentsTableView" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
    <item>
     <widget class="ctkCollapsibleButton" name="CollapsibleButton_Display">
+     <property name="toolTip">
+      <string>Display settings for the segmentation (all segments)</string>
+     </property>
      <property name="text">
       <string>Display</string>
      </property>
@@ -238,6 +235,9 @@
    </item>
    <item>
     <widget class="ctkCollapsibleButton" name="CollapsibleButton_Representations">
+     <property name="toolTip">
+      <string>List of representations to see available and existing ones, and creating or updating them</string>
+     </property>
      <property name="text">
       <string>Representations</string>
      </property>
@@ -252,7 +252,7 @@
        <number>4</number>
       </property>
       <item row="0" column="0">
-       <widget class="qMRMLSegmentationRepresentationsListView" name="RepresentationsListView"/>
+       <widget class="qMRMLSegmentationRepresentationsListView" name="RepresentationsListView" native="true"/>
       </item>
      </layout>
     </widget>
@@ -297,11 +297,11 @@
          </widget>
         </item>
         <item>
-         <widget class="qMRMLSegmentsTableView" name="SegmentsTableView_Current">
+         <widget class="qMRMLSegmentsTableView" name="SegmentsTableView_Current" native="true">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
             <horstretch>0</horstretch>
-            <verstretch>2</verstretch>
+            <verstretch>0</verstretch>
            </sizepolicy>
           </property>
          </widget>
@@ -510,11 +510,11 @@
          </layout>
         </item>
         <item>
-         <widget class="qMRMLSegmentsTableView" name="SegmentsTableView_Other">
+         <widget class="qMRMLSegmentsTableView" name="SegmentsTableView_Other" native="true">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
             <horstretch>0</horstretch>
-            <verstretch>2</verstretch>
+            <verstretch>0</verstretch>
            </sizepolicy>
           </property>
          </widget>
@@ -563,6 +563,23 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkExpandableWidget</class>
+   <extends>QFrame</extends>
+   <header>ctkExpandableWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkSliderWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkSliderWidget.h</header>
+  </customwidget>
+  <customwidget>
    <class>qMRMLSegmentsTableView</class>
    <extends>QWidget</extends>
    <header>qMRMLSegmentsTableView.h</header>
@@ -571,17 +588,6 @@
    <class>qMRMLSegmentationRepresentationsListView</class>
    <extends>QWidget</extends>
    <header>qMRMLSegmentationRepresentationsListView.h</header>
-  </customwidget>
-  <customwidget>
-   <class>ctkCollapsibleButton</class>
-   <extends>QWidget</extends>
-   <header>ctkCollapsibleButton.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ctkSliderWidget</class>
-   <extends>QWidget</extends>
-   <header>ctkSliderWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources>
