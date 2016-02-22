@@ -398,7 +398,6 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
   rootModelHierarchyNode->AllowMultipleChildrenOn();
   rootModelHierarchyNode->HideFromEditorsOff();
   std::string modelHierarchyNodeName = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
-  modelHierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(modelHierarchyNodeName);
   rootModelHierarchyNode->SetName(modelHierarchyNodeName.c_str());
   doseVolumeNode->SetNodeReferenceID(ISODOSE_ROOT_MODEL_HIERARCHY_REFERENCE_ROLE, rootModelHierarchyNode->GetID());
  
@@ -560,7 +559,6 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
       vtkSmartPointer<vtkMRMLModelNode> isodoseModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
       isodoseModelNode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(isodoseModelNode));
       std::string isodoseModelNodeName = vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_PREFIX + strIsoLevel + doseUnitName;
-      isodoseModelNodeName = this->GetMRMLScene()->GenerateUniqueName(isodoseModelNodeName);
       isodoseModelNode->SetName(isodoseModelNodeName.c_str());
       isodoseModelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
       isodoseModelNode->SetAndObservePolyData(transformPolyData->GetOutput());
