@@ -48,12 +48,10 @@
 #include <vtkRenderer.h>
 #include <vtkCallbackCommand.h>
 #include <vtkCollection.h>
-#include <vtkImageConstantPad.h>
 #include <vtkAlgorithmOutput.h>
 #include <vtkTrivialProducer.h>
 #include <vtkPointData.h>
 #include <vtkDataArray.h>
-#include <vtkImageMathematics.h>
 
 // Slicer includes
 #include "qSlicerApplication.h"
@@ -1344,91 +1342,42 @@ void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
 
   vtkMRMLSegmentationNode* segmentationNode = d->ParameterSetNode->GetSegmentationNode();
   const char* selectedSegmentID = d->ParameterSetNode->GetSelectedSegmentID();
-  vtkOrientedImageData* editedLabelmap = d->ParameterSetNode->GetEditedLabelmap();
-  if (!segmentationNode || !selectedSegmentID || !editedLabelmap)
+  if (!segmentationNode || !selectedSegmentID)
   {
     qCritical() << "qMRMLSegmentEditorWidget::applyChangesToSelectedSegment: Invalid segment selection!";
     return;
   }
 
-  // Get binary labelmap representation of selected segment
-  vtkSegment* selectedSegment = segmentationNode->GetSegmentation()->GetSegment(selectedSegmentID);
-  vtkOrientedImageData* segmentLabelmap = vtkOrientedImageData::SafeDownCast(
-    selectedSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
-  if (!segmentLabelmap)
+  vtkOrientedImageData* editedLabelmap = d->ParameterSetNode->GetEditedLabelmap();
+  if (!editedLabelmap)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::applyChangesToSelectedSegment: Failed to get binary labelmap representation in segmentation " << segmentationNode->GetName();
+    // If per-segment flag is off, then it is not an error (the effect itself has written it back to segmentation)
+    if (d->ActiveEffect->perSegment())
+    {
+      qCritical() << "qMRMLSegmentEditorWidget::applyChangesToSelectedSegment: Cannot apply edit operation because edited labelmap cannot be accessed!";
+    }
     return;
   }
 
-  // 1. Label effects add the edited labelmap to the segment, because they provide the paint over
-  //    and paint threshold features, and the original segment data should not be lost.
-  //    The Erase label effect and all other (non-label) effects replace.
+  // Label effects add the edited labelmap to the segment, because they provide the paint over
+  // and paint threshold features, and the original segment data should not be lost.
+  // The Erase label effect and all other (non-label) effects replace.
+  bool append = false;
   vtkSmartPointer<vtkOrientedImageData> newSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
   if ( qobject_cast<qSlicerSegmentEditorAbstractLabelEffect*>(d->ActiveEffect)
     && d->ActiveEffect->name().compare("Erase") )
   {
-    if (!vtkOrientedImageDataResample::PadImageToContainImage(
-      segmentLabelmap, editedLabelmap, newSegmentLabelmap) )
-    {
-      qCritical() << "qMRMLSegmentEditorWidget::applyChangesToSelectedSegment: Failed to pad segment labelmap!";
-      return;
-    }
-    // Add original segment to edited labelmap
-    vtkSmartPointer<vtkImageMathematics> imageMath = vtkSmartPointer<vtkImageMathematics>::New();
-    imageMath->SetInput1Data(newSegmentLabelmap);
-    imageMath->SetInput2Data(editedLabelmap);
-    imageMath->SetOperationToMax();
-    imageMath->Update();
-    newSegmentLabelmap->DeepCopy(imageMath->GetOutput());
+    append = true;
   }
-  else
+
+  // Copy the temporary padded edited labelmap to the segment.
+  // Mask and threshold was already applied on edited labelmap at this point if requested.
+  bool success = vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(
+    editedLabelmap, segmentationNode, selectedSegmentID, append );
+  if (!success)
   {
-    newSegmentLabelmap->DeepCopy(editedLabelmap);
+    qCritical() << "qMRMLSegmentEditorWidget::applyChangesToSelectedSegment: Failed to set edited labelmap to selected segment!";
   }
-
-  // 2. Copy the temporary padded edited labelmap to the segment.
-  //    Mask and threshold was already applied on edited labelmap at this point if requested.
-  //    Disable modified event so that the consequently emitted MasterRepresentationModified event that causes
-  //    removal of all other representations in all segments does not get activated. Instead, explicitly create
-  //    representations for the edited segment that the other segments have.
-  segmentationNode->GetSegmentation()->SetMasterRepresentationModifiedEnabled(false);
-  segmentLabelmap->DeepCopy(newSegmentLabelmap);
-
-  // 3. Shrink the image data extent to only contain the effective data (extent of non-zero voxels)
-  int effectiveExtent[6] = {0,-1,0,-1,0,-1};
-  vtkOrientedImageDataResample::CalculateEffectiveExtent(segmentLabelmap, effectiveExtent);
-
-  vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
-  padder->SetInputData(segmentLabelmap);
-  padder->SetOutputWholeExtent(effectiveExtent);
-  padder->Update();
-  segmentLabelmap->DeepCopy(padder->GetOutput());
-
-  // 4. Re-convert all other representations
-  std::vector<std::string> representationNames;
-  selectedSegment->GetContainedRepresentationNames(representationNames);
-  bool conversionHappened = false;
-  for (std::vector<std::string>::iterator reprIt = representationNames.begin();
-    reprIt != representationNames.end(); ++reprIt)
-  {
-    std::string targetRepresentationName = (*reprIt);
-    if (targetRepresentationName.compare(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
-    {
-      conversionHappened |= segmentationNode->GetSegmentation()->ConvertSingleSegment(
-        selectedSegmentID, targetRepresentationName );
-    }
-  }
-
-  // Trigger display update
-  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
-  if (displayNode)
-  {
-    displayNode->Modified();
-  }
-
-  // Re-enable master representation modified event
-  segmentationNode->GetSegmentation()->SetMasterRepresentationModifiedEnabled(true);
 }
 
 //---------------------------------------------------------------------------

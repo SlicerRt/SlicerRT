@@ -37,7 +37,7 @@ class vtkMRMLSegmentationNode;
 /// \ingroup SlicerRt_QtModules_Segmentations
 /// \brief Base class for all "label" effects.
 /// 
-/// This base class provides GUI and MRML for the options PaintOver and Threshold.
+/// This base class provides common GUI and MRML for the options PaintOver and Threshold.
 class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorAbstractLabelEffect :
   public qSlicerSegmentEditorAbstractEffect
 {

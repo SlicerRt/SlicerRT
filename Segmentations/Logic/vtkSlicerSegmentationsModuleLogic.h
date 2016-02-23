@@ -131,8 +131,14 @@ public:
   /// \param labelmapNode Labelmap node to export the segments to
   static bool ExportAllSegmentsToLabelmapNode(vtkMRMLSegmentationNode* segmentationNode, vtkMRMLLabelMapVolumeNode* labelmapNode);
 
-  /// Import all labels from a labelmap to a segmentation node, each label to a separate segment
+  /// Import all labels from a labelmap node to a segmentation node, each label to a separate segment.
+  /// The colors of the new segments are set from the color table corresponding to the labelmap volume.
   static bool ImportLabelmapToSegmentationNode(vtkMRMLLabelMapVolumeNode* labelmapNode, vtkMRMLSegmentationNode* segmentationNode);
+
+  /// Import all labels from a labelmap image to a segmentation node, each label to a separate segment
+  /// The colors of the new segments are randomly generated.
+  /// \param baseSegmentName Prefix for the names of the new segments. Empty by default, in which case the prefix will be "Label"
+  static bool ImportLabelmapToSegmentationNode(vtkOrientedImageData* labelmapImage, vtkMRMLSegmentationNode* segmentationNode, std::string baseSegmentName="");
 
   /// Create representation of only one segment in a segmentation.
   /// Useful if only one segment is processed, and we do not want to convert all segments to a certain
@@ -170,6 +176,13 @@ public:
   ///   If on, then the oriented image data is in RAS, otherwise in the segmentation node's coordinate frame. On by default
   /// \return Success flag
   static bool GetSegmentBinaryLabelmapRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, vtkOrientedImageData* imageData, bool applyParentTransform=true);
+
+  /// Set a labelmap image as binary labelmap representation into the segment defined by the segmentation node and segment ID.
+  /// Master representation must be binary labelmap! Master representation changed event is disabled to prevent deletion of all
+  /// other representation in all segments. The other representations in the given segment are re-converted. The extent of the
+  /// segment binary labelmap is shrunk to the effective extent. Display update is triggered.
+  /// \param add If append flag is on, then the input labelmap will be overlaid to the existing segment image, otherwise replaced.
+  static bool SetBinaryLabelmapToSegment(vtkOrientedImageData* labelmap, vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, bool append=false);
 
 protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);

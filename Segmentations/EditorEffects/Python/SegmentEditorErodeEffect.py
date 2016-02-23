@@ -4,7 +4,7 @@ import logging
 from SegmentEditorEffects import *
 
 class SegmentEditorErodeEffect(AbstractScriptedSegmentEditorMorphologyEffect):
-  """ DilateEffect is an MorphologyEffect to
+  """ ErodeEffect is an MorphologyEffect to
       erode a layer of pixels from a segment
   """
   

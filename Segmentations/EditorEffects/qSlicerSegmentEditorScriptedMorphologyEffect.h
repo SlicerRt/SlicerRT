@@ -68,6 +68,9 @@ public:
   /// \sa name
   virtual void setName(QString name);
 
+  /// Set flag indicating whether effect operates on segments (true) or the whole segmentation (false).
+  virtual void setPerSegment(bool perSegment);
+
 // API: Methods that are to be reimplemented in the effect subclasses
 public:  
   /// Get icon for effect to be displayed in segment editor

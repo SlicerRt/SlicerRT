@@ -51,6 +51,8 @@
 #include <vtksys/SystemTools.hxx>
 #include <vtkGeneralTransform.h>
 #include <vtkTransformPolyDataFilter.h>
+#include <vtkImageMathematics.h>
+#include <vtkImageConstantPad.h>
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -816,18 +818,18 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkMRML
   segmentationNode->GetSegmentation()->SetMasterRepresentationName(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
 
   vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
+  threshold->SetInputConnection(labelmapNode->GetImageDataConnection());
+  threshold->SetInValue(1);
+  threshold->SetOutValue(0);
+  threshold->ReplaceInOn();
+  threshold->ReplaceOutOn();
+  threshold->SetOutputScalarType(labelmapNode->GetImageData()->GetScalarType());
   //TODO: pending resolution of bug http://www.na-mic.org/Bug/view.php?id=1822,
   //   run the thresholding in single threaded mode to avoid data corruption observed on mac release builds
   threshold->SetNumberOfThreads(1);
   for (int label = lowLabel; label <= highLabel; ++label)
   {
-    threshold->SetInputConnection(labelmapNode->GetImageDataConnection());
-    threshold->SetInValue(label);
-    threshold->SetOutValue(0);
-    threshold->ReplaceInOn();
-    threshold->ReplaceOutOn();
     threshold->ThresholdBetween(label, label);
-    threshold->SetOutputScalarType(labelmapNode->GetImageData()->GetScalarType());
     threshold->Update();
 
     double* outputScalarRange = threshold->GetOutput()->GetScalarRange();
@@ -871,11 +873,112 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkMRML
     segment->SetName(labelName);
   
     // Apply parent transforms if any
-    if (labelmapNode->GetParentTransformNode() || (segmentationNode && segmentationNode->GetParentTransformNode()))
+    if (labelmapNode->GetParentTransformNode() || segmentationNode->GetParentTransformNode())
     {
       vtkSmartPointer<vtkGeneralTransform> labelmapToSegmentationTransform = vtkSmartPointer<vtkGeneralTransform>::New();
       vtkSlicerSegmentationsModuleLogic::GetTransformBetweenRepresentationAndSegmentation(labelmapNode, segmentationNode, labelmapToSegmentationTransform);
       vtkOrientedImageDataResample::TransformOrientedImage(labelOrientedImageData, labelmapToSegmentationTransform);
+    }
+
+    // Add oriented image data as binary labelmap representation
+    segment->AddRepresentation(
+      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(),
+      labelOrientedImageData );
+
+    segmentationNode->GetSegmentation()->AddSegment(segment);
+  } // for each label
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkOrientedImageData* labelmapImage, vtkMRMLSegmentationNode* segmentationNode, std::string baseSegmentName/*=""*/)
+{
+  if (!segmentationNode)
+  {
+    std::cerr << "vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode: Invalid segmentation node!";
+    return false;
+  }
+  if (!labelmapImage)
+  {
+    vtkErrorWithObjectMacro(labelmapImage, "ImportLabelmapToSegmentationNode: Invalid labelmap image!");
+    return false;
+  }
+
+  // If master representation is not binary labelmap, then cannot add
+  // (this should have been done by the UI classes, notifying the users about hazards of changing the master representation)
+  if ( !segmentationNode->GetSegmentation()->GetMasterRepresentationName()
+    || strcmp(segmentationNode->GetSegmentation()->GetMasterRepresentationName(), vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) )
+  {
+    vtkErrorWithObjectMacro(segmentationNode, "ImportLabelmapToSegmentationNode: Master representation of the target segmentation node " << (segmentationNode->GetName()?segmentationNode->GetName():"NULL") << " is not binary labelmap!");
+    return false;
+  }
+
+  // Note: Splitting code ported from EditorLib/HelperBox.py:split
+
+  // Split labelmap node into per-label image data
+  vtkSmartPointer<vtkImageAccumulate> imageAccumulate = vtkSmartPointer<vtkImageAccumulate>::New();
+  imageAccumulate->SetInputData(labelmapImage);
+  imageAccumulate->IgnoreZeroOn(); // Do not create segment from background
+  imageAccumulate->Update();
+  int lowLabel = (int)imageAccumulate->GetMin()[0];
+  int highLabel = (int)imageAccumulate->GetMax()[0];
+
+  // Set master representation to binary labelmap
+  segmentationNode->GetSegmentation()->SetMasterRepresentationName(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
+
+  vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
+  threshold->SetInputData(labelmapImage);
+  threshold->SetInValue(1);
+  threshold->SetOutValue(0);
+  threshold->ReplaceInOn();
+  threshold->ReplaceOutOn();
+  threshold->SetOutputScalarType(labelmapImage->GetScalarType());
+  //TODO: pending resolution of bug http://www.na-mic.org/Bug/view.php?id=1822,
+  //   run the thresholding in single threaded mode to avoid data corruption observed on mac release builds
+  threshold->SetNumberOfThreads(1);
+  for (int label = lowLabel; label <= highLabel; ++label)
+  {
+    threshold->ThresholdBetween(label, label);
+    threshold->Update();
+
+    double* outputScalarRange = threshold->GetOutput()->GetScalarRange();
+    if (outputScalarRange[0] == 0.0 && outputScalarRange[1] == 0.0)
+    {
+      continue;
+    }
+
+    // Create oriented image data for label
+    vtkSmartPointer<vtkOrientedImageData> labelOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
+    labelOrientedImageData->vtkImageData::DeepCopy(threshold->GetOutput());
+    vtkSmartPointer<vtkMatrix4x4> labelmapImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    labelmapImage->GetImageToWorldMatrix(labelmapImageToWorldMatrix);
+    labelOrientedImageData->SetGeometryFromImageToWorldMatrix(labelmapImageToWorldMatrix);
+
+    vtkSmartPointer<vtkSegment> segment = vtkSmartPointer<vtkSegment>::New();
+
+    // Set segment color
+    double color[4] = { rand() * 1.0 / RAND_MAX,
+                        rand() * 1.0 / RAND_MAX,
+                        rand() * 1.0 / RAND_MAX, 1.0 };
+    segment->SetDefaultColor(color[0], color[1], color[2]);
+
+    // Set segment name
+    std::stringstream ss;
+    ss << (baseSegmentName.empty() ? "Label" : baseSegmentName) << "_" << label;
+    segment->SetName(ss.str().c_str());
+  
+    // Apply parent transforms if any
+    vtkMRMLTransformNode* segmentationParentTransformNode = segmentationNode->GetParentTransformNode();
+    if (segmentationParentTransformNode)
+    {
+      vtkSmartPointer<vtkGeneralTransform> worldToSegmentationTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+      if (segmentationParentTransformNode)
+      {
+        segmentationParentTransformNode->GetTransformFromWorld(worldToSegmentationTransform);
+      }
+      
+      vtkOrientedImageDataResample::TransformOrientedImage(labelOrientedImageData, worldToSegmentationTransform);
     }
 
     // Add oriented image data as binary labelmap representation
@@ -1036,6 +1139,93 @@ bool vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(v
     return false;
     }
   }
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedImageData* labelmap, vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, bool append/*=false*/)
+{
+  if (!segmentationNode || segmentID.empty() || !labelmap)
+  {
+    std::cerr << "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Invalid inputs!";
+    return false;
+  }
+
+  // Get binary labelmap representation of selected segment
+  vtkSegment* selectedSegment = segmentationNode->GetSegmentation()->GetSegment(segmentID);
+  vtkOrientedImageData* segmentLabelmap = vtkOrientedImageData::SafeDownCast(
+    selectedSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
+  if (!segmentLabelmap)
+  {
+    vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Failed to get binary labelmap representation in segmentation " << segmentationNode->GetName());
+    return false;
+  }
+
+  // 1. Append input labelmap to the segment labelmap if requested
+  vtkSmartPointer<vtkOrientedImageData> newSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
+  if (append)
+  {
+    if (!vtkOrientedImageDataResample::PadImageToContainImage(
+      segmentLabelmap, labelmap, newSegmentLabelmap) )
+    {
+      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Failed to pad segment labelmap!");
+      return false;
+    }
+    // Add original segment to edited labelmap
+    vtkSmartPointer<vtkImageMathematics> imageMath = vtkSmartPointer<vtkImageMathematics>::New();
+    imageMath->SetInput1Data(newSegmentLabelmap);
+    imageMath->SetInput2Data(labelmap);
+    imageMath->SetOperationToMax();
+    imageMath->Update();
+    newSegmentLabelmap->DeepCopy(imageMath->GetOutput());
+  }
+  else
+  {
+    newSegmentLabelmap->DeepCopy(labelmap);
+  }
+
+  // 2. Copy the temporary padded edited labelmap to the segment.
+  //    Disable modified event so that the consequently emitted MasterRepresentationModified event that causes
+  //    removal of all other representations in all segments does not get activated. Instead, explicitly create
+  //    representations for the edited segment that the other segments have.
+  segmentationNode->GetSegmentation()->SetMasterRepresentationModifiedEnabled(false);
+  segmentLabelmap->DeepCopy(newSegmentLabelmap);
+
+  // 3. Shrink the image data extent to only contain the effective data (extent of non-zero voxels)
+  int effectiveExtent[6] = {0,-1,0,-1,0,-1};
+  vtkOrientedImageDataResample::CalculateEffectiveExtent(segmentLabelmap, effectiveExtent);
+
+  vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
+  padder->SetInputData(segmentLabelmap);
+  padder->SetOutputWholeExtent(effectiveExtent);
+  padder->Update();
+  segmentLabelmap->DeepCopy(padder->GetOutput());
+
+  // 4. Re-convert all other representations
+  std::vector<std::string> representationNames;
+  selectedSegment->GetContainedRepresentationNames(representationNames);
+  bool conversionHappened = false;
+  for (std::vector<std::string>::iterator reprIt = representationNames.begin();
+    reprIt != representationNames.end(); ++reprIt)
+  {
+    std::string targetRepresentationName = (*reprIt);
+    if (targetRepresentationName.compare(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+    {
+      conversionHappened |= segmentationNode->GetSegmentation()->ConvertSingleSegment(
+        segmentID, targetRepresentationName );
+    }
+  }
+
+  // Trigger display update
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
+  if (displayNode)
+  {
+    displayNode->Modified();
+  }
+
+  // Re-enable master representation modified event
+  segmentationNode->GetSegmentation()->SetMasterRepresentationModifiedEnabled(true);
 
   return true;
 }

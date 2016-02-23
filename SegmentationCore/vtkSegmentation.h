@@ -316,7 +316,7 @@ protected:
   /// Command handling master representation modified events
   vtkCallbackCommand* MasterRepresentationCallbackCommand;
 
-  friend class qMRMLSegmentEditorWidget;
+  friend class vtkSlicerSegmentationsModuleLogic;
   friend class qMRMLSegmentEditorWidgetPrivate;
 };
 

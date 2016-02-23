@@ -183,6 +183,9 @@ void qSlicerSegmentationsModule::setup()
     "dilateEffect.setPythonSource(SegmentEditorDilateEffect.filePath) \n"
     "erodeEffect = effects.qSlicerSegmentEditorScriptedMorphologyEffect(None) \n"
     "erodeEffect.setPythonSource(SegmentEditorErodeEffect.filePath) \n"
+    // Island effects
+    "identifyIslandsEffect = effects.qSlicerSegmentEditorScriptedIslandEffect(None) \n"
+    "identifyIslandsEffect.setPythonSource(SegmentEditorIdentifyIslandsEffect.filePath) \n"
     ) );
 }
 

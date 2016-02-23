@@ -18,33 +18,33 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerSegmentEditorAbstractMorphologyEffect_h
-#define __qSlicerSegmentEditorAbstractMorphologyEffect_h
+#ifndef __qSlicerSegmentEditorAbstractIslandEffect_h
+#define __qSlicerSegmentEditorAbstractIslandEffect_h
 
 // Segmentations Editor Effects includes
 #include "qSlicerSegmentationsEditorEffectsExport.h"
 
 #include "qSlicerSegmentEditorAbstractEffect.h"
 
-class qSlicerSegmentEditorAbstractMorphologyEffectPrivate;
+class qSlicerSegmentEditorAbstractIslandEffectPrivate;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
-/// \brief Base class for all "morphology" effects.
+/// \brief Base class for all "island" effects.
 /// 
-/// This base class provides common GUI and MRML for the morphology related options
-/// (neighbor mode, iterations)
-class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorAbstractMorphologyEffect :
+/// This base class provides common GUI and MRML for the island (connected component)
+/// operations (fully connected, minimum size)
+class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorAbstractIslandEffect :
   public qSlicerSegmentEditorAbstractEffect
 {
   Q_OBJECT
 
 public:
   typedef qSlicerSegmentEditorAbstractEffect Superclass;
-  qSlicerSegmentEditorAbstractMorphologyEffect(QObject* parent = NULL);
-  virtual ~qSlicerSegmentEditorAbstractMorphologyEffect(); 
+  qSlicerSegmentEditorAbstractIslandEffect(QObject* parent = NULL);
+  virtual ~qSlicerSegmentEditorAbstractIslandEffect(); 
 
-  Q_INVOKABLE static QString neighborModeParameterName() { return QString("NeighborMode"); };
-  Q_INVOKABLE static QString iterationsParameterName() { return QString("Iterations"); };
+  Q_INVOKABLE static QString fullyConnectedParameterName() { return QString("FullyConnected"); };
+  Q_INVOKABLE static QString minimumSizeParameterName() { return QString("MinimumSize"); };
 
 public:
   /// Clone editor effect
@@ -65,11 +65,11 @@ public slots:
   virtual void updateMRMLFromGUI();
 
 protected:
-  QScopedPointer<qSlicerSegmentEditorAbstractMorphologyEffectPrivate> d_ptr;
+  QScopedPointer<qSlicerSegmentEditorAbstractIslandEffectPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerSegmentEditorAbstractMorphologyEffect);
-  Q_DISABLE_COPY(qSlicerSegmentEditorAbstractMorphologyEffect);
+  Q_DECLARE_PRIVATE(qSlicerSegmentEditorAbstractIslandEffect);
+  Q_DISABLE_COPY(qSlicerSegmentEditorAbstractIslandEffect);
 };
 
 #endif

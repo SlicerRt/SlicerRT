@@ -55,8 +55,14 @@ public:
 
   /// This property stores the name of the effect
   /// Cannot be empty.
-  /// \sa name()
+  /// \sa name(), \sa setName()
   Q_PROPERTY(QString name READ name WRITE setName)
+
+  /// This property stores the flag indicating whether effect operates on individual segments (true)
+  /// or the whole segmentation (false).
+  /// True by default.
+  /// \sa perSegment(), \sa setPerSegment
+  Q_PROPERTY(bool perSegment READ perSegment WRITE setPerSegment)
 
 public:
   /// Property identifier for soring event tags in widgets
@@ -155,10 +161,15 @@ public:
 
   /// Get name of effect
   virtual QString name()const;
-
   /// Set the name of the effect
   /// NOTE: name must be defined in constructor in C++ effects, this can only be used in python scripted ones
   virtual void setName(QString name);
+
+  /// Get flag indicating whether effect operates on segments (true) or the whole segmentation (false).
+  virtual bool perSegment()const;
+  /// Set flag indicating whether effect operates on segments (true) or the whole segmentation (false).
+  /// NOTE: name must be defined in constructor in C++ effects, this can only be used in python scripted ones
+  virtual void setPerSegment(bool perSegment);
 
   /// Turn off cursor and save cursor to restore later
   Q_INVOKABLE void cursorOff(qMRMLWidget* viewWidget);
@@ -268,6 +279,12 @@ public:
 protected:
   /// Name of the effect
   QString m_Name;
+
+  /// Flag indicating whether effect operates on individual segments (true) or the whole segmentation (false).
+  /// If the selected effect works on whole segmentation, selection of the segments does not trigger creation
+  /// of edited labelmap, but it is set to empty in the parameter set node.
+  /// True by default.
+  bool m_PerSegment;
 
 protected:
   QScopedPointer<qSlicerSegmentEditorAbstractEffectPrivate> d_ptr;

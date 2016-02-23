@@ -219,6 +219,13 @@ void qSlicerSegmentEditorScriptedLabelEffect::setName(QString name)
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerSegmentEditorScriptedLabelEffect::setPerSegment(bool perSegment)
+{
+  Q_UNUSED(perSegment);
+  qCritical() << "qSlicerSegmentEditorScriptedLabelEffect::setPerSegment: Cannot set per-segment flag for label effects! It is always true for this type.";
+}
+
+//-----------------------------------------------------------------------------
 QIcon qSlicerSegmentEditorScriptedLabelEffect::icon()
 {
   Q_D(const qSlicerSegmentEditorScriptedLabelEffect);

@@ -219,6 +219,12 @@ void qSlicerSegmentEditorScriptedMorphologyEffect::setName(QString name)
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerSegmentEditorScriptedMorphologyEffect::setPerSegment(bool perSegment)
+{
+  this->m_PerSegment = perSegment;
+}
+
+//-----------------------------------------------------------------------------
 QIcon qSlicerSegmentEditorScriptedMorphologyEffect::icon()
 {
   Q_D(const qSlicerSegmentEditorScriptedMorphologyEffect);

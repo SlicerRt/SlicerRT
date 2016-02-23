@@ -20,11 +20,11 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerSegmentEditorScriptedLabelEffect_h
-#define __qSlicerSegmentEditorScriptedLabelEffect_h
+#ifndef __qSlicerSegmentEditorScriptedIslandEffect_h
+#define __qSlicerSegmentEditorScriptedIslandEffect_h
 
 // Segmentations Editor Effects includes
-#include "qSlicerSegmentEditorAbstractLabelEffect.h"
+#include "qSlicerSegmentEditorAbstractIslandEffect.h"
 
 #include "qSlicerSegmentationsEditorEffectsExport.h"
 
@@ -33,27 +33,27 @@
 struct _object;
 typedef _object PyObject;
 #endif
-class qSlicerSegmentEditorScriptedLabelEffectPrivate;
+class qSlicerSegmentEditorScriptedIslandEffectPrivate;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
-/// \brief Scripted abstract effect for implementing label effects in python
+/// \brief Scripted abstract effect for implementing island effects in python
 ///
-/// This class provides an interface to label effects implemented in python.
-/// Label effects are a subtype of general effects that edit the currently selected
-/// segment (i.e. for things like paint or draw, but not for things like threshold or morphology)
-/// USAGE: Subclass AbstractScriptedSegmentEditorLabelEffect in EditorEffects/Python subfolder,
+/// This class provides an interface to island effects implemented in python.
+/// Island effects are a subtype of general effects that implement island (connected
+/// component) operations.
+/// USAGE: Subclass qSlicerSegmentEditorScriptedIslandEffect in EditorEffects/Python subfolder,
 ///   and register effect by creating this class and setting python source to implemented
-///   effect subclass. One example is the DrawEffect.
+///   effect subclass. One example is the IdentifyIslandsEffect.
 ///
-class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorScriptedLabelEffect
-  : public qSlicerSegmentEditorAbstractLabelEffect
+class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorScriptedIslandEffect
+  : public qSlicerSegmentEditorAbstractIslandEffect
 {
   Q_OBJECT
 
 public:
-  typedef qSlicerSegmentEditorAbstractLabelEffect Superclass;
-  qSlicerSegmentEditorScriptedLabelEffect(QObject* parent = NULL);
-  virtual ~qSlicerSegmentEditorScriptedLabelEffect();
+  typedef qSlicerSegmentEditorAbstractIslandEffect Superclass;
+  qSlicerSegmentEditorScriptedIslandEffect(QObject* parent = NULL);
+  virtual ~qSlicerSegmentEditorScriptedIslandEffect();
 
   Q_INVOKABLE QString pythonSource()const;
 
@@ -128,11 +128,11 @@ public slots:
   virtual void updateMRMLFromGUI();
 
 protected:
-  QScopedPointer<qSlicerSegmentEditorScriptedLabelEffectPrivate> d_ptr;
+  QScopedPointer<qSlicerSegmentEditorScriptedIslandEffectPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerSegmentEditorScriptedLabelEffect);
-  Q_DISABLE_COPY(qSlicerSegmentEditorScriptedLabelEffect);
+  Q_DECLARE_PRIVATE(qSlicerSegmentEditorScriptedIslandEffect);
+  Q_DISABLE_COPY(qSlicerSegmentEditorScriptedIslandEffect);
 };
 
 #endif

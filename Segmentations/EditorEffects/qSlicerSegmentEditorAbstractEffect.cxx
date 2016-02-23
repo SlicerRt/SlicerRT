@@ -100,6 +100,7 @@ qSlicerSegmentEditorAbstractEffectPrivate::~qSlicerSegmentEditorAbstractEffectPr
 qSlicerSegmentEditorAbstractEffect::qSlicerSegmentEditorAbstractEffect(QObject* parent)
  : Superclass(parent)
  , m_Name(QString())
+ , m_PerSegment(true)
  , d_ptr( new qSlicerSegmentEditorAbstractEffectPrivate(*this) )
 {
 }
@@ -124,6 +125,19 @@ void qSlicerSegmentEditorAbstractEffect::setName(QString name)
 {
   Q_UNUSED(name);
   qCritical() << "qSlicerSegmentEditorAbstractEffect::setName: Cannot set effect name by method, only in constructor!";
+}
+
+//-----------------------------------------------------------------------------
+bool qSlicerSegmentEditorAbstractEffect::perSegment()const
+{
+  return this->m_PerSegment;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::setPerSegment(bool perSegment)
+{
+  Q_UNUSED(perSegment);
+  qCritical() << "qSlicerSegmentEditorAbstractEffect::setPerSegment: Cannot set per-segment flag by method, only in constructor!";
 }
 
 //-----------------------------------------------------------------------------

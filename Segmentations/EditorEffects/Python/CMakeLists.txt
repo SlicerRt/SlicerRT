@@ -9,9 +9,11 @@ set(SegmentEditorEffects_PYTHON_SCRIPTS
   AbstractScriptedSegmentEditorEffect
   AbstractScriptedSegmentEditorLabelEffect
   AbstractScriptedSegmentEditorMorphologyEffect
+  AbstractScriptedSegmentEditorIslandEffect
   SegmentEditorDilateEffect
   SegmentEditorDrawEffect
   SegmentEditorErodeEffect
+  SegmentEditorIdentifyIslandsEffect
   SegmentEditorLevelTracingEffect
   SegmentEditorThresholdEffect
   )
@@ -20,8 +22,11 @@ set(SegmentEditorEffects_PYTHON_RESOURCES
   Resources/Icons/Dilate.png
   Resources/Icons/Draw.png
   Resources/Icons/Erode.png
+  Resources/Icons/GrowCut.png
+  Resources/Icons/IdentifyIslands.png
   Resources/Icons/LevelTracing.png
   Resources/Icons/Threshold.png
+  Resources/Icons/SaveIsland.png
   )
 
 ctkMacroCompilePythonScript(
