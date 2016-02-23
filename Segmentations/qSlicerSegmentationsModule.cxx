@@ -276,17 +276,30 @@ void qSlicerSegmentationsModule::onNodeAboutToBeRemoved(vtkObject* sceneObject, 
   }
 
   vtkMRMLSubjectHierarchyNode* subjectHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(nodeObject);
-  if (subjectHierarchyNode && subjectHierarchyNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName()))
+  if (subjectHierarchyNode)
   {
-    std::string segmentId = subjectHierarchyNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
-
-    segmentationNode = vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeForSegmentSubjectHierarchyNode(subjectHierarchyNode);
+    // Remove segmentation node if its associated subject hierarchy node is being removed.
+    // This is necessary so that the segment virtual nodes are removed before the segmentation SH node is removed,
+    // otherwise the event observers will be removed, and the segment virtual nodes will be left in the scene.
+    vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(
+      subjectHierarchyNode->GetAssociatedNode());
     if (segmentationNode)
     {
-      // Segment might have been removed first, and subject hierarchy second, in which case we should not try to remove segment again
-      if (segmentationNode->GetSegmentation()->GetSegment(segmentId))
+      scene->RemoveNode(segmentationNode);
+    }
+    // Remove segment from parent segmentation if its subject hierarchy node is being removed
+    else if (subjectHierarchyNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName()))
+    {
+      std::string segmentId = subjectHierarchyNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
+
+      segmentationNode = vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeForSegmentSubjectHierarchyNode(subjectHierarchyNode);
+      if (segmentationNode)
       {
-        segmentationNode->GetSegmentation()->RemoveSegment(segmentId);
+        // Segment might have been removed first, and subject hierarchy second, in which case we should not try to remove segment again
+        if (segmentationNode->GetSegmentation()->GetSegment(segmentId))
+        {
+          segmentationNode->GetSegmentation()->RemoveSegment(segmentId);
+        }
       }
     }
   }
