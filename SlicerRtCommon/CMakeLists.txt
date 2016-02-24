@@ -13,7 +13,7 @@ configure_file(
 # Sources
 # --------------------------------------------------------------------------
 
-SET (SlicerRtCommon_SRCS 
+SET (SlicerRtCommon_SRCS
   SlicerRtCommon.cxx
   SlicerRtCommon.h
   SlicerRtCommon.txx
@@ -23,6 +23,8 @@ SET (SlicerRtCommon_SRCS
   vtkPolyDataToLabelmapFilter.h
   vtkSlicerAutoWindowLevelLogic.cxx
   vtkSlicerAutoWindowLevelLogic.h
+  vtkCollisionDetectionFilter.cxx
+  vtkCollisionDetectionFilter.h
   )
 
 SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${Slicer_Libs_INCLUDE_DIRS} ${vtkSegmentationCore_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)

@@ -30,7 +30,6 @@
 // VTK includes
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
-#include <vtkTrivialProducer.h>
 #include <vtkCallbackCommand.h>
 #include <vtkPolyData.h>
 #include <vtkRenderer.h>

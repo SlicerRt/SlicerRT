@@ -7,16 +7,13 @@ class SegmentEditorDilateEffect(AbstractScriptedSegmentEditorMorphologyEffect):
   """ DilateEffect is an MorphologyEffect to
       dilate a layer of pixels from a segment
   """
-  
+
   # Necessary static member to be able to set python source to scripted subject hierarchy plugin
   filePath = __file__
 
   def __init__(self, scriptedEffect):
     scriptedEffect.name = 'Dilate'
     AbstractScriptedSegmentEditorMorphologyEffect.__init__(self, scriptedEffect)
-
-    # Effect-specific members
-    self.drawPipelines = {}
 
   def clone(self):
     import qSlicerSegmentationsEditorEffectsPythonQt as effects
@@ -29,10 +26,10 @@ class SegmentEditorDilateEffect(AbstractScriptedSegmentEditorMorphologyEffect):
     if os.path.exists(iconPath):
       return qt.QIcon(iconPath)
     return qt.QIcon()
-    
+
   def helpText(self):
     return "Use this tool to remove pixels from the boundary of the current label."
-    
+
   def setupOptionsFrame(self):
     self.applyButton = qt.QPushButton("Apply")
     self.applyButton.objectName = self.__class__.__name__ + 'Apply'

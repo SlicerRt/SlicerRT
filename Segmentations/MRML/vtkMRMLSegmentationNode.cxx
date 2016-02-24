@@ -44,7 +44,6 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
-#include <vtkTrivialProducer.h>
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkGeneralTransform.h>

@@ -13,6 +13,7 @@ set(SegmentEditorEffects_PYTHON_SCRIPTS
   SegmentEditorDilateEffect
   SegmentEditorDrawEffect
   SegmentEditorErodeEffect
+	SegmentEditorGrowCutEffect
   SegmentEditorIdentifyIslandsEffect
   SegmentEditorLevelTracingEffect
   SegmentEditorThresholdEffect

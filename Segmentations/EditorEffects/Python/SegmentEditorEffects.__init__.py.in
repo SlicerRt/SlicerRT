@@ -5,6 +5,7 @@ from AbstractScriptedSegmentEditorIslandEffect import *
 from SegmentEditorDilateEffect import *
 from SegmentEditorDrawEffect import *
 from SegmentEditorErodeEffect import *
+from SegmentEditorGrowCutEffect import *
 from SegmentEditorIdentifyIslandsEffect import *
 from SegmentEditorLevelTracingEffect import *
 from SegmentEditorThresholdEffect import *

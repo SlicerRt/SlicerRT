@@ -49,7 +49,6 @@
 #include <vtkCallbackCommand.h>
 #include <vtkCollection.h>
 #include <vtkAlgorithmOutput.h>
-#include <vtkTrivialProducer.h>
 #include <vtkPointData.h>
 #include <vtkDataArray.h>
 
