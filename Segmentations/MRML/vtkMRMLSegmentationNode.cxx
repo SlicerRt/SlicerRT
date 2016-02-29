@@ -167,7 +167,7 @@ void vtkMRMLSegmentationNode::Copy(vtkMRMLNode *anode)
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
-  
+
   // The InvokePendingModifiedEvent call loses event parameters (i.e. callData)
   // Needed to invoke SegmentAdded events explicitly so that segment subject hierarchy nodes are correctly created
   vtkSegmentation::SegmentMap segmentMap = this->Segmentation->GetSegments();
@@ -175,7 +175,7 @@ void vtkMRMLSegmentationNode::Copy(vtkMRMLNode *anode)
   {
     const char* segmentIdChars = segmentIt->first.c_str();
     this->Segmentation->InvokeEvent(vtkSegmentation::SegmentAdded, (void*)segmentIdChars);
-  }  
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -207,7 +207,7 @@ void vtkMRMLSegmentationNode::DeepCopy(vtkMRMLNode* aNode)
   {
     const char* segmentIdChars = segmentIt->first.c_str();
     this->Segmentation->InvokeEvent(vtkSegmentation::SegmentAdded, (void*)segmentIdChars);
-  }  
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -856,7 +856,7 @@ bool vtkMRMLSegmentationNode::GenerateDisplayedMergedLabelmap(vtkImageData* imag
 
     return true;
   }
-  
+
   return false;
 }
 
@@ -938,12 +938,12 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
     || imageDataExtent[3] != referenceExtent[3] || imageDataExtent[4] != referenceExtent[4] || imageDataExtent[5] != referenceExtent[5] )
   {
     mergedImageData->SetExtent(referenceExtent);
-    mergedImageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+    mergedImageData->AllocateScalars(VTK_SHORT, 1);
   }
 
   // Paint the image data background first
   unsigned short backgroundColor = vtkMRMLSegmentationDisplayNode::GetSegmentationColorIndexBackground();
-  unsigned char* mergedImagePtr = (unsigned char*)mergedImageData->GetScalarPointerForExtent(referenceExtent);
+  short* mergedImagePtr = (short*)mergedImageData->GetScalarPointerForExtent(referenceExtent);
   if (!mergedImagePtr)
   {
     // Setting the extent may invoke this function again via ImageDataModified, in which case the pointer is NULL
@@ -975,13 +975,6 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
     std::string currentSegmentId(segmentIt->first);
     vtkSegment* currentSegment = segmentIt->second;
     bool segmentIncluded = ( std::find(mergedSegmentIDs.begin(), mergedSegmentIDs.end(), std::string(currentSegmentId)) != mergedSegmentIDs.end() );
-
-    // Skip segment if hidden
-    vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-    if (!displayNode->GetSegmentDisplayProperties(currentSegmentId, properties))
-    {
-      continue;
-    }
 
     // Get color table index for the segment
     int colorIndex = -1;
@@ -1045,8 +1038,8 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
     unsigned short* labelmapPtrUShort = (unsigned short*)voidScalarPointer;
     short* labelmapPtrShort = (short*)voidScalarPointer;
 
-    mergedImagePtr = (unsigned char*)mergedImageData->GetScalarPointer();
-    unsigned char* imagePtrMax = mergedImagePtr + referenceDimensions[0]*referenceDimensions[1]*referenceDimensions[2];
+    mergedImagePtr = (short*)mergedImageData->GetScalarPointer();
+    short* imagePtrMax = mergedImagePtr + referenceDimensions[0]*referenceDimensions[1]*referenceDimensions[2];
     for (long i=0; i<binaryLabelmap->GetNumberOfPoints(); ++i)
     {
       // Get labelmap color at voxel
@@ -1072,10 +1065,10 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
       labelmapCoordinates[0] = residualIndex;
 
       // Apply extent offset and current offset
-      unsigned char* offsetImagePtr = mergedImagePtr +
-                                      (labelmapExtent[4]-referenceExtent[4]+labelmapCoordinates[2]) * referenceDimensions[1]*referenceDimensions[0] +
-                                      (labelmapExtent[2]-referenceExtent[2]+labelmapCoordinates[1]) * referenceDimensions[0] +
-                                      (labelmapExtent[0]-referenceExtent[0]+labelmapCoordinates[0]);
+      short* offsetImagePtr = mergedImagePtr +
+                              (labelmapExtent[4]-referenceExtent[4]+labelmapCoordinates[2]) * referenceDimensions[1]*referenceDimensions[0] +
+                              (labelmapExtent[2]-referenceExtent[2]+labelmapCoordinates[1]) * referenceDimensions[0] +
+                              (labelmapExtent[0]-referenceExtent[0]+labelmapCoordinates[0]);
 
       // Paint merged labelmap voxel if foreground and in extent
       if ( color != backgroundColor
@@ -1191,7 +1184,7 @@ void vtkMRMLSegmentationNode::SetReferenceImageGeometryParameterFromVolumeNode(v
   // Set parameter
   this->Segmentation->SetConversionParameter(
     vtkSegmentationConverter::GetReferenceImageGeometryParameterName(), serializedImageGeometry);
-  
+
   // Set node reference from segmentation to reference geometry volume
   this->SetNodeReferenceID(
     vtkMRMLSegmentationNode::GetReferenceImageGeometryReferenceRole().c_str(), volumeNode->GetID() );

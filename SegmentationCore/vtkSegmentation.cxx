@@ -1202,7 +1202,7 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
     vtkSegment* currentSegment = this->GetSegment(*segmentIt);
     if (!currentSegment)
     {
-      vtkWarningMacro("GenerateMergedLabelmap: Segment ID " << (*segmentIt) << " not found in segmentation");
+      vtkWarningMacro("DetermineCommonLabelmapGeometry: Segment ID " << (*segmentIt) << " not found in segmentation");
       continue;
     }
     vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
@@ -1240,7 +1240,7 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
       vtkSegment* currentSegment = this->GetSegment(*segmentIt);
       if (!currentSegment)
       {
-        vtkWarningMacro("GenerateMergedLabelmap: Segment ID " << (*segmentIt) << " not found in segmentation");
+        vtkWarningMacro("DetermineCommonLabelmapGeometry: Segment ID " << (*segmentIt) << " not found in segmentation");
         continue;
       }
       vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
@@ -1263,7 +1263,7 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
     }
     if (!highestResolutionLabelmap)
     {
-      vtkErrorMacro("GenerateMergedLabelmap: Unable to find largest extent labelmap to define reference image geometry!");
+      vtkErrorMacro("DetermineCommonLabelmapGeometry: Unable to find largest extent labelmap to define reference image geometry!");
       return std::string("");
     }
     referenceGeometryString = vtkSegmentationConverter::SerializeImageGeometry(highestResolutionLabelmap);
