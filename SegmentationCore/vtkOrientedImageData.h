@@ -44,6 +44,8 @@ public:
   virtual void ShallowCopy(vtkDataObject *src);
   /// Deep copy
   virtual void DeepCopy(vtkDataObject *src);
+  /// Copy orientation information only
+  virtual void CopyDirections(vtkDataObject *src);
 
 public:
   /// Set directions only

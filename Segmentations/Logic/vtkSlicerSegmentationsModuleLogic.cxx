@@ -1195,6 +1195,11 @@ bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedIm
   // 3. Shrink the image data extent to only contain the effective data (extent of non-zero voxels)
   int effectiveExtent[6] = {0,-1,0,-1,0,-1};
   vtkOrientedImageDataResample::CalculateEffectiveExtent(segmentLabelmap, effectiveExtent);
+  if (effectiveExtent[0] > effectiveExtent[1] || effectiveExtent[2] > effectiveExtent[3] || effectiveExtent[4] > effectiveExtent[5])
+  {
+    vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Effective extent of the labelmap to set is invalid!");
+    return false;
+  }
 
   vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
   padder->SetInputData(segmentLabelmap);

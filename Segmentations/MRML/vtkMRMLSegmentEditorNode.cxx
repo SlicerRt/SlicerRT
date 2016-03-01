@@ -111,6 +111,9 @@ void vtkMRMLSegmentEditorNode::ReadXMLAttributes(const char** atts)
 
   while (*atts != NULL) 
     {
+    attName = *(atts++);
+    attValue = *(atts++);
+
     if (!strcmp(attName, "SelectedSegmentID")) 
       {
       std::stringstream ss;

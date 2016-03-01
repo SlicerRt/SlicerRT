@@ -818,7 +818,7 @@ vtkImageData* vtkMRMLSegmentationNode::GetImageData()
   {
     int oneVoxelExtent[6] = {0,0,0,0,0,0};
     imageData->SetExtent(oneVoxelExtent);
-    imageData->AllocateScalars(VTK_UNSIGNED_CHAR, 4); // Four components to avoid vtkImageMapToColors errors
+    imageData->AllocateScalars(VTK_SHORT, 4); // Four components to avoid vtkImageMapToColors errors
 
     void* imageDataVoxelsPointer = imageData->GetScalarPointerForExtent(oneVoxelExtent);
     if (!imageDataVoxelsPointer)
@@ -1084,6 +1084,12 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
   }
 
   return true;
+}
+
+//---------------------------------------------------------------------------
+bool vtkMRMLSegmentationNode::GenerateMergedLabelmapForAllSegments(vtkImageData* mergedImageData, vtkMatrix4x4* mergedImageToWorldMatrix, vtkOrientedImageData* mergedLabelmapGeometry)
+{
+  return this->GenerateMergedLabelmap(mergedImageData, mergedImageToWorldMatrix, mergedLabelmapGeometry);
 }
 
 //---------------------------------------------------------------------------

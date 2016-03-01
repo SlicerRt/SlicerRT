@@ -38,7 +38,25 @@ class vtkCallbackCommand;
 class vtkMRMLScene;
 class vtkMRMLSubjectHierarchyNode;
 
+/// \brief MRML node containing segmentations
 /// \ingroup Segmentations
+/// 
+/// Segmentation node is a subclass of the LabelMapVolume node, and contains a segmentation object
+/// \sa vtkSegmentation that manages a list of segmented structures (segments). Each segment can
+/// contain multiple data representations for the same structure, which are automatically converted
+/// on request using the cheapest conversion path.
+/// 
+/// The volume contained by the labelmap is the "merged labelmap" of the whole segmentation, which
+/// is generated on request when the segmentation is displayed as a labelmap volume in the slice
+/// views. Although the scalar type of the binary labelmap representations in the segments that are
+/// used for the merged labelmap is unsigned char, the scalar type of the merged labelmap is short.
+/// When merging, the finest resolution found in the segment binary labelmaps is used, and the segments
+/// are "painted" on this merge image one by one, in the order of the segments contained. This may
+/// result in missing information if segments overlap. Merged labelmap is a compatibility feature that
+/// may be removed in the future due to the more advanced 2D displayable manager that can handle
+/// transparency, overlapping, multiple representation types, and display multiple segmentations at the
+/// same time.
+/// 
 class VTK_SLICER_SEGMENTATIONS_MODULE_MRML_EXPORT vtkMRMLSegmentationNode : public vtkMRMLLabelMapVolumeNode
 {
 public:
@@ -118,6 +136,11 @@ public:
   /// \return Success flag
   virtual bool GenerateMergedLabelmap(vtkImageData* mergedImageData, vtkMatrix4x4* mergedImageToWorldMatrix, vtkOrientedImageData* mergedLabelmapGeometry=NULL, const std::vector<std::string>& segmentIDs=std::vector<std::string>());
 //ETX
+
+  /// Python-accessible version of the more generic \sa GenerateMergedLabelmap.
+  /// The last argument specifying the list of segments to be included is omitted, which means that 
+  /// all the segments will be merged.
+  bool GenerateMergedLabelmapForAllSegments(vtkImageData* mergedImageData, vtkMatrix4x4* mergedImageToWorldMatrix, vtkOrientedImageData* mergedLabelmapGeometry);
 
   /// Re-generate displayed merged labelmap
   void ReGenerateDisplayedMergedLabelmap();

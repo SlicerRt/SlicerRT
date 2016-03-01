@@ -151,7 +151,7 @@ void qSlicerSegmentEditorAbstractLabelEffect::editedLabelmapChanged()
   threshold->SetOutValue(0);
   threshold->ReplaceInOn();
   threshold->ThresholdBetween(1, 254);
-  threshold->SetOutputScalarType(VTK_UNSIGNED_CHAR);
+  threshold->SetOutputScalarType(VTK_SHORT);
   threshold->Update();
   maskLabelmap->DeepCopy(threshold->GetOutput());
 

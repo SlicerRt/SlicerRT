@@ -99,7 +99,7 @@ void qSlicerSegmentEditorAbstractIslandEffect::setupOptionsFrame()
   this->addOptionsWidget(d->MinimumSizeSpinBox);
 
   QObject::connect(d->FullyConnectedCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
-  QObject::connect(d->MinimumSizeSpinBox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
+  QObject::connect(d->MinimumSizeSpinBox, SIGNAL(valueChanged(int)), this, SLOT(updateMRMLFromGUI()));
 }
 
 //-----------------------------------------------------------------------------

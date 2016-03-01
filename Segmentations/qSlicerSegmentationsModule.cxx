@@ -173,6 +173,8 @@ void qSlicerSegmentationsModule::setup()
     // Generic effects
     "thresholdEffect = effects.qSlicerSegmentEditorScriptedEffect(None) \n"
     "thresholdEffect.setPythonSource(SegmentEditorThresholdEffect.filePath) \n"
+    "growCutEffect = effects.qSlicerSegmentEditorScriptedEffect(None) \n"
+    "growCutEffect.setPythonSource(SegmentEditorGrowCutEffect.filePath) \n"
     // Label effects
     "drawEffect = effects.qSlicerSegmentEditorScriptedLabelEffect(None) \n"
     "drawEffect.setPythonSource(SegmentEditorDrawEffect.filePath) \n"

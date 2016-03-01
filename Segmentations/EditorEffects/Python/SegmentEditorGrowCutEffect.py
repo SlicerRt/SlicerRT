@@ -32,9 +32,9 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
 
   def helpText(self):
     return "Use this tool to apply grow cut segmentation.\n\n Paint as many different classes as you want on separate segments "
-           "using the standard drawing tools. Each segment in the segmentation is used as an input class.\n"
-           "To run segmentation correctly, you need to supply a minimum or two class labels.\n"
-           "If input class segments overlap, then a segment shown below another in the table will overwrite its values for the GrowCut operation!"
+    "using the standard drawing tools. Each segment in the segmentation is used as an input class.\n"
+    "To run segmentation correctly, you need to supply a minimum or two class labels.\n"
+    "If input class segments overlap, then a segment shown below another in the table will overwrite its values for the GrowCut operation!"
 
   def setupOptionsFrame(self):
     self.applyButton = qt.QPushButton("Apply")
@@ -50,16 +50,17 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
 
   def onApply(self):
     # Get master volume image data
+    import vtkSegmentationCore
     masterImageData = vtkSegmentationCore.vtkOrientedImageData()
     self.scriptedEffect.masterVolumeImageData(masterImageData)
 
     # Check validity of master volume: whether scalar type is supported
     if masterImageData.GetScalarType() != vtk.VTK_SHORT:
-      logging.warning("GrowCut is attempted with image type '{0}', which is not supported!".format(masterImageData.GetScalarTypeAsString()))
-      if not slicer.util.confirmOkCancel("Current image type is '{0}', which is not supported by GrowCut.\n\n"
-                                         "If the segmentation result is not satisfacory, then cast the master image "
-                                         "to 'short' type (using Cast Scalar Volume module"
-                                         .format(masterImageData.GetScalarTypeAsString()), windowTitle='Segment editor'):
+      logging.warning("GrowCut is attempted with image type '{0}', which is not directly supported".format(masterImageData.GetScalarTypeAsString()))
+      if not slicer.util.confirmOkCancelDisplay("Current image type is '{0}', which is not supported by GrowCut. "
+          "The image scalars will be temporarily casted to short.\n\nIf the segmentation result is not satisfacory, "
+          "then it may mean the scalar range of the master image is out of the range covered by short."
+          .format(masterImageData.GetScalarTypeAsString()), windowTitle='Segment editor'):
         logging.warning('GrowCut is cancelled by the user')
         return
 
@@ -71,17 +72,29 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
 
   def growCut(self):
     # Get master volume image data
+    import vtkSegmentationCore
     masterImageData = vtkSegmentationCore.vtkOrientedImageData()
     self.scriptedEffect.masterVolumeImageData(masterImageData)
     # Get segmentation
-    import vtkSegmentationCore
     import vtkSlicerSegmentationsModuleMRML
     segmentationNode = self.scriptedEffect.parameterSetNode().GetSegmentationNode()
+
+    # Cast master image if not short
+    if masterImageData.GetScalarType() != vtk.VTK_SHORT:
+      imageCast = vtk.vtkImageCast()
+      imageCast.SetInputData(masterImageData)
+      imageCast.SetOutputScalarTypeToShort()
+      imageCast.ClampOverflowOn()
+      imageCast.Update()
+      masterImageDataShort = vtkSegmentationCore.vtkOrientedImageData()
+      masterImageDataShort.DeepCopy(imageCast.GetOutput()) # Copy image data
+      masterImageDataShort.CopyDirections(masterImageData) # Copy geometry
+      masterImageData = masterImageDataShort
 
     # Generate merged labelmap as input to GrowCut
     mergedImage = vtk.vtkImageData()
     mergedImageToWorldMatrix = vtk.vtkMatrix4x4()
-    segmentationNode.GenerateMergedLabelmap(mergedImage, mergedImageToWorldMatrix, masterImageData)
+    segmentationNode.GenerateMergedLabelmapForAllSegments(mergedImage, mergedImageToWorldMatrix, masterImageData)
 
     # Perform grow cut
     growCutFilter = vtkITK.vtkITKGrowCutSegmentationImageFilter()
@@ -117,16 +130,17 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
     import vtkSlicerSegmentationsModuleLogic
     segmentIDs = vtk.vtkStringArray()
     segmentationNode.GetSegmentation().GetSegmentIDs(segmentIDs)
-    for index in segmentIDs.GetNumberOfValues():
+    for index in xrange(segmentIDs.GetNumberOfValues()):
       segmentID = segmentIDs.GetValue(index)
       segment = segmentationNode.GetSegmentation().GetSegment(segmentID)
 
       # Get label corresponding to segment in merged labelmap (and so GrowCut output)
+      colorIndexStr = vtk.mutable("")
       tagFound = segment.GetTag(vtkSlicerSegmentationsModuleMRML.vtkMRMLSegmentationDisplayNode.GetColorIndexTag(), colorIndexStr);
       if not tagFound:
         logging.error('Failed to apply GrowCut result on segment ' + segmentID)
         continue
-      colorIndex = int(colorIndexStr)
+      colorIndex = int(colorIndexStr.get())
 
       # Get only the label of the current segment from the output image
       thresh = vtk.vtkImageThreshold()
