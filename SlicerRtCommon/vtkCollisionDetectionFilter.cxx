@@ -521,7 +521,7 @@ int vtkCollisionDetectionFilter::RequestData(
   tmpMatrix->Delete();
 
   vtkDebugMacro(<< "Collision detection finished");
-  this->NumberOfBoxTests = std::abs(BoxTests);
+  this->NumberOfBoxTests = std::abs((int)BoxTests);
   
   // Generate the scalars if needed
   if (GenerateScalars)
