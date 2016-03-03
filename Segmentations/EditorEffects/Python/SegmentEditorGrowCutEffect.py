@@ -96,12 +96,26 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
     mergedImageToWorldMatrix = vtk.vtkMatrix4x4()
     segmentationNode.GenerateMergedLabelmapForAllSegments(mergedImage, mergedImageToWorldMatrix, masterImageData)
 
+    # Make a zero-valued volume for the output
+    outputLabelmap = vtkSegmentationCore.vtkOrientedImageData()
+    thresh = vtk.vtkImageThreshold()
+    thresh.ReplaceInOn()
+    thresh.ReplaceOutOn()
+    thresh.SetInValue(0)
+    thresh.SetOutValue(0)
+    thresh.SetOutputScalarType( vtk.VTK_SHORT )
+    thresh.SetInputData( mergedImage )
+    thresh.SetOutput( outputLabelmap )
+    thresh.Update()
+    outputLabelmap.DeepCopy( mergedImage ) #TODO: It was thresholded just above, why deep copy now?
+
     # Perform grow cut
     growCutFilter = vtkITK.vtkITKGrowCutSegmentationImageFilter()
     growCutFilter.SetInputData( 0, masterImageData )
     growCutFilter.SetInputData( 1, mergedImage )
-    #TODO: This call sets an empty image for the optional "previous segmentation" input at line 188 in EditorLib/GrowCut.py
-    #growCutFilter.SetInputConnection( 2, thresh.GetOutputPort() )
+    #TODO: This call sets an empty image for the optional "previous segmentation", and
+    #      is apparently needed for the first segmentation too. Why?
+    growCutFilter.SetInputConnection( 2, thresh.GetOutputPort() )
 
     #TODO: These are magic numbers inherited from EditorLib/GrowCut.py
     objectSize = 5.
@@ -123,7 +137,6 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
     growCutFilter.SetPriorSegmentConfidence( priorStrength )
     growCutFilter.Update()
 
-    outputLabelmap = vtkSegmentationCore.vtkOrientedImageData()
     outputLabelmap.DeepCopy( growCutFilter.GetOutput() )
 
     # Write output segmentation results in segments

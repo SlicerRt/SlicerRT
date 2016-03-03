@@ -139,23 +139,27 @@ void qSlicerSegmentEditorAbstractLabelEffect::editedLabelmapChanged()
   std::string editedSegmentID(this->parameterSetNode()->GetSelectedSegmentID());
   maskSegmentIDs.erase(std::remove(maskSegmentIDs.begin(), maskSegmentIDs.end(), editedSegmentID), maskSegmentIDs.end());
 
-  // Update mask
-  vtkOrientedImageData* maskLabelmap = this->parameterSetNode()->GetMaskLabelmap();
-  vtkSmartPointer<vtkMatrix4x4> mergedImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  segmentationNode->GenerateMergedLabelmap(maskLabelmap, mergedImageToWorldMatrix, editedLabelmap, maskSegmentIDs);
-  maskLabelmap->SetGeometryFromImageToWorldMatrix(mergedImageToWorldMatrix);
+  // Update mask if edited labelmap is valid
+  int editedLabelmapExtent[6] = {0,-1,0,-1,0,-1};
+  if (editedLabelmapExtent[0] < editedLabelmapExtent[1] &&  editedLabelmapExtent[2] < editedLabelmapExtent[3] && editedLabelmapExtent[4] < editedLabelmapExtent[5])
+  {
+    vtkOrientedImageData* maskLabelmap = this->parameterSetNode()->GetMaskLabelmap();
+    vtkSmartPointer<vtkMatrix4x4> mergedImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    segmentationNode->GenerateMergedLabelmap(maskLabelmap, mergedImageToWorldMatrix, editedLabelmap, maskSegmentIDs);
+    maskLabelmap->SetGeometryFromImageToWorldMatrix(mergedImageToWorldMatrix);
 
-  vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
-  threshold->SetInputData(maskLabelmap);
-  threshold->SetInValue(255);
-  threshold->SetOutValue(0);
-  threshold->ReplaceInOn();
-  threshold->ThresholdBetween(1, 254);
-  threshold->SetOutputScalarType(VTK_SHORT);
-  threshold->Update();
-  maskLabelmap->DeepCopy(threshold->GetOutput());
+    vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
+    threshold->SetInputData(maskLabelmap);
+    threshold->SetInValue(255);
+    threshold->SetOutValue(0);
+    threshold->ReplaceInOn();
+    threshold->ThresholdBetween(1, 254);
+    threshold->SetOutputScalarType(VTK_SHORT);
+    threshold->Update();
+    maskLabelmap->DeepCopy(threshold->GetOutput());
 
-  //TODO: Show mask?
+    //TODO: Show mask?
+  }
 }
 
 //-----------------------------------------------------------------------------

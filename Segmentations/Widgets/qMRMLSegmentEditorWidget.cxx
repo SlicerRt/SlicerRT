@@ -124,7 +124,11 @@ public:
   void selectFirstSegment();
 
   /// Show selected segment in 2D views as fill only, all the others as outline only
+  /// for per-segment effects, otherwise show all segments as fill only
   void showSelectedSegment();
+
+  /// Enable or disable effects and their options based on input selection
+  void updateEffectsEnabled();
 
 public:
   /// Segment editor parameter set node containing all selections and working images
@@ -197,7 +201,6 @@ void qMRMLSegmentEditorWidgetPrivate::init()
   QObject::connect( this->AddSegmentButton, SIGNAL(clicked()), q, SLOT(onAddSegment()) );
   QObject::connect( this->RemoveSegmentButton, SIGNAL(clicked()), q, SLOT(onRemoveSegment()) );
   QObject::connect( qSlicerApplication::application()->layoutManager(), SIGNAL(layoutChanged(int)), q, SLOT(onLayoutChanged(int)) );
-  
   
   // Widget properties
   this->SegmentsTableView->setMode(qMRMLSegmentsTableView::EditorMode);
@@ -442,11 +445,13 @@ void qMRMLSegmentEditorWidgetPrivate::showSelectedSegment()
   std::string selectedSegmentId(this->ParameterSetNode->GetSelectedSegmentID() ? this->ParameterSetNode->GetSelectedSegmentID() : "");
 
   // Show fill for selected segment, outline of all other segments
+  // if per-segment effect is selected, otherwise show all as fill
   vtkSegmentation::SegmentMap segmentMap = segmentationNode->GetSegmentation()->GetSegments();
   for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
   {
     std::string currentSegmentId(segmentIt->first);
-    if (!currentSegmentId.compare(selectedSegmentId))
+    if ( (!currentSegmentId.empty() && !currentSegmentId.compare(selectedSegmentId))
+      || (this->ActiveEffect && !this->ActiveEffect->perSegment()) )
     {
       displayNode->SetSegmentVisibility2DFill(currentSegmentId, true);
       displayNode->SetSegmentVisibility2DOutline(currentSegmentId, false);
@@ -456,6 +461,38 @@ void qMRMLSegmentEditorWidgetPrivate::showSelectedSegment()
       displayNode->SetSegmentVisibility2DFill(currentSegmentId, false);
       displayNode->SetSegmentVisibility2DOutline(currentSegmentId, true);
     }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidgetPrivate::updateEffectsEnabled()
+{
+  if (!this->ParameterSetNode)
+  {
+    qCritical() << "qMRMLSegmentEditorWidgetPrivate::updateEffectsEnabled: Invalid segment editor parameter set node!";
+    return;
+  }
+  
+  // Disable effect selection and options altogether if no master volume is selected
+  bool masterVolumeSelected = this->ParameterSetNode->GetMasterVolumeNode();
+  this->EffectsGroupBox->setEnabled(masterVolumeSelected);
+  this->OptionsGroupBox->setEnabled(masterVolumeSelected);
+
+  // Enable only non-per-segment effects if no segment is selected, otherwise enable all effects
+  QString selectedSegmentID(this->ParameterSetNode->GetSelectedSegmentID());
+  bool segmentSelected = !selectedSegmentID.isEmpty();
+  QList<QAbstractButton*> effectButtons = this->EffectButtonGroup.buttons();
+  foreach (QAbstractButton* effectButton, effectButtons)
+  {
+    qSlicerSegmentEditorAbstractEffect* effect = qobject_cast<qSlicerSegmentEditorAbstractEffect*>(
+      effectButton->property("Effect").value<QObject*>() );
+    if (!effect)
+    {
+      qCritical() << "qMRMLSegmentEditorWidgetPrivate::updateEffectsEnabled: Failed to get effect from effect button " << effectButton->objectName();
+      continue;
+    }
+
+    effectButton->setEnabled(segmentSelected || !effect->perSegment());
   }
 }
 
@@ -570,6 +607,19 @@ void qMRMLSegmentEditorWidget::setActiveEffect(qSlicerSegmentEditorAbstractEffec
       qMRMLThreeDWidget* threeDWidget = layoutManager->threeDWidget(threeDViewId);
       threeDWidget->setCursor(effect->createCursor(threeDWidget));
     }
+
+    // If selected effect is not per-segment, then clear segment selection
+    // and prevent selection until a per-segment one is selected
+    if (!effect->perSegment())
+    {
+      // Clear selection
+      d->SegmentsTableView->clearSelection();
+    }
+    else if (d->ActiveEffect && !d->ActiveEffect->perSegment())
+    {
+      // Select first segment if previous effect was not per-segment
+      d->selectFirstSegment();
+    }
   }
   else
   {
@@ -601,7 +651,11 @@ void qMRMLSegmentEditorWidget::setActiveEffect(qSlicerSegmentEditorAbstractEffec
     }
   }
 
+  // Set active effect
   d->ActiveEffect = effect;
+
+  // Make sure the selected segment is properly shown based on selections
+  d->showSelectedSegment();
 }
 
 //-----------------------------------------------------------------------------
@@ -848,7 +902,7 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
         vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() );
     }
 
-    // Select first segment
+    // Select first segment to enable all effects (including per-segment ones)
     d->selectFirstSegment();
   }
   else
@@ -913,12 +967,17 @@ void qMRMLSegmentEditorWidget::onSegmentSelectionChanged(const QItemSelection &s
   else
   {
     d->ParameterSetNode->SetSelectedSegmentID(selectedSegmentID.toLatin1().constData());
+
+    // Also de-select current effect if it is not per-segment
+    if (d->ActiveEffect && !d->ActiveEffect->perSegment())
+    {
+      this->setActiveEffect(NULL);
+    }
   }
   d->ParameterSetNode->DisableModifiedEventOff();
   
   // Disable editing if no segment is selected
-  d->EffectsGroupBox->setEnabled(!selectedSegmentID.isEmpty());
-  d->OptionsGroupBox->setEnabled(!selectedSegmentID.isEmpty());
+  d->updateEffectsEnabled();
 
   // Only enable remove button if a segment is selected
   d->RemoveSegmentButton->setEnabled(!selectedSegmentID.isEmpty());
@@ -927,7 +986,8 @@ void qMRMLSegmentEditorWidget::onSegmentSelectionChanged(const QItemSelection &s
   d->createEditedLabelmapFromSelectedSegment();
   d->notifyEffectsOfEditedLabelmapChange();
 
-  // Show selected segment as fill only, all the others as outline only
+  // Show selected segment as fill only, all the others as outline only for per-segment effects,
+  // otherwise show all segments as fill only
   d->showSelectedSegment();
 }
 
@@ -946,24 +1006,13 @@ void qMRMLSegmentEditorWidget::onMasterVolumeNodeChanged(vtkMRMLNode* node)
     return;
   }
 
-  // Disable editing if no master volume node is set:
-  // master volume determines the extent of editing, so even though the segmentation is valid
-  // without a master volume, editing is not possible until it is selected.
-  d->EffectsGroupBox->setEnabled(node);
-  d->OptionsGroupBox->setEnabled(node);
-  d->AddSegmentButton->setEnabled(node);
-  if (!node)
-  {
-    this->setActiveEffect(NULL);
-    return;
-  }
-
   // Cannot set master volume if no segmentation node is selected
   vtkMRMLSegmentationNode* segmentationNode = d->ParameterSetNode->GetSegmentationNode();
   if (!segmentationNode)
   {
     return;
   }
+
   // Set master volume to parameter set node
   vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
   if (d->ParameterSetNode->GetMasterVolumeNode() != volumeNode)
@@ -976,9 +1025,21 @@ void qMRMLSegmentEditorWidget::onMasterVolumeNodeChanged(vtkMRMLNode* node)
     d->notifyEffectsOfMasterVolumeNodeChange();
   }
 
-  // Disable adding new segments until master volume is set:
+  // Disable editing if no master volume node is set:
+  // master volume determines the extent of editing, so even though the segmentation is valid
+  // without a master volume, editing is not possible until it is selected.
+  d->updateEffectsEnabled();
+
+  // Also disable adding new segments until master volume is set:
   // It defines the geometry of the labelmaps of the new segments
   d->AddSegmentButton->setEnabled(volumeNode);
+
+  // Nothing else to do if no master volume is selected
+  if (!volumeNode)
+  {
+    this->setActiveEffect(NULL);
+    return;
+  }
 
   // Set reference image connection and conversion parameter in selected segmentation
   if (segmentationNode->GetNodeReference(vtkMRMLSegmentationNode::GetReferenceImageGeometryReferenceRole().c_str()) != volumeNode)
