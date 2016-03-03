@@ -215,6 +215,22 @@ void qSlicerSegmentEditorAbstractEffect::apply()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::connectSelectEffect(QObject* receiver, const char* method)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  // Connect apply signal to commit changes to selected segment
+  QObject::connect(d, SIGNAL(selectEffectSignal(QString)), receiver, method);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::selectEffect(QString effectName)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+  emit d->selectEffectSignal(effectName);
+}
+
+//-----------------------------------------------------------------------------
 QCursor qSlicerSegmentEditorAbstractEffect::createCursor(qMRMLWidget* viewWidget)
 {
   Q_UNUSED(viewWidget); // The default cursor is not view-specific, but this method can be overridden

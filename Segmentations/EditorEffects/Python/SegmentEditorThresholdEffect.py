@@ -174,13 +174,12 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
       logging.error('apply: Failed to threshold master volume!')
       pass
 
-    # De-select effect
-    #TODO: Needed?
-    #self.defaultEffect()
-
     # Notify editor about changes.
     # This needs to be called so that the changes are written back to the edited segment
     self.scriptedEffect.apply()
+    
+    # De-select effect
+    self.scriptedEffect.selectEffect("")
 
   def setupPreviewDisplay(self):
     # Clear previous pipelines before setting up the new ones

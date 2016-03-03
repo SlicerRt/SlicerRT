@@ -292,6 +292,8 @@ void qMRMLSegmentEditorWidgetPrivate::initializeEffect(qSlicerSegmentEditorAbstr
 
   // Connect effect apply signal to commit changes to selected segment
   effect->connectApply(q, SLOT(applyChangesToSelectedSegment()));
+  // Connect effect signal that allows initiating effect selection
+  effect->connectSelectEffect(q, SLOT(setActiveEffectByName(QString)));
 
   // Add effect options frame to the options widget and hide them
   effect->setupOptionsFrame();
@@ -431,7 +433,6 @@ void qMRMLSegmentEditorWidgetPrivate::showSelectedSegment()
   vtkMRMLSegmentationNode* segmentationNode = this->ParameterSetNode->GetSegmentationNode();
   if (!segmentationNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidgetPrivate::showSelectedSegment: Invalid segmentation node!";
     return;
   }
   vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
@@ -529,7 +530,12 @@ void qMRMLSegmentEditorWidget::updateWidgetFromMRML()
 
   // Restore selections
   vtkMRMLSegmentationNode* segmentationNode = d->ParameterSetNode->GetSegmentationNode();
+  d->MRMLNodeComboBox_Segmentation->blockSignals(true);
   d->MRMLNodeComboBox_Segmentation->setCurrentNode(segmentationNode);
+  d->MRMLNodeComboBox_Segmentation->blockSignals(false);
+  // Make sure handler method is called
+  // (even if the same node is selected, hence the blockSignal calls above to prevent double call)
+  this->onSegmentationNodeChanged(segmentationNode);
 
   vtkMRMLScalarVolumeNode* masterVolumeNode = d->ParameterSetNode->GetMasterVolumeNode();
   d->MRMLNodeComboBox_MasterVolume->setCurrentNode(masterVolumeNode);
@@ -1438,6 +1444,13 @@ void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
   {
     qCritical() << "qMRMLSegmentEditorWidget::applyChangesToSelectedSegment: Failed to set edited labelmap to selected segment!";
   }
+}
+
+//---------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::setActiveEffectByName(QString effectName)
+{
+  qSlicerSegmentEditorAbstractEffect* effect = this->effectByName(effectName);
+  this->setActiveEffect(effect);
 }
 
 //---------------------------------------------------------------------------

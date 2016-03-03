@@ -133,6 +133,9 @@ public slots:
   /// Called when effect sub-classes emit the signal \sa qSlicerSegmentEditorAbstractEffect::apply()
   void applyChangesToSelectedSegment();
 
+  /// Set active effect by name
+  Q_INVOKABLE void setActiveEffectByName(QString effectName);
+
 protected slots:
   /// Handles changing of current segmentation MRML node
   Q_INVOKABLE void onSegmentationNodeChanged(vtkMRMLNode* node);

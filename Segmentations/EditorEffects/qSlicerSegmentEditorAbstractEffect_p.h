@@ -61,9 +61,9 @@ protected:
 public:
   qSlicerSegmentEditorAbstractEffectPrivate(qSlicerSegmentEditorAbstractEffect& object);
   ~qSlicerSegmentEditorAbstractEffectPrivate();
-  void emitApplySignal() { emit applySignal(); };
 signals:
   void applySignal();
+  void selectEffectSignal(QString);
 public:
   /// Segment editor parameter set node
   vtkWeakPointer<vtkMRMLSegmentEditorNode> ParameterSetNode;

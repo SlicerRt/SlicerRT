@@ -176,9 +176,14 @@ public:
   /// Restore saved cursor
   Q_INVOKABLE void cursorOn(qMRMLWidget* viewWidget);
 
-  /// Connect signal that is emitted when the edited labelmap is to be applied to the currently
-  /// edited segment.
+  /// Emit signal that causes active effect to be changed to the specified one.
+  /// If the effect name is empty, then the active effect is de-selected.
+  Q_INVOKABLE void selectEffect(QString effectName);
+
+  /// Connect signal that is emitted when the edited labelmap is to be applied to the currently edited segment.
   void connectApply(QObject* receiver, const char* method);
+  /// Connect signal that can be emitted from the active effect to initiate switching to another effect (or de-select)
+  void connectSelectEffect(QObject* receiver, const char* method);
 
 // Effect parameter functions
 public:
