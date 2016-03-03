@@ -514,14 +514,14 @@ int vtkCollisionDetectionFilter::RequestData(
 
 
   // Do the collision detection...
-  vtkIdType BoxTests = 
+  int boxTests = 
     tree0->IntersectWithOBBTree(tree1,  matrix, ComputeCollisions, this);
 
   matrix->Delete();
   tmpMatrix->Delete();
 
   vtkDebugMacro(<< "Collision detection finished");
-  this->NumberOfBoxTests = std::abs((int)BoxTests);
+  this->NumberOfBoxTests = std::abs(boxTests);
   
   // Generate the scalars if needed
   if (GenerateScalars)
