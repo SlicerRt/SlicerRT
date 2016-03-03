@@ -196,9 +196,13 @@ protected:
   /// Forwards event from the node.
   static void OnSegmentModified(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
 
-  /// Callback function observing representation modified events.
+  /// Callback function observing representation created events.
   /// Forwards event from the node.
   static void OnRepresentationCreated(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
+
+  /// Callback function observing representation removed events.
+  /// Forwards event from the node.
+  static void OnRepresentationRemoved(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
 
 protected:
   vtkMRMLSegmentationNode();
@@ -226,6 +230,9 @@ protected:
 
   /// Command handling representation created event
   vtkCallbackCommand* RepresentationCreatedCallbackCommand;
+
+  /// Command handling representation removed event
+  vtkCallbackCommand* RepresentationRemovedCallbackCommand;
 };
 
 #endif // __vtkMRMLSegmentationNode_h

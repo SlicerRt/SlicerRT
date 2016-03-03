@@ -907,6 +907,18 @@ bool vtkSegmentation::CreateRepresentation(const std::string& targetRepresentati
 }
 
 //---------------------------------------------------------------------------
+void vtkSegmentation::RemoveRepresentation(const std::string& representationName)
+{
+  for (SegmentMap::iterator segmentIt = this->Segments.begin(); segmentIt != this->Segments.end(); ++segmentIt)
+  {
+    segmentIt->second->RemoveRepresentation(representationName);
+  }
+
+  const char* representationNameChars = representationName.c_str();
+  this->InvokeEvent(vtkSegmentation::RepresentationRemoved, (void*)representationNameChars);
+}
+
+//---------------------------------------------------------------------------
 vtkDataObject* vtkSegmentation::GetSegmentRepresentation(std::string segmentId, std::string representationName)
 {
   vtkSegment* segment = this->GetSegment(segmentId);

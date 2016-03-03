@@ -200,13 +200,14 @@ void qMRMLSegmentEditorWidgetPrivate::init()
     q, SLOT(onSegmentSelectionChanged(QItemSelection,QItemSelection)) );
   QObject::connect( this->AddSegmentButton, SIGNAL(clicked()), q, SLOT(onAddSegment()) );
   QObject::connect( this->RemoveSegmentButton, SIGNAL(clicked()), q, SLOT(onRemoveSegment()) );
+  QObject::connect( this->CreateSurfaceButton, SIGNAL(toggled(bool)), q, SLOT(onCreateSurfaceToggled(bool)) );
   QObject::connect( qSlicerApplication::application()->layoutManager(), SIGNAL(layoutChanged(int)), q, SLOT(onLayoutChanged(int)) );
   
   // Widget properties
   this->SegmentsTableView->setMode(qMRMLSegmentsTableView::EditorMode);
   this->AddSegmentButton->setEnabled(false);
   this->RemoveSegmentButton->setEnabled(false);
-  this->MakeModelButton->setVisible(false);
+  this->CreateSurfaceButton->setEnabled(false);
   this->EffectsGroupBox->setEnabled(false);
   this->OptionsGroupBox->setEnabled(false);
 
@@ -817,8 +818,9 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     return;
   }
 
-  // Only enable master volume combobox if segmentation selection is valid
+  // Only enable master volume combobox and create surface action if segmentation selection is valid
   d->MRMLNodeComboBox_MasterVolume->setEnabled(node);
+  d->CreateSurfaceButton->setEnabled(node);
 
   // Save segmentation node selection
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(node);
@@ -828,6 +830,18 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     d->ParameterSetNode->DisableModifiedEventOn();
     d->ParameterSetNode->SetAndObserveSegmentationNode(segmentationNode);
     d->ParameterSetNode->DisableModifiedEventOff();
+
+    // Connect events needed to update closed surface button
+    qvtkReconnect( currentSegmentationNode, segmentationNode, vtkSegmentation::RepresentationCreated,
+                   this, SLOT( updateCreateSurfaceButton() ) );
+    qvtkReconnect( currentSegmentationNode, segmentationNode, vtkSegmentation::RepresentationRemoved,
+                   this, SLOT( updateCreateSurfaceButton() ) );
+    qvtkReconnect( currentSegmentationNode, segmentationNode, vtkSegmentation::SegmentAdded,
+                   this, SLOT( updateCreateSurfaceButton() ) );
+    qvtkReconnect( currentSegmentationNode, segmentationNode, vtkSegmentation::SegmentRemoved,
+                   this, SLOT( updateCreateSurfaceButton() ) );
+    // Update closed surface button with new segmentation
+    this->updateCreateSurfaceButton();
   }
 
   // The below functions only apply to valid segmentation node selection
@@ -846,11 +860,19 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
   d->MRMLNodeComboBox_MasterVolume->blockSignals(false);
   this->onMasterVolumeNodeChanged(referenceVolumeNode);
 
+  // Make sure there is a display node and get it
+  segmentationNode->CreateDefaultDisplayNodes();
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
+    segmentationNode->GetDisplayNode());
   // Remember whether closed surface is present so that it can be re-converted later if necessary
   bool closedSurfacePresent = segmentationNode->GetSegmentation()->ContainsRepresentation(
     vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
-  // Hide make model button if closed surface already exists
-  d->MakeModelButton->setVisible(!closedSurfacePresent && segmentationNode->GetSegmentation()->GetNumberOfSegments());
+  // Show closed surface in 3D if present
+  if (closedSurfacePresent)
+  {
+    displayNode->SetPreferredDisplayRepresentationName3D(
+      vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
+  }
 
   // Representation related operations
   if (segmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
@@ -900,8 +922,6 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     }
 
     // Show binary labelmap in 2D
-    vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
-      segmentationNode->GetDisplayNode());
     if (displayNode)
     {
       displayNode->SetPreferredDisplayRepresentationName2D(
@@ -916,12 +936,6 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     // If segmentation contains no segments, then set binary labelmap as master by default
     segmentationNode->GetSegmentation()->SetMasterRepresentationName(
       vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() );
-  }
-
-  // Create display node and properties if absent
-  if (!segmentationNode->GetDisplayNode())
-  {
-    segmentationNode->CreateDefaultDisplayNodes();
   }
 
   // Set label layer to empty, because edit actor will be shown in the slice views during editing
@@ -1158,13 +1172,64 @@ void qMRMLSegmentEditorWidget::onRemoveSegment()
 }
 
 //-----------------------------------------------------------------------------
-void qMRMLSegmentEditorWidget::onMakeModel()
+void qMRMLSegmentEditorWidget::onCreateSurfaceToggled(bool on)
 {
   Q_D(qMRMLSegmentEditorWidget);
 
   if (!d->ParameterSetNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::onMakeModel: Invalid segment editor parameter set node!";
+    qCritical() << "qMRMLSegmentEditorWidget::onCreateSurfaceToggled: Invalid segment editor parameter set node!";
+    return;
+  }
+
+  vtkMRMLSegmentationNode* segmentationNode = d->ParameterSetNode->GetSegmentationNode();
+  if (!segmentationNode)
+  {
+    return;
+  }
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
+    segmentationNode->GetDisplayNode());
+  if (!displayNode)
+  {
+    return;
+  }
+
+  // If just have been checked, then create closed surface representation and show it
+  if (on)
+  {
+    // Make sure closed surface representation exists
+    if (segmentationNode->GetSegmentation()->CreateRepresentation(
+      vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() ))
+    {
+      // Set closed surface as displayed poly data representation
+      displayNode->SetPreferredDisplayRepresentationName3D(
+        vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
+      // But keep binary labelmap for 2D
+      displayNode->SetPreferredDisplayRepresentationName2D(
+        vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() );
+    }
+  }
+  // If unchecked, then remove representation
+  else
+  {
+    segmentationNode->GetSegmentation()->RemoveRepresentation(
+      vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
+
+    // Trigger display update
+    displayNode->Modified();
+  }
+}
+
+//---------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::updateCreateSurfaceButton()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+
+  d->CreateSurfaceButton->setEnabled(false);
+
+  if (!d->ParameterSetNode)
+  {
+    qCritical() << "qMRMLSegmentEditorWidget::updateCreateSurfaceButton: Invalid segment editor parameter set node!";
     return;
   }
 
@@ -1174,22 +1239,15 @@ void qMRMLSegmentEditorWidget::onMakeModel()
     return;
   }
 
-  // Make sure closed surface representation exists
-  if (segmentationNode->GetSegmentation()->CreateRepresentation(
-    vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() ))
-  {
-    // Hide button if conversion successful
-    d->MakeModelButton->setVisible(false);
+  // Enable button if there is at least one segment in the segmentation
+  d->CreateSurfaceButton->setEnabled(segmentationNode->GetSegmentation()->GetNumberOfSegments());
 
-    // Set closed surface as displayed poly data representation
-    vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
-      segmentationNode->GetDisplayNode());
-    if (displayNode)
-    {
-      displayNode->SetPreferredDisplayRepresentationName3D(
-        vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
-    }
-  }
+  // Change button state based on whether it contains closed surface representation
+  bool closedSurfacePresent = segmentationNode->GetSegmentation()->ContainsRepresentation(
+    vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() );
+  d->CreateSurfaceButton->blockSignals(true);
+  d->CreateSurfaceButton->setChecked(closedSurfacePresent);
+  d->CreateSurfaceButton->blockSignals(false);
 }
 
 //---------------------------------------------------------------------------

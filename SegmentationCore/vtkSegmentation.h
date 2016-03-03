@@ -56,8 +56,10 @@ public:
     SegmentRemoved,
     /// Fired if segment is modified
     SegmentModified,
-    /// Fired if representations are created on conversion
-    RepresentationCreated
+    /// Fired if a representation is created on conversion
+    RepresentationCreated,
+    /// Fired if a representation is removed
+    RepresentationRemoved
   };
 
   /// Container type for segments. Maps segment IDs to segment objects
@@ -211,6 +213,9 @@ public:
   bool CreateRepresentation(const std::string& targetRepresentationName,
                             vtkSegmentationConverter::ConversionPathType path,
                             vtkSegmentationConverterRule::ConversionParameterListType parameters);
+
+  /// Removes a representation from all segments if present
+  void RemoveRepresentation(const std::string& representationName);
 
   /// Determine if the segmentation is ready to accept a certain type of representation
   /// by copy/move or import. It can accept a representation if it is the master representation

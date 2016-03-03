@@ -122,6 +122,8 @@ void qMRMLSegmentationRepresentationsListView::setSegmentationNode(vtkMRMLNode* 
                  this, SLOT( populateRepresentationsList() ) );
   qvtkReconnect( d->SegmentationNode, segmentationNode, vtkSegmentation::RepresentationCreated,
                  this, SLOT( populateRepresentationsList() ) );
+  qvtkReconnect( d->SegmentationNode, segmentationNode, vtkSegmentation::RepresentationRemoved,
+                 this, SLOT( populateRepresentationsList() ) );
   qvtkReconnect( d->SegmentationNode, segmentationNode, vtkSegmentation::SegmentModified,
                  this, SLOT( populateRepresentationsList() ) );
   qvtkReconnect( d->SegmentationNode, segmentationNode, vtkSegmentation::SegmentAdded,

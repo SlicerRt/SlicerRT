@@ -185,8 +185,11 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     # Clear previous pipelines before setting up the new ones
     self.previewPipelines = {}
 
-    # Add a pipeline for each 2D slice view
     layoutManager = slicer.app.layoutManager()
+    if layoutManager is None:
+      return
+
+    # Add a pipeline for each 2D slice view
     for sliceViewName in layoutManager.sliceViewNames():
       sliceWidget = layoutManager.sliceWidget(sliceViewName)
       renderer = self.scriptedEffect.renderer(sliceWidget)

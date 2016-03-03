@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>312</width>
+    <width>326</width>
     <height>268</height>
    </rect>
   </property>
@@ -102,26 +102,29 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="MakeModelButton">
+      <widget class="QPushButton" name="CreateSurfaceButton">
        <property name="minimumSize">
         <size>
-         <width>90</width>
+         <width>104</width>
          <height>0</height>
         </size>
        </property>
        <property name="text">
-        <string>Make model</string>
+        <string>Create surface</string>
        </property>
        <property name="icon">
         <iconset resource="../qSlicerSegmentationsModuleWidgets.qrc">
          <normaloff>:/Icons/MakeModel.png</normaloff>:/Icons/MakeModel.png</iconset>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
     </layout>
    </item>
    <item>
-    <widget class="qMRMLSegmentsTableView" name="SegmentsTableView"/>
+    <widget class="qMRMLSegmentsTableView" name="SegmentsTableView" native="true"/>
    </item>
    <item>
     <widget class="QGroupBox" name="EffectsGroupBox">

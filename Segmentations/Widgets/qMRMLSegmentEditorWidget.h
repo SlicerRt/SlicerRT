@@ -151,8 +151,10 @@ protected slots:
   void onAddSegment();
   /// Remove selected segment
   void onRemoveSegment();
-  /// Make closed surface model for the segmentation that is automatically updated when editing
-  void onMakeModel();
+  /// Create/remove closed surface model for the segmentation that is automatically updated when editing
+  void onCreateSurfaceToggled(bool on);
+  /// Update state of create surface button. Called if representation is created or removed
+  void updateCreateSurfaceButton();
   /// Handle layout changes
   void onLayoutChanged(int layoutIndex);
 
