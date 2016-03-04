@@ -148,7 +148,7 @@ public:
 
   /// Structure containing necessary objects for each slice and 3D view handling interactions
   QList<SegmentEditorInteractionEventInfo*> InteractionCallbackEventInfos;
-  
+
   /// Button group for the effects
   QButtonGroup EffectButtonGroup;
 };
@@ -201,8 +201,7 @@ void qMRMLSegmentEditorWidgetPrivate::init()
   QObject::connect( this->AddSegmentButton, SIGNAL(clicked()), q, SLOT(onAddSegment()) );
   QObject::connect( this->RemoveSegmentButton, SIGNAL(clicked()), q, SLOT(onRemoveSegment()) );
   QObject::connect( this->CreateSurfaceButton, SIGNAL(toggled(bool)), q, SLOT(onCreateSurfaceToggled(bool)) );
-  QObject::connect( qSlicerApplication::application()->layoutManager(), SIGNAL(layoutChanged(int)), q, SLOT(onLayoutChanged(int)) );
-  
+
   // Widget properties
   this->SegmentsTableView->setMode(qMRMLSegmentsTableView::EditorMode);
   this->AddSegmentButton->setEnabled(false);
@@ -676,6 +675,9 @@ void qMRMLSegmentEditorWidget::setMRMLScene(vtkMRMLScene* newScene)
   }
 
   Superclass::setMRMLScene(newScene);
+
+  // Make connections that depend on the Slicer application
+  QObject::connect( qSlicerApplication::application()->layoutManager(), SIGNAL(layoutChanged(int)), this, SLOT(onLayoutChanged(int)) );
 
   // Update UI
   this->updateWidgetFromMRML();
