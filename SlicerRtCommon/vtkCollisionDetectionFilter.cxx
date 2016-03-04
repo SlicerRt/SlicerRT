@@ -13,6 +13,7 @@
      PURPOSE.
 
 =========================================================================*/
+#include <cstdlib>
 #include "vtkCollisionDetectionFilter.h"
 #include "vtkObjectFactory.h"
 #include "vtkOBBTree.h"
