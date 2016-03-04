@@ -37,9 +37,13 @@
 // Qt includes
 #include <QStringList>
 #include <QDebug>
+#include <QToolButton>
+#include <QAction>
 
 // qMRML includes
 #include "qMRMLItemDelegate.h"
+
+#define ID_PROPERTY "ID"
 
 //-----------------------------------------------------------------------------
 class qMRMLSegmentsTableViewPrivate: public Ui_qMRMLSegmentsTableView
@@ -92,15 +96,13 @@ void qMRMLSegmentsTableViewPrivate::init()
   this->setMessage(QString());
 
   // Set table header properties
-  this->ColumnLabels << "Visible3D" << "Visible2DFill" << "Visible2DOutline" << "Color" << "Opacity" << "Name";
+  this->ColumnLabels << "Visible" << "Color" << "Opacity" << "Name";
+  this->SegmentsTable->setHorizontalHeaderLabels(
+    QStringList() << "" << "Color" << "Opacity" << "Name" );
   this->SegmentsTable->setColumnCount(this->ColumnLabels.size());
 
   this->SegmentsTable->horizontalHeaderItem(
-    this->columnIndex("Visible3D"))->setIcon(QIcon(":/Icons/Small/SlicerModels.png") );
-  this->SegmentsTable->horizontalHeaderItem(
-    this->columnIndex("Visible2DFill"))->setIcon(QIcon(":/Icons/SlicesLabelNoOutline.png") );
-  this->SegmentsTable->horizontalHeaderItem(
-    this->columnIndex("Visible2DOutline"))->setIcon(QIcon(":/Icons/SlicesLabelOutline.png") );
+    this->columnIndex("Visible"))->setIcon(QIcon(":/Icons/Small/SlicerVisibleInvisible.png") );
 
   this->SegmentsTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
   this->SegmentsTable->horizontalHeader()->setStretchLastSection(1);
@@ -115,8 +117,6 @@ void qMRMLSegmentsTableViewPrivate::init()
                    q, SLOT(onSegmentTableItemClicked(QTableWidgetItem*)));
   QObject::connect(this->SegmentsTable->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
                    q, SIGNAL(selectionChanged(QItemSelection,QItemSelection)));
-  QObject::connect(this->SegmentsTable->horizontalHeader(), SIGNAL(sectionClicked(int)),
-                   q, SLOT(onHeaderSectionClicked(int)) );
 
   // Set item delegate to handle color and opacity changes
   qMRMLItemDelegate* itemDelegate = new qMRMLItemDelegate(this->SegmentsTable);
@@ -129,10 +129,10 @@ void qMRMLSegmentsTableViewPrivate::init()
 int qMRMLSegmentsTableViewPrivate::columnIndex(QString label)
 {
   if (!this->ColumnLabels.contains(label))
-  {
+    {
     qCritical() << "qMRMLSegmentsTableViewPrivate::columnIndex: Invalid column label!";
     return -1;
-  }
+    }
   return this->ColumnLabels.indexOf(label);
 }
 
@@ -148,13 +148,13 @@ QTableWidgetItem* qMRMLSegmentsTableViewPrivate::findItemBySegmentID(QString seg
 {
   Q_Q(qMRMLSegmentsTableView);
   for (int row=0; row<this->SegmentsTable->rowCount(); ++row)
-  {
+    {
     QTableWidgetItem* item = this->SegmentsTable->item(row, this->columnIndex("Name"));
     if (!item->data(q->IDRole).toString().compare(segmentID))
-    {
+      {
       return item;
+      }
     }
-  }
 
   return NULL;
 }
@@ -191,9 +191,9 @@ void qMRMLSegmentsTableView::setSegmentationNode(vtkMRMLNode* node)
 
   // Clear representation node if segmentation node is valid
   if (segmentationNode)
-  {
+    {
     this->setRepresentationNode(NULL);
-  }
+    }
 
   // Connect display modified event to population of the table
   qvtkReconnect( d->SegmentationNode, segmentationNode, vtkMRMLDisplayableNode::DisplayModifiedEvent,
@@ -221,9 +221,9 @@ void qMRMLSegmentsTableView::setRepresentationNode(vtkMRMLNode* node)
 
   // Clear segmentation node if representation node is valid
   if (labelmapNode || modelNode)
-  {
+    {
     this->setSegmentationNode(NULL);
-  }
+    }
 
   d->RepresentationNode = (labelmapNode ? (vtkMRMLDisplayableNode*)labelmapNode : (vtkMRMLDisplayableNode*)modelNode);
   this->populateSegmentTable();
@@ -262,9 +262,7 @@ void qMRMLSegmentsTableView::setMode(SegmentTableMode mode)
     {
     d->SegmentsTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible3D"), false);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DFill"), false);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DOutline"), false);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), false);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), false);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), false);
     }
@@ -273,9 +271,7 @@ void qMRMLSegmentsTableView::setMode(SegmentTableMode mode)
     d->SegmentsTable->horizontalHeader()->setVisible(false);
     d->SegmentsTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible3D"), true);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DFill"), true);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DOutline"), true);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), true);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), true);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), true);
     }
@@ -284,9 +280,7 @@ void qMRMLSegmentsTableView::setMode(SegmentTableMode mode)
     d->SegmentsTable->horizontalHeader()->setVisible(false);
     d->SegmentsTable->setSelectionMode(QAbstractItemView::NoSelection);
 
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible3D"), true);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DFill"), true);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DOutline"), true);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), true);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), true);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), true);
     }
@@ -295,9 +289,7 @@ void qMRMLSegmentsTableView::setMode(SegmentTableMode mode)
     d->SegmentsTable->horizontalHeader()->setVisible(true);
     d->SegmentsTable->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible3D"), true);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DFill"), true);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible2DOutline"), true);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), true);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), false);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), true);
     }
@@ -329,13 +321,13 @@ void qMRMLSegmentsTableView::populateSegmentTable()
 
   // Show node name and type if representation node
   if (d->RepresentationNode)
-  {
+    {
     // Force simple list mode
     if (d->Mode != RepresentationMode)
-    {
+      {
       qWarning() << "qMRMLSegmentsTableView::populateSegmentTable: Representation node is selected, but mode is not representation mode! Setting to representation mode.";
       this->setMode(RepresentationMode);
-    }
+      }
 
     d->SegmentsTable->setRowCount(1);
     d->SegmentsTable->setRowHeight(0, 52);
@@ -351,7 +343,7 @@ void qMRMLSegmentsTableView::populateSegmentTable()
 
     d->SegmentsTable->blockSignals(false);
     return;
-  }
+    }
 
   // If not representation, then segmentation must be selected. Check validity
   if (!d->SegmentationNode)
@@ -373,16 +365,16 @@ void qMRMLSegmentsTableView::populateSegmentTable()
   vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
     d->SegmentationNode->GetDisplayNode() );
   if (!displayNode)
-  {
+    {
     qCritical() << "qMRMLSegmentsTableView::populateSegmentTable: No display node for segmentation!";
     return;
-  }
+    }
 
   vtkSegmentation::SegmentMap segmentMap = d->SegmentationNode->GetSegmentation()->GetSegments();
   d->SegmentsTable->setRowCount(segmentMap.size());
   int row = 0;
   for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt, ++row)
-  {
+    {
     QString segmentId(segmentIt->first.c_str());
 
     // Row height is smaller than default (which is 30)
@@ -401,59 +393,47 @@ void qMRMLSegmentsTableView::populateSegmentTable()
       continue;
       }
 
-    // Visibility 3D
-    QTableWidgetItem* visibility3DItem = new QTableWidgetItem();
-    visibility3DItem->setData(VisibilityRole, QVariant(properties.Visible3D));
-    visibility3DItem->setData(IDRole, segmentId);
-    visibility3DItem->setData(Qt::CheckStateRole, QVariant());
-    visibility3DItem->setFlags(visibility3DItem->flags() & ~Qt::ItemIsUserCheckable);
-    // Disable editing so that a double click won't bring up an entry box
-    visibility3DItem->setFlags(visibility3DItem->flags() & ~Qt::ItemIsEditable);
+    // Visibility (show only 3D visibility; if the user changes it then it applies to all types of visibility)
+    QToolButton* visibilityButton = new QToolButton();
+    visibilityButton->setAutoRaise(true);
+    //visibilityButton->setPopupDelay(200);
+    visibilityButton->setToolTip("Set visibility for segment. Keep the button pressed for the advanced visibility options to show");
+    visibilityButton->setCheckable(true);
+    QStyle* buttonStyle = visibilityButton->style();
+    visibilityButton->setProperty(ID_PROPERTY, segmentId);
+    visibilityButton->setChecked(properties.Visible3D);
     if (properties.Visible3D)
       {
-      visibility3DItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
+      visibilityButton->setIcon(QIcon(":/Icons/Small/SlicerVisible.png"));
       }
     else
       {
-      visibility3DItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
+      visibilityButton->setIcon(QIcon(":/Icons/Small/SlicerInvisible.png"));
       }
-    d->SegmentsTable->setItem(row, d->columnIndex("Visible3D"), visibility3DItem);
+    d->SegmentsTable->setCellWidget(row, d->columnIndex("Visible"), visibilityButton);
+    connect(visibilityButton, SIGNAL(toggled(bool)), this, SLOT(onVisibilityButtonToggled(bool)));
 
-    // Visibility 2D fill
-    QTableWidgetItem* visibility2DFillItem = new QTableWidgetItem();
-    visibility2DFillItem->setData(VisibilityRole, QVariant(properties.Visible2DFill));
-    visibility2DFillItem->setData(IDRole, segmentId);
-    visibility2DFillItem->setData(Qt::CheckStateRole, QVariant());
-    visibility2DFillItem->setFlags(visibility2DFillItem->flags() & ~Qt::ItemIsUserCheckable);
-    // Disable editing so that a double click won't bring up an entry box
-    visibility2DFillItem->setFlags(visibility2DFillItem->flags() & ~Qt::ItemIsEditable);
-    if (properties.Visible2DFill)
-      {
-      visibility2DFillItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
-      }
-    else
-      {
-      visibility2DFillItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
-      }
-    d->SegmentsTable->setItem(row, d->columnIndex("Visible2DFill"), visibility2DFillItem);
+    // Set up actions for the visibility button
+    QAction* visibility3DAction = new QAction("Show in 3D", visibilityButton);
+    visibility3DAction->setCheckable(true);
+    visibility3DAction->setChecked(properties.Visible3D);
+    visibility3DAction->setProperty(ID_PROPERTY, segmentId);
+    connect(visibility3DAction, SIGNAL(triggered(bool)), this, SLOT(onVisibility3DActionToggled(bool)));
+    visibilityButton->addAction(visibility3DAction);
 
-    // Visibility 2D outline
-    QTableWidgetItem* visibility2DOutlineItem = new QTableWidgetItem();
-    visibility2DOutlineItem->setData(VisibilityRole, QVariant(properties.Visible2DOutline));
-    visibility2DOutlineItem->setData(IDRole, segmentId);
-    visibility2DOutlineItem->setData(Qt::CheckStateRole, QVariant());
-    visibility2DOutlineItem->setFlags(visibility2DOutlineItem->flags() & ~Qt::ItemIsUserCheckable);
-    // Disable editing so that a double click won't bring up an entry box
-    visibility2DOutlineItem->setFlags(visibility2DOutlineItem->flags() & ~Qt::ItemIsEditable);
-    if (properties.Visible2DOutline)
-      {
-      visibility2DOutlineItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
-      }
-    else
-      {
-      visibility2DOutlineItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
-      }
-    d->SegmentsTable->setItem(row, d->columnIndex("Visible2DOutline"), visibility2DOutlineItem);
+    QAction* visibility2DFillAction = new QAction("Show in 2D as fill", visibilityButton);
+    visibility2DFillAction->setCheckable(true);
+    visibility2DFillAction->setChecked(properties.Visible2DFill);
+    visibility2DFillAction->setProperty(ID_PROPERTY, segmentId);
+    connect(visibility2DFillAction, SIGNAL(triggered(bool)), this, SLOT(onVisibility2DFillActionToggled(bool)));
+    visibilityButton->addAction(visibility2DFillAction);
+
+    QAction* visibility2DOutlineAction = new QAction("Show in 2D as outline", visibilityButton);
+    visibility2DOutlineAction->setCheckable(true);
+    visibility2DOutlineAction->setChecked(properties.Visible2DOutline);
+    visibility2DOutlineAction->setProperty(ID_PROPERTY, segmentId);
+    connect(visibility2DOutlineAction, SIGNAL(triggered(bool)), this, SLOT(onVisibility2DOutlineActionToggled(bool)));
+    visibilityButton->addAction(visibility2DOutlineAction);
 
     // Color
     QTableWidgetItem* colorItem = new QTableWidgetItem();
@@ -471,7 +451,7 @@ void qMRMLSegmentsTableView::populateSegmentTable()
     opacityItem->setData(IDRole, segmentId);
     opacityItem->setToolTip("Opacity");
     d->SegmentsTable->setItem(row, d->columnIndex("Opacity"), opacityItem);
-  }
+    }
 
   // Unblock signals
   d->SegmentsTable->blockSignals(false);
@@ -483,35 +463,35 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
   Q_D(qMRMLSegmentsTableView);
 
   if (d->Mode == RepresentationMode)
-  {
+    {
     qCritical() << "qMRMLSegmentsTableView::updateWidgetFromMRML: This function must not be called in representation mode!";
     return;
-  }
+    }
   if ( !d->SegmentationNode
     || d->SegmentsTable->rowCount() != d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() )
-  {
+    {
     this->populateSegmentTable();
     return;
-  }
+    }
   // Get segmentation display node
   vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
     d->SegmentationNode->GetDisplayNode() );
   if (!displayNode)
-  {
+    {
     qCritical() << "qMRMLSegmentsTableView::updateWidgetFromMRML: No display node for segmentation!";
     return;
-  }
+    }
 
   // Find items for each segment and update each field
   vtkSegmentation::SegmentMap segmentMap = d->SegmentationNode->GetSegmentation()->GetSegments();
   for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
-  {
+    {
     QTableWidgetItem* nameItem = d->findItemBySegmentID(segmentIt->first.c_str());
     if (!nameItem)
-    {
+      {
       qCritical() << "qMRMLSegmentsTableView::updateWidgetFromMRML: Cannot find table item correspondig to segment ID '" << segmentIt->first.c_str() << " in segmentation node " << d->SegmentationNode->GetName();
       continue;
-    }
+      }
     int row = nameItem->row();
 
     // Name
@@ -525,68 +505,43 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
       continue;
       }
 
-    // Visibility 3D
-    QTableWidgetItem* visibility3DItem = d->SegmentsTable->item(row, d->columnIndex("Visible3D"));
-    if (visibility3DItem)
-    {
-      visibility3DItem->setData(VisibilityRole, QVariant(properties.Visible3D));
+    // Visibility
+    QToolButton* visibilityButton = qobject_cast<QToolButton*>(
+      d->SegmentsTable->cellWidget(row, d->columnIndex("Visible")) );
+    if (visibilityButton)
+      {
       if (properties.Visible3D)
         {
-        visibility3DItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
+        visibilityButton->setIcon(QIcon(":/Icons/Small/SlicerVisible.png"));
         }
       else
         {
-        visibility3DItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
+        visibilityButton->setIcon(QIcon(":/Icons/Small/SlicerInvisible.png"));
         }
-    }
-
-    // Visibility 2D fill
-    QTableWidgetItem* visibility2DFillItem = d->SegmentsTable->item(row, d->columnIndex("Visible2DFill"));
-    if (visibility2DFillItem)
-    {
-      visibility2DFillItem->setData(VisibilityRole, QVariant(properties.Visible2DFill));
-      if (properties.Visible2DFill)
-        {
-        visibility2DFillItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
-        }
-      else
-        {
-        visibility2DFillItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
-        }
-    }
-
-    // Visibility 2D outline
-    QTableWidgetItem* visibility2DOutlineItem = d->SegmentsTable->item(row, d->columnIndex("Visible2DOutline"));
-    if (visibility2DOutlineItem)
-    {
-      visibility2DOutlineItem->setData(VisibilityRole, QVariant(properties.Visible2DOutline));
-      if (properties.Visible2DOutline)
-        {
-        visibility2DOutlineItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerVisible.png"));
-        }
-      else
-        {
-        visibility2DOutlineItem->setData(Qt::DecorationRole, QPixmap(":/Icons/Small/SlicerInvisible.png"));
-        }
-    }
+      }
+    // Update actions
+    QList<QAction*> visibilityActions = visibilityButton->actions();
+    visibilityActions[0]->setChecked(properties.Visible3D);
+    visibilityActions[1]->setChecked(properties.Visible2DFill);
+    visibilityActions[2]->setChecked(properties.Visible2DOutline);
 
     // Color
     QTableWidgetItem* colorItem = d->SegmentsTable->item(row, d->columnIndex("Color"));
     if (colorItem)
-    {
+      {
       QColor color = QColor::fromRgbF(properties.Color[0], properties.Color[1], properties.Color[2]);
       colorItem->setData(Qt::DecorationRole, color);
-    }
+      }
 
     // Opacity (show only 3D opacity; if the user changes it then it applies to all types of opacity)
     QTableWidgetItem* opacityItem =  d->SegmentsTable->item(row, d->columnIndex("Opacity"));
     if (opacityItem)
-    {
+      {
       //QString displayedOpacity = QString::number(properties.PolyDataOpacity, 'f', 2);
       //opacityItem->setData(Qt::EditRole, displayedOpacity); // for qMRMLItemDelegate
       opacityItem->setData(Qt::EditRole, properties.Opacity3D); // for qMRMLDoubleSpinBoxDelegate
+      }
     }
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -636,38 +591,8 @@ void qMRMLSegmentsTableView::onSegmentTableItemChanged(QTableWidgetItem* changed
 
     bool valueChanged = false;
 
-    // Visibility changed
-    if (changedItem->column() == d->columnIndex("Visible3D"))
-      {
-      int visible = changedItem->data(VisibilityRole).toInt();
-      if (properties.Visible3D != (bool)visible)
-        {
-        properties.Visible3D = (bool)visible;
-        valueChanged = true;
-        }
-      }
-    // Visibility changed
-    else if (changedItem->column() == d->columnIndex("Visible2DFill"))
-      {
-      int visible = changedItem->data(VisibilityRole).toInt();
-      if (properties.Visible2DFill != (bool)visible)
-        {
-        properties.Visible2DFill = (bool)visible;
-        valueChanged = true;
-        }
-      }
-    // Visibility changed
-    else if (changedItem->column() == d->columnIndex("Visible2DOutline"))
-      {
-      int visible = changedItem->data(VisibilityRole).toInt();
-      if (properties.Visible2DOutline != (bool)visible)
-        {
-        properties.Visible2DOutline = (bool)visible;
-        valueChanged = true;
-        }
-      }
     // Color changed
-    else if (changedItem->column() == d->columnIndex("Color"))
+    if (changedItem->column() == d->columnIndex("Color"))
       {
       QColor color = changedItem->data(Qt::DecorationRole).value<QColor>();
       QColor oldColor = QColor::fromRgbF(properties.Color[0], properties.Color[1], properties.Color[2]);
@@ -702,29 +627,109 @@ void qMRMLSegmentsTableView::onSegmentTableItemChanged(QTableWidgetItem* changed
 }
 
 //-----------------------------------------------------------------------------
-void qMRMLSegmentsTableView::onSegmentTableItemClicked(QTableWidgetItem* item)
+void qMRMLSegmentsTableView::onVisibilityButtonToggled(bool visible)
 {
-  Q_D(qMRMLSegmentsTableView);
-
-  if (!item)
+  QToolButton* senderButton = qobject_cast<QToolButton*>(sender());
+  if (!senderButton)
     {
     return;
     }
 
-  int column = item->column();
-  if ( column == d->columnIndex(QString("Visible3D"))
-    || column == d->columnIndex(QString("Visible2DFill"))
-    || column == d->columnIndex(QString("Visible2DOutline")) )
+  // Set all visibility types to segment referenced by button toggled
+  this->setSegmentVisibility(senderButton, visible, visible, visible);
+
+  // Change button icon
+  if (visible)
     {
-    // Toggle the visibility role, the icon update is triggered by this change
-    if (item->data(VisibilityRole) == QVariant(false))
-      {
-      item->setData(VisibilityRole, QVariant(true));
-      }
-    else
-      {
-      item->setData(VisibilityRole, QVariant(false));
-      }
+    senderButton->setIcon(QIcon(":/Icons/Small/SlicerVisible.png"));
+    }
+  else
+    {
+    senderButton->setIcon(QIcon(":/Icons/Small/SlicerInvisible.png"));
+    }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentsTableView::onVisibility3DActionToggled(bool visible)
+{
+  QAction* senderAction = qobject_cast<QAction*>(sender());
+  if (!senderAction)
+    {
+    return;
+    }
+
+  // Set 3D visibility to segment referenced by action toggled
+  this->setSegmentVisibility(senderAction, visible, -1, -1);
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentsTableView::onVisibility2DFillActionToggled(bool visible)
+{
+  QAction* senderAction = qobject_cast<QAction*>(sender());
+  if (!senderAction)
+    {
+    return;
+    }
+
+  // Set 2D fill visibility to segment referenced by action toggled
+  this->setSegmentVisibility(senderAction, -1, visible, -1);
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentsTableView::onVisibility2DOutlineActionToggled(bool visible)
+{
+  QAction* senderAction = qobject_cast<QAction*>(sender());
+  if (!senderAction)
+    {
+    return;
+    }
+
+  // Set 2D outline visibility to segment referenced by action toggled
+  this->setSegmentVisibility(senderAction, -1, -1, visible);
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentsTableView::setSegmentVisibility(QObject* senderObject, int visible3D, int visible2DFill, int visible2DOutline)
+{
+  Q_D(qMRMLSegmentsTableView);
+
+  QString segmentId = senderObject->property(ID_PROPERTY).toString();
+
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
+    d->SegmentationNode->GetDisplayNode() );
+  if (!displayNode)
+    {
+    qCritical() << "qMRMLSegmentsTableView::setSegmentVisibility: No display node for segmentation!";
+    return;
+    }
+  vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
+  if (!displayNode->GetSegmentDisplayProperties(segmentId.toLatin1().constData(), properties))
+    {
+    return;
+    }
+
+  // Change visibility to all modes
+  bool valueChanged = false;
+  if (visible3D == 0 || visible3D == 1)
+    {
+    properties.Visible3D = (bool)visible3D;
+    valueChanged = true;
+    }
+  if (visible2DFill == 0 || visible2DFill == 1)
+    {
+    properties.Visible2DFill = (bool)visible2DFill;
+    valueChanged = true;
+    }
+  if (visible2DOutline == 0 || visible2DOutline == 1)
+    {
+    properties.Visible2DOutline = (bool)visible2DOutline;
+    valueChanged = true;
+    }
+
+  // Set visibility to display node
+  if (valueChanged)
+    {
+    displayNode->SetSegmentDisplayProperties(segmentId.toLatin1().constData(), properties);
     }
 }
 
@@ -745,14 +750,14 @@ QStringList qMRMLSegmentsTableView::selectedSegmentIDs()
   QStringList selectedSegmentIds;
   QSet<int> rows;
   foreach (QTableWidgetItem* item, selectedItems)
-  {
+    {
     int row = item->row();
     if (!rows.contains(row))
-    {
+      {
       rows.insert(row);
       selectedSegmentIds << item->data(IDRole).toString();
+      }
     }
-  }
 
   return selectedSegmentIds;
 }
@@ -767,17 +772,17 @@ void qMRMLSegmentsTableView::setSelectedSegmentIDs(QStringList segmentIDs)
 
   // Find item by segment ID
   foreach (QString segmentID, segmentIDs)
-  {
+    {
     QTableWidgetItem* segmentItem = d->findItemBySegmentID(segmentID);
     if (!segmentItem)
-    {
+      {
       qCritical() << "qMRMLSegmentsTableView::setSelectedSegmentIDs: Cannot find table item correspondig to segment ID '" << segmentID << " in segmentation node " << d->SegmentationNode->GetName();
       continue;
-    }
+      }
 
     // Select item for segment
     d->SegmentsTable->setItemSelected(segmentItem, true);
-  }
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -788,70 +793,7 @@ void qMRMLSegmentsTableView::clearSelection()
   // Deselect selected items first
   QList<QTableWidgetItem*> selectedItems = d->SegmentsTable->selectedItems();
   foreach (QTableWidgetItem* item, selectedItems)
-  {
+    {
     d->SegmentsTable->setItemSelected(item, false);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void qMRMLSegmentsTableView::onHeaderSectionClicked(int column)
-{
-  Q_D(qMRMLSegmentsTableView);
-
-  if (!d->SegmentationNode || d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() == 0)
-  {
-    return;
-  }
-  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
-    d->SegmentationNode->GetDisplayNode() );
-  if (!displayNode)
-  {
-    qCritical() << "qMRMLSegmentsTableView::onHeaderSectionClicked: No display node for segmentation!";
-    return;
-  }
-  // Handle only visibility actions
-  if ( column != d->columnIndex(QString("Visible3D"))
-    && column != d->columnIndex(QString("Visible2DFill"))
-    && column != d->columnIndex(QString("Visible2DOutline")) )
-  {
-    return;
-  }
-
-  // Determine if any segment has visibility on in the column.
-  // If yes, then all will be hidden, otherwise all will be shown.
-  bool visible = true;
-  vtkSegmentation::SegmentMap segmentMap = d->SegmentationNode->GetSegmentation()->GetSegments();
-  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
-  {
-    std::string segmentId(segmentIt->first);
-
-    if ( ( column == d->columnIndex(QString("Visible3D")) 
-        && displayNode->GetSegmentVisibility3D(segmentId) )
-      || (column == d->columnIndex(QString("Visible2DFill"))
-        && displayNode->GetSegmentVisibility2DFill(segmentId) )
-      || (column == d->columnIndex(QString("Visible2DOutline"))
-        && displayNode->GetSegmentVisibility2DOutline(segmentId) ) )
-    {
-      visible = false;
-      break;
     }
-  }
-
-  // Set visibility to all segments
-  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
-  {
-    std::string segmentId(segmentIt->first);
-    if (column == d->columnIndex(QString("Visible3D")))
-    {
-      displayNode->SetSegmentVisibility3D(segmentId, visible);
-    }
-    else if (column == d->columnIndex(QString("Visible2DFill")))
-    {
-      displayNode->SetSegmentVisibility2DFill(segmentId, visible);
-    }
-    else if (column == d->columnIndex(QString("Visible2DOutline")))
-    {
-      displayNode->SetSegmentVisibility2DOutline(segmentId, visible);
-    }
-  }
 }

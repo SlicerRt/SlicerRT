@@ -117,16 +117,24 @@ protected slots:
   void onSegmentTableItemChanged(QTableWidgetItem* changedItem);
 
   /// Handles clicks on a table cell (visibility)
-  void onSegmentTableItemClicked(QTableWidgetItem* item);
-
-  /// Handles clicks on header items
-  void onHeaderSectionClicked(int column);
+  void onVisibilityButtonToggled(bool visible);
+  void onVisibility3DActionToggled(bool visible);
+  void onVisibility2DFillActionToggled(bool visible);
+  void onVisibility2DOutlineActionToggled(bool visible);
 
   /// Populate segment table according to the segmentation node
   void populateSegmentTable();
 
   /// Update from segmentation node state (invoked when segment count stays the same)
   void updateWidgetFromMRML();
+
+protected:
+  /// Convenience function to set segment visibility options from event handlers
+  /// \sa onVisibilityButtonToggled \sa onVisibility3DActionToggled \sa onVisibility2DFillActionToggled \sa onVisibility2DOutlineActionToggled
+  /// \param visible3D Visibility of the segment referenced from senderObject in 3D. If 0, then hide, if 1 then show, otherwise don't change
+  /// \param visible2DFill Visibility of the segment referenced from senderObject for 2D fill. If 0, then hide, if 1 then show, otherwise don't change
+  /// \param visible2DOutline Visibility of the segment referenced from senderObject for 2D outline. If 0, then hide, if 1 then show, otherwise don't change
+  void setSegmentVisibility(QObject* senderObject, int visible3D, int visible2DFill, int visible2DOutline);
 
 protected:
   QScopedPointer<qMRMLSegmentsTableViewPrivate> d_ptr;
