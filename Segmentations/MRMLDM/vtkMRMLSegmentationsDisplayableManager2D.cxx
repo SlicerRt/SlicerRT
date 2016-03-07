@@ -63,6 +63,7 @@
 #include <vtkLookupTable.h>
 #include <vtkTriangleFilter.h>
 #include <vtkStripper.h>
+#include <vtkCellArray.h>
 
 // STD includes
 #include <algorithm>
@@ -716,11 +717,33 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
         }
 
       // Apply trick to create cell from line for poly data fill
-      vtkSmartPointer<vtkPolyData> fillPolyData = vtkSmartPointer<vtkPolyData>::New();
-      pipeline->Stripper->Update();
-      fillPolyData->SetPoints(pipeline->Stripper->GetOutput()->GetPoints());
-      fillPolyData->SetPolys(pipeline->Stripper->GetOutput()->GetLines()); // Here's the trick
-      pipeline->TriangleFilter->SetInputData(fillPolyData);
+      // First check if lines are closed (first point is same as last), and disable fill visibility if not
+      bool linesClosed = true;
+      vtkCellArray* strippedLines = pipeline->Stripper->GetOutput()->GetLines();
+      for (int index=0; index<strippedLines->GetNumberOfCells(); ++index)
+        {
+        vtkSmartPointer<vtkIdList> pointList = vtkSmartPointer<vtkIdList>::New();
+        strippedLines->GetCell(index, pointList);
+        if ( pointList->GetNumberOfIds() > 0
+          && pointList->GetId(0) != pointList->GetId(pointList->GetNumberOfIds()-1) )
+          {
+          linesClosed = false;
+          segmentFillVisible = false;
+          break;
+          }
+        }
+      if (linesClosed)
+        {
+        vtkSmartPointer<vtkPolyData> fillPolyData = vtkSmartPointer<vtkPolyData>::New();
+        pipeline->Stripper->Update();
+        fillPolyData->SetPoints(pipeline->Stripper->GetOutput()->GetPoints());
+        fillPolyData->SetPolys(strippedLines);
+        pipeline->TriangleFilter->SetInputData(fillPolyData);
+        }
+      else
+        {
+        pipeline->TriangleFilter->SetInputData(NULL);
+        }
 
       // Update pipeline actors
       pipeline->PolyDataOutlineActor->SetVisibility(segmentOutlineVisible);

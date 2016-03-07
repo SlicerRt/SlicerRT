@@ -459,6 +459,7 @@ void qSlicerSegmentationsModuleWidget::onAddSegment()
     d->MRMLNodeComboBox_Segmentation->currentNode() );
   if (!currentSegmentationNode)
   {
+    qWarning() << "qSlicerSegmentationsModuleWidget::onAddSegment: No segmentation selected!";
     return;
   }
 
@@ -503,6 +504,7 @@ void qSlicerSegmentationsModuleWidget::onRemoveSelectedSegments()
     d->MRMLNodeComboBox_Segmentation->currentNode() );
   if (!currentSegmentationNode)
   {
+    qCritical() << "qSlicerSegmentationsModuleWidget::onRemoveSelectedSegments: No segmentation selected!";
     return;
   }
 
@@ -744,6 +746,7 @@ bool qSlicerSegmentationsModuleWidget::copyFromCurrentSegmentation(bool removeFr
     d->MRMLNodeComboBox_Segmentation->currentNode() );
   if (!currentSegmentationNode)
   {
+    qWarning() << "qSlicerSegmentationsModuleWidget::onCopyFromCurrentSegmentation: No segmentation selected!";
     return false;
   }
 
@@ -859,6 +862,7 @@ void qSlicerSegmentationsModuleWidget::onCopyToCurrentSegmentation()
     d->MRMLNodeComboBox_Segmentation->currentNode() );
   if (!currentSegmentationNode)
   {
+    qWarning() << "qSlicerSegmentationsModuleWidget::onCopyToCurrentSegmentation: No segmentation selected!";
     return;
   }
 
@@ -930,6 +934,7 @@ void qSlicerSegmentationsModuleWidget::onMoveToCurrentSegmentation()
     d->MRMLNodeComboBox_Segmentation->currentNode() );
   if (!currentSegmentationNode)
   {
+    qWarning() << "qSlicerSegmentationsModuleWidget::onMoveToCurrentSegmentation: No segmentation selected!";
     return;
   }
 

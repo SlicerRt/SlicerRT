@@ -113,8 +113,6 @@ void qMRMLSegmentsTableViewPrivate::init()
   // Make connections
   QObject::connect(this->SegmentsTable, SIGNAL(itemChanged(QTableWidgetItem*)),
                    q, SLOT(onSegmentTableItemChanged(QTableWidgetItem*)));
-  QObject::connect(this->SegmentsTable, SIGNAL(itemClicked(QTableWidgetItem*)),
-                   q, SLOT(onSegmentTableItemClicked(QTableWidgetItem*)));
   QObject::connect(this->SegmentsTable->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
                    q, SIGNAL(selectionChanged(QItemSelection,QItemSelection)));
 
@@ -518,12 +516,13 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
         {
         visibilityButton->setIcon(QIcon(":/Icons/Small/SlicerInvisible.png"));
         }
+
+      // Update actions
+      QList<QAction*> visibilityActions = visibilityButton->actions();
+      visibilityActions[0]->setChecked(properties.Visible3D);
+      visibilityActions[1]->setChecked(properties.Visible2DFill);
+      visibilityActions[2]->setChecked(properties.Visible2DOutline);
       }
-    // Update actions
-    QList<QAction*> visibilityActions = visibilityButton->actions();
-    visibilityActions[0]->setChecked(properties.Visible3D);
-    visibilityActions[1]->setChecked(properties.Visible2DFill);
-    visibilityActions[2]->setChecked(properties.Visible2DOutline);
 
     // Color
     QTableWidgetItem* colorItem = d->SegmentsTable->item(row, d->columnIndex("Color"));
