@@ -47,9 +47,10 @@ vtkMRMLNodeNewMacro(vtkMRMLSegmentationDisplayNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLSegmentationDisplayNode::vtkMRMLSegmentationDisplayNode()
+  : PreferredDisplayRepresentationName2D(NULL)
+  , PreferredDisplayRepresentationName3D(NULL)
+  , NumberOfAddedSegments(0)
 {
-  this->PreferredDisplayRepresentationName2D = NULL;
-  this->PreferredDisplayRepresentationName3D = NULL;
   this->SliceIntersectionVisibility = true;
 
   this->SegmentationDisplayProperties.clear();
@@ -526,6 +527,7 @@ void vtkMRMLSegmentationDisplayNode::RemoveSegmentDisplayProperties(std::string 
 void vtkMRMLSegmentationDisplayNode::ClearSegmentDisplayProperties()
 {
   this->SegmentationDisplayProperties.clear();
+  this->NumberOfAddedSegments = 0;
   this->Modified();
 }
 
@@ -611,6 +613,50 @@ bool vtkMRMLSegmentationDisplayNode::CalculateAutoOpacitiesForSegments()
 
   this->Modified();
   return true;
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLSegmentationDisplayNode::GenerateSegmentColor(double color[3])
+{
+  if (!this->Scene)
+  {
+    vtkErrorMacro("GenerateSegmentColor: Invalid MRML scene!");
+    return;
+  }
+
+  // Get default labels color table
+  vtkMRMLColorTableNode* labelsColorNode = vtkMRMLColorTableNode::SafeDownCast(
+    this->Scene->GetNodeByID("vtkMRMLColorTableNodeLabels") );
+  if (!labelsColorNode)
+  {
+    vtkErrorMacro("GenerateSegmentColor: Failed to get default labels color table!");
+    return;
+  }
+
+  // Get color corresponding to the number of added segments (which is incremented in
+  // vtkMRMLSegmentationNode::AddSegmentDisplayProperties every time a new segment display
+  // properties entry is added
+  double currentColor[4] = {0.0, 0.0, 0.0, 0.0};
+  labelsColorNode->GetColor(this->NumberOfAddedSegments, currentColor);
+  color[0] = currentColor[0];
+  color[1] = currentColor[1];
+  color[2] = currentColor[2];
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLSegmentationDisplayNode::GenerateSegmentColor(double &r, double &g, double &b)
+{
+  double color[3] = {0.0, 0.0, 0.0};
+  this->GenerateSegmentColor(color);
+  r = color[0];
+  g = color[1];
+  b = color[2];
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLSegmentationDisplayNode::IncrementNumberOfAddedSegments()
+{
+  this->NumberOfAddedSegments += 1;
 }
 
 //---------------------------------------------------------------------------

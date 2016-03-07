@@ -27,6 +27,7 @@
 
 // MRML includes
 #include "vtkMRMLSegmentationNode.h"
+#include "vtkMRMLSegmentationDisplayNode.h"
 
 // VTK includes
 #include <vtkMRMLScene.h>
@@ -63,6 +64,7 @@ static const std::string SERIALIZATION_SEPARATOR = "|";
 static const std::string SEGMENT_ID = "ID";
 static const std::string SEGMENT_NAME = "Name";
 static const std::string SEGMENT_DEFAULT_COLOR = "DefaultColor";
+static const std::string SEGMENT_DISPLAYED_COLOR = "DisplayedColor";
 static const std::string SEGMENT_TAGS = "Tags";
 static const std::string SEGMENT_EXTENT = "Extent";
 static const std::string MASTER_REPRESENTATION = "MasterRepresentation";
@@ -249,11 +251,11 @@ int vtkMRMLSegmentationStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
   }
 
   // Try to read as labelmap first then as poly data
-  if (this->ReadBinaryLabelmapRepresentation(segmentationNode->GetSegmentation(), fullName))
+  if (this->ReadBinaryLabelmapRepresentation(segmentationNode, fullName))
   {
     return 1;
   }
-  else if (this->ReadPolyDataRepresentation(segmentationNode->GetSegmentation(), fullName))
+  else if (this->ReadPolyDataRepresentation(segmentationNode, fullName))
   {
     return 1;
   }
@@ -264,7 +266,7 @@ int vtkMRMLSegmentationStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmentation* segmentation, std::string path)
+int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string path)
 {
   if (!vtksys::SystemTools::FileExists(path.c_str()))
   {
@@ -273,11 +275,16 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmenta
   }
 
   // Set up output segmentation
-  if (!segmentation || segmentation->GetNumberOfSegments() > 0)
+  if (!segmentationNode || segmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
   {
     vtkErrorMacro("ReadBinaryLabelmapRepresentation: Output segmentation must exist and must be empty!");
     return 0;
   }
+  vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
+
+  // Get display node to load displayed color and opacity
+  segmentationNode->CreateDefaultDisplayNodes();
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
 
   // Read 4D NRRD image file
   typedef itk::ImageFileReader<BinaryLabelmap4DImageType> FileReaderType;
@@ -366,6 +373,24 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmenta
     double currentSegmentDefaultColor[3] = {0.0,0.0,0.0};
     ssDefaultColorValue >> currentSegmentDefaultColor[0] >> currentSegmentDefaultColor[1] >> currentSegmentDefaultColor[2];
     currentSegment->SetDefaultColor(currentSegmentDefaultColor);
+
+    // DisplayedColor
+    std::stringstream ssDisplayedColorKey;
+    ssDisplayedColorKey << segmentIndex << SEGMENT_DISPLAYED_COLOR;
+    std::string displayedColorKey = ssDisplayedColorKey.str();
+    std::string displayedColorValue;
+    itk::ExposeMetaData<std::string>(metadata, displayedColorKey.c_str(), displayedColorValue);
+    if (!displayedColorValue.empty() && displayNode)
+    {
+      vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
+      std::stringstream ssDisplayedColorValue;
+      ssDisplayedColorValue << displayedColorValue;
+      double opacity = 0.0;
+      ssDisplayedColorValue >> properties.Color[0] >> properties.Color[1] >> properties.Color[2] >> opacity;
+      properties.Opacity3D = properties.Opacity2DFill = properties.Opacity2DOutline = opacity;
+      properties.Visible3D = properties.Visible2DFill = properties.Visible2DOutline = true;
+      displayNode->SetSegmentDisplayProperties(currentSegmentID.c_str(), properties);
+    }
 
     // Extent
     std::stringstream ssExtentKey;
@@ -457,7 +482,7 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkSegmenta
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkSegmentation* segmentation, std::string path)
+int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string path)
 {
   if (!vtksys::SystemTools::FileExists(path.c_str()))
   {
@@ -466,11 +491,16 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkSegmentation* 
   }
 
   // Set up output segmentation
-  if (!segmentation || segmentation->GetNumberOfSegments() > 0)
+  if (!segmentationNode || segmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
   {
     vtkErrorMacro("ReadPolyDataRepresentation: Output segmentation must exist and must be empty!");
     return 0;
   }
+  vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
+
+  // Get display node to load displayed color and opacity
+  segmentationNode->CreateDefaultDisplayNodes();
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
 
   // Add all files to storage node (multiblock dataset writes segments to individual files in a separate folder)
   this->AddPolyDataFileNames(path, segmentation);
@@ -544,6 +574,20 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkSegmentation* 
     currentSegment->SetName(nameArray->GetValue(0).c_str());
     currentSegment->SetDefaultColor(defaultColorArray->GetComponent(0,0), defaultColorArray->GetComponent(0,1), defaultColorArray->GetComponent(0,2));
 
+    // DisplayedColor
+    vtkDoubleArray* displayedColorArray = vtkDoubleArray::SafeDownCast(
+      currentPolyData->GetFieldData()->GetArray(SEGMENT_DISPLAYED_COLOR.c_str()) );
+    if (displayedColorArray && displayNode)
+    {
+      vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
+      properties.Color[0] = displayedColorArray->GetComponent(0,0);
+      properties.Color[1] = displayedColorArray->GetComponent(0,1);
+      properties.Color[2] = displayedColorArray->GetComponent(0,2);
+      properties.Opacity3D = properties.Opacity2DFill = properties.Opacity2DOutline = displayedColorArray->GetComponent(0,3);
+      properties.Visible3D = properties.Visible2DFill = properties.Visible2DOutline = true;
+      displayNode->SetSegmentDisplayProperties(currentSegmentID.c_str(), properties);
+    }
+
     // Tags
     if (tagsArray)
     {
@@ -592,31 +636,31 @@ int vtkMRMLSegmentationStorageNode::WriteDataInternal(vtkMRMLNode *refNode)
   }
 
   // Write only master representation
-  vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
-  const char* masterRepresentation = segmentation->GetMasterRepresentationName();
+  const char* masterRepresentation = segmentationNode->GetSegmentation()->GetMasterRepresentationName();
   if (!strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
   {
     // Binary labelmap -> 4D NRRD volume
-    return this->WriteBinaryLabelmapRepresentation(segmentation, fullName);
+    return this->WriteBinaryLabelmapRepresentation(segmentationNode, fullName);
   }
   else if ( !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName())
          || !strcmp(masterRepresentation, vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName()) )
   {
     // Closed surface or planar contours -> MultiBlock polydata
-    return this->WritePolyDataRepresentation(segmentation, fullName);
+    return this->WritePolyDataRepresentation(segmentationNode, fullName);
   }
 
   return 1;
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegmentation* segmentation, std::string fullName)
+int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string fullName)
 {
-  if (!segmentation || segmentation->GetNumberOfSegments() == 0)
+  if (!segmentationNode || segmentationNode->GetSegmentation()->GetNumberOfSegments() == 0)
   {
     vtkErrorMacro("WriteBinaryLabelmapRepresentation: Invalid segmentation to write to disk");
     return 0;
   }
+  vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
 
   // Get and check master representation
   const char* masterRepresentation = segmentation->GetMasterRepresentationName();
@@ -625,6 +669,9 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
     vtkErrorMacro("WriteBinaryLabelmapRepresentation: Invalid master representation to write as image data");
     return 0;
   }
+
+  // Get display node to save displayed color and opacity
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
 
   // Determine merged labelmap dimensions and properties
   std::string commonGeometryString = segmentation->DetermineCommonLabelmapGeometry();
@@ -760,6 +807,27 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
     std::string defaultColorValue = ssDefaultColorValue.str();
     itk::EncapsulateMetaData<std::string>(metadata, defaultColorKey.c_str(), defaultColorValue);
 
+    // DisplayedColor
+    if (displayNode)
+    {
+      vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
+      if (displayNode->GetSegmentDisplayProperties(currentSegmentID, properties))
+      {
+        // Save only 3D opacity
+        std::stringstream ssDisplayedColorKey;
+        ssDisplayedColorKey << segmentIndex << SEGMENT_DISPLAYED_COLOR;
+        std::string displayedColorKey = ssDisplayedColorKey.str();
+        std::stringstream ssDisplayedColorValue;
+        ssDisplayedColorValue << properties.Color[0] << " " << properties.Color[1] << " " << properties.Color[2] << " " << properties.Opacity3D;
+        std::string displayedColorValue = ssDisplayedColorValue.str();
+        itk::EncapsulateMetaData<std::string>(metadata, displayedColorKey.c_str(), displayedColorValue);
+      }
+      else
+      {
+        vtkWarningMacro("WritePolyDataRepresentation: Failed to get display properties for segment " << currentSegmentID);
+      }
+    }
+
     // Extent
     std::stringstream ssExtentKey;
     ssExtentKey << segmentIndex << SEGMENT_EXTENT;
@@ -881,13 +949,14 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkSegment
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkSegmentation* segmentation, std::string path)
+int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string path)
 {
-  if (!segmentation || segmentation->GetNumberOfSegments() == 0)
+  if (!segmentationNode || segmentationNode->GetSegmentation()->GetNumberOfSegments() == 0)
   {
     vtkErrorMacro("WritePolyDataRepresentation: Invalid segmentation to write to disk");
     return 0;
   }
+  vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
 
   // Get and check master representation
   const char* masterRepresentation = segmentation->GetMasterRepresentationName();
@@ -898,6 +967,9 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkSegmentation*
     vtkErrorMacro("WritePolyDataRepresentation: Invalid master representation to write as poly data");
     return 0;
   }
+
+  // Get display node to save displayed color and opacity
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
 
   // Initialize dataset to write
   vtkSmartPointer<vtkMultiBlockDataSet> multiBlockDataset = vtkSmartPointer<vtkMultiBlockDataSet>::New();
@@ -953,6 +1025,27 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkSegmentation*
     defaultColorArray->SetTuple(0, currentSegment->GetDefaultColor());
     defaultColorArray->SetName(SEGMENT_DEFAULT_COLOR.c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(defaultColorArray);
+
+    // DisplayedColor
+    if (displayNode)
+    {
+      vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
+      if (displayNode->GetSegmentDisplayProperties(currentSegmentID, properties))
+      {
+        // Save only 3D opacity
+        double displayedColor[4] = {properties.Color[0], properties.Color[1], properties.Color[2], properties.Opacity3D};
+        vtkSmartPointer<vtkDoubleArray> displayedColorArray = vtkSmartPointer<vtkDoubleArray>::New();
+        displayedColorArray->SetNumberOfComponents(4);
+        displayedColorArray->SetNumberOfTuples(1);
+        displayedColorArray->SetTuple(0, displayedColor);
+        displayedColorArray->SetName(SEGMENT_DISPLAYED_COLOR.c_str());
+        currentPolyDataCopy->GetFieldData()->AddArray(displayedColorArray);
+      }
+      else
+      {
+        vtkWarningMacro("WritePolyDataRepresentation: Failed to get display properties for segment " << currentSegmentID);
+      }
+    }
 
     // Tags
     std::map<std::string,std::string> tags;

@@ -45,9 +45,9 @@ vtkStandardNewMacro(vtkSegment);
 vtkSegment::vtkSegment()
 {
   this->Name = NULL;
-  this->DefaultColor[0] = 0.5;
-  this->DefaultColor[1] = 0.5;
-  this->DefaultColor[2] = 0.5;
+  this->DefaultColor[0] = SEGMENT_COLOR_VALUE_INVALID[0];
+  this->DefaultColor[1] = SEGMENT_COLOR_VALUE_INVALID[1];
+  this->DefaultColor[2] = SEGMENT_COLOR_VALUE_INVALID[2];
 }
 
 //----------------------------------------------------------------------------

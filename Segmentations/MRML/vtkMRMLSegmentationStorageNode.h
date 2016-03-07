@@ -92,19 +92,19 @@ protected:
   virtual int WriteDataInternal(vtkMRMLNode *refNode);
 
   /// Write binary labelmap representation to file
-  virtual int WriteBinaryLabelmapRepresentation(vtkSegmentation* segmentation, std::string path);
+  virtual int WriteBinaryLabelmapRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string path);
 
   /// Write a poly data representation to file
-  virtual int WritePolyDataRepresentation(vtkSegmentation* segmentation, std::string path);
+  virtual int WritePolyDataRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string path);
 
   /// Read data and set it in the referenced node
   virtual int ReadDataInternal(vtkMRMLNode *refNode);
 
   /// Read binary labelmap representation to file
-  virtual int ReadBinaryLabelmapRepresentation(vtkSegmentation* segmentation, std::string path);
+  virtual int ReadBinaryLabelmapRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string path);
 
   /// Read a poly data representation to file
-  virtual int ReadPolyDataRepresentation(vtkSegmentation* segmentation, std::string path);
+  virtual int ReadPolyDataRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string path);
 
   /// Add all files corresponding to poly data representation to the storage node
   /// (multiblock dataset writes segments to individual files in a separate folder)

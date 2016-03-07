@@ -117,6 +117,14 @@ public:
   /// \return Success flag
   bool CalculateAutoOpacitiesForSegments();
 
+  /// Generate new color for an added segment. Uses \sa NumberOfAddedSegments to get the color
+  /// for the new segment from default label color table
+  void GenerateSegmentColor(double color[3]);
+  /// Python compatibility function for \sa GenerateSegmentColor
+  void GenerateSegmentColor(double &r, double &g, double &b);
+  /// Increment \sa NumberOfAddedSegments when new segment is added
+  void IncrementNumberOfAddedSegments();
+
   /// Collect representation names that are stored as poly data
   void GetPolyDataRepresentationNames(std::set<std::string> &representationNames);
 
@@ -200,6 +208,10 @@ protected:
   /// List of segment display properties for all segments in associated segmentation.
   /// Maps segment identifier string (segment name by default) to properties.
   SegmentDisplayPropertiesMap SegmentationDisplayProperties;
+
+  /// Number of segments ever added to the segmentation belonging to this display node.
+  /// Used to generate new color for new segments, taken into account removed segments too.
+  unsigned int NumberOfAddedSegments;
 };
 
 #endif

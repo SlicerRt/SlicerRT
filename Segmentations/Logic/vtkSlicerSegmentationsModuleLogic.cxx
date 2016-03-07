@@ -957,12 +957,6 @@ bool vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(vtkOrie
 
     vtkSmartPointer<vtkSegment> segment = vtkSmartPointer<vtkSegment>::New();
 
-    // Set segment color
-    double color[4] = { rand() * 1.0 / RAND_MAX,
-                        rand() * 1.0 / RAND_MAX,
-                        rand() * 1.0 / RAND_MAX, 1.0 };
-    segment->SetDefaultColor(color[0], color[1], color[2]);
-
     // Set segment name
     std::stringstream ss;
     ss << (baseSegmentName.empty() ? "Label" : baseSegmentName) << "_" << label;

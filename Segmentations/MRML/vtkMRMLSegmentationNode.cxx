@@ -613,6 +613,13 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
   // Set segment color for merged labelmap
   double defaultColor[3] = {0.0,0.0,0.0};
   segment->GetDefaultColor(defaultColor);
+  // Generate color if default color is the default gray
+  displayNode->IncrementNumberOfAddedSegments();
+  if (defaultColor[0] == vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0] && defaultColor[1] == vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1] && defaultColor[2] == vtkSegment::SEGMENT_COLOR_VALUE_INVALID[2])
+  {
+    displayNode->GenerateSegmentColor(defaultColor);
+    segment->SetDefaultColor(defaultColor);
+  }
   colorTableNode->SetColor(colorIndex, segmentId.c_str(), defaultColor[0], defaultColor[1], defaultColor[2], 1.0);
 
   // Add entry in segment display properties
