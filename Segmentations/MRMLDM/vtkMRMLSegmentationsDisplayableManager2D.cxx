@@ -61,8 +61,9 @@
 #include <vtkImageMapper.h>
 #include <vtkImageMapToRGBA.h>
 #include <vtkLookupTable.h>
-#include <vtkTriangleFilter.h>
 #include <vtkStripper.h>
+#include <vtkTriangleFilter.h>
+#include <vtkCleanPolyData.h>
 #include <vtkCellArray.h>
 
 // STD includes
@@ -136,7 +137,7 @@ public:
     vtkSmartPointer<vtkPlane> Plane;
     vtkSmartPointer<vtkCutter> Cutter;
     vtkSmartPointer<vtkStripper> Stripper;
-    vtkSmartPointer<vtkTriangleFilter> TriangleFilter;
+    vtkSmartPointer<vtkCleanPolyData> Cleaner;
 
     vtkSmartPointer<vtkActor2D> ImageOutlineActor;
     vtkSmartPointer<vtkActor2D> ImageFillActor;
@@ -447,7 +448,7 @@ vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::CreateSegmentPipeline(std
   pipeline->ModelWarper = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   pipeline->Plane = vtkSmartPointer<vtkPlane>::New();
   pipeline->Stripper = vtkSmartPointer<vtkStripper>::New();
-  pipeline->TriangleFilter = vtkSmartPointer<vtkTriangleFilter>::New();
+  pipeline->Cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
 
   // Set up poly data outline pipeline
   pipeline->Cutter->SetInputConnection(pipeline->ModelWarper->GetOutputPort());
@@ -463,9 +464,11 @@ vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::CreateSegmentPipeline(std
 
   // Set up poly data fill pipeline
   pipeline->Stripper->SetInputConnection(pipeline->Cutter->GetOutputPort());
-  pipeline->TriangleFilter->SetInputConnection(NULL); // This will be modified in the UpdateDisplayNodePipeline function
+  pipeline->Cleaner->SetInputConnection(NULL); // This will be modified in the UpdateDisplayNodePipeline function
+  vtkSmartPointer<vtkTriangleFilter> triangleFilter = vtkSmartPointer<vtkTriangleFilter>::New();
+  triangleFilter->SetInputConnection(pipeline->Cleaner->GetOutputPort());
   vtkSmartPointer<vtkTransformPolyDataFilter> polyDataFillTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  polyDataFillTransformer->SetInputConnection(pipeline->TriangleFilter->GetOutputPort());
+  polyDataFillTransformer->SetInputConnection(triangleFilter->GetOutputPort());
   polyDataFillTransformer->SetTransform(pipeline->WorldToSliceTransform);
   vtkSmartPointer<vtkPolyDataMapper2D> polyDataFillMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
   polyDataFillMapper->SetInputConnection(polyDataFillTransformer->GetOutputPort());
@@ -718,8 +721,10 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
 
       // Apply trick to create cell from line for poly data fill
       // Omit cells that are not closed (first point is not same as last)
+      pipeline->Stripper->Update();
       vtkCellArray* strippedLines = pipeline->Stripper->GetOutput()->GetLines();
       vtkSmartPointer<vtkCellArray> closedCells = vtkSmartPointer<vtkCellArray>::New();
+      bool cellsValid = false;
       for (int index=0; index<strippedLines->GetNumberOfCells(); ++index)
         {
         vtkSmartPointer<vtkIdList> pointList = vtkSmartPointer<vtkIdList>::New();
@@ -728,13 +733,20 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
           && pointList->GetId(0) == pointList->GetId(pointList->GetNumberOfIds()-1) )
           {
           closedCells->InsertNextCell(pointList);
+          cellsValid = true;
           }
         }
       vtkSmartPointer<vtkPolyData> fillPolyData = vtkSmartPointer<vtkPolyData>::New();
-      pipeline->Stripper->Update();
       fillPolyData->SetPoints(pipeline->Stripper->GetOutput()->GetPoints());
       fillPolyData->SetPolys(closedCells);
-      pipeline->TriangleFilter->SetInputData(fillPolyData);
+      if (cellsValid)
+      {
+        pipeline->Cleaner->SetInputData(fillPolyData);
+      }
+      else
+      {
+        segmentFillVisible = false;
+      }
 
       // Update pipeline actors
       pipeline->PolyDataOutlineActor->SetVisibility(segmentOutlineVisible);
