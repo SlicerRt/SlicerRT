@@ -117,7 +117,7 @@ protected slots:
   void onSegmentTableItemChanged(QTableWidgetItem* changedItem);
 
   /// Handles clicks on a table cell (visibility)
-  void onVisibilityButtonToggled(bool visible);
+  void onVisibilityButtonClicked();
   void onVisibility3DActionToggled(bool visible);
   void onVisibility2DFillActionToggled(bool visible);
   void onVisibility2DOutlineActionToggled(bool visible);

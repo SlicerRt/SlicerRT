@@ -717,33 +717,24 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
         }
 
       // Apply trick to create cell from line for poly data fill
-      // First check if lines are closed (first point is same as last), and disable fill visibility if not
-      bool linesClosed = true;
+      // Omit cells that are not closed (first point is not same as last)
       vtkCellArray* strippedLines = pipeline->Stripper->GetOutput()->GetLines();
+      vtkSmartPointer<vtkCellArray> closedCells = vtkSmartPointer<vtkCellArray>::New();
       for (int index=0; index<strippedLines->GetNumberOfCells(); ++index)
         {
         vtkSmartPointer<vtkIdList> pointList = vtkSmartPointer<vtkIdList>::New();
         strippedLines->GetCell(index, pointList);
         if ( pointList->GetNumberOfIds() > 0
-          && pointList->GetId(0) != pointList->GetId(pointList->GetNumberOfIds()-1) )
+          && pointList->GetId(0) == pointList->GetId(pointList->GetNumberOfIds()-1) )
           {
-          linesClosed = false;
-          segmentFillVisible = false;
-          break;
+          closedCells->InsertNextCell(pointList);
           }
         }
-      if (linesClosed)
-        {
-        vtkSmartPointer<vtkPolyData> fillPolyData = vtkSmartPointer<vtkPolyData>::New();
-        pipeline->Stripper->Update();
-        fillPolyData->SetPoints(pipeline->Stripper->GetOutput()->GetPoints());
-        fillPolyData->SetPolys(strippedLines);
-        pipeline->TriangleFilter->SetInputData(fillPolyData);
-        }
-      else
-        {
-        pipeline->TriangleFilter->SetInputData(NULL);
-        }
+      vtkSmartPointer<vtkPolyData> fillPolyData = vtkSmartPointer<vtkPolyData>::New();
+      pipeline->Stripper->Update();
+      fillPolyData->SetPoints(pipeline->Stripper->GetOutput()->GetPoints());
+      fillPolyData->SetPolys(closedCells);
+      pipeline->TriangleFilter->SetInputData(fillPolyData);
 
       // Update pipeline actors
       pipeline->PolyDataOutlineActor->SetVisibility(segmentOutlineVisible);

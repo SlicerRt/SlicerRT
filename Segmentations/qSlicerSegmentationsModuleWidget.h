@@ -70,7 +70,8 @@ protected:
   void init();
 
   /// Get display node of current segmentation node
-  vtkMRMLSegmentationDisplayNode* segmentationDisplayNode();
+  /// \param create If on, then create a default display node if missing. False by default
+  vtkMRMLSegmentationDisplayNode* segmentationDisplayNode(bool create=false);
 
   /// Copy segment from one segmentation to another
   /// \param fromSegmentation Source segmentation

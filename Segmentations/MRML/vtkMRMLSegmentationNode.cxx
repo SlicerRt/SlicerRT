@@ -178,15 +178,6 @@ void vtkMRMLSegmentationNode::Copy(vtkMRMLNode *anode)
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
-
-  // The InvokePendingModifiedEvent call loses event parameters (i.e. callData)
-  // Needed to invoke SegmentAdded events explicitly so that segment subject hierarchy nodes are correctly created
-  vtkSegmentation::SegmentMap segmentMap = this->Segmentation->GetSegments();
-  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
-  {
-    const char* segmentIdChars = segmentIt->first.c_str();
-    this->Segmentation->InvokeEvent(vtkSegmentation::SegmentAdded, (void*)segmentIdChars);
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -694,9 +685,10 @@ void vtkMRMLSegmentationNode::CreateDefaultDisplayNodes()
     vtkErrorMacro("vtkMRMLSegmentationNode::CreateDefaultDisplayNodes failed: Scene is invalid");
     return;
   }
-  vtkNew<vtkMRMLSegmentationDisplayNode> dispNode;
-  this->GetScene()->AddNode(dispNode.GetPointer());
-  this->SetAndObserveDisplayNodeID(dispNode->GetID());
+  vtkNew<vtkMRMLSegmentationDisplayNode> displayNode;
+  this->GetScene()->AddNode(displayNode.GetPointer());
+  this->SetAndObserveDisplayNodeID(displayNode->GetID());
+  displayNode->SetBackfaceCulling(0); // Needed only because of the ribbon model normal vectors
 
   this->ResetSegmentDisplayProperties();
 }

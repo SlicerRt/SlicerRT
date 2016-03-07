@@ -44,6 +44,7 @@
 #include "qMRMLItemDelegate.h"
 
 #define ID_PROPERTY "ID"
+#define VISIBILITY_PROPERTY "Visible"
 
 //-----------------------------------------------------------------------------
 class qMRMLSegmentsTableViewPrivate: public Ui_qMRMLSegmentsTableView
@@ -394,22 +395,22 @@ void qMRMLSegmentsTableView::populateSegmentTable()
     // Visibility (show only 3D visibility; if the user changes it then it applies to all types of visibility)
     QToolButton* visibilityButton = new QToolButton();
     visibilityButton->setAutoRaise(true);
-    //visibilityButton->setPopupDelay(200);
     visibilityButton->setToolTip("Set visibility for segment. Keep the button pressed for the advanced visibility options to show");
-    visibilityButton->setCheckable(true);
     QStyle* buttonStyle = visibilityButton->style();
     visibilityButton->setProperty(ID_PROPERTY, segmentId);
     visibilityButton->setChecked(properties.Visible3D);
-    if (properties.Visible3D)
+    if (properties.Visible3D || properties.Visible2DFill || properties.Visible2DOutline)
       {
+      visibilityButton->setProperty(VISIBILITY_PROPERTY, true);
       visibilityButton->setIcon(QIcon(":/Icons/Small/SlicerVisible.png"));
       }
     else
       {
+      visibilityButton->setProperty(VISIBILITY_PROPERTY, false);
       visibilityButton->setIcon(QIcon(":/Icons/Small/SlicerInvisible.png"));
       }
     d->SegmentsTable->setCellWidget(row, d->columnIndex("Visible"), visibilityButton);
-    connect(visibilityButton, SIGNAL(toggled(bool)), this, SLOT(onVisibilityButtonToggled(bool)));
+    connect(visibilityButton, SIGNAL(clicked()), this, SLOT(onVisibilityButtonClicked()));
 
     // Set up actions for the visibility button
     QAction* visibility3DAction = new QAction("Show in 3D", visibilityButton);
@@ -508,12 +509,14 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
       d->SegmentsTable->cellWidget(row, d->columnIndex("Visible")) );
     if (visibilityButton)
       {
-      if (properties.Visible3D)
+      if (properties.Visible3D || properties.Visible2DFill || properties.Visible2DOutline)
         {
+        visibilityButton->setProperty(VISIBILITY_PROPERTY, true);
         visibilityButton->setIcon(QIcon(":/Icons/Small/SlicerVisible.png"));
         }
       else
         {
+        visibilityButton->setProperty(VISIBILITY_PROPERTY, false);
         visibilityButton->setIcon(QIcon(":/Icons/Small/SlicerInvisible.png"));
         }
 
@@ -626,7 +629,7 @@ void qMRMLSegmentsTableView::onSegmentTableItemChanged(QTableWidgetItem* changed
 }
 
 //-----------------------------------------------------------------------------
-void qMRMLSegmentsTableView::onVisibilityButtonToggled(bool visible)
+void qMRMLSegmentsTableView::onVisibilityButtonClicked()
 {
   QToolButton* senderButton = qobject_cast<QToolButton*>(sender());
   if (!senderButton)
@@ -634,10 +637,13 @@ void qMRMLSegmentsTableView::onVisibilityButtonToggled(bool visible)
     return;
     }
 
+  bool visible = !senderButton->property(VISIBILITY_PROPERTY).toBool();
+
   // Set all visibility types to segment referenced by button toggled
   this->setSegmentVisibility(senderButton, visible, visible, visible);
 
   // Change button icon
+  senderButton->setProperty(VISIBILITY_PROPERTY, visible);
   if (visible)
     {
     senderButton->setIcon(QIcon(":/Icons/Small/SlicerVisible.png"));

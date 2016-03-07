@@ -132,7 +132,7 @@ void qSlicerSegmentationsModuleWidget::setup()
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLSegmentationDisplayNode* qSlicerSegmentationsModuleWidget::segmentationDisplayNode()
+vtkMRMLSegmentationDisplayNode* qSlicerSegmentationsModuleWidget::segmentationDisplayNode(bool create/*=false*/)
 {
   Q_D(qSlicerSegmentationsModuleWidget);
 
@@ -143,7 +143,14 @@ vtkMRMLSegmentationDisplayNode* qSlicerSegmentationsModuleWidget::segmentationDi
     return NULL;
   }
 
-  return vtkMRMLSegmentationDisplayNode::SafeDownCast( segmentationNode->GetDisplayNode() );
+  vtkMRMLSegmentationDisplayNode* displayNode =
+    vtkMRMLSegmentationDisplayNode::SafeDownCast( segmentationNode->GetDisplayNode() );
+  if (!displayNode && create)
+  {
+    segmentationNode->CreateDefaultDisplayNodes();
+    displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast( segmentationNode->GetDisplayNode() );
+  }
+  return displayNode;
 }
 
 //-----------------------------------------------------------------------------
@@ -247,8 +254,8 @@ void qSlicerSegmentationsModuleWidget::populate3DRepresentationsCombobox()
   d->comboBox_DisplayedRepresentation3D->blockSignals(true);
   d->comboBox_DisplayedRepresentation3D->clear();
 
-  vtkMRMLSegmentationDisplayNode* displayNode = this->segmentationDisplayNode();
-  if (!displayNode)
+  vtkMRMLSegmentationDisplayNode* displayNode = this->segmentationDisplayNode(true);
+  if (!displayNode) // This means there was no segmentation node selected
   {
     d->comboBox_DisplayedRepresentation3D->blockSignals(false);
     return;
@@ -291,12 +298,6 @@ void qSlicerSegmentationsModuleWidget::populate2DRepresentationsCombobox()
     d->comboBox_DisplayedRepresentation2D->blockSignals(false);
     return;
   }
-  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast( segmentationNode->GetDisplayNode() );
-  if (!displayNode)
-  {
-    d->comboBox_DisplayedRepresentation2D->blockSignals(false);
-    return;
-  }
 
   // Populate 2D representations combobox with all available representations
   std::set<std::string> representationNames;
@@ -311,6 +312,7 @@ void qSlicerSegmentationsModuleWidget::populate2DRepresentationsCombobox()
   d->comboBox_DisplayedRepresentation2D->blockSignals(false);
 
   // Set selection from display node
+  vtkMRMLSegmentationDisplayNode* displayNode = this->segmentationDisplayNode(true);
   std::string displayRepresentation2D = displayNode->GetDisplayRepresentationName2D();
   if (!displayRepresentation2D.empty())
   {
