@@ -64,6 +64,9 @@ protected slots:
   /// Create selected representation using custom parameters (pops up parameters widget)
   void createRepresentationAdvanced();
 
+  /// Remove selected representation
+  void removeRepresentation();
+
   /// Make selected representation the master representation in segmentation
   void makeMaster();
 

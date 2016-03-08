@@ -396,9 +396,7 @@ void qMRMLSegmentsTableView::populateSegmentTable()
     QToolButton* visibilityButton = new QToolButton();
     visibilityButton->setAutoRaise(true);
     visibilityButton->setToolTip("Set visibility for segment. Keep the button pressed for the advanced visibility options to show");
-    QStyle* buttonStyle = visibilityButton->style();
     visibilityButton->setProperty(ID_PROPERTY, segmentId);
-    visibilityButton->setChecked(properties.Visible3D);
     if (properties.Visible3D || properties.Visible2DFill || properties.Visible2DOutline)
       {
       visibilityButton->setProperty(VISIBILITY_PROPERTY, true);

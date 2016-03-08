@@ -32,8 +32,12 @@
 #include <QDebug>
 #include <QVariant>
 #include <QPushButton>
+#include <QToolButton>
+#include <QAction>
 #include <QDialog>
 #include <QMessageBox>
+
+#define REPRESENTATION_NAME_PROPERTY "RepresentationName"
 
 // --------------------------------------------------------------------------
 class qMRMLSegmentationRepresentationsListViewPrivate: public Ui_qMRMLSegmentationRepresentationsListView
@@ -218,53 +222,68 @@ void qMRMLSegmentationRepresentationsListView::populateRepresentationsList()
       {
       if (present)
         {
-        QPushButton* updateButton = new QPushButton(representationWidget);
+        QToolButton* updateButton = new QToolButton(representationWidget);
+        updateButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
         updateButton->setText("Update");
-        updateButton->setProperty("RepresentationName", QVariant(name));
+        QString updateButtonTooltip = QString("Update %1 representation using custom conversion parameters.\n\nPress and hold button to access removal option.").arg(name);
+        updateButton->setToolTip(updateButtonTooltip);
+        updateButton->setProperty(REPRESENTATION_NAME_PROPERTY, QVariant(name));
         updateButton->setMaximumWidth(72);
+        updateButton->setMinimumWidth(72);
         updateButton->setMaximumHeight(22);
         updateButton->setMinimumHeight(22);
-        QObject::connect(updateButton, SIGNAL(clicked()),
-                         this, SLOT(createRepresentationAdvanced()));
+        QObject::connect(updateButton, SIGNAL(clicked()), this, SLOT(createRepresentationAdvanced()));
+
+        // Set up actions for the update button
+        QAction* removeAction = new QAction("Remove", updateButton);
+        QString removeActionTooltip = QString("Remove %1 representation from segmentation").arg(name);
+        removeAction->setToolTip(removeActionTooltip);
+        removeAction->setProperty(REPRESENTATION_NAME_PROPERTY, QVariant(name));
+        QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(removeRepresentation()));
+        updateButton->addAction(removeAction);
 
         QPushButton* makeMasterButton = new QPushButton(representationWidget);
         makeMasterButton->setText("Make master");
-        makeMasterButton->setProperty("RepresentationName", QVariant(name));
-        makeMasterButton->setMaximumWidth(72);
+        makeMasterButton->setProperty(REPRESENTATION_NAME_PROPERTY, QVariant(name));
+        makeMasterButton->setMaximumWidth(84);
+        makeMasterButton->setMinimumWidth(84);
         makeMasterButton->setMaximumHeight(22);
         makeMasterButton->setMinimumHeight(22);
-        QObject::connect(makeMasterButton, SIGNAL(clicked()),
-                         this, SLOT(makeMaster()));
+        QObject::connect(makeMasterButton, SIGNAL(clicked()), this, SLOT(makeMaster()));
 
         representationLayout->addWidget(updateButton);
         representationLayout->addWidget(makeMasterButton);
         }
       else
         {
-        QLabel* actionLabel = new QLabel();
-        actionLabel->setText("Create: ");
+        QToolButton* convertButton = new QToolButton(representationWidget);
+        convertButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+        convertButton->setText("Create");
+        QString convertButtonTooltip = QString("Create %1 representation using default conversion parameters.\n\nPress and hold button to access advanced conversion and removal options.").arg(name);
+        convertButton->setToolTip(convertButtonTooltip);
+        convertButton->setProperty(REPRESENTATION_NAME_PROPERTY, QVariant(name));
+        convertButton->setMaximumWidth(72);
+        convertButton->setMinimumWidth(72);
+        convertButton->setMaximumHeight(22);
+        convertButton->setMinimumHeight(22);
+        QObject::connect(convertButton, SIGNAL(clicked()), this, SLOT(createRepresentationDefault()));
 
-        QPushButton* defaultButton = new QPushButton(representationWidget);
-        defaultButton->setText("Default");
-        defaultButton->setProperty("RepresentationName", QVariant(name));
-        defaultButton->setMaximumWidth(72);
-        defaultButton->setMaximumHeight(22);
-        defaultButton->setMinimumHeight(22);
-        QObject::connect(defaultButton, SIGNAL(clicked()),
-                         this, SLOT(createRepresentationDefault()));
+        // Set up actions for the create button
+        QAction* advancedAction = new QAction("Advanced...", convertButton);
+        QString advancedActionTooltip = QString("Create %1 representation using custom conversion parameters").arg(name);
+        advancedAction->setToolTip(advancedActionTooltip);
+        advancedAction->setProperty(REPRESENTATION_NAME_PROPERTY, QVariant(name));
+        QObject::connect(advancedAction, SIGNAL(triggered()), this, SLOT(createRepresentationAdvanced()));
+        convertButton->addAction(advancedAction);
 
-        QPushButton* advancedButton = new QPushButton(representationWidget);
-        advancedButton->setText("Advanced");
-        advancedButton->setProperty("RepresentationName", QVariant(name));
-        advancedButton->setMaximumWidth(72);
-        advancedButton->setMaximumHeight(22);
-        advancedButton->setMinimumHeight(22);
-        QObject::connect(advancedButton, SIGNAL(clicked()),
-                         this, SLOT(createRepresentationAdvanced()));
+        QAction* removeAction = new QAction("Remove", convertButton);
+        QString removeActionTooltip = QString("Remove %1 representation from segmentation").arg(name);
+        removeAction->setToolTip(removeActionTooltip);
+        removeAction->setProperty(REPRESENTATION_NAME_PROPERTY, QVariant(name));
+        QObject::connect(removeAction, SIGNAL(triggered()), this, SLOT(removeRepresentation()));
+        convertButton->addAction(removeAction);
 
-        representationLayout->addWidget(actionLabel);
-        representationLayout->addWidget(defaultButton);
-        representationLayout->addWidget(advancedButton);
+        representationLayout->addWidget(convertButton);
         }
       }
 
@@ -283,8 +302,7 @@ void qMRMLSegmentationRepresentationsListView::createRepresentationDefault()
   Q_D(qMRMLSegmentationRepresentationsListView);
 
   // Get representation name
-  QPushButton* actionButton = qobject_cast<QPushButton*>(this->sender());
-  QString representationName = actionButton->property("RepresentationName").toString();
+  QString representationName = this->sender()->property(REPRESENTATION_NAME_PROPERTY).toString();
 
   // Perform conversion using cheapest path and default conversion parameters
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -304,8 +322,7 @@ void qMRMLSegmentationRepresentationsListView::createRepresentationAdvanced()
   Q_D(qMRMLSegmentationRepresentationsListView);
 
   // Get representation name
-  QPushButton* actionButton = qobject_cast<QPushButton*>(this->sender());
-  QString representationName = actionButton->property("RepresentationName").toString();
+  QString representationName = this->sender()->property(REPRESENTATION_NAME_PROPERTY).toString();
 
   // Create dialog to show the parameters widget in a popup window
   QDialog* parametersDialog = new QDialog(NULL, Qt::Dialog);
@@ -335,13 +352,26 @@ void qMRMLSegmentationRepresentationsListView::createRepresentationAdvanced()
 }
 
 //-----------------------------------------------------------------------------
+void qMRMLSegmentationRepresentationsListView::removeRepresentation()
+{
+  Q_D(qMRMLSegmentationRepresentationsListView);
+
+  // Get representation name
+  QString representationName = this->sender()->property(REPRESENTATION_NAME_PROPERTY).toString();
+
+  // Remove representation from segmentation
+  d->SegmentationNode->GetSegmentation()->RemoveRepresentation(representationName.toLatin1().constData());
+
+  this->populateRepresentationsList();
+}
+
+//-----------------------------------------------------------------------------
 void qMRMLSegmentationRepresentationsListView::makeMaster()
 {
   Q_D(qMRMLSegmentationRepresentationsListView);
 
   // Get representation name
-  QPushButton* button = qobject_cast<QPushButton*>(this->sender());
-  QString representationName = button->property("RepresentationName").toString();
+  QString representationName = this->sender()->property(REPRESENTATION_NAME_PROPERTY).toString();
 
   // Warn user about the consequences of changing master representation
   QMessageBox::StandardButton answer =
