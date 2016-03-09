@@ -105,12 +105,12 @@ bool qSlicerSegmentEditorEffectFactory::registerEffect(qSlicerSegmentEditorAbstr
 {
   if (effectToRegister == NULL)
     {
-    qCritical() << "qSlicerSegmentEditorEffectFactory::registerEffect: Invalid effect to register!";
+    qCritical() << Q_FUNC_INFO << ": Invalid effect to register!";
     return false;
     }
   if (effectToRegister->name().isEmpty())
     {
-    qCritical() << "qSlicerSegmentEditorEffectFactory::registerEffect: Segment editor effect cannot be registered with empty name!";
+    qCritical() << Q_FUNC_INFO << ": Segment editor effect cannot be registered with empty name!";
     return false;
     }
 

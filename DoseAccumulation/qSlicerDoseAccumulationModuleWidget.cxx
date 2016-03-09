@@ -138,7 +138,7 @@ void qSlicerDoseAccumulationModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseAccumulationModuleWidget::onEnter: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -147,7 +147,7 @@ void qSlicerDoseAccumulationModuleWidget::onEnter()
   // First check the logic if it has a parameter node
   if (d->logic() == NULL)
   {
-    qCritical() << "qSlicerDoseAccumulationModuleWidget::onEnter: Invalid logic!";
+    qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
   }
   vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
@@ -255,7 +255,7 @@ void qSlicerDoseAccumulationModuleWidget::referenceDoseVolumeNodeChanged(vtkMRML
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseAccumulationModuleWidget::referenceDoseVolumeNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -282,7 +282,7 @@ void qSlicerDoseAccumulationModuleWidget::accumulatedDoseVolumeNodeChanged(vtkMR
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseAccumulationModuleWidget::referenceDoseVolumeNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -482,14 +482,14 @@ void qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged(int aSt
   vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
   if (!this->mrmlScene() || !paramNode)
   {
-    qCritical() << "qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged: Invalid scene or parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene or parameter set node!";
     return;
   }
 
   QCheckBox* senderCheckbox = dynamic_cast<QCheckBox*>(sender());
   if (!senderCheckbox)
   {
-    qCritical() << "qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged: Invalid sender checkbox for show/hide in chart checkbox state change";
+    qCritical() << Q_FUNC_INFO << ": Invalid sender checkbox for show/hide in chart checkbox state change";
     return;
   }
 
@@ -518,7 +518,7 @@ void qSlicerDoseAccumulationModuleWidget::showDoseOnlyChanged(int aState)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseAccumulationModuleWidget::showDoseOnlyChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 

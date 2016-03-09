@@ -115,7 +115,7 @@ QString qSlicerSegmentEditorAbstractEffect::name()const
 {
   if (m_Name.isEmpty())
     {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::name: Empty effect name!";
+    qCritical() << Q_FUNC_INFO << ": Empty effect name!";
     }
   return this->m_Name;
 }
@@ -124,7 +124,7 @@ QString qSlicerSegmentEditorAbstractEffect::name()const
 void qSlicerSegmentEditorAbstractEffect::setName(QString name)
 {
   Q_UNUSED(name);
-  qCritical() << "qSlicerSegmentEditorAbstractEffect::setName: Cannot set effect name by method, only in constructor!";
+  qCritical() << Q_FUNC_INFO << ": Cannot set effect name by method, only in constructor!";
 }
 
 //-----------------------------------------------------------------------------
@@ -137,7 +137,7 @@ bool qSlicerSegmentEditorAbstractEffect::perSegment()const
 void qSlicerSegmentEditorAbstractEffect::setPerSegment(bool perSegment)
 {
   Q_UNUSED(perSegment);
-  qCritical() << "qSlicerSegmentEditorAbstractEffect::setPerSegment: Cannot set per-segment flag by method, only in constructor!";
+  qCritical() << Q_FUNC_INFO << ": Cannot set per-segment flag by method, only in constructor!";
 }
 
 //-----------------------------------------------------------------------------
@@ -168,7 +168,7 @@ void qSlicerSegmentEditorAbstractEffect::deactivate()
       vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
       if (!renderer)
       {
-        qCritical() << "qSlicerSegmentEditorAbstractEffect::deactivate: Failed to get renderer for view widget!";
+        qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget!";
         continue;
       }
 
@@ -192,7 +192,7 @@ void qSlicerSegmentEditorAbstractEffect::deactivate()
     }
     else
     {
-      qCritical() << "qSlicerSegmentEditorAbstractEffect::deactivate: Unsupported view widget!";
+      qCritical() << Q_FUNC_INFO << ": Unsupported view widget!";
       continue;
     }
   }
@@ -364,7 +364,7 @@ QString qSlicerSegmentEditorAbstractEffect::parameter(QString name)
   }
   if (!value)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::parameter: Parameter named " << name << " cannot be found for effect " << this->name();
+    qCritical() << Q_FUNC_INFO << ": Parameter named " << name << " cannot be found for effect " << this->name();
     return QString();
   }
 
@@ -385,7 +385,7 @@ int qSlicerSegmentEditorAbstractEffect::integerParameter(QString name)
   int parameterInt = parameterStr.toInt(&ok);
   if (!ok)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::integerParameter: Parameter named " << name << " cannot be converted to integer!";
+    qCritical() << Q_FUNC_INFO << ": Parameter named " << name << " cannot be converted to integer!";
     return 0;
   }
 
@@ -406,7 +406,7 @@ double qSlicerSegmentEditorAbstractEffect::doubleParameter(QString name)
   double parameterDouble = parameterStr.toDouble(&ok);
   if (!ok)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::doubleParameter: Parameter named " << name << " cannot be converted to floating point number!";
+    qCritical() << Q_FUNC_INFO << ": Parameter named " << name << " cannot be converted to floating point number!";
     return 0.0;
   }
 
@@ -419,7 +419,7 @@ void qSlicerSegmentEditorAbstractEffect::setParameter(QString name, QString valu
   Q_D(qSlicerSegmentEditorAbstractEffect);
   if (!d->ParameterSetNode)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::setParameter: Invalid segment editor parameter set node set to effect " << this->name();
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node set to effect " << this->name();
     return;
   }
 
@@ -447,7 +447,7 @@ void qSlicerSegmentEditorAbstractEffect::setCommonParameter(QString name, QStrin
   Q_D(qSlicerSegmentEditorAbstractEffect);
   if (!d->ParameterSetNode)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::setCommonParameter: Invalid segment editor parameter set node set to effect " << this->name();
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node set to effect " << this->name();
     return;
   }
 
@@ -515,13 +515,13 @@ bool qSlicerSegmentEditorAbstractEffect::masterVolumeImageData(vtkOrientedImageD
 {
   if (!masterImageData)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::masterVolumeImageData: Invalid input image!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input image!";
     return false;
   }
   vtkMRMLScalarVolumeNode* masterVolumeNode = this->parameterSetNode()->GetMasterVolumeNode();
   if (!masterVolumeNode)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::masterVolumeImageData: Invalid master volume!";
+    qCritical() << Q_FUNC_INFO << ": Invalid master volume!";
     return false;
   }
 
@@ -542,14 +542,14 @@ bool qSlicerSegmentEditorAbstractEffect::masterVolumeScalarRange(double& low, do
 
   if (!this->parameterSetNode())
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::masterVolumeScalarRange: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return false;
   }
 
   vtkMRMLScalarVolumeNode* masterVolumeNode = this->parameterSetNode()->GetMasterVolumeNode();
   if (!masterVolumeNode)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::masterVolumeScalarRange: Failed to get master volume!";
+    qCritical() << Q_FUNC_INFO << ": Failed to get master volume!";
     return false;
   }
 
@@ -583,7 +583,7 @@ vtkRenderWindow* qSlicerSegmentEditorAbstractEffect::renderWindow(qMRMLWidget* v
     return threeDWidget->threeDView()->renderWindow();
   }
 
-  qCritical() << "qSlicerSegmentEditorAbstractEffect::renderWindow: Unsupported view widget type!";
+  qCritical() << Q_FUNC_INFO << ": Unsupported view widget type!";
   return NULL;
 }
 
@@ -618,7 +618,7 @@ vtkMRMLAbstractViewNode* qSlicerSegmentEditorAbstractEffect::viewNode(qMRMLWidge
     return threeDWidget->mrmlViewNode();
   }
 
-  qCritical() << "qSlicerSegmentEditorAbstractEffect::renderWindow: Unsupported view widget type!";
+  qCritical() << Q_FUNC_INFO << ": Unsupported view widget type!";
   return NULL;
 }
 
@@ -631,7 +631,7 @@ QPoint qSlicerSegmentEditorAbstractEffect::rasToXy(double ras[3], qMRMLSliceWidg
     qSlicerSegmentEditorAbstractEffect::viewNode(sliceWidget) );
   if (!sliceNode)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::rasToXy: Failed to get slice node!";
+    qCritical() << Q_FUNC_INFO << ": Failed to get slice node!";
     return xy;
   }
 
@@ -663,7 +663,7 @@ void qSlicerSegmentEditorAbstractEffect::xyzToRas(double inputXyz[3], double out
     qSlicerSegmentEditorAbstractEffect::viewNode(sliceWidget) );
   if (!sliceNode)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractEffect::xyToRas: Failed to get slice node!";
+    qCritical() << Q_FUNC_INFO << ": Failed to get slice node!";
     return;
   }
   

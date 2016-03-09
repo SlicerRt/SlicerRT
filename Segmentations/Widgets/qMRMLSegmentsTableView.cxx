@@ -129,7 +129,7 @@ int qMRMLSegmentsTableViewPrivate::columnIndex(QString label)
 {
   if (!this->ColumnLabels.contains(label))
     {
-    qCritical() << "qMRMLSegmentsTableViewPrivate::columnIndex: Invalid column label!";
+    qCritical() << Q_FUNC_INFO << ": Invalid column label!";
     return -1;
     }
   return this->ColumnLabels.indexOf(label);
@@ -294,7 +294,7 @@ void qMRMLSegmentsTableView::setMode(SegmentTableMode mode)
     }
   else
     {
-    qWarning() << "qMRMLSegmentsTableView::setMode: Invalid mode";
+    qWarning() << Q_FUNC_INFO << ": Invalid mode";
     }
 
   d->Mode = mode;
@@ -324,7 +324,7 @@ void qMRMLSegmentsTableView::populateSegmentTable()
     // Force simple list mode
     if (d->Mode != RepresentationMode)
       {
-      qWarning() << "qMRMLSegmentsTableView::populateSegmentTable: Representation node is selected, but mode is not representation mode! Setting to representation mode.";
+      qWarning() << Q_FUNC_INFO << ": Representation node is selected, but mode is not representation mode! Setting to representation mode.";
       this->setMode(RepresentationMode);
       }
 
@@ -365,7 +365,7 @@ void qMRMLSegmentsTableView::populateSegmentTable()
     d->SegmentationNode->GetDisplayNode() );
   if (!displayNode)
     {
-    qCritical() << "qMRMLSegmentsTableView::populateSegmentTable: No display node for segmentation!";
+    qCritical() << Q_FUNC_INFO << ": No display node for segmentation!";
     return;
     }
 
@@ -461,7 +461,7 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
 
   if (d->Mode == RepresentationMode)
     {
-    qCritical() << "qMRMLSegmentsTableView::updateWidgetFromMRML: This function must not be called in representation mode!";
+    qCritical() << Q_FUNC_INFO << ": This function must not be called in representation mode!";
     return;
     }
   if ( !d->SegmentationNode
@@ -475,7 +475,7 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
     d->SegmentationNode->GetDisplayNode() );
   if (!displayNode)
     {
-    qCritical() << "qMRMLSegmentsTableView::updateWidgetFromMRML: No display node for segmentation!";
+    qCritical() << Q_FUNC_INFO << ": No display node for segmentation!";
     return;
     }
 
@@ -486,7 +486,7 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
     QTableWidgetItem* nameItem = d->findItemBySegmentID(segmentIt->first.c_str());
     if (!nameItem)
       {
-      qCritical() << "qMRMLSegmentsTableView::updateWidgetFromMRML: Cannot find table item correspondig to segment ID '" << segmentIt->first.c_str() << " in segmentation node " << d->SegmentationNode->GetName();
+      qCritical() << Q_FUNC_INFO << ": Cannot find table item correspondig to segment ID '" << segmentIt->first.c_str() << " in segmentation node " << d->SegmentationNode->GetName();
       continue;
       }
     int row = nameItem->row();
@@ -498,7 +498,7 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
     vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
     if (!displayNode->GetSegmentDisplayProperties(segmentIt->first, properties))
       {
-      qWarning() << "qMRMLSegmentsTableView::updateWidgetFromMRML: Unable to find display properties for segment ID '" << segmentIt->first.c_str() << " in segmentation node " << d->SegmentationNode->GetName();
+      qWarning() << Q_FUNC_INFO << ": Unable to find display properties for segment ID '" << segmentIt->first.c_str() << " in segmentation node " << d->SegmentationNode->GetName();
       continue;
       }
 
@@ -566,7 +566,7 @@ void qMRMLSegmentsTableView::onSegmentTableItemChanged(QTableWidgetItem* changed
     vtkSegment* segment = d->SegmentationNode->GetSegmentation()->GetSegment(segmentId.toLatin1().constData());
     if (!segment)
       {
-      qCritical() << "qMRMLSegmentsTableView::onSegmentTableItemChanged: Segment with ID '" << segmentId << "' not found in segmentation node " << d->SegmentationNode->GetName();
+      qCritical() << Q_FUNC_INFO << ": Segment with ID '" << segmentId << "' not found in segmentation node " << d->SegmentationNode->GetName();
       return;
       }
     segment->SetName(nameText.toLatin1().constData());
@@ -579,7 +579,7 @@ void qMRMLSegmentsTableView::onSegmentTableItemChanged(QTableWidgetItem* changed
       d->SegmentationNode->GetDisplayNode() );
     if (!displayNode)
       {
-      qCritical() << "qMRMLSegmentsTableView::onSegmentTableItemChanged: No display node for segmentation!";
+      qCritical() << Q_FUNC_INFO << ": No display node for segmentation!";
       return;
       }
     // Get display properties
@@ -702,7 +702,7 @@ void qMRMLSegmentsTableView::setSegmentVisibility(QObject* senderObject, int vis
     d->SegmentationNode->GetDisplayNode() );
   if (!displayNode)
     {
-    qCritical() << "qMRMLSegmentsTableView::setSegmentVisibility: No display node for segmentation!";
+    qCritical() << Q_FUNC_INFO << ": No display node for segmentation!";
     return;
     }
   vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
@@ -779,7 +779,7 @@ void qMRMLSegmentsTableView::setSelectedSegmentIDs(QStringList segmentIDs)
     QTableWidgetItem* segmentItem = d->findItemBySegmentID(segmentID);
     if (!segmentItem)
       {
-      qCritical() << "qMRMLSegmentsTableView::setSelectedSegmentIDs: Cannot find table item correspondig to segment ID '" << segmentID << " in segmentation node " << d->SegmentationNode->GetName();
+      qCritical() << Q_FUNC_INFO << ": Cannot find table item correspondig to segment ID '" << segmentID << " in segmentation node " << d->SegmentationNode->GetName();
       continue;
       }
 

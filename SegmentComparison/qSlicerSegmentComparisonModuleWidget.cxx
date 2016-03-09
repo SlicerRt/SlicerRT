@@ -124,7 +124,7 @@ void qSlicerSegmentComparisonModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentComparisonModuleWidget::onEnter: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -133,7 +133,7 @@ void qSlicerSegmentComparisonModuleWidget::onEnter()
   // First check the logic if it has a parameter node
   if (!d->logic())
   {
-    qCritical() << "qSlicerSegmentComparisonModuleWidget::onEnter: Invalid logic!";
+    qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
   }
   vtkMRMLSegmentComparisonNode* paramNode = d->logic()->GetSegmentComparisonNode();
@@ -295,7 +295,7 @@ void qSlicerSegmentComparisonModuleWidget::referenceSegmentationNodeChanged(vtkM
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentComparisonModuleWidget::referenceSegmentationNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -321,7 +321,7 @@ void qSlicerSegmentComparisonModuleWidget::referenceSegmentChanged(QString segme
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentComparisonModuleWidget::referenceSegmentChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -347,7 +347,7 @@ void qSlicerSegmentComparisonModuleWidget::compareSegmentationNodeChanged(vtkMRM
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentComparisonModuleWidget::compareSegmentationNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -373,7 +373,7 @@ void qSlicerSegmentComparisonModuleWidget::compareSegmentChanged(QString segment
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentComparisonModuleWidget::compareSegmentChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -399,7 +399,7 @@ void qSlicerSegmentComparisonModuleWidget::computeHausdorffClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentComparisonModuleWidget::computeHausdorffClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -440,7 +440,7 @@ void qSlicerSegmentComparisonModuleWidget::computeDiceClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentComparisonModuleWidget::computeDiceClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -499,7 +499,7 @@ void qSlicerSegmentComparisonModuleWidget::invalidateDiceResults()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentComparisonModuleWidget::invalidateDiceResults: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -529,7 +529,7 @@ void qSlicerSegmentComparisonModuleWidget::invalidateHausdorffResults()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentComparisonModuleWidget::invalidateHausdorffResults: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 

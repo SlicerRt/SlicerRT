@@ -101,7 +101,7 @@ double qSlicerSubjectHierarchyRTPlanPlugin::canAddNodeToSubjectHierarchy(vtkMRML
   Q_UNUSED(parent);
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRTPlanPlugin::canAddNodeToSubjectHierarchy: Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
     return 0.0;
   }
   else if (node->IsA("vtkMRMLRTPlanNode"))
@@ -116,7 +116,7 @@ double qSlicerSubjectHierarchyRTPlanPlugin::canOwnSubjectHierarchyNode(vtkMRMLSu
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRTPlanPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
     return 0.0;
   }
 
@@ -155,7 +155,7 @@ QIcon qSlicerSubjectHierarchyRTPlanPlugin::icon(vtkMRMLSubjectHierarchyNode* nod
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRTPlanPlugin::icon: NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": NULL node given!";
     return QIcon();
   }
 

@@ -152,31 +152,34 @@ void qSlicerExternalBeamPlanningModuleWidget::enter()
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::onEnter()
 {
-  if (!this->mrmlScene()) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::onEnter: Invalid scene!";
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   // First check the logic if it has a parameter node
-  if (d->logic() == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::onEnter: Invalid logic!";
+  if (d->logic() == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
   }
   vtkMRMLExternalBeamPlanningNode* paramNode = this->getExternalBeamPlanningNode();
 
   // Do we already have a parameter node?
-  if (paramNode == NULL) {
-
+  if (paramNode == NULL)
+  {
     // If not, try to find one in the scene
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLExternalBeamPlanningNode");
-    if (node) {
+    if (node)
+    {
       paramNode = vtkMRMLExternalBeamPlanningNode::SafeDownCast(node);
     }
-
     // Otherwise, create a new one
-    else {
+    else
+    {
       vtkSmartPointer<vtkMRMLExternalBeamPlanningNode> newNode = vtkSmartPointer<vtkMRMLExternalBeamPlanningNode>::New();
       paramNode = newNode;
       this->mrmlScene()->AddNode(newNode);
@@ -204,7 +207,8 @@ vtkMRMLRTPlanNode* qSlicerExternalBeamPlanningModuleWidget::getRTPlanNode ()
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   
   vtkMRMLExternalBeamPlanningNode* paramNode = this->getExternalBeamPlanningNode ();
-  if (!paramNode) {
+  if (!paramNode)
+  {
     return NULL;
   }
   return paramNode->GetRTPlanNode ();
@@ -223,7 +227,7 @@ vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamNode(v
   vtkMRMLRTPlanNode* rtPlanNode = paramNode->GetRTPlanNode();
   if (!rtPlanNode)
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamNode: Invalid rtplan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid rtplan node!";
     return NULL;
   }
 
@@ -260,7 +264,8 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromRTBeam (vtkMRMLRTB
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   // If node is empty, remove all tabs
-  if (!beamNode) {
+  if (!beamNode)
+  {
     d->tabWidget->clear ();
     d->lineEdit_BeamName->setText ("");
     // GCS FIX How do I disconnect ?
@@ -580,12 +585,15 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
 
   qSlicerAbstractCoreModule* matlabDoseCalculationModule =
     qSlicerCoreApplication::application()->moduleManager()->module("MatlabDoseCalculation");
-  if (matlabDoseCalculationModule) {
+  if (matlabDoseCalculationModule)
+  {
     vtkSlicerCLIModuleLogic* matlabDoseCalculationModuleLogic =
       vtkSlicerCLIModuleLogic::SafeDownCast(matlabDoseCalculationModule->logic());
     externalBeamPlanningModuleLogic->SetMatlabDoseCalculationModuleLogic(matlabDoseCalculationModuleLogic);
-  } else {
-    qWarning() << "MatlabDoseCalculation module is not found!";
+  }
+  else
+  {
+    qWarning() << Q_FUNC_INFO << ": MatlabDoseCalculation module is not found!";
   }
 
   // Make connections
@@ -629,7 +637,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
 
   /* Geometry page */
   this->connect( d->MRMLNodeComboBox_MLCPositionDoubleArray, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(MLCPositionDoubleArrayNodeChanged(vtkMRMLNode*)) );
-  this->connect (d->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), this, SLOT(sourceDistanceChanged(double)) );
+  this->connect( d->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), this, SLOT(sourceDistanceChanged(double)) );
   this->connect( d->RangeWidget_XJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(XJawsPositionValuesChanged(double, double)) );
   this->connect( d->RangeWidget_YJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(YJawsPositionValuesChanged(double, double)) );
   this->connect( d->SliderWidget_CollimatorAngle, SIGNAL(valueChanged(double)), this, SLOT(collimatorAngleChanged(double)) );
@@ -708,14 +716,14 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
   if (!paramNode)
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget: Invalid parameter node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid parameter node!";
     return;
   }
 
@@ -728,7 +736,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
   vtkMRMLRTPlanNode* planNode = this->getRTPlanNode ();
   if (!planNode)
   { 
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget: Invalid rtplan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid rtplan node!";
     return;
   }
 
@@ -770,15 +778,17 @@ void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRML
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  if (!node) {
+  if (!node)
+  {
     return;
   }
 
   vtkMRMLRTPlanNode* planNode = this->getRTPlanNode ();
-  if (!planNode) {
+  if (!planNode)
+  {
     /* GCS FIX TODO *** Probably I should create plan node here. ***/
     return;
   }
@@ -795,7 +805,7 @@ void qSlicerExternalBeamPlanningModuleWidget::planContoursNodeChanged(vtkMRMLNod
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::planContoursNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -817,7 +827,7 @@ void qSlicerExternalBeamPlanningModuleWidget::rtPlanNodeChanged(vtkMRMLNode* nod
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::rtPlanNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -839,7 +849,7 @@ void qSlicerExternalBeamPlanningModuleWidget::planPOIsNodeChanged(vtkMRMLNode* n
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::planPOIsNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -861,7 +871,7 @@ void qSlicerExternalBeamPlanningModuleWidget::rtDoseVolumeNodeChanged(vtkMRMLNod
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::rtDoseVolumeNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -874,7 +884,7 @@ void qSlicerExternalBeamPlanningModuleWidget::rtDoseVolumeNodeChanged(vtkMRMLNod
   vtkMRMLRTPlanNode* rtPlanNode = paramNode->GetRTPlanNode();
   if (!rtPlanNode)
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::rtDoseVolumeNodeChanged: Invalid rtplan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid rtplan node!";
     return;
   }
 
@@ -890,7 +900,7 @@ void qSlicerExternalBeamPlanningModuleWidget::rtDoseROINodeChanged(vtkMRMLNode* 
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::rtDoseROINodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -913,7 +923,7 @@ void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingChanged(const QStri
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -940,7 +950,7 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineTypeChanged(const QStrin
   vtkMRMLRTPlanNode* rtPlanNode = paramNode->GetRTPlanNode();
   if (!rtPlanNode)
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::doseEngineTypeChanged: Invalid rtplan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid rtplan node!";
     return;
   }
 
@@ -965,14 +975,14 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::addBeamClicked Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   vtkMRMLExternalBeamPlanningNode* paramNode = this->getExternalBeamPlanningNode();
   if (!paramNode)
   {
-    qWarning() << "qSlicerExternalBeamPlanningModuleWidget::addBeamClicked without parameter node";
+    qWarning() << Q_FUNC_INFO << ": No parameter node";
     return;
   }
 
@@ -1083,7 +1093,7 @@ void qSlicerExternalBeamPlanningModuleWidget::beamNameChanged(const QString &tex
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::beamNameChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -1192,13 +1202,13 @@ void qSlicerExternalBeamPlanningModuleWidget::beamTypeChanged(const QString &tex
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::beamTypeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
   if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::beamTypeChanged: No current beam node.";
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
 
@@ -1219,7 +1229,7 @@ void qSlicerExternalBeamPlanningModuleWidget::targetVolumeNodeChanged(vtkMRMLNod
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::targetVolumeNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -1249,7 +1259,7 @@ void qSlicerExternalBeamPlanningModuleWidget::targetVolumeSegmentChanged(const Q
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::targetVolumeSegmentChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -1283,13 +1293,14 @@ void qSlicerExternalBeamPlanningModuleWidget::RxDoseChanged(double value)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::RxDoseChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Update in beam node
   vtkMRMLRTPlanNode* rtPlanNode = this->getRTPlanNode();
-  if (!rtPlanNode) {
+  if (!rtPlanNode)
+  {
     return;
   }
   rtPlanNode->SetRxDose(value);
@@ -1309,7 +1320,7 @@ void qSlicerExternalBeamPlanningModuleWidget::isocenterSpecChanged(const QString
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
   if (!beamNode)
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::doseEngineTypeChanged: Invalid rtplan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid rtplan node!";
     return;
   }
 
@@ -1327,7 +1338,7 @@ void qSlicerExternalBeamPlanningModuleWidget::isocenterCoordinatesChanged(double
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::isocenterCoordinatesChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -1340,7 +1351,7 @@ void qSlicerExternalBeamPlanningModuleWidget::isocenterCoordinatesChanged(double
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
   if (!beamNode)
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::isocenterCoordinatesChanged: Invalid beam node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid beam node!";
     return;
   }
 
@@ -1358,15 +1369,16 @@ void qSlicerExternalBeamPlanningModuleWidget::isocenterFiducialNodeChangedfromCo
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::dosePointFiducialNodeChangedfromCoordinates(double* coordinates) // Md Fix
 {
-    Q_D(qSlicerExternalBeamPlanningModuleWidget);
-    UNUSED_VARIABLE(coordinates);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  UNUSED_VARIABLE(coordinates);
 
-    if (!this->mrmlScene()) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::dosePointFiducialNodeChangedfromCoordinates: Invalid scene!";
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
-    // TODO: to be implemented
+  // TODO: to be implemented
 }
 
 //-----------------------------------------------------------------------------
@@ -1376,14 +1388,15 @@ void qSlicerExternalBeamPlanningModuleWidget::proximalMarginChanged(double value
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::proximalMarginChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::proximalMarginChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
@@ -1397,14 +1410,15 @@ void qSlicerExternalBeamPlanningModuleWidget::distalMarginChanged(double value)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::distalMarginChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::distalMarginChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
@@ -1416,14 +1430,15 @@ void qSlicerExternalBeamPlanningModuleWidget::beamLineTypeChanged(const QString 
 {
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::beamLineTypeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::beamLineTypeChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
@@ -1444,14 +1459,15 @@ void qSlicerExternalBeamPlanningModuleWidget::manualEnergyPrescriptionChanged(bo
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::manualEnergyPrescriptionChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::manualEnergyPrescriptionChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
 
@@ -1460,17 +1476,17 @@ void qSlicerExternalBeamPlanningModuleWidget::manualEnergyPrescriptionChanged(bo
 
   if (protonNode->GetHavePrescription())
   {
-      d->doubleSpinBox_MinimumEnergy->setEnabled(true);
-      d->doubleSpinBox_MaximumEnergy->setEnabled(true);
-      d->label_MinimumEnergy->setEnabled(true);
-      d->label_MaximumEnergy->setEnabled(true);
+    d->doubleSpinBox_MinimumEnergy->setEnabled(true);
+    d->doubleSpinBox_MaximumEnergy->setEnabled(true);
+    d->label_MinimumEnergy->setEnabled(true);
+    d->label_MaximumEnergy->setEnabled(true);
   }
   else
   {
-      d->doubleSpinBox_MinimumEnergy->setEnabled(false);
-      d->doubleSpinBox_MaximumEnergy->setEnabled(false);
-      d->label_MinimumEnergy->setEnabled(false);
-      d->label_MaximumEnergy->setEnabled(false);
+    d->doubleSpinBox_MinimumEnergy->setEnabled(false);
+    d->doubleSpinBox_MaximumEnergy->setEnabled(false);
+    d->label_MinimumEnergy->setEnabled(false);
+    d->label_MaximumEnergy->setEnabled(false);
   }
 }
 
@@ -1480,14 +1496,15 @@ void qSlicerExternalBeamPlanningModuleWidget::minimumEnergyChanged(double value)
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::minimumEnergyChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::minimumEnergyChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
 
@@ -1501,14 +1518,15 @@ void qSlicerExternalBeamPlanningModuleWidget::maximumEnergyChanged(double value)
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::maximumEnergyChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::maximumEnergyChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
 
@@ -1523,7 +1541,7 @@ void qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged(
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -1540,7 +1558,7 @@ void qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged(
   vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetExternalBeamPlanningNode()->GetRtPlanNode();
   if (!rtPlanNode)
   { 
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget: Invalid rtplan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid rtplan node!";
     return;
   }
 
@@ -1552,7 +1570,7 @@ void qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged(
   // Make sure inputs are initialized
   if (!beamNode)
   {
-    qCritical() << "MLCPositionDoubleArrayNodeChanged: Inputs are not initialized!";
+    qCritical() << Q_FUNC_INFO << ": Inputs are not initialized!";
     return;
   }
 
@@ -1567,14 +1585,15 @@ void qSlicerExternalBeamPlanningModuleWidget::XJawsPositionValuesChanged(double 
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::XJawPositionsValueChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Update in beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (!beamNode) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::XJawPositionsValueChanged: No current beam node.";
+  if (!beamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   beamNode->SetX1Jaw(-minVal);
@@ -1592,14 +1611,15 @@ void qSlicerExternalBeamPlanningModuleWidget::YJawsPositionValuesChanged(double 
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::YJawPositionsValueChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Update in beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (!beamNode) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::YJawPositionsValueChanged: No current beam node.";
+  if (!beamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   beamNode->SetY1Jaw(-minVal);
@@ -1617,7 +1637,7 @@ void qSlicerExternalBeamPlanningModuleWidget::gantryAngleChanged(double value)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::gantryAngleChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -1625,7 +1645,7 @@ void qSlicerExternalBeamPlanningModuleWidget::gantryAngleChanged(double value)
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
   if (!beamNode)
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::gantryAngleChanged: No current beam selected!";
+    qCritical() << Q_FUNC_INFO << ": No current beam selected!";
     return;
   }
   beamNode->SetGantryAngle(value);
@@ -1647,14 +1667,14 @@ void qSlicerExternalBeamPlanningModuleWidget::collimatorAngleChanged(double valu
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::collimatorAngleChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Update in beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
   if (!beamNode) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::collimatorAngleChanged: No current beam selected!";
+    qCritical() << Q_FUNC_INFO << ": No current beam selected!";
     return;
   }
   beamNode->SetCollimatorAngle(value);
@@ -1670,14 +1690,15 @@ void qSlicerExternalBeamPlanningModuleWidget::couchAngleChanged(double value)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::couchAngleChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Update in beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (!beamNode) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::couchAngleChanged: No current beam selected!";
+  if (!beamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam selected!";
     return;
   }
   beamNode->SetCouchAngle(value);
@@ -1694,14 +1715,14 @@ void qSlicerExternalBeamPlanningModuleWidget::smearingChanged(double value)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::smearingChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
   if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::smearingChanged: No current beam node.";
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   
@@ -1715,14 +1736,15 @@ void qSlicerExternalBeamPlanningModuleWidget::beamWeightChanged(double value)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::beamWeightChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Update in beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::beamWeightChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   beamNode->SetBeamWeight(value);
@@ -1735,14 +1757,15 @@ void qSlicerExternalBeamPlanningModuleWidget::sourceDistanceChanged(double value
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::sourceDistanceChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Update in beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::sourceDistanceChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   beamNode->SetSAD(value);
@@ -1758,14 +1781,15 @@ void qSlicerExternalBeamPlanningModuleWidget::apertureDistanceChanged(double val
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::apertureDistanceChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::apertureDistanceChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
@@ -1779,33 +1803,34 @@ void qSlicerExternalBeamPlanningModuleWidget::algorithmChanged(const QString &te
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::algorithmChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::algorithmChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
 
-  if(text == "Ray tracer algorithm")
+  if (text == "Ray tracer algorithm")
   {
     protonNode->SetAlgorithm(vtkMRMLRTProtonBeamNode::RayTracer);
     d->label_CalculateDoseStatus->setText("Ray Tracer Algorithm");
   }
-  else if(text == "Cartesian geometry dose calculation")
+  else if (text == "Cartesian geometry dose calculation")
   {
     protonNode->SetAlgorithm(vtkMRMLRTProtonBeamNode::CGS);
     d->label_CalculateDoseStatus->setText("Cartesian Geometry Algorithm");
   }
-  else if(text == "Divergent geometry dose calculation")
+  else if (text == "Divergent geometry dose calculation")
   {
     protonNode->SetAlgorithm(vtkMRMLRTProtonBeamNode::DGS);
     d->label_CalculateDoseStatus->setText("Divergent Geometry Algorithm");
   }
-  else if(text == "Hong dose calculation")
+  else if (text == "Hong dose calculation")
   {
     protonNode->SetAlgorithm(vtkMRMLRTProtonBeamNode::HGS);
     d->label_CalculateDoseStatus->setText("Hong Algorithm");
@@ -1824,15 +1849,16 @@ void qSlicerExternalBeamPlanningModuleWidget::PBResolutionChanged(double value)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::PBResolutionChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   // GCS FIX TODO: Why are the function names different?
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::PBResolutionChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
@@ -1846,14 +1872,15 @@ void qSlicerExternalBeamPlanningModuleWidget::sourceSizeChanged(double value)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::sourceSizeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::sourceSizeChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
@@ -1867,14 +1894,15 @@ void qSlicerExternalBeamPlanningModuleWidget::energyResolutionChanged(double val
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::energyResolutionChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::energyResolutionChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
@@ -1888,14 +1916,15 @@ void qSlicerExternalBeamPlanningModuleWidget::energySpreadChanged(double value)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::energySpreadChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::energySpreadChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
@@ -1909,14 +1938,15 @@ void qSlicerExternalBeamPlanningModuleWidget::stepLengthChanged(double value)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::stepLengthChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::stepLengthChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
@@ -1931,14 +1961,15 @@ void qSlicerExternalBeamPlanningModuleWidget::WEDApproximationChanged(bool check
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::WEDApproximationChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::WEDApproximationChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
@@ -1952,14 +1983,15 @@ void qSlicerExternalBeamPlanningModuleWidget::rangeCompensatorHighlandChanged(bo
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::rangeCompensatorHighlandChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   // Set in proton beam node
   vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
-  if (beamNode == NULL) {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::rangeCompensatorHighlandChanged: No current beam node.";
+  if (beamNode == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
   vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
@@ -1973,7 +2005,7 @@ void qSlicerExternalBeamPlanningModuleWidget::beamEyesViewClicked(bool checked)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::beamEyesViewClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -2001,7 +2033,7 @@ void qSlicerExternalBeamPlanningModuleWidget::contoursInBEWClicked(bool checked)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::contoursInBEWClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -2029,7 +2061,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDRRClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::updateDRRClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -2059,7 +2091,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -2102,20 +2134,21 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
   if (!paramNode)
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked: Invalid paramNode!";
+    qCritical() << Q_FUNC_INFO << ": Invalid paramNode!";
     return;
   }
 
   /* Make sure inputs were specified */
   vtkMRMLRTPlanNode* planNode = this->getRTPlanNode ();
-  if (!planNode) {
+  if (!planNode)
+  {
     d->label_CalculateDoseStatus->setText("No RT Plan node found");
     return;
   }
@@ -2125,7 +2158,8 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   }
 
   vtkMRMLScalarVolumeNode* referenceVolume = planNode->GetRTPlanReferenceVolumeNode();
-  if (!referenceVolume) {
+  if (!referenceVolume)
+  {
     d->label_CalculateDoseStatus->setText("No reference image");
     return;
   }
@@ -2154,7 +2188,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   vtkMRMLRTPlanNode* rtPlanNode = this->getRTPlanNode();
   if (!rtPlanNode)
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked: Invalid rtplan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid rtplan node!";
     return;
   }
 
@@ -2175,7 +2209,8 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     beamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(beams->GetItemAsObject(i));
     if (beamNode)
     {
-      if (beamNode->GetRadiationType() != vtkMRMLRTBeamNode::Proton){
+      if (beamNode->GetRadiationType() != vtkMRMLRTBeamNode::Proton)
+      {
           d->label_CalculateDoseStatus->setText("Dose calculation is not available for this particle");
           return;
       }
@@ -2200,14 +2235,14 @@ void qSlicerExternalBeamPlanningModuleWidget::clearDoseClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::clearDoseClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
   if (!paramNode)
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::clearDoseClicked: Invalid paramNode!";
+    qCritical() << Q_FUNC_INFO << ": Invalid paramNode!";
     return;
   }
 
@@ -2268,7 +2303,7 @@ void qSlicerExternalBeamPlanningModuleWidget::collimatorTypeChanged(const QStrin
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerExternalBeamPlanningModuleWidget::collimatorTypeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 

@@ -334,7 +334,7 @@ bool qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment()
 {
   if (!this->ParameterSetNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return false;
   }
 
@@ -357,7 +357,7 @@ bool qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment()
     selectedSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
   if (!segmentLabelmap)
   {
-    qCritical() << "qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment: Failed to get binary labelmap representation in segmentation " << segmentationNode->GetName();
+    qCritical() << Q_FUNC_INFO << ": Failed to get binary labelmap representation in segmentation " << segmentationNode->GetName();
     return false;
   }
 
@@ -375,7 +375,7 @@ bool qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment()
     void* imageDataVoxelsPointer = segmentLabelmap->GetScalarPointerForExtent(extent);
     if (!imageDataVoxelsPointer)
     {
-      qCritical() << "qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment: Failed to allocate memory for one-voxel image!";
+      qCritical() << Q_FUNC_INFO << ": Failed to allocate memory for one-voxel image!";
       return false;
     }
     memset(imageDataVoxelsPointer, 0, segmentLabelmap->GetScalarSize());
@@ -392,7 +392,7 @@ bool qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment()
   if (!vtkOrientedImageDataResample::PadImageToContainImage(
     segmentLabelmap, masterVolumeOrientedImageData, editedLabelmap) )
   {
-    qCritical() << "qMRMLSegmentEditorWidgetPrivate::createEditedLabelmapFromSelectedSegment: Failed to pad binary labelmap of selected segment "
+    qCritical() << Q_FUNC_INFO << ": Failed to pad binary labelmap of selected segment "
       << selectedSegmentID << " in segmentation " << segmentationNode->GetName() << " to contain master volume " << masterVolumeNode->GetName();
     return false;
   }
@@ -405,7 +405,7 @@ void qMRMLSegmentEditorWidgetPrivate::selectFirstSegment()
 {
   if (!this->ParameterSetNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidgetPrivate::selectFirstSegment: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -427,7 +427,7 @@ void qMRMLSegmentEditorWidgetPrivate::showSelectedSegment()
 {
   if (!this->ParameterSetNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidgetPrivate::showSelectedSegment: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
   vtkMRMLSegmentationNode* segmentationNode = this->ParameterSetNode->GetSegmentationNode();
@@ -439,7 +439,7 @@ void qMRMLSegmentEditorWidgetPrivate::showSelectedSegment()
     segmentationNode->GetDisplayNode());
   if (!displayNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidgetPrivate::showSelectedSegment: Invalid segmentation display node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segmentation display node!";
     return;
   }
 
@@ -470,7 +470,7 @@ void qMRMLSegmentEditorWidgetPrivate::updateEffectsEnabled()
 {
   if (!this->ParameterSetNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidgetPrivate::updateEffectsEnabled: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
   
@@ -489,7 +489,7 @@ void qMRMLSegmentEditorWidgetPrivate::updateEffectsEnabled()
       effectButton->property("Effect").value<QObject*>() );
     if (!effect)
     {
-      qCritical() << "qMRMLSegmentEditorWidgetPrivate::updateEffectsEnabled: Failed to get effect from effect button " << effectButton->objectName();
+      qCritical() << Q_FUNC_INFO << ": Failed to get effect from effect button " << effectButton->objectName();
       continue;
     }
 
@@ -524,7 +524,7 @@ void qMRMLSegmentEditorWidget::updateWidgetFromMRML()
 
   if (!d->ParameterSetNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::updateWidgetFromMRML: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -759,7 +759,7 @@ QString qMRMLSegmentEditorWidget::currentSegmentID()const
 
   if (!d->ParameterSetNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::currentSegmentID: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return QString();
   }
 
@@ -773,7 +773,7 @@ void qMRMLSegmentEditorWidget::setMasterVolumeNode(vtkMRMLNode* node)
   Q_D(qMRMLSegmentEditorWidget);
   if (node && !d->MRMLNodeComboBox_MasterVolume->isEnabled())
   {
-    qCritical() << "qMRMLSegmentEditorWidget::setMasterVolumeNode: Cannot set master volume until segmentation is selected!";
+    qCritical() << Q_FUNC_INFO << ": Cannot set master volume until segmentation is selected!";
     return;
   }
   d->MRMLNodeComboBox_MasterVolume->setCurrentNode(node);
@@ -792,7 +792,7 @@ void qMRMLSegmentEditorWidget::setMasterVolumeNodeID(const QString& nodeID)
   Q_D(qMRMLSegmentEditorWidget);
   if (!d->MRMLNodeComboBox_MasterVolume->isEnabled())
   {
-    qCritical() << "qMRMLSegmentEditorWidget::setMasterVolumeNode: Cannot set master volume until segmentation is selected!";
+    qCritical() << Q_FUNC_INFO << ": Cannot set master volume until segmentation is selected!";
     return;
   }
   d->MRMLNodeComboBox_MasterVolume->setCurrentNodeID(nodeID);
@@ -816,7 +816,7 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
     d->MRMLNodeComboBox_Segmentation->setCurrentNode(NULL);
     d->MRMLNodeComboBox_Segmentation->blockSignals(false);
 
-    qCritical() << "qMRMLSegmentEditorWidget::onSegmentationNodeChanged: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -886,7 +886,7 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
       QString message = QString("Failed to create binary labelmap representation in segmentation %1 for editing!\nPlease see Segmentations module for details.").
         arg(segmentationNode->GetName());
       QMessageBox::critical(NULL, tr("Failed to create binary labelmap for editing"), message);
-      qCritical() << "qMRMLSegmentEditorWidget::onSegmentationNodeChanged: " << message;
+      qCritical() << Q_FUNC_INFO << ": " << message;
       return;
     }
 
@@ -944,7 +944,7 @@ void qMRMLSegmentEditorWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
   vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
   if (!selectionNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::onSegmentationNodeChanged: Unable to get selection node to show segmentation node " << segmentationNode->GetName();
+    qCritical() << Q_FUNC_INFO << ": Unable to get selection node to show segmentation node " << segmentationNode->GetName();
     return;
   }
   selectionNode->SetActiveLabelVolumeID(NULL);
@@ -960,7 +960,7 @@ void qMRMLSegmentEditorWidget::onSegmentSelectionChanged(const QItemSelection &s
 
   if (!d->ParameterSetNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::onSegmentSelectionChanged: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -968,7 +968,7 @@ void qMRMLSegmentEditorWidget::onSegmentSelectionChanged(const QItemSelection &s
   d->RemoveSegmentButton->setEnabled(selectedSegmentIDs.count() > 0);
   if (selectedSegmentIDs.size() > 1)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::onSegmentSelectionChanged: One segment should be selected!";
+    qCritical() << Q_FUNC_INFO << ": One segment should be selected!";
     return;
   }
 
@@ -1024,7 +1024,7 @@ void qMRMLSegmentEditorWidget::onMasterVolumeNodeChanged(vtkMRMLNode* node)
     d->MRMLNodeComboBox_MasterVolume->setCurrentNode(NULL);
     d->MRMLNodeComboBox_MasterVolume->blockSignals(false);
 
-    qCritical() << "qMRMLSegmentEditorWidget::onMasterVolumeNodeChanged: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -1073,7 +1073,7 @@ void qMRMLSegmentEditorWidget::onMasterVolumeNodeChanged(vtkMRMLNode* node)
   vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
   if (!selectionNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::onMasterVolumeNodeChanged: Unable to get selection node to show volume node " << volumeNode->GetName();
+    qCritical() << Q_FUNC_INFO << ": Unable to get selection node to show volume node " << volumeNode->GetName();
     return;
   }
   selectionNode->SetActiveVolumeID(volumeNode->GetID());
@@ -1121,7 +1121,7 @@ void qMRMLSegmentEditorWidget::onAddSegment()
 
   if (!d->ParameterSetNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::onAddSegment: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -1150,7 +1150,7 @@ void qMRMLSegmentEditorWidget::onRemoveSegment()
 
   if (!d->ParameterSetNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::onRemoveSegment: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -1180,7 +1180,7 @@ void qMRMLSegmentEditorWidget::onCreateSurfaceToggled(bool on)
 
   if (!d->ParameterSetNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::onCreateSurfaceToggled: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -1231,7 +1231,7 @@ void qMRMLSegmentEditorWidget::updateCreateSurfaceButton()
 
   if (!d->ParameterSetNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::updateCreateSurfaceButton: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -1462,7 +1462,7 @@ void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
 
   if (!d->ParameterSetNode)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::applyChangesToSelectedSegment: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -1470,7 +1470,7 @@ void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
   const char* selectedSegmentID = d->ParameterSetNode->GetSelectedSegmentID();
   if (!segmentationNode || !selectedSegmentID)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::applyChangesToSelectedSegment: Invalid segment selection!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment selection!";
     return;
   }
 
@@ -1480,7 +1480,7 @@ void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
     // If per-segment flag is off, then it is not an error (the effect itself has written it back to segmentation)
     if (d->ActiveEffect->perSegment())
     {
-      qCritical() << "qMRMLSegmentEditorWidget::applyChangesToSelectedSegment: Cannot apply edit operation because edited labelmap cannot be accessed!";
+      qCritical() << Q_FUNC_INFO << ": Cannot apply edit operation because edited labelmap cannot be accessed!";
     }
     return;
   }
@@ -1502,7 +1502,7 @@ void qMRMLSegmentEditorWidget::applyChangesToSelectedSegment()
     editedLabelmap, segmentationNode, selectedSegmentID, append );
   if (!success)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::applyChangesToSelectedSegment: Failed to set edited labelmap to selected segment!";
+    qCritical() << Q_FUNC_INFO << ": Failed to set edited labelmap to selected segment!";
   }
 }
 
@@ -1525,7 +1525,7 @@ void qMRMLSegmentEditorWidget::processEvents(vtkObject* caller,
   qMRMLWidget* viewWidget = eventInfo->ViewWidget;
   if (!self || !viewWidget)
   {
-    qCritical() << "qMRMLSegmentEditorWidget::processInteractionEvents: Invalid event data!";
+    qCritical() << Q_FUNC_INFO << ": Invalid event data!";
     return;
   }
   // Do nothing if scene is closing
@@ -1554,6 +1554,6 @@ void qMRMLSegmentEditorWidget::processEvents(vtkObject* caller,
   }
   else
   {
-    qCritical() << "qMRMLSegmentEditorWidget::processInteractionEvents: Unsupported caller object!";
+    qCritical() << Q_FUNC_INFO << ": Unsupported caller object!";
   }
 }

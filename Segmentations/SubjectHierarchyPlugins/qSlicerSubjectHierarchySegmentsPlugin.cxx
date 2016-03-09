@@ -211,7 +211,7 @@ double qSlicerSubjectHierarchySegmentsPlugin::canOwnSubjectHierarchyNode(vtkMRML
 {
   if (!node)
     {
-    qCritical() << "qSlicerSubjectHierarchyVolumesPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
     return 0.0;
     }
 
@@ -244,7 +244,7 @@ QString qSlicerSubjectHierarchySegmentsPlugin::tooltip(vtkMRMLSubjectHierarchyNo
 {
   if (!node)
     {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::tooltip: Subject hierarchy node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Subject hierarchy node is NULL!";
     return QString("Invalid!");
     }
 
@@ -254,7 +254,7 @@ QString qSlicerSubjectHierarchySegmentsPlugin::tooltip(vtkMRMLSubjectHierarchyNo
   vtkSegment* segment = vtkSlicerSegmentationsModuleLogic::GetSegmentForSegmentSubjectHierarchyNode(node);
   if (!segment)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::tooltip: Unable to get segment for segment subject hierarchy node!";
+    qCritical() << Q_FUNC_INFO << ": Unable to get segment for segment subject hierarchy node!";
     return tooltipString;
   }
 
@@ -309,7 +309,7 @@ QIcon qSlicerSubjectHierarchySegmentsPlugin::icon(vtkMRMLSubjectHierarchyNode* n
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::icon: NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": NULL node given!";
     return QIcon();
   }
 
@@ -337,7 +337,7 @@ void qSlicerSubjectHierarchySegmentsPlugin::setDisplayVisibility(vtkMRMLSubjectH
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::setDisplayVisibility: NULL node!";
+    qCritical() << Q_FUNC_INFO << ": NULL node!";
     return;
   }
 
@@ -346,14 +346,14 @@ void qSlicerSubjectHierarchySegmentsPlugin::setDisplayVisibility(vtkMRMLSubjectH
     vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeForSegmentSubjectHierarchyNode(node);
   if (!segmentationNode)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::setDisplayVisibility: Unable to find segmentation node for segment subject hierarchy node " << node->GetName();
+    qCritical() << Q_FUNC_INFO << ": Unable to find segmentation node for segment subject hierarchy node " << node->GetName();
     return;
   }
   vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
     segmentationNode->GetDisplayNode() );
   if (!displayNode)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::setDisplayVisibility: No display node for segmentation!";
+    qCritical() << Q_FUNC_INFO << ": No display node for segmentation!";
     return;
   }
 
@@ -374,7 +374,7 @@ int qSlicerSubjectHierarchySegmentsPlugin::getDisplayVisibility(vtkMRMLSubjectHi
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::getDisplayVisibility: NULL node!";
+    qCritical() << Q_FUNC_INFO << ": NULL node!";
     return -1;
   }
 
@@ -383,14 +383,14 @@ int qSlicerSubjectHierarchySegmentsPlugin::getDisplayVisibility(vtkMRMLSubjectHi
     vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeForSegmentSubjectHierarchyNode(node);
   if (!segmentationNode)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::getDisplayVisibility: Unable to find segmentation node for segment subject hierarchy node " << node->GetName();
+    qCritical() << Q_FUNC_INFO << ": Unable to find segmentation node for segment subject hierarchy node " << node->GetName();
     return -1;
   }
   vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
     segmentationNode->GetDisplayNode() );
   if (!displayNode)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::getDisplayVisibility: No display node for segmentation!";
+    qCritical() << Q_FUNC_INFO << ": No display node for segmentation!";
     return -1;
   }
 
@@ -446,7 +446,7 @@ void qSlicerSubjectHierarchySegmentsPlugin::editProperties(vtkMRMLSubjectHierarc
       vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeForSegmentSubjectHierarchyNode(node);
     if (!segmentationNode)
     {
-      qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::editProperties: Unable to find segmentation node for segment subject hierarchy node " << node->GetName();
+      qCritical() << Q_FUNC_INFO << ": Unable to find segmentation node for segment subject hierarchy node " << node->GetName();
       return;
     }
     if (nodeSelector)
@@ -465,20 +465,20 @@ void qSlicerSubjectHierarchySegmentsPlugin::showOnlyCurrentSegment()
   vtkMRMLSubjectHierarchyNode* parentNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(currentNode->GetParentNode());
   if (!parentNode)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::showOnlyCurrentSegment: Segment subject hierarchy node has no segmentation parent!";
+    qCritical() << Q_FUNC_INFO << ": Segment subject hierarchy node has no segmentation parent!";
     return;
   }
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(parentNode->GetAssociatedNode());
   if (!segmentationNode)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::showOnlyCurrentSegment: Unable to find segmentation node for segment subject hierarchy node " << currentNode->GetName();
+    qCritical() << Q_FUNC_INFO << ": Unable to find segmentation node for segment subject hierarchy node " << currentNode->GetName();
     return;
   }
   vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
     segmentationNode->GetDisplayNode() );
   if (!displayNode)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::showOnlyCurrentSegment: No display node for segmentation!";
+    qCritical() << Q_FUNC_INFO << ": No display node for segmentation!";
     return;
   }
 
@@ -515,20 +515,20 @@ void qSlicerSubjectHierarchySegmentsPlugin::showAllSegments()
   vtkMRMLSubjectHierarchyNode* parentNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(currentNode->GetParentNode());
   if (!parentNode)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::showAllSegments: Segment subject hierarchy node has no segmentation parent!";
+    qCritical() << Q_FUNC_INFO << ": Segment subject hierarchy node has no segmentation parent!";
     return;
   }
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(parentNode->GetAssociatedNode());
   if (!segmentationNode)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::showAllSegments: Unable to find segmentation node for segment subject hierarchy node " << currentNode->GetName();
+    qCritical() << Q_FUNC_INFO << ": Unable to find segmentation node for segment subject hierarchy node " << currentNode->GetName();
     return;
   }
   vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
     segmentationNode->GetDisplayNode() );
   if (!displayNode)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentsPlugin::showAllSegments: No display node for segmentation!";
+    qCritical() << Q_FUNC_INFO << ": No display node for segmentation!";
     return;
   }
 

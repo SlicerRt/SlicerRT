@@ -294,7 +294,7 @@ void qSlicerIsodoseModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::onEnter: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -303,7 +303,7 @@ void qSlicerIsodoseModuleWidget::onEnter()
   // First check the logic if it has a parameter node
   if (!d->logic())
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::onEnter: Invalid logic!";
+    qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
   }
   vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
@@ -355,7 +355,7 @@ void qSlicerIsodoseModuleWidget::updateWidgetFromMRML()
     vtkMRMLColorTableNode* colorTableNode = paramNode->GetColorTableNode();       
     if (!colorTableNode)
     {
-      qCritical() << "qSlicerIsodoseModuleWidget::updateWidgetFromMRML: Invalid color table node!";
+      qCritical() << Q_FUNC_INFO << ": Invalid color table node!";
       return;
     }
     d->spinBox_NumberOfLevels->setValue(colorTableNode->GetNumberOfColors());
@@ -436,7 +436,7 @@ void qSlicerIsodoseModuleWidget::setIsodoseNode(vtkMRMLNode *node)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::setIsodoseNode: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
   
@@ -468,7 +468,7 @@ void qSlicerIsodoseModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* node)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::doseVolumeNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -500,7 +500,7 @@ void qSlicerIsodoseModuleWidget::setNumberOfLevels(int newNumber)
   Q_D(qSlicerIsodoseModuleWidget);
   if (!d->spinBox_NumberOfLevels->isEnabled() || !d->logic()->GetIsodoseNode())
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::setNumberOfLevels: Invalid parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid parameter set node!";
     return;
   }
 
@@ -508,7 +508,7 @@ void qSlicerIsodoseModuleWidget::setNumberOfLevels(int newNumber)
   vtkMRMLColorTableNode* selectedColorNode = d->logic()->GetIsodoseNode()->GetColorTableNode();
   if (!selectedColorNode)
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::setNumberOfLevels: Invalid color table node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid color table node!";
     return;
   }
 
@@ -531,7 +531,7 @@ void qSlicerIsodoseModuleWidget::showDoseVolumesOnlyCheckboxChanged(int aState)
   
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::showDoseVolumesOnlyCheckboxChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
   
@@ -570,7 +570,7 @@ void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::setIsolineVisibility: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -587,7 +587,7 @@ void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
   vtkMRMLModelHierarchyNode* modelHierarchyNode = d->logic()->GetRootModelHierarchyNode();
   if(!modelHierarchyNode)
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::setIsolineVisibility: Invalid isodose surface models parent hierarchy node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid isodose surface models parent hierarchy node!";
     return;
   }
 
@@ -608,7 +608,7 @@ void qSlicerIsodoseModuleWidget::setIsosurfaceVisibility(bool visible)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::setIsosurfaceVisibility: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -645,7 +645,7 @@ void qSlicerIsodoseModuleWidget::setScalarBarVisibility(bool visible)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::setScalarBarVisibility: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -660,7 +660,7 @@ void qSlicerIsodoseModuleWidget::setScalarBarVisibility(bool visible)
   vtkMRMLColorTableNode* selectedColorNode = d->logic()->GetIsodoseNode()->GetColorTableNode();
   if (!selectedColorNode)
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::setScalarBarVisibility: Invalid color table node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid color table node!";
     return;
   }
   int numberOfColors = selectedColorNode->GetNumberOfColors();
@@ -679,7 +679,7 @@ void qSlicerIsodoseModuleWidget::setScalarBar2DVisibility(bool visible)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::setScalarBar2DVisibility: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -696,7 +696,7 @@ void qSlicerIsodoseModuleWidget::setScalarBar2DVisibility(bool visible)
   vtkMRMLColorTableNode* selectedColorNode = d->logic()->GetIsodoseNode()->GetColorTableNode();
   if (!selectedColorNode)
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::setScalarBar2DVisibility: Invalid color table node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid color table node!";
     return;
   }
   int numberOfColors = selectedColorNode->GetNumberOfColors();
@@ -719,7 +719,7 @@ void qSlicerIsodoseModuleWidget::applyClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerIsodoseModuleWidget::applyClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 

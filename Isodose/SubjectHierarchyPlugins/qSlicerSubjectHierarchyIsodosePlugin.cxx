@@ -103,7 +103,7 @@ double qSlicerSubjectHierarchyIsodosePlugin::canOwnSubjectHierarchyNode(vtkMRMLS
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyIsodosePlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
     return 0.0;
   }
 
@@ -129,7 +129,7 @@ QIcon qSlicerSubjectHierarchyIsodosePlugin::icon(vtkMRMLSubjectHierarchyNode* no
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyIsodosePlugin::icon: NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": NULL node given!";
     return QIcon();
   }
 

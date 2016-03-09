@@ -125,7 +125,7 @@ void qSlicerPlanarImageModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerPlanarImageModuleWidget::onEnter: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -134,7 +134,7 @@ void qSlicerPlanarImageModuleWidget::onEnter()
   // First check the logic if it has a parameter node
   if (!d->logic())
   {
-    qCritical() << "qSlicerPlanarImageModuleWidget::onEnter: Invalid logic!";
+    qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
   }
   vtkMRMLPlanarImageNode* paramNode = vtkMRMLPlanarImageNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
@@ -246,7 +246,7 @@ void qSlicerPlanarImageModuleWidget::planarImageVolumeNodeChanged(vtkMRMLNode* n
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerPlanarImageModuleWidget::planarImageVolumeNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -271,7 +271,7 @@ void qSlicerPlanarImageModuleWidget::displayedModelNodeChanged(vtkMRMLNode* node
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerPlanarImageModuleWidget::displayedModelNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -295,7 +295,7 @@ void qSlicerPlanarImageModuleWidget::textureVolumeNodeChanged(vtkMRMLNode* node)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerPlanarImageModuleWidget::textureVolumeNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -319,7 +319,7 @@ void qSlicerPlanarImageModuleWidget::updateButtonsState()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerPlanarImageModuleWidget::updateButtonsState: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -359,7 +359,7 @@ void qSlicerPlanarImageModuleWidget::refreshOutputBaseName()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerPlanarImageModuleWidget::refreshOutputBaseName: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 

@@ -136,7 +136,7 @@ void qSlicerDoseComparisonModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::onEnter: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -145,7 +145,7 @@ void qSlicerDoseComparisonModuleWidget::onEnter()
   // First check the logic if it has a parameter node
   if (!d->logic())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::onEnter: Invalid logic!";
+    qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
   }
   vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
@@ -328,12 +328,12 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged(vtkMRMLNo
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
   if (!node)
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged: Invalid reference dose volume node set!";
+    qCritical() << Q_FUNC_INFO << ": Invalid reference dose volume node set!";
     return;
   }
 
@@ -360,12 +360,12 @@ void qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged(vtkMRMLNode
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
   if (!node)
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged: Invalid compare dose volume node set!";
+    qCritical() << Q_FUNC_INFO << ": Invalid compare dose volume node set!";
     return;
   }
 
@@ -392,7 +392,7 @@ void qSlicerDoseComparisonModuleWidget::maskSegmentationNodeChanged(vtkMRMLNode*
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::maskSegmentationNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -416,7 +416,7 @@ void qSlicerDoseComparisonModuleWidget::maskSegmentChanged(QString segmentID)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::maskSegmentChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -440,12 +440,12 @@ void qSlicerDoseComparisonModuleWidget::gammaVolumeNodeChanged(vtkMRMLNode* node
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::gammaVolumeNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
   if (!node)
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::gammaVolumeNodeChanged: Invalid output gamma volume node set!";
+    qCritical() << Q_FUNC_INFO << ": Invalid output gamma volume node set!";
     return;
   }
 
@@ -469,7 +469,7 @@ void qSlicerDoseComparisonModuleWidget::dtaDistanceToleranceChanged(double value
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::dtaDistanceToleranceChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -493,7 +493,7 @@ void qSlicerDoseComparisonModuleWidget::doseDifferenceToleranceChanged(double va
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::doseDifferenceToleranceChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -517,7 +517,7 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseUseMaximumDoseChanged(bool 
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::referenceDoseUseMaximumDoseChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -543,7 +543,7 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseChanged(double value)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::referenceDoseChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -567,7 +567,7 @@ void qSlicerDoseComparisonModuleWidget::analysisThresholdChanged(double value)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::analysisThresholdChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -591,7 +591,7 @@ void qSlicerDoseComparisonModuleWidget::linearInterpolationCheckedStateChanged(i
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::linearInterpolationCheckedStateChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -615,7 +615,7 @@ void qSlicerDoseComparisonModuleWidget::maximumGammaChanged(double value)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::maximumGammaChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -639,7 +639,7 @@ void qSlicerDoseComparisonModuleWidget::doseThresholdOnReferenceOnlyCheckedState
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::doseThresholdOnReferenceOnlyCheckedStateChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -663,7 +663,7 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerDoseComparisonModuleWidget::applyClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 

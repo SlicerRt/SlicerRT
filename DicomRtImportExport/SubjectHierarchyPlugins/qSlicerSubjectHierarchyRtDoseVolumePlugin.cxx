@@ -114,7 +114,7 @@ double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode(vtk
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
     return 0.0;
   }
 
@@ -146,7 +146,7 @@ QIcon qSlicerSubjectHierarchyRtDoseVolumePlugin::icon(vtkMRMLSubjectHierarchyNod
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::icon: NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": NULL node given!";
     return QIcon();
   }
 
@@ -172,7 +172,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::setDisplayVisibility(vtkMRMLSubj
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::setDisplayVisibility: NULL node!";
+    qCritical() << Q_FUNC_INFO << ": NULL node!";
     return;
   }
 
@@ -192,7 +192,7 @@ int qSlicerSubjectHierarchyRtDoseVolumePlugin::getDisplayVisibility(vtkMRMLSubje
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::getDisplayVisibility: NULL node!";
+    qCritical() << Q_FUNC_INFO << ": NULL node!";
     return -1;
   }
 
@@ -248,7 +248,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
   if (!currentNode)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume: Invalid current node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid current node!";
     return;
   }
 
@@ -257,7 +257,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
     currentNode->GetAssociatedNode() );
   if (!volumeNode)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume: Data node associated to current node '" << currentNode->GetNameWithoutPostfix().c_str() << "' is not a volume!";
+    qCritical() << Q_FUNC_INFO << ": Data node associated to current node '" << currentNode->GetNameWithoutPostfix().c_str() << "' is not a volume!";
     return;
   }
 
@@ -266,7 +266,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   if (!studyNode)
   {
     QString message("The volume must be under a study in order to be converted to dose. Please drag&drop the volume under a study. If there is no study, it can be created under a subject. Consult the help window for more details.");
-    qCritical() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume: Failed to find study node among the ancestors of current node '" << currentNode->GetNameWithoutPostfix().c_str() << "'! " << message;
+    qCritical() << Q_FUNC_INFO << ": Failed to find study node among the ancestors of current node '" << currentNode->GetNameWithoutPostfix().c_str() << "'! " << message;
     QMessageBox::warning(NULL, tr("Failed to convert volume to dose"), message);
     return;
   }
@@ -280,7 +280,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
     tr("Dose unit name:"), QLineEdit::Normal, defaultDoseUnitName, &ok);
   if (!ok || doseUnitName.isEmpty())
   {
-    qWarning() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume(): Failed to get valid dose unit name from dialog. Check study node attributes.";
+    qWarning() << Q_FUNC_INFO << ": Failed to get valid dose unit name from dialog. Check study node attributes.";
   }
 
   double defaultDoseUnitValue = (doseUnitValueInStudy ? QString(doseUnitValueInStudy).toDouble() : 1.0);
@@ -288,7 +288,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
     tr("Dose unit value (scaling):\n\nNote: Setting the scaling will NOT apply it to the volume voxels"), defaultDoseUnitValue, EPSILON*EPSILON, 1000.0, 16, &ok);
   if (!ok)
   {
-    qWarning() << "qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume(): Failed to get valid dose unit value from dialog. Check study node attributes.";
+    qWarning() << Q_FUNC_INFO << ": Failed to get valid dose unit value from dialog. Check study node attributes.";
   }
 
   // Set RT dose volume properties to study node

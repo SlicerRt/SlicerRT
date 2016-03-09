@@ -140,7 +140,7 @@ RectanglePipeline* qSlicerSegmentEditorRectangleEffectPrivate::rectangleForWidge
   vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(sliceWidget);
   if (!renderer)
   {
-    qCritical() << "qSlicerSegmentEditorPaintEffectPrivate::rectangleForWidget: Failed to get renderer!";
+    qCritical() << Q_FUNC_INFO << ": Failed to get renderer!";
   }
   else
   {
@@ -252,7 +252,7 @@ void qSlicerSegmentEditorRectangleEffect::processInteractionEvents(
   RectanglePipeline* rectangle = d->rectangleForWidget(sliceWidget);
   if (!rectangle)
   {
-    qCritical() << "qSlicerSegmentEditorRectangleEffect::processInteractionEvents: Failed to create rectangle!";
+    qCritical() << Q_FUNC_INFO << ": Failed to create rectangle!";
     return;
   }
 

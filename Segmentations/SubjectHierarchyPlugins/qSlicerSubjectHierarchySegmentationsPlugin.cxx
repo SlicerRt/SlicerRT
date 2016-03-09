@@ -127,7 +127,7 @@ double qSlicerSubjectHierarchySegmentationsPlugin::canAddNodeToSubjectHierarchy(
   Q_UNUSED(parent);
   if (!node)
     {
-    qCritical() << "qSlicerSubjectHierarchySegmentationsPlugin::canAddNodeToSubjectHierarchy: Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
     return 0.0;
     }
   else if (node->IsA("vtkMRMLSegmentationNode"))
@@ -143,7 +143,7 @@ double qSlicerSubjectHierarchySegmentationsPlugin::canOwnSubjectHierarchyNode(vt
 {
   if (!node)
     {
-    qCritical() << "qSlicerSubjectHierarchySegmentationsPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
     return 0.0;
     }
 
@@ -172,7 +172,7 @@ QString qSlicerSubjectHierarchySegmentationsPlugin::tooltip(vtkMRMLSubjectHierar
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentationsPlugin::tooltip: Subject hierarchy node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Subject hierarchy node is NULL!";
     return QString("Invalid!");
   }
 
@@ -182,7 +182,7 @@ QString qSlicerSubjectHierarchySegmentationsPlugin::tooltip(vtkMRMLSubjectHierar
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(node->GetAssociatedNode());
   if (!segmentationNode)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentationsPlugin::tooltip: Subject hierarchy node not associated to valid segmentation node!";
+    qCritical() << Q_FUNC_INFO << ": Subject hierarchy node not associated to valid segmentation node!";
     return tooltipString;
   }
 
@@ -230,7 +230,7 @@ QIcon qSlicerSubjectHierarchySegmentationsPlugin::icon(vtkMRMLSubjectHierarchyNo
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentationsPlugin::icon: NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": NULL node given!";
     return QIcon();
   }
 
@@ -258,14 +258,14 @@ void qSlicerSubjectHierarchySegmentationsPlugin::setDisplayVisibility(vtkMRMLSub
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentationsPlugin::setDisplayVisibility: NULL node!";
+    qCritical() << Q_FUNC_INFO << ": NULL node!";
     return;
   }
 
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(node->GetAssociatedNode());
   if (!segmentationNode)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentationsPlugin::getDisplayVisibility: Subject hierarchy node not associated to valid segmentation node!";
+    qCritical() << Q_FUNC_INFO << ": Subject hierarchy node not associated to valid segmentation node!";
     return;
   }
 
@@ -290,14 +290,14 @@ int qSlicerSubjectHierarchySegmentationsPlugin::getDisplayVisibility(vtkMRMLSubj
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentationsPlugin::getDisplayVisibility: NULL node!";
+    qCritical() << Q_FUNC_INFO << ": NULL node!";
     return -1;
   }
 
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(node->GetAssociatedNode());
   if (!segmentationNode)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentationsPlugin::getDisplayVisibility: Subject hierarchy node not associated to valid segmentation node!";
+    qCritical() << Q_FUNC_INFO << ": Subject hierarchy node not associated to valid segmentation node!";
     return -1;
   }
 
@@ -390,7 +390,7 @@ void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentAdded(vtkObject* calle
   vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(segmentId);
   if (!segment)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentationsPlugin::onSegmentAdded: Failed to get added segment with ID '" << segmentId << "'";
+    qCritical() << Q_FUNC_INFO << ": Failed to get added segment with ID '" << segmentId << "'";
     return;
   }
 
@@ -464,7 +464,7 @@ void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentModified(vtkObject* ca
   vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(segmentId);
   if (!segment)
   {
-    qCritical() << "qSlicerSubjectHierarchySegmentationsPlugin::onSegmentModified: Failed to get added segment with ID '" << segmentId << "'";
+    qCritical() << Q_FUNC_INFO << ": Failed to get added segment with ID '" << segmentId << "'";
     return;
   }
 

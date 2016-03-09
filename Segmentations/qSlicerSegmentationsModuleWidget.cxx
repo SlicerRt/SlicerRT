@@ -114,7 +114,7 @@ void qSlicerSegmentationsModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentationsModuleWidget::onEnter: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -394,7 +394,7 @@ void qSlicerSegmentationsModuleWidget::onSegmentationNodeChanged(vtkMRMLNode* no
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentationsModuleWidget::segmentationNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
   if (!d->ModuleWindowInitialized)
@@ -461,7 +461,7 @@ void qSlicerSegmentationsModuleWidget::onAddSegment()
     d->MRMLNodeComboBox_Segmentation->currentNode() );
   if (!currentSegmentationNode)
   {
-    qWarning() << "qSlicerSegmentationsModuleWidget::onAddSegment: No segmentation selected!";
+    qWarning() << Q_FUNC_INFO << ": No segmentation selected!";
     return;
   }
 
@@ -477,7 +477,7 @@ void qSlicerSegmentationsModuleWidget::onEditSelectedSegment()
   if ( !d->MRMLNodeComboBox_Segmentation->currentNode()
     || d->SegmentsTableView->selectedSegmentIDs().count() != 1 )
   {
-    qCritical() << "qSlicerSegmentationsModuleWidget::onEditSelectedSegment: Invalid segment selection!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment selection!";
     return;
   }
 
@@ -506,7 +506,7 @@ void qSlicerSegmentationsModuleWidget::onRemoveSelectedSegments()
     d->MRMLNodeComboBox_Segmentation->currentNode() );
   if (!currentSegmentationNode)
   {
-    qCritical() << "qSlicerSegmentationsModuleWidget::onRemoveSelectedSegments: No segmentation selected!";
+    qCritical() << Q_FUNC_INFO << ": No segmentation selected!";
     return;
   }
 
@@ -524,7 +524,7 @@ void qSlicerSegmentationsModuleWidget::setOtherSegmentationOrRepresentationNode(
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentationsModuleWidget::setOtherSegmentationOrRepresentationNode: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
   if (!d->ModuleWindowInitialized)
@@ -685,7 +685,7 @@ bool qSlicerSegmentationsModuleWidget::copySegmentBetweenSegmentations(
   vtkSegment* segment = fromSegmentation->GetSegment(segmentIdStd);
   if (!segment)
   {
-    qCritical() << "qSlicerSegmentationsModuleWidget::copySegmentBetweenSegmentations: Failed to get segment!";
+    qCritical() << Q_FUNC_INFO << ": Failed to get segment!";
     return false;
   }
 
@@ -698,14 +698,14 @@ bool qSlicerSegmentationsModuleWidget::copySegmentBetweenSegmentations(
   // Check whether target is suitable to accept the segment.
   if (!toSegmentation->CanAcceptSegment(segment))
   {
-    qCritical() << "qSlicerSegmentationsModuleWidget::copySegmentBetweenSegmentations: Segmentation cannot accept segment " << segment->GetName() << "!";
+    qCritical() << Q_FUNC_INFO << ": Segmentation cannot accept segment " << segment->GetName() << "!";
 
     // Pop up error message to the user explaining the problem
     vtkMRMLSegmentationNode* fromNode = vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeForSegmentation(this->mrmlScene(), fromSegmentation);
     vtkMRMLSegmentationNode* toNode = vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeForSegmentation(this->mrmlScene(), toSegmentation);
     if (!fromNode || !toNode) // Sanity check, should never happen
     {
-      qCritical() << "qSlicerSegmentationsModuleWidget::copySegmentBetweenSegmentations: Unable to get parent nodes for segmentaiton objects!";
+      qCritical() << Q_FUNC_INFO << ": Unable to get parent nodes for segmentaiton objects!";
       return false;
     }
 
@@ -748,7 +748,7 @@ bool qSlicerSegmentationsModuleWidget::copyFromCurrentSegmentation(bool removeFr
     d->MRMLNodeComboBox_Segmentation->currentNode() );
   if (!currentSegmentationNode)
   {
-    qWarning() << "qSlicerSegmentationsModuleWidget::onCopyFromCurrentSegmentation: No segmentation selected!";
+    qWarning() << Q_FUNC_INFO << ": No segmentation selected!";
     return false;
   }
 
@@ -785,7 +785,7 @@ bool qSlicerSegmentationsModuleWidget::copyFromCurrentSegmentation(bool removeFr
       {
         QString message = QString("Failed to export segment %1 from segmentation %2 to representation node %3!\n\nMost probably the segment cannot be converted into representation corresponding to the selected representation node.").
           arg(firstSegmentId).arg(currentSegmentationNode->GetName()).arg(otherRepresentationNode->GetName());
-        qCritical() << "qSlicerSegmentationsModuleWidget::copyFromCurrentSegmentation: " << message;
+        qCritical() << Q_FUNC_INFO << ": " << message;
         QMessageBox::warning(NULL, tr("Failed to export segment"), message);
         return false;
       }
@@ -822,7 +822,7 @@ bool qSlicerSegmentationsModuleWidget::copyFromCurrentSegmentation(bool removeFr
       {
         QString message = QString("Failed to export segments from segmentation %1 to representation node %2!\n\nMost probably the segment cannot be converted into representation corresponding to the selected representation node.").
           arg(currentSegmentationNode->GetName()).arg(otherLabelmapNode->GetName());
-        qCritical() << "qSlicerSegmentationsModuleWidget::copyFromCurrentSegmentation: " << message;
+        qCritical() << Q_FUNC_INFO << ": " << message;
         QMessageBox::warning(NULL, tr("Failed to export segment"), message);
         return false;
       }
@@ -864,7 +864,7 @@ void qSlicerSegmentationsModuleWidget::onCopyToCurrentSegmentation()
     d->MRMLNodeComboBox_Segmentation->currentNode() );
   if (!currentSegmentationNode)
   {
-    qWarning() << "qSlicerSegmentationsModuleWidget::onCopyToCurrentSegmentation: No segmentation selected!";
+    qWarning() << Q_FUNC_INFO << ": No segmentation selected!";
     return;
   }
 
@@ -895,7 +895,7 @@ void qSlicerSegmentationsModuleWidget::onCopyToCurrentSegmentation()
         if (!vtkSlicerSegmentationsModuleLogic::ImportLabelmapToSegmentationNode(labelmapNode, currentSegmentationNode))
         {
           QString message = QString("Failed to copy labels from labelmap volume node %1!").arg(labelmapNode->GetName());
-          qCritical() << "qSlicerSegmentationsModuleWidget::onCopyToCurrentSegmentation: " << message;
+          qCritical() << Q_FUNC_INFO << ": " << message;
           QMessageBox::warning(NULL, tr("Failed to import from labelmap volume"), message);
         }
       }
@@ -907,7 +907,7 @@ void qSlicerSegmentationsModuleWidget::onCopyToCurrentSegmentation()
       if (!segment.GetPointer())
       {
         QString message = QString("Failed to copy from model node %1!").arg(modelNode->GetName());
-        qCritical() << "qSlicerSegmentationsModuleWidget::onCopyToCurrentSegmentation: " << message;
+        qCritical() << Q_FUNC_INFO << ": " << message;
         QMessageBox::warning(NULL, tr("Failed to create segment from model"), message);
       }
       else
@@ -921,7 +921,7 @@ void qSlicerSegmentationsModuleWidget::onCopyToCurrentSegmentation()
     }
     else
     {
-      qCritical() << "qSlicerSegmentationsModuleWidget::onCopyToCurrentSegmentation: Reprsentation node needs to be either model or labelmap, but " << otherRepresentationNode->GetName() << " is " << otherRepresentationNode->GetNodeTagName();
+      qCritical() << Q_FUNC_INFO << ": Reprsentation node needs to be either model or labelmap, but " << otherRepresentationNode->GetName() << " is " << otherRepresentationNode->GetNodeTagName();
       return;
     }
   }
@@ -936,7 +936,7 @@ void qSlicerSegmentationsModuleWidget::onMoveToCurrentSegmentation()
     d->MRMLNodeComboBox_Segmentation->currentNode() );
   if (!currentSegmentationNode)
   {
-    qWarning() << "qSlicerSegmentationsModuleWidget::onMoveToCurrentSegmentation: No segmentation selected!";
+    qWarning() << Q_FUNC_INFO << ": No segmentation selected!";
     return;
   }
 
@@ -955,7 +955,7 @@ void qSlicerSegmentationsModuleWidget::onMoveToCurrentSegmentation()
   // Only segment in segmentation can be moved into current segmentation
   else
   {
-    qCritical() << "qSlicerSegmentationsModuleWidget::onMoveToCurrentSegmentation: Invalid operation!";
+    qCritical() << Q_FUNC_INFO << ": Invalid operation!";
   }
 }
 
@@ -1012,12 +1012,12 @@ bool qSlicerSegmentationsModuleWidget::updateMasterRepresentationInSegmentation(
     segmentation->GetContainedRepresentationNames(containedRepresentationNamesInSegmentation);
     if (containedRepresentationNamesInSegmentation.empty())
     {
-      qCritical() << "qSlicerSegmentationsModuleWidget::updateMasterRepresentationInSegmentation: Master representation cannot be created in segmentation as it does not contain any representations!";
+      qCritical() << Q_FUNC_INFO << ": Master representation cannot be created in segmentation as it does not contain any representations!";
       return false;
     }
 
     std::string firstContainedRepresentation = (*containedRepresentationNamesInSegmentation.begin());
-    qCritical() << "qSlicerSegmentationsModuleWidget::updateMasterRepresentationInSegmentation: Master representation cannot be created in segmentation! Setting master to the first representation found: " << firstContainedRepresentation.c_str();
+    qCritical() << Q_FUNC_INFO << ": Master representation cannot be created in segmentation! Setting master to the first representation found: " << firstContainedRepresentation.c_str();
     segmentation->SetMasterRepresentationName(newMasterRepresentation.c_str());
     return false;
   }

@@ -159,7 +159,7 @@ BrushPipeline* qSlicerSegmentEditorPaintEffectPrivate::brushForWidget(qMRMLSlice
   vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(sliceWidget);
   if (!renderer)
   {
-    qCritical() << "qSlicerSegmentEditorPaintEffectPrivate::brushForWidget: Failed to get renderer!";
+    qCritical() << Q_FUNC_INFO << ": Failed to get renderer!";
   }
   else
   {
@@ -194,7 +194,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintFeedback(qMRMLSliceWidget* sli
   vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(sliceWidget);
   if (!renderer)
   {
-    qCritical() << "qSlicerSegmentEditorPaintEffectPrivate::paintFeedback: Failed to get renderer!";
+    qCritical() << Q_FUNC_INFO << ": Failed to get renderer!";
     return;
   }
 
@@ -258,7 +258,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
 
   if (!q->parameterSetNode())
   {
-    qCritical() << "qSlicerSegmentEditorPaintEffectPrivate::paintBrush: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -489,7 +489,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintPixel(qMRMLSliceWidget* sliceW
 
   if (!q->parameterSetNode())
   {
-    qCritical() << "qSlicerSegmentEditorPaintEffectPrivate::paintPixel: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -544,7 +544,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::onQuickRadiusButtonClicked()
 
   if (!q->parameterSetNode())
   {
-    qCritical() << "qSlicerSegmentEditorPaintEffectPrivate::onQuickRadiusButtonClicked: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -741,7 +741,7 @@ void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
   BrushPipeline* brush = d->brushForWidget(sliceWidget);
   if (!brush)
   {
-    qCritical() << "qSlicerSegmentEditorPaintEffect::processInteractionEvents: Failed to create brush!";
+    qCritical() << Q_FUNC_INFO << ": Failed to create brush!";
     return;
   }
 
@@ -822,7 +822,7 @@ void qSlicerSegmentEditorPaintEffect::processViewNodeEvents(vtkMRMLAbstractViewN
   BrushPipeline* brush = d->brushForWidget(sliceWidget);
   if (!brush)
   {
-    qCritical() << "qSlicerSegmentEditorPaintEffect::processViewNodeEvents: Failed to create brush!";
+    qCritical() << Q_FUNC_INFO << ": Failed to create brush!";
     return;
   }
 
@@ -999,7 +999,7 @@ void qSlicerSegmentEditorPaintEffect::editedLabelmapChanged()
 
   if (!this->parameterSetNode())
   {
-    qCritical() << "qSlicerSegmentEditorPaintEffect::editedLabelmapChanged: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 

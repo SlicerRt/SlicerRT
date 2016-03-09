@@ -135,7 +135,7 @@ void qSlicerDicomRtImportExportModule::setup()
   }
   else
   {
-    qCritical() << "qSlicerDicomRtImportExportModule::setup: Volumes module is not found";
+    qCritical() << Q_FUNC_INFO << ": Volumes module is not found";
   } 
 
   // Set isodose logic to the logic
@@ -147,7 +147,7 @@ void qSlicerDicomRtImportExportModule::setup()
   }
   else
   {
-    qCritical() << "qSlicerDicomRtImportExportModule::setup: Isodose module is not found";
+    qCritical() << Q_FUNC_INFO << ": Isodose module is not found";
   } 
 
   // Set planar image logic to the logic
@@ -159,7 +159,7 @@ void qSlicerDicomRtImportExportModule::setup()
   }
   else
   {
-    qCritical() << "qSlicerDicomRtImportExportModule::setup: Planar Image module is not found";
+    qCritical() << Q_FUNC_INFO << ": Planar Image module is not found";
   } 
 
   // Register Subject Hierarchy plugins

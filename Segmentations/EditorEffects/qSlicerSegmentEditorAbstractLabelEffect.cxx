@@ -117,7 +117,7 @@ void qSlicerSegmentEditorAbstractLabelEffect::editedLabelmapChanged()
 {
   if (!this->parameterSetNode())
   {
-    qCritical() << "qSlicerSegmentEditorPaintEffect::editedLabelmapChanged: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -125,7 +125,7 @@ void qSlicerSegmentEditorAbstractLabelEffect::editedLabelmapChanged()
   vtkMRMLSegmentationNode* segmentationNode = this->parameterSetNode()->GetSegmentationNode();
   if (!editedLabelmap || !segmentationNode)
   {
-    qCritical() << "qSlicerSegmentEditorPaintEffect::editedLabelmapChanged: Invalid segment selection!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment selection!";
     return;
   }
   if (!this->parameterSetNode()->GetSelectedSegmentID())
@@ -169,7 +169,7 @@ void qSlicerSegmentEditorAbstractLabelEffect::masterVolumeNodeChanged()
 
   if (!this->parameterSetNode())
   {
-    qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::masterVolumeNodeChanged: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -269,7 +269,7 @@ void qSlicerSegmentEditorAbstractLabelEffect::apply()
 
   if (!this->parameterSetNode())
   {
-    qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::apply: Invalid segment editor parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
 
@@ -288,20 +288,20 @@ void qSlicerSegmentEditorAbstractLabelEffect::apply()
     vtkMRMLScalarVolumeNode* masterVolumeNode = this->parameterSetNode()->GetMasterVolumeNode();
     if (!masterVolumeNode)
     {
-      qCritical() << "qSlicerSegmentEditorPaintEffect::apply: Invalid master volume!";
+      qCritical() << Q_FUNC_INFO << ": Invalid master volume!";
       return;
     }
     vtkSmartPointer<vtkOrientedImageData> masterVolumeOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::Take(
       vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(masterVolumeNode) );
     if (!masterVolumeOrientedImageData)
     {
-      qCritical() << "qSlicerSegmentEditorPaintEffect::apply: Unable to get master volume image!";
+      qCritical() << Q_FUNC_INFO << ": Unable to get master volume image!";
       return;
     }
     // Make sure the edited labelmap has the same geometry as the master volume
     if (!vtkOrientedImageDataResample::DoGeometriesMatch(editedLabelmap, masterVolumeOrientedImageData))
     {
-      qCritical() << "qSlicerSegmentEditorPaintEffect::apply: Edited labelmap should have the same geometry as the master volume!";
+      qCritical() << Q_FUNC_INFO << ": Edited labelmap should have the same geometry as the master volume!";
       return;
     }
     
@@ -336,7 +336,7 @@ void qSlicerSegmentEditorAbstractLabelEffect::applyImageMask(
 {
   if (!input || !mask)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::applyImageMask: Invalid inputs!";
+    qCritical() << Q_FUNC_INFO << ": Invalid inputs!";
     return;
   }
 
@@ -379,7 +379,7 @@ void qSlicerSegmentEditorAbstractLabelEffect::appendImage(vtkOrientedImageData* 
 {
   if (!inputImage || !appendedImage)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::appendImages: Invalid inputs!";
+    qCritical() << Q_FUNC_INFO << ": Invalid inputs!";
     return;
   }
 
@@ -402,14 +402,14 @@ void qSlicerSegmentEditorAbstractLabelEffect::createMaskImageFromPolyData(vtkPol
 {
   if (!polyData || !outputMask)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::createMaskImageFromPolyData: Invalid inputs!";
+    qCritical() << Q_FUNC_INFO << ": Invalid inputs!";
     return;
   }
   vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(
     qSlicerSegmentEditorAbstractEffect::viewNode(sliceWidget) );
   if (!sliceNode)
   {
-    qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::createMaskImageFromPolyData: Failed to get slice node!";
+    qCritical() << Q_FUNC_INFO << ": Failed to get slice node!";
     return;
   }
 
@@ -498,7 +498,7 @@ void qSlicerSegmentEditorAbstractLabelEffect::imageToWorldMatrix(vtkMRMLVolumeNo
     }
     else
     {
-      qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::ijkToRasMatrix: Parent transform is non-linear, which cannot be handled! Skipping.";
+      qCritical() << Q_FUNC_INFO << ": Parent transform is non-linear, which cannot be handled! Skipping.";
     }
   }
 }
@@ -524,7 +524,7 @@ void qSlicerSegmentEditorAbstractLabelEffect::imageToWorldMatrix(vtkOrientedImag
     }
     else
     {
-      qCritical() << "qSlicerSegmentEditorAbstractLabelEffect::ijkToRasMatrix: Parent transform is non-linear, which cannot be handled! Skipping.";
+      qCritical() << Q_FUNC_INFO << ": Parent transform is non-linear, which cannot be handled! Skipping.";
     }
   }
 }

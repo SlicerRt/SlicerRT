@@ -98,7 +98,7 @@ double qSlicerSubjectHierarchyRTBeamPlugin::canOwnSubjectHierarchyNode(vtkMRMLSu
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRTBeamPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
     return 0.0;
   }
 
@@ -124,7 +124,7 @@ QIcon qSlicerSubjectHierarchyRTBeamPlugin::icon(vtkMRMLSubjectHierarchyNode* nod
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRTBeamPlugin::icon: NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": NULL node given!";
     return QIcon();
   }
 
@@ -151,7 +151,7 @@ void qSlicerSubjectHierarchyRTBeamPlugin::setDisplayVisibility(vtkMRMLSubjectHie
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRTBeamPlugin::setDisplayVisibility: NULL node!";
+    qCritical() << Q_FUNC_INFO << ": NULL node!";
     return;
   }
 
@@ -164,7 +164,7 @@ void qSlicerSubjectHierarchyRTBeamPlugin::setDisplayVisibility(vtkMRMLSubjectHie
       vtkMRMLModelNode* beamModelNode = associatedRTBeamNode->GetBeamModelNode();
       if (!beamModelNode)
       {
-        qCritical() << "qSlicerSubjectHierarchyRTBeamPlugin::setDisplayVisibility: No displayed model found for RTBeam '" << associatedRTBeamNode->GetName() << "'!";
+        qCritical() << Q_FUNC_INFO << ": No displayed model found for RTBeam '" << associatedRTBeamNode->GetName() << "'!";
         return;
       }
       beamModelNode->SetDisplayVisibility(visible);
@@ -188,7 +188,7 @@ int qSlicerSubjectHierarchyRTBeamPlugin::getDisplayVisibility(vtkMRMLSubjectHier
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRTBeamPlugin::getDisplayVisibility: NULL node!";
+    qCritical() << Q_FUNC_INFO << ": NULL node!";
     return -1;
   }
 
@@ -200,7 +200,7 @@ int qSlicerSubjectHierarchyRTBeamPlugin::getDisplayVisibility(vtkMRMLSubjectHier
       vtkMRMLModelNode* beamModelNode = associatedRTBeamNode->GetBeamModelNode();
       if (!beamModelNode)
       {
-        qCritical() << "qSlicerSubjectHierarchyRTBeamPlugin::getDisplayVisibility: No displayed model found for RTBeam '" << associatedRTBeamNode->GetName() << "'!";
+        qCritical() << Q_FUNC_INFO << ": No displayed model found for RTBeam '" << associatedRTBeamNode->GetName() << "'!";
         return -1;
       }
       return beamModelNode->GetDisplayVisibility();

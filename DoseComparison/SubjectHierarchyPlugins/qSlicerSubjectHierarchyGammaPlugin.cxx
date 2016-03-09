@@ -98,7 +98,7 @@ double qSlicerSubjectHierarchyGammaPlugin::canOwnSubjectHierarchyNode(vtkMRMLSub
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyGammaPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
     return 0.0;
   }
 
@@ -125,7 +125,7 @@ QIcon qSlicerSubjectHierarchyGammaPlugin::icon(vtkMRMLSubjectHierarchyNode* node
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyGammaPlugin::icon: NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": NULL node given!";
     return QIcon();
   }
 
@@ -151,8 +151,7 @@ void qSlicerSubjectHierarchyGammaPlugin::setDisplayVisibility(vtkMRMLSubjectHier
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyGammaPlugin::setDisplayVisibility: NULL node!";
-    return;
+    qCritical() << Q_FUNC_INFO << ": NULL node!";    return;
   }
 
   if (this->canOwnSubjectHierarchyNode(node))
@@ -171,8 +170,7 @@ int qSlicerSubjectHierarchyGammaPlugin::getDisplayVisibility(vtkMRMLSubjectHiera
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyGammaPlugin::getDisplayVisibility: NULL node!";
-    return -1;
+    qCritical() << Q_FUNC_INFO << ": NULL node!";    return -1;
   }
 
   if (this->canOwnSubjectHierarchyNode(node))

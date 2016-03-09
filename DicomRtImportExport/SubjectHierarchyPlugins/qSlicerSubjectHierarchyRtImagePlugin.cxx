@@ -101,7 +101,7 @@ double qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyNode(vtkMRMLS
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
     return 0.0;
   }
 
@@ -129,7 +129,7 @@ QIcon qSlicerSubjectHierarchyRtImagePlugin::icon(vtkMRMLSubjectHierarchyNode* no
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtImagePlugin::icon: NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": NULL node given!";
     return QIcon();
   }
 
@@ -165,7 +165,7 @@ void qSlicerSubjectHierarchyRtImagePlugin::setDisplayVisibility(vtkMRMLSubjectHi
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtImagePlugin::setDisplayVisibility: NULL node!";
+    qCritical() << Q_FUNC_INFO << ": NULL node!";
     return;
   }
 
@@ -180,7 +180,7 @@ void qSlicerSubjectHierarchyRtImagePlugin::setDisplayVisibility(vtkMRMLSubjectHi
         associatedVolumeNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
       if (!modelNode)
       {
-        qCritical() << "qSlicerSubjectHierarchyRtImagePlugin::setDisplayVisibility: No displayed model found for planar image '" << associatedVolumeNode->GetName() << "'!";
+        qCritical() << Q_FUNC_INFO << ": No displayed model found for planar image '" << associatedVolumeNode->GetName() << "'!";
         return;
       }
       modelNode->SetDisplayVisibility(visible);
@@ -204,7 +204,7 @@ int qSlicerSubjectHierarchyRtImagePlugin::getDisplayVisibility(vtkMRMLSubjectHie
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyRtImagePlugin::getDisplayVisibility: NULL node!";
+    qCritical() << Q_FUNC_INFO << ": NULL node!";
     return -1;
   }
 
@@ -219,7 +219,7 @@ int qSlicerSubjectHierarchyRtImagePlugin::getDisplayVisibility(vtkMRMLSubjectHie
         associatedVolumeNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
       if (!modelNode)
       {
-        qCritical() << "qSlicerSubjectHierarchyRtImagePlugin::setDisplayVisibility: No displayed model found for planar image '" << associatedVolumeNode->GetName() << "'!";
+        qCritical() << Q_FUNC_INFO << ": No displayed model found for planar image '" << associatedVolumeNode->GetName() << "'!";
         return -1;
       }
       return modelNode->GetDisplayVisibility();

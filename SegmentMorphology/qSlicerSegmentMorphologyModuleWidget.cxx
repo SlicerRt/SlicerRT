@@ -173,7 +173,7 @@ void qSlicerSegmentMorphologyModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::onEnter: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -182,7 +182,7 @@ void qSlicerSegmentMorphologyModuleWidget::onEnter()
   // First check the logic if it has a parameter node
   if (d->logic() == NULL)
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::onEnter: Invalid logic!";
+    qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
   }
   vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
@@ -318,7 +318,7 @@ void qSlicerSegmentMorphologyModuleWidget::updateButtonsState()
   Q_D(qSlicerSegmentMorphologyModuleWidget);
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::updateButtonsState: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -345,7 +345,7 @@ void qSlicerSegmentMorphologyModuleWidget::setSegmentMorphologyNode(vtkMRMLNode 
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::setSegmentMorphologyNode: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -394,7 +394,7 @@ void qSlicerSegmentMorphologyModuleWidget::segmentationANodeChanged(vtkMRMLNode*
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::segmentationANodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -418,7 +418,7 @@ void qSlicerSegmentMorphologyModuleWidget::segmentAChanged(QString segmentID)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::segmentAChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -442,7 +442,7 @@ void qSlicerSegmentMorphologyModuleWidget::segmentationBNodeChanged(vtkMRMLNode*
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::segmentationBNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -466,7 +466,7 @@ void qSlicerSegmentMorphologyModuleWidget::segmentBChanged(QString segmentID)
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::segmentBChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -490,7 +490,7 @@ void qSlicerSegmentMorphologyModuleWidget::outputSegmentationNodeChanged(vtkMRML
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::outputSegmentationNodeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -514,7 +514,7 @@ void qSlicerSegmentMorphologyModuleWidget::radioButtonExpandClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::radioButtonExpandClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -538,7 +538,7 @@ void qSlicerSegmentMorphologyModuleWidget::radioButtonShrinkClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::radioButtonShrinkClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -562,7 +562,7 @@ void qSlicerSegmentMorphologyModuleWidget::radioButtonUnionClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::radioButtonUnionClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -586,7 +586,7 @@ void qSlicerSegmentMorphologyModuleWidget::radioButtonIntersectClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::radioButtonIntersectClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -610,7 +610,7 @@ void qSlicerSegmentMorphologyModuleWidget::radioButtonSubtractClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::radioButtonSubtractClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -648,7 +648,7 @@ void qSlicerSegmentMorphologyModuleWidget::doubleSpinBoxXSizeChanged(double valu
   
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::doubleSpinBoxXSizeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -676,7 +676,7 @@ void qSlicerSegmentMorphologyModuleWidget::doubleSpinBoxYSizeChanged(double valu
   
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::doubleSpinBoxYSizeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -704,7 +704,7 @@ void qSlicerSegmentMorphologyModuleWidget::doubleSpinBoxZSizeChanged(double valu
   
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::doubleSpinBoxZSizeChanged: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 
@@ -732,7 +732,7 @@ void qSlicerSegmentMorphologyModuleWidget::applyClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << "qSlicerSegmentMorphologyModuleWidget::applyClicked: Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
 

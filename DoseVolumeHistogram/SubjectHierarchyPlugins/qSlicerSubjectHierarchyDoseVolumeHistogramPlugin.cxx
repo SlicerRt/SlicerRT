@@ -115,7 +115,7 @@ double qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::canOwnSubjectHierarchyN
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::canOwnSubjectHierarchyNode: Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
     return 0.0;
   }
 
@@ -142,7 +142,7 @@ QIcon qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::icon(vtkMRMLSubjectHiera
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::icon: NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": NULL node given!";
     return QIcon();
   }
 
@@ -177,7 +177,7 @@ void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setDisplayVisibility(vtkM
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setDisplayVisibility: NULL node!";
+    qCritical() << Q_FUNC_INFO << ": NULL node!";
     return;
   }
 
@@ -187,7 +187,7 @@ void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setDisplayVisibility(vtkM
     vtkMRMLSubjectHierarchyNode* chartSubjectHierarchyNode = this->getChartForDvhArray(node);
     if (!chartSubjectHierarchyNode)
     {
-      qCritical() << "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getDisplayVisibility: Unable to get chart node for DVH array node!";
+      qCritical() << Q_FUNC_INFO << ": Unable to get chart node for DVH array node!";
       return;
     }
 
@@ -230,7 +230,7 @@ int qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getDisplayVisibility(vtkMR
 {
   if (!node)
   {
-    qCritical() << "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getDisplayVisibility: NULL node!";
+    qCritical() << Q_FUNC_INFO << ": NULL node!";
     return -1;
   }
 
@@ -240,7 +240,7 @@ int qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getDisplayVisibility(vtkMR
     vtkMRMLSubjectHierarchyNode* chartSubjectHierarchyNode = this->getChartForDvhArray(node);
     if (!chartSubjectHierarchyNode)
     {
-      qCritical() << "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getDisplayVisibility: Unable to get chart node for DVH array node!";
+      qCritical() << Q_FUNC_INFO << ": Unable to get chart node for DVH array node!";
       return -1;
     }
 
@@ -286,7 +286,7 @@ vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDoseVolumeHistogramPlugin
   vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
   if (!scene)
   {
-    qCritical() << "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getDvhParameterSetNodeForDvhArray: Invalid MRML scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid MRML scene!";
     return NULL;
   }
 
@@ -316,7 +316,7 @@ vtkMRMLSubjectHierarchyNode* qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::g
   vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
   if (!scene)
   {
-    qCritical() << "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getChartForDvhArray: Invalid MRML scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid MRML scene!";
     return NULL;
   }
 
