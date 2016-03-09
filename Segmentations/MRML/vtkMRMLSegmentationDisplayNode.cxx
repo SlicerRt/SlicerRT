@@ -629,7 +629,10 @@ void vtkMRMLSegmentationDisplayNode::GenerateSegmentColor(double color[3])
     this->Scene->GetNodeByID("vtkMRMLColorTableNodeLabels") );
   if (!labelsColorNode)
   {
-    vtkErrorMacro("GenerateSegmentColor: Failed to get default labels color table!");
+    // Generate random color if default color table is not available (such as in logic tests)
+    color[0] = rand() * 1.0 / RAND_MAX;
+    color[1] = rand() * 1.0 / RAND_MAX;
+    color[2] = rand() * 1.0 / RAND_MAX;
     return;
   }
 
