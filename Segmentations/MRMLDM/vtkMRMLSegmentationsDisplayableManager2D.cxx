@@ -739,6 +739,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
       vtkSmartPointer<vtkPolyData> fillPolyData = vtkSmartPointer<vtkPolyData>::New();
       fillPolyData->SetPoints(pipeline->Stripper->GetOutput()->GetPoints());
       fillPolyData->SetPolys(closedCells);
+      cellsValid = false; //TODO: Disable polydata fill until a good solution is found
       if (cellsValid)
       {
         pipeline->Cleaner->SetInputData(fillPolyData);
