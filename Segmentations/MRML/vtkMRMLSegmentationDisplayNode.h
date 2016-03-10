@@ -92,10 +92,6 @@ public:
   /// \param segmentationNodeName Name of the segmentation node that is set to the color node with a postfix
   virtual vtkMRMLColorTableNode* CreateColorTableNode(const char* segmentationNodeName);
 
-  /// Convenience function to set color to a segment.
-  /// Makes changes in the color table node associated to the segmentation node.
-  bool SetSegmentColor(std::string segmentId, double r, double g, double b, double a = 1.0);
-
   /// Get segment display properties for a specific segment
   /// \param segmentID Identifier of segment of which the properties are queried
   /// \param color Output argument for segment color
@@ -140,12 +136,14 @@ public:
   /// Otherwise return master representation.
   std::string GetDisplayRepresentationName2D();
 
-// Python compatibility functions
+// Convenience and python compatibility functions
 public:
   /// Get segment color by segment ID. Convenience function for python compatibility.
   /// \return Segment color if segment found, otherwise the pre-defined invalid color
   vtkVector3d GetSegmentColor(std::string segmentID);
-  /// Set segment color by segment ID. Convenience function for python compatibility.
+  /// Set segment color by segment ID
+  void SetSegmentColor(std::string segmentID, double r, double g, double b);
+  /// Set segment color by segment ID
   void SetSegmentColor(std::string segmentID, vtkVector3d color);
 
   /// Get segment 3D visibility by segment ID. Convenience function for python compatibility.
@@ -184,10 +182,13 @@ public:
   /// Set segment 2D outline opacity by segment ID. Convenience function for python compatibility.
   void SetSegmentOpacity2DOutline(std::string segmentID, double opacity);
 
+  /// Set all three types of segment opacity by segment ID
+  void SetSegmentOpacity(std::string segmentID, double opacity);
+
 protected:
   /// Set segment color in associated color table
   /// \return Success flag
-  bool SetSegmentColorTableEntry(std::string segmentId, double r, double g, double b, double a);
+  bool SetSegmentColorTableEntry(std::string segmentId, double r, double g, double b);
 
 protected:
   vtkMRMLSegmentationDisplayNode();

@@ -231,26 +231,7 @@ vtkMRMLColorTableNode* vtkMRMLSegmentationDisplayNode::CreateColorTableNode(cons
 }
 
 //---------------------------------------------------------------------------
-bool vtkMRMLSegmentationDisplayNode::SetSegmentColor(std::string segmentId, double r, double g, double b, double a/* = 1.0*/)
-{
-  // Set color in display properties
-  SegmentDisplayPropertiesMap::iterator propsIt = this->SegmentationDisplayProperties.find(segmentId);
-  if (propsIt != this->SegmentationDisplayProperties.end())
-  {
-    propsIt->second.Color[0] = r;
-    propsIt->second.Color[1] = g;
-    propsIt->second.Color[2] = b;
-    propsIt->second.Opacity2DFill = a;
-  }
-
-  // Set color in color table too
-  this->SetSegmentColorTableEntry(segmentId, r, g, b, a);
-
-  return true;
-}
-
-//---------------------------------------------------------------------------
-bool vtkMRMLSegmentationDisplayNode::SetSegmentColorTableEntry(std::string segmentId, double r, double g, double b, double a)
+bool vtkMRMLSegmentationDisplayNode::SetSegmentColorTableEntry(std::string segmentId, double r, double g, double b)
 {
   // Set color in color table (for merged labelmap)
   vtkMRMLColorTableNode* colorTableNode = vtkMRMLColorTableNode::SafeDownCast(this->GetColorNode());
@@ -331,8 +312,7 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentDisplayProperties(std::string seg
   }
 
   // Set color in color table too
-  this->SetSegmentColorTableEntry(segmentId,
-    properties.Color[0], properties.Color[1], properties.Color[2], properties.Opacity2DFill);
+  this->SetSegmentColorTableEntry(segmentId, properties.Color[0], properties.Color[1], properties.Color[2]);
 
   this->Modified();
 }
@@ -350,6 +330,21 @@ vtkVector3d vtkMRMLSegmentationDisplayNode::GetSegmentColor(std::string segmentI
 
   vtkVector3d color(propsIt->second.Color[0], propsIt->second.Color[1], propsIt->second.Color[2]);
   return color;
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLSegmentationDisplayNode::SetSegmentColor(std::string segmentID, double r, double g, double b)
+{
+  // Set color in display properties
+  SegmentDisplayProperties properties;
+  if (!this->GetSegmentDisplayProperties(segmentID, properties))
+    {
+    return;
+    }
+  properties.Color[0] = r;
+  properties.Color[1] = g;
+  properties.Color[2] = b;
+  this->SetSegmentDisplayProperties(segmentID, properties);
 }
 
 //---------------------------------------------------------------------------
@@ -508,6 +503,14 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentOpacity2DOutline(std::string segm
     }
   properties.Opacity2DOutline = opacity;
   this->SetSegmentDisplayProperties(segmentID, properties);
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLSegmentationDisplayNode::SetSegmentOpacity(std::string segmentID, double opacity)
+{
+  this->SetSegmentOpacity3D(segmentID, opacity);
+  this->SetSegmentOpacity2DFill(segmentID, opacity);
+  this->SetSegmentOpacity2DOutline(segmentID, opacity);
 }
 
 //---------------------------------------------------------------------------
