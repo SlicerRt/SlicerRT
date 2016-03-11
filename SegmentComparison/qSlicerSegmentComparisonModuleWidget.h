@@ -74,10 +74,10 @@ protected slots:
   void onLogicModified();
 
 protected:
-  /// Invalidate the Dice similarity results (change the values with 'N/A')
+  /// Invalidate the Dice similarity results (empty table)
   void invalidateDiceResults();
 
-  /// Invalidate the Hausdorff distance results (change the values with 'N/A')
+  /// Invalidate the Hausdorff distance results (empty table)
   void invalidateHausdorffResults();
 
 protected:

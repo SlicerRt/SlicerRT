@@ -27,6 +27,7 @@
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLTableNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -39,6 +40,8 @@
 static const char* REFERENCE_SEGMENTATION_REFERENCE_ROLE = "referenceSegmentationRef";
 static const char* COMPARE_SEGMENTATION_REFERENCE_ROLE = "compareSegmentationRef";
 static const char* RASTERIZATION_REFERENCE_VOLUME_REFERENCE_ROLE = "rasterizationReferenceVolumeRef";
+static const char* DICE_TABLE_REFERENCE_ROLE = "diceTableRef";
+static const char* HAUSDORFF_TABLE_REFERENCE_ROLE = "hausdorffTableRef";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLSegmentComparisonNode);
@@ -460,4 +463,28 @@ vtkMRMLScalarVolumeNode* vtkMRMLSegmentComparisonNode::GetRasterizationReference
 void vtkMRMLSegmentComparisonNode::SetAndObserveRasterizationReferenceVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
   this->SetNodeReferenceID(RASTERIZATION_REFERENCE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLTableNode* vtkMRMLSegmentComparisonNode::GetDiceTableNode()
+{
+  return vtkMRMLTableNode::SafeDownCast( this->GetNodeReference(DICE_TABLE_REFERENCE_ROLE) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSegmentComparisonNode::SetAndObserveDiceTableNode(vtkMRMLTableNode* node)
+{
+  this->SetNodeReferenceID(DICE_TABLE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLTableNode* vtkMRMLSegmentComparisonNode::GetHausdorffTableNode()
+{
+  return vtkMRMLTableNode::SafeDownCast( this->GetNodeReference(HAUSDORFF_TABLE_REFERENCE_ROLE) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSegmentComparisonNode::SetAndObserveHausdorffTableNode(vtkMRMLTableNode* node)
+{
+  this->SetNodeReferenceID(HAUSDORFF_TABLE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }

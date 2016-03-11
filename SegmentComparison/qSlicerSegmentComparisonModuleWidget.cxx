@@ -35,6 +35,7 @@
 
 // MRML includes
 #include <vtkMRMLScene.h>
+#include <vtkMRMLTableNode.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_SegmentComparison
@@ -139,14 +140,13 @@ void qSlicerSegmentComparisonModuleWidget::onEnter()
   vtkMRMLSegmentComparisonNode* paramNode = d->logic()->GetSegmentComparisonNode();
 
   // If we have a parameter node select it
-  if (paramNode == NULL)
+  if (!paramNode)
   {
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLSegmentComparisonNode");
     if (node)
     {
       paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(node);
       d->logic()->SetAndObserveSegmentComparisonNode(paramNode);
-      return;
     }
     else 
     {
@@ -219,8 +219,31 @@ void qSlicerSegmentComparisonModuleWidget::updateWidgetFromMRML()
     return;
   }
 
+  // Make sure there are table nodes referenced from the parameter node
+  if (!paramNode->GetDiceTableNode())
+  {
+    vtkSmartPointer<vtkMRMLTableNode> diceTableNode = vtkSmartPointer<vtkMRMLTableNode>::New();
+    std::string diceTableNodeName = this->mrmlScene()->GenerateUniqueName("Dice");
+    diceTableNode->SetName(diceTableNodeName.c_str());
+    this->mrmlScene()->AddNode(diceTableNode);
+    paramNode->SetAndObserveDiceTableNode(diceTableNode);
+  }
+  d->MRMLTableView_Dice->setMRMLTableNode(paramNode->GetDiceTableNode());
+
+  if (!paramNode->GetHausdorffTableNode())
+  {
+    vtkSmartPointer<vtkMRMLTableNode> hausdorffTableNode = vtkSmartPointer<vtkMRMLTableNode>::New();
+    std::string hausdorffTableNodeName = this->mrmlScene()->GenerateUniqueName("Hausdorff");
+    hausdorffTableNode->SetName(hausdorffTableNodeName.c_str());
+    this->mrmlScene()->AddNode(hausdorffTableNode);
+    paramNode->SetAndObserveHausdorffTableNode(hausdorffTableNode);
+  }
+  d->MRMLTableView_Hausdorff->setMRMLTableNode(paramNode->GetHausdorffTableNode());
+
+  // Set parameter node
   d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetSegmentComparisonNode());
 
+  // Set input selection
   if (paramNode->GetReferenceSegmentationNode())
   {
     d->SegmentSelectorWidget_Reference->setCurrentNode(paramNode->GetReferenceSegmentationNode());
@@ -255,10 +278,16 @@ void qSlicerSegmentComparisonModuleWidget::setup()
   connect( d->SegmentSelectorWidget_Compare, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(compareSegmentationNodeChanged(vtkMRMLNode*)) );
   connect( d->SegmentSelectorWidget_Compare, SIGNAL(currentSegmentChanged(QString)), this, SLOT(compareSegmentChanged(QString)) );
 
-  connect( d->pushButton_ComputeDice, SIGNAL(clicked()), this, SLOT(computeDiceClicked()) );
   connect( d->pushButton_ComputeHausdorff, SIGNAL(clicked()), this, SLOT(computeHausdorffClicked()) );
+  connect( d->pushButton_ComputeDice, SIGNAL(clicked()), this, SLOT(computeDiceClicked()) );
 
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setSegmentComparisonNode(vtkMRMLNode*)) );
+
+  // Setup table views
+  d->MRMLTableView_Dice->verticalHeader()->setResizeMode(QHeaderView::Fixed); // Set default row height
+  d->MRMLTableView_Dice->verticalHeader()->setDefaultSectionSize(22);
+  d->MRMLTableView_Hausdorff->verticalHeader()->setResizeMode(QHeaderView::Fixed); // Set default row height
+  d->MRMLTableView_Hausdorff->verticalHeader()->setDefaultSectionSize(22);
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
@@ -417,12 +446,13 @@ void qSlicerSegmentComparisonModuleWidget::computeHausdorffClicked()
   {
     d->label_Error->setText("");
 
-    d->lineEdit_MaximumHausdorffDistanceForBoundary->setText(
-      QString("%1 mm").arg(paramNode->GetMaximumHausdorffDistanceForBoundaryMm(),0,'f',2) );
-    d->lineEdit_AverageHausdorffDistanceForBoundary->setText(
-      QString("%1 mm").arg(paramNode->GetAverageHausdorffDistanceForBoundaryMm(),0,'f',2) );
-    d->lineEdit_95PercentHausdorffDistanceForBoundary->setText(
-      QString("%1 mm").arg(paramNode->GetPercent95HausdorffDistanceForBoundaryMm(),0,'f',2) );
+    // Hide input information that is in the tables for exporting, no need to show on UI
+    d->MRMLTableView_Hausdorff->hideRow(0);
+    d->MRMLTableView_Hausdorff->hideRow(1);
+    d->MRMLTableView_Hausdorff->hideRow(2);
+    d->MRMLTableView_Hausdorff->hideRow(3);
+    d->MRMLTableView_Hausdorff->setColumnWidth(0,120);
+    d->MRMLTableView_Dice->setColumnWidth(0,120); // For some reason the other table's columns are resized if this is not explicitly called
   }
   else
   {
@@ -458,30 +488,13 @@ void qSlicerSegmentComparisonModuleWidget::computeDiceClicked()
   {
     d->label_Error->setText("");
 
-    d->lineEdit_DiceCoefficient->setText(
-      QString("%1").arg(paramNode->GetDiceCoefficient()) );
-    d->lineEdit_TruePositives->setText(
-      QString("%1 %").arg(paramNode->GetTruePositivesPercent(),0,'f',2) );
-    d->lineEdit_TrueNegatives->setText(
-      QString("%1 %").arg(paramNode->GetTrueNegativesPercent(),0,'f',2) );
-    d->lineEdit_FalsePositives->setText(
-      QString("%1 %").arg(paramNode->GetFalsePositivesPercent(),0,'f',2) );
-    d->lineEdit_FalseNegatives->setText(
-      QString("%1 %").arg(paramNode->GetFalseNegativesPercent(),0,'f',2) );
-    d->lineEdit_ReferenceCenter->setText(
-      QString("(%1, %2, %3 )")
-      .arg(paramNode->GetReferenceCenter()[0],7,'f',2,QLatin1Char(' '))
-      .arg(paramNode->GetReferenceCenter()[1],7,'f',2,QLatin1Char(' '))
-      .arg(paramNode->GetReferenceCenter()[2],7,'f',2,QLatin1Char(' ')) );
-    d->lineEdit_CompareCenter->setText(
-      QString("(%1, %2, %3 )")
-      .arg(paramNode->GetCompareCenter()[0],7,'f',2,QLatin1Char(' '))
-      .arg(paramNode->GetCompareCenter()[1],7,'f',2,QLatin1Char(' '))
-      .arg(paramNode->GetCompareCenter()[2],7,'f',2,QLatin1Char(' ')) );
-    d->lineEdit_ReferenceVolume->setText(
-      QString("%1 cc").arg(paramNode->GetReferenceVolumeCc()) );
-    d->lineEdit_CompareVolume->setText(
-      QString("%1 cc").arg(paramNode->GetCompareVolumeCc()) );
+    // Hide input information that is in the tables for exporting, no need to show on UI
+    d->MRMLTableView_Dice->hideRow(0);
+    d->MRMLTableView_Dice->hideRow(1);
+    d->MRMLTableView_Dice->hideRow(2);
+    d->MRMLTableView_Dice->hideRow(3);
+    d->MRMLTableView_Dice->setColumnWidth(0,120);
+    d->MRMLTableView_Hausdorff->setColumnWidth(0,120); // For some reason the other table's columns are resized if this is not explicitly called
   }
   else
   {
@@ -490,36 +503,6 @@ void qSlicerSegmentComparisonModuleWidget::computeDiceClicked()
   }
 
   QApplication::restoreOverrideCursor();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerSegmentComparisonModuleWidget::invalidateDiceResults()
-{
-  Q_D(qSlicerSegmentComparisonModuleWidget);
-
-  if (!this->mrmlScene())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
-    return;
-  }
-
-  vtkMRMLSegmentComparisonNode* paramNode = d->logic()->GetSegmentComparisonNode();
-  if (!paramNode || !d->ModuleWindowInitialized)
-  {
-    return;
-  }
-
-  paramNode->DiceResultsValidOff();
-
-  d->lineEdit_DiceCoefficient->setText(tr("N/A"));
-  d->lineEdit_TruePositives->setText(tr("N/A"));
-  d->lineEdit_TrueNegatives->setText(tr("N/A"));
-  d->lineEdit_FalsePositives->setText(tr("N/A"));
-  d->lineEdit_FalseNegatives->setText(tr("N/A"));
-  d->lineEdit_ReferenceCenter->setText(tr("N/A"));
-  d->lineEdit_CompareCenter->setText(tr("N/A"));
-  d->lineEdit_ReferenceVolume->setText(tr("N/A"));
-  d->lineEdit_CompareVolume->setText(tr("N/A"));
 }
 
 //-----------------------------------------------------------------------------
@@ -541,7 +524,27 @@ void qSlicerSegmentComparisonModuleWidget::invalidateHausdorffResults()
 
   paramNode->HausdorffResultsValidOff();
 
-  d->lineEdit_MaximumHausdorffDistanceForBoundary->setText(tr("N/A"));
-  d->lineEdit_AverageHausdorffDistanceForBoundary->setText(tr("N/A"));
-  d->lineEdit_95PercentHausdorffDistanceForBoundary->setText(tr("N/A"));
+  paramNode->GetHausdorffTableNode()->RemoveAllColumns();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentComparisonModuleWidget::invalidateDiceResults()
+{
+  Q_D(qSlicerSegmentComparisonModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return;
+  }
+
+  vtkMRMLSegmentComparisonNode* paramNode = d->logic()->GetSegmentComparisonNode();
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  paramNode->DiceResultsValidOff();
+
+  paramNode->GetDiceTableNode()->RemoveAllColumns();
 }

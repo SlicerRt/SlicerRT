@@ -374,6 +374,9 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegm
     ssDefaultColorValue >> currentSegmentDefaultColor[0] >> currentSegmentDefaultColor[1] >> currentSegmentDefaultColor[2];
     currentSegment->SetDefaultColor(currentSegmentDefaultColor);
 
+    // Add segment to segmentation.
+    segmentation->AddSegment(currentSegment, currentSegmentID);
+
     // DisplayedColor
     std::stringstream ssDisplayedColorKey;
     ssDisplayedColorKey << segmentIndex << SEGMENT_DISPLAYED_COLOR;
@@ -470,9 +473,6 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegm
 
     // Set loaded binary labelmap to segment
     currentSegment->AddRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(), currentBinaryLabelmap);
-
-    // Add segment to segmentation
-    segmentation->AddSegment(currentSegment, currentSegmentID);
   }
 
   // Create contained representations now that all the data is loaded
@@ -570,9 +570,12 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
       vtkErrorMacro("ReadPolyDataRepresentation: Unable to find segment properties for segment number " << blockIndex << " referenced from segmentation file " << path);
       continue;
     }
+
+    // Add segment to segmentation.
     std::string currentSegmentID = idArray->GetValue(0);
     currentSegment->SetName(nameArray->GetValue(0).c_str());
     currentSegment->SetDefaultColor(defaultColorArray->GetComponent(0,0), defaultColorArray->GetComponent(0,1), defaultColorArray->GetComponent(0,2));
+    segmentation->AddSegment(currentSegment, currentSegmentID);
 
     // DisplayedColor
     vtkDoubleArray* displayedColorArray = vtkDoubleArray::SafeDownCast(
@@ -607,9 +610,6 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
         separatorPosition = tags.find(separatorCharacter);
       }
     }
-
-    // Add segment to segmentation
-    segmentation->AddSegment(currentSegment, currentSegmentID);
   }
 
   // Create contained representations now that all the data is loaded

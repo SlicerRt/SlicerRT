@@ -29,6 +29,7 @@
 
 class vtkMRMLSegmentationNode;
 class vtkMRMLScalarVolumeNode;
+class vtkMRMLTableNode;
 
 /// \ingroup SlicerRt_QtModules_SegmentComparison
 class VTK_SLICER_SEGMENTCOMPARISON_MODULE_LOGIC_EXPORT vtkMRMLSegmentComparisonNode : public vtkMRMLNode
@@ -68,6 +69,16 @@ public:
   vtkMRMLScalarVolumeNode* GetRasterizationReferenceVolumeNode();
   /// Set rasterization reference volume node
   void SetAndObserveRasterizationReferenceVolumeNode(vtkMRMLScalarVolumeNode* node);
+
+  /// Get Dice table node
+  vtkMRMLTableNode* GetDiceTableNode();
+  /// Set Dice table node
+  void SetAndObserveDiceTableNode(vtkMRMLTableNode* node);
+
+  /// Get Hausdorff table node
+  vtkMRMLTableNode* GetHausdorffTableNode();
+  /// Set Hausdorff table node
+  void SetAndObserveHausdorffTableNode(vtkMRMLTableNode* node);
 
   /// Get reference segment ID
   vtkGetStringMacro(ReferenceSegmentID);

@@ -248,7 +248,11 @@ bool vtkMRMLSegmentationDisplayNode::SetSegmentColorTableEntry(std::string segme
   int colorIndex = colorTableNode->GetColorIndexByName(segmentId.c_str());
   if (colorIndex < 0)
   {
-    vtkWarningMacro("SetSegmentColorTableEntry: No color table entry found for segment " << segmentId);
+    if (!this->Scene->IsImporting())
+    {
+      // It is possible that when the segmentation is loaded, the color table node is already loaded but its storage node is not
+      vtkWarningMacro("SetSegmentColorTableEntry: No color table entry found for segment " << segmentId);
+    }
     return false;
   }
   // Do not support opacity in color table. If advanced display is needed then use the displayable manager

@@ -42,6 +42,7 @@
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLTableNode.h>
 #include <vtkMRMLScene.h>
 
 // VTK includes
@@ -49,6 +50,7 @@
 #include <vtkImageData.h>
 #include <vtkTimerLog.h>
 #include <vtkObjectFactory.h>
+#include <vtkStringArray.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_SegmentComparison
@@ -339,11 +341,17 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics()
     + dice.get_true_negatives() + dice.get_false_positives()
     + dice.get_false_negatives();
 
-  this->SegmentComparisonNode->SetDiceCoefficient(dice.get_dice());
-  this->SegmentComparisonNode->SetTruePositivesPercent(dice.get_true_positives() * 100.0 / (double)numberOfVoxels);
-  this->SegmentComparisonNode->SetTrueNegativesPercent(dice.get_true_negatives() * 100.0 / (double)numberOfVoxels);
-  this->SegmentComparisonNode->SetFalsePositivesPercent(dice.get_false_positives() * 100.0 / (double)numberOfVoxels);
-  this->SegmentComparisonNode->SetFalseNegativesPercent(dice.get_false_negatives() * 100.0 / (double)numberOfVoxels);
+  // Set results to parameter set node
+  double diceCoefficient = dice.get_dice();
+  double truePositivesPercent = dice.get_true_positives() * 100.0 / (double)numberOfVoxels;
+  double trueNegativesPercent = dice.get_true_negatives() * 100.0 / (double)numberOfVoxels;
+  double falsePositivesPercent = dice.get_false_positives() * 100.0 / (double)numberOfVoxels;
+  double falseNegativesPercent = dice.get_false_negatives() * 100.0 / (double)numberOfVoxels;
+  this->SegmentComparisonNode->SetDiceCoefficient(diceCoefficient);
+  this->SegmentComparisonNode->SetTruePositivesPercent(truePositivesPercent);
+  this->SegmentComparisonNode->SetTrueNegativesPercent(trueNegativesPercent);
+  this->SegmentComparisonNode->SetFalsePositivesPercent(falsePositivesPercent);
+  this->SegmentComparisonNode->SetFalseNegativesPercent(falseNegativesPercent);
 
   itk::Vector<double, 3> referenceCenterItk = dice.get_reference_center();
   double referenceCenterArray[3] =
@@ -355,9 +363,67 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics()
     { - compareCenterItk[0], - compareCenterItk[1], compareCenterItk[2] };
   this->SegmentComparisonNode->SetCompareCenter(compareCenterArray);
 
-  this->SegmentComparisonNode->SetReferenceVolumeCc(dice.get_reference_volume() / 1000.0);
-  this->SegmentComparisonNode->SetCompareVolumeCc(dice.get_compare_volume() / 1000.0);
+  double referenceVolumeCc = dice.get_reference_volume() / 1000.0;
+  double compareVolumeCc = dice.get_compare_volume() / 1000.0;
+  this->SegmentComparisonNode->SetReferenceVolumeCc(referenceVolumeCc);
+  this->SegmentComparisonNode->SetCompareVolumeCc(compareVolumeCc);
+
   this->SegmentComparisonNode->DiceResultsValidOn();
+
+  // Set results to table node
+  vtkMRMLTableNode* tableNode = this->SegmentComparisonNode->GetDiceTableNode();
+  if (tableNode)
+  {
+    tableNode->SetUseColumnNameAsColumnHeader(true);
+    tableNode->RemoveAllColumns();
+    vtkStringArray* header = vtkStringArray::SafeDownCast(tableNode->AddColumn());
+    header->SetName("Metric name");
+    // Add input information to the table so that they appear in the exported file
+    header->InsertNextValue("Reference segmentation");
+    header->InsertNextValue("Reference segment");
+    header->InsertNextValue("Compare segmentation");
+    header->InsertNextValue("Compare segment");
+    // Dice results
+    header->InsertNextValue("Dice coefficient");
+    header->InsertNextValue("True positives (%)");
+    header->InsertNextValue("True negatives (%)");
+    header->InsertNextValue("False positives (%)");
+    header->InsertNextValue("False negatives (%)");
+    header->InsertNextValue("Reference center");
+    header->InsertNextValue("Compare center");
+    header->InsertNextValue("Reference volume (cc)");
+    header->InsertNextValue("Compare volume (cc)");
+
+    vtkStringArray* column = vtkStringArray::SafeDownCast(tableNode->AddColumn());
+    column->SetName("Metric value");
+
+    int row = 0;
+    vtkMRMLSegmentationNode* referenceSegmentationNode = this->SegmentComparisonNode->GetReferenceSegmentationNode();
+    column->SetValue(row++, referenceSegmentationNode->GetName());
+    const char* referenceSegmentID = this->SegmentComparisonNode->GetReferenceSegmentID();
+    column->SetValue(row++, referenceSegmentID);
+    vtkMRMLSegmentationNode* compareSegmentationNode = this->SegmentComparisonNode->GetCompareSegmentationNode();
+    column->SetValue(row++, compareSegmentationNode->GetName());
+    const char* compareSegmentID = this->SegmentComparisonNode->GetCompareSegmentID();
+    column->SetValue(row++, compareSegmentID);
+
+    column->SetVariantValue(row++, vtkVariant(diceCoefficient));
+    column->SetVariantValue(row++, vtkVariant(truePositivesPercent));
+    column->SetVariantValue(row++, vtkVariant(trueNegativesPercent));
+    column->SetVariantValue(row++, vtkVariant(falsePositivesPercent));
+    column->SetVariantValue(row++, vtkVariant(falseNegativesPercent));
+    std::stringstream referenceCenterSs;
+    referenceCenterSs << "(" << referenceCenterArray[0] << ", " << referenceCenterArray[1] << ", " << referenceCenterArray[2] << ")";
+    column->SetValue(row++, referenceCenterSs.str());
+    std::stringstream compareCenterSs;
+    compareCenterSs << "(" << compareCenterArray[0] << ", " << compareCenterArray[1] << ", " << compareCenterArray[2] << ")";
+    column->SetValue(row++, compareCenterSs.str());
+    column->SetVariantValue(row++, vtkVariant(referenceVolumeCc));
+    column->SetVariantValue(row++, vtkVariant(compareVolumeCc));
+
+    // Trigger UI update
+    tableNode->Modified();
+  }
 
   if (this->LogSpeedMeasurements)
   {
@@ -409,13 +475,55 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeHausdorffDistances()
 
   hausdorff.run();
 
+  double maximumHausdorffDistanceForBoundaryMm = hausdorff.get_hausdorff();
+  double averageHausdorffDistanceForBoundaryMm = hausdorff.get_avg_average_boundary_hausdorff();
+  double percent95HausdorffDistanceForBoundaryMm = hausdorff.get_percent_boundary_hausdorff();
   this->SegmentComparisonNode->SetMaximumHausdorffDistanceForVolumeMm(hausdorff.get_boundary_hausdorff());
-  this->SegmentComparisonNode->SetMaximumHausdorffDistanceForBoundaryMm(hausdorff.get_hausdorff());
+  this->SegmentComparisonNode->SetMaximumHausdorffDistanceForBoundaryMm(maximumHausdorffDistanceForBoundaryMm);
   this->SegmentComparisonNode->SetAverageHausdorffDistanceForVolumeMm(hausdorff.get_avg_average_hausdorff());
-  this->SegmentComparisonNode->SetAverageHausdorffDistanceForBoundaryMm(hausdorff.get_avg_average_boundary_hausdorff());
+  this->SegmentComparisonNode->SetAverageHausdorffDistanceForBoundaryMm(averageHausdorffDistanceForBoundaryMm);
   this->SegmentComparisonNode->SetPercent95HausdorffDistanceForVolumeMm(hausdorff.get_percent_hausdorff());
-  this->SegmentComparisonNode->SetPercent95HausdorffDistanceForBoundaryMm(hausdorff.get_percent_boundary_hausdorff());
+  this->SegmentComparisonNode->SetPercent95HausdorffDistanceForBoundaryMm(percent95HausdorffDistanceForBoundaryMm);
   this->SegmentComparisonNode->HausdorffResultsValidOn();
+
+  // Set results to table node
+  vtkMRMLTableNode* tableNode = this->SegmentComparisonNode->GetHausdorffTableNode();
+  if (tableNode)
+  {
+    tableNode->SetUseColumnNameAsColumnHeader(true);
+    tableNode->RemoveAllColumns();
+    vtkStringArray* header = vtkStringArray::SafeDownCast(tableNode->AddColumn());
+    header->SetName("Metric name");
+    // Add input information to the table so that they appear in the exported file
+    header->InsertNextValue("Reference segmentation");
+    header->InsertNextValue("Reference segment");
+    header->InsertNextValue("Compare segmentation");
+    header->InsertNextValue("Compare segment");
+    // Hausdorff results
+    header->InsertNextValue("Maximum (mm)");
+    header->InsertNextValue("Average (mm)");
+    header->InsertNextValue("95% (mm)");
+
+    vtkStringArray* column = vtkStringArray::SafeDownCast(tableNode->AddColumn());
+    column->SetName("Metric value");
+
+    int row = 0;
+    vtkMRMLSegmentationNode* referenceSegmentationNode = this->SegmentComparisonNode->GetReferenceSegmentationNode();
+    column->SetValue(row++, referenceSegmentationNode->GetName());
+    const char* referenceSegmentID = this->SegmentComparisonNode->GetReferenceSegmentID();
+    column->SetValue(row++, referenceSegmentID);
+    vtkMRMLSegmentationNode* compareSegmentationNode = this->SegmentComparisonNode->GetCompareSegmentationNode();
+    column->SetValue(row++, compareSegmentationNode->GetName());
+    const char* compareSegmentID = this->SegmentComparisonNode->GetCompareSegmentID();
+    column->SetValue(row++, compareSegmentID);
+
+    column->SetVariantValue(row++, vtkVariant(maximumHausdorffDistanceForBoundaryMm));
+    column->SetVariantValue(row++, vtkVariant(averageHausdorffDistanceForBoundaryMm));
+    column->SetVariantValue(row++, vtkVariant(percent95HausdorffDistanceForBoundaryMm));
+
+    // Trigger UI update
+    tableNode->Modified();
+  }
 
   if (this->LogSpeedMeasurements)
   {
