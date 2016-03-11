@@ -36,21 +36,6 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.layout.setContentsMargins(4,0,4,0)
 
     #
-    # Parameter Combobox
-    #
-    self.parameterSelector = slicer.qMRMLNodeComboBox()
-    self.parameterLabel = qt.QLabel("Parameter set: ")
-    self.parameterSelector.nodeTypes = ["vtkMRMLSegmentEditorNode"]
-    self.parameterSelector.removeEnabled = False
-    self.parameterSelector.showHidden = True
-    self.parameterSelector.setMRMLScene( slicer.mrmlScene )
-    self.parameterLayout = qt.QHBoxLayout()
-    self.parameterLayout.addWidget(self.parameterLabel)
-    self.parameterLayout.addWidget(self.parameterSelector)
-    self.layout.addLayout(self.parameterLayout)
-    self.parameterSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.parameterNodeChanged)
-
-    #
     # Segment editor widget
     #
     import qSlicerSegmentationsModuleWidgetsPythonQt
@@ -65,9 +50,6 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndCloseEvent, self.onSceneEndClose)
     self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndImportEvent, self.onSceneEndImport)
 
-  def parameterNodeChanged(self, node):
-    self.editor.setMRMLSegmentEditorNode(node)
-
   def selectParameterNode(self):
     # Select parameter set node if one is found in the scene, and create one otherwise
     import vtkSlicerSegmentationsModuleMRML
@@ -78,7 +60,7 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       else:
         self.parameterSetNode = vtkSlicerSegmentationsModuleMRML.vtkMRMLSegmentEditorNode()
         slicer.mrmlScene.AddNode(self.parameterSetNode)
-      self.parameterSelector.setCurrentNode(self.parameterSetNode)
+    self.editor.setMRMLSegmentEditorNode(node)
 
   def enter(self):
     """Runs whenever the module is reopened
