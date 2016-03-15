@@ -400,12 +400,12 @@ bool vtkSegmentation::AddSegment(vtkSegment* segment, std::string segmentId/*=""
   std::string key = segmentId;
   if (key.empty())
   {
-    key = segment->GetName();
-    if (key.empty())
+    if (segment->GetName() == NULL)
     {
       vtkErrorMacro("AddSegment: Unable to add segment without a key; neither key is given nor segment name is defined!");
       return false;
     }
+    key = segment->GetName();
     key = this->GenerateUniqueSegmentId(key);
   }
   this->Segments[key] = segment;

@@ -1,6 +1,8 @@
 import os
 import vtk, qt, ctk, slicer, logging
-from SegmentEditorEffects import *
+from AbstractScriptedSegmentEditorEffect import *
+
+__all__ = ['AbstractScriptedSegmentEditorIslandEffect']
 
 #
 # Abstract class of python scripted segment editor island effects

@@ -1,6 +1,8 @@
 import os
 import vtk, qt, ctk, slicer, logging
-from SegmentEditorEffects import *
+from AbstractScriptedSegmentEditorEffect import *
+
+__all__ = ['AbstractScriptedSegmentEditorLabelEffect']
 
 #
 # Abstract class of python scripted segment editor label effects
