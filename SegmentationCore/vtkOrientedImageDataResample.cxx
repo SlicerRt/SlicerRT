@@ -272,6 +272,99 @@ bool vtkOrientedImageDataResample::IsEqual( const vtkMatrix4x4& lhs, const vtkMa
 }
 
 //----------------------------------------------------------------------------
+template <typename T> void CalculateEffectiveExtentGeneric(vtkOrientedImageData* image, int effectiveExtent[6], T threshold)
+{
+  // Get increments to march through image
+  int *wholeExt = image->GetExtent();
+
+  effectiveExtent[0] = wholeExt[1]+1;
+  effectiveExtent[1] = wholeExt[0]-1;
+  effectiveExtent[2] = wholeExt[3]+1;
+  effectiveExtent[3] = wholeExt[2]-1;
+  effectiveExtent[4] = wholeExt[5]+1;
+  effectiveExtent[5] = wholeExt[4]-1;
+
+  // Loop through output pixels
+  for (int k = wholeExt[4]; k <= wholeExt[5]; k++)
+  {
+    bool foundPointInThisRow = false;
+    for (int j = wholeExt[2]; j <= wholeExt[3]; j++)
+    {
+      int i = wholeExt[0];
+      T* imagePtr = static_cast<T*>(image->GetScalarPointer(i,j,k));
+      for (; i < wholeExt[1]; i++)
+      {
+        if (*(imagePtr++)>threshold)
+        {
+          if (i < effectiveExtent[0]) { effectiveExtent[0] = i; }
+          if (i > effectiveExtent[1]) { effectiveExtent[1] = i; }
+          if (j < effectiveExtent[2]) { effectiveExtent[2] = j; }
+          if (j > effectiveExtent[3]) { effectiveExtent[3] = j; }
+          if (k < effectiveExtent[4]) { effectiveExtent[4] = k; }
+          if (k > effectiveExtent[5]) { effectiveExtent[5] = k; }
+          foundPointInThisRow = true;
+          i = wholeExt[1];
+          imagePtr = static_cast<T*>(image->GetScalarPointer(i,j,k));
+          for (; i > effectiveExtent[1]; i--)
+          {
+            if (*(imagePtr--)>threshold)
+            {
+              if (i < effectiveExtent[0]) { effectiveExtent[0] = i; }
+              if (i > effectiveExtent[1]) { effectiveExtent[1] = i; }
+              if (j < effectiveExtent[2]) { effectiveExtent[2] = j; }
+              if (j > effectiveExtent[3]) { effectiveExtent[3] = j; }
+              if (k < effectiveExtent[4]) { effectiveExtent[4] = k; }
+              if (k > effectiveExtent[5]) { effectiveExtent[5] = k; }
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+    if (!foundPointInThisRow)
+    {
+      continue;
+    }
+    for (int j = wholeExt[3]; j > effectiveExtent[3]; j--)
+    {
+      int i = wholeExt[0];
+      T* imagePtr = static_cast<T*>(image->GetScalarPointer(i,j,k));
+      for (; i < wholeExt[1]; i++)
+      {
+        if (*(imagePtr++)>threshold)
+        {
+          if (i < effectiveExtent[0]) { effectiveExtent[0] = i; }
+          if (i > effectiveExtent[1]) { effectiveExtent[1] = i; }
+          if (j < effectiveExtent[2]) { effectiveExtent[2] = j; }
+          if (j > effectiveExtent[3]) { effectiveExtent[3] = j; }
+          if (k < effectiveExtent[4]) { effectiveExtent[4] = k; }
+          if (k > effectiveExtent[5]) { effectiveExtent[5] = k; }
+          foundPointInThisRow = true;
+          i = wholeExt[1];
+          imagePtr = static_cast<T*>(image->GetScalarPointer(i,j,k));
+          for (; i > effectiveExtent[1]; i--)
+          {
+            if (*(imagePtr--)>threshold)
+            {
+              if (i < effectiveExtent[0]) { effectiveExtent[0] = i; }
+              if (i > effectiveExtent[1]) { effectiveExtent[1] = i; }
+              if (j < effectiveExtent[2]) { effectiveExtent[2] = j; }
+              if (j > effectiveExtent[3]) { effectiveExtent[3] = j; }
+              if (k < effectiveExtent[4]) { effectiveExtent[4] = k; }
+              if (k > effectiveExtent[5]) { effectiveExtent[5] = k; }
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+  }
+
+}
+
+//----------------------------------------------------------------------------
 bool vtkOrientedImageDataResample::CalculateEffectiveExtent(vtkOrientedImageData* image, int effectiveExtent[6])
 {
   if (!image)
@@ -279,83 +372,31 @@ bool vtkOrientedImageDataResample::CalculateEffectiveExtent(vtkOrientedImageData
     return false;
   }
 
-  int imageScalarType = image->GetScalarType();
-  if ( imageScalarType != VTK_UNSIGNED_CHAR
-    && imageScalarType != VTK_UNSIGNED_SHORT
-    && imageScalarType != VTK_SHORT )
+  switch (image->GetScalarType())
   {
-    vtkErrorWithObjectMacro(image, "CalculateEffectiveExtent: Input image scalar type must be unsigned char, unsighed short, or short!");
+    vtkTemplateMacro(CalculateEffectiveExtentGeneric<VTK_TT>(image, effectiveExtent, 0));
+  default:
+    vtkGenericWarningMacro("vtkOrientedImageDataResample::CalculateEffectiveExtent: Unknown ScalarType");
     return false;
   }
-
-  // Start from a reverse invalid extent
-  int extent[6] = {0,-1,0,-1,0,-1};
-  image->GetExtent(extent);
-  effectiveExtent[0] = extent[1];
-  effectiveExtent[1] = extent[0];
-  effectiveExtent[2] = extent[3];
-  effectiveExtent[3] = extent[2];
-  effectiveExtent[4] = extent[5];
-  effectiveExtent[5] = extent[4];
-
-  // Determine IJK extent of contained data (non-zero voxels) in the input image
-  int dimensions[3] = {0, 0, 0};
-  image->GetDimensions(dimensions);
-  // Handle three scalar types
-  unsigned char* imagePtrUChar = (unsigned char*)image->GetScalarPointerForExtent(extent);
-  unsigned short* imagePtrUShort = (unsigned short*)image->GetScalarPointerForExtent(extent);
-  short* imagePtrShort = (short*)image->GetScalarPointerForExtent(extent);
-
-  for (int i=0; i<dimensions[0]; ++i)
+/*
+  if (imageScalarType == VTK_UNSIGNED_CHAR)
   {
-    for (int j=0; j<dimensions[1]; ++j)
-    {
-      for (int k=0; k<dimensions[2]; ++k)
-      {
-        int voxelValue = 0;
-        if (imageScalarType == VTK_UNSIGNED_CHAR)
-        {
-          voxelValue = (int)(*(imagePtrUChar + i + j*dimensions[0] + k*dimensions[0]*dimensions[1]));
-        }
-        else if (imageScalarType == VTK_UNSIGNED_SHORT)
-        {
-          voxelValue = (int)(*(imagePtrUShort + i + j*dimensions[0] + k*dimensions[0]*dimensions[1]));
-        }
-        else if (imageScalarType == VTK_SHORT)
-        {
-          voxelValue = (int)(*(imagePtrShort + i + j*dimensions[0] + k*dimensions[0]*dimensions[1]));
-        }
-
-        if (voxelValue != 0)
-        {
-          if (i < effectiveExtent[0])
-          {
-            effectiveExtent[0] = i;
-          }
-          if (i > effectiveExtent[1])
-          {
-            effectiveExtent[1] = i;
-          }
-          if (j < effectiveExtent[2])
-          {
-            effectiveExtent[2] = j;
-          }
-          if (j > effectiveExtent[3])
-          {
-            effectiveExtent[3] = j;
-          }
-          if (k < effectiveExtent[4])
-          {
-            effectiveExtent[4] = k;
-          }
-          if (k > effectiveExtent[5])
-          {
-            effectiveExtent[5] = k;
-          }
-        }
-      }
-    }
+    CalculateEffectiveExtentGeneric<unsigned char>(image, effectiveExtent, 0);
   }
+  else if (imageScalarType == VTK_UNSIGNED_SHORT)
+  {
+    CalculateEffectiveExtentGeneric<unsigned short>(image, effectiveExtent, 0);
+  }
+  else if (imageScalarType == VTK_UNSIGNED_SHORT)
+  {
+    CalculateEffectiveExtentGeneric<short>(image, effectiveExtent, 0);
+  }
+  else
+  {
+    vtkErrorMacro("Unsupported scalar type");
+  }
+  */
 
   // Return with failure if effective input extent is empty
   if ( effectiveExtent[0] == effectiveExtent[1] || effectiveExtent[2] == effectiveExtent[3] || effectiveExtent[4] == effectiveExtent[5] )
