@@ -76,6 +76,9 @@ public:
   /// Mode of segment table. See modes \sa SegmentTableMode
   qMRMLSegmentsTableView::SegmentTableMode Mode;
 
+  QIcon VisibleIcon;
+  QIcon InvisibleIcon;
+
 private:
   QStringList ColumnLabels;
 };
@@ -93,6 +96,9 @@ void qMRMLSegmentsTableViewPrivate::init()
 {
   Q_Q(qMRMLSegmentsTableView);
   this->setupUi(q);
+
+  this->VisibleIcon = QIcon(":/Icons/Small/SlicerVisible.png");
+  this->InvisibleIcon = QIcon(":/Icons/Small/SlicerInvisible.png");
 
   this->setMessage(QString());
 
@@ -400,12 +406,12 @@ void qMRMLSegmentsTableView::populateSegmentTable()
     if (properties.Visible3D || properties.Visible2DFill || properties.Visible2DOutline)
       {
       visibilityButton->setProperty(VISIBILITY_PROPERTY, true);
-      visibilityButton->setIcon(QIcon(":/Icons/Small/SlicerVisible.png"));
+      visibilityButton->setIcon(d->VisibleIcon);
       }
     else
       {
       visibilityButton->setProperty(VISIBILITY_PROPERTY, false);
-      visibilityButton->setIcon(QIcon(":/Icons/Small/SlicerInvisible.png"));
+      visibilityButton->setIcon(d->InvisibleIcon);
       }
     d->SegmentsTable->setCellWidget(row, d->columnIndex("Visible"), visibilityButton);
     connect(visibilityButton, SIGNAL(clicked()), this, SLOT(onVisibilityButtonClicked()));
@@ -510,12 +516,12 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
       if (properties.Visible3D || properties.Visible2DFill || properties.Visible2DOutline)
         {
         visibilityButton->setProperty(VISIBILITY_PROPERTY, true);
-        visibilityButton->setIcon(QIcon(":/Icons/Small/SlicerVisible.png"));
+        visibilityButton->setIcon(d->VisibleIcon);
         }
       else
         {
         visibilityButton->setProperty(VISIBILITY_PROPERTY, false);
-        visibilityButton->setIcon(QIcon(":/Icons/Small/SlicerInvisible.png"));
+        visibilityButton->setIcon(d->InvisibleIcon);
         }
 
       // Update actions
@@ -629,6 +635,8 @@ void qMRMLSegmentsTableView::onSegmentTableItemChanged(QTableWidgetItem* changed
 //-----------------------------------------------------------------------------
 void qMRMLSegmentsTableView::onVisibilityButtonClicked()
 {
+  Q_D(qMRMLSegmentsTableView);
+
   QToolButton* senderButton = qobject_cast<QToolButton*>(sender());
   if (!senderButton)
     {
@@ -644,11 +652,11 @@ void qMRMLSegmentsTableView::onVisibilityButtonClicked()
   senderButton->setProperty(VISIBILITY_PROPERTY, visible);
   if (visible)
     {
-    senderButton->setIcon(QIcon(":/Icons/Small/SlicerVisible.png"));
+    senderButton->setIcon(d->VisibleIcon);
     }
   else
     {
-    senderButton->setIcon(QIcon(":/Icons/Small/SlicerInvisible.png"));
+    senderButton->setIcon(d->InvisibleIcon);
     }
 }
 

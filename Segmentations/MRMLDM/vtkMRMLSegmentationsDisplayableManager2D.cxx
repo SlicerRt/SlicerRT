@@ -515,7 +515,7 @@ vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::CreateSegmentPipeline(std
   vtkSmartPointer<vtkImageMapper> imageOutlineMapper = vtkSmartPointer<vtkImageMapper>::New();
   imageOutlineMapper->SetInputConnection(outlineColorMapper->GetOutputPort());
   imageOutlineMapper->SetColorWindow(255);
-  imageOutlineMapper->SetColorLevel(128);
+  imageOutlineMapper->SetColorLevel(127.5);
   pipeline->ImageOutlineActor->SetMapper(imageOutlineMapper);
   pipeline->ImageOutlineActor->SetVisibility(0);
 
@@ -527,7 +527,7 @@ vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::CreateSegmentPipeline(std
   vtkSmartPointer<vtkImageMapper> imageFillMapper = vtkSmartPointer<vtkImageMapper>::New();
   imageFillMapper->SetInputConnection(fillColorMapper->GetOutputPort());
   imageFillMapper->SetColorWindow(255);
-  imageFillMapper->SetColorLevel(128);
+  imageFillMapper->SetColorLevel(127.5);
   pipeline->ImageFillActor->SetMapper(imageFillMapper);
   pipeline->ImageFillActor->SetVisibility(0);
 

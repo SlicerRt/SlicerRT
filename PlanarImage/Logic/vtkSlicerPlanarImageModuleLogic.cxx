@@ -260,8 +260,8 @@ void vtkSlicerPlanarImageModuleLogic::SetTextureForPlanarImage(vtkMRMLScalarVolu
   std::string planarImageTextureDisplayNodeName = std::string(textureVolumeNode->GetName()) + "_Display";
   textureVolumeDisplayNode->SetName(planarImageTextureDisplayNodeName.c_str());
   textureVolumeDisplayNode->SetAutoWindowLevel(0);
-  textureVolumeDisplayNode->SetWindow(256);
-  textureVolumeDisplayNode->SetLevel(128);
+  textureVolumeDisplayNode->SetWindow(255);
+  textureVolumeDisplayNode->SetLevel(127.5);
   textureVolumeDisplayNode->SetDefaultColorMap();
 
   // Add reference from displayed model node to texture volume node

@@ -286,6 +286,7 @@ bool vtkMRMLSegmentationDisplayNode::GetSegmentDisplayProperties(std::string seg
 void vtkMRMLSegmentationDisplayNode::SetSegmentDisplayProperties(std::string segmentId, SegmentDisplayProperties &properties)
 {
   SegmentDisplayPropertiesMap::iterator propsIt = this->SegmentationDisplayProperties.find(segmentId);
+  bool modified = false;
   if (propsIt == this->SegmentationDisplayProperties.end())
   {
     // If not found then add
@@ -300,25 +301,58 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentDisplayProperties(std::string seg
     newPropertiesEntry.Opacity2DFill = properties.Opacity2DFill;
     newPropertiesEntry.Opacity2DOutline = properties.Opacity2DOutline;
     this->SegmentationDisplayProperties[segmentId] = newPropertiesEntry;
+    modified = true;
   }
   else
   {
     // If found then replace values
-    propsIt->second.Color[0] = properties.Color[0];
-    propsIt->second.Color[1] = properties.Color[1];
-    propsIt->second.Color[2] = properties.Color[2];
-    propsIt->second.Visible3D = properties.Visible3D;
-    propsIt->second.Visible2DFill = properties.Visible2DFill;
-    propsIt->second.Visible2DOutline = properties.Visible2DOutline;
-    propsIt->second.Opacity3D = properties.Opacity3D;
-    propsIt->second.Opacity2DFill = properties.Opacity2DFill;
-    propsIt->second.Opacity2DOutline = properties.Opacity2DOutline;
+    for (int i=0; i<3; i++)
+    {
+      if (propsIt->second.Color[i] != properties.Color[i])
+      {
+        propsIt->second.Color[i] = properties.Color[i];
+        modified = true;
+      }
+    }
+    if (propsIt->second.Visible3D != properties.Visible3D)
+    {
+      propsIt->second.Visible3D = properties.Visible3D;
+      modified = true;
+    }
+    if (propsIt->second.Visible2DFill != properties.Visible2DFill)
+    {
+      propsIt->second.Visible2DFill = properties.Visible2DFill;
+      modified = true;
+    }
+    if (propsIt->second.Visible2DOutline != properties.Visible2DOutline)
+    {
+      propsIt->second.Visible2DOutline = properties.Visible2DOutline;
+      modified = true;
+    }
+    if (propsIt->second.Opacity3D != properties.Opacity3D)
+    {
+      propsIt->second.Opacity3D = properties.Opacity3D;
+      modified = true;
+    }
+    if (propsIt->second.Opacity2DFill != properties.Opacity2DFill)
+    {
+      propsIt->second.Opacity2DFill = properties.Opacity2DFill;
+      modified = true;
+    }
+    if (propsIt->second.Opacity2DOutline != properties.Opacity2DOutline)
+    {
+      propsIt->second.Opacity2DOutline = properties.Opacity2DOutline;
+      modified = true;
+    }
   }
 
   // Set color in color table too
   this->SetSegmentColorTableEntry(segmentId, properties.Color[0], properties.Color[1], properties.Color[2]);
 
-  this->Modified();
+  if (modified)
+  {
+    this->Modified();
+  }
 }
 
 //---------------------------------------------------------------------------

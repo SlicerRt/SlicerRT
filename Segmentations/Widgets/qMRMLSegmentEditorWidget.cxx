@@ -447,6 +447,7 @@ void qMRMLSegmentEditorWidgetPrivate::showSelectedSegment()
 
   // Show fill for selected segment, outline of all other segments
   // if per-segment effect is selected, otherwise show all as fill
+  int wasModified = displayNode->StartModify();
   vtkSegmentation::SegmentMap segmentMap = segmentationNode->GetSegmentation()->GetSegments();
   for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
   {
@@ -463,6 +464,7 @@ void qMRMLSegmentEditorWidgetPrivate::showSelectedSegment()
       displayNode->SetSegmentVisibility2DOutline(currentSegmentId, true);
     }
   }
+  displayNode->EndModify(wasModified);
 }
 
 //-----------------------------------------------------------------------------
