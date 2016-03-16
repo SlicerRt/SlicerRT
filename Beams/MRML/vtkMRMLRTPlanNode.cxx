@@ -391,14 +391,6 @@ void vtkMRMLRTPlanNode::AddRTBeamNode(vtkMRMLRTBeamNode *beamnode)
   // Get subject hierarchy node for the RT Plan
   vtkMRMLSubjectHierarchyNode* planSHNode = this->GetSHNode();
 
-  // If none found, create new subject hierarchy node for the RT Plan
-  if (planSHNode == NULL) {
-    planSHNode
-      = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode (
-        scene, 0, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), 
-        this->GetRTPlanName(), this);
-  }
-
   // Set the beam number
   beamnode->SetBeamNumber(this->NextBeamNumber);
   this->NextBeamNumber++;
@@ -434,7 +426,23 @@ void vtkMRMLRTPlanNode::RemoveRTBeamNode(vtkMRMLRTBeamNode *beamNode)
 //---------------------------------------------------------------------------
 vtkMRMLSubjectHierarchyNode* vtkMRMLRTPlanNode::GetSHNode ()
 {
-  return vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this, this->GetScene());
+  vtkMRMLSubjectHierarchyNode* planSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this, this->GetScene());
+
+  // If none found, create new subject hierarchy node for the RT Plan
+  if (planSHNode == NULL)
+  {
+    planSHNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode (
+      this->GetScene(), 0,
+      vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), 
+      this->GetRTPlanName(), this);
+  }
+
+  if (planSHNode == NULL)
+  {
+    vtkErrorMacro("vtkMRMLRTPlanNode::GetSHNode: Could not create subject hierarchy node.");
+  }
+
+  return planSHNode;
 }
 
 //---------------------------------------------------------------------------
