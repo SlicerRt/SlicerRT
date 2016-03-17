@@ -62,17 +62,16 @@ protected slots:
   void doseVolumeNodeChanged(vtkMRMLNode*);
   void segmentationNodeChanged(vtkMRMLNode*);
   void segmentSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
-  void chartNodeChanged(vtkMRMLNode*);
   void automaticOversampingCheckedStateChanged(int aState);
 
   /// Updates button states
   void updateButtonsState();
 
   void computeDvhClicked();
-  void showInChartCheckStateChanged(int aState);
+
   void exportDvhToCsvClicked();
   void exportMetricsToCsv();
-  void showHideAllCheckedStateChanged(int aState);
+
   void lineEditVDoseEdited(QString aText);
   void showVMetricsCcCheckedStateChanged(int aState);
   void showVMetricsPercentCheckedStateChanged(int aState);
@@ -80,6 +79,9 @@ protected slots:
   void lineEditDVolumePercentEdited(QString aText);
   void showDMetricsCheckedStateChanged(int aState);
   void showDoseVolumesOnlyCheckboxChanged(int aState);
+
+  void showAllClicked();
+  void hideAllClicked();
   void switchToFourUpQuantitativeLayout();
   void switchToOneUpQuantitativeLayout();
 
@@ -88,21 +90,13 @@ protected slots:
   void onProgressUpdated(vtkObject*, void*, unsigned long, void*);
 
 protected:
-  QScopedPointer<qSlicerDoseVolumeHistogramModuleWidgetPrivate> d_ptr;
-  
   virtual void setup();
   void onEnter();
 
+  void setVisibleAll(bool on);
+
 protected:
-  /// Updates state of show/hide chart checkboxes according to the currently selected chart
-  void updateChartCheckboxesState();
-
-  /// Refresh DVH statistics table
-  /// \param force Flag indicating if refresh is to be done in any case
-  void refreshDvhTable(bool force=false);
-
-  /// Get value list from text in given line edit (empty list if unsuccessful)
-  void getNumbersFromLineEdit(QLineEdit* aLineEdit, std::vector<double> &aValues);
+  QScopedPointer<qSlicerDoseVolumeHistogramModuleWidgetPrivate> d_ptr;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDoseVolumeHistogramModuleWidget);

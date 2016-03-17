@@ -56,7 +56,7 @@ vtkSlicerDoseVolumeHistogramComparisonLogic::~vtkSlicerDoseVolumeHistogramCompar
 //-----------------------------------------------------------------------------
 double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
 {
-
+  /* TODO
   vtkDoubleArray *dvh1Array = this->Dvh1DoubleArrayNode->GetArray();
   unsigned int dvh1Size = dvh1Array->GetNumberOfTuples();
 
@@ -142,10 +142,12 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
     }
       
   }
-
+  
   agreementAcceptancePercentage = 100.0 * (double)numberOfAcceptedAgreements / (double)baselineSize;
 
   return agreementAcceptancePercentage;
+  */
+  return 0.0;
 }
 
 //-----------------------------------------------------------------------------

@@ -35,10 +35,31 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLChartNode;
 class vtkMRMLDoubleArrayNode;
 class vtkMRMLSegmentationNode;
+class vtkMRMLTableNode;
 
 /// \ingroup SlicerRt_QtModules_DoseVolumeHistogram
 class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkMRMLDoseVolumeHistogramNode : public vtkMRMLNode
 {
+public:
+  // DoseVolumeHistogram constants
+  static const std::string DVH_ATTRIBUTE_PREFIX;
+  static const char* DOSE_VOLUME_REFERENCE_ROLE;
+  static const char* SEGMENTATION_REFERENCE_ROLE;
+  static const char* DVH_METRICS_TABLE_REFERENCE_ROLE;
+
+  // Column numbers of the default metrics in the table
+  enum
+  {
+    MetricColumnVisible = 0,
+    MetricColumnStructure,
+    MetricColumnDoseVolume,
+    MetricColumnVolumeCc,
+    MetricColumnMeanDose,
+    MetricColumnMinDose,
+    MetricColumnMaxDose,
+    NumberOfDefaultColumns
+  };
+
 public:
   static vtkMRMLDoseVolumeHistogramNode *New();
   vtkTypeMacro(vtkMRMLDoseVolumeHistogramNode,vtkMRMLNode);
@@ -70,17 +91,11 @@ public:
   /// Set and observe segmentation node
   void SetAndObserveSegmentationNode(vtkMRMLSegmentationNode* node);
 
+  /// Get DVH metrics table node
+  vtkMRMLTableNode* GetMetricsTableNode();
+
   /// Get chart node
   vtkMRMLChartNode* GetChartNode();
-  /// Set and observe chart node
-  void SetAndObserveChartNode(vtkMRMLChartNode* node);
-
-  /// Get list of all the DVH double array node IDs in the scene
-  void GetDvhDoubleArrayNodes(std::vector<vtkMRMLNode*> &nodes);
-  /// Add DVH double array node reference
-  void AddDvhDoubleArrayNode(vtkMRMLDoubleArrayNode* node);
-  /// Remove all DVH double array node references
-  void RemoveAllDvhDoubleArrayNodes();
 
   /// Get selected segment IDs
   void GetSelectedSegmentIDs(std::vector<std::string> &selectedSegmentIDs)
@@ -93,17 +108,6 @@ public:
     this->SelectedSegmentIDs = selectedSegmentIDs;
   }
 
-  /// Get show in chart check states
-  void GetShowInChartCheckStates(std::vector<bool> &checkboxStates)
-  {
-    checkboxStates = this->ShowInChartCheckStates;
-  }
-  /// Set show in chart check states
-  void SetShowInChartCheckStates(std::vector<bool> checkboxStates)
-  {
-    this->ShowInChartCheckStates = checkboxStates;
-  }
-
   /// Clear automatic oversampling factors map
   void ClearAutomaticOversamplingFactors()
   {
@@ -114,10 +118,14 @@ public:
   {
     this->AutomaticOversamplingFactors[segmentID] = factor;
   }
+  /// Get automatic oversampling factors
   void GetAutomaticOversamplingFactors(std::map<std::string, double> &factors)
   {
     factors = this->AutomaticOversamplingFactors;
   }
+
+  /// Assemble DVH node reference role for current input selection and specific segment
+  std::string AssembleDvhNodeReference(std::string segmentID);
 
   /// Get/Set Show/Hide all checkbox state
   vtkGetMacro(ShowHideAll, int);
@@ -169,6 +177,15 @@ public:
   vtkBooleanMacro(AutomaticOversampling, bool);
 
 protected:
+  /// Set and observe DVH metrics table node
+  /// Metrics table node is unique and mandatory for each DVH node, so it is created within the node.
+  void SetAndObserveMetricsTableNode(vtkMRMLTableNode* node);
+
+  /// Set and observe chart node
+  /// Chart node is unique and mandatory for each DVH node, so it is created within the node.
+  void SetAndObserveChartNode(vtkMRMLChartNode* node);
+
+protected:
   vtkMRMLDoseVolumeHistogramNode();
   ~vtkMRMLDoseVolumeHistogramNode();
   vtkMRMLDoseVolumeHistogramNode(const vtkMRMLDoseVolumeHistogramNode&);
@@ -180,11 +197,6 @@ protected:
 
   /// State of Show/Hide all checkbox
   int ShowHideAll;
-
-  /// Vector of checkbox states for the case the user makes the show/hide all checkbox state
-  /// partially checked. Then the last configuration is restored. The flags correspond to the
-  /// referenced DVH double array node with the same index.
-  std::vector<bool> ShowInChartCheckStates;
 
   /// Input dose values for V metrics
   char* VDoseValues;

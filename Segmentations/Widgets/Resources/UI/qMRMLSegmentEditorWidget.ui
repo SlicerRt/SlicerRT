@@ -29,6 +29,11 @@
          <string>vtkMRMLScalarVolumeNode</string>
         </stringlist>
        </property>
+       <property name="hideChildNodeTypes">
+        <stringlist>
+         <string>vtkMRMLSegmentationNode</string>
+        </stringlist>
+       </property>
        <property name="noneEnabled">
         <bool>true</bool>
        </property>
@@ -124,7 +129,7 @@
     </layout>
    </item>
    <item>
-    <widget class="qMRMLSegmentsTableView" name="SegmentsTableView" native="true"/>
+    <widget class="qMRMLSegmentsTableView" name="SegmentsTableView"/>
    </item>
    <item>
     <widget class="QGroupBox" name="EffectsGroupBox">

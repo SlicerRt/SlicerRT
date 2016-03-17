@@ -30,7 +30,6 @@
 
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
-#include "qMRMLSegmentsTableView.h"
 
 // SlicerQt includes
 #include "qSlicerDoseVolumeHistogramModuleWidget.h"
@@ -48,11 +47,14 @@
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLChartNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
+#include <vtkMRMLTableNode.h>
 #include <vtkMRMLLayoutNode.h>
 #include <vtkMRMLScene.h>
 
 // VTK includes
 #include <vtkStringArray.h>
+#include <vtkBitArray.h>
+#include <vtkTable.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -69,11 +71,7 @@ public:
   ~qSlicerDoseVolumeHistogramModuleWidgetPrivate();
   vtkSlicerDoseVolumeHistogramModuleLogic* logic() const;
 public:
-  /// Map that associates the vtkMRMLDoubleArrayNode id to the show/hide in chart checkboxes
-  QMap<QCheckBox*, QString> PlotCheckboxToStructureNameMap;
-
   /// Flag whether show/hide all checkbox has been clicked - some operations are not necessary when it was clicked
-  bool ShowHideAllClicked;
 
   /// Progress dialog for tracking DVH calculation progress
   QProgressDialog* ConvertProgressDialog;
@@ -86,15 +84,12 @@ public:
 qSlicerDoseVolumeHistogramModuleWidgetPrivate::qSlicerDoseVolumeHistogramModuleWidgetPrivate(qSlicerDoseVolumeHistogramModuleWidget& object)
  : q_ptr(&object)
 {
-  this->PlotCheckboxToStructureNameMap.clear();
-  this->ShowHideAllClicked = false;
   this->ConvertProgressDialog = NULL;
 }
 
 //-----------------------------------------------------------------------------
 qSlicerDoseVolumeHistogramModuleWidgetPrivate::~qSlicerDoseVolumeHistogramModuleWidgetPrivate()
 {
-  this->PlotCheckboxToStructureNameMap.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -139,11 +134,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::setMRMLScene(vtkMRMLScene* scene)
       this->setDoseVolumeHistogramNode( vtkMRMLDoseVolumeHistogramNode::SafeDownCast(node) );
     }
   }
-
-  if (scene)
-  {
-    this->updateChartCheckboxesState();
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -164,7 +154,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";    return;
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return;
   }
 
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
@@ -172,7 +163,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::onEnter()
   // First check the logic if it has a parameter node
   if (d->logic() == NULL)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid logic!";    return;
+    qCritical() << Q_FUNC_INFO << ": Invalid logic!";
+    return;
   }
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
 
@@ -216,44 +208,47 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (paramNode && this->mrmlScene())
+  if (!this->mrmlScene())
   {
-    d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
-    if (paramNode->GetDoseVolumeNode())
-    {
-      d->MRMLNodeComboBox_DoseVolume->setCurrentNode(paramNode->GetDoseVolumeNode());
-    }
-    else
-    {
-      this->doseVolumeNodeChanged(d->MRMLNodeComboBox_DoseVolume->currentNode());
-    }
-    if (paramNode->GetSegmentationNode())
-    {
-      d->MRMLNodeComboBox_Segmentation->setCurrentNode(paramNode->GetSegmentationNode());
-    }
-    else
-    {
-      this->segmentationNodeChanged(d->MRMLNodeComboBox_Segmentation->currentNode());
-    }
-    if (paramNode->GetChartNode())
-    {
-      d->MRMLNodeComboBox_Chart->setCurrentNode(paramNode->GetChartNode());
-    }
-    else
-    {
-      this->chartNodeChanged(d->MRMLNodeComboBox_Chart->currentNode());
-    }
-    d->lineEdit_VDose->setText(paramNode->GetVDoseValues());
-    d->checkBox_ShowVMetricsCc->setChecked(paramNode->GetShowVMetricsCc());
-    d->checkBox_ShowVMetricsPercent->setChecked(paramNode->GetShowVMetricsPercent());
-    d->lineEdit_DVolumeCc->setText(paramNode->GetDVolumeValuesCc());
-    d->lineEdit_DVolumePercent->setText(paramNode->GetDVolumeValuesPercent());
-    d->checkBox_ShowDMetrics->setChecked(paramNode->GetShowDMetrics());
-    d->checkBox_AutomaticOversampling->setChecked(paramNode->GetAutomaticOversampling());
+    return;
   }
 
-  this->refreshDvhTable();
+  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  if (!paramNode)
+  {
+    return;
+  }
+
+  d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
+  if (paramNode->GetDoseVolumeNode())
+  {
+    d->MRMLNodeComboBox_DoseVolume->setCurrentNode(paramNode->GetDoseVolumeNode());
+  }
+  else
+  {
+    this->doseVolumeNodeChanged(d->MRMLNodeComboBox_DoseVolume->currentNode());
+  }
+  if (paramNode->GetSegmentationNode())
+  {
+    d->MRMLNodeComboBox_Segmentation->setCurrentNode(paramNode->GetSegmentationNode());
+  }
+  else
+  {
+    this->segmentationNodeChanged(d->MRMLNodeComboBox_Segmentation->currentNode());
+  }
+  d->lineEdit_VDose->setText(paramNode->GetVDoseValues());
+  d->checkBox_ShowVMetricsCc->setChecked(paramNode->GetShowVMetricsCc());
+  d->checkBox_ShowVMetricsPercent->setChecked(paramNode->GetShowVMetricsPercent());
+  d->lineEdit_DVolumeCc->setText(paramNode->GetDVolumeValuesCc());
+  d->lineEdit_DVolumePercent->setText(paramNode->GetDVolumeValuesPercent());
+  d->checkBox_ShowDMetrics->setChecked(paramNode->GetShowDMetrics());
+  d->checkBox_AutomaticOversampling->setChecked(paramNode->GetAutomaticOversampling());
+
+  // Set metrics table to table view
+  if (d->MRMLTableView->mrmlTableNode() != paramNode->GetMetricsTableNode())
+  {
+    d->MRMLTableView->setMRMLTableNode(paramNode->GetMetricsTableNode());
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -263,24 +258,20 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
-  // Hide widgets whose functions have not been implemented yet
-  d->label_ImportCSV->setVisible(false);
-  d->pushButton_ImportCSV->setVisible(false);
+  d->SegmentsTableView->setMode(qMRMLSegmentsTableView::SimpleListMode);
 
-  d->tableWidget_ChartStatistics->setSortingEnabled(false);
-  d->tableWidget_ChartStatistics->setSelectionMode(QAbstractItemView::NoSelection);
+  d->MRMLTableView->setSelectionMode(QAbstractItemView::NoSelection);
 
   d->label_NotDoseVolumeWarning->setVisible(false);
   d->label_Error->setVisible(false);
 
+  d->pushButton_ShowAll->setEnabled(false);
+  d->pushButton_HideAll->setEnabled(false);
   d->pushButton_SwitchToFourUpQuantitativeLayout->setEnabled(false);
   d->pushButton_SwitchToOneUpQuantitativeLayout->setEnabled(false);
 
   // Show only dose volumes in the dose volume combobox by default
   d->MRMLNodeComboBox_DoseVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
-
-  // Set simple list mode in segments table view
-  d->SegmentsTableView->setMode(qMRMLSegmentsTableView::SimpleListMode);
 
   // Make connections
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( setDoseVolumeHistogramNode(vtkMRMLNode*) ) );
@@ -289,19 +280,19 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   connect( d->MRMLNodeComboBox_Segmentation, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( segmentationNodeChanged(vtkMRMLNode*) ) );
   connect( d->MRMLNodeComboBox_Segmentation, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), d->SegmentsTableView, SLOT( setSegmentationNode(vtkMRMLNode*) ) );
   connect( d->SegmentsTableView, SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(segmentSelectionChanged(QItemSelection,QItemSelection) ) );
-  connect( d->MRMLNodeComboBox_Chart, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( chartNodeChanged(vtkMRMLNode*) ) );
 
   connect( d->pushButton_ComputeDVH, SIGNAL( clicked() ), this, SLOT( computeDvhClicked() ) );
   connect( d->checkBox_ShowDoseVolumesOnly, SIGNAL( stateChanged(int) ), this, SLOT( showDoseVolumesOnlyCheckboxChanged(int) ) );
   connect( d->pushButton_ExportDvhToCsv, SIGNAL( clicked() ), this, SLOT( exportDvhToCsvClicked() ) );
   connect( d->pushButton_ExportMetricsToCsv, SIGNAL( clicked() ), this, SLOT( exportMetricsToCsv() ) );
-  connect( d->checkBox_ShowHideAll, SIGNAL( stateChanged(int) ), this, SLOT( showHideAllCheckedStateChanged(int) ) );
   connect( d->lineEdit_VDose, SIGNAL( textEdited(QString) ), this, SLOT( lineEditVDoseEdited(QString) ) );
   connect( d->checkBox_ShowVMetricsCc, SIGNAL( stateChanged(int) ), this, SLOT( showVMetricsCcCheckedStateChanged(int) ) );
   connect( d->checkBox_ShowVMetricsPercent, SIGNAL( stateChanged(int) ), this, SLOT( showVMetricsPercentCheckedStateChanged(int) ) );
   connect( d->lineEdit_DVolumeCc, SIGNAL( textEdited(QString) ), this, SLOT( lineEditDVolumeCcEdited(QString) ) );
   connect( d->lineEdit_DVolumePercent, SIGNAL( textEdited(QString) ), this, SLOT( lineEditDVolumePercentEdited(QString) ) );
   connect( d->checkBox_ShowDMetrics, SIGNAL( stateChanged(int) ), this, SLOT( showDMetricsCheckedStateChanged(int) ) );
+  connect( d->pushButton_ShowAll, SIGNAL( clicked() ), this, SLOT( showAllClicked() ) );
+  connect( d->pushButton_HideAll, SIGNAL( clicked() ), this, SLOT( hideAllClicked() ) );
   connect( d->pushButton_SwitchToFourUpQuantitativeLayout, SIGNAL( clicked() ), this, SLOT( switchToFourUpQuantitativeLayout() ) );
   connect( d->pushButton_SwitchToOneUpQuantitativeLayout, SIGNAL( clicked() ), this, SLOT( switchToOneUpQuantitativeLayout() ) );
 
@@ -317,12 +308,20 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
   if (paramNode)
   {
-    // Enable/disable ComputeDVH button
+    // Enable/disable Compute DVH button
     bool dvhCanBeComputed = paramNode->GetDoseVolumeNode()
                          && paramNode->GetSegmentationNode();
     d->pushButton_ComputeDVH->setEnabled(dvhCanBeComputed);
 
+    // Enable/disable visibility related buttons
+    bool dvhComputed = paramNode->GetMetricsTableNode()->GetTable()->GetNumberOfRows();
+    d->pushButton_ShowAll->setEnabled(dvhComputed);
+    d->pushButton_HideAll->setEnabled(dvhComputed);
+    d->pushButton_SwitchToFourUpQuantitativeLayout->setEnabled(dvhComputed);
+    d->pushButton_SwitchToOneUpQuantitativeLayout->setEnabled(dvhComputed);
+
     // Enable/disable Export DVH to file button
+    /* //TODO:
     bool dvhIsPlotted = false;
     if (paramNode->GetChartNode())
     {
@@ -345,114 +344,23 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
       d->pushButton_ExportDvhToCsv->setToolTip(tr("Chart node needs to be selected first before saving DVH values to file!"));
     }
     d->pushButton_ExportDvhToCsv->setEnabled(dvhIsPlotted);
-    d->pushButton_SwitchToFourUpQuantitativeLayout->setEnabled(dvhIsPlotted);
-    d->pushButton_SwitchToOneUpQuantitativeLayout->setEnabled(dvhIsPlotted);
 
     // Enable/disable Export metrics button
     std::vector<vtkMRMLNode*> dvhNodes;
     paramNode->GetDvhDoubleArrayNodes(dvhNodes);
     bool dvhMetricsCanBeExported = (dvhNodes.size() > 0);
     d->pushButton_ExportMetricsToCsv->setEnabled(dvhMetricsCanBeExported);
+    */
   }
 
   // Enable/disable V and D metric control
+  /*
   bool vdMetricCanBeShown = (d->tableWidget_ChartStatistics->rowCount() > 0);
   d->checkBox_ShowVMetricsCc->setEnabled(vdMetricCanBeShown);
   d->checkBox_ShowVMetricsPercent->setEnabled(vdMetricCanBeShown);
   d->checkBox_ShowDMetrics->setEnabled(vdMetricCanBeShown);
-
+  */
   d->label_Error->setVisible(false);
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::updateChartCheckboxesState()
-{
-  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
-
-  if (!this->mrmlScene())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";    return;
-  }
-  
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode)
-  {
-    return;
-  }
-
-  vtkMRMLChartNode* chartNode = paramNode->GetChartNode();
-
-  // If there is no chart node selected, disable all checkboxes
-  if (chartNode == NULL)
-  {
-    QMapIterator<QCheckBox*, QString> it(d->PlotCheckboxToStructureNameMap);
-    while (it.hasNext())
-    {
-      it.next();
-      it.key()->setEnabled(false);
-    }
-    d->checkBox_ShowHideAll->setEnabled(false);
-
-    return;
-  }
-
-  // Set state of the checkboxes of the individual structures and create list of these states to store in the parameter set node
-  vtkStringArray* arraysInSelectedChart = chartNode->GetArrays();
-  std::vector<bool> checkStates;
-
-  QMapIterator<QCheckBox*, QString> it(d->PlotCheckboxToStructureNameMap);
-  while (it.hasNext())
-  {
-    it.next();
-
-    it.key()->setEnabled(true);
-    it.key()->blockSignals(true); // block signals for the checkboxes so that changing it do not toggle the visibility of the plot
-    it.key()->setChecked(false);
-
-    for (int i=0; i<arraysInSelectedChart->GetNumberOfValues(); ++i)
-    {
-      // Check checkbox if the plot for the array is present in the chart
-      if (arraysInSelectedChart->GetValue(i).compare(it.value().toLatin1().constData()) == 0)
-      {
-        it.key()->setChecked(true);
-        break;
-      }
-    }
-
-    // Add checkbox state to the list
-    checkStates.push_back(it.key()->isChecked());
-
-    it.key()->blockSignals(false); // unblock signal for the checkbox in question
-  }
-
-  // Set check states list to the parameter node
-  paramNode->SetShowInChartCheckStates(checkStates);
-
-  // Change show/hide all checkbox state
-  d->checkBox_ShowHideAll->setEnabled(true);
-  d->checkBox_ShowHideAll->blockSignals(true);
-  if (arraysInSelectedChart->GetNumberOfValues() == 0)
-  {
-    d->checkBox_ShowHideAll->setCheckState(Qt::Unchecked);
-    paramNode->DisableModifiedEventOn();
-    paramNode->SetShowHideAll(Qt::Unchecked);
-    paramNode->DisableModifiedEventOff();
-  }
-  else if (arraysInSelectedChart->GetNumberOfValues() == d->PlotCheckboxToStructureNameMap.size())
-  {
-    d->checkBox_ShowHideAll->setCheckState(Qt::Checked);
-    paramNode->DisableModifiedEventOn();
-    paramNode->SetShowHideAll(Qt::Checked);
-    paramNode->DisableModifiedEventOff();
-  }
-  else
-  {
-    d->checkBox_ShowHideAll->setCheckState(Qt::PartiallyChecked);
-    paramNode->DisableModifiedEventOn();
-    paramNode->SetShowHideAll(Qt::PartiallyChecked);
-    paramNode->DisableModifiedEventOff();
-  }
-  d->checkBox_ShowHideAll->blockSignals(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -462,7 +370,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* 
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";    return;
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return;
   }
   
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
@@ -487,7 +396,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::automaticOversampingCheckedStateCha
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";    return;
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return;
   }
   
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
@@ -553,267 +463,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::segmentSelectionChanged(const QItem
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::chartNodeChanged(vtkMRMLNode* node)
-{
-  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
-
-  if (!this->mrmlScene())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
-    return;
-  }
-  
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !node)
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveChartNode(vtkMRMLChartNode::SafeDownCast(node));
-  paramNode->DisableModifiedEventOff();
-
-  this->updateChartCheckboxesState();
-  this->updateButtonsState();
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::onLogicModified()
 {
   this->updateWidgetFromMRML();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable(bool force/*=false*/)
-{
-  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
-
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode || !this->mrmlScene())
-  {
-    return;
-  }
-
-  // Get DVH double array nodes for parameter set node
-  std::vector<vtkMRMLNode*> dvhNodes;
-  paramNode->GetDvhDoubleArrayNodes(dvhNodes);
-
-  // If number of nodes is the same in the table and the list of nodes, then we don't need refreshing the table
-  // (this function is called after each node event, so it cannot occur that a node has been removed and another added)
-  if (!force && d->PlotCheckboxToStructureNameMap.size() == static_cast<int>(dvhNodes.size()))
-  {
-    return;
-  }
-
-  // Clear the table
-  d->tableWidget_ChartStatistics->setRowCount(0);
-  d->tableWidget_ChartStatistics->setColumnCount(0);
-  d->tableWidget_ChartStatistics->clearContents();
-
-  // Clear checkbox to segmentation name map
-  QMapIterator<QCheckBox*, QString> it(d->PlotCheckboxToStructureNameMap);
-  while (it.hasNext())
-  {
-    it.next();
-
-    QCheckBox* checkbox = it.key();
-    disconnect( checkbox, SIGNAL( stateChanged(int) ), this, SLOT( showInChartCheckStateChanged(int) ) );
-    delete checkbox;
-  }
-
-  d->PlotCheckboxToStructureNameMap.clear();
-
-  // We won't have table items if the list of nodes is empty
-  if (dvhNodes.size() < 1)
-  {
-    return;
-  }
-
-  // Collect metrics for found DVH nodes from their attributes
-  std::vector<std::string> metricList;
-  d->logic()->CollectMetricsForDvhNodes(dvhNodes, metricList);
-
-  // Get requested V metrics
-  std::vector<double> vDoseValues;
-  if (d->checkBox_ShowVMetricsCc->isChecked() || d->checkBox_ShowVMetricsPercent->isChecked())
-  {
-    this->getNumbersFromLineEdit(d->lineEdit_VDose, vDoseValues);
-  }
-  int vColumnCount = (d->checkBox_ShowVMetricsCc->isChecked() ? vDoseValues.size() : 0)
-    + (d->checkBox_ShowVMetricsPercent->isChecked() ? vDoseValues.size() : 0);
-
-  // Get requested D metrics
-  std::vector<double> dVolumeValuesCc;
-  std::vector<double> dVolumeValuesPercent;
-  if (d->checkBox_ShowDMetrics->isChecked())
-  {
-    this->getNumbersFromLineEdit(d->lineEdit_DVolumeCc, dVolumeValuesCc);
-    this->getNumbersFromLineEdit(d->lineEdit_DVolumePercent, dVolumeValuesPercent);
-  }
-
-  // Set up the table columns
-  d->tableWidget_ChartStatistics->setColumnCount(3 + metricList.size()
-    + vColumnCount + dVolumeValuesCc.size() + dVolumeValuesPercent.size());
-  QStringList headerLabels;
-  headerLabels << "" << "Structure" << "Volume name";
-  for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
-  {
-    QString metricName(it->c_str());
-    metricName = metricName.right( metricName.length()
-      - vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size() );
-    headerLabels << metricName;
-  }
-  for (std::vector<double>::iterator it = vDoseValues.begin(); it != vDoseValues.end(); ++it)
-  {
-    if (d->checkBox_ShowVMetricsCc->isChecked())
-    {
-      QString metricName = QString("V%1 (cc)").arg(*it);
-      headerLabels << metricName;
-      d->tableWidget_ChartStatistics->setColumnWidth(headerLabels.size()-1, 64);
-    }
-    if (d->checkBox_ShowVMetricsPercent->isChecked())
-    {
-      QString metricName = QString("V%1 (%)").arg(*it);
-      headerLabels << metricName;
-      d->tableWidget_ChartStatistics->setColumnWidth(headerLabels.size()-1, 64);
-    }
-  }
-  for (std::vector<double>::iterator it = dVolumeValuesCc.begin(); it != dVolumeValuesCc.end(); ++it)
-  {
-    QString metricName = QString("D%1cc (Gy)").arg(*it);
-    headerLabels << metricName;
-    d->tableWidget_ChartStatistics->setColumnWidth(headerLabels.size()-1, 64);
-  }
-  for (std::vector<double>::iterator it = dVolumeValuesPercent.begin(); it != dVolumeValuesPercent.end(); ++it)
-  {
-    QString metricName = QString("D%1% (Gy)").arg(*it);
-    headerLabels << metricName;
-    d->tableWidget_ChartStatistics->setColumnWidth(headerLabels.size()-1, 64);
-  }
-  d->tableWidget_ChartStatistics->setColumnWidth(0, 24);
-  d->tableWidget_ChartStatistics->setHorizontalHeaderLabels(headerLabels);
-  d->tableWidget_ChartStatistics->setRowCount(dvhNodes.size());
-
-  // Fill the table
-  std::vector<vtkMRMLNode*>::iterator dvhIt;
-  int dvhIndex = 0;
-  for (dvhIt = dvhNodes.begin(); dvhIt != dvhNodes.end(); ++dvhIt, ++dvhIndex)
-  {
-    if (!(*dvhIt))
-    {
-      continue;
-    }
-
-    // Create checkbox
-    QCheckBox* checkbox = new QCheckBox(d->tableWidget_ChartStatistics);
-    checkbox->setToolTip(tr("Show/hide DVH plot of structure '%1' in selected chart").arg(
-      QString((*dvhIt)->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));
-    connect( checkbox, SIGNAL( stateChanged(int) ), this, SLOT( showInChartCheckStateChanged(int) ) );
-
-    // Store checkbox with the double array ID
-    d->PlotCheckboxToStructureNameMap[checkbox] = QString((*dvhIt)->GetID());
-
-    d->tableWidget_ChartStatistics->setCellWidget(dvhIndex, 0, checkbox);
-
-    d->tableWidget_ChartStatistics->setItem(dvhIndex, 1, new QTableWidgetItem(
-      QString((*dvhIt)->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_NAME_ATTRIBUTE_NAME.c_str())) ));    
-
-    vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-      (*dvhIt)->GetNodeReference(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE.c_str()) );
-    if (volumeNode)
-    {
-      d->tableWidget_ChartStatistics->setItem(dvhIndex, 2, new QTableWidgetItem( QString(volumeNode->GetName()) ));    
-    }
-
-    // Add default metric values
-    int col = 3;
-    for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
-    {
-      std::vector<std::string> attributeNames = (*dvhIt)->GetAttributeNames();
-      std::string foundAttributeName;
-      for (std::vector<std::string>::iterator attributeIt = attributeNames.begin(); attributeIt != attributeNames.end(); ++attributeIt)
-      {
-        if (vtksys::SystemTools::LowerCase(*attributeIt).compare( vtksys::SystemTools::LowerCase(*it) ) == 0)
-        {
-          foundAttributeName = *attributeIt;
-        }
-      }
-      QString metricValue( (*dvhIt)->GetAttribute(foundAttributeName.c_str()) );
-      if (foundAttributeName.empty() || metricValue.isEmpty())
-      {
-        ++col;
-        continue;
-      }
-
-      d->tableWidget_ChartStatistics->setItem(dvhIndex, col, new QTableWidgetItem(metricValue));
-      ++col;
-    }
-
-    // Add V metric values
-    if (vDoseValues.size() > 0)
-    {
-      std::vector<double> volumes;
-      std::vector<double> percents;
-      d->logic()->ComputeVMetrics(vtkMRMLDoubleArrayNode::SafeDownCast(*dvhIt), vDoseValues, volumes, percents);
-      if (volumes.size() != percents.size())
-      {
-        std::cerr << "Error: V metric result mismatch!" << std::endl;
-        continue;
-      }
-      col = 3 + metricList.size();
-
-      for (unsigned int volumeIndex=0; volumeIndex<volumes.size(); ++volumeIndex)
-      {
-        if (d->checkBox_ShowVMetricsCc->isChecked())
-        {
-          QString metricValue;
-          metricValue.setNum(volumes[volumeIndex], 'f', 2);
-          d->tableWidget_ChartStatistics->setItem(dvhIndex, col, new QTableWidgetItem(metricValue));
-          ++col;
-        }
-        if (d->checkBox_ShowVMetricsPercent->isChecked())
-        {
-          QString metricValue;
-          metricValue.setNum(percents[volumeIndex], 'f', 2);
-          d->tableWidget_ChartStatistics->setItem(dvhIndex, col, new QTableWidgetItem(metricValue));
-          ++col;
-        }
-      }
-    }
-
-    // Add D metric values
-    if (dVolumeValuesCc.size() > 0)
-    {
-      std::vector<double> doses;
-      d->logic()->ComputeDMetrics(vtkMRMLDoubleArrayNode::SafeDownCast(*dvhIt), dVolumeValuesCc, doses, false);
-      col = 3 + metricList.size() + vColumnCount;
-      for (std::vector<double>::iterator it = doses.begin(); it != doses.end(); ++it)
-      {
-        QString metricValue;
-        metricValue.setNum((*it), 'f', 2);
-        d->tableWidget_ChartStatistics->setItem(dvhIndex, col, new QTableWidgetItem(metricValue));
-        ++col;
-      }
-    }
-    if (dVolumeValuesPercent.size() > 0)
-    {
-      std::vector<double> doses;
-      d->logic()->ComputeDMetrics(vtkMRMLDoubleArrayNode::SafeDownCast(*dvhIt), dVolumeValuesPercent, doses, true);
-      col = 3 + metricList.size() + vColumnCount + dVolumeValuesCc.size();
-      for (std::vector<double>::iterator doseIt = doses.begin(); doseIt != doses.end(); ++doseIt)
-      {
-        QString metricValue;
-        metricValue.setNum((*doseIt), 'f', 2);
-        d->tableWidget_ChartStatistics->setItem(dvhIndex, col, new QTableWidgetItem(metricValue));
-        ++col;
-      }
-    }
-  }
-
-  d->tableWidget_ChartStatistics->resizeColumnsToContents();
-
-  this->updateChartCheckboxesState();
-  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -842,6 +494,10 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
 
   qvtkDisconnect( d->logic(), SlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
   delete d->ConvertProgressDialog;
+
+  d->MRMLTableView->setFirstRowLocked(true);
+  this->updateButtonsState();
+
   QApplication::restoreOverrideCursor();
 }
 
@@ -857,171 +513,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::onProgressUpdated(vtkObject* vtkNot
 
   double* progress = reinterpret_cast<double*>(callData);
   d->ConvertProgressDialog->setValue((int)((*progress)*100.0));
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::showInChartCheckStateChanged(int aState)
-{
-  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
-
-  if (!this->mrmlScene())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
-    return;
-  }
-  
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode)
-  {
-    return;
-  }
-
-  QCheckBox* senderCheckbox = dynamic_cast<QCheckBox*>(sender());
-  if (!senderCheckbox)
-  {
-    std::cerr << "Error: Invalid sender checkbox for show/hide in chart checkbox state change" << std::endl;
-    return;
-  }
-
-  if (aState)
-  {
-    d->logic()->AddDvhToSelectedChart(d->PlotCheckboxToStructureNameMap[senderCheckbox].toLatin1().constData());
-  }
-  else
-  {
-    d->logic()->RemoveDvhFromSelectedChart(d->PlotCheckboxToStructureNameMap[senderCheckbox].toLatin1().constData());
-  }
-
-  if (!d->ShowHideAllClicked)
-  {
-    std::vector<bool> checkStates;
-    paramNode->GetShowInChartCheckStates(checkStates);
-
-    // Update states vector with the one checked state and set it back to the parameter node
-    QMap<QCheckBox*, QString>::const_iterator checkboxIt;
-    std::vector<bool>::iterator stateIt;
-    for (checkboxIt=d->PlotCheckboxToStructureNameMap.begin(), stateIt=checkStates.begin();
-      checkboxIt!=d->PlotCheckboxToStructureNameMap.end(); ++checkboxIt, ++stateIt)
-    {
-      if (checkboxIt.key() == senderCheckbox)
-      {
-        (*stateIt) = (bool)aState;
-        break;
-      }
-    }
-    paramNode->SetShowInChartCheckStates(checkStates);
-
-    // Change show/hide all checkbox state
-    d->checkBox_ShowHideAll->blockSignals(true);
-    bool isThereChecked = false;
-    bool isThereUnchecked = false;
-    QMapIterator<QCheckBox*, QString> it(d->PlotCheckboxToStructureNameMap);
-    while (it.hasNext())
-    {
-      it.next();
-
-      if (it.key()->isChecked())
-      {
-        isThereChecked = true;
-      }
-      else
-      {
-        isThereUnchecked = true;
-      }
-    }
-    if (isThereChecked && isThereUnchecked)
-    {
-      d->checkBox_ShowHideAll->setCheckState(Qt::PartiallyChecked);
-    }
-    else if (isThereChecked && !isThereUnchecked)
-    {
-      d->checkBox_ShowHideAll->setCheckState(Qt::Checked);
-    }
-    else
-    {
-      d->checkBox_ShowHideAll->setCheckState(Qt::Unchecked);
-    }
-    d->checkBox_ShowHideAll->blockSignals(false);
-  }
-
-  this->updateChartCheckboxesState();
-  this->updateButtonsState();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::showHideAllCheckedStateChanged(int aState)
-{
-  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
-
-  if (!this->mrmlScene())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
-    return;
-  }
-  
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (!paramNode)
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetShowHideAll(aState);
-  paramNode->DisableModifiedEventOff();
-
-  QMap<QCheckBox*, QString>::const_iterator checkboxIt;
-
-  d->ShowHideAllClicked = true;
-
-  if (aState == Qt::PartiallyChecked)
-  {
-    std::vector<bool> checkStates;
-    paramNode->GetShowInChartCheckStates(checkStates);
-    std::vector<bool>::iterator stateIt;
-
-    bool noneIsOn = true;
-    bool noneIsOff = true;
-    for (stateIt = checkStates.begin(); stateIt != checkStates.end(); ++stateIt)
-    {
-      if (*stateIt)
-      {
-        noneIsOn = false;
-      }
-      else
-      {
-        noneIsOff = false;
-      }
-    }
-    // If all the states are the same then advance to Checked state
-    if (noneIsOn || noneIsOff)
-    {
-      d->checkBox_ShowHideAll->setCheckState(Qt::Checked);
-      return;
-    }
-    else // Else set the states one by one and leave it PartiallyChecked
-    {
-      for (checkboxIt=d->PlotCheckboxToStructureNameMap.begin(), stateIt=checkStates.begin();
-        checkboxIt!=d->PlotCheckboxToStructureNameMap.end(); ++checkboxIt, ++stateIt)
-      {
-        checkboxIt.key()->setChecked(*stateIt);
-      }
-    }
-  }
-  else
-  {
-    bool state = (aState==Qt::Checked ? true : false);
-    for (checkboxIt=d->PlotCheckboxToStructureNameMap.begin(); checkboxIt!=d->PlotCheckboxToStructureNameMap.end(); ++checkboxIt)
-    {
-      checkboxIt.key()->setChecked(state);
-    }
-  }
-
-  // Workaround for a bug
-  d->checkBox_ShowHideAll->blockSignals(true);
-  d->checkBox_ShowHideAll->setCheckState((Qt::CheckState)aState);
-  d->checkBox_ShowHideAll->blockSignals(false);
-
-  d->ShowHideAllClicked = false;
 }
 
 //-----------------------------------------------------------------------------
@@ -1053,7 +544,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
 
 //-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
-{
+{/* //TODO:
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
   // User selects file and format
@@ -1096,32 +587,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
   if (! d->logic()->ExportDvhMetricsToCsv(fileName.toAscii().data(), vDoseValuesCc, vDoseValuesPercent, dVolumeValuesCc, dVolumeValuesPercent, comma) )
   {
     std::cerr << "Error occurred while exporting DVH metrics to CSV!" << std::endl;
-  }
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::getNumbersFromLineEdit(QLineEdit* aLineEdit, std::vector<double> &aValues)
-{
-  aValues.clear();
-
-  if (!aLineEdit)
-  {
-    return;
-  }
-
-  QStringList valuesStringList = aLineEdit->text().split(',');
-  QStringListIterator it(valuesStringList);
-  while (it.hasNext())
-  {
-    QString nextValue( it.next() );
-
-    bool toDoubleOk;
-    double value = nextValue.toDouble(&toDoubleOk);
-    if (toDoubleOk)
-    {
-      aValues.push_back(value);
-    }
-  }
+  }*/
 }
 
 //-----------------------------------------------------------------------------
@@ -1134,7 +600,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditVDoseEdited(QString aText)
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
   if (!paramNode)
   {
@@ -1145,7 +610,10 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditVDoseEdited(QString aText)
   paramNode->SetVDoseValues(aText.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
-  this->refreshDvhTable(true);
+  if (!d->logic()->ComputeVMetrics())
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1169,7 +637,10 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsCcCheckedStateChanged(i
   paramNode->SetShowVMetricsCc(aState);
   paramNode->DisableModifiedEventOff();
 
-  this->refreshDvhTable(true);
+  if (!d->logic()->ComputeVMetrics())
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1182,7 +653,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsPercentCheckedStateChan
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
   if (!paramNode)
   {
@@ -1193,7 +663,10 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsPercentCheckedStateChan
   paramNode->SetShowVMetricsPercent(aState);
   paramNode->DisableModifiedEventOff();
 
-  this->refreshDvhTable(true);
+  if (!d->logic()->ComputeVMetrics())
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1206,7 +679,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeCcEdited(QString aTe
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
   if (!paramNode)
   {
@@ -1217,7 +689,10 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeCcEdited(QString aTe
   paramNode->SetDVolumeValuesCc(aText.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
-  this->refreshDvhTable(true);
+  if (!d->logic()->ComputeDMetrics())
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1230,7 +705,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumePercentEdited(QStrin
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
   if (!paramNode)
   {
@@ -1241,7 +715,10 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumePercentEdited(QStrin
   paramNode->SetDVolumeValuesPercent(aText.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
-  this->refreshDvhTable(true);
+  if (!d->logic()->ComputeDMetrics())
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1254,7 +731,6 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged(int
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
   if (!paramNode)
   {
@@ -1265,7 +741,10 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged(int
   paramNode->SetShowDMetrics(aState);
   paramNode->DisableModifiedEventOff();
 
-  this->refreshDvhTable(true);
+  if (!d->logic()->ComputeDMetrics())
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1297,6 +776,50 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDoseVolumesOnlyCheckboxChanged(
   {
     d->MRMLNodeComboBox_DoseVolume->removeAttribute("vtkMRMLScalarVolumeNode", SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
   }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::showAllClicked()
+{
+  this->setVisibleAll(true);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::hideAllClicked()
+{
+  this->setVisibleAll(false);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::setVisibleAll(bool on)
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return;
+  }
+  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  if (!paramNode)
+  {
+    return;
+  }
+
+  vtkMRMLTableNode* metricsTableNode = paramNode->GetMetricsTableNode();
+  if (!metricsTableNode)
+  {
+    return;
+  }
+
+  vtkBitArray* visibilityColumn = vtkBitArray::SafeDownCast(
+    metricsTableNode->GetTable()->GetColumn(vtkMRMLDoseVolumeHistogramNode::MetricColumnVisible) );
+  for (int row=0; row<metricsTableNode->GetNumberOfRows(); ++row)
+  {
+    visibilityColumn->SetValue(row, on);
+  }
+  visibilityColumn->Modified();
+  metricsTableNode->Modified();
 }
 
 //-----------------------------------------------------------------------------

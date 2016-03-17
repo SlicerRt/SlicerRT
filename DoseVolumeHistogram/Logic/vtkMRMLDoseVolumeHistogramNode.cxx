@@ -32,19 +32,23 @@
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLChartNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
+#include <vtkMRMLTableNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
+#include <vtkTable.h>
 
 // STD includes
 #include <sstream>
 
 //------------------------------------------------------------------------------
-static const char* DOSE_VOLUME_REFERENCE_ROLE = "doseVolumeRef";
-static const char* SEGMENTATION_REFERENCE_ROLE = "segmentationRef";
+const char* vtkMRMLDoseVolumeHistogramNode::DOSE_VOLUME_REFERENCE_ROLE = "doseVolumeRef";
+const char* vtkMRMLDoseVolumeHistogramNode::SEGMENTATION_REFERENCE_ROLE = "segmentationRef";
+const char* vtkMRMLDoseVolumeHistogramNode::DVH_METRICS_TABLE_REFERENCE_ROLE = "dvhMetricsTableRef";
 static const char* CHART_REFERENCE_ROLE = "chartRef";
-static const char* DVH_DOUBLE_ARRAY_REFERENCE_ROLE = "dvhDoubleArrayRef";
+
+const std::string vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX = "DoseVolumeHistogram.";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLDoseVolumeHistogramNode);
@@ -54,7 +58,6 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
 {
   this->SelectedSegmentIDs.clear();
   this->ShowHideAll = 0;
-  this->ShowInChartCheckStates.clear();
   this->VDoseValues = NULL;
   this->ShowVMetricsCc = false;
   this->ShowVMetricsPercent = false;
@@ -72,7 +75,6 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
 vtkMRMLDoseVolumeHistogramNode::~vtkMRMLDoseVolumeHistogramNode()
 {
   this->SelectedSegmentIDs.clear();
-  this->ShowInChartCheckStates.clear();
   this->SetVDoseValues(NULL);
   this->SetDVolumeValuesCc(NULL);
   this->SetDVolumeValuesPercent(NULL);
@@ -99,13 +101,6 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
     ss << this->ShowHideAll;
     of << indent << " ShowHideAll=\"" << ss.str() << "\"";
   }
-
-  of << indent << " ShowInChartCheckStates=\"";
-  for (std::vector<bool>::iterator it = this->ShowInChartCheckStates.begin(); it != this->ShowInChartCheckStates.end(); ++it)
-    {
-    of << ((*it) ? "true" : "false") << "|";
-    }
-  of << "\"";
 
   {
     std::stringstream ss;
@@ -187,28 +182,6 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
       ss >> intAttValue;
       this->ShowHideAll = intAttValue;
       }
-    else if (!strcmp(attName, "ShowInChartCheckStates")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      std::string valueStr = ss.str();
-      std::string separatorCharacter("|");
-
-      this->ShowInChartCheckStates.clear();
-      size_t separatorPosition = valueStr.find( separatorCharacter );
-      while (separatorPosition != std::string::npos)
-        {
-        this->ShowInChartCheckStates.push_back(
-          (valueStr.substr(0, separatorPosition).compare("true") ? false : true));
-        valueStr = valueStr.substr( separatorPosition+1 );
-        separatorPosition = valueStr.find( separatorCharacter );
-        }
-      if (!valueStr.empty())
-        {
-        this->ShowInChartCheckStates.push_back(
-          (valueStr.compare("true") ? false : true));
-        }
-      }
     else if (!strcmp(attName, "VDoseValues")) 
       {
       std::stringstream ss;
@@ -264,7 +237,6 @@ void vtkMRMLDoseVolumeHistogramNode::Copy(vtkMRMLNode *anode)
 
   this->SelectedSegmentIDs = node->SelectedSegmentIDs;
   this->ShowHideAll = node->ShowHideAll;
-  this->ShowInChartCheckStates = node->ShowInChartCheckStates;
 
   this->SetVDoseValues(node->VDoseValues);
   this->ShowVMetricsCc = node->ShowVMetricsCc;
@@ -293,15 +265,6 @@ void vtkMRMLDoseVolumeHistogramNode::PrintSelf(ostream& os, vtkIndent indent)
   os << "\n";
 
   os << indent << "ShowHideAll:   " << this->ShowHideAll << "\n";
-
-  {
-    os << indent << "ShowInChartCheckStates:   ";
-    for (std::vector<bool>::iterator it = this->ShowInChartCheckStates.begin(); it != this->ShowInChartCheckStates.end(); ++it)
-      {
-      os << indent << ((*it) ? "true" : "false") << "|";
-      }
-    os << "\n";
-  }
 
   os << indent << "VDoseValues:   " << (this->VDoseValues ? this->VDoseValues : "") << "\n";
   os << indent << "ShowVMetricsCc:   " << (this->ShowVMetricsCc ? "true" : "false") << "\n";
@@ -339,39 +302,88 @@ void vtkMRMLDoseVolumeHistogramNode::SetAndObserveSegmentationNode(vtkMRMLSegmen
 }
 
 //----------------------------------------------------------------------------
+vtkMRMLTableNode* vtkMRMLDoseVolumeHistogramNode::GetMetricsTableNode()
+{
+  if (!this->Scene)
+  {
+    vtkErrorMacro("GetMetricsTableNode: Invalid MRML scene!");
+    return NULL;
+  }
+  vtkMRMLTableNode* metricsTableNode = vtkMRMLTableNode::SafeDownCast( this->GetNodeReference(DVH_METRICS_TABLE_REFERENCE_ROLE) );
+  // Metrics table node is unique and mandatory for each DVH node
+  if (!metricsTableNode)
+  {
+    metricsTableNode = vtkMRMLTableNode::New();
+    std::string metricsTableNodeName = this->Scene->GenerateUniqueName("DvhMetrics");
+    metricsTableNode->SetName(metricsTableNodeName.c_str());
+    this->Scene->AddNode(metricsTableNode);
+    this->SetAndObserveMetricsTableNode(metricsTableNode);
+    metricsTableNode->Delete(); // Release ownership to scene only
+  }
+  return metricsTableNode;
+
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLDoseVolumeHistogramNode::SetAndObserveMetricsTableNode(vtkMRMLTableNode* node)
+{
+  this->SetNodeReferenceID(DVH_METRICS_TABLE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+}
+
+//----------------------------------------------------------------------------
 vtkMRMLChartNode* vtkMRMLDoseVolumeHistogramNode::GetChartNode()
 {
-  return vtkMRMLChartNode::SafeDownCast( this->GetNodeReference(CHART_REFERENCE_ROLE) );
+  if (!this->Scene)
+  {
+    vtkErrorMacro("GetChartNode: Invalid MRML scene!");
+    return NULL;
+  }
+  vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast( this->GetNodeReference(CHART_REFERENCE_ROLE) );
+  // Chart node is unique and mandatory for each DVH node
+  if (!chartNode)
+  {
+    chartNode = vtkMRMLChartNode::New();
+    std::string chartNodeName = this->Scene->GenerateUniqueName("DvhChart");
+    chartNode->SetName(chartNodeName.c_str());
+    this->Scene->AddNode(chartNode);
+    this->SetAndObserveChartNode(chartNode);
+    chartNode->Delete(); // Release ownership to scene only
+  }
+  return chartNode;
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveChartNode(vtkMRMLChartNode* node)
 {
   this->SetNodeReferenceID(CHART_REFERENCE_ROLE, (node ? node->GetID() : NULL));
-}
 
-//----------------------------------------------------------------------------
-void vtkMRMLDoseVolumeHistogramNode::GetDvhDoubleArrayNodes(std::vector<vtkMRMLNode*> &nodes)
-{
-  // Disable modify event for this operation as it triggers unwanted calls of
-  // qSlicerDoseVolumeHistogramModuleWidget::refreshDvhTable thus causing crash
-  this->DisableModifiedEventOn();
-  this->GetNodeReferences(DVH_DOUBLE_ARRAY_REFERENCE_ROLE, nodes);
-  this->DisableModifiedEventOff();
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLDoseVolumeHistogramNode::AddDvhDoubleArrayNode(vtkMRMLDoubleArrayNode* node)
-{
-  if (!node)
+  // Set all visibility selection to false when chart node is changed
+  // TODO: It could be better to actually set visibility according to contained DVH arrays in the selected chart view
+  vtkMRMLTableNode* metricsTableNode = this->GetMetricsTableNode();
+  if (metricsTableNode)
   {
-    return;
+    for (int row=0; row<metricsTableNode->GetNumberOfRows(); ++row)
+    {
+      metricsTableNode->GetTable()->SetValue(row, MetricColumnVisible, vtkVariant(0));
+    }
+    metricsTableNode->Modified();
   }
-  this->AddNodeReferenceID(DVH_DOUBLE_ARRAY_REFERENCE_ROLE, node->GetID());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseVolumeHistogramNode::RemoveAllDvhDoubleArrayNodes()
+std::string vtkMRMLDoseVolumeHistogramNode::AssembleDvhNodeReference(std::string segmentID)
 {
-  this->RemoveNodeReferenceIDs(DVH_DOUBLE_ARRAY_REFERENCE_ROLE);
+  if (!this->GetSegmentationNode() || !this->GetDoseVolumeNode() || segmentID.empty())
+  {
+    vtkErrorMacro("AssembleDvhNodeReference: Invalid input selection!");
+    return "";
+  }
+  
+  std::string referenceRole = DVH_ATTRIBUTE_PREFIX;
+  referenceRole.append(this->GetDoseVolumeNode()->GetID());
+  referenceRole.append("_");
+  referenceRole.append(this->GetSegmentationNode()->GetID());
+  referenceRole.append("_");
+  referenceRole.append(segmentID);
+  return referenceRole;
 }
