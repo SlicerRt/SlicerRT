@@ -839,6 +839,10 @@ bool vtkSegmentation::CreateRepresentation(const std::string& targetRepresentati
     this->GetContainedRepresentationNames(representationNames);
     for (std::vector<std::string>::iterator reprIt=representationNames.begin(); reprIt!=representationNames.end(); ++reprIt)
     {
+      if (!reprIt->compare(targetRepresentationName))
+      {
+        continue; // No paths if source and target representations are the same
+      }
       this->Converter->GetPossibleConversions((*reprIt), targetRepresentationName, currentPathCosts);
       for (vtkSegmentationConverter::ConversionPathAndCostListType::const_iterator pathIt = currentPathCosts.begin(); pathIt != currentPathCosts.end(); ++pathIt)
       {

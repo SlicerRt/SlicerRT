@@ -419,9 +419,9 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   // Get ID of only segment
-  if (baselineSegmentationNode->GetSegmentation()->GetNumberOfSegments() > 1)
+  if (baselineSegmentationNode->GetSegmentation()->GetNumberOfSegments() != 1)
   {
-    std::cerr << "Baseline segmentation should contain only one segment!" << std::endl;
+    std::cerr << "Baseline segmentation should contain exactly one segment!" << std::endl;
     return EXIT_FAILURE;
   }
   std::vector<std::string> baselineSegmentIDs;

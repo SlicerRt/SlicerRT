@@ -36,16 +36,16 @@ class SegmentationsModuleTest1(unittest.TestCase):
   #------------------------------------------------------------------------------
   def TestSection_00_SetupPathsAndNames(self):
     # Set up paths used for this test
-    segmentationsModuleTestDir = slicer.app.temporaryPath + '/SegmentationsModuleTest'
-    if not os.access(segmentationsModuleTestDir, os.F_OK):
-      os.mkdir(segmentationsModuleTestDir)
+    self.segmentationsModuleTestDir = slicer.app.temporaryPath + '/SegmentationsModuleTest'
+    if not os.access(self.segmentationsModuleTestDir, os.F_OK):
+      os.mkdir(self.segmentationsModuleTestDir)
 
-    self.dicomDataDir = segmentationsModuleTestDir + '/TinyRtStudy'
+    self.dicomDataDir = self.segmentationsModuleTestDir + '/TinyRtStudy'
     if not os.access(self.dicomDataDir, os.F_OK):
       os.mkdir(self.dicomDataDir)
       
-    self.testDicomDatabaseDir = segmentationsModuleTestDir + '/CtkDicomDatabase'
-    self.dicomZipFilePath = segmentationsModuleTestDir + '/TinyRtStudy.zip'
+    self.testDicomDatabaseDir = self.segmentationsModuleTestDir + '/CtkDicomDatabase'
+    self.dicomZipFilePath = self.segmentationsModuleTestDir + '/TinyRtStudy.zip'
     
     # Get slicer objects that are used throughout the test
     self.dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
@@ -100,7 +100,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
 
       numOfFilesInDicomDataDir = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
       if (numOfFilesInDicomDataDir != self.expectedNumOfFilesInDicomDataDir):
-        slicer.app.applicationLogic().Unzip(self.dicomZipFilePath, self.dicomDataDir)
+        slicer.app.applicationLogic().Unzip(self.dicomZipFilePath, self.segmentationsModuleTestDir)
         logging.info("Unzipping done")
 
       numOfFilesInDicomDataDirTest = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
@@ -229,6 +229,10 @@ class SegmentationsModuleTest1(unittest.TestCase):
     sphereLabelmapSpacing = sphereLabelmap.GetSpacing()
     self.assertTrue(sphereLabelmapSpacing[0] == 1.0 and sphereLabelmapSpacing[1] == 1.0 and sphereLabelmapSpacing[2] == 1.0)
 
+    # Create binary labelmap in segmentation that will create the merged labelmap from
+    # different geometries so that labelmap is not removed from sphere segment when adding
+    self.inputSegmentationNode.GetSegmentation().CreateRepresentation(self.binaryLabelmapReprName)
+
     # Copy segment to input segmentation
     self.inputSegmentationNode.GetSegmentation().CopySegmentFromSegmentation(self.secondSegmentationNode.GetSegmentation(), self.sphereSegmentName)
     self.assertEqual(self.inputSegmentationNode.GetSegmentation().GetNumberOfSegments(), 3)
@@ -236,8 +240,10 @@ class SegmentationsModuleTest1(unittest.TestCase):
     # Check merged labelmap
     mergedLabelmap = self.inputSegmentationNode.GetImageData()
     self.assertIsNotNone(mergedLabelmap)
-    mergedLabelmapSpacing = sphereLabelmap.GetSpacing()
-    self.assertTrue(mergedLabelmapSpacing[0] == 1.0 and mergedLabelmapSpacing[1] == 1.0 and mergedLabelmapSpacing[2] == 1.0)
+    mergedLabelmapSpacing = self.inputSegmentationNode.GetSpacing()
+    self.assertEqual(mergedLabelmapSpacing[0], 1.0)
+    self.assertEqual(mergedLabelmapSpacing[1], 1.0)
+    self.assertEqual(mergedLabelmapSpacing[2], 1.0)
 
     imageStat = vtk.vtkImageAccumulate()
     imageStat.SetInputData(mergedLabelmap)
