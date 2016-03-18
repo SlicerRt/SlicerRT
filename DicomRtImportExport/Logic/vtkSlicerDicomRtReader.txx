@@ -101,6 +101,16 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
     this->SetStudyInstanceUid(NULL);
   }
 
+  OFString studyId;
+  if (dcmtkIodObject->getStudyID(studyId).good())
+  {
+    this->SetStudyId(studyId.c_str());
+  }
+  else
+  {
+    this->SetStudyId(NULL);
+  }
+
   OFString studyDescription;
   if (dcmtkIodObject->getStudyDescription(studyDescription).good())
   {

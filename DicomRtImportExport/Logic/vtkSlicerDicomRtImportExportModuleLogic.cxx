@@ -1257,6 +1257,8 @@ void vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy( vt
     if (studyNode)
     {
       // Add attributes for DICOM tags
+      studyNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMStudyInstanceUIDTagName().c_str(), rtReader->GetStudyInstanceUid() );
+      studyNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMStudyIDTagName().c_str(), rtReader->GetStudyId() );
       studyNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMStudyDescriptionAttributeName().c_str(), rtReader->GetStudyDescription() );
       studyNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMStudyDateAttributeName().c_str(), rtReader->GetStudyDate() );
       studyNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMStudyTimeAttributeName().c_str(), rtReader->GetStudyTime() );

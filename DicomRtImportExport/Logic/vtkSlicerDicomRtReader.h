@@ -221,6 +221,8 @@ public:
   vtkGetStringMacro(PatientComments);
   /// Get study instance UID
   vtkGetStringMacro(StudyInstanceUid);
+  /// Get study ID
+  vtkGetStringMacro(StudyId);
   /// Get study description
   vtkGetStringMacro(StudyDescription);
   /// Get study date
@@ -339,6 +341,8 @@ protected:
   vtkSetStringMacro(PatientComments);
   /// Set study instance UID
   vtkSetStringMacro(StudyInstanceUid);
+  /// Set study ID
+  vtkSetStringMacro(StudyId);
   /// Set study description
   vtkSetStringMacro(StudyDescription); 
   /// Set study date
@@ -461,6 +465,9 @@ protected:
 
   /// Study instance UID
   char* StudyInstanceUid;
+
+  /// Study ID
+  char* StudyId;
 
   /// Study description
   char* StudyDescription;
