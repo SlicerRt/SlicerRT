@@ -651,9 +651,29 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkOrientedImage
   }
 
   // Add DVH to subject hierarchy
-  vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    this->GetMRMLScene(), vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(doseVolumeNode),
+  vtkMRMLSubjectHierarchyNode* doseShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(doseVolumeNode);
+  vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode( this->GetMRMLScene(), doseShNode,
     vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), arrayNode->GetName(), arrayNode);
+
+  // Add metrics table and chart to under the study of the dose in subject hierarchy
+  vtkMRMLSubjectHierarchyNode* studyNode = doseShNode->GetAncestorAtLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+  if (studyNode)
+  {
+    vtkMRMLSubjectHierarchyNode* metricsTableShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(metricsTableNode);
+    if (metricsTableShNode)
+    {
+      metricsTableShNode->SetParentNodeID(studyNode->GetID());
+    }
+    vtkMRMLChartNode* chartNode = this->DoseVolumeHistogramNode->GetChartNode();
+    if (chartNode)
+    {
+      vtkMRMLSubjectHierarchyNode* chartShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(chartNode);
+      if (chartShNode)
+      {
+        chartShNode->SetParentNodeID(studyNode->GetID());
+      }
+    }
+  }
 
   // Add connection attribute to input segmentation node
   vtkMRMLSubjectHierarchyNode* segmentSubjectHierarchyNode = segmentationNode->GetSegmentSubjectHierarchyNode(segmentID);
