@@ -4,7 +4,9 @@ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 
 #
+# ------------------------------------------------------------------------------
 # DvhComparison
+# ------------------------------------------------------------------------------
 # 
 class DvhComparison(ScriptedLoadableModule):
   def __init__(self, parent):
@@ -23,7 +25,18 @@ class DvhComparison(ScriptedLoadableModule):
 # ------------------------------------------------------------------------------
 #
 class DvhComparisonWidget(ScriptedLoadableModuleWidget):
+  def __init__(self, parent):
+    ScriptedLoadableModuleWidget.__init__(self, parent)
+    
+    self.volumeDifferenceCriterionAttrName = 'DvhComparison.VolumeDifferenceCriterion'
+    self.doseToAgreementCriterionAttrName = 'DvhComparison.DoseToAgreementCriterion'
+    self.doseVolumeOnlyCheckedAttrName = 'DvhComparison.DoseVolumeOnlyChecked'
+    self.agreementAcceptanceAttrName = 'DvhComparison.AgreementAcceptance'
+    self.dvh1NodeReference = 'dvh1Ref'
+    self.dvh2NodeReference = 'dvh2Ref'
+    self.doseVolumeNodeReference = 'doseVolumeRef'
 
+  #------------------------------------------------------------------------------
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
@@ -134,37 +147,27 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     #
     # Visualize Area
     #
-    chartCollapsibleButton = ctk.ctkCollapsibleButton()
-    chartCollapsibleButton.text = "Visualize"
-    self.layout.addWidget(chartCollapsibleButton)
+    visualizeCollapsibleButton = ctk.ctkCollapsibleButton()
+    visualizeCollapsibleButton.text = "Visualize"
+    self.layout.addWidget(visualizeCollapsibleButton)
 
     # Layout within the dummy collapsible button
-    chartFormLayout = qt.QFormLayout(chartCollapsibleButton)
+    visualizeFormLayout = qt.QFormLayout(visualizeCollapsibleButton)
 
     #
-    # Input the chart node
+    # DVH Table
     #
-    self.chartNodeSelector = slicer.qMRMLNodeComboBox()
-    self.chartNodeSelector.nodeTypes = ["vtkMRMLChartNode"]
-    self.chartNodeSelector.setMRMLScene( slicer.mrmlScene )
-    chartFormLayout.addRow(self.chartNodeSelector)
-
-    self.checkboxList = []
-    self.structureList = []
-
-    #
-    # Dvh List
-    #
-    self.dvhTable = qt.QTableWidget();
-    chartFormLayout.addWidget(self.dvhTable)
-
+    self.dvhTable = slicer.qMRMLTableView()
+    self.dvhTable.setMRMLScene(slicer.mrmlScene)
+    self.dvhTable.setSelectionMode(qt.QAbstractItemView.NoSelection)
+    visualizeFormLayout.addWidget(self.dvhTable)
 
     # Add vertical spacer
     self.layout.addStretch(1)
 
     # Connections
     self.parameterSelector.connect('nodeAddedByUser(vtkMRMLNode*)', self.parameterNodeCreated)
-    self.parameterSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.updateFromParameter)
+    self.parameterSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.updateWidgetFromMRML)
 
     self.showDoseVolumeOnlyCheckbox.connect('stateChanged(int)', self.showDoseVolumesOnlyCheckboxChanged)
     
@@ -177,235 +180,115 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
 
     self.computeButton.connect('clicked(bool)', self.onComputeButton)
 
-    self.chartNodeSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.updateChecksFromChart)
-
-    self.updatingStatus = False
-
-    self.nodeCheck()
-
-    self.updateFromParameter(self.parameterSelector.currentNode())
-
-    self.updateTable()    
-    currentChart = self.chartNodeSelector.currentNode()
-    if currentChart is not None:
-      self.updateChecksFromChart(currentChart)
+    self.updateWidgetFromMRML()
 
   #------------------------------------------------------------------------------
   def enter(self):
-    """Runs whenever the module is reopened
-    """
-
-    self.nodeCheck()
-    self.updateFromParameter(self.parameterSelector.currentNode())
-
-    self.updateTable()    
-    currentChart = self.chartNodeSelector.currentNode()
-
-    if currentChart is not None:
-      self.updateChecksFromChart(currentChart)
+    self.updateWidgetFromMRML()
 
   #------------------------------------------------------------------------------
   def parameterNodeCreated(self, node):
-    """Rename the newly created parameter node
-    """
+    # Rename the newly created parameter node
     numberOfNodes = slicer.mrmlScene.GetNumberOfNodesByClass('vtkMRMLScriptedModuleNode')
     name = 'DvhComparison'
-    if numberOfNodes != 1):
+    if numberOfNodes != 1:
       node.SetName(name + '_' + str(numberOfNodes-1))
     else:
       node.SetName(name)
 
   #------------------------------------------------------------------------------
-  def nodeCheck(self):
-    """If there is no parameter node, create one and add it to the scene
+  def updateWidgetFromMRML(self):
+    """Changes the displayed inputs to match the current parameter node
+       If an attribute has not been set, it is set from the currently
+       displayed attribute
     """
-    if(self.parameterSelector.currentNode() == None):
+
+    # If there is no parameter node, create one and add it to the scene
+    if self.parameterSelector.currentNode() is None:
       node = slicer.vtkMRMLScriptedModuleNode()
       slicer.mrmlScene.AddNode(node)
       self.parameterNodeCreated(node)
       self.parameterSelector.setCurrentNode(node)
+    paramNode = self.parameterSelector.currentNode()
 
-  #------------------------------------------------------------------------------
-  def updateTable(self):
-    """Construct and fill in the table.
-    """
+    if paramNode is not None:
+      # DVH Array 1
+      dvh1Node = paramNode.GetNodeReferenceID(self.dvh1NodeReference)
+      self.dvh1Selector.blockSignals(True)
+      self.dvh1Selector.setCurrentNodeID(dvh1Node)
+      self.dvh1Selector.blockSignals(False)
 
-    self.checkboxList = []
-    self.structureList = []
-
-    numberOfMetrics = 7
-    self.dvhTable.setColumnCount(0)
-    self.dvhTable.setRowCount(0)
-
-    self.dvhTable.clearContents()
-
-    dvhNodes = slicer.mrmlScene.GetNodesByClass("vtkMRMLDoubleArrayNode")
-    dvhNodes.UnRegister(slicer.mrmlScene)
-
-    self.dvhTable.setColumnCount(numberOfMetrics)
-    headerLabels = [
-      "",
-      "Structure",
-      "Volume name",
-      "Volume (cc)",
-      "Mean intensity",
-      "Min intensity",
-      "Max intensity"]
-    self.dvhTable.setHorizontalHeaderLabels(headerLabels)
-    self.dvhTable.setColumnWidth(0, 24)
-    for i in range(1, numberOfMetrics):
-      self.dvhTable.setColumnWidth(i,80)
-
-    currentChart = self.chartNodeSelector.currentNode()
-
-    numberOfLegalStructures = 0
-    for i in xrange(dvhNodes.GetNumberOfItems()):
-      structure = dvhNodes.GetItemAsObject(i)
-      structureName = (structure.GetAttribute("DoseVolumeHistogram.StructureName"))
-
-      if structureName is not None:
-        self.structureList.append(structure)
-        self.dvhTable.insertRow(i)
-        self.dvhTable.setCellWidget(i, 1, qt.QLabel(" " + structureName + " "))
-        volumeNode = (structure.GetNodeReference("DoseVolumeHistogram.doseVolumeRef"))
-        if volumeNode is not None:
-          volumeName = (volumeNode.GetName())
-          check = qt.QCheckBox()
-          check.connect("stateChanged(int)", self.checkBoxChanged)
-          self.checkboxList.append(check)
-          self.dvhTable.setCellWidget(i, 0, check)
-          self.dvhTable.setCellWidget(i, 2, qt.QLabel(" " + volumeName + " "))
-
-          # stop the checkboxes from being used if there is no chart node
-          if currentChart is None:
-            check.setCheckable(False)
-          else:
-            check.setCheckable(True)
-
-        # Add the attributes to the chart
-        totalVolumeCCs = structure.GetAttribute("DoseVolumeHistogram.DvhMetric_Volume (cc)")
-        if totalVolumeCCs is not None:
-          self.dvhTable.setCellWidget(i, 3, qt.QLabel(" " + totalVolumeCCs + " "))
-
-        meanVolumeCCs = structure.GetAttribute("DoseVolumeHistogram.DvhMetric_Mean intensity")
-        if meanVolumeCCs is not None:
-          self.dvhTable.setCellWidget(i, 4, qt.QLabel(" " + meanVolumeCCs + " "))
-
-        minVolumeCCs = structure.GetAttribute("DoseVolumeHistogram.DvhMetric_Min intensity")
-        if minVolumeCCs is not None:
-          self.dvhTable.setCellWidget(i, 5, qt.QLabel(" " + minVolumeCCs + " "))
-
-        maxVolumeCCs = structure.GetAttribute("DoseVolumeHistogram.DvhMetric_Max intensity")
-        if maxVolumeCCs is not None:
-          self.dvhTable.setCellWidget(i, 6, qt.QLabel(" " + maxVolumeCCs + " "))
-
-  #------------------------------------------------------------------------------
-  def checkBoxChanged(self, int):
-    """If one of the chart checkboxes has been changed, then update the chart
-    """
-
-    if self.updatingStatus == False:
-      currentChart = self.chartNodeSelector.currentNode()
-      if currentChart is not None:
-        currentChart.ClearArrays()
-
-        import vtkSlicerDoseVolumeHistogramModuleLogic
-        chartLogic = vtkSlicerDoseVolumeHistogramModuleLogic.vtkSlicerDoseVolumeHistogramModuleLogic()
-        chartLogic.SetMRMLScene(slicer.mrmlScene)
-
-        for i in xrange(len(self.checkboxList)):
-          currentCheckbox = self.checkboxList[i]
-          if currentCheckbox.checkState():
-            currentDoubleArray =  self.structureList[i]
-            chartLogic.AddDvhToChart(currentDoubleArray.GetID(), currentChart.GetID())
-
-  #------------------------------------------------------------------------------
-  def updateFromParameter(self, node):
-    """Changes the displayed inputs to match the current parameter node
-    If an attribute has not been set, it is set from the currently
-    displayed attribute
-    """
-
-    self.updatingStatus = True
-
-    if node is not None:
-      # DVH Double Array 1
-      dvh1Node = node.GetNodeReferenceID('dvh1')
-      if dvh1Node is not None:
-        self.dvh1Selector.setCurrentNodeID(dvh1Node)
-      else :
-        dvh1Node = self.dvh1Selector.currentNode()
-        if dvh1Node is not None:
-          node.SetNodeReferenceID('dvh1', dvh1Node.GetID())
-
-      # DVH Double Array 2
-      dvh2Node = node.GetNodeReferenceID('dvh2')
-      if dvh2Node is not None:
-        self.dvh2Selector.setCurrentNodeID(dvh2Node)
-      else :
-        dvh2Node = self.dvh2Selector.currentNode()
-        if dvh2Node is not None:
-          node.SetNodeReferenceID('dvh2', dvh2Node.GetID())
+      # DVH Array 2
+      dvh2Node = paramNode.GetNodeReferenceID(self.dvh2NodeReference)
+      self.dvh2Selector.blockSignals(True)
+      self.dvh2Selector.setCurrentNodeID(dvh2Node)
+      self.dvh2Selector.blockSignals(False)
 
       # Dose Volume
-      doseVolumeNode = node.GetNodeReferenceID('DoseVolumeHistogram.doseVolume')
-      if doseVolumeNode is not None:
-        self.doseVolumeSelector.setCurrentNodeID(doseVolumeNode)
-      else :
-        doseVolumeNode = self.doseVolumeSelector.currentNode()
-        if doseVolumeNode is not None:
-          node.SetNodeReferenceID('DoseVolumeHistogram.doseVolume', doseVolumeNode.GetID())
+      doseVolumeNode = paramNode.GetNodeReferenceID(self.doseVolumeNodeReference)
+      self.doseVolumeSelector.blockSignals(True)
+      self.doseVolumeSelector.setCurrentNodeID(doseVolumeNode)
+      self.doseVolumeSelector.blockSignals(False)
 
       # Dose Volume Only Checkbox
-      doseVolumeOnlyChecked = node.GetAttribute('DoseVolumeHistogram.doseVolumeOnlyChecked')
+      doseVolumeOnlyChecked = paramNode.GetAttribute(self.doseVolumeOnlyCheckedAttrName)
       if doseVolumeOnlyChecked is not None:
         checkedState = int(doseVolumeOnlyChecked)
+        self.showDoseVolumeOnlyCheckbox.blockSignals(True)
         if checkedState:
           self.showDoseVolumeOnlyCheckbox.setCheckState(2)
         else:
           self.showDoseVolumeOnlyCheckbox.setCheckState(0)
+        self.showDoseVolumeOnlyCheckbox.blockSignals(False)
       else:
-        self.parameterSelector.currentNode().SetAttribute('DoseVolumeHistogram.doseVolumeOnlyChecked', str(self.showDoseVolumeOnlyCheckbox.checkState()))
+        self.parameterSelector.currentNode().SetAttribute(self.doseVolumeOnlyCheckedAttrName, str(self.showDoseVolumeOnlyCheckbox.checkState()))
 
       # Dose To Agreement Criterion
-      doseToAgreementCriterion = node.GetAttribute('DoseVolumeHistogram.doseToAgreementCriterion')
+      doseToAgreementCriterion = paramNode.GetAttribute(self.doseToAgreementCriterionAttrName)
       if doseToAgreementCriterion is not None:
+        self.doseToAgreementSpinbox.blockSignals(True)
         self.doseToAgreementSpinbox.setValue(float(doseToAgreementCriterion))
+        self.doseToAgreementSpinbox.blockSignals(False)
       else:
-        doseToAgreementCriterion = str(self.doseToAgreementSpinbox.value)
-        node.SetAttribute('DoseVolumeHistogram.doseToAgreementCriterion', doseToAgreementCriterion)
+        paramNode.SetAttribute(self.doseToAgreementCriterionAttrName, str(self.doseToAgreementSpinbox.value))
 
       # Volume Difference Criterion
-      volumeDifferenceCriterion = node.GetAttribute('DoseVolumeHistogram.volumeDifferenceCriterion')
+      volumeDifferenceCriterion = paramNode.GetAttribute(self.volumeDifferenceCriterionAttrName)
       if volumeDifferenceCriterion is not None:
+        self.volumeDifferenceSpinbox.blockSignals(True)
         self.volumeDifferenceSpinbox.setValue(float(volumeDifferenceCriterion))
+        self.volumeDifferenceSpinbox.blockSignals(False)
       else:
-        volumeDifferenceCriterion = str(self.volumeDifferenceSpinbox.value)
-        node.SetAttribute('DoseVolumeHistogram.volumeDifferenceCriterion', volumeDifferenceCriterion)
+        paramNode.SetAttribute(self.volumeDifferenceCriterionAttrName, str(self.volumeDifferenceSpinbox.value))
 
       # Agreement Acceptance % (use previously stored one if availiable)
-      agreementAcceptancePercentage = node.GetAttribute('DoseVolumeHistogram.agreementAcceptance')
+      agreementAcceptancePercentage = paramNode.GetAttribute(self.agreementAcceptanceAttrName)
       if agreementAcceptancePercentage is not None:
         self.agreementAcceptanceOutput.text = agreementAcceptancePercentage
       else:
-        agreementAcceptancePercentage = self.agreementAcceptanceOutput.text
-      self.parameterSelector.currentNode().SetAttribute('DoseVolumeHistogram.agreementAcceptance', agreementAcceptancePercentage)
-
-      self.updatingStatus = False
+        self.agreementAcceptanceOutput.text = ''
 
   #------------------------------------------------------------------------------
-  def updateButtonsState(self):
-    """If a node has changed, make sure that the compute button is enabled/disabled as necessary
-    and set clear the output to avoid an illegal state.
-    """
-
-    self.nodeCheck()
-    if self.dvh1Selector.currentNode() != None and self.dvh2Selector.currentNode() != None and self.doseVolumeSelector.currentNode() is not None:
-      self.computeButton.setDisabled(False)
+  def updateWidgetForSelection(self):
+    # Make sure that the compute button is enabled/disabled as necessary
+    dvh1Node = self.dvh1Selector.currentNode()
+    dvh2Node = self.dvh2Selector.currentNode()
+    if dvh1Node is not None and dvh2Node is not None and self.doseVolumeSelector.currentNode() is not None:
+      self.computeButton.setEnabled(True)
     else:
-      self.computeButton.setDisabled(True)
-    self.parameterSelector.currentNode().SetAttribute('AgreementAcceptance', "")
-    self.agreementAcceptanceOutput.setText("")
+      self.computeButton.setEnabled(False)
+
+    # Clear the output
+    self.parameterSelector.currentNode().SetAttribute(self.agreementAcceptanceAttrName, '')
+    self.agreementAcceptanceOutput.setText('')
+
+    # Set table to show in visualize section. It will be the metrics table for DVH 1
+    import vtkSlicerDoseVolumeHistogramModuleLogic
+    dvh1MetricsTable = dvh1Node.GetNodeReference('dvhMetricsTableRef')
+    self.dvhTable.setMRMLTableNode(dvh1MetricsTable)    
+    self.dvhTable.setFirstRowLocked(True)
+    self.dvhTable.resizeColumnsToContents()
+    self.dvhTable.setColumnWidth(vtkSlicerDoseVolumeHistogramModuleLogic.vtkMRMLDoseVolumeHistogramNode.MetricColumnVisible, 36)
 
   #------------------------------------------------------------------------------
   def onComputeButton(self):
@@ -418,86 +301,46 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     logic.SetDoseToAgreementCriterion(self.doseToAgreementSpinbox.value)
 
     agreementAcceptancePercentage = logic.CompareDvhTables()
+
     self.agreementAcceptanceOutput.setText(agreementAcceptancePercentage)
-    self.parameterSelector.currentNode().SetAttribute('DoseVolumeHistogram.agreementAcceptance', str(agreementAcceptancePercentage))
-
-  #------------------------------------------------------------------------------
-  def checkChart(self, dvhNodeId, chartNode):
-    """Check the specified chart to see if a given DVH is being displayed.
-    """
-    arrayIds = chartNode.GetArrays()
-    for arrayIndex in xrange(arrayIds.GetNumberOfValues()):
-      currentArrayId = arrayIds.GetValue(arrayIndex)
-      if currentArrayId == dvhNodeId:
-        return True
-    return False
-
-  #------------------------------------------------------------------------------
-  def updateChecksFromChart(self, chartNode):
-    """Set the check boxes in the table to match the graph display.
-    """
-
-    self.updatingStatus = True
-    for structureIndex in xrange(len(self.structureList)):
-      currentCheckbox = self.checkboxList[structureIndex]
-      if chartNode is not None:
-        currentStructure = self.structureList[structureIndex]
-        if self.checkChart(currentStructure.GetID(), chartNode):
-          currentCheckbox.setCheckState(2)
-        else:
-          currentCheckbox.setCheckState(0)
-        currentCheckbox.setCheckable(True)
-      else:
-        currentCheckbox.setCheckState(0)
-        currentCheckbox.setCheckable(False)
-        currentCheckbox.update()
-
-    self.updatingStatus = False
+    self.parameterSelector.currentNode().SetAttribute(self.agreementAcceptanceAttrName, str(agreementAcceptancePercentage))
 
   #------------------------------------------------------------------------------
   def dvh1SelectorChanged(self, dvh1Node):
-    if not self.updatingStatus:
-      self.updateButtonsState()
-      if dvh1Node is not None:
-        self.parameterSelector.currentNode().SetNodeReferenceID('dvh1', dvh1Node.GetID())
+    if dvh1Node is not None:
+      self.parameterSelector.currentNode().SetNodeReferenceID(self.dvh1NodeReference, dvh1Node.GetID())
+    self.updateWidgetForSelection()
 
   #------------------------------------------------------------------------------
   def dvh2SelectorChanged(self, dvh2Node):
-    if not self.updatingStatus:
-      self.updateButtonsState()
-      if dvh2Node is not None:
-        self.parameterSelector.currentNode().SetNodeReferenceID('dvh2', dvh2Node.GetID())
+    if dvh2Node is not None:
+      self.parameterSelector.currentNode().SetNodeReferenceID(self.dvh2NodeReference, dvh2Node.GetID())
+    self.updateWidgetForSelection()
 
   #------------------------------------------------------------------------------
   def doseVolumeSelectorChanged(self, doseVolumeNode):
-    if not self.updatingStatus:
-      self.updateButtonsState()
-      if doseVolumeNode is not None:
-        self.parameterSelector.currentNode().SetNodeReferenceID('doseVolume', doseVolumeNode.GetID())
+    if doseVolumeNode is not None:
+      self.parameterSelector.currentNode().SetNodeReferenceID(self.doseVolumeNodeReference, doseVolumeNode.GetID())
+    self.updateWidgetForSelection()
 
   #------------------------------------------------------------------------------
   def volumeDifferenceSpinboxChanged(self, value):
-    if not self.updatingStatus:
-      self.updateButtonsState()
-      volumeDifferenceCriterion = str(value)
-      self.parameterSelector.currentNode().SetAttribute('DoseVolumeHistogram.VolumeDifferenceCriterion', volumeDifferenceCriterion)
+    self.parameterSelector.currentNode().SetAttribute(self.volumeDifferenceCriterionAttrName, str(value))
+    self.updateWidgetForSelection()
 
   #------------------------------------------------------------------------------
   def doseToAgreementSpinboxChanged(self, value):
-    if not self.updatingStatus:
-      self.updateButtonsState()
-      doseToAgreementCriterion = str(value)
-      self.parameterSelector.currentNode().SetAttribute('DoseVolumeHistogram.DoseToAgreementCriterion', doseToAgreementCriterion)
+    self.parameterSelector.currentNode().SetAttribute(self.doseToAgreementCriterionAttrName, str(value))
+    self.updateWidgetForSelection()
 
   #------------------------------------------------------------------------------
   def showDoseVolumesOnlyCheckboxChanged(self, checked):
-    if not self.updatingStatus:
-      self.updateButtonsState()
-      self.parameterSelector.currentNode().SetAttribute('DoseVolumeOnlyChecked', str(checked))
-      if checked:
-        self.doseVolumeSelector.addAttribute("vtkMRMLScalarVolumeNode", "DicomRtImport.DoseVolume")
-      else:
-        self.doseVolumeSelector.removeAttribute("vtkMRMLScalarVolumeNode", "DicomRtImport.DoseVolume")
+    self.parameterSelector.currentNode().SetAttribute(self.doseVolumeOnlyCheckedAttrName, str(checked))
+    if checked:
+      self.doseVolumeSelector.addAttribute("vtkMRMLScalarVolumeNode", "DicomRtImport.DoseVolume")
+    else:
+      self.doseVolumeSelector.removeAttribute("vtkMRMLScalarVolumeNode", "DicomRtImport.DoseVolume")
+    self.updateWidgetForSelection()
 
   #------------------------------------------------------------------------------
   def cleanup(self):
