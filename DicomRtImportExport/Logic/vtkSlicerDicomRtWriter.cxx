@@ -57,7 +57,13 @@ vtkSlicerDicomRtWriter::vtkSlicerDicomRtWriter()
 {
   this->PatientName = NULL;
   this->PatientID = NULL;
+  this->PatientSex = NULL;
+  this->StudyDate = NULL;
+  this->StudyTime = NULL;
   this->StudyDescription = NULL;
+  this->StudyInstanceUid = NULL;
+  this->StudyID = NULL;
+
   this->ImageSeriesDescription = NULL;
   this->ImageSeriesNumber = 1;
 
@@ -116,21 +122,40 @@ void vtkSlicerDicomRtWriter::AddStructure(UCharImageType::Pointer itk_structure,
 void vtkSlicerDicomRtWriter::Write()
 {
   /* Set study metadata */
-  std::vector<std::string> metadata;
-  if (this->PatientName && this->PatientName[0] != 0) {
-    std::string metadata_string = std::string("0010,0010=") + this->PatientName;
-    metadata.push_back(metadata_string);
+  Rt_study_metadata::Pointer& rt_metadata = RtStudy.get_rt_study_metadata ();
+  if (this->PatientName && this->PatientName[0] != 0)
+  {
+    rt_metadata->set_study_metadata (0x0010, 0x0010, this->PatientName);
   }
-  if (this->PatientID && this->PatientID[0] != 0) {
-    std::string metadata_string = std::string("0010,0020=") + this->PatientID;
-    metadata.push_back(metadata_string);
+  if (this->PatientID && this->PatientID[0] != 0)
+  {
+    rt_metadata->set_study_metadata (0x0010, 0x0020, this->PatientID);
   }
-  if (this->StudyDescription && this->StudyDescription[0] != 0) {
-    std::string metadata_string = std::string("0008,1030=") + this->StudyDescription;
-    metadata.push_back(metadata_string);
+  if (this->PatientSex && this->PatientSex[0] != 0)
+  {
+    rt_metadata->set_study_metadata (0x0010, 0x0040, this->PatientSex);
   }
-  RtStudy.set_study_metadata(metadata);
-
+  if (this->StudyDescription && this->StudyDescription[0] != 0)
+  {
+    rt_metadata->set_study_metadata (0x0008, 0x1030, this->StudyDescription);
+  }
+  if (this->StudyDate && this->StudyDate[0] != 0)
+  {
+    rt_metadata->set_study_date (this->StudyDate);
+  }
+  if (this->StudyTime && this->StudyTime[0] != 0)
+  {
+    rt_metadata->set_study_time (this->StudyTime);
+  }
+  if (this->StudyInstanceUid && this->StudyInstanceUid[0] != 0)
+  {
+    rt_metadata->set_study_uid (this->StudyInstanceUid);
+  }
+  if (this->StudyID && this->StudyID[0] != 0)
+  {
+    rt_metadata->set_study_metadata (0x0020, 0x0010, this->StudyID);
+  }
+  
   /* Set image, dose, rtstruct metadata */
 
   /* Write output to files */

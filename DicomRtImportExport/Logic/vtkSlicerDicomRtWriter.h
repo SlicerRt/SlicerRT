@@ -65,6 +65,19 @@ public:
   vtkSetStringMacro(PatientName);
   vtkGetStringMacro(PatientID);
   vtkSetStringMacro(PatientID);
+  vtkGetStringMacro(PatientSex);
+  vtkSetStringMacro(PatientSex);
+  vtkGetStringMacro(StudyDate);
+  vtkSetStringMacro(StudyDate);
+  vtkGetStringMacro(StudyTime);
+  vtkSetStringMacro(StudyTime);
+  vtkGetStringMacro(StudyDescription);
+  vtkSetStringMacro(StudyDescription);
+  vtkGetStringMacro(StudyInstanceUid);
+  vtkSetStringMacro(StudyInstanceUid);
+  vtkGetStringMacro(StudyID);
+  vtkSetStringMacro(StudyID);
+
   vtkGetStringMacro(FileName);
   vtkSetStringMacro(FileName);
   
@@ -76,7 +89,13 @@ protected:
   // Parameters that get written into DICOM header
   char* PatientName;
   char* PatientID;
+  char* PatientSex;
+  char* StudyDate;
+  char* StudyTime;
   char* StudyDescription;
+  char* StudyInstanceUid;
+  char* StudyID;
+
   char* ImageSeriesDescription;
   int ImageSeriesNumber;
 

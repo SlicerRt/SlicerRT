@@ -1684,9 +1684,39 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   }
 
   // Get common export parameters from first exportable
+  // These are the ones available through the DICOM Export widget
   vtkSlicerDICOMExportable* firstExportable = vtkSlicerDICOMExportable::SafeDownCast(exportables->GetItemAsObject(0));
   const char* patientName = firstExportable->GetTag(vtkMRMLSubjectHierarchyConstants::GetDICOMPatientNameTagName().c_str());
   const char* patientID = firstExportable->GetTag(vtkMRMLSubjectHierarchyConstants::GetDICOMPatientIDTagName().c_str());
+  const char* patientSex = firstExportable->GetTag(vtkMRMLSubjectHierarchyConstants::GetDICOMPatientSexTagName().c_str());
+  const char* studyDate = firstExportable->GetTag(vtkMRMLSubjectHierarchyConstants::GetDICOMStudyDateTagName().c_str());
+  const char* studyTime = firstExportable->GetTag(vtkMRMLSubjectHierarchyConstants::GetDICOMStudyTimeTagName().c_str());
+  const char* studyDescription = firstExportable->GetTag(vtkMRMLSubjectHierarchyConstants::GetDICOMStudyDescriptionTagName().c_str());
+
+  // Get other common export parameters
+  // These are the ones available in hierarchy
+  std::string studyInstanceUid = "";
+  std::string studyID = "";
+  vtkMRMLSubjectHierarchyNode* firstSHNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(mrmlScene->GetNodeByID(firstExportable->GetNodeID()));
+  if (firstSHNode)
+  {
+    vtkMRMLSubjectHierarchyNode* studySHNode = firstSHNode->GetAncestorAtLevel (
+      vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+    if (studySHNode)
+    {
+      studyInstanceUid = studySHNode->GetUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName());
+      studyID = studySHNode->GetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMStudyIDTagName().c_str());
+    }
+    else
+    {
+      vtkWarningMacro("ExportDicomRTStudy: Failed to get ancestor study from exportable with node ID " + std::string(firstExportable->GetNodeID()));
+    }
+  }
+  else
+  {
+    vtkWarningMacro("ExportDicomRTStudy: Failed to get SH node from exportable with node ID " + std::string(firstExportable->GetNodeID()));
+  }
+
   const char* outputPath = firstExportable->GetDirectory();
 
   // Get nodes for the different roles from the exportable list
@@ -1743,6 +1773,12 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   // Set metadata
   rtWriter->SetPatientName(patientName);
   rtWriter->SetPatientID(patientID);
+  rtWriter->SetPatientSex(patientSex);
+  rtWriter->SetStudyDate(studyDate);
+  rtWriter->SetStudyTime(studyTime);
+  rtWriter->SetStudyDescription(studyDescription);
+  rtWriter->SetStudyInstanceUid(studyInstanceUid.c_str());
+  rtWriter->SetStudyID(studyID.c_str());
 
   // Convert input image (CT/MR/etc) to the format Plastimatch can use
   Plm_image::Pointer plm_img = PlmCommon::ConvertVolumeNodeToPlmImage(
