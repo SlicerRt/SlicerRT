@@ -24,6 +24,7 @@
 
 // DVH includes
 #include "vtkSlicerDoseVolumeHistogramModuleLogic.h"
+#include "vtkMRMLDoseVolumeHistogramNode.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -56,7 +57,6 @@ vtkSlicerDoseVolumeHistogramComparisonLogic::~vtkSlicerDoseVolumeHistogramCompar
 //-----------------------------------------------------------------------------
 double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
 {
-  /* TODO
   vtkDoubleArray *dvh1Array = this->Dvh1DoubleArrayNode->GetArray();
   unsigned int dvh1Size = dvh1Array->GetNumberOfTuples();
 
@@ -71,7 +71,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
 
   // Determine total volume from the attribute of the current double array node
   std::ostringstream attributeNameStream;
-  attributeNameStream << vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX << vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
+  attributeNameStream << vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX << vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_TOTAL_VOLUME_CC;
   const char* totalVolumeChar;
 
   // The vtkDoubleArray with the smallest number of tuples is the baseline
@@ -146,8 +146,6 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
   agreementAcceptancePercentage = 100.0 * (double)numberOfAcceptedAgreements / (double)baselineSize;
 
   return agreementAcceptancePercentage;
-  */
-  return 0.0;
 }
 
 //-----------------------------------------------------------------------------

@@ -64,6 +64,7 @@
 #include <vtkTable.h>
 #include <vtkTimerLog.h>
 #include <vtkCallbackCommand.h>
+#include <vtkDelimitedTextWriter.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -89,7 +90,7 @@ const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_DOSE_POSTF
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_INTENSITY_POSTFIX = "intensity";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_ARRAY_NODE_NAME_POSTFIX = "_DvhArray";
 
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE = " Value (% of "; //TODO:
+const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE = " Value (% of ";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_END = " cc)";
 
 //----------------------------------------------------------------------------
@@ -554,8 +555,14 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkOrientedImage
   metricsTable->SetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnStructure, vtkVariant(segmentName));
   // Volume name
   metricsTable->SetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnDoseVolume, vtkVariant(doseVolumeNode->GetName()));
-  // Volume (cc)
-  metricsTable->SetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnVolumeCc, vtkVariant(structureStat->GetVoxelCount() * cubicMMPerVoxel * ccPerCubicMM));
+  // Volume (cc) - save as attribute too (the DVH contains percentages that often need to be converted to volume)
+  double volumeCc = structureStat->GetVoxelCount() * cubicMMPerVoxel * ccPerCubicMM;
+  metricsTable->SetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnVolumeCc, vtkVariant(volumeCc));
+  std::ostringstream attributeNameStream;
+  std::ostringstream attributeValueStream;
+  attributeNameStream << vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX << vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_TOTAL_VOLUME_CC;
+  attributeValueStream << volumeCc;
+  arrayNode->SetAttribute(attributeNameStream.str().c_str(), attributeValueStream.str().c_str());
   // Mean dose
   metricsTable->SetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnMeanDose, vtkVariant(structureStat->GetMean()[0]));
   // Min dose
@@ -1112,16 +1119,17 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeVMetrics()
     interpolator->AddPoint(doubleArray->GetComponent(0, 0), doubleArray->GetComponent(0, 1));
 
     // Calculate metrics and set table entries
+    int tableColumn = numberOfColumnsBefore;
     for (std::vector<double>::iterator it = doseValues.begin(); it != doseValues.end(); ++it)
     {
       double volumePercentEstimated = interpolator->GetValue(*it);
       if (this->DoseVolumeHistogramNode->GetShowVMetricsCc())
       {
-        metricsTable->SetValue( tableRow, numberOfColumnsBefore++, vtkVariant(volumePercentEstimated*structureVolume/100.0) );
+        metricsTable->SetValue( tableRow, tableColumn++, vtkVariant(volumePercentEstimated*structureVolume/100.0) );
       }
       if (this->DoseVolumeHistogramNode->GetShowVMetricsPercent())
       {
-        metricsTable->SetValue( tableRow, numberOfColumnsBefore++, vtkVariant(volumePercentEstimated) );
+        metricsTable->SetValue( tableRow, tableColumn++, vtkVariant(volumePercentEstimated) );
       }
     }
   } // For all DVHs
@@ -1206,12 +1214,18 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDMetrics()
   }
 
   // Get D metric dose values from input string
-  std::string volumeValuesCcStr(this->DoseVolumeHistogramNode->GetDVolumeValuesCc());
   std::vector<double> volumeValuesCc;
-  this->GetNumbersFromMetricString(volumeValuesCcStr, volumeValuesCc);
-  std::string volumeValuesPercentStr(this->DoseVolumeHistogramNode->GetDVolumeValuesPercent());
   std::vector<double> volumeValuesPercent;
-  this->GetNumbersFromMetricString(volumeValuesPercentStr, volumeValuesPercent);
+  if (this->DoseVolumeHistogramNode->GetDVolumeValuesCc())
+  {
+    std::string volumeValuesCcStr(this->DoseVolumeHistogramNode->GetDVolumeValuesCc());
+    this->GetNumbersFromMetricString(volumeValuesCcStr, volumeValuesCc);
+  }
+  if (this->DoseVolumeHistogramNode->GetDVolumeValuesPercent())
+  {
+    std::string volumeValuesPercentStr(this->DoseVolumeHistogramNode->GetDVolumeValuesPercent());
+    this->GetNumbersFromMetricString(volumeValuesPercentStr, volumeValuesPercent);
+  }
 
   // Create table columns for requested D metrics
   int numberOfColumnsBefore = metricsTable->GetNumberOfColumns();
@@ -1273,15 +1287,16 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDMetrics()
     }
 
     // Calculate metrics and set table entries
+    int tableColumn = numberOfColumnsBefore;
     for (std::vector<double>::iterator ccIt=volumeValuesCc.begin(); ccIt!=volumeValuesCc.end(); ++ccIt)
     {
       double d = ComputeDMetric(dvhArrayNode, (*ccIt), structureVolume, false);
-      metricsTable->SetValue( tableRow, numberOfColumnsBefore++, vtkVariant(d) );
+      metricsTable->SetValue( tableRow, tableColumn++, vtkVariant(d) );
     }
     for (std::vector<double>::iterator percentIt=volumeValuesPercent.begin(); percentIt!=volumeValuesPercent.end(); ++percentIt)
     {
       double d = ComputeDMetric(dvhArrayNode, (*percentIt), structureVolume, true);
-      metricsTable->SetValue( tableRow, numberOfColumnsBefore++, vtkVariant(d) );
+      metricsTable->SetValue( tableRow, tableColumn++, vtkVariant(d) );
     }
   } // For all DVHs
 
@@ -1363,86 +1378,89 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::DoseVolumeContainsDose()
 
 //---------------------------------------------------------------------------
 bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(const char* fileName, bool comma/*=true*/)
-{/*
+{
   if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
   {
     vtkErrorMacro("ExportDvhToCsv: Invalid MRML scene or parameter set node!");
     return false;
   }
-
-  vtkMRMLChartNode* chartNode = this->DoseVolumeHistogramNode->GetChartNode();
-  if (!chartNode)
+  vtkMRMLScalarVolumeNode* doseVolumeNode = this->DoseVolumeHistogramNode->GetDoseVolumeNode();
+  if (!doseVolumeNode)
   {
-    vtkErrorMacro("ExportDvhToCsv: Unable to get chart node");
+    vtkErrorMacro("ExportDvhToCsv: Unable to find dose volume node!");
+    return false;
+  }
+  vtkMRMLTableNode* metricsTableNode = this->DoseVolumeHistogramNode->GetMetricsTableNode();
+  if (!metricsTableNode)
+  {
+    vtkErrorMacro("ExportDvhToCsv: Unable to access DVH metrics table node");
 		return false;
   }
+  vtkTable* metricsTable = metricsTableNode->GetTable();
+
+  // Get dose unit name
+  const char* doseUnitName = NULL;
+  vtkMRMLSubjectHierarchyNode* doseVolumeSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(doseVolumeNode);
+  if (doseVolumeSubjectHierarchyNode)
+  {
+    doseUnitName = doseVolumeSubjectHierarchyNode->GetAttributeFromAncestor(
+      SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+  }
+
+  // Get all DVH array nodes from the parameter set node
+  std::vector<vtkMRMLDoubleArrayNode*> dvhArrayNodes;
+  this->DoseVolumeHistogramNode->GetDvhArrayNodes(dvhArrayNodes);
 
   // Open output file
   std::ofstream outfile;
   outfile.open(fileName, std::ios_base::out | std::ios_base::trunc);
-
-	if ( !outfile )
+	if (!outfile)
 	{
     vtkErrorMacro("ExportDvhToCsv: Output file '" << fileName << "' cannot be opened!");
 		return false;
 	}
 
-  vtkStringArray* structureNames = chartNode->GetArrayNames();
-  vtkStringArray* arrayIDs = chartNode->GetArrays();
-
   // Determine the maximum number of values
   int maxNumberOfValues = -1;
-	for (int i=0; i<arrayIDs->GetNumberOfValues(); ++i)
-	{
-    vtkMRMLNode *node = this->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(i) );
-    vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node);
-    if (doubleArrayNode)
+  for (std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhIt=dvhArrayNodes.begin(); dvhIt!=dvhArrayNodes.end(); ++dvhIt)
+  {
+    vtkMRMLDoubleArrayNode* dvhArrayNode = (*dvhIt);
+    if (dvhArrayNode->GetArray()->GetNumberOfTuples() > maxNumberOfValues)
     {
-      if (doubleArrayNode->GetArray()->GetNumberOfTuples() > maxNumberOfValues)
-      {
-        maxNumberOfValues = doubleArrayNode->GetArray()->GetNumberOfTuples();
-      }
-    }
-    else
-    {
-      vtkErrorMacro("ExportDvhToCsv: Invalid double array node in selected chart!");
-      return false;
+      maxNumberOfValues = dvhArrayNode->GetArray()->GetNumberOfTuples();
     }
   }
 
   // Write header
-  std::string totalVolumeAttributeName = DVH_METRIC_ATTRIBUTE_NAME_PREFIX + DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
-  for (int i=0; i<structureNames->GetNumberOfValues(); ++i)
+  for (std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhIt=dvhArrayNodes.begin(); dvhIt!=dvhArrayNodes.end(); ++dvhIt)
   {
-    vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
-      this->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(i)) );
-    const char* totalVolumeStr = doubleArrayNode->GetAttribute(totalVolumeAttributeName.c_str());
-
+    vtkMRMLDoubleArrayNode* dvhArrayNode = (*dvhIt);
+    int tableRow = -1;
     std::stringstream ss;
-    ss << totalVolumeStr;
-    double doubleValue;
-    ss >> doubleValue;
-    double totalVolume = doubleValue;
+    ss << dvhArrayNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str());
+    ss >> tableRow;
 
-    outfile << structureNames->GetValue(i).c_str() << " Dose (Gy)" << (comma ? "," : "\t");
-    outfile << structureNames->GetValue(i).c_str() << DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE
-      << std::fixed << std::setprecision(3) << totalVolume << DVH_CSV_HEADER_VOLUME_FIELD_END << (comma ? "," : "\t");
+    double volume = metricsTable->GetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnVolumeCc).ToDouble();
+    std::string structureName = metricsTable->GetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnStructure).ToString();
+
+    outfile << structureName << " Dose (" << doseUnitName << ")" << (comma ? "," : "\t");
+    outfile << structureName << DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE
+      << std::fixed << std::setprecision(3) << volume << DVH_CSV_HEADER_VOLUME_FIELD_END << (comma ? "," : "\t");
   }
 	outfile << std::endl;
 
   // Write values
 	for (int row=0; row<maxNumberOfValues; ++row)
   {
-	  for (int column=0; column<arrayIDs->GetNumberOfValues(); ++column)
-	  {
-      vtkMRMLDoubleArrayNode* doubleArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
-        this->GetMRMLScene()->GetNodeByID( arrayIDs->GetValue(column)) );
+    for (std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhIt=dvhArrayNodes.begin(); dvhIt!=dvhArrayNodes.end(); ++dvhIt)
+    {
+      vtkMRMLDoubleArrayNode* dvhArrayNode = (*dvhIt);
 
-      if (row < doubleArrayNode->GetArray()->GetNumberOfTuples())
+      if (row < dvhArrayNode->GetArray()->GetNumberOfTuples())
       {
     	  std::ostringstream doseStringStream;
 			  doseStringStream << std::fixed << std::setprecision(6) <<
-          doubleArrayNode->GetArray()->GetComponent(row, 0);
+          dvhArrayNode->GetArray()->GetComponent(row, 0);
         std::string dose = doseStringStream.str();
         if (!comma)
         {
@@ -1456,11 +1474,11 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(const char* fileNam
       }
       outfile << (comma ? "," : "\t");
 
-      if (row < doubleArrayNode->GetArray()->GetNumberOfTuples())
+      if (row < dvhArrayNode->GetArray()->GetNumberOfTuples())
       {
     	  std::ostringstream valueStringStream;
 			  valueStringStream << std::fixed << std::setprecision(6) <<
-          doubleArrayNode->GetArray()->GetComponent(row, 1);
+          dvhArrayNode->GetArray()->GetComponent(row, 1);
         std::string value = valueStringStream.str();
         if (!comma)
         {
@@ -1478,145 +1496,56 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(const char* fileNam
   }
 
 	outfile.close();
-  */
+
   return true;
 }
 
-//---------------------------------------------------------------------------
-bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhMetricsToCsv(const char* fileName,
-                        std::vector<double> vDoseValuesCc,
-                        std::vector<double> vDoseValuesPercent,
-                        std::vector<double> dVolumeValuesCc,
-                        std::vector<double> dVolumeValuesPercent,
-                        bool comma/*=true*/)
+//-----------------------------------------------------------------------------
+bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhMetricsToCsv(const char* fileName, bool comma/*=true*/)
 {
   if (!this->GetMRMLScene() || !this->DoseVolumeHistogramNode)
   {
     vtkErrorMacro("ExportDvhMetricsToCsv: Invalid MRML scene or parameter set node!");
     return false;
   }
+  vtkMRMLTableNode* metricsTableNode = this->DoseVolumeHistogramNode->GetMetricsTableNode();
 
-  // Open output file for writing
-  std::ofstream outfile;
-  outfile.open(fileName, std::ios_base::out | std::ios_base::trunc);
-	if ( !outfile )
+  // Make a copy of the metrics table without the visualization and dose volume name columns
+  vtkSmartPointer<vtkTable> metricsTableCopy = vtkSmartPointer<vtkTable>::New();
+  metricsTableCopy->DeepCopy(metricsTableNode->GetTable());
+  metricsTableCopy->RemoveColumn(vtkMRMLDoseVolumeHistogramNode::MetricColumnDoseVolume);
+  metricsTableCopy->RemoveColumn(vtkMRMLDoseVolumeHistogramNode::MetricColumnVisible);
+
+  vtkNew<vtkDelimitedTextWriter> writer;
+  writer->SetFileName(fileName);
+  writer->SetInputData(metricsTableCopy);
+  writer->SetUseStringDelimiter(false);
+
+	if (!comma)
 	{
-    vtkErrorMacro("ExportDvhMetricsToCsv: Output file '" << fileName << "' cannot be opened for writing!");
-		return false;
-	}
-  /*
-  std::vector<vtkMRMLNode*> dvhNodes;
-  this->DoseVolumeHistogramNode->GetDvhDoubleArrayNodes(dvhNodes);
-
-  // Collect metrics for all included nodes
-  std::vector<std::string> metricList;
-  this->CollectMetricsForDvhNodes(dvhNodes, metricList);
-
-  // Write header
-  outfile << "Structure" << (comma ? "," : "\t");
-  for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
-  {
-    outfile << it->substr(DVH_METRIC_ATTRIBUTE_NAME_PREFIX.size()) << (comma ? "," : "\t");
+    writer->SetFieldDelimiter("\t");
   }
-  for (std::vector<double>::iterator it = vDoseValuesCc.begin(); it != vDoseValuesCc.end(); ++it)
+  else
   {
-    outfile << "V" << (*it) << " (cc)" << (comma ? "," : "\t");
-  }
-  for (std::vector<double>::iterator it = vDoseValuesPercent.begin(); it != vDoseValuesPercent.end(); ++it)
-  {
-    outfile << "V" << (*it) << " (%)" << (comma ? "," : "\t");
-  }
-  for (std::vector<double>::iterator it = dVolumeValuesCc.begin(); it != dVolumeValuesCc.end(); ++it)
-  {
-    outfile << "D" << (*it) << "cc (Gy)" << (comma ? "," : "\t");
-  }
-  for (std::vector<double>::iterator it = dVolumeValuesPercent.begin(); it != dVolumeValuesPercent.end(); ++it)
-  {
-    outfile << "D" << (*it) << "% (Gy)" << (comma ? "," : "\t");
-  }
-  outfile << std::endl;
-
-  outfile.setf(std::ostream::fixed);
-  outfile.precision(6);
-
-  // Fill the table
-  std::vector<vtkMRMLNode*>::iterator dvhIt;
-  for (dvhIt = dvhNodes.begin(); dvhIt != dvhNodes.end(); ++dvhIt)
-  {
-    if (!(*dvhIt))
-    {
-      continue;
-    }
-
-    outfile << (*dvhIt)->GetAttribute(DVH_SEGMENT_NAME_ATTRIBUTE_NAME.c_str()) << (comma ? "," : "\t");
-
-    // Add default metric values
-    for (std::vector<std::string>::iterator it = metricList.begin(); it != metricList.end(); ++it)
-    {
-      std::string metricValue( (*dvhIt)->GetAttribute( it->c_str() ) );
-      if (metricValue.empty())
-      {
-        outfile << (comma ? "," : "\t");
-        continue;
-      }
-
-      outfile << metricValue << (comma ? "," : "\t");
-    }
-
-    // Add V metric values
-    std::vector<double> dummy;
-    if (vDoseValuesCc.size() > 0)
-    {
-      std::vector<double> volumes;
-      this->ComputeVMetrics(vtkMRMLDoubleArrayNode::SafeDownCast(*dvhIt), vDoseValuesCc, volumes, dummy);
-      for (std::vector<double>::iterator it = volumes.begin(); it != volumes.end(); ++it)
-      {
-        outfile << (*it) << (comma ? "," : "\t");
-      }
-    }
-    if (vDoseValuesPercent.size() > 0)
-    {
-      std::vector<double> percents;
-      this->ComputeVMetrics(vtkMRMLDoubleArrayNode::SafeDownCast(*dvhIt), vDoseValuesPercent, dummy, percents);
-      for (std::vector<double>::iterator it = percents.begin(); it != percents.end(); ++it)
-      {
-        outfile << (*it) << (comma ? "," : "\t");
-      }
-    }
-
-    // Add D metric values
-    if (dVolumeValuesCc.size() > 0)
-    {
-      std::vector<double> doses;
-      this->ComputeDMetrics(vtkMRMLDoubleArrayNode::SafeDownCast(*dvhIt), dVolumeValuesCc, doses, false);
-      for (std::vector<double>::iterator it = doses.begin(); it != doses.end(); ++it)
-      {
-        outfile << (*it) << (comma ? "," : "\t");
-      }
-    }
-    if (dVolumeValuesPercent.size() > 0)
-    {
-      std::vector<double> doses;
-      this->ComputeDMetrics(vtkMRMLDoubleArrayNode::SafeDownCast(*dvhIt), dVolumeValuesPercent, doses, true);
-      for (std::vector<double>::iterator it = doses.begin(); it != doses.end(); ++it)
-      {
-        outfile << (*it) << (comma ? "," : "\t");
-      }
-    }
-
-    outfile << std::endl;
+    writer->SetFieldDelimiter(",");
   }
 
-	outfile.close();
+  try
+  {
+    writer->Write();
+  }
+  catch (...)
+  {
+    vtkErrorMacro("ExportDvhMetricsToCsv: Failed to write DVH metrics table to file " << fileName);
+    return false;
+  }
 
   return true;
-  */
-  return false; //TODO:
 }
 
 //-----------------------------------------------------------------------------
 vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode(std::string csvFilename)
-{/*
+{
   std::string csvSeparatorCharacter = ",";
   
   std::vector< vtkSmartPointer< vtkDoubleArray > > currentDvh;
@@ -1708,7 +1637,7 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
       }
         
       // Add a vtkDoubleArray for each structure into the vector
-      for(int structureIndex=0; structureIndex < fieldCount/2; ++structureIndex)
+      for (int structureIndex=0; structureIndex < fieldCount/2; ++structureIndex)
       {
         vtkSmartPointer<vtkDoubleArray> tempArray = vtkSmartPointer<vtkDoubleArray>::New();
         tempArray->SetNumberOfComponents(3);
@@ -1780,13 +1709,13 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
     
     // Set the total volume attribute in the vtkMRMLDoubleArrayNode attributes
     std::ostringstream attributeNameStream;
-    attributeNameStream << DVH_METRIC_ATTRIBUTE_NAME_PREFIX << DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
+    attributeNameStream << vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX << vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_TOTAL_VOLUME_CC;
     std::ostringstream attributeValueStream;
     attributeValueStream << structureVolumeCCs[structureIndex];
     currentNode->SetAttribute(attributeNameStream.str().c_str(), attributeValueStream.str().c_str());
     
     // Set the structure's name attribute and variables
-    currentNode->SetAttribute(DVH_SEGMENT_NAME_ATTRIBUTE_NAME.c_str(), structureNames.at(structureIndex).c_str());
+    currentNode->SetAttribute(DVH_SEGMENT_ID_ATTRIBUTE_NAME.c_str(), structureNames.at(structureIndex).c_str());
     std::string nameAttribute = structureNames.at(structureIndex) + DVH_ARRAY_NODE_NAME_POSTFIX;
     currentNode->SetName(nameAttribute.c_str());
 
@@ -1795,7 +1724,6 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
   }
 
   return doubleArrayNodes;
-  */return NULL; //TODO
 }
 
 //---------------------------------------------------------------------------
@@ -1906,53 +1834,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnVisibilityChanged(vtkObject* cal
     return;
   }
 
-  // Get DVH metrics table
-  vtkMRMLTableNode* metricsTableNode = paramNode->GetMetricsTableNode();
-  if (!metricsTableNode)
-  {
-    vtkErrorWithObjectMacro(self,"OnVisibilityChanged: Unable to access metrics table node!");
-    return;
-  }
-  vtkTable* metricsTable = metricsTableNode->GetTable();
-  if (metricsTable->GetNumberOfRows() != visArray->GetNumberOfTuples())
-  {
-    vtkErrorWithObjectMacro(self,"OnVisibilityChanged: Mismatch between metrics table and visibility options!");
-    return;
-  }
-
-  // Restore all visibility to false if there is no chart view selected
-  vtkMRMLChartNode* chartNode = paramNode->GetChartNode();
-  if (!chartNode)
-  {
-    for (int row=0; row<metricsTable->GetNumberOfRows(); ++row)
-    {
-      metricsTable->SetValue(row, vtkMRMLDoseVolumeHistogramNode::MetricColumnVisible, vtkVariant(0));
-      metricsTableNode->Modified();
-    }
-    return;
-  }
-
   // Go through DVHs and change chart visibility for DVH for which the visibility value was modified
   std::set<int> rows;
-  std::vector<std::string> roles;
-  metricsTableNode->GetNodeReferenceRoles(roles);
-  for (std::vector<std::string>::iterator roleIt=roles.begin(); roleIt!=roles.end(); ++roleIt)
+  std::vector<vtkMRMLDoubleArrayNode*> dvhArrayNodes;
+  paramNode->GetDvhArrayNodes(dvhArrayNodes);
+  for (std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhIt=dvhArrayNodes.begin(); dvhIt!=dvhArrayNodes.end(); ++dvhIt)
   {
-    if ( roleIt->substr(0, vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX.size()).compare(
-      vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX ) )
-    {
-      // Not a DVH reference
-      continue;
-    }
-
-    // Get DVH node
-    vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
-      metricsTableNode->GetNodeReference(roleIt->c_str()) );
-    if (!dvhArrayNode)
-    {
-      vtkErrorWithObjectMacro(self,"OnVisibilityChanged: Metrics table node reference '" << (*roleIt) << "' does not contain DVH node!");
-      continue;
-    }
+    vtkMRMLDoubleArrayNode* dvhArrayNode = (*dvhIt);
 
     // Get corresponding table row
     int tableRow = -1;
@@ -1982,7 +1870,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnVisibilityChanged(vtkObject* cal
     }
   }
 
-  if (rows.size() != metricsTable->GetNumberOfRows())
+  if (rows.size() != paramNode->GetMetricsTableNode()->GetNumberOfRows())
   {
     vtkErrorWithObjectMacro(self,"OnVisibilityChanged: Mismatch between referenced DVH arrays and metrics table!");
   }

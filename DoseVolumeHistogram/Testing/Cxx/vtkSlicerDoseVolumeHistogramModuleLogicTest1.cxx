@@ -473,12 +473,12 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   double checkpointEnd = timer->GetUniversalTime();
   UNUSED_VARIABLE(checkpointEnd); // Although it is used just below, a warning is logged so needs to be suppressed
   std::cout << "DVH computation time (including rasterization): " << checkpointEnd-checkpointStart << std::endl;
-  /* //TODO
-  std::vector<vtkMRMLNode*> dvhNodes;
-  paramNode->GetDvhDoubleArrayNodes(dvhNodes);
+
+  std::vector<vtkMRMLDoubleArrayNode*> dvhNodes;
+  paramNode->GetDvhArrayNodes(dvhNodes);
 
   // Add DVH arrays to chart node
-  std::vector<vtkMRMLNode*>::iterator dvhIt;
+  std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhIt;
   for (dvhIt = dvhNodes.begin(); dvhIt != dvhNodes.end(); ++dvhIt)
   {
     if (!(*dvhIt))
@@ -496,23 +496,19 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   vtksys::SystemTools::RemoveFile(temporaryDvhTableCsvFileName);
   dvhLogic->ExportDvhToCsv(temporaryDvhTableCsvFileName);
 
-  // Export DVH metrics to CSV
-  static const double vDoseValuesCcArr[] = {5, 20};
-  std::vector<double> vDoseValuesCc( vDoseValuesCcArr, vDoseValuesCcArr
-    + sizeof(vDoseValuesCcArr) / sizeof(vDoseValuesCcArr[0]) );
-  static const double vDoseValuesPercentArr[] = {5, 20};
-  std::vector<double> vDoseValuesPercent( vDoseValuesPercentArr, vDoseValuesPercentArr
-    + sizeof(vDoseValuesPercentArr) / sizeof(vDoseValuesPercentArr[0]) );
-  static const double dVolumeValuesCcArr[] = {2, 5};
-  std::vector<double> dVolumeValuesCc( dVolumeValuesCcArr, dVolumeValuesCcArr +
-    sizeof(dVolumeValuesCcArr) / sizeof(dVolumeValuesCcArr[0]) );
-  static const double dVolumeValuesPercentArr[] = {5, 10};
-  std::vector<double> dVolumeValuesPercent( dVolumeValuesPercentArr, dVolumeValuesPercentArr +
-    sizeof(dVolumeValuesPercentArr) / sizeof(dVolumeValuesPercentArr[0]) );
+  // Compute DVH metrics
+  paramNode->SetVDoseValues("5, 20");
+  paramNode->SetShowVMetricsCc(true);
+  paramNode->SetShowVMetricsPercent(true);
+  dvhLogic->ComputeVMetrics();
+
+  paramNode->SetDVolumeValuesCc("2, 5");
+  paramNode->SetDVolumeValuesPercent("5, 10");
+  paramNode->SetShowDMetrics(true);
+  dvhLogic->ComputeDMetrics();
 
   vtksys::SystemTools::RemoveFile(temporaryDvhMetricCsvFileName);
-  dvhLogic->ExportDvhMetricsToCsv(temporaryDvhMetricCsvFileName,
-    vDoseValuesCc, vDoseValuesPercent, dVolumeValuesCc, dVolumeValuesPercent);
+  dvhLogic->ExportDvhMetricsToCsv(temporaryDvhMetricCsvFileName);
 
   bool returnWithSuccess = true;
 
@@ -560,7 +556,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     return EXIT_FAILURE;
   }
-  */
+
   return EXIT_SUCCESS;
 }
 
@@ -634,15 +630,13 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
       }
     }
     
-    /* //TODO
     std::string segmentId = currentStructure->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_SEGMENT_ID_ATTRIBUTE_NAME.c_str());
     std::ostringstream volumeAttributeNameStream;
-    volumeAttributeNameStream << vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_ATTRIBUTE_NAME_PREFIX << vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_TOTAL_VOLUME_CC_ATTRIBUTE_NAME;
+    volumeAttributeNameStream << vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX << vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_TOTAL_VOLUME_CC;
     std::string structureVolume = currentStructure->GetAttribute(volumeAttributeNameStream.str().c_str());
     
-    std::cout << "Accepted agreements per structure (" << structureName << ", " << structureVolume << " cc): " << numberOfAcceptedAgreementsPerStructure
+    std::cout << "Accepted agreements per structure (" << segmentId << ", " << structureVolume << " cc): " << numberOfAcceptedAgreementsPerStructure
       << " out of " << numberOfBinsPerStructure << " (" << std::fixed << std::setprecision(2) << acceptedBinsRatio << "%)" << std::endl;
-    */
   } // end for
 
   std::cout << "Accepted structures with threshold of 90%: " << std::fixed << std::setprecision(2) << (double)numberOfAcceptedStructuresWith90 / (double)currentDvh->GetNumberOfItems() * 100.0 << std::endl;

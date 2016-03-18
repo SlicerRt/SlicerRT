@@ -107,13 +107,7 @@ public:
   bool ExportDvhToCsv(const char* fileName, bool comma=true);
 
   /// Export DVH metrics
-  /// \param vDoseValuesCc List of doses for V(cc) metrics to be computed and exported
-  /// \param vDoseValuesPercent List of doses for V(%) metrics to be computed and exported
-  /// \param dVolumeValuesCc List of volume sizes in cc's for D metrics to be computed and exported
-  /// \param dVolumeValuesPercent List of volume sizes in percentage of the structure size for D metrics to be computed and exported
-  /// \param comma Flag determining if the CSV file to be saved is deliminated using commas or tabs (regional considerations)
-  /// \return True if file written and saved successfully, false otherwise
-  bool ExportDvhMetricsToCsv(const char* fileName, std::vector<double> vDoseValuesCc, std::vector<double> vDoseValuesPercent, std::vector<double> dVolumeValuesCc, std::vector<double> dVolumeValuesPercent, bool comma=true);
+  bool ExportDvhMetricsToCsv(const char* fileName, bool comma=true);
 
   /// Read DVH double arrays from a CSV file
   /// \return a vtkCollection containing vtkMRMLDoubleArrayNodes. Each node represents one structure DVH and contains the vtkDoubleArray as well as the name and total volume attributes for the structure.

@@ -37,7 +37,6 @@
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
-#include <vtkTable.h>
 
 // STD includes
 #include <sstream>
@@ -356,18 +355,6 @@ vtkMRMLChartNode* vtkMRMLDoseVolumeHistogramNode::GetChartNode()
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveChartNode(vtkMRMLChartNode* node)
 {
   this->SetNodeReferenceID(CHART_REFERENCE_ROLE, (node ? node->GetID() : NULL));
-
-  // Set all visibility selection to false when chart node is changed
-  // TODO: It could be better to actually set visibility according to contained DVH arrays in the selected chart view
-  vtkMRMLTableNode* metricsTableNode = this->GetMetricsTableNode();
-  if (metricsTableNode)
-  {
-    for (int row=0; row<metricsTableNode->GetNumberOfRows(); ++row)
-    {
-      metricsTableNode->GetTable()->SetValue(row, MetricColumnVisible, vtkVariant(0));
-    }
-    metricsTableNode->Modified();
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -386,4 +373,34 @@ std::string vtkMRMLDoseVolumeHistogramNode::AssembleDvhNodeReference(std::string
   referenceRole.append("_");
   referenceRole.append(segmentID);
   return referenceRole;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLDoseVolumeHistogramNode::GetDvhArrayNodes(std::vector<vtkMRMLDoubleArrayNode*> &dvhArrayNodes)
+{
+  dvhArrayNodes.clear();
+
+  vtkMRMLTableNode* metricsTableNode = this->GetMetricsTableNode();
+  std::vector<std::string> roles;
+  metricsTableNode->GetNodeReferenceRoles(roles);
+  for (std::vector<std::string>::iterator roleIt=roles.begin(); roleIt!=roles.end(); ++roleIt)
+  {
+    if ( roleIt->substr(0, vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX.size()).compare(
+      vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX ) )
+    {
+      // Not a DVH reference
+      continue;
+    }
+
+    // Get DVH node
+    vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
+      metricsTableNode->GetNodeReference(roleIt->c_str()) );
+    if (!dvhArrayNode)
+    {
+      vtkErrorMacro("GetDvhArrayNodes: Metrics table node reference '" << (*roleIt) << "' does not contain DVH node!");
+      continue;
+    }
+
+    dvhArrayNodes.push_back(dvhArrayNode);
+  }
 }

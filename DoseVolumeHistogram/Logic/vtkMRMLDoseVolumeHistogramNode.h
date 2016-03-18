@@ -127,6 +127,9 @@ public:
   /// Assemble DVH node reference role for current input selection and specific segment
   std::string AssembleDvhNodeReference(std::string segmentID);
 
+  /// Collect DVH array nodes belonging to this parameter set node
+  void GetDvhArrayNodes(std::vector<vtkMRMLDoubleArrayNode*> &dvhArrayNodes);
+
   /// Get/Set Show/Hide all checkbox state
   vtkGetMacro(ShowHideAll, int);
   vtkSetMacro(ShowHideAll, int);

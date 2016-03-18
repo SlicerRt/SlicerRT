@@ -306,60 +306,32 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
   vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
-  if (paramNode)
-  {
-    // Enable/disable Compute DVH button
-    bool dvhCanBeComputed = paramNode->GetDoseVolumeNode()
-                         && paramNode->GetSegmentationNode();
-    d->pushButton_ComputeDVH->setEnabled(dvhCanBeComputed);
 
-    // Enable/disable visibility related buttons
-    bool dvhComputed = paramNode->GetMetricsTableNode()->GetTable()->GetNumberOfRows();
-    d->pushButton_ShowAll->setEnabled(dvhComputed);
-    d->pushButton_HideAll->setEnabled(dvhComputed);
-    d->pushButton_SwitchToFourUpQuantitativeLayout->setEnabled(dvhComputed);
-    d->pushButton_SwitchToOneUpQuantitativeLayout->setEnabled(dvhComputed);
+  // Enable/disable Compute DVH button
+  bool dvhCanBeComputed = paramNode && paramNode->GetDoseVolumeNode() && paramNode->GetSegmentationNode();
+  d->pushButton_ComputeDVH->setEnabled(dvhCanBeComputed);
 
-    // Enable/disable Export DVH to file button
-    /* //TODO:
-    bool dvhIsPlotted = false;
-    if (paramNode->GetChartNode())
-    {
-      std::vector<bool> checkStates;
-      paramNode->GetShowInChartCheckStates(checkStates);
-      for (std::vector<bool>::iterator stateIt = checkStates.begin(); stateIt != checkStates.end(); ++stateIt)
-      {
-        // If at lease one DVH is displayed in the chart view
-        if (*stateIt)
-        {
-          dvhIsPlotted = true;
-          break;
-        }
-      }
-      d->pushButton_ExportDvhToCsv->setToolTip( dvhIsPlotted ? tr("Export DVH values from the selected structures in the selected chart to CSV file") :
-        tr("Only the shown structures are saved in the file. No structures are selected, so none can be saved!"));
-    }
-    else
-    {
-      d->pushButton_ExportDvhToCsv->setToolTip(tr("Chart node needs to be selected first before saving DVH values to file!"));
-    }
-    d->pushButton_ExportDvhToCsv->setEnabled(dvhIsPlotted);
+  // Enable/disable visibility related buttons
+  bool dvhComputed = paramNode && paramNode->GetMetricsTableNode()->GetNumberOfRows();
+  d->pushButton_ShowAll->setEnabled(dvhComputed);
+  d->pushButton_HideAll->setEnabled(dvhComputed);
+  d->pushButton_SwitchToFourUpQuantitativeLayout->setEnabled(dvhComputed);
+  d->pushButton_SwitchToOneUpQuantitativeLayout->setEnabled(dvhComputed);
 
-    // Enable/disable Export metrics button
-    std::vector<vtkMRMLNode*> dvhNodes;
-    paramNode->GetDvhDoubleArrayNodes(dvhNodes);
-    bool dvhMetricsCanBeExported = (dvhNodes.size() > 0);
-    d->pushButton_ExportMetricsToCsv->setEnabled(dvhMetricsCanBeExported);
-    */
-  }
+  // Enable/disable Export DVH to file button
+  d->pushButton_ExportDvhToCsv->setEnabled(dvhComputed);
+
+  // Enable/disable Export metrics button
+  d->pushButton_ExportMetricsToCsv->setEnabled(dvhComputed);
 
   // Enable/disable V and D metric control
-  /*
-  bool vdMetricCanBeShown = (d->tableWidget_ChartStatistics->rowCount() > 0);
-  d->checkBox_ShowVMetricsCc->setEnabled(vdMetricCanBeShown);
-  d->checkBox_ShowVMetricsPercent->setEnabled(vdMetricCanBeShown);
-  d->checkBox_ShowDMetrics->setEnabled(vdMetricCanBeShown);
-  */
+  d->lineEdit_VDose->setEnabled(dvhComputed);
+  d->checkBox_ShowVMetricsCc->setEnabled(dvhComputed);
+  d->checkBox_ShowVMetricsPercent->setEnabled(dvhComputed);
+  d->lineEdit_DVolumeCc->setEnabled(dvhComputed);
+  d->lineEdit_DVolumePercent->setEnabled(dvhComputed);
+  d->checkBox_ShowDMetrics->setEnabled(dvhComputed);
+
   d->label_Error->setVisible(false);
 }
 
@@ -496,6 +468,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
   delete d->ConvertProgressDialog;
 
   d->MRMLTableView->setFirstRowLocked(true);
+  d->MRMLTableView->resizeColumnsToContents();
+  d->MRMLTableView->setColumnWidth(vtkMRMLDoseVolumeHistogramNode::MetricColumnVisible, 36);
   this->updateButtonsState();
 
   QApplication::restoreOverrideCursor();
@@ -523,71 +497,40 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
   // User selects file and format
   QString selectedFilter;
 
-	QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH values to CSV file" ) ), tr(""), QString( tr( "CSV with COMMA ( *.csv );;CSV with TAB ( *.csv )" ) ), &selectedFilter );
-	if ( fileName.isNull() )
+	QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH values to file" ) ), tr(""), QString( tr( "CSV comma separated values ( *.csv );;TSV tab separated values ( *.tsv )" ) ), &selectedFilter );
+	if (fileName.isNull())
 	{
 		return;
 	}
-
-	bool comma = true;
-	if ( selectedFilter.compare( "CSV with TAB ( *.csv )" ) == 0 )
-	{
-		comma = false;
-	}
+	bool comma = selectedFilter.compare("TSV tab separated values ( *.tsv )");
 
   // Export
   if (! d->logic()->ExportDvhToCsv(fileName.toAscii().data(), comma) )
   {
-    std::cerr << "Error occurred while exporting DVH to CSV!" << std::endl;
+    qCritical() << Q_FUNC_INFO << ": Error occurred while exporting DVH to file " << fileName;
   }
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
-{/* //TODO:
+{
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
   // User selects file and format
   QString selectedFilter;
 
-	QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH metrics to CSV file" ) ), tr(""), QString( tr( "CSV with COMMA ( *.csv );;CSV with TAB ( *.csv )" ) ), &selectedFilter );
-	if ( fileName.isNull() )
+	QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH metrics to file" ) ), tr(""), QString( tr( "CSV comma separated values ( *.csv );;TSV tab separated values ( *.tsv )" ) ), &selectedFilter );
+	if (fileName.isNull())
 	{
 		return;
 	}
-
-	bool comma = true;
-	if ( selectedFilter.compare( "CSV with TAB ( *.csv )" ) == 0 )
-	{
-		comma = false;
-	}
-
-  // Get requested V metrics
-  std::vector<double> vDoseValuesCc;
-  if (d->checkBox_ShowVMetricsCc->isChecked())
-  {
-    this->getNumbersFromLineEdit(d->lineEdit_VDose, vDoseValuesCc);
-  }
-  std::vector<double> vDoseValuesPercent;
-  if (d->checkBox_ShowVMetricsPercent->isChecked())
-  {
-    this->getNumbersFromLineEdit(d->lineEdit_VDose, vDoseValuesPercent);
-  }
-
-  // Get requested D metrics
-  std::vector<double> dVolumeValuesCc;
-  std::vector<double> dVolumeValuesPercent;
-  if (d->checkBox_ShowDMetrics->isChecked())
-  {
-    this->getNumbersFromLineEdit(d->lineEdit_DVolumeCc, dVolumeValuesCc);
-    this->getNumbersFromLineEdit(d->lineEdit_DVolumePercent, dVolumeValuesPercent);
-  }
+	bool comma = selectedFilter.compare("TSV tab separated values ( *.tsv )");
 
   // Export
-  if (! d->logic()->ExportDvhMetricsToCsv(fileName.toAscii().data(), vDoseValuesCc, vDoseValuesPercent, dVolumeValuesCc, dVolumeValuesPercent, comma) )
+  if (! d->logic()->ExportDvhMetricsToCsv(fileName.toAscii().data(), comma) )
   {
-    std::cerr << "Error occurred while exporting DVH metrics to CSV!" << std::endl;
-  }*/
+    qCritical() << Q_FUNC_INFO << ": Error occurred while exporting DVH to file " << fileName;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -614,6 +557,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditVDoseEdited(QString aText)
   {
     qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
   }
+
+  d->MRMLTableView->resizeColumnsToContents();
+  d->MRMLTableView->setColumnWidth(vtkMRMLDoseVolumeHistogramNode::MetricColumnVisible, 36);
 }
 
 //-----------------------------------------------------------------------------
@@ -641,6 +587,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsCcCheckedStateChanged(i
   {
     qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
   }
+
+  d->MRMLTableView->resizeColumnsToContents();
+  d->MRMLTableView->setColumnWidth(vtkMRMLDoseVolumeHistogramNode::MetricColumnVisible, 36);
 }
 
 //-----------------------------------------------------------------------------
@@ -667,6 +616,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsPercentCheckedStateChan
   {
     qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
   }
+
+  d->MRMLTableView->resizeColumnsToContents();
+  d->MRMLTableView->setColumnWidth(vtkMRMLDoseVolumeHistogramNode::MetricColumnVisible, 36);
 }
 
 //-----------------------------------------------------------------------------
@@ -693,6 +645,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeCcEdited(QString aTe
   {
     qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
   }
+
+  d->MRMLTableView->resizeColumnsToContents();
+  d->MRMLTableView->setColumnWidth(vtkMRMLDoseVolumeHistogramNode::MetricColumnVisible, 36);
 }
 
 //-----------------------------------------------------------------------------
@@ -719,6 +674,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumePercentEdited(QStrin
   {
     qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
   }
+
+  d->MRMLTableView->resizeColumnsToContents();
+  d->MRMLTableView->setColumnWidth(vtkMRMLDoseVolumeHistogramNode::MetricColumnVisible, 36);
 }
 
 //-----------------------------------------------------------------------------
@@ -745,6 +703,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged(int
   {
     qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
   }
+
+  d->MRMLTableView->resizeColumnsToContents();
+  d->MRMLTableView->setColumnWidth(vtkMRMLDoseVolumeHistogramNode::MetricColumnVisible, 36);
 }
 
 //-----------------------------------------------------------------------------
@@ -776,6 +737,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDoseVolumesOnlyCheckboxChanged(
   {
     d->MRMLNodeComboBox_DoseVolume->removeAttribute("vtkMRMLScalarVolumeNode", SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
   }
+
+  d->MRMLTableView->resizeColumnsToContents();
+  d->MRMLTableView->setColumnWidth(vtkMRMLDoseVolumeHistogramNode::MetricColumnVisible, 36);
 }
 
 //-----------------------------------------------------------------------------
