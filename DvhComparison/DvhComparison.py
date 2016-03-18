@@ -15,10 +15,12 @@ class DvhComparison(ScriptedLoadableModule):
     self.parent.contributors = ["Kyle Sunderland (Queen's University), Csaba Pinter (Queen's University)"]
     self.parent.helpText = """This module compares two Dose Volume Histograms from corresponding Double Array Nodes."""
     self.parent.acknowledgementText = """ """
-  # end __init__
 
+    
 #
+# ------------------------------------------------------------------------------
 # qDvhComparisonWidget
+# ------------------------------------------------------------------------------
 #
 class DvhComparisonWidget(ScriptedLoadableModuleWidget):
 
@@ -185,10 +187,10 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
 
     self.updateTable()    
     currentChart = self.chartNodeSelector.currentNode()
-    if (currentChart != None):
+    if currentChart is not None:
       self.updateChecksFromChart(currentChart)
-  # end setup
 
+  #------------------------------------------------------------------------------
   def enter(self):
     """Runs whenever the module is reopened
     """
@@ -199,21 +201,21 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     self.updateTable()    
     currentChart = self.chartNodeSelector.currentNode()
 
-    if (currentChart != None):
+    if currentChart is not None:
       self.updateChecksFromChart(currentChart)
-  # end enter
 
+  #------------------------------------------------------------------------------
   def parameterNodeCreated(self, node):
     """Rename the newly created parameter node
     """
     numberOfNodes = slicer.mrmlScene.GetNumberOfNodesByClass('vtkMRMLScriptedModuleNode')
     name = 'DvhComparison'
-    if (numberOfNodes != 1):
+    if numberOfNodes != 1):
       node.SetName(name + '_' + str(numberOfNodes-1))
     else:
       node.SetName(name)
-  # end parameterNodeCreated
 
+  #------------------------------------------------------------------------------
   def nodeCheck(self):
     """If there is no parameter node, create one and add it to the scene
     """
@@ -222,8 +224,8 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
       slicer.mrmlScene.AddNode(node)
       self.parameterNodeCreated(node)
       self.parameterSelector.setCurrentNode(node)
-  # end nodeCheck
 
+  #------------------------------------------------------------------------------
   def updateTable(self):
     """Construct and fill in the table.
     """
@@ -257,16 +259,16 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     currentChart = self.chartNodeSelector.currentNode()
 
     numberOfLegalStructures = 0
-    for i in range(0, dvhNodes.GetNumberOfItems()):
+    for i in xrange(dvhNodes.GetNumberOfItems()):
       structure = dvhNodes.GetItemAsObject(i)
       structureName = (structure.GetAttribute("DoseVolumeHistogram.StructureName"))
 
-      if (structureName != None):
+      if structureName is not None:
         self.structureList.append(structure)
         self.dvhTable.insertRow(i)
         self.dvhTable.setCellWidget(i, 1, qt.QLabel(" " + structureName + " "))
         volumeNode = (structure.GetNodeReference("DoseVolumeHistogram.doseVolumeRef"))
-        if (volumeNode != None):
+        if volumeNode is not None:
           volumeName = (volumeNode.GetName())
           check = qt.QCheckBox()
           check.connect("stateChanged(int)", self.checkBoxChanged)
@@ -275,49 +277,49 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
           self.dvhTable.setCellWidget(i, 2, qt.QLabel(" " + volumeName + " "))
 
           # stop the checkboxes from being used if there is no chart node
-          if (currentChart == None):
+          if currentChart is None:
             check.setCheckable(False)
           else:
             check.setCheckable(True)
 
         # Add the attributes to the chart
         totalVolumeCCs = structure.GetAttribute("DoseVolumeHistogram.DvhMetric_Volume (cc)")
-        if (totalVolumeCCs != None):
+        if totalVolumeCCs is not None:
           self.dvhTable.setCellWidget(i, 3, qt.QLabel(" " + totalVolumeCCs + " "))
 
         meanVolumeCCs = structure.GetAttribute("DoseVolumeHistogram.DvhMetric_Mean intensity")
-        if (meanVolumeCCs != None):
+        if meanVolumeCCs is not None:
           self.dvhTable.setCellWidget(i, 4, qt.QLabel(" " + meanVolumeCCs + " "))
 
         minVolumeCCs = structure.GetAttribute("DoseVolumeHistogram.DvhMetric_Min intensity")
-        if (minVolumeCCs != None):
+        if minVolumeCCs is not None:
           self.dvhTable.setCellWidget(i, 5, qt.QLabel(" " + minVolumeCCs + " "))
 
         maxVolumeCCs = structure.GetAttribute("DoseVolumeHistogram.DvhMetric_Max intensity")
-        if (maxVolumeCCs != None):
+        if maxVolumeCCs is not None:
           self.dvhTable.setCellWidget(i, 6, qt.QLabel(" " + maxVolumeCCs + " "))
-  # end updateTable
 
+  #------------------------------------------------------------------------------
   def checkBoxChanged(self, int):
     """If one of the chart checkboxes has been changed, then update the chart
     """
 
-    if (self.updatingStatus == False):
+    if self.updatingStatus == False:
       currentChart = self.chartNodeSelector.currentNode()
-      if (currentChart != None):
+      if currentChart is not None:
         currentChart.ClearArrays()
 
         import vtkSlicerDoseVolumeHistogramModuleLogic
         chartLogic = vtkSlicerDoseVolumeHistogramModuleLogic.vtkSlicerDoseVolumeHistogramModuleLogic()
         chartLogic.SetMRMLScene(slicer.mrmlScene)
 
-        for i in range(0, len(self.checkboxList)):
+        for i in xrange(len(self.checkboxList)):
           currentCheckbox = self.checkboxList[i]
-          if (currentCheckbox.checkState()):
+          if currentCheckbox.checkState():
             currentDoubleArray =  self.structureList[i]
             chartLogic.AddDvhToChart(currentDoubleArray.GetID(), currentChart.GetID())
-  # end checkBoxChanged
 
+  #------------------------------------------------------------------------------
   def updateFromParameter(self, node):
     """Changes the displayed inputs to match the current parameter node
     If an attribute has not been set, it is set from the currently
@@ -326,39 +328,39 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
 
     self.updatingStatus = True
 
-    if (node != None):
+    if node is not None:
       # DVH Double Array 1
       dvh1Node = node.GetNodeReferenceID('dvh1')
-      if (dvh1Node != None):
+      if dvh1Node is not None:
         self.dvh1Selector.setCurrentNodeID(dvh1Node)
       else :
         dvh1Node = self.dvh1Selector.currentNode()
-        if (dvh1Node != None):
+        if dvh1Node is not None:
           node.SetNodeReferenceID('dvh1', dvh1Node.GetID())
 
       # DVH Double Array 2
       dvh2Node = node.GetNodeReferenceID('dvh2')
-      if (dvh2Node != None):
+      if dvh2Node is not None:
         self.dvh2Selector.setCurrentNodeID(dvh2Node)
       else :
         dvh2Node = self.dvh2Selector.currentNode()
-        if (dvh2Node != None):
+        if dvh2Node is not None:
           node.SetNodeReferenceID('dvh2', dvh2Node.GetID())
 
       # Dose Volume
       doseVolumeNode = node.GetNodeReferenceID('DoseVolumeHistogram.doseVolume')
-      if (doseVolumeNode != None):
+      if doseVolumeNode is not None:
         self.doseVolumeSelector.setCurrentNodeID(doseVolumeNode)
       else :
         doseVolumeNode = self.doseVolumeSelector.currentNode()
-        if (doseVolumeNode != None):
+        if doseVolumeNode is not None:
           node.SetNodeReferenceID('DoseVolumeHistogram.doseVolume', doseVolumeNode.GetID())
 
       # Dose Volume Only Checkbox
       doseVolumeOnlyChecked = node.GetAttribute('DoseVolumeHistogram.doseVolumeOnlyChecked')
-      if (doseVolumeOnlyChecked != None):
+      if doseVolumeOnlyChecked is not None:
         checkedState = int(doseVolumeOnlyChecked)
-        if(checkedState):
+        if checkedState:
           self.showDoseVolumeOnlyCheckbox.setCheckState(2)
         else:
           self.showDoseVolumeOnlyCheckbox.setCheckState(0)
@@ -367,7 +369,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
 
       # Dose To Agreement Criterion
       doseToAgreementCriterion = node.GetAttribute('DoseVolumeHistogram.doseToAgreementCriterion')
-      if (doseToAgreementCriterion != None):
+      if doseToAgreementCriterion is not None:
         self.doseToAgreementSpinbox.setValue(float(doseToAgreementCriterion))
       else:
         doseToAgreementCriterion = str(self.doseToAgreementSpinbox.value)
@@ -375,7 +377,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
 
       # Volume Difference Criterion
       volumeDifferenceCriterion = node.GetAttribute('DoseVolumeHistogram.volumeDifferenceCriterion')
-      if (volumeDifferenceCriterion != None):
+      if volumeDifferenceCriterion is not None:
         self.volumeDifferenceSpinbox.setValue(float(volumeDifferenceCriterion))
       else:
         volumeDifferenceCriterion = str(self.volumeDifferenceSpinbox.value)
@@ -383,30 +385,29 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
 
       # Agreement Acceptance % (use previously stored one if availiable)
       agreementAcceptancePercentage = node.GetAttribute('DoseVolumeHistogram.agreementAcceptance')
-      if (agreementAcceptancePercentage != None):
+      if agreementAcceptancePercentage is not None:
         self.agreementAcceptanceOutput.text = agreementAcceptancePercentage
       else:
         agreementAcceptancePercentage = self.agreementAcceptanceOutput.text
       self.parameterSelector.currentNode().SetAttribute('DoseVolumeHistogram.agreementAcceptance', agreementAcceptancePercentage)
 
       self.updatingStatus = False
-  # end updatingStatus
 
-
-  def displayChange(self):
+  #------------------------------------------------------------------------------
+  def updateButtonsState(self):
     """If a node has changed, make sure that the compute button is enabled/disabled as necessary
     and set clear the output to avoid an illegal state.
     """
 
     self.nodeCheck()
-    if (self.dvh1Selector.currentNode() != None and self.dvh2Selector.currentNode() != None and self.doseVolumeSelector.currentNode() != None):
+    if self.dvh1Selector.currentNode() != None and self.dvh2Selector.currentNode() != None and self.doseVolumeSelector.currentNode() is not None:
       self.computeButton.setDisabled(False)
     else:
       self.computeButton.setDisabled(True)
     self.parameterSelector.currentNode().SetAttribute('AgreementAcceptance', "")
     self.agreementAcceptanceOutput.setText("")
-  # end displayChange
 
+  #------------------------------------------------------------------------------
   def onComputeButton(self):
     import vtkSlicerDoseVolumeHistogramModuleLogic
     logic = vtkSlicerDoseVolumeHistogramModuleLogic.vtkSlicerDoseVolumeHistogramComparisonLogic()
@@ -419,29 +420,29 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     agreementAcceptancePercentage = logic.CompareDvhTables()
     self.agreementAcceptanceOutput.setText(agreementAcceptancePercentage)
     self.parameterSelector.currentNode().SetAttribute('DoseVolumeHistogram.agreementAcceptance', str(agreementAcceptancePercentage))
-  # end onComputeButton
 
+  #------------------------------------------------------------------------------
   def checkChart(self, dvhNodeId, chartNode):
     """Check the specified chart to see if a given DVH is being displayed.
     """
     arrayIds = chartNode.GetArrays()
-    for arrayIndex in range(0, arrayIds.GetNumberOfValues()):
+    for arrayIndex in xrange(arrayIds.GetNumberOfValues()):
       currentArrayId = arrayIds.GetValue(arrayIndex)
-      if (currentArrayId == dvhNodeId):
+      if currentArrayId == dvhNodeId:
         return True
     return False
-  # end checkChart
 
+  #------------------------------------------------------------------------------
   def updateChecksFromChart(self, chartNode):
     """Set the check boxes in the table to match the graph display.
     """
 
     self.updatingStatus = True
-    for structureIndex in range(0, len(self.structureList)):
+    for structureIndex in xrange(len(self.structureList)):
       currentCheckbox = self.checkboxList[structureIndex]
-      if (chartNode != None):
+      if chartNode is not None:
         currentStructure = self.structureList[structureIndex]
-        if (self.checkChart(currentStructure.GetID(), chartNode)):
+        if self.checkChart(currentStructure.GetID(), chartNode):
           currentCheckbox.setCheckState(2)
         else:
           currentCheckbox.setCheckState(0)
@@ -452,57 +453,60 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
         currentCheckbox.update()
 
     self.updatingStatus = False
-  # end updateChecksFromChart
 
+  #------------------------------------------------------------------------------
   def dvh1SelectorChanged(self, dvh1Node):
-    if (self.updatingStatus == False):
-      self.displayChange()
-      if (dvh1Node != None):
+    if not self.updatingStatus:
+      self.updateButtonsState()
+      if dvh1Node is not None:
         self.parameterSelector.currentNode().SetNodeReferenceID('dvh1', dvh1Node.GetID())
-  # end dvh1SelectorChanged
 
+  #------------------------------------------------------------------------------
   def dvh2SelectorChanged(self, dvh2Node):
-    if (self.updatingStatus == False):
-      self.displayChange()
-      if (dvh2Node != None):
+    if not self.updatingStatus:
+      self.updateButtonsState()
+      if dvh2Node is not None:
         self.parameterSelector.currentNode().SetNodeReferenceID('dvh2', dvh2Node.GetID())
-  # end dvh2SelectorChanged
 
+  #------------------------------------------------------------------------------
   def doseVolumeSelectorChanged(self, doseVolumeNode):
-    if (self.updatingStatus == False):
-      self.displayChange()
-      if (doseVolumeNode != None):
+    if not self.updatingStatus:
+      self.updateButtonsState()
+      if doseVolumeNode is not None:
         self.parameterSelector.currentNode().SetNodeReferenceID('doseVolume', doseVolumeNode.GetID())
-  # end doseVolumeSelectorChanged
 
+  #------------------------------------------------------------------------------
   def volumeDifferenceSpinboxChanged(self, value):
-    if (self.updatingStatus == False):
-      self.displayChange()
+    if not self.updatingStatus:
+      self.updateButtonsState()
       volumeDifferenceCriterion = str(value)
       self.parameterSelector.currentNode().SetAttribute('DoseVolumeHistogram.VolumeDifferenceCriterion', volumeDifferenceCriterion)
-  # end volumeDifferenceSpinboxChanged
 
+  #------------------------------------------------------------------------------
   def doseToAgreementSpinboxChanged(self, value):
-    if (self.updatingStatus == False):
-      self.displayChange()
+    if not self.updatingStatus:
+      self.updateButtonsState()
       doseToAgreementCriterion = str(value)
       self.parameterSelector.currentNode().SetAttribute('DoseVolumeHistogram.DoseToAgreementCriterion', doseToAgreementCriterion)
-  # end doseToAgreementSpinboxChanged
 
+  #------------------------------------------------------------------------------
   def showDoseVolumesOnlyCheckboxChanged(self, checked):
-    if (self.updatingStatus == False):
-      self.displayChange()
+    if not self.updatingStatus:
+      self.updateButtonsState()
       self.parameterSelector.currentNode().SetAttribute('DoseVolumeOnlyChecked', str(checked))
-      if (checked):
+      if checked:
         self.doseVolumeSelector.addAttribute("vtkMRMLScalarVolumeNode", "DicomRtImport.DoseVolume")
       else:
         self.doseVolumeSelector.removeAttribute("vtkMRMLScalarVolumeNode", "DicomRtImport.DoseVolume")
-  # end showDoseVolumesOnlyCheckboxChanged
 
+  #------------------------------------------------------------------------------
   def cleanup(self):
     pass
-  # end cleanup
 
+
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
 class DvhComparisonTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.
@@ -512,18 +516,15 @@ class DvhComparisonTest(ScriptedLoadableModuleTest):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
     slicer.mrmlScene.Clear(0)
-  # end setUp
 
   def runTest(self):
     """Currently no testing functionality.
     """
     self.setUp()
     self.test_DvhComparison1()
-  # end runTest
 
   def test_DvhComparison1(self):
     """Add test here later.
     """
     self.delayDisplay("Starting the test")
     self.delayDisplay('Test passed!')
-  # end test_DvhComparison1
