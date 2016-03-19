@@ -20,6 +20,7 @@
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
+#include "vtkMRMLPlanarImageNode.h"
 
 // RTHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyRtImagePlugin.h"
@@ -177,7 +178,7 @@ void qSlicerSubjectHierarchyRtImagePlugin::setDisplayVisibility(vtkMRMLSubjectHi
     if (this->canOwnSubjectHierarchyNode(node))
     {
       vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
-        associatedVolumeNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
+        associatedVolumeNode->GetNodeReference(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
       if (!modelNode)
       {
         qCritical() << Q_FUNC_INFO << ": No displayed model found for planar image '" << associatedVolumeNode->GetName() << "'!";
@@ -216,7 +217,7 @@ int qSlicerSubjectHierarchyRtImagePlugin::getDisplayVisibility(vtkMRMLSubjectHie
     if (this->canOwnSubjectHierarchyNode(node))
     {
       vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
-        associatedVolumeNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
+        associatedVolumeNode->GetNodeReference(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
       if (!modelNode)
       {
         qCritical() << Q_FUNC_INFO << ": No displayed model found for planar image '" << associatedVolumeNode->GetName() << "'!";

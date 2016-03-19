@@ -41,44 +41,12 @@ public:
   qSlicerPlanarImageModuleWidget(QWidget *parent=0);
   virtual ~qSlicerPlanarImageModuleWidget();
 
-  virtual void enter();
-
 public slots:
-  /// Set the current MRML scene to the widget
-  virtual void setMRMLScene(vtkMRMLScene*);
-
-  /// Process loaded scene
-  void onSceneImportedEvent();
-
-  /// Set current parameter node
-  void setPlanarImageNode(vtkMRMLNode *node);
-
-  /// Update widget GUI from parameter node
-  void updateWidgetFromMRML();
-
-protected slots:
-  void planarImageVolumeNodeChanged(vtkMRMLNode*);
-
-  void displayedModelNodeChanged(vtkMRMLNode*);
-  void textureVolumeNodeChanged(vtkMRMLNode*);
-
-  void applyClicked();
-
-  void onLogicModified();
 
 protected:
   QScopedPointer<qSlicerPlanarImageModuleWidgetPrivate> d_ptr;
 
-protected:
   virtual void setup();
-  void onEnter();
-
-protected:
-  /// Updates button states
-  void updateButtonsState();
-
-  /// Assemble new output volume base name from the selected input fiducial names
-  void refreshOutputBaseName();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerPlanarImageModuleWidget);

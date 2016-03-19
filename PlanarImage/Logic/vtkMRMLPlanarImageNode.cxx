@@ -31,6 +31,11 @@
 // VTK includes
 #include <vtkObjectFactory.h>
 
+const std::string vtkMRMLPlanarImageNode::PLANARIMAGE_MODEL_NODE_NAME_PREFIX = "PlanarImageDisplayedModel_";
+const std::string vtkMRMLPlanarImageNode::PLANARIMAGE_PARAMETER_SET_BASE_NAME_PREFIX = "PlanarImageParameterSet_";
+const std::string vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE = "planarImageDisplayedModel" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
+const std::string PLANARIMAGE_RT_IMAGE_VOLUME_REFERENCE_ROLE = "planarRtImage" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
+
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLPlanarImageNode);
 
@@ -49,37 +54,24 @@ vtkMRMLPlanarImageNode::~vtkMRMLPlanarImageNode()
 vtkMRMLScalarVolumeNode* vtkMRMLPlanarImageNode::GetRtImageVolumeNode()
 {
   return vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetNodeReference(SlicerRtCommon::PLANARIMAGE_RT_IMAGE_VOLUME_REFERENCE_ROLE.c_str()) );
+    this->GetNodeReference(PLANARIMAGE_RT_IMAGE_VOLUME_REFERENCE_ROLE.c_str()) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLPlanarImageNode::SetAndObserveRtImageVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_RT_IMAGE_VOLUME_REFERENCE_ROLE.c_str(), (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(PLANARIMAGE_RT_IMAGE_VOLUME_REFERENCE_ROLE.c_str(), (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLModelNode* vtkMRMLPlanarImageNode::GetDisplayedModelNode()
 {
   return vtkMRMLModelNode::SafeDownCast(
-    this->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
+    this->GetNodeReference(PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLPlanarImageNode::SetAndObserveDisplayedModelNode(vtkMRMLModelNode* node)
 {
-  this->SetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str(), (node ? node->GetID() : NULL));
-}
-
-//----------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode* vtkMRMLPlanarImageNode::GetTextureVolumeNode()
-{
-  return vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE.c_str()) );
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLPlanarImageNode::SetAndObserveTextureVolumeNode(vtkMRMLScalarVolumeNode* node)
-{
-  this->SetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE.c_str(), (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str(), (node ? node->GetID() : NULL));
 }

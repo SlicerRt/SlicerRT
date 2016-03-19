@@ -34,6 +34,11 @@ class vtkMRMLModelNode;
 class VTK_SLICER_PLANARIMAGE_LOGIC_EXPORT vtkMRMLPlanarImageNode : public vtkMRMLNode
 {
 public:
+  static const std::string PLANARIMAGE_PARAMETER_SET_BASE_NAME_PREFIX;
+  static const std::string PLANARIMAGE_MODEL_NODE_NAME_PREFIX;
+  static const std::string PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE;
+
+public:
   static vtkMRMLPlanarImageNode *New();
   vtkTypeMacro(vtkMRMLPlanarImageNode,vtkMRMLNode);
 
@@ -53,11 +58,6 @@ public:
   vtkMRMLModelNode* GetDisplayedModelNode();
   /// Set and observe displayed model node
   void SetAndObserveDisplayedModelNode(vtkMRMLModelNode* node);
-
-  /// Get texture volume node
-  vtkMRMLScalarVolumeNode* GetTextureVolumeNode();
-  /// Set and observe texture volume node
-  void SetAndObserveTextureVolumeNode(vtkMRMLScalarVolumeNode* node);
 
 protected:
   vtkMRMLPlanarImageNode();

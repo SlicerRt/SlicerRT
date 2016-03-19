@@ -32,9 +32,13 @@
 
 #include "vtkSlicerPlanarImageModuleLogicExport.h"
 
+// STD includes
+#include <map>
+
 class vtkMRMLPlanarImageNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLModelNode;
+class vtkImageMapToWindowLevelColors;
 class vtkPoints;
 
 /// \ingroup SlicerRt_QtModules_PlanarImage
@@ -53,9 +57,9 @@ protected:
   /// Compute image plane corners in the world coordinate system based on the transforms related to the planar image
   void ComputeImagePlaneCorners(vtkMRMLScalarVolumeNode* planarImageVolume, vtkPoints* sliceCornerPoints);
 
-  /// Set texture to the planar image model node according to the current display state of the volume to display.
-  /// Creates the texture if does not exist, update otherwise
-  void SetTextureForPlanarImage(vtkMRMLScalarVolumeNode* planarImageVolumeNode, vtkMRMLModelNode* displayedModelNode, vtkMRMLScalarVolumeNode* textureVolumeNode);
+  /// Create texture pipeline for the planar image so that model node texture is updated
+  /// according to the current display state of the volume
+  void SetTextureForPlanarImage(vtkMRMLScalarVolumeNode* planarImageVolumeNode, vtkMRMLModelNode* displayedModelNode);
 
 protected:
   vtkSlicerPlanarImageModuleLogic();
@@ -63,10 +67,17 @@ protected:
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
   virtual void RegisterNodes();
-  virtual void OnMRMLSceneEndImport();
 
-  /// Update texture if display properties change in an observed planar image volume node
+  /// Update texture and if display properties change in an observed planar image volume node,
+  /// and geometry if transform is changed
   virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData);
+  /// Removes texture pipeline and displayed model if planar image volume node is about to be removed,
+  /// and creates texture pipeline after scene is imported
+  virtual void ProcessMRMLSceneEvents(vtkObject* caller, unsigned long event, void* callData);
+
+protected:
+  /// Mappers that apply window/level from the volume nodes to the texture images
+  std::map<vtkMRMLScalarVolumeNode*, vtkImageMapToWindowLevelColors*> TextureWindowLevelMappers;
 
 private:
   vtkSlicerPlanarImageModuleLogic(const vtkSlicerPlanarImageModuleLogic&); // Not implemented

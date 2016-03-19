@@ -47,11 +47,18 @@ vtkStandardNewMacro(vtkSlicerPlanarImageModuleLogic);
 //----------------------------------------------------------------------------
 vtkSlicerPlanarImageModuleLogic::vtkSlicerPlanarImageModuleLogic()
 {
+  this->TextureWindowLevelMappers.clear();
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerPlanarImageModuleLogic::~vtkSlicerPlanarImageModuleLogic()
 {
+  std::map<vtkMRMLScalarVolumeNode*, vtkImageMapToWindowLevelColors*>::iterator mapperIt;
+  for (mapperIt=this->TextureWindowLevelMappers.begin(); mapperIt!=this->TextureWindowLevelMappers.end(); ++mapperIt)
+  {
+    mapperIt->second->Delete();
+  }
+  this->TextureWindowLevelMappers.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -65,6 +72,7 @@ void vtkSlicerPlanarImageModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newSce
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::EndImportEvent);
+  events->InsertNextValue(vtkMRMLScene::NodeAboutToBeRemovedEvent);
   this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
 }
 
@@ -102,52 +110,90 @@ void vtkSlicerPlanarImageModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, 
     vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(caller);
     // If the volume has this type of reference, then there is a texture to update
     vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
-      volumeNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
-    if (modelNode)
+      volumeNode->GetNodeReference(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
+    // Handle window/level changes
+    if (event == vtkMRMLDisplayableNode::DisplayModifiedEvent && modelNode)
     {
-      // Handle window/level changes
-      if (event == vtkMRMLDisplayableNode::DisplayModifiedEvent)
+      std::map<vtkMRMLScalarVolumeNode*, vtkImageMapToWindowLevelColors*>::iterator mapperIt =
+        this->TextureWindowLevelMappers.find(volumeNode);
+      if (mapperIt != this->TextureWindowLevelMappers.end())
       {
-        vtkMRMLScalarVolumeNode* textureNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-          modelNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE.c_str()) );
-        if (textureNode)
-        {
-          // Update texture for the planar image model
-          this->SetTextureForPlanarImage(volumeNode, modelNode, textureNode);
-        }
+        volumeNode->CreateDefaultDisplayNodes();
+        mapperIt->second->SetWindow(volumeNode->GetScalarVolumeDisplayNode()->GetWindow());
+        mapperIt->second->SetLevel(volumeNode->GetScalarVolumeDisplayNode()->GetLevel());
+        modelNode->CreateDefaultDisplayNodes();
+        modelNode->GetDisplayNode()->Modified();
       }
-      // Handle transform changes
-      else if (event == vtkMRMLTransformableNode::TransformModifiedEvent)
+      else
       {
-        // Update model geometry
-        this->ComputeImagePlaneCorners(volumeNode, modelNode->GetPolyData()->GetPoints());
+        vtkErrorMacro("ProcessMRMLNodesEvents: Failed to find texture pipeline for RT image " << volumeNode->GetName());
+        return;
       }
     }
-  }
+    // Handle transform changes
+    else if (event == vtkMRMLTransformableNode::TransformModifiedEvent && modelNode)
+    {
+      // Update model geometry
+      this->ComputeImagePlaneCorners(volumeNode, modelNode->GetPolyData()->GetPoints());
+    }
+  } // If ScalarVolume
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlanarImageModuleLogic::OnMRMLSceneEndImport()
+void vtkSlicerPlanarImageModuleLogic::ProcessMRMLSceneEvents(vtkObject *caller, unsigned long event, void *callData)
 {
   if (!this->GetMRMLScene())
   {
-    vtkErrorMacro("OnMRMLSceneEndImport: Invalid MRML scene!");
+    vtkErrorMacro("ProcessMRMLSceneEvents: Invalid MRML scene or input node!");
     return;
   }
+  vtkMRMLNode* node = reinterpret_cast<vtkMRMLNode*>(callData);
 
-  vtkObject* nextObject = NULL;
-  vtkSmartPointer<vtkCollection> modelNodes = vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLModelNode") );
-  for (modelNodes->InitTraversal(); (nextObject = modelNodes->GetNextItemAsObject()); )
+  // Remove texture pipeline and displayed model if node is about to be removed
+  if ( node && node->IsA("vtkMRMLScalarVolumeNode")
+    && event == vtkMRMLScene::NodeAboutToBeRemovedEvent )
   {
-    vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(nextObject);
+    vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
+    // Remove texture display pipeline
+    std::map<vtkMRMLScalarVolumeNode*, vtkImageMapToWindowLevelColors*>::iterator mapperIt =
+      this->TextureWindowLevelMappers.find(volumeNode);
+    if (mapperIt != this->TextureWindowLevelMappers.end())
+    {
+      vtkImageMapToWindowLevelColors* mapper = mapperIt->second;
+      this->TextureWindowLevelMappers.erase(mapperIt);
+      mapper->Delete();
+    }
+    else
+    {
+      vtkErrorMacro("ProcessMRMLSceneEvents: Failed to find texture pipeline for RT image " << volumeNode->GetName());
+    }
+    // Remove displayed model node
+    vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
+      volumeNode->GetNodeReference(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
     if (modelNode)
     {
-      // Apply the texture if it has a reference to it
-      vtkMRMLScalarVolumeNode* textureNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-        modelNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE.c_str()) );
-      if (textureNode && modelNode->GetModelDisplayNode())
+      this->GetMRMLScene()->RemoveNode(modelNode);
+    }
+  }
+  // Create texture pipeline after scene is imported
+  else if (event == vtkMRMLScene::EndImportEvent)
+  {
+    vtkSmartPointer<vtkCollection> volumeNodes = vtkSmartPointer<vtkCollection>::Take(
+      this->GetMRMLScene()->GetNodesByClass("vtkMRMLScalarVolumeNode") );
+    vtkObject* nextObject = NULL;
+    for (volumeNodes->InitTraversal(); (nextObject = volumeNodes->GetNextItemAsObject()); )
+    {
+      vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(nextObject);
+      if (volumeNode)
       {
-        modelNode->GetModelDisplayNode()->SetTextureImageDataConnection(textureNode->GetImageDataConnection());
+        vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
+          volumeNode->GetNodeReference(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
+        std::map<vtkMRMLScalarVolumeNode*, vtkImageMapToWindowLevelColors*>::iterator mapperIt =
+          this->TextureWindowLevelMappers.find(volumeNode);
+        if (modelNode && mapperIt == this->TextureWindowLevelMappers.end())
+        {
+          this->SetTextureForPlanarImage(volumeNode, modelNode);
+        }
       }
     }
   }
@@ -158,13 +204,13 @@ void vtkSlicerPlanarImageModuleLogic::ComputeImagePlaneCorners(vtkMRMLScalarVolu
 {
   if (!planarImageVolumeNode || !sliceCornerPoints)
   {
-    vtkErrorMacro("GetTextureForPlanarImage: Invalid input nodes!");
+    vtkErrorMacro("ComputeImagePlaneCorners: Invalid input nodes!");
     return;
   }
   vtkMRMLScene* mrmlScene = planarImageVolumeNode->GetScene();
   if (!mrmlScene)
   {
-    vtkErrorMacro("GetTextureForPlanarImage: Invalid MRML scene!");
+    vtkErrorMacro("ComputeImagePlaneCorners: Invalid MRML scene!");
     return;
   }
 
@@ -173,7 +219,7 @@ void vtkSlicerPlanarImageModuleLogic::ComputeImagePlaneCorners(vtkMRMLScalarVolu
   planarImageVolumeNode->GetImageData()->GetDimensions(dims);
   if (dims[2] > 1)
   {
-    vtkErrorMacro("GetTextureForPlanarImage: Image to display ('" << planarImageVolumeNode->GetName() << "') is not single-slice!");
+    vtkErrorMacro("ComputeImagePlaneCorners: Image to display ('" << planarImageVolumeNode->GetName() << "') is not single-slice!");
     return;
   }
 
@@ -222,17 +268,17 @@ void vtkSlicerPlanarImageModuleLogic::ComputeImagePlaneCorners(vtkMRMLScalarVolu
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerPlanarImageModuleLogic::SetTextureForPlanarImage(vtkMRMLScalarVolumeNode* planarImageVolumeNode, vtkMRMLModelNode* displayedModelNode, vtkMRMLScalarVolumeNode* textureVolumeNode)
+void vtkSlicerPlanarImageModuleLogic::SetTextureForPlanarImage(vtkMRMLScalarVolumeNode* planarImageVolumeNode, vtkMRMLModelNode* displayedModelNode)
 {
-  if (!planarImageVolumeNode || !displayedModelNode || !textureVolumeNode)
+  if (!planarImageVolumeNode || !displayedModelNode)
   {
-    vtkErrorMacro("GetTextureForPlanarImage: Invalid input nodes!");
+    vtkErrorMacro("SetTextureForPlanarImage: Invalid input nodes!");
     return;
   }
   vtkMRMLScene* mrmlScene = planarImageVolumeNode->GetScene();
   if (!mrmlScene)
   {
-    vtkErrorMacro("GetTextureForPlanarImage: Invalid MRML scene!");
+    vtkErrorMacro("SetTextureForPlanarImage: Invalid MRML scene!");
     return;
   }
 
@@ -241,60 +287,32 @@ void vtkSlicerPlanarImageModuleLogic::SetTextureForPlanarImage(vtkMRMLScalarVolu
   planarImageVolumeNode->GetImageData()->GetDimensions(dims);
   if (dims[2] > 1)
   {
-    vtkErrorMacro("GetTextureForPlanarImage: Image to display ('" << planarImageVolumeNode->GetName() << "') is not single-slice!");
+    vtkErrorMacro("SetTextureForPlanarImage: Image to display ('" << planarImageVolumeNode->GetName() << "') is not single-slice!");
     return;
   }
 
-  // Set up texture volume and create a display node for it
-  // These are needed so that the model can be loaded back with a scene
-  textureVolumeNode->CopyOrientation(planarImageVolumeNode);
-
-  vtkMRMLScalarVolumeDisplayNode* textureVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(textureVolumeNode->GetDisplayNode());
-  if (!textureVolumeDisplayNode)
-  {
-    textureVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::New();
-    mrmlScene->AddNode(textureVolumeDisplayNode);
-    textureVolumeDisplayNode->Delete(); // Return the ownership to the scene only
-    textureVolumeNode->AddAndObserveDisplayNodeID( textureVolumeDisplayNode->GetID() );   
-  }
-  std::string planarImageTextureDisplayNodeName = std::string(textureVolumeNode->GetName()) + "_Display";
-  textureVolumeDisplayNode->SetName(planarImageTextureDisplayNodeName.c_str());
-  textureVolumeDisplayNode->SetAutoWindowLevel(0);
-  textureVolumeDisplayNode->SetWindow(255);
-  textureVolumeDisplayNode->SetLevel(127.5);
-  textureVolumeDisplayNode->SetDefaultColorMap();
-
-  // Add reference from displayed model node to texture volume node
-  displayedModelNode->SetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE.c_str(), textureVolumeNode->GetID());
-
   // Observe the planar image volume node so that the texture can be updated
-  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-  events->InsertNextValue(vtkMRMLDisplayableNode::DisplayModifiedEvent);
-  events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-  vtkObserveMRMLNodeEventsMacro(planarImageVolumeNode, events);
-
-  vtkSmartPointer<vtkImageData> textureImageData = vtkSmartPointer<vtkImageData>::New();
-  textureImageData->DeepCopy(planarImageVolumeNode->GetImageData());
-
-  // Apply window level to texture image data if requested
-  if (planarImageVolumeNode->GetScalarVolumeDisplayNode())
+  if ( !vtkIsObservedMRMLNodeEventMacro(planarImageVolumeNode, vtkMRMLDisplayableNode::DisplayModifiedEvent)
+    && !vtkIsObservedMRMLNodeEventMacro(planarImageVolumeNode, vtkMRMLTransformableNode::TransformModifiedEvent) )
   {
-    vtkSmartPointer<vtkImageMapToWindowLevelColors> mapToWindowLevelColors = vtkSmartPointer<vtkImageMapToWindowLevelColors>::New();
-    mapToWindowLevelColors->SetInputData(textureImageData);
-    mapToWindowLevelColors->SetOutputFormatToLuminance();
-    mapToWindowLevelColors->SetWindow(planarImageVolumeNode->GetScalarVolumeDisplayNode()->GetWindow());
-    mapToWindowLevelColors->SetLevel(planarImageVolumeNode->GetScalarVolumeDisplayNode()->GetLevel());
-    mapToWindowLevelColors->Update();
-
-    textureImageData->DeepCopy(mapToWindowLevelColors->GetOutput());
+    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+    events->InsertNextValue(vtkMRMLDisplayableNode::DisplayModifiedEvent);
+    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+    vtkObserveMRMLNodeEventsMacro(planarImageVolumeNode, events);
   }
 
-  // Set texture image data to its volume node and to the planar image model node as texture
-  textureVolumeNode->SetAndObserveImageData(textureImageData);
-  if (displayedModelNode->GetModelDisplayNode())
-  {
-    displayedModelNode->GetModelDisplayNode()->SetTextureImageDataConnection(textureVolumeNode->GetImageDataConnection());
-  }
+  // Set window/level pipeline for planar image
+  planarImageVolumeNode->CreateDefaultDisplayNodes();
+  vtkImageMapToWindowLevelColors* textureWindowLevelMapper = vtkImageMapToWindowLevelColors::New();
+  textureWindowLevelMapper->SetInputConnection(planarImageVolumeNode->GetImageDataConnection());
+  textureWindowLevelMapper->SetOutputFormatToLuminance();
+  textureWindowLevelMapper->SetWindow(planarImageVolumeNode->GetScalarVolumeDisplayNode()->GetWindow());
+  textureWindowLevelMapper->SetLevel(planarImageVolumeNode->GetScalarVolumeDisplayNode()->GetLevel());
+  this->TextureWindowLevelMappers[planarImageVolumeNode] = textureWindowLevelMapper;
+
+  displayedModelNode->CreateDefaultDisplayNodes();
+  displayedModelNode->GetModelDisplayNode()->SetTextureImageDataConnection(
+    textureWindowLevelMapper->GetOutputPort());
 }
 
 //----------------------------------------------------------------------------
@@ -335,22 +353,13 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
 
   // Get and set up model node for displaying the planar image
   vtkMRMLModelNode* displayedModelNode = vtkMRMLModelNode::SafeDownCast(
-    planarImageNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
+    planarImageNode->GetNodeReference(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
   if (!displayedModelNode)
   {
     vtkErrorMacro("CreateModelForPlanarImage: Missing displayed model reference in parameter set node for planar image '" << planarImageVolume->GetName() << "'!");
     return;
   }
   displayedModelNode->SetDescription("Model displaying a planar image");
-
-  // Get texture volume for the displayed model
-  vtkMRMLScalarVolumeNode* textureVolume = vtkMRMLScalarVolumeNode::SafeDownCast(
-    planarImageNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE.c_str()) );
-  if (!textureVolume)
-  {
-    vtkErrorMacro("CreateModelForPlanarImage: Missing texture volume reference in parameter set node for planar image '" << planarImageVolume->GetName() << "'!");
-    return;
-  }
 
   // Create display node for the model
   vtkMRMLModelDisplayNode* displayedModelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(displayedModelNode->GetDisplayNode());
@@ -370,7 +379,7 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
   displayedModelDisplayNode->SetDiffuse(0.0);
 
   // Add reference from the planar image to the model
-  planarImageVolume->SetNodeReferenceID(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str(), displayedModelNode->GetID());
+  planarImageVolume->SetNodeReferenceID(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str(), displayedModelNode->GetID());
 
   // Create plane
   vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
@@ -380,5 +389,5 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
   this->ComputeImagePlaneCorners(planarImageVolume, displayedModelNode->GetPolyData()->GetPoints());
 
   // Create and set image texture
-  this->SetTextureForPlanarImage(planarImageVolume, displayedModelNode, textureVolume);
+  this->SetTextureForPlanarImage(planarImageVolume, displayedModelNode);
 }

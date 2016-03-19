@@ -128,14 +128,6 @@ public:
   static const std::string BEAMS_OUTPUT_SOURCE_FIDUCIAL_POSTFIX;
   static const std::string BEAMS_PARAMETER_SET_BASE_NAME_PREFIX;
 
-  // PlanarImage constants
-  static const std::string PLANARIMAGE_MODEL_NODE_NAME_PREFIX;
-  static const std::string PLANARIMAGE_TEXTURE_NODE_NAME_PREFIX;
-  static const std::string PLANARIMAGE_PARAMETER_SET_BASE_NAME_PREFIX;
-  static const std::string PLANARIMAGE_RT_IMAGE_VOLUME_REFERENCE_ROLE;
-  static const std::string PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE;
-  static const std::string PLANARIMAGE_TEXTURE_VOLUME_REFERENCE_ROLE;
-
   //----------------------------------------------------------------------------
   // Utility functions
   //----------------------------------------------------------------------------

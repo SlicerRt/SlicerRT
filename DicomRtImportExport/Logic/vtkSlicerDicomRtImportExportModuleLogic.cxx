@@ -1346,8 +1346,8 @@ void vtkSlicerDicomRtImportExportModuleLogic::CreateDefaultDoseColorTable()
 void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* node)
 {
   vtkMRMLScalarVolumeNode* rtImageVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
-  vtkMRMLSubjectHierarchyNode* rtImageSubjectHierarchyNode = NULL;
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(node);
+  vtkMRMLSubjectHierarchyNode* rtImageSubjectHierarchyNode = NULL;
   vtkMRMLSubjectHierarchyNode* beamSHNode = NULL;
 
   // If the function is called from the LoadRtImage function with an RT image volume
@@ -1497,7 +1497,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
       if (rtImageVolumeNode)
       {
         vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
-          rtImageVolumeNode->GetNodeReference(SlicerRtCommon::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
+          rtImageVolumeNode->GetNodeReference(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
         if (modelNode)
         {
           vtkDebugMacro("SetupRtImageGeometry: RT image '" << rtImageVolumeNode->GetName() << "' belonging to beam '" << beamNode->GetName() << "' seems to have been set up already.");
@@ -1636,26 +1636,19 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
   // Set up outputs for the planar image display
   vtkSmartPointer<vtkMRMLModelNode> displayedModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
   this->GetMRMLScene()->AddNode(displayedModelNode);
-  std::string displayedModelNodeName = SlicerRtCommon::PLANARIMAGE_MODEL_NODE_NAME_PREFIX + std::string(rtImageVolumeNode->GetName());
+  std::string displayedModelNodeName = vtkMRMLPlanarImageNode::PLANARIMAGE_MODEL_NODE_NAME_PREFIX + std::string(rtImageVolumeNode->GetName());
   displayedModelNode->SetName(displayedModelNodeName.c_str());
   displayedModelNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
-
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> textureVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  this->GetMRMLScene()->AddNode(textureVolumeNode);
-  std::string textureVolumeNodeName = SlicerRtCommon::PLANARIMAGE_TEXTURE_NODE_NAME_PREFIX + std::string(rtImageVolumeNode->GetName());
-  textureVolumeNode->SetName(textureVolumeNodeName.c_str());
-  textureVolumeNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
 
   // Create PlanarImage parameter set node
   std::string planarImageParameterSetNodeName;
   planarImageParameterSetNodeName = this->GetMRMLScene()->GenerateUniqueName(
-    SlicerRtCommon::PLANARIMAGE_PARAMETER_SET_BASE_NAME_PREFIX + std::string(rtImageVolumeNode->GetName()) );
+    vtkMRMLPlanarImageNode::PLANARIMAGE_PARAMETER_SET_BASE_NAME_PREFIX + std::string(rtImageVolumeNode->GetName()) );
   vtkSmartPointer<vtkMRMLPlanarImageNode> planarImageParameterSetNode = vtkSmartPointer<vtkMRMLPlanarImageNode>::New();
   planarImageParameterSetNode->SetName(planarImageParameterSetNodeName.c_str());
   this->GetMRMLScene()->AddNode(planarImageParameterSetNode);
   planarImageParameterSetNode->SetAndObserveRtImageVolumeNode(rtImageVolumeNode);
   planarImageParameterSetNode->SetAndObserveDisplayedModelNode(displayedModelNode);
-  planarImageParameterSetNode->SetAndObserveTextureVolumeNode(textureVolumeNode);
 
   // Create planar image model for the RT image
   this->PlanarImageLogic->CreateModelForPlanarImage(planarImageParameterSetNode);
