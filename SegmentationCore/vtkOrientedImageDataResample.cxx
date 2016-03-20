@@ -170,13 +170,14 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceGeometry(vtkO
     return false;
   }
 
-  // Apply extent offset on calculated effective extent (in case the input extent does not start at 0)
-  effectiveInputExtent[0] = effectiveInputExtent[0] + inputExtent[0];
-  effectiveInputExtent[1] = effectiveInputExtent[1] + inputExtent[0];
-  effectiveInputExtent[2] = effectiveInputExtent[2] + inputExtent[2];
-  effectiveInputExtent[3] = effectiveInputExtent[3] + inputExtent[2];
-  effectiveInputExtent[4] = effectiveInputExtent[4] + inputExtent[4];
-  effectiveInputExtent[5] = effectiveInputExtent[5] + inputExtent[4];
+  // Need to expand the input by one voxel, otherwise clipping may occur
+  // TODO: investigate why this is necessary
+  if (effectiveInputExtent[0] > inputExtent[0]) { --effectiveInputExtent[0]; }
+  if (effectiveInputExtent[1] < inputExtent[1]) { ++effectiveInputExtent[1]; }
+  if (effectiveInputExtent[2] > inputExtent[2]) { --effectiveInputExtent[2]; }
+  if (effectiveInputExtent[3] < inputExtent[3]) { ++effectiveInputExtent[3]; }
+  if (effectiveInputExtent[4] > inputExtent[4]) { --effectiveInputExtent[4]; }
+  if (effectiveInputExtent[5] < inputExtent[5]) { ++effectiveInputExtent[5]; }
 
   // Assemble transform
   vtkSmartPointer<vtkTransform> referenceImageToInputImageTransform = vtkSmartPointer<vtkTransform>::New();
@@ -287,14 +288,15 @@ template <typename T> void CalculateEffectiveExtentGeneric(vtkOrientedImageData*
   // Loop through output pixels
   for (int k = wholeExt[4]; k <= wholeExt[5]; k++)
   {
-    bool foundPointInThisRow = false;
     for (int j = wholeExt[2]; j <= wholeExt[3]; j++)
     {
+      bool currentLineInEffectiveExtent = (k >= effectiveExtent[4] && k <= effectiveExtent[5] && j >= effectiveExtent[2] && j <= effectiveExtent[3]);
       int i = wholeExt[0];
       T* imagePtr = static_cast<T*>(image->GetScalarPointer(i,j,k));
-      for (; i < wholeExt[1]; i++)
+      int firstSegmentEnd = currentLineInEffectiveExtent ? effectiveExtent[0] : wholeExt[1];
+      for (; i <= firstSegmentEnd; i++)
       {
-        if (*(imagePtr++)>threshold)
+        if (*(imagePtr++) > threshold)
         {
           if (i < effectiveExtent[0]) { effectiveExtent[0] = i; }
           if (i > effectiveExtent[1]) { effectiveExtent[1] = i; }
@@ -302,37 +304,22 @@ template <typename T> void CalculateEffectiveExtentGeneric(vtkOrientedImageData*
           if (j > effectiveExtent[3]) { effectiveExtent[3] = j; }
           if (k < effectiveExtent[4]) { effectiveExtent[4] = k; }
           if (k > effectiveExtent[5]) { effectiveExtent[5] = k; }
-          foundPointInThisRow = true;
-          i = wholeExt[1];
-          imagePtr = static_cast<T*>(image->GetScalarPointer(i,j,k));
-          for (; i > effectiveExtent[1]; i--)
-          {
-            if (*(imagePtr--)>threshold)
-            {
-              if (i < effectiveExtent[0]) { effectiveExtent[0] = i; }
-              if (i > effectiveExtent[1]) { effectiveExtent[1] = i; }
-              if (j < effectiveExtent[2]) { effectiveExtent[2] = j; }
-              if (j > effectiveExtent[3]) { effectiveExtent[3] = j; }
-              if (k < effectiveExtent[4]) { effectiveExtent[4] = k; }
-              if (k > effectiveExtent[5]) { effectiveExtent[5] = k; }
-              break;
-            }
-          }
+          currentLineInEffectiveExtent = true;
           break;
         }
       }
-    }
-    if (!foundPointInThisRow)
-    {
-      continue;
-    }
-    for (int j = wholeExt[3]; j > effectiveExtent[3]; j--)
-    {
-      int i = wholeExt[0];
-      T* imagePtr = static_cast<T*>(image->GetScalarPointer(i,j,k));
-      for (; i < wholeExt[1]; i++)
+      if (!currentLineInEffectiveExtent)
       {
-        if (*(imagePtr++)>threshold)
+        // We haven't found any non-empty voxel in this line
+        continue;
+      }
+      // Now we need to find the other end of the extent: the last non-empty voxel in the line.
+      // The fastest way to find it is to start backward search from the end of the line.
+      i = wholeExt[1];
+      imagePtr = static_cast<T*>(image->GetScalarPointer(i,j,k));
+      for (; i > effectiveExtent[1]; i--)
+      {
+        if (*(imagePtr--)>threshold)
         {
           if (i < effectiveExtent[0]) { effectiveExtent[0] = i; }
           if (i > effectiveExtent[1]) { effectiveExtent[1] = i; }
@@ -340,28 +327,11 @@ template <typename T> void CalculateEffectiveExtentGeneric(vtkOrientedImageData*
           if (j > effectiveExtent[3]) { effectiveExtent[3] = j; }
           if (k < effectiveExtent[4]) { effectiveExtent[4] = k; }
           if (k > effectiveExtent[5]) { effectiveExtent[5] = k; }
-          foundPointInThisRow = true;
-          i = wholeExt[1];
-          imagePtr = static_cast<T*>(image->GetScalarPointer(i,j,k));
-          for (; i > effectiveExtent[1]; i--)
-          {
-            if (*(imagePtr--)>threshold)
-            {
-              if (i < effectiveExtent[0]) { effectiveExtent[0] = i; }
-              if (i > effectiveExtent[1]) { effectiveExtent[1] = i; }
-              if (j < effectiveExtent[2]) { effectiveExtent[2] = j; }
-              if (j > effectiveExtent[3]) { effectiveExtent[3] = j; }
-              if (k < effectiveExtent[4]) { effectiveExtent[4] = k; }
-              if (k > effectiveExtent[5]) { effectiveExtent[5] = k; }
-              break;
-            }
-          }
           break;
         }
       }
     }
   }
-
 }
 
 //----------------------------------------------------------------------------
@@ -379,27 +349,9 @@ bool vtkOrientedImageDataResample::CalculateEffectiveExtent(vtkOrientedImageData
     vtkGenericWarningMacro("vtkOrientedImageDataResample::CalculateEffectiveExtent: Unknown ScalarType");
     return false;
   }
-/*
-  if (imageScalarType == VTK_UNSIGNED_CHAR)
-  {
-    CalculateEffectiveExtentGeneric<unsigned char>(image, effectiveExtent, 0);
-  }
-  else if (imageScalarType == VTK_UNSIGNED_SHORT)
-  {
-    CalculateEffectiveExtentGeneric<unsigned short>(image, effectiveExtent, 0);
-  }
-  else if (imageScalarType == VTK_UNSIGNED_SHORT)
-  {
-    CalculateEffectiveExtentGeneric<short>(image, effectiveExtent, 0);
-  }
-  else
-  {
-    vtkErrorMacro("Unsupported scalar type");
-  }
-  */
 
   // Return with failure if effective input extent is empty
-  if ( effectiveExtent[0] == effectiveExtent[1] || effectiveExtent[2] == effectiveExtent[3] || effectiveExtent[4] == effectiveExtent[5] )
+  if ( effectiveExtent[0] > effectiveExtent[1] || effectiveExtent[2] > effectiveExtent[3] || effectiveExtent[4] > effectiveExtent[5] )
   {
     return false;
   }
