@@ -23,6 +23,7 @@
 
 // VTK includes
 #include <vtkCollection.h>
+#include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkTimerLog.h>
@@ -457,9 +458,6 @@ void vtkCalculateOversamplingFactor::ApplyOversamplingOnImageGeometry(vtkOriente
     double newSpacing[3] = {0.0,0.0,0.0};
     double spacing[3] = {0.0,0.0,0.0};
     imageData->GetSpacing(spacing);
-    double extentMm[3] = { (extent[1]-extent[0]+1) * spacing[0],
-                           (extent[3]-extent[2]+1) * spacing[1],
-                           (extent[5]-extent[4]+1) * spacing[2] };
     for (unsigned int axis=0; axis<3; ++axis)
     {
       unsigned int dimension = extent[axis*2+1] - extent[axis*2] + 1;
@@ -468,18 +466,26 @@ void vtkCalculateOversamplingFactor::ApplyOversamplingOnImageGeometry(vtkOriente
 
       newExtent[axis*2] = extentMin;
       newExtent[axis*2+1] = extentMax;
-      newSpacing[axis] = extentMm[axis] / (extentMax-extentMin+1);
+      newSpacing[axis] = spacing[axis] 
+        * double(extent[axis * 2 + 1] - extent[axis * 2] + 1) 
+        / double(newExtent[axis * 2 + 1] - newExtent[axis * 2] + 1);
     }
     imageData->SetExtent(newExtent);
     imageData->SetSpacing(newSpacing);
 
-    // Origin is given in the center of voxels, need to compensate
-    double newOrigin[3] = {0.0,0.0,0.0};
-    double origin[3] = {0.0,0.0,0.0};
-    imageData->GetOrigin(origin);
-    newOrigin[0] = origin[0] - (spacing[0] / 2.0) + (newSpacing[0] / 2.0);
-    newOrigin[1] = origin[1] - (spacing[1] / 2.0) + (newSpacing[1] / 2.0);
-    newOrigin[2] = origin[2] - (spacing[2] / 2.0) + (newSpacing[2] / 2.0);
-    imageData->SetOrigin(newOrigin);
+    // Origin is given in the center of voxels, but we want to have the corners of the new and old volumes
+    // to be in the same position, so we need to shift the origin by a half voxel size difference
+    vtkSmartPointer<vtkMatrix4x4> imageToWorld = vtkSmartPointer<vtkMatrix4x4>::New();
+    imageData->GetImageToWorldMatrix(imageToWorld);
+    double newOrigin_Image[4] =
+    {
+      0.5 * (1 - spacing[0] / newSpacing[0]),
+      0.5 * (1 - spacing[1] / newSpacing[1]),
+      0.5 * (1 - spacing[2] / newSpacing[2]),
+      1.0
+    };
+    double newOrigin_World[4] = { 0, 0, 0, 1 };
+    imageToWorld->MultiplyPoint(newOrigin_Image, newOrigin_World);
+    imageData->SetOrigin(newOrigin_World);
   }
 }
