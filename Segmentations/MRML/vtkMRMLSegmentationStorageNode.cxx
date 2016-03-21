@@ -766,7 +766,7 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
     vtkSegment* currentSegment = segmentIt->second.GetPointer();
 
     // Get master representation from segment
-    vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(currentSegment->GetRepresentation(masterRepresentation));
+    vtkSmartPointer<vtkOrientedImageData> currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(currentSegment->GetRepresentation(masterRepresentation));
     if (!currentBinaryLabelmap)
     {
       vtkErrorMacro("WriteBinaryLabelmapRepresentation: Failed to retrieve master representation from segment " << currentSegmentID);
@@ -776,13 +776,15 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
     // Resample current binary labelmap representation to common geometry if necessary
     if (!vtkOrientedImageDataResample::DoGeometriesMatch(commonGeometryImage, currentBinaryLabelmap))
     {
+      vtkSmartPointer<vtkOrientedImageData> resampledCurrentBinaryLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
       bool success = vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
-        currentBinaryLabelmap, commonGeometryImage, currentBinaryLabelmap );
+        currentBinaryLabelmap, commonGeometryImage, resampledCurrentBinaryLabelmap);
       if (!success)
       {
         vtkWarningMacro("WriteBinaryLabelmapRepresentation: Segment " << currentSegmentID << " cannot be resampled to common geometry!");
         continue;
       }
+      currentBinaryLabelmap = resampledCurrentBinaryLabelmap; // currentBinaryLabelmap smart pointer will keep the temporary labelmap valid until it is needed
     }
 
     // Set metadata for current segment
