@@ -67,6 +67,8 @@ public:
   ///          This flag only has an effect if the transform is non-linear, in which case only the extent is changed. Off by default
   static void TransformOrientedImage(vtkOrientedImageData* image, vtkAbstractTransform* transform, bool geometryOnly = false);
 
+  static bool AppendImageMax(vtkOrientedImageData* inputImage, vtkOrientedImageData* imageToAppend, vtkOrientedImageData* outputImage);
+
 public:
   /// Calculate effective extent of an image: the IJK extent where non-zero voxels are located
   static bool CalculateEffectiveExtent(vtkOrientedImageData* image, int effectiveExtent[6]);

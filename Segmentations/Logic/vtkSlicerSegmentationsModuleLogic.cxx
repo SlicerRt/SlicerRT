@@ -1160,19 +1160,11 @@ bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedIm
   vtkSmartPointer<vtkOrientedImageData> newSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
   if (append)
   {
-    if (!vtkOrientedImageDataResample::PadImageToContainImage(
-      segmentLabelmap, labelmap, newSegmentLabelmap) )
+    if (!vtkOrientedImageDataResample::AppendImageMax(segmentLabelmap, labelmap, newSegmentLabelmap))
     {
-      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Failed to pad segment labelmap!");
+      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Failed to append labelmap");
       return false;
     }
-    // Add original segment to edited labelmap
-    vtkSmartPointer<vtkImageMathematics> imageMath = vtkSmartPointer<vtkImageMathematics>::New();
-    imageMath->SetInput1Data(newSegmentLabelmap);
-    imageMath->SetInput2Data(labelmap);
-    imageMath->SetOperationToMax();
-    imageMath->Update();
-    newSegmentLabelmap->DeepCopy(imageMath->GetOutput());
   }
   else
   {
