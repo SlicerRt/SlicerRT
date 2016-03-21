@@ -238,12 +238,14 @@ class SegmentationsModuleTest1(unittest.TestCase):
     self.assertEqual(self.inputSegmentationNode.GetSegmentation().GetNumberOfSegments(), 3)
 
     # Check merged labelmap
+    # Reference geometry has the tiny patient spacing, and it is oversampled to have smimilar
+    # voxel size as the sphere labelmap with the unifirm 1mm spacing
     mergedLabelmap = self.inputSegmentationNode.GetImageData()
     self.assertIsNotNone(mergedLabelmap)
     mergedLabelmapSpacing = self.inputSegmentationNode.GetSpacing()
-    self.assertEqual(mergedLabelmapSpacing[0], 1.0)
-    self.assertEqual(mergedLabelmapSpacing[1], 1.0)
-    self.assertEqual(mergedLabelmapSpacing[2], 1.0)
+    self.assertAlmostEqual(mergedLabelmapSpacing[0], 1.2894736842, 8)
+    self.assertAlmostEqual(mergedLabelmapSpacing[1], 1.2894736842, 8)
+    self.assertAlmostEqual(mergedLabelmapSpacing[2], 0.6052631578, 8)
 
     imageStat = vtk.vtkImageAccumulate()
     imageStat.SetInputData(mergedLabelmap)
@@ -253,11 +255,11 @@ class SegmentationsModuleTest1(unittest.TestCase):
     imageStat.Update()
     self.assertEqual(imageStat.GetVoxelCount(), 54872000)
     imageStatResult = imageStat.GetOutput()
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 46678738)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 7618805)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 129352)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 45383708)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 8791327)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 274360)
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(3,0,0,0), 0) # Built from color table and color four is removed in previous test section
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 445105)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 422605)
 
   #------------------------------------------------------------------------------
   def TestSection_3_ImportExportSegment(self):
@@ -309,11 +311,11 @@ class SegmentationsModuleTest1(unittest.TestCase):
     imageStat.Update()
     self.assertEqual(imageStat.GetVoxelCount(), 54872000)
     imageStatResult = imageStat.GetOutput()
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 46678738)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 7618805)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 129352)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 45383708)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 8791327)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 274360)
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(3,0,0,0), 0) # Built from color table and color four is removed in previous test section
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 445105)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 422605)
 
     # Import model to segment
     modelImportSegmentationNode = vtkMRMLSegmentationNode()
