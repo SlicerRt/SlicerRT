@@ -101,35 +101,29 @@ public:
   double* GetRTPlanDoseGrid() {return this->RTPlanDoseGrid;}
 
   ///
-  void AddRTBeamNode(vtkMRMLRTBeamNode *);
+  void AddRTBeamNode(vtkMRMLRTBeamNode*);
 
   ///
-  void RemoveRTBeamNode(vtkMRMLRTBeamNode *);
+  void RemoveRTBeamNode(vtkMRMLRTBeamNode*);
 
   ///
-  void GetRTBeamNodes(vtkCollection *);
+  void GetRTBeamNodes(vtkCollection*);
   void GetRTBeamNodes(std::vector<vtkMRMLRTBeamNode*>& beams);
 
   /// Search for a beam of a given name.  Return NULL if beam not found
   /// Note: beam names *are not* unique within a plan
-  vtkMRMLRTBeamNode* GetRTBeamNode(const std::string& beamName);
+  vtkMRMLRTBeamNode* GetRTBeamNodeByName(const std::string& beamName);
 
   /// Search for a beam with given beam number.  Return NULL if beam not found
   /// Note: beam numbers *are* unique within a plan
-  vtkMRMLRTBeamNode* GetRTBeamNode(int beamNumber);
+  vtkMRMLRTBeamNode* GetRTBeamNodeByNumber(int beamNumber);
 
   /// Get Subject Hierarchy node associated with this node
-  vtkMRMLSubjectHierarchyNode* GetSHNode();
+  vtkMRMLSubjectHierarchyNode* GetPlanSubjectHierarchyNode();
 
-  /// Get Subject Hierarchy node associated with markups node of plan
-  vtkMRMLSubjectHierarchyNode* GetMarkupsSHNode();
-
-  /// Set RTPlanName
-  vtkSetStringMacro(RTPlanName);
-  vtkGetStringMacro(RTPlanName);
-
-  /// Get/Set rx dose
+  /// Get prescription dose
   vtkGetMacro(RxDose, double);
+  /// Set prescription dose
   vtkSetMacro(RxDose, double);
 
 protected:
@@ -139,7 +133,6 @@ protected:
   void operator=(const vtkMRMLRTPlanNode&);
 
 protected:
-  char* RTPlanName;
   int NextBeamNumber;
   DoseEngineType RTPlanDoseEngine;
   double RxDose;

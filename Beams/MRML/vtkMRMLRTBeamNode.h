@@ -197,18 +197,19 @@ public:
   vtkSetMacro(BeamWeight, double);
 
   /// Return true if the beam name matches the argument
-  bool BeamNameIs (const std::string& beamName);
-  bool BeamNameIs (const char *beamName);
+  //TODO: Should not be needed
+  bool BeamNameIs(const std::string& beamName);
+  bool BeamNameIs(const char *beamName);
 
-  void SetIsocenterSpec (vtkMRMLRTBeamNode::IsocenterSpecification);
-  void SetIsocenterToTargetCenter ();
-  void GetIsocenterPosition (double*);
-  void SetIsocenterPosition (double*);
+  void SetIsocenterSpec(vtkMRMLRTBeamNode::IsocenterSpecification);
+  void SetIsocenterToTargetCenter();
+  void GetIsocenterPosition(double*);
+  void SetIsocenterPosition(double*);
 
-  const double* GetReferenceDosePointPosition ();
-  double GetReferenceDosePointPosition (int dim);
-  void SetReferenceDosePointPosition (const float* position);
-  void SetReferenceDosePointPosition (const double* position);
+  const double* GetReferenceDosePointPosition();
+  double GetReferenceDosePointPosition(int dim);
+  void SetReferenceDosePointPosition(const float* position);
+  void SetReferenceDosePointPosition(const double* position);
 
   /// Get beam model node ID
   vtkGetStringMacro(BeamModelNodeId);
@@ -284,7 +285,8 @@ protected:
   /// Target segment ID in target segmentation node
   char* TargetSegmentID;
 
-  // Beam properties
+// Beam properties
+protected:
   RTBeamType  BeamType;
   RTRadiationType RadiationType;
   RTCollimatorType CollimatorType;
@@ -309,9 +311,6 @@ protected:
 
   double SAD;
   double BeamWeight;
-
-  //TODO: Change these references to MRML references. 
-  // No need to store neither the node pointer nor the ID.
 
   /// Beam model representation
   vtkMRMLModelNode* BeamModelNode;

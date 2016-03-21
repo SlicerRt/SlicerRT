@@ -877,10 +877,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
 
   // Create beam geometry
   vtkSmartPointer<vtkSlicerBeamsModuleLogic> beamsLogic = vtkSmartPointer<vtkSlicerBeamsModuleLogic>::New();
-  //beamsLogic->SetAndObserveBeamsNode(beamParameterSetNode);
   beamsLogic->SetAndObserveMRMLScene(this->GetMRMLScene());
-  vtkMRMLRTPlanNode* RTPlanNode = beamsLogic->CreateDefaultRTPlanNode(seriesName);
-  beamsLogic->SetAndObserveRTPlanNode(RTPlanNode);
+  vtkMRMLRTPlanNode* rtPlanNode = beamsLogic->CreateDefaultRTPlanNode(seriesName);
+  beamsLogic->SetAndObserveRTPlanNode(rtPlanNode);
 
   // Put plan SH node underneath study
   vtkMRMLSubjectHierarchyNode* studyNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
@@ -890,7 +889,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     vtkWarningMacro("LoadRtPlan: No Study SH node found.");
     return false;
   }
-  vtkMRMLSubjectHierarchyNode *planSHNode = RTPlanNode->GetSHNode ();
+  vtkMRMLSubjectHierarchyNode *planSHNode = rtPlanNode->GetPlanSubjectHierarchyNode ();
   if (!planSHNode)
   {
     vtkErrorMacro("LoadRtPlan: Created RTPlanNode, but it doesn't have a Subject Hierarchy node.");
@@ -919,13 +918,10 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     // Create the beam node
     vtkMRMLRTBeamNode* beamNode = beamsLogic->CreateDefaultRTBeamNode(beamName);
     // Add the RTBeam node to the plan.
-    // GCS FIX.  In current implementation, markups node is not
-    // fixated to beam until we add the beam to the plan.
-    // Therefore, one cannot set the isocenter until this happens.
-    // Design of vtkMRMLRTBeamNode should be improved to simplify
-    // construction and use, such as asking the plan to create the
-    // beam rather than asking the beams logic to do so.
-    RTPlanNode->AddRTBeamNode(beamNode);
+    // TODO: In current implementation, markups node is not fixated to beam until we add the beam to the plan. Therefore,
+    //   cannot set the isocenter until this happens. Design of vtkMRMLRTBeamNode should be improved to simplify
+    //   construction and use, such as asking the plan to create the beam rather than asking the beams logic to do so.
+    rtPlanNode->AddRTBeamNode(beamNode);
 
     // Get the beam subject hierarchy node
     vtkMRMLSubjectHierarchyNode *beamSHNode = beamNode->GetSHNode ();
@@ -999,17 +995,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
       beamModelHierarchyRootDisplayNode->SetVisibility(1);
       this->GetMRMLScene()->AddNode(beamModelHierarchyRootDisplayNode);
       beamModelHierarchyRootNode->SetAndObserveDisplayNodeID( beamModelHierarchyRootDisplayNode->GetID() );
-
-      // Create a subject hierarchy node if the separate branch flag is on
-      if (this->BeamModelsInSeparateBranch)
-      {
-        beamModelSubjectHierarchyRootNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-        std::string beamModelSubjectHierarchyRootNodeName = beamModelHierarchyRootNodeName + vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix();
-        beamModelSubjectHierarchyRootNodeName = this->GetMRMLScene()->GenerateUniqueName(beamModelSubjectHierarchyRootNodeName);
-        beamModelSubjectHierarchyRootNode->SetName(beamModelSubjectHierarchyRootNodeName.c_str());
-        beamModelSubjectHierarchyRootNode->SetLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
-        this->GetMRMLScene()->AddNode(beamModelSubjectHierarchyRootNode);
-      }
     }
 
 
@@ -1017,9 +1002,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     std::string beamModelName;
     beamModelName = this->GetMRMLScene()->GenerateUniqueName(
       SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX + std::string(beamName));
-    // vtkSmartPointer<vtkMRMLModelNode> beamModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
-    // beamModelNode->SetName(beamModelName.c_str());
-    // this->GetMRMLScene()->AddNode(beamModelNode); // SH node may be automatically created here depending on auto-creation, but we set it up later
 
     // // Put new beam model in the model hierarchy
     // vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
@@ -1038,26 +1020,16 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     // this->GetMRMLScene()->AddNode(beamModelHierarchyDisplayNode);
     // beamModelHierarchyNode->SetAndObserveDisplayNodeID( beamModelHierarchyDisplayNode->GetID() );
 
-    // // Setup beam model subject hierarchy node and set it up for nested association by associating it with the beam model hierarchy node
-    // vtkMRMLSubjectHierarchyNode* beamModelSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode( this->GetMRMLScene(), 
-    //   (this->BeamModelsInSeparateBranch ? beamModelSubjectHierarchyRootNode.GetPointer() : subjectHierarchyFiducialNode),
-    //   vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), beamModelName.c_str(), NULL );
-    // beamModelSubjectHierarchyNode->SetIndexInParent(beamIndex);
-    // beamModelSubjectHierarchyNode->SetAssociatedNodeID(beamNode->GetID());
-
-    // Compute and set geometry of possible RT image that references the loaded beam.
-    // Uses the referenced RT image if available, otherwise the geometry will be set up when loading the corresponding RT image
-
     beamsLogic->UpdateBeamGeometryModelByID(beamNode->GetID());
     beamsLogic->UpdateBeamTransformByID(beamNode->GetID());
   }
 
-  // Apply beam geometry to RT Image nodes.  The function SetupRtImageGeometry()
-  // has special logic for plans that contain only a single beam, therefore
-  // it cannot be called until the beams are loaded.
+  // Compute and set geometry of possible RT image that references the loaded beams.
+  // Uses the referenced RT image if available, otherwise the geometry will be set up when loading the corresponding RT image
   vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
-  RTPlanNode->GetRTBeamNodes(beams);
-  if (beams) {
+  rtPlanNode->GetRTBeamNodes(beams);
+  if (beams)
+  {
     for (int i=0; i<beams->GetNumberOfItems(); ++i)
     {
       vtkMRMLRTBeamNode *beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
@@ -1068,16 +1040,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
   // Insert plan isocenter series in subject hierarchy
   this->InsertSeriesInSubjectHierarchy(rtReader);
 
-  // Insert beam model subseries under the study if the separate branch flag is on
-  // vtkMRMLSubjectHierarchyNode* studyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(
-  // isocenterSeriesHierarchyRootNode->GetParentNode() );
-  if (studyNode && this->BeamModelsInSeparateBranch)
-  {
-    beamModelSubjectHierarchyRootNode->SetParentNodeID(studyNode->GetID());
-  }
-
   // Put plan markups under study within SH
-  vtkMRMLSubjectHierarchyNode* planMarkupsSHNode = RTPlanNode->GetMarkupsSHNode();
+  vtkMRMLSubjectHierarchyNode* planMarkupsSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(
+    rtPlanNode->GetMarkupsFiducialNode(), this->GetMRMLScene() );
   if (planMarkupsSHNode && studyNode)
   {
     planMarkupsSHNode->SetParentNodeID(studyNode->GetID());
@@ -1287,8 +1252,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy( vt
     seriesNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesNumberAttributeName().c_str(), rtReader->GetSeriesNumber() );
 
     // Set SOP instance UID (RT objects are in one file so have one SOP instance UID per series)
-    // TODO.  This is not correct for RTIMAGE, which may have several
-    // instances of DRRs within the same series
+    // TODO: This is not correct for RTIMAGE, which may have several instances of DRRs within the same series
     seriesNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName(), rtReader->GetSOPInstanceUID());
   }
   else
@@ -1445,7 +1409,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
       vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid plan node for beam '" << beamNode->GetName() << "'!");
       return;
     }
-    vtkMRMLSubjectHierarchyNode *planSHNode = planNode->GetSHNode();
+    vtkMRMLSubjectHierarchyNode *planSHNode = planNode->GetPlanSubjectHierarchyNode();
     if (!planSHNode)
     {
       vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid plan subject hierarchy node for beam '" << beamNode->GetName() << "'!");

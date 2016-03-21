@@ -238,7 +238,7 @@ vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamNode(v
     return NULL;
   }
   int beamNumber = item->text().toInt();
-  vtkMRMLRTBeamNode* beamNode = rtPlanNode->GetRTBeamNode (beamNumber);
+  vtkMRMLRTBeamNode* beamNode = rtPlanNode->GetRTBeamNodeByNumber(beamNumber);
 
   return beamNode;
 }

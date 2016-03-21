@@ -184,16 +184,13 @@ void vtkSlicerPlanarImageModuleLogic::ProcessMRMLSceneEvents(vtkObject *caller, 
     for (volumeNodes->InitTraversal(); (nextObject = volumeNodes->GetNextItemAsObject()); )
     {
       vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(nextObject);
-      if (volumeNode)
+      vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
+        volumeNode->GetNodeReference(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
+      std::map<vtkMRMLScalarVolumeNode*, vtkImageMapToWindowLevelColors*>::iterator mapperIt =
+        this->TextureWindowLevelMappers.find(volumeNode);
+      if (modelNode && mapperIt == this->TextureWindowLevelMappers.end())
       {
-        vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
-          volumeNode->GetNodeReference(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
-        std::map<vtkMRMLScalarVolumeNode*, vtkImageMapToWindowLevelColors*>::iterator mapperIt =
-          this->TextureWindowLevelMappers.find(volumeNode);
-        if (modelNode && mapperIt == this->TextureWindowLevelMappers.end())
-        {
-          this->SetTextureForPlanarImage(volumeNode, modelNode);
-        }
+        this->SetTextureForPlanarImage(volumeNode, modelNode);
       }
     }
   }

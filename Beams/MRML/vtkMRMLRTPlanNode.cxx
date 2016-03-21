@@ -20,7 +20,6 @@
 ==============================================================================*/
 
 // SlicerRt includes
-#include "SlicerRtCommon.h"
 #include "vtkMRMLSegmentationNode.h"
 
 // RTPlan includes
@@ -53,8 +52,6 @@ vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 {
-  this->RTPlanName = NULL;
-  this->SetRTPlanName("RTPlan");
   this->NextBeamNumber = 0;
 
   this->RTPlanDoseEngine = vtkMRMLRTPlanNode::Plastimatch;
@@ -86,7 +83,6 @@ void vtkMRMLRTPlanNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  of << indent << " RTPlanName=\"" << (this->RTPlanName) << "\"";
   of << indent << " NextBeamNumber=\"" << (this->NextBeamNumber) << "\"";
 }
 
@@ -104,12 +100,9 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "RTPlanName")) 
-    {
-      this->SetRTPlanName (attValue);
-    }
     if (!strcmp(attName, "NextBeamNumber")) 
     {
+      //TODO: Great idea to use vtkVariant, should be used everywhere in the code instead of the lengthy stringstream way!
       this->NextBeamNumber = vtkVariant(attValue).ToDouble();
     }
   }
@@ -121,22 +114,12 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
 void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
 {
   Superclass::Copy(anode);
-  this->DisableModifiedEventOn();
-
-  vtkMRMLRTPlanNode *node = vtkMRMLRTPlanNode::SafeDownCast(anode);
-
-  this->SetRTPlanName(node->RTPlanName);
-
-  this->DisableModifiedEventOff();
-  this->InvokePendingModifiedEvent();
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
-
-  os << indent << "RTPlanName:   " << (this->RTPlanName ? this->RTPlanName : "NULL") << "\n";
 }
 
 //----------------------------------------------------------------------------
@@ -228,7 +211,7 @@ void vtkMRMLRTPlanNode::SetAndObserveMarkupsFiducialNode(vtkMRMLMarkupsFiducialN
 vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
 {
   // Create name
-  std::string markupsName = std::string(this->GetRTPlanName()) + " POI";
+  std::string markupsName = std::string(this->GetName()) + "_POI";
   
   // Create markups node
   vtkNew<vtkMRMLMarkupsFiducialNode> markupsNode;
@@ -240,7 +223,7 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
   
   // If plan belongs to a study, set the markups node as belonging to
   // the same study
-  vtkMRMLSubjectHierarchyNode* planSHNode = this->GetSHNode();
+  vtkMRMLSubjectHierarchyNode* planSHNode = this->GetPlanSubjectHierarchyNode();
   if (!planSHNode)
   {
     return markupsNode.GetPointer();
@@ -254,7 +237,7 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
       vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), 
       markupsName.c_str(), markupsNode.GetPointer());
   }
-  
+
   return markupsNode.GetPointer();
 }
 
@@ -273,94 +256,100 @@ void vtkMRMLRTPlanNode::SetAndObserveRTPlanDoseVolumeNode(vtkMRMLScalarVolumeNod
 //---------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::GetRTBeamNodes(vtkCollection *beams)
 {
-  if (!beams)
+  if (!this->GetScene())
   {
-    vtkErrorMacro("GetRTBeamNodes: Invalid input collection!");
+    vtkErrorMacro("GetRTBeamNodes: Invalid MRML scene!");
     return;
   }
-  vtkMRMLScene *scene = this->GetScene();
-  vtkMRMLNode *mnode = NULL;
-  vtkMRMLSubjectHierarchyNode *shnode = NULL;
-  vtkMRMLSubjectHierarchyNode *shparentnode = NULL;
-
-  for (int n=0; n < scene->GetNumberOfNodes(); n++) 
+  if (!beams)
   {
-    mnode = scene->GetNthNode(n);
-    if (mnode->IsA("vtkMRMLSubjectHierarchyNode"))
+    vtkErrorMacro("GetRTBeamNodes: Invalid input beam collection!");
+    return;
+  }
+
+  vtkSmartPointer<vtkCollection> shNodes = vtkSmartPointer<vtkCollection>::Take(
+    this->GetScene()->GetNodesByClass("vtkMRMLSubjectHierarchyNode") );
+  vtkObject* nextObject = NULL;
+  for (shNodes->InitTraversal(); (nextObject = shNodes->GetNextItemAsObject()); )
+  {
+    vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(nextObject);
+    vtkMRMLSubjectHierarchyNode* parentNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shNode->GetParentNode());
+    if (parentNode)
     {
-      shnode = vtkMRMLSubjectHierarchyNode::SafeDownCast(mnode);
-      shparentnode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shnode->GetParentNode());
-      if (shparentnode)
+      vtkMRMLRTPlanNode *planNode = vtkMRMLRTPlanNode::SafeDownCast(parentNode->GetAssociatedNode());
+      if (planNode == this) 
       {
-        vtkMRMLRTPlanNode *pnode = vtkMRMLRTPlanNode::SafeDownCast(shparentnode->GetAssociatedNode());
-        if (pnode && pnode == this) 
-        {
-          vtkMRMLRTBeamNode* bnode = vtkMRMLRTBeamNode::SafeDownCast(shnode->GetAssociatedNode());
-          beams->AddItem(bnode);
-        }
+        vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(shNode->GetAssociatedNode());
+        beams->AddItem(beamNode);
       }
-    }// end if
-  }// end for
+    }
+  }
 }
 
 //---------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::GetRTBeamNodes(std::vector<vtkMRMLRTBeamNode*>& beams)
 {
-  /* Get unsorted list from hierarchy */
+  // Get unsorted list from hierarchy
   vtkSmartPointer<vtkCollection> vBeams = vtkSmartPointer<vtkCollection>::New();
   this->GetRTBeamNodes(vBeams);
 
-  /* Insertion sort puts them into vector sorted by beam number */
+  // Insertion sort puts them into vector sorted by beam number
   vBeams->InitTraversal();
   for (int i=0; i<vBeams->GetNumberOfItems(); ++i)
   {
     vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(vBeams->GetItemAsObject(i));
     int newBeamNumber = beamNode->GetBeamNumber();
     std::vector<vtkMRMLRTBeamNode*>::iterator it = beams.begin();
-    while (it != beams.end()) {
+    while (it != beams.end())
+    {
       int thisBeamNumber = (*it)->GetBeamNumber();
-      if (thisBeamNumber > newBeamNumber) {
+      if (thisBeamNumber > newBeamNumber)
+      {
         break;
       }
       ++it;
     }
-    beams.insert (it, beamNode);
+    beams.insert(it, beamNode);
   }
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetRTBeamNode(const std::string& beamName)
+vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetRTBeamNodeByName(const std::string& beamName)
 {
-  vtkMRMLScene *scene = this->GetScene();
-  vtkMRMLNode *mnode = NULL;
-  vtkMRMLSubjectHierarchyNode *shnode = NULL;
-  vtkMRMLSubjectHierarchyNode *shparentnode = NULL;
-
-  for (int n=0; n < scene->GetNumberOfNodes(); n++) 
+  if (!this->GetScene())
   {
-    mnode = scene->GetNthNode(n);
-    if (mnode->IsA("vtkMRMLSubjectHierarchyNode"))
+    vtkErrorMacro("GetRTBeamNode: Invalid MRML scene!");
+    return NULL;
+  }
+
+  //TODO: This function should probably be working with references, not by iterating through all nodes
+
+  vtkSmartPointer<vtkCollection> shNodes = vtkSmartPointer<vtkCollection>::Take(
+    this->GetScene()->GetNodesByClass("vtkMRMLSubjectHierarchyNode") );
+  vtkObject* nextObject = NULL;
+  for (shNodes->InitTraversal(); (nextObject = shNodes->GetNextItemAsObject()); )
+  {
+    vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(nextObject);
+    vtkMRMLSubjectHierarchyNode* parentNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shNode->GetParentNode());
+    if (parentNode)
     {
-      shnode = vtkMRMLSubjectHierarchyNode::SafeDownCast(mnode);
-      shparentnode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shnode->GetParentNode());
-      if (shparentnode)
+      vtkMRMLRTPlanNode *planNode = vtkMRMLRTPlanNode::SafeDownCast(parentNode->GetAssociatedNode());
+      if (planNode == this) 
       {
-        vtkMRMLRTPlanNode *pnode = vtkMRMLRTPlanNode::SafeDownCast(shparentnode->GetAssociatedNode());
-        if (pnode && pnode == this) 
+        vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(shNode->GetAssociatedNode());
+        if (beamNode && beamNode->BeamNameIs(beamName))
         {
-          vtkMRMLRTBeamNode* bnode = vtkMRMLRTBeamNode::SafeDownCast(shnode->GetAssociatedNode());
-          if (bnode && bnode->BeamNameIs (beamName)) {
-            return bnode;
-          }
+          return beamNode;
         }
       }
-    }// end if
-  }// end for
+    }
+  }
+
   return NULL;
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetRTBeamNode(int beamNumber)
+vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetRTBeamNodeByNumber(int beamNumber)
 {
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this, this->GetScene());
   if (!shNode)
@@ -389,7 +378,7 @@ void vtkMRMLRTPlanNode::AddRTBeamNode(vtkMRMLRTBeamNode *beamnode)
   vtkMRMLScene *scene = this->GetScene();
 
   // Get subject hierarchy node for the RT Plan
-  vtkMRMLSubjectHierarchyNode* planSHNode = this->GetSHNode();
+  vtkMRMLSubjectHierarchyNode* planSHNode = this->GetPlanSubjectHierarchyNode();
 
   // Set the beam number
   beamnode->SetBeamNumber(this->NextBeamNumber);
@@ -424,29 +413,21 @@ void vtkMRMLRTPlanNode::RemoveRTBeamNode(vtkMRMLRTBeamNode *beamNode)
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode* vtkMRMLRTPlanNode::GetSHNode ()
+vtkMRMLSubjectHierarchyNode* vtkMRMLRTPlanNode::GetPlanSubjectHierarchyNode()
 {
   vtkMRMLSubjectHierarchyNode* planSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this, this->GetScene());
 
   // If none found, create new subject hierarchy node for the RT Plan
   if (planSHNode == NULL)
   {
-    planSHNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode (
-      this->GetScene(), 0,
-      vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), 
-      this->GetRTPlanName(), this);
+    planSHNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
+      this->GetScene(), NULL,
+      vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), this->Name, this );
   }
-
   if (planSHNode == NULL)
   {
     vtkErrorMacro("vtkMRMLRTPlanNode::GetSHNode: Could not create subject hierarchy node.");
   }
 
   return planSHNode;
-}
-
-//---------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode* vtkMRMLRTPlanNode::GetMarkupsSHNode ()
-{
-  return vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this->GetMarkupsFiducialNode(), this->GetScene());
 }
