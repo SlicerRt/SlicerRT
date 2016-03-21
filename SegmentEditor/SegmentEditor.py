@@ -16,7 +16,7 @@ class SegmentEditor(ScriptedLoadableModule):
     self.parent.contributors = ["Csaba Pinter (Queen's University)"]
     self.parent.helpText = """This module allows editing segmentation objects by directly drawing and using segmentaiton tools on the contained segments.\n\nRepresentations other than the labelmap one (which is used for editing) are automatically updated real-time, so for example the closed surface can be visualized as edited in the 3D view."""
     self.parent.acknowledgementText = """This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)."""
-    
+
 #
 # SegmentEditorWidget
 #
