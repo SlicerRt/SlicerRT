@@ -1145,6 +1145,11 @@ bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedIm
     std::cerr << "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Invalid inputs!";
     return false;
   }
+  if (labelmap->GetScalarPointer()==NULL)
+  {
+    std::cerr << "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Invalid input labelmap";
+    return false;
+  }
 
   // Get binary labelmap representation of selected segment
   vtkSegment* selectedSegment = segmentationNode->GetSegmentation()->GetSegment(segmentID);

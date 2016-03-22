@@ -37,6 +37,12 @@
        <property name="noneEnabled">
         <bool>true</bool>
        </property>
+       <property name="addEnabled">
+        <bool>false</bool>
+       </property>
+       <property name="renameEnabled">
+        <bool>true</bool>
+       </property>
        <property name="noneDisplay">
         <string>Select master volume to enable editing</string>
        </property>
@@ -55,6 +61,9 @@
         <stringlist>
          <string>vtkMRMLSegmentationNode</string>
         </stringlist>
+       </property>
+       <property name="renameEnabled">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -129,7 +138,7 @@
     </layout>
    </item>
    <item>
-    <widget class="qMRMLSegmentsTableView" name="SegmentsTableView"/>
+    <widget class="qMRMLSegmentsTableView" name="SegmentsTableView" native="true"/>
    </item>
    <item>
     <widget class="QGroupBox" name="EffectsGroupBox">
