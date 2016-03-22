@@ -202,8 +202,7 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
       self.previewPipelines[sliceWidget] = pipeline
 
       # Add actor
-      renderer.AddActor2D(pipeline.actor)
-      self.scriptedEffect.addActor(sliceWidget, pipeline.actor)
+      self.scriptedEffect.addActor2D(sliceWidget, pipeline.actor)
 
   def preview(self):
     opacity = 0.5 + self.previewState / (2. * self.previewSteps)

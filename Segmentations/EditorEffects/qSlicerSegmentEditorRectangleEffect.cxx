@@ -39,6 +39,7 @@
 #include <vtkProperty2D.h>
 #include <vtkPoints.h>
 #include <vtkCellArray.h>
+#include <vtkVector.h>
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -55,14 +56,18 @@ class RectanglePipeline: public QObject
 public:
   RectanglePipeline()
   {
+    this->IsDragging = false;
     this->PolyData = vtkPolyData::New();
     this->Mapper = vtkPolyDataMapper2D::New();
     this->Mapper->SetInputData(this->PolyData);
     this->Actor = vtkActor2D::New();
     this->Actor->SetMapper(this->Mapper);
+    this->Actor->VisibilityOff();
     vtkProperty2D* rectangleProperty = this->Actor->GetProperty();
     rectangleProperty->SetColor(1,1,0);
     rectangleProperty->SetLineWidth(1);
+    this->DragStartXyPosition.Set(0, 0);
+    this->CurrentXyPosition.Set(0, 0);
   };
   ~RectanglePipeline()
   {
@@ -75,8 +80,8 @@ public:
   };
 public:
   bool IsDragging;
-  QPoint StartXyPosition;
-  QPoint CurrentXyPosition;
+  vtkVector2i DragStartXyPosition;
+  vtkVector2i CurrentXyPosition;
   vtkActor2D* Actor;
   vtkPolyDataMapper2D* Mapper;
   vtkPolyData* PolyData;
@@ -144,8 +149,7 @@ RectanglePipeline* qSlicerSegmentEditorRectangleEffectPrivate::rectangleForWidge
   }
   else
   {
-    renderer->AddActor2D(rectangle->Actor);
-    q->addActor(sliceWidget, rectangle->Actor);
+    q->addActor2D(sliceWidget, rectangle->Actor);
   }
 
   this->Rectangles[sliceWidget] = rectangle;
@@ -195,11 +199,19 @@ void qSlicerSegmentEditorRectangleEffectPrivate::createRectangleGlyph(qMRMLSlice
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorRectangleEffectPrivate::updateRectangleGlyph(RectanglePipeline* rectangle)
 {
-  vtkPoints* points = rectangle->PolyData->GetPoints();
-  points->SetPoint(0, rectangle->StartXyPosition.x(),   rectangle->StartXyPosition.y(),   0.0);
-  points->SetPoint(1, rectangle->StartXyPosition.x(),   rectangle->CurrentXyPosition.y(), 0.0);
-  points->SetPoint(2, rectangle->CurrentXyPosition.x(), rectangle->CurrentXyPosition.y(), 0.0);
-  points->SetPoint(3, rectangle->CurrentXyPosition.x(), rectangle->StartXyPosition.y(),   0.0);
+  if (rectangle->IsDragging)
+  {
+    vtkPoints* points = rectangle->PolyData->GetPoints();
+    points->SetPoint(0, rectangle->DragStartXyPosition[0], rectangle->DragStartXyPosition[1], 0.0);
+    points->SetPoint(1, rectangle->DragStartXyPosition[0], rectangle->CurrentXyPosition[1], 0.0);
+    points->SetPoint(2, rectangle->CurrentXyPosition[0], rectangle->CurrentXyPosition[1], 0.0);
+    points->SetPoint(3, rectangle->CurrentXyPosition[0], rectangle->DragStartXyPosition[1], 0.0);
+    rectangle->Actor->VisibilityOn();
+  }
+  else
+  {
+    rectangle->Actor->VisibilityOff();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -260,13 +272,8 @@ void qSlicerSegmentEditorRectangleEffect::processInteractionEvents(
   {
     rectangle->IsDragging = true;
     this->cursorOff(sliceWidget);
-    int x = 0;
-    int y = 0;
-    callerInteractor->GetEventPosition(x, y);
-    rectangle->StartXyPosition.setX(x);
-    rectangle->StartXyPosition.setY(y);
-    rectangle->CurrentXyPosition.setX(x);
-    rectangle->CurrentXyPosition.setY(y);
+    callerInteractor->GetEventPosition(rectangle->DragStartXyPosition[0], rectangle->DragStartXyPosition[1]);
+    callerInteractor->GetEventPosition(rectangle->CurrentXyPosition[0], rectangle->CurrentXyPosition[1]);
     d->updateRectangleGlyph(rectangle);
     this->abortEvent(callerInteractor, eid, sliceWidget);
   }
@@ -274,11 +281,7 @@ void qSlicerSegmentEditorRectangleEffect::processInteractionEvents(
   {
     if (rectangle->IsDragging)
     {
-      int x = 0;
-      int y = 0;
-      callerInteractor->GetEventPosition(x, y);
-      rectangle->CurrentXyPosition.setX(x);
-      rectangle->CurrentXyPosition.setY(y);
+      callerInteractor->GetEventPosition(rectangle->CurrentXyPosition[0], rectangle->CurrentXyPosition[1]);
       d->updateRectangleGlyph(rectangle);
       sliceWidget->sliceView()->scheduleRender();
       this->abortEvent(callerInteractor, eid, sliceWidget);
@@ -287,6 +290,7 @@ void qSlicerSegmentEditorRectangleEffect::processInteractionEvents(
   else if (eid == vtkCommand::LeftButtonReleaseEvent)
   {
     rectangle->IsDragging = false;
+    d->updateRectangleGlyph(rectangle);
     this->cursorOn(sliceWidget);
 
     // Paint rectangle on edited labelmap
@@ -304,12 +308,6 @@ void qSlicerSegmentEditorRectangleEffect::processInteractionEvents(
     }
     // Notify editor about changes
     this->apply();
-
-    rectangle->StartXyPosition.setX(0);
-    rectangle->StartXyPosition.setY(0);
-    rectangle->CurrentXyPosition.setX(0);
-    rectangle->CurrentXyPosition.setY(0);
-    d->updateRectangleGlyph(rectangle);
     this->abortEvent(callerInteractor, eid, sliceWidget);
   }
 }

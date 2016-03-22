@@ -163,8 +163,7 @@ BrushPipeline* qSlicerSegmentEditorPaintEffectPrivate::brushForWidget(qMRMLSlice
   }
   else
   {
-    renderer->AddActor2D(brush->Actor);
-    q->addActor(sliceWidget, brush->Actor);
+    q->addActor2D(sliceWidget, brush->Actor);
   }
 
   this->Brushes[sliceWidget] = brush;

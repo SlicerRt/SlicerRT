@@ -31,6 +31,7 @@
 
 class qSlicerSegmentEditorAbstractEffectPrivate;
 
+class vtkActor2D;
 class vtkMRMLScene;
 class vtkMRMLSegmentEditorNode;
 class vtkMRMLAbstractViewNode;
@@ -40,7 +41,7 @@ class vtkRenderer;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
 class vtkOrientedImageData;
-class vtkProp;
+class vtkProp3D;
 class qMRMLWidget;
 class qMRMLSliceWidget;
 class QFrame;
@@ -151,8 +152,17 @@ public:
   /// Get effect options frame
   Q_INVOKABLE QFrame* optionsFrame();
 
-  /// Add actor to container that needs to be cleared on deactivation
-  Q_INVOKABLE void addActor(qMRMLWidget* viewWidget, vtkProp* actor);
+  /// Add actor to the list of actors managed by the abstract effect class.
+  /// The actor is immediately added to the renderer when this method is called
+  /// and the effect automatically removes the actor from renderer on deactivation
+  /// and adds it back on activation.
+  Q_INVOKABLE void addActor2D(qMRMLWidget* viewWidget, vtkActor2D* actor);
+
+  /// Add actor to the list of actors managed by the abstract effect class.
+  /// The actor is immediately added to the renderer when this method is called
+  /// and the effect automatically removes the actor from renderer on deactivation
+  /// and adds it back on activation.
+  Q_INVOKABLE void addActor3D(qMRMLWidget* viewWidget, vtkProp3D* actor);
 
   /// Add effect options widget to options frame layout
   /// The implemented effects need to create their options UI widget, make the connections,

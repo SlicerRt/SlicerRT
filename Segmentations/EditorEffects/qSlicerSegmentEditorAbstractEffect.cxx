@@ -91,6 +91,25 @@ qSlicerSegmentEditorAbstractEffectPrivate::~qSlicerSegmentEditorAbstractEffectPr
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffectPrivate::scheduleRender(qMRMLWidget* viewWidget)
+{
+  qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
+  qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
+  if (sliceWidget)
+  {
+    sliceWidget->sliceView()->scheduleRender();
+  }
+  else if (threeDWidget)
+  {
+    threeDWidget->threeDView()->scheduleRender();
+  }
+  else
+  {
+    qCritical() << Q_FUNC_INFO << ": Unsupported view widget";
+  }
+}
+
+//-----------------------------------------------------------------------------
 
 
 //-----------------------------------------------------------------------------
@@ -147,6 +166,42 @@ void qSlicerSegmentEditorAbstractEffect::activate()
 
   // Show options frame
   d->OptionsFrame->setVisible(true);
+
+  // Remove actors from container
+  QMapIterator<qMRMLWidget*, QList< vtkSmartPointer<vtkProp3D> > > actors3DIterator(d->Actors3D);
+  while (actors3DIterator.hasNext())
+  {
+    actors3DIterator.next();
+    qMRMLWidget* viewWidget = actors3DIterator.key();
+    vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
+    if (!renderer)
+    {
+      qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
+      continue;
+    }
+    foreach(vtkSmartPointer<vtkProp3D> actor, actors3DIterator.value())
+    {
+      renderer->AddViewProp(actor);
+    }
+    d->scheduleRender(viewWidget);
+  }
+  QMapIterator<qMRMLWidget*, QList< vtkSmartPointer<vtkActor2D> > > actors2DIterator(d->Actors2D);
+  while (actors2DIterator.hasNext())
+  {
+    actors2DIterator.next();
+    qMRMLWidget* viewWidget = actors2DIterator.key();
+    vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
+    if (!renderer)
+    {
+      qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
+      continue;
+    }
+    foreach(vtkSmartPointer<vtkActor2D> actor, actors2DIterator.value())
+    {
+      renderer->AddActor2D(actor);
+    }
+    d->scheduleRender(viewWidget);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -158,43 +213,39 @@ void qSlicerSegmentEditorAbstractEffect::deactivate()
   d->OptionsFrame->setVisible(false);
 
   // Remove actors from container
-  QMapIterator<qMRMLWidget*, QList<vtkProp*> > actorsIterator(d->Actors);
-  while (actorsIterator.hasNext())
+  QMapIterator<qMRMLWidget*, QList< vtkSmartPointer<vtkProp3D> > > actors3DIterator(d->Actors3D);
+  while (actors3DIterator.hasNext())
   {
-    actorsIterator.next();
-    qMRMLWidget* viewWidget = actorsIterator.key();
-    foreach (vtkProp* actor, actorsIterator.value())
+    actors3DIterator.next();
+    qMRMLWidget* viewWidget = actors3DIterator.key();
+    vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
+    if (!renderer)
     {
-      vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
-      if (!renderer)
-      {
-        qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget!";
-        continue;
-      }
-
-      // Call both actor removal functions to support both slice and 3D views
-      // (the 2D actors are members of vtkViewport, base class of vtkRenderer,
-      // while vtkRenderer has another, general actor list)
-      renderer->RemoveActor(actor);
-      renderer->RemoveActor2D(actor);
-    }
-
-    // Schedule render
-    qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
-    qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
-    if (sliceWidget)
-    {
-      sliceWidget->sliceView()->scheduleRender();
-    }
-    else if (threeDWidget)
-    {
-      threeDWidget->threeDView()->scheduleRender();
-    }
-    else
-    {
-      qCritical() << Q_FUNC_INFO << ": Unsupported view widget!";
+      qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
       continue;
     }
+    foreach(vtkSmartPointer<vtkProp3D> actor, actors3DIterator.value())
+    {
+      renderer->RemoveViewProp(actor);
+    }
+    d->scheduleRender(viewWidget);
+  }
+  QMapIterator<qMRMLWidget*, QList< vtkSmartPointer<vtkActor2D> > > actors2DIterator(d->Actors2D);
+  while (actors2DIterator.hasNext())
+  {
+    actors2DIterator.next();
+    qMRMLWidget* viewWidget = actors2DIterator.key();
+    vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
+    if (!renderer)
+    {
+      qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
+      continue;
+    }
+    foreach(vtkSmartPointer<vtkActor2D> actor, actors2DIterator.value())
+    {
+      renderer->RemoveActor2D(actor);
+    }
+    d->scheduleRender(viewWidget);
   }
 }
 
@@ -282,19 +333,58 @@ void qSlicerSegmentEditorAbstractEffect::cursorOn(qMRMLWidget* viewWidget)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::addActor(qMRMLWidget* viewWidget, vtkProp* actor)
+void qSlicerSegmentEditorAbstractEffect::addActor3D(qMRMLWidget* viewWidget, vtkProp3D* actor)
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
 
-  if (d->Actors.contains(viewWidget))
+  vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
+  if (renderer)
   {
-    d->Actors[viewWidget] << actor;
+    renderer->AddViewProp(actor);
+    d->scheduleRender(viewWidget);
   }
   else
   {
-    QList<vtkProp*> actorList;
+    qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
+  }
+
+  if (d->Actors3D.contains(viewWidget))
+  {
+    d->Actors3D[viewWidget] << actor;
+  }
+  else
+  {
+    QList< vtkSmartPointer<vtkProp3D> > actorList;
     actorList << actor;
-    d->Actors[viewWidget] = actorList;
+    d->Actors3D[viewWidget] = actorList;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::addActor2D(qMRMLWidget* viewWidget, vtkActor2D* actor)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
+  if (renderer)
+  {
+    renderer->AddActor2D(actor);
+    d->scheduleRender(viewWidget);
+  }
+  else
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
+  }
+
+  if (d->Actors2D.contains(viewWidget))
+  {
+    d->Actors2D[viewWidget] << actor;
+  }
+  else
+  {
+    QList< vtkSmartPointer<vtkActor2D> > actorList;
+    actorList << actor;
+    d->Actors2D[viewWidget] = actorList;
   }
 }
 
@@ -529,6 +619,11 @@ bool qSlicerSegmentEditorAbstractEffect::masterVolumeImageData(vtkOrientedImageD
   vtkSmartPointer<vtkOrientedImageData> masterVolumeOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::Take(
     vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(masterVolumeNode) );
   // Copy it into input image data
+  if (masterVolumeOrientedImageData.GetPointer() == NULL)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid image in master volume";
+    return false;
+  }
   masterImageData->DeepCopy(masterVolumeOrientedImageData);
 
   return true;

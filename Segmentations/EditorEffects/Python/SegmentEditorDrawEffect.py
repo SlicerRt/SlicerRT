@@ -128,8 +128,7 @@ class SegmentEditorDrawEffect(AbstractScriptedSegmentEditorLabelEffect):
     if renderer is None:
       logging.error("setupPreviewDisplay: Failed to get renderer!")
       return None
-    renderer.AddActor2D(pipeline.actor)
-    self.scriptedEffect.addActor(sliceWidget, pipeline.actor)
+    self.scriptedEffect.addActor2D(sliceWidget, pipeline.actor)
 
     self.drawPipelines[sliceWidget] = pipeline
     return pipeline

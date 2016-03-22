@@ -39,6 +39,9 @@
 
 // VTK includes
 #include <vtkWeakPointer.h>
+#include <vtkSmartPointer.h>
+#include <vtkActor2DCollection.h>
+#include <vtkProp3DCollection.h>
 
 // Qt includes
 #include <QObject>
@@ -61,6 +64,7 @@ protected:
 public:
   qSlicerSegmentEditorAbstractEffectPrivate(qSlicerSegmentEditorAbstractEffect& object);
   ~qSlicerSegmentEditorAbstractEffectPrivate();
+  void scheduleRender(qMRMLWidget* viewWidget);
 signals:
   void applySignal();
   void selectEffectSignal(QString);
@@ -75,7 +79,8 @@ public:
   QCursor SavedCursor;
 
   /// List of actors used by the effect. Removed when effect is deactivated
-  QMap<qMRMLWidget*, QList<vtkProp*> > Actors;
+  QMap<qMRMLWidget*, QList< vtkSmartPointer<vtkActor2D> > > Actors2D;
+  QMap<qMRMLWidget*, QList< vtkSmartPointer<vtkProp3D> > > Actors3D;
 
   /// Frame containing the effect options UI.
   /// Populating the frame is possible using the \sa addOptionsWidget method from the base classes
