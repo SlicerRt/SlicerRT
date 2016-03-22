@@ -73,6 +73,7 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.editor.updateWidgetFromMRML()
 
   def exit(self):
+    self.editor.setActiveEffect(None)
     self.removeShortcutKeys()
     self.editor.removeViewObservations()
 

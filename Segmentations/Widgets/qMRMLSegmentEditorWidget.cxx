@@ -130,6 +130,9 @@ public:
   /// Enable or disable effects and their options based on input selection
   void updateEffectsEnabled();
 
+  /// Set cursor for effect. If effect is NULL then the cursor is reset to default.
+  void setEffectCursor(qSlicerSegmentEditorAbstractEffect* effect);
+
 public:
   /// Segment editor parameter set node containing all selections and working images
   vtkWeakPointer<vtkMRMLSegmentEditorNode> ParameterSetNode;
@@ -500,7 +503,42 @@ void qMRMLSegmentEditorWidgetPrivate::updateEffectsEnabled()
 }
 
 //-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidgetPrivate::setEffectCursor(qSlicerSegmentEditorAbstractEffect* effect)
+{
+  qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
+  foreach(QString sliceViewName, layoutManager->sliceViewNames())
+  {
+    qMRMLSliceWidget* sliceWidget = layoutManager->sliceWidget(sliceViewName);
+    if (effect)
+    {
+      sliceWidget->setCursor(effect->createCursor(sliceWidget));
+    }
+    else
+    {
+      sliceWidget->unsetCursor();
+    }
+  }
+  /*
+  TODO: Activate this when implementing effects in 3D views.
+  It is not enabled now because:
+  1. Cursor is not changedin the main view just in the header (it is a bug that should be fixed in the threeDWidget)
+  2. Cursor should probably only changed for effects that work in the 3D view. Effects should state if they operate in
+     slice and/or 3D view.
 
+  for (int threeDViewId = 0; threeDViewId < layoutManager->threeDViewCount(); ++threeDViewId)
+  {
+    qMRMLThreeDWidget* threeDWidget = layoutManager->threeDWidget(threeDViewId);
+    if (effect)
+    {
+      threeDWidget->setCursor(effect->createCursor(threeDWidget));
+    }
+    else
+    {
+      threeDWidget->unsetCursor();
+    }
+  }
+  */
+}
 
 //-----------------------------------------------------------------------------
 // qMRMLSegmentEditorWidget methods
@@ -603,18 +641,6 @@ void qMRMLSegmentEditorWidget::setActiveEffect(qSlicerSegmentEditorAbstractEffec
       }
     }
 
-    // Set cursor for active effect
-    qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
-    foreach (QString sliceViewName, layoutManager->sliceViewNames())
-    {
-      qMRMLSliceWidget* sliceWidget = layoutManager->sliceWidget(sliceViewName);
-      sliceWidget->setCursor(effect->createCursor(sliceWidget));
-    }
-    for (int threeDViewId=0; threeDViewId<layoutManager->threeDViewCount(); ++threeDViewId)
-    {
-      qMRMLThreeDWidget* threeDWidget = layoutManager->threeDWidget(threeDViewId);
-      threeDWidget->setCursor(effect->createCursor(threeDWidget));
-    }
 
     // If selected effect is not per-segment, then clear segment selection
     // and prevent selection until a per-segment one is selected
@@ -644,20 +670,10 @@ void qMRMLSegmentEditorWidget::setActiveEffect(qSlicerSegmentEditorAbstractEffec
       effectButton->blockSignals(false);
       d->EffectButtonGroup.setExclusive(true);
     }
-
-    // Reset cursor
-    qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
-    foreach (QString sliceViewName, layoutManager->sliceViewNames())
-    {
-      qMRMLSliceWidget* sliceWidget = layoutManager->sliceWidget(sliceViewName);
-      sliceWidget->unsetCursor();
-    }
-    for (int threeDViewId=0; threeDViewId<layoutManager->threeDViewCount(); ++threeDViewId)
-    {
-      qMRMLThreeDWidget* threeDWidget = layoutManager->threeDWidget(threeDViewId);
-      threeDWidget->unsetCursor();
-    }
   }
+
+  // Set cursor for active effect
+  d->setEffectCursor(effect);
 
   // Set active effect
   d->ActiveEffect = effect;
