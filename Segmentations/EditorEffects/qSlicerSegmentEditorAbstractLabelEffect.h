@@ -113,6 +113,9 @@ public:
 protected:
   QScopedPointer<qSlicerSegmentEditorAbstractLabelEffectPrivate> d_ptr;
 
+  double m_FillValue;
+  double m_EraseValue;
+  
 private:
   Q_DECLARE_PRIVATE(qSlicerSegmentEditorAbstractLabelEffect);
   Q_DISABLE_COPY(qSlicerSegmentEditorAbstractLabelEffect);

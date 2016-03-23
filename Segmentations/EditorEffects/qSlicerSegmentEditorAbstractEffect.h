@@ -277,7 +277,7 @@ public:
   /// Convert XY in-slice position to RAS position
   static void xyToRas(QPoint xy, double outputRas[3], qMRMLSliceWidget* sliceWidget);
   /// Convert XY in-slice position to RAS position
-  static void xyToRas(int xy[2], double outputRas[3], qMRMLSliceWidget* sliceWidget);
+  static void xyToRas(double xy[2], double outputRas[3], qMRMLSliceWidget* sliceWidget);
   /// Convert XY in-slice position to RAS position, python accessor method
   Q_INVOKABLE static QVector3D xyToRas(QPoint xy, qMRMLSliceWidget* sliceWidget);
   /// Convert XYZ slice view position to image IJK position, \sa xyzToRas
@@ -287,7 +287,7 @@ public:
   /// Convert XY in-slice position to image IJK position
   static void xyToIjk(QPoint xy, int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
   /// Convert XY in-slice position to image IJK position
-  static void xyToIjk(int xy[2], int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
+  static void xyToIjk(double xy[2], int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
   /// Convert XY in-slice position to image IJK position, python accessor method
   Q_INVOKABLE static QVector3D xyToIjk(QPoint xy, qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image);
 

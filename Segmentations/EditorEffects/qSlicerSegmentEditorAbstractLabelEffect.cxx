@@ -104,6 +104,8 @@ void qSlicerSegmentEditorAbstractLabelEffectPrivate::onThresholdValuesChanged(do
 qSlicerSegmentEditorAbstractLabelEffect::qSlicerSegmentEditorAbstractLabelEffect(QObject* parent)
  : Superclass(parent)
  , d_ptr( new qSlicerSegmentEditorAbstractLabelEffectPrivate(*this) )
+ , m_FillValue(1.0)
+ , m_EraseValue(0.0)
 {
 }
 

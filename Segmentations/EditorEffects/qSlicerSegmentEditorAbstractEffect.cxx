@@ -791,7 +791,7 @@ void qSlicerSegmentEditorAbstractEffect::xyToRas(QPoint xy, double outputRas[3],
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::xyToRas(int xy[2], double outputRas[3], qMRMLSliceWidget* sliceWidget)
+void qSlicerSegmentEditorAbstractEffect::xyToRas(double xy[2], double outputRas[3], qMRMLSliceWidget* sliceWidget)
 {
   double xyz[3] = {xy[0], xy[1], 0.0};
   qSlicerSegmentEditorAbstractEffect::xyzToRas(xyz, outputRas, sliceWidget);
@@ -851,7 +851,7 @@ void qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint xy, int outputIjk[3], qM
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractEffect::xyToIjk(int xy[2], int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image)
+void qSlicerSegmentEditorAbstractEffect::xyToIjk(double xy[2], int outputIjk[3], qMRMLSliceWidget* sliceWidget, vtkOrientedImageData* image)
 {
   double xyz[3] = {xy[0], xy[0], 0.0};
   qSlicerSegmentEditorAbstractEffect::xyzToIjk(xyz, outputIjk, sliceWidget, image);

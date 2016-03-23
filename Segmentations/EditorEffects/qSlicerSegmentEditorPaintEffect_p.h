@@ -37,22 +37,26 @@
 
 #include "qSlicerSegmentEditorPaintEffect.h"
 
+// VTK includes
+#include <vtkSmartPointer.h>
+
 // Qt includes
 #include <QObject>
 #include <QList>
 #include <QMap>
 
 class BrushPipeline;
+class ctkDoubleSlider;
 class QPoint;
 class QIcon;
 class QFrame;
 class QCheckBox;
 class QPushButton;
-class ctkDoubleSlider;
 class qMRMLSliceWidget;
 class qMRMLSpinBox;
 class vtkActor2D;
 class vtkImageSlicePaint;
+class vtkPoints;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
 /// \brief Private implementation of the segment editor paint effect
@@ -69,10 +73,10 @@ public:
 
   /// Depending on the \sa DelayedPaint mode, either paint the given point or queue
   /// it up with a marker for later painting
-  void paintAddPoint(qMRMLSliceWidget* sliceWidget, int x, int y);
+  void paintAddPoint(qMRMLSliceWidget* sliceWidget, int pixelPositionXy[2]);
 
-  /// Draw paint circle glyph
-  void createBrushGlyph(qMRMLSliceWidget* sliceWidget, BrushPipeline* brush);
+  /// Update paint circle glyph
+  void updateBrush(qMRMLSliceWidget* sliceWidget, BrushPipeline* brush);
 
   /// Update brushes
   void updateBrushes();
@@ -81,10 +85,6 @@ protected:
   /// Get brush object for widget. Create if does not exist
   BrushPipeline* brushForWidget(qMRMLSliceWidget* sliceWidget);
 
-  /// Add a feedback actor (copy of the paint radius actor) for any points that don't
-  /// have one yet. If the list is empty, clear out the old actors
-  void paintFeedback(qMRMLSliceWidget* sliceWidget);
-
   /// Paint labelmap
   void paintApply(qMRMLSliceWidget* sliceWidget);
 
@@ -92,10 +92,11 @@ protected:
   /// (could be stretched or rotate when transformed to IJK)
   /// - Make sure to hit every pixel in IJK space
   /// - Apply the threshold if selected
-  void paintBrush(qMRMLSliceWidget* sliceWidget, QPoint xy);
+  void paintBrush(qMRMLSliceWidget* sliceWidget, double brushCenterXy[2]);
 
   /// Paint one pixel to coordinate
-  void paintPixel(qMRMLSliceWidget* sliceWidget, QPoint xy);
+  void paintPixel(qMRMLSliceWidget* sliceWidget, double pixelPositionXy[2]);
+  void paintPixels(qMRMLSliceWidget* sliceWidget, vtkPoints* pixelPositions);
 
   /// Scale brush radius and save it in parameter node
   void scaleRadius(double scaleFactor);
@@ -108,7 +109,7 @@ public slots:
 public:
   QIcon PaintIcon;
 
-  QList<QPoint> PaintCoordinates;
+  vtkSmartPointer<vtkPoints> PaintCoordinates;
   QList<vtkActor2D*> FeedbackActors;
   QMap<qMRMLSliceWidget*, BrushPipeline*> Brushes;
   vtkImageSlicePaint* Painter;
