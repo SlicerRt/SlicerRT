@@ -62,6 +62,30 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         slicer.mrmlScene.AddNode(self.parameterSetNode)
     self.editor.setMRMLSegmentEditorNode(node)
 
+  def getCompositeNode(self, layoutName):
+    """ use the Red slice composite node to define the active volumes """
+    count = slicer.mrmlScene.GetNumberOfNodesByClass('vtkMRMLSliceCompositeNode')
+    for n in xrange(count):
+      compNode = slicer.mrmlScene.GetNthNodeByClass(n, 'vtkMRMLSliceCompositeNode')
+      if layoutName and compNode.GetLayoutName() != layoutName:
+        continue
+      return compNode
+
+  def getDefaultMasterVolumeNodeID(self):
+    layoutManager = slicer.app.layoutManager()
+    # Use first background volume node in any of the displayed layouts
+    for layoutName in layoutManager.sliceViewNames():
+      compositeNode = self.getCompositeNode(layoutName)
+      if compositeNode.GetBackgroundVolumeID():
+        return compositeNode.GetBackgroundVolumeID()
+    # Use first background volume node in any of the displayed layouts
+    for layoutName in layoutManager.sliceViewNames():
+      compositeNode = self.getCompositeNode(layoutName)
+      if compositeNode.GetForegroundVolumeID():
+        return compositeNode.GetForegroundVolumeID()
+    # Not found anything
+    return None
+    
   def enter(self):
     """Runs whenever the module is reopened
     """
@@ -71,6 +95,14 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Set parameter set node if absent
     self.selectParameterNode()
     self.editor.updateWidgetFromMRML()
+    
+    # If no segmentation node exists then create one so that the user does not have to create one manually
+    if not self.editor.segmentationNode:
+      newSegmentationNode = slicer.mrmlScene.CreateNodeByClass('vtkMRMLSegmentationNode')
+      slicer.mrmlScene.AddNode(newSegmentationNode)
+      self.editor.setSegmentationNode(newSegmentationNode)
+      masterVolumeNodeID = self.getDefaultMasterVolumeNodeID()
+      self.editor.setMasterVolumeNodeID(masterVolumeNodeID)
 
   def exit(self):
     self.editor.setActiveEffect(None)
