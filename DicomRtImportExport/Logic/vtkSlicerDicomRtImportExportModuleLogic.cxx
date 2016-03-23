@@ -1662,7 +1662,11 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     if (studySHNode)
     {
       studyInstanceUid = studySHNode->GetUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName());
-      studyID = studySHNode->GetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMStudyIDTagName().c_str());
+      const char* studyIDChars = studySHNode->GetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMStudyIDTagName().c_str());
+      if (studyIDChars)
+      {
+        studyID = std::string(studyIDChars);
+      }
     }
     else
     {

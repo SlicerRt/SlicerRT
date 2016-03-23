@@ -389,6 +389,7 @@ vtkOrientedImageData* vtkSlicerSegmentationsModuleLogic::CreateOrientedImageData
   // Apply parent transform of the volume node if any
   vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(volumeNode, orientedImageData);
 
+  //TODO: This method leaks from python. The function SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData can be used istead.
   return orientedImageData;
 }
 
