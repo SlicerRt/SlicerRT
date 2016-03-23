@@ -31,12 +31,15 @@
 
 // VTK includes
 #include <vtkDiscretizableColorTransferFunction.h>
+#include <vtkLookupTable.h>
 #include <vtkGeneralTransform.h>
 #include <vtkImageData.h>
-#include <vtkLookupTable.h>
 #include <vtkMatrix4x4.h>
-#include <vtkPlane.h>
 #include <vtkSmartPointer.h>
+
+// SegmentationCore includes
+#include "vtkOrientedImageData.h"
+#include "vtkOrientedImageDataResample.h"
 
 // VTK sys tools
 #include <vtksys/SystemTools.hxx>
@@ -49,14 +52,10 @@
 
 // SlicerRT constants
 const char* SlicerRtCommon::SLICERRT_EXTENSION_NAME = "SlicerRT";
-const std::string SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX = "Ref";
-const std::string SlicerRtCommon::MODEL_FILE_TYPE = ".vtk";
-const std::string SlicerRtCommon::VOXEL_FILE_TYPE = ".nrrd";
 const std::string SlicerRtCommon::STORAGE_NODE_POSTFIX = "_Storage";
 const std::string SlicerRtCommon::DISPLAY_NODE_SUFFIX = "_Display";
 
 // Segmentation constants
-const std::string SlicerRtCommon::SEGMENTATION_NEW_SEGMENTATION_NAME = "NewSegmentation";
 const char* SlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME = "Ribbon model";
 
 const double SlicerRtCommon::COLOR_VALUE_INVALID[4] = {0.5, 0.5, 0.5, 1.0};
@@ -89,13 +88,6 @@ const std::string SlicerRtCommon::DICOMRTIMPORT_SOURCE_HIERARCHY_NODE_NAME_POSTF
 const std::string SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX = "_BeamModels";
 
 const char* SlicerRtCommon::DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME = "Dose_ColorTable";
-
-// Beams constants
-const std::string SlicerRtCommon::BEAMS_ATTRIBUTE_PREFIX = "Beams.";
-const std::string SlicerRtCommon::BEAMS_OUTPUT_ISOCENTER_FIDUCIAL_POSTFIX = "_Isocenter";
-const std::string SlicerRtCommon::BEAMS_OUTPUT_SOURCE_FIDUCIAL_POSTFIX = "_Source";
-const std::string SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX = "BeamModel_";
-const std::string SlicerRtCommon::BEAMS_PARAMETER_SET_BASE_NAME_PREFIX = "BeamParameterSet_";
 
 //----------------------------------------------------------------------------
 // Helper functions
@@ -346,7 +338,7 @@ bool SlicerRtCommon::AreExtentsEqual(int extentA[6], int extentB[6])
 }
 
 //---------------------------------------------------------------------------
-void SlicerRtCommon::GenerateNewColor( vtkMRMLColorTableNode* colorNode, double* newColor )
+void SlicerRtCommon::GenerateRandomColor(vtkMRMLColorTableNode* colorNode, double* newColor)
 {
   const int MAX_TRIES = 50;
 
@@ -379,7 +371,7 @@ void SlicerRtCommon::GenerateNewColor( vtkMRMLColorTableNode* colorNode, double*
 }
 
 //---------------------------------------------------------------------------
-void SlicerRtCommon::WriteImageDataToFile( vtkMRMLScene* scene, vtkImageData* imageData, const char* fileName, double dirs[3][3], double spacing[3], double origin[3], bool overwrite )
+void SlicerRtCommon::WriteImageDataToFile(vtkMRMLScene* scene, vtkImageData* imageData, const char* fileName, double dirs[3][3], double spacing[3], double origin[3], bool overwrite)
 {
   if (scene == NULL)
   {
@@ -426,7 +418,50 @@ void SlicerRtCommon::WriteImageDataToFile( vtkMRMLScene* scene, vtkImageData* im
 }
 
 //---------------------------------------------------------------------------
-bool SlicerRtCommon::IsEqual( const vtkMatrix4x4& lhs, const vtkMatrix4x4& rhs )
+bool SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(vtkMRMLScalarVolumeNode* inVolumeNode, vtkOrientedImageData* outImageData, bool applyRasToWorldConversion/*=true*/)
+{
+  if (!inVolumeNode || !inVolumeNode->GetImageData())
+  {
+    std::cerr << "SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData: Invalid volume node!";
+    return false;
+  }
+  if (!outImageData)
+  {
+    vtkErrorWithObjectMacro(inVolumeNode, "ConvertVolumeNodeToVtkOrientedImageData: Invalid output oriented image data!");
+    return false;
+  }
+
+  outImageData->vtkImageData::DeepCopy(inVolumeNode->GetImageData());
+
+  vtkSmartPointer<vtkMatrix4x4> ijkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  inVolumeNode->GetIJKToRASMatrix(ijkToRasMatrix);
+  outImageData->SetGeometryFromImageToWorldMatrix(ijkToRasMatrix);
+
+  // Apply parent transform of the volume node if requested and present
+  if (applyRasToWorldConversion)
+  {
+    // Get world to reference RAS transform
+    vtkSmartPointer<vtkGeneralTransform> inVolumeToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+    vtkMRMLTransformNode* parentTransformNode = inVolumeNode->GetParentTransformNode();
+    if (parentTransformNode)
+    {
+      parentTransformNode->GetTransformToWorld(inVolumeToWorldTransform);
+    }
+    else
+    {
+      // There is no parent transform for volume, nothing to apply
+      return true;
+    }
+
+    // Transform oriented image data
+    vtkOrientedImageDataResample::TransformOrientedImage(outImageData, inVolumeToWorldTransform);
+  }
+
+  return true;
+}
+
+//---------------------------------------------------------------------------
+bool SlicerRtCommon::IsEqual(const vtkMatrix4x4& lhs, const vtkMatrix4x4& rhs)
 {
   return AreEqualWithTolerance(lhs.GetElement(0,0), rhs.GetElement(0,0)) &&
     AreEqualWithTolerance(lhs.GetElement(0,1), rhs.GetElement(0,1)) &&

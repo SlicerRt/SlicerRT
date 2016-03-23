@@ -33,8 +33,8 @@
 
 const std::string vtkMRMLPlanarImageNode::PLANARIMAGE_MODEL_NODE_NAME_PREFIX = "PlanarImageDisplayedModel_";
 const std::string vtkMRMLPlanarImageNode::PLANARIMAGE_PARAMETER_SET_BASE_NAME_PREFIX = "PlanarImageParameterSet_";
-const std::string vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE = "planarImageDisplayedModel" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
-const std::string PLANARIMAGE_RT_IMAGE_VOLUME_REFERENCE_ROLE = "planarRtImage" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
+const std::string vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE = "planarImageDisplayedModelRef"; // Reference
+const std::string PLANARIMAGE_RT_IMAGE_VOLUME_REFERENCE_ROLE = "planarRtImageRef"; // Reference
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLPlanarImageNode);

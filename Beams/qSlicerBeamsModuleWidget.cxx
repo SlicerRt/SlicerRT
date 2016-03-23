@@ -314,7 +314,7 @@ void qSlicerBeamsModuleWidget::refreshOutputBaseName()
     return;
   }
 
-  QString newBeamModelBaseName(SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX.c_str());
+  QString newBeamModelBaseName("BeamModel_");
 
   vtkMRMLMarkupsFiducialNode* isocenterNode = paramNode->GetIsocenterMarkupsNode();
   if (isocenterNode)

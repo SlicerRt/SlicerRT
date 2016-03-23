@@ -65,8 +65,8 @@
 const char* vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME = "DoseComparison.GammaVolume"; // Identifier
 const char* vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME = "Gamma_ColorTable.ctbl";
 const std::string vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_OUTPUT_BASE_NAME_PREFIX = "GammaVolume_";
-const std::string vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_REFERENCE_DOSE_VOLUME_REFERENCE_ROLE = "referenceDoseVolume" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
-const std::string vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_COMPARE_DOSE_VOLUME_REFERENCE_ROLE = "compareDoseVolume" + SlicerRtCommon::SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX; // Reference
+const std::string vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_REFERENCE_DOSE_VOLUME_REFERENCE_ROLE = "referenceDoseVolumeRef"; // Reference
+const std::string vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_COMPARE_DOSE_VOLUME_REFERENCE_ROLE = "compareDoseVolumeRef"; // Reference
 
 //---------------------------------------------------------------------------
 vtkSlicerDoseComparisonModuleLogic* LogicInstance = NULL;

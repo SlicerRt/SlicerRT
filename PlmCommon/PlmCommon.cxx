@@ -43,8 +43,10 @@ static typename itk::Image<T,3>::Pointer
 convert_to_itk (vtkMRMLScalarVolumeNode* inVolumeNode, bool applyWorldTransform)
 {
   typename itk::Image<T,3>::Pointer image = itk::Image<T,3>::New ();
-  SlicerRtCommon::ConvertVolumeNodeToItkImage<T>(
-    inVolumeNode, image, applyWorldTransform, true);
+  if (!SlicerRtCommon::ConvertVolumeNodeToItkImage<T>(inVolumeNode, image, applyWorldTransform, true))
+  {
+    std::cerr << "PlmCommon::convert_to_itk(vtkMRMLScalarVolumeNode): Failed to convert volume node to PlmImage!";
+  }
   return image;
 }
 
@@ -54,8 +56,10 @@ static typename itk::Image<T,3>::Pointer
 convert_to_itk (vtkOrientedImageData* inImageData)
 {
   typename itk::Image<T,3>::Pointer image = itk::Image<T,3>::New ();
-  SlicerRtCommon::ConvertVtkOrientedImageDataToItkImage<T>(
-    inImageData, image, true);
+  if (!SlicerRtCommon::ConvertVtkOrientedImageDataToItkImage<T>(inImageData, image, true))
+  {
+    std::cerr << "PlmCommon::convert_to_itk(vtkOrientedImageData): Failed to convert oriented image data to PlmImage!";
+  }
   return image;
 }
 

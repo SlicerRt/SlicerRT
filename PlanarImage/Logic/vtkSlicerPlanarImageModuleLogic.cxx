@@ -154,25 +154,26 @@ void vtkSlicerPlanarImageModuleLogic::ProcessMRMLSceneEvents(vtkObject *caller, 
     && event == vtkMRMLScene::NodeAboutToBeRemovedEvent )
   {
     vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
-    // Remove texture display pipeline
-    std::map<vtkMRMLScalarVolumeNode*, vtkImageMapToWindowLevelColors*>::iterator mapperIt =
-      this->TextureWindowLevelMappers.find(volumeNode);
-    if (mapperIt != this->TextureWindowLevelMappers.end())
-    {
-      vtkImageMapToWindowLevelColors* mapper = mapperIt->second;
-      this->TextureWindowLevelMappers.erase(mapperIt);
-      mapper->Delete();
-    }
-    else
-    {
-      vtkErrorMacro("ProcessMRMLSceneEvents: Failed to find texture pipeline for RT image " << volumeNode->GetName());
-    }
     // Remove displayed model node
     vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
       volumeNode->GetNodeReference(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
     if (modelNode)
     {
       this->GetMRMLScene()->RemoveNode(modelNode);
+
+      // Remove texture display pipeline
+      std::map<vtkMRMLScalarVolumeNode*, vtkImageMapToWindowLevelColors*>::iterator mapperIt =
+        this->TextureWindowLevelMappers.find(volumeNode);
+      if (mapperIt != this->TextureWindowLevelMappers.end())
+      {
+        vtkImageMapToWindowLevelColors* mapper = mapperIt->second;
+        this->TextureWindowLevelMappers.erase(mapperIt);
+        mapper->Delete();
+      }
+      else
+      {
+        vtkErrorMacro("ProcessMRMLSceneEvents: Failed to find texture pipeline for RT image " << volumeNode->GetName());
+      }
     }
   }
   // Create texture pipeline after scene is imported

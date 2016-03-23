@@ -80,14 +80,10 @@ public:
 
   // SlicerRT constants
   static const char* SLICERRT_EXTENSION_NAME;
-  static const std::string SLICERRT_REFERENCE_ROLE_ATTRIBUTE_NAME_POSTFIX;
-  static const std::string MODEL_FILE_TYPE;
-  static const std::string VOXEL_FILE_TYPE;
   static const std::string STORAGE_NODE_POSTFIX;
   static const std::string DISPLAY_NODE_SUFFIX;
 
   // Segmentation constants
-  static const std::string SEGMENTATION_NEW_SEGMENTATION_NAME;
   static const char* SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME;
 
   static const double COLOR_VALUE_INVALID[4];
@@ -120,13 +116,6 @@ public:
   static const std::string DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
 
   static const char* DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME;
-
-  // Beams constants
-  static const std::string BEAMS_ATTRIBUTE_PREFIX;
-  static const std::string BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX;
-  static const std::string BEAMS_OUTPUT_ISOCENTER_FIDUCIAL_POSTFIX;
-  static const std::string BEAMS_OUTPUT_SOURCE_FIDUCIAL_POSTFIX;
-  static const std::string BEAMS_PARAMETER_SET_BASE_NAME_PREFIX;
 
   //----------------------------------------------------------------------------
   // Utility functions
@@ -163,7 +152,7 @@ public:
 
   /// Generate a new color that is not already in use in a color table node
   /// \param colorNode Color table node to validate against
-  static void GenerateNewColor(vtkMRMLColorTableNode* colorNode, double* newColor);
+  static void GenerateRandomColor(vtkMRMLColorTableNode* colorNode, double* newColor);
 
   /// Write the contents of the image data to file using a scalar volume node and storage node
   /// \param scene the scene to use (can be private scene, or common scene)
@@ -175,26 +164,25 @@ public:
   /// \param overwrite whether or not to remove an existing file before re-writing (avoids warnings)
   static void WriteImageDataToFile(vtkMRMLScene* scene, vtkImageData* imageData, const char* fileName, double dirs[3][3], double spacing[3], double origin[3], bool overwrite);
 
-  /// Compare the values (with tolerance) between two 4x4 matrices
-  /// \param lhs Left-hand side matrix to compare
-  /// \param rhs Right-hand side matrix to compare
-  static bool IsEqual(const vtkMatrix4x4& lhs, const vtkMatrix4x4& rhs);
-
-  /// Compare the values (with tolerance) between two 3-vectors
-  /// \param lhs Left-hand side vector to compare
-  /// \param rhs Right-hand side vector to compare
-  template <typename T> static bool IsEqual(const vtkVector3<T>& lhs, const vtkVector3<T>& rhs);
+  /*!
+    Convert volume MRML node to oriented image data
+    \param inVolumeNode Input volume node
+    \param outImageData Output oriented image data
+    \param applyRasToWorldConversion Apply parent linear transform to image. True by default.
+    \return Success
+  */
+  static bool ConvertVolumeNodeToVtkOrientedImageData(vtkMRMLScalarVolumeNode* inVolumeNode, vtkOrientedImageData* outImageData, bool applyRasToWorldConversion=true);
 
 //BTX
   /*!
     Convert volume MRML node to ITK image
     \param inVolumeNode Input volume node
     \param outItkVolume Output ITK image
-    \param applyRasToWorldConversion Apply parent linear transform to image
+    \param applyRasToWorldConversion Apply parent linear transform to image. True by default
     \param applyRasToLpsConversion Apply RAS (Slicer) to LPS (ITK, DICOM) coordinate frame conversion. True by default
     \return Success
   */
-  template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToWorldConversion, bool applyRasToLpsConversion=true);
+  template<typename T> static bool ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToWorldConversion=true, bool applyRasToLpsConversion=true);
 
   /*!
     Convert oriented image data to ITK image
@@ -223,6 +211,16 @@ public:
     \return Success
   */
   template<typename T> static bool ConvertItkImageToVolumeNode(typename itk::Image<T, 3>::Pointer inItkImage, vtkMRMLScalarVolumeNode* outVolumeNode, int vtkType, bool applyLpsToRasConversion=true);
+
+  /// Compare the values (with tolerance) between two 4x4 matrices
+  /// \param lhs Left-hand side matrix to compare
+  /// \param rhs Right-hand side matrix to compare
+  static bool IsEqual(const vtkMatrix4x4& lhs, const vtkMatrix4x4& rhs);
+
+  /// Compare the values (with tolerance) between two 3-vectors
+  /// \param lhs Left-hand side vector to compare
+  /// \param rhs Right-hand side vector to compare
+  template <typename T> static bool IsEqual(const vtkVector3<T>& lhs, const vtkVector3<T>& rhs);
 
 //ETX
 };

@@ -999,9 +999,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
 
 
     // Create beam model node and add it to the scene
-    std::string beamModelName;
-    beamModelName = this->GetMRMLScene()->GenerateUniqueName(
-      SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX + std::string(beamName));
+    //std::string beamModelName;
+    //beamModelName = this->GetMRMLScene()->GenerateUniqueName(
+    //  SlicerRtCommon::BEAMS_OUTPUT_BEAM_MODEL_BASE_NAME_PREFIX + std::string(beamName));
 
     // // Put new beam model in the model hierarchy
     // vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
@@ -1702,7 +1702,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     // Check if segmentation node and set if found
     else if (associatedNode && associatedNode->IsA("vtkMRMLSegmentationNode"))
     {
-      segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(associatedNode);;
+      segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(associatedNode);
     }
     // Check if other volume (anatomical volume role) and set if found
     else if (associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode"))
@@ -1738,17 +1738,19 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   rtWriter->SetStudyID(studyID.c_str());
 
   // Convert input image (CT/MR/etc) to the format Plastimatch can use
-  Plm_image::Pointer plm_img = PlmCommon::ConvertVolumeNodeToPlmImage(
-    imageNode);
-  plm_img->print();
+  Plm_image::Pointer plm_img = PlmCommon::ConvertVolumeNodeToPlmImage(imageNode);
+  if (plm_img->dim(0) * plm_img->dim(1) * plm_img->dim(2) == 0)
+  {
+    error = "Failed to convert anatomical (CT/MR) image for Plastimatch format";
+    vtkErrorMacro("ExportDicomRTStudy: " + error);
+    return error;
+  }
   rtWriter->SetImage(plm_img);
 
   // Convert input RTDose to the format Plastimatch can use
   if (doseNode)
   {
-    Plm_image::Pointer dose_img = PlmCommon::ConvertVolumeNodeToPlmImage(
-      doseNode);
-    dose_img->print();
+    Plm_image::Pointer dose_img = PlmCommon::ConvertVolumeNodeToPlmImage(doseNode);
     rtWriter->SetDose(dose_img);
   }
 
