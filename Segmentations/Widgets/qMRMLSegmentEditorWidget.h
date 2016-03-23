@@ -61,12 +61,6 @@ class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qMRMLSegmentEditorWidget : pu
   QVTK_OBJECT
 
 public:
-  Q_PROPERTY(qSlicerSegmentEditorAbstractEffect* activeEffect READ activeEffect WRITE setActiveEffect)
-  Q_PROPERTY(vtkMRMLSegmentEditorNode* mrmlSegmentEditorNode READ mrmlSegmentEditorNode WRITE setMRMLSegmentEditorNode)
-  Q_PROPERTY(vtkMRMLNode* segmentationNode READ segmentationNode WRITE setSegmentationNode)
-  Q_PROPERTY(vtkMRMLNode* masterVolumeNode READ masterVolumeNode WRITE setMasterVolumeNode)
-
-public:
   typedef qMRMLWidget Superclass;
   /// Constructor
   explicit qMRMLSegmentEditorWidget(QWidget* parent = 0);
@@ -77,11 +71,11 @@ public:
   Q_INVOKABLE vtkMRMLSegmentEditorNode* mrmlSegmentEditorNode()const;
 
   /// Get currently selected segmentation MRML node
-  vtkMRMLNode* segmentationNode()const;
+  Q_INVOKABLE vtkMRMLNode* segmentationNode()const;
   /// Get ID of currently selected segmentation node
   Q_INVOKABLE QString segmentationNodeID()const;
   /// Get currently selected master volume MRML node
-  vtkMRMLNode* masterVolumeNode()const;
+  Q_INVOKABLE vtkMRMLNode* masterVolumeNode()const;
   /// Get ID of currently selected master volume node
   Q_INVOKABLE QString masterVolumeNodeID()const;
 
@@ -90,7 +84,7 @@ public:
 
   /// Return active effect if selected, NULL otherwise
   /// \sa m_ActiveEffect, setActiveEffect()
-  qSlicerSegmentEditorAbstractEffect* activeEffect()const;
+  Q_INVOKABLE qSlicerSegmentEditorAbstractEffect* activeEffect()const;
   /// Set active effect
   /// \sa m_ActiveEffect, activeEffect()
   Q_INVOKABLE void setActiveEffect(qSlicerSegmentEditorAbstractEffect* effect);
@@ -103,7 +97,7 @@ public:
   /// The captured events are propagated to the active effect if any.
   /// NOTE: This method should be called from the enter function of the
   ///   embedding module widget so that the events are correctly processed.
-  void setupViewObservations();
+  Q_INVOKABLE void setupViewObservations();
 
   /// Remove observations
   /// NOTE: This method should be called from the exit function of the
@@ -115,17 +109,17 @@ public slots:
   virtual void setMRMLScene(vtkMRMLScene* newScene);
 
   /// Set the segment editor parameter set node
-  void setMRMLSegmentEditorNode(vtkMRMLSegmentEditorNode* newSegmentEditorNode);
+  Q_INVOKABLE void setMRMLSegmentEditorNode(vtkMRMLSegmentEditorNode* newSegmentEditorNode);
 
   /// Update widget state from the MRML scene
   virtual void updateWidgetFromMRML();
 
   /// Set segmentation MRML node
-  void setSegmentationNode(vtkMRMLNode* node);
+  Q_INVOKABLE void setSegmentationNode(vtkMRMLNode* node);
   /// Set segmentation MRML node by its ID
   Q_INVOKABLE void setSegmentationNodeID(const QString& nodeID);
   /// Set master volume MRML node
-  void setMasterVolumeNode(vtkMRMLNode* node);
+  Q_INVOKABLE void setMasterVolumeNode(vtkMRMLNode* node);
   /// Set master volume MRML node by its ID
   Q_INVOKABLE void setMasterVolumeNodeID(const QString& nodeID);
 
