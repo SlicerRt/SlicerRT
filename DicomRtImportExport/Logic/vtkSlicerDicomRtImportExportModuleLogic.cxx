@@ -1738,10 +1738,31 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   rtWriter->SetStudyID(studyID.c_str());
 
   // Convert input image (CT/MR/etc) to the format Plastimatch can use
-  Plm_image::Pointer plm_img = PlmCommon::ConvertVolumeNodeToPlmImage(imageNode);
+  vtkOrientedImageData* imageOrientedImageData = vtkOrientedImageData::New();
+  if (!SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(imageNode, imageOrientedImageData))
+  {
+    error = "Failed to convert anatomical image " + std::string(imageNode->GetName()) + " to oriented image data";
+    vtkErrorMacro("ExportDicomRTStudy: " + error);
+    return error;
+  }
+  // Need to resample image data if its transform contains shear
+  vtkSmartPointer<vtkMatrix4x4> imageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  imageOrientedImageData->GetImageToWorldMatrix(imageToWorldMatrix);
+  if (vtkOrientedImageDataResample::DoesTransformMatrixContainShear(imageToWorldMatrix))
+  {
+    vtkSmartPointer<vtkTransform> imageToWorldTransform = vtkSmartPointer<vtkTransform>::New();
+    imageToWorldTransform->SetMatrix(imageToWorldMatrix);
+    vtkOrientedImageDataResample::TransformOrientedImage(imageOrientedImageData, imageToWorldTransform, false, true);
+    // Set identity transform to image data so that it is at the same location
+    vtkSmartPointer<vtkMatrix4x4> identityMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    identityMatrix->Identity();
+    imageOrientedImageData->SetGeometryFromImageToWorldMatrix(identityMatrix);
+  }
+  // Set anatomical image to RT writer
+  Plm_image::Pointer plm_img = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(imageOrientedImageData);
   if (plm_img->dim(0) * plm_img->dim(1) * plm_img->dim(2) == 0)
   {
-    error = "Failed to convert anatomical (CT/MR) image for Plastimatch format";
+    error = "Failed to convert anatomical (CT/MR) image to Plastimatch format";
     vtkErrorMacro("ExportDicomRTStudy: " + error);
     return error;
   }
@@ -1750,7 +1771,34 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   // Convert input RTDose to the format Plastimatch can use
   if (doseNode)
   {
-    Plm_image::Pointer dose_img = PlmCommon::ConvertVolumeNodeToPlmImage(doseNode);
+    vtkOrientedImageData* doseOrientedImageData = vtkOrientedImageData::New();
+    if (!SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(doseNode, doseOrientedImageData))
+    {
+      error = "Failed to convert dose volume " + std::string(doseNode->GetName()) + " to oriented image data";
+      vtkErrorMacro("ExportDicomRTStudy: " + error);
+      return error;
+    }
+    // Need to resample image data if its transform contains shear
+    vtkSmartPointer<vtkMatrix4x4> doseToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    doseOrientedImageData->GetImageToWorldMatrix(doseToWorldMatrix);
+    if (vtkOrientedImageDataResample::DoesTransformMatrixContainShear(doseToWorldMatrix))
+    {
+      vtkSmartPointer<vtkTransform> doseToWorldTransform = vtkSmartPointer<vtkTransform>::New();
+      doseToWorldTransform->SetMatrix(doseToWorldMatrix);
+      vtkOrientedImageDataResample::TransformOrientedImage(doseOrientedImageData, doseToWorldTransform, false, true);
+      // Set identity transform to image data so that it is at the same location
+      vtkSmartPointer<vtkMatrix4x4> identityMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      identityMatrix->Identity();
+      doseOrientedImageData->SetGeometryFromImageToWorldMatrix(identityMatrix);
+    }
+    // Set anatomical image to RT writer
+    Plm_image::Pointer dose_img = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(doseOrientedImageData);
+    if (dose_img->dim(0) * dose_img->dim(1) * dose_img->dim(2) == 0)
+    {
+      error = "Failed to convert dose volume to Plastimatch format";
+      vtkErrorMacro("ExportDicomRTStudy: " + error);
+      return error;
+    }
     rtWriter->SetDose(dose_img);
   }
 
@@ -1762,16 +1810,6 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
       vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) )
     {
       error = "Failed to get binary labelmap representation from segmentation " + std::string(segmentationNode->GetName());
-      vtkErrorMacro("ExportDicomRTStudy: " + error);
-      return error;
-    }
-
-    // Convert anatomical image to oriented image data for geometry operations
-    vtkSmartPointer<vtkOrientedImageData> imageData = vtkSmartPointer<vtkOrientedImageData>::Take(
-      vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(imageNode) );
-    if (!imageData.GetPointer())
-    {
-      error = "Failed to get image data from anatomical image volume";
       vtkErrorMacro("ExportDicomRTStudy: " + error);
       return error;
     }
@@ -1807,10 +1845,10 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
         }
       }
       // Make sure the labelmap dimensions match the reference dimensions
-      if ( !vtkOrientedImageDataResample::DoGeometriesMatch(imageData, binaryLabelmapCopy)
-        || !vtkOrientedImageDataResample::DoExtentsMatch(imageData, binaryLabelmapCopy) )
+      if ( !vtkOrientedImageDataResample::DoGeometriesMatch(imageOrientedImageData, binaryLabelmapCopy)
+        || !vtkOrientedImageDataResample::DoExtentsMatch(imageOrientedImageData, binaryLabelmapCopy) )
       {
-        if (!vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(binaryLabelmapCopy, imageData, binaryLabelmapCopy))
+        if (!vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(binaryLabelmapCopy, imageOrientedImageData, binaryLabelmapCopy))
         {
           error = "Failed to resample segment " + segmentID + " to match anatomical image geometry";
           vtkErrorMacro("ExportDicomRTStudy: " + error);

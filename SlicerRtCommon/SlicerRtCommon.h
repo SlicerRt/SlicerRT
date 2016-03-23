@@ -29,7 +29,6 @@
 #include "itkImage.h"
 
 // VTK includes
-#include <vtkVector.h>
 #include <vtkSmartPointer.h>
 
 class vtkMRMLColorTableNode;
@@ -211,17 +210,6 @@ public:
     \return Success
   */
   template<typename T> static bool ConvertItkImageToVolumeNode(typename itk::Image<T, 3>::Pointer inItkImage, vtkMRMLScalarVolumeNode* outVolumeNode, int vtkType, bool applyLpsToRasConversion=true);
-
-  /// Compare the values (with tolerance) between two 4x4 matrices
-  /// \param lhs Left-hand side matrix to compare
-  /// \param rhs Right-hand side matrix to compare
-  static bool IsEqual(const vtkMatrix4x4& lhs, const vtkMatrix4x4& rhs);
-
-  /// Compare the values (with tolerance) between two 3-vectors
-  /// \param lhs Left-hand side vector to compare
-  /// \param rhs Right-hand side vector to compare
-  template <typename T> static bool IsEqual(const vtkVector3<T>& lhs, const vtkVector3<T>& rhs);
-
 //ETX
 };
 

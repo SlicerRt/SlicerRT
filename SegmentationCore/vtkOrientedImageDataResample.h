@@ -65,8 +65,10 @@ public:
   /// \param transform Input transform
   /// \param geometryOnly Only the geometry of the image is changed according to the transform if this flag is turned on.
   ///          This flag only has an effect if the transform is non-linear, in which case only the extent is changed. Off by default
-  static void TransformOrientedImage(vtkOrientedImageData* image, vtkAbstractTransform* transform, bool geometryOnly = false);
+  /// \param alwaysResample If on, then image data will be resampled even if the applied transform is linear
+  static void TransformOrientedImage(vtkOrientedImageData* image, vtkAbstractTransform* transform, bool geometryOnly=false, bool alwaysResample=false);
 
+  /// TODO:
   static bool AppendImageMax(vtkOrientedImageData* inputImage, vtkOrientedImageData* imageToAppend, vtkOrientedImageData* outputImage);
 
 public:
@@ -93,7 +95,7 @@ public:
   /// Compare the values (with tolerance) between two 4x4 matrices
   /// \param lhs Left-hand side matrix to compare
   /// \param rhs Right-hand side matrix to compare
-  static bool IsEqual(const vtkMatrix4x4& lhs, const vtkMatrix4x4& rhs);
+  static bool IsEqual(vtkMatrix4x4* lhs, vtkMatrix4x4* rhs);
 
   /// Compare two floating point numbers within tolerance
   static bool AreEqualWithTolerance(double a, double b) { return fabs(a - b) < 0.0001; };
@@ -110,6 +112,9 @@ public:
   /// \param linearTransform Output transform in case transform is linear
   /// \return True if input is linear, false otherwise. 
   static bool IsTransformLinear(vtkAbstractTransform* transform, vtkTransform* linearTransform);
+
+  /// Determine if a transform matrix contains shear
+  static bool DoesTransformMatrixContainShear(vtkMatrix4x4* matrix);
 
 protected:
   vtkOrientedImageDataResample();

@@ -51,14 +51,6 @@ namespace
   }
 }
 
-//---------------------------------------------------------------------------
-template<typename T> bool SlicerRtCommon::IsEqual( const vtkVector3<T>& lhs, const vtkVector3<T>& rhs )
-{
-  return AreEqualWithTolerance<T>(lhs.GetX(), rhs.GetX()) &&
-    AreEqualWithTolerance<T>(lhs.GetY(), rhs.GetY()) &&
-    AreEqualWithTolerance<T>(lhs.GetZ(), rhs.GetZ());
-}
-
 //----------------------------------------------------------------------------
 template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToWorldConversion/*=true*/, bool applyRasToLpsConversion/*=true*/)
 {

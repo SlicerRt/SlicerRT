@@ -28,6 +28,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 #include <vtkVersionMacros.h>
+#include <vtkVector.h>
 #include <vtkMatrix4x4.h>
 #include <vtkTransform.h>
 #include <vtkImageReslice.h>
@@ -41,6 +42,66 @@
 #include <algorithm>
 
 vtkStandardNewMacro(vtkOrientedImageDataResample);
+
+//----------------------------------------------------------------------------
+// This templated function executes the filter for any type of data.
+// Handles the two input operations
+template <class T>
+void ImageMaxGeneric(vtkOrientedImageData *baseImage, vtkOrientedImageData *modifierImage)
+{
+  // Compute update extent as intersection of base and modifier image extents
+  int updateExt[6] = { 0, -1, 0, -1, 0, -1 };
+  baseImage->GetExtent(updateExt);
+  int modifierExt[6] = { 0, -1, 0, -1, 0, -1 };
+  modifierImage->GetExtent(modifierExt);
+  for (int idx = 0; idx < 3; ++idx)
+  {
+    if (modifierExt[idx * 2] > updateExt[idx * 2])
+    {
+      updateExt[idx * 2] = modifierExt[idx * 2];
+    }
+    if (modifierExt[idx * 2 + 1] < updateExt[idx * 2 + 1])
+    {
+      updateExt[idx * 2 + 1] = modifierExt[idx * 2 + 1];
+    }
+  }
+
+  // Get increments to march through data
+  vtkIdType baseIncX = 0;
+  vtkIdType baseIncY = 0;
+  vtkIdType baseIncZ = 0;
+  vtkIdType modifierIncX = 0;
+  vtkIdType modifierIncY = 0;
+  vtkIdType modifierIncZ = 0;
+  baseImage->GetContinuousIncrements(updateExt, baseIncX, baseIncY, baseIncZ);
+  modifierImage->GetContinuousIncrements(updateExt, modifierIncX, modifierIncY, modifierIncZ);
+  int maxX = (updateExt[1] - updateExt[0]) * baseImage->GetNumberOfScalarComponents();
+  int maxY = updateExt[3] - updateExt[2];
+  int maxZ = updateExt[5] - updateExt[4];
+  T* baseImagePtr = static_cast<T*>(baseImage->GetScalarPointerForExtent(updateExt));
+  T* modifierImagePtr = static_cast<T*>(modifierImage->GetScalarPointerForExtent(updateExt));
+
+  // Loop through output pixels
+  for (vtkIdType idxZ = 0; idxZ <= maxZ; idxZ++)
+  {
+    for (vtkIdType idxY = 0; idxY <= maxY; idxY++)
+    {
+      for (vtkIdType idxX = 0; idxX <= maxX; idxX++)
+      {
+        if (*modifierImagePtr > *baseImagePtr)
+        {
+          *baseImagePtr = *modifierImagePtr;
+        }
+        baseImagePtr++;
+        modifierImagePtr++;
+      }
+      baseImagePtr += baseIncY;
+      modifierImagePtr += modifierIncY;
+    }
+    baseImagePtr += baseIncZ;
+    modifierImagePtr += modifierIncZ;
+  }
+}
 
 //----------------------------------------------------------------------------
 vtkOrientedImageDataResample::vtkOrientedImageDataResample()
@@ -243,24 +304,28 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceGeometry(vtkO
 }
 
 //---------------------------------------------------------------------------
-bool vtkOrientedImageDataResample::IsEqual( const vtkMatrix4x4& lhs, const vtkMatrix4x4& rhs )
+bool vtkOrientedImageDataResample::IsEqual(vtkMatrix4x4* lhs, vtkMatrix4x4* rhs)
 {
-  return  AreEqualWithTolerance(lhs.GetElement(0,0), rhs.GetElement(0,0)) &&
-          AreEqualWithTolerance(lhs.GetElement(0,1), rhs.GetElement(0,1)) &&
-          AreEqualWithTolerance(lhs.GetElement(0,2), rhs.GetElement(0,2)) &&
-          AreEqualWithTolerance(lhs.GetElement(0,3), rhs.GetElement(0,3)) &&
-          AreEqualWithTolerance(lhs.GetElement(1,0), rhs.GetElement(1,0)) &&
-          AreEqualWithTolerance(lhs.GetElement(1,1), rhs.GetElement(1,1)) &&
-          AreEqualWithTolerance(lhs.GetElement(1,2), rhs.GetElement(1,2)) &&
-          AreEqualWithTolerance(lhs.GetElement(1,3), rhs.GetElement(1,3)) &&
-          AreEqualWithTolerance(lhs.GetElement(2,0), rhs.GetElement(2,0)) &&
-          AreEqualWithTolerance(lhs.GetElement(2,1), rhs.GetElement(2,1)) &&
-          AreEqualWithTolerance(lhs.GetElement(2,2), rhs.GetElement(2,2)) &&
-          AreEqualWithTolerance(lhs.GetElement(2,3), rhs.GetElement(2,3)) &&
-          AreEqualWithTolerance(lhs.GetElement(3,0), rhs.GetElement(3,0)) &&
-          AreEqualWithTolerance(lhs.GetElement(3,1), rhs.GetElement(3,1)) &&
-          AreEqualWithTolerance(lhs.GetElement(3,2), rhs.GetElement(3,2)) &&
-          AreEqualWithTolerance(lhs.GetElement(3,3), rhs.GetElement(3,3));
+  if (!lhs || !rhs)
+  {
+    return false;
+  }
+  return  AreEqualWithTolerance(lhs->GetElement(0,0), rhs->GetElement(0,0)) &&
+          AreEqualWithTolerance(lhs->GetElement(0,1), rhs->GetElement(0,1)) &&
+          AreEqualWithTolerance(lhs->GetElement(0,2), rhs->GetElement(0,2)) &&
+          AreEqualWithTolerance(lhs->GetElement(0,3), rhs->GetElement(0,3)) &&
+          AreEqualWithTolerance(lhs->GetElement(1,0), rhs->GetElement(1,0)) &&
+          AreEqualWithTolerance(lhs->GetElement(1,1), rhs->GetElement(1,1)) &&
+          AreEqualWithTolerance(lhs->GetElement(1,2), rhs->GetElement(1,2)) &&
+          AreEqualWithTolerance(lhs->GetElement(1,3), rhs->GetElement(1,3)) &&
+          AreEqualWithTolerance(lhs->GetElement(2,0), rhs->GetElement(2,0)) &&
+          AreEqualWithTolerance(lhs->GetElement(2,1), rhs->GetElement(2,1)) &&
+          AreEqualWithTolerance(lhs->GetElement(2,2), rhs->GetElement(2,2)) &&
+          AreEqualWithTolerance(lhs->GetElement(2,3), rhs->GetElement(2,3)) &&
+          AreEqualWithTolerance(lhs->GetElement(3,0), rhs->GetElement(3,0)) &&
+          AreEqualWithTolerance(lhs->GetElement(3,1), rhs->GetElement(3,1)) &&
+          AreEqualWithTolerance(lhs->GetElement(3,2), rhs->GetElement(3,2)) &&
+          AreEqualWithTolerance(lhs->GetElement(3,3), rhs->GetElement(3,3));
 }
 
 //----------------------------------------------------------------------------
@@ -370,7 +435,7 @@ bool vtkOrientedImageDataResample::DoGeometriesMatch(vtkOrientedImageData* image
   vtkSmartPointer<vtkMatrix4x4> image2ToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   image2->GetImageToWorldMatrix(image2ToWorldMatrix);
 
-  return vtkOrientedImageDataResample::IsEqual(*image1ToWorldMatrix, *image2ToWorldMatrix);
+  return vtkOrientedImageDataResample::IsEqual(image1ToWorldMatrix, image2ToWorldMatrix);
 }
 
 //----------------------------------------------------------------------------
@@ -415,7 +480,7 @@ bool vtkOrientedImageDataResample::DoGeometriesMatchIgnoreOrigin(vtkOrientedImag
   image2ToWorldMatrixWithoutOrigin->SetElement(1,3,0.0);
   image2ToWorldMatrixWithoutOrigin->SetElement(2,3,0.0);
 
-  return vtkOrientedImageDataResample::IsEqual(*image1ToWorldMatrixWithoutOrigin, *image2ToWorldMatrixWithoutOrigin);
+  return vtkOrientedImageDataResample::IsEqual(image1ToWorldMatrixWithoutOrigin, image2ToWorldMatrixWithoutOrigin);
 }
 
 //----------------------------------------------------------------------------
@@ -431,7 +496,7 @@ void vtkOrientedImageDataResample::TransformExtent(int inputExtent[6], vtkTransf
     double(inputExtent[0]) - 0.5, double(inputExtent[1]) + 0.5, 
     double(inputExtent[2]) - 0.5, double(inputExtent[3]) + 0.5,
     double(inputExtent[4]) - 0.5, double(inputExtent[5]) + 0.5
-};
+  };
 
   // Apply transform on all eight corners and determine output extent based on these transformed corners
   double outputIjkExtentCorner[3] = {0.0, 0.0, 0.0};
@@ -620,6 +685,21 @@ bool vtkOrientedImageDataResample::IsTransformLinear(vtkAbstractTransform* input
 }
 
 //----------------------------------------------------------------------------
+bool vtkOrientedImageDataResample::DoesTransformMatrixContainShear(vtkMatrix4x4* matrix)
+{
+  if (!matrix)
+  {
+    return false;
+  }
+  vtkVector3d xAxis = vtkVector3d(matrix->GetElement(0,0), matrix->GetElement(1,0), matrix->GetElement(2,0));
+  vtkVector3d yAxis = vtkVector3d(matrix->GetElement(0,1), matrix->GetElement(1,1), matrix->GetElement(2,1));
+  vtkVector3d zAxis = vtkVector3d(matrix->GetElement(0,2), matrix->GetElement(1,2), matrix->GetElement(2,2));
+  return !AreEqualWithTolerance(xAxis.Dot(yAxis), 0.0)
+      || !AreEqualWithTolerance(xAxis.Dot(zAxis), 0.0)
+      || !AreEqualWithTolerance(yAxis.Dot(zAxis), 0.0);
+}
+
+//----------------------------------------------------------------------------
 bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* containedImage, vtkOrientedImageData* outputImage)
 {
   if (!inputImage || !containedImage || !outputImage)
@@ -665,66 +745,6 @@ bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* 
 }
 
 //----------------------------------------------------------------------------
-// This templated function executes the filter for any type of data.
-// Handles the two input operations
-template <class T>
-void ImageMaxGeneric(vtkOrientedImageData *baseImage, vtkOrientedImageData *modifierImage)
-{
-  // Compute update extent as intersection of base and modifier image extents
-  int updateExt[6] = { 0, -1, 0, -1, 0, -1 };
-  baseImage->GetExtent(updateExt);
-  int modifierExt[6] = { 0, -1, 0, -1, 0, -1 };
-  modifierImage->GetExtent(modifierExt);
-  for (int idx = 0; idx < 3; ++idx)
-  {
-    if (modifierExt[idx * 2] > updateExt[idx * 2])
-    {
-      updateExt[idx * 2] = modifierExt[idx * 2];
-    }
-    if (modifierExt[idx * 2 + 1] < updateExt[idx * 2 + 1])
-    {
-      updateExt[idx * 2 + 1] = modifierExt[idx * 2 + 1];
-    }
-  }
-
-  // Get increments to march through data
-  vtkIdType baseIncX = 0;
-  vtkIdType baseIncY = 0;
-  vtkIdType baseIncZ = 0;
-  vtkIdType modifierIncX = 0;
-  vtkIdType modifierIncY = 0;
-  vtkIdType modifierIncZ = 0;
-  baseImage->GetContinuousIncrements(updateExt, baseIncX, baseIncY, baseIncZ);
-  modifierImage->GetContinuousIncrements(updateExt, modifierIncX, modifierIncY, modifierIncZ);
-  int maxX = (updateExt[1] - updateExt[0]) * baseImage->GetNumberOfScalarComponents();
-  int maxY = updateExt[3] - updateExt[2];
-  int maxZ = updateExt[5] - updateExt[4];
-  T* baseImagePtr = static_cast<T*>(baseImage->GetScalarPointerForExtent(updateExt));
-  T* modifierImagePtr = static_cast<T*>(modifierImage->GetScalarPointerForExtent(updateExt));
-
-  // Loop through output pixels
-  for (vtkIdType idxZ = 0; idxZ <= maxZ; idxZ++)
-  {
-    for (vtkIdType idxY = 0; idxY <= maxY; idxY++)
-    {
-      for (vtkIdType idxX = 0; idxX <= maxX; idxX++)
-      {
-        if (*modifierImagePtr > *baseImagePtr)
-        {
-          *baseImagePtr = *modifierImagePtr;
-        }
-        baseImagePtr++;
-        modifierImagePtr++;
-      }
-      baseImagePtr += baseIncY;
-      modifierImagePtr += modifierIncY;
-    }
-    baseImagePtr += baseIncZ;
-    modifierImagePtr += modifierIncZ;
-  }
-}
-
-//----------------------------------------------------------------------------
 bool vtkOrientedImageDataResample::AppendImageMax(vtkOrientedImageData* inputImage, vtkOrientedImageData* imageToAppend, vtkOrientedImageData* outputImage)
 {
   if (!inputImage || !imageToAppend)
@@ -750,7 +770,7 @@ bool vtkOrientedImageDataResample::AppendImageMax(vtkOrientedImageData* inputIma
 }
 
 //----------------------------------------------------------------------------
-void vtkOrientedImageDataResample::TransformOrientedImage(vtkOrientedImageData* image, vtkAbstractTransform* transform, bool geometryOnly/* = false*/)
+void vtkOrientedImageDataResample::TransformOrientedImage(vtkOrientedImageData* image, vtkAbstractTransform* transform, bool geometryOnly/*=false*/, bool alwaysResample/*=false*/)
 {
   if (!image || !transform)
   {
@@ -759,7 +779,7 @@ void vtkOrientedImageDataResample::TransformOrientedImage(vtkOrientedImageData* 
 
   // Linear: simply multiply the geometry matrix with the applied matrix, extent stays the same
   vtkSmartPointer<vtkTransform> worldToTransformedWorldLinearTransform = vtkSmartPointer<vtkTransform>::New();
-  if (vtkOrientedImageDataResample::IsTransformLinear(transform, worldToTransformedWorldLinearTransform))
+  if (!alwaysResample && vtkOrientedImageDataResample::IsTransformLinear(transform, worldToTransformedWorldLinearTransform))
   {
     vtkSmartPointer<vtkMatrix4x4> imageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     image->GetImageToWorldMatrix(imageToWorldMatrix);

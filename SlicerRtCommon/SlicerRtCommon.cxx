@@ -459,24 +459,3 @@ bool SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(vtkMRMLScalarVolume
 
   return true;
 }
-
-//---------------------------------------------------------------------------
-bool SlicerRtCommon::IsEqual(const vtkMatrix4x4& lhs, const vtkMatrix4x4& rhs)
-{
-  return AreEqualWithTolerance(lhs.GetElement(0,0), rhs.GetElement(0,0)) &&
-    AreEqualWithTolerance(lhs.GetElement(0,1), rhs.GetElement(0,1)) &&
-    AreEqualWithTolerance(lhs.GetElement(0,2), rhs.GetElement(0,2)) &&
-    AreEqualWithTolerance(lhs.GetElement(0,3), rhs.GetElement(0,3)) &&
-    AreEqualWithTolerance(lhs.GetElement(1,0), rhs.GetElement(1,0)) &&
-    AreEqualWithTolerance(lhs.GetElement(1,1), rhs.GetElement(1,1)) &&
-    AreEqualWithTolerance(lhs.GetElement(1,2), rhs.GetElement(1,2)) &&
-    AreEqualWithTolerance(lhs.GetElement(1,3), rhs.GetElement(1,3)) &&
-    AreEqualWithTolerance(lhs.GetElement(2,0), rhs.GetElement(2,0)) &&
-    AreEqualWithTolerance(lhs.GetElement(2,1), rhs.GetElement(2,1)) &&
-    AreEqualWithTolerance(lhs.GetElement(2,2), rhs.GetElement(2,2)) &&
-    AreEqualWithTolerance(lhs.GetElement(2,3), rhs.GetElement(2,3)) &&
-    AreEqualWithTolerance(lhs.GetElement(3,0), rhs.GetElement(3,0)) &&
-    AreEqualWithTolerance(lhs.GetElement(3,1), rhs.GetElement(3,1)) &&
-    AreEqualWithTolerance(lhs.GetElement(3,2), rhs.GetElement(3,2)) &&
-    AreEqualWithTolerance(lhs.GetElement(3,3), rhs.GetElement(3,3));
-}
