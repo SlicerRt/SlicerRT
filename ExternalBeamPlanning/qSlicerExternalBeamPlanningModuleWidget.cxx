@@ -194,80 +194,234 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLExternalBeamPlanningNode* qSlicerExternalBeamPlanningModuleWidget::parameterSetNode ()
+void qSlicerExternalBeamPlanningModuleWidget::setup()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  d->setupUi(this);
+  this->Superclass::setup();
+
+  // Check for matlab dose calculation module
+  vtkSlicerExternalBeamPlanningModuleLogic* externalBeamPlanningModuleLogic =
+    vtkSlicerExternalBeamPlanningModuleLogic::SafeDownCast(this->logic());
+  qSlicerAbstractCoreModule* matlabDoseCalculationModule =
+    qSlicerCoreApplication::application()->moduleManager()->module("MatlabDoseCalculation");
+  if (matlabDoseCalculationModule)
+  {
+    vtkSlicerCLIModuleLogic* matlabDoseCalculationModuleLogic =
+      vtkSlicerCLIModuleLogic::SafeDownCast(matlabDoseCalculationModule->logic());
+    externalBeamPlanningModuleLogic->SetMatlabDoseCalculationModuleLogic(matlabDoseCalculationModuleLogic);
+  }
+  else
+  {
+    qWarning() << Q_FUNC_INFO << ": MatlabDoseCalculation module is not found!";
+  }
   
-  return d->logic()->GetExternalBeamPlanningNode();
+  // Make connections
+  this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(externalBeamPlanningNodeChanged(vtkMRMLNode*)) );
+
+  // RT plan page
+  this->connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->MRMLSegmentSelectorWidget_PlanContours, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planContoursNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_RtPlan, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtPlanNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_PlanPOIs, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planPOIsNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtDoseVolumeNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_DoseROI, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtDoseROINodeChanged(vtkMRMLNode*)) );
+  this->connect( d->lineEdit_DoseGridSpacing, SIGNAL(textChanged(const QString &)), this, SLOT(doseGridSpacingChanged(const QString &)) );
+  this->connect( d->comboBox_DoseEngineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(doseEngineTypeChanged(const QString &)) );
+
+  // RT Beams page
+  this->connect( d->tableWidget_Beams, SIGNAL(cellClicked(int, int)), this, SLOT(tableWidgetCellClicked(int, int)) );
+  this->connect( d->pushButton_AddBeam, SIGNAL(clicked()), this, SLOT(addBeamClicked()) );
+  this->connect( d->pushButton_RemoveBeam, SIGNAL(clicked()), this, SLOT(removeBeamClicked()) );
+
+  // Beam global parameters
+  this->connect( d->lineEdit_BeamName, SIGNAL(textChanged(const QString &)), this, SLOT(beamNameChanged(const QString &)) );
+  this->connect( d->comboBox_RadiationType, SIGNAL(currentIndexChanged(int)), this, SLOT(radiationTypeChanged(int)) );
+
+  // Prescription page
+  this->connect( d->comboBox_BeamType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamTypeChanged(const QString &)) );
+  this->connect( d->MRMLSegmentSelectorWidget_TargetVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(targetVolumeNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->MRMLSegmentSelectorWidget_TargetVolume, SIGNAL(currentSegmentChanged(QString)), this, SLOT(targetVolumeSegmentChanged(const QString&)) );
+  this->connect( d->doubleSpinBox_RxDose, SIGNAL(valueChanged(double)), this, SLOT(rxDoseChanged(double)) );
+  this->connect( d->comboBox_IsocenterSpec, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(isocenterSpecChanged(const QString &)));
+  this->connect( d->MRMLCoordinatesWidget_IsocenterCoordinates, SIGNAL(coordinatesChanged(double*)), this, SLOT(isocenterCoordinatesChanged(double *)));
+
+  // Energy page
+  this->connect( d->doubleSpinBox_ProximalMargin, SIGNAL(valueChanged(double)), this, SLOT(proximalMarginChanged(double)) );
+  this->connect( d->doubleSpinBox_DistalMargin, SIGNAL(valueChanged(double)), this, SLOT(distalMarginChanged(double)) );
+
+  // Proton widgets
+  this->connect( d->comboBox_BeamLineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamLineTypeChanged(const QString &)) );
+  this->connect( d->checkBox_EnergyPrescription, SIGNAL(clicked(bool)), this, SLOT(manualEnergyPrescriptionChanged(bool)) );
+  this->connect( d->doubleSpinBox_MinimumEnergy, SIGNAL(valueChanged(double)), this, SLOT(minimumEnergyChanged(double)) );
+  this->connect( d->doubleSpinBox_MaximumEnergy, SIGNAL(valueChanged(double)), this, SLOT(maximumEnergyChanged(double)) );
+
+  // Geometry page
+  this->connect( d->MRMLNodeComboBox_MLCPositionDoubleArray, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(mlcPositionDoubleArrayNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), this, SLOT(sourceDistanceChanged(double)) );
+  this->connect( d->RangeWidget_XJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(xJawsPositionValuesChanged(double, double)) );
+  this->connect( d->RangeWidget_YJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(yJawsPositionValuesChanged(double, double)) );
+  this->connect( d->SliderWidget_CollimatorAngle, SIGNAL(valueChanged(double)), this, SLOT(collimatorAngleChanged(double)) );
+  this->connect( d->SliderWidget_GantryAngle, SIGNAL(valueChanged(double)), this, SLOT(gantryAngleChanged(double)) );
+  this->connect( d->SliderWidget_CouchAngle, SIGNAL(valueChanged(double)), this, SLOT(couchAngleChanged(double)) );
+  this->connect( d->doubleSpinBox_Smearing, SIGNAL(valueChanged(double)), this, SLOT(smearingChanged(double)) );
+  this->connect( d->doubleSpinBox_BeamWeight, SIGNAL(valueChanged(double)), this, SLOT(beamWeightChanged(double)) );
+
+  // Proton beam model
+  this->connect( d->doubleSpinBox_ApertureDistance, SIGNAL(valueChanged(double)), this, SLOT(apertureDistanceChanged(double)) );
+  this->connect( d->comboBox_Algorithm, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(algorithmChanged(const QString &)) );
+  this->connect( d->doubleSpinBox_PBResolution, SIGNAL(valueChanged(double)), this, SLOT(pbResolutionChanged(double)) );
+  this->connect( d->doubleSpinBox_SourceSize, SIGNAL(valueChanged(double)), this, SLOT(sourceSizeChanged(double)) );
+  this->connect( d->doubleSpinBox_EnergyResolution, SIGNAL(valueChanged(double)), this, SLOT(energyResolutionChanged(double)) );
+  this->connect( d->doubleSpinBox_EnergySpread, SIGNAL(valueChanged(double)), this, SLOT(energySpreadChanged(double)) );
+  this->connect( d->doubleSpinBox_StepLength, SIGNAL(valueChanged(double)), this, SLOT(stepLengthChanged(double)) );
+  this->connect( d->checkBox_WEDApproximation, SIGNAL(clicked(bool)), this, SLOT(wedApproximationChanged(bool)) );
+  this->connect( d->checkBox_RangeCompensatorHighland, SIGNAL(clicked(bool)), this, SLOT(rangeCompensatorHighlandChanged(bool)) );
+
+  // Beam visualization
+  this->connect( d->pushButton_UpdateDRR, SIGNAL(clicked()), this, SLOT(updateDRRClicked()) );
+  this->connect( d->checkBox_BeamEyesView, SIGNAL(clicked(bool)), this, SLOT(beamEyesViewClicked(bool)) );
+  this->connect( d->checkBox_ContoursInBEW, SIGNAL(clicked(bool)), this, SLOT(contoursInBEWClicked(bool)) );
+
+  // Calculation buttons
+  this->connect( d->pushButton_CalculateDose, SIGNAL(clicked()), this, SLOT(calculateDoseClicked()) );
+  this->connect( d->pushButton_CalculateWED, SIGNAL(clicked()), this, SLOT(calculateWEDClicked()) );
+  this->connect( d->pushButton_ClearDose, SIGNAL(clicked()), this, SLOT(clearDoseClicked()) );
+
+  // Disable unused buttons in prescription task
+  //this->radiationTypeChanged(0); //TODO:
+
+  // Hide dose ROI until it is functional //TODO:
+  d->label_DoseROI->setVisible(false);
+  d->MRMLNodeComboBox_DoseROI->setVisible(false);
+
+  // Remove all tabs in Beam TabWidget
+  d->tabWidget->clear();
+
+  // Handle scene change event if occurs
+  qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLRTPlanNode* qSlicerExternalBeamPlanningModuleWidget::rtPlanNode ()
+void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromParameterNode()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
-  
-  vtkMRMLExternalBeamPlanningNode* paramNode = this->parameterSetNode ();
+
+  if (!this->mrmlScene())
+  {
+    return;
+  }
+
+  vtkMRMLExternalBeamPlanningNode* paramNode = this->parameterSetNode();
+  d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
   if (!paramNode)
   {
-    return NULL;
+    /* GCS FIX TODO: Still need to wipe the GUI in this case */
+    return;
   }
-  return paramNode->GetRTPlanNode ();
-}
 
-//-----------------------------------------------------------------------------
-vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode(vtkMRMLExternalBeamPlanningNode* paramNode)
-{
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-  if (!paramNode)
+  // If no plan node, try to find one in the scene
+  // Otherwise, create a new one
+  vtkMRMLRTPlanNode* planNode = paramNode->GetRTPlanNode ();
+  if (!planNode)
   {
-    return NULL;
+    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLRTPlanNode");
+    if (node)
+    {
+      planNode = vtkMRMLRTPlanNode::SafeDownCast(node);
+    }
+    else
+    {
+      vtkSmartPointer<vtkMRMLRTPlanNode> newNode = vtkSmartPointer<vtkMRMLRTPlanNode>::New();
+      planNode = newNode;
+      this->mrmlScene()->AddNode(planNode);
+    }
   }
+  d->MRMLNodeComboBox_RtPlan->setCurrentNode(planNode);
+  d->MRMLNodeComboBox_PlanPOIs->setCurrentNode(planNode->GetMarkupsFiducialNode());
 
-  vtkMRMLRTPlanNode* rtPlanNode = paramNode->GetRTPlanNode();
-  if (!rtPlanNode)
+  // if plan items exist, set GUI to plan items.  
+  // else if GUI widgets have items selected, set them to plan
+  // else set GUI widgets to empty
+  if (planNode->GetRTPlanReferenceVolumeNode())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid rtplan node!";
-    return NULL;
+    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(planNode->GetRTPlanReferenceVolumeNode());
   }
-
-  QTableWidgetItem *item = NULL;
-  item = d->tableWidget_Beams->item(d->currentBeamRow, 0);
-  if (!item)
+  else
   {
-    return NULL;
+    this->referenceVolumeNodeChanged(d->MRMLNodeComboBox_ReferenceVolume->currentNode());
   }
-  int beamNumber = item->text().toInt();
-  vtkMRMLRTBeamNode* beamNode = rtPlanNode->GetRTBeamNodeByNumber(beamNumber);
+  if (planNode->GetRTPlanSegmentationNode())
+  {
+    d->MRMLSegmentSelectorWidget_PlanContours->setCurrentNode(planNode->GetRTPlanSegmentationNode());
+  }
+  else
+  {
+    this->planContoursNodeChanged(d->MRMLSegmentSelectorWidget_PlanContours->currentNode());
+  }
+  if (planNode->GetRTPlanDoseVolumeNode())
+  {
+    d->MRMLNodeComboBox_DoseVolume->setCurrentNode(planNode->GetRTPlanDoseVolumeNode());
+  }
+  else
+  {
+    this->rtDoseVolumeNodeChanged(d->MRMLNodeComboBox_DoseVolume->currentNode());
+  }
 
-  return beamNode;
+  /* GCS FIX TODO: Wipe beam-specific UI items */
+
+  return;
+
+  /* GCS TODO: Here I still need to set the beam-specific widgets */
+#if defined (commentout)
+
+  d->SegmentSelectorWidget_TargetSegment->setCurrentNode(0);
+
+  d->MRMLNodeComboBox_MLCPositionDoubleArray->setCurrentNode(0);
+  //
+  d->MRMLNodeComboBox_MLCPositionDoubleArray->setCurrentNode(paramNode->GetMLCPositionDoubleArrayNode());
+
+#endif
+
+#if defined (commentout)
+  if (planNode->GetRTPlanReferenceVolumeNode())
+  {
+    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(planNode->GetRTPlanReferenceVolumeNode());
+  }
+  else
+  {
+    this->referenceVolumeNodeChanged(d->MRMLNodeComboBox_ReferenceVolume->currentNode());
+  }
+
+  if (paramNode->GetMLCPositionDoubleArrayNode())
+  {
+    d->MRMLNodeComboBox_MLCPositionDoubleArray->setCurrentNode(paramNode->GetMLCPositionDoubleArrayNode());
+  }
+  else
+  {
+    this->mlcPositionDoubleArrayNodeChanged(d->MRMLNodeComboBox_MLCPositionDoubleArray->currentNode());
+  }
+
+#endif
+
+#if defined (commentout)
+  if (paramNode->GetBeamName())
+  {
+    d->lineEdit_BeamName->setText(paramNode->GetBeamName());
+  }
+#endif
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode()
-{
-  return this->currentBeamNode (this->parameterSetNode());
-}
-
-//-----------------------------------------------------------------------------
-std::string qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamName ()
-{
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
-  return beamNode->GetName ();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromRTBeam (vtkMRMLRTBeamNode* beamNode)
+void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromRTBeam(vtkMRMLRTBeamNode* beamNode)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   // If node is empty, remove all tabs
   if (!beamNode)
   {
-    d->tabWidget->clear ();
-    d->lineEdit_BeamName->setText ("");
+    d->tabWidget->clear();
+    d->lineEdit_BeamName->setText("");
     // GCS FIX How do I disconnect ?
     return;
   }
@@ -464,217 +618,68 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromRTBeam (vtkMRMLRTB
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromParameterNode()
+vtkMRMLExternalBeamPlanningNode* qSlicerExternalBeamPlanningModuleWidget::parameterSetNode ()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-  if (!this->mrmlScene())
-  {
-    return;
-  }
-
-  vtkMRMLExternalBeamPlanningNode* paramNode = this->parameterSetNode();
-  d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
-  if (!paramNode)
-  {
-    /* GCS FIX TODO: Still need to wipe the GUI in this case */
-    return;
-  }
-
-  // If no plan node, try to find one in the scene
-  // Otherwise, create a new one
-  vtkMRMLRTPlanNode* planNode = paramNode->GetRTPlanNode ();
-  if (!planNode)
-  {
-    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLRTPlanNode");
-    if (node)
-    {
-      planNode = vtkMRMLRTPlanNode::SafeDownCast(node);
-    }
-    else
-    {
-      vtkSmartPointer<vtkMRMLRTPlanNode> newNode = vtkSmartPointer<vtkMRMLRTPlanNode>::New();
-      planNode = newNode;
-      this->mrmlScene()->AddNode(planNode);
-    }
-  }
-  d->MRMLNodeComboBox_RtPlan->setCurrentNode(planNode);
-  d->MRMLNodeComboBox_PlanPOIs->setCurrentNode(planNode->GetMarkupsFiducialNode());
-
-  // if plan items exist, set GUI to plan items.  
-  // else if GUI widgets have items selected, set them to plan
-  // else set GUI widgets to empty
-  if (planNode->GetRTPlanReferenceVolumeNode())
-  {
-    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(planNode->GetRTPlanReferenceVolumeNode());
-  }
-  else
-  {
-    this->referenceVolumeNodeChanged(d->MRMLNodeComboBox_ReferenceVolume->currentNode());
-  }
-  if (planNode->GetRTPlanSegmentationNode())
-  {
-    d->MRMLSegmentSelectorWidget_PlanContours->setCurrentNode(planNode->GetRTPlanSegmentationNode());
-  }
-  else
-  {
-    this->planContoursNodeChanged(d->MRMLSegmentSelectorWidget_PlanContours->currentNode());
-  }
-  if (planNode->GetRTPlanDoseVolumeNode())
-  {
-    d->MRMLNodeComboBox_DoseVolume->setCurrentNode(planNode->GetRTPlanDoseVolumeNode());
-  }
-  else
-  {
-    this->rtDoseVolumeNodeChanged(d->MRMLNodeComboBox_DoseVolume->currentNode());
-  }
-
-  /* GCS FIX TODO: Wipe beam-specific UI items */
-
-  return;
-
-  /* GCS TODO: Here I still need to set the beam-specific widgets */
-#if defined (commentout)
-
-  d->SegmentSelectorWidget_TargetSegment->setCurrentNode(0);
-
-  d->MRMLNodeComboBox_MLCPositionDoubleArray->setCurrentNode(0);
-  //
-  d->MRMLNodeComboBox_MLCPositionDoubleArray->setCurrentNode(paramNode->GetMLCPositionDoubleArrayNode());
-
-#endif
-
-#if defined (commentout)
-  if (planNode->GetRTPlanReferenceVolumeNode())
-  {
-    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(planNode->GetRTPlanReferenceVolumeNode());
-  }
-  else
-  {
-    this->referenceVolumeNodeChanged(d->MRMLNodeComboBox_ReferenceVolume->currentNode());
-  }
-
-  if (paramNode->GetMLCPositionDoubleArrayNode())
-  {
-    d->MRMLNodeComboBox_MLCPositionDoubleArray->setCurrentNode(paramNode->GetMLCPositionDoubleArrayNode());
-  }
-  else
-  {
-    this->mlcPositionDoubleArrayNodeChanged(d->MRMLNodeComboBox_MLCPositionDoubleArray->currentNode());
-  }
-
-#endif
-
-#if defined (commentout)
-  if (paramNode->GetBeamName())
-  {
-    d->lineEdit_BeamName->setText(paramNode->GetBeamName());
-  }
-#endif
+  
+  return d->logic()->GetExternalBeamPlanningNode();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::setup()
+vtkMRMLRTPlanNode* qSlicerExternalBeamPlanningModuleWidget::rtPlanNode ()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
-  d->setupUi(this);
-  this->Superclass::setup();
-
-  vtkSlicerExternalBeamPlanningModuleLogic* externalBeamPlanningModuleLogic =
-    vtkSlicerExternalBeamPlanningModuleLogic::SafeDownCast(this->logic());
-
-  qSlicerAbstractCoreModule* matlabDoseCalculationModule =
-    qSlicerCoreApplication::application()->moduleManager()->module("MatlabDoseCalculation");
-  if (matlabDoseCalculationModule)
+  
+  vtkMRMLExternalBeamPlanningNode* paramNode = this->parameterSetNode ();
+  if (!paramNode)
   {
-    vtkSlicerCLIModuleLogic* matlabDoseCalculationModuleLogic =
-      vtkSlicerCLIModuleLogic::SafeDownCast(matlabDoseCalculationModule->logic());
-    externalBeamPlanningModuleLogic->SetMatlabDoseCalculationModuleLogic(matlabDoseCalculationModuleLogic);
+    return NULL;
   }
-  else
+  return paramNode->GetRTPlanNode ();
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode(vtkMRMLExternalBeamPlanningNode* paramNode)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!paramNode)
   {
-    qWarning() << Q_FUNC_INFO << ": MatlabDoseCalculation module is not found!";
+    return NULL;
   }
 
-  // Make connections
-  this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(externalBeamPlanningNodeChanged(vtkMRMLNode*)) );
+  vtkMRMLRTPlanNode* rtPlanNode = paramNode->GetRTPlanNode();
+  if (!rtPlanNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid rtplan node!";
+    return NULL;
+  }
 
-  // RT plan page
-  this->connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->MRMLSegmentSelectorWidget_PlanContours, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planContoursNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->MRMLNodeComboBox_RtPlan, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtPlanNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->MRMLNodeComboBox_PlanPOIs, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planPOIsNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtDoseVolumeNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->MRMLNodeComboBox_DoseROI, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtDoseROINodeChanged(vtkMRMLNode*)) );
-  this->connect( d->lineEdit_DoseGridSpacing, SIGNAL(textChanged(const QString &)), this, SLOT(doseGridSpacingChanged(const QString &)) );
-  this->connect( d->comboBox_DoseEngineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(doseEngineTypeChanged(const QString &)) );
+  QTableWidgetItem *item = NULL;
+  item = d->tableWidget_Beams->item(d->currentBeamRow, 0);
+  if (!item)
+  {
+    return NULL;
+  }
+  int beamNumber = item->text().toInt();
+  vtkMRMLRTBeamNode* beamNode = rtPlanNode->GetRTBeamNodeByNumber(beamNumber);
 
-  // RT Beams page
-  this->connect( d->tableWidget_Beams, SIGNAL(cellClicked(int, int)), this, SLOT(tableWidgetCellClicked(int, int)) );
-  this->connect( d->pushButton_AddBeam, SIGNAL(clicked()), this, SLOT(addBeamClicked()) );
-  this->connect( d->pushButton_RemoveBeam, SIGNAL(clicked()), this, SLOT(removeBeamClicked()) );
+  return beamNode;
+}
 
-  /* Beam global parameters */
-  this->connect( d->lineEdit_BeamName, SIGNAL(textChanged(const QString &)), this, SLOT(beamNameChanged(const QString &)) );
-  this->connect( d->comboBox_RadiationType, SIGNAL(currentIndexChanged(int)), this, SLOT(radiationTypeChanged(int)) );
+//-----------------------------------------------------------------------------
+vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode()
+{
+  return this->currentBeamNode (this->parameterSetNode());
+}
 
-  /* Prescription page */
-  this->connect( d->comboBox_BeamType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamTypeChanged(const QString &)) );
-  this->connect( d->MRMLSegmentSelectorWidget_TargetVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(targetVolumeNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->MRMLSegmentSelectorWidget_TargetVolume, SIGNAL(currentSegmentChanged(QString)), this, SLOT(targetVolumeSegmentChanged(const QString&)) );
-  this->connect( d->doubleSpinBox_RxDose, SIGNAL(valueChanged(double)), this, SLOT(rxDoseChanged(double)) );
-  this->connect( d->comboBox_IsocenterSpec, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(isocenterSpecChanged(const QString &)));
-  this->connect( d->MRMLCoordinatesWidget_IsocenterCoordinates, SIGNAL(coordinatesChanged(double*)), this, SLOT(isocenterCoordinatesChanged(double *)));
+//-----------------------------------------------------------------------------
+std::string qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamName ()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  /* Energy page */
-  this->connect( d->doubleSpinBox_ProximalMargin, SIGNAL(valueChanged(double)), this, SLOT(proximalMarginChanged(double)) );
-  this->connect( d->doubleSpinBox_DistalMargin, SIGNAL(valueChanged(double)), this, SLOT(distalMarginChanged(double)) );
-    //Proton widgets
-  this->connect( d->comboBox_BeamLineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamLineTypeChanged(const QString &)) );
-  this->connect( d->checkBox_EnergyPrescription, SIGNAL(clicked(bool)), this, SLOT(manualEnergyPrescriptionChanged(bool)) );
-  this->connect( d->doubleSpinBox_MinimumEnergy, SIGNAL(valueChanged(double)), this, SLOT(minimumEnergyChanged(double)) );
-  this->connect( d->doubleSpinBox_MaximumEnergy, SIGNAL(valueChanged(double)), this, SLOT(maximumEnergyChanged(double)) );
-
-  /* Geometry page */
-  this->connect( d->MRMLNodeComboBox_MLCPositionDoubleArray, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(mlcPositionDoubleArrayNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), this, SLOT(sourceDistanceChanged(double)) );
-  this->connect( d->RangeWidget_XJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(xJawsPositionValuesChanged(double, double)) );
-  this->connect( d->RangeWidget_YJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(yJawsPositionValuesChanged(double, double)) );
-  this->connect( d->SliderWidget_CollimatorAngle, SIGNAL(valueChanged(double)), this, SLOT(collimatorAngleChanged(double)) );
-  this->connect( d->SliderWidget_GantryAngle, SIGNAL(valueChanged(double)), this, SLOT(gantryAngleChanged(double)) );
-  this->connect( d->SliderWidget_CouchAngle, SIGNAL(valueChanged(double)), this, SLOT(couchAngleChanged(double)) );
-  this->connect( d->doubleSpinBox_Smearing, SIGNAL(valueChanged(double)), this, SLOT(smearingChanged(double)) );
-  this->connect( d->doubleSpinBox_BeamWeight, SIGNAL(valueChanged(double)), this, SLOT(beamWeightChanged(double)) );
-
-  /* Proton beam model */
-  this->connect( d->doubleSpinBox_ApertureDistance, SIGNAL(valueChanged(double)), this, SLOT(apertureDistanceChanged(double)) );
-  this->connect( d->comboBox_Algorithm, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(algorithmChanged(const QString &)) );
-  this->connect( d->doubleSpinBox_PBResolution, SIGNAL(valueChanged(double)), this, SLOT(pbResolutionChanged(double)) );
-  this->connect( d->doubleSpinBox_SourceSize, SIGNAL(valueChanged(double)), this, SLOT(sourceSizeChanged(double)) );
-  this->connect( d->doubleSpinBox_EnergyResolution, SIGNAL(valueChanged(double)), this, SLOT(energyResolutionChanged(double)) );
-  this->connect( d->doubleSpinBox_EnergySpread, SIGNAL(valueChanged(double)), this, SLOT(energySpreadChanged(double)) );
-  this->connect( d->doubleSpinBox_StepLength, SIGNAL(valueChanged(double)), this, SLOT(stepLengthChanged(double)) );
-  this->connect( d->checkBox_WEDApproximation, SIGNAL(clicked(bool)), this, SLOT(wedApproximationChanged(bool)) );
-  this->connect( d->checkBox_RangeCompensatorHighland, SIGNAL(clicked(bool)), this, SLOT(rangeCompensatorHighlandChanged(bool)) );
-
-  /* Beam visualization */
-  this->connect( d->pushButton_UpdateDRR, SIGNAL(clicked()), this, SLOT(updateDRRClicked()) );
-  this->connect( d->checkBox_BeamEyesView, SIGNAL(clicked(bool)), this, SLOT(beamEyesViewClicked(bool)) );
-  this->connect( d->checkBox_ContoursInBEW, SIGNAL(clicked(bool)), this, SLOT(contoursInBEWClicked(bool)) );
-
-  /* Calculation buttons */
-  this->connect( d->pushButton_CalculateDose, SIGNAL(clicked()), this, SLOT(calculateDoseClicked()) );
-  this->connect( d->pushButton_CalculateWED, SIGNAL(clicked()), this, SLOT(calculateWEDClicked()) );
-  this->connect( d->pushButton_ClearDose, SIGNAL(clicked()), this, SLOT(clearDoseClicked()) );
-
-  /* Disable unused buttons in prescription task */
-  //this->radiationTypeChanged(0);
-
-  /* Remove all tabs in Beam TabWidget */
-  d->tabWidget->clear ();
-
-  // Handle scene change event if occurs
-  qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
+  return beamNode->GetName ();
 }
 
 //-----------------------------------------------------------------------------
@@ -736,12 +741,12 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
   vtkMRMLRTPlanNode* planNode = this->rtPlanNode ();
   if (!planNode)
   { 
-    qCritical() << Q_FUNC_INFO << ": Invalid rtplan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid plan node!";
     return;
   }
 
   std::vector<vtkMRMLRTBeamNode*> beams;
-  planNode->GetRTBeamNodes (beams);
+  planNode->GetRTBeamNodes(beams);
 
   // Set up the table
   d->tableWidget_Beams->setColumnCount(4);
@@ -753,9 +758,8 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
   d->tableWidget_Beams->setRowCount(beams.size());
 
   // Fill the table
-  std::vector<vtkMRMLRTBeamNode*>::iterator it;
-  int i;
-  for (it = beams.begin(), i = 0; it != beams.end(); ++it, ++i)
+  int i=0;
+  for (std::vector<vtkMRMLRTBeamNode*>::iterator it=beams.begin(); it!=beams.end(); ++it, ++i)
   {
     vtkMRMLRTBeamNode* beamNode = *it;
     if (beamNode)
@@ -998,17 +1002,15 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   qvtkDisconnect (beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
   
   // Make new beam current in the table
-  d->currentBeamRow = d->totalBeamRows;
-  d->totalBeamRows ++;
+  d->currentBeamRow = d->totalBeamRows++;
   d->tableWidget_Beams->selectRow(d->currentBeamRow);
 
-  QString new_name = "New beam";
-  new_name.append(QString::number(d->totalBeamRows));
-  beamNode->SetName(new_name.toStdString().c_str());
-  beamNameChanged(new_name);
+  QString newBeamName(vtkMRMLExternalBeamPlanningNode::NEW_BEAM_NODE_NAME_PREFIX);
+  newBeamName.append(QString::number(d->totalBeamRows));
+  beamNode->SetName(newBeamName.toStdString().c_str());
+  this->beamNameChanged(newBeamName);
 
-  /* GCS TODO FIX -- this should be called when logic is modified, maybe 
-     it gets called twice ? */
+  // GCS TODO FIX -- this should be called when logic is modified, maybe it gets called twice?
   this->updateRTBeamTableWidget();
 
   // Update UI

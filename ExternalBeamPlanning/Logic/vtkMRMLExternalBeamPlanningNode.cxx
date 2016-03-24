@@ -40,8 +40,14 @@
 #include <sstream>
 
 //------------------------------------------------------------------------------
+const char* vtkMRMLExternalBeamPlanningNode::NEW_BEAM_NODE_NAME_PREFIX = "NewBeam_";
+const char* vtkMRMLExternalBeamPlanningNode::TOTAL_PROTON_DOSE_VOLUME_REFERENCE_ROLE = "totalProtonDoseVolumeRef";
+
 static const char* RT_PLAN_REFERENCE_ROLE = "rtPlanRef";
-static const char* MLCPOSITION_REFERENCE_ROLE = "MLCPositionRef";
+static const char* MLCPOSITION_REFERENCE_ROLE = "mlcPositionRef";
+static const char* APERTURE_VOLUME_REFERENCE_ROLE_PREFIX = "apertureVolumeRef_";
+static const char* RANGE_COMPENSATOR_VOLUME_REFERENCE_ROLE_PREFIX = "rangeCompensatorVolumeRef_";
+static const char* PROTON_DOSE_VOLUME_REFERENCE_ROLE_PREFIX = "protonDoseVolumeRef_";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLExternalBeamPlanningNode);
@@ -114,4 +120,46 @@ vtkMRMLDoubleArrayNode* vtkMRMLExternalBeamPlanningNode::GetMLCPositionDoubleArr
 void vtkMRMLExternalBeamPlanningNode::SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode* node)
 {
   this->SetNodeReferenceID(MLCPOSITION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLExternalBeamPlanningNode::AssembleApertureVolumeReference(vtkMRMLNode* beamNode)
+{
+  if (!beamNode)
+  {
+    std::cerr << "vtkMRMLExternalBeamPlanningNode::AssembleApertureVolumeReference: Invalid beam node!";
+    return "";
+  }
+  
+  std::string referenceRole(APERTURE_VOLUME_REFERENCE_ROLE_PREFIX);
+  referenceRole.append(beamNode->GetID());
+  return referenceRole;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLExternalBeamPlanningNode::AssembleRangeCompensatorVolumeReference(vtkMRMLNode* beamNode)
+{
+  if (!beamNode)
+  {
+    std::cerr << "vtkMRMLExternalBeamPlanningNode::AssembleRangeCompensatorVolumeReference: Invalid beam node!";
+    return "";
+  }
+  
+  std::string referenceRole(RANGE_COMPENSATOR_VOLUME_REFERENCE_ROLE_PREFIX);
+  referenceRole.append(beamNode->GetID());
+  return referenceRole;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLExternalBeamPlanningNode::AssembleProtonDoseVolumeReference(vtkMRMLNode* beamNode)
+{
+  if (!beamNode)
+  {
+    std::cerr << "vtkMRMLExternalBeamPlanningNode::AssembleProtonDoseVolumeReference: Invalid beam node!";
+    return "";
+  }
+  
+  std::string referenceRole(PROTON_DOSE_VOLUME_REFERENCE_ROLE_PREFIX);
+  referenceRole.append(beamNode->GetID());
+  return referenceRole;
 }

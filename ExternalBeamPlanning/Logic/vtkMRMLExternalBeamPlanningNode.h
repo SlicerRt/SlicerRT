@@ -38,6 +38,11 @@ class vtkMRMLDoubleArrayNode;
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_LOGIC_EXPORT vtkMRMLExternalBeamPlanningNode : public vtkMRMLNode
 {
 public:
+  // ExternalBeamPlanning constants
+  static const char* NEW_BEAM_NODE_NAME_PREFIX;
+  static const char* TOTAL_PROTON_DOSE_VOLUME_REFERENCE_ROLE;
+
+public:
   static vtkMRMLExternalBeamPlanningNode *New();
   vtkTypeMacro(vtkMRMLExternalBeamPlanningNode, vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -67,6 +72,13 @@ public:
   vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
   /// Set and observe MLC position double array node
   void SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode* node);
+
+  /// Assemble reference volume node reference role for aperture volume node with given beam
+  static std::string AssembleApertureVolumeReference(vtkMRMLNode* beamNode);
+  /// Assemble reference volume node reference role for range compensator volume node with given beam
+  static std::string AssembleRangeCompensatorVolumeReference(vtkMRMLNode* beamNode);
+  /// Assemble reference volume node reference role for proton dose volume node with given beam
+  static std::string AssembleProtonDoseVolumeReference(vtkMRMLNode* beamNode);
 
 protected:
   vtkMRMLExternalBeamPlanningNode();

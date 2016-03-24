@@ -54,7 +54,6 @@ class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_LOGIC_EXPORT vtkSlicerExternalBeamP
   public vtkSlicerModuleLogic
 {
 public:
-
   static vtkSlicerExternalBeamPlanningModuleLogic *New();
   vtkTypeMacro(vtkSlicerExternalBeamPlanningModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -81,10 +80,10 @@ public:
   void UpdateBeamGeometryModel(char*);
 
   /// TODO
-  bool ComputeTargetVolumeCenter (vtkMRMLRTBeamNode *beam, double* center);
+  bool ComputeTargetVolumeCenter(vtkMRMLRTBeamNode *beam, double* center);
 
   /// TODO
-  void SetBeamIsocenterToTargetCenter (vtkMRMLRTBeamNode *beam);
+  void SetBeamIsocenterToTargetCenter(vtkMRMLRTBeamNode *beam);
 
   /// TODO
   void UpdateDRR(char*);
@@ -93,20 +92,20 @@ public:
   vtkSmartPointer<vtkOrientedImageData> GetTargetLabelmap(vtkMRMLRTBeamNode* beamNode);
 
   /// TODO
-  void ComputeDose (vtkMRMLRTBeamNode*);
+  void ComputeDose(vtkMRMLRTBeamNode*);
 
   /// TODO
-  void ComputeDoseByPlastimatch (vtkMRMLRTBeamNode*);
+  void ComputeDoseByPlastimatch(vtkMRMLRTBeamNode*);
 
   /// TODO
-  void ComputeWED ();
+  void ComputeWED();
 
   /// TODO
   void SetMatlabDoseCalculationModuleLogic(vtkSlicerCLIModuleLogic* logic);
   vtkSlicerCLIModuleLogic* GetMatlabDoseCalculationModuleLogic();
 
   /// TODO
-  void ComputeDoseByMatlab (vtkMRMLRTBeamNode*);
+  void ComputeDoseByMatlab(vtkMRMLRTBeamNode*);
 
   /// TODO
   void InitializeAccumulatedDose();

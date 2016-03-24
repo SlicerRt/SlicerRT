@@ -295,13 +295,15 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *bea
   for (int i=0; i<beams->GetNumberOfItems(); ++i)
   {
     beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
-    if (beamNode && beamNode->BeamNameIs(beamName)) {
+    if (beamNode && beamNode->BeamNameIs(beamName))
+    {
       break;
     }
   }
 
   // Make sure inputs are initialized
-  if (!beamNode) {
+  if (!beamNode)
+  {
     vtkErrorMacro("UpdateBeamGeometryModel: Inputs are not initialized!");
     return;
   }
@@ -802,6 +804,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDose(vtkMRMLRTBeamNode* be
   }
   else
   {
+    vtkErrorMacro("ComputeDose: Unknown dose engine!");
   }
 }
 
@@ -899,6 +902,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   vtkSmartPointer<vtkOrientedImageData> targetLabelmap = this->GetTargetLabelmap(beamNode);
   if (targetLabelmap == NULL)
   {
+    vtkErrorMacro("ComputeDoseByPlastimatch: Failed to access target labelmap volume!");
     return;
   }
 
@@ -916,34 +920,21 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   // in case the default one (from DICOM) is not desired
 #if defined (commentout)
   vtkSmartPointer<vtkMatrix4x4> doseIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  doseVolumeNode->GetIJKToRASMatrix(doseIjkToRasMatrix);
-  std::string doseGeometryString = vtkSegmentationConverter::SerializeImageGeometry(doseIjkToRasMatrix, doseVolumeNode->GetImageData());
+  protonDoseVolumeNode->GetIJKToRASMatrix(doseIjkToRasMatrix);
+  std::string doseGeometryString = vtkSegmentationConverter::SerializeImageGeometry(doseIjkToRasMatrix, protonDoseVolumeNode->GetImageData());
   segmentationCopy->SetConversionParameter( vtkSegmentationConverter::GetReferenceImageGeometryParameterName(),
     doseGeometryString );
 #endif
   
-  
-//  vtkOrientedImageData* targetLabelmap = vtkOrientedImageData::SafeDownCast(targetSegmentationNode->GetSegmentation()->GetSegmentRepresentation(beamNode->GetTargetSegmentID(), vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()));
-//  printf ("8\n");
-//  vtkSmartPointer<vtkMRMLScalarVolumeNode> targetLabelmapNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-//  printf ("9\n");
-//  targetLabelmapNode->SetAndObserveImageData(targetLabelmap);
+  //plmTgt->print ();
 
-  printf ("10a\n");
-//  Plm_image::Pointer plmTgt = PlmCommon::ConvertVolumeNodeToPlmImage(
-//    targetLabelmapNode);
-  printf ("10b\n");
-  plmTgt->print ();
-
-  printf ("11\n");
   double src[3];
   double isocenter[3] = { 0, 0, 0 };
   beamNode->GetIsocenterPosition(isocenter);
   isocenter[0] = -isocenter[0];
   isocenter[1] = -isocenter[1];
 
-  /* Adjust src according to gantry angle */
-  printf ("12\n");
+  // Adjust src according to gantry angle
   double ga_radians = 
     beamNode->GetGantryAngle() * M_PI / 180.;
   double src_dist = beamNode->GetSAD();
@@ -953,7 +944,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
 
   double RxDose = rtPlanNode->GetRxDose();
 
-  printf ("Gonna try to doseEngine->CalculateDose()\n");
   this->Internal->doseEngine->CalculateDose (
     beamNode, 
     plmTgt, 
@@ -961,107 +951,103 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
     src,
     RxDose);
 
-  /* Create the MRML node for the volume */
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> rcVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  // Create the MRML node for the volume
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> rangeCompensatorVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
 
   itk::Image<float, 3>::Pointer rcVolumeItk = this->Internal->doseEngine->GetRangeCompensatorVolume();
 
-  /* Convert range compensator image to vtk */
-  vtkSmartPointer<vtkImageData> rcVolume = vtkSmartPointer<vtkImageData>::New();
-  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(rcVolumeItk, rcVolume, VTK_FLOAT);
+  // Convert range compensator image to vtk
+  vtkSmartPointer<vtkImageData> rangeCompensatorImageData = vtkSmartPointer<vtkImageData>::New();
+  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(rcVolumeItk, rangeCompensatorImageData, VTK_FLOAT);
 
-  rcVolumeNode->SetAndObserveImageData (rcVolume);
-  rcVolumeNode->SetSpacing (
+  rangeCompensatorVolumeNode->SetAndObserveImageData(rangeCompensatorImageData);
+  rangeCompensatorVolumeNode->SetSpacing(
     rcVolumeItk->GetSpacing()[0],
     rcVolumeItk->GetSpacing()[1],
-    rcVolumeItk->GetSpacing()[2]);
-  rcVolumeNode->SetOrigin (
+    rcVolumeItk->GetSpacing()[2] );
+  rangeCompensatorVolumeNode->SetOrigin(
     rcVolumeItk->GetOrigin()[0],
     rcVolumeItk->GetOrigin()[1],
-    rcVolumeItk->GetOrigin()[2]);
+    rcVolumeItk->GetOrigin()[2] );
 
-  std::string rangeCompensatorNodeName = "range_compensator_" + std::string(beamNode->GetName());
-  rcVolumeNode->SetName(rangeCompensatorNodeName.c_str());
+  std::string rangeCompensatorNodeName = std::string(beamNode->GetName()) + "_RangeCompensator";
+  rangeCompensatorVolumeNode->SetName(rangeCompensatorNodeName.c_str());
+  this->GetMRMLScene()->AddNode(rangeCompensatorVolumeNode);
+  std::string rangeCompensatorNodeRef = vtkMRMLExternalBeamPlanningNode::AssembleRangeCompensatorVolumeReference(beamNode);
+  rtPlanNode->SetNodeReferenceID(rangeCompensatorNodeRef.c_str(), rangeCompensatorVolumeNode->GetID());
 
-  rcVolumeNode->SetScene(this->GetMRMLScene());
-  this->GetMRMLScene()->AddNode(rcVolumeNode);
-
-  /* Create the MRML node for the volume */
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> apertureVolumeNode =
-    vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  // Create the MRML node for the volume
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> apertureVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
 
   itk::Image<unsigned char, 3>::Pointer apertureVolumeItk = this->Internal->doseEngine->GetApertureVolume();
 
-  /* Convert aperture image to vtk */
-  vtkSmartPointer<vtkImageData> apertureVolume = vtkSmartPointer<vtkImageData>::New();
-  SlicerRtCommon::ConvertItkImageToVtkImageData<unsigned char>(apertureVolumeItk, apertureVolume, VTK_UNSIGNED_CHAR);
+  // Convert aperture image to vtk
+  vtkSmartPointer<vtkImageData> apertureImageData = vtkSmartPointer<vtkImageData>::New();
+  SlicerRtCommon::ConvertItkImageToVtkImageData<unsigned char>(apertureVolumeItk, apertureImageData, VTK_UNSIGNED_CHAR);
 
-  apertureVolumeNode->SetAndObserveImageData (apertureVolume);
-  apertureVolumeNode->SetSpacing (
+  apertureVolumeNode->SetAndObserveImageData(apertureImageData);
+  apertureVolumeNode->SetSpacing(
     apertureVolumeItk->GetSpacing()[0],
     apertureVolumeItk->GetSpacing()[1],
-    apertureVolumeItk->GetSpacing()[2]);
-  apertureVolumeNode->SetOrigin (
+    apertureVolumeItk->GetSpacing()[2] );
+  apertureVolumeNode->SetOrigin(
     apertureVolumeItk->GetOrigin()[0],
     apertureVolumeItk->GetOrigin()[1],
-    apertureVolumeItk->GetOrigin()[2]);
+    apertureVolumeItk->GetOrigin()[2] );
 
-  std::string apertureNodeName = "aperture_" + std::string(beamNode->GetName());
+  std::string apertureNodeName = std::string(beamNode->GetName()) + "_Aperture";
   apertureVolumeNode->SetName(apertureNodeName.c_str());
-
-  apertureVolumeNode->SetScene(this->GetMRMLScene());
   this->GetMRMLScene()->AddNode(apertureVolumeNode);
+  std::string apertureNodeRef = vtkMRMLExternalBeamPlanningNode::AssembleApertureVolumeReference(beamNode);
+  rtPlanNode->SetNodeReferenceID(apertureNodeRef.c_str(), apertureVolumeNode->GetID());
 
-  /* Create the MRML node for the volume */
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> doseVolumeNode =
-    vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  // Create the MRML node for the volume
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> protonDoseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
 
-  /* Convert dose image to vtk */
-  vtkSmartPointer<vtkImageData> doseVolume = vtkSmartPointer<vtkImageData>::New();
+  // Convert dose image to vtk
+  vtkSmartPointer<vtkImageData> protonDoseImageData = vtkSmartPointer<vtkImageData>::New();
   itk::Image<float, 3>::Pointer doseVolumeItk = this->Internal->doseEngine->GetComputedDose();
-  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(doseVolumeItk, doseVolume, VTK_FLOAT);
+  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(doseVolumeItk, protonDoseImageData, VTK_FLOAT);
 
-  doseVolumeNode->SetAndObserveImageData (doseVolume);
-  doseVolumeNode->CopyOrientation (referenceVolumeNode);
+  protonDoseVolumeNode->SetAndObserveImageData(protonDoseImageData);
+  protonDoseVolumeNode->CopyOrientation(referenceVolumeNode);
 
-  std::string protonDoseNodeName = "proton_dose_" + std::string(beamNode->GetName());
-  doseVolumeNode->SetName(protonDoseNodeName.c_str());
+  std::string protonDoseNodeName = std::string(beamNode->GetName()) + "_ProtonDose";
+  protonDoseVolumeNode->SetName(protonDoseNodeName.c_str());
+  this->GetMRMLScene()->AddNode(protonDoseVolumeNode);
+  std::string protonDoseNodeRef = vtkMRMLExternalBeamPlanningNode::AssembleProtonDoseVolumeReference(beamNode);
+  rtPlanNode->SetNodeReferenceID(protonDoseNodeRef.c_str(), protonDoseVolumeNode->GetID());
 
-  doseVolumeNode->SetScene(this->GetMRMLScene());
-  this->GetMRMLScene()->AddNode(doseVolumeNode); // to be removed if we want to show only the last image */
+  protonDoseVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
-  /* Testing .. */
-  doseVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
-
-  /* More testing .. */
-  if (doseVolumeNode->GetVolumeDisplayNode() == NULL)
+  if (protonDoseVolumeNode->GetVolumeDisplayNode() == NULL)
   {
     vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
-    displayNode->SetScene(this->GetMRMLScene());
     this->GetMRMLScene()->AddNode(displayNode);
-    doseVolumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+    protonDoseVolumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
   }
-  if (doseVolumeNode->GetVolumeDisplayNode())
+  if (protonDoseVolumeNode->GetVolumeDisplayNode())
   {
-    vtkMRMLScalarVolumeDisplayNode* doseScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(doseVolumeNode->GetVolumeDisplayNode());
+    vtkMRMLScalarVolumeDisplayNode* doseScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(protonDoseVolumeNode->GetVolumeDisplayNode());
     doseScalarVolumeDisplayNode->SetAutoWindowLevel(0);
     doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, 16.0);
 
-    /* Set colormap to rainbow */
+    // Set colormap to rainbow
     doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
-    doseScalarVolumeDisplayNode->SetLowerThreshold (1.0);
-    doseScalarVolumeDisplayNode->ApplyThresholdOn ();
+    doseScalarVolumeDisplayNode->SetLowerThreshold(1.0);
+    doseScalarVolumeDisplayNode->ApplyThresholdOn();
   }
   else
   {
-    vtkWarningMacro("ComputeDose: Display node is not available for gamma volume node. The default color table will be used.");
+    vtkWarningMacro("ComputeDose: Display node is not available for dose volume node. The default color table will be used.");
   }
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
 {
-  /* Needs re-implmentation */
+  //TODO: Needs re-implementation
+  vtkErrorMacro("ComputeWED: Not implemented!");
 }
 
 //----------------------------------------------------------------------------
@@ -1125,7 +1111,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::InitializeAccumulatedDose()
   }
 
   vtkMRMLRTPlanNode* planNode = this->GetRTPlanNode();
-  if (!planNode) {
+  if (!planNode)
+  {
     vtkErrorMacro("InitializeAccumulatedDose: Invalid RTPlan node!");
     return;
   }
@@ -1138,24 +1125,25 @@ void vtkSlicerExternalBeamPlanningModuleLogic::InitializeAccumulatedDose()
 //---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::RegisterAccumulatedDose()
 {
-  if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
+  if (!this->GetMRMLScene() || !this->ExternalBeamPlanningNode)
   {
     vtkErrorMacro("RegisterAccumulatedDose: Invalid MRML scene or parameter set node!");
     return;
   }
 
   vtkMRMLRTPlanNode* planNode = this->GetRTPlanNode();
-  if (!planNode) {
+  if (!planNode)
+  {
     vtkErrorMacro("RegisterAccumulatedDose: Invalid RTPlan node!");
     return;
   }
 
   vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetRTPlanReferenceVolumeNode();
 
-  /* Create the MRML node for the dose volume */
+  // Create the MRML node for the dose volume
   vtkSmartPointer<vtkMRMLScalarVolumeNode> doseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
 
-  /* Convert dose image to vtk */
+  // Convert dose image to vtk
   vtkSmartPointer<vtkImageData> doseVolume = vtkSmartPointer<vtkImageData>::New();
   itk::Image<float, 3>::Pointer accumulateVolumeItk = this->Internal->doseEngine->GetAccumulatedDose();
   SlicerRtCommon::ConvertItkImageToVtkImageData<float>(accumulateVolumeItk, doseVolume, VTK_FLOAT);
@@ -1163,21 +1151,20 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterAccumulatedDose()
   doseVolumeNode->SetAndObserveImageData(doseVolume);
   doseVolumeNode->CopyOrientation(referenceVolumeNode);
 
-  std::string nodeName = "total_proton_dose";
+  std::string nodeName = std::string(planNode->GetName()) + "_TotalProtonDose";
   doseVolumeNode->SetName(nodeName.c_str());
-
-  doseVolumeNode->SetScene(this->GetMRMLScene());
-  this->GetMRMLScene()->AddNode(doseVolumeNode); // to be removed if we want to show only the last image
+  this->GetMRMLScene()->AddNode(doseVolumeNode);
+  planNode->SetNodeReferenceID(vtkMRMLExternalBeamPlanningNode::TOTAL_PROTON_DOSE_VOLUME_REFERENCE_ROLE, doseVolumeNode->GetID());
 
   this->Internal->doseEngine->FinalizeAccumulatedDose();
   double totalRx = this->Internal->doseEngine->GetTotalRx();
 
 #if (TODO)
-  /* This requires an existing study node */
+  // This requires an existing study node
   vtkMRMLSubjectHierarchyNode* doseSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode( this->GetMRMLScene(), studyNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), doseVolumeNodeName, doseVolumeNode );
   /* Look in vtkMRMLSubjectHierarchyNode for utility functions, such as 
      how to find the study node, "getAssociatedHeirarchyNode", 
-     if there is an associated heirarchy node, 
+     if there is an associated hierarchy node, 
      the parent node should be the study,
      navigate the tree to find what we want.
 
@@ -1193,14 +1180,11 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterAccumulatedDose()
   */
 #endif
 
-  /* Testing .. */
   doseVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
-  /* More testing .. */
   if (doseVolumeNode->GetVolumeDisplayNode() == NULL)
   {
     vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
-    displayNode->SetScene(this->GetMRMLScene());
     this->GetMRMLScene()->AddNode(displayNode);
     doseVolumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
   }
@@ -1210,7 +1194,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterAccumulatedDose()
     doseScalarVolumeDisplayNode->SetAutoWindowLevel(0);
     doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, totalRx);
 
-    /* Set colormap to rainbow */
+    //TODO: Use dose color table
+    // Set colormap to rainbow
     doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
     doseScalarVolumeDisplayNode->SetLowerThreshold (0.05 * totalRx);
     doseScalarVolumeDisplayNode->ApplyThresholdOn ();
@@ -1221,38 +1206,52 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterAccumulatedDose()
   }
 
   // Select as active volume
-  if (this->GetApplicationLogic()!=NULL)
+  if (this->GetApplicationLogic() && this->GetApplicationLogic()->GetSelectionNode())
   {
-    if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
-    {
-      this->GetApplicationLogic()->GetSelectionNode()->SetReferenceSecondaryVolumeID(doseVolumeNode->GetID());
-      this->GetApplicationLogic()->PropagateVolumeSelection(0);
-    }
+    this->GetApplicationLogic()->GetSelectionNode()->SetReferenceSecondaryVolumeID(doseVolumeNode->GetID());
+    this->GetApplicationLogic()->PropagateVolumeSelection(0);
   }
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::RemoveDoseNodes()
 {
-  vtkMRMLScene *scene = this->GetMRMLScene();
+  vtkMRMLScene* scene = this->GetMRMLScene();
 
-  std::vector<vtkMRMLNode *> nodes;
-  scene->GetNodesByClass("vtkMRMLScalarVolumeNode", nodes);
+  vtkMRMLRTPlanNode* rtPlanNode = this->GetRTPlanNode();
+  std::vector<vtkMRMLRTBeamNode*> beams;
+  rtPlanNode->GetRTBeamNodes(beams);
+  for (std::vector<vtkMRMLRTBeamNode*>::iterator it=beams.begin(); it!=beams.end(); ++it)
+  {
+    vtkMRMLRTBeamNode* beamNode = (*it);
+    if (beamNode)
+    {
+      std::string apertureNodeRef = vtkMRMLExternalBeamPlanningNode::AssembleApertureVolumeReference(beamNode);
+      vtkMRMLNode* apertureVolumeNode = rtPlanNode->GetNodeReference(apertureNodeRef.c_str());
+      if (apertureVolumeNode)
+      {
+        scene->RemoveNode(apertureVolumeNode);
+      }
 
-  std::vector<vtkMRMLNode *>::iterator it;
-  for (it = nodes.begin(); it != nodes.end(); it++) {
-    vtkMRMLScalarVolumeNode *node = vtkMRMLScalarVolumeNode::SafeDownCast(*it);
-    if (string_starts_with (node->GetName(), "aperture_")) {
-      scene->RemoveNode (node);
+      std::string rangeCompensatorNodeRef = vtkMRMLExternalBeamPlanningNode::AssembleRangeCompensatorVolumeReference(beamNode);
+      vtkMRMLNode* rangeCompensatorVolumeNode = rtPlanNode->GetNodeReference(rangeCompensatorNodeRef.c_str());
+      if (rangeCompensatorVolumeNode)
+      {
+        scene->RemoveNode(rangeCompensatorVolumeNode);
+      }
+
+      std::string protonDoseNodeRef = vtkMRMLExternalBeamPlanningNode::AssembleProtonDoseVolumeReference(beamNode);
+      vtkMRMLNode* protonDoseVolumeNode = rtPlanNode->GetNodeReference(protonDoseNodeRef.c_str());
+      if (protonDoseVolumeNode)
+      {
+        scene->RemoveNode(protonDoseVolumeNode);
+      }
     }
-    else if (string_starts_with (node->GetName(), "range_compensator_")) {
-      scene->RemoveNode (node);
-    }
-    else if (string_starts_with (node->GetName(), "proton_dose_")) {
-      scene->RemoveNode (node);
-    }
-    else if (string_starts_with (node->GetName(), "total_proton_dose")) {
-      scene->RemoveNode (node);
-    }
+  }
+
+  vtkMRMLNode* totalProtonDoseVolumeNode = rtPlanNode->GetNodeReference(vtkMRMLExternalBeamPlanningNode::TOTAL_PROTON_DOSE_VOLUME_REFERENCE_ROLE);
+  if (totalProtonDoseVolumeNode)
+  {
+    scene->RemoveNode(totalProtonDoseVolumeNode);
   }
 }
