@@ -18,24 +18,9 @@
 
 ==============================================================================*/
 
-// Qt includes
-#include <QDebug>
-
 // SlicerQt includes
 #include "qSlicerBeamsModuleWidget.h"
 #include "ui_qSlicerBeamsModule.h"
-
-// SlicerRtCommon includes
-#include "SlicerRtCommon.h"
-
-// Beams includes
-#include "vtkSlicerBeamsModuleLogic.h"
-#include "vtkMRMLBeamsNode.h"
-
-// MRML includes
-#include <vtkMRMLMarkupsFiducialNode.h>
-#include <vtkMRMLModelNode.h>
-#include <vtkMRMLScene.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_Beams
@@ -45,32 +30,9 @@ class qSlicerBeamsModuleWidgetPrivate: public Ui_qSlicerBeamsModule
 protected:
   qSlicerBeamsModuleWidget* const q_ptr;
 public:
-  qSlicerBeamsModuleWidgetPrivate(qSlicerBeamsModuleWidget& object);
-  ~qSlicerBeamsModuleWidgetPrivate();
-  vtkSlicerBeamsModuleLogic* logic() const;
+  qSlicerBeamsModuleWidgetPrivate(qSlicerBeamsModuleWidget& object): q_ptr(&object) { };
+  ~qSlicerBeamsModuleWidgetPrivate() { };
 };
-
-//-----------------------------------------------------------------------------
-// qSlicerBeamsModuleWidgetPrivate methods
-
-//-----------------------------------------------------------------------------
-qSlicerBeamsModuleWidgetPrivate::qSlicerBeamsModuleWidgetPrivate(qSlicerBeamsModuleWidget& object)
-  : q_ptr(&object)
-{
-}
-
-//-----------------------------------------------------------------------------
-qSlicerBeamsModuleWidgetPrivate::~qSlicerBeamsModuleWidgetPrivate()
-{
-}
-
-//-----------------------------------------------------------------------------
-vtkSlicerBeamsModuleLogic*
-qSlicerBeamsModuleWidgetPrivate::logic() const
-{
-  Q_Q(const qSlicerBeamsModuleWidget);
-  return vtkSlicerBeamsModuleLogic::SafeDownCast(q->logic());
-} 
 
 //-----------------------------------------------------------------------------
 // qSlicerBeamsModuleWidget methods
@@ -88,239 +50,9 @@ qSlicerBeamsModuleWidget::~qSlicerBeamsModuleWidget()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::setMRMLScene(vtkMRMLScene* scene)
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  this->Superclass::setMRMLScene(scene);
-
-  qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
-
-  // Find parameters node or create it if there is no one in the scene
-  if (scene &&  d->logic()->GetBeamsNode() == 0)
-  {
-    vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLBeamsNode");
-    if (node)
-    {
-      this->setBeamsNode( vtkMRMLBeamsNode::SafeDownCast(node) );
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::onSceneImportedEvent()
-{
-  this->onEnter();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::enter()
-{
-  this->onEnter();
-  this->Superclass::enter();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::onEnter()
-{
-  if (!this->mrmlScene())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid MRML scene!";
-    return;
-  }
-
-  Q_D(qSlicerBeamsModuleWidget);
-
-  // First check the logic if it has a parameter node
-  if (!d->logic())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid logic!";
-    return;
-  }
-  vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
-
-  // If we have a parameter node select it
-  if (paramNode == NULL)
-  {
-    vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLBeamsNode");
-    if (node)
-    {
-      paramNode = vtkMRMLBeamsNode::SafeDownCast(node);
-      d->logic()->SetAndObserveBeamsNode(paramNode);
-      return;
-    }
-    else 
-    {
-      vtkSmartPointer<vtkMRMLBeamsNode> newNode = vtkSmartPointer<vtkMRMLBeamsNode>::New();
-      this->mrmlScene()->AddNode(newNode);
-      d->logic()->SetAndObserveBeamsNode(newNode);
-    }
-  }
-
-  this->updateWidgetFromMRML();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::setBeamsNode(vtkMRMLNode *node)
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  vtkMRMLBeamsNode* paramNode = vtkMRMLBeamsNode::SafeDownCast(node);
-
-  // Each time the node is modified, the qt widgets are updated
-  qvtkReconnect( d->logic()->GetBeamsNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
-
-  d->logic()->SetAndObserveBeamsNode(paramNode);
-
-  this->updateWidgetFromMRML();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
-  if (paramNode && this->mrmlScene())
-  {
-    d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetBeamsNode());
-    if (paramNode->GetIsocenterMarkupsNode())
-    {
-      d->MRMLNodeComboBox_IsocenterMarkups->setCurrentNode(paramNode->GetIsocenterMarkupsNode());
-    }
-    else
-    {
-      this->isocenterMarkupsNodeChanged(d->MRMLNodeComboBox_IsocenterMarkups->currentNode());
-    }
-    if (paramNode->GetBeamModelNode())
-    {
-      d->MRMLNodeComboBox_BeamModel->setCurrentNode(paramNode->GetBeamModelNode());
-    }
-    else
-    {
-      this->beamModelNodeChanged(d->MRMLNodeComboBox_BeamModel->currentNode());
-    }
-  }
-
-  this->refreshOutputBaseName();
-  this->updateButtonsState();
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerBeamsModuleWidget::setup()
 {
   Q_D(qSlicerBeamsModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
-
-  d->label_Error->setVisible(false);
-
-  // Make connections
-  connect( d->MRMLNodeComboBox_IsocenterMarkups, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( isocenterMarkupsNodeChanged(vtkMRMLNode*) ) );
-
-  connect( d->MRMLNodeComboBox_BeamModel, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(beamModelNodeChanged(vtkMRMLNode*)) );
-  connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
-
-  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setBeamsNode(vtkMRMLNode*)) );
-
-  // Handle scene change event if occurs
-  qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
-
-  this->updateButtonsState();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::isocenterMarkupsNodeChanged(vtkMRMLNode* node)
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
-  if (!paramNode || !this->mrmlScene() || !node)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid MRML scene, parameter set node or input node!";
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveIsocenterMarkupsNode(vtkMRMLMarkupsFiducialNode::SafeDownCast(node));
-  paramNode->DisableModifiedEventOff();
-
-  this->updateButtonsState();
-  this->refreshOutputBaseName();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::beamModelNodeChanged(vtkMRMLNode* node)
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
-  if (!paramNode || !this->mrmlScene() || !node)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid MRML scene, parameter set node or input node!";
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetAndObserveBeamModelNode(vtkMRMLModelNode::SafeDownCast(node));
-  paramNode->DisableModifiedEventOff();
-
-  this->updateButtonsState();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::updateButtonsState()
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  bool applyEnabled = d->logic()->GetBeamsNode()
-                   && d->logic()->GetBeamsNode()->GetIsocenterMarkupsNode()
-                   && d->logic()->GetBeamsNode()->GetBeamModelNode();
-  d->pushButton_Apply->setEnabled(applyEnabled);
-
-  d->label_Error->setVisible(false);
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::onLogicModified()
-{
-  this->updateWidgetFromMRML();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::applyClicked()
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-
-  std::string errorMessage = d->logic()->CreateBeamModel();
-
-  d->label_Error->setVisible( !errorMessage.empty() );
-  d->label_Error->setText( QString(errorMessage.c_str()) );
-
-  QApplication::restoreOverrideCursor();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::refreshOutputBaseName()
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  vtkMRMLBeamsNode* paramNode = d->logic()->GetBeamsNode();
-  if (!paramNode || !this->mrmlScene())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid MRML scene or parameter set node!";
-    return;
-  }
-
-  QString newBeamModelBaseName("BeamModel_");
-
-  vtkMRMLMarkupsFiducialNode* isocenterNode = paramNode->GetIsocenterMarkupsNode();
-  if (isocenterNode)
-  {
-    newBeamModelBaseName.append(isocenterNode->GetName());
-  }
-
-  d->MRMLNodeComboBox_BeamModel->setBaseName( newBeamModelBaseName );
 }

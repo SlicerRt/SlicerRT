@@ -34,50 +34,17 @@ class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerBeamsModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
-  QVTK_OBJECT
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerBeamsModuleWidget(QWidget *parent=0);
   virtual ~qSlicerBeamsModuleWidget();
 
-  virtual void enter();
-
-public slots:
-  /// Set the current MRML scene to the widget
-  virtual void setMRMLScene(vtkMRMLScene*);
-
-  /// Process loaded scene
-  void onSceneImportedEvent();
-
-  /// Set current parameter node
-  void setBeamsNode(vtkMRMLNode *node);
-
-  /// Update widget GUI from parameter node
-  void updateWidgetFromMRML();
-
-protected slots:
-  void isocenterMarkupsNodeChanged(vtkMRMLNode*);
-
-  void beamModelNodeChanged(vtkMRMLNode*);
-
-  void applyClicked();
-
-  void onLogicModified();
-
 protected:
   QScopedPointer<qSlicerBeamsModuleWidgetPrivate> d_ptr;
 
 protected:
   virtual void setup();
-  void onEnter();
-
-protected:
-  /// Updates button states
-  void updateButtonsState();
-
-  /// Assemble new output volume base name from the selected input name
-  void refreshOutputBaseName();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerBeamsModuleWidget);

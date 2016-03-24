@@ -706,7 +706,7 @@ void qSlicerExternalBeamPlanningModuleWidget::onLogicModified()
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::onRTBeamNodeModifiedEvent()
 {
-  qDebug() << "Got onRTBeamNodeModifiedEvent";
+  qDebug() << "Got onRTBeamNodeModifiedEvent"; //TODO:
 }
 
 //-----------------------------------------------------------------------------
@@ -988,12 +988,14 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
 
   // Create new beam node by replicating currently selected beam
   vtkMRMLRTBeamNode* beamNode = d->logic()->AddBeam(this->currentBeamNode());
+  if (!beamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to add beam!";
+    return;
+  }
 
   // Disconnect events for currently selected row
-  if (beamNode)
-  {
-    qvtkDisconnect (beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
-  }
+  qvtkDisconnect (beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
   
   // Make new beam current in the table
   d->currentBeamRow = d->totalBeamRows;
@@ -2113,6 +2115,8 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
     return;
   }
 
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
   /* Copy pertinent variable values from GUI to logic */
   /* Is this the right place for this? */
   d->logic()->GetExternalBeamPlanningNode()->SetGantryAngle(d->SliderWidget_GantryAngle->value());
@@ -2122,6 +2126,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
   d->logic()->ComputeWED();
 
   d->label_CalculateDoseStatus->setText("WED calculation done.");
+  QApplication::restoreOverrideCursor();
 #endif
 }
 
@@ -2196,10 +2201,12 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   rtPlanNode->GetRTBeamNodes(beams);
   if (!beams) 
   {
-    d->label_CalculateDoseStatus->setText("no beam found in the plan");
+    d->label_CalculateDoseStatus->setText("No beam found in the plan");
     return;
   }
   vtkMRMLRTProtonBeamNode* beamNode = NULL;
+
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   d->logic()->InitializeAccumulatedDose();
   d->label_CalculateDoseStatus->setText("Dose calculation in progress"); //+ beamNode->GetBeamName();
@@ -2212,19 +2219,24 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
       if (beamNode->GetRadiationType() != vtkMRMLRTBeamNode::Proton)
       {
           d->label_CalculateDoseStatus->setText("Dose calculation is not available for this particle");
+          QApplication::restoreOverrideCursor();
           return;
       }
       d->logic()->ComputeDose(beamNode);
-      // sum in the final dose matrix with weights externalbeam for RxDose, and beamNode for beam wieght
+      // sum in the final dose matrix with weights externalbeam for RxDose, and beamNode for beam weight //TODO:
     }
     else
     {
-      d->label_CalculateDoseStatus->setText("beam not found"); // + beamNode->GetBeamName();
+      QString message = QString("Beam %1 not found").arg(beamNode->GetName());
+      d->label_CalculateDoseStatus->setText(message);
     }
   }
   
   d->logic()->RegisterAccumulatedDose();
-  d->label_CalculateDoseStatus->setText("Dose calculation done.");
+
+  d->label_CalculateDoseStatus->setText("Dose calculation done");
+  QApplication::restoreOverrideCursor();
+
   return;
 }
 

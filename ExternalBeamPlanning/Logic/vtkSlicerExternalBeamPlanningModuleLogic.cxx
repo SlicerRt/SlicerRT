@@ -263,13 +263,11 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamTransform(vtkMRMLRTBeam
     return;
   }
 
-  printf ("Setting beam transform in BeamsLogic...\n");
-  vtkSlicerBeamsModuleLogic::UpdateBeamTransform (
-    this->GetMRMLScene(), beamNode);
+  vtkSlicerBeamsModuleLogic::UpdateBeamTransform(this->GetMRMLScene(), beamNode);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *beamname)
+void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *beamName)
 {
   if ( !this->GetMRMLScene() || !this->ExternalBeamPlanningNode )
   {
@@ -297,7 +295,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *bea
   for (int i=0; i<beams->GetNumberOfItems(); ++i)
   {
     beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
-    if (beamNode && beamNode->BeamNameIs(beamname)) {
+    if (beamNode && beamNode->BeamNameIs(beamName)) {
       break;
     }
   }
@@ -982,9 +980,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
     rcVolumeItk->GetOrigin()[1],
     rcVolumeItk->GetOrigin()[2]);
 
-  std::string nodeName = "range_compensator_" + std::string(beamNode->GetName());
-
-  rcVolumeNode->SetName(nodeName.c_str());
+  std::string rangeCompensatorNodeName = "range_compensator_" + std::string(beamNode->GetName());
+  rcVolumeNode->SetName(rangeCompensatorNodeName.c_str());
 
   rcVolumeNode->SetScene(this->GetMRMLScene());
   this->GetMRMLScene()->AddNode(rcVolumeNode);
@@ -1009,9 +1006,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
     apertureVolumeItk->GetOrigin()[1],
     apertureVolumeItk->GetOrigin()[2]);
 
-  nodeName = "aperture_" + std::string(beamNode->GetName());
-
-  apertureVolumeNode->SetName(nodeName.c_str());
+  std::string apertureNodeName = "aperture_" + std::string(beamNode->GetName());
+  apertureVolumeNode->SetName(apertureNodeName.c_str());
 
   apertureVolumeNode->SetScene(this->GetMRMLScene());
   this->GetMRMLScene()->AddNode(apertureVolumeNode);
@@ -1028,9 +1024,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(vtkMRMLR
   doseVolumeNode->SetAndObserveImageData (doseVolume);
   doseVolumeNode->CopyOrientation (referenceVolumeNode);
 
-  nodeName = "proton_dose_" + std::string(beamNode->GetName());
-
-  doseVolumeNode->SetName(nodeName.c_str());
+  std::string protonDoseNodeName = "proton_dose_" + std::string(beamNode->GetName());
+  doseVolumeNode->SetName(protonDoseNodeName.c_str());
 
   doseVolumeNode->SetScene(this->GetMRMLScene());
   this->GetMRMLScene()->AddNode(doseVolumeNode); // to be removed if we want to show only the last image */

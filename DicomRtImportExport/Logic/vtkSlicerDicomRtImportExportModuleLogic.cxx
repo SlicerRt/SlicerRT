@@ -40,7 +40,6 @@
 // SlicerRT includes
 #include "SlicerRtCommon.h"
 #include "PlmCommon.h"
-#include "vtkMRMLBeamsNode.h"
 #include "vtkMRMLIsodoseNode.h"
 #include "vtkMRMLPlanarImageNode.h"
 #include "vtkSlicerBeamsModuleLogic.h"

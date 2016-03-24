@@ -36,7 +36,6 @@
 class vtkTransform;
 class vtkPolyData;
 class vtkDoubleArray;
-class vtkMRMLBeamsNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLSubjectHierarchyNode;
@@ -50,24 +49,7 @@ public:
   vtkTypeMacro(vtkSlicerBeamsModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// Create beam geometry model from isocenter and source fiducials
-  /// \param errorMessage Error message if any. If empty, then there have been no errors in course of the computation
-  /// \return Error message, empty string if no error
-  std::string CreateBeamModel();
-
-  /// Create beam vtkpolydata from beam parameters
-  /// \param x/y jaw positions and SAD
-  /// \return polydata, null if it fails to create polydata
-  // vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, double);
-
 public:
-public:
-  /// Set and observe dose accumulation parameter node 
-  void SetAndObserveBeamsNode(vtkMRMLBeamsNode* node);
-
-  /// Get dose accumulation parameter node 
-  vtkGetObjectMacro(BeamsNode, vtkMRMLBeamsNode);
-
   /// TODO
   void SetAndObserveRTPlanNode(vtkMRMLRTPlanNode* node);
 
@@ -96,15 +78,15 @@ public:
   /// TODO
   void UpdateBeamGeometryModelByID(const char*);
 
-  /// Create beam vtkpolydata from beam parameters
-  /// \param x/y jaw positions and SAD
-  /// \return polydata, null if it fails to create polydata
-  static vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, double, vtkDoubleArray*);
+  /// Create beam model from beam parameters, supporting MLC leaves
+  /// \param x/y jaw positions, SAD, leaf positions
+  /// \return Poly data, null on fail
+  static vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double X1, double X2, double Y1, double Y2, double SAD, vtkDoubleArray* leafPositionsArray);
 
-  /// Create beam vtkpolydata from beam parameters
+  /// Create square beam model from beam parameters
   /// \param x/y jaw positions and SAD
-  /// \return polydata, null if it fails to create polydata
-  static vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double, double, double, double, double);
+  /// \return Poly data, null on fail
+  static vtkSmartPointer<vtkPolyData> CreateBeamPolyData(double X1, double X2, double Y1, double Y2, double SAD);
 
 protected:
   vtkSlicerBeamsModuleLogic();
@@ -126,8 +108,6 @@ private:
   void operator=(const vtkSlicerBeamsModuleLogic&);               // Not implemented
 
 protected:
-  /// Parameter set MRML node
-  vtkMRMLBeamsNode* BeamsNode;
   /// RTPlan node
   vtkMRMLRTPlanNode* RTPlanNode;
 };
