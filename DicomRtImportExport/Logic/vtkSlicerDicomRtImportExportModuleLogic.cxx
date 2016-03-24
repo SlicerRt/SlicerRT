@@ -924,7 +924,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     rtPlanNode->AddRTBeamNode(beamNode);
 
     // Get the beam subject hierarchy node
-    vtkMRMLSubjectHierarchyNode *beamSHNode = beamNode->GetSHNode ();
+    vtkMRMLSubjectHierarchyNode* beamSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(beamNode, this->GetMRMLScene());
     if (!beamSHNode)
     {
       vtkErrorMacro("LoadRtPlan: Created RTBeamNode, but it doesn't have a Subject Hierarchy node.");
@@ -1397,7 +1397,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
   else if (beamNode)
   {
     // Get RT plan DICOM UID for isocenter
-    beamSHNode = beamNode->GetSHNode ();
+    beamSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(beamNode, this->GetMRMLScene());
     if (!beamSHNode || !beamSHNode->GetParentNode())
     {
       vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid subject hierarchy node for beam '" << beamNode->GetName() << "'!");

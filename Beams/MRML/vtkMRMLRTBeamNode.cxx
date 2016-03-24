@@ -114,8 +114,8 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 //----------------------------------------------------------------------------
 vtkMRMLRTBeamNode::~vtkMRMLRTBeamNode()
 {
-  delete[] this->BeamDescription;
-  delete[] this->TargetSegmentID;
+  this->SetBeamDescription(NULL);
+  this->SetTargetSegmentID(NULL);
   this->SetAndObserveBeamModelNodeId(NULL);
   this->SetTargetSegmentID(NULL);
 }
@@ -631,10 +631,4 @@ void vtkMRMLRTBeamNode::CopyIsocenterCoordinatesFromMarkups (double* iso)
 {
   vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
   fiducialNode->GetNthFiducialPosition(0,iso);
-}
-
-//---------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode* vtkMRMLRTBeamNode::GetSHNode ()
-{
-  return vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this, this->GetScene());
 }

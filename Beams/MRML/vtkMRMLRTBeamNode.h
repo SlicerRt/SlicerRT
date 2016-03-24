@@ -220,7 +220,7 @@ public:
   /// Set and observe beam model node
   void SetAndObserveBeamModelNodeId(const char *nodeID);
 
-  ///
+  /// Get parent plan node
   vtkMRMLRTPlanNode* GetRTPlanNode();
 
   /// Get isocenter fiducial node
@@ -238,7 +238,7 @@ public:
 
   /// Get center of gravity of target segment, return true if successful
   /// or false if no target segment has been specified
-  bool ComputeTargetVolumeCenter (double* center);
+  bool ComputeTargetVolumeCenter(double* center);
 
   /// Get MLC position double array node
   vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
@@ -257,9 +257,6 @@ public:
 
   // Update the beam model for a new isocenter, gantry angle, etc.
   void UpdateBeamTransform();
-
-  /// Get Subject Hierarchy node associated with this node
-  vtkMRMLSubjectHierarchyNode* GetSHNode();
 
 protected:
   /// Copy isocenter coordinates into fiducial

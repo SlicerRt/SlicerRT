@@ -19,6 +19,8 @@
 
 ==============================================================================*/
 
+#include "vtkSlicerExternalBeamPlanningModuleLogic.h"
+
 // SlicerRT includes
 #include "PlmCommon.h"
 #include "SlicerRtCommon.h"
@@ -27,7 +29,6 @@
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkSlicerBeamsModuleLogic.h"
 #include "vtkSlicerDoseCalculationEngine.h"
-#include "vtkSlicerExternalBeamPlanningModuleLogic.h"
 
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
@@ -360,7 +361,7 @@ bool vtkSlicerExternalBeamPlanningModuleLogic::ComputeTargetVolumeCenter (vtkMRM
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::SetBeamIsocenterToTargetCenter (vtkMRMLRTBeamNode *beamNode)
+void vtkSlicerExternalBeamPlanningModuleLogic::SetBeamIsocenterToTargetCenter(vtkMRMLRTBeamNode *beamNode)
 {
   if (!beamNode)
   {

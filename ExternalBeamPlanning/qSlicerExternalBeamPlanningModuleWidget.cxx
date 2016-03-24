@@ -127,7 +127,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or apply it if there is one in the scene
-  if (scene && this->getExternalBeamPlanningNode())
+  if (scene && this->parameterSetNode())
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLExternalBeamPlanningNode");
     if (node)
@@ -166,7 +166,7 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
     qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
   }
-  vtkMRMLExternalBeamPlanningNode* paramNode = this->getExternalBeamPlanningNode();
+  vtkMRMLExternalBeamPlanningNode* paramNode = this->parameterSetNode();
 
   // Do we already have a parameter node?
   if (paramNode == NULL)
@@ -194,7 +194,7 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLExternalBeamPlanningNode* qSlicerExternalBeamPlanningModuleWidget::getExternalBeamPlanningNode ()
+vtkMRMLExternalBeamPlanningNode* qSlicerExternalBeamPlanningModuleWidget::parameterSetNode ()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   
@@ -202,11 +202,11 @@ vtkMRMLExternalBeamPlanningNode* qSlicerExternalBeamPlanningModuleWidget::getExt
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLRTPlanNode* qSlicerExternalBeamPlanningModuleWidget::getRTPlanNode ()
+vtkMRMLRTPlanNode* qSlicerExternalBeamPlanningModuleWidget::rtPlanNode ()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   
-  vtkMRMLExternalBeamPlanningNode* paramNode = this->getExternalBeamPlanningNode ();
+  vtkMRMLExternalBeamPlanningNode* paramNode = this->parameterSetNode ();
   if (!paramNode)
   {
     return NULL;
@@ -215,7 +215,7 @@ vtkMRMLRTPlanNode* qSlicerExternalBeamPlanningModuleWidget::getRTPlanNode ()
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamNode(vtkMRMLExternalBeamPlanningNode* paramNode)
+vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode(vtkMRMLExternalBeamPlanningNode* paramNode)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -244,9 +244,9 @@ vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamNode(v
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamNode()
+vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode()
 {
-  return this->getCurrentBeamNode (this->getExternalBeamPlanningNode());
+  return this->currentBeamNode (this->parameterSetNode());
 }
 
 //-----------------------------------------------------------------------------
@@ -254,7 +254,7 @@ std::string qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamName ()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   return beamNode->GetName ();
 }
 
@@ -473,7 +473,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromParameterNode()
     return;
   }
 
-  vtkMRMLExternalBeamPlanningNode* paramNode = this->getExternalBeamPlanningNode();
+  vtkMRMLExternalBeamPlanningNode* paramNode = this->parameterSetNode();
   d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
   if (!paramNode)
   {
@@ -560,7 +560,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromParameterNode()
   }
   else
   {
-    this->MLCPositionDoubleArrayNodeChanged(d->MRMLNodeComboBox_MLCPositionDoubleArray->currentNode());
+    this->mlcPositionDoubleArrayNodeChanged(d->MRMLNodeComboBox_MLCPositionDoubleArray->currentNode());
   }
 
 #endif
@@ -622,7 +622,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   this->connect( d->comboBox_BeamType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamTypeChanged(const QString &)) );
   this->connect( d->MRMLSegmentSelectorWidget_TargetVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(targetVolumeNodeChanged(vtkMRMLNode*)) );
   this->connect( d->MRMLSegmentSelectorWidget_TargetVolume, SIGNAL(currentSegmentChanged(QString)), this, SLOT(targetVolumeSegmentChanged(const QString&)) );
-  this->connect( d->doubleSpinBox_RxDose, SIGNAL(valueChanged(double)), this, SLOT(RxDoseChanged(double)) );
+  this->connect( d->doubleSpinBox_RxDose, SIGNAL(valueChanged(double)), this, SLOT(rxDoseChanged(double)) );
   this->connect( d->comboBox_IsocenterSpec, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(isocenterSpecChanged(const QString &)));
   this->connect( d->MRMLCoordinatesWidget_IsocenterCoordinates, SIGNAL(coordinatesChanged(double*)), this, SLOT(isocenterCoordinatesChanged(double *)));
 
@@ -636,10 +636,10 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   this->connect( d->doubleSpinBox_MaximumEnergy, SIGNAL(valueChanged(double)), this, SLOT(maximumEnergyChanged(double)) );
 
   /* Geometry page */
-  this->connect( d->MRMLNodeComboBox_MLCPositionDoubleArray, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(MLCPositionDoubleArrayNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_MLCPositionDoubleArray, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(mlcPositionDoubleArrayNodeChanged(vtkMRMLNode*)) );
   this->connect( d->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), this, SLOT(sourceDistanceChanged(double)) );
-  this->connect( d->RangeWidget_XJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(XJawsPositionValuesChanged(double, double)) );
-  this->connect( d->RangeWidget_YJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(YJawsPositionValuesChanged(double, double)) );
+  this->connect( d->RangeWidget_XJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(xJawsPositionValuesChanged(double, double)) );
+  this->connect( d->RangeWidget_YJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(yJawsPositionValuesChanged(double, double)) );
   this->connect( d->SliderWidget_CollimatorAngle, SIGNAL(valueChanged(double)), this, SLOT(collimatorAngleChanged(double)) );
   this->connect( d->SliderWidget_GantryAngle, SIGNAL(valueChanged(double)), this, SLOT(gantryAngleChanged(double)) );
   this->connect( d->SliderWidget_CouchAngle, SIGNAL(valueChanged(double)), this, SLOT(couchAngleChanged(double)) );
@@ -649,12 +649,12 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   /* Proton beam model */
   this->connect( d->doubleSpinBox_ApertureDistance, SIGNAL(valueChanged(double)), this, SLOT(apertureDistanceChanged(double)) );
   this->connect( d->comboBox_Algorithm, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(algorithmChanged(const QString &)) );
-  this->connect( d->doubleSpinBox_PBResolution, SIGNAL(valueChanged(double)), this, SLOT(PBResolutionChanged(double)) );
+  this->connect( d->doubleSpinBox_PBResolution, SIGNAL(valueChanged(double)), this, SLOT(pbResolutionChanged(double)) );
   this->connect( d->doubleSpinBox_SourceSize, SIGNAL(valueChanged(double)), this, SLOT(sourceSizeChanged(double)) );
   this->connect( d->doubleSpinBox_EnergyResolution, SIGNAL(valueChanged(double)), this, SLOT(energyResolutionChanged(double)) );
   this->connect( d->doubleSpinBox_EnergySpread, SIGNAL(valueChanged(double)), this, SLOT(energySpreadChanged(double)) );
   this->connect( d->doubleSpinBox_StepLength, SIGNAL(valueChanged(double)), this, SLOT(stepLengthChanged(double)) );
-  this->connect( d->checkBox_WEDApproximation, SIGNAL(clicked(bool)), this, SLOT(WEDApproximationChanged(bool)) );
+  this->connect( d->checkBox_WEDApproximation, SIGNAL(clicked(bool)), this, SLOT(wedApproximationChanged(bool)) );
   this->connect( d->checkBox_RangeCompensatorHighland, SIGNAL(clicked(bool)), this, SLOT(rangeCompensatorHighlandChanged(bool)) );
 
   /* Beam visualization */
@@ -733,7 +733,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
   d->tableWidget_Beams->clearContents();
 
   // Get rt plan node for ExternalBeamPlanning node
-  vtkMRMLRTPlanNode* planNode = this->getRTPlanNode ();
+  vtkMRMLRTPlanNode* planNode = this->rtPlanNode ();
   if (!planNode)
   { 
     qCritical() << Q_FUNC_INFO << ": Invalid rtplan node!";
@@ -786,7 +786,7 @@ void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRML
     return;
   }
 
-  vtkMRMLRTPlanNode* planNode = this->getRTPlanNode ();
+  vtkMRMLRTPlanNode* planNode = this->rtPlanNode ();
   if (!planNode)
   {
     /* GCS FIX TODO *** Probably I should create plan node here. ***/
@@ -809,7 +809,7 @@ void qSlicerExternalBeamPlanningModuleWidget::planContoursNodeChanged(vtkMRMLNod
     return;
   }
 
-  vtkMRMLRTPlanNode* planNode = this->getRTPlanNode ();
+  vtkMRMLRTPlanNode* planNode = this->rtPlanNode ();
   if (!planNode)
   {
     return;
@@ -854,7 +854,7 @@ void qSlicerExternalBeamPlanningModuleWidget::planPOIsNodeChanged(vtkMRMLNode* n
   }
 
   // Update in plan node
-  vtkMRMLRTPlanNode* planNode = this->getRTPlanNode();
+  vtkMRMLRTPlanNode* planNode = this->rtPlanNode();
   if (!planNode)
   {
     return;
@@ -979,7 +979,7 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
     return;
   }
 
-  vtkMRMLExternalBeamPlanningNode* paramNode = this->getExternalBeamPlanningNode();
+  vtkMRMLExternalBeamPlanningNode* paramNode = this->parameterSetNode();
   if (!paramNode)
   {
     qWarning() << Q_FUNC_INFO << ": No parameter node";
@@ -987,12 +987,12 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   }
 
   // Create new beam node by replicating currently selected beam
-  vtkMRMLRTBeamNode *beamNode = d->logic()->AddBeam(this->getCurrentBeamNode ());
+  vtkMRMLRTBeamNode* beamNode = d->logic()->AddBeam(this->currentBeamNode());
 
   // Disconnect events for currently selected row
-  if (this->getCurrentBeamNode() != NULL)
+  if (beamNode)
   {
-    qvtkDisconnect (this->getCurrentBeamNode(), vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
+    qvtkDisconnect (beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
   }
   
   // Make new beam current in the table
@@ -1024,14 +1024,14 @@ void qSlicerExternalBeamPlanningModuleWidget::removeBeamClicked()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
     return;
   }
 
   // Disconnect events for currently selected row
-  qvtkDisconnect (beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
+  qvtkDisconnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()) );
   
   // Remove beam
   d->logic()->RemoveBeam(beamNode);
@@ -1048,8 +1048,8 @@ void qSlicerExternalBeamPlanningModuleWidget::removeBeamClicked()
   this->updateRTBeamTableWidget();
 
   // Update lower UI tabs
-  beamNode = this->getCurrentBeamNode();
-  this->updateWidgetFromRTBeam (beamNode);
+  beamNode = this->currentBeamNode();
+  this->updateWidgetFromRTBeam(beamNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -1065,7 +1065,7 @@ void qSlicerExternalBeamPlanningModuleWidget::tableWidgetCellClicked(int row, in
   }
 
   // Disconnect events for currently selected row
-  qvtkDisconnect (this->getCurrentBeamNode(), vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
+  qvtkDisconnect (this->currentBeamNode(), vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
 
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
   if (!paramNode)
@@ -1075,7 +1075,7 @@ void qSlicerExternalBeamPlanningModuleWidget::tableWidgetCellClicked(int row, in
 
   // Make sure inputs are initialized
   d->currentBeamRow = row;
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
     qCritical() << "tableWidgetItemClicked: Inputs are not initialized!";
@@ -1083,7 +1083,7 @@ void qSlicerExternalBeamPlanningModuleWidget::tableWidgetCellClicked(int row, in
   }
 
   // Copy data from beam into tabs UI
-  this->updateWidgetFromRTBeam (beamNode);
+  this->updateWidgetFromRTBeam(beamNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -1098,7 +1098,7 @@ void qSlicerExternalBeamPlanningModuleWidget::beamNameChanged(const QString &tex
   }
 
   // Update in beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
     return;
@@ -1206,7 +1206,7 @@ void qSlicerExternalBeamPlanningModuleWidget::beamTypeChanged(const QString &tex
     return;
   }
 
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL) {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
@@ -1234,7 +1234,7 @@ void qSlicerExternalBeamPlanningModuleWidget::targetVolumeNodeChanged(vtkMRMLNod
   }
 
   // Update in plan node
-  vtkMRMLRTPlanNode* planNode = this->getRTPlanNode ();
+  vtkMRMLRTPlanNode* planNode = this->rtPlanNode();
   if (!planNode)
   {
     return;
@@ -1244,7 +1244,7 @@ void qSlicerExternalBeamPlanningModuleWidget::targetVolumeNodeChanged(vtkMRMLNod
   planNode->DisableModifiedEventOff();
 
   // Update in beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
     return;
@@ -1264,7 +1264,7 @@ void qSlicerExternalBeamPlanningModuleWidget::targetVolumeSegmentChanged(const Q
   }
 
   // Update in beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
     return;
@@ -1287,7 +1287,7 @@ void qSlicerExternalBeamPlanningModuleWidget::targetVolumeSegmentChanged(const Q
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::RxDoseChanged(double value)
+void qSlicerExternalBeamPlanningModuleWidget::rxDoseChanged(double value)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -1298,7 +1298,7 @@ void qSlicerExternalBeamPlanningModuleWidget::RxDoseChanged(double value)
   }
 
   // Update in beam node
-  vtkMRMLRTPlanNode* rtPlanNode = this->getRTPlanNode();
+  vtkMRMLRTPlanNode* rtPlanNode = this->rtPlanNode();
   if (!rtPlanNode)
   {
     return;
@@ -1317,10 +1317,10 @@ void qSlicerExternalBeamPlanningModuleWidget::isocenterSpecChanged(const QString
     return;
   }
 
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid rtplan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid current beam node!";
     return;
   }
 
@@ -1348,7 +1348,7 @@ void qSlicerExternalBeamPlanningModuleWidget::isocenterCoordinatesChanged(double
     return;
   }
 
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid beam node!";
@@ -1393,7 +1393,7 @@ void qSlicerExternalBeamPlanningModuleWidget::proximalMarginChanged(double value
   }
 
   // Set in proton beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1415,7 +1415,7 @@ void qSlicerExternalBeamPlanningModuleWidget::distalMarginChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1435,7 +1435,7 @@ void qSlicerExternalBeamPlanningModuleWidget::beamLineTypeChanged(const QString 
   }
 
   // Set in proton beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1464,7 +1464,7 @@ void qSlicerExternalBeamPlanningModuleWidget::manualEnergyPrescriptionChanged(bo
   }
 
   // Set in proton beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1501,7 +1501,7 @@ void qSlicerExternalBeamPlanningModuleWidget::minimumEnergyChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1523,7 +1523,7 @@ void qSlicerExternalBeamPlanningModuleWidget::maximumEnergyChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1535,7 +1535,7 @@ void qSlicerExternalBeamPlanningModuleWidget::maximumEnergyChanged(double value)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged(vtkMRMLNode* node)
+void qSlicerExternalBeamPlanningModuleWidget::mlcPositionDoubleArrayNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -1565,7 +1565,7 @@ void qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged(
   paramNode->SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode(paramNode);
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode(paramNode);
 
   // Make sure inputs are initialized
   if (!beamNode)
@@ -1579,7 +1579,7 @@ void qSlicerExternalBeamPlanningModuleWidget::MLCPositionDoubleArrayNodeChanged(
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::XJawsPositionValuesChanged(double minVal, double maxVal)
+void qSlicerExternalBeamPlanningModuleWidget::xJawsPositionValuesChanged(double minVal, double maxVal)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -1590,7 +1590,7 @@ void qSlicerExternalBeamPlanningModuleWidget::XJawsPositionValuesChanged(double 
   }
 
   // Update in beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1605,7 +1605,7 @@ void qSlicerExternalBeamPlanningModuleWidget::XJawsPositionValuesChanged(double 
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::YJawsPositionValuesChanged(double minVal, double maxVal)
+void qSlicerExternalBeamPlanningModuleWidget::yJawsPositionValuesChanged(double minVal, double maxVal)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -1616,7 +1616,7 @@ void qSlicerExternalBeamPlanningModuleWidget::YJawsPositionValuesChanged(double 
   }
 
   // Update in beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1642,7 +1642,7 @@ void qSlicerExternalBeamPlanningModuleWidget::gantryAngleChanged(double value)
   }
 
   // Update in beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam selected!";
@@ -1672,7 +1672,7 @@ void qSlicerExternalBeamPlanningModuleWidget::collimatorAngleChanged(double valu
   }
 
   // Update in beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode) {
     qCritical() << Q_FUNC_INFO << ": No current beam selected!";
     return;
@@ -1695,7 +1695,7 @@ void qSlicerExternalBeamPlanningModuleWidget::couchAngleChanged(double value)
   }
 
   // Update in beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam selected!";
@@ -1720,7 +1720,7 @@ void qSlicerExternalBeamPlanningModuleWidget::smearingChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL) {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
@@ -1741,7 +1741,7 @@ void qSlicerExternalBeamPlanningModuleWidget::beamWeightChanged(double value)
   }
 
   // Update in beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1762,7 +1762,7 @@ void qSlicerExternalBeamPlanningModuleWidget::sourceDistanceChanged(double value
   }
 
   // Update in beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1786,7 +1786,7 @@ void qSlicerExternalBeamPlanningModuleWidget::apertureDistanceChanged(double val
   }
 
   // Set in proton beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1807,7 +1807,7 @@ void qSlicerExternalBeamPlanningModuleWidget::algorithmChanged(const QString &te
     return;
   }
 
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1843,7 +1843,7 @@ void qSlicerExternalBeamPlanningModuleWidget::algorithmChanged(const QString &te
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::PBResolutionChanged(double value)
+void qSlicerExternalBeamPlanningModuleWidget::pbResolutionChanged(double value)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -1855,7 +1855,7 @@ void qSlicerExternalBeamPlanningModuleWidget::PBResolutionChanged(double value)
 
   // Set in proton beam node
   // GCS FIX TODO: Why are the function names different?
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1877,7 +1877,7 @@ void qSlicerExternalBeamPlanningModuleWidget::sourceSizeChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1899,13 +1899,13 @@ void qSlicerExternalBeamPlanningModuleWidget::energyResolutionChanged(double val
   }
 
   // Set in proton beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
+  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(beamNode);
   protonNode->SetEnergyResolution(value);
 }
 
@@ -1921,13 +1921,13 @@ void qSlicerExternalBeamPlanningModuleWidget::energySpreadChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
+  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(beamNode);
   protonNode->SetEnergySpread(value);
 }
 
@@ -1943,7 +1943,7 @@ void qSlicerExternalBeamPlanningModuleWidget::stepLengthChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1955,7 +1955,7 @@ void qSlicerExternalBeamPlanningModuleWidget::stepLengthChanged(double value)
 
 
 //---------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::WEDApproximationChanged(bool checked)
+void qSlicerExternalBeamPlanningModuleWidget::wedApproximationChanged(bool checked)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -1966,7 +1966,7 @@ void qSlicerExternalBeamPlanningModuleWidget::WEDApproximationChanged(bool check
   }
 
   // Set in proton beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -1988,7 +1988,7 @@ void qSlicerExternalBeamPlanningModuleWidget::rangeCompensatorHighlandChanged(bo
   }
 
   // Set in proton beam node
-  vtkMRMLRTBeamNode* beamNode = this->getCurrentBeamNode();
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (beamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
@@ -2146,7 +2146,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   }
 
   /* Make sure inputs were specified */
-  vtkMRMLRTPlanNode* planNode = this->getRTPlanNode ();
+  vtkMRMLRTPlanNode* planNode = this->rtPlanNode ();
   if (!planNode)
   {
     d->label_CalculateDoseStatus->setText("No RT Plan node found");
@@ -2185,7 +2185,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   /* Dose Calculation - loop on all the beam and sum in a global dose matrix */
 
   // Get rt plan node for ExternalBeamPlanning node
-  vtkMRMLRTPlanNode* rtPlanNode = this->getRTPlanNode();
+  vtkMRMLRTPlanNode* rtPlanNode = this->rtPlanNode();
   if (!rtPlanNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid rtplan node!";
@@ -2272,7 +2272,7 @@ void qSlicerExternalBeamPlanningModuleWidget::UpdateBeamTransform()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  d->logic()->UpdateBeamTransform(this->getCurrentBeamNode());
+  d->logic()->UpdateBeamTransform(this->currentBeamNode());
 }
 
 //-----------------------------------------------------------------------------

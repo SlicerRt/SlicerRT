@@ -92,7 +92,7 @@ protected slots:
   void beamTypeChanged(const QString &);
   void targetVolumeNodeChanged(vtkMRMLNode* node);
   void targetVolumeSegmentChanged(const QString& segment);
-  void RxDoseChanged(double);
+  void rxDoseChanged(double);
   void isocenterSpecChanged(const QString &);
   void isocenterCoordinatesChanged(double*);
   void isocenterFiducialNodeChangedfromCoordinates(double*);
@@ -107,10 +107,10 @@ protected slots:
   void maximumEnergyChanged(double);
 
   /* Geometry page */
-  void MLCPositionDoubleArrayNodeChanged(vtkMRMLNode* node);
+  void mlcPositionDoubleArrayNodeChanged(vtkMRMLNode* node);
   void sourceDistanceChanged(double);
-  void XJawsPositionValuesChanged(double, double);
-  void YJawsPositionValuesChanged(double, double);
+  void xJawsPositionValuesChanged(double, double);
+  void yJawsPositionValuesChanged(double, double);
   void collimatorAngleChanged(double);
   void gantryAngleChanged(double);
   void couchAngleChanged(double);
@@ -120,12 +120,12 @@ protected slots:
   /* Proton beam model */
   void apertureDistanceChanged(double);
   void algorithmChanged(const QString &);
-  void PBResolutionChanged(double);
+  void pbResolutionChanged(double);
   void sourceSizeChanged(double);
   void energyResolutionChanged(double);
   void energySpreadChanged(double);
   void stepLengthChanged(double);
-  void WEDApproximationChanged(bool);
+  void wedApproximationChanged(bool);
   void rangeCompensatorHighlandChanged(bool);
 
   /* Beam visualization */
@@ -151,10 +151,10 @@ protected:
   void updateWidgetFromParameterNode();
 
   /// Utility functions
-  vtkMRMLExternalBeamPlanningNode* getExternalBeamPlanningNode ();
-  vtkMRMLRTPlanNode* getRTPlanNode ();
-  vtkMRMLRTBeamNode* getCurrentBeamNode (vtkMRMLExternalBeamPlanningNode*);
-  vtkMRMLRTBeamNode* getCurrentBeamNode();
+  vtkMRMLExternalBeamPlanningNode* parameterSetNode ();
+  vtkMRMLRTPlanNode* rtPlanNode ();
+  vtkMRMLRTBeamNode* currentBeamNode (vtkMRMLExternalBeamPlanningNode*);
+  vtkMRMLRTBeamNode* currentBeamNode();
   std::string getCurrentBeamName ();
 
   ///

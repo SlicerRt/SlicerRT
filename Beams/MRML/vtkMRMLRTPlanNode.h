@@ -75,39 +75,43 @@ public:
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
 public:
-  /// RT Plan Reference volume
+  /// Get RT Plan Reference volume
   vtkMRMLScalarVolumeNode* GetRTPlanReferenceVolumeNode();
+  /// Set RT Plan Reference volume
   void SetAndObserveRTPlanReferenceVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// RT Plan POIs (isocenters, weight points)
+  /// Get RT Plan POIs (isocenters, weight points, CT reference points, beam entry points)
   vtkMRMLMarkupsFiducialNode* GetMarkupsFiducialNode();
+  /// Set RT Plan POIs (isocenters, weight points, CT reference points, beam entry points)
   void SetAndObserveMarkupsFiducialNode(vtkMRMLMarkupsFiducialNode* node);
-  vtkMRMLMarkupsFiducialNode* CreateMarkupsFiducialNode();
 
-  /// RT Plan Segmentation (structure set)
+  /// Get RT Plan Segmentation (structure set)
   vtkMRMLSegmentationNode* GetRTPlanSegmentationNode();
+  /// Set RT Plan Segmentation (structure set)
   void SetAndObserveRTPlanSegmentationNode(vtkMRMLSegmentationNode* node);
 
-  /// RT Plan Dose volume node
+  /// Get RT Plan Dose volume node
   vtkMRMLScalarVolumeNode* GetRTPlanDoseVolumeNode();
+  /// Set RT Plan Dose volume node
   void SetAndObserveRTPlanDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
   /// 
-  void SetRTPlanDoseEngine(DoseEngineType doseEngineType) {this->RTPlanDoseEngine = doseEngineType;}
-  DoseEngineType GetRTPlanDoseEngine() {return this->RTPlanDoseEngine;}
+  void SetRTPlanDoseEngine(DoseEngineType doseEngineType) { this->RTPlanDoseEngine = doseEngineType; };
+  DoseEngineType GetRTPlanDoseEngine() { return this->RTPlanDoseEngine; };
 
   ///
-  void SetRTPlanDoseGrid(double* doseGrid) {this->RTPlanDoseGrid[0] = doseGrid[0]; this->RTPlanDoseGrid[1] = doseGrid[1]; this->RTPlanDoseGrid[2] = doseGrid[2];}
-  double* GetRTPlanDoseGrid() {return this->RTPlanDoseGrid;}
+  void SetRTPlanDoseGrid(double* doseGrid) { this->RTPlanDoseGrid[0] = doseGrid[0]; this->RTPlanDoseGrid[1] = doseGrid[1]; this->RTPlanDoseGrid[2] = doseGrid[2]; };
+  double* GetRTPlanDoseGrid() { return this->RTPlanDoseGrid; };
 
-  ///
+  /// Add given beam node to plan
   void AddRTBeamNode(vtkMRMLRTBeamNode*);
 
-  ///
+  /// Remove given beam node from plan
   void RemoveRTBeamNode(vtkMRMLRTBeamNode*);
 
-  ///
+  /// Get beam nodes belonging to this plan
   void GetRTBeamNodes(vtkCollection*);
+  /// Get beam nodes belonging to this plan
   void GetRTBeamNodes(std::vector<vtkMRMLRTBeamNode*>& beams);
 
   /// Search for a beam of a given name.  Return NULL if beam not found
@@ -118,13 +122,17 @@ public:
   /// Note: beam numbers *are* unique within a plan
   vtkMRMLRTBeamNode* GetRTBeamNodeByNumber(int beamNumber);
 
-  /// Get Subject Hierarchy node associated with this node
+  /// Get Subject Hierarchy node associated with this node. Create if missing
   vtkMRMLSubjectHierarchyNode* GetPlanSubjectHierarchyNode();
 
   /// Get prescription dose
   vtkGetMacro(RxDose, double);
   /// Set prescription dose
   vtkSetMacro(RxDose, double);
+
+protected:
+  /// Create default RT plan POIs markups node
+  vtkMRMLMarkupsFiducialNode* CreateMarkupsFiducialNode();
 
 protected:
   vtkMRMLRTPlanNode();
