@@ -92,11 +92,10 @@ qSlicerSegmentEditorEffectFactory::qSlicerSegmentEditorEffectFactory(QObject* pa
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorEffectFactory::~qSlicerSegmentEditorEffectFactory()
 {
-  QList<qSlicerSegmentEditorAbstractEffect*>::iterator pluginIt;
-  for (pluginIt = this->m_RegisteredEffects.begin(); pluginIt != this->m_RegisteredEffects.end(); ++pluginIt)
-    {
-    delete (*pluginIt);
-    }
+  foreach(qSlicerSegmentEditorAbstractEffect* effect, m_RegisteredEffects)
+  {
+    delete effect;
+  }
   this->m_RegisteredEffects.clear();
 }
 

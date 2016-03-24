@@ -170,25 +170,13 @@ void qSlicerSegmentationsModule::setup()
   context.evalScript( QString(
     "from SegmentEditorEffects import * \n"
     "import qSlicerSegmentationsEditorEffectsPythonQt as effects \n"
-    // Generic effects
-    "thresholdEffect = effects.qSlicerSegmentEditorScriptedEffect(None) \n"
-    "thresholdEffect.setPythonSource(SegmentEditorThresholdEffect.filePath) \n"
-    "growCutEffect = effects.qSlicerSegmentEditorScriptedEffect(None) \n"
-    "growCutEffect.setPythonSource(SegmentEditorGrowCutEffect.filePath) \n"
-    // Label effects
-    "drawEffect = effects.qSlicerSegmentEditorScriptedLabelEffect(None) \n"
-    "drawEffect.setPythonSource(SegmentEditorDrawEffect.filePath) \n"
-    "levelTracingEffect = effects.qSlicerSegmentEditorScriptedLabelEffect(None) \n"
-    "levelTracingEffect.setPythonSource(SegmentEditorLevelTracingEffect.filePath) \n"
-    // Morphology effects
-    "dilateEffect = effects.qSlicerSegmentEditorScriptedMorphologyEffect(None) \n"
-    "dilateEffect.setPythonSource(SegmentEditorDilateEffect.filePath) \n"
-    "erodeEffect = effects.qSlicerSegmentEditorScriptedMorphologyEffect(None) \n"
-    "erodeEffect.setPythonSource(SegmentEditorErodeEffect.filePath) \n"
-    // Island effects
-    "identifyIslandsEffect = effects.qSlicerSegmentEditorScriptedIslandEffect(None) \n"
-    "identifyIslandsEffect.setPythonSource(SegmentEditorIdentifyIslandsEffect.filePath) \n"
-    ) );
+    "try: \n"
+    "  slicer.modules.segmenteditorscriptedeffectnames \n"
+    "except AttributeError: \n"
+    "  slicer.modules.segmenteditorscriptedeffectnames=[] \n"
+    "for effectName in slicer.modules.segmenteditorscriptedeffectnames: \n"
+    "  exec(\"{0}Instance = effects.qSlicerSegmentEditorScriptedEffect(None);{0}Instance.setPythonSource({0}.filePath);{0}Instance.self().register()\".format(effectName)) \n"
+    ));
 }
 
 //-----------------------------------------------------------------------------

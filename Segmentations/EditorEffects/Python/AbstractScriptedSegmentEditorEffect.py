@@ -15,7 +15,10 @@ class AbstractScriptedSegmentEditorEffect():
         > import qSlicerSegmentationsEditorEffectsPythonQt as effects
         > scriptedEffect = effects.qSlicerSegmentEditorScriptedEffect(None)
         > scriptedEffect.setPythonSource(MyEffect.filePath)
-        Registration is automatic
+        > scriptedEffect.self().register()
+        If effect name is added to slicer.modules.segmenteditorscriptedeffectnames
+        list then the above instantiation and registration steps are not necessary,
+        as the SegmentEditor module do all these.
 
       2. Call host C++ implementation using
         > self.scriptedEffect.functionName()
@@ -36,9 +39,6 @@ class AbstractScriptedSegmentEditorEffect():
 
   def __init__(self, scriptedEffect):
     self.scriptedEffect = scriptedEffect
-
-    # Register plugin on initialization
-    self.register()
 
   def register(self):
     import qSlicerSegmentationsEditorEffectsPythonQt
