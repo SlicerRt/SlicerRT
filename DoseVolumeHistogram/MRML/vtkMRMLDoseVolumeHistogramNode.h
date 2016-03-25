@@ -29,7 +29,7 @@
 #include <vector>
 #include <map>
 
-#include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
+#include "vtkSlicerDoseVolumeHistogramModuleMRMLExport.h"
 
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLChartNode;
@@ -51,7 +51,7 @@ class vtkMRMLTableNode;
 ///                    -> Segmentation Node (SEGMENTATION_REFERENCE_ROLE)
 ///                    -> Metrics Table (DVH_METRICS_TABLE_REFERENCE_ROLE)
 ///                    
-class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkMRMLDoseVolumeHistogramNode : public vtkMRMLNode
+class VTK_SLICER_DOSEVOLUMEHISTOGRAM_MRML_EXPORT vtkMRMLDoseVolumeHistogramNode : public vtkMRMLNode
 {
 public:
   // DoseVolumeHistogram constants

@@ -21,9 +21,6 @@
 // vtkMRMLDoseVolumeHistogram includes
 #include "vtkMRMLDoseVolumeHistogramNode.h"
 
-// SlicerRT includes
-#include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
-
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
 
