@@ -167,11 +167,11 @@ protected:
   void updateBeamParameters();
 
   ///
-  void UpdateBeamTransform(vtkMRMLRTBeamNode*);
-  void UpdateBeamTransform();
+  void updateBeamTransform(vtkMRMLRTBeamNode*);
+  void updateBeamTransform();
 
   ///
-  void UpdateBeamGeometryModel();
+  void updateBeamGeometryModel();
 
 protected:
   QScopedPointer<qSlicerExternalBeamPlanningModuleWidgetPrivate> d_ptr;

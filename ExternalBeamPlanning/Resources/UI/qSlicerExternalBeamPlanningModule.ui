@@ -1148,6 +1148,9 @@
        <property name="text">
         <string>Status information here</string>
        </property>
+       <property name="margin">
+        <number>4</number>
+       </property>
       </widget>
      </item>
      <item>

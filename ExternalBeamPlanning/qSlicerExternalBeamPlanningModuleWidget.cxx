@@ -298,6 +298,9 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   // Remove all tabs in Beam TabWidget
   d->tabWidget->clear();
 
+  // Set status text to initial instruction
+  d->label_CalculateDoseStatus->setText("Add beam to start planning");
+
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 }
@@ -368,11 +371,11 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromParameterNode()
     this->rtDoseVolumeNodeChanged(d->MRMLNodeComboBox_DoseVolume->currentNode());
   }
 
-  /* GCS FIX TODO: Wipe beam-specific UI items */
+  // GCS FIX TODO: Wipe beam-specific UI items
 
   return;
 
-  /* GCS TODO: Here I still need to set the beam-specific widgets */
+  // GCS TODO: Here I still need to set the beam-specific widgets
 #if defined (commentout)
 
   d->SegmentSelectorWidget_TargetSegment->setCurrentNode(0);
@@ -519,8 +522,9 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromRTBeam(vtkMRMLRTBe
   }
   else if (radType == vtkMRMLRTBeamNode::Electron)
   {
-    /* Not implemented */
-    d->tabWidget->clear ();
+    // Not implemented
+    qWarning() << Q_FUNC_INFO << ": Electron beam not yet supported";
+    d->tabWidget->clear();
   }
 
   // Set values into beam parameters tab
@@ -711,7 +715,7 @@ void qSlicerExternalBeamPlanningModuleWidget::onLogicModified()
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::onRTBeamNodeModifiedEvent()
 {
-  qDebug() << "Got onRTBeamNodeModifiedEvent"; //TODO:
+  //qDebug() << "Got onRTBeamNodeModifiedEvent"; //TODO:
 }
 
 //-----------------------------------------------------------------------------
@@ -737,14 +741,15 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
   d->tableWidget_Beams->setColumnCount(0);
   d->tableWidget_Beams->clearContents();
 
-  // Get rt plan node for ExternalBeamPlanning node
-  vtkMRMLRTPlanNode* planNode = this->rtPlanNode ();
+  // Get rt plan node from parameter set node node
+  vtkMRMLRTPlanNode* planNode = this->rtPlanNode();
   if (!planNode)
   { 
     qCritical() << Q_FUNC_INFO << ": Invalid plan node!";
     return;
   }
 
+  // Get beam nodes for the plan
   std::vector<vtkMRMLRTBeamNode*> beams;
   planNode->GetRTBeamNodes(beams);
 
@@ -999,7 +1004,7 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   }
 
   // Disconnect events for currently selected row
-  qvtkDisconnect (beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
+  qvtkDisconnect(beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
   
   // Make new beam current in the table
   d->currentBeamRow = d->totalBeamRows++;
@@ -1010,6 +1015,9 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   beamNode->SetName(newBeamName.toStdString().c_str());
   this->beamNameChanged(newBeamName);
 
+  // Clear instruction text
+  d->label_CalculateDoseStatus->setText("");
+
   // GCS TODO FIX -- this should be called when logic is modified, maybe it gets called twice?
   this->updateRTBeamTableWidget();
 
@@ -1017,10 +1025,10 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   this->updateWidgetFromRTBeam (beamNode);
 
   // Update beam visualization
-  this->UpdateBeamTransform();
+  this->updateBeamTransform();
 
   // Update beam visualization
-  this->UpdateBeamGeometryModel();
+  this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -1113,10 +1121,10 @@ void qSlicerExternalBeamPlanningModuleWidget::beamNameChanged(const QString &tex
   this->updateRTBeamTableWidget();
   
   // Update beam visualization
-  this->UpdateBeamTransform();
+  this->updateBeamTransform();
 
   // Update beam visualization
-  this->UpdateBeamGeometryModel();
+  this->updateBeamGeometryModel();
 
 }
 
@@ -1604,8 +1612,8 @@ void qSlicerExternalBeamPlanningModuleWidget::xJawsPositionValuesChanged(double 
   beamNode->SetX2Jaw( maxVal);
 
   // Update beam visualization
-  this->UpdateBeamTransform();
-  this->UpdateBeamGeometryModel();
+  this->updateBeamTransform();
+  this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -1630,8 +1638,8 @@ void qSlicerExternalBeamPlanningModuleWidget::yJawsPositionValuesChanged(double 
   beamNode->SetY2Jaw( maxVal);
 
   // Update beam visualization
-  this->UpdateBeamTransform();
-  this->UpdateBeamGeometryModel();
+  this->updateBeamTransform();
+  this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -1655,13 +1663,13 @@ void qSlicerExternalBeamPlanningModuleWidget::gantryAngleChanged(double value)
   beamNode->SetGantryAngle(value);
 
   // Update beam visualization
-  this->UpdateBeamTransform();
+  this->updateBeamTransform();
 
   // Update the table
   this->updateRTBeamTableWidget();
 
   // Update beam visualization
-  this->UpdateBeamGeometryModel();
+  this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -1684,7 +1692,7 @@ void qSlicerExternalBeamPlanningModuleWidget::collimatorAngleChanged(double valu
   beamNode->SetCollimatorAngle(value);
 
   // Update beam visualization
-  this->UpdateBeamTransform();
+  this->updateBeamTransform();
 }
 
 //-----------------------------------------------------------------------------
@@ -1709,7 +1717,7 @@ void qSlicerExternalBeamPlanningModuleWidget::couchAngleChanged(double value)
 
   // Update beam visualization
 
-  this->UpdateBeamTransform();
+  this->updateBeamTransform();
 }
 
 //-----------------------------------------------------------------------------
@@ -1775,7 +1783,7 @@ void qSlicerExternalBeamPlanningModuleWidget::sourceDistanceChanged(double value
   beamNode->SetSAD(value);
 
   // Update beam visualization
-  this->UpdateBeamGeometryModel();
+  this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -2274,7 +2282,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateBeamParameters()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::UpdateBeamTransform(vtkMRMLRTBeamNode *beamNode)
+void qSlicerExternalBeamPlanningModuleWidget::updateBeamTransform(vtkMRMLRTBeamNode *beamNode)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -2282,7 +2290,7 @@ void qSlicerExternalBeamPlanningModuleWidget::UpdateBeamTransform(vtkMRMLRTBeamN
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::UpdateBeamTransform()
+void qSlicerExternalBeamPlanningModuleWidget::updateBeamTransform()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -2290,7 +2298,7 @@ void qSlicerExternalBeamPlanningModuleWidget::UpdateBeamTransform()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::UpdateBeamGeometryModel()
+void qSlicerExternalBeamPlanningModuleWidget::updateBeamGeometryModel()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
