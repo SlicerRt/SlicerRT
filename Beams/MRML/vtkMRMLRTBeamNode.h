@@ -26,21 +26,17 @@
 #include "vtkSlicerBeamsModuleMRMLExport.h"
 
 // MRML includes
-#include <vtkMRML.h>
-#include <vtkMRMLDisplayableNode.h>
-#include <vtkMRMLScene.h>
+#include <vtkMRMLModelNode.h>
 
 // Slicer includes
 #include "vtkOrientedImageData.h"
 
-class vtkMRMLDisplayableNode;
+class vtkMRMLScene;
 class vtkMRMLDoubleArrayNode;
 class vtkMRMLMarkupsFiducialNode;
-class vtkMRMLModelNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
-class vtkMRMLSubjectHierarchyNode;
 
 /// GCS 2015-09-04.  Why don't VTK macros support const functions?
 #define vtkGetConstMacro(name,type)             \
@@ -49,7 +45,7 @@ class vtkMRMLSubjectHierarchyNode;
   }
 
 /// \ingroup SlicerRt_QtModules_Beams
-class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLDisplayableNode
+class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLModelNode
 {
 public:
   enum RTBeamType
@@ -77,7 +73,7 @@ public:
 
 public:
   static vtkMRMLRTBeamNode *New();
-  vtkTypeMacro(vtkMRMLRTBeamNode,vtkMRMLDisplayableNode);
+  vtkTypeMacro(vtkMRMLRTBeamNode,vtkMRMLModelNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Handles events registered in the observer manager
@@ -95,131 +91,10 @@ public:
   /// Copy the node's attributes to this object 
   virtual void Copy(vtkMRMLNode *node);
 
-  /// Updates the referenced nodes from the updated scene
-  virtual void UpdateScene(vtkMRMLScene *scene);
-
   /// Get unique node XML tag name (like Volume, Model) 
-  virtual const char* GetNodeTagName() {return "RTBeam";};
-
-  /// Update the stored reference to another node in the scene 
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
-
-  /// Updates this node if it depends on other nodes 
-  /// when the node is deleted in the scene
-  void UpdateReferences();
+  virtual const char* GetNodeTagName() { return "RTBeam"; };
 
 public:
-  /// Get/Set Save labelmaps checkbox state
-  vtkGetMacro(BeamNumber, int);
-  vtkGetConstMacro(BeamNumber, int);
-  vtkSetMacro(BeamNumber, int);
-
-  /// Set/Get structure name
-  vtkGetStringMacro(BeamDescription);
-  vtkSetStringMacro(BeamDescription);
-
-  /// Get/Set target segment ID
-  vtkGetStringMacro(TargetSegmentID);
-  vtkSetStringMacro(TargetSegmentID);
-
-  /// Get/Set RadiationType
-  vtkGetMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
-  vtkGetConstMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
-  vtkSetMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
-
-  /// Get/Set RadiationType
-  vtkGetMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
-  vtkGetConstMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
-  vtkSetMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
-
-  /// Get/Set IsocenterSpec
-  vtkGetMacro(IsocenterSpec, vtkMRMLRTBeamNode::IsocenterSpecification);
-  vtkGetConstMacro(IsocenterSpec, vtkMRMLRTBeamNode::IsocenterSpecification);
-
-  /// Get/Set Save labelmaps checkbox state
-  vtkGetMacro(NominalEnergy, double);
-  vtkGetConstMacro(NominalEnergy, double);
-  vtkSetMacro(NominalEnergy, double);
-
-  /// Get/Set Save labelmaps checkbox state
-  vtkGetMacro(NominalmA, double);
-  vtkGetConstMacro(NominalmA, double);
-  vtkSetMacro(NominalmA, double);
-
-  /// Get/Set Save labelmaps checkbox state
-  vtkGetMacro(BeamOnTime, double);
-  vtkGetConstMacro(BeamOnTime, double);
-  vtkSetMacro(BeamOnTime, double);
-
-  vtkGetMacro(X1Jaw, double);
-  vtkGetConstMacro(X1Jaw, double);
-  vtkSetMacro(X1Jaw, double);
-
-  vtkGetMacro(X2Jaw, double);
-  vtkGetConstMacro(X2Jaw, double);
-  vtkSetMacro(X2Jaw, double);
-
-  vtkGetMacro(Y1Jaw, double);
-  vtkGetConstMacro(Y1Jaw, double);
-  vtkSetMacro(Y1Jaw, double);
-
-  vtkGetMacro(Y2Jaw, double);
-  vtkGetConstMacro(Y2Jaw, double);
-  vtkSetMacro(Y2Jaw, double);
-
-  /// Get/Set Save labelmaps checkbox state
-  vtkGetMacro(GantryAngle, double);
-  vtkGetConstMacro(GantryAngle, double);
-  vtkSetMacro(GantryAngle, double);
-
-  ///
-  vtkGetMacro(CollimatorAngle, double);
-  vtkGetConstMacro(CollimatorAngle, double);
-  vtkSetMacro(CollimatorAngle, double);
-
-  ///
-  vtkGetMacro(CouchAngle, double);
-  vtkGetConstMacro(CouchAngle, double);
-  vtkSetMacro(CouchAngle, double);
-
-  /// Set/Get smearing
-  vtkGetMacro(Smearing, double);
-  vtkSetMacro(Smearing, double);
-
-  /// Get/Set Save labelmaps checkbox state
-  vtkGetMacro(SAD, double);
-  vtkGetConstMacro(SAD, double);
-  vtkSetMacro(SAD, double);
-
-  /// Get/Set beam weight
-  vtkGetMacro(BeamWeight, double);
-  vtkGetConstMacro(BeamWeight, double);
-  vtkSetMacro(BeamWeight, double);
-
-  /// Return true if the beam name matches the argument
-  //TODO: Should not be needed
-  bool BeamNameIs(const std::string& beamName);
-  bool BeamNameIs(const char *beamName);
-
-  void SetIsocenterSpec(vtkMRMLRTBeamNode::IsocenterSpecification);
-  void SetIsocenterToTargetCenter();
-  void GetIsocenterPosition(double*);
-  void SetIsocenterPosition(double*);
-
-  const double* GetReferenceDosePointPosition();
-  double GetReferenceDosePointPosition(int dim);
-  void SetReferenceDosePointPosition(const float* position);
-  void SetReferenceDosePointPosition(const double* position);
-
-  /// Get beam model node ID
-  vtkGetStringMacro(BeamModelNodeId);
-
-  /// Get beam model node
-  vtkMRMLModelNode* GetBeamModelNode();
-
-  /// Set and observe beam model node
-  void SetAndObserveBeamModelNodeId(const char *nodeID);
-
   /// Get parent plan node
   vtkMRMLRTPlanNode* GetRTPlanNode();
 
@@ -258,16 +133,113 @@ public:
   // Update the beam model for a new isocenter, gantry angle, etc.
   void UpdateBeamTransform();
 
+// Beam parameters
+public:
+  /// Get beam number
+  vtkGetMacro(BeamNumber, int);
+  /// Get beam number
+  vtkGetConstMacro(BeamNumber, int);
+  /// Set beam number
+  vtkSetMacro(BeamNumber, int);
+
+  /// Get beam description
+  vtkGetStringMacro(BeamDescription);
+  /// Set beam description
+  vtkSetStringMacro(BeamDescription);
+
+  /// Get target segment ID
+  vtkGetStringMacro(TargetSegmentID);
+  /// Set target segment ID
+  vtkSetStringMacro(TargetSegmentID);
+
+  /// Get radiation type
+  vtkGetMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
+  /// Set radiation type
+  vtkGetConstMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
+  /// Set radiation type
+  vtkSetMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
+
+  /// Get beam type
+  vtkGetMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
+  /// Get beam type
+  vtkGetConstMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
+  /// Set beam type
+  vtkSetMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
+
+  vtkGetMacro(IsocenterSpec, vtkMRMLRTBeamNode::IsocenterSpecification);
+  vtkGetConstMacro(IsocenterSpec, vtkMRMLRTBeamNode::IsocenterSpecification);
+
+  vtkGetConstMacro(NominalEnergy, double);
+  vtkSetMacro(NominalEnergy, double);
+
+  vtkGetMacro(NominalmA, double);
+  vtkGetConstMacro(NominalmA, double);
+  vtkSetMacro(NominalmA, double);
+
+  vtkGetMacro(BeamOnTime, double);
+  vtkGetConstMacro(BeamOnTime, double);
+  vtkSetMacro(BeamOnTime, double);
+
+  vtkGetMacro(X1Jaw, double);
+  vtkGetConstMacro(X1Jaw, double);
+  vtkSetMacro(X1Jaw, double);
+
+  vtkGetMacro(X2Jaw, double);
+  vtkGetConstMacro(X2Jaw, double);
+  vtkSetMacro(X2Jaw, double);
+
+  vtkGetMacro(Y1Jaw, double);
+  vtkGetConstMacro(Y1Jaw, double);
+  vtkSetMacro(Y1Jaw, double);
+
+  vtkGetMacro(Y2Jaw, double);
+  vtkGetConstMacro(Y2Jaw, double);
+  vtkSetMacro(Y2Jaw, double);
+
+  vtkGetMacro(GantryAngle, double);
+  vtkGetConstMacro(GantryAngle, double);
+  vtkSetMacro(GantryAngle, double);
+
+  vtkGetMacro(CollimatorAngle, double);
+  vtkGetConstMacro(CollimatorAngle, double);
+  vtkSetMacro(CollimatorAngle, double);
+
+  vtkGetMacro(CouchAngle, double);
+  vtkGetConstMacro(CouchAngle, double);
+  vtkSetMacro(CouchAngle, double);
+
+  vtkGetMacro(Smearing, double);
+  vtkSetMacro(Smearing, double);
+
+  vtkGetMacro(SAD, double);
+  vtkGetConstMacro(SAD, double);
+  vtkSetMacro(SAD, double);
+
+  vtkGetMacro(BeamWeight, double);
+  vtkGetConstMacro(BeamWeight, double);
+  vtkSetMacro(BeamWeight, double);
+
+  /// Return true if the beam name matches the argument
+  //TODO: Should not be needed
+  bool BeamNameIs(const std::string& beamName);
+  bool BeamNameIs(const char *beamName);
+
+  void SetIsocenterSpec(vtkMRMLRTBeamNode::IsocenterSpecification);
+  void SetIsocenterToTargetCenter();
+  void GetIsocenterPosition(double*);
+  void SetIsocenterPosition(double*);
+
+  const double* GetReferenceDosePointPosition();
+  double GetReferenceDosePointPosition(int dim);
+  void SetReferenceDosePointPosition(const float* position);
+  void SetReferenceDosePointPosition(const double* position);
+
 protected:
   /// Copy isocenter coordinates into fiducial
-  void CopyIsocenterCoordinatesToMarkups (double*);
+  void CopyIsocenterCoordinatesToMarkups(double*);
 
   /// Copy isocenter coordinates from fiducial
-  void CopyIsocenterCoordinatesFromMarkups (double*);
-
-protected:
-  /// Set beam model node ID
-  vtkSetReferenceStringMacro(BeamModelNodeId);
+  void CopyIsocenterCoordinatesFromMarkups(double*);
 
 protected:
   vtkMRMLRTBeamNode();
@@ -308,12 +280,6 @@ protected:
 
   double SAD;
   double BeamWeight;
-
-  /// Beam model representation
-  vtkMRMLModelNode* BeamModelNode;
-  
-  /// Beam model node ID
-  char* BeamModelNodeId;
 };
 
 #endif // __vtkMRMLRTBeamNode_h

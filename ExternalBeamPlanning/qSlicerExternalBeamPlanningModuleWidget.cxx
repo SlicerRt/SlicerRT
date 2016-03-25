@@ -132,7 +132,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setMRMLScene(vtkMRMLScene* scene)
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLExternalBeamPlanningNode");
     if (node)
     {
-      this->externalBeamPlanningNodeChanged (vtkMRMLExternalBeamPlanningNode::SafeDownCast(node));
+      this->onParameterSetNodeChanged(vtkMRMLExternalBeamPlanningNode::SafeDownCast(node));
     }
   }
 }
@@ -187,7 +187,7 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
   }
 
   // Alert everyone that the parameter node has changed
-  this->externalBeamPlanningNodeChanged(paramNode);
+  this->onParameterSetNodeChanged(paramNode);
 
   // This is not used?
   d->ModuleWindowInitialized = true;
@@ -200,24 +200,24 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
-  // Check for matlab dose calculation module
-  vtkSlicerExternalBeamPlanningModuleLogic* externalBeamPlanningModuleLogic =
-    vtkSlicerExternalBeamPlanningModuleLogic::SafeDownCast(this->logic());
-  qSlicerAbstractCoreModule* matlabDoseCalculationModule =
-    qSlicerCoreApplication::application()->moduleManager()->module("MatlabDoseCalculation");
-  if (matlabDoseCalculationModule)
-  {
-    vtkSlicerCLIModuleLogic* matlabDoseCalculationModuleLogic =
-      vtkSlicerCLIModuleLogic::SafeDownCast(matlabDoseCalculationModule->logic());
-    externalBeamPlanningModuleLogic->SetMatlabDoseCalculationModuleLogic(matlabDoseCalculationModuleLogic);
-  }
-  else
-  {
-    qWarning() << Q_FUNC_INFO << ": MatlabDoseCalculation module is not found!";
-  }
+  // Check for matlab dose calculation module //TODO: Re-enable when matlab dose adaptor is created
+  //vtkSlicerExternalBeamPlanningModuleLogic* externalBeamPlanningModuleLogic =
+  //  vtkSlicerExternalBeamPlanningModuleLogic::SafeDownCast(this->logic());
+  //qSlicerAbstractCoreModule* matlabDoseCalculationModule =
+  //  qSlicerCoreApplication::application()->moduleManager()->module("MatlabDoseCalculation");
+  //if (matlabDoseCalculationModule)
+  //{
+  //  vtkSlicerCLIModuleLogic* matlabDoseCalculationModuleLogic =
+  //    vtkSlicerCLIModuleLogic::SafeDownCast(matlabDoseCalculationModule->logic());
+  //  externalBeamPlanningModuleLogic->SetMatlabDoseCalculationModuleLogic(matlabDoseCalculationModuleLogic);
+  //}
+  //else
+  //{
+  //  qWarning() << Q_FUNC_INFO << ": MatlabDoseCalculation module is not found!";
+  //}
   
   // Make connections
-  this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(externalBeamPlanningNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onParameterSetNodeChanged(vtkMRMLNode*)) );
 
   // RT plan page
   this->connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
@@ -622,7 +622,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromRTBeam(vtkMRMLRTBe
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLExternalBeamPlanningNode* qSlicerExternalBeamPlanningModuleWidget::parameterSetNode ()
+vtkMRMLExternalBeamPlanningNode* qSlicerExternalBeamPlanningModuleWidget::parameterSetNode()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   
@@ -630,11 +630,11 @@ vtkMRMLExternalBeamPlanningNode* qSlicerExternalBeamPlanningModuleWidget::parame
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLRTPlanNode* qSlicerExternalBeamPlanningModuleWidget::rtPlanNode ()
+vtkMRMLRTPlanNode* qSlicerExternalBeamPlanningModuleWidget::rtPlanNode()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   
-  vtkMRMLExternalBeamPlanningNode* paramNode = this->parameterSetNode ();
+  vtkMRMLExternalBeamPlanningNode* paramNode = this->parameterSetNode();
   if (!paramNode)
   {
     return NULL;
@@ -678,30 +678,30 @@ vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode()
 }
 
 //-----------------------------------------------------------------------------
-std::string qSlicerExternalBeamPlanningModuleWidget::getCurrentBeamName ()
+std::string qSlicerExternalBeamPlanningModuleWidget::currentBeamName()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
-  return beamNode->GetName ();
+  return beamNode->GetName();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::externalBeamPlanningNodeChanged(vtkMRMLNode *node)
+void qSlicerExternalBeamPlanningModuleWidget::onParameterSetNodeChanged(vtkMRMLNode *node)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   vtkMRMLExternalBeamPlanningNode* paramNode = vtkMRMLExternalBeamPlanningNode::SafeDownCast(node);
 
   // Each time the node is modified, the qt widgets are updated
-  qvtkReconnect(d->logic()->GetExternalBeamPlanningNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(externalBeamPlanningNodeModified()));
+  qvtkReconnect(d->logic()->GetExternalBeamPlanningNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(onParameterSetNodeModified()));
 
   d->logic()->SetAndObserveExternalBeamPlanningNode(paramNode);
   this->updateWidgetFromParameterNode();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::onExternalBeamPlanningNodeModified()
+void qSlicerExternalBeamPlanningModuleWidget::onParameterSetNodeModified()
 {
   this->updateWidgetFromParameterNode();
 }

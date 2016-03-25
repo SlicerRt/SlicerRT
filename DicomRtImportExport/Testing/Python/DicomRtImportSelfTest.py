@@ -202,19 +202,19 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     self.dicomWidget.detailsPopup.loadCheckedLoadables()
 
     # Verify that the correct number of objects were loaded
-    # Volumes: Dose, RT image, RT image texture
-    self.assertEqual( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ), 3 )
+    # Volumes: Dose, RT image
+    self.assertEqual( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ), 2 )
     # Model hierarchies: Beam models (parent + individual beams)
     self.assertEqual( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ), 6 )
-    # Subject hierarchy nodes: Patient, Study, Dose, RT image (plus SH nodes automatically created for texture
-    # image and displayed model), structure set segmentation and segment virtual nodes, beam models.
+    # Subject hierarchy nodes: Patient, Study, Dose, RT beams, RT image, structure set segmentation and segment virtual nodes.
+    # Plus SH nodes automatically created for and displayed model and beam transforms
     # If subject hierarchy auto creation is off, then 2 less nodes are created (the RT image plane model and texture volume)
     autoCreateSh = slicer.modules.subjecthierarchy.widgetRepresentation().pluginLogic().autoCreateSubjectHierarchy
-    self.assertEqual( len( slicer.util.getNodes('vtkMRMLSubjectHierarchyNode*') ), 23 + 2*autoCreateSh )
+    self.assertEqual( len( slicer.util.getNodes('vtkMRMLSubjectHierarchyNode*') ), 18 + 6*autoCreateSh )
     # Segmentation: The loaded structures
     self.assertEqual( len( slicer.util.getNodes('vtkMRMLSegmentationNode*') ), 1 )
-    # Markups: the isocenters and their derived sources (in the same markup node as the isocenter)
-    self.assertEqual( len( slicer.util.getNodes('vtkMRMLMarkupsFiducialNode*') ), 5 )
+    # Markups: the RT plan POI
+    self.assertEqual( len( slicer.util.getNodes('vtkMRMLMarkupsFiducialNode*') ), 1 )
 
   def TestSection_5SaveScene(self):
     self.delayDisplay("Save scene",self.delayMs)

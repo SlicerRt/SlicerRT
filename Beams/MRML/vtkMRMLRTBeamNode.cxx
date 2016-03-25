@@ -33,7 +33,6 @@
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLModelNode.h>
 #include <vtkMRMLLabelMapVolumeDisplayNode.h>
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLTransformNode.h>
@@ -99,11 +98,6 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->SAD = 2000.0;
   this->BeamWeight = 1.0;
 
-  this->BeamModelNode = NULL;
-  this->BeamModelNodeId = NULL;
-
-  this->HideFromEditorsOff();
-
   // Register parent transform modified event so that the representations
   //   can be put under the same transform node
   vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
@@ -116,8 +110,6 @@ vtkMRMLRTBeamNode::~vtkMRMLRTBeamNode()
 {
   this->SetBeamDescription(NULL);
   this->SetTargetSegmentID(NULL);
-  this->SetAndObserveBeamModelNodeId(NULL);
-  this->SetTargetSegmentID(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -128,14 +120,11 @@ void vtkMRMLRTBeamNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  if (this->BeamModelNodeId != NULL) 
-  {
-    of << indent << " BeamModelNodeId=\"" << this->BeamModelNodeId << "\"";
-  }
   if (this->TargetSegmentID != NULL) 
   {
     of << indent << " TargetSegmentID=\"" << this->TargetSegmentID << "\"";
   }
+  //TODO: Beam parameters
 }
 
 //----------------------------------------------------------------------------
@@ -152,19 +141,13 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "BeamModelNodeId")) 
-    {
-      this->SetAndObserveBeamModelNodeId(NULL); // clear any previous observers
-      // Do not add observers yet because updates may be wrong before reading all the xml attributes
-      // Observers will be added when all the attributes are read and UpdateScene is called
-      this->SetBeamModelNodeId(attValue);
-    }
-    else if (!strcmp(attName, "TargetSegmentID")) 
+    if (!strcmp(attName, "TargetSegmentID")) 
       {
       std::stringstream ss;
       ss << attValue;
       this->SetTargetSegmentID(ss.str().c_str());
       }
+    //TODO: Beam parameters
   }
 }
 
@@ -178,6 +161,7 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLRTBeamNode *node = (vtkMRMLRTBeamNode *) anode;
 
+  //TODO: Beam parameters
   this->SetSmearing( node->GetSmearing() );
   this->SetSAD(node->GetSAD());
   double iso[3];
@@ -185,10 +169,6 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   this->Isocenter[0] = iso[0];
   this->Isocenter[1] = iso[1];
   this->Isocenter[2] = iso[2];
-
-  // Observers must be removed here, otherwise MRML updates would activate nodes on the undo stack
-  this->SetAndObserveBeamModelNodeId( NULL );
-  this->SetBeamModelNodeId( node->BeamModelNodeId );
 
   this->SetTargetSegmentID(node->TargetSegmentID);
 
@@ -199,41 +179,11 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::UpdateReferences()
-{
-  Superclass::UpdateReferences();
-
-  if (this->BeamModelNodeId != NULL && this->Scene->GetNodeByID(this->BeamModelNodeId) == NULL)
-  {
-    this->SetBeamModelNodeId(NULL);
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::UpdateReferenceID(const char *oldID, const char *newID)
-{
-  Superclass::UpdateReferenceID(oldID, newID);
-
-  if (this->BeamModelNodeId && !strcmp(oldID, this->BeamModelNodeId))
-  {
-    this->SetAndObserveBeamModelNodeId(newID);
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::UpdateScene(vtkMRMLScene *scene)
-{
-  Superclass::UpdateScene(scene);
-
-  this->SetAndObserveBeamModelNodeId(this->BeamModelNodeId);
-}
-
-//----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << "BeamModelNodeId:   " << (this->BeamModelNodeId ? this->BeamModelNodeId : "NULL") << "\n";
+  //TODO: Beam parameters
 }
 
 //----------------------------------------------------------------------------
@@ -266,18 +216,19 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTBeamNode::GetIsocenterFiducialNode()
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLRTBeamNode::BeamNameIs (const std::string& beamName)
+bool vtkMRMLRTBeamNode::BeamNameIs(const std::string& beamName)
 {
-  return BeamNameIs (beamName.c_str());
+  return BeamNameIs(beamName.c_str());
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLRTBeamNode::BeamNameIs (const char *beamName)
+bool vtkMRMLRTBeamNode::BeamNameIs(const char *beamName)
 {
-  if (this->GetName() == NULL || beamName == NULL) {
+  if (this->Name == NULL || beamName == NULL)
+  {
     return false;
   }
-  return !strcmp(this->GetName(), beamName);
+  return !strcmp(this->Name, beamName);
 }
 
 //----------------------------------------------------------------------------
@@ -365,7 +316,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTBeamNode::GetTargetLabelmap()
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLRTBeamNode::ComputeTargetVolumeCenter (double* center)
+bool vtkMRMLRTBeamNode::ComputeTargetVolumeCenter(double* center)
 {
   if (!this->Scene)
   {
@@ -442,74 +393,25 @@ void vtkMRMLRTBeamNode::SetAndObserveContourBEVVolumeNode(vtkMRMLScalarVolumeNod
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode* vtkMRMLRTBeamNode::GetRTPlanNode()
 {
-  vtkMRMLScene *scene = this->GetScene();
-  vtkMRMLNode *mnode = NULL;
-  vtkMRMLSubjectHierarchyNode *shnode = NULL;
-  vtkMRMLSubjectHierarchyNode *shparentnode = NULL;
-
-  for (int n=0; n < scene->GetNumberOfNodes(); n++) 
+  vtkMRMLSubjectHierarchyNode* beamShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this);
+  if (!beamShNode)
   {
-    mnode = scene->GetNthNode(n);
-    if (mnode->IsA("vtkMRMLSubjectHierarchyNode"))
-    {
-      shnode = vtkMRMLSubjectHierarchyNode::SafeDownCast(mnode);
-      vtkMRMLRTBeamNode *bnode = vtkMRMLRTBeamNode::SafeDownCast(shnode->GetAssociatedNode());
-      if (bnode && bnode == this)
-      {
-        shparentnode = vtkMRMLSubjectHierarchyNode::SafeDownCast(shnode->GetParentNode());
-        vtkMRMLRTPlanNode *pnode = vtkMRMLRTPlanNode::SafeDownCast(shparentnode->GetAssociatedNode());
-        if (pnode) 
-        {
-          return pnode;
-        }
-      }// end if
-    }// end if
-  }// end for
+    vtkErrorMacro("GetRTPlanNode: Subject hierarchy must be enabled for this operation!");
+    return NULL;
+  }
 
-  return NULL;
+  if (!beamShNode->GetParentNode())
+  {
+    vtkErrorMacro("GetRTPlanNode: Beam node " << this->Name << " does not have a subject hierarchy parent, so cannot access RT plan!");
+    return NULL;
+  }
+
+  vtkMRMLSubjectHierarchyNode* planShNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(beamShNode->GetParentNode());
+  return vtkMRMLRTPlanNode::SafeDownCast(planShNode->GetAssociatedNode());
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetAndObserveBeamModelNodeId(const char *nodeID)
-{
-  vtkSetAndObserveMRMLObjectMacro(this->BeamModelNode, NULL);
-  this->SetBeamModelNodeId(nodeID);
-  if (!nodeID)
-  {
-    return;
-  }
-
-  vtkMRMLModelNode *tnode = this->GetBeamModelNode();
-  if (tnode)
-  {
-    tnode->HideFromEditorsOn();
-    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-    events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-    events->InsertNextValue(vtkMRMLModelNode::PolyDataModifiedEvent);
-    vtkSetAndObserveMRMLObjectEventsMacro(this->BeamModelNode, tnode, events);
-  }
-  else
-  {
-    vtkErrorMacro("Failed to set BeamModel node ID!");
-    this->SetBeamModelNodeId(NULL);
-  }
-}
-
-//----------------------------------------------------------------------------
-vtkMRMLModelNode* vtkMRMLRTBeamNode::GetBeamModelNode()
-{
-  vtkMRMLModelNode* node = NULL;
-  if (this->Scene && this->BeamModelNodeId)
-  {
-    vtkMRMLNode* snode = this->Scene->GetNodeByID(this->BeamModelNodeId);
-    node = vtkMRMLModelNode::SafeDownCast(snode);
-  }
-
-  return node;
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetIsocenterSpec (vtkMRMLRTBeamNode::IsocenterSpecification isoSpec)
+void vtkMRMLRTBeamNode::SetIsocenterSpec(vtkMRMLRTBeamNode::IsocenterSpecification isoSpec)
 {
   if (isoSpec == this->GetIsocenterSpec())
   {
@@ -524,41 +426,41 @@ void vtkMRMLRTBeamNode::SetIsocenterSpec (vtkMRMLRTBeamNode::IsocenterSpecificat
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetIsocenterToTargetCenter ()
+void vtkMRMLRTBeamNode::SetIsocenterToTargetCenter()
 {
     double center[3];
-    if (this->ComputeTargetVolumeCenter (center))
+    if (this->ComputeTargetVolumeCenter(center))
     {
-      this->CopyIsocenterCoordinatesToMarkups (center);
+      this->CopyIsocenterCoordinatesToMarkups(center);
     }
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::GetIsocenterPosition (double* iso)
+void vtkMRMLRTBeamNode::GetIsocenterPosition(double* iso)
 {
-  this->CopyIsocenterCoordinatesFromMarkups (iso);
+  this->CopyIsocenterCoordinatesFromMarkups(iso);
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetIsocenterPosition (double* iso)
+void vtkMRMLRTBeamNode::SetIsocenterPosition(double* iso)
 {
-  this->CopyIsocenterCoordinatesToMarkups (iso);
+  this->CopyIsocenterCoordinatesToMarkups(iso);
 }
 
 //----------------------------------------------------------------------------
-const double* vtkMRMLRTBeamNode::GetReferenceDosePointPosition ()
+const double* vtkMRMLRTBeamNode::GetReferenceDosePointPosition()
 {
   return this->ReferenceDosePoint;
 }
 
 //----------------------------------------------------------------------------
-double vtkMRMLRTBeamNode::GetReferenceDosePointPosition (int dim)
+double vtkMRMLRTBeamNode::GetReferenceDosePointPosition(int dim)
 {
   return this->ReferenceDosePoint[dim];
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetReferenceDosePointPosition (const float* position)
+void vtkMRMLRTBeamNode::SetReferenceDosePointPosition(const float* position)
 {
   for (int d = 0; d < 3; d++) 
   {
@@ -567,7 +469,7 @@ void vtkMRMLRTBeamNode::SetReferenceDosePointPosition (const float* position)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetReferenceDosePointPosition (const double* position)
+void vtkMRMLRTBeamNode::SetReferenceDosePointPosition(const double* position)
 {
   for (int d = 0; d < 3; d++) 
   {
@@ -608,11 +510,9 @@ void vtkMRMLRTBeamNode::UpdateBeamTransform()
   transform->PostMultiply();
   transform->Concatenate(transform2->GetMatrix());
 
-  vtkSmartPointer<vtkMRMLModelNode> beamModelNode = this->GetBeamModelNode();
-
   vtkMRMLLinearTransformNode *transformNode 
     = vtkMRMLLinearTransformNode::SafeDownCast(
-      this->Scene->GetNodeByID(beamModelNode->GetTransformNodeID()));
+      this->Scene->GetNodeByID(this->GetTransformNodeID()));
   if (transformNode)
   {
     transformNode->SetMatrixTransformToParent(transform->GetMatrix());
@@ -620,14 +520,14 @@ void vtkMRMLRTBeamNode::UpdateBeamTransform()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::CopyIsocenterCoordinatesToMarkups (double* iso)
+void vtkMRMLRTBeamNode::CopyIsocenterCoordinatesToMarkups(double* iso)
 {
   vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
   fiducialNode->SetNthFiducialPositionFromArray(0,iso);
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::CopyIsocenterCoordinatesFromMarkups (double* iso)
+void vtkMRMLRTBeamNode::CopyIsocenterCoordinatesFromMarkups(double* iso)
 {
   vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
   fiducialNode->GetNthFiducialPosition(0,iso);

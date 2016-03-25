@@ -23,8 +23,7 @@
 #define __vtkMRMLRTPlanNode_h
 
 // MRML includes
-#include <vtkMRML.h>
-#include <vtkMRMLDisplayableNode.h>
+#include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
 
 #include "vtkSlicerBeamsModuleMRMLExport.h"
@@ -39,7 +38,7 @@ class vtkMRMLSegmentationNode;
 class vtkMRMLSubjectHierarchyNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
-class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTPlanNode : public vtkMRMLDisplayableNode
+class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTPlanNode : public vtkMRMLNode
 {
 public:
   enum DoseEngineType
@@ -51,7 +50,7 @@ public:
 
 public:
   static vtkMRMLRTPlanNode *New();
-  vtkTypeMacro(vtkMRMLRTPlanNode,vtkMRMLDisplayableNode);
+  vtkTypeMacro(vtkMRMLRTPlanNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Create instance of a GAD node. 
@@ -95,11 +94,9 @@ public:
   /// Set RT Plan Dose volume node
   void SetAndObserveRTPlanDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// 
   void SetRTPlanDoseEngine(DoseEngineType doseEngineType) { this->RTPlanDoseEngine = doseEngineType; };
   DoseEngineType GetRTPlanDoseEngine() { return this->RTPlanDoseEngine; };
 
-  ///
   void SetRTPlanDoseGrid(double* doseGrid) { this->RTPlanDoseGrid[0] = doseGrid[0]; this->RTPlanDoseGrid[1] = doseGrid[1]; this->RTPlanDoseGrid[2] = doseGrid[2]; };
   double* GetRTPlanDoseGrid() { return this->RTPlanDoseGrid; };
 

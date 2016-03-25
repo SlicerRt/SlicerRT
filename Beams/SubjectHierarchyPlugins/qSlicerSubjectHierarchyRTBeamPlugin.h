@@ -61,13 +61,6 @@ public:
   /// Get visibility icon for a visibility state
   virtual QIcon visibilityIcon(int visible);
 
-   /// Set display visibility of a owned subject hierarchy node
-  virtual void setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible);
-
-  /// Get display visibility of a owned subject hierarchy node
-  /// \return Display visibility (0: hidden, 1: shown, 2: partially shown)
-  virtual int getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const;
-
   /// Open module belonging to node and set inputs in opened module
   virtual void editProperties(vtkMRMLSubjectHierarchyNode* node);
 

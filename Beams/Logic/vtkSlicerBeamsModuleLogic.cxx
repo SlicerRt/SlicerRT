@@ -241,12 +241,12 @@ void vtkSlicerBeamsModuleLogic::UpdateBeamGeometryModelByID(const char* nodeID)
   }
 
   // Make sure inputs are initialized
-  if (!beamNode) {
+  if (!beamNode)
+  {
     vtkErrorMacro("UpdateBeamGeometryModelByID: beamNode are not initialized!");
     return;
   }
 
-  vtkSmartPointer<vtkMRMLModelNode> beamModelNode = beamNode->GetBeamModelNode();
   vtkSmartPointer<vtkPolyData> beamModelPolyData = NULL;
   vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = beamNode->GetMLCPositionDoubleArrayNode();
   if (MLCPositionDoubleArrayNode)
@@ -269,7 +269,7 @@ void vtkSlicerBeamsModuleLogic::UpdateBeamGeometryModelByID(const char* nodeID)
         beamNode->GetSAD());
   }
 
-  beamModelNode->SetAndObservePolyData(beamModelPolyData);
+  beamNode->SetAndObservePolyData(beamModelPolyData);
 }
 
 //---------------------------------------------------------------------------
@@ -454,7 +454,8 @@ void vtkSlicerBeamsModuleLogic::AddDefaultModelToRTBeamNode(vtkMRMLScene* scene,
       100,
       1000);
 
-  // vtkTransform for visualization
+  // Transform for visualization
+  //TODO: Awful names for transforms. They should be barToFooTransform
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
   transform->Identity();
   transform->RotateZ(0);
@@ -463,8 +464,6 @@ void vtkSlicerBeamsModuleLogic::AddDefaultModelToRTBeamNode(vtkMRMLScene* scene,
 
   vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
   transform2->Identity();
-  // double isoCenterPosition[3] = {0.0,0.0,0.0};
-  // isocenterMarkupsNode->GetNthFiducialPosition(0,isoCenterPosition);
   transform2->Translate(0.0, 0.0, 0.0);
 
   transform->PostMultiply();
@@ -476,34 +475,19 @@ void vtkSlicerBeamsModuleLogic::AddDefaultModelToRTBeamNode(vtkMRMLScene* scene,
   transformNode->SetMatrixTransformToParent(transform->GetMatrix());
   transformNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
 
-  std::string rtBeamNodeName;
-  std::string rtBeamModelNodeName;
-  rtBeamNodeName = std::string(beamNode->GetName());
-  rtBeamNodeName = scene->GenerateUniqueName(rtBeamNodeName);
-  rtBeamModelNodeName = rtBeamNodeName + "_SurfaceModel";
-
   // Create model node for beam
-  vtkSmartPointer<vtkMRMLModelDisplayNode> RTBeamModelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  RTBeamModelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(scene->AddNode(RTBeamModelDisplayNode));
-  RTBeamModelDisplayNode->SetColor(0.0, 1.0, 0.0);
-  RTBeamModelDisplayNode->SetOpacity(0.3);
-  RTBeamModelDisplayNode->SetBackfaceCulling(0); // Disable backface culling to make the back side of the contour visible as well
-  RTBeamModelDisplayNode->HideFromEditorsOff();
-  RTBeamModelDisplayNode->VisibilityOn(); 
-  RTBeamModelDisplayNode->SliceIntersectionVisibilityOn();
+  vtkSmartPointer<vtkMRMLModelDisplayNode> meamModelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  meamModelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(scene->AddNode(meamModelDisplayNode));
+  meamModelDisplayNode->SetColor(0.0, 1.0, 0.2);
+  meamModelDisplayNode->SetOpacity(0.3);
+  meamModelDisplayNode->SetBackfaceCulling(0); // Disable backface culling to make the back side of the contour visible as well
+  meamModelDisplayNode->VisibilityOn(); 
+  meamModelDisplayNode->SliceIntersectionVisibilityOn();
 
-  // Create rtbeam model node
-  vtkSmartPointer<vtkMRMLModelNode> RTBeamModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
-  RTBeamModelNode = vtkMRMLModelNode::SafeDownCast(scene->AddNode(RTBeamModelNode));
-  RTBeamModelNode->SetName(rtBeamModelNodeName.c_str());
-  RTBeamModelNode->SetAndObservePolyData(beamModelPolyData);
-  RTBeamModelNode->SetAndObserveTransformNodeID(transformNode->GetID());
-  RTBeamModelNode->SetAndObserveDisplayNodeID(RTBeamModelDisplayNode->GetID());
-  RTBeamModelNode->HideFromEditorsOff();
-  RTBeamModelNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
-
-  // Attach model node to beam node
-  beamNode->SetAndObserveBeamModelNodeId(RTBeamModelNode->GetID());
+  // Setup beam model node
+  beamNode->SetAndObservePolyData(beamModelPolyData);
+  beamNode->SetAndObserveTransformNodeID(transformNode->GetID());
+  beamNode->SetAndObserveDisplayNodeID(meamModelDisplayNode->GetID());
 
   scene->EndState(vtkMRMLScene::BatchProcessState); 
 }
@@ -511,7 +495,8 @@ void vtkSlicerBeamsModuleLogic::AddDefaultModelToRTBeamNode(vtkMRMLScene* scene,
 //---------------------------------------------------------------------------
 vtkMRMLRTBeamNode* vtkSlicerBeamsModuleLogic::CreateDefaultRTBeamNode(const char* beamName)
 {
-  if (!this->GetMRMLScene())  {
+  if (!this->GetMRMLScene())
+  {
     vtkErrorMacro("CreateDefaultRTBeamNode: Invalid MRML scene!");
     return 0;
   }
@@ -523,7 +508,6 @@ vtkMRMLRTBeamNode* vtkSlicerBeamsModuleLogic::CreateDefaultRTBeamNode(const char
   beamNode = vtkMRMLRTBeamNode::SafeDownCast(this->GetMRMLScene()->AddNode(beamNode));
   beamNode->SetName(beamName);
   beamNode->HideFromEditorsOff();
-  //beamNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName(), "1");
 
   this->AddDefaultModelToRTBeamNode(this->GetMRMLScene(), beamNode);
 
@@ -531,42 +515,4 @@ vtkMRMLRTBeamNode* vtkSlicerBeamsModuleLogic::CreateDefaultRTBeamNode(const char
   this->Modified();
 
   return beamNode;
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerBeamsModuleLogic::RemoveRTBeamNodeInSubjectHierarchyByID(const char* nodeID)
-{
-  if ( !this->GetMRMLScene() || !this->RTPlanNode )
-  {
-    vtkErrorMacro("RemoveBeam: Invalid MRML scene or parameter set node!");
-    return;
-  }
-
-  // Find RT beam node in RT plan hierarchy node
-  vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
-  this->RTPlanNode->GetRTBeamNodes(beams);
-
-  beams->InitTraversal();
-  if (beams->GetNumberOfItems() < 1)
-  {
-    vtkWarningMacro("RemoveBeam: Selected RTPlan node has no children nodes!");
-    return;
-  }
-
-  // Fill the table
-  for (int i=0; i<beams->GetNumberOfItems(); ++i)
-  {
-    vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
-    if (beamNode && std::string(beamNode->GetID()) == nodeID)
-    {
-      vtkSmartPointer<vtkMRMLModelNode> beamModelNode = beamNode->GetBeamModelNode();
-      vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelDisplayNode = beamModelNode->GetModelDisplayNode();
-      this->RTPlanNode->RemoveRTBeamNode(beamNode);
-      this->GetMRMLScene()->RemoveNode(beamModelNode);
-      this->GetMRMLScene()->RemoveNode(beamModelDisplayNode);
-      break;
-    }
-  }
-
-  this->Modified();
 }

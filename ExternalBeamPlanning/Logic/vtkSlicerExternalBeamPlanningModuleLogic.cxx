@@ -317,7 +317,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *bea
     return;
   }
 
-  vtkSmartPointer<vtkMRMLModelNode> beamModelNode = beamNode->GetBeamModelNode();
   vtkSmartPointer<vtkPolyData> beamModelPolyData = NULL;
   vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = beamNode->GetMLCPositionDoubleArrayNode();
   if (MLCPositionDoubleArrayNode)
@@ -340,7 +339,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateBeamGeometryModel(char *bea
         beamNode->GetSAD());
   }
 
-  beamModelNode->SetAndObservePolyData(beamModelPolyData);
+  beamNode->SetAndObservePolyData(beamModelPolyData);
 }
 
 //---------------------------------------------------------------------------
@@ -831,7 +830,6 @@ vtkSmartPointer<vtkOrientedImageData>
 vtkSlicerExternalBeamPlanningModuleLogic::GetTargetLabelmap(vtkMRMLRTBeamNode* beamNode)
 {
   vtkSmartPointer<vtkOrientedImageData> targetLabelmap;
-  printf ("1\n");
   vtkMRMLSegmentationNode* targetSegmentationNode = beamNode->GetTargetSegmentationNode();
   if (!targetSegmentationNode)
   {
@@ -839,7 +837,6 @@ vtkSlicerExternalBeamPlanningModuleLogic::GetTargetLabelmap(vtkMRMLRTBeamNode* b
     return targetLabelmap;
   }
 
-  printf ("2\n");
   vtkSegmentation *segmentation = targetSegmentationNode->GetSegmentation();
   if (!segmentation)
   {
@@ -847,17 +844,13 @@ vtkSlicerExternalBeamPlanningModuleLogic::GetTargetLabelmap(vtkMRMLRTBeamNode* b
     return targetLabelmap;
   }
 
-  printf ("3\n");
   vtkSegment *segment = segmentation->GetSegment(beamNode->GetTargetSegmentID());
   if (!segment) 
   {
     vtkErrorMacro("ComputeDoseByPlastimatch: Failed to get segment");
     return targetLabelmap;
   }
-
-  printf ("4\n");
   
-  //segmentationNode->GetImageData ();
   if (segmentation->ContainsRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
   {
     targetLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();

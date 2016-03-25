@@ -33,7 +33,6 @@ class vtkMRMLNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLRTPlanNode;
 class QString;
-class QTableWidgetItem;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class Q_SLICER_QTMODULES_EXTERNALBEAMPLANNING_EXPORT qSlicerExternalBeamPlanningModuleWidget :
@@ -46,8 +45,6 @@ public:
   qSlicerExternalBeamPlanningModuleWidget(QWidget *parent=0);
   virtual ~qSlicerExternalBeamPlanningModuleWidget();
 
-  virtual void enter();
-
 public slots:
   /// Set the current MRML scene to the widget
   virtual void setMRMLScene(vtkMRMLScene*);
@@ -56,12 +53,36 @@ public slots:
   void onSceneImportedEvent();
 
   /// Parameter node was changed in UI
-  void externalBeamPlanningNodeChanged(vtkMRMLNode*);
+  void onParameterSetNodeChanged(vtkMRMLNode*);
+
+// Update functions
+protected:
+  /// Update the entire widget based on the current parameter node
+  void updateWidgetFromParameterNode();
+
+  void updateRTBeamTableWidget();
+
+  /// Update widget GUI from a beam node
+  void updateWidgetFromRTBeam(vtkMRMLRTBeamNode* beamNode);
+
+  void updateBeamParameters();
+
+  void updateBeamTransform(vtkMRMLRTBeamNode*);
+  void updateBeamTransform();
+
+  void updateBeamGeometryModel();
+
+// Utility functions
+protected:
+  vtkMRMLExternalBeamPlanningNode* parameterSetNode();
+  vtkMRMLRTPlanNode* rtPlanNode();
+  vtkMRMLRTBeamNode* currentBeamNode(vtkMRMLExternalBeamPlanningNode*);
+  vtkMRMLRTBeamNode* currentBeamNode();
+  std::string currentBeamName();
 
 protected slots:
-
   /// Parameter node was modified programmatically
-  void onExternalBeamPlanningNodeModified();
+  void onParameterSetNodeModified();
 
   // Logic modified
   void onLogicModified();
@@ -84,11 +105,11 @@ protected slots:
   void addBeamClicked();
   void removeBeamClicked();
 
-  /* Beam global parameters */
+  // Beam global parameters
   void beamNameChanged(const QString &);
   void radiationTypeChanged(int);
 
-  /* Prescription page */
+  // Prescription page
   void beamTypeChanged(const QString &);
   void targetVolumeNodeChanged(vtkMRMLNode* node);
   void targetVolumeSegmentChanged(const QString& segment);
@@ -98,7 +119,7 @@ protected slots:
   void isocenterFiducialNodeChangedfromCoordinates(double*);
   void dosePointFiducialNodeChangedfromCoordinates(double*);
 
-  /* Energy page */
+  // Energy page
   void proximalMarginChanged(double);
   void distalMarginChanged(double);
   void beamLineTypeChanged(const QString &);
@@ -106,7 +127,7 @@ protected slots:
   void minimumEnergyChanged(double);
   void maximumEnergyChanged(double);
 
-  /* Geometry page */
+  // Geometry page
   void mlcPositionDoubleArrayNodeChanged(vtkMRMLNode* node);
   void sourceDistanceChanged(double);
   void xJawsPositionValuesChanged(double, double);
@@ -117,7 +138,7 @@ protected slots:
   void smearingChanged(double);
   void beamWeightChanged(double);
 
-  /* Proton beam model */
+  // Proton beam model
   void apertureDistanceChanged(double);
   void algorithmChanged(const QString &);
   void pbResolutionChanged(double);
@@ -128,12 +149,12 @@ protected slots:
   void wedApproximationChanged(bool);
   void rangeCompensatorHighlandChanged(bool);
 
-  /* Beam visualization */
+  // Beam visualization
   void updateDRRClicked();
   void beamEyesViewClicked(bool);
   void contoursInBEWClicked(bool);
   
-  /* Calculation buttons */
+  // Calculation buttons
   void calculateDoseClicked();
   void calculateWEDClicked();
   void clearDoseClicked();
@@ -141,37 +162,9 @@ protected slots:
   void collimatorTypeChanged(const QString &);
 
 protected:
-  ///
   virtual void setup();
-
-  // called during initailization of the widget
+  virtual void enter();
   void onEnter();
-
-  /// Updates the entire widget based on the current parameter node
-  void updateWidgetFromParameterNode();
-
-  /// Utility functions
-  vtkMRMLExternalBeamPlanningNode* parameterSetNode ();
-  vtkMRMLRTPlanNode* rtPlanNode ();
-  vtkMRMLRTBeamNode* currentBeamNode (vtkMRMLExternalBeamPlanningNode*);
-  vtkMRMLRTBeamNode* currentBeamNode();
-  std::string getCurrentBeamName ();
-
-  ///
-  void updateRTBeamTableWidget();
-
-  /// Update widget GUI from a beam node
-  void updateWidgetFromRTBeam (vtkMRMLRTBeamNode* beamNode);
-
-  ///
-  void updateBeamParameters();
-
-  ///
-  void updateBeamTransform(vtkMRMLRTBeamNode*);
-  void updateBeamTransform();
-
-  ///
-  void updateBeamGeometryModel();
 
 protected:
   QScopedPointer<qSlicerExternalBeamPlanningModuleWidgetPrivate> d_ptr;

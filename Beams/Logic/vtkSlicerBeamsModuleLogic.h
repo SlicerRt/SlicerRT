@@ -66,9 +66,6 @@ public:
   // Create a default model, and attach to the supplied beam node
   static void AddDefaultModelToRTBeamNode(vtkMRMLScene*, vtkMRMLRTBeamNode*);
 
-  /// Remove a beam with a specified beam name
-  void RemoveRTBeamNodeInSubjectHierarchyByID(const char*);
-
   // Update the beam model for a new isocenter, gantry angle, etc.
   static void UpdateBeamTransform(vtkMRMLScene*, vtkMRMLRTBeamNode*);
 
