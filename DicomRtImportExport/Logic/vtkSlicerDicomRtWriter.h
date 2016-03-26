@@ -60,24 +60,52 @@ public:
   void Write();
 
 public:
-  // Macros for accessing strings
+  /// Get the DICOM Patient Name
   vtkGetStringMacro(PatientName);
+  /// Set the DICOM Patient Name
   vtkSetStringMacro(PatientName);
+  /// Get the DICOM Patient ID
   vtkGetStringMacro(PatientID);
+  /// Set the DICOM Patient ID
   vtkSetStringMacro(PatientID);
+  /// Get the DICOM Patient Sex
   vtkGetStringMacro(PatientSex);
+  /// Set the DICOM Patient Sex
   vtkSetStringMacro(PatientSex);
+  /// Get the DICOM Study Date
   vtkGetStringMacro(StudyDate);
+  /// Set the DICOM Study Date
   vtkSetStringMacro(StudyDate);
+  /// Get the DICOM Study Time
   vtkGetStringMacro(StudyTime);
+  /// Set the DICOM Study Time
   vtkSetStringMacro(StudyTime);
+  /// Get the DICOM Study Description
   vtkGetStringMacro(StudyDescription);
+  /// Set the DICOM Study Description
   vtkSetStringMacro(StudyDescription);
+  /// Get the DICOM Study Instance UID
   vtkGetStringMacro(StudyInstanceUid);
+  /// Set the DICOM Study Instance UID
   vtkSetStringMacro(StudyInstanceUid);
+  /// Get the DICOM Study ID
   vtkGetStringMacro(StudyID);
+  /// Set the DICOM Study ID
   vtkSetStringMacro(StudyID);
 
+  /// Get the DICOM Image Series Description 
+  vtkGetStringMacro(ImageSeriesDescription);
+  /// Set the DICOM Image Series Description 
+  vtkSetStringMacro(ImageSeriesDescription);
+  /// Get the DICOM Image Series Number
+  vtkGetStringMacro(ImageSeriesNumber);
+  /// Set the DICOM Image Series Number
+  vtkSetStringMacro(ImageSeriesNumber);
+  /// Get the DICOM Image Modality
+  vtkGetStringMacro(ImageSeriesModality);
+  /// Set the DICOM Image Modality
+  vtkSetStringMacro(ImageSeriesModality);
+  
   vtkGetStringMacro(FileName);
   vtkSetStringMacro(FileName);
   
@@ -97,7 +125,8 @@ protected:
   char* StudyID;
 
   char* ImageSeriesDescription;
-  int ImageSeriesNumber;
+  char* ImageSeriesNumber;
+  char* ImageSeriesModality;
 
   /// Output directory
   char* FileName;

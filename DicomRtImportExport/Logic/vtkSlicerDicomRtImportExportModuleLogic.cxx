@@ -1642,6 +1642,13 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   const char* studyDate = firstExportable->GetTag(vtkMRMLSubjectHierarchyConstants::GetDICOMStudyDateTagName().c_str());
   const char* studyTime = firstExportable->GetTag(vtkMRMLSubjectHierarchyConstants::GetDICOMStudyTimeTagName().c_str());
   const char* studyDescription = firstExportable->GetTag(vtkMRMLSubjectHierarchyConstants::GetDICOMStudyDescriptionTagName().c_str());
+  if (studyDescription && !strcmp(studyDescription, "No study description"))
+  {
+    studyDescription = 0;
+  }
+  const char* imageSeriesDescription = 0;
+  const char* imageSeriesModality = 0;
+  const char* imageSeriesNumber = 0;
 
   // Get other common export parameters
   // These are the ones available in hierarchy
@@ -1691,6 +1698,10 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     }
     vtkMRMLNode* associatedNode = shNode->GetAssociatedNode();
 
+    // GCS FIX: The below logic seems to allow only a single dose, 
+    // single image, and single segmentation per study.
+    // However, there is no check to enforce this.
+
     // Check if dose volume and set it if found
     if (associatedNode && SlicerRtCommon::IsDoseVolumeNode(associatedNode))
     {
@@ -1705,6 +1716,15 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     else if (associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode"))
     {
       imageNode = vtkMRMLScalarVolumeNode::SafeDownCast(associatedNode);
+      imageSeriesDescription = exportable->GetTag("SeriesDescription");
+      if (imageSeriesDescription && !strcmp(imageSeriesDescription, "No series description"))
+      {
+        imageSeriesDescription = 0;
+      }
+      // imageSeriesModality = exportable->GetTag(vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesModalityAttributeName());
+      imageSeriesModality = exportable->GetTag("Modality");
+      // imageSeriesNumber = exportable->GetTag(vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesNumberAttributeName());
+      imageSeriesNumber = exportable->GetTag("SeriesNumber");
     }
     // Report warning if a node cannot be assigned a role
     else
@@ -1724,7 +1744,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   // Create RT writer
   vtkSmartPointer<vtkSlicerDicomRtWriter> rtWriter = vtkSmartPointer<vtkSlicerDicomRtWriter>::New();
 
-  // Set metadata
+  // Set study-level metadata
   rtWriter->SetPatientName(patientName);
   rtWriter->SetPatientID(patientID);
   rtWriter->SetPatientSex(patientSex);
@@ -1734,6 +1754,11 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   rtWriter->SetStudyInstanceUid(studyInstanceUid.c_str());
   rtWriter->SetStudyID(studyID.c_str());
 
+  // Set image-level metadata
+  rtWriter->SetImageSeriesDescription(imageSeriesDescription);
+  rtWriter->SetImageSeriesNumber(imageSeriesNumber);
+  rtWriter->SetImageSeriesModality(imageSeriesModality);
+  
   // Convert input image (CT/MR/etc) to the format Plastimatch can use
   vtkOrientedImageData* imageOrientedImageData = vtkOrientedImageData::New();
   if (!SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(imageNode, imageOrientedImageData))

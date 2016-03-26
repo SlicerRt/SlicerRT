@@ -65,7 +65,8 @@ vtkSlicerDicomRtWriter::vtkSlicerDicomRtWriter()
   this->StudyID = NULL;
 
   this->ImageSeriesDescription = NULL;
-  this->ImageSeriesNumber = 1;
+  this->ImageSeriesNumber = NULL;
+  this->ImageSeriesModality = NULL;
 
   this->FileName = NULL;
 }
@@ -157,7 +158,19 @@ void vtkSlicerDicomRtWriter::Write()
   }
   
   /* Set image, dose, rtstruct metadata */
-
+  if (this->ImageSeriesDescription && this->ImageSeriesDescription[0] != 0)
+  {
+    rt_metadata->set_image_metadata (0x0008, 0x103e, this->ImageSeriesDescription);
+  }
+  if (this->ImageSeriesNumber && this->ImageSeriesNumber[0] != 0)
+  {
+    rt_metadata->set_image_metadata (0x0020, 0x0011, this->ImageSeriesNumber);
+  }
+  if (this->ImageSeriesModality && this->ImageSeriesModality[0] != 0)
+  {
+    rt_metadata->set_image_metadata (0x0008, 0x0060, this->ImageSeriesModality);
+  }
+  
   /* Write output to files */
   RtStudy.save_dicom(this->FileName);
 }
