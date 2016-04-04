@@ -255,8 +255,8 @@ class SegmentationsModuleTest1(unittest.TestCase):
     imageStat.Update()
     self.assertEqual(imageStat.GetVoxelCount(), 54872000)
     imageStatResult = imageStat.GetOutput()
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 45383708)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 8791327)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 44616260)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 9558775)
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 274360)
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(3,0,0,0), 0) # Built from color table and color four is removed in previous test section
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 422605)
@@ -311,8 +311,8 @@ class SegmentationsModuleTest1(unittest.TestCase):
     imageStat.Update()
     self.assertEqual(imageStat.GetVoxelCount(), 54872000)
     imageStatResult = imageStat.GetOutput()
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 45383708)
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 8791327)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 44616260)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 9558775)
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 274360)
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(3,0,0,0), 0) # Built from color table and color four is removed in previous test section
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 422605)
