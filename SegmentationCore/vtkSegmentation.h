@@ -180,10 +180,16 @@ public:
   ///       all segments (this should be the case by design)
   void GetContainedRepresentationNames(std::vector<std::string>& representationNames);
 
-  /// Determines if segments contain a certain representation type
+  /// Determine if segments contain a certain representation type
   /// Note: This assumes the first segment contains the same type of representations as
   ///       all segments (this should be the case by design)
   bool ContainsRepresentation(std::string representationName);
+
+  /// Determine if master representation is poly data type
+  bool IsMasterRepresentationPolyData();
+
+  /// Determine if master representation is (oriented) image data type
+  bool IsMasterRepresentationImageData();
 
   /// Get all representations supported by the converter
   void GetAvailableRepresentationNames(std::set<std::string>& representationNames) { this->Converter->GetAvailableRepresentationNames(representationNames); };

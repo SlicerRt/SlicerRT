@@ -979,6 +979,36 @@ bool vtkSegmentation::ContainsRepresentation(std::string representationName)
 }
 
 //-----------------------------------------------------------------------------
+bool vtkSegmentation::IsMasterRepresentationPolyData()
+{
+  if (!this->MasterRepresentationName)
+  {
+    return false;
+  }
+
+  // Assume the first segment contains the same name of representations as all segments (this should be the case by design)
+  vtkSegment* firstSegment = this->Segments.begin()->second;
+
+  vtkDataObject* masterRepresentation = firstSegment->GetRepresentation(this->MasterRepresentationName);
+  return vtkPolyData::SafeDownCast(masterRepresentation);
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSegmentation::IsMasterRepresentationImageData()
+{
+  if (!this->MasterRepresentationName)
+  {
+    return false;
+  }
+
+  // Assume the first segment contains the same name of representations as all segments (this should be the case by design)
+  vtkSegment* firstSegment = this->Segments.begin()->second;
+
+  vtkDataObject* masterRepresentation = firstSegment->GetRepresentation(this->MasterRepresentationName);
+  return vtkOrientedImageData::SafeDownCast(masterRepresentation);
+}
+
+//-----------------------------------------------------------------------------
 bool vtkSegmentation::CanAcceptRepresentation(std::string representationName)
 {
   if (representationName.empty() || !this->MasterRepresentationName)

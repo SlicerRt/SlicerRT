@@ -95,6 +95,11 @@
 #include <vtkImageCast.h>
 #include <vtkStringArray.h>
 #include <vtkObjectFactory.h>
+#include <vtkGeneralTransform.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkCutter.h>
+#include <vtkAppendPolyData.h>
+#include <vtkPlane.h>
 
 // ITK includes
 #include <itkImage.h>
@@ -1698,7 +1703,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     }
     vtkMRMLNode* associatedNode = shNode->GetAssociatedNode();
 
-    // GCS FIX: The below logic seems to allow only a single dose, 
+    // GCS FIX TODO: The below logic seems to allow only a single dose, 
     // single image, and single segmentation per study.
     // However, there is no check to enforce this.
 
@@ -1827,85 +1832,191 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   // Convert input segmentation to the format Plastimatch can use
   if (segmentationNode)
   {
-    // Make sure segmentation contains binary labelmap
-    if ( !segmentationNode->GetSegmentation()->CreateRepresentation(
-      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) )
+    // If master representation is labelmap type, then export binary labelmap
+    vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
+    if (segmentation->IsMasterRepresentationImageData())
     {
-      error = "Failed to get binary labelmap representation from segmentation " + std::string(segmentationNode->GetName());
-      vtkErrorMacro("ExportDicomRTStudy: " + error);
-      return error;
-    }
-
-    // Export each segment in segmentation
-    vtkSegmentation::SegmentMap segmentMap = segmentationNode->GetSegmentation()->GetSegments();
-    for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
-    {
-      std::string segmentID = segmentIt->first;
-      vtkSegment* segment = segmentIt->second;
-
-      // Get binary labelmap representation
-      vtkOrientedImageData* binaryLabelmap = vtkOrientedImageData::SafeDownCast(
-        segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
-      if (!binaryLabelmap)
+      // Make sure segmentation contains binary labelmap
+      if ( !segmentationNode->GetSegmentation()->CreateRepresentation(
+        vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) )
       {
-        error = "Failed to get binary labelmap representation from segment " + segmentID;
+        error = "Failed to get binary labelmap representation from segmentation " + std::string(segmentationNode->GetName());
         vtkErrorMacro("ExportDicomRTStudy: " + error);
         return error;
       }
-      // Temporarily copy labelmap image data as it will be probably resampled
-      vtkSmartPointer<vtkOrientedImageData> binaryLabelmapCopy = vtkSmartPointer<vtkOrientedImageData>::New();
-      binaryLabelmapCopy->DeepCopy(binaryLabelmap);
 
-      // Apply parent transformation nodes if necessary
-      if (segmentationNode->GetParentTransformNode())
+      // Export each segment in segmentation
+      vtkSegmentation::SegmentMap segmentMap = segmentationNode->GetSegmentation()->GetSegments();
+      for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
       {
-        if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, binaryLabelmapCopy))
+        std::string segmentID = segmentIt->first;
+        vtkSegment* segment = segmentIt->second;
+
+        // Get binary labelmap representation
+        vtkOrientedImageData* binaryLabelmap = vtkOrientedImageData::SafeDownCast(
+          segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
+        if (!binaryLabelmap)
         {
-          std::string errorMessage("Failed to apply parent transformation to exported segment!");
-          vtkErrorMacro("ExportDicomRTStudy: " << errorMessage);
-          return errorMessage;
-        }
-      }
-      // Make sure the labelmap dimensions match the reference dimensions
-      if ( !vtkOrientedImageDataResample::DoGeometriesMatch(imageOrientedImageData, binaryLabelmapCopy)
-        || !vtkOrientedImageDataResample::DoExtentsMatch(imageOrientedImageData, binaryLabelmapCopy) )
-      {
-        if (!vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(binaryLabelmapCopy, imageOrientedImageData, binaryLabelmapCopy))
-        {
-          error = "Failed to resample segment " + segmentID + " to match anatomical image geometry";
+          error = "Failed to get binary labelmap representation from segment " + segmentID;
           vtkErrorMacro("ExportDicomRTStudy: " + error);
           return error;
         }
-      }
+        // Temporarily copy labelmap image data as it will be probably resampled
+        vtkSmartPointer<vtkOrientedImageData> binaryLabelmapCopy = vtkSmartPointer<vtkOrientedImageData>::New();
+        binaryLabelmapCopy->DeepCopy(binaryLabelmap);
 
-      // Convert mask to Plm image
-      Plm_image::Pointer plmStructure = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(binaryLabelmapCopy);
-      if (!plmStructure)
+        // Apply parent transformation nodes if necessary
+        if (segmentationNode->GetParentTransformNode())
+        {
+          if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, binaryLabelmapCopy))
+          {
+            std::string errorMessage("Failed to apply parent transformation to exported segment!");
+            vtkErrorMacro("ExportDicomRTStudy: " << errorMessage);
+            return errorMessage;
+          }
+        }
+        // Make sure the labelmap dimensions match the reference dimensions
+        if ( !vtkOrientedImageDataResample::DoGeometriesMatch(imageOrientedImageData, binaryLabelmapCopy)
+          || !vtkOrientedImageDataResample::DoExtentsMatch(imageOrientedImageData, binaryLabelmapCopy) )
+        {
+          if (!vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(binaryLabelmapCopy, imageOrientedImageData, binaryLabelmapCopy))
+          {
+            error = "Failed to resample segment " + segmentID + " to match anatomical image geometry";
+            vtkErrorMacro("ExportDicomRTStudy: " + error);
+            return error;
+          }
+        }
+
+        // Convert mask to Plm image
+        Plm_image::Pointer plmStructure = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(binaryLabelmapCopy);
+        if (!plmStructure)
+        {
+          error = "Failed to convert segment labelmap " + segmentID + " to Plastimatch image";
+          vtkErrorMacro("ExportDicomRTStudy: " + error);
+          return error;
+        }
+
+        // Get segment properties
+        std::string segmentName = segment->GetName();
+
+        double segmentColor[3] = {0.5,0.5,0.5};
+        segment->GetDefaultColor(segmentColor);
+        vtkMRMLSegmentationDisplayNode* segmentationDisplayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
+          segmentationNode->GetDisplayNode() );
+        if (segmentationDisplayNode)
+        {
+          vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
+          if (segmentationDisplayNode->GetSegmentDisplayProperties(segmentID, properties))
+          {
+            segmentColor[0] = properties.Color[0];
+            segmentColor[1] = properties.Color[1];
+            segmentColor[2] = properties.Color[2];
+          }
+        }
+
+        rtWriter->AddStructure(plmStructure->itk_uchar(), segmentName.c_str(), segmentColor);
+      } // For each segment
+    }
+    // If master representation is poly data type, then export from closed surface
+    else if (segmentation->IsMasterRepresentationPolyData())
+    {
+      // Make sure segmentation contains closed surface
+      if ( !segmentationNode->GetSegmentation()->CreateRepresentation(
+        vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() ) )
       {
-        error = "Failed to convert segment labelmap " + segmentID + " to Plastimatch image";
+        error = "Failed to get closed surface representation from segmentation " + std::string(segmentationNode->GetName());
         vtkErrorMacro("ExportDicomRTStudy: " + error);
         return error;
       }
 
-      // Get segment properties
-      std::string segmentName = segment->GetName();
-
-      double segmentColor[3] = {0.5,0.5,0.5};
-      segment->GetDefaultColor(segmentColor);
-      vtkMRMLSegmentationDisplayNode* segmentationDisplayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
-        segmentationNode->GetDisplayNode() );
-      if (segmentationDisplayNode)
+      // Get transform  from segmentation to world (RAS)
+      vtkSmartPointer<vtkGeneralTransform> nodeToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+      nodeToWorldTransform->Identity();
+      if (segmentationNode->GetParentTransformNode())
       {
-        vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-        if (segmentationDisplayNode->GetSegmentDisplayProperties(segmentID, properties))
-        {
-          segmentColor[0] = properties.Color[0];
-          segmentColor[1] = properties.Color[1];
-          segmentColor[2] = properties.Color[2];
-        }
+        segmentationNode->GetParentTransformNode()->GetTransformToWorld(nodeToWorldTransform);
       }
+      // Initialize poly data transformer
+      vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyData = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+      transformPolyData->SetTransform(nodeToWorldTransform);
 
-      rtWriter->AddStructure(plmStructure->itk_uchar(), segmentName.c_str(), segmentColor);
+      // Initialize cutting plane with normal of the Z axis of the anatomical image
+      vtkSmartPointer<vtkMatrix4x4> imageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      imageOrientedImageData->GetImageToWorldMatrix(imageToWorldMatrix);
+      double normal[3] = { imageToWorldMatrix->GetElement(0,2), imageToWorldMatrix->GetElement(1,2), imageToWorldMatrix->GetElement(2,2) };
+      vtkSmartPointer<vtkPlane> slicePlane = vtkSmartPointer<vtkPlane>::New();
+      slicePlane->SetNormal(normal);
+
+      // Export each segment in segmentation
+      vtkSegmentation::SegmentMap segmentMap = segmentationNode->GetSegmentation()->GetSegments();
+      for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+      {
+        std::string segmentID = segmentIt->first;
+        vtkSegment* segment = segmentIt->second;
+
+        // Get closed surface representation
+        vtkPolyData* closedSurfacePolyData = vtkPolyData::SafeDownCast(
+          segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName()) );
+        if (!closedSurfacePolyData)
+        {
+          error = "Failed to get closed surface representation from segment " + segmentID;
+          vtkErrorMacro("ExportDicomRTStudy: " + error);
+          return error;
+        }
+
+        // Initialize cutter pipeline for segment
+        transformPolyData->SetInputData(closedSurfacePolyData);
+        vtkSmartPointer<vtkCutter> cutter = vtkSmartPointer<vtkCutter>::New();
+        cutter->SetInputConnection(transformPolyData->GetOutputPort());
+        cutter->SetGenerateCutScalars(0);
+        vtkSmartPointer<vtkAppendPolyData> appendPolyData = vtkSmartPointer<vtkAppendPolyData>::New();
+
+        // Get segment bounding box
+        double bounds[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
+        transformPolyData->Update();
+        transformPolyData->GetOutput()->GetBounds(bounds);
+
+        // Create planar contours from closed surface based on each of the anatomical image slices
+        for (int slice=imageOrientedImageData->GetExtent()[0]; slice<imageOrientedImageData->GetExtent()[1]; ++slice)
+        {
+          // Calculate slice origin
+          double origin[3] = { imageToWorldMatrix->GetElement(0,3) + slice*normal[0],
+                               imageToWorldMatrix->GetElement(1,3) + slice*normal[1],
+                               imageToWorldMatrix->GetElement(2,3) + slice*normal[2] };
+          slicePlane->SetOrigin(origin);
+          if (origin[2] < bounds[4] || origin[2] > bounds[5])
+          {
+            // No contours outside surface bounds
+            continue;
+          }
+
+          // Cut closed surface at slice
+          cutter->SetCutFunction(slicePlane);
+          cutter->Update();
+          appendPolyData->AddInputData(cutter->GetOutput());
+
+          //double segmentBounds[6]={0,0,0,0,0,0};
+          //cutter->GetOutput()->GetBounds(segmentBounds);
+          //vtkWarningMacro("Slice " << slice << " origin (" << origin[0] << ", " << origin[1] << ", " << origin[2] << ") bounds (" << segmentBounds[0] << "," << segmentBounds[1] << ", " << segmentBounds[2] << "," << segmentBounds[3] << ", " << segmentBounds[4] << "," << segmentBounds[5] << ") points " << cutter->GetOutput()->GetNumberOfPoints());
+        }
+
+        // Get contours poly data
+        appendPolyData->Update();
+        vtkPolyData* segmentContours = appendPolyData->GetOutput();
+//        int p = segmentContours->GetNumberOfPoints();
+//        int c = segmentContours->GetNumberOfCells();
+//        int l = segmentContours->GetNumberOfLines();
+//vtkSmartPointer<vtkMRMLModelNode> segmentModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+//mrmlScene->AddNode(segmentModelNode);
+//segmentModelNode->SetAndObservePolyData(segmentContours);
+//segmentModelNode->CreateDefaultDisplayNodes();
+      } // For each segment
+    }
+    else
+    {
+      error = "Structure set contains unsupported master representation!";
+      vtkErrorMacro("ExportDicomRTStudy: " + error);
+      return error;
     }
   }
 
