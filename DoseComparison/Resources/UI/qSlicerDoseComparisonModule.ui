@@ -127,6 +127,9 @@
       </item>
       <item row="13" column="0">
        <widget class="QLabel" name="label_14">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If not checked, dose values over threshold on either image will be considered.  If checked, dose values over threshold on reference image will be considered.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Dose threshold on reference only</string>
         </property>
@@ -372,7 +375,7 @@ p, li { white-space: pre-wrap; }
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_ReferenceDose">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_ReferenceDose_cGy">
             <property name="enabled">
              <bool>false</bool>
             </property>

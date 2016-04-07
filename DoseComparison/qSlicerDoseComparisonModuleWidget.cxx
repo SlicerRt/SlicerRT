@@ -247,7 +247,7 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
     }
     d->doubleSpinBox_DtaDistanceTolerance->setValue(paramNode->GetDtaDistanceToleranceMm());
     d->doubleSpinBox_DoseDifferenceTolerance->setValue(paramNode->GetDoseDifferenceTolerancePercent());
-    d->doubleSpinBox_ReferenceDose->setValue(paramNode->GetReferenceDoseGy());
+    d->doubleSpinBox_ReferenceDose_cGy->setValue(paramNode->GetReferenceDoseGy() * 100.0); // Spinbox shows cGy
     d->doubleSpinBox_AnalysisThreshold->setValue(paramNode->GetAnalysisThresholdPercent());
     d->checkBox_LinearInterpolation->setChecked(paramNode->GetUseLinearInterpolation());
     d->doubleSpinBox_MaximumGamma->setValue(paramNode->GetMaximumGamma());
@@ -286,7 +286,7 @@ void qSlicerDoseComparisonModuleWidget::setup()
 
   connect( d->doubleSpinBox_DtaDistanceTolerance, SIGNAL(valueChanged(double)), this, SLOT(dtaDistanceToleranceChanged(double)) );
   connect( d->doubleSpinBox_DoseDifferenceTolerance, SIGNAL(valueChanged(double)), this, SLOT(doseDifferenceToleranceChanged(double)) );
-  connect( d->doubleSpinBox_ReferenceDose, SIGNAL(valueChanged(double)), this, SLOT(referenceDoseChanged(double)) );
+  connect( d->doubleSpinBox_ReferenceDose_cGy, SIGNAL(valueChanged(double)), this, SLOT(referenceDoseChanged(double)) );
   connect( d->doubleSpinBox_AnalysisThreshold, SIGNAL(valueChanged(double)), this, SLOT(analysisThresholdChanged(double)) );
   connect( d->checkBox_LinearInterpolation, SIGNAL(stateChanged(int)), this, SLOT(linearInterpolationCheckedStateChanged(int)) );
   connect( d->doubleSpinBox_MaximumGamma, SIGNAL(valueChanged(double)), this, SLOT(maximumGammaChanged(double)) );
@@ -527,7 +527,7 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseUseMaximumDoseChanged(bool 
     return;
   }
 
-  d->doubleSpinBox_ReferenceDose->setEnabled(!state);
+  d->doubleSpinBox_ReferenceDose_cGy->setEnabled(!state);
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetUseMaximumDose(state);
