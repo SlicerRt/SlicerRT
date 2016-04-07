@@ -27,16 +27,17 @@
 
 // VTK includes
 #include <vtkNew.h>
-#include "vtkObjectFactory.h"
-#include "vtkPolyData.h"
-#include "vtkPoints.h"
-#include "vtkCellArray.h"
+#include <vtkObjectFactory.h>
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
+#include <vtkCell.h>
+#include <vtkPoints.h>
 
 // ITK includes
 #include "itkImage.h"
 
 // DCMTK includes
-#include "dcmtk/config/osconfig.h"    /* make sure OS specific configuration is included first */
+#include "dcmtk/config/osconfig.h" // make sure OS specific configuration is included first
 #include "dcmtk/ofstd/ofconapp.h"
 #include "dcmtk/dcmrt/drtdose.h"
 #include "dcmtk/dcmrt/drtimage.h"
@@ -48,6 +49,9 @@
 
 // Plastimatch includes
 #include "rt_study.h"
+#include "segmentation.h"
+#include "rtss_roi.h"
+#include "rtss_contour.h"
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtWriter);
@@ -85,17 +89,17 @@ void vtkSlicerDicomRtWriter::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtWriter::SetImage(const Plm_image::Pointer& img)
 {
-  RtStudy.set_image(img);
+  this->RtStudy.set_image(img);
 }
   
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtWriter::SetDose(const Plm_image::Pointer& img)
 {
-  RtStudy.set_dose(img);
+  this->RtStudy.set_dose(img);
 }
   
 //----------------------------------------------------------------------------
-std::string vtkSlicerDicomRtWriter::formatColorString (const double *color)
+std::string vtkSlicerDicomRtWriter::formatColorString(const double *color)
 {
   std::string colorString = "";
   std::ostringstream strs;
@@ -116,14 +120,67 @@ std::string vtkSlicerDicomRtWriter::formatColorString (const double *color)
 void vtkSlicerDicomRtWriter::AddStructure(UCharImageType::Pointer itk_structure, const char *name, double *color)
 {
   std::string colorString = this->formatColorString(color);
-  RtStudy.add_structure(itk_structure, name, colorString.c_str());
+
+  this->RtStudy.add_structure(itk_structure, name, colorString.c_str());
 }
   
 //----------------------------------------------------------------------------
+void vtkSlicerDicomRtWriter::AddStructure(const char *name, double *color,
+                                          std::vector<int> sliceNumbers,
+                                          std::vector<std::string> sliceUIDs,
+                                          std::vector<vtkPolyData*> sliceContours )
+{
+  if (sliceNumbers.size() != sliceUIDs.size() || sliceNumbers.size() != sliceContours.size())
+  {
+    vtkErrorMacro("AddStructure: Invalid contours arguments!");
+    return;
+  }
+
+  std::string colorString = this->formatColorString(color);
+
+  // Make sure there is a segmentation in the RT study
+  Segmentation::Pointer segmentation;
+  if (this->RtStudy.have_rtss())
+  {
+    segmentation = this->RtStudy.get_rtss();
+  }
+  else
+  {
+    segmentation = Segmentation::New();
+    this->RtStudy.set_rtss(segmentation);
+  }
+  Rtss_roi* roi = segmentation->add_rtss_roi(name, colorString.c_str());
+
+  for (int contourIndex=0; contourIndex<sliceContours.size(); ++contourIndex)
+  {
+    int sliceNumber = sliceNumbers[contourIndex];
+    std::string sliceUID = sliceUIDs[contourIndex];
+    vtkPolyData* contourPolyData = sliceContours[contourIndex];
+    for (int cellIndex=0; cellIndex<contourPolyData->GetNumberOfCells(); ++cellIndex)
+    {
+      vtkPoints* points = contourPolyData->GetCell(cellIndex)->GetPoints();
+      Rtss_contour* contour = roi->add_polyline(points->GetNumberOfPoints());
+      contour->slice_no = sliceNumber;
+      contour->ct_slice_uid = sliceUID;
+
+      for (int pointIndex=0; pointIndex<points->GetNumberOfPoints(); ++pointIndex)
+      {
+        double point[3] = {0.0,0.0,0.0};
+        points->GetPoint(pointIndex, point);
+        // RAS to LPS conversion
+        contour->x[pointIndex] = point[0] * -1.0;
+        contour->y[pointIndex] = point[1] * -1.0;
+        contour->z[pointIndex] = point[2];
+      }
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkSlicerDicomRtWriter::Write()
 {
-  /* Set study metadata */
-  Rt_study_metadata::Pointer& rt_metadata = RtStudy.get_rt_study_metadata ();
+  // Set study metadata
+  Rt_study_metadata::Pointer& rt_metadata = this->RtStudy.get_rt_study_metadata ();
   if (this->PatientName && this->PatientName[0] != 0)
   {
     rt_metadata->set_study_metadata (0x0010, 0x0010, this->PatientName);
@@ -157,7 +214,7 @@ void vtkSlicerDicomRtWriter::Write()
     rt_metadata->set_study_metadata (0x0020, 0x0010, this->StudyID);
   }
   
-  /* Set image, dose, rtstruct metadata */
+  // Set image, dose, structures metadata
   if (this->ImageSeriesDescription && this->ImageSeriesDescription[0] != 0)
   {
     rt_metadata->set_image_metadata (0x0008, 0x103e, this->ImageSeriesDescription);
@@ -171,6 +228,6 @@ void vtkSlicerDicomRtWriter::Write()
     rt_metadata->set_image_metadata (0x0008, 0x0060, this->ImageSeriesModality);
   }
   
-  /* Write output to files */
-  RtStudy.save_dicom(this->FileName);
+  // Write output to files
+  this->RtStudy.save_dicom(this->FileName);
 }

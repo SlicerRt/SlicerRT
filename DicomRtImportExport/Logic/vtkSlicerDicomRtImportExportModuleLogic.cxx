@@ -15,9 +15,11 @@
   limitations under the License.
 
   This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
-  with funds provided by the Ontario Ministry of Health and Long-Term Care
-  and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
+  University Health Network and Csaba Pinter, PerkLab, Queen's University and
+  Andras Lasso, PerkLab, Queen's University, and was supported by Cancer Care
+  Ontario (CCO)'s ACRU program with funds provided by the Ontario Ministry of
+  Health and Long-Term Care and Ontario Consortium for Adaptive Interventions in
+  Radiation Oncology (OCAIRO).
 
 ==============================================================================*/
 
@@ -65,7 +67,7 @@
 #include <dcmtk/dcmdata/dcuid.h>
 #include <dcmtk/ofstd/ofcond.h>
 #include <dcmtk/ofstd/ofstring.h>
-#include <dcmtk/ofstd/ofstd.h>        /* for class OFStandard */
+#include <dcmtk/ofstd/ofstd.h> // for class OFStandard
 #include <dcmtk/dcmrt/drtdose.h>
 #include <dcmtk/dcmrt/drtimage.h>
 #include <dcmtk/dcmrt/drtplan.h>
@@ -98,7 +100,7 @@
 #include <vtkGeneralTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkCutter.h>
-#include <vtkAppendPolyData.h>
+#include <vtkStripper.h>
 #include <vtkPlane.h>
 
 // ITK includes
@@ -1662,8 +1664,8 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   vtkMRMLSubjectHierarchyNode* firstSHNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(mrmlScene->GetNodeByID(firstExportable->GetNodeID()));
   if (firstSHNode)
   {
-    vtkMRMLSubjectHierarchyNode* studySHNode = firstSHNode->GetAncestorAtLevel (
-      vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+    vtkMRMLSubjectHierarchyNode* studySHNode = firstSHNode->GetAncestorAtLevel(
+      vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy() );
     if (studySHNode)
     {
       studyInstanceUid = studySHNode->GetUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName());
@@ -1689,6 +1691,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   vtkMRMLScalarVolumeNode* doseNode = NULL;
   vtkMRMLSegmentationNode* segmentationNode = NULL;
   vtkMRMLScalarVolumeNode* imageNode = NULL;
+  std::vector<std::string> imageSliceUIDs;
   for (int index=0; index<exportables->GetNumberOfItems(); ++index)
   {
     vtkSlicerDICOMExportable* exportable = vtkSlicerDICOMExportable::SafeDownCast(
@@ -1721,15 +1724,22 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     else if (associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode"))
     {
       imageNode = vtkMRMLScalarVolumeNode::SafeDownCast(associatedNode);
+
+      // Get series DICOM tags to export
       imageSeriesDescription = exportable->GetTag("SeriesDescription");
       if (imageSeriesDescription && !strcmp(imageSeriesDescription, "No series description"))
       {
         imageSeriesDescription = 0;
       }
+      //TODO: Getter function adds "DICOM." prefix (which is for attribute names), while the exportable tags are without that
       // imageSeriesModality = exportable->GetTag(vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesModalityAttributeName());
       imageSeriesModality = exportable->GetTag("Modality");
       // imageSeriesNumber = exportable->GetTag(vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesNumberAttributeName());
       imageSeriesNumber = exportable->GetTag("SeriesNumber");
+
+      // Get slice instance UIDs
+      std::string sliceInstanceUIDList = shNode->GetUID(vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName());
+      vtkMRMLSubjectHierarchyNode::DeserializeUIDList(sliceInstanceUIDList, imageSliceUIDs);
     }
     // Report warning if a node cannot be assigned a role
     else
@@ -1765,7 +1775,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   rtWriter->SetImageSeriesModality(imageSeriesModality);
   
   // Convert input image (CT/MR/etc) to the format Plastimatch can use
-  vtkOrientedImageData* imageOrientedImageData = vtkOrientedImageData::New();
+  vtkSmartPointer<vtkOrientedImageData> imageOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
   if (!SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(imageNode, imageOrientedImageData))
   {
     error = "Failed to convert anatomical image " + std::string(imageNode->GetName()) + " to oriented image data";
@@ -1798,7 +1808,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   // Convert input RTDose to the format Plastimatch can use
   if (doseNode)
   {
-    vtkOrientedImageData* doseOrientedImageData = vtkOrientedImageData::New();
+    vtkSmartPointer<vtkOrientedImageData> doseOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
     if (!SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(doseNode, doseOrientedImageData))
     {
       error = "Failed to convert dose volume " + std::string(doseNode->GetName()) + " to oriented image data";
@@ -1969,15 +1979,23 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
         vtkSmartPointer<vtkCutter> cutter = vtkSmartPointer<vtkCutter>::New();
         cutter->SetInputConnection(transformPolyData->GetOutputPort());
         cutter->SetGenerateCutScalars(0);
-        vtkSmartPointer<vtkAppendPolyData> appendPolyData = vtkSmartPointer<vtkAppendPolyData>::New();
+        vtkSmartPointer<vtkStripper> stripper = vtkSmartPointer<vtkStripper>::New();
+        stripper->SetInputConnection(cutter->GetOutputPort());
 
         // Get segment bounding box
         double bounds[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
         transformPolyData->Update();
         transformPolyData->GetOutput()->GetBounds(bounds);
 
+        // Containers to be passed to the writer
+        std::vector<int> sliceNumbers;
+        std::vector<std::string> sliceUIDs;
+        std::vector<vtkPolyData*> sliceContours;
+
         // Create planar contours from closed surface based on each of the anatomical image slices
-        for (int slice=imageOrientedImageData->GetExtent()[0]; slice<imageOrientedImageData->GetExtent()[1]; ++slice)
+        int imageExtent[6] = {0,-1,0,-1,0,-1};
+        imageOrientedImageData->GetExtent(imageExtent);
+        for (int slice=imageExtent[0]; slice<imageExtent[1]; ++slice)
         {
           // Calculate slice origin
           double origin[3] = { imageToWorldMatrix->GetElement(0,3) + slice*normal[0],
@@ -1992,24 +2010,47 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
 
           // Cut closed surface at slice
           cutter->SetCutFunction(slicePlane);
-          cutter->Update();
-          appendPolyData->AddInputData(cutter->GetOutput());
+          
+          // Get instance UID of corresponding slice
+          int sliceNumber = slice-imageExtent[0];
+          sliceNumbers.push_back(sliceNumber);
+          std::string sliceInstanceUID = imageSliceUIDs[sliceNumber];
+          sliceUIDs.push_back(sliceInstanceUID);
 
-          //double segmentBounds[6]={0,0,0,0,0,0};
-          //cutter->GetOutput()->GetBounds(segmentBounds);
-          //vtkWarningMacro("Slice " << slice << " origin (" << origin[0] << ", " << origin[1] << ", " << origin[2] << ") bounds (" << segmentBounds[0] << "," << segmentBounds[1] << ", " << segmentBounds[2] << "," << segmentBounds[3] << ", " << segmentBounds[4] << "," << segmentBounds[5] << ") points " << cutter->GetOutput()->GetNumberOfPoints());
+          // Save slice contour
+          stripper->Update();
+          vtkPolyData* sliceContour = vtkPolyData::New();
+          sliceContour->SetPoints(stripper->GetOutput()->GetPoints());
+          sliceContour->SetPolys(stripper->GetOutput()->GetLines());
+          sliceContours.push_back(sliceContour);
+        } // For each anatomical image slice
+
+        // Get segment properties
+        std::string segmentName = segment->GetName();
+
+        double segmentColor[3] = {0.5,0.5,0.5};
+        segment->GetDefaultColor(segmentColor);
+        vtkMRMLSegmentationDisplayNode* segmentationDisplayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
+          segmentationNode->GetDisplayNode() );
+        if (segmentationDisplayNode)
+        {
+          vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
+          if (segmentationDisplayNode->GetSegmentDisplayProperties(segmentID, properties))
+          {
+            segmentColor[0] = properties.Color[0];
+            segmentColor[1] = properties.Color[1];
+            segmentColor[2] = properties.Color[2];
+          }
         }
 
-        // Get contours poly data
-        appendPolyData->Update();
-        vtkPolyData* segmentContours = appendPolyData->GetOutput();
-//        int p = segmentContours->GetNumberOfPoints();
-//        int c = segmentContours->GetNumberOfCells();
-//        int l = segmentContours->GetNumberOfLines();
-//vtkSmartPointer<vtkMRMLModelNode> segmentModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
-//mrmlScene->AddNode(segmentModelNode);
-//segmentModelNode->SetAndObservePolyData(segmentContours);
-//segmentModelNode->CreateDefaultDisplayNodes();
+        // Add contours to writer
+        rtWriter->AddStructure(segmentName.c_str(), segmentColor, sliceNumbers, sliceUIDs, sliceContours);
+
+        // Clean up slice contours
+        for (std::vector<vtkPolyData*>::iterator contourIt=sliceContours.begin(); contourIt!=sliceContours.end(); ++contourIt)
+        {
+          (*contourIt)->Delete();
+        }
       } // For each segment
     }
     else

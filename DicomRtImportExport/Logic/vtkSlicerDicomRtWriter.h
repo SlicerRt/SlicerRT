@@ -34,6 +34,8 @@
 
 #include "rt_study.h"
 
+class vtkPolyData;
+
 // Due to some reason the Python wrapping of this class fails, therefore
 // put everything between BTX/ETX to exclude from wrapping.
 // TODO #210: investigate why the wrapping fails
@@ -47,15 +49,24 @@ public:
   vtkTypeMacro(vtkSlicerDicomRtWriter, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// TODO: Description, argument names and descriptions
+  /// Set anatomical image to Plastimatch RT study for export
   void SetImage(const Plm_image::Pointer&);
 
-  /// TODO: Description, argument names and descriptions
+  /// Set dose distribution image to Plastimatch RT study for export
   void SetDose(const Plm_image::Pointer&);
 
-  /// TODO: Description, argument names and descriptions
-  void AddStructure(UCharImageType::Pointer, const char*, double*);
+  /// Add structure as image data to Plastimatch RT study for export
+  void AddStructure(UCharImageType::Pointer, const char* name, double* color);
   
+  /// Add empty structure for direct polyline format to Plastimatch RT study for export.
+  /// The three argument vectors contain the slice numbers, UIDs and contours, and need to
+  /// contain the same number of elements.
+  void AddStructure(const char *name, double *color,
+                    std::vector<int> sliceNumbers,
+                    std::vector<std::string> sliceUIDs,
+                    std::vector<vtkPolyData*> sliceContours);
+  /// Add 
+
   /// TODO: Description, argument names and descriptions
   void Write();
 
@@ -131,7 +142,7 @@ protected:
   /// Output directory
   char* FileName;
 
-  /// TODO:
+  /// Plastimatch RT study structure
   Rt_study RtStudy;
 
 private:
