@@ -2014,7 +2014,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
           // Get instance UID of corresponding slice
           int sliceNumber = slice-imageExtent[0];
           sliceNumbers.push_back(sliceNumber);
-          std::string sliceInstanceUID = imageSliceUIDs[sliceNumber];
+          std::string sliceInstanceUID = (imageSliceUIDs.size() > sliceNumber ? imageSliceUIDs[sliceNumber] : "");
           sliceUIDs.push_back(sliceInstanceUID);
 
           // Save slice contour
