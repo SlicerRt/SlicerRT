@@ -361,9 +361,7 @@ void qSlicerSubjectHierarchySegmentsPlugin::setDisplayVisibility(vtkMRMLSubjectH
   const char* segmentId = node->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
 
   // Set visibility
-  displayNode->SetSegmentVisibility3D(segmentId, (bool)visible);
-  displayNode->SetSegmentVisibility2DFill(segmentId, (bool)visible);
-  displayNode->SetSegmentVisibility2DOutline(segmentId, (bool)visible);
+  displayNode->SetSegmentVisibility(segmentId, (bool)visible);
 
   // Trigger update of visibility icon
   node->Modified();
@@ -498,9 +496,7 @@ void qSlicerSubjectHierarchySegmentsPlugin::showOnlyCurrentSegment()
     const char* segmentIdChars = segmentShNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
     std::string segmentId(segmentIdChars ? segmentIdChars : "");
     // Set visibility
-    displayNode->SetSegmentVisibility3D(segmentId, visible);
-    displayNode->SetSegmentVisibility2DFill(segmentId, visible);
-    displayNode->SetSegmentVisibility2DOutline(segmentId, visible);
+    displayNode->SetSegmentVisibility(segmentId, visible);
     // Trigger update of visibility icon
     segmentShNode->Modified();
   }
@@ -541,9 +537,7 @@ void qSlicerSubjectHierarchySegmentsPlugin::showAllSegments()
     const char* segmentIdChars = segmentShNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
     std::string segmentId(segmentIdChars ? segmentIdChars : "");
     // Set visibility
-    displayNode->SetSegmentVisibility3D(segmentId, true);
-    displayNode->SetSegmentVisibility2DFill(segmentId, true);
-    displayNode->SetSegmentVisibility2DOutline(segmentId, true);
+    displayNode->SetSegmentVisibility(segmentId, true);
     // Trigger update of visibility icon
     segmentShNode->Modified();
   }

@@ -472,6 +472,14 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentVisibility2DOutline(std::string s
 }
 
 //---------------------------------------------------------------------------
+void vtkMRMLSegmentationDisplayNode::SetSegmentVisibility(std::string segmentID, bool visible)
+{
+  this->SetSegmentVisibility3D(segmentID, visible);
+  this->SetSegmentVisibility2DFill(segmentID, visible);
+  this->SetSegmentVisibility2DOutline(segmentID, visible);
+}
+
+//---------------------------------------------------------------------------
 double vtkMRMLSegmentationDisplayNode::GetSegmentOpacity3D(std::string segmentID)
 {
   SegmentDisplayPropertiesMap::iterator propsIt = this->SegmentationDisplayProperties.find(segmentID);

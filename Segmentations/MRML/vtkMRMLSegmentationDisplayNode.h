@@ -164,6 +164,9 @@ public:
   /// Set segment 2D outline visibility by segment ID. Convenience function for python compatibility.
   void SetSegmentVisibility2DOutline(std::string segmentID, bool visible);
 
+  /// Set all three types of segment visibility by segment ID
+  void SetSegmentVisibility(std::string segmentID, bool visible);
+
   /// Get segment 3D opacity by segment ID. Convenience function for python compatibility.
   /// \return Segment 3D opacity if segment found, otherwise false
   double GetSegmentOpacity3D(std::string segmentID);
