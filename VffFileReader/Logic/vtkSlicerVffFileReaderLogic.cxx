@@ -426,11 +426,6 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     else
     {
       referenceScatterFactor = numberFromParsedStringReferenceScatterFactor[0];
-      if (referenceScatterFactor != 1)
-      {
-        vtkErrorMacro("LoadVffFile: The value entered for the Reference Scatter Factor must be 1.");
-        parameterInvalidValue = true;
-      }
     }
 
     std::vector<double> numberFromParsedStringDataScatterFactor = this->ParseNumberOfNumbersFromString<double>(parameterList["datascatterfactor"], 1);
@@ -442,11 +437,6 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     else 
     {
       dataScatterFactor = numberFromParsedStringDataScatterFactor[0];
-      if (dataScatterFactor != 1)
-      {
-        vtkErrorMacro("LoadVffFile: The value entered for the Data Scatter Factor must be 1.");
-        parameterInvalidValue = true;
-      }
     }
 
     if (parameterList["filter"].empty())
