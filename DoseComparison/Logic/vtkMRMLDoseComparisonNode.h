@@ -129,6 +129,13 @@ public:
   /// Set dose threshold on reference flag
   vtkBooleanMacro(DoseThresholdOnReferenceOnly, bool);
 
+  /// Get local dose difference flag
+  vtkGetMacro(LocalDoseDifference, bool);
+  /// Set local dose difference flag
+  vtkSetMacro(LocalDoseDifference, bool);
+  /// Set local dose difference flag
+  vtkBooleanMacro(LocalDoseDifference, bool);
+
   /// Get valid flag
   vtkGetMacro(ResultsValid, bool);
   /// Set valid flag
@@ -183,6 +190,9 @@ protected:
   /// Flag determining whether linear interpolation is used when resampling the compare dose volume to reference grid.
   /// Default value is true. On false value nearest neighbor is used.
   bool UseLinearInterpolation;
+
+  /// Flag determining whether local dose difference is used in the gamma calculation. Global if false (default).
+  bool LocalDoseDifference;
   
   /// Flag determining whether dose thresholding should be performed using only the reference image
   /// Default value is false, meaning that both images will be used

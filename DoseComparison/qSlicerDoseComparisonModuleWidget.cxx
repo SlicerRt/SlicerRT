@@ -250,6 +250,7 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
     d->doubleSpinBox_ReferenceDose_cGy->setValue(paramNode->GetReferenceDoseGy() * 100.0); // Spinbox shows cGy
     d->doubleSpinBox_AnalysisThreshold->setValue(paramNode->GetAnalysisThresholdPercent());
     d->checkBox_LinearInterpolation->setChecked(paramNode->GetUseLinearInterpolation());
+    d->checkBox_Local->setChecked(paramNode->GetLocalDoseDifference());
     d->doubleSpinBox_MaximumGamma->setValue(paramNode->GetMaximumGamma());
     if (paramNode->GetUseMaximumDose())
     {
@@ -289,6 +290,7 @@ void qSlicerDoseComparisonModuleWidget::setup()
   connect( d->doubleSpinBox_ReferenceDose_cGy, SIGNAL(valueChanged(double)), this, SLOT(referenceDoseChanged(double)) );
   connect( d->doubleSpinBox_AnalysisThreshold, SIGNAL(valueChanged(double)), this, SLOT(analysisThresholdChanged(double)) );
   connect( d->checkBox_LinearInterpolation, SIGNAL(stateChanged(int)), this, SLOT(linearInterpolationCheckedStateChanged(int)) );
+  connect( d->checkBox_Local, SIGNAL(stateChanged(int)), this, SLOT(localDoseDifferenceCheckedStateChanged(int)) );
   connect( d->doubleSpinBox_MaximumGamma, SIGNAL(valueChanged(double)), this, SLOT(maximumGammaChanged(double)) );
   connect( d->radioButton_ReferenceDose_MaximumDose, SIGNAL(toggled(bool)), this, SLOT(referenceDoseUseMaximumDoseChanged(bool)) );
   connect( d->checkBox_ThresholdReferenceOnly, SIGNAL(stateChanged(int)), this, SLOT(doseThresholdOnReferenceOnlyCheckedStateChanged(int)) );
@@ -603,6 +605,30 @@ void qSlicerDoseComparisonModuleWidget::linearInterpolationCheckedStateChanged(i
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetUseLinearInterpolation(state);
+  paramNode->DisableModifiedEventOff();
+
+  this->invalidateResults();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseComparisonModuleWidget::localDoseDifferenceCheckedStateChanged(int state)
+{
+  Q_D(qSlicerDoseComparisonModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetLocalDoseDifference(state);
   paramNode->DisableModifiedEventOff();
 
   this->invalidateResults();

@@ -68,6 +68,7 @@ protected slots:
   void referenceDoseChanged(double);
   void analysisThresholdChanged(double);
   void linearInterpolationCheckedStateChanged(int);
+  void localDoseDifferenceCheckedStateChanged(int);
   void maximumGammaChanged(double);
   void doseThresholdOnReferenceOnlyCheckedStateChanged(int);
 

@@ -286,6 +286,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   gamma.set_spatial_tolerance(this->DoseComparisonNode->GetDtaDistanceToleranceMm());
   gamma.set_dose_difference_tolerance(this->DoseComparisonNode->GetDoseDifferenceTolerancePercent() / 100.0);
   gamma.set_resample_nn(!this->DoseComparisonNode->GetUseLinearInterpolation());
+  gamma.set_local_gamma(this->DoseComparisonNode->GetLocalDoseDifference());
   if (!this->DoseComparisonNode->GetUseMaximumDose())
   {
     gamma.set_reference_dose(this->DoseComparisonNode->GetReferenceDoseGy());

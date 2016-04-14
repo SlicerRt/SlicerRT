@@ -31,6 +31,7 @@
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
+#include <vtkVariant.h>
 
 // STD includes
 #include <sstream>
@@ -59,6 +60,7 @@ vtkMRMLDoseComparisonNode::vtkMRMLDoseComparisonNode()
   this->PassFractionPercent = -1.0;
   this->ResultsValid = false;
   this->ReportString = NULL;
+  this->LocalDoseDifference = false;
 
   this->HideFromEditors = false;
 }
@@ -85,6 +87,7 @@ void vtkMRMLDoseComparisonNode::WriteXML(ostream& of, int nIndent)
   of << indent << " MaximumGamma=\"" << this->MaximumGamma << "\"";
   of << indent << " UseMaximumDose=\"" << (this->UseMaximumDose ? "true" : "false") << "\"";
   of << indent << " UseLinearInterpolation=\"" << (this->UseLinearInterpolation ? "true" : "false") << "\"";
+  of << indent << " LocalDoseDifference=\"" << (this->LocalDoseDifference ? "true" : "false") << "\"";
   of << indent << " DoseThresholdOnReferenceOnly=\"" << (this->DoseThresholdOnReferenceOnly ? "true" : "false") << "\"";
   of << indent << " PassFractionPercent=\"" << this->PassFractionPercent << "\"";
   of << indent << " ResultsValid=\"" << (this->ResultsValid ? "true" : "false") << "\"";
@@ -107,77 +110,51 @@ void vtkMRMLDoseComparisonNode::ReadXMLAttributes(const char** atts)
 
     if (!strcmp(attName, "MaskSegmentID")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetMaskSegmentID(ss.str().c_str());
+      this->SetMaskSegmentID(vtkVariant(attValue).ToString());
       }
     else if (!strcmp(attName, "DtaDistanceToleranceMm")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->DtaDistanceToleranceMm = doubleAttValue;
+      this->DtaDistanceToleranceMm = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "DoseDifferenceTolerancePercent")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->DoseDifferenceTolerancePercent = doubleAttValue;
+      this->DoseDifferenceTolerancePercent = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "ReferenceDoseGy")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->ReferenceDoseGy = doubleAttValue;
+      this->ReferenceDoseGy = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "AnalysisThresholdPercent")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->AnalysisThresholdPercent = doubleAttValue;
+      this->AnalysisThresholdPercent = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "MaximumGamma")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->MaximumGamma = doubleAttValue;
+      this->MaximumGamma = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "UseMaximumDose")) 
       {
-      this->UseMaximumDose = 
-        (strcmp(attValue,"true") ? false : true);
+      this->UseMaximumDose = (strcmp(attValue,"true") ? false : true);
       }
     else if (!strcmp(attName, "UseLinearInterpolation")) 
       {
-      this->UseLinearInterpolation = 
-        (strcmp(attValue,"true") ? false : true);
+      this->UseLinearInterpolation = (strcmp(attValue,"true") ? false : true);
+      }
+    else if (!strcmp(attName, "LocalDoseDifference")) 
+      {
+      this->LocalDoseDifference = (strcmp(attValue,"true") ? false : true);
       }
     else if (!strcmp(attName, "DoseThresholdOnReferenceOnly")) 
       {
-      this->DoseThresholdOnReferenceOnly = 
-        (strcmp(attValue,"true") ? false : true);
+      this->DoseThresholdOnReferenceOnly = (strcmp(attValue,"true") ? false : true);
       }
     else if (!strcmp(attName, "PassFractionPercent")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->PassFractionPercent = doubleAttValue;
+      this->PassFractionPercent = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "ResultsValid")) 
       {
-      this->ResultsValid = 
-        (strcmp(attValue,"true") ? false : true);
+      this->ResultsValid = (strcmp(attValue,"true") ? false : true);
       }
     }
 
@@ -203,6 +180,7 @@ void vtkMRMLDoseComparisonNode::Copy(vtkMRMLNode *anode)
   this->PassFractionPercent = node->PassFractionPercent;
   this->UseMaximumDose = node->UseMaximumDose;
   this->UseLinearInterpolation = node->UseLinearInterpolation;
+  this->LocalDoseDifference = node->LocalDoseDifference;
   this->DoseThresholdOnReferenceOnly = node->DoseThresholdOnReferenceOnly;
   this->ResultsValid = node->ResultsValid;
   this->ReportString = node->ReportString;
@@ -224,6 +202,7 @@ void vtkMRMLDoseComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "MaximumGamma:   " << this->MaximumGamma << "\n";
   os << indent << "UseMaximumDose:   " << (this->UseMaximumDose ? "true" : "false") << "\n";
   os << indent << "UseLinearInterpolation:   " << (this->UseLinearInterpolation ? "true" : "false") << "\n";
+  os << indent << "LocalDoseDifference:   " << (this->LocalDoseDifference ? "true" : "false") << "\n";
   os << indent << "DoseThresholdOnReferenceOnly:   " << (this->DoseThresholdOnReferenceOnly ? "true" : "false") << "\n";
   os << indent << "PassFractionPercent:   " << this->PassFractionPercent << "\n";
   os << indent << "ResultsValid:   " << (this->ResultsValid ? "true" : "false") << "\n";
