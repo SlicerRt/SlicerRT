@@ -31,7 +31,6 @@
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
-#include <vtkVariant.h>
 
 // STD includes
 #include <sstream>

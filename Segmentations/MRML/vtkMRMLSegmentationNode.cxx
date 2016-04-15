@@ -948,9 +948,14 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
   // Allocate image data if empty or if reference extent changed
   int imageDataExtent[6] = {0,-1,0,-1,0,-1};
   mergedImageData->GetExtent(imageDataExtent);
-  if ( imageDataExtent[0] != referenceExtent[0] || imageDataExtent[1] != referenceExtent[1] || imageDataExtent[2] != referenceExtent[2]
+  if ( mergedImageData->GetScalarType() != VTK_SHORT
+    || imageDataExtent[0] != referenceExtent[0] || imageDataExtent[1] != referenceExtent[1] || imageDataExtent[2] != referenceExtent[2]
     || imageDataExtent[3] != referenceExtent[3] || imageDataExtent[4] != referenceExtent[4] || imageDataExtent[5] != referenceExtent[5] )
   {
+    if (mergedImageData->GetScalarType() != VTK_SHORT)
+    {
+      vtkWarningMacro("GenerateMergedLabelmap: Merged image data scalar type is not short! Allocating using short.");
+    }
     mergedImageData->SetExtent(referenceExtent);
     mergedImageData->AllocateScalars(VTK_SHORT, 1);
   }
@@ -963,9 +968,10 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
     // Setting the extent may invoke this function again via ImageDataModified, in which case the pointer is NULL
     return false;
   }
-  for (vtkIdType i=0; i<mergedImageData->GetNumberOfPoints(); ++i)
+  vtkIdType mergedImageDataNumberOfPoints = mergedImageData->GetNumberOfPoints();
+  for (vtkIdType i=0; i<mergedImageDataNumberOfPoints; ++i)
   {
-    (*mergedImagePtr) = backgroundColor;
+    (*mergedImagePtr) = (short)backgroundColor;
     ++mergedImagePtr;
   }
 
@@ -991,7 +997,6 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
     bool segmentIncluded = ( std::find(mergedSegmentIDs.begin(), mergedSegmentIDs.end(), std::string(currentSegmentId)) != mergedSegmentIDs.end() );
 
     // Get color table index for the segment
-    int colorIndex = -1;
     std::string colorIndexStr;
     bool tagFound = currentSegment->GetTag(vtkMRMLSegmentationDisplayNode::GetColorIndexTag(), colorIndexStr);
     if (!tagFound)
@@ -999,9 +1004,7 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
       vtkErrorMacro("GenerateMergedLabelmap: No color table index found for segment " << currentSegmentId);
       continue;
     }
-    std::stringstream colorSS;
-    colorSS << colorIndexStr;
-    colorSS >> colorIndex;
+    short colorIndex = vtkVariant(colorIndexStr).ToShort();
 
     // Get binary labelmap from segment
     vtkOrientedImageData* representationBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
@@ -1054,7 +1057,8 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
 
     mergedImagePtr = (short*)mergedImageData->GetScalarPointer();
     short* imagePtrMax = mergedImagePtr + referenceDimensions[0]*referenceDimensions[1]*referenceDimensions[2];
-    for (long i=0; i<binaryLabelmap->GetNumberOfPoints(); ++i)
+    vtkIdType binaryLabelmapNumberOfPoints = binaryLabelmap->GetNumberOfPoints();
+    for (vtkIdType i=0; i<binaryLabelmapNumberOfPoints; ++i)
     {
       // Get labelmap color at voxel
       unsigned short color = 0;
