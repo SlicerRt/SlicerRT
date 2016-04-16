@@ -631,7 +631,7 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
   properties.Visible2DFill = true;
   properties.Visible2DOutline = true;
   properties.Opacity3D = 1.0;
-  properties.Opacity2DFill = 1.0;
+  properties.Opacity2DFill = 0.4;
   properties.Opacity2DOutline = 1.0;
   displayNode->SetSegmentDisplayProperties(segmentId, properties);
 

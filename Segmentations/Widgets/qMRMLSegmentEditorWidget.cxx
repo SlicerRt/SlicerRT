@@ -428,46 +428,9 @@ void qMRMLSegmentEditorWidgetPrivate::selectFirstSegment()
 //-----------------------------------------------------------------------------
 void qMRMLSegmentEditorWidgetPrivate::showSelectedSegment()
 {
-  if (!this->ParameterSetNode)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
-    return;
-  }
-  vtkMRMLSegmentationNode* segmentationNode = this->ParameterSetNode->GetSegmentationNode();
-  if (!segmentationNode)
-  {
-    return;
-  }
-  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
-    segmentationNode->GetDisplayNode());
-  if (!displayNode)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid segmentation display node!";
-    return;
-  }
-
-  std::string selectedSegmentId(this->ParameterSetNode->GetSelectedSegmentID() ? this->ParameterSetNode->GetSelectedSegmentID() : "");
-
-  // Show fill for selected segment, outline of all other segments
-  // if per-segment effect is selected, otherwise show all as fill
-  int wasModified = displayNode->StartModify();
-  vtkSegmentation::SegmentMap segmentMap = segmentationNode->GetSegmentation()->GetSegments();
-  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
-  {
-    std::string currentSegmentId(segmentIt->first);
-    if ( (!currentSegmentId.empty() && !currentSegmentId.compare(selectedSegmentId))
-      || (this->ActiveEffect && !this->ActiveEffect->perSegment()) )
-    {
-      displayNode->SetSegmentVisibility2DFill(currentSegmentId, true);
-      displayNode->SetSegmentVisibility2DOutline(currentSegmentId, false);
-    }
-    else
-    {
-      displayNode->SetSegmentVisibility2DFill(currentSegmentId, false);
-      displayNode->SetSegmentVisibility2DOutline(currentSegmentId, true);
-    }
-  }
-  displayNode->EndModify(wasModified);
+  // Here we could change the selected segment's display.
+  // It seems that it is not necessary for now, but keep the method
+  // as a placeholder for a while.
 }
 
 //-----------------------------------------------------------------------------

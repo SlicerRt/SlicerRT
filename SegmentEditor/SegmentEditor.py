@@ -53,14 +53,17 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
   def selectParameterNode(self):
     # Select parameter set node if one is found in the scene, and create one otherwise
     import vtkSlicerSegmentationsModuleMRML
-    node = slicer.mrmlScene.GetNthNodeByClass(0, "vtkMRMLSegmentEditorNode")
-    if self.parameterSetNode is None:
-      if node is not None:
-        self.parameterSetNode = node
-      else:
-        self.parameterSetNode = vtkSlicerSegmentationsModuleMRML.vtkMRMLSegmentEditorNode()
-        slicer.mrmlScene.AddNode(self.parameterSetNode)
-    self.editor.setMRMLSegmentEditorNode(node)
+    segmentEditorSingletonTag = "SegmentEditor"
+    segmentEditorNode = slicer.mrmlScene.GetSingletonNode(segmentEditorSingletonTag, "vtkMRMLSegmentEditorNode")
+    if segmentEditorNode is None:
+      segmentEditorNode = vtkSlicerSegmentationsModuleMRML.vtkMRMLSegmentEditorNode()
+      segmentEditorNode.SetSingletonTag(segmentEditorSingletonTag)
+      segmentEditorNode = slicer.mrmlScene.AddNode(segmentEditorNode)
+    if self.parameterSetNode == segmentEditorNode:
+      # nothing changed
+      return
+    self.parameterSetNode = segmentEditorNode
+    self.editor.setMRMLSegmentEditorNode(self.parameterSetNode)
 
   def getCompositeNode(self, layoutName):
     """ use the Red slice composite node to define the active volumes """
