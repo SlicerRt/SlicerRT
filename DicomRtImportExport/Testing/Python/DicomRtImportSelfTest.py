@@ -1,6 +1,5 @@
 import os
 import unittest
-import util.DicomRtImportSelfTestPaths
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
@@ -104,36 +103,30 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
 
 
   def TestSection_0RetrieveInputData(self):
-    if 'util' in globals() and hasattr(util, 'DicomRtImportSelfTestPaths') and os.access(util.DicomRtImportSelfTestPaths.dataDir, os.F_OK):
-      self.dataDir = util.DicomRtImportSelfTestPaths.dataDir
-      self.dicomDatabaseDir = util.DicomRtImportSelfTestPaths.dicomDatabaseDir
-      self.tempDir = util.DicomRtImportSelfTestPaths.tempDir
-      self.delayDisplay('Test data found locally: %s' % (util.DicomRtImportSelfTestPaths.dataDir),self.delayMs)
-    else:
-      import urllib
+    import urllib
 
-      dicomRtImportSelfTestDir = slicer.app.temporaryPath + '/DicomRtImportSelfTest'
-      if not os.access(dicomRtImportSelfTestDir, os.F_OK):
-        os.mkdir(dicomRtImportSelfTestDir)
-      self.dataDir = dicomRtImportSelfTestDir + '/EclipseProstatePhantomRtData'
-      if not os.access(self.dataDir, os.F_OK):
-        os.mkdir(self.dataDir)
-      self.dicomDatabaseDir = dicomRtImportSelfTestDir + '/CtkDicomDatabase'
-      self.tempDir = dicomRtImportSelfTestDir + '/Temp'
+    dicomRtImportSelfTestDir = slicer.app.temporaryPath + '/DicomRtImportSelfTest'
+    if not os.access(dicomRtImportSelfTestDir, os.F_OK):
+      os.mkdir(dicomRtImportSelfTestDir)
+    self.dataDir = dicomRtImportSelfTestDir + '/EclipseProstatePhantomRtData'
+    if not os.access(self.dataDir, os.F_OK):
+      os.mkdir(self.dataDir)
+    self.dicomDatabaseDir = dicomRtImportSelfTestDir + '/CtkDicomDatabase'
+    self.tempDir = dicomRtImportSelfTestDir + '/Temp'
 
-      downloads = (
-          ('http://slicer.kitware.com/midas3/download?items=10613', 'RD.1.2.246.352.71.7.2088656855.452083.20110920153746.dcm'),
-          ('http://slicer.kitware.com/midas3/download?items=10614', 'RP.1.2.246.352.71.5.2088656855.377401.20110920153647.dcm'),
-          ('http://slicer.kitware.com/midas3/download?items=10615', 'RS.1.2.246.352.71.4.2088656855.2404649.20110920153449.dcm'),
-          ('http://slicer.kitware.com/midas3/download/item/119940', 'RI.1.2.246.352.71.3.2088656855.2381134.20110921150951.dcm')
-          )
+    downloads = (
+        ('http://slicer.kitware.com/midas3/download?items=10613', 'RD.1.2.246.352.71.7.2088656855.452083.20110920153746.dcm'),
+        ('http://slicer.kitware.com/midas3/download?items=10614', 'RP.1.2.246.352.71.5.2088656855.377401.20110920153647.dcm'),
+        ('http://slicer.kitware.com/midas3/download?items=10615', 'RS.1.2.246.352.71.4.2088656855.2404649.20110920153449.dcm'),
+        ('http://slicer.kitware.com/midas3/download/item/119940', 'RI.1.2.246.352.71.3.2088656855.2381134.20110921150951.dcm')
+        )
 
-      for url,name in downloads:
-        filePath = self.dataDir + '/' + name
-        if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
-          logging.info('Requesting download %s from %s...\n' % (name, url))
-          urllib.urlretrieve(url, filePath)
-      self.delayDisplay('Finished with download test data',self.delayMs)
+    for url,name in downloads:
+      filePath = self.dataDir + '/' + name
+      if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
+        logging.info('Requesting download %s from %s...\n' % (name, url))
+        urllib.urlretrieve(url, filePath)
+    self.delayDisplay('Finished with download test data',self.delayMs)
 
   def TestSection_1OpenTempDatabase(self):
     # Open test database and empty it
