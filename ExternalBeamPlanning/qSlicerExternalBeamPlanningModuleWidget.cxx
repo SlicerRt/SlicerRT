@@ -73,8 +73,8 @@ public:
   ///   QMRMLCombobox selects the first instance of the specified node type when initializing
   bool ModuleWindowInitialized;
 
-  int currentBeamRow;
-  int totalBeamRows;
+  int CurrentBeamRow;
+  int NumberOfBeamRows;
 };
 
 //-----------------------------------------------------------------------------
@@ -85,8 +85,8 @@ qSlicerExternalBeamPlanningModuleWidgetPrivate::qSlicerExternalBeamPlanningModul
   : q_ptr(&object)
   , ModuleWindowInitialized(false)
 {
-  currentBeamRow = -1;
-  totalBeamRows = 0;
+  CurrentBeamRow = -1;
+  NumberOfBeamRows = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -319,7 +319,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromParameterNode()
   d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
   if (!paramNode)
   {
-    /* GCS FIX TODO: Still need to wipe the GUI in this case */
+    // GCS FIX TODO: Still need to wipe the GUI in this case
     return;
   }
 
@@ -425,13 +425,13 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromRTBeam(vtkMRMLRTBe
   {
     d->tabWidget->clear();
     d->lineEdit_BeamName->setText("");
-    // GCS FIX How do I disconnect ?
+    // GCS FIX TODO How do I disconnect ?
     return;
   }
 
   qvtkConnect (beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
 
-  /* GCS FIX, set radiation type somehow */
+  // GCS FIX TODO, set radiation type somehow
   d->lineEdit_BeamName->setText(beamNode->GetName());
 
   // Enable appropriate tabs and widgets for this beam type and set 
@@ -639,7 +639,7 @@ vtkMRMLRTPlanNode* qSlicerExternalBeamPlanningModuleWidget::rtPlanNode()
   {
     return NULL;
   }
-  return paramNode->GetRTPlanNode ();
+  return paramNode->GetRTPlanNode();
 }
 
 //-----------------------------------------------------------------------------
@@ -660,7 +660,7 @@ vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode(vtkM
   }
 
   QTableWidgetItem *item = NULL;
-  item = d->tableWidget_Beams->item(d->currentBeamRow, 0);
+  item = d->tableWidget_Beams->item(d->CurrentBeamRow, 0);
   if (!item)
   {
     return NULL;
@@ -774,9 +774,9 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
       d->tableWidget_Beams->setItem(i, 2, new QTableWidgetItem( QString::number(beamNode->GetGantryAngle()) ) );
     }
   }
-  if (d->currentBeamRow >= 0)
+  if (d->CurrentBeamRow >= 0)
   {
-    d->tableWidget_Beams->selectRow(d->currentBeamRow);
+    d->tableWidget_Beams->selectRow(d->CurrentBeamRow);
   }
 }
 
@@ -795,10 +795,10 @@ void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRML
     return;
   }
 
-  vtkMRMLRTPlanNode* planNode = this->rtPlanNode ();
+  vtkMRMLRTPlanNode* planNode = this->rtPlanNode();
   if (!planNode)
   {
-    /* GCS FIX TODO *** Probably I should create plan node here. ***/
+    // GCS FIX TODO *** Probably I should create plan node here
     return;
   }
 
@@ -818,7 +818,7 @@ void qSlicerExternalBeamPlanningModuleWidget::planContoursNodeChanged(vtkMRMLNod
     return;
   }
 
-  vtkMRMLRTPlanNode* planNode = this->rtPlanNode ();
+  vtkMRMLRTPlanNode* planNode = this->rtPlanNode();
   if (!planNode)
   {
     return;
@@ -870,7 +870,7 @@ void qSlicerExternalBeamPlanningModuleWidget::planPOIsNodeChanged(vtkMRMLNode* n
   }
   planNode->SetAndObserveMarkupsFiducialNode(vtkMRMLMarkupsFiducialNode::SafeDownCast(node));
 
-  /* GCS FIX: Update beams isocenters */
+  // GCS FIX TODO: Update beams isocenters
 }
 
 //-----------------------------------------------------------------------------
@@ -1007,11 +1007,11 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   qvtkDisconnect(beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
   
   // Make new beam current in the table
-  d->currentBeamRow = d->totalBeamRows++;
-  d->tableWidget_Beams->selectRow(d->currentBeamRow);
+  d->CurrentBeamRow = d->NumberOfBeamRows++;
+  d->tableWidget_Beams->selectRow(d->CurrentBeamRow);
 
   QString newBeamName(vtkMRMLExternalBeamPlanningNode::NEW_BEAM_NODE_NAME_PREFIX);
-  newBeamName.append(QString::number(d->totalBeamRows));
+  newBeamName.append(QString::number(d->NumberOfBeamRows));
   beamNode->SetName(newBeamName.toStdString().c_str());
   this->beamNameChanged(newBeamName);
 
@@ -1049,14 +1049,14 @@ void qSlicerExternalBeamPlanningModuleWidget::removeBeamClicked()
   d->logic()->RemoveBeam(beamNode);
 
   // Select a different beam as current
-  d->totalBeamRows--;
-  if (d->currentBeamRow >= d->totalBeamRows)
+  d->NumberOfBeamRows--;
+  if (d->CurrentBeamRow >= d->NumberOfBeamRows)
   {
-    d->currentBeamRow = d->totalBeamRows-1;
+    d->CurrentBeamRow = d->NumberOfBeamRows-1;
   }
 
   // Update UI table
-  d->tableWidget_Beams->selectRow(d->currentBeamRow);
+  d->tableWidget_Beams->selectRow(d->CurrentBeamRow);
   this->updateRTBeamTableWidget();
 
   // Update lower UI tabs
@@ -1071,7 +1071,7 @@ void qSlicerExternalBeamPlanningModuleWidget::tableWidgetCellClicked(int row, in
   UNUSED_VARIABLE(column);
 
   // Don't do anything when clicking on already selected beam
-  if (row == d->currentBeamRow)
+  if (row == d->CurrentBeamRow)
   {
     return;
   }
@@ -1086,7 +1086,7 @@ void qSlicerExternalBeamPlanningModuleWidget::tableWidgetCellClicked(int row, in
   }
 
   // Make sure inputs are initialized
-  d->currentBeamRow = row;
+  d->CurrentBeamRow = row;
   vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
@@ -1138,7 +1138,7 @@ void qSlicerExternalBeamPlanningModuleWidget::radiationTypeChanged(int index)
     return;
   }
 
-  // GCS FIX: This needs to make changes to the node, then set 
+  // GCS FIX TODO: This needs to make changes to the node, then set 
   // values from node into UI
 
 #if defined (commentout)
@@ -1288,7 +1288,7 @@ void qSlicerExternalBeamPlanningModuleWidget::targetVolumeSegmentChanged(const Q
   {
     d->logic()->SetBeamIsocenterToTargetCenter(beamNode);
 
-    // GCS FIX: Testing...I copied this from above.  I should be getting
+    // GCS FIX TODO: Testing...I copied this from above.  I should be getting
     // a markup moved event, why didn't I?
     double iso[3];
     beamNode->GetIsocenterPosition (iso);
@@ -1371,15 +1371,17 @@ void qSlicerExternalBeamPlanningModuleWidget::isocenterCoordinatesChanged(double
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::isocenterFiducialNodeChangedfromCoordinates(double* coordinates) //MD Fix
+void qSlicerExternalBeamPlanningModuleWidget::isocenterFiducialNodeChangedfromCoordinates(double* coordinates)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   UNUSED_VARIABLE(coordinates);
 
+  //TODO: Implement
+  qWarning() << Q_FUNC_INFO << ": Not implemented!";
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::dosePointFiducialNodeChangedfromCoordinates(double* coordinates) // Md Fix
+void qSlicerExternalBeamPlanningModuleWidget::dosePointFiducialNodeChangedfromCoordinates(double* coordinates)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
   UNUSED_VARIABLE(coordinates);
@@ -1391,6 +1393,7 @@ void qSlicerExternalBeamPlanningModuleWidget::dosePointFiducialNodeChangedfromCo
   }
 
   // TODO: to be implemented
+  qWarning() << Q_FUNC_INFO << ": Not implemented!";
 }
 
 //-----------------------------------------------------------------------------
@@ -2056,7 +2059,7 @@ void qSlicerExternalBeamPlanningModuleWidget::contoursInBEWClicked(bool checked)
     return;
   }
 
-  // Todo: add the logic to check if contours should be included in the DRR view
+  // TODO: add the logic to check if contours should be included in the DRR view
   // right now the contours are included always. 
   if (checked)
   {
@@ -2064,6 +2067,7 @@ void qSlicerExternalBeamPlanningModuleWidget::contoursInBEWClicked(bool checked)
   else
   {
   }
+  qWarning() << Q_FUNC_INFO << ": Not implemented!";
 }
 
 //-----------------------------------------------------------------------------
@@ -2085,7 +2089,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDRRClicked()
 
   QTableWidgetItem *item = NULL;
   char beamName[100];
-  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
+  item = d->tableWidget_Beams->item(d->CurrentBeamRow, 1);
 
   if (item)
   {
@@ -2182,22 +2186,12 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   vtkMRMLSegmentationNode* segmentationNode = planNode->GetRTPlanSegmentationNode();
   if (!segmentationNode)
   {
-    d->label_CalculateDoseStatus->setText("No proton target volume"); // MD Fix -> dose could be computer without target
+    d->label_CalculateDoseStatus->setText("No proton target volume"); // MD Fix TODO -> dose could be computed without target
     return;
   }
-
-  /* Make sure segmentation has a labelmap form */
-  /* GCS FIX: Maybe this explicit conversion is not even needed */
-#if defined (commentout)
-  if ( !segmentationNode->HasMergedLabelmap() )
-  {
-    d->label_CalculateDoseStatus->setText("Target volume must be labelmap");
-    return;
-  }
-#endif
   
-  /* The last verifications were fine so we can compute the dose */
-  /* Dose Calculation - loop on all the beam and sum in a global dose matrix */
+  // The last verifications were fine so we can compute the dose
+  // Dose Calculation - loop on all the beam and sum in a global dose matrix
 
   // Get rt plan node for ExternalBeamPlanning node
   vtkMRMLRTPlanNode* rtPlanNode = this->rtPlanNode();
@@ -2279,6 +2273,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateBeamParameters()
   // TODO:
   std::string errorMessage;
   //d->logic()->UpdateBeam();
+  qWarning() << Q_FUNC_INFO << ": Not implemented!";
 }
 
 //-----------------------------------------------------------------------------
@@ -2304,7 +2299,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateBeamGeometryModel()
 
   QTableWidgetItem *item = NULL;
   char beamName[100];
-  item = d->tableWidget_Beams->item(d->currentBeamRow, 1);
+  item = d->tableWidget_Beams->item(d->CurrentBeamRow, 1);
   if (!item)
   {
     return;
@@ -2336,4 +2331,5 @@ void qSlicerExternalBeamPlanningModuleWidget::collimatorTypeChanged(const QStrin
   }
   
   //TODO:
+  qWarning() << Q_FUNC_INFO << ": Not implemented!";
 }

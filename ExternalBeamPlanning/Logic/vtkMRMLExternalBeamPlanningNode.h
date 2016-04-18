@@ -60,7 +60,7 @@ public:
   virtual void Copy(vtkMRMLNode *node);
 
   /// Get unique node XML tag name (like Volume, Model) 
-  virtual const char* GetNodeTagName() {return "ExternalBeamPlanning";};
+  virtual const char* GetNodeTagName() { return "ExternalBeamPlanning"; };
 
 public:
   /// Get RT plan node
