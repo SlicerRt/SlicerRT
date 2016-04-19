@@ -19,7 +19,7 @@
 
 ==============================================================================*/
 
-// SlicerRtCommon includes
+// SlicerRt includes
 #include "SlicerRtCommon.h"
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"

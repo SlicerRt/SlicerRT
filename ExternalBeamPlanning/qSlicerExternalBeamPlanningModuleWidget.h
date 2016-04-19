@@ -58,7 +58,7 @@ public slots:
 // Update functions
 protected:
   /// Update the entire widget based on the current parameter node
-  void updateWidgetFromParameterNode();
+  void updateWidgetFromMRML();
 
   void updateRTBeamTableWidget();
 
@@ -92,7 +92,7 @@ protected slots:
 
   // RT plan page
   void referenceVolumeNodeChanged(vtkMRMLNode*);
-  void planContoursNodeChanged(vtkMRMLNode*);
+  void planSegmentationNodeChanged(vtkMRMLNode*);
   void rtPlanNodeChanged(vtkMRMLNode*);
   void planPOIsNodeChanged(vtkMRMLNode*);
   void rtDoseVolumeNodeChanged(vtkMRMLNode*);

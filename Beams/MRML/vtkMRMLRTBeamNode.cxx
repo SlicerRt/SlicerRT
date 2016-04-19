@@ -53,7 +53,7 @@
 
 //------------------------------------------------------------------------------
 static const char* ISOCENTER_FIDUCIAL_REFERENCE_ROLE = "isocenterFiducialRef";
-static const char* TARGET_CONTOUR_REFERENCE_ROLE = "targetContourRef";
+static const char* TARGET_SEGMENTATION_REFERENCE_ROLE = "targetContourRef";
 static const char* MLCPOSITION_REFERENCE_ROLE = "MLCPositionRef";
 static const char* DRR_REFERENCE_ROLE = "DRRRef";
 static const char* CONTOUR_BEV_REFERENCE_ROLE = "contourBEVRef";
@@ -247,13 +247,13 @@ void vtkMRMLRTBeamNode::SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducia
 //----------------------------------------------------------------------------
 vtkMRMLSegmentationNode* vtkMRMLRTBeamNode::GetTargetSegmentationNode()
 {
-  return vtkMRMLSegmentationNode::SafeDownCast( this->GetNodeReference(TARGET_CONTOUR_REFERENCE_ROLE) );
+  return vtkMRMLSegmentationNode::SafeDownCast( this->GetNodeReference(TARGET_SEGMENTATION_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetAndObserveTargetSegmentationNode(vtkMRMLSegmentationNode* node)
 {
-  this->SetNodeReferenceID(TARGET_CONTOUR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(TARGET_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -263,7 +263,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTBeamNode::GetTargetLabelmap()
   vtkMRMLSegmentationNode* targetSegmentationNode = this->GetTargetSegmentationNode();
   if (!targetSegmentationNode)
   {
-    vtkErrorMacro("GetTargetLabelmap: Didn't get target segmentation node");
+    vtkErrorMacro("GetTargetLabelmap: Failed to get target segmentation node");
     return targetLabelmap;
   }
 

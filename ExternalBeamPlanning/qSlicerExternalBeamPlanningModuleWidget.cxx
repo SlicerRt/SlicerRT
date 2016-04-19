@@ -186,7 +186,7 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
     }
   }
 
-  // Alert everyone that the parameter node has changed
+  // Update UI from parameter set node
   this->onParameterSetNodeChanged(paramNode);
 
   // This is not used?
@@ -221,7 +221,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
 
   // RT plan page
   this->connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->MRMLSegmentSelectorWidget_PlanContours, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planContoursNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->MRMLNodeComboBox_PlanSegmentation, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planSegmentationNodeChanged(vtkMRMLNode*)) );
   this->connect( d->MRMLNodeComboBox_RtPlan, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtPlanNodeChanged(vtkMRMLNode*)) );
   this->connect( d->MRMLNodeComboBox_PlanPOIs, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planPOIsNodeChanged(vtkMRMLNode*)) );
   this->connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtDoseVolumeNodeChanged(vtkMRMLNode*)) );
@@ -306,7 +306,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromParameterNode()
+void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -325,7 +325,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromParameterNode()
 
   // If no plan node, try to find one in the scene
   // Otherwise, create a new one
-  vtkMRMLRTPlanNode* planNode = paramNode->GetRTPlanNode ();
+  vtkMRMLRTPlanNode* planNode = paramNode->GetRTPlanNode();
   if (!planNode)
   {
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLRTPlanNode");
@@ -356,11 +356,11 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromParameterNode()
   }
   if (planNode->GetRTPlanSegmentationNode())
   {
-    d->MRMLSegmentSelectorWidget_PlanContours->setCurrentNode(planNode->GetRTPlanSegmentationNode());
+    d->MRMLNodeComboBox_PlanSegmentation->setCurrentNode(planNode->GetRTPlanSegmentationNode());
   }
   else
   {
-    this->planContoursNodeChanged(d->MRMLSegmentSelectorWidget_PlanContours->currentNode());
+    this->planSegmentationNodeChanged(d->MRMLNodeComboBox_PlanSegmentation->currentNode());
   }
   if (planNode->GetRTPlanDoseVolumeNode())
   {
@@ -697,13 +697,14 @@ void qSlicerExternalBeamPlanningModuleWidget::onParameterSetNodeChanged(vtkMRMLN
   qvtkReconnect(d->logic()->GetExternalBeamPlanningNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(onParameterSetNodeModified()));
 
   d->logic()->SetAndObserveExternalBeamPlanningNode(paramNode);
-  this->updateWidgetFromParameterNode();
+
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::onParameterSetNodeModified()
 {
-  this->updateWidgetFromParameterNode();
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -808,7 +809,7 @@ void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRML
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::planContoursNodeChanged(vtkMRMLNode* node)
+void qSlicerExternalBeamPlanningModuleWidget::planSegmentationNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -919,8 +920,10 @@ void qSlicerExternalBeamPlanningModuleWidget::rtDoseROINodeChanged(vtkMRMLNode* 
     return;
   }
 
+  qWarning() << Q_FUNC_INFO << ": Not implemented!";
+
   // paramNode->DisableModifiedEventOn();
-  // paramNode->SetAndObservePlanContourSetNode(node);
+  // paramNode->SetAndObservePlanSegmentationNode(node);
   // paramNode->DisableModifiedEventOff();
 }
 
@@ -2164,7 +2167,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     return;
   }
 
-  /* Make sure inputs were specified */
+  // Make sure inputs were specified
   vtkMRMLRTPlanNode* planNode = this->rtPlanNode ();
   if (!planNode)
   {

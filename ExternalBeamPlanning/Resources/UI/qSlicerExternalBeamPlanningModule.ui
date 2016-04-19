@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>580</width>
-    <height>757</height>
+    <height>758</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -65,10 +65,13 @@
           <string>Plan</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout">
-          <item row="6" column="0">
-           <widget class="QLabel" name="label_DoseVolume">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_RTPlan">
             <property name="text">
-             <string>Dose Volume</string>
+             <string>RT plan:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -79,20 +82,27 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_ReferenceVolume">
+          <item row="5" column="0">
+           <widget class="QLabel" name="label">
             <property name="text">
-             <string>Reference Volume</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             <string>Plan POIs:</string>
             </property>
            </widget>
           </item>
           <item row="8" column="0">
            <widget class="QLabel" name="label_DoseGridSpacing">
             <property name="text">
-             <string>Dose Grid Spacing</string>
+             <string>Dose grid spacing:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_ReferenceVolume">
+            <property name="text">
+             <string>Reference volume:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -115,62 +125,29 @@
             </item>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_RTPlan">
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_DoseVolume">
             <property name="text">
-             <string>RT Plan</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Plan POIs</string>
+             <string>Dose volume:</string>
             </property>
            </widget>
           </item>
           <item row="7" column="0">
            <widget class="QLabel" name="label_DoseROI">
             <property name="text">
-             <string>Dose ROI</string>
+             <string>Dose ROI:</string>
             </property>
            </widget>
           </item>
           <item row="10" column="0">
            <widget class="QLabel" name="label_DoseEngine">
             <property name="text">
-             <string>Dose Engine</string>
+             <string>Dose engine:</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <layout class="QVBoxLayout" name="verticalLayout_3">
-            <property name="topMargin">
-             <number>3</number>
-            </property>
-            <item>
-             <widget class="QLabel" name="label_PlanContours">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="text">
-               <string>Plan Contours</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
           <item row="6" column="2">
            <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
             <property name="nodeTypes">
              <stringlist>
               <string>vtkMRMLScalarVolumeNode</string>
@@ -183,9 +160,6 @@
           </item>
           <item row="7" column="2">
            <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseROI">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
             <property name="nodeTypes">
              <stringlist>
               <string>vtkMRMLAnnotationROINode</string>
@@ -193,21 +167,12 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="2">
-           <widget class="qMRMLSegmentSelectorWidget" name="MRMLSegmentSelectorWidget_PlanContours"/>
-          </item>
-          <item row="0" column="2">
-           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
+          <item row="5" column="2">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanPOIs">
             <property name="nodeTypes">
              <stringlist>
-              <string>vtkMRMLScalarVolumeNode</string>
+              <string>vtkMRMLMarkupsFiducialNode</string>
              </stringlist>
-            </property>
-            <property name="showChildNodeTypes">
-             <bool>false</bool>
             </property>
             <property name="addEnabled">
              <bool>false</bool>
@@ -218,10 +183,46 @@
            </widget>
           </item>
           <item row="1" column="2">
-           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RtPlan">
-            <property name="enabled">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLScalarVolumeNode</string>
+             </stringlist>
+            </property>
+            <property name="showChildNodeTypes">
+             <bool>false</bool>
+            </property>
+            <property name="noneEnabled">
              <bool>true</bool>
             </property>
+            <property name="addEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="removeEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="noneDisplay">
+             <string>Please select node</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanSegmentation">
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLSegmentationNode</string>
+             </stringlist>
+            </property>
+            <property name="noneEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="noneDisplay">
+             <string>Please select node</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RtPlan">
             <property name="toolTip">
              <string/>
             </property>
@@ -244,25 +245,20 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="2">
-           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanPOIs">
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_PlanContours">
             <property name="enabled">
              <bool>true</bool>
             </property>
-            <property name="nodeTypes">
-             <stringlist>
-              <string>vtkMRMLMarkupsFiducialNode</string>
-             </stringlist>
+            <property name="text">
+             <string>Plan segmentation:</string>
             </property>
-            <property name="addEnabled">
-             <bool>false</bool>
-            </property>
-            <property name="removeEnabled">
-             <bool>false</bool>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
             </property>
            </widget>
           </item>
-          <item row="11" column="2">
+          <item row="11" column="0" colspan="3">
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -399,14 +395,14 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label_BeamName">
         <property name="text">
-         <string>Beam Name:</string>
+         <string>Beam name:</string>
         </property>
        </widget>
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_MachineType">
         <property name="text">
-         <string>Machine Type:</string>
+         <string>Machine type:</string>
         </property>
        </widget>
       </item>
@@ -452,7 +448,7 @@
                <bool>false</bool>
               </property>
               <property name="text">
-               <string>Beam Type</string>
+               <string>Beam type:</string>
               </property>
              </widget>
             </item>
@@ -476,7 +472,7 @@
             <item row="1" column="0">
              <widget class="QLabel" name="label_TargetVolume">
               <property name="text">
-               <string>Target Volume</string>
+               <string>Target volume:</string>
               </property>
              </widget>
             </item>
@@ -486,7 +482,7 @@
             <item row="2" column="0">
              <widget class="QLabel" name="label_RxDose">
               <property name="text">
-               <string>Rx Dose (Gy)</string>
+               <string>Rx dose (Gy):</string>
               </property>
              </widget>
             </item>
@@ -506,7 +502,7 @@
             <item row="3" column="0">
              <widget class="QLabel" name="label_2">
               <property name="text">
-               <string>Isocenter Spec</string>
+               <string>Isocenter spec:</string>
               </property>
              </widget>
             </item>
@@ -514,12 +510,12 @@
              <widget class="QComboBox" name="comboBox_IsocenterSpec">
               <item>
                <property name="text">
-                <string>Center of Target</string>
+                <string>Center of target</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>Arbitrary Point</string>
+                <string>Arbitrary point</string>
                </property>
               </item>
              </widget>
@@ -530,7 +526,7 @@
                <enum>QFrame::NoFrame</enum>
               </property>
               <property name="text">
-               <string>Isocenter</string>
+               <string>Isocenter:</string>
               </property>
              </widget>
             </item>
@@ -547,7 +543,7 @@
                <bool>false</bool>
               </property>
               <property name="text">
-               <string>Dose Point Spec</string>
+               <string>Dose point spec:</string>
               </property>
              </widget>
             </item>
@@ -563,7 +559,7 @@
               </item>
               <item>
                <property name="text">
-                <string>Arbitrary Point</string>
+                <string>Arbitrary point</string>
                </property>
               </item>
              </widget>
@@ -574,7 +570,7 @@
                <bool>false</bool>
               </property>
               <property name="text">
-               <string>Dose Point</string>
+               <string>Dose point:</string>
               </property>
              </widget>
             </item>
@@ -611,7 +607,7 @@
             <item row="0" column="0">
              <widget class="QLabel" name="label_ProximalMargin">
               <property name="text">
-               <string>Proximal Margin (mm)</string>
+               <string>Proximal margin (mm):</string>
               </property>
              </widget>
             </item>
@@ -628,7 +624,7 @@
             <item row="1" column="0">
              <widget class="QLabel" name="label_DistalMargin">
               <property name="text">
-               <string>Distal Margin (mm)</string>
+               <string>Distal margin (mm):</string>
               </property>
              </widget>
             </item>
@@ -645,7 +641,7 @@
             <item row="2" column="0">
              <widget class="QLabel" name="label_BeamLineType">
               <property name="text">
-               <string>Beam line type</string>
+               <string>Beam line type:</string>
               </property>
              </widget>
             </item>
@@ -666,7 +662,7 @@
             <item row="3" column="0">
              <widget class="QLabel" name="label_EnergyPrescription">
               <property name="text">
-               <string>Energy prescription</string>
+               <string>Energy prescription:</string>
               </property>
              </widget>
             </item>
@@ -686,7 +682,7 @@
                <bool>false</bool>
               </property>
               <property name="text">
-               <string>Minimum energy (MeV)</string>
+               <string>Minimum energy (MeV):</string>
               </property>
              </widget>
             </item>
@@ -703,7 +699,7 @@
                <bool>false</bool>
               </property>
               <property name="text">
-               <string>Maximum energy (MeV)</string>
+               <string>Maximum energy (MeV):</string>
               </property>
              </widget>
             </item>
@@ -729,7 +725,7 @@
           <item row="0" column="0">
            <widget class="QLabel" name="label_MLCLeafPosition">
             <property name="text">
-             <string>MLC Position DoubleArray</string>
+             <string>MLC positions:</string>
             </property>
            </widget>
           </item>
@@ -757,7 +753,7 @@
           <item row="2" column="0">
            <widget class="QLabel" name="label_XjawPosition">
             <property name="text">
-             <string>X Jaw Positions (mm)</string>
+             <string>X jaw positions (mm):</string>
             </property>
            </widget>
           </item>
@@ -783,7 +779,7 @@
           <item row="3" column="0">
            <widget class="QLabel" name="label_YJawPosition">
             <property name="text">
-             <string>Y Jaw Positions (mm)</string>
+             <string>Y jaw positions (mm):</string>
             </property>
            </widget>
           </item>
@@ -809,7 +805,7 @@
           <item row="4" column="0">
            <widget class="QLabel" name="label_CollimatorAngle">
             <property name="text">
-             <string>Collimator Angle (°)</string>
+             <string>Collimator angle (°):</string>
             </property>
            </widget>
           </item>
@@ -826,7 +822,7 @@
           <item row="5" column="0">
            <widget class="QLabel" name="label_GantryAngle">
             <property name="text">
-             <string>Gantry Angle (°)</string>
+             <string>Gantry angle (°):</string>
             </property>
            </widget>
           </item>
@@ -843,7 +839,7 @@
           <item row="6" column="0">
            <widget class="QLabel" name="label_CouchAngle">
             <property name="text">
-             <string>Couch Angl (°)</string>
+             <string>Couch angle (°):</string>
             </property>
            </widget>
           </item>
@@ -860,7 +856,7 @@
           <item row="8" column="0">
            <widget class="QLabel" name="label_beamWeight">
             <property name="text">
-             <string>Beam Weight</string>
+             <string>Beam weight:</string>
             </property>
            </widget>
           </item>
@@ -877,7 +873,7 @@
           <item row="7" column="0">
            <widget class="QLabel" name="label_Smearing">
             <property name="text">
-             <string>Smearing (mm)</string>
+             <string>Smearing (mm):</string>
             </property>
            </widget>
           </item>
@@ -891,7 +887,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="label_SAD">
             <property name="text">
-             <string>Source distance (mm)</string>
+             <string>Source distance (mm):</string>
             </property>
            </widget>
           </item>
@@ -935,7 +931,7 @@
             <item row="0" column="0">
              <widget class="QLabel" name="label_ApertureDistance">
               <property name="text">
-               <string>Aperture distance (mm)</string>
+               <string>Aperture distance (mm):</string>
               </property>
              </widget>
             </item>
@@ -955,7 +951,7 @@
             <item row="1" column="0">
              <widget class="QLabel" name="label_Algorithm">
               <property name="text">
-               <string>Dose calculaton algorithm</string>
+               <string>Dose calculaton algorithm:</string>
               </property>
              </widget>
             </item>
@@ -986,7 +982,7 @@
             <item row="2" column="0">
              <widget class="QLabel" name="label_PBResolution">
               <property name="text">
-               <string>PB resoution at isocenter (PB/mm)</string>
+               <string>PB resoution at isocenter (PB/mm):</string>
               </property>
              </widget>
             </item>
@@ -1003,7 +999,7 @@
             <item row="3" column="0">
              <widget class="QLabel" name="label_SourceSize">
               <property name="text">
-               <string>Source size (mm)</string>
+               <string>Source size (mm):</string>
               </property>
              </widget>
             </item>
@@ -1017,7 +1013,7 @@
             <item row="4" column="0">
              <widget class="QLabel" name="label_EnergyResolution">
               <property name="text">
-               <string>Energy resolution (MeV)</string>
+               <string>Energy resolution (MeV):</string>
               </property>
              </widget>
             </item>
@@ -1037,7 +1033,7 @@
             <item row="5" column="0">
              <widget class="QLabel" name="label_EnergySpread">
               <property name="text">
-               <string>Energy spread (MeV)</string>
+               <string>Energy spread (MeV):</string>
               </property>
              </widget>
             </item>
@@ -1051,7 +1047,7 @@
             <item row="6" column="0">
              <widget class="QLabel" name="label_StepLength">
               <property name="text">
-               <string>Step length</string>
+               <string>Step length:</string>
               </property>
              </widget>
             </item>
@@ -1065,7 +1061,7 @@
             <item row="7" column="0">
              <widget class="QLabel" name="label_WEDApproximation">
               <property name="text">
-               <string>Lateral scattering wed approximation</string>
+               <string>Lateral scattering WED approximation:</string>
               </property>
              </widget>
             </item>
@@ -1079,7 +1075,7 @@
             <item row="8" column="0">
              <widget class="QLabel" name="label_RangeCompensatorHighland">
               <property name="text">
-               <string>Highland model for range compensator </string>
+               <string>Highland model for range compensator:</string>
               </property>
              </widget>
             </item>
@@ -1114,7 +1110,7 @@
           <item row="1" column="0">
            <widget class="QCheckBox" name="checkBox_ContoursInBEW">
             <property name="text">
-             <string>Include Contour in BEW</string>
+             <string>Include contour in BEW</string>
             </property>
            </widget>
           </item>
@@ -1271,8 +1267,8 @@
      <y>3</y>
     </hint>
     <hint type="destinationlabel">
-     <x>520</x>
-     <y>113</y>
+     <x>558</x>
+     <y>133</y>
     </hint>
    </hints>
   </connection>
@@ -1303,24 +1299,8 @@
      <y>735</y>
     </hint>
     <hint type="destinationlabel">
-     <x>447</x>
-     <y>158</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerExternalBeamPlanningModule</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLSegmentSelectorWidget_PlanContours</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>98</x>
-     <y>5</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>365</x>
-     <y>132</y>
+     <x>514</x>
+     <y>107</y>
     </hint>
    </hints>
   </connection>
@@ -1335,8 +1315,8 @@
      <y>824</y>
     </hint>
     <hint type="destinationlabel">
-     <x>262</x>
-     <y>178</y>
+     <x>329</x>
+     <y>211</y>
     </hint>
    </hints>
   </connection>
@@ -1351,8 +1331,8 @@
      <y>822</y>
     </hint>
     <hint type="destinationlabel">
-     <x>305</x>
-     <y>207</y>
+     <x>372</x>
+     <y>237</y>
     </hint>
    </hints>
   </connection>
@@ -1367,8 +1347,8 @@
      <y>744</y>
     </hint>
     <hint type="destinationlabel">
-     <x>513</x>
-     <y>534</y>
+     <x>558</x>
+     <y>487</y>
     </hint>
    </hints>
   </connection>
@@ -1383,8 +1363,8 @@
      <y>820</y>
     </hint>
     <hint type="destinationlabel">
-     <x>180</x>
-     <y>549</y>
+     <x>275</x>
+     <y>521</y>
     </hint>
    </hints>
   </connection>
@@ -1399,8 +1379,24 @@
      <y>413</y>
     </hint>
     <hint type="destinationlabel">
-     <x>348</x>
-     <y>199</y>
+     <x>415</x>
+     <y>185</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerExternalBeamPlanningModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_PlanSegmentation</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>180</x>
+     <y>3</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>149</y>
     </hint>
    </hints>
   </connection>
