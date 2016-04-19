@@ -89,6 +89,14 @@ protected:
   std::string GetDefaultImageGeometryStringForPolyData(vtkPolyData* polyData);
 
 protected:
+  /// Flag determining whether to use the geometry of the given output oriented image data as is,
+  /// or use the conversion parameters and the extent of the input surface. False by default,
+  /// because pre-calculating the geometry of the output image data is not trivial and should be done
+  /// only when there is a specific reason to do that (such as doing the conversion for sub-volumes and
+  /// then stitching them back together).
+  bool UseOutputImageDataGeometry;
+
+protected:
   vtkClosedSurfaceToBinaryLabelmapConversionRule();
   ~vtkClosedSurfaceToBinaryLabelmapConversionRule();
   void operator=(const vtkClosedSurfaceToBinaryLabelmapConversionRule&);

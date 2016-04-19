@@ -50,6 +50,7 @@ vtkSegmentationConverterRuleNewMacro(vtkClosedSurfaceToBinaryLabelmapConversionR
 
 //----------------------------------------------------------------------------
 vtkClosedSurfaceToBinaryLabelmapConversionRule::vtkClosedSurfaceToBinaryLabelmapConversionRule()
+  : UseOutputImageDataGeometry(false)
 {
   // Reference image geometry parameter
   this->ConversionParameters[vtkSegmentationConverter::GetReferenceImageGeometryParameterName()] = std::make_pair("", "Image geometry description string determining the geometry of the labelmap that is created in course of conversion. Can be copied from a volume, using the button.");
@@ -131,10 +132,13 @@ bool vtkClosedSurfaceToBinaryLabelmapConversionRule::Convert(vtkDataObject* sour
 
   // Compute output labelmap geometry based on poly data, an reference image
   // geometry, and store the calculated geometry in output labelmap image data
-  if (!this->CalculateOutputGeometry(closedSurfacePolyData, binaryLabelMap))
+  if (!this->UseOutputImageDataGeometry)
   {
-    vtkErrorMacro("Convert: Failed to calculate output image geometry!");
-    return false;
+    if (!this->CalculateOutputGeometry(closedSurfacePolyData, binaryLabelMap))
+    {
+      vtkErrorMacro("Convert: Failed to calculate output image geometry!");
+      return false;
+    }
   }
 
   // Allocate output image data
@@ -339,13 +343,13 @@ std::string vtkClosedSurfaceToBinaryLabelmapConversionRule::GetDefaultImageGeome
   geometryMatrix->SetElement(1,3,bounds[2]);
   geometryMatrix->SetElement(2,3,bounds[4]);
 
-  // Set dimensions
-  int dimensions[3] = { (int)(bounds[1]-bounds[0]+1), (int)(bounds[3]-bounds[2]+1), (int)(bounds[5]-bounds[4]+1) };
-  vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
-  imageData->SetDimensions(dimensions);
+  // Set extent
+  int extent[6] = { 0, (int)(bounds[1]-bounds[0]+1),
+                    0, (int)(bounds[3]-bounds[2]+1),
+                    0, (int)(bounds[5]-bounds[4]+1) };
 
   // Serialize geometry
-  std::string serializedGeometry = vtkSegmentationConverter::SerializeImageGeometry(geometryMatrix, imageData);
+  std::string serializedGeometry = vtkSegmentationConverter::SerializeImageGeometry(geometryMatrix, extent);
   this->ConversionParameters[vtkSegmentationConverter::GetReferenceImageGeometryParameterName()].first = serializedGeometry;
   return serializedGeometry;
 }

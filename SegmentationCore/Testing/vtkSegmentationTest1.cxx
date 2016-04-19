@@ -124,9 +124,7 @@ int vtkSegmentationTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   referenceGeometryMatrix->SetElement(1,1,2.0);
   referenceGeometryMatrix->SetElement(2,2,2.0);
   int referenceGeometryExtent[6] = {0,99,0,99,0,99};
-  vtkNew<vtkImageData> referenceGeometryImageData;
-  referenceGeometryImageData->SetExtent(referenceGeometryExtent);
-  std::string referenceGeometryString = vtkSegmentationConverter::SerializeImageGeometry(referenceGeometryMatrix.GetPointer(), referenceGeometryImageData.GetPointer());
+  std::string referenceGeometryString = vtkSegmentationConverter::SerializeImageGeometry(referenceGeometryMatrix.GetPointer(), referenceGeometryExtent);
   if (referenceGeometryString.compare("2;0;0;0;0;2;0;0;0;0;2;0;0;0;0;1;0;99;0;99;0;99;"))
   {
     std::cerr << __LINE__ << ": Failed to serialize reference geometry!" << std::endl;

@@ -111,7 +111,21 @@ std::string vtkSegmentationConverter::SerializeImageGeometry(vtkOrientedImageDat
 //----------------------------------------------------------------------------
 std::string vtkSegmentationConverter::SerializeImageGeometry(vtkMatrix4x4* geometryMatrix, vtkImageData* imageData)
 {
-  if (!geometryMatrix || !imageData)
+  if (!imageData)
+  {
+    return "";
+  }
+
+  int extent[6] = {0,-1,0,-1,0,-1};
+  imageData->GetExtent(extent);
+
+  return vtkSegmentationConverter::SerializeImageGeometry(geometryMatrix, extent);
+}
+
+//----------------------------------------------------------------------------
+std::string vtkSegmentationConverter::SerializeImageGeometry(vtkMatrix4x4* geometryMatrix, int extent[6])
+{
+  if (!geometryMatrix)
   {
     return "";
   }
@@ -125,8 +139,6 @@ std::string vtkSegmentationConverter::SerializeImageGeometry(vtkMatrix4x4* geome
     }
   }
 
-  int extent[6] = {0,-1,0,-1,0,-1};
-  imageData->GetExtent(extent);
   for (int i=0; i<6; i++)
   {
     geometryStream << extent[i] << SERIALIZED_GEOMETRY_SEPARATOR;

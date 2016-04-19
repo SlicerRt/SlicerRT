@@ -120,8 +120,11 @@ public:
   /// Utility function for serializing geometry of oriented image data
   static std::string SerializeImageGeometry(vtkOrientedImageData* orientedImageData);
   
-  /// Utility function for serializing geometry of a complete geometry matrix and regular image data (providing only dimensions)
+  /// Utility function for serializing geometry of a complete geometry matrix and regular image data (providing only extent)
   static std::string SerializeImageGeometry(vtkMatrix4x4* geometryMatrix, vtkImageData* imageData);
+
+  /// Utility function for serializing geometry of a complete geometry matrix and given extents
+  static std::string SerializeImageGeometry(vtkMatrix4x4* geometryMatrix, int extent[6]);
 
   /// Utility function for de-serializing reference image geometry into a dummy oriented image data
   /// \param geometryString String containing the serialized image geometry
