@@ -373,8 +373,8 @@ double vtkSlicerDoseCalculationEngine::GetTotalRx()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseCalculationEngine::FinalizeAccumulatedDose()
+void vtkSlicerDoseCalculationEngine::CleanUp()
 {
-  /* Free up memory for reference CT */
+  // Free up memory for reference CT
   Internal->plmRef.reset();
 }

@@ -579,11 +579,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
 
       // Create subject hierarchy entry for the ROI
       vtkSmartPointer<vtkMRMLSubjectHierarchyNode> fiducialSubjectHierarchyNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-      std::string fiducialSubjectHierarchyNodeName = std::string(roiLabel) + vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix();
-      fiducialSubjectHierarchyNodeName = this->GetMRMLScene()->GenerateUniqueName(fiducialSubjectHierarchyNodeName);
       vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
         this->GetMRMLScene(), fiducialsSeriesSubjectHierarchyNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(),
-        fiducialSubjectHierarchyNodeName.c_str(), fiducialNode);
+        roiLabel, fiducialNode);
       fiducialSubjectHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str(), roiReferencedSeriesUid);
     }
     //
@@ -910,9 +908,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
       rtReader->GetSeriesInstanceUid());
     planSHNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str(),
       rtReader->GetSOPInstanceUID());
-    std::string planSHNodeName = seriesName + vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix();
-    planSHNodeName = this->GetMRMLScene()->GenerateUniqueName(planSHNodeName);
-    planSHNode->SetName(planSHNodeName.c_str());
+    planSHNode->SetName(shSeriesNodeName.c_str());
   }
 
   int numberOfBeams = rtReader->GetNumberOfBeams();
@@ -1204,8 +1200,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy( vt
 
       // Set node name
       std::string patientNodeName = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientName())
-        ? std::string(rtReader->GetPatientName()) + vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix()
-        : SlicerRtCommon::DICOMRTIMPORT_NO_NAME + vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix() );
+        ? std::string(rtReader->GetPatientName()) : SlicerRtCommon::DICOMRTIMPORT_NO_NAME );
       patientNode->SetName( patientNodeName.c_str() );
     }
     else
@@ -1235,7 +1230,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy( vt
       std::string studyDate =  ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDate())
         ? + " (" + std::string(rtReader->GetStudyDate()) + ")"
         : "" );
-      std::string studyNodeName = studyDescription + studyDate + vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix();
+      std::string studyNodeName = studyDescription + studyDate;
       studyNode->SetName( studyNodeName.c_str() );
     }
     else

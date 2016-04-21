@@ -75,7 +75,7 @@ public:
   double GetTotalRx();
 
   /// Do dose calculation
-  void FinalizeAccumulatedDose();
+  void CleanUp();
 
 protected:
   vtkSlicerDoseCalculationEngine();

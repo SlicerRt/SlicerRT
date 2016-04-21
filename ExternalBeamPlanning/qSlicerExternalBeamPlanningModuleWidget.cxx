@@ -1548,7 +1548,7 @@ void qSlicerExternalBeamPlanningModuleWidget::maximumEnergyChanged(double value)
     return;
   }
 
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
+  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(beamNode);
   protonNode->SetMaximumEnergy(value);
 }
 
@@ -2239,7 +2239,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     }
   }
   
-  d->logic()->RegisterAccumulatedDose();
+  d->logic()->FinalizeAccumulatedDose();
 
   d->label_CalculateDoseStatus->setText("Dose calculation done");
   QApplication::restoreOverrideCursor();

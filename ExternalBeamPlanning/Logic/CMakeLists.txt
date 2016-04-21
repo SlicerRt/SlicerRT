@@ -7,10 +7,10 @@ set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_LOGIC_EXPORT
 set(${KIT}_INCLUDE_DIRECTORIES
   ${PlmCommon_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
-  ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleMRML_INCLUDE_DIRS}
-  ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
+  ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
   ${PLASTIMATCH_INCLUDE_DIRS}
   )
 
@@ -27,10 +27,10 @@ set(${KIT}_TARGET_LIBRARIES
   vtkPlmCommon
   vtkSlicerRtCommon
   vtkSlicerMarkupsModuleMRML
-  vtkSlicerBeamsModuleLogic
   vtkSlicerBeamsModuleMRML
-  vtkSlicerSegmentationsModuleLogic
+  vtkSlicerBeamsModuleLogic
   vtkSlicerSegmentationsModuleMRML
+  vtkSlicerSegmentationsModuleLogic
   vtkSlicerExternalBeamPlanningModuleMRML
   )
 

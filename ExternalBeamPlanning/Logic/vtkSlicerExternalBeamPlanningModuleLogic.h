@@ -112,7 +112,7 @@ public:
 
   /// TODO
   //TODO: This method should be called something else. As far as I know there is no registration involved.
-  void RegisterAccumulatedDose();
+  void FinalizeAccumulatedDose();
 
   /// Remove MRML nodes created by dose calculation for the current RT plan,
   /// such as apertures, range compensators, and doses

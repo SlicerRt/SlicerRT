@@ -68,7 +68,7 @@ public:
   /// \param alwaysResample If on, then image data will be resampled even if the applied transform is linear
   static void TransformOrientedImage(vtkOrientedImageData* image, vtkAbstractTransform* transform, bool geometryOnly=false, bool alwaysResample=false);
 
-  /// TODO:
+  /// Append a labelmap to another by using the maximum scalar value for each voxel in the two input images.
   static bool AppendImageMax(vtkOrientedImageData* inputImage, vtkOrientedImageData* imageToAppend, vtkOrientedImageData* outputImage);
 
 public:

@@ -26,8 +26,8 @@ endmacro()
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
-  vtkSlicerDoseComparisonModuleLogicTest_EclipseEnt
-  vtkSlicerDoseComparisonModuleLogicTest1
+  vtkSlicerExternalBeamPlanningModuleLogicTest1
+  vtkSlicerExternalBeamPlanningModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/TinyPatient_ExternalBeamPlanning_Scene.mrml
   ${TEMP}/TestScene_ExternalBeamPlanning_TinyPatient.mrml
 )

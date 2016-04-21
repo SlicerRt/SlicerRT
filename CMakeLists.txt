@@ -64,6 +64,9 @@ add_subdirectory(DoseComparison)
 add_subdirectory(SegmentEditor)
 add_subdirectory(SegmentMorphology)
 add_subdirectory(SegmentComparison)
+if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
+  add_subdirectory(ExternalBeamPlanning)
+endif()
 add_subdirectory(VffFileReader)
 add_subdirectory(DicomSroExport)
 add_subdirectory(DicomSroImport)
@@ -77,7 +80,6 @@ add_subdirectory(PlmRegister)
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   # In development
   add_subdirectory(PlmThreshbox)
-  add_subdirectory(ExternalBeamPlanning)
   add_subdirectory(PinnacleDvfReader)
 
   # Registration validation routines

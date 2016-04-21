@@ -19,14 +19,20 @@
 
 ==============================================================================*/
 
-// DoseComparison includes
-#include "vtkSlicerDoseComparisonModuleLogic.h"
-#include "vtkMRMLDoseComparisonNode.h"
+// ExternalBeamPlanning includes
+#include "vtkSlicerExternalBeamPlanningModuleLogic.h"
+#include "vtkMRMLExternalBeamPlanningNode.h"
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
-#include "vtkMRMLSubjectHierarchyNode.h"
-#include "vtkSlicerSubjectHierarchyModuleLogic.h"
+
+// Segmentations includes
+#include "vtkMRMLSegmentationNode.h"
+#include "vtkSlicerSegmentationsModuleLogic.h"
+
+// Subject hierarchy includes
+#include <vtkMRMLSubjectHierarchyNode.h>
+#include <vtkSlicerSubjectHierarchyModuleLogic.h>
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -105,6 +111,14 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
     vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
   subjectHierarchyLogic->SetMRMLScene(mrmlScene);
 
+  vtkSmartPointer<vtkSlicerSegmentationsModuleLogic> segmentationsLogic =
+    vtkSmartPointer<vtkSlicerSegmentationsModuleLogic>::New();
+  segmentationsLogic->SetMRMLScene(mrmlScene);
+
+  vtkSmartPointer<vtkSlicerExternalBeamPlanningModuleLogic> ebpLogic = 
+    vtkSmartPointer<vtkSlicerExternalBeamPlanningModuleLogic>::New();
+  ebpLogic->SetMRMLScene(mrmlScene);
+
   // Load test scene into temporary scene
   mrmlScene->SetURL(testSceneFileName);
   mrmlScene->Import();
@@ -115,6 +129,41 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->SetURL(temporarySceneFileName);
   mrmlScene->Commit();
 
+  // Get CT, segmentation, dose volume
+  vtkSmartPointer<vtkCollection> ctVolumeNodes = 
+    vtkSmartPointer<vtkCollection>::Take( mrmlScene->GetNodesByName("303: Unnamed Series") );
+  vtkSmartPointer<vtkCollection> doseVolumeNodes = 
+    vtkSmartPointer<vtkCollection>::Take( mrmlScene->GetNodesByName("RTDOSE [1]") );
+  vtkSmartPointer<vtkCollection> segmentationNodes = 
+    vtkSmartPointer<vtkCollection>::Take( mrmlScene->GetNodesByName("103: RTSTRUCT: AutoSS") );
+  if (ctVolumeNodes->GetNumberOfItems() != 1 || doseVolumeNodes->GetNumberOfItems() != 1 || segmentationNodes->GetNumberOfItems() != 1)
+  {
+    mrmlScene->Commit();
+    errorStream << "ERROR: Failed to get input nodes!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  vtkMRMLScalarVolumeNode* ctVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(ctVolumeNodes->GetItemAsObject(0));
+  vtkMRMLScalarVolumeNode* doseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
+  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(segmentationNodes->GetItemAsObject(0));
+
+  // Set plan parameters
+
+  // Add first beam
+  ebpLogic->AddBeam(NULL);
+
+  // Set first beam parameters
+
+  // Add second beam copying the first
+
+  // Check if parameters have been copied from the first one properly
+
+  // Change geometry of second beam
+
+  // Calculate dose
+
+  // Check computed output
+
+  /*
   // Get day 1 dose volume
   vtkSmartPointer<vtkCollection> doseVolumeNodes = 
     vtkSmartPointer<vtkCollection>::Take( mrmlScene->GetNodesByName("EclipseEnt_Dose") );
@@ -187,6 +236,6 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   {
     return EXIT_FAILURE;
   }
-
+  */
   return EXIT_SUCCESS;
 }

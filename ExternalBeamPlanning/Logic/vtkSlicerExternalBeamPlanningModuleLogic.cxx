@@ -398,12 +398,12 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::AddBeam(vtkMRMLRTBe
 
   // Create rtbeam node
   vtkSmartPointer<vtkMRMLRTProtonBeamNode> beamNode = vtkSmartPointer<vtkMRMLRTProtonBeamNode>::New();
-  vtkMRMLRTProtonBeamNode* copyfromProtonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (copyFrom);
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
+  vtkMRMLRTProtonBeamNode* copyfromProtonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(copyFrom);
+  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(beamNode);
   // If template beam was given, clone into new beam
   if (copyFrom)
   {
-    beamNode->Copy (copyFrom);
+    beamNode->Copy(copyFrom);
     protonNode->Copy(copyfromProtonNode);
   }
   
@@ -1153,18 +1153,18 @@ void vtkSlicerExternalBeamPlanningModuleLogic::InitializeAccumulatedDose()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::RegisterAccumulatedDose()
+void vtkSlicerExternalBeamPlanningModuleLogic::FinalizeAccumulatedDose()
 {
   if (!this->GetMRMLScene() || !this->ExternalBeamPlanningNode)
   {
-    vtkErrorMacro("RegisterAccumulatedDose: Invalid MRML scene or parameter set node!");
+    vtkErrorMacro("CleanUp: Invalid MRML scene or parameter set node!");
     return;
   }
 
   vtkMRMLRTPlanNode* planNode = this->GetRTPlanNode();
   if (!planNode)
   {
-    vtkErrorMacro("RegisterAccumulatedDose: Invalid RTPlan node!");
+    vtkErrorMacro("CleanUp: Invalid RTPlan node!");
     return;
   }
 
@@ -1202,7 +1202,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterAccumulatedDose()
     }
   }
 
-  this->Internal->doseEngine->FinalizeAccumulatedDose();
+  this->Internal->doseEngine->CleanUp();
   double totalRx = this->Internal->doseEngine->GetTotalRx();
 
   if (totalProtonDoseVolumeNode->GetVolumeDisplayNode() == NULL)
