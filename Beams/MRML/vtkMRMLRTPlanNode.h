@@ -48,6 +48,9 @@ public:
     Matlab = 2
   };
 
+  static const char* NEW_BEAM_NODE_NAME_PREFIX;
+  static const char* OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE;
+
 public:
   static vtkMRMLRTPlanNode *New();
   vtkTypeMacro(vtkMRMLRTPlanNode,vtkMRMLNode);
@@ -74,32 +77,6 @@ public:
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
 public:
-  /// Get RT Plan Reference volume
-  vtkMRMLScalarVolumeNode* GetRTPlanReferenceVolumeNode();
-  /// Set RT Plan Reference volume
-  void SetAndObserveRTPlanReferenceVolumeNode(vtkMRMLScalarVolumeNode* node);
-
-  /// Get RT Plan POIs (isocenters, weight points, CT reference points, beam entry points)
-  vtkMRMLMarkupsFiducialNode* GetMarkupsFiducialNode();
-  /// Set RT Plan POIs (isocenters, weight points, CT reference points, beam entry points)
-  void SetAndObserveMarkupsFiducialNode(vtkMRMLMarkupsFiducialNode* node);
-
-  /// Get RT Plan Segmentation (structure set)
-  vtkMRMLSegmentationNode* GetRTPlanSegmentationNode();
-  /// Set RT Plan Segmentation (structure set)
-  void SetAndObserveRTPlanSegmentationNode(vtkMRMLSegmentationNode* node);
-
-  /// Get RT Plan Dose volume node
-  vtkMRMLScalarVolumeNode* GetRTPlanDoseVolumeNode();
-  /// Set RT Plan Dose volume node
-  void SetAndObserveRTPlanDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
-
-  void SetRTPlanDoseEngine(DoseEngineType doseEngineType) { this->RTPlanDoseEngine = doseEngineType; };
-  DoseEngineType GetRTPlanDoseEngine() { return this->RTPlanDoseEngine; };
-
-  void SetRTPlanDoseGrid(double* doseGrid) { this->RTPlanDoseGrid[0] = doseGrid[0]; this->RTPlanDoseGrid[1] = doseGrid[1]; this->RTPlanDoseGrid[2] = doseGrid[2]; };
-  double* GetRTPlanDoseGrid() { return this->RTPlanDoseGrid; };
-
   /// Add given beam node to plan
   void AddRTBeamNode(vtkMRMLRTBeamNode*);
 
@@ -119,6 +96,32 @@ public:
   /// Note: beam numbers *are* unique within a plan
   vtkMRMLRTBeamNode* GetRTBeamNodeByNumber(int beamNumber);
 
+  /// Get RT Plan Reference volume
+  vtkMRMLScalarVolumeNode* GetReferenceVolumeNode();
+  /// Set RT Plan Reference volume
+  void SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode* node);
+
+  /// Get RT Plan POIs (isocenters, weight points, CT reference points, beam entry points)
+  vtkMRMLMarkupsFiducialNode* GetMarkupsFiducialNode();
+  /// Set RT Plan POIs (isocenters, weight points, CT reference points, beam entry points)
+  void SetAndObserveMarkupsFiducialNode(vtkMRMLMarkupsFiducialNode* node);
+
+  /// Get RT Plan Segmentation (structure set)
+  vtkMRMLSegmentationNode* GetSegmentationNode();
+  /// Set RT Plan Segmentation (structure set)
+  void SetAndObserveSegmentationNode(vtkMRMLSegmentationNode* node);
+
+  /// Get RT Plan Dose volume node
+  vtkMRMLScalarVolumeNode* GetDoseVolumeNode();
+  /// Set RT Plan Dose volume node
+  void SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
+
+  void SetDoseEngine(DoseEngineType doseEngineType) { this->DoseEngine = doseEngineType; };
+  DoseEngineType GetDoseEngine() { return this->DoseEngine; };
+
+  void SetDoseGrid(double* doseGrid) { this->DoseGrid[0] = doseGrid[0]; this->DoseGrid[1] = doseGrid[1]; this->DoseGrid[2] = doseGrid[2]; };
+  double* GetDoseGrid() { return this->DoseGrid; };
+
   /// Get Subject Hierarchy node associated with this node. Create if missing
   vtkMRMLSubjectHierarchyNode* GetPlanSubjectHierarchyNode();
 
@@ -126,6 +129,13 @@ public:
   vtkGetMacro(RxDose, double);
   /// Set prescription dose
   vtkSetMacro(RxDose, double);
+
+  /// Assemble reference volume node reference role for aperture volume node with given beam
+  static std::string AssembleApertureVolumeReference(vtkMRMLNode* beamNode);
+  /// Assemble reference volume node reference role for range compensator volume node with given beam
+  static std::string AssembleRangeCompensatorVolumeReference(vtkMRMLNode* beamNode);
+  /// Assemble reference volume node reference role for proton dose volume node with given beam
+  static std::string AssembleProtonDoseVolumeReference(vtkMRMLNode* beamNode);
 
 protected:
   /// Create default RT plan POIs markups node
@@ -139,9 +149,9 @@ protected:
 
 protected:
   int NextBeamNumber;
-  DoseEngineType RTPlanDoseEngine;
+  DoseEngineType DoseEngine;
   double RxDose;
-  double RTPlanDoseGrid[3];
+  double DoseGrid[3];
 };
 
 #endif // __vtkMRMLRTPlanNode_h

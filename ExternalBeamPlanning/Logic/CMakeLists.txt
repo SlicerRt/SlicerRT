@@ -17,8 +17,6 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}ModuleLogic.cxx
   vtkSlicer${MODULE_NAME}ModuleLogic.h
-  vtkMRML${MODULE_NAME}Node.cxx
-  vtkMRML${MODULE_NAME}Node.h
   vtkSlicerDoseCalculationEngine.cxx
   vtkSlicerDoseCalculationEngine.h
   )

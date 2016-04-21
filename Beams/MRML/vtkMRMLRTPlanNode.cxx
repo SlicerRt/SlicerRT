@@ -41,10 +41,18 @@
 #include <vtkVariant.h>
 
 //------------------------------------------------------------------------------
-static const char* RTPLAN_MARKUPS_REFERENCE_ROLE = "rtPlanMarkupsRef";
-static const char* RTPLAN_DOSEVOLUME_REFERENCE_ROLE = "rtPlanDoseVolumeRef";
-static const char* RTPLAN_REFERENCE_VOLUME_REFERENCE_ROLE = "rtPlanReferenceVolumeRef";
-static const char* RTPLAN_SEGMENTATION_REFERENCE_ROLE = "rtPlanSegmentationRef";
+const char* vtkMRMLRTPlanNode::NEW_BEAM_NODE_NAME_PREFIX = "NewBeam_";
+const char* vtkMRMLRTPlanNode::OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE = "outputTotalDoseVolumeRef";
+
+//------------------------------------------------------------------------------
+static const char* POIS_MARKUPS_REFERENCE_ROLE = "posMarkupsRef";
+static const char* DOSEVOLUME_REFERENCE_ROLE = "doseVolumeRef";
+static const char* REFERENCE_VOLUME_REFERENCE_ROLE = "referenceVolumeRef";
+static const char* SEGMENTATION_REFERENCE_ROLE = "segmentationRef";
+
+static const char* APERTURE_VOLUME_REFERENCE_ROLE_PREFIX = "apertureVolumeRef_";
+static const char* RANGE_COMPENSATOR_VOLUME_REFERENCE_ROLE_PREFIX = "rangeCompensatorVolumeRef_";
+static const char* PROTON_DOSE_VOLUME_REFERENCE_ROLE_PREFIX = "protonDoseVolumeRef_";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
@@ -54,12 +62,12 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 {
   this->NextBeamNumber = 0;
 
-  this->RTPlanDoseEngine = vtkMRMLRTPlanNode::Plastimatch;
+  this->DoseEngine = vtkMRMLRTPlanNode::Plastimatch;
   this->RxDose = 1.0;
 
-  this->RTPlanDoseGrid[0] = 0;
-  this->RTPlanDoseGrid[1] = 0;
-  this->RTPlanDoseGrid[2] = 0;
+  this->DoseGrid[0] = 0;
+  this->DoseGrid[1] = 0;
+  this->DoseGrid[2] = 0;
 
   this->HideFromEditorsOff();
 
@@ -151,34 +159,34 @@ void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode* vtkMRMLRTPlanNode::GetRTPlanReferenceVolumeNode()
+vtkMRMLScalarVolumeNode* vtkMRMLRTPlanNode::GetReferenceVolumeNode()
 {
   return vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetNodeReference(RTPLAN_REFERENCE_VOLUME_REFERENCE_ROLE));
+    this->GetNodeReference(REFERENCE_VOLUME_REFERENCE_ROLE));
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::SetAndObserveRTPlanReferenceVolumeNode(vtkMRMLScalarVolumeNode* node)
+void vtkMRMLRTPlanNode::SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(RTPLAN_REFERENCE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(REFERENCE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLSegmentationNode* vtkMRMLRTPlanNode::GetRTPlanSegmentationNode()
+vtkMRMLSegmentationNode* vtkMRMLRTPlanNode::GetSegmentationNode()
 {
-  return vtkMRMLSegmentationNode::SafeDownCast( this->GetNodeReference(RTPLAN_SEGMENTATION_REFERENCE_ROLE) );
+  return vtkMRMLSegmentationNode::SafeDownCast( this->GetNodeReference(SEGMENTATION_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::SetAndObserveRTPlanSegmentationNode(vtkMRMLSegmentationNode* node)
+void vtkMRMLRTPlanNode::SetAndObserveSegmentationNode(vtkMRMLSegmentationNode* node)
 {
-  this->SetNodeReferenceID(RTPLAN_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::GetMarkupsFiducialNode()
 {
-  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(this->GetNodeReference(RTPLAN_MARKUPS_REFERENCE_ROLE));
+  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(this->GetNodeReference(POIS_MARKUPS_REFERENCE_ROLE));
   if (!markupsNode)
   {
     markupsNode = this->CreateMarkupsFiducialNode();
@@ -204,7 +212,7 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::GetMarkupsFiducialNode()
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::SetAndObserveMarkupsFiducialNode(vtkMRMLMarkupsFiducialNode* node)
 {
-  this->SetNodeReferenceID(RTPLAN_MARKUPS_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(POIS_MARKUPS_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //----------------------------------------------------------------------------
@@ -236,15 +244,15 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode* vtkMRMLRTPlanNode::GetRTPlanDoseVolumeNode()
+vtkMRMLScalarVolumeNode* vtkMRMLRTPlanNode::GetDoseVolumeNode()
 {
-  return vtkMRMLScalarVolumeNode::SafeDownCast( this->GetNodeReference(RTPLAN_DOSEVOLUME_REFERENCE_ROLE) );
+  return vtkMRMLScalarVolumeNode::SafeDownCast( this->GetNodeReference(DOSEVOLUME_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::SetAndObserveRTPlanDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
+void vtkMRMLRTPlanNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(RTPLAN_DOSEVOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(DOSEVOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //---------------------------------------------------------------------------
@@ -362,7 +370,7 @@ void vtkMRMLRTPlanNode::AddRTBeamNode(vtkMRMLRTBeamNode *beamnode)
   beamnode->SetAndObserveIsocenterFiducialNode(this->GetMarkupsFiducialNode());
 
   // Copy the segmentation node reference into the beam
-  beamnode->SetAndObserveTargetSegmentationNode(this->GetRTPlanSegmentationNode());
+  beamnode->SetAndObserveTargetSegmentationNode(this->GetSegmentationNode());
 
   // Put the RTBeam node in the subject hierarchy
   vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode (
@@ -402,4 +410,46 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLRTPlanNode::GetPlanSubjectHierarchyNode()
   }
 
   return planSHNode;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLRTPlanNode::AssembleApertureVolumeReference(vtkMRMLNode* beamNode)
+{
+  if (!beamNode)
+  {
+    std::cerr << "vtkMRMLRTPlanNode::AssembleApertureVolumeReference: Invalid beam node!";
+    return "";
+  }
+  
+  std::string referenceRole(APERTURE_VOLUME_REFERENCE_ROLE_PREFIX);
+  referenceRole.append(beamNode->GetID());
+  return referenceRole;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLRTPlanNode::AssembleRangeCompensatorVolumeReference(vtkMRMLNode* beamNode)
+{
+  if (!beamNode)
+  {
+    std::cerr << "vtkMRMLRTPlanNode::AssembleRangeCompensatorVolumeReference: Invalid beam node!";
+    return "";
+  }
+  
+  std::string referenceRole(RANGE_COMPENSATOR_VOLUME_REFERENCE_ROLE_PREFIX);
+  referenceRole.append(beamNode->GetID());
+  return referenceRole;
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLRTPlanNode::AssembleProtonDoseVolumeReference(vtkMRMLNode* beamNode)
+{
+  if (!beamNode)
+  {
+    std::cerr << "vtkMRMLRTPlanNode::AssembleProtonDoseVolumeReference: Invalid beam node!";
+    return "";
+  }
+  
+  std::string referenceRole(PROTON_DOSE_VOLUME_REFERENCE_ROLE_PREFIX);
+  referenceRole.append(beamNode->GetID());
+  return referenceRole;
 }

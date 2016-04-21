@@ -52,9 +52,6 @@ public slots:
   /// Process loaded scene
   void onSceneImportedEvent();
 
-  /// Parameter node was changed in UI
-  void onParameterSetNodeChanged(vtkMRMLNode*);
-
 // Update functions
 protected:
   /// Update the entire widget based on the current parameter node
@@ -74,15 +71,11 @@ protected:
 
 // Utility functions
 protected:
-  vtkMRMLExternalBeamPlanningNode* parameterSetNode();
-  vtkMRMLRTPlanNode* rtPlanNode();
-  vtkMRMLRTBeamNode* currentBeamNode(vtkMRMLExternalBeamPlanningNode*);
   vtkMRMLRTBeamNode* currentBeamNode();
-  std::string currentBeamName();
 
 protected slots:
-  /// Parameter node was modified programmatically
-  void onParameterSetNodeModified();
+  /// RT plan was modified programmatically
+  void onRTPlanNodeModified();
 
   // Logic modified
   void onLogicModified();
@@ -95,8 +88,8 @@ protected slots:
   void planSegmentationNodeChanged(vtkMRMLNode*);
   void rtPlanNodeChanged(vtkMRMLNode*);
   void planPOIsNodeChanged(vtkMRMLNode*);
-  void rtDoseVolumeNodeChanged(vtkMRMLNode*);
-  void rtDoseROINodeChanged(vtkMRMLNode*);
+  void doseVolumeNodeChanged(vtkMRMLNode*);
+  void doseROINodeChanged(vtkMRMLNode*);
   void doseGridSpacingChanged(const QString &);
   void doseEngineTypeChanged(const QString &);
   
@@ -141,7 +134,7 @@ protected slots:
   // Proton beam model
   void apertureDistanceChanged(double);
   void algorithmChanged(const QString &);
-  void pbResolutionChanged(double);
+  void pencilBeamSpacingChanged(double);
   void sourceSizeChanged(double);
   void energyResolutionChanged(double);
   void energySpreadChanged(double);

@@ -26,17 +26,17 @@
       <enum>QLayout::SetFixedSize</enum>
      </property>
      <item>
-      <widget class="QLabel" name="label_13">
+      <widget class="QLabel" name="label_RTPlanNode">
        <property name="text">
-        <string>Parameter Set:</string>
+        <string>RT Plan node:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RtPlan">
        <property name="nodeTypes">
         <stringlist>
-         <string>vtkMRMLExternalBeamPlanningNode</string>
+         <string>vtkMRMLRTPlanNode</string>
         </stringlist>
        </property>
       </widget>
@@ -44,7 +44,7 @@
     </layout>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CTKCollapsibleButton_ExternalBeamPlanning">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_RTPlan">
      <property name="text">
       <string>RT Plan</string>
      </property>
@@ -65,38 +65,35 @@
           <string>Plan</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_RTPlan">
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_DoseROI">
             <property name="text">
-             <string>RT plan:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             <string>Dose ROI:</string>
             </property>
            </widget>
           </item>
-          <item row="8" column="2">
-           <widget class="QLineEdit" name="lineEdit_DoseGridSpacing">
-            <property name="text">
-             <string>1,1,1</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
+          <item row="4" column="0">
            <widget class="QLabel" name="label">
             <property name="text">
              <string>Plan POIs:</string>
             </property>
            </widget>
           </item>
-          <item row="8" column="0">
+          <item row="9" column="0">
+           <widget class="QLabel" name="label_DoseEngine">
+            <property name="text">
+             <string>Dose engine:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
            <widget class="QLabel" name="label_DoseGridSpacing">
             <property name="text">
              <string>Dose grid spacing:</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="0" column="0">
            <widget class="QLabel" name="label_ReferenceVolume">
             <property name="text">
              <string>Reference volume:</string>
@@ -106,7 +103,40 @@
             </property>
            </widget>
           </item>
-          <item row="10" column="2">
+          <item row="10" column="0" colspan="3">
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_PlanContours">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="text">
+             <string>Plan segmentation:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_DoseVolume">
+            <property name="text">
+             <string>Dose volume:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="2">
            <widget class="QComboBox" name="comboBox_DoseEngineType">
             <item>
              <property name="text">
@@ -125,40 +155,14 @@
             </item>
            </widget>
           </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="label_DoseVolume">
+          <item row="7" column="2">
+           <widget class="QLineEdit" name="lineEdit_DoseGridSpacing">
             <property name="text">
-             <string>Dose volume:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="0">
-           <widget class="QLabel" name="label_DoseROI">
-            <property name="text">
-             <string>Dose ROI:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="10" column="0">
-           <widget class="QLabel" name="label_DoseEngine">
-            <property name="text">
-             <string>Dose engine:</string>
+             <string>1,1,1</string>
             </property>
            </widget>
           </item>
           <item row="6" column="2">
-           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume">
-            <property name="nodeTypes">
-             <stringlist>
-              <string>vtkMRMLScalarVolumeNode</string>
-             </stringlist>
-            </property>
-            <property name="showChildNodeTypes">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="2">
            <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseROI">
             <property name="nodeTypes">
              <stringlist>
@@ -167,22 +171,22 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="2">
-           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanPOIs">
+          <item row="2" column="2">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanSegmentation">
             <property name="nodeTypes">
              <stringlist>
-              <string>vtkMRMLMarkupsFiducialNode</string>
+              <string>vtkMRMLSegmentationNode</string>
              </stringlist>
             </property>
-            <property name="addEnabled">
-             <bool>false</bool>
+            <property name="noneEnabled">
+             <bool>true</bool>
             </property>
-            <property name="removeEnabled">
-             <bool>false</bool>
+            <property name="noneDisplay">
+             <string>Please select node</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
+          <item row="0" column="2">
            <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
             <property name="nodeTypes">
              <stringlist>
@@ -206,70 +210,32 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="2">
-           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanSegmentation">
+          <item row="4" column="2">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanPOIs">
             <property name="nodeTypes">
              <stringlist>
-              <string>vtkMRMLSegmentationNode</string>
-             </stringlist>
-            </property>
-            <property name="noneEnabled">
-             <bool>true</bool>
-            </property>
-            <property name="noneDisplay">
-             <string>Please select node</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RtPlan">
-            <property name="toolTip">
-             <string/>
-            </property>
-            <property name="nodeTypes">
-             <stringlist>
-              <string>vtkMRMLRTPlanNode</string>
+              <string>vtkMRMLMarkupsFiducialNode</string>
              </stringlist>
             </property>
             <property name="addEnabled">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="removeEnabled">
-             <bool>true</bool>
-            </property>
-            <property name="renameEnabled">
-             <bool>true</bool>
-            </property>
-            <property name="selectNodeUponCreation">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_PlanContours">
-            <property name="enabled">
-             <bool>true</bool>
+          <item row="5" column="2">
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume">
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLScalarVolumeNode</string>
+             </stringlist>
             </property>
-            <property name="text">
-             <string>Plan segmentation:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            <property name="showChildNodeTypes">
+             <bool>false</bool>
             </property>
            </widget>
-          </item>
-          <item row="11" column="0" colspan="3">
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
           </item>
          </layout>
         </widget>
@@ -327,39 +293,39 @@
         </widget>
        </widget>
       </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_AddBeam">
+          <property name="text">
+           <string>Add Beam</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_RemoveBeam">
+          <property name="text">
+           <string>Remove Beam</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
      </layout>
     </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_6">
-     <item>
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_AddBeam">
-       <property name="text">
-        <string>Add Beam</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_RemoveBeam">
-       <property name="text">
-        <string>Remove Beam</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
    </item>
    <item>
     <widget class="ctkCollapsibleButton" name="CollapsibleButton_BeamParameters">
@@ -415,7 +381,7 @@
          <bool>true</bool>
         </property>
         <property name="currentIndex">
-         <number>3</number>
+         <number>0</number>
         </property>
         <property name="tabsClosable">
          <bool>false</bool>
@@ -980,14 +946,14 @@
              </widget>
             </item>
             <item row="2" column="0">
-             <widget class="QLabel" name="label_PBResolution">
+             <widget class="QLabel" name="label_PencilBeamSpacing">
               <property name="text">
                <string>Pencil beam spacing at isocenter (mm):</string>
               </property>
              </widget>
             </item>
             <item row="2" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_PBResolution">
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_PencilBeamSpacing">
               <property name="minimum">
                <double>0.100000000000000</double>
               </property>
@@ -1089,11 +1055,6 @@
            </layout>
           </item>
          </layout>
-        </widget>
-        <widget class="QWidget" name="tabWidgetPagePhotonBeamModel">
-         <attribute name="title">
-          <string>Beam Model</string>
-         </attribute>
         </widget>
         <widget class="QWidget" name="tabWidgetPageVisualization">
          <attribute name="title">
@@ -1275,7 +1236,7 @@
   <connection>
    <sender>qSlicerExternalBeamPlanningModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_ParameterSet</receiver>
+   <receiver>MRMLNodeComboBox_RtPlan</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1285,22 +1246,6 @@
     <hint type="destinationlabel">
      <x>363</x>
      <y>10</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerExternalBeamPlanningModule</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLNodeComboBox_RtPlan</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>71</x>
-     <y>735</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>514</x>
-     <y>107</y>
     </hint>
    </hints>
   </connection>

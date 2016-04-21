@@ -42,11 +42,8 @@
 
 #include "vtkSlicerExternalBeamPlanningModuleLogicExport.h"
 
-class vtkMRMLExternalBeamPlanningNode;
-class vtkMRMLRTBeamNode;
 class vtkMRMLRTPlanNode;
-class vtkPolyData;
-class vtkDoubleArray;
+class vtkMRMLRTBeamNode;
 class vtkSlicerCLIModuleLogic;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
@@ -58,14 +55,10 @@ public:
   vtkTypeMacro(vtkSlicerExternalBeamPlanningModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  /// TODO
-  void SetAndObserveExternalBeamPlanningNode(vtkMRMLExternalBeamPlanningNode* node);
-
-  /// Get the EBP Node
-  vtkGetObjectMacro(ExternalBeamPlanningNode, vtkMRMLExternalBeamPlanningNode);
-
-  /// Get the Plan associated with the EBP Node
-  vtkMRMLRTPlanNode* GetRTPlanNode();
+  /// Set and observe RT plan node
+  void SetAndObserveRTPlanNode(vtkMRMLRTPlanNode* node);
+  /// Get RT plan Node
+  vtkGetObjectMacro(RTPlanNode, vtkMRMLRTPlanNode);
 
   /// Create a new beam, and add it to the plan associated with the EBP Node
   vtkMRMLRTBeamNode* AddBeam(vtkMRMLRTBeamNode* copyFrom);
@@ -123,17 +116,18 @@ protected:
   virtual ~vtkSlicerExternalBeamPlanningModuleLogic();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
-  
-  /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
+
   virtual void UpdateFromMRMLScene();
+
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
 
-  /// Parameter set MRML node
-  vtkMRMLExternalBeamPlanningNode* ExternalBeamPlanningNode;
+  /// RT plan MRML node
+  vtkMRMLRTPlanNode* RTPlanNode;
+
+  /// TODO:
   int DRRImageSize[2];
 
 private:

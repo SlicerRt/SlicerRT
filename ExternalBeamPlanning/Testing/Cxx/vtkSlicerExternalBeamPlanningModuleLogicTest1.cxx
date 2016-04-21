@@ -21,7 +21,7 @@
 
 // ExternalBeamPlanning includes
 #include "vtkSlicerExternalBeamPlanningModuleLogic.h"
-#include "vtkMRMLExternalBeamPlanningNode.h"
+#include "vtkMRMLRTPlanNode.h"
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
