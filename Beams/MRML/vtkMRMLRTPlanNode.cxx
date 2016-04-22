@@ -363,8 +363,7 @@ void vtkMRMLRTPlanNode::AddRTBeamNode(vtkMRMLRTBeamNode *beamnode)
   vtkMRMLSubjectHierarchyNode* planSHNode = this->GetPlanSubjectHierarchyNode();
 
   // Set the beam number
-  beamnode->SetBeamNumber(this->NextBeamNumber);
-  this->NextBeamNumber++;
+  beamnode->SetBeamNumber(++this->NextBeamNumber);
 
   // Copy the plan markups node reference into the beam
   beamnode->SetAndObserveIsocenterFiducialNode(this->GetMarkupsFiducialNode());
@@ -373,7 +372,7 @@ void vtkMRMLRTPlanNode::AddRTBeamNode(vtkMRMLRTBeamNode *beamnode)
   beamnode->SetAndObserveTargetSegmentationNode(this->GetSegmentationNode());
 
   // Put the RTBeam node in the subject hierarchy
-  vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode (
+  vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
     scene, planSHNode, 
     vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), 
     beamnode->GetName(), beamnode );

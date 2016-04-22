@@ -84,11 +84,11 @@ public:
   /// Get labelmap from target segment of beam node
   vtkSmartPointer<vtkOrientedImageData> GetTargetLabelmap(vtkMRMLRTBeamNode* beamNode);
 
-  /// TODO
-  void ComputeDose(vtkMRMLRTBeamNode*);
+  /// Compute dose for one beam
+  std::string ComputeDose(vtkMRMLRTBeamNode*);
 
   /// TODO
-  void ComputeDoseByPlastimatch(vtkMRMLRTBeamNode*);
+  std::string ComputeDoseByPlastimatch(vtkMRMLRTBeamNode*);
 
   /// TODO
   void ComputeWED();
@@ -98,14 +98,13 @@ public:
   vtkSlicerCLIModuleLogic* GetMatlabDoseCalculationModuleLogic();
 
   /// TODO
-  void ComputeDoseByMatlab(vtkMRMLRTBeamNode*);
+  std::string ComputeDoseByMatlab(vtkMRMLRTBeamNode*);
 
   /// TODO
-  void InitializeAccumulatedDose();
+  std::string InitializeAccumulatedDose();
 
   /// TODO
-  //TODO: This method should be called something else. As far as I know there is no registration involved.
-  void FinalizeAccumulatedDose();
+  std::string FinalizeAccumulatedDose();
 
   /// Remove MRML nodes created by dose calculation for the current RT plan,
   /// such as apertures, range compensators, and doses

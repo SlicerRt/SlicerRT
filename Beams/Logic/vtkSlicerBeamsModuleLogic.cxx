@@ -476,18 +476,18 @@ void vtkSlicerBeamsModuleLogic::AddDefaultModelToRTBeamNode(vtkMRMLScene* scene,
   transformNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
 
   // Create model node for beam
-  vtkSmartPointer<vtkMRMLModelDisplayNode> meamModelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  meamModelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(scene->AddNode(meamModelDisplayNode));
-  meamModelDisplayNode->SetColor(0.0, 1.0, 0.2);
-  meamModelDisplayNode->SetOpacity(0.3);
-  meamModelDisplayNode->SetBackfaceCulling(0); // Disable backface culling to make the back side of the contour visible as well
-  meamModelDisplayNode->VisibilityOn(); 
-  meamModelDisplayNode->SliceIntersectionVisibilityOn();
+  vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  beamModelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(scene->AddNode(beamModelDisplayNode));
+  beamModelDisplayNode->SetColor(0.0, 1.0, 0.2);
+  beamModelDisplayNode->SetOpacity(0.3);
+  beamModelDisplayNode->SetBackfaceCulling(0); // Disable backface culling to make the back side of the contour visible as well
+  beamModelDisplayNode->VisibilityOn(); 
+  beamModelDisplayNode->SliceIntersectionVisibilityOn();
 
   // Setup beam model node
   beamNode->SetAndObservePolyData(beamModelPolyData);
   beamNode->SetAndObserveTransformNodeID(transformNode->GetID());
-  beamNode->SetAndObserveDisplayNodeID(meamModelDisplayNode->GetID());
+  beamNode->SetAndObserveDisplayNodeID(beamModelDisplayNode->GetID());
 
   scene->EndState(vtkMRMLScene::BatchProcessState); 
 }

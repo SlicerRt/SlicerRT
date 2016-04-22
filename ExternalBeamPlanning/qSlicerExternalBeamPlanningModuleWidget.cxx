@@ -296,7 +296,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   d->tabWidget->clear();
 
   // Set status text to initial instruction
-  d->label_CalculateDoseStatus->setText("Add beam to start planning");
+  d->label_CalculateDoseStatus->setText("Add plan and beam to start planning");
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
@@ -2013,22 +2013,30 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  d->logic()->InitializeAccumulatedDose();
-  d->label_CalculateDoseStatus->setText("Dose calculation in progress"); //+ beamNode->GetBeamName();
+  std::string errorMessage = d->logic()->InitializeAccumulatedDose();
+  if (!errorMessage.empty())
+  {
+    d->label_CalculateDoseStatus->setText(errorMessage.c_str());
+    QApplication::restoreOverrideCursor();
+    return;
+  }
 
   for (int i=0; i<beams->GetNumberOfItems(); ++i)
   {
     beamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(beams->GetItemAsObject(i));
     if (beamNode)
     {
-      if (beamNode->GetRadiationType() != vtkMRMLRTBeamNode::Proton)
+      QString progressMessage = QString("Dose calculation in progress: %1").arg(beamNode->GetName());
+      d->label_CalculateDoseStatus->setText(progressMessage);
+
+      errorMessage = d->logic()->ComputeDose(beamNode);
+      if (!errorMessage.empty())
       {
-          d->label_CalculateDoseStatus->setText("Dose calculation is not available for this particle");
-          QApplication::restoreOverrideCursor();
-          return;
+        d->label_CalculateDoseStatus->setText(errorMessage.c_str());
+        break;
       }
-      d->logic()->ComputeDose(beamNode);
-      // sum in the final dose matrix with weights externalbeam for RxDose, and beamNode for beam weight //TODO:
+
+      //TODO: sum in the final dose matrix with weights externalbeam for RxDose, and beamNode for beam weight
     }
     else
     {
@@ -2037,9 +2045,15 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     }
   }
   
-  d->logic()->FinalizeAccumulatedDose();
-
-  d->label_CalculateDoseStatus->setText("Dose calculation done");
+  errorMessage = d->logic()->FinalizeAccumulatedDose();
+  if (!errorMessage.empty())
+  {
+    d->label_CalculateDoseStatus->setText(errorMessage.c_str());
+  }
+  else
+  {
+    d->label_CalculateDoseStatus->setText("Dose calculation done");
+  }
   QApplication::restoreOverrideCursor();
 
   return;
