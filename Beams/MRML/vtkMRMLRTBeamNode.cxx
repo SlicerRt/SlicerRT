@@ -19,7 +19,7 @@
 
 ==============================================================================*/
 
-// SlicerRtCommon includes
+// SlicerRt includes
 #include "PlmCommon.h"
 #include "SlicerRtCommon.h"
 #include "vtkMRMLLinearTransformNode.h"
@@ -33,14 +33,12 @@
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLLabelMapVolumeDisplayNode.h>
-#include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLModelDisplayNode.h>
-#include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLSubjectHierarchyNode.h>
+#include <vtkMRMLSubjectHierarchyConstants.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -50,6 +48,11 @@
 #include <vtkImageResample.h>
 #include <vtkGeneralTransform.h>
 #include <vtkCollection.h>
+#include <vtkDoubleArray.h>
+#include <vtkCellArray.h>
+
+//------------------------------------------------------------------------------
+const char* vtkMRMLRTBeamNode::NEW_BEAM_NODE_NAME_PREFIX = "NewBeam_";
 
 //------------------------------------------------------------------------------
 static const char* ISOCENTER_FIDUCIAL_REFERENCE_ROLE = "isocenterFiducialRef";
@@ -142,11 +145,11 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
     attValue = *(atts++);
 
     if (!strcmp(attName, "TargetSegmentID")) 
-      {
+    {
       std::stringstream ss;
       ss << attValue;
       this->SetTargetSegmentID(ss.str().c_str());
-      }
+    }
     //TODO: Beam parameters
   }
 }
@@ -213,22 +216,6 @@ void vtkMRMLRTBeamNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
 vtkMRMLMarkupsFiducialNode* vtkMRMLRTBeamNode::GetIsocenterFiducialNode()
 {
   return vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetNodeReference(ISOCENTER_FIDUCIAL_REFERENCE_ROLE) );
-}
-
-//----------------------------------------------------------------------------
-bool vtkMRMLRTBeamNode::BeamNameIs(const std::string& beamName)
-{
-  return BeamNameIs(beamName.c_str());
-}
-
-//----------------------------------------------------------------------------
-bool vtkMRMLRTBeamNode::BeamNameIs(const char *beamName)
-{
-  if (this->Name == NULL || beamName == NULL)
-  {
-    return false;
-  }
-  return !strcmp(this->Name, beamName);
 }
 
 //----------------------------------------------------------------------------
@@ -391,7 +378,7 @@ void vtkMRMLRTBeamNode::SetAndObserveContourBEVVolumeNode(vtkMRMLScalarVolumeNod
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLRTPlanNode* vtkMRMLRTBeamNode::GetRTPlanNode()
+vtkMRMLRTPlanNode* vtkMRMLRTBeamNode::GetPlanNode()
 {
   vtkMRMLSubjectHierarchyNode* beamShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this);
   if (!beamShNode)
@@ -531,4 +518,200 @@ void vtkMRMLRTBeamNode::CopyIsocenterCoordinatesFromMarkups(double* iso)
 {
   vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
   fiducialNode->GetNthFiducialPosition(0,iso);
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::CreateDefaultBeamModel()
+{
+  if (!this->Scene)
+  {
+    vtkErrorMacro ("CreateDefaultBeamModel: Invalid MRML scene");
+    return;
+  }
+
+  // Create beam model
+  vtkSmartPointer<vtkPolyData> beamModelPolyData = this->CreateBeamPolyData();
+
+  // Transform for visualization
+  //TODO: Awful names for transforms. They should be barToFooTransform
+  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+  transform->Identity();
+  transform->RotateZ(0);
+  transform->RotateY(0);
+  transform->RotateX(-90);
+
+  vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
+  transform2->Identity();
+  transform2->Translate(0.0, 0.0, 0.0);
+
+  transform->PostMultiply();
+  transform->Concatenate(transform2->GetMatrix());
+
+  // Create transform node for beam
+  vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
+  transformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->Scene->AddNode(transformNode));
+  transformNode->SetMatrixTransformToParent(transform->GetMatrix());
+  transformNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
+
+  // Create model node for beam
+  vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  beamModelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->Scene->AddNode(beamModelDisplayNode));
+  beamModelDisplayNode->SetColor(0.0, 1.0, 0.2);
+  beamModelDisplayNode->SetOpacity(0.3);
+  beamModelDisplayNode->SetBackfaceCulling(0); // Disable backface culling to make the back side of the contour visible as well
+  beamModelDisplayNode->VisibilityOn(); 
+  beamModelDisplayNode->SliceIntersectionVisibilityOn();
+
+  // Setup beam model node
+  this->SetAndObservePolyData(beamModelPolyData);
+  this->SetAndObserveTransformNodeID(transformNode->GetID());
+  this->SetAndObserveDisplayNodeID(beamModelDisplayNode->GetID());
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::UpdateBeamGeometry()
+{
+  vtkSmartPointer<vtkPolyData> beamModelPolyData = this->CreateBeamPolyData();
+  this->SetAndObservePolyData(beamModelPolyData);
+}
+
+//---------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> vtkMRMLRTBeamNode::CreateBeamPolyData()
+{
+  vtkSmartPointer<vtkPolyData> beamModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkCellArray> cellArray = vtkSmartPointer<vtkCellArray>::New();
+
+  vtkMRMLDoubleArrayNode* mlcArrayNode = this->GetMLCPositionDoubleArrayNode();
+  if (mlcArrayNode)
+  {
+    // First we extract the shape of the MLC
+    int X2count = this->X2Jaw/10;
+    int X1count = this->X1Jaw/10;
+    int numLeavesVisible = X2count - (-X1count); // Calculate the number of leaves visible
+    int numPointsEachSide = numLeavesVisible *2;
+
+    double Y2LeafPosition[40];
+    double Y1LeafPosition[40];
+
+    // Calculate Y2 first
+    for (int i = X2count; i >= -X1count; i--)
+    {
+      double leafPosition = mlcArrayNode->GetArray()->GetComponent(-(i-20), 1);
+      if (leafPosition < this->Y2Jaw)
+      {
+        Y2LeafPosition[-(i-20)] = leafPosition;
+      }
+      else
+      {
+        Y2LeafPosition[-(i-20)] = this->Y2Jaw;
+      }
+    }
+    // Calculate Y1 next
+    for (int i = X2count; i >= -X1count; i--)
+    {
+      double leafPosition = mlcArrayNode->GetArray()->GetComponent(-(i-20), 0);
+      if (leafPosition < this->Y1Jaw)
+      {
+        Y1LeafPosition[-(i-20)] = leafPosition;
+      }
+      else
+      {
+        Y1LeafPosition[-(i-20)] = this->Y1Jaw;
+      }
+    }
+
+    // Create beam model
+    points->InsertPoint(0,0,0,this->SAD);
+
+    int count = 1;
+    for (int i = X2count; i > -X1count; i--)
+    {
+      points->InsertPoint(count,-Y2LeafPosition[-(i-20)]*2, i*10*2, -this->SAD );
+      count ++;
+      points->InsertPoint(count,-Y2LeafPosition[-(i-20)]*2, (i-1)*10*2, -this->SAD );
+      count ++;
+    }
+
+    for (int i = -X1count; i < X2count; i++)
+    {
+      points->InsertPoint(count,Y1LeafPosition[-(i-20)]*2, i*10*2, -this->SAD );
+      count ++;
+      points->InsertPoint(count,Y1LeafPosition[-(i-20)]*2, (i+1)*10*2, -this->SAD );
+      count ++;
+    }
+
+    for (int i = 1; i <numPointsEachSide; i++)
+    {
+      cellArray->InsertNextCell(3);
+      cellArray->InsertCellPoint(0);
+      cellArray->InsertCellPoint(i);
+      cellArray->InsertCellPoint(i+1);
+    }
+    // Add connection between Y2 and Y1
+    cellArray->InsertNextCell(3);
+    cellArray->InsertCellPoint(0);
+    cellArray->InsertCellPoint(numPointsEachSide);
+    cellArray->InsertCellPoint(numPointsEachSide+1);
+    for (int i = numPointsEachSide+1; i <2*numPointsEachSide; i++)
+    {
+      cellArray->InsertNextCell(3);
+      cellArray->InsertCellPoint(0);
+      cellArray->InsertCellPoint(i);
+      cellArray->InsertCellPoint(i+1);
+    }
+
+    // Add connection between Y2 and Y1
+    cellArray->InsertNextCell(3);
+    cellArray->InsertCellPoint(0);
+    cellArray->InsertCellPoint(2*numPointsEachSide);
+    cellArray->InsertCellPoint(1);
+
+    // Add the cap to the bottom
+    cellArray->InsertNextCell(2*numPointsEachSide);
+    for (int i = 1; i <= 2*numPointsEachSide; i++)
+    {
+      cellArray->InsertCellPoint(i);
+    }
+  }
+  else
+  {
+    points->InsertPoint(0,0,0,SAD);
+    points->InsertPoint(1,-2*this->Y2Jaw, -2*this->X2Jaw, -this->SAD );
+    points->InsertPoint(2,-2*this->Y2Jaw,  2*this->X1Jaw, -this->SAD );
+    points->InsertPoint(3, 2*this->Y1Jaw,  2*this->X1Jaw, -this->SAD );
+    points->InsertPoint(4, 2*this->Y1Jaw, -2*this->X2Jaw, -this->SAD );
+
+    cellArray->InsertNextCell(3);
+    cellArray->InsertCellPoint(0);
+    cellArray->InsertCellPoint(1);
+    cellArray->InsertCellPoint(2);
+
+    cellArray->InsertNextCell(3);
+    cellArray->InsertCellPoint(0);
+    cellArray->InsertCellPoint(2);
+    cellArray->InsertCellPoint(3);
+
+    cellArray->InsertNextCell(3);
+    cellArray->InsertCellPoint(0);
+    cellArray->InsertCellPoint(3);
+    cellArray->InsertCellPoint(4);
+
+    cellArray->InsertNextCell(3);
+    cellArray->InsertCellPoint(0);
+    cellArray->InsertCellPoint(4);
+    cellArray->InsertCellPoint(1);
+
+    // Add the cap to the bottom
+    cellArray->InsertNextCell(4);
+    cellArray->InsertCellPoint(1);
+    cellArray->InsertCellPoint(2);
+    cellArray->InsertCellPoint(3);
+    cellArray->InsertCellPoint(4);
+  }
+
+  beamModelPolyData->SetPoints(points);
+  beamModelPolyData->SetPolys(cellArray);
+
+  return beamModelPolyData;
 }

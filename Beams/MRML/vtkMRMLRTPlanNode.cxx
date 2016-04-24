@@ -41,7 +41,6 @@
 #include <vtkVariant.h>
 
 //------------------------------------------------------------------------------
-const char* vtkMRMLRTPlanNode::NEW_BEAM_NODE_NAME_PREFIX = "NewBeam_";
 const char* vtkMRMLRTPlanNode::OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE = "outputTotalDoseVolumeRef";
 
 //------------------------------------------------------------------------------
@@ -60,7 +59,7 @@ vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 {
-  this->NextBeamNumber = 0;
+  this->NextBeamNumber = 1;
 
   this->DoseEngine = vtkMRMLRTPlanNode::Plastimatch;
   this->RxDose = 1.0;
@@ -256,7 +255,7 @@ void vtkMRMLRTPlanNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* nod
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::GetRTBeamNodes(vtkCollection *beams)
+void vtkMRMLRTPlanNode::GetBeams(vtkCollection *beams)
 {
   if (!beams)
   {
@@ -276,13 +275,13 @@ void vtkMRMLRTPlanNode::GetRTBeamNodes(vtkCollection *beams)
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::GetRTBeamNodes(std::vector<vtkMRMLRTBeamNode*>& beams)
+void vtkMRMLRTPlanNode::GetBeams(std::vector<vtkMRMLRTBeamNode*>& beams)
 {
   beams.clear();
 
   // Get unsorted list from hierarchy
   vtkSmartPointer<vtkCollection> beamCollection = vtkSmartPointer<vtkCollection>::New();
-  this->GetRTBeamNodes(beamCollection);
+  this->GetBeams(beamCollection);
 
   // Insertion sort puts them into vector sorted by beam number
   beamCollection->InitTraversal();
@@ -305,7 +304,7 @@ void vtkMRMLRTPlanNode::GetRTBeamNodes(std::vector<vtkMRMLRTBeamNode*>& beams)
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetRTBeamNodeByName(const std::string& beamName)
+vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetBeamByName(const std::string& beamName)
 {
   vtkMRMLSubjectHierarchyNode* rtPlanShNode = this->GetPlanSubjectHierarchyNode();
   if (!rtPlanShNode)
@@ -321,7 +320,8 @@ vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetRTBeamNodeByName(const std::string& bea
   for (int i=0; i<beamCollection->GetNumberOfItems(); ++i)
   {
     vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(beamCollection->GetItemAsObject(i));
-    if (beamNode && beamNode->BeamNameIs(beamName))
+    if ( beamNode && beamNode->GetName()
+      && !strcmp(beamNode->GetName(), beamName.c_str()) )
     {
       return beamNode;
     }
@@ -330,7 +330,7 @@ vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetRTBeamNodeByName(const std::string& bea
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetRTBeamNodeByNumber(int beamNumber)
+vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetBeamByNumber(int beamNumber)
 {
   vtkMRMLSubjectHierarchyNode* rtPlanShNode = this->GetPlanSubjectHierarchyNode();
   if (!rtPlanShNode)
@@ -355,31 +355,88 @@ vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetRTBeamNodeByNumber(int beamNumber)
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::AddRTBeamNode(vtkMRMLRTBeamNode *beamnode)
+std::string vtkMRMLRTPlanNode::GenerateNewBeamName()
 {
-  vtkMRMLScene *scene = this->GetScene();
+  std::stringstream newBeamNameStream;
+  newBeamNameStream << vtkMRMLRTBeamNode::NEW_BEAM_NODE_NAME_PREFIX << this->NextBeamNumber;
+  return newBeamNameStream.str();
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::AddBeam(vtkMRMLRTBeamNode* beamNode)
+{
+  if (!this->GetScene())
+  {
+    vtkErrorMacro("AddBeam: Invalid MRML scene!");
+    return;
+  }
+  if (!beamNode)
+  {
+    return;
+  }
 
   // Get subject hierarchy node for the RT Plan
   vtkMRMLSubjectHierarchyNode* planSHNode = this->GetPlanSubjectHierarchyNode();
 
   // Set the beam number
-  beamnode->SetBeamNumber(++this->NextBeamNumber);
+  beamNode->SetBeamNumber(this->NextBeamNumber++);
 
   // Copy the plan markups node reference into the beam
-  beamnode->SetAndObserveIsocenterFiducialNode(this->GetMarkupsFiducialNode());
+  beamNode->SetAndObserveIsocenterFiducialNode(this->GetMarkupsFiducialNode());
 
   // Copy the segmentation node reference into the beam
-  beamnode->SetAndObserveTargetSegmentationNode(this->GetSegmentationNode());
+  beamNode->SetAndObserveTargetSegmentationNode(this->GetSegmentationNode());
 
   // Put the RTBeam node in the subject hierarchy
   vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    scene, planSHNode, 
+    this->GetScene(), planSHNode, 
     vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), 
-    beamnode->GetName(), beamnode );
+    beamNode->GetName(), beamNode );
+
+  this->Modified();
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::RemoveRTBeamNode(vtkMRMLRTBeamNode *beamNode)
+vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::CopyAndAddBeam(vtkMRMLRTBeamNode* copyFrom)
+{
+  if (!this->GetScene())
+  {
+    vtkErrorMacro("CopyBeam: Invalid MRML scene!");
+    return NULL;
+  }
+  if (!copyFrom)
+  {
+    return NULL;
+  }
+
+  // Create beam node of the same class as the template
+  vtkSmartPointer<vtkMRMLRTBeamNode> beamNode;
+  beamNode.TakeReference((vtkMRMLRTBeamNode*)this->GetScene()->CreateNodeByClass(copyFrom->GetClassName()));
+  if (!beamNode.GetPointer())
+  {
+    vtkErrorMacro("CopyAndAddBeam: Could not clone beam node");
+    return NULL;
+  }
+
+  // Copy properties from template
+  beamNode->CopyWithScene(copyFrom);
+  this->GetScene()->AddNode(beamNode);
+
+  // Change name of new beam to default
+  std::string newBeamName = this->GenerateNewBeamName();
+  beamNode->SetName(newBeamName.c_str());
+
+  // Create default model
+  beamNode->CreateDefaultBeamModel();
+
+  // Add beam to plan
+  this->AddBeam(beamNode);
+
+  return beamNode;
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::RemoveBeam(vtkMRMLRTBeamNode* beamNode)
 {
   vtkMRMLScene *scene = this->GetScene();
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(beamNode);
@@ -389,6 +446,8 @@ void vtkMRMLRTPlanNode::RemoveRTBeamNode(vtkMRMLRTBeamNode *beamNode)
     return;
   }
   scene->RemoveNode(shNode);
+
+  this->Modified();
 }
 
 //---------------------------------------------------------------------------

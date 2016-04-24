@@ -60,18 +60,6 @@ public:
   /// Get RT plan Node
   vtkGetObjectMacro(RTPlanNode, vtkMRMLRTPlanNode);
 
-  /// Create a new beam, and add it to the plan associated with the EBP Node
-  vtkMRMLRTBeamNode* AddBeam(vtkMRMLRTBeamNode* copyFrom);
-
-  /// Remove a specific beam
-  void RemoveBeam(vtkMRMLRTBeamNode *beam);
-
-  // Update the beam model for a new isocenter, gantry angle, etc.
-  void UpdateBeamTransform(vtkMRMLRTBeamNode *beamNode);
-
-  /// TODO
-  void UpdateBeamGeometryModel(char*);
-
   /// TODO
   bool ComputeTargetVolumeCenter(vtkMRMLRTBeamNode *beam, double* center);
 
@@ -113,6 +101,9 @@ public:
 protected:
   vtkSlicerExternalBeamPlanningModuleLogic();
   virtual ~vtkSlicerExternalBeamPlanningModuleLogic();
+
+  /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
+  virtual void RegisterNodes();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
 

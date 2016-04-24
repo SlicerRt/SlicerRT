@@ -48,7 +48,6 @@ public:
     Matlab = 2
   };
 
-  static const char* NEW_BEAM_NODE_NAME_PREFIX;
   static const char* OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE;
 
 public:
@@ -69,7 +68,7 @@ public:
   virtual void Copy(vtkMRMLNode *node);
 
   /// Get unique node XML tag name (like Volume, Model) 
-  virtual const char* GetNodeTagName() {return "RTPlan";};
+  virtual const char* GetNodeTagName() { return "RTPlan"; };
 
   /// Handles events registered in the observer manager
   /// - Invalidates (deletes) all non-active representations when the active is modified
@@ -77,24 +76,30 @@ public:
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
 public:
+  /// Generate new beam name from new beam name prefix and next beam number
+  std::string GenerateNewBeamName();
+
   /// Add given beam node to plan
-  void AddRTBeamNode(vtkMRMLRTBeamNode*);
+  void AddBeam(vtkMRMLRTBeamNode* beam);
+  /// Create a new beam based on another beam, and add it to the plan
+  /// \return The new beam node that has been copied and added to the plan
+  vtkMRMLRTBeamNode* CopyAndAddBeam(vtkMRMLRTBeamNode* copyFrom);
 
   /// Remove given beam node from plan
-  void RemoveRTBeamNode(vtkMRMLRTBeamNode*);
+  void RemoveBeam(vtkMRMLRTBeamNode* beam);
 
   /// Get beam nodes belonging to this plan
-  void GetRTBeamNodes(vtkCollection*);
+  void GetBeams(vtkCollection* beams);
   /// Get beam nodes belonging to this plan
-  void GetRTBeamNodes(std::vector<vtkMRMLRTBeamNode*>& beams);
+  void GetBeams(std::vector<vtkMRMLRTBeamNode*>& beams);
 
   /// Search for a beam of a given name.  Return NULL if beam not found
   /// Note: beam names *are not* unique within a plan
-  vtkMRMLRTBeamNode* GetRTBeamNodeByName(const std::string& beamName);
+  vtkMRMLRTBeamNode* GetBeamByName(const std::string& beamName);
 
   /// Search for a beam with given beam number.  Return NULL if beam not found
   /// Note: beam numbers *are* unique within a plan
-  vtkMRMLRTBeamNode* GetRTBeamNodeByNumber(int beamNumber);
+  vtkMRMLRTBeamNode* GetBeamByNumber(int beamNumber);
 
   /// Get RT Plan Reference volume
   vtkMRMLScalarVolumeNode* GetReferenceVolumeNode();

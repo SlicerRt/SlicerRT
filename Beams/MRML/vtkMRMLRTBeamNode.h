@@ -71,6 +71,8 @@ public:
     ArbitraryPoint
   };
 
+  static const char* NEW_BEAM_NODE_NAME_PREFIX;
+
 public:
   static vtkMRMLRTBeamNode *New();
   vtkTypeMacro(vtkMRMLRTBeamNode,vtkMRMLModelNode);
@@ -95,8 +97,26 @@ public:
   virtual const char* GetNodeTagName() { return "RTBeam"; };
 
 public:
+  /// Get center of gravity of target segment, return true if successful
+  /// or false if no target segment has been specified
+  bool ComputeTargetVolumeCenter(double* center);
+
+  /// Update the beam model for a new isocenter, gantry angle, etc.
+  void UpdateBeamTransform();
+
+  /// Update beam model based on current properties
+  void UpdateBeamGeometry();
+
+  /// Create a default beam model
+  void CreateDefaultBeamModel();
+
+  /// Create beam model from beam parameters, supporting MLC leaves
+  /// \return Poly data, null on fail
+  vtkSmartPointer<vtkPolyData> CreateBeamPolyData();
+
+public:
   /// Get parent plan node
-  vtkMRMLRTPlanNode* GetRTPlanNode();
+  vtkMRMLRTPlanNode* GetPlanNode();
 
   /// Get isocenter fiducial node
   vtkMRMLMarkupsFiducialNode* GetIsocenterFiducialNode();
@@ -110,10 +130,6 @@ public:
 
   /// Get target segment as a labelmap
   vtkSmartPointer<vtkOrientedImageData> GetTargetLabelmap();
-
-  /// Get center of gravity of target segment, return true if successful
-  /// or false if no target segment has been specified
-  bool ComputeTargetVolumeCenter(double* center);
 
   /// Get MLC position double array node
   vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
@@ -129,9 +145,6 @@ public:
   vtkMRMLScalarVolumeNode* GetContourBEVVolumeNode();
   /// Set and observe contour BEV node
   void SetAndObserveContourBEVVolumeNode(vtkMRMLScalarVolumeNode* node);
-
-  // Update the beam model for a new isocenter, gantry angle, etc.
-  void UpdateBeamTransform();
 
 // Beam parameters
 public:
@@ -218,11 +231,6 @@ public:
   vtkGetMacro(BeamWeight, double);
   vtkGetConstMacro(BeamWeight, double);
   vtkSetMacro(BeamWeight, double);
-
-  /// Return true if the beam name matches the argument
-  //TODO: Should not be needed
-  bool BeamNameIs(const std::string& beamName);
-  bool BeamNameIs(const char *beamName);
 
   void SetIsocenterSpec(vtkMRMLRTBeamNode::IsocenterSpecification);
   void SetIsocenterToTargetCenter();

@@ -64,8 +64,7 @@ protected:
 
   void updateBeamParameters();
 
-  void updateBeamTransform(vtkMRMLRTBeamNode*);
-  void updateBeamTransform();
+  void updateCurrentBeamTransform();
 
   void updateBeamGeometryModel();
 

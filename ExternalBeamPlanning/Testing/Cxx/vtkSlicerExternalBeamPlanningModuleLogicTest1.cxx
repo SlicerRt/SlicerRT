@@ -149,7 +149,7 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   // Set plan parameters
 
   // Add first beam
-  ebpLogic->AddBeam(NULL);
+  //ebpLogic->AddBeam(NULL);
 
   // Set first beam parameters
 

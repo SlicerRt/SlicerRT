@@ -140,7 +140,7 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
 
   try
   {
-    /* Connection of the beam parameters to the rt_beam class used to calculate the dose in platimatch */
+    /* Connection of the beam parameters to the rt_beam class used to calculate the dose in plastimatch */
 
     // Create a beam
     rt_beam = rt_plan.append_beam ();

@@ -365,9 +365,6 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromRTBeam(vtkMRMLRTBe
   // TODO: This should be where the beam node is selected, not on update
   qvtkConnect(beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
 
-  // GCS FIX TODO, set radiation type somehow
-  d->lineEdit_BeamName->setText(beamNode->GetName());
-
   // Enable appropriate tabs and widgets for this beam type and set 
   // widget values from MRML node
   vtkMRMLRTBeamNode::RTRadiationType radType = beamNode->GetRadiationType();
@@ -563,7 +560,7 @@ vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode()
     return NULL;
   }
   int beamNumber = item->text().toInt();
-  vtkMRMLRTBeamNode* beamNode = rtPlanNode->GetRTBeamNodeByNumber(beamNumber);
+  vtkMRMLRTBeamNode* beamNode = rtPlanNode->GetBeamByNumber(beamNumber);
 
   return beamNode;
 }
@@ -637,13 +634,14 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
 
   // Get beam nodes for the plan
   std::vector<vtkMRMLRTBeamNode*> beams;
-  rtPlanNode->GetRTBeamNodes(beams);
+  rtPlanNode->GetBeams(beams);
 
   // Set up the table
   d->tableWidget_Beams->setColumnCount(4);
   QStringList headerLabels;
   headerLabels << "Beam#" << "Name" << "Type" << "Radiation";
 
+  d->tableWidget_Beams->blockSignals(true);
   d->tableWidget_Beams->setColumnWidth(0, 24);
   d->tableWidget_Beams->setHorizontalHeaderLabels(headerLabels);
   d->tableWidget_Beams->setRowCount(beams.size());
@@ -660,6 +658,8 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
       d->tableWidget_Beams->setItem(i, 2, new QTableWidgetItem( QString::number(beamNode->GetGantryAngle()) ) );
     }
   }
+
+  d->tableWidget_Beams->blockSignals(false);
   if (d->CurrentBeamRow >= 0)
   {
     d->tableWidget_Beams->selectRow(d->CurrentBeamRow);
@@ -847,7 +847,21 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   }
 
   // Create new beam node by replicating currently selected beam
-  vtkMRMLRTBeamNode* beamNode = d->logic()->AddBeam(this->currentBeamNode());
+  vtkMRMLRTBeamNode* beamNode = NULL;
+  if (this->currentBeamNode())
+  {
+    beamNode = rtPlanNode->CopyAndAddBeam(this->currentBeamNode());
+  }
+  else
+  {
+    //TODO: Create the type of beam specified by the selected dose engine plugin
+    beamNode = vtkMRMLRTProtonBeamNode::New();
+    beamNode->SetName(rtPlanNode->GenerateNewBeamName().c_str());
+    this->mrmlScene()->AddNode(beamNode);
+    beamNode->CreateDefaultBeamModel();
+    beamNode->Delete(); // Return ownership to scene only
+    rtPlanNode->AddBeam(beamNode);
+  }
   if (!beamNode)
   {
     qCritical() << Q_FUNC_INFO << ": Failed to add beam!";
@@ -861,11 +875,6 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   d->CurrentBeamRow = d->NumberOfBeamRows++;
   d->tableWidget_Beams->selectRow(d->CurrentBeamRow);
 
-  QString newBeamName(vtkMRMLRTPlanNode::NEW_BEAM_NODE_NAME_PREFIX);
-  newBeamName.append(QString::number(d->NumberOfBeamRows));
-  beamNode->SetName(newBeamName.toStdString().c_str());
-  this->beamNameChanged(newBeamName);
-
   // Clear instruction text
   d->label_CalculateDoseStatus->setText("");
 
@@ -876,7 +885,7 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   this->updateWidgetFromRTBeam(beamNode);
 
   // Update beam visualization
-  this->updateBeamTransform();
+  this->updateCurrentBeamTransform();
 
   // Update beam visualization
   this->updateBeamGeometryModel();
@@ -887,6 +896,12 @@ void qSlicerExternalBeamPlanningModuleWidget::removeBeamClicked()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
+  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
+  if (!rtPlanNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    return;
+  }
   vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
@@ -897,7 +912,7 @@ void qSlicerExternalBeamPlanningModuleWidget::removeBeamClicked()
   qvtkDisconnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()) );
   
   // Remove beam
-  d->logic()->RemoveBeam(beamNode);
+  rtPlanNode->RemoveBeam(beamNode);
 
   // Select a different beam as current
   d->NumberOfBeamRows--;
@@ -966,10 +981,10 @@ void qSlicerExternalBeamPlanningModuleWidget::beamNameChanged(const QString &tex
   this->updateRTBeamTableWidget();
   
   // Update beam visualization
-  this->updateBeamTransform();
+  //this->updateCurrentBeamTransform();
 
   // Update beam visualization
-  this->updateBeamGeometryModel();
+  //this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -1449,7 +1464,7 @@ void qSlicerExternalBeamPlanningModuleWidget::xJawsPositionValuesChanged(double 
   beamNode->SetX2Jaw( maxVal);
 
   // Update beam visualization
-  this->updateBeamTransform();
+  this->updateCurrentBeamTransform();
   this->updateBeamGeometryModel();
 }
 
@@ -1475,7 +1490,7 @@ void qSlicerExternalBeamPlanningModuleWidget::yJawsPositionValuesChanged(double 
   beamNode->SetY2Jaw( maxVal);
 
   // Update beam visualization
-  this->updateBeamTransform();
+  this->updateCurrentBeamTransform();
   this->updateBeamGeometryModel();
 }
 
@@ -1500,7 +1515,7 @@ void qSlicerExternalBeamPlanningModuleWidget::gantryAngleChanged(double value)
   beamNode->SetGantryAngle(value);
 
   // Update beam visualization
-  this->updateBeamTransform();
+  this->updateCurrentBeamTransform();
 
   // Update the table
   this->updateRTBeamTableWidget();
@@ -1529,7 +1544,7 @@ void qSlicerExternalBeamPlanningModuleWidget::collimatorAngleChanged(double valu
   beamNode->SetCollimatorAngle(value);
 
   // Update beam visualization
-  this->updateBeamTransform();
+  this->updateCurrentBeamTransform();
 }
 
 //-----------------------------------------------------------------------------
@@ -1554,7 +1569,7 @@ void qSlicerExternalBeamPlanningModuleWidget::couchAngleChanged(double value)
 
   // Update beam visualization
 
-  this->updateBeamTransform();
+  this->updateCurrentBeamTransform();
 }
 
 //-----------------------------------------------------------------------------
@@ -2003,7 +2018,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   // Dose Calculation - loop on all the beam and sum in a global dose matrix
 
   vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
-  rtPlanNode->GetRTBeamNodes(beams);
+  rtPlanNode->GetBeams(beams);
   if (!beams) 
   {
     d->label_CalculateDoseStatus->setText("No beam found in the plan");
@@ -2079,19 +2094,15 @@ void qSlicerExternalBeamPlanningModuleWidget::updateBeamParameters()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::updateBeamTransform(vtkMRMLRTBeamNode *beamNode)
+void qSlicerExternalBeamPlanningModuleWidget::updateCurrentBeamTransform()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  d->logic()->UpdateBeamTransform(beamNode);
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::updateBeamTransform()
-{
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-  d->logic()->UpdateBeamTransform(this->currentBeamNode());
+  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
+  if (beamNode)
+  {
+    beamNode->UpdateBeamTransform();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -2100,18 +2111,29 @@ void qSlicerExternalBeamPlanningModuleWidget::updateBeamGeometryModel()
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   QTableWidgetItem *item = NULL;
-  char beamName[100];
   item = d->tableWidget_Beams->item(d->CurrentBeamRow, 1);
   if (!item)
   {
     return;
   }
-  else 
+
+  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
+  if (!rtPlanNode)
   {
-    strcpy(beamName, item->text().toStdString().c_str());
-    d->logic()->UpdateBeamGeometryModel(beamName);
+    qCritical() << Q_FUNC_INFO << ": " << "No RT plan node selected";
+    return;
   }
-  return;
+
+  // Get beam node by name
+  std::string beamName(item->text().toLatin1().constData());
+  vtkMRMLRTBeamNode* beamNode = rtPlanNode->GetBeamByName(beamName.c_str());
+  if (!beamNode)
+  {
+    qCritical() << Q_FUNC_INFO << "Unable to access beam node with name " << beamName.c_str();
+    return;
+  }
+
+  beamNode->UpdateBeamGeometry();
 }
 
 //-----------------------------------------------------------------------------
