@@ -274,20 +274,20 @@ void vtkMRMLRTProtonBeamNode::SetApertureDim (const int* dim)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTProtonBeamNode::UpdateApertureParameters(double SAD)
+void vtkMRMLRTProtonBeamNode::UpdateApertureParameters()
 {
-  if (SAD < 0 || SAD < this->ApertureOffset)
+  if (this->SAD < 0 || this->SAD < this->ApertureOffset)
   {
-      printf("Error: vtkMRMLRTProtonBeamNode::UpdateApertureParameters: SAD musto be > 0 and > to Aperture offset\n");
-      printf("SAD = %lg, Aperture offset = %lg\n", SAD, this->ApertureOffset);
-      return;
+    vtkErrorMacro("UpdateApertureParameters: SAD (=" << this->SAD << ") must be positive and greater than Aperture offset (" << this->ApertureOffset << ")");
+    printf("SAD = %lg, Aperture offset = %lg\n", this->SAD, this->ApertureOffset);
+    return;
   }
-  double origin[2] = {-this->X1Jaw * this->ApertureOffset / SAD , -this->Y1Jaw * this->ApertureOffset / SAD };
+  double origin[2] = {-this->X1Jaw * this->ApertureOffset / this->SAD , -this->Y1Jaw * this->ApertureOffset / this->SAD };
   this->SetApertureOrigin(origin);
 
   double spacing_at_aperture[2] = {1/ this->PBResolution * this->ApertureOffset / this->SAD, 1 / this->PBResolution * this->ApertureOffset / this->SAD};
   this->SetApertureSpacing(spacing_at_aperture);
 
-  int dim[2] = { (int) ((this->X2Jaw + this->X1Jaw) / this->PBResolution + 1 ), (int) ((this->X2Jaw + this->X1Jaw) / this->PBResolution + 1 )};
+  int dim[2] = { (int) ((this->X2Jaw + this->X1Jaw) / this->PBResolution + 1 ), (int) ((this->Y2Jaw + this->Y1Jaw) / this->PBResolution + 1 )};
   this->SetApertureDim(dim);
 }

@@ -22,6 +22,7 @@
 // ExternalBeamPlanning includes
 #include "vtkSlicerExternalBeamPlanningModuleLogic.h"
 #include "vtkMRMLRTPlanNode.h"
+#include "vtkMRMLRTProtonBeamNode.h"
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
@@ -44,7 +45,6 @@
 #include <vtkNew.h>
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
-#include <vtkMatrix4x4.h>
 #include <vtkImageMathematics.h>
 
 // ITK includes
@@ -52,6 +52,9 @@
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
+
+//-----------------------------------------------------------------------------
+bool IsEqualWithTolerance(double a, double b) { return fabs(a - b) < 0.0001; };
 
 //-----------------------------------------------------------------------------
 int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
@@ -146,96 +149,87 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   vtkMRMLScalarVolumeNode* doseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(segmentationNodes->GetItemAsObject(0));
 
+  // Create plan
+  vtkSmartPointer<vtkMRMLRTPlanNode> planNode = vtkSmartPointer<vtkMRMLRTPlanNode>::New();
+  planNode->SetName("TestProtonPlan");
+  mrmlScene->AddNode(planNode);
+  ebpLogic->SetAndObserveRTPlanNode(planNode);
+
   // Set plan parameters
+  planNode->SetAndObserveReferenceVolumeNode(ctVolumeNode);
+  planNode->SetAndObserveSegmentationNode(segmentationNode);
+  planNode->SetAndObserveDoseVolumeNode(doseVolumeNode);
+  planNode->SetDoseEngine(vtkMRMLRTPlanNode::Plastimatch);
 
   // Add first beam
-  //ebpLogic->AddBeam(NULL);
+  vtkSmartPointer<vtkMRMLRTProtonBeamNode> firstBeamNode = vtkSmartPointer<vtkMRMLRTProtonBeamNode>::New();
+  firstBeamNode->SetName("FirstBeam");
+  mrmlScene->AddNode(firstBeamNode);
+  firstBeamNode->CreateDefaultBeamModel();
+  planNode->AddBeam(firstBeamNode);
 
   // Set first beam parameters
+  firstBeamNode->SetTargetSegmentID("Tumor_Contour");
+  ebpLogic->SetBeamIsocenterToTargetCenter(firstBeamNode); //TODO: Does this belong to the logic?
+  firstBeamNode->SetX1Jaw(50.0); // The minimum value is inverted to be positive
+  firstBeamNode->SetX2Jaw(50.0);
+  firstBeamNode->SetY1Jaw(50.0); // The minimum value is inverted to be positive
+  firstBeamNode->SetY2Jaw(75.0);
 
   // Add second beam copying the first
-
+  //TODO:
   // Check if parameters have been copied from the first one properly
-
+  //TODO:
   // Change geometry of second beam
+  //TODO:
 
   // Calculate dose
+  std::string errorMessage("");
+  errorMessage = ebpLogic->InitializeAccumulatedDose();
+  if (!errorMessage.empty())
+  {
+    mrmlScene->Commit();
+    errorStream << "ERROR: Failed to initialize accumulated dose!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  errorMessage = ebpLogic->ComputeDose(firstBeamNode);
+  if (!errorMessage.empty())
+  {
+    mrmlScene->Commit();
+    errorStream << "ERROR: Failed to calculate dose for beam " << firstBeamNode->GetName() << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  errorMessage = ebpLogic->FinalizeAccumulatedDose();
+  if (!errorMessage.empty())
+  {
+    mrmlScene->Commit();
+    errorStream << "ERROR: Failed to finalize accumulated dose!" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   // Check computed output
+  vtkSmartPointer<vtkImageAccumulate> imageAccumulate = vtkSmartPointer<vtkImageAccumulate>::New();
+  imageAccumulate->SetInputConnection(doseVolumeNode->GetImageDataConnection());
+  imageAccumulate->Update();
+  double doseMax = imageAccumulate->GetMax()[0];
+  double doseMean = imageAccumulate->GetMean()[0];
+  double doseStdDev = imageAccumulate->GetStandardDeviation()[0];
+  double doseVoxelCount = imageAccumulate->GetVoxelCount();
 
-  /*
-  // Get day 1 dose volume
-  vtkSmartPointer<vtkCollection> doseVolumeNodes = 
-    vtkSmartPointer<vtkCollection>::Take( mrmlScene->GetNodesByName("EclipseEnt_Dose") );
-  if (doseVolumeNodes->GetNumberOfItems() != 1)
+  outputStream << "Dose volume properties:" << std::endl << "  Max=" << doseMax << ", Mean=" << doseMean << ", StdDev=" << doseStdDev << ", NumberOfVoxels=" << doseVoxelCount << std::endl;
+  if ( !IsEqualWithTolerance(doseMax, 1.0063)
+    || !IsEqualWithTolerance(doseMean, 0.0239568)
+    || !IsEqualWithTolerance(doseStdDev, 0.140406)
+    || !IsEqualWithTolerance(doseVoxelCount, 1000) )
   {
     mrmlScene->Commit();
-    errorStream << "ERROR: Failed to get day 1 dose volume!" << std::endl;
+    errorStream << "ERROR: Output dose volume properties don't match the baselines!" << std::endl;
     return EXIT_FAILURE;
   }
-  vtkMRMLScalarVolumeNode* day1DoseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
-
-  // Get day 2 dose volume
-  doseVolumeNodes = vtkSmartPointer<vtkCollection>::Take( mrmlScene->GetNodesByName("EclipseEnt_Dose_Day2") );
-  if (doseVolumeNodes->GetNumberOfItems() != 1)
-  {
-    mrmlScene->Commit();
-    errorStream << "ERROR: Failed to get day 2 dose volume!" << std::endl;
-    return EXIT_FAILURE;
-  }
-  vtkMRMLScalarVolumeNode* day2DoseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
-
-  // Create output dose volume node
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> outputGammaVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  outputGammaVolumeNode->SetName("OutputDose");
-  mrmlScene->AddNode(outputGammaVolumeNode);
-
-  // Create and set up parameter set MRML node
-  vtkSmartPointer<vtkMRMLDoseComparisonNode> paramNode = vtkSmartPointer<vtkMRMLDoseComparisonNode>::New();
-  mrmlScene->AddNode(paramNode);
-
-  paramNode->SetAndObserveReferenceDoseVolumeNode(day1DoseScalarVolumeNode);
-  paramNode->SetAndObserveCompareDoseVolumeNode(day2DoseScalarVolumeNode);
-  paramNode->SetAndObserveGammaVolumeNode(outputGammaVolumeNode);
-
-  // Disable symmetric dose threshold (it is the new default)
-  paramNode->SetDoseThresholdOnReferenceOnly(true);
-
-  // Create and set up logic
-  vtkSmartPointer<vtkSlicerDoseComparisonModuleLogic> doseComparisonLogic = vtkSmartPointer<vtkSlicerDoseComparisonModuleLogic>::New();
-  doseComparisonLogic->SetMRMLScene(mrmlScene);
-  doseComparisonLogic->SetAndObserveDoseComparisonNode(paramNode);
-
-  // Compute DoseAccumulation
-  doseComparisonLogic->ComputeGammaDoseDifference();
-
-  // Get saved volume
-  vtkSmartPointer<vtkCollection> gammaVolumeNodes = vtkSmartPointer<vtkCollection>::Take(
-    mrmlScene->GetNodesByName("GammaVolume_EclipseEnt_Day1Day2_Baseline") );
-  if (doseVolumeNodes->GetNumberOfItems() != 1)
-  {
-    mrmlScene->Commit();
-    errorStream << "ERROR: Failed to get baseline gamma volume!" << std::endl;
-    return EXIT_FAILURE;
-  }
-  vtkMRMLScalarVolumeNode* baselineGammaVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(gammaVolumeNodes->GetItemAsObject(0));
 
   mrmlScene->Commit();
 
-  // Subtract the baseline gamma volume from the resultant gamma volume to see if we end up with a zero result. If not, dose comparison has changed (bad!)
-  vtkSmartPointer<vtkImageMathematics> math = vtkSmartPointer<vtkImageMathematics>::New();
-  math->SetInput1Data(outputGammaVolumeNode->GetImageData());
-  math->SetInput2Data(baselineGammaVolumeNode->GetImageData());
-  math->SetOperationToSubtract();
-  math->Update();
-
-  vtkImageData* comparison = math->GetOutput();
-  double range[2];
-  comparison->GetScalarRange(range);
-  if (range[0] != 0.0 || range[1] != 0.0)
-  {
-    return EXIT_FAILURE;
-  }
-  */
   return EXIT_SUCCESS;
 }

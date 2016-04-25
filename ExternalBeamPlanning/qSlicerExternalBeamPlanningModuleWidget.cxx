@@ -238,8 +238,8 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
 
   // Prescription page
   this->connect( d->comboBox_BeamType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamTypeChanged(const QString &)) );
-  this->connect( d->MRMLSegmentSelectorWidget_TargetVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(targetVolumeNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->MRMLSegmentSelectorWidget_TargetVolume, SIGNAL(currentSegmentChanged(QString)), this, SLOT(targetVolumeSegmentChanged(const QString&)) );
+  this->connect( d->MRMLSegmentSelectorWidget_TargetVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(targetSegmentationNodeChanged(vtkMRMLNode*)) );
+  this->connect( d->MRMLSegmentSelectorWidget_TargetVolume, SIGNAL(currentSegmentChanged(QString)), this, SLOT(targetSegmentChanged(const QString&)) );
   this->connect( d->doubleSpinBox_RxDose, SIGNAL(valueChanged(double)), this, SLOT(rxDoseChanged(double)) );
   this->connect( d->comboBox_IsocenterSpec, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(isocenterSpecChanged(const QString &)));
   this->connect( d->MRMLCoordinatesWidget_IsocenterCoordinates, SIGNAL(coordinatesChanged(double*)), this, SLOT(isocenterCoordinatesChanged(double *)));
@@ -1094,7 +1094,7 @@ void qSlicerExternalBeamPlanningModuleWidget::beamTypeChanged(const QString &tex
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::targetVolumeNodeChanged(vtkMRMLNode* node)
+void qSlicerExternalBeamPlanningModuleWidget::targetSegmentationNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -1126,7 +1126,7 @@ void qSlicerExternalBeamPlanningModuleWidget::targetVolumeNodeChanged(vtkMRMLNod
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::targetVolumeSegmentChanged(const QString& segment)
+void qSlicerExternalBeamPlanningModuleWidget::targetSegmentChanged(const QString& segment)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -1136,14 +1136,14 @@ void qSlicerExternalBeamPlanningModuleWidget::targetVolumeSegmentChanged(const Q
     return;
   }
 
-  // Update in beam node
   vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
     return;
   }
-  std::string s = segment.toUtf8().constData();
-  beamNode->SetTargetSegmentID (s.c_str());
+
+  // Set target segment ID
+  beamNode->SetTargetSegmentID(segment.toLatin1().constData());
 
   if (beamNode->GetIsocenterSpec() == vtkMRMLRTBeamNode::CenterOfTarget)
   {
@@ -1152,7 +1152,7 @@ void qSlicerExternalBeamPlanningModuleWidget::targetVolumeSegmentChanged(const Q
     // GCS FIX TODO: Testing...I copied this from above.  I should be getting
     // a markup moved event, why didn't I?
     double iso[3];
-    beamNode->GetIsocenterPosition (iso);
+    beamNode->GetIsocenterPosition(iso);
     d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(true);
     d->MRMLCoordinatesWidget_IsocenterCoordinates->setCoordinates(iso);
     d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(false);

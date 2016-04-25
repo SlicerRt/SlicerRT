@@ -971,6 +971,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
 
     // Set beam member variables
     beamNode->SetX1Jaw(jawPositions[0][0]);
+    //beamNode->SetX2Jaw(jawPositions[0][1]);
+    //beamNode->SetY1Jaw(jawPositions[1][0]);
+    //beamNode->SetY2Jaw(jawPositions[1][1]);
     beamNode->SetX2Jaw(jawPositions[0][0]);
     beamNode->SetY1Jaw(jawPositions[0][0]);
     beamNode->SetY2Jaw(jawPositions[0][0]);

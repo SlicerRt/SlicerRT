@@ -144,7 +144,7 @@ public:
   vtkGetMacro(RangeCompensatorHighland, bool);
   vtkSetMacro(RangeCompensatorHighland, bool);
 
-  /// Get/Set haveprescription
+  /// Get/Set have prescription
   vtkGetMacro(HavePrescription, bool);
   vtkSetMacro(HavePrescription, bool);
 
@@ -152,21 +152,21 @@ public:
   vtkGetMacro(Algorithm, RTProtonAlgorithm);
   vtkSetMacro(Algorithm, RTProtonAlgorithm);
 
-  const double* GetApertureSpacing ();
-  double GetApertureSpacing (int dim);
-  void SetApertureSpacing (const float* spacing);
-  void SetApertureSpacing (const double* spacing);
+  const double* GetApertureSpacing();
+  double GetApertureSpacing(int dim);
+  void SetApertureSpacing(const float* spacing);
+  void SetApertureSpacing(const double* spacing);
 
-  const double* GetApertureOrigin ();
-  double GetApertureOrigin (int dim);
-  void SetApertureOrigin (const float* origin);
-  void SetApertureOrigin (const double* origin);
+  const double* GetApertureOrigin();
+  double GetApertureOrigin(int dim);
+  void SetApertureOrigin(const float* origin);
+  void SetApertureOrigin(const double* origin);
 
-  const int* GetApertureDim ();
-  int GetApertureDim (int dim);
-  void SetApertureDim (const int* dim);
+  const int* GetApertureDim();
+  int GetApertureDim(int dim);
+  void SetApertureDim(const int* dim);
 
-  void UpdateApertureParameters(double SAD);
+  void UpdateApertureParameters();
 
 protected:
   vtkMRMLRTProtonBeamNode();

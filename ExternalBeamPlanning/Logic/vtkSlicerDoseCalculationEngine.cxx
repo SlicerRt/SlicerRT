@@ -114,7 +114,12 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
   double src[],
   double RxDose)
 {
-  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(beamNode);
+  if (!protonBeamNode)
+  {
+    vtkErrorMacro("CalculateDose: Only proton beams are supported!");
+    return;
+  }
   
   this->Internal->plmRef->print ();
   plmTgt->print ();
@@ -229,7 +234,8 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
 
     // Update aperture parameters
     printf("\nAPERTURE PARAMETERS:\n");
-    protonBeamNode->UpdateApertureParameters(beamNode->GetSAD()); // Sanity check before we set the parameters
+    protonBeamNode->UpdateApertureParameters(); // Sanity check before we set the parameters
+
     printf ("Setting aperture distance -> ");
     rt_beam->get_aperture()->set_distance(protonBeamNode->GetApertureOffset());
     printf("Aperture distance = %lg\n", rt_beam->get_aperture()->get_distance());
