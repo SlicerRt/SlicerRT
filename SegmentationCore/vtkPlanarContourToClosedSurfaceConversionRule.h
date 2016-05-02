@@ -73,10 +73,10 @@ public:
 
   /// Human-readable name of the converter rule
   virtual const char* GetName(){ return "Planar contour to closed surface"; };
-  
+
   /// Human-readable name of the source representation
   virtual const char* GetSourceRepresentationName() { return vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName(); };
-  
+
   /// Human-readable name of the target representation
   virtual const char* GetTargetRepresentationName() { return vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName(); };
 
@@ -85,13 +85,10 @@ protected:
   virtual ~vtkPlanarContourToClosedSurfaceConversionRule();
 
   /// Construct a surface triangulation using a dynamic programming algorithm.
-  void TriangulateContours(vtkPolyData*, vtkIdList*, int, vtkIdList*, int, vtkCellArray*);
-
-  /// Find the index of the last point in a contour.
-  int GetEndLoop(int, int, bool);
+  void TriangulateContours(vtkPolyData*, vtkIdList*, vtkIdList*, vtkCellArray*);
 
   /// Find the point on the given line that is closest to the given point.
-  int GetClosestPoint(vtkPolyData*, double*, vtkIdList*, int);
+  int GetClosestPoint(vtkPolyData*, double*, vtkIdList*);
 
   /// Remove the keyholes from the contours.
   void FixKeyholes(vtkPolyData*, int, double, int);
@@ -112,8 +109,8 @@ protected:
   bool DoLinesOverlap(vtkLine*, vtkLine*);
 
   /// Create a branching pattern for overlapping contours.
-  void Branch(vtkPolyData*, vtkIdList*, int, int, std::vector< int >, std::vector<vtkSmartPointer<vtkPointLocator> >, std::vector<vtkSmartPointer<vtkIdList> >, vtkLine*);
-  
+  void Branch(vtkPolyData*, vtkLine*, int, std::vector< int >, std::vector<vtkSmartPointer<vtkPointLocator> >, std::vector<vtkSmartPointer<vtkIdList> >, vtkLine*);
+
   /// Find the branch closest from the point on the trunk
   int GetClosestBranch(vtkPolyData*, double*, std::vector< int >, std::vector<vtkSmartPointer<vtkPointLocator> >, std::vector<vtkSmartPointer<vtkIdList> >);
 
@@ -122,20 +119,11 @@ protected:
 
   double GetSpacingBetweenLines(vtkPolyData*);
 
-  /// Check to see if the given point is on the line
-  bool IsPointOnLine(vtkIdList*, vtkIdType);
-
   /// Create an additional contour on the exterior of the surface to compensate for slice thickness.
-  void CreateExternalLine(vtkPolyData*, vtkLine*, vtkLine*, vtkIdList*, double);
+  void CreateExternalLine(vtkPolyData*, vtkLine*, vtkCellArray*, double);
 
   /// Triangulate the interior of a contour on the xy plane.
-  void TriangulateLine(vtkPolyData*, vtkLine*, vtkIdList*, vtkCellArray*);
-
-  /// Determine if a point is on the interior of a line.
-  bool IsPointInsideLine(vtkPolyData*, vtkLine*, double[]);
-
-  /// Determine if two line segments intersect.
-  bool DoLineSegmentsIntersect(double[], double[]);
+  void TriangulateLine(vtkLine*, vtkCellArray*, bool);
 
   /// Find the index of the next point in the contour.
   int GetNextLocation(int, int, bool);
