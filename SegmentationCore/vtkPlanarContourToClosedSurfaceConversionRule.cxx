@@ -111,6 +111,9 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
 
   int numberOfLines = inputContoursCopy->GetNumberOfLines(); // total number of lines
 
+  // Make sure the contours are in the right order.
+  this->SortContours(inputContoursCopy);
+
   // remove keyholes from the lines
   this->FixKeyholes(inputContoursCopy, numberOfLines, 0.001, 3);
 
@@ -527,6 +530,39 @@ int vtkPlanarContourToClosedSurfaceConversionRule::GetClosestPoint(vtkPolyData* 
   }
 
   return closestPointIndex;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlanarContourToClosedSurfaceConversionRule::SortContours(vtkPolyData* inputROIPoints)
+{
+  if (!inputROIPoints)
+  {
+    vtkErrorMacro("inputROIPoints: Invalid vtkPolyData!");
+    return;
+  }
+  int numberOfLines = inputROIPoints->GetNumberOfLines();
+
+  vtkSmartPointer<vtkLine> originalLine;
+  std::vector<std::pair<double, vtkIdType>> lineZPairs;
+
+  for (int lineIndex = 0; lineIndex < numberOfLines; ++lineIndex)
+  {
+    vtkSmartPointer<vtkCell> currentLine = inputROIPoints->GetCell(lineIndex);
+    double averageZ = (currentLine->GetBounds()[4] + currentLine->GetBounds()[5])/2.0;
+
+    lineZPairs.push_back(std::make_pair(averageZ, lineIndex));
+  }
+  std::sort(lineZPairs.begin(), lineZPairs.end());
+
+  vtkSmartPointer<vtkCellArray> outputLines = vtkSmartPointer<vtkCellArray>::New();
+  outputLines->Initialize();
+  inputROIPoints->DeleteCells();
+  for (int currentLineIndex = 0; currentLineIndex < numberOfLines; ++currentLineIndex)
+  {
+    outputLines->InsertNextCell(inputROIPoints->GetCell(lineZPairs[currentLineIndex].second));
+  }
+  inputROIPoints->SetLines(outputLines);
+  inputROIPoints->BuildCells();
 }
 
 //----------------------------------------------------------------------------

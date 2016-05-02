@@ -90,6 +90,9 @@ protected:
   /// Find the point on the given line that is closest to the given point.
   int GetClosestPoint(vtkPolyData*, double*, vtkIdList*);
 
+  /// Sort the contours based on Z value.
+  void SortContours(vtkPolyData*);
+
   /// Remove the keyholes from the contours.
   void FixKeyholes(vtkPolyData*, int, double, int);
 
