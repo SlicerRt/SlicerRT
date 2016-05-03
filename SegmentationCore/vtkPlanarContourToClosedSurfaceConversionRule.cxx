@@ -257,7 +257,7 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
 
   // Triangulate all contours which are exposed.
   this->SealMesh( inputContoursCopy, outputLines, outputPolygons, lineTriganulatedToAbove, lineTriganulatedToBelow);
-  
+
   // Initialize the output data.
   closedSurfacePolyData->SetPoints(outputPoints);
   //closedSurfacePolyData->SetLines(outputLines); // Do not include lines in poly data for nicer visualization
@@ -290,6 +290,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContours(vtkPolyD
 
   if (pointsInLine1->GetNumberOfIds() == 0 || pointsInLine2->GetNumberOfIds() == 0)
   {
+    vtkErrorMacro("TriangulateContours: Empty vtkIdList!");
     return;
   }
 
@@ -317,7 +318,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContours(vtkPolyD
     inputROIPoints->GetPoint(pointsInLine2->GetId(line2PointIndex),line2Point);
 
     vtkIdType pointID = this->GetClosestPoint(inputROIPoints, line2Point, pointsInLine1);
-        closest2.push_back(pointID);
+    closest2.push_back(pointID);
 
   }
 
@@ -338,8 +339,8 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContours(vtkPolyD
   bool line2Closed = (pointsInLine2->GetId(0) == pointsInLine2->GetId(numberOfPointsInLine2-1));
 
   // Determine the ending points.
-  int line1EndPoint = this->GetPreviousLocation(startLine1, numberOfPointsInLine1, line1Closed);
-  int line2EndPoint = this->GetPreviousLocation(startLine2, numberOfPointsInLine2, line2Closed);
+  int line1EndPoint = this->GetEndLoop(startLine1, numberOfPointsInLine1, line1Closed);
+  int line2EndPoint = this->GetEndLoop(startLine2, numberOfPointsInLine2, line2Closed);
 
   // for backtracking
   int left = -1;
@@ -1101,9 +1102,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SealMesh(vtkPolyData* inputR
       }
 
     }
-
   }
-
 }
 
 //----------------------------------------------------------------------------
@@ -1272,4 +1271,21 @@ int vtkPlanarContourToClosedSurfaceConversionRule::GetPreviousLocation(int curre
     return numberOfPoints-1;
   }
   return currentLocation-1;
+}
+
+//----------------------------------------------------------------------------
+int vtkPlanarContourToClosedSurfaceConversionRule::GetEndLoop(int startLoopIndex, int numberOfPoints, bool loopClosed)
+{
+  if (startLoopIndex != 0)
+  {
+    if (loopClosed)
+    {
+      return startLoopIndex;
+    }
+
+    return startLoopIndex-1;
+  }
+
+  // If startLoop was 0, then it doesn't matter whether or not the loop was closed.
+  return numberOfPoints-1;
 }

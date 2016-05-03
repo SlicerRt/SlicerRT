@@ -134,6 +134,9 @@ protected:
   /// Find the index of the next point in the contour.
   int GetPreviousLocation(int, int, bool);
 
+  /// Find the index of the last point in a contour.
+  int GetEndLoop(int, int, bool);
+
 private:
   vtkPlanarContourToClosedSurfaceConversionRule(const vtkPlanarContourToClosedSurfaceConversionRule&); // Not implemented
   void operator=(const vtkPlanarContourToClosedSurfaceConversionRule&);               // Not implemented
