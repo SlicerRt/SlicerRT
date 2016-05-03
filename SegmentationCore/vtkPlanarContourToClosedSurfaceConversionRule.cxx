@@ -544,7 +544,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SortContours(vtkPolyData* in
   int numberOfLines = inputROIPoints->GetNumberOfLines();
 
   vtkSmartPointer<vtkLine> originalLine;
-  std::vector<std::pair<double, vtkIdType>> lineZPairs;
+  std::vector<std::pair<double, vtkIdType> > lineZPairs;
 
   for (int lineIndex = 0; lineIndex < numberOfLines; ++lineIndex)
   {
@@ -1018,8 +1018,8 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SealMesh(vtkPolyData* inputR
       this->CreateExternalLine(inputROIPoints, currentLine, externalLines, lineSpacing);
 
       std::vector<int> overlaps;
-      std::vector<vtkSmartPointer<vtkPointLocator>> pointLocators;
-      std::vector<vtkSmartPointer<vtkIdList>>  idLists;
+      std::vector<vtkSmartPointer<vtkPointLocator> > pointLocators;
+      std::vector<vtkSmartPointer<vtkIdList> > idLists;
       for (int lineId = 0; lineId < externalLines->GetNumberOfCells(); ++lineId)
       {
 
@@ -1064,8 +1064,8 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SealMesh(vtkPolyData* inputR
       this->CreateExternalLine(inputROIPoints, currentLine, externalLines, -lineSpacing);
 
       std::vector<int> overlaps;
-      std::vector<vtkSmartPointer<vtkPointLocator>> pointLocators;
-      std::vector<vtkSmartPointer<vtkIdList>>  idLists;
+      std::vector<vtkSmartPointer<vtkPointLocator> > pointLocators;
+      std::vector<vtkSmartPointer<vtkIdList> > idLists;
       for (int lineId = 0; lineId < externalLines->GetNumberOfCells(); ++lineId)
       {
 
