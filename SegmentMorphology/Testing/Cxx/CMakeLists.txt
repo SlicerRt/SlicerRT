@@ -7,7 +7,7 @@ set(KIT_TEST_SRCS
 slicerMacroConfigureModuleCxxTestDriver(
   NAME ${KIT}
   SOURCES ${KIT_TEST_SRCS}
-  TARGET_LIBRARIES vtkSlicerSegmentMorphologyModuleLogic vtkSlicerDicomRtImportExportConversionRules
+  TARGET_LIBRARIES vtkSlicerSegmentMorphologyModuleLogic
   WITH_VTK_DEBUG_LEAKS_CHECK
   )
 

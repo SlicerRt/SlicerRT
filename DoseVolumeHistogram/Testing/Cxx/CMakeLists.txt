@@ -7,7 +7,7 @@ set(KIT_TEST_SRCS
 slicerMacroConfigureModuleCxxTestDriver(
   NAME ${KIT}
   SOURCES ${KIT_TEST_SRCS}
-  TARGET_LIBRARIES vtkSlicerDoseVolumeHistogramModuleLogic vtkSlicerDicomRtImportExportConversionRules
+  TARGET_LIBRARIES vtkSlicerDoseVolumeHistogramModuleLogic
   WITH_VTK_DEBUG_LEAKS_CHECK
   )
 
@@ -73,7 +73,7 @@ TEST_WITH_DATA(
   0
   1.0
   1.0
-  97.0
+  97.6
   3.0
   0.01
   0.01
@@ -93,7 +93,7 @@ TEST_WITH_DATA(
   0
   1.0
   1.0
-  93.5
+  95.8
   3.0
   0.01
   0.01
@@ -113,7 +113,7 @@ TEST_WITH_DATA(
   0
   1.0
   1.0
-  94.0
+  97.5
   3.0
   0.01
   0.01
@@ -133,7 +133,7 @@ TEST_WITH_DATA(
   0
   1.0
   1.0
-  90.9
+  95.2
   3.0
   0.01
   0.01
@@ -153,7 +153,7 @@ TEST_WITH_DATA(
   1
   1.0
   1.0
-  99.0
+  99.9
   3.0
   0.01
   0.01
@@ -173,7 +173,7 @@ TEST_WITH_DATA(
   1
   1.0
   1.0
-  95.5
+  95.6
   3.0
   0.01
   0.01
@@ -194,7 +194,7 @@ TEST_WITH_DATA(
   1
   1.0
   1.0
-  95.0
+  95.7
   3.0
   0.01
   0.01
@@ -214,7 +214,7 @@ TEST_WITH_DATA(
   1
   1.0
   1.0
-  93.0
+  95.6
   3.0
   0.01
   0.01

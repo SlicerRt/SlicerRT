@@ -28,13 +28,10 @@
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
-#include "vtkRibbonModelToBinaryLabelmapConversionRule.h"
-#include "vtkPlanarContourToRibbonModelConversionRule.h"
 
 // SegmentationCore includes
 #include "vtkOrientedImageData.h"
 #include "vtkOrientedImageDataResample.h"
-#include "vtkSegmentationConverterFactory.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -332,14 +329,6 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
   // Create Segmentations logic
   vtkSmartPointer<vtkSlicerSegmentationsModuleLogic> segmentationsLogic = vtkSmartPointer<vtkSlicerSegmentationsModuleLogic>::New();
   segmentationsLogic->SetMRMLScene(mrmlScene);
-
-  // Register converters to use ribbon models. Will be unnecessary when having resolved issues regarding
-  // direct planar contours to closed surface conversion https://www.assembla.com/spaces/slicerrt/tickets/751
-  // (vtkSlicerDicomRtImportExportConversionRules can also be removed from CMake link targets)
-  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(vtkSmartPointer<vtkRibbonModelToBinaryLabelmapConversionRule>::New());
-  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(vtkSmartPointer<vtkPlanarContourToRibbonModelConversionRule>::New());
-  // Disable closed surface representation so that ribbon model is used for labelmap conversion instead of direct closed surface
-  vtkSegmentationConverterFactory::GetInstance()->DisableRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
 
   // Save scene to the temporary directory
   vtksys::SystemTools::RemoveFile(temporarySceneFileName);
