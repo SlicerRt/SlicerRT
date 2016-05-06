@@ -964,8 +964,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     std::stringstream jawPositionsStream;
     double jawPositions[2][2] = {{0.0, 0.0},{0.0, 0.0}};
     rtReader->GetBeamLeafJawPositions(dicomBeamNumber, jawPositions);
-    jawPositionsStream << jawPositions[0][0] << " " << jawPositions[0][1] << " "
-                       << jawPositions[1][0] << " " << jawPositions[1][1];
+    jawPositionsStream << "X [" << jawPositions[0][0] << ", " << jawPositions[0][1] << "], Y [ "
+                       << jawPositions[1][0] << ", " << jawPositions[1][1] << "]";
     beamSHNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME.c_str(),
       jawPositionsStream.str().c_str() );
 
