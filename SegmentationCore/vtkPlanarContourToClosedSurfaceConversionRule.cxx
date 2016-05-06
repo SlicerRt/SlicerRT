@@ -1282,14 +1282,14 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CreateExternalLine(vtkPolyDa
     numberOfVoxels -= voxelDifference;
   }
 
-  vtkSmartPointer<vtkMarchingSquares> contourFilter = vtkSmartPointer<vtkMarchingSquares>::New();
-  contourFilter->SetInputData(newContourImage);
-  contourFilter->SetNumberOfContours(1);
-  contourFilter->SetValue(0, 1.0);
-  contourFilter->Update();
+  vtkSmartPointer<vtkMarchingSquares> marchingSquares = vtkSmartPointer<vtkMarchingSquares>::New();
+  marchingSquares->SetInputData(newContourImage);
+  marchingSquares->SetNumberOfContours(1);
+  marchingSquares->SetValue(0, 1.0);
+  marchingSquares->Update();
   
   vtkSmartPointer<vtkStripper> newContourStripper = vtkSmartPointer<vtkStripper>::New();
-  newContourStripper->SetInputData(contourFilter->GetOutput());
+  newContourStripper->SetInputData(marchingSquares->GetOutput());
   newContourStripper->SetMaximumLength(VTK_INT_MAX);
   newContourStripper->Update();
 
@@ -1305,6 +1305,15 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CreateExternalLine(vtkPolyDa
 
       vtkSmartPointer<vtkLine> l = vtkSmartPointer<vtkLine>::New();
       l->DeepCopy(line->GetCell(currentLocation));
+
+      // We identified an issue with vtkMarchingSquares that caused the some of the lines generated
+      // to loop back on themselves by the third point. This check causes these contours to be ignored.
+      if (l->GetNumberOfPoints() <= 2)
+        continue;
+      if (l->GetPointId(0) == l->GetPointId(2) && l->GetNumberOfPoints() != 3)
+      {
+        continue;
+      }
 
       vtkSmartPointer<vtkLine> newLine = vtkSmartPointer<vtkLine>::New();
       if (IsLineClockwise(line, l))
