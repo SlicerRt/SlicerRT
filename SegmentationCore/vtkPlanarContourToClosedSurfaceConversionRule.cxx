@@ -277,8 +277,7 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
 //----------------------------------------------------------------------------
 void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContours(vtkPolyData* inputROIPoints, vtkIdList* pointsInLine1, vtkIdList* pointsInLine2, vtkCellArray* outputPolygons)
 {
-
-  if(! inputROIPoints)
+  if (!inputROIPoints)
   {
     vtkErrorMacro("TriangulateContours: Invalid vtkPolyData!");
     return;
@@ -375,7 +374,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContours(vtkPolyD
     backtrackTable[0][line2PointIndex] = left;
 
     currentPointIndexLine2 = this->GetNextLocation(currentPointIndexLine2, numberOfPointsInLine2, line2Closed);
-
   }
 
   // Initialize the first column in the table.
@@ -420,12 +418,11 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContours(vtkPolyD
 
       double distance = vtkMath::Distance2BetweenPoints(pointOnLine1, pointOnLine2);
 
-      // Use the pre-calcualted closest point.
+      // Use the pre-calculated closest point.
       if (currentPointIndexLine1 == closest2[previousLine2])
       {
         scoreTable[line1PointIndex][line2PointIndex] = scoreTable[line1PointIndex][line2PointIndex-1]+distance;
         backtrackTable[line1PointIndex][line2PointIndex] = left;
-
       }
       else if (currentPointIndexLine2 == closest1[previousLine1])
       {
@@ -443,7 +440,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContours(vtkPolyD
       {
         scoreTable[line1PointIndex][line2PointIndex] = scoreTable[line1PointIndex-1][line2PointIndex]+distance;
         backtrackTable[line1PointIndex][line2PointIndex] = up;
-
       }
 
       // Advance the pointers
@@ -1012,19 +1008,19 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SealMesh(vtkPolyData* inputR
 {
   if (!inputROIPoints)
   {
-    vtkErrorMacro("SealMesh: Invalid vtkPolyData!");
+    vtkErrorMacro("SealMesh: Invalid input ROI points!");
     return;
   }
 
   if (!inputLines)
   {
-    vtkErrorMacro("SealMesh: Invalid vtkCellArray!");
+    vtkErrorMacro("SealMesh: Invalid input lines!");
     return;
   }
 
   if (!outputPolygons)
   {
-    vtkErrorMacro("SealMesh: Invalid vtkCellArray!");
+    vtkErrorMacro("SealMesh: Invalid output poly data!");
     return;
   }
   int numberOfLines = inputLines->GetNumberOfCells();
@@ -1239,7 +1235,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CreateExternalLine(vtkPolyDa
   polyDataToImageStencil->SetOutputSpacing(spacing);
   polyDataToImageStencil->SetOutputOrigin(origin);
   polyDataToImageStencil->SetOutputWholeExtent(extent);
-  polyDataToImageStencil->Update();
 
   vtkSmartPointer<vtkImageData> blankImage = vtkSmartPointer<vtkImageData>::New();
   blankImage->Initialize();
@@ -1271,15 +1266,17 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CreateExternalLine(vtkPolyDa
   int numberOfVoxels = totalNumberOfVoxels;
   int voxelDifference = VTK_INT_MAX;
 
-  vtkSmartPointer<vtkImageDilateErode3D> imageDilateErode3D = vtkSmartPointer<vtkImageDilateErode3D>::New();
-  imageDilateErode3D->SetErodeValue(1);
-  imageDilateErode3D->SetKernelSize(5, 5, 1);
+
   while (numberOfVoxels > totalNumberOfVoxels/2 && voxelDifference > 0)
   {
+    vtkSmartPointer<vtkImageDilateErode3D> imageDilateErode3D = vtkSmartPointer<vtkImageDilateErode3D>::New();
+    imageDilateErode3D->SetErodeValue(1);
+    imageDilateErode3D->SetKernelSize(5, 5, 1);
     imageDilateErode3D->SetInputData(newContourImage);
     imageDilateErode3D->Update();
     newContourImage = imageDilateErode3D->GetOutput();
 
+    imageAccumulate->SetInputData(newContourImage);
     imageAccumulate->Update();
     voxelDifference = numberOfVoxels - imageAccumulate->GetVoxelCount();
     numberOfVoxels -= voxelDifference;
@@ -1297,6 +1294,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CreateExternalLine(vtkPolyDa
   newContourStripper->Update();
 
   vtkSmartPointer<vtkPolyData> line = newContourStripper->GetOutput();
+
   if (line && line->GetNumberOfLines() > 0 && line->GetNumberOfPoints() > 0)
   {
     vtkSmartPointer<vtkPoints> points = line->GetPoints();
