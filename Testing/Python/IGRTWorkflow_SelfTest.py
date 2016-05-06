@@ -110,11 +110,11 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     self.day1CTName = '2: ENT IMRT'
     self.day1DoseName = '5: RTDOSE: BRAI1'
     self.day1StructureSetName = '3: RTSTRUCT: ENT'
-    self.day1BeamsName = '4: RTPLAN: BRAI1_BeamModels' + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix()
-    self.day1IsodosesName = '5: RTDOSE: BRAI1_IsodoseSurfaces' + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix()
+    self.day1PlanName = '4: RTPLAN: BRAI1' + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix()
+    self.day1IsodosesName = '5: RTDOSE: BRAI1_IsodoseSurfaces'
     self.day2CTName = '2_ENT_IMRT_Day2'
     self.day2DoseName = '5_RTDOSE_Day2'
-    self.day2IsodosesName = self.day2DoseName + '_IsodoseSurfaces' + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix()
+    self.day2IsodosesName = self.day2DoseName + '_IsodoseSurfaces'
     self.transformDay2ToDay1RigidName = 'Transform_Day2ToDay1_Rigid'
     self.transformDay2ToDay1BSplineName = 'Transform_Day2ToDay1_BSpline'
     self.day2DoseRigidName = self.day2DoseName + '_Registered_Rigid'
@@ -396,7 +396,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
 
     try:
       # Hide beams
-      beamsSubjectHierarchy = slicer.util.getNode(self.day1BeamsName)
+      beamsSubjectHierarchy = slicer.util.getNode(self.day1PlanName)
       beamsSubjectHierarchy.SetDisplayVisibilityForBranch(0)
 
       scene = slicer.mrmlScene
@@ -405,7 +405,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
 
       isodoseWidget = slicer.modules.isodose.widgetRepresentation()
       doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]
-      applyButton = slicer.util.findChildren(widget=isodoseWidget, className='QPushButton', name='Apply')[0]
+      applyButton = slicer.util.findChildren(widget=isodoseWidget, className='QPushButton', text='Apply')[0]
       
       # Compute isodose for day 1 dose
       day1Dose = slicer.util.getNode(self.day1DoseName)
@@ -436,18 +436,18 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     try:
       scene = slicer.mrmlScene
       slicer.util.selectModule('Isodose')
-      numOfModelNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLModelNode*') )
+      numOfModelNodesBeforeLoad = slicer.mrmlScene.GetNodesByClass('vtkMRMLModelNode').GetNumberOfItems()
 
       isodoseWidget = slicer.modules.isodose.widgetRepresentation()
       doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]
-      applyButton = slicer.util.findChildren(widget=isodoseWidget, className='QPushButton', name='Apply')[0]
+      applyButton = slicer.util.findChildren(widget=isodoseWidget, className='QPushButton', text='Apply')[0]
 
       # Compute isodose for day 2 dose
       day2Dose = slicer.util.getNode(self.day2DoseName)
       doseVolumeMrmlNodeCombobox.setCurrentNodeID(day2Dose.GetID())
       applyButton.click()
 
-      self.assertEqual( len( slicer.util.getNodes('vtkMRMLModelNode*') ), numOfModelNodesBeforeLoad + 6 )
+      self.assertEqual( slicer.mrmlScene.GetNodesByClass('vtkMRMLModelNode').GetNumberOfItems(), numOfModelNodesBeforeLoad + 6 )
 
       # Show day 2 isodose
       day1IsodoseSubjectHierarchy = slicer.util.getNode(self.day1IsodosesName)
@@ -586,7 +586,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       referenceDoseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=gammaWidget, name='MRMLNodeComboBox_ReferenceDoseVolume')[0]
       compareDoseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=gammaWidget, name='MRMLNodeComboBox_CompareDoseVolume')[0]
       gammaVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=gammaWidget, name='MRMLNodeComboBox_GammaVolume')[0]
-      applyButton = slicer.util.findChildren(widget=gammaWidget, className='QPushButton', name='Apply')[0]
+      applyButton = slicer.util.findChildren(widget=gammaWidget, className='QPushButton', text='Calculate gamma')[0]
 
       # Create output gamma volume
       gammaVolume = gammaVolumeMrmlNodeCombobox.addNode()
@@ -699,8 +699,6 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
           doseVolumeNodeCombobox = mrmlNodeCombobox
         elif 'vtkMRMLSegmentationNode' in mrmlNodeCombobox.nodeTypes:
           segmentationNodeCombobox = mrmlNodeCombobox
-        elif 'vtkMRMLChartNode' in mrmlNodeCombobox.nodeTypes:
-          chartNodeCombobox = mrmlNodeCombobox
 
       segmentsCollapsibleGroupBox.collapsed = False
       selectedSegmentIDs = ['PTV1']
@@ -721,11 +719,10 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.assertEqual( len( slicer.util.getNodes('vtkMRMLDoubleArrayNode*') ), numOfDoubleArrayNodesBeforeLoad + 2 )
 
       # Create chart and show plots
-      chartNodeCombobox.addNode()
       self.delayDisplay("Show DVH charts",self.delayMs)
-      showAllCheckbox = slicer.util.findChildren(widget=dvhWidget, text='Show/hide all', className='qCheckBox')[0]
-      self.assertTrue( showAllCheckbox )
-      showAllCheckbox.checked = True
+      showAllButton = slicer.util.findChildren(widget=dvhWidget, text='Show all', className='QPushButton')[0]
+      self.assertTrue( showAllButton )
+      showAllButton.click()
 
     except Exception, e:
       import traceback
