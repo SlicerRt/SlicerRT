@@ -87,8 +87,11 @@ protected:
   /// Construct a surface triangulation using a dynamic programming algorithm.
   void TriangulateContours(vtkPolyData*, vtkIdList*, vtkIdList*, vtkCellArray*);
 
+  /// Find the index of the last point in a contour.
+  int GetEndLoop(int, int, bool);
+
   /// Find the point on the given line that is closest to the given point.
-  int GetClosestPoint(vtkPolyData*, double*, vtkIdList*);
+  int GetClosestPoint(vtkPolyData*, double*, vtkIdList*, int);
 
   /// Sort the contours based on Z value.
   void SortContours(vtkPolyData*);
@@ -123,6 +126,7 @@ protected:
   double GetSpacingBetweenLines(vtkPolyData*);
 
   /// Create an additional contour on the exterior of the surface to compensate for slice thickness.
+  /// This step is generally called end-capping.
   void CreateExternalLine(vtkPolyData*, vtkLine*, vtkCellArray*, double);
 
   /// Triangulate the interior of a contour on the xy plane.
@@ -133,9 +137,6 @@ protected:
 
   /// Find the index of the next point in the contour.
   int GetPreviousLocation(int, int, bool);
-
-  /// Find the index of the last point in a contour.
-  int GetEndLoop(int, int, bool);
 
 private:
   vtkPlanarContourToClosedSurfaceConversionRule(const vtkPlanarContourToClosedSurfaceConversionRule&); // Not implemented

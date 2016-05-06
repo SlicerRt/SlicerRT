@@ -31,10 +31,38 @@
 #include <vtkPoints.h>
 #include <vtkMath.h>
 #include <vtkIdList.h>
+#include <vtkImageData.h>
+
+#include <vtkStripper.h>
+#include <vtkContourFilter.h> //TODO:
 #include <vtkPolygon.h>
+#include <vtkCleanPolyData.h>
+#include <vtkPolyDataToImageStencil.h>
+#include <vtkImageStencil.h>
+#include <vtkImageDilateErode3D.h>
+#include <vtkImageAccumulate.h>
+#include <vtkMarchingSquares.h>
+#include <vtkTimerLog.h> //TODO:
 
 // STD includes
 #include <algorithm>
+
+static double total;
+static double seal;
+static double external;
+
+static double a;
+static double b;
+static double c;
+static double d;
+static double e;
+static double f;
+static double g;
+static double h;
+static double i;
+static double j;
+static double k;
+static double l;
 
 //----------------------------------------------------------------------------
 vtkSegmentationConverterRuleNewMacro(vtkPlanarContourToClosedSurfaceConversionRule);
@@ -87,6 +115,8 @@ vtkDataObject* vtkPlanarContourToClosedSurfaceConversionRule::ConstructRepresent
 //----------------------------------------------------------------------------
 bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourceRepresentation, vtkDataObject* targetRepresentation)
 {
+  std::cout << "|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << std::endl;
+  double startTotal = vtkTimerLog::GetUniversalTime();
 
   // Check validity of source and target representation objects
   vtkPolyData* planarContoursPolyData = vtkPolyData::SafeDownCast(sourceRepresentation);
@@ -115,7 +145,7 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
   this->SortContours(inputContoursCopy);
 
   // remove keyholes from the lines
-  this->FixKeyholes(inputContoursCopy, numberOfLines, 0.001, 3);
+  this->FixKeyholes(inputContoursCopy, numberOfLines, 0.1, 2);
 
   numberOfLines = inputContoursCopy->GetNumberOfLines();
 
@@ -257,11 +287,32 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
 
   // Triangulate all contours which are exposed.
   this->SealMesh( inputContoursCopy, outputLines, outputPolygons, lineTriganulatedToAbove, lineTriganulatedToBelow);
-
+  
   // Initialize the output data.
   closedSurfacePolyData->SetPoints(outputPoints);
   //closedSurfacePolyData->SetLines(outputLines); // Do not include lines in poly data for nicer visualization
   closedSurfacePolyData->SetPolys(outputPolygons);
+
+double endTotal = vtkTimerLog::GetUniversalTime();
+total += endTotal-startTotal;
+
+std::cout << total << std::endl;
+std::cout << seal << " :: " << seal/total*100 << "%" << std::endl;
+std::cout << external << " :: " << external/total*100 << std::endl;
+  
+std::cout << "a :: " << a/external*100 << "%" << std::endl;
+std::cout << "b :: " << b/external*100 << "%" << std::endl;
+std::cout << "c :: " << c/external*100 << "%" << std::endl;
+std::cout << "d :: " << d/external*100 << "%" << std::endl;
+std::cout << "e :: " << e/external*100 << "%" << std::endl;
+std::cout << "f :: " << f/external*100 << "%" << std::endl;
+std::cout << "g :: " << g/external*100 << "%" << std::endl;
+std::cout << "h :: " << h/external*100 << "%" << std::endl;
+std::cout << "i :: " << i/external*100 << "%" << std::endl;
+std::cout << "j :: " << j/external*100 << "%" << std::endl;
+std::cout << "k :: " << k/external*100 << "%" << std::endl;
+std::cout << (a+b+c+d+e+f+g+h+i)/external*100  << "%" << std::endl;
+std::cout << "________________________________________________________________________" << std::endl;
 
   return true;
 }
@@ -290,7 +341,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContours(vtkPolyD
 
   if (pointsInLine1->GetNumberOfIds() == 0 || pointsInLine2->GetNumberOfIds() == 0)
   {
-    vtkErrorMacro("TriangulateContours: Empty vtkIdList!");
     return;
   }
 
@@ -300,26 +350,23 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContours(vtkPolyD
   // Pre-calculate and store the closest points.
 
   // Closest point from line 1 to line 2
-  std::vector< vtkIdType > closest1;
+  std::vector< int > closest1;
   for (int line1PointIndex = 0; line1PointIndex < numberOfPointsInLine1; ++line1PointIndex)
   {
     double line1Point[3] = {0,0,0};
     inputROIPoints->GetPoint(pointsInLine1->GetId(line1PointIndex), line1Point);
 
-    vtkIdType pointID = this->GetClosestPoint(inputROIPoints, line1Point, pointsInLine2);
-    closest1.push_back(pointID);
+    closest1.push_back(this->GetClosestPoint(inputROIPoints, line1Point, pointsInLine2, numberOfPointsInLine2));
   }
 
   // closest from line 2 to line 1
-  std::vector< vtkIdType > closest2;
+  std::vector< int > closest2;
   for (int line2PointIndex = 0; line2PointIndex < numberOfPointsInLine2; ++line2PointIndex)
   {
     double line2Point[3] = {0,0,0};
     inputROIPoints->GetPoint(pointsInLine2->GetId(line2PointIndex),line2Point);
 
-    vtkIdType pointID = this->GetClosestPoint(inputROIPoints, line2Point, pointsInLine1);
-    closest2.push_back(pointID);
-
+    closest2.push_back(this->GetClosestPoint(inputROIPoints, line2Point, pointsInLine1, numberOfPointsInLine1));
   }
 
   // Orient loops.
@@ -386,6 +433,11 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContours(vtkPolyD
 
     scoreTable[line1PointIndex][0] = scoreTable[line1PointIndex-1][0]+distance;
     backtrackTable[line1PointIndex][0] = up;
+    for(int line2PointIndex = 1; line2PointIndex < numberOfPointsInLine2; ++line2PointIndex)
+    {
+      scoreTable[line1PointIndex][line2PointIndex] = 0;
+      backtrackTable[line1PointIndex][line2PointIndex] = up;
+    }
 
     currentPointIndexLine1 = this->GetNextLocation(currentPointIndexLine1, numberOfPointsInLine1, line1Closed);
   }
@@ -498,7 +550,24 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContours(vtkPolyD
 }
 
 //----------------------------------------------------------------------------
-int vtkPlanarContourToClosedSurfaceConversionRule::GetClosestPoint(vtkPolyData* inputROIPoints, double* originalPoint, vtkIdList* linePointIds)
+int vtkPlanarContourToClosedSurfaceConversionRule::GetEndLoop(int startLoopIndex, int numberOfPoints, bool loopClosed)
+{
+  if (startLoopIndex != 0)
+  {
+    if (loopClosed)
+    {
+      return startLoopIndex;
+    }
+
+    return startLoopIndex-1;
+  }
+
+  // If startLoop was 0, then it doesn't matter whether or not the loop was closed.
+  return numberOfPoints-1;
+}
+
+//----------------------------------------------------------------------------
+int vtkPlanarContourToClosedSurfaceConversionRule::GetClosestPoint(vtkPolyData* inputROIPoints, double* originalPoint, vtkIdList* linePointIds, int numberOfPoints)
 {
   if (!inputROIPoints)
   {
@@ -518,7 +587,7 @@ int vtkPlanarContourToClosedSurfaceConversionRule::GetClosestPoint(vtkPolyData* 
   double minimumDistance = vtkMath::Distance2BetweenPoints(originalPoint, pointOnLine); // minimum distance from the point to the line
   double closestPointIndex = 0;
 
-  for (int currentPointIndex = 1; currentPointIndex < linePointIds->GetNumberOfIds(); ++currentPointIndex)
+  for (int currentPointIndex = 1; currentPointIndex < numberOfPoints; ++currentPointIndex)
   {
     inputROIPoints->GetPoint(linePointIds->GetId(currentPointIndex), pointOnLine);
 
@@ -984,6 +1053,8 @@ int vtkPlanarContourToClosedSurfaceConversionRule::GetClosestBranch(vtkPolyData*
 //----------------------------------------------------------------------------
 void vtkPlanarContourToClosedSurfaceConversionRule::SealMesh(vtkPolyData* inputROIPoints, vtkCellArray* inputLines, vtkCellArray* outputPolygons, std::vector< bool > lineTriganulatedToAbove, std::vector< bool > lineTriganulatedToBelow)
 {
+double startSeal = vtkTimerLog::GetUniversalTime();
+
   if (!inputROIPoints)
   {
     vtkErrorMacro("SealMesh: Invalid vtkPolyData!");
@@ -1001,28 +1072,25 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SealMesh(vtkPolyData* inputR
     vtkErrorMacro("SealMesh: Invalid vtkCellArray!");
     return;
   }
-
   int numberOfLines = inputLines->GetNumberOfCells();
-
+  
   double lineSpacing = this->GetSpacingBetweenLines(inputROIPoints);
-
-  for(int currentLineIndex = 0; currentLineIndex < numberOfLines; ++currentLineIndex)
+  
+  for (int currentLineIndex = 0; currentLineIndex < numberOfLines; ++currentLineIndex)
   {
     vtkSmartPointer<vtkLine> currentLine = vtkSmartPointer<vtkLine>::New();
     currentLine->DeepCopy(inputROIPoints->GetCell(currentLineIndex));
 
     if (!lineTriganulatedToAbove[currentLineIndex])
     {
-
       vtkSmartPointer<vtkCellArray> externalLines = vtkSmartPointer<vtkCellArray>::New();
       this->CreateExternalLine(inputROIPoints, currentLine, externalLines, lineSpacing);
 
       std::vector<int> overlaps;
       std::vector<vtkSmartPointer<vtkPointLocator> > pointLocators;
-      std::vector<vtkSmartPointer<vtkIdList> > idLists;
+      std::vector<vtkSmartPointer<vtkIdList> >  idLists;
       for (int lineId = 0; lineId < externalLines->GetNumberOfCells(); ++lineId)
       {
-
         vtkSmartPointer<vtkIdList> lineIdList = vtkSmartPointer<vtkIdList>::New();
         externalLines->GetNextCell(lineIdList);
 
@@ -1045,7 +1113,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SealMesh(vtkPolyData* inputR
         pointLocators.push_back(pointLocator);
 
         idLists.push_back(lineIdList);
-
       }
 
       for (int i=0; i < externalLines->GetNumberOfCells(); ++i)
@@ -1054,21 +1121,18 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SealMesh(vtkPolyData* inputR
         this->Branch(inputROIPoints, currentLine, i, overlaps, pointLocators, idLists, dividedLine);
         this->TriangulateContours(inputROIPoints, dividedLine->GetPointIds(), idLists[i], outputPolygons);
       }
-
     }
 
     if (!lineTriganulatedToBelow[currentLineIndex])
     {
-
       vtkSmartPointer<vtkCellArray> externalLines = vtkSmartPointer<vtkCellArray>::New();
       this->CreateExternalLine(inputROIPoints, currentLine, externalLines, -lineSpacing);
 
       std::vector<int> overlaps;
       std::vector<vtkSmartPointer<vtkPointLocator> > pointLocators;
-      std::vector<vtkSmartPointer<vtkIdList> > idLists;
+      std::vector<vtkSmartPointer<vtkIdList> >  idLists;
       for (int lineId = 0; lineId < externalLines->GetNumberOfCells(); ++lineId)
       {
-
         vtkSmartPointer<vtkIdList> lineIdList = vtkSmartPointer<vtkIdList>::New();
         externalLines->GetNextCell(lineIdList);
 
@@ -1091,7 +1155,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SealMesh(vtkPolyData* inputR
         pointLocators.push_back(pointLocator);
 
         idLists.push_back(lineIdList);
-
       }
 
       for (int i=0; i < externalLines->GetNumberOfCells(); ++i)
@@ -1100,9 +1163,11 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SealMesh(vtkPolyData* inputR
         this->Branch(inputROIPoints, currentLine, i, overlaps, pointLocators, idLists, dividedLine);
         this->TriangulateContours(inputROIPoints, idLists[i], dividedLine->GetPointIds(), outputPolygons);
       }
-
     }
   }
+
+double endSeal = vtkTimerLog::GetUniversalTime();
+seal += endSeal - startSeal;
 }
 
 //----------------------------------------------------------------------------
@@ -1148,7 +1213,7 @@ double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtk
 //----------------------------------------------------------------------------
 void vtkPlanarContourToClosedSurfaceConversionRule::CreateExternalLine(vtkPolyData* inputROIPoints, vtkLine* inputLine, vtkCellArray* outputLines, double lineSpacing)
 {
-
+  double externalStart = vtkTimerLog::GetUniversalTime();
   if (!inputROIPoints)
   {
     vtkErrorMacro("CreateExternalLine: invalid vtkPolyData");
@@ -1166,37 +1231,212 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CreateExternalLine(vtkPolyDa
     vtkErrorMacro("CreateExternalLine: invalid vtkCellArray");
   }
 
+  vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
+  lines->Initialize();
+  lines->InsertNextCell(inputLine);
+
+  vtkSmartPointer<vtkPolyData> linePolyData = vtkSmartPointer<vtkPolyData>::New();
+  linePolyData->Initialize();
+  linePolyData->SetPoints(inputROIPoints->GetPoints());
+  linePolyData->SetLines(lines);
+
+double aStart = vtkTimerLog::GetUniversalTime();
+  //vtkSmartPointer<vtkCleanPolyData> cleanPolyData = vtkSmartPointer<vtkCleanPolyData>::New();
+  //cleanPolyData->SetInputData(linePolyData);
+  //cleanPolyData->Update();
+  //linePolyData = cleanPolyData->GetOutput();
+a += vtkTimerLog::GetUniversalTime() - aStart;
+
+  double bounds[6] = { 0, 0, 0, 0, 0, 0 };
+  linePolyData->GetBounds(bounds);
+
+  double spacing[3] = { 1.0, 1.0, 1.0 };
+
+  int alternativeDimensions[3] = {28, 28, 1};
+  double alternativeSpacing[2] = {0.0, 0.0};
+  alternativeSpacing[0] = (bounds[1] - bounds[0])/alternativeDimensions[0];
+  alternativeSpacing[1] = (bounds[3] - bounds[2])/alternativeDimensions[1];
+
+  spacing[0] = std::min(spacing[0], alternativeSpacing[0]);
+  spacing[1] = std::min(spacing[1], alternativeSpacing[1]);
+    
+  // Add a border of pixels to the outside of the image.
+  int offset[3] = { 4, 4, 0 };
+
+  bounds[0] -= (offset[0]/2)*spacing[0];
+  bounds[1] += (offset[0]/2)*spacing[0];
+  bounds[2] -= (offset[0]/2)*spacing[1];
+  bounds[3] += (offset[0]/2)*spacing[1];
+
+  int dimensions[3] = { std::ceil((bounds[1]-bounds[0])/spacing[0]), std::ceil((bounds[3]-bounds[2])/spacing[1]), 1 };
+
+  double origin[3] = {bounds[0], bounds[2], bounds[4]};
+  int extent[6] = {0, dimensions[0]-1, 0, dimensions[1]-1, 0, 0};
+  
   vtkSmartPointer<vtkPoints> inputPoints = inputROIPoints->GetPoints();
 
-  vtkSmartPointer<vtkPoints> inputLinePoints = inputLine->GetPoints();
+double bStart = vtkTimerLog::GetUniversalTime();
+  //vtkSmartPointer<vtkStripper> stripper = vtkSmartPointer<vtkStripper>::New();
+  //stripper->SetInputData(linePolyData);
+  //stripper->SetMaximumLength(VTK_INT_MAX);
+  //stripper->Update();
+b += vtkTimerLog::GetUniversalTime() - bStart;
 
-  vtkSmartPointer<vtkLine> outputLine = vtkSmartPointer<vtkLine>::New();
+double cStart = vtkTimerLog::GetUniversalTime();
+  vtkSmartPointer<vtkPolyDataToImageStencil> polyDataToImageStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+  //polyDataToImageStencil->SetInputData(stripper->GetOutput());
+  polyDataToImageStencil->SetInputData(linePolyData);
+  polyDataToImageStencil->SetOutputSpacing(spacing);
+  polyDataToImageStencil->SetOutputOrigin(origin);
+  polyDataToImageStencil->SetOutputWholeExtent(extent);
+  polyDataToImageStencil->Update();
+c += vtkTimerLog::GetUniversalTime() - cStart;
 
-  vtkSmartPointer<vtkPoints> outputLinePoints = outputLine->GetPoints();
-  outputLinePoints->Initialize();
-  vtkSmartPointer<vtkIdList> outputLinePointIds = outputLine->GetPointIds();
-  outputLinePointIds->Initialize();
+  vtkSmartPointer<vtkImageData> blankImage = vtkSmartPointer<vtkImageData>::New();
+  blankImage->Initialize();
+  blankImage->SetSpacing(spacing);
+  blankImage->SetExtent(extent);
+  blankImage->SetOrigin(origin);
+  blankImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 
-  int numberOfPoints = inputLine->GetNumberOfPoints();
-  for (int currentLocation=0; currentLocation < numberOfPoints-1; ++currentLocation)
+  void* blankImagePtr = blankImage->GetScalarPointerForExtent(blankImage->GetExtent());
+  blankImage->GetExtent(extent);
+  memset(blankImagePtr, 0, ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1) * blankImage->GetScalarSize() * blankImage->GetNumberOfScalarComponents()));
+
+double dStart = vtkTimerLog::GetUniversalTime();
+  vtkSmartPointer<vtkImageStencil> stencil = vtkSmartPointer<vtkImageStencil>::New();
+  stencil->SetInputData(blankImage);
+  stencil->SetStencilConnection(polyDataToImageStencil->GetOutputPort());
+  stencil->ReverseStencilOn();
+  stencil->SetBackgroundValue(1);
+  stencil->Update();
+d += vtkTimerLog::GetUniversalTime() - dStart;
+
+  vtkSmartPointer<vtkImageData> newContourImage = vtkSmartPointer<vtkImageData>::New();
+  newContourImage = stencil->GetOutput();
+
+double eStart = vtkTimerLog::GetUniversalTime();
+  vtkSmartPointer<vtkImageAccumulate> imageAccumulate = vtkSmartPointer<vtkImageAccumulate>::New();
+  imageAccumulate->SetInputData(newContourImage);
+  imageAccumulate->IgnoreZeroOn();
+  imageAccumulate->Update();
+e += vtkTimerLog::GetUniversalTime() - eStart;
+
+  int totalNumberOfVoxels = imageAccumulate->GetVoxelCount();
+  int numberOfVoxels = totalNumberOfVoxels;
+  int voxelDifference = VTK_INT_MAX;
+
+double fStart = vtkTimerLog::GetUniversalTime();
+
+  vtkSmartPointer<vtkImageDilateErode3D> imageDilateErode3D = vtkSmartPointer<vtkImageDilateErode3D>::New();
+  imageDilateErode3D->SetErodeValue(1);
+  imageDilateErode3D->SetKernelSize(5, 5, 1);
+  while (numberOfVoxels > totalNumberOfVoxels/2 && voxelDifference > 0)
   {
-    double currentPoint[3] = {0,0,0};
-    inputLinePoints->GetPoint(currentLocation, currentPoint);
-    currentPoint[2] += lineSpacing/2;
+double jStart = vtkTimerLog::GetUniversalTime();  
+    imageDilateErode3D->SetInputData(newContourImage);
+    imageDilateErode3D->Update();
+    newContourImage = imageDilateErode3D->GetOutput();
+j+= vtkTimerLog::GetUniversalTime() - jStart;
 
-    int inputPointIndex = inputPoints->InsertNextPoint(currentPoint);
-    outputLinePointIds->InsertNextId(inputPointIndex);
-
+double kStart = vtkTimerLog::GetUniversalTime();  
+//    imageAccumulate->SetInputData(newContourImage);
+    imageAccumulate->Update();
+    voxelDifference = numberOfVoxels - imageAccumulate->GetVoxelCount();
+    numberOfVoxels -= voxelDifference;
+k += vtkTimerLog::GetUniversalTime() - kStart;
   }
-  outputLinePointIds->InsertNextId(outputLinePointIds->GetId(0));
-  outputLines->InsertNextCell(outputLine);
+f += vtkTimerLog::GetUniversalTime() - fStart;
 
+double gStart = vtkTimerLog::GetUniversalTime();
+  vtkSmartPointer<vtkMarchingSquares> contourFilter = vtkSmartPointer<vtkMarchingSquares>::New();
+  contourFilter->SetInputData(newContourImage);
+  contourFilter->SetNumberOfContours(1);
+  contourFilter->SetValue(0, 1.0);
+  contourFilter->Update();
+g += vtkTimerLog::GetUniversalTime() - gStart;
+  
+double hStart = vtkTimerLog::GetUniversalTime();
+  vtkSmartPointer<vtkStripper> newContourStripper = vtkSmartPointer<vtkStripper>::New();
+  newContourStripper->SetInputData(contourFilter->GetOutput());
+  newContourStripper->SetMaximumLength(VTK_INT_MAX);
+  newContourStripper->Update();
+h += vtkTimerLog::GetUniversalTime() - hStart;
+
+double iStart = vtkTimerLog::GetUniversalTime();
+  vtkSmartPointer<vtkPolyData> line = newContourStripper->GetOutput();
+
+  if (line && line->GetNumberOfLines() > 0 && line->GetNumberOfPoints() > 0)
+  {
+    vtkSmartPointer<vtkPoints> points = line->GetPoints();
+    for (int currentLocation=0; currentLocation < line->GetNumberOfLines(); ++currentLocation)
+    {
+      vtkSmartPointer<vtkIdList> outputLinePointIds = vtkSmartPointer<vtkIdList>::New();
+      outputLinePointIds->Initialize();
+
+      vtkSmartPointer<vtkLine> l = vtkSmartPointer<vtkLine>::New();
+      l->DeepCopy(line->GetCell(currentLocation));
+
+      vtkSmartPointer<vtkLine> newLine = vtkSmartPointer<vtkLine>::New();
+      if (IsLineClockwise(line, l))
+      {
+        ReverseLine(l, newLine);
+      }
+      else
+      {
+        newLine = l;
+      }
+
+      for (int pointId=0; pointId < newLine->GetNumberOfPoints()-1; ++pointId)
+      {
+        double currentPoint[3] = {0,0,0};
+        points->GetPoint(newLine->GetPointId(pointId), currentPoint);
+        currentPoint[2] += lineSpacing/2;
+
+        int inputPointIndex = inputPoints->InsertNextPoint(currentPoint);
+
+        outputLinePointIds->InsertNextId(inputPointIndex);
+      }
+
+      if(outputLinePointIds->GetId(0) != outputLinePointIds->GetId(outputLinePointIds->GetNumberOfIds()-1))
+      {
+        outputLinePointIds->InsertNextId(outputLinePointIds->GetId(0));
+      }
+      outputLines->InsertNextCell(outputLinePointIds);
+    }
+  }
+  else
+  {
+    vtkSmartPointer<vtkPoints> inputLinePoints = inputLine->GetPoints();
+
+    vtkSmartPointer<vtkLine> outputLine = vtkSmartPointer<vtkLine>::New();
+
+    vtkSmartPointer<vtkPoints> outputLinePoints = outputLine->GetPoints();
+    outputLinePoints->Initialize();
+    vtkSmartPointer<vtkIdList> outputLinePointIds = outputLine->GetPointIds();
+    outputLinePointIds->Initialize();
+
+    int numberOfPoints = inputLine->GetNumberOfPoints();
+    for (int currentLocation=0; currentLocation < numberOfPoints-1; ++currentLocation)
+    {
+      double currentPoint[3] = {0,0,0};
+      inputLinePoints->GetPoint(currentLocation, currentPoint);
+      currentPoint[2] += lineSpacing/2;
+
+      int inputPointIndex = inputPoints->InsertNextPoint(currentPoint);
+      outputLinePointIds->InsertNextId(inputPointIndex);
+    }
+    outputLinePointIds->InsertNextId(outputLinePointIds->GetId(0));
+    outputLines->InsertNextCell(outputLine);
+  }
+i += vtkTimerLog::GetUniversalTime() - iStart;
+double externalEnd = vtkTimerLog::GetUniversalTime();
+external += externalEnd-externalStart;
 }
 
 //----------------------------------------------------------------------------
 void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateLine(vtkLine* inputLine, vtkCellArray* outputPolys, bool normalsUp)
 {
-
   if (!inputLine)
   {
    vtkErrorMacro("TriangulateLine: Invalid vtkLine!");
@@ -1240,7 +1480,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateLine(vtkLine* inp
       outputPolys->InsertCellPoint(inputLine->GetPointId(polygonIds->GetId(currentPolygonId)));
     }
   }
-
 }
 
 //----------------------------------------------------------------------------
@@ -1271,21 +1510,4 @@ int vtkPlanarContourToClosedSurfaceConversionRule::GetPreviousLocation(int curre
     return numberOfPoints-1;
   }
   return currentLocation-1;
-}
-
-//----------------------------------------------------------------------------
-int vtkPlanarContourToClosedSurfaceConversionRule::GetEndLoop(int startLoopIndex, int numberOfPoints, bool loopClosed)
-{
-  if (startLoopIndex != 0)
-  {
-    if (loopClosed)
-    {
-      return startLoopIndex;
-    }
-
-    return startLoopIndex-1;
-  }
-
-  // If startLoop was 0, then it doesn't matter whether or not the loop was closed.
-  return numberOfPoints-1;
 }
