@@ -472,6 +472,7 @@ void vtkCalculateOversamplingFactor::ApplyOversamplingOnImageGeometry(vtkOriente
     }
     imageData->SetExtent(newExtent);
     imageData->SetSpacing(newSpacing);
+    imageData->AllocateScalars(imageData->GetScalarType(), imageData->GetNumberOfScalarComponents());
 
     // Origin is given in the center of voxels, but we want to have the corners of the new and old volumes
     // to be in the same position, so we need to shift the origin by a half voxel size difference
