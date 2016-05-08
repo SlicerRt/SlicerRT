@@ -215,8 +215,55 @@ void vtkMRMLSegmentationNode::DeepCopy(vtkMRMLNode* aNode)
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentationNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-  Superclass::PrintSelf(os,indent);
-  this->Segmentation->PrintSelf(os, indent);
+  // We don't call Superclass::Printself because vtkMRMLVolumeNode::PrintSelf would call
+  // GetImageData, which would turn on merged labelmap generation.
+  vtkMRMLDisplayableNode::PrintSelf(os,indent);
+
+  os << indent << "Merged labelmap:";
+  if (this->HasMergedLabelmap())
+  {
+    os << "\n";
+    os << indent.GetNextIndent() << "Origin:";
+    for(int j=0; j<3; j++)
+    {
+      os << " " << this->Origin[j];
+    }
+    os << "\n";
+    os << indent.GetNextIndent() << "Spacing:";
+    for(int j=0; j<3; j++)
+    {
+      os << " " << this->Spacing[j];
+    }
+    os << "\n";
+    os << indent.GetNextIndent() << "IJKToRASDirections:\n";
+    for(int i=0; i<3; i++)
+    {
+      os << indent.GetNextIndent().GetNextIndent();
+      for(int j=0; j<3; j++)
+      {
+        os << this->IJKToRASDirections[i][j] << " ";
+      }
+      os << "\n";
+    }
+    vtkImageData* imageData = this->GetImageData();
+    if (imageData)
+    {
+      os << indent.GetNextIndent() << "Extent:";
+      for(int j=0; j<6; j++)
+      {
+        os << " " << imageData->GetExtent()[j];
+      }
+      os << "\n";
+      os << indent.GetNextIndent() << "Scalar type: " << imageData->GetScalarTypeAsString() << "\n";
+      os << indent.GetNextIndent() << "Number of components: " << imageData->GetNumberOfScalarComponents() << "\n";
+    }
+  }
+  else
+  {
+    os << " (none)\n";
+  }
+  os << indent << "Segmentation:";
+  this->Segmentation->PrintSelf(os, indent.GetNextIndent());
 }
 
 //----------------------------------------------------------------------------
@@ -442,15 +489,17 @@ void vtkMRMLSegmentationNode::OnRepresentationCreated(vtkObject* vtkNotUsed(call
   if (displayNode)
   {
     // Show new representation in 3D if model
-    std::set<std::string> modelRepresentationNames;
-    displayNode->GetPolyDataRepresentationNames(modelRepresentationNames);
-    if (modelRepresentationNames.find(std::string(targetRepresentationName)) != modelRepresentationNames.end())
-    {
-      displayNode->SetPreferredDisplayRepresentationName3D(targetRepresentationName);
-    }
+    // Commented out, as it would overwrite settings in the display node when segmentation is loaded from scene
+    //std::set<std::string> modelRepresentationNames;
+    //displayNode->GetPolyDataRepresentationNames(modelRepresentationNames);
+    //if (modelRepresentationNames.find(std::string(targetRepresentationName)) != modelRepresentationNames.end())
+    //{
+    //  displayNode->SetPreferredDisplayRepresentationName3D(targetRepresentationName);
+    //}
 
+    // Commented out, as it would overwrite settings in the display node when segmentation is loaded from scene
     // Show new representation in 2D in every case
-    displayNode->SetPreferredDisplayRepresentationName2D(targetRepresentationName);
+    //displayNode->SetPreferredDisplayRepresentationName2D(targetRepresentationName);
   }
 
   // Invoke node event
@@ -627,6 +676,7 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
   properties.Color[0] = defaultColor[0];
   properties.Color[1] = defaultColor[1];
   properties.Color[2] = defaultColor[2];
+  properties.Visible = true;
   properties.Visible3D = true;
   properties.Visible2DFill = true;
   properties.Visible2DOutline = true;
@@ -714,8 +764,8 @@ void vtkMRMLSegmentationNode::ApplyTransform(vtkAbstractTransform* transform)
 {
   // Make sure preferred display representations exist after transformation
   // (it is invalidated in the process unless it is the master representation)
-  std::string preferredDisplayRepresentation2D("");
-  std::string preferredDisplayRepresentation3D("");
+  char* preferredDisplayRepresentation2D = NULL;
+  char* preferredDisplayRepresentation3D = NULL;
   vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(this->GetDisplayNode());
   if (displayNode)
   {
@@ -738,17 +788,17 @@ void vtkMRMLSegmentationNode::ApplyTransform(vtkAbstractTransform* transform)
   // (it was invalidated in the process unless it is the master representation)
   if (displayNode)
   {
-    if (!preferredDisplayRepresentation2D.empty())
+    if (preferredDisplayRepresentation2D)
     {
       this->Segmentation->CreateRepresentation(preferredDisplayRepresentation2D);
     }
-    if (!preferredDisplayRepresentation3D.empty())
+    if (preferredDisplayRepresentation3D)
     {
       this->Segmentation->CreateRepresentation(preferredDisplayRepresentation3D);
     }
     // Need to set preferred representations again, as conversion sets them to the last converted one
-    displayNode->SetPreferredDisplayRepresentationName2D(preferredDisplayRepresentation2D.c_str());
-    displayNode->SetPreferredDisplayRepresentationName3D(preferredDisplayRepresentation3D.c_str());
+    displayNode->SetPreferredDisplayRepresentationName2D(preferredDisplayRepresentation2D);
+    displayNode->SetPreferredDisplayRepresentationName3D(preferredDisplayRepresentation3D);
   }
 }
 
@@ -968,12 +1018,16 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
     // Setting the extent may invoke this function again via ImageDataModified, in which case the pointer is NULL
     return false;
   }
+
+  /*
   vtkIdType mergedImageDataNumberOfPoints = mergedImageData->GetNumberOfPoints();
   for (vtkIdType i=0; i<mergedImageDataNumberOfPoints; ++i)
   {
     (*mergedImagePtr) = (short)backgroundColor;
     ++mergedImagePtr;
   }
+*/
+  vtkOrientedImageDataResample::FillImage(mergedImageData, backgroundColor);
 
   // Skip the rest if there are no segments
   if (this->Segmentation->GetNumberOfSegments() == 0)
@@ -995,7 +1049,10 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
     std::string currentSegmentId(segmentIt->first);
     vtkSegment* currentSegment = segmentIt->second;
     bool segmentIncluded = ( std::find(mergedSegmentIDs.begin(), mergedSegmentIDs.end(), std::string(currentSegmentId)) != mergedSegmentIDs.end() );
-
+    if (!segmentIncluded)
+    {
+      continue;
+    }
     // Get color table index for the segment
     std::string colorIndexStr;
     bool tagFound = currentSegment->GetTag(vtkMRMLSegmentationDisplayNode::GetColorIndexTag(), colorIndexStr);
@@ -1199,10 +1256,25 @@ void vtkMRMLSegmentationNode::SetReferenceImageGeometryParameterFromVolumeNode(v
   }
 
   // Get serialized geometry of selected volume
-  vtkSmartPointer<vtkMatrix4x4> referenceImageGeometryMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  volumeNode->GetIJKToRASMatrix(referenceImageGeometryMatrix);
+  vtkSmartPointer<vtkMatrix4x4> volumeIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  volumeNode->GetIJKToRASMatrix(volumeIjkToRasMatrix);
+
+  // If there is a linear transform between the reference volume and segmentation then transform the geometry
+  // to be aligned with the reference volume.
+  if (volumeNode->GetParentTransformNode() != this->GetParentTransformNode())
+  {
+    vtkSmartPointer<vtkGeneralTransform> volumeToSegmentationTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+    vtkMRMLTransformNode::GetTransformBetweenNodes(volumeNode->GetParentTransformNode(), this->GetParentTransformNode(), volumeToSegmentationTransform);
+    if (vtkMRMLTransformNode::IsGeneralTransformLinear(volumeToSegmentationTransform))
+    {
+      vtkNew<vtkMatrix4x4> volumeToSegmentationMatrix;
+      vtkMRMLTransformNode::GetMatrixTransformBetweenNodes(volumeNode->GetParentTransformNode(), this->GetParentTransformNode(), volumeToSegmentationMatrix.GetPointer());
+      vtkMatrix4x4::Multiply4x4(volumeToSegmentationMatrix.GetPointer(), volumeIjkToRasMatrix, volumeIjkToRasMatrix);
+    }
+  }
+  
   std::string serializedImageGeometry = vtkSegmentationConverter::SerializeImageGeometry(
-    referenceImageGeometryMatrix, volumeNode->GetImageData() );
+    volumeIjkToRasMatrix, volumeNode->GetImageData() );
 
   // Set parameter
   this->Segmentation->SetConversionParameter(

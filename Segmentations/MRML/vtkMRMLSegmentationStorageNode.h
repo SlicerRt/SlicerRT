@@ -116,6 +116,10 @@ protected:
   /// Create representations based on serialized representation names string
   void CreateRepresentationsBySerializedNames(vtkSegmentation* segmentation, std::string representationNames);
 
+  static std::string GetSegmentMetaDataKey(int segmentIndex, const std::string& keyName);
+
+  static std::string GetSegmentationMetaDataKey(const std::string& keyName);
+
 protected:
   vtkMRMLSegmentationStorageNode();
   ~vtkMRMLSegmentationStorageNode();

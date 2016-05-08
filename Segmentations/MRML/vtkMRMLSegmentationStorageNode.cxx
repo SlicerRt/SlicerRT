@@ -61,15 +61,14 @@
 
 //----------------------------------------------------------------------------
 static const std::string SERIALIZATION_SEPARATOR = "|";
-static const std::string SEGMENT_ID = "ID";
-static const std::string SEGMENT_NAME = "Name";
-static const std::string SEGMENT_DEFAULT_COLOR = "DefaultColor";
-static const std::string SEGMENT_DISPLAYED_COLOR = "DisplayedColor";
-static const std::string SEGMENT_TAGS = "Tags";
-static const std::string SEGMENT_EXTENT = "Extent";
-static const std::string MASTER_REPRESENTATION = "MasterRepresentation";
-static const std::string CONVERSION_PARAMETERS = "ConversionParameters";
-static const std::string CONTAINED_REPRESENTATION_NAMES = "ContainedRepresentationNames";
+static const std::string KEY_SEGMENT_ID = "ID";
+static const std::string KEY_SEGMENT_NAME = "Name";
+static const std::string KEY_SEGMENT_DEFAULT_COLOR = "DefaultColor";
+static const std::string KEY_SEGMENT_TAGS = "Tags";
+static const std::string KEY_SEGMENT_EXTENT = "Extent";
+static const std::string KEY_SEGMENTATION_MASTER_REPRESENTATION = "MasterRepresentation";
+static const std::string KEY_SEGMENTATION_CONVERSION_PARAMETERS = "ConversionParameters";
+static const std::string KEY_SEGMENTATION_CONTAINED_REPRESENTATION_NAMES = "ContainedRepresentationNames";
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLSegmentationStorageNode);
@@ -309,18 +308,18 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegm
   itk::MetaDataDictionary metadata = allSegmentLabelmapsImage->GetMetaDataDictionary();
   // Read common geometry extent
   std::string commonExtent;
-  itk::ExposeMetaData<std::string>(metadata, SEGMENT_EXTENT.c_str(), commonExtent);
+  itk::ExposeMetaData<std::string>(metadata, KEY_SEGMENT_EXTENT.c_str(), commonExtent);
   std::stringstream ssCommonExtent;
   ssCommonExtent << commonExtent;
   int commonGeometryExtent[6] = {0,-1,0,-1,0,-1};
   ssCommonExtent >> commonGeometryExtent[0] >> commonGeometryExtent[1] >> commonGeometryExtent[2] >> commonGeometryExtent[3] >> commonGeometryExtent[4] >> commonGeometryExtent[5];
   // Read conversion parameters
   std::string conversionParameters;
-  itk::ExposeMetaData<std::string>(metadata, CONVERSION_PARAMETERS.c_str(), conversionParameters);
+  itk::ExposeMetaData<std::string>(metadata, GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONVERSION_PARAMETERS).c_str(), conversionParameters);
   segmentation->DeserializeConversionParameters(conversionParameters);
   // Read contained representation names
   std::string containedRepresentationNames;
-  itk::ExposeMetaData<std::string>(metadata, CONTAINED_REPRESENTATION_NAMES.c_str(), containedRepresentationNames);
+  itk::ExposeMetaData<std::string>(metadata, GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONTAINED_REPRESENTATION_NAMES).c_str(), containedRepresentationNames);
 
   // Get image properties
   BinaryLabelmap4DImageType::RegionType itkRegion = allSegmentLabelmapsImage->GetLargestPossibleRegion();
@@ -348,67 +347,34 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegm
     // Get metadata for current segment
 
     // ID
-    std::stringstream ssIdKey;
-    ssIdKey << segmentIndex << SEGMENT_ID;
-    std::string idKey = ssIdKey.str();
     std::string currentSegmentID;
-    itk::ExposeMetaData<std::string>(metadata, idKey.c_str(), currentSegmentID);
+    itk::ExposeMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_ID), currentSegmentID);
 
     // Name
-    std::stringstream ssNameKey;
-    ssNameKey << segmentIndex << SEGMENT_NAME;
-    std::string nameKey = ssNameKey.str();
     std::string currentSegmentName;
-    itk::ExposeMetaData<std::string>(metadata, nameKey.c_str(), currentSegmentName);
+    itk::ExposeMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_NAME), currentSegmentName);
     currentSegment->SetName(currentSegmentName.c_str());
 
     // DefaultColor
-    std::stringstream ssDefaultColorKey;
-    ssDefaultColorKey << segmentIndex << SEGMENT_DEFAULT_COLOR;
-    std::string defaultColorKey = ssDefaultColorKey.str();
     std::string defaultColorValue;
-    itk::ExposeMetaData<std::string>(metadata, defaultColorKey.c_str(), defaultColorValue);
+    itk::ExposeMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_DEFAULT_COLOR), defaultColorValue);
     std::stringstream ssDefaultColorValue;
     ssDefaultColorValue << defaultColorValue;
     double currentSegmentDefaultColor[3] = {0.0,0.0,0.0};
     ssDefaultColorValue >> currentSegmentDefaultColor[0] >> currentSegmentDefaultColor[1] >> currentSegmentDefaultColor[2];
     currentSegment->SetDefaultColor(currentSegmentDefaultColor);
 
-    // DisplayedColor
-    std::stringstream ssDisplayedColorKey;
-    ssDisplayedColorKey << segmentIndex << SEGMENT_DISPLAYED_COLOR;
-    std::string displayedColorKey = ssDisplayedColorKey.str();
-    std::string displayedColorValue;
-    itk::ExposeMetaData<std::string>(metadata, displayedColorKey.c_str(), displayedColorValue);
-    if (!displayedColorValue.empty() && displayNode)
-    {
-      vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-      std::stringstream ssDisplayedColorValue;
-      ssDisplayedColorValue << displayedColorValue;
-      double opacity = 0.0;
-      ssDisplayedColorValue >> properties.Color[0] >> properties.Color[1] >> properties.Color[2] >> opacity;
-      properties.Opacity3D = properties.Opacity2DFill = properties.Opacity2DOutline = opacity;
-      properties.Visible3D = properties.Visible2DFill = properties.Visible2DOutline = true;
-      displayNode->SetSegmentDisplayProperties(currentSegmentID.c_str(), properties);
-    }
-
     // Extent
-    std::stringstream ssExtentKey;
-    ssExtentKey << segmentIndex << SEGMENT_EXTENT;
-    std::string extentKey = ssExtentKey.str();
     std::string extentValue;
-    itk::ExposeMetaData<std::string>(metadata, extentKey.c_str(), extentValue);
+    itk::ExposeMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_EXTENT), extentValue);
     std::stringstream ssExtentValue;
     ssExtentValue << extentValue;
     int currentSegmentExtent[6] = {0,-1,0,-1,0,-1};
     ssExtentValue >> currentSegmentExtent[0] >> currentSegmentExtent[1] >> currentSegmentExtent[2] >> currentSegmentExtent[3] >> currentSegmentExtent[4] >> currentSegmentExtent[5];
 
     // Tags
-    std::stringstream ssTagsKey;
-    ssTagsKey << segmentIndex << SEGMENT_TAGS;
-    std::string tagsKey = ssTagsKey.str();
     std::string tagsValue;
-    itk::ExposeMetaData<std::string>(metadata, tagsKey.c_str(), tagsValue);
+    itk::ExposeMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_TAGS), tagsValue);
     std::string separatorCharacter("|");
     size_t separatorPosition = tagsValue.find(separatorCharacter);
     while (separatorPosition != std::string::npos)
@@ -529,7 +495,7 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
     if (!segmentation->GetMasterRepresentationName())
     {
       vtkStringArray* masterRepresentationArray = vtkStringArray::SafeDownCast(
-        currentPolyData->GetFieldData()->GetAbstractArray(MASTER_REPRESENTATION.c_str()) );
+        currentPolyData->GetFieldData()->GetAbstractArray(GetSegmentationMetaDataKey(KEY_SEGMENTATION_MASTER_REPRESENTATION).c_str()));
       if (!masterRepresentationArray)
       {
         vtkErrorMacro("ReadPolyDataRepresentation: Unable to find master representation for segmentation in file " << path);
@@ -541,7 +507,7 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
     if (conversionParameters.empty())
     {
       vtkStringArray* conversionParametersArray = vtkStringArray::SafeDownCast(
-        currentPolyData->GetFieldData()->GetAbstractArray(CONVERSION_PARAMETERS.c_str()) );
+        currentPolyData->GetFieldData()->GetAbstractArray(GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONVERSION_PARAMETERS).c_str()) );
       conversionParameters = conversionParametersArray->GetValue(0);
       segmentation->DeserializeConversionParameters(conversionParameters);
     }
@@ -549,7 +515,7 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
     if (containedRepresentationNames.empty())
     {
       containedRepresentationNames = vtkStringArray::SafeDownCast(
-        currentPolyData->GetFieldData()->GetAbstractArray(CONTAINED_REPRESENTATION_NAMES.c_str()) )->GetValue(0);
+        currentPolyData->GetFieldData()->GetAbstractArray(GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONTAINED_REPRESENTATION_NAMES).c_str()) )->GetValue(0);
     }
 
     // Create segment
@@ -558,13 +524,13 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
 
     // Set segment properties
     vtkStringArray* idArray = vtkStringArray::SafeDownCast(
-      currentPolyData->GetFieldData()->GetAbstractArray(SEGMENT_ID.c_str()) );
+      currentPolyData->GetFieldData()->GetAbstractArray(KEY_SEGMENT_ID.c_str()) );
     vtkStringArray* nameArray = vtkStringArray::SafeDownCast(
-      currentPolyData->GetFieldData()->GetAbstractArray(SEGMENT_NAME.c_str()) );
+      currentPolyData->GetFieldData()->GetAbstractArray(KEY_SEGMENT_NAME.c_str()) );
     vtkDoubleArray* defaultColorArray = vtkDoubleArray::SafeDownCast(
-      currentPolyData->GetFieldData()->GetArray(SEGMENT_DEFAULT_COLOR.c_str()) );
+      currentPolyData->GetFieldData()->GetArray(KEY_SEGMENT_DEFAULT_COLOR.c_str()) );
     vtkStringArray* tagsArray = vtkStringArray::SafeDownCast(
-      currentPolyData->GetFieldData()->GetAbstractArray(SEGMENT_TAGS.c_str()) );
+      currentPolyData->GetFieldData()->GetAbstractArray(KEY_SEGMENT_TAGS.c_str()) );
     if (!idArray || !nameArray || !defaultColorArray)
     {
       vtkErrorMacro("ReadPolyDataRepresentation: Unable to find segment properties for segment number " << blockIndex << " referenced from segmentation file " << path);
@@ -574,20 +540,6 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
     std::string currentSegmentID = idArray->GetValue(0);
     currentSegment->SetName(nameArray->GetValue(0).c_str());
     currentSegment->SetDefaultColor(defaultColorArray->GetComponent(0,0), defaultColorArray->GetComponent(0,1), defaultColorArray->GetComponent(0,2));
-
-    // DisplayedColor
-    vtkDoubleArray* displayedColorArray = vtkDoubleArray::SafeDownCast(
-      currentPolyData->GetFieldData()->GetArray(SEGMENT_DISPLAYED_COLOR.c_str()) );
-    if (displayedColorArray && displayNode)
-    {
-      vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-      properties.Color[0] = displayedColorArray->GetComponent(0,0);
-      properties.Color[1] = displayedColorArray->GetComponent(0,1);
-      properties.Color[2] = displayedColorArray->GetComponent(0,2);
-      properties.Opacity3D = properties.Opacity2DFill = properties.Opacity2DOutline = displayedColorArray->GetComponent(0,3);
-      properties.Visible3D = properties.Visible2DFill = properties.Visible2DOutline = true;
-      displayNode->SetSegmentDisplayProperties(currentSegmentID.c_str(), properties);
-    }
 
     // Tags
     if (tagsArray)
@@ -747,15 +699,15 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
   ssCommonExtent << commonGeometryExtent[0] << " " << commonGeometryExtent[1] << " " << commonGeometryExtent[2]
     << " " << commonGeometryExtent[3] << " " << commonGeometryExtent[4] << " " << commonGeometryExtent[5];
   std::string commonExtent = ssCommonExtent.str();
-  itk::EncapsulateMetaData<std::string>(metadata, SEGMENT_EXTENT.c_str(), commonExtent);
+  itk::EncapsulateMetaData<std::string>(metadata, KEY_SEGMENT_EXTENT.c_str(), commonExtent);
   // Save master representation name
-  itk::EncapsulateMetaData<std::string>(metadata, MASTER_REPRESENTATION.c_str(), masterRepresentation);
+  itk::EncapsulateMetaData<std::string>(metadata, GetSegmentationMetaDataKey(KEY_SEGMENTATION_MASTER_REPRESENTATION).c_str(), masterRepresentation);
   // Save conversion parameters
   std::string conversionParameters = segmentation->SerializeAllConversionParameters();
-  itk::EncapsulateMetaData<std::string>(metadata, CONVERSION_PARAMETERS.c_str(), conversionParameters);
+  itk::EncapsulateMetaData<std::string>(metadata, GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONVERSION_PARAMETERS).c_str(), conversionParameters);
   // Save created representation names so that they are re-created when loading
   std::string containedRepresentationNames = this->SerializeContainedRepresentationNames(segmentation);
-  itk::EncapsulateMetaData<std::string>(metadata, CONTAINED_REPRESENTATION_NAMES.c_str(), containedRepresentationNames);
+  itk::EncapsulateMetaData<std::string>(metadata, GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONTAINED_REPRESENTATION_NAMES).c_str(), containedRepresentationNames);
 
   // Dimensions of the output 4D NRRD file: (i, j, k, segment)
   vtkSegmentation::SegmentMap segmentMap = segmentation->GetSegments();
@@ -790,63 +742,27 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
     // Set metadata for current segment
 
     // ID
-    std::stringstream ssIdKey;
-    ssIdKey << segmentIndex << SEGMENT_ID;
-    std::string idKey = ssIdKey.str();
-    itk::EncapsulateMetaData<std::string>(metadata, idKey.c_str(), currentSegmentID);
+    itk::EncapsulateMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_ID), currentSegmentID);
 
     // Name
-    std::stringstream ssNameKey;
-    ssNameKey << segmentIndex << SEGMENT_NAME;
-    std::string nameKey = ssNameKey.str();
-    itk::EncapsulateMetaData<std::string>(metadata, nameKey.c_str(), std::string(currentSegment->GetName()));
+    itk::EncapsulateMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_NAME), std::string(currentSegment->GetName()));
 
     // DefaultColor
-    std::stringstream ssDefaultColorKey;
-    ssDefaultColorKey << segmentIndex << SEGMENT_DEFAULT_COLOR;
-    std::string defaultColorKey = ssDefaultColorKey.str();
     std::stringstream ssDefaultColorValue;
     ssDefaultColorValue << currentSegment->GetDefaultColor()[0] << " " << currentSegment->GetDefaultColor()[1] << " " << currentSegment->GetDefaultColor()[2];
     std::string defaultColorValue = ssDefaultColorValue.str();
-    itk::EncapsulateMetaData<std::string>(metadata, defaultColorKey.c_str(), defaultColorValue);
-
-    // DisplayedColor
-    if (displayNode)
-    {
-      vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-      if (displayNode->GetSegmentDisplayProperties(currentSegmentID, properties))
-      {
-        // Save only 3D opacity
-        std::stringstream ssDisplayedColorKey;
-        ssDisplayedColorKey << segmentIndex << SEGMENT_DISPLAYED_COLOR;
-        std::string displayedColorKey = ssDisplayedColorKey.str();
-        std::stringstream ssDisplayedColorValue;
-        ssDisplayedColorValue << properties.Color[0] << " " << properties.Color[1] << " " << properties.Color[2] << " " << properties.Opacity3D;
-        std::string displayedColorValue = ssDisplayedColorValue.str();
-        itk::EncapsulateMetaData<std::string>(metadata, displayedColorKey.c_str(), displayedColorValue);
-      }
-      else
-      {
-        vtkWarningMacro("WritePolyDataRepresentation: Failed to get display properties for segment " << currentSegmentID);
-      }
-    }
+    itk::EncapsulateMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_DEFAULT_COLOR), defaultColorValue);
 
     // Extent
-    std::stringstream ssExtentKey;
-    ssExtentKey << segmentIndex << SEGMENT_EXTENT;
-    std::string extentKey = ssExtentKey.str();
     int currentSegmentExtent[6] = {0,-1,0,-1,0,-1};
     currentBinaryLabelmap->GetExtent(currentSegmentExtent);
     std::stringstream ssExtentValue;
     ssExtentValue << currentSegmentExtent[0] << " " << currentSegmentExtent[1] << " " << currentSegmentExtent[2]
       << " " << currentSegmentExtent[3] << " " << currentSegmentExtent[4] << " " << currentSegmentExtent[5];
     std::string extentValue = ssExtentValue.str();
-    itk::EncapsulateMetaData<std::string>(metadata, extentKey.c_str(), extentValue);
+    itk::EncapsulateMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_EXTENT), extentValue);
 
     // Tags
-    std::stringstream ssTagsKey;
-    ssTagsKey << segmentIndex << SEGMENT_TAGS;
-    std::string tagsKey = ssTagsKey.str();
     std::map<std::string,std::string> tags;
     currentSegment->GetTags(tags);
     std::stringstream ssTagsValue;
@@ -856,7 +772,7 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
       ssTagsValue << tagIt->first << ":" << tagIt->second << "|";
     }
     std::string tagsValue = ssTagsValue.str();
-    itk::EncapsulateMetaData<std::string>(metadata, tagsKey.c_str(), tagsValue);
+    itk::EncapsulateMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_TAGS), tagsValue);
 
     // Define ITK region for the current segment
     BinaryLabelmap4DImageType::IndexType segmentRegionIndex;
@@ -1004,21 +920,21 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkMRMLSegmentat
     vtkSmartPointer<vtkStringArray> masterRepresentationArray = vtkSmartPointer<vtkStringArray>::New();
     masterRepresentationArray->SetNumberOfValues(1);
     masterRepresentationArray->SetValue(0,masterRepresentation);
-    masterRepresentationArray->SetName(MASTER_REPRESENTATION.c_str());
+    masterRepresentationArray->SetName(GetSegmentationMetaDataKey(KEY_SEGMENTATION_MASTER_REPRESENTATION).c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(masterRepresentationArray);
 
     // ID
     vtkSmartPointer<vtkStringArray> idArray = vtkSmartPointer<vtkStringArray>::New();
     idArray->SetNumberOfValues(1);
     idArray->SetValue(0,currentSegmentID.c_str());
-    idArray->SetName(SEGMENT_ID.c_str());
+    idArray->SetName(KEY_SEGMENT_ID.c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(idArray);
 
     // Name
     vtkSmartPointer<vtkStringArray> nameArray = vtkSmartPointer<vtkStringArray>::New();
     nameArray->SetNumberOfValues(1);
     nameArray->SetValue(0,currentSegment->GetName());
-    nameArray->SetName(SEGMENT_NAME.c_str());
+    nameArray->SetName(KEY_SEGMENT_NAME.c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(nameArray);
 
     // DefaultColor
@@ -1026,29 +942,8 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkMRMLSegmentat
     defaultColorArray->SetNumberOfComponents(3);
     defaultColorArray->SetNumberOfTuples(1);
     defaultColorArray->SetTuple(0, currentSegment->GetDefaultColor());
-    defaultColorArray->SetName(SEGMENT_DEFAULT_COLOR.c_str());
+    defaultColorArray->SetName(KEY_SEGMENT_DEFAULT_COLOR.c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(defaultColorArray);
-
-    // DisplayedColor
-    if (displayNode)
-    {
-      vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-      if (displayNode->GetSegmentDisplayProperties(currentSegmentID, properties))
-      {
-        // Save only 3D opacity
-        double displayedColor[4] = {properties.Color[0], properties.Color[1], properties.Color[2], properties.Opacity3D};
-        vtkSmartPointer<vtkDoubleArray> displayedColorArray = vtkSmartPointer<vtkDoubleArray>::New();
-        displayedColorArray->SetNumberOfComponents(4);
-        displayedColorArray->SetNumberOfTuples(1);
-        displayedColorArray->SetTuple(0, displayedColor);
-        displayedColorArray->SetName(SEGMENT_DISPLAYED_COLOR.c_str());
-        currentPolyDataCopy->GetFieldData()->AddArray(displayedColorArray);
-      }
-      else
-      {
-        vtkWarningMacro("WritePolyDataRepresentation: Failed to get display properties for segment " << currentSegmentID);
-      }
-    }
 
     // Tags
     std::map<std::string,std::string> tags;
@@ -1062,7 +957,7 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkMRMLSegmentat
     vtkSmartPointer<vtkStringArray> tagsArray = vtkSmartPointer<vtkStringArray>::New();
     tagsArray->SetNumberOfValues(1);
     tagsArray->SetValue(0,ssTags.str().c_str());
-    tagsArray->SetName(SEGMENT_TAGS.c_str());
+    tagsArray->SetName(KEY_SEGMENT_TAGS.c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(tagsArray);
 
     // Save conversion parameters as metadata (save in each segment file)
@@ -1070,7 +965,7 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkMRMLSegmentat
     vtkSmartPointer<vtkStringArray> conversionParametersArray = vtkSmartPointer<vtkStringArray>::New();
     conversionParametersArray->SetNumberOfValues(1);
     conversionParametersArray->SetValue(0,conversionParameters);
-    conversionParametersArray->SetName(CONVERSION_PARAMETERS.c_str());
+    conversionParametersArray->SetName(GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONVERSION_PARAMETERS).c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(conversionParametersArray);
 
     // Save contained representation names as metadata (save in each segment file)
@@ -1078,7 +973,7 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkMRMLSegmentat
     vtkSmartPointer<vtkStringArray> containedRepresentationNamesArray = vtkSmartPointer<vtkStringArray>::New();
     containedRepresentationNamesArray->SetNumberOfValues(1);
     containedRepresentationNamesArray->SetValue(0,containedRepresentationNames);
-    containedRepresentationNamesArray->SetName(CONTAINED_REPRESENTATION_NAMES.c_str());
+    containedRepresentationNamesArray->SetName(GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONTAINED_REPRESENTATION_NAMES).c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(containedRepresentationNamesArray);
 
     // Set segment poly data to dataset
@@ -1181,4 +1076,20 @@ void vtkMRMLSegmentationStorageNode::CreateRepresentationsBySerializedNames(vtkS
     separatorPosition = representationNames.find(SERIALIZATION_SEPARATOR);
   }
 
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLSegmentationStorageNode::GetSegmentMetaDataKey(int segmentIndex, const std::string& keyName)
+{
+  std::stringstream key;
+  key << "Segment" << segmentIndex << "_" << keyName;
+  return key.str();
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLSegmentationStorageNode::GetSegmentationMetaDataKey(const std::string& keyName)
+{
+  std::stringstream key;
+  key << "Segmentation" << "_" << keyName;
+  return key.str();
 }
