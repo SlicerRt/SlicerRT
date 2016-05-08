@@ -202,7 +202,7 @@ bool vtkSegmentationConverter::DeserializeImageGeometry(std::string geometryStri
 }
 
 //----------------------------------------------------------------------------
-bool vtkSegmentationConverter::DeserializeImageGeometry(std::string geometryString, vtkOrientedImageData* orientedImageData)
+bool vtkSegmentationConverter::DeserializeImageGeometry(std::string geometryString, vtkOrientedImageData* orientedImageData, int scalarType/*=VTK_VOID*/, int numberOfScalarsComponents/*=-1*/)
 {
   if (!orientedImageData)
   {
@@ -220,6 +220,10 @@ bool vtkSegmentationConverter::DeserializeImageGeometry(std::string geometryStri
 
   orientedImageData->SetGeometryFromImageToWorldMatrix(geometryMatrix);
   orientedImageData->SetExtent(extent);
+
+  int allocateScalarType = ((scalarType == VTK_VOID) ? orientedImageData->GetScalarType() : scalarType);
+  int allocateNumberOfScalarsComponents = ((numberOfScalarsComponents < 0) ? orientedImageData->GetNumberOfScalarComponents() : numberOfScalarsComponents);
+  orientedImageData->AllocateScalars(allocateScalarType, allocateNumberOfScalarsComponents);
 
   return true;
 }
