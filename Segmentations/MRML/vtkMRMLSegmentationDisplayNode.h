@@ -44,6 +44,7 @@ public:
     /// Displayed segment color (may be different than default color stored in segment)
     double Color[3];
     /// Visibility
+    bool Visible; // Turns visibility on/off in general. Useful for allowing the user to show/hide a segment without changing any detailed visibility options.
     bool Visible3D;
     bool Visible2DFill; // This one is used for labelmap volume related operations (color table, merged labelmap)
     bool Visible2DOutline;
@@ -146,6 +147,12 @@ public:
   /// Set segment color by segment ID
   void SetSegmentColor(std::string segmentID, vtkVector3d color);
 
+  /// Get overall segment visibility by segment ID. Convenience function for python compatibility.
+  /// \return Segment visibility if segment found, otherwise false
+  bool GetSegmentVisibility(std::string segmentID);
+  /// Set overall segment visibility by segment ID. Convenience function for python compatibility.
+  void SetSegmentVisibility(std::string segmentID, bool visible);
+
   /// Get segment 3D visibility by segment ID. Convenience function for python compatibility.
   /// \return Segment 3D visibility if segment found, otherwise false
   bool GetSegmentVisibility3D(std::string segmentID);
@@ -163,9 +170,6 @@ public:
   bool GetSegmentVisibility2DOutline(std::string segmentID);
   /// Set segment 2D outline visibility by segment ID. Convenience function for python compatibility.
   void SetSegmentVisibility2DOutline(std::string segmentID, bool visible);
-
-  /// Set all three types of segment visibility by segment ID
-  void SetSegmentVisibility(std::string segmentID, bool visible);
 
   /// Get segment 3D opacity by segment ID. Convenience function for python compatibility.
   /// \return Segment 3D opacity if segment found, otherwise false

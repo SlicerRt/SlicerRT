@@ -131,10 +131,11 @@ protected slots:
 protected:
   /// Convenience function to set segment visibility options from event handlers
   /// \sa onVisibilityButtonToggled \sa onVisibility3DActionToggled \sa onVisibility2DFillActionToggled \sa onVisibility2DOutlineActionToggled
+  /// \param visible Visibility of the segment referenced from senderObject. If 0, then hide, if 1 then show, otherwise don't change
   /// \param visible3D Visibility of the segment referenced from senderObject in 3D. If 0, then hide, if 1 then show, otherwise don't change
   /// \param visible2DFill Visibility of the segment referenced from senderObject for 2D fill. If 0, then hide, if 1 then show, otherwise don't change
   /// \param visible2DOutline Visibility of the segment referenced from senderObject for 2D outline. If 0, then hide, if 1 then show, otherwise don't change
-  void setSegmentVisibility(QObject* senderObject, int visible3D, int visible2DFill, int visible2DOutline);
+  void setSegmentVisibility(QObject* senderObject, int visible, int visible3D, int visible2DFill, int visible2DOutline);
 
 protected:
   QScopedPointer<qMRMLSegmentsTableViewPrivate> d_ptr;

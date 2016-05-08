@@ -294,7 +294,7 @@ void qMRMLSegmentsTableView::setMode(SegmentTableMode mode)
     d->SegmentsTable->horizontalHeader()->setVisible(true);
     d->SegmentsTable->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), true);
+    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), false);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), false);
     d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), true);
     }
@@ -403,7 +403,7 @@ void qMRMLSegmentsTableView::populateSegmentTable()
     visibilityButton->setAutoRaise(true);
     visibilityButton->setToolTip("Set visibility for segment. Keep the button pressed for the advanced visibility options to show");
     visibilityButton->setProperty(ID_PROPERTY, segmentId);
-    if (properties.Visible3D || properties.Visible2DFill || properties.Visible2DOutline)
+    if (properties.Visible && (properties.Visible3D || properties.Visible2DFill || properties.Visible2DOutline))
       {
       visibilityButton->setProperty(VISIBILITY_PROPERTY, true);
       visibilityButton->setIcon(d->VisibleIcon);
@@ -513,7 +513,7 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
       d->SegmentsTable->cellWidget(row, d->columnIndex("Visible")) );
     if (visibilityButton)
       {
-      if (properties.Visible3D || properties.Visible2DFill || properties.Visible2DOutline)
+      if (properties.Visible && (properties.Visible3D || properties.Visible2DFill || properties.Visible2DOutline))
         {
         visibilityButton->setProperty(VISIBILITY_PROPERTY, true);
         visibilityButton->setIcon(d->VisibleIcon);
@@ -646,7 +646,7 @@ void qMRMLSegmentsTableView::onVisibilityButtonClicked()
   bool visible = !senderButton->property(VISIBILITY_PROPERTY).toBool();
 
   // Set all visibility types to segment referenced by button toggled
-  this->setSegmentVisibility(senderButton, visible, visible, visible);
+  this->setSegmentVisibility(senderButton, visible, -1, -1, -1);
 
   // Change button icon
   senderButton->setProperty(VISIBILITY_PROPERTY, visible);
@@ -670,7 +670,7 @@ void qMRMLSegmentsTableView::onVisibility3DActionToggled(bool visible)
     }
 
   // Set 3D visibility to segment referenced by action toggled
-  this->setSegmentVisibility(senderAction, visible, -1, -1);
+  this->setSegmentVisibility(senderAction, -1, visible, -1, -1);
 }
 
 //-----------------------------------------------------------------------------
@@ -683,7 +683,7 @@ void qMRMLSegmentsTableView::onVisibility2DFillActionToggled(bool visible)
     }
 
   // Set 2D fill visibility to segment referenced by action toggled
-  this->setSegmentVisibility(senderAction, -1, visible, -1);
+  this->setSegmentVisibility(senderAction, -1, -1, visible, -1);
 }
 
 //-----------------------------------------------------------------------------
@@ -696,13 +696,19 @@ void qMRMLSegmentsTableView::onVisibility2DOutlineActionToggled(bool visible)
     }
 
   // Set 2D outline visibility to segment referenced by action toggled
-  this->setSegmentVisibility(senderAction, -1, -1, visible);
+  this->setSegmentVisibility(senderAction, -1, -1, -1, visible);
 }
 
 //-----------------------------------------------------------------------------
-void qMRMLSegmentsTableView::setSegmentVisibility(QObject* senderObject, int visible3D, int visible2DFill, int visible2DOutline)
+void qMRMLSegmentsTableView::setSegmentVisibility(QObject* senderObject, int visible, int visible3D, int visible2DFill, int visible2DOutline)
 {
   Q_D(qMRMLSegmentsTableView);
+
+  if (!d->SegmentationNode)
+  {
+    qCritical() << Q_FUNC_INFO << " failed: segmentation node is not set";
+    return;
+  }
 
   QString segmentId = senderObject->property(ID_PROPERTY).toString();
 
@@ -718,9 +724,24 @@ void qMRMLSegmentsTableView::setSegmentVisibility(QObject* senderObject, int vis
     {
     return;
     }
-
+   
   // Change visibility to all modes
   bool valueChanged = false;
+  if (visible == 0 || visible == 1)
+    {
+    properties.Visible = (bool)visible;
+
+    // If overall visibility is explicitly set to true then enable all visibility options
+    // to make sure that something is actually visible.
+    if (properties.Visible && !properties.Visible3D && !properties.Visible2DFill && !properties.Visible2DOutline)
+      {
+      properties.Visible3D = true;
+      properties.Visible2DFill = true;
+      properties.Visible2DOutline = true;
+      }
+
+    valueChanged = true;
+    }
   if (visible3D == 0 || visible3D == 1)
     {
     properties.Visible3D = (bool)visible3D;
@@ -736,7 +757,7 @@ void qMRMLSegmentsTableView::setSegmentVisibility(QObject* senderObject, int vis
     properties.Visible2DOutline = (bool)visible2DOutline;
     valueChanged = true;
     }
-
+    
   // Set visibility to display node
   if (valueChanged)
     {
@@ -778,8 +799,21 @@ void qMRMLSegmentsTableView::setSelectedSegmentIDs(QStringList segmentIDs)
 {
   Q_D(qMRMLSegmentsTableView);
 
-  // Deselect selected items first
-  this->clearSelection();
+  if (!d->SegmentationNode)
+  {
+    qCritical() << Q_FUNC_INFO << " failed: segmentation node is not set";
+    return;
+  }
+
+  // Deselect items that don't have to be selected anymore
+  QList<QTableWidgetItem*> selectedItems = d->SegmentsTable->selectedItems();
+  foreach(QTableWidgetItem* item, selectedItems)
+  {
+    if (!segmentIDs.contains(item->data(IDRole).toString()))
+    {
+      d->SegmentsTable->setItemSelected(item, false);
+    }
+  }
 
   // Find item by segment ID
   foreach (QString segmentID, segmentIDs)
@@ -787,7 +821,8 @@ void qMRMLSegmentsTableView::setSelectedSegmentIDs(QStringList segmentIDs)
     QTableWidgetItem* segmentItem = d->findItemBySegmentID(segmentID);
     if (!segmentItem)
       {
-      qCritical() << Q_FUNC_INFO << ": Cannot find table item correspondig to segment ID '" << segmentID << " in segmentation node " << d->SegmentationNode->GetName();
+      qCritical() << Q_FUNC_INFO << ": Cannot find table item correspondig to segment ID '" << segmentID << " in segmentation node "
+        << (d->SegmentationNode->GetName()?d->SegmentationNode->GetName():"(undefined)");
       continue;
       }
 

@@ -77,12 +77,17 @@ void vtkMRMLSegmentationDisplayNode::WriteXML(ostream& of, int nIndent)
   for (SegmentDisplayPropertiesMap::iterator propIt = this->SegmentationDisplayProperties.begin();
     propIt != this->SegmentationDisplayProperties.end(); ++propIt)
   {
-    of << vtkMRMLNode::URLEncodeString(propIt->first.c_str()) << " "
-      << propIt->second.Color[0] << " " << propIt->second.Color[1] << " " << propIt->second.Color[2] << " "
-      << (propIt->second.Visible3D ? "true" : "false") << " "
-      << (propIt->second.Visible2DFill ? "true" : "false") << " "
-      << (propIt->second.Visible2DOutline ? "true" : "false") << " "
-      << propIt->second.Opacity3D << " " << propIt->second.Opacity2DFill << " " << propIt->second.Opacity2DOutline << "|";
+    of << vtkMRMLNode::URLEncodeString(propIt->first.c_str())
+      << " ColorR:" << propIt->second.Color[0]
+      << " ColorG:" << propIt->second.Color[1]
+      << " ColorB:" << propIt->second.Color[2]
+      << " Visible:" << (propIt->second.Visible ? "true" : "false")
+      << " Visible3D:" << (propIt->second.Visible3D ? "true" : "false")
+      << " Visible2DFill:" << (propIt->second.Visible2DFill ? "true" : "false")
+      << " Visible2DOutline:" << (propIt->second.Visible2DOutline ? "true" : "false")
+      << " Opacity3D:" << propIt->second.Opacity3D
+      << " Opacity2DFill:" << propIt->second.Opacity2DFill
+      << " Opacity2DOutline:" << propIt->second.Opacity2DOutline << "|";
   }
   of << "\"";
 }
@@ -114,49 +119,48 @@ void vtkMRMLSegmentationDisplayNode::ReadXMLAttributes(const char** atts)
     }
     else if (!strcmp(attName, "SegmentationDisplayProperties")) 
     {
-      std::stringstream ss;
-      ss << attValue;
-      std::string valueStr = ss.str();
-      std::string separatorCharacter("|");
-
-      this->SegmentationDisplayProperties.clear();
-      size_t separatorPosition = valueStr.find( separatorCharacter );
-      while (separatorPosition != std::string::npos)
+      // attValue: "Segment_0 ColorR:0.2 ColorG:0.501961 ... Opacity2DOutline:1|Segment_1 ColorR:1 ColorG:0.8...|Segment_2 ColorR:1 ColorG:1...|"
+      std::stringstream segmentsDisplayProperties(attValue); // properties of all segments
+      std::string segmentDisplayPropertiesString; // properties of a single segment 
+      while (std::getline(segmentsDisplayProperties, segmentDisplayPropertiesString, '|'))
       {
-        std::stringstream segmentProps;
-        segmentProps << valueStr.substr(0, separatorPosition);
-        std::string id("");
+        // segmentDisplayPropertiesString: "Segment_0 ColorR:0.2 ColorG:0.501961 ... Opacity2DOutline:1"
+        std::stringstream segmentDisplayProperties(segmentDisplayPropertiesString);
+        std::string id;
+        segmentDisplayProperties >> id;
         SegmentDisplayProperties props;
-        std::string visible3DStr("");
-        std::string visible2DFillStr("");
-        std::string visible2DOutlineStr("");
-        segmentProps >> id >> props.Color[0] >> props.Color[1] >> props.Color[2]
-          >> visible3DStr >> visible2DFillStr >> visible2DOutlineStr
-          >> props.Opacity3D >> props.Opacity2DFill >> props.Opacity2DOutline;
-        props.Visible3D = (visible3DStr.compare("true") ? false : true);
-        props.Visible2DFill = (visible2DFillStr.compare("true") ? false : true);
-        props.Visible2DOutline = (visible2DOutlineStr.compare("true") ? false : true);
+        std::string segmentDisplayPropertyString; // properties of a single segment 
+        while (std::getline(segmentDisplayProperties, segmentDisplayPropertyString, ' '))
+        {
+          // segmentDisplayPropertyString: "ColorR:0.2"
+          size_t colonIndex = segmentDisplayPropertyString.find(':');
+          if (colonIndex == std::string::npos)
+          {
+            // no colon found, not a valid property, ignore it
+            vtkErrorMacro("Invalid property found in attribue of "<<(this->ID?this->ID:"(unknown)")<<" node: "<<segmentDisplayPropertyString);
+            continue;
+          }
+          std::string propertyName = segmentDisplayPropertyString.substr(0, colonIndex); // "ColorR"
+          std::stringstream propertyValue(segmentDisplayPropertyString.substr(colonIndex + 1)); // "0.2"
+          if (propertyName=="ColorR") { propertyValue >> props.Color[0]; }
+          else if (propertyName=="ColorG") { propertyValue >> props.Color[1]; }
+          else if (propertyName=="ColorB") { propertyValue >> props.Color[2]; }
+          else if (propertyName=="Opacity3D") { propertyValue >> props.Opacity3D; }
+          else if (propertyName=="Opacity2DFill") { propertyValue >> props.Opacity2DFill; }
+          else if (propertyName=="Opacity2DOutline") { propertyValue >> props.Opacity2DOutline; }
+          else
+          {
+            // boolean values
+            std::string booleanValueString;
+            propertyValue >> booleanValueString;
+            bool booleanValue = booleanValueString.compare("true") ? false : true;
+            if (propertyName=="Visible") { props.Visible = booleanValue; }
+            else if (propertyName=="Visible3D") { props.Visible3D = booleanValue; }
+            else if (propertyName=="Visible2DFill") { props.Visible2DFill = booleanValue; }
+            else if (propertyName=="Visible2DOutline") { props.Visible2DOutline = booleanValue; }
+          }
+        }
         this->SetSegmentDisplayProperties(vtkMRMLNode::URLDecodeString(id.c_str()), props);
-
-        valueStr = valueStr.substr( separatorPosition+1 );
-        separatorPosition = valueStr.find( separatorCharacter );
-      }
-      if (!valueStr.empty())
-      {
-        std::stringstream segmentProps;
-        segmentProps << valueStr.substr(0, separatorPosition);
-        std::string id("");
-        SegmentDisplayProperties props;
-        std::string visible3DStr("");
-        std::string visible2DFillStr("");
-        std::string visible2DOutlineStr("");
-        segmentProps >> id >> props.Color[0] >> props.Color[1] >> props.Color[2]
-          >> visible3DStr >> visible2DFillStr >> visible2DOutlineStr
-          >> props.Opacity3D >> props.Opacity2DFill >> props.Opacity2DOutline;
-        props.Visible3D = (visible3DStr.compare("true") ? false : true);
-        props.Visible2DFill = (visible2DFillStr.compare("true") ? false : true);
-        props.Visible2DOutline = (visible2DOutlineStr.compare("true") ? false : true);
-        this->SetSegmentDisplayProperties(id, props);
       }
     }
   }
@@ -195,7 +199,8 @@ void vtkMRMLSegmentationDisplayNode::PrintSelf(ostream& os, vtkIndent indent)
   {
     os << indent << "   SegmentID=" << propIt->first << ", Color=("
        << propIt->second.Color[0] << "," << propIt->second.Color[1] << "," << propIt->second.Color[2]
-       << "), Visible3D=" << (propIt->second.Visible3D ? "true" : "false") << ", Visible2DFill=" << (propIt->second.Visible2DFill ? "true" : "false") << ", Visible2DOutline=" << (propIt->second.Visible2DOutline ? "true" : "false")
+       << "), Visible=" << (propIt->second.Visible ? "true" : "false") 
+       << ", Visible3D=" << (propIt->second.Visible3D ? "true" : "false") << ", Visible2DFill=" << (propIt->second.Visible2DFill ? "true" : "false") << ", Visible2DOutline=" << (propIt->second.Visible2DOutline ? "true" : "false")
        << ", Opacity3D=" << propIt->second.Opacity3D << ", Opacity2DFill=" << propIt->second.Opacity2DFill << ", Opacity2DOutline=" << propIt->second.Opacity2DOutline << "\n";
   }
 }
@@ -272,6 +277,7 @@ bool vtkMRMLSegmentationDisplayNode::GetSegmentDisplayProperties(std::string seg
   properties.Color[0] = propsIt->second.Color[0];
   properties.Color[1] = propsIt->second.Color[1];
   properties.Color[2] = propsIt->second.Color[2];
+  properties.Visible = propsIt->second.Visible;
   properties.Visible3D = propsIt->second.Visible3D;
   properties.Visible2DFill = propsIt->second.Visible2DFill;
   properties.Visible2DOutline = propsIt->second.Visible2DOutline;
@@ -294,6 +300,7 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentDisplayProperties(std::string seg
     newPropertiesEntry.Color[0] = properties.Color[0];
     newPropertiesEntry.Color[1] = properties.Color[1];
     newPropertiesEntry.Color[2] = properties.Color[2];
+    newPropertiesEntry.Visible = properties.Visible;
     newPropertiesEntry.Visible3D = properties.Visible3D;
     newPropertiesEntry.Visible2DFill = properties.Visible2DFill;
     newPropertiesEntry.Visible2DOutline = properties.Visible2DOutline;
@@ -313,6 +320,11 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentDisplayProperties(std::string seg
         propsIt->second.Color[i] = properties.Color[i];
         modified = true;
       }
+    }
+    if (propsIt->second.Visible != properties.Visible)
+    {
+      propsIt->second.Visible = properties.Visible;
+      modified = true;
     }
     if (propsIt->second.Visible3D != properties.Visible3D)
     {
@@ -400,6 +412,30 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentColor(std::string segmentID, vtkV
 }
 
 //---------------------------------------------------------------------------
+bool vtkMRMLSegmentationDisplayNode::GetSegmentVisibility(std::string segmentID)
+{
+  SegmentDisplayPropertiesMap::iterator propsIt = this->SegmentationDisplayProperties.find(segmentID);
+  if (propsIt == this->SegmentationDisplayProperties.end())
+  {
+    vtkErrorMacro("GetSegmentVisibility: No display properties found for segment with ID " << segmentID);
+    return false;
+  }
+  return propsIt->second.Visible;
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLSegmentationDisplayNode::SetSegmentVisibility(std::string segmentID, bool visible)
+{
+  SegmentDisplayProperties properties;
+  if (!this->GetSegmentDisplayProperties(segmentID, properties))
+    {
+    return;
+    }
+  properties.Visible = visible;
+  this->SetSegmentDisplayProperties(segmentID, properties);
+}
+
+//---------------------------------------------------------------------------
 bool vtkMRMLSegmentationDisplayNode::GetSegmentVisibility3D(std::string segmentID)
 {
   SegmentDisplayPropertiesMap::iterator propsIt = this->SegmentationDisplayProperties.find(segmentID);
@@ -469,14 +505,6 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentVisibility2DOutline(std::string s
     }
   properties.Visible2DOutline = visible;
   this->SetSegmentDisplayProperties(segmentID, properties);
-}
-
-//---------------------------------------------------------------------------
-void vtkMRMLSegmentationDisplayNode::SetSegmentVisibility(std::string segmentID, bool visible)
-{
-  this->SetSegmentVisibility3D(segmentID, visible);
-  this->SetSegmentVisibility2DFill(segmentID, visible);
-  this->SetSegmentVisibility2DOutline(segmentID, visible);
 }
 
 //---------------------------------------------------------------------------

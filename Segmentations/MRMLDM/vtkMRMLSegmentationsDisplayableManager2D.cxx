@@ -578,6 +578,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateSegmentPipelin
   // Get segments
   vtkSegmentation::SegmentMap segmentMap = segmentation->GetSegments();
 
+  bool requestTransformUpdate = false;
   // Make sure each segment has a pipeline
   for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
     {
@@ -586,6 +587,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateSegmentPipelin
     if (pipelineIt == pipelines.end())
       {
       pipelines[segmentIt->first] = this->CreateSegmentPipeline(segmentIt->first);
+      requestTransformUpdate = true;
       }
     }
 
@@ -611,6 +613,12 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateSegmentPipelin
       ++pipelineIt;
       }
     }
+
+  // Update cached matrices. Calls UpdateDisplayNodePipeline
+  if (requestTransformUpdate)
+  {
+    this->UpdateDisplayableTransforms(segmentationNode);
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -670,14 +678,23 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
       {
       continue;
       }
-    bool segmentOutlineVisible = displayNodeVisible && properties.Visible2DOutline;
-    bool segmentFillVisible = displayNodeVisible && properties.Visible2DFill;
+    bool segmentOutlineVisible = displayNodeVisible && properties.Visible && properties.Visible2DOutline;
+    bool segmentFillVisible = displayNodeVisible && properties.Visible && properties.Visible2DFill;
 
     // Get representation to display
     vtkPolyData* polyData = vtkPolyData::SafeDownCast(
       segmentation->GetSegmentRepresentation(pipeline->SegmentID, shownRepresenatationName) );
     vtkOrientedImageData* imageData = vtkOrientedImageData::SafeDownCast(
       segmentation->GetSegmentRepresentation(pipeline->SegmentID, shownRepresenatationName) );
+    if (imageData)
+    {
+      int* imageExtent = imageData->GetExtent();
+      if (imageExtent[0]>imageExtent[1] || imageExtent[2]>imageExtent[3] || imageExtent[4]>imageExtent[5])
+      {
+        // empty image
+        imageData = NULL;
+      }
+    }
 
     if ( (!segmentOutlineVisible && !segmentFillVisible)
       || ((!polyData || polyData->GetNumberOfPoints() == 0) && !imageData) )
