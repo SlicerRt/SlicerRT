@@ -23,10 +23,14 @@
 
 #include "vtkSegmentationConverterFactory.h"
 #include "vtkOrientedImageData.h"
+#include "vtkOrientedImageDataResample.h"
 
 // VTK includes
+#include <vtkImageData.h>
+#include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
+#include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 #include <vtkMath.h>
 #include <vtkDataSet.h>
@@ -60,23 +64,47 @@ vtkSegment::~vtkSegment()
 //----------------------------------------------------------------------------
 void vtkSegment::PrintSelf(ostream& os, vtkIndent indent)
 {
-  Superclass::PrintSelf(os,indent);
+  // vtkObject's PrintSelf prints a long list of registered events, which
+  // is too long and not useful, therefore we don't call vtkObject::PrintSelf
+  // but print essential information on the vtkObject base.
+  os << indent << "Debug: " << (this->Debug ? "On\n" : "Off\n");
+  os << indent << "Modified Time: " << this->GetMTime() << "\n";
 
-  os << indent << "Name:   " << (this->Name ? this->Name : "NULL") << "\n";
-  os << indent << "DefaultColor:   (" << this->DefaultColor[0] << ", " << this->DefaultColor[1] << ", " << this->DefaultColor[2] << ")\n";
+  os << indent << "Name: " << (this->Name ? this->Name : "NULL") << "\n";
+  os << indent << "DefaultColor: (" << this->DefaultColor[0] << ", " << this->DefaultColor[1] << ", " << this->DefaultColor[2] << ")\n";
 
   RepresentationMap::iterator reprIt;
   os << indent << "Representations:\n";
   for (reprIt=this->Representations.begin(); reprIt!=this->Representations.end(); ++reprIt)
   {
-    os << indent << "  " << reprIt->first << "\n";
+    os << indent.GetNextIndent() << reprIt->first << " ";
+    vtkDataObject* dataObject = reprIt->second;
+    if (dataObject)
+    {
+      os << dataObject->GetClassName() << "\n";
+      vtkImageData* imageData = vtkImageData::SafeDownCast(dataObject);
+      vtkPolyData* polyData = vtkPolyData::SafeDownCast(dataObject);
+      if (imageData)
+      {
+        vtkOrientedImageDataResample::PrintImageInformation(imageData, os, indent.GetNextIndent());
+      }
+      if (polyData)
+      {
+        os << indent.GetNextIndent().GetNextIndent() << "Number of points: " << polyData->GetNumberOfPoints() << "\n";
+        os << indent.GetNextIndent().GetNextIndent() << "Number of cells: " << polyData->GetNumberOfCells() << "\n";
+      }
+    }
+    else
+    {
+      os << "(none)\n";
+    }
   }
 
   std::map<std::string,std::string>::iterator tagIt;
   os << indent << "Tags:\n";
   for (tagIt=this->Tags.begin(); tagIt!=this->Tags.end(); ++tagIt)
   {
-    os << indent << "  " << tagIt->first << ": " << tagIt->second << "\n";
+    os << indent.GetNextIndent() << "  " << tagIt->first << ": " << tagIt->second << "\n";
   }
 }
 
@@ -211,7 +239,6 @@ void vtkSegment::RemoveRepresentation(std::string name)
   if (representation)
   {
     this->Representations.erase(name);
-    representation->UnRegister(this);
     this->Modified();
   }
 }
@@ -219,23 +246,24 @@ void vtkSegment::RemoveRepresentation(std::string name)
 //---------------------------------------------------------------------------
 void vtkSegment::RemoveAllRepresentations(std::string exceptionRepresentationName/*=""*/)
 {
+  bool modified = false;
   RepresentationMap::iterator reprIt = this->Representations.begin();
   while (reprIt != this->Representations.end())
   {
     if (reprIt->first.compare(exceptionRepresentationName))
     {
-      RepresentationMap::iterator erasedIt = reprIt;
-      vtkDataObject* representation = this->Representations[reprIt->first].GetPointer();
-      ++reprIt;
-      this->Representations.erase(erasedIt);
-      representation->UnRegister(this); // Not just call RemoveRepresentation to avoid multiple Modified calls
+      reprIt = this->Representations.erase(reprIt);
+      modified = true;
     }
     else
     {
       ++reprIt;
     }
   }
-  this->Modified();
+  if (modified)
+  {
+    this->Modified();
+  }
 }
 
 //---------------------------------------------------------------------------
