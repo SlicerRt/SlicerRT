@@ -162,13 +162,18 @@ void vtkSegmentation::CopyConversionParameters(vtkSegmentation* aSegmentation)
 //----------------------------------------------------------------------------
 void vtkSegmentation::PrintSelf(ostream& os, vtkIndent indent)
 {
-  Superclass::PrintSelf(os,indent);
+  // vtkObject's PrintSelf prints a long list of registered events, which
+  // is too long and not useful, therefore we don't call vtkObject::PrintSelf
+  // but print essential information on the vtkObject base.
+  os << indent << "Debug: " << (this->Debug ? "On\n" : "Off\n");
+  os << indent << "Modified Time: " << this->GetMTime() << "\n";
 
   os << indent << "MasterRepresentationName:  " << (this->MasterRepresentationName ? this->MasterRepresentationName : "NULL") << "\n";
+  os << indent << "Number of segments:  " << this->Segments.size() << "\n";
 
   for (SegmentMap::iterator it = this->Segments.begin(); it != this->Segments.end(); ++it)
   {
-    os << indent << "Segment:   " << it->first << "\n";
+    os << indent << "Segment: " << it->first << "\n";
     vtkSegment* segment = it->second;
     segment->PrintSelf(os, indent.GetNextIndent());
   }
@@ -1061,15 +1066,29 @@ bool vtkSegmentation::CanAcceptSegment(vtkSegment* segment)
 }
 
 //-----------------------------------------------------------------------------
-std::string vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/)
+std::string vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/, std::string segmentName/*=""*/, double* defaultColor/*=NULL*/)
 {
   vtkSmartPointer<vtkSegment> segment = vtkSmartPointer<vtkSegment>::New();
-  segment->SetDefaultColor(vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1],
-                           vtkSegment::SEGMENT_COLOR_VALUE_INVALID[2] );
+  if (defaultColor)
+  {
+    segment->SetDefaultColor(defaultColor);
+  }
+  else
+  {
+    segment->SetDefaultColor(vtkSegment::SEGMENT_COLOR_VALUE_INVALID[0], vtkSegment::SEGMENT_COLOR_VALUE_INVALID[1],
+      vtkSegment::SEGMENT_COLOR_VALUE_INVALID[2] );
+  }
 
   // Segment ID will be segment name by default
   segmentId = this->GenerateUniqueSegmentId(segmentId);
-  segment->SetName(segmentId.c_str());
+  if (!segmentName.empty())
+  {
+    segment->SetName(segmentName.c_str());
+  }
+  else
+  {
+    segment->SetName(segmentId.c_str());
+  }
   
   // If there are no segments in segmentation then just create a master representation.
   if (this->GetNumberOfSegments() == 0)
