@@ -100,9 +100,6 @@ protected:
   vtkOrientedImageData();
   ~vtkOrientedImageData();
 
-  /// Copy this oriented image data from another of the same type.
-  void InternalOrientedImageDataCopy(vtkOrientedImageData *src);
-
 protected:
   /// Direction matrix for the image data
   /// These are unit length direction cosines

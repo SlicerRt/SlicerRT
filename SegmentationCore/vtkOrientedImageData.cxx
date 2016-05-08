@@ -104,27 +104,6 @@ void vtkOrientedImageData::CopyDirections(vtkDataObject *dataObject)
 }
 
 //----------------------------------------------------------------------------
-// This copies all the local variables (but not objects).
-void vtkOrientedImageData::InternalOrientedImageDataCopy(vtkOrientedImageData *src)
-{
-  this->SetExtent(src->GetExtent());
-
-  int i=0,j=0;
-  for(i=0; i<3; i++)
-    {
-    this->Dimensions[i] = src->Dimensions[i];
-    this->Increments[i] = src->Increments[i];
-    this->Origin[i] = src->Origin[i];
-    this->Spacing[i] = src->Spacing[i];
-
-    for(j=0; j<3; j++)
-      {
-      this->Directions[i][j] = src->Directions[i][j];
-      }
-    }
-}
-
-//----------------------------------------------------------------------------
 void vtkOrientedImageData::SetDirections(double dirs[3][3])
 {
   bool isModified = false;
