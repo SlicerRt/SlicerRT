@@ -174,6 +174,11 @@ public:
   /// and adds it back on activation.
   Q_INVOKABLE void addActor3D(qMRMLWidget* viewWidget, vtkProp3D* actor);
 
+  /// Remove actor from the list of actors managed by the abstract effect class.
+  /// The actor is immediately removed from the renderer when this method is called
+  /// and it is never added back automatically.
+  Q_INVOKABLE void removeActor3D(qMRMLWidget* viewWidget, vtkProp3D* actor);
+
   /// Add effect options widget to options frame layout
   /// The implemented effects need to create their options UI widget, make the connections,
   /// then call this function to add the options UI to the effect options frame

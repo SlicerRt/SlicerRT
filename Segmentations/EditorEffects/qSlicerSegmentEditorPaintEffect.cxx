@@ -720,6 +720,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::updateBrush(qMRMLWidget* viewWidget
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffectPrivate::updateBrushes()
 {
+  Q_Q(qSlicerSegmentEditorPaintEffect);
   // unusedWidgetPipelines will contain those widget pointers that are not in the layout anymore
   QList<qMRMLWidget*> unusedWidgetPipelines = this->Brushes.keys();
 
@@ -745,7 +746,24 @@ void qSlicerSegmentEditorPaintEffectPrivate::updateBrushes()
 
   foreach (qMRMLWidget* viewWidget, unusedWidgetPipelines)
   {
-    delete this->Brushes[viewWidget];
+    BrushPipeline* pipeline = this->Brushes[viewWidget];
+    if (pipeline->BrushActor2d)
+    {
+      q->removeActor2D(viewWidget, pipeline->BrushActor2d);
+    }
+    if (pipeline->FeedbackActor2d)
+    {
+      q->removeActor2D(viewWidget, pipeline->FeedbackActor2d);
+    }
+    if (pipeline->BrushActor3d)
+    {
+      q->removeActor3D(viewWidget, pipeline->BrushActor3d);
+    }
+    if (pipeline->FeedbackActor3d)
+    {
+      q->removeActor3D(viewWidget, pipeline->FeedbackActor3d);
+    }
+    delete pipeline;
     this->Brushes.remove(viewWidget);
   }
 }
@@ -817,14 +835,18 @@ bool qSlicerSegmentEditorPaintEffect::processInteractionEvents(
   // This effect only supports interactions in the 2D slice views currently
   qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
   qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
-  if (!sliceWidget && !threeDWidget)
+  BrushPipeline* brush = NULL;
+  if (sliceWidget)
   {
-    return abortEvent;
+    brush = d->brushForWidget(sliceWidget);
   }
-  BrushPipeline* brush = d->brushForWidget(sliceWidget);
+  else if (threeDWidget)
+  {
+    brush = d->brushForWidget(threeDWidget);
+  }
   if (!brush)
   {
-    qCritical() << Q_FUNC_INFO << ": Failed to create brush!";
+    qCritical() << Q_FUNC_INFO << ": Failed to create brush";
     return abortEvent;
   }
 

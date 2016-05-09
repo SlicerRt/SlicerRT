@@ -640,6 +640,32 @@ void qSlicerSegmentEditorAbstractEffect::addActor2D(qMRMLWidget* viewWidget, vtk
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::removeActor3D(qMRMLWidget* viewWidget, vtkProp3D* actor)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+
+  vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
+  if (renderer)
+  {
+    renderer->RemoveActor(actor);
+    d->scheduleRender(viewWidget);
+  }
+  else
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
+  }
+
+  if (d->Actors3D.contains(viewWidget))
+  {
+    d->Actors3D[viewWidget].removeOne(actor);
+  }
+  else
+  {
+    qWarning() << Q_FUNC_INFO << ": Actor2d that has been requested for deleting was not managed by editor effect";
+  }
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerSegmentEditorAbstractEffect::removeActor2D(qMRMLWidget* viewWidget, vtkActor2D* actor)
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
