@@ -502,8 +502,8 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromRTBeam(vtkMRMLRTBe
 
   // Set values into geometry tab
   d->doubleSpinBox_SAD->setValue(beamNode->GetSAD());
-  d->RangeWidget_XJawsPosition->setValues(-beamNode->GetX1Jaw(), beamNode->GetX2Jaw());
-  d->RangeWidget_YJawsPosition->setValues(-beamNode->GetY1Jaw(), beamNode->GetY2Jaw());
+  d->RangeWidget_XJawsPosition->setValues(beamNode->GetX1Jaw(), beamNode->GetX2Jaw());
+  d->RangeWidget_YJawsPosition->setValues(beamNode->GetY1Jaw(), beamNode->GetY2Jaw());
   d->SliderWidget_CollimatorAngle->setValue(beamNode->GetCollimatorAngle());
   d->SliderWidget_GantryAngle->blockSignals(true);
   d->SliderWidget_GantryAngle->setValue(beamNode->GetGantryAngle());
@@ -1460,8 +1460,8 @@ void qSlicerExternalBeamPlanningModuleWidget::xJawsPositionValuesChanged(double 
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
-  beamNode->SetX1Jaw(-minVal);
-  beamNode->SetX2Jaw( maxVal);
+  beamNode->SetX1Jaw(minVal);
+  beamNode->SetX2Jaw(maxVal);
 
   // Update beam visualization
   this->updateCurrentBeamTransform();
@@ -1486,8 +1486,8 @@ void qSlicerExternalBeamPlanningModuleWidget::yJawsPositionValuesChanged(double 
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
-  beamNode->SetY1Jaw(-minVal);
-  beamNode->SetY2Jaw( maxVal);
+  beamNode->SetY1Jaw(minVal);
+  beamNode->SetY2Jaw(maxVal);
 
   // Update beam visualization
   this->updateCurrentBeamTransform();

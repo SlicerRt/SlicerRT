@@ -171,9 +171,9 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   // Set first beam parameters
   firstBeamNode->SetTargetSegmentID("Tumor_Contour");
   ebpLogic->SetBeamIsocenterToTargetCenter(firstBeamNode); //TODO: Does this belong to the logic?
-  firstBeamNode->SetX1Jaw(50.0); // The minimum value is inverted to be positive
+  firstBeamNode->SetX1Jaw(-50.0);
   firstBeamNode->SetX2Jaw(50.0);
-  firstBeamNode->SetY1Jaw(50.0); // The minimum value is inverted to be positive
+  firstBeamNode->SetY1Jaw(-50.0);
   firstBeamNode->SetY2Jaw(75.0);
 
   // Add second beam copying the first

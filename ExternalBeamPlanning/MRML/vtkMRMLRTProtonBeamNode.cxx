@@ -77,12 +77,10 @@ vtkMRMLRTProtonBeamNode::vtkMRMLRTProtonBeamNode()
   this->ApertureDim[1] = 1;
 
   this->SourceSize = 0.0;
-  this->SetRadiationType (Proton);
+  this->SetRadiationType(Proton);
 
   this->LateralSpreadHomoApprox = false;
   this->RangeCompensatorHighland = false;
-
-  this->HideFromEditorsOff();
 }
 
 //----------------------------------------------------------------------------
@@ -282,12 +280,12 @@ void vtkMRMLRTProtonBeamNode::UpdateApertureParameters()
     printf("SAD = %lg, Aperture offset = %lg\n", this->SAD, this->ApertureOffset);
     return;
   }
-  double origin[2] = {-this->X1Jaw * this->ApertureOffset / this->SAD , -this->Y1Jaw * this->ApertureOffset / this->SAD };
+  double origin[2] = {this->X1Jaw * this->ApertureOffset / this->SAD , this->Y1Jaw * this->ApertureOffset / this->SAD };
   this->SetApertureOrigin(origin);
 
   double spacing_at_aperture[2] = {1/ this->PBResolution * this->ApertureOffset / this->SAD, 1 / this->PBResolution * this->ApertureOffset / this->SAD};
   this->SetApertureSpacing(spacing_at_aperture);
 
-  int dim[2] = { (int) ((this->X2Jaw + this->X1Jaw) / this->PBResolution + 1 ), (int) ((this->Y2Jaw + this->Y1Jaw) / this->PBResolution + 1 )};
+  int dim[2] = { (int) ((this->X2Jaw - this->X1Jaw) / this->PBResolution + 1 ), (int) ((this->Y2Jaw - this->Y1Jaw) / this->PBResolution + 1 )};
   this->SetApertureDim(dim);
 }
