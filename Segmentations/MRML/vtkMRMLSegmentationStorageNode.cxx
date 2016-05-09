@@ -504,7 +504,8 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
       segmentation->SetMasterRepresentationName(masterRepresentationArray->GetValue(0).c_str());
     }
     // Read conversion parameters (stored in each segment file, but need to set only once)
-    if (conversionParameters.empty())
+    if ( conversionParameters.empty()
+      && currentPolyData->GetFieldData()->GetAbstractArray(GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONVERSION_PARAMETERS).c_str()) )
     {
       vtkStringArray* conversionParametersArray = vtkStringArray::SafeDownCast(
         currentPolyData->GetFieldData()->GetAbstractArray(GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONVERSION_PARAMETERS).c_str()) );
@@ -512,7 +513,8 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
       segmentation->DeserializeConversionParameters(conversionParameters);
     }
     // Read contained representation names
-    if (containedRepresentationNames.empty())
+    if ( containedRepresentationNames.empty()
+      && currentPolyData->GetFieldData()->GetAbstractArray(GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONTAINED_REPRESENTATION_NAMES).c_str()) )
     {
       containedRepresentationNames = vtkStringArray::SafeDownCast(
         currentPolyData->GetFieldData()->GetAbstractArray(GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONTAINED_REPRESENTATION_NAMES).c_str()) )->GetValue(0);
