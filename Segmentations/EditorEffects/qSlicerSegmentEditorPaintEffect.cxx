@@ -34,25 +34,41 @@
 #include <QPushButton>
 
 // VTK includes
+#include <vtkActor.h>
 #include <vtkActor2D.h>
+#include <vtkBoundingBox.h>
+#include <vtkCamera.h>
 #include <vtkCellArray.h>
+#include <vtkCellPicker.h>
 #include <vtkCollection.h>
 #include <vtkCommand.h>
 #include <vtkGlyph2D.h>
+#include <vtkGlyph3D.h>
 #include <vtkIdList.h>
+#include <vtkImageChangeInformation.h>
+#include <vtkImageStencil.h>
+#include <vtkImageStencilData.h>
+#include <vtkImageStencilToImage.h>
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
+#include <vtkPlane.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
 #include <vtkPolyDataMapper2D.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkPolyDataToImageStencil.h>
 #include <vtkProperty2D.h>
+#include <vtkProperty.h>
+#include <vtkPropPicker.h>
 #include <vtkRegularPolygonSource.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSmartPointer.h>
+#include <vtkWorldPointPicker.h>
 // CTK includes
 #include "ctkDoubleSlider.h"
 
@@ -61,14 +77,20 @@
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLSliceNode.h>
+#include <vtkMRMLTransformNode.h>
 
 // Slicer includes
 #include "qMRMLSliceView.h"
 #include "qMRMLSliceWidget.h"
 #include "qMRMLSpinBox.h"
+#include "qMRMLThreeDView.h"
+#include "qMRMLThreeDWidget.h"
+#include "qSlicerLayoutManager.h"
+#include "qSlicerApplication.h"
 #include "vtkImageSlicePaint.h"
 #include "vtkMRMLSliceLogic.h"
 #include "vtkMRMLSliceLayerLogic.h"
+#include "vtkOrientedImageDataResample.h"
 
 //-----------------------------------------------------------------------------
 /// Visualization objects and pipeline for each slice view for the paint brush
@@ -77,51 +99,79 @@ class BrushPipeline: public QObject
 public:
   BrushPipeline()
   {
-    this->BrushPolyData = vtkPolyData::New();
-    this->BrushMapper = vtkPolyDataMapper2D::New();
-    this->BrushMapper->SetInputData(this->BrushPolyData);
-    this->BrushActor = vtkActor2D::New();
-    this->BrushActor->SetMapper(this->BrushMapper);
-    this->BrushActor->VisibilityOff();
+    this->WorldToSliceTransform = vtkSmartPointer<vtkTransform>::New();
+    this->SlicePlane = vtkSmartPointer<vtkPlane>::New();
 
-    this->FeedbackPointsPolyData = vtkPolyData::New();
-    this->FeedbackGlyphFilter = vtkGlyph2D::New();
-    this->FeedbackGlyphFilter->SetInputData(this->FeedbackPointsPolyData);
-    this->FeedbackGlyphFilter->SetSourceData(this->BrushPolyData);
-    this->FeedbackMapper = vtkPolyDataMapper2D::New();
-    this->FeedbackMapper->SetInputConnection(this->FeedbackGlyphFilter->GetOutputPort());
-    this->FeedbackActor = vtkActor2D::New();
-    vtkProperty2D* feedbackActorProperty = FeedbackActor->GetProperty();
-    feedbackActorProperty->SetColor(0.7, 0.7, 0.0);
-    feedbackActorProperty->SetOpacity(0.5);
-    this->FeedbackActor->SetMapper(this->FeedbackMapper);
-    this->FeedbackActor->VisibilityOff();
+    this->BrushCutter = vtkSmartPointer<vtkCutter>::New();
+    this->BrushCutter->SetCutFunction(this->SlicePlane);
+    this->BrushCutter->SetGenerateCutScalars(0);
+
+    this->BrushWorldToSliceTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+    this->BrushWorldToSliceTransformer->SetTransform(this->WorldToSliceTransform);
+    this->BrushWorldToSliceTransformer->SetInputConnection(this->BrushCutter->GetOutputPort());
+    
+    this->BrushMapper2d = vtkSmartPointer<vtkPolyDataMapper2D>::New();
+    this->BrushMapper2d->SetInputConnection(this->BrushWorldToSliceTransformer->GetOutputPort());
+    
+    this->BrushActor2d = vtkSmartPointer<vtkActor2D>::New();
+    this->BrushActor2d->SetMapper(this->BrushMapper2d);
+    this->BrushActor2d->VisibilityOff();
+
+    this->BrushMapper3d = vtkSmartPointer<vtkPolyDataMapper>::New();
+    
+    this->BrushActor3d = vtkSmartPointer<vtkActor>::New();
+    this->BrushActor3d->SetMapper(this->BrushMapper3d);
+    this->BrushActor3d->VisibilityOff();
+    this->BrushActor3d->PickableOff(); // otherwise picking in 3D view would not work
+
+    this->FeedbackCutter = vtkSmartPointer<vtkCutter>::New();
+    this->FeedbackCutter->SetCutFunction(this->SlicePlane);
+    this->FeedbackCutter->SetGenerateCutScalars(0);
+
+    this->FeedbackWorldToSliceTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+    this->FeedbackWorldToSliceTransformer->SetTransform(this->WorldToSliceTransform);
+    this->FeedbackWorldToSliceTransformer->SetInputConnection(this->FeedbackCutter->GetOutputPort());
+
+    this->FeedbackMapper2d = vtkSmartPointer<vtkPolyDataMapper2D>::New();
+    this->FeedbackMapper2d->SetInputConnection(this->FeedbackWorldToSliceTransformer->GetOutputPort());
+    this->FeedbackActor2d = vtkSmartPointer<vtkActor2D>::New();
+    vtkProperty2D* feedbackActorProperty2d = this->FeedbackActor2d->GetProperty();
+    feedbackActorProperty2d->SetColor(0.7, 0.7, 0.0);
+    feedbackActorProperty2d->SetOpacity(0.5);
+    this->FeedbackActor2d->SetMapper(this->FeedbackMapper2d);
+    this->FeedbackActor2d->VisibilityOff();
+
+    this->FeedbackMapper3d = vtkSmartPointer<vtkPolyDataMapper>::New();
+    //this->FeedbackMapper3d->SetInputConnection(this->FeedbackGlyphFilter3d->GetOutputPort());
+    this->FeedbackActor3d = vtkSmartPointer<vtkActor>::New();
+    this->FeedbackActor3d->VisibilityOff();
+    this->FeedbackActor3d->PickableOff(); // otherwise picking in 3D view would not work
+    vtkProperty* feedbackActorProperty3d = this->FeedbackActor3d->GetProperty();
+    feedbackActorProperty3d->SetColor(0.7, 0.7, 0.0);
+    //feedbackActorProperty3d->SetOpacity(0.5);
+    this->FeedbackActor3d->SetMapper(this->FeedbackMapper3d);
+    this->FeedbackActor3d->VisibilityOff();
   };
   ~BrushPipeline()
   {
-    this->BrushActor->Delete();
-    this->BrushActor = NULL;
-    this->BrushMapper->Delete();
-    this->BrushMapper = NULL;
-    this->BrushPolyData->Delete();
-    this->BrushPolyData = NULL;
-    this->FeedbackActor->Delete();
-    this->FeedbackActor = NULL;
-    this->FeedbackMapper->Delete();
-    this->FeedbackMapper = NULL;
-    this->FeedbackGlyphFilter->Delete();
-    this->FeedbackGlyphFilter = NULL;
-    this->FeedbackPointsPolyData->Delete();
-    this->FeedbackPointsPolyData = NULL;
   };
 public:
-  vtkActor2D* BrushActor;
-  vtkPolyDataMapper2D* BrushMapper;
-  vtkPolyData* BrushPolyData;
-  vtkActor2D* FeedbackActor;
-  vtkPolyDataMapper2D* FeedbackMapper;
-  vtkGlyph2D* FeedbackGlyphFilter;
-  vtkPolyData* FeedbackPointsPolyData;
+  vtkSmartPointer<vtkTransform> WorldToSliceTransform;
+  vtkSmartPointer<vtkPlane> SlicePlane;
+
+  vtkSmartPointer<vtkCutter> BrushCutter;
+  vtkSmartPointer<vtkTransformPolyDataFilter> BrushWorldToSliceTransformer;
+  vtkSmartPointer<vtkActor2D> BrushActor2d;
+  vtkSmartPointer<vtkPolyDataMapper2D> BrushMapper2d;
+  vtkSmartPointer<vtkPolyDataMapper> BrushMapper3d;
+  vtkSmartPointer<vtkActor> BrushActor3d;
+
+  vtkSmartPointer<vtkCutter> FeedbackCutter;
+  vtkSmartPointer<vtkTransformPolyDataFilter> FeedbackWorldToSliceTransformer;
+  vtkSmartPointer<vtkActor2D> FeedbackActor2d;
+  vtkSmartPointer<vtkPolyDataMapper2D> FeedbackMapper2d;
+  vtkSmartPointer<vtkActor> FeedbackActor3d;
+  vtkSmartPointer<vtkPolyDataMapper> FeedbackMapper3d;
 };
 
 //-----------------------------------------------------------------------------
@@ -133,21 +183,48 @@ qSlicerSegmentEditorPaintEffectPrivate::qSlicerSegmentEditorPaintEffectPrivate(q
   , Painter(NULL)
   , DelayedPaint(true)
   , IsPainting(false)
-  , RadiusFrame(NULL)
-  , RadiusSpinBox(NULL)
-  , RadiusSlider(NULL)
-  , RadiusUnitsToggle(NULL)
-  , SphereCheckbox(NULL)
-  , SmudgeCheckbox(NULL)
-  , PixelModeCheckbox(NULL)
+  , BrushRadiusFrame(NULL)
+  , BrushRadiusSpinBox(NULL)
+  , BrushRadiusSlider(NULL)
+  , BrushRadiusUnitsToggle(NULL)
+  , BrushSphereCheckbox(NULL)
+  , ColorSmudgeCheckbox(NULL)
+  , BrushPixelModeCheckbox(NULL)
 {
-  this->PaintCoordinates = vtkSmartPointer<vtkPoints>::New();
+  this->PaintCoordinates_World = vtkSmartPointer<vtkPoints>::New();
+  this->FeedbackPointsPolyData = vtkSmartPointer<vtkPolyData>::New();
+  this->FeedbackPointsPolyData->SetPoints(this->PaintCoordinates_World);
+
   this->PaintIcon = QIcon(":Icons/Paint.png");
 
-  this->Painter = vtkImageSlicePaint::New();
+  //this->Painter = vtkImageSlicePaint::New();
 
-  this->FeedbackActors.clear();
-  this->Brushes.clear();
+  this->BrushCylinderSource = vtkSmartPointer<vtkCylinderSource>::New();
+  this->BrushSphereSource = vtkSmartPointer<vtkSphereSource>::New();
+  this->BrushToWorldOriginTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  this->BrushToWorldOriginTransform = vtkSmartPointer<vtkTransform>::New();
+  this->BrushToWorldOriginTransformer->SetTransform(this->BrushToWorldOriginTransform);
+  this->BrushPolyDataNormals = vtkSmartPointer<vtkPolyDataNormals>::New();
+  this->BrushPolyDataNormals->SetInputConnection(this->BrushToWorldOriginTransformer->GetOutputPort());
+  this->BrushPolyDataNormals->AutoOrientNormalsOn();
+
+  this->WorldOriginToWorldTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  this->WorldOriginToWorldTransform = vtkSmartPointer<vtkTransform>::New();
+  this->WorldOriginToWorldTransformer->SetTransform(this->WorldOriginToWorldTransform);
+  this->WorldOriginToWorldTransformer->SetInputConnection(this->BrushPolyDataNormals->GetOutputPort());
+
+  this->WorldOriginToEditedLabelmapIjkTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  this->WorldOriginToEditedLabelmapIjkTransform = vtkSmartPointer<vtkTransform>::New();
+  this->WorldOriginToEditedLabelmapIjkTransformer->SetTransform(this->WorldOriginToEditedLabelmapIjkTransform);
+  this->WorldOriginToEditedLabelmapIjkTransformer->SetInputConnection(this->BrushPolyDataNormals->GetOutputPort());
+  this->BrushPolyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+  this->BrushPolyDataToStencil->SetOutputSpacing(1.0,1.0,1.0);
+  this->BrushPolyDataToStencil->SetInputConnection(this->WorldOriginToEditedLabelmapIjkTransformer->GetOutputPort());
+
+  this->FeedbackGlyphFilter = vtkSmartPointer<vtkGlyph3D>::New();
+  this->FeedbackGlyphFilter->SetInputData(this->FeedbackPointsPolyData);
+  this->FeedbackGlyphFilter->SetSourceConnection(this->BrushPolyDataNormals->GetOutputPort());
+
 }
 
 //-----------------------------------------------------------------------------
@@ -167,72 +244,241 @@ qSlicerSegmentEditorPaintEffectPrivate::~qSlicerSegmentEditorPaintEffectPrivate(
 }
 
 //-----------------------------------------------------------------------------
-BrushPipeline* qSlicerSegmentEditorPaintEffectPrivate::brushForWidget(qMRMLSliceWidget* sliceWidget)
+BrushPipeline* qSlicerSegmentEditorPaintEffectPrivate::brushForWidget(qMRMLWidget* viewWidget)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  if (this->Brushes.contains(sliceWidget))
+  if (this->Brushes.contains(viewWidget))
   {
-    return this->Brushes[sliceWidget];
+    return this->Brushes[viewWidget];
   }
 
   // Create brush if does not yet exist
-  BrushPipeline* brush = new BrushPipeline();
-  this->updateBrush(sliceWidget, brush);
+  BrushPipeline* pipeline = new BrushPipeline();
 
-  brush->FeedbackPointsPolyData->SetPoints(this->PaintCoordinates);
+  qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
+  qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
+  if (sliceWidget)
+  {
+    pipeline->BrushCutter->SetInputConnection(this->WorldOriginToWorldTransformer->GetOutputPort());
+    pipeline->FeedbackCutter->SetInputConnection(this->FeedbackGlyphFilter->GetOutputPort());
+  }
+  if (threeDWidget)
+  {
+    pipeline->BrushMapper3d->SetInputConnection(this->WorldOriginToWorldTransformer->GetOutputPort());
+    pipeline->FeedbackMapper3d->SetInputConnection(this->FeedbackGlyphFilter->GetOutputPort());
+  }
 
-  q->addActor2D(sliceWidget, brush->BrushActor);
-  q->addActor2D(sliceWidget, brush->FeedbackActor);
+  this->updateBrush(viewWidget, pipeline);
 
-  this->Brushes[sliceWidget] = brush;
-  return brush;
+  if (sliceWidget)
+  {
+    q->addActor2D(viewWidget, pipeline->BrushActor2d);
+    q->addActor2D(viewWidget, pipeline->FeedbackActor2d);
+  }
+  if (threeDWidget)
+  {
+    q->addActor3D(viewWidget, pipeline->BrushActor3d);
+    q->addActor3D(viewWidget, pipeline->FeedbackActor3d);
+  }
+
+  this->Brushes[viewWidget] = pipeline;
+  return pipeline;
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffectPrivate::paintAddPoint(qMRMLSliceWidget* sliceWidget, int pixelPositionXy[2])
+void qSlicerSegmentEditorPaintEffectPrivate::forceRender(qMRMLWidget* viewWidget)
 {
-  Q_Q(qSlicerSegmentEditorPaintEffect);
-
-  this->PaintCoordinates->InsertNextPoint(pixelPositionXy[0], pixelPositionXy[1], 0);
-  this->PaintCoordinates->Modified();
-
-  if (q->integerParameter("PixelMode") || !this->DelayedPaint)
+  qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
+  qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
+  if (sliceWidget)
   {
-    this->paintApply(sliceWidget);
     sliceWidget->sliceView()->forceRender();
+  }
+  if (threeDWidget)
+  {
+    threeDWidget->threeDView()->forceRender();
   }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLSliceWidget* sliceWidget)
+void qSlicerSegmentEditorPaintEffectPrivate::scheduleRender(qMRMLWidget* viewWidget)
+{
+  qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
+  qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
+  if (sliceWidget)
+  {
+    sliceWidget->sliceView()->scheduleRender();
+  }
+  if (threeDWidget)
+  {
+    threeDWidget->threeDView()->scheduleRender();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorPaintEffectPrivate::paintAddPoint(qMRMLWidget* viewWidget, double brushPosition_World[3])
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
+
+  this->PaintCoordinates_World->InsertNextPoint(brushPosition_World);
+  this->PaintCoordinates_World->Modified();
+
+  if (q->integerParameter("BrushPixelMode") || !this->DelayedPaint)
+  {
+    this->paintApply(viewWidget);
+    this->forceRender(viewWidget); // TODO: repaint all?
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLWidget* viewWidget)
+{
+  Q_Q(qSlicerSegmentEditorPaintEffect);
+
+  vtkOrientedImageData* labelmapImage = q->editedLabelmap();
+  if (!labelmapImage)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid segmentationNode";
+    return;
+  }
+  if (!q->parameterSetNode())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
+    return;
+  }
+  vtkMRMLSegmentationNode* segmentationNode = q->parameterSetNode()->GetSegmentationNode();
+  if (!segmentationNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid segmentationNode";
+    return;
+  }
 
   //TODO:
   //if self.paintCoordinates != []:
   //  if self.undoRedo:
   //    self.undoRedo.saveState()
-  if (q->integerParameter("PixelMode"))
+  if (q->integerParameter("BrushPixelMode"))
   {
-    this->paintPixels(sliceWidget, this->PaintCoordinates);
+    this->paintPixels(viewWidget, this->PaintCoordinates_World);
   }
   else
   {
-    vtkIdType numberOfPoints = this->PaintCoordinates->GetNumberOfPoints();
+    this->updateBrushStencil(viewWidget);
+
+    this->BrushPolyDataToStencil->Update();
+    vtkImageStencilData* stencilData = this->BrushPolyDataToStencil->GetOutput();
+    int stencilExtent[6]={0,-1,0,-1,0,-1};
+    stencilData->GetExtent(stencilExtent);
+
+    vtkNew<vtkTransform> worldToEditedLabelmapIjkTransform;
+
+    vtkNew<vtkMatrix4x4> segmentationToSegmentationIjkTransformMatrix;
+    labelmapImage->GetImageToWorldMatrix(segmentationToSegmentationIjkTransformMatrix.GetPointer());
+    segmentationToSegmentationIjkTransformMatrix->Invert();
+    worldToEditedLabelmapIjkTransform->Concatenate(segmentationToSegmentationIjkTransformMatrix.GetPointer());
+
+    vtkNew<vtkMatrix4x4> worldToSegmentationTransformMatrix;
+    // We don't support painting in non-linearly transformed node (it could be implemented, but would probably slow down things too much)
+    // TODO: show a meaningful error message to the user if attempted
+    vtkMRMLTransformNode::GetMatrixTransformBetweenNodes(NULL, segmentationNode->GetParentTransformNode(), worldToSegmentationTransformMatrix.GetPointer());
+    worldToEditedLabelmapIjkTransform->Concatenate(worldToSegmentationTransformMatrix.GetPointer());
+
+    vtkNew<vtkPoints> paintCoordinates_Ijk;
+    worldToEditedLabelmapIjkTransform->TransformPoints(this->PaintCoordinates_World, paintCoordinates_Ijk.GetPointer());
+    double* paintCoordinatesBounds_Ijk = paintCoordinates_Ijk->GetBounds();
+    int combinedStencilExtent[6] = 
+    { 
+      stencilExtent[0]+int(paintCoordinatesBounds_Ijk[0]+0.5)-1, stencilExtent[1]+int(paintCoordinatesBounds_Ijk[1]+0.5)+1,
+      stencilExtent[2]+int(paintCoordinatesBounds_Ijk[2]+0.5)-1, stencilExtent[3]+int(paintCoordinatesBounds_Ijk[3]+0.5)+1,
+      stencilExtent[4]+int(paintCoordinatesBounds_Ijk[4]+0.5)-1, stencilExtent[5]+int(paintCoordinatesBounds_Ijk[5]+0.5)+1
+    };
+
+    vtkNew<vtkImageStencilToImage> stencilToImage;
+    stencilToImage->SetInputConnection(this->BrushPolyDataToStencil->GetOutputPort());
+    stencilToImage->SetInsideValue(q->m_FillValue);
+    stencilToImage->SetOutsideValue(q->m_EraseValue);
+    stencilToImage->SetOutputScalarType(labelmapImage->GetScalarType());
+
+    vtkNew<vtkImageChangeInformation> brushPositioner;
+    brushPositioner->SetInputConnection(stencilToImage->GetOutputPort());
+    brushPositioner->SetOutputSpacing(labelmapImage->GetSpacing());
+    brushPositioner->SetOutputOrigin(labelmapImage->GetOrigin());
+
+    double brushCenter_Ijk[3]={0};
+    vtkIdType numberOfPoints = this->PaintCoordinates_World->GetNumberOfPoints();
     for (int pointIndex = 0; pointIndex < numberOfPoints; pointIndex++)
     {
-      this->paintBrush(sliceWidget, this->PaintCoordinates->GetPoint(pointIndex));
+      double* shiftDouble = paintCoordinates_Ijk->GetPoint(pointIndex);
+      int shift[3] = {int(shiftDouble[0]+0.5), int(shiftDouble[1]+0.5), int(shiftDouble[2]+0.5)};
+      brushPositioner->SetExtentTranslation(shift);
+      brushPositioner->Update();
+      vtkOrientedImageDataResample::ModifyImage(labelmapImage, brushPositioner->GetOutput(), true /*computeMax*/);
     }
+    labelmapImage->Modified();
+    /*
+    vtkNew<vtkImageStencilData> combinedStencilData;
+    combinedStencilData->SetExtent(combinedStencilExtent);
+    combinedStencilData->AllocateExtents();
+
+    double brushCenter_Ijk[3]={0};
+    vtkIdType numberOfPoints = this->PaintCoordinates_World->GetNumberOfPoints();
+    for (int pointIndex = 0; pointIndex < numberOfPoints; pointIndex++)
+    {
+      double* shiftDouble = paintCoordinates_Ijk->GetPoint(pointIndex);
+      int shift[3] = {int(shiftDouble[0]+0.5), int(shiftDouble[1]+0.5), int(shiftDouble[2]+0.5)};
+
+      for (int idZ=stencilExtent[4]; idZ<=stencilExtent[5]; idZ++)
+      {
+        int shiftedIdZ = idZ + shift[2];
+        for (int idY = stencilExtent[2]; idY <= stencilExtent[3]; idY++)
+        {
+          int shiftedIdY = idY + shift[1];
+          int iter=0;
+          int moreSubExtents = 1;
+          while( moreSubExtents )
+          {
+            int r1, r2;
+            moreSubExtents = stencilData->GetNextExtent(r1, r2, stencilExtent[0], stencilExtent[1], idY, idZ, iter);
+            if (r1 <= r2 ) // sanity check
+            {
+              combinedStencilData->InsertAndMergeExtent(r1+shift[0], r2+shift[0], shiftedIdY, shiftedIdZ);
+            }
+          }
+        }
+      }
+    }
+    combinedStencilData->Modified();
+
+    vtkNew<vtkImageStencil> stencil;
+    stencil->SetInputData(labelmapImage);
+    stencil->SetStencilData(combinedStencilData.GetPointer());
+    stencil->ReverseStencilOn();
+    stencil->SetBackgroundValue(q->m_FillValue);
+    stencil->Update();
+    vtkImageData* updatedLabelmapImage = stencil->GetOutput();
+    labelmapImage->ShallowCopy(updatedLabelmapImage);
+    */
   }
-  this->PaintCoordinates->Reset();
+  this->PaintCoordinates_World->Reset();
 
   // Notify editor about changes
+  if (q->m_Erase)
+  {
+    q->setEditedLabelmapApplyModeToRemove();
+  }
+  else
+  {
+    q->setEditedLabelmapApplyModeToAdd();
+  }
+  q->setEditedLabelmapApplyExtentToWholeExtent();
+  //TODO: compute paint extent before
+  //q->setEditedLabelmapApplyExtent(this->paintExtent);
   q->apply();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceWidget, double brushCenterXy[2])
+void qSlicerSegmentEditorPaintEffectPrivate::updateBrushStencil(qMRMLWidget* viewWidget)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
@@ -241,259 +487,76 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintBrush(qMRMLSliceWidget* sliceW
     qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
     return;
   }
-
-  vtkOrientedImageData* editedLabelmap = q->parameterSetNode()->GetEditedLabelmap();
-  if (!editedLabelmap)
-  {
-    return;
-  }
-
-  int x = brushCenterXy[0];
-  int y = brushCenterXy[1];
-  double radius = q->doubleParameter("Radius");
-
-  // Get brush for slice widget
-  BrushPipeline* brush = this->brushForWidget(sliceWidget);
-
-  // Get the brush bounding box in IJK coordinates
-  // - Get the xy bounds
-  // - Transform to IJK
-  // - Clamp the bounds to the dimensions of the label image
-  double brushBounds[6];
-  vtkOrientedImageData::UninitializeBounds(brushBounds);
-  brush->BrushPolyData->GetPoints()->GetBounds(brushBounds);
-
-  int left =   x + int(brushBounds[0] + 0.5);
-  int right =  x + int(brushBounds[1] + 0.5);
-  int bottom = y + int(brushBounds[2] + 0.5);
-  int top =    y + int(brushBounds[3] + 0.5);
-  int topLeftIjk[3] =     {0, 0, 0};
-  int topRightIjk[3] =    {0, 0, 0};
-  int bottomLeftIjk[3] =  {0, 0, 0};
-  int bottomRightIjk[3] = {0, 0, 0};
-  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(left, top),     topLeftIjk, sliceWidget, editedLabelmap);
-  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(right, top),    topRightIjk, sliceWidget, editedLabelmap);
-  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(left, bottom),  bottomLeftIjk, sliceWidget, editedLabelmap);
-  qSlicerSegmentEditorAbstractEffect::xyToIjk(QPoint(right, bottom), bottomRightIjk, sliceWidget, editedLabelmap);
-
-  // Clamp the top, bottom, left, right to the valid dimensions of the label image
-  int dims[3] = {0, 0, 0};
-  editedLabelmap->GetDimensions(dims);
-
-  int topLeft[3] =     {0, 0, 0};
-  int topRight[3] =    {0, 0, 0};
-  int bottomLeft[3] =  {0, 0, 0};
-  int bottomRight[3] = {0, 0, 0};
-  for (int i=0; i<3; ++i)
-  {
-    topLeft[i] = qMax(topLeftIjk[i], 0);
-    topLeft[i] = qMin(topLeftIjk[i], dims[i]-1);
-    topRight[i] = qMax(topRightIjk[i], 0);
-    topRight[i] = qMin(topRightIjk[i], dims[i]-1);
-    bottomLeft[i] = qMax(bottomLeftIjk[i], 0);
-    bottomLeft[i] = qMin(bottomLeftIjk[i], dims[i]-1);
-    bottomRight[i] = qMax(bottomRightIjk[i], 0);
-    bottomRight[i] = qMin(bottomRightIjk[i], dims[i]-1);
-  }
-
-  // If the region is smaller than a pixel then paint it using paintPixel mode,
-  // to make sure at least one pixel is filled on each click
-  int maxRowDelta = 0;
-  int maxColumnDelta = 0;
-  for (int i=0; i<3; ++i)
-  {
-    int d = abs(topRight[i] - topLeft[i]);
-    if (d > maxColumnDelta)
-    {
-      maxColumnDelta = d;
-    }
-    d = abs(bottomRight[i] - bottomLeft[i]);
-    if (d > maxColumnDelta)
-    {
-      maxColumnDelta = d;
-    }
-    d = abs(bottomLeft[i] - topLeft[i]);
-    if (d > maxRowDelta)
-    {
-      maxRowDelta = d;
-    }
-    d = abs(bottomRight[i] - topRight[i]);
-    if (d > maxRowDelta)
-    {
-      maxRowDelta = d;
-    }
-  }
-  if (maxRowDelta <= 1 || maxColumnDelta <= 1)
-  {
-    this->paintPixel(sliceWidget, brushCenterXy);
-    return;
-  }
-
-  // Get IJK to RAS transform matrices for edited labelmap and master volume
-  vtkMRMLScalarVolumeNode* masterVolumeNode = q->parameterSetNode()->GetMasterVolumeNode();
-  vtkSmartPointer<vtkMatrix4x4> masterIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  qSlicerSegmentEditorAbstractLabelEffect::imageToWorldMatrix(masterVolumeNode, masterIjkToRasMatrix);
-
   vtkMRMLSegmentationNode* segmentationNode = q->parameterSetNode()->GetSegmentationNode();
-  vtkSmartPointer<vtkMatrix4x4> labelIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  qSlicerSegmentEditorAbstractLabelEffect::imageToWorldMatrix(editedLabelmap, segmentationNode, labelIjkToRasMatrix);
-
-  double brushCenterRas[3] = {0.0, 0.0, 0.0};
-  q->xyToRas(brushCenterXy, brushCenterRas, sliceWidget);
-
-  int paintOver = q->integerParameter(qSlicerSegmentEditorAbstractLabelEffect::paintOverParameterName());
-  int paintThreshold = q->integerParameter(qSlicerSegmentEditorAbstractLabelEffect::paintThresholdParameterName());
-  double paintThresholdMin = q->doubleParameter(qSlicerSegmentEditorAbstractLabelEffect::paintThresholdMinParameterName());
-  double paintThresholdMax = q->doubleParameter(qSlicerSegmentEditorAbstractLabelEffect::paintThresholdMaxParameterName());
-
-  this->Painter->SetBackgroundImage(masterVolumeNode->GetImageData());
-  this->Painter->SetBackgroundIJKToWorld(masterIjkToRasMatrix);
-  this->Painter->SetWorkingImage(editedLabelmap);
-  this->Painter->SetWorkingIJKToWorld(labelIjkToRasMatrix);
-  this->Painter->SetTopLeft(topLeft);
-  this->Painter->SetTopRight(topRight);
-  this->Painter->SetBottomLeft(bottomLeft);
-  this->Painter->SetBottomRight(bottomRight);
-  this->Painter->SetBrushCenter(brushCenterRas);
-  this->Painter->SetBrushRadius(radius);
-  this->Painter->SetPaintLabel(q->m_Erase ? 0 : 1); // Segment binary labelmaps all have voxel values of 1 for foreground
-  this->Painter->SetPaintOver(paintOver);
-  this->Painter->SetThresholdPaint(paintThreshold);
-  this->Painter->SetThresholdPaintRange(paintThresholdMin, paintThresholdMax);
-  
-  // Fill volume of a sphere rather than a circle on the currently displayed image slice
-  if (q->integerParameter("Sphere"))
+  if (!segmentationNode)
   {
-    // Algorithm:
-    //   Assume brush radius is in mm
-    //   Estimate zVoxelSize
-    //   Compute number of slices spanned by sphere, that are still within the volume
-    //   For each spanned slice
-    //     Reposition the brush center using xy(z)ToRAS transform: i.e. canvas to patient world coordinates
-    //     Resize the radius: brushRadiusOffset=sqrt(brushRadius*brushRadius - zOffset_mm*zOffset_mm)
-    //     Invoke Paint()
-    //   Finally paint on the center slice, leaving the GUI on the center slice being most visibly edited
+    qCritical() << Q_FUNC_INFO << ": Invalid segmentationNode";
+    return;
+  }
+  vtkOrientedImageData* labelmapImage = q->editedLabelmap();
+  if (!labelmapImage)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid editedLabelmap";
+    return;
+  }
 
-    // Estimate Z voxel size
-    double zVoxelSizeMm = 1.0;
-    double brushCenter1Xyz[3] = { brushCenterXy[0], brushCenterXy[1], 0.0 };
-    double brushCenter1Ras[3] = {0.0, 0.0, 0.0};
-    q->xyzToRas(brushCenter1Xyz, brushCenter1Ras, sliceWidget);
-    double brushCenter2Xyz[3] = { brushCenterXy[0], brushCenterXy[1], 100.0 };
-    double brushCenter2Ras[3] = {0.0, 0.0, 0.0};
-    q->xyzToRas(brushCenter2Xyz, brushCenter2Ras, sliceWidget);
-    double dx1 = brushCenter1Ras[0] - brushCenter2Ras[0];
-    double dx2 = brushCenter1Ras[1] - brushCenter2Ras[1];
-    double dx3 = brushCenter1Ras[2] - brushCenter2Ras[2];
-    double distanceSpannedBy100Slices = sqrt(dx1*dx1+dx2*dx2+dx3*dx3);  // Compute L2 norm
-    if (distanceSpannedBy100Slices > 0)
-    {
-      zVoxelSizeMm = distanceSpannedBy100Slices / 100.0;
-    }
+  // Brush stencil transform
 
-    // Compute number of slices spanned by sphere
-    int numberOfSlicesInEachDirection = (int)((radius / zVoxelSizeMm) - 1); // Floor instead of round as in the original PaintEffect code
-    for (int sliceNumber=1; sliceNumber<=numberOfSlicesInEachDirection; ++sliceNumber)
-    {
-      // Each slice in both directions
-      for (int direction=-1; direction<=1; direction+=2)
-      {
-        int sliceOffset = sliceNumber * direction;
+  this->WorldOriginToEditedLabelmapIjkTransform->Identity();
 
-        // x,y uses slice (canvas) coordinate system and actually has a 3rd z component (index into the
-        // slice you're looking at), hence xyToRAS is really performing xyzToRAS. RAS is patient world
-        // coordinate system. Note the 1 is because the transform uses homogeneous coordinates.
-        double currentBrushCenterXyz[3] = { brushCenterXy[0], brushCenterXy[1], sliceOffset };
-        double currentBrushCenterRas[3] = {0.0, 0.0, 0.0};
-        q->xyzToRas(currentBrushCenterXyz, currentBrushCenterRas, sliceWidget);
-        this->Painter->SetBrushCenter(currentBrushCenterRas);
+  vtkNew<vtkMatrix4x4> segmentationToSegmentationIjkTransformMatrix;
+  labelmapImage->GetImageToWorldMatrix(segmentationToSegmentationIjkTransformMatrix.GetPointer());
+  segmentationToSegmentationIjkTransformMatrix->Invert();
+  segmentationToSegmentationIjkTransformMatrix->SetElement(0,3, 0);
+  segmentationToSegmentationIjkTransformMatrix->SetElement(1,3, 0);
+  segmentationToSegmentationIjkTransformMatrix->SetElement(2,3, 0);
+  this->WorldOriginToEditedLabelmapIjkTransform->Concatenate(segmentationToSegmentationIjkTransformMatrix.GetPointer());
+  
+  vtkNew<vtkMatrix4x4> worldToSegmentationTransformMatrix;
+  // We don't support painting in non-linearly transformed node (it could be implemented, but would probably slow down things too much)
+  // TODO: show a meaningful error message to the user if attempted
+  vtkMRMLTransformNode::GetMatrixTransformBetweenNodes(NULL, segmentationNode->GetParentTransformNode(), worldToSegmentationTransformMatrix.GetPointer());
+  worldToSegmentationTransformMatrix->SetElement(0,3, 0);
+  worldToSegmentationTransformMatrix->SetElement(1,3, 0);
+  worldToSegmentationTransformMatrix->SetElement(2,3, 0);
+  this->WorldOriginToEditedLabelmapIjkTransform->Concatenate(worldToSegmentationTransformMatrix.GetPointer());
 
-        double zOffsetMm = zVoxelSizeMm * sliceOffset;
-        double brushRadiusOffset = sqrt(radius*radius - zOffsetMm*zOffsetMm);
-        this->Painter->SetBrushRadius(brushRadiusOffset);
-
-        double topLeftXyz[3] = {left, top, sliceOffset};
-        int currentTopLeftIjk[3] = {0, 0, 0};
-        q->xyzToIjk(topLeftXyz, currentTopLeftIjk, sliceWidget, editedLabelmap);
-        double topRightXyz[3] = {right, top, sliceOffset};
-        int currentTopRightIjk[3] = {0, 0, 0};
-        q->xyzToIjk(topRightXyz, currentTopRightIjk, sliceWidget, editedLabelmap);
-        double bottomLeftXyz[3] = {left, bottom, sliceOffset};
-        int currentBottomLeftIjk[3] = {0, 0, 0};
-        q->xyzToIjk(bottomLeftXyz, currentBottomLeftIjk, sliceWidget, editedLabelmap);
-        double bottomRightXyz[3] = {right, bottom, sliceOffset};
-        int currentBottomRightIjk[3] = {0, 0, 0};
-        q->xyzToIjk(bottomRightXyz, currentBottomRightIjk, sliceWidget, editedLabelmap);
-
-        // Clamp the top, bottom, left, right to the valid dimensions of the label image
-        int currentTopLeft[3] =     {0, 0, 0};
-        int currentTopRight[3] =    {0, 0, 0};
-        int currentBottomLeft[3] =  {0, 0, 0};
-        int currentBottomRight[3] = {0, 0, 0};
-        for (int i=0; i<3; ++i)
-        {
-          currentTopLeft[i] = qMax(currentTopLeftIjk[i], 0);
-          currentTopLeft[i] = qMin(currentTopLeftIjk[i], dims[i]-1);
-          currentTopRight[i] = qMax(currentTopRightIjk[i], 0);
-          currentTopRight[i] = qMin(currentTopRightIjk[i], dims[i]-1);
-          currentBottomLeft[i] = qMax(currentBottomLeftIjk[i], 0);
-          currentBottomLeft[i] = qMin(currentBottomLeftIjk[i], dims[i]-1);
-          currentBottomRight[i] = qMax(currentBottomRightIjk[i], 0);
-          currentBottomRight[i] = qMin(currentBottomRightIjk[i], dims[i]-1);
-        }
-        this->Painter->SetTopLeft(currentTopLeft);
-        this->Painter->SetTopRight(currentTopRight);
-        this->Painter->SetBottomLeft(currentBottomLeft);
-        this->Painter->SetBottomRight(currentBottomRight);
-
-        this->Painter->Paint();
-      } // For each slice to paint
-    }
-  } // If spherical brush
-
-  // Paint the slice: same for circular and spherical brush modes
-  this->Painter->SetBrushCenter(brushCenterRas);
-  this->Painter->SetBrushRadius(radius);
-  this->Painter->SetTopLeft(topLeft);
-  this->Painter->SetTopRight(topRight);
-  this->Painter->SetBottomLeft(bottomLeft);
-  this->Painter->SetBottomRight(bottomRight);
-
-  this->Painter->Paint();
+  this->WorldOriginToEditedLabelmapIjkTransformer->Update();
+  vtkPolyData* brushModel_EditedLabelmapIjk = this->WorldOriginToEditedLabelmapIjkTransformer->GetOutput();
+  double* boundsIjk = brushModel_EditedLabelmapIjk->GetBounds();
+  this->BrushPolyDataToStencil->SetOutputWholeExtent(floor(boundsIjk[0])-1, ceil(boundsIjk[1])+1,
+    floor(boundsIjk[2])-1, ceil(boundsIjk[3])+1, floor(boundsIjk[4])-1, ceil(boundsIjk[5])+1);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffectPrivate::paintPixel(qMRMLSliceWidget* sliceWidget, double pixelPositionXy[2])
+void qSlicerSegmentEditorPaintEffectPrivate::paintPixel(qMRMLWidget* viewWidget, double pixelPosition_World[3])
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-  points->InsertNextPoint(pixelPositionXy[0], pixelPositionXy[1], 0);
-  this->paintPixels(sliceWidget, points);
+  points->InsertNextPoint(pixelPosition_World);
+  this->paintPixels(viewWidget, points);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffectPrivate::paintPixels(qMRMLSliceWidget* sliceWidget, vtkPoints* pixelPositions)
+void qSlicerSegmentEditorPaintEffectPrivate::paintPixels(qMRMLWidget* viewWidget, vtkPoints* pixelPositions)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  if (!q->parameterSetNode())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
-    return;
-  }
   if (!pixelPositions)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid pixelPositions";
     return;
   }
-  vtkOrientedImageData* labelImage = q->parameterSetNode()->GetEditedLabelmap();
-  if (!labelImage)
+  /*
+  TODO: implement
+  vtkOrientedImageData* labelmapImage = q->editedLabelmap();
+  if (!labelmapImage)
   {
     return;
   }
 
   int dims[3] = { 0, 0, 0 };
-  labelImage->GetDimensions(dims);
+  labelmapImage->GetDimensions(dims);
 
   double valueToSet = (q->m_Erase ? q->m_EraseValue : q->m_FillValue);
 
@@ -501,15 +564,16 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintPixels(qMRMLSliceWidget* slice
   for (int pointIndex = 0; pointIndex < numberOfPoints; pointIndex++)
   {
     int ijk[3] = { 0, 0, 0 };
-    q->xyzToIjk(pixelPositions->GetPoint(pointIndex), ijk, sliceWidget, labelImage);
+    q->xyzToIjk(pixelPositions->GetPoint(pointIndex), ijk, sliceWidget, labelmapImage);
 
     // Clamp to image extent
     if (ijk[0] < 0 || ijk[0] >= dims[0]) { continue; }
     if (ijk[1] < 0 || ijk[1] >= dims[1]) { continue; }
     if (ijk[2] < 0 || ijk[2] >= dims[2]) { continue; }
 
-    labelImage->SetScalarComponentFromDouble(ijk[0], ijk[1], ijk[2], 0, valueToSet);
+    labelmapImage->SetScalarComponentFromDouble(ijk[0], ijk[1], ijk[2], 0, valueToSet);
   }
+  */
 }
 
 //-----------------------------------------------------------------------------
@@ -517,19 +581,19 @@ void qSlicerSegmentEditorPaintEffectPrivate::scaleRadius(double scaleFactor)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  q->setParameter("Radius", q->doubleParameter("Radius") * scaleFactor, true); // Emit parameter modified event
+  q->setCommonParameter("BrushRadius", q->doubleParameter("BrushRadius") * scaleFactor, true); // Emit parameter modified event
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffectPrivate::onRadiusUnitsClicked()
 {
-  if (this->RadiusUnitsToggle->text().compare("mm:"))
+  if (this->BrushRadiusUnitsToggle->text().compare("mm:"))
   {
-    this->RadiusUnitsToggle->setText("mm:");
+    this->BrushRadiusUnitsToggle->setText("mm:");
   }
   else
   {
-    this->RadiusUnitsToggle->setText("px:");
+    this->BrushRadiusUnitsToggle->setText("px:");
   }
 }
 
@@ -538,23 +602,17 @@ void qSlicerSegmentEditorPaintEffectPrivate::onQuickRadiusButtonClicked()
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  if (!q->parameterSetNode())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
-    return;
-  }
-
-  vtkOrientedImageData* labelImage = q->parameterSetNode()->GetEditedLabelmap();
+  vtkOrientedImageData* labelmapImage = q->editedLabelmap();
   QPushButton* senderButton = dynamic_cast<QPushButton*>(sender());
-  int radius = senderButton->property("Radius").toInt();
+  int radius = senderButton->property("BrushRadius").toInt();
 
   double radiusMm = 0.0;
-  if (!this->RadiusUnitsToggle->text().compare("px:"))
+  if (!this->BrushRadiusUnitsToggle->text().compare("px:"))
   {
-    if (labelImage)
+    if (labelmapImage)
     {
       double spacing[3] = {0.0, 0.0, 0.0};
-      labelImage->GetSpacing(spacing);
+      labelmapImage->GetSpacing(spacing);
       double minimumSpacing = qMin(spacing[0], qMin(spacing[1], spacing[2]));
       radiusMm = minimumSpacing * radius;
     }
@@ -572,62 +630,123 @@ void qSlicerSegmentEditorPaintEffectPrivate::onRadiusValueChanged(double value)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  q->setParameter("Radius", value, true); // Emit parameter modified event
+  q->setCommonParameter("BrushRadius", value, true); // Emit parameter modified event
+}
+
+//----------------------------------------------------------------------------
+double qSlicerSegmentEditorPaintEffectPrivate::GetSliceSpacing(qMRMLSliceWidget* sliceWidget)
+{
+  // Implementation copied from vtkSliceViewInteractorStyle::GetSliceSpacing()
+  vtkMRMLSliceNode *sliceNode = sliceWidget->sliceLogic()->GetSliceNode();
+  double spacing = 1.0;
+  if (sliceNode->GetSliceSpacingMode() == vtkMRMLSliceNode::PrescribedSliceSpacingMode)
+    {
+    spacing = sliceNode->GetPrescribedSliceSpacing()[2];
+    }
+  else
+    {
+    spacing = sliceWidget->sliceLogic()->GetLowestVolumeSliceSpacing()[2];
+    }
+  return spacing;
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffectPrivate::updateBrush(qMRMLSliceWidget* sliceWidget, BrushPipeline* brush)
+void qSlicerSegmentEditorPaintEffectPrivate::updateBrushModel(qMRMLWidget* viewWidget, double brushPosition_World[3])
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
-
-  // Create a brush circle of the right radius in XY space.
-  // Assume uniform scaling between XY and RAS which is enforced by the view interactors
-  double xyRadius = 0.01; // Default value for pixel mode
-  if (!q->integerParameter("PixelMode"))
+  double radiusMm = q->doubleParameter("BrushRadius");
+  qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
+  if (!sliceWidget || q->integerParameter("BrushSphere"))
   {
-    // Calculate radius if not in pixel mode
-    vtkMRMLSliceLogic* sliceLogic = sliceWidget->sliceLogic();
-    vtkMRMLSliceNode* sliceNode = sliceLogic->GetSliceNode();
-    vtkSmartPointer<vtkMatrix4x4> rasToXyMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    rasToXyMatrix->DeepCopy(sliceNode->GetXYToRAS());
-    rasToXyMatrix->Invert();
-
-    //TODO: What does this do exactly?
-    double maximum = 0.0;
-    int maxIndex = 0;
-    for (int index=0; index<3; ++index)
-    {
-      if (fabs(rasToXyMatrix->GetElement(0, index)) > maximum)
-      {
-        maximum = fabs(rasToXyMatrix->GetElement(0, index));
-        maxIndex = index;
-      }
-    }
-
-    double point[4] = {0.0, 0.0, 0.0, 0.0};
-    point[maxIndex] = q->doubleParameter("Radius");
-    double radiusPoint[4] = {0.0, 0.0, 0.0, 0.0};
-    rasToXyMatrix->MultiplyPoint(point, radiusPoint);
-    xyRadius = sqrt(radiusPoint[0]*radiusPoint[0] + radiusPoint[1]*radiusPoint[1] + radiusPoint[2]*radiusPoint[2]);
+    this->BrushSphereSource->SetRadius(radiusMm);
+    this->BrushSphereSource->SetPhiResolution(16);
+    this->BrushSphereSource->SetThetaResolution(16);
+    this->BrushToWorldOriginTransformer->SetInputConnection(this->BrushSphereSource->GetOutputPort());
+  }
+  else
+  {
+    this->BrushCylinderSource->SetRadius(radiusMm);
+    this->BrushCylinderSource->SetResolution(16);
+    double sliceSpacingMm = this->GetSliceSpacing(sliceWidget);
+    this->BrushCylinderSource->SetHeight(sliceSpacingMm);
+    this->BrushCylinderSource->SetCenter(0, 0, sliceSpacingMm/2.0);
+    this->BrushToWorldOriginTransformer->SetInputConnection(this->BrushCylinderSource->GetOutputPort());
   }
 
-  // Make a circle paint brush
-  vtkSmartPointer<vtkRegularPolygonSource> circle = vtkSmartPointer<vtkRegularPolygonSource>::New();
-  circle->SetNumberOfSides(16);
-  circle->SetRadius(xyRadius);
-  circle->GeneratePolygonOff(); // do not fill
-  circle->Update();
-  brush->BrushPolyData->DeepCopy(circle->GetOutput());
+  vtkNew<vtkMatrix4x4> brushToWorldOriginTransformMatrix;
+  if (sliceWidget)
+  {
+    // brush is rotated to the slice widget plane
+    brushToWorldOriginTransformMatrix->DeepCopy(sliceWidget->sliceLogic()->GetSliceNode()->GetSliceToRAS());
+    brushToWorldOriginTransformMatrix->SetElement(0,3, 0);
+    brushToWorldOriginTransformMatrix->SetElement(1,3, 0);
+    brushToWorldOriginTransformMatrix->SetElement(2,3, 0);
+  }
+  this->BrushToWorldOriginTransform->Identity();
+  this->BrushToWorldOriginTransform->Concatenate(brushToWorldOriginTransformMatrix.GetPointer());
+  this->BrushToWorldOriginTransform->RotateX(90); // cylinder's long axis is the Y axis, we need to rotate it to Z axis
+
+  this->WorldOriginToWorldTransform->Identity();
+  this->WorldOriginToWorldTransform->Translate(brushPosition_World);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorPaintEffectPrivate::updateBrush(qMRMLWidget* viewWidget, BrushPipeline* pipeline)
+{
+  Q_Q(qSlicerSegmentEditorPaintEffect);
+  if (q->integerParameter("BrushPixelMode"))
+  {
+    pipeline->BrushActor2d->SetVisibility(false);
+    pipeline->BrushActor3d->SetVisibility(false);
+    return;
+  }
+  pipeline->BrushActor2d->SetVisibility(true);
+  pipeline->BrushActor3d->SetVisibility(true);
+
+  qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
+  if (sliceWidget)
+  {
+    // Update slice cutting plane position and orientation
+    vtkMatrix4x4* sliceXyToRas = sliceWidget->sliceLogic()->GetSliceNode()->GetXYToRAS();
+    pipeline->SlicePlane->SetNormal(sliceXyToRas->GetElement(0,2),sliceXyToRas->GetElement(1,2),sliceXyToRas->GetElement(2,2));
+    pipeline->SlicePlane->SetOrigin(sliceXyToRas->GetElement(0,3),sliceXyToRas->GetElement(1,3),sliceXyToRas->GetElement(2,3));
+
+    vtkNew<vtkMatrix4x4> rasToSliceXy;
+    vtkMatrix4x4::Invert(sliceXyToRas, rasToSliceXy.GetPointer());
+    pipeline->WorldToSliceTransform->SetMatrix(rasToSliceXy.GetPointer());
+  }
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffectPrivate::updateBrushes()
 {
-  QMapIterator<qMRMLSliceWidget*, BrushPipeline*> brushIt(this->Brushes);
-  while (brushIt.hasNext())
+  // unusedWidgetPipelines will contain those widget pointers that are not in the layout anymore
+  QList<qMRMLWidget*> unusedWidgetPipelines = this->Brushes.keys();
+
+  qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
+  foreach(QString sliceViewName, layoutManager->sliceViewNames())
   {
-    brushIt.next();
-    this->updateBrush(brushIt.key(), brushIt.value());
+    qMRMLSliceWidget* sliceWidget = layoutManager->sliceWidget(sliceViewName);
+    unusedWidgetPipelines.removeOne(sliceWidget); // not an orphan
+
+    BrushPipeline* brushPipeline = this->brushForWidget(sliceWidget);
+    this->updateBrush(sliceWidget, brushPipeline);
+    this->scheduleRender(sliceWidget);
+  }
+  for (int threeDViewId = 0; threeDViewId < layoutManager->threeDViewCount(); ++threeDViewId)
+  {
+    qMRMLThreeDWidget* threeDWidget = layoutManager->threeDWidget(threeDViewId);
+    unusedWidgetPipelines.removeOne(threeDWidget); // not an orphan
+
+    BrushPipeline* brushPipeline = this->brushForWidget(threeDWidget);
+    this->updateBrush(threeDWidget, brushPipeline);
+    this->scheduleRender(threeDWidget);
+  }
+
+  foreach (qMRMLWidget* viewWidget, unusedWidgetPipelines)
+  {
+    delete this->Brushes[viewWidget];
+    this->Brushes.remove(viewWidget);
   }
 }
 
@@ -687,67 +806,154 @@ void qSlicerSegmentEditorPaintEffect::deactivate()
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
+bool qSlicerSegmentEditorPaintEffect::processInteractionEvents(
   vtkRenderWindowInteractor* callerInteractor,
   unsigned long eid,
   qMRMLWidget* viewWidget )
 {
   Q_D(qSlicerSegmentEditorPaintEffect);
+  bool abortEvent = false;
 
   // This effect only supports interactions in the 2D slice views currently
   qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
-  if (!sliceWidget)
+  qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
+  if (!sliceWidget && !threeDWidget)
   {
-    return;
+    return abortEvent;
   }
   BrushPipeline* brush = d->brushForWidget(sliceWidget);
   if (!brush)
   {
     qCritical() << Q_FUNC_INFO << ": Failed to create brush!";
-    return;
+    return abortEvent;
   }
 
   int eventPosition[2] = { 0, 0 };
   callerInteractor->GetEventPosition(eventPosition);
 
+  double brushPosition_World[4] = {0,0,0,1};
+  if (sliceWidget)
+  {
+    double eventPositionXY[4] = {eventPosition[0], eventPosition[1], 0, 1};
+    sliceWidget->sliceLogic()->GetSliceNode()->GetXYToRAS()->MultiplyPoint(eventPositionXY, brushPosition_World);
+  }
+  else if (threeDWidget)
+  {
+    vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
+    if (!renderer)
+    {
+      return abortEvent;
+    }
+    static bool useCellPicker = true;
+    if (useCellPicker)
+    {
+      vtkNew<vtkCellPicker> picker;
+      picker->SetTolerance( .005 );
+      if (!picker->Pick(eventPosition[0], eventPosition[1], 0, renderer))
+      {
+        return abortEvent;
+      }
+
+      vtkPoints* pickPositions = picker->GetPickedPositions();
+      int numberOfPickedPositions = pickPositions->GetNumberOfPoints();
+      if (numberOfPickedPositions<1)
+      {
+        return abortEvent;
+      }
+      double cameraPosition[3]={0,0,0};
+      renderer->GetActiveCamera()->GetPosition(cameraPosition);
+      pickPositions->GetPoint(0, brushPosition_World);
+      double minDist2 = vtkMath::Distance2BetweenPoints(brushPosition_World, cameraPosition);
+      for (int i=1; i<numberOfPickedPositions; i++)
+      {
+        double currentMinDist2 = vtkMath::Distance2BetweenPoints(pickPositions->GetPoint(i), cameraPosition);
+        if (currentMinDist2<minDist2)
+        {
+          pickPositions->GetPoint(i, brushPosition_World);
+          minDist2 = currentMinDist2;
+        }
+      }
+    }
+    else
+    {
+      vtkNew<vtkPropPicker> picker;
+      //vtkNew<vtkWorldPointPicker> picker;
+      if (!picker->Pick(eventPosition[0], eventPosition[1], 0, renderer))
+      {
+        return abortEvent;
+      }
+      picker->GetPickPosition(brushPosition_World);
+    }
+  }
+
   if (eid == vtkCommand::LeftButtonPressEvent)
   {
     d->IsPainting = true;
-    if (!this->integerParameter("PixelMode"))
+    if (!this->integerParameter("BrushPixelMode"))
     {
-      this->cursorOff(sliceWidget);
+      //this->cursorOff(sliceWidget);
     }
-    brush->FeedbackActor->SetVisibility(d->DelayedPaint);
-    if (this->integerParameter("Smudge"))
+    QList<qMRMLWidget*> viewWidgets = d->Brushes.keys();
+    foreach (qMRMLWidget* viewWidget, viewWidgets)
+    {
+      qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
+      qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
+      if (sliceWidget)
+      {
+        d->Brushes[viewWidget]->FeedbackActor2d->SetVisibility(d->DelayedPaint);
+      }
+      else if (threeDWidget)
+      {
+        d->Brushes[viewWidget]->FeedbackActor3d->SetVisibility(d->DelayedPaint);
+      }
+    }
+    if (this->integerParameter("ColorSmudge"))
     {
       //TODO:
       //EditUtil.setLabel(self.getLabelPixel(xy))
     }
-    d->paintAddPoint(sliceWidget, eventPosition);
-    this->abortEvent(callerInteractor, eid, sliceWidget);
+    d->paintAddPoint(viewWidget, brushPosition_World);
+    abortEvent = true;
   }
   else if (eid == vtkCommand::LeftButtonReleaseEvent)
   {
-    d->paintApply(sliceWidget);
+    d->paintApply(viewWidget);
     d->IsPainting = false;
-    brush->FeedbackActor->VisibilityOff();
-    this->cursorOn(sliceWidget);
+    
+    QList<qMRMLWidget*> viewWidgets = d->Brushes.keys();
+    foreach (qMRMLWidget* viewWidget, viewWidgets)
+    {
+      qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
+      qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
+      if (sliceWidget)
+      {
+        d->Brushes[viewWidget]->FeedbackActor2d->VisibilityOff();
+      }
+      else if (threeDWidget)
+      {
+        d->Brushes[viewWidget]->FeedbackActor3d->VisibilityOff();
+      }
+    }
+
+    //this->cursorOn(sliceWidget);
   }
   else if (eid == vtkCommand::MouseMoveEvent)
   {
     if (d->IsPainting)
     {
-      d->paintAddPoint(sliceWidget, eventPosition);
-      this->abortEvent(callerInteractor, eid, sliceWidget);
+      d->paintAddPoint(viewWidget, brushPosition_World);
+      abortEvent = false;
     }
   }
   else if (eid == vtkCommand::EnterEvent)
   {
-    brush->BrushActor->SetVisibility(!this->integerParameter("PixelMode"));
+    brush->BrushActor2d->SetVisibility(!this->integerParameter("BrushPixelMode"));
+    brush->BrushActor3d->SetVisibility(!this->integerParameter("BrushPixelMode"));
   }
   else if (eid == vtkCommand::LeaveEvent)
   {
-    brush->BrushActor->VisibilityOff();
+    brush->BrushActor2d->VisibilityOff();
+    brush->BrushActor3d->VisibilityOff();
   }
   else if (eid == vtkCommand::KeyPressEvent)
   {
@@ -763,8 +969,10 @@ void qSlicerSegmentEditorPaintEffect::processInteractionEvents(
   }
 
   // Update paint feedback glyph to follow mouse
-  brush->BrushActor->SetPosition(eventPosition[0], eventPosition[1]);
-  sliceWidget->sliceView()->scheduleRender();
+  d->updateBrushModel(viewWidget, brushPosition_World);
+  d->updateBrushes();
+  d->forceRender(viewWidget);
+  return abortEvent;
 }
 
 //-----------------------------------------------------------------------------
@@ -774,18 +982,19 @@ void qSlicerSegmentEditorPaintEffect::processViewNodeEvents(vtkMRMLAbstractViewN
 
   // This effect only supports interactions in the 2D slice views currently
   qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
-  if (!sliceWidget)
+  qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
+  if (!sliceWidget && !threeDWidget)
   {
     return;
   }
-  BrushPipeline* brush = d->brushForWidget(sliceWidget);
+  BrushPipeline* brush = d->brushForWidget(viewWidget);
   if (!brush)
   {
     qCritical() << Q_FUNC_INFO << ": Failed to create brush!";
     return;
   }
 
-  d->updateBrush(sliceWidget, brush);
+  d->updateBrush(viewWidget, brush);
 }
 
 //-----------------------------------------------------------------------------
@@ -797,63 +1006,63 @@ void qSlicerSegmentEditorPaintEffect::setupOptionsFrame()
   Q_D(qSlicerSegmentEditorPaintEffect);
 
   // Create options frame for this effect
-  d->RadiusFrame = new QFrame();
-  d->RadiusFrame->setLayout(new QHBoxLayout());
-  this->addOptionsWidget(d->RadiusFrame);
+  d->BrushRadiusFrame = new QFrame();
+  d->BrushRadiusFrame->setLayout(new QHBoxLayout());
+  this->addOptionsWidget(d->BrushRadiusFrame);
 
-  QLabel* radiusLabel = new QLabel("Radius:", d->RadiusFrame);
+  QLabel* radiusLabel = new QLabel("Radius:", d->BrushRadiusFrame);
   radiusLabel->setToolTip("Set the radius of the paint brush in millimeters");
-  d->RadiusFrame->layout()->addWidget(radiusLabel);
+  d->BrushRadiusFrame->layout()->addWidget(radiusLabel);
 
-  d->RadiusSpinBox = new qMRMLSpinBox(d->RadiusFrame);
-  d->RadiusSpinBox->setToolTip("Set the radius of the paint brush in millimeters");
-  d->RadiusSpinBox->setQuantity("length");
-  d->RadiusSpinBox->setUnitAwareProperties(qMRMLSpinBox::Prefix | qMRMLSpinBox::Suffix);
-  d->RadiusFrame->layout()->addWidget(d->RadiusSpinBox);
+  d->BrushRadiusSpinBox = new qMRMLSpinBox(d->BrushRadiusFrame);
+  d->BrushRadiusSpinBox->setToolTip("Set the radius of the paint brush in millimeters");
+  d->BrushRadiusSpinBox->setQuantity("length");
+  d->BrushRadiusSpinBox->setUnitAwareProperties(qMRMLSpinBox::Prefix | qMRMLSpinBox::Suffix);
+  d->BrushRadiusFrame->layout()->addWidget(d->BrushRadiusSpinBox);
 
-  d->RadiusUnitsToggle = new QPushButton("px:");
-  d->RadiusUnitsToggle->setToolTip("Toggle radius quick set buttons between mm and label volume pixel size units");
-  d->RadiusUnitsToggle->setFixedWidth(35);
-  d->RadiusFrame->layout()->addWidget(d->RadiusUnitsToggle);
+  d->BrushRadiusUnitsToggle = new QPushButton("px:");
+  d->BrushRadiusUnitsToggle->setToolTip("Toggle radius quick set buttons between mm and label volume pixel size units");
+  d->BrushRadiusUnitsToggle->setFixedWidth(35);
+  d->BrushRadiusFrame->layout()->addWidget(d->BrushRadiusUnitsToggle);
 
   QList<int> quickRadii;
   quickRadii << 2 << 3 << 4 << 5 << 10 << 20;
   foreach (int radius, quickRadii)
   {
     QPushButton* quickRadiusButton = new QPushButton(QString::number(radius));
-    quickRadiusButton->setProperty("Radius", QVariant(radius));
+    quickRadiusButton->setProperty("BrushRadius", QVariant(radius));
     quickRadiusButton->setFixedWidth(25);
     quickRadiusButton->setToolTip("Set radius based on mm or label voxel size units depending on toggle value");
-    d->RadiusFrame->layout()->addWidget(quickRadiusButton);
+    d->BrushRadiusFrame->layout()->addWidget(quickRadiusButton);
     QObject::connect(quickRadiusButton, SIGNAL(clicked()), d, SLOT(onQuickRadiusButtonClicked()));
   }
 
-  d->RadiusSlider = new ctkDoubleSlider();
-  d->RadiusSlider->setOrientation(Qt::Horizontal);
-  this->addOptionsWidget(d->RadiusSlider);
+  d->BrushRadiusSlider = new ctkDoubleSlider();
+  d->BrushRadiusSlider->setOrientation(Qt::Horizontal);
+  this->addOptionsWidget(d->BrushRadiusSlider);
 
-  d->SphereCheckbox = new QCheckBox("Sphere");
-  d->SphereCheckbox->setToolTip("Use a 3D spherical brush rather than a 2D circular brush.");
-  this->addOptionsWidget(d->SphereCheckbox);
+  d->BrushSphereCheckbox = new QCheckBox("Sphere brush");
+  d->BrushSphereCheckbox->setToolTip("Use a 3D spherical brush rather than a 2D circular brush.");
+  this->addOptionsWidget(d->BrushSphereCheckbox);
 
-  d->SmudgeCheckbox = new QCheckBox("Smudge");
+  d->ColorSmudgeCheckbox = new QCheckBox("Color smudge");
   //TODO: Smudge is not yet implemented. It is now a more complex function,
   //  as it involves switching segment instead of simply changing label color.
-  //d->SmudgeCheckbox->setToolTip("Set the label number automatically by sampling the pixel location where the brush stroke starts.");
-  d->SmudgeCheckbox->setToolTip("Smudge function is not yet implemented!");
-  d->SmudgeCheckbox->setEnabled(false);
-  this->addOptionsWidget(d->SmudgeCheckbox);
+  //d->ColorSmudgeCheckbox->setToolTip("Set the label number automatically by sampling the pixel location where the brush stroke starts.");
+  d->ColorSmudgeCheckbox->setToolTip("Smudge function is not yet implemented!");
+  d->ColorSmudgeCheckbox->setEnabled(false);
+  this->addOptionsWidget(d->ColorSmudgeCheckbox);
 
-  d->PixelModeCheckbox = new QCheckBox("Pixel mode");
-  d->PixelModeCheckbox->setToolTip("Paint exactly the pixel under the cursor, ignoring the radius, threshold, and paint over.");
-  this->addOptionsWidget(d->PixelModeCheckbox);
+  d->BrushPixelModeCheckbox = new QCheckBox("Pixel mode");
+  d->BrushPixelModeCheckbox->setToolTip("Paint exactly the pixel under the cursor, ignoring the radius, threshold, and paint over.");
+  this->addOptionsWidget(d->BrushPixelModeCheckbox);
 
-  QObject::connect(d->RadiusUnitsToggle, SIGNAL(clicked()), d, SLOT(onRadiusUnitsClicked()));
-  QObject::connect(d->SphereCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
-  QObject::connect(d->SmudgeCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
-  QObject::connect(d->PixelModeCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
-  QObject::connect(d->RadiusSlider, SIGNAL(valueChanged(double)), d, SLOT(onRadiusValueChanged(double)));
-  QObject::connect(d->RadiusSpinBox, SIGNAL(valueChanged(double)), d, SLOT(onRadiusValueChanged(double)));
+  QObject::connect(d->BrushRadiusUnitsToggle, SIGNAL(clicked()), d, SLOT(onRadiusUnitsClicked()));
+  QObject::connect(d->BrushSphereCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
+  QObject::connect(d->ColorSmudgeCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
+  QObject::connect(d->BrushPixelModeCheckbox, SIGNAL(clicked()), this, SLOT(updateMRMLFromGUI()));
+  QObject::connect(d->BrushRadiusSlider, SIGNAL(valueChanged(double)), d, SLOT(onRadiusValueChanged(double)));
+  QObject::connect(d->BrushRadiusSpinBox, SIGNAL(valueChanged(double)), d, SLOT(onRadiusValueChanged(double)));
 }
 
 //-----------------------------------------------------------------------------
@@ -861,12 +1070,12 @@ void qSlicerSegmentEditorPaintEffect::setMRMLDefaults()
 {
   Superclass::setMRMLDefaults();
 
-  this->setParameter("MinimumRadius", 0.01);
-  this->setParameter("MaximumRadius", 100.0);
-  this->setParameter("Radius", 0.5);
-  this->setParameter("Sphere", 0);
-  this->setParameter("Smudge", 0);
-  this->setParameter("PixelMode", 0);
+  this->setCommonParameter("BrushMinimumRadius", 0.01);
+  this->setCommonParameter("BrushMaximumRadius", 100.0);
+  this->setCommonParameter("BrushRadius", 0.5);
+  this->setCommonParameter("BrushSphere", 0);
+  this->setCommonParameter("ColorSmudge", 0);
+  this->setCommonParameter("BrushPixelMode", 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -879,46 +1088,42 @@ void qSlicerSegmentEditorPaintEffect::updateGUIFromMRML()
     return;
   }
 
-  d->SphereCheckbox->blockSignals(true);
-  d->SphereCheckbox->setChecked(this->integerParameter("Sphere"));
-  d->SphereCheckbox->blockSignals(false);
+  d->BrushSphereCheckbox->blockSignals(true);
+  d->BrushSphereCheckbox->setChecked(this->integerParameter("BrushSphere"));
+  d->BrushSphereCheckbox->blockSignals(false);
 
-  d->SmudgeCheckbox->blockSignals(true);
-  d->SmudgeCheckbox->setChecked(this->integerParameter("Smudge"));
-  d->SmudgeCheckbox->blockSignals(false);
+  d->ColorSmudgeCheckbox->blockSignals(true);
+  d->ColorSmudgeCheckbox->setChecked(this->integerParameter("ColorSmudge"));
+  d->ColorSmudgeCheckbox->blockSignals(false);
 
-  bool pixelMode = this->integerParameter("PixelMode");
-  d->PixelModeCheckbox->blockSignals(true);
-  d->PixelModeCheckbox->setChecked(pixelMode);
-  d->PixelModeCheckbox->blockSignals(false);
+  bool pixelMode = this->integerParameter("BrushPixelMode");
+  d->BrushPixelModeCheckbox->blockSignals(true);
+  d->BrushPixelModeCheckbox->setChecked(pixelMode);
+  d->BrushPixelModeCheckbox->blockSignals(false);
 
-  // Pixel mode prevents using threshold and paint over functions
-  this->setParameter(this->thresholdAvailableParameterName(), !pixelMode);
-  this->setParameter(this->paintOverAvailableParameterName(), !pixelMode);
-  // Update label options based on constraints set by pixel mode
   Superclass::updateGUIFromMRML();
 
   // Radius is also disabled if pixel mode is on
-  d->RadiusFrame->setEnabled(!pixelMode);
+  d->BrushRadiusFrame->setEnabled(!pixelMode);
 
-  d->RadiusSlider->blockSignals(true);
-  d->RadiusSlider->setMinimum(this->doubleParameter("MinimumRadius"));
-  d->RadiusSlider->setMaximum(this->doubleParameter("MaximumRadius"));
-  d->RadiusSlider->setValue(this->doubleParameter("Radius"));
-  d->RadiusSlider->setSingleStep(this->doubleParameter("MinimumRadius"));
-  d->RadiusSlider->blockSignals(false);
+  d->BrushRadiusSlider->blockSignals(true);
+  d->BrushRadiusSlider->setMinimum(this->doubleParameter("BrushMinimumRadius"));
+  d->BrushRadiusSlider->setMaximum(this->doubleParameter("BrushMaximumRadius"));
+  d->BrushRadiusSlider->setValue(this->doubleParameter("BrushRadius"));
+  d->BrushRadiusSlider->setSingleStep(this->doubleParameter("BrushMinimumRadius"));
+  d->BrushRadiusSlider->blockSignals(false);
 
-  d->RadiusSpinBox->blockSignals(true);
-  d->RadiusSpinBox->setMRMLScene(this->scene());
-  d->RadiusSpinBox->setMinimum(this->doubleParameter("MinimumRadius"));
-  d->RadiusSpinBox->setMaximum(this->doubleParameter("MaximumRadius"));
-  d->RadiusSpinBox->setValue(this->doubleParameter("Radius"));
-  int decimals = (int)(log10(this->doubleParameter("MinimumRadius")));
+  d->BrushRadiusSpinBox->blockSignals(true);
+  d->BrushRadiusSpinBox->setMRMLScene(this->scene());
+  d->BrushRadiusSpinBox->setMinimum(this->doubleParameter("BrushMinimumRadius"));
+  d->BrushRadiusSpinBox->setMaximum(this->doubleParameter("BrushMaximumRadius"));
+  d->BrushRadiusSpinBox->setValue(this->doubleParameter("BrushRadius"));
+  int decimals = (int)(log10(this->doubleParameter("BrushMinimumRadius")));
   if (decimals < 0)
   {
-    d->RadiusSpinBox->setDecimals(-decimals * 2);
+    d->BrushRadiusSpinBox->setDecimals(-decimals * 2);
   }
-  d->RadiusSpinBox->blockSignals(false);
+  d->BrushRadiusSpinBox->blockSignals(false);
 
   // Update brushes
   d->updateBrushes();
@@ -927,27 +1132,24 @@ void qSlicerSegmentEditorPaintEffect::updateGUIFromMRML()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffect::updateMRMLFromGUI()
 {
-  Superclass::updateMRMLFromGUI();
-
   Q_D(qSlicerSegmentEditorPaintEffect);
 
-  this->setParameter("Sphere", (int)d->SphereCheckbox->isChecked());
-  this->setParameter("Smudge", (int)d->SmudgeCheckbox->isChecked());
-  bool pixelMode = d->PixelModeCheckbox->isChecked();
-  bool pixelModeChanged = (pixelMode != (bool)this->integerParameter("PixelMode"));
-  this->setParameter("PixelMode", (int)pixelMode);
-  this->setParameter("Radius", d->RadiusSlider->value());
+  Superclass::updateMRMLFromGUI();
+
+  this->setCommonParameter("BrushSphere", (int)d->BrushSphereCheckbox->isChecked());
+  this->setCommonParameter("ColorSmudge", (int)d->ColorSmudgeCheckbox->isChecked());
+  bool pixelMode = d->BrushPixelModeCheckbox->isChecked();
+  bool pixelModeChanged = (pixelMode != (bool)this->integerParameter("BrushPixelMode"));
+  this->setCommonParameter("BrushPixelMode", (int)pixelMode);
+  this->setCommonParameter("BrushRadius", d->BrushRadiusSlider->value());
 
   // If pixel mode changed, then other GUI changes are due
   if (pixelModeChanged)
   {
-    // Pixel mode prevents using threshold and paint over functions
-    this->setParameter(this->thresholdAvailableParameterName(), !pixelMode);
-    this->setParameter(this->paintOverAvailableParameterName(), !pixelMode);
     // Update label options based on constraints set by pixel mode
     Superclass::updateGUIFromMRML();
 
-    d->RadiusFrame->setEnabled(!pixelMode);
+    d->BrushRadiusFrame->setEnabled(!pixelMode);
   }
 }
 
@@ -956,29 +1158,23 @@ void qSlicerSegmentEditorPaintEffect::editedLabelmapChanged()
 {
   Superclass::editedLabelmapChanged();
 
-  if (!this->parameterSetNode())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
-    return;
-  }
-
-  vtkOrientedImageData* labelmap = this->parameterSetNode()->GetEditedLabelmap();
-  if (labelmap)
+  vtkOrientedImageData* labelmapImage = this->editedLabelmap();
+  if (labelmapImage)
   {
     double spacing[3] = {0.0, 0.0, 0.0};
-    labelmap->GetSpacing(spacing);
+    labelmapImage->GetSpacing(spacing);
     double minimumSpacing = qMin(spacing[0], qMin(spacing[1], spacing[2]));
     double minimumRadius = 0.5 * minimumSpacing;
-    this->setParameter("MinimumRadius", minimumRadius);
+    this->setCommonParameter("BrushMinimumRadius", minimumRadius);
 
     int dimensions[3] = {0, 0, 0};
-    labelmap->GetDimensions(dimensions);
+    labelmapImage->GetDimensions(dimensions);
     double bounds[3] = {spacing[0]*dimensions[0], spacing[1]*dimensions[1], spacing[2]*dimensions[2]};
     double maximumBounds = qMax(bounds[0], qMax(bounds[1], bounds[2]));
     double maximumRadius = 0.5 * maximumBounds;
-    this->setParameter("MaximumRadius", maximumRadius);
+    this->setCommonParameter("BrushMaximumRadius", maximumRadius);
 
-    this->setParameter("Radius", qMin(50.0 * minimumRadius, 0.5 * maximumRadius));
+    this->setCommonParameter("BrushRadius", qMin(50.0 * minimumRadius, 0.5 * maximumRadius));
 
     this->updateGUIFromMRML();
   }

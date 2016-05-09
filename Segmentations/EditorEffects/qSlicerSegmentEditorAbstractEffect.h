@@ -66,10 +66,6 @@ public:
   Q_PROPERTY(bool perSegment READ perSegment WRITE setPerSegment)
 
 public:
-  /// Property identifier for soring event tags in widgets
-  static const char* observerTagIdentifier() { return "ObserverTags"; };
-
-public:
   typedef QObject Superclass;
   qSlicerSegmentEditorAbstractEffect(QObject* parent = NULL);
   virtual ~qSlicerSegmentEditorAbstractEffect();
@@ -98,6 +94,14 @@ public:
   /// they must call apply from the base class too, AFTER the effect-specific implementation
   Q_INVOKABLE virtual void apply();
 
+  /// Apply mask image on an input image
+  /// \param input Input image to apply the mask on
+  /// \param mask Mask to apply
+  /// \param notMask If on, the mask is passed through a boolean not before it is used to mask the image.
+  ///   The effect is to pass the pixels where the input mask is zero, and replace the pixels where the
+  ///   input value is non zero
+  Q_INVOKABLE static void applyImageMask(vtkOrientedImageData* input, vtkOrientedImageData* mask, double fillValue, bool notMask = false);
+
   /// Create options frame widgets, make connections, and add them to the main options frame using \sa addOptionsWidget
   /// NOTE: Base class implementation needs to be called BEFORE the effect-specific implementation
   virtual void setupOptionsFrame() { };
@@ -109,7 +113,8 @@ public:
   /// \param callerInteractor Interactor object that was observed to catch the event
   /// \param eid Event identifier
   /// \param viewWidget Widget of the Slicer layout view. Can be \sa qMRMLSliceWidget or \sa qMRMLThreeDWidget
-  virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget) { };
+  /// \return return true to abort the event (prevent other views to receive the event)
+  virtual bool processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget) { return false; };
 
   /// Callback function invoked when view node is modified
   /// \param callerViewNode View node that was observed to catch the event. Can be either \sa vtkMRMLSliceNode or \sa vtkMRMLViewNode
@@ -121,7 +126,7 @@ public:
   /// NOTE: Base class implementation needs to be called with the effect-specific implementation
   virtual void setMRMLDefaults() = 0;
 
-  /// Simple mechanism to let the effects know that edited labelmap has changed
+  /// Simple mechanism to let the effects know that edited labelmap geometry has changed
   /// NOTE: Base class implementation needs to be called with the effect-specific implementation
   virtual void editedLabelmapChanged() { };
   /// Simple mechanism to let the effects know that master volume has changed
@@ -158,6 +163,11 @@ public:
   /// and adds it back on activation.
   Q_INVOKABLE void addActor2D(qMRMLWidget* viewWidget, vtkActor2D* actor);
 
+  /// Remove actor from the list of actors managed by the abstract effect class.
+  /// The actor is immediately removed from the renderer when this method is called
+  /// and it is never added back automatically.
+  Q_INVOKABLE void removeActor2D(qMRMLWidget* viewWidget, vtkActor2D* actor);
+  
   /// Add actor to the list of actors managed by the abstract effect class.
   /// The actor is immediately added to the renderer when this method is called
   /// and the effect automatically removes the actor from renderer on deactivation
@@ -190,10 +200,15 @@ public:
   /// If the effect name is empty, then the active effect is de-selected.
   Q_INVOKABLE void selectEffect(QString effectName);
 
-  /// Connect signal that is emitted when the edited labelmap is to be applied to the currently edited segment.
-  void connectApply(QObject* receiver, const char* method);
-  /// Connect signal that can be emitted from the active effect to initiate switching to another effect (or de-select)
-  void connectSelectEffect(QObject* receiver, const char* method);
+  /// Connect callback signals. Callbacks are called by the editor effect to request operations from the editor widget.
+  /// applySlot: called when the edited labelmap is to be applied to the currently edited segment.
+  /// selectEffectSlot: called from the active effect to initiate switching to another effect (or de-select).
+  /// updateVolumeSlot: called to request update of a volume (editedLabelmap, alignedMasterVolume, maskLabelmap).
+  void setCallbackSlots(QObject* receiver, const char* applySlot, const char* selectEffectSlot, const char* updateVolumeSlot);
+
+  /// Called by the editor widget.
+  void setVolumes(vtkOrientedImageData* alignedMasterVolume, vtkOrientedImageData* editedLabelmap,
+    vtkOrientedImageData* maskLabelmap, vtkOrientedImageData* selectedSegmentLabelmap);
 
 // Effect parameter functions
 public:
@@ -244,17 +259,36 @@ public:
 
 // Utility functions
 public:
-  /// Set the AbortFlag on the vtkCommand associated with the event.
-  /// Causes other things listening to the interactor not to receive the events
-  Q_INVOKABLE void abortEvent(vtkRenderWindowInteractor* interactor, unsigned long eventId, qMRMLWidget* viewWidget);
+  Q_INVOKABLE vtkOrientedImageData* editedLabelmap();
 
-  /// Get image data of master volume.
-  /// Use argument as the image data is temporary, because it involves the geometry of the volume
-  /// \return Success flag
-  Q_INVOKABLE bool masterVolumeImageData(vtkOrientedImageData* masterImageData);
-  /// Get scalar range for master volume
-  /// \return Success flag
-  bool masterVolumeScalarRange(double& low, double& high);
+  Q_INVOKABLE vtkOrientedImageData* maskLabelmap();
+
+  Q_INVOKABLE vtkOrientedImageData* selectedSegmentLabelmap();
+
+
+  /// Get image data of master volume aligned with the edited labelmap.
+  /// \return Pointer to the image data
+  Q_INVOKABLE vtkOrientedImageData* masterVolumeImageData();
+
+  /// Modes for updating a segment with the contents of the current edited labelmap
+  enum
+  {
+    APPLY_MODE_SET = 0,
+    APPLY_MODE_ADD,
+    APPLY_MODE_REMOVE
+  };
+
+  Q_INVOKABLE int editedLabelmapApplyMode();
+  Q_INVOKABLE void setEditedLabelmapApplyMode(int applyMode);
+  Q_INVOKABLE void setEditedLabelmapApplyModeToSet();
+  Q_INVOKABLE void setEditedLabelmapApplyModeToAdd();
+  Q_INVOKABLE void setEditedLabelmapApplyModeToRemove();
+
+  Q_INVOKABLE void setEditedLabelmapApplyExtent(int extent[6]);
+  Q_INVOKABLE void setEditedLabelmapApplyExtent(int xStart, int xEnd, int yStart, int yEnd, int zStart, int zEnd);
+  Q_INVOKABLE void setEditedLabelmapApplyExtentToWholeExtent();
+  Q_INVOKABLE void editedLabelmapApplyExtent(int extent[6])const;
+  Q_INVOKABLE int* editedLabelmapApplyExtent();
 
   /// Get render window for view widget
   Q_INVOKABLE static vtkRenderWindow* renderWindow(qMRMLWidget* viewWidget);
@@ -300,6 +334,9 @@ protected:
   /// of edited labelmap, but it is set to empty in the parameter set node.
   /// True by default.
   bool m_PerSegment;
+
+  double m_FillValue;
+  double m_EraseValue;
 
 protected:
   QScopedPointer<qSlicerSegmentEditorAbstractEffectPrivate> d_ptr;

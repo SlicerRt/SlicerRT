@@ -38,7 +38,12 @@
 #include "qSlicerSegmentEditorPaintEffect.h"
 
 // VTK includes
+#include <vtkCutter.h>
+#include <vtkCylinderSource.h>
 #include <vtkSmartPointer.h>
+#include <vtkSphereSource.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 
 // Qt includes
 #include <QObject>
@@ -55,8 +60,11 @@ class QPushButton;
 class qMRMLSliceWidget;
 class qMRMLSpinBox;
 class vtkActor2D;
+class vtkGlyph3D;
 class vtkImageSlicePaint;
 class vtkPoints;
+class vtkPolyDataNormals;
+class vtkPolyDataToImageStencil;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
 /// \brief Private implementation of the segment editor paint effect
@@ -73,33 +81,39 @@ public:
 
   /// Depending on the \sa DelayedPaint mode, either paint the given point or queue
   /// it up with a marker for later painting
-  void paintAddPoint(qMRMLSliceWidget* sliceWidget, int pixelPositionXy[2]);
+  void paintAddPoint(qMRMLWidget* viewWidget, double pixelPositionWorld[3]);
 
   /// Update paint circle glyph
-  void updateBrush(qMRMLSliceWidget* sliceWidget, BrushPipeline* brush);
+  void updateBrush(qMRMLWidget* viewWidget, BrushPipeline* brush);
 
   /// Update brushes
   void updateBrushes();
 
+  /// Update brush model (shape and position)
+  void updateBrushModel(qMRMLWidget* viewWidget, double brushPosition_World[3]);
+
+  /// Updates the brush stencil that can be used to quickly paint the brush shape into
+  /// editedLabelmap at many different positions.
+  void updateBrushStencil(qMRMLWidget* viewWidget);
+
 protected:
   /// Get brush object for widget. Create if does not exist
-  BrushPipeline* brushForWidget(qMRMLSliceWidget* sliceWidget);
+  BrushPipeline* brushForWidget(qMRMLWidget* viewWidget);
 
   /// Paint labelmap
-  void paintApply(qMRMLSliceWidget* sliceWidget);
-
-  /// Paint with a brush that is circular (or optionally spherical) in XY space
-  /// (could be stretched or rotate when transformed to IJK)
-  /// - Make sure to hit every pixel in IJK space
-  /// - Apply the threshold if selected
-  void paintBrush(qMRMLSliceWidget* sliceWidget, double brushCenterXy[2]);
+  void paintApply(qMRMLWidget* viewWidget);
 
   /// Paint one pixel to coordinate
-  void paintPixel(qMRMLSliceWidget* sliceWidget, double pixelPositionXy[2]);
-  void paintPixels(qMRMLSliceWidget* sliceWidget, vtkPoints* pixelPositions);
+  void paintPixel(qMRMLWidget* viewWidget, double brushPosition_World[3]);
+  void paintPixels(qMRMLWidget* viewWidget, vtkPoints* pixelPositions);
 
   /// Scale brush radius and save it in parameter node
   void scaleRadius(double scaleFactor);
+
+  double GetSliceSpacing(qMRMLSliceWidget* sliceWidget);
+  
+  void forceRender(qMRMLWidget* viewWidget);
+  void scheduleRender(qMRMLWidget* viewWidget);
 
 public slots:
   void onRadiusUnitsClicked();
@@ -109,20 +123,36 @@ public slots:
 public:
   QIcon PaintIcon;
 
-  vtkSmartPointer<vtkPoints> PaintCoordinates;
+  vtkSmartPointer<vtkCylinderSource> BrushCylinderSource;
+  vtkSmartPointer<vtkSphereSource> BrushSphereSource;
+  vtkSmartPointer<vtkTransformPolyDataFilter> BrushToWorldOriginTransformer;
+  vtkSmartPointer<vtkTransform> BrushToWorldOriginTransform;
+
+  vtkSmartPointer<vtkTransformPolyDataFilter> WorldOriginToWorldTransformer;
+  vtkSmartPointer<vtkTransform> WorldOriginToWorldTransform;
+  vtkSmartPointer<vtkPolyDataNormals> BrushPolyDataNormals;
+  vtkSmartPointer<vtkTransformPolyDataFilter> WorldOriginToEditedLabelmapIjkTransformer;
+  vtkSmartPointer<vtkTransform> WorldOriginToEditedLabelmapIjkTransform; // transforms from polydata source to editedLabelmap's IJK coordinate system (brush origin in IJK origin)
+  vtkSmartPointer<vtkPolyDataToImageStencil> BrushPolyDataToStencil;
+
+  vtkSmartPointer<vtkGlyph3D> FeedbackGlyphFilter;
+
+  vtkSmartPointer<vtkPoints> PaintCoordinates_World;
+  vtkSmartPointer<vtkPolyData> FeedbackPointsPolyData;
+
   QList<vtkActor2D*> FeedbackActors;
-  QMap<qMRMLSliceWidget*, BrushPipeline*> Brushes;
+  QMap<qMRMLWidget*, BrushPipeline*> Brushes;
   vtkImageSlicePaint* Painter;
   bool DelayedPaint;
   bool IsPainting;
 
-  QFrame* RadiusFrame;
-  qMRMLSpinBox* RadiusSpinBox;
-  ctkDoubleSlider* RadiusSlider;
-  QPushButton* RadiusUnitsToggle;
-  QCheckBox* SphereCheckbox;
-  QCheckBox* SmudgeCheckbox;
-  QCheckBox* PixelModeCheckbox;
+  QFrame* BrushRadiusFrame;
+  qMRMLSpinBox* BrushRadiusSpinBox;
+  ctkDoubleSlider* BrushRadiusSlider;
+  QPushButton* BrushRadiusUnitsToggle;
+  QCheckBox* BrushSphereCheckbox;
+  QCheckBox* ColorSmudgeCheckbox;
+  QCheckBox* BrushPixelModeCheckbox;
 };
 
 #endif

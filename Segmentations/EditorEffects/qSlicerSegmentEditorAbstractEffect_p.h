@@ -68,6 +68,7 @@ public:
 signals:
   void applySignal();
   void selectEffectSignal(QString);
+  void updateVolumeSignal(void*);
 public:
   /// Segment editor parameter set node
   vtkWeakPointer<vtkMRMLSegmentEditorNode> ParameterSetNode;
@@ -85,6 +86,26 @@ public:
   /// Frame containing the effect options UI.
   /// Populating the frame is possible using the \sa addOptionsWidget method from the base classes
   QFrame* OptionsFrame;
+
+  /// Aligned master volume is a copy of image in master volume node
+  /// resampled into the reference image geometry of the segmentation.
+  /// If the master volume geometry is the same as the reference image geometry
+  /// then only a shallow copy is performed.
+  vtkWeakPointer<vtkOrientedImageData> AlignedMasterVolume;
+
+  /// Active labelmap for editing. Mainly needed because the segment binary labelmaps are shrunk
+  /// to the smallest possible extent, but the user wants to draw on the whole master volume.
+  vtkWeakPointer<vtkOrientedImageData> EditedLabelmap;
+  int EditedLabelmapApplyMode;
+  int EditedLabelmapApplyExtent[6];
+
+  /// Mask labelmap containing a merged silhouette of all the segments other than the selected one.
+  /// Used if the paint over feature is turned off.
+  vtkWeakPointer<vtkOrientedImageData> MaskLabelmap;
+
+  /// SelectedSegmentLabelmap is a copy of the labelmap of the current segment
+  /// resampled into the reference image geometry of the segmentation.
+  vtkWeakPointer<vtkOrientedImageData> SelectedSegmentLabelmap;
 };
 
 #endif

@@ -371,7 +371,7 @@ bool vtkSlicerSegmentationsModuleLogic::CreateLabelmapVolumeFromOrientedImageDat
 }
 
 //-----------------------------------------------------------------------------
-vtkOrientedImageData* vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(vtkMRMLScalarVolumeNode* volumeNode)
+vtkOrientedImageData* vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(vtkMRMLScalarVolumeNode* volumeNode, vtkMRMLTransformNode* outputParentTransformNode /* = NULL */)
 {
   if (!volumeNode || !volumeNode->GetImageData())
   {
@@ -387,7 +387,12 @@ vtkOrientedImageData* vtkSlicerSegmentationsModuleLogic::CreateOrientedImageData
   orientedImageData->SetGeometryFromImageToWorldMatrix(ijkToRasMatrix);
 
   // Apply parent transform of the volume node if any
-  vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(volumeNode, orientedImageData);
+  if (volumeNode->GetParentTransformNode() != outputParentTransformNode)
+  {
+    vtkSmartPointer<vtkGeneralTransform> nodeToOutputTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+    vtkMRMLTransformNode::GetTransformBetweenNodes(volumeNode->GetParentTransformNode(), outputParentTransformNode, nodeToOutputTransform);
+    vtkOrientedImageDataResample::TransformOrientedImage(orientedImageData, nodeToOutputTransform);
+  }
 
   //TODO: This method leaks from python. The function SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData can be used istead.
   return orientedImageData;
@@ -1035,17 +1040,14 @@ bool vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(
   // Get world to reference RAS transform
   vtkSmartPointer<vtkGeneralTransform> nodeToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
   vtkMRMLTransformNode* parentTransformNode = transformableNode->GetParentTransformNode();
-  if (parentTransformNode)
-  {
-    parentTransformNode->GetTransformToWorld(nodeToWorldTransform);
-  }
-  else
+  if (!parentTransformNode)
   {
     // There is no parent transform for segmentation, nothing to apply
     return true;
   }
 
   // Transform oriented image data
+  parentTransformNode->GetTransformToWorld(nodeToWorldTransform);
   vtkOrientedImageDataResample::TransformOrientedImage(orientedImageData, nodeToWorldTransform);
 
   return true;
@@ -1139,7 +1141,7 @@ bool vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(v
 }
 
 //-----------------------------------------------------------------------------
-bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedImageData* labelmap, vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, bool append/*=false*/)
+bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedImageData* labelmap, vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, int mergeMode/*=MODE_REPLACE*/, int extent[6]/*=0*/)
 {
   if (!segmentationNode || segmentID.empty() || !labelmap)
   {
@@ -1164,17 +1166,38 @@ bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedIm
 
   // 1. Append input labelmap to the segment labelmap if requested
   vtkSmartPointer<vtkOrientedImageData> newSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
-  if (append)
+
+  int* segmentLabelmapExtent = segmentLabelmap->GetExtent();
+  bool segmentLabelmapEmpty = (segmentLabelmapExtent[0] > segmentLabelmapExtent[1] ||
+    segmentLabelmapExtent[2] > segmentLabelmapExtent[3] ||
+    segmentLabelmapExtent[4] > segmentLabelmapExtent[5]);
+  if (segmentLabelmapEmpty)
   {
-    if (!vtkOrientedImageDataResample::AppendImageMax(segmentLabelmap, labelmap, newSegmentLabelmap))
+    if (mergeMode == MODE_MERGE_MIN)
     {
-      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Failed to append labelmap");
+      // empty image is assumed to have minimum value everywhere, combining it with MAX operation
+      // results an empty image, so we don't need to do anything7
+      return true;
+    }
+    // Replace the empty image with the modifier image
+    mergeMode = MODE_REPLACE;
+  }
+
+  if (mergeMode == MODE_REPLACE)
+  {
+    if (!vtkOrientedImageDataResample::CopyImage(labelmap, newSegmentLabelmap, extent))
+    {
+      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Failed to copy labelmap");
       return false;
     }
   }
   else
   {
-    newSegmentLabelmap->DeepCopy(labelmap);
+    if (!vtkOrientedImageDataResample::MergeImage(segmentLabelmap, labelmap, newSegmentLabelmap, mergeMode==MODE_MERGE_MAX, extent))
+    {
+      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Failed to merge labelmap (max)");
+      return false;
+    }
   }
 
   // 2. Copy the temporary padded edited labelmap to the segment.
@@ -1182,23 +1205,23 @@ bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedIm
   //    removal of all other representations in all segments does not get activated. Instead, explicitly create
   //    representations for the edited segment that the other segments have.
   segmentationNode->GetSegmentation()->SetMasterRepresentationModifiedEnabled(false);
-  segmentLabelmap->DeepCopy(newSegmentLabelmap);
+  segmentLabelmap->ShallowCopy(newSegmentLabelmap);
 
   // 3. Shrink the image data extent to only contain the effective data (extent of non-zero voxels)
   int effectiveExtent[6] = {0,-1,0,-1,0,-1};
-  vtkOrientedImageDataResample::CalculateEffectiveExtent(segmentLabelmap, effectiveExtent);
+  vtkOrientedImageDataResample::CalculateEffectiveExtent(segmentLabelmap, effectiveExtent); // TODO: use the update extent? maybe crop when changing segment?
   if (effectiveExtent[0] > effectiveExtent[1] || effectiveExtent[2] > effectiveExtent[3] || effectiveExtent[4] > effectiveExtent[5])
   {
     vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Effective extent of the labelmap to set is invalid!");
-    return false;
   }
-
-  vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
-  padder->SetInputData(segmentLabelmap);
-  padder->SetOutputWholeExtent(effectiveExtent);
-  padder->Update();
-  segmentLabelmap->DeepCopy(padder->GetOutput());
-
+  else
+  {
+    vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
+    padder->SetInputData(segmentLabelmap);
+    padder->SetOutputWholeExtent(effectiveExtent);
+    padder->Update();
+    segmentLabelmap->DeepCopy(padder->GetOutput());
+  }
   // 4. Re-convert all other representations
   std::vector<std::string> representationNames;
   selectedSegment->GetContainedRepresentationNames(representationNames);

@@ -125,10 +125,13 @@ public slots:
 
   /// Commit changes to selected segment from the temporary padded edited labelmap.
   /// Called when effect sub-classes emit the signal \sa qSlicerSegmentEditorAbstractEffect::apply()
-  void applyChangesToSelectedSegment();
+  Q_INVOKABLE void applyChangesToSelectedSegment();
 
   /// Set active effect by name
   Q_INVOKABLE void setActiveEffectByName(QString effectName);
+
+  /// Update editedLabelmap, maskLabelmap, or alignedMasterVolumeNode
+  Q_INVOKABLE void updateVolume(void*);
 
 protected slots:
   /// Handles changing of current segmentation MRML node
@@ -147,14 +150,31 @@ protected slots:
   void onRemoveSegment();
   /// Create/remove closed surface model for the segmentation that is automatically updated when editing
   void onCreateSurfaceToggled(bool on);
-  /// Update state of create surface button. Called if representation is created or removed
-  void updateCreateSurfaceButton();
+  /// Called if a segment or representation is added or removed
+  void onSegmentAddedRemoved();
+  /// Called if master volume image data is changed
+  void onMasterVolumeImageDataModified();
   /// Handle layout changes
   void onLayoutChanged(int layoutIndex);
+
+  /// Changed selected editable segment area
+  void onMaskModeChanged(int);
+
+  /// Enable/disable threshold when checkbox is toggled
+  void onMasterVolumeIntensityMaskChecked(bool checked);
+  /// Handles threshold values changed event
+  void onMasterVolumeIntensityMaskRangeChanged(double low, double high);
+  
+  /// Changed selected overwriteable segments
+  void onOverwriteModeChanged(int);  
 
 protected:
   /// Callback function invoked when interaction happens
   static void processEvents(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
+
+  void updateWidgetFromSegmentationNode();
+  void updateWidgetFromMasterVolumeNode();
+  void updateWidgetFromEffect();
 
 protected:
   QScopedPointer<qMRMLSegmentEditorWidgetPrivate> d_ptr;

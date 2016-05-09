@@ -48,24 +48,44 @@ class SegmentEditorDilateEffect(AbstractScriptedSegmentEditorMorphologyEffect):
     iterations = self.scriptedEffect.integerParameter("Iterations")
 
     # Get edited labelmap
-    editedLabelmap = self.scriptedEffect.parameterSetNode().GetEditedLabelmap()
+    editedLabelmap = self.scriptedEffect.editedLabelmap()
+    selectedSegmentLabelmap = self.scriptedEffect.selectedSegmentLabelmap()    
 
     # Perform dilation
     # (use erode filter to dilate by eroding background)
-    eroder = slicer.vtkImageErode()
-    eroder.SetInputData(editedLabelmap)
-    eroder.SetForeground(0) # Erode becomes dilate by switching the labels
-    eroder.SetBackground(1)
-    if neighborMode == 8:
-      eroder.SetNeighborTo8()
-    elif neighborMode == 4:
-      eroder.SetNeighborTo4()
-    else:
-      logging.error("Invalid neighbor mode!")
-    for i in xrange(iterations):
-      eroder.Update()
-    editedLabelmap.DeepCopy(eroder.GetOutput())
+    #eroder = slicer.vtkImageErode()
+    #eroder.SetInputData(selectedSegmentLabelmap)
+    #eroder.SetForeground(0) # Erode becomes dilate by switching the labels
+    #eroder.SetBackground(1)
+    #if neighborMode == 8:
+    #  eroder.SetNeighborTo8()
+    #elif neighborMode == 4:
+    #  eroder.SetNeighborTo4()
+    #else:
+    #  logging.error("Invalid neighbor mode!")
+    #for i in xrange(iterations):
+    #  eroder.Update()
+    #editedLabelmap.DeepCopy(eroder.GetOutput())
 
-    # Notify editor about changes.
-    # This needs to be called so that the changes are written back to the edited segment
+    eroder = vtk.vtkImageDilateErode3D()
+    eroder.SetInputData(selectedSegmentLabelmap)
+    eroder.SetDilateValue(1)
+    eroder.SetErodeValue(0)
+    eroder.SetKernelSize(5,5,5)
+    eroder.Update()
+    editedLabelmap.DeepCopy(eroder.GetOutput())
+    
+    #import vtkSegmentationCore
+    #maskLabelmapCopy = vtkSegmentationCore.vtkOrientedImageData()
+    #maskLabelmapCopy.DeepCopy(self.scriptedEffect.maskLabelmap())
+    #labelmapVolumeNode = slicer.vtkMRMLLabelMapVolumeNode()
+    #slicer.mrmlScene.AddNode(labelmapVolumeNode)
+    #import vtkSlicerSegmentationsModuleLogic
+    #vtkSlicerSegmentationsModuleLogic.vtkSlicerSegmentationsModuleLogic.CreateLabelmapVolumeFromOrientedImageData(
+    #  maskLabelmapCopy, labelmapVolumeNode)
+    #labelmapVolumeNode.CreateDefaultDisplayNodes()    
+    
+    self.scriptedEffect.setEditedLabelmapApplyModeToSet()
+    self.scriptedEffect.setEditedLabelmapApplyExtentToWholeExtent()
     self.scriptedEffect.apply()
+    

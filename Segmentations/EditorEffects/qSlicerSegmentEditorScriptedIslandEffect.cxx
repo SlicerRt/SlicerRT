@@ -334,6 +334,7 @@ QCursor qSlicerSegmentEditorScriptedIslandEffect::createCursor(qMRMLWidget* view
   PyObject* arguments = PyTuple_New(1);
   PyTuple_SET_ITEM(arguments, 0, PythonQtConv::QVariantToPyObject(QVariant::fromValue<QObject*>((QObject*)viewWidget)));
   PyObject* result = d->PythonCppAPI.callMethod(d->CreateCursorMethod, arguments);
+  Py_DECREF(arguments);
   if (!result)
     {
     // Method call failed (probably an omitted function), call default implementation
@@ -346,7 +347,7 @@ QCursor qSlicerSegmentEditorScriptedIslandEffect::createCursor(qMRMLWidget* view
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedIslandEffect::processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget)
+bool qSlicerSegmentEditorScriptedIslandEffect::processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget)
 {
   Q_D(const qSlicerSegmentEditorScriptedIslandEffect);
   PyObject* arguments = PyTuple_New(3);
@@ -354,11 +355,20 @@ void qSlicerSegmentEditorScriptedIslandEffect::processInteractionEvents(vtkRende
   PyTuple_SET_ITEM(arguments, 1, PyInt_FromLong(eid));
   PyTuple_SET_ITEM(arguments, 2, PythonQtConv::QVariantToPyObject(QVariant::fromValue<QObject*>((QObject*)viewWidget)));
   PyObject* result = d->PythonCppAPI.callMethod(d->ProcessInteractionEventsMethod, arguments);
+  Py_DECREF(arguments);
   if (!result)
     {
     // Method call failed (probably an omitted function), call default implementation
     return this->Superclass::processInteractionEvents(callerInteractor, eid, viewWidget);
     }
+  if (!PyBool_Check(result))
+    {
+    qWarning() << d->PythonSource
+               << " - function 'processInteractionEvents' "
+               << "is expected to return a boolean";
+    return false;
+    }
+  return result == Py_True;
 }
 
 //-----------------------------------------------------------------------------
@@ -370,6 +380,7 @@ void qSlicerSegmentEditorScriptedIslandEffect::processViewNodeEvents(vtkMRMLAbst
   PyTuple_SET_ITEM(arguments, 1, PyInt_FromLong(eid));
   PyTuple_SET_ITEM(arguments, 2, PythonQtConv::QVariantToPyObject(QVariant::fromValue<QObject*>((QObject*)viewWidget)));
   PyObject* result = d->PythonCppAPI.callMethod(d->ProcessViewNodeEventsMethod, arguments);
+  Py_DECREF(arguments);
   if (!result)
     {
     // Method call failed (probably an omitted function), call default implementation

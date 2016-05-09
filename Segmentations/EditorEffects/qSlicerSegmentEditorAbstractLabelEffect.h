@@ -49,20 +49,10 @@ public:
   qSlicerSegmentEditorAbstractLabelEffect(QObject* parent = NULL);
   virtual ~qSlicerSegmentEditorAbstractLabelEffect(); 
 
-  Q_INVOKABLE static QString paintOverParameterName() { return QString("PaintOver"); };
-  Q_INVOKABLE static QString paintThresholdParameterName() { return QString("PaintThreshold"); };
-  Q_INVOKABLE static QString paintThresholdMinParameterName() { return QString("PaintThresholdMin"); };
-  Q_INVOKABLE static QString paintThresholdMaxParameterName() { return QString("PaintThresholdMax"); };
-  Q_INVOKABLE static QString thresholdAvailableParameterName() { return QString("ThresholdAvailable"); };
-  Q_INVOKABLE static QString paintOverAvailableParameterName() { return QString("PaintOverAvailable"); };
-
 public:
   /// Clone editor effect
   /// (redefinition of pure virtual function to allow python wrapper to identify this as abstract class)
   virtual qSlicerSegmentEditorAbstractEffect* clone() = 0;
-
-  /// Perform actions needed before the edited labelmap is applied back to the segment
-  Q_INVOKABLE virtual void apply();
 
   /// Create options frame widgets, make connections, and add them to the main options frame using \sa addOptionsWidget
   virtual void setupOptionsFrame();
@@ -85,13 +75,6 @@ public slots:
 
 // Utility functions
 public:
-  /// Apply mask image on an input image
-  /// \param input Input image to apply the mask on
-  /// \param mask Mask to apply
-  /// \param notMask If on, the mask is passed through a boolean not before it is used to mask the image.
-  ///   The effect is to pass the pixels where the input mask is zero, and replace the pixels where the
-  ///   input value is non zero
-  Q_INVOKABLE static void applyImageMask(vtkOrientedImageData* input, vtkOrientedImageData* mask, bool notMask = false);
 
   /// Rasterize a poly data onto the input image into the slice view
   Q_INVOKABLE static void appendPolyMask(vtkOrientedImageData* input, vtkPolyData* polyData, qMRMLSliceWidget* sliceWidget);
@@ -112,9 +95,6 @@ public:
 
 protected:
   QScopedPointer<qSlicerSegmentEditorAbstractLabelEffectPrivate> d_ptr;
-
-  double m_FillValue;
-  double m_EraseValue;
   
 private:
   Q_DECLARE_PRIVATE(qSlicerSegmentEditorAbstractLabelEffect);

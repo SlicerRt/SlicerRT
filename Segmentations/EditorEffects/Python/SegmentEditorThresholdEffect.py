@@ -68,7 +68,7 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
       displayNode.SetSegmentOpacity2DFill(segmentID, self.segmentOpacity)
 
     # Clear preview pipeline and stop timer
-    self.previewPipelines = {}
+    self.clearPreviewDisplay()
     self.timer.stop()
 
   def setupOptionsFrame(self):
@@ -104,9 +104,8 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
   def masterVolumeNodeChanged(self):
     # Set scalar range of master volume image data to threshold slider
     import vtkSegmentationCore
-    masterImageData = vtkSegmentationCore.vtkOrientedImageData()
-    success = self.scriptedEffect.masterVolumeImageData(masterImageData)
-    if success:
+    masterImageData = self.scriptedEffect.masterVolumeImageData()
+    if masterImageData:
       lo, hi = masterImageData.GetScalarRange()
       self.thresholdSlider.minimum, self.thresholdSlider.maximum = lo, hi
       self.thresholdSlider.singleStep = (hi - lo) / 1000.
@@ -115,7 +114,7 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     self.setupPreviewDisplay()
 
   def processInteractionEvents(self, callerInteractor, eventId, viewWidget):
-    pass # For the sake of example
+    return False # For the sake of example
 
   def processViewNodeEvents(self, callerViewNode, eventId, viewWidget):
     pass # For the sake of example
@@ -140,19 +139,23 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
   def onThresholdValuesChanged(self,min,max):
     self.scriptedEffect.updateMRMLFromGUI()
 
-  def onUseForPaint(self):
-    self.scriptedEffect.setCommonParameter("PaintThreshold", 1)
-    self.scriptedEffect.setCommonParameter("PaintThresholdMin", self.thresholdSlider.minimumValue)
-    self.scriptedEffect.setCommonParameter("PaintThresholdMax", self.thresholdSlider.maximumValue)
+  def onUseForPaint(self):    
+    parameterSetNode = self.scriptedEffect.parameterSetNode()
+    parameterSetNode.MasterVolumeIntensityMaskOn()
+    parameterSetNode.SetMasterVolumeIntensityMaskRange(self.thresholdSlider.minimumValue, self.thresholdSlider.maximumValue)
+    # Switch to paint effect
+    self.scriptedEffect.selectEffect("Paint")
 
   def onApply(self):
     try:
       # Get master volume image data
       import vtkSegmentationCore
-      masterImageData = vtkSegmentationCore.vtkOrientedImageData()
-      self.scriptedEffect.masterVolumeImageData(masterImageData)
+      masterImageData = self.scriptedEffect.masterVolumeImageData()
       # Get edited labelmap
-      editedLabelmap = self.scriptedEffect.parameterSetNode().GetEditedLabelmap()
+      editedLabelmap = self.scriptedEffect.editedLabelmap()
+      originalImageToWorldMatrix = vtk.vtkMatrix4x4()
+      editedLabelmap.GetImageToWorldMatrix(originalImageToWorldMatrix)
+      originalExtent = editedLabelmap.GetExtent()
       # Get parameters
       min = self.scriptedEffect.doubleParameter("MinimumThreshold")
       max = self.scriptedEffect.doubleParameter("MaximumThreshold")
@@ -176,14 +179,21 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
 
     # Notify editor about changes.
     # This needs to be called so that the changes are written back to the edited segment
+    self.scriptedEffect.setEditedLabelmapApplyModeToSet()
+    self.scriptedEffect.setEditedLabelmapApplyExtentToWholeExtent()
     self.scriptedEffect.apply()
     
     # De-select effect
     self.scriptedEffect.selectEffect("")
 
+  def clearPreviewDisplay(self):
+    for sliceWidget, pipeline in self.previewPipelines.iteritems():
+      self.scriptedEffect.removeActor2D(sliceWidget, pipeline.actor)
+    self.previewPipelines = {}
+    
   def setupPreviewDisplay(self):
     # Clear previous pipelines before setting up the new ones
-    self.previewPipelines = {}
+    self.clearPreviewDisplay()
 
     layoutManager = slicer.app.layoutManager()
     if layoutManager is None:

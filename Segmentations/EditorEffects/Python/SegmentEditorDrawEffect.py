@@ -46,21 +46,23 @@ class SegmentEditorDrawEffect(AbstractScriptedSegmentEditorLabelEffect):
     self.applyButton.connect('clicked()', self.onApply)
 
   def processInteractionEvents(self, callerInteractor, eventId, viewWidget):
+    abortEvent = False
+
     # Only allow for slice views
     if viewWidget.className() != "qMRMLSliceWidget":
-      return
+      return abortEvent
     # Get draw pipeline for current slice
     pipeline = self.pipelineForWidget(viewWidget)
     if pipeline is None:
-      return
-
+      return abortEvent
+      
     if eventId == vtk.vtkCommand.LeftButtonPressEvent:
       pipeline.actionState = "drawing"
       self.scriptedEffect.cursorOff(viewWidget)
       xy = callerInteractor.GetEventPosition()
       ras = self.xyToRas(xy, viewWidget)
       pipeline.addPoint(ras)
-      self.scriptedEffect.abortEvent(callerInteractor, eventId, viewWidget)
+      abortEvent = True
     elif eventId == vtk.vtkCommand.LeftButtonReleaseEvent:
       pipeline.actionState = ""
       self.scriptedEffect.cursorOn(viewWidget)
@@ -77,19 +79,20 @@ class SegmentEditorDrawEffect(AbstractScriptedSegmentEditorLabelEffect):
         xy = callerInteractor.GetEventPosition()
         ras = self.xyToRas(xy, viewWidget)
         pipeline.addPoint(ras)
-        self.scriptedEffect.abortEvent(callerInteractor, eventId, viewWidget)
+        abortEvent = True
     elif eventId == vtk.vtkCommand.KeyPressEvent:
       key = callerInteractor.GetKeySym()
       if key == 'a' or key == 'Return':
         pipeline.apply()
-        self.scriptedEffect.abortEvent(callerInteractor, eventId, viewWidget)
+        abortEvent = True
       if key == 'x':
         pipeline.deleteLastPoint()
-        self.scriptedEffect.abortEvent(callerInteractor, eventId, viewWidget)
+        abortEvent = True
     else:
       pass
 
     pipeline.positionActors()
+    return abortEvent
 
   def processViewNodeEvents(self, callerViewNode, eventId, viewWidget):
     if callerViewNode and callerViewNode.IsA('vtkMRMLSliceNode'):
@@ -237,7 +240,7 @@ class DrawPipeline:
 
     # Get edited labelmap
     import vtkSegmentationCore
-    editedLabelmap = self.scriptedEffect.parameterSetNode().GetEditedLabelmap()
+    editedLabelmap = self.scriptedEffect.editedLabelmap()
 
     # Apply poly data on edited labelmap
     self.scriptedEffect.appendPolyMask(editedLabelmap, self.polyData, self.sliceWidget)
@@ -245,6 +248,8 @@ class DrawPipeline:
 
     # Notify editor about changes.
     # This needs to be called so that the changes are written back to the edited segment
+    self.scriptedEffect.setEditedLabelmapApplyModeToAdd()
+    self.scriptedEffect.setEditedLabelmapApplyExtentToWholeExtent() # TODO: reduce
     self.scriptedEffect.apply()
 
   def resetPolyData(self):

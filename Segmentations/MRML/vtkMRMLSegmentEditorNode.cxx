@@ -23,6 +23,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include "vtkMRMLSegmentEditorNode.h"
 
 #include "vtkMRMLSegmentationNode.h"
+#include "vtkOrientedImageDataResample.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -45,13 +46,15 @@ vtkMRMLNodeNewMacro(vtkMRMLSegmentEditorNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLSegmentEditorNode::vtkMRMLSegmentEditorNode()
-  : EditedLabelmap(NULL)
-  , MaskLabelmap(NULL)
-  , SelectedSegmentID(NULL)
+  : SelectedSegmentID(NULL)
   , ActiveEffectName(NULL)
+  , MaskMode(PaintAllowedEverywhere)
+  , MaskSegmentID(NULL)
+  , OverwriteMode(OverwriteAllSegments)
+  , MasterVolumeIntensityMask(false)
 {
-  this->EditedLabelmap = vtkOrientedImageData::New();
-  this->MaskLabelmap = vtkOrientedImageData::New();
+  this->MasterVolumeIntensityMaskRange[0] = 0.0;
+  this->MasterVolumeIntensityMaskRange[1] = 0.0;
 }
 
 //----------------------------------------------------------------------------
@@ -59,17 +62,7 @@ vtkMRMLSegmentEditorNode::~vtkMRMLSegmentEditorNode()
 {
   this->SetSelectedSegmentID(NULL);
   this->SetActiveEffectName(NULL);
-
-  if (this->EditedLabelmap)
-  {
-    this->EditedLabelmap->Delete();
-    this->EditedLabelmap = NULL;
-  }
-  if (this->MaskLabelmap)
-  {
-    this->MaskLabelmap->Delete();
-    this->MaskLabelmap = NULL;
-  }
+  this->SetMaskSegmentID(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -80,22 +73,13 @@ void vtkMRMLSegmentEditorNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  {
-    std::stringstream ss;
-    if ( this->SelectedSegmentID )
-      {
-      ss << this->SelectedSegmentID;
-      of << indent << " SelectedSegmentID=\"" << ss.str() << "\"";
-      }
-    else if ( this->ActiveEffectName )
-      {
-      ss << this->ActiveEffectName;
-      of << indent << " ActiveEffectName=\"" << ss.str() << "\"";
-      }
-  }
-
-  // Note: The image data are excluded from storage as they are temporary
-  //   data objects that are automatically updated when selection changes
+  of << indent << " selectedSegmentID=\"" << (this->SelectedSegmentID?this->SelectedSegmentID:"") << "\"";
+  of << indent << " activeEffectName=\"" << (this->ActiveEffectName?this->ActiveEffectName:"") << "\"";
+  of << indent << " maskMode=\"" << vtkMRMLSegmentEditorNode::ConvertMaskModeToString(this->MaskMode) << "\"";
+  of << indent << " maskSegmentID=\"" << (this->MaskSegmentID?this->MaskSegmentID:"") << "\"";
+  of << indent << " masterVolumeIntensityMask=\"" << (this->MasterVolumeIntensityMask ? "true" : "false") << "\"";
+  of << indent << " masterVolumeIntensityMaskRange=\"" << this->MasterVolumeIntensityMaskRange[0] << " " << this->MasterVolumeIntensityMaskRange[1] << "\"";
+  of << indent << " overwriteMode=\"" << vtkMRMLSegmentEditorNode::ConvertOverwriteModeToString(this->OverwriteMode) << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -114,24 +98,52 @@ void vtkMRMLSegmentEditorNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "SelectedSegmentID")) 
+    if (!strcmp(attName, "selectedSegmentID")) 
       {
       std::stringstream ss;
       ss << attValue;
       this->SetSelectedSegmentID(ss.str().c_str());
       }
-    else if (!strcmp(attName, "ActiveEffectName")) 
+    else if (!strcmp(attName, "activeEffectName")) 
       {
       std::stringstream ss;
       ss << attValue;
       this->SetActiveEffectName(ss.str().c_str());
       }
+    else if (!strcmp(attName, "maskMode")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->SetMaskMode(vtkMRMLSegmentEditorNode::ConvertMaskModeFromString(ss.str().c_str()));
+      }
+    else if (!strcmp(attName, "maskSegmentID")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->SetMaskSegmentID(ss.str().c_str());
+      }
+    else if (!strcmp(attName, "masterVolumeIntensityMask"))
+      {
+      this->SetMasterVolumeIntensityMask(!strcmp(attValue,"true"));
+      }
+    else if (!strcmp(attName, "masterVolumeIntensityMaskRange"))
+      {
+      std::stringstream ss;
+      ss << attValue;
+      double range[2]={0};
+      ss >> range[0];
+      ss >> range[1];
+      this->SetMasterVolumeIntensityMaskRange(range);
+      }
+    else if (!strcmp(attName, "overwriteMode")) 
+      {
+      std::stringstream ss;
+      ss << attValue;
+      this->SetOverwriteMode(vtkMRMLSegmentEditorNode::ConvertOverwriteModeFromString(ss.str().c_str()));
+      }
     }
 
   this->EndModify(disabledModify);
-
-  // Note: The image data are excluded from storage as they are temporary
-  //   data objects that are automatically updated when selection changes
 }
 
 //----------------------------------------------------------------------------
@@ -146,12 +158,14 @@ void vtkMRMLSegmentEditorNode::Copy(vtkMRMLNode *anode)
 
   this->SetSelectedSegmentID(otherNode->SelectedSegmentID);
   this->SetActiveEffectName(otherNode->ActiveEffectName);
+  this->SetMaskMode(otherNode->GetMaskMode());
+  this->SetMaskSegmentID(otherNode->GetMaskSegmentID());
+  this->SetMasterVolumeIntensityMask(otherNode->GetMasterVolumeIntensityMask());
+  this->SetMasterVolumeIntensityMaskRange(otherNode->GetMasterVolumeIntensityMaskRange());
+  this->SetOverwriteMode(otherNode->GetOverwriteMode());
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
-
-  // Note: The image data are excluded from storage as they are temporary
-  //   data objects that are automatically updated when selection changes
 }
 
 //----------------------------------------------------------------------------
@@ -159,15 +173,13 @@ void vtkMRMLSegmentEditorNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << "SelectedSegmentID:   " << (this->SelectedSegmentID ? this->SelectedSegmentID : "") << "\n";
-  os << indent << "ActiveEffectName:   " << (this->ActiveEffectName ? this->ActiveEffectName : "") << "\n";
-
-  os << indent << "EditedLabelmap:\n";
-  this->EditedLabelmap->PrintSelf(os,indent);
-  os << indent << "\n";
-  os << indent << "MaskLabelmap:\n";
-  this->MaskLabelmap->PrintSelf(os,indent);
-  os << indent << "\n";
+  os << indent << "SelectedSegmentID: " << (this->SelectedSegmentID ? this->SelectedSegmentID : "") << "\n";
+  os << indent << "ActiveEffectName: " << (this->ActiveEffectName ? this->ActiveEffectName : "") << "\n";
+  os << indent << "MaskMode: " << vtkMRMLSegmentEditorNode::ConvertMaskModeToString(this->MaskMode) << "\n";
+  os << indent << "MaskSegmentID: " << (this->MaskSegmentID?this->MaskSegmentID:"") << "\n";
+  os << indent << "OverwriteMode: " << vtkMRMLSegmentEditorNode::ConvertOverwriteModeToString(this->OverwriteMode) << "\n";
+  os << indent << "MasterVolumeIntensityMask: " << (this->MasterVolumeIntensityMask ? "true" : "false") << "\n";
+  os << indent << "MasterVolumeIntensityMaskRange: " << this->MasterVolumeIntensityMaskRange[0] << " " << this->MasterVolumeIntensityMaskRange[1] << "\n";
 }
 
 //----------------------------------------------------------------------------
@@ -194,3 +206,63 @@ void vtkMRMLSegmentEditorNode::SetAndObserveSegmentationNode(vtkMRMLSegmentation
   this->SetNodeReferenceID(SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
+//----------------------------------------------------------------------------
+const char* vtkMRMLSegmentEditorNode::ConvertMaskModeToString(int mode)
+{
+  switch (mode)
+  {
+    case PaintAllowedEverywhere: return "PaintAllowedEverywhere";
+    case PaintAllowedInsideAllSegments: return "PaintAllowedInsideAllSegments";
+    case PaintAllowedInsideVisibleSegments: return "PaintAllowedInsideVisibleSegments";
+    case PaintAllowedOutsideAllSegments: return "PaintAllowedOutsideAllSegments";
+    case PaintAllowedOutsideVisibleSegments: return "PaintAllowedOutsideVisibleSegments";
+    case PaintAllowedInsideSingleSegment: return "PaintAllowedInsideSingleSegment";
+    default: return "";
+  }
+}
+
+//----------------------------------------------------------------------------
+int vtkMRMLSegmentEditorNode::ConvertMaskModeFromString(const char* modeStr)
+{
+  if (!modeStr)
+  {
+    return -1;
+  }
+  for (int i=0; i<PaintAllowed_Last; i++)
+  {
+    if (strcmp(modeStr, vtkMRMLSegmentEditorNode::ConvertMaskModeToString(i)))
+    {
+      return i;
+    }
+  }
+  return -1;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLSegmentEditorNode::ConvertOverwriteModeToString(int mode)
+{
+  switch (mode)
+  {
+    case OverwriteAllSegments: return "OverwriteAllSegments";
+    case OverwriteVisibleSegments: return "OverwriteVisibleSegments";
+    case OverwriteNone: return "OverwriteNone";
+    default: return "";
+  }
+}
+
+//----------------------------------------------------------------------------
+int vtkMRMLSegmentEditorNode::ConvertOverwriteModeFromString(const char* modeStr)
+{
+  if (!modeStr)
+  {
+    return -1;
+  }
+  for (int i=0; i<Overwrite_Last; i++)
+  {
+    if (strcmp(modeStr, vtkMRMLSegmentEditorNode::ConvertOverwriteModeToString(i)))
+    {
+      return i;
+    }
+  }
+  return -1;
+}

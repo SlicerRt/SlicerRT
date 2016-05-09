@@ -53,10 +53,10 @@ class SegmentEditorIdentifyIslandsEffect(AbstractScriptedSegmentEditorIslandEffe
     minimumSize = self.scriptedEffect.integerParameter("MinimumSize")
 
     # Get edited labelmap
-    editedLabelmap = self.scriptedEffect.parameterSetNode().GetEditedLabelmap()
+    selectedSegmentLabelmap = self.scriptedEffect.selectedSegmentLabelmap()    
 
     castIn = vtk.vtkImageCast()
-    castIn.SetInputData(editedLabelmap)
+    castIn.SetInputData(selectedSegmentLabelmap)
     castIn.SetOutputScalarTypeToUnsignedLong()
 
     # Identify the islands in the inverted volume and
@@ -82,9 +82,9 @@ class SegmentEditorIdentifyIslandsEffect(AbstractScriptedSegmentEditorIslandEffe
     import vtkSegmentationCore
     multiLabelImage = vtkSegmentationCore.vtkOrientedImageData()
     multiLabelImage.DeepCopy(castOut.GetOutput())
-    editedLabelmapImageToWorldMatrix = vtk.vtkMatrix4x4()
-    editedLabelmap.GetImageToWorldMatrix(editedLabelmapImageToWorldMatrix)
-    multiLabelImage.SetGeometryFromImageToWorldMatrix(editedLabelmapImageToWorldMatrix)
+    selectedSegmentLabelmapImageToWorldMatrix = vtk.vtkMatrix4x4()
+    selectedSegmentLabelmap.GetImageToWorldMatrix(selectedSegmentLabelmapImageToWorldMatrix)
+    multiLabelImage.SetGeometryFromImageToWorldMatrix(selectedSegmentLabelmapImageToWorldMatrix)
     
     # Import multi-label labelmap to segmentation
     import vtkSlicerSegmentationsModuleMRML
@@ -97,9 +97,11 @@ class SegmentEditorIdentifyIslandsEffect(AbstractScriptedSegmentEditorIslandEffe
 
     # Set labelmap visibility to outline for the new segments
     displayNode = segmentationNode.GetDisplayNode()
-    for index in xrange(1,islandCount+1):
-      segmentID = selectedSegmentName + "_" + str(index)
-      displayNode.SetSegmentVisibility2DFill(segmentID, False)
-      displayNode.SetSegmentVisibility2DOutline(segmentID, True)
+    #for index in xrange(1,islandCount+1):
+    #  segmentID = selectedSegmentName + "_" + str(index)
+    #  displayNode.SetSegmentVisibility2DFill(segmentID, False)
+    #  displayNode.SetSegmentVisibility2DOutline(segmentID, True)
+
+    displayNode.SetSegmentVisibility(selectedSegmentID, False)
 
     # Note: no need to call apply, as the edited labelmap did not change

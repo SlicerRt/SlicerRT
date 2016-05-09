@@ -48,11 +48,12 @@ class SegmentEditorErodeEffect(AbstractScriptedSegmentEditorMorphologyEffect):
     iterations = self.scriptedEffect.integerParameter("Iterations")
 
     # Get edited labelmap
-    editedLabelmap = self.scriptedEffect.parameterSetNode().GetEditedLabelmap()
+    editedLabelmap = self.scriptedEffect.editedLabelmap()
+    selectedSegmentLabelmap = self.scriptedEffect.selectedSegmentLabelmap()    
 
     # Perform erosion
     eroder = slicer.vtkImageErode()
-    eroder.SetInputData(editedLabelmap)
+    eroder.SetInputData(selectedSegmentLabelmap)
     eroder.SetForeground(1)
     eroder.SetBackground(0)
     if neighborMode == 8:

@@ -248,24 +248,25 @@ qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorRectangleEffect::clone()
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSegmentEditorRectangleEffect::processInteractionEvents(
+bool qSlicerSegmentEditorRectangleEffect::processInteractionEvents(
   vtkRenderWindowInteractor* callerInteractor,
   unsigned long eid,
   qMRMLWidget* viewWidget )
 {
   Q_D(qSlicerSegmentEditorRectangleEffect);
+  bool abortEvent = false;
 
   // This effect only supports interactions in the 2D slice views currently
   qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
   if (!sliceWidget)
   {
-    return;
+    return abortEvent;
   }
   RectanglePipeline* rectangle = d->rectangleForWidget(sliceWidget);
   if (!rectangle)
   {
     qCritical() << Q_FUNC_INFO << ": Failed to create rectangle!";
-    return;
+    return abortEvent;
   }
 
   if (eid == vtkCommand::LeftButtonPressEvent)
@@ -275,7 +276,7 @@ void qSlicerSegmentEditorRectangleEffect::processInteractionEvents(
     callerInteractor->GetEventPosition(rectangle->DragStartXyPosition[0], rectangle->DragStartXyPosition[1]);
     callerInteractor->GetEventPosition(rectangle->CurrentXyPosition[0], rectangle->CurrentXyPosition[1]);
     d->updateRectangleGlyph(rectangle);
-    this->abortEvent(callerInteractor, eid, sliceWidget);
+    abortEvent = true;
   }
   else if (eid == vtkCommand::MouseMoveEvent)
   {
@@ -284,7 +285,7 @@ void qSlicerSegmentEditorRectangleEffect::processInteractionEvents(
       callerInteractor->GetEventPosition(rectangle->CurrentXyPosition[0], rectangle->CurrentXyPosition[1]);
       d->updateRectangleGlyph(rectangle);
       sliceWidget->sliceView()->scheduleRender();
-      this->abortEvent(callerInteractor, eid, sliceWidget);
+      abortEvent = true;
     }
   }
   else if (eid == vtkCommand::LeftButtonReleaseEvent)
@@ -300,14 +301,15 @@ void qSlicerSegmentEditorRectangleEffect::processInteractionEvents(
       //TODO:
       //self.logic.undoRedo = self.undoRedo
 
-      vtkOrientedImageData* editedLabelmap = this->parameterSetNode()->GetEditedLabelmap();
-      if (editedLabelmap)
+      if (editedLabelmap())
       {
-        this->appendPolyMask(editedLabelmap, rectangle->PolyData, sliceWidget);
+        this->appendPolyMask(editedLabelmap(), rectangle->PolyData, sliceWidget);
       }
     }
     // Notify editor about changes
+    this->setEditedLabelmapApplyModeToAdd();
     this->apply();
-    this->abortEvent(callerInteractor, eid, sliceWidget);
+    abortEvent = true;
   }
+  return abortEvent;
 }

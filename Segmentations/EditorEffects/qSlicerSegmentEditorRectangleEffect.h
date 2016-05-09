@@ -55,7 +55,7 @@ public:
   /// \param callerInteractor Interactor object that was observed to catch the event
   /// \param eid Event identifier
   /// \param viewWidget Widget of the Slicer layout view. Can be \sa qMRMLSliceWidget or \sa qMRMLThreeDWidget
-  virtual void processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget);
+  virtual bool processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget);
 
 protected:
   QScopedPointer<qSlicerSegmentEditorRectangleEffectPrivate> d_ptr;

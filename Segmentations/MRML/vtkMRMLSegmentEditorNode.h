@@ -53,6 +53,36 @@ public:
     EffectParameterModified = 62200
   };
 
+  enum
+  {
+    /// Modification is allowed everywhere.
+    PaintAllowedEverywhere=0,
+    /// Modification is allowed inside all segments.
+    PaintAllowedInsideAllSegments,
+    /// Modification is allowed inside all visible segments.
+    PaintAllowedInsideVisibleSegments,
+    /// Modification is allowed outside all segments.
+    PaintAllowedOutsideAllSegments,
+    /// Modification is allowed outside all visible segments.
+    PaintAllowedOutsideVisibleSegments,
+    /// Modification is allowed only over the area covered by segment specified in MaskSegmentID.
+    PaintAllowedInsideSingleSegment,
+    
+    PaintAllowed_Last /// Insert valid types above this line
+  };
+
+  enum
+  {
+    /// Areas added to selected segment will be removed from all other segments. (no overlap)
+    OverwriteAllSegments=0,
+    /// Areas added to selected segment will be removed from all visible segments. (no overlap with visible, overlap possible with hidden)
+    OverwriteVisibleSegments,
+    /// Areas added to selected segment will be removed from all other segments. (overlap with all other segments)
+    OverwriteNone,
+
+    Overwrite_Last /// Insert valid types above this line
+  };
+
 public:
   static vtkMRMLSegmentEditorNode *New();
   vtkTypeMacro(vtkMRMLSegmentEditorNode, vtkMRMLNode);
@@ -72,6 +102,11 @@ public:
 
   /// Get unique node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() { return "SegmentEditor"; };
+
+  static int ConvertOverwriteModeFromString(const char* modeStr);
+  static const char* ConvertOverwriteModeToString(int mode);
+  static const char* ConvertMaskModeToString(int mode);
+  static int ConvertMaskModeFromString(const char* modeStr);
 
 public:
   /// Get master volume node
@@ -94,10 +129,33 @@ public:
   /// Set active effect name
   vtkSetStringMacro(ActiveEffectName);
 
-  /// Get edited labelmap
-  vtkGetObjectMacro(EditedLabelmap, vtkOrientedImageData);
-  /// Get mask labelmap
-  vtkGetObjectMacro(MaskLabelmap, vtkOrientedImageData);
+  /// Defines which areas are editable.
+  /// Uses PAINT_ALLOWED_... constants.
+  vtkSetMacro(MaskMode, int);
+  vtkGetMacro(MaskMode, int);
+
+  /// Set mask segment ID.
+  /// Painting is only allowed within the area of the mask segment if mask mode is PAINT_ALLOWED_INSIDE_SINGLE_SEGMENT.
+  vtkGetStringMacro(MaskSegmentID);
+  /// Get mask segment ID.
+  vtkSetStringMacro(MaskSegmentID);
+
+  /// Restrict editable area to regions where mask volume intensity is in the specified range.
+  vtkBooleanMacro(MasterVolumeIntensityMask, bool);
+  vtkGetMacro(MasterVolumeIntensityMask, bool);
+  vtkSetMacro(MasterVolumeIntensityMask, bool);
+
+  /// Set mask volume intensity range for masking.
+  /// \sa SetMasterVolumeIntensityMask()
+  vtkSetVector2Macro(MasterVolumeIntensityMaskRange, double);
+  /// Get mask volume intensity range for masking.
+  /// \sa SetMasterVolumeIntensityMask()
+  vtkGetVector2Macro(MasterVolumeIntensityMaskRange, double);
+
+  /// Defines which areas are overwritten in other segments.
+  /// Uses OVERWRITE_... constants.
+  vtkSetMacro(OverwriteMode, int);
+  vtkGetMacro(OverwriteMode, int);
 
 protected:
   vtkMRMLSegmentEditorNode();
@@ -111,13 +169,13 @@ protected:
   /// Active effect name
   char* ActiveEffectName;
 
-  /// Active labelmap for editing. Mainly needed because the segment binary labelmaps are shrunk
-  /// to the smallest possible extent, but the user wants to draw on the whole master volume.
-  vtkOrientedImageData* EditedLabelmap;
+  int MaskMode;
+  char* MaskSegmentID;
 
-  /// Mask labelmap containing a merged silhouette of all the segments other than the selected one.
-  /// Used if the paint over feature is turned off.
-  vtkOrientedImageData* MaskLabelmap;
+  int OverwriteMode;
+
+  bool MasterVolumeIntensityMask;
+  double MasterVolumeIntensityMaskRange[2];
 };
 
 #endif // __vtkMRMLSegmentEditorNode_h

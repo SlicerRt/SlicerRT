@@ -39,22 +39,26 @@ class SegmentEditorLevelTracingEffect(AbstractScriptedSegmentEditorLabelEffect):
     self.levelTracingPipelines = {}
 
   def processInteractionEvents(self, callerInteractor, eventId, viewWidget):
+    abortEvent = False
+  
     # Only allow for slice views
     if viewWidget.className() != "qMRMLSliceWidget":
-      return
+      return abortEvent
     # Get draw pipeline for current slice
     pipeline = self.pipelineForWidget(viewWidget)
     if pipeline is None:
-      return
+      return abortEvent
 
     if eventId == vtk.vtkCommand.LeftButtonPressEvent:
+      self.scriptedEffect.setEditedLabelmapApplyModeToAdd()
+      self.scriptedEffect.setEditedLabelmapApplyExtentToWholeExtent() # TODO: reduce
       pipeline.apply()
-      self.scriptedEffect.abortEvent(callerInteractor, eventId, viewWidget)
+      abortEvent = True
     elif eventId == vtk.vtkCommand.MouseMoveEvent:
       if pipeline.actionState == '':
         xy = callerInteractor.GetEventPosition()
         pipeline.preview(xy)
-        self.scriptedEffect.abortEvent(callerInteractor, eventId, viewWidget)
+        abortEvent = True
     elif eventId == vtk.vtkCommand.RightButtonPressEvent or eventId == vtk.vtkCommand.MiddleButtonPressEvent:
       pipeline.actionState = 'interacting'
     elif eventId == vtk.vtkCommand.RightButtonReleaseEvent or eventId == vtk.vtkCommand.MiddleButtonReleaseEvent:
@@ -63,6 +67,8 @@ class SegmentEditorLevelTracingEffect(AbstractScriptedSegmentEditorLabelEffect):
       pipeline.actor.VisibilityOn()
     elif eventId == vtk.vtkCommand.LeaveEvent:
       pipeline.actor.VisibilityOff()
+
+    return abortEvent
 
   def pipelineForWidget(self, sliceWidget):
     if sliceWidget in self.levelTracingPipelines:
@@ -115,8 +121,7 @@ class LevelTracingPipeline:
     
     # Get master volume image data
     import vtkSegmentationCore
-    masterImageData = vtkSegmentationCore.vtkOrientedImageData()
-    self.effect.scriptedEffect.masterVolumeImageData(masterImageData)
+    masterImageData = self.effect.scriptedEffect.masterVolumeImageData()
 
     self.xyPoints.Reset()
     ijk = self.effect.xyToIjk(xy, self.sliceWidget, masterImageData)
@@ -172,7 +177,7 @@ class LevelTracingPipeline:
 
     # Get edited labelmap
     import vtkSegmentationCore
-    editedLabelmap = self.effect.scriptedEffect.parameterSetNode().GetEditedLabelmap()
+    editedLabelmap = self.effect.scriptedEffect.editedLabelmap()
 
     # Apply poly data on edited labelmap
     self.effect.scriptedEffect.appendPolyMask(editedLabelmap, self.polyData, self.sliceWidget)

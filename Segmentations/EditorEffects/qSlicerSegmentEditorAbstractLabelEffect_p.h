@@ -58,17 +58,8 @@ public:
   ~qSlicerSegmentEditorAbstractLabelEffectPrivate();
 
 protected slots:
-  /// Enable/disable threshold when checkbox is toggled
-  void onThresholdChecked(bool);
-
-  /// Handles threshold values changed event
-  void onThresholdValuesChanged(double,double);
 
 public:
-  QCheckBox* PaintOverCheckbox;
-  QCheckBox* ThresholdPaintCheckbox;
-  QLabel* ThresholdLabel;
-  ctkRangeWidget* ThresholdRangeWidget;
 };
 
 #endif

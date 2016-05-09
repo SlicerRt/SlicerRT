@@ -51,8 +51,7 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
   def onApply(self):
     # Get master volume image data
     import vtkSegmentationCore
-    masterImageData = vtkSegmentationCore.vtkOrientedImageData()
-    self.scriptedEffect.masterVolumeImageData(masterImageData)
+    masterImageData = self.scriptedEffect.masterVolumeImageData()
 
     # Check validity of master volume: whether scalar type is supported
     if masterImageData.GetScalarType() != vtk.VTK_SHORT:
@@ -73,8 +72,7 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
   def growCut(self):
     # Get master volume image data
     import vtkSegmentationCore
-    masterImageData = vtkSegmentationCore.vtkOrientedImageData()
-    self.scriptedEffect.masterVolumeImageData(masterImageData)
+    masterImageData = self.scriptedEffect.masterVolumeImageData()
     # Get segmentation
     import vtkSlicerSegmentationsModuleMRML
     segmentationNode = self.scriptedEffect.parameterSetNode().GetSegmentationNode()
@@ -170,4 +168,4 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
       newSegmentLabelmap = vtkSegmentationCore.vtkOrientedImageData()
       newSegmentLabelmap.ShallowCopy(thresh.GetOutput())
       newSegmentLabelmap.SetGeometryFromImageToWorldMatrix(mergedImageToWorldMatrix)
-      vtkSlicerSegmentationsModuleLogic.vtkSlicerSegmentationsModuleLogic.SetBinaryLabelmapToSegment(newSegmentLabelmap, segmentationNode, segmentID)
+      vtkSlicerSegmentationsModuleLogic.vtkSlicerSegmentationsModuleLogic.SetBinaryLabelmapToSegment(newSegmentLabelmap, segmentationNode, segmentID, vtkSlicerSegmentationsModuleLogic.vtkSlicerSegmentationsModuleLogic.MODE_REPLACE, newSegmentLabelmap.GetExtent())

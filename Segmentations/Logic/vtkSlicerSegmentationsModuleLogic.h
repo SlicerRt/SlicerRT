@@ -78,8 +78,9 @@ public:
   static bool CreateLabelmapVolumeFromOrientedImageData(vtkOrientedImageData* orientedImageData, vtkMRMLLabelMapVolumeNode* labelmapVolumeNode);
 
   /// Create oriented image data from a volume node
+  /// \param outputParentTransformNode Specifies the parent transform node where the created image data can be placed.
   /// NOTE: Need to take ownership of the created object! For example using vtkSmartPointer<vtkOrientedImageData>::Take
-  static vtkOrientedImageData* CreateOrientedImageDataFromVolumeNode(vtkMRMLScalarVolumeNode* volumeNode);
+  static vtkOrientedImageData* CreateOrientedImageDataFromVolumeNode(vtkMRMLScalarVolumeNode* volumeNode, vtkMRMLTransformNode* outputParentTransformNode = NULL);
 
   /// Utility function to determine if a labelmap contains a single label
   /// \return 0 if contains no label or multiple labels, the label if it contains a single one
@@ -181,8 +182,15 @@ public:
   /// Master representation must be binary labelmap! Master representation changed event is disabled to prevent deletion of all
   /// other representation in all segments. The other representations in the given segment are re-converted. The extent of the
   /// segment binary labelmap is shrunk to the effective extent. Display update is triggered.
-  /// \param add If append flag is on, then the input labelmap will be overlaid to the existing segment image, otherwise replaced.
-  static bool SetBinaryLabelmapToSegment(vtkOrientedImageData* labelmap, vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, bool append=false);
+  /// \param mergeMode Determines if the labelmap should replace the segment, or combined with a maximum or minimum operation.
+  /// \param extent If extent is specified then only that extent of the labelmap is used.
+  enum
+  {
+    MODE_REPLACE = 0,
+    MODE_MERGE_MAX,
+    MODE_MERGE_MIN
+  };
+  static bool SetBinaryLabelmapToSegment(vtkOrientedImageData* labelmap, vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, int mergeMode=MODE_REPLACE, int extent[6]=0);
 
 protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
