@@ -434,6 +434,12 @@ void qSlicerSegmentEditorScriptedEffect::layoutChanged()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedEffect::updateGUIFromMRML()
 {
+  if (!this->active())
+  {
+    // updateGUIFromMRML is called when the effect is activated
+    return;
+  }
+
   // Base class implementation needs to be called before the effect-specific one
   // Note: Left here as comment in case this class is used as template for adaptor
   //  classes of effect base classes that have default implementation of this method

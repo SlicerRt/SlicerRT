@@ -112,6 +112,11 @@ void qSlicerSegmentEditorAbstractLabelEffect::setMRMLDefaults()
 void qSlicerSegmentEditorAbstractLabelEffect::updateGUIFromMRML()
 {
   Q_D(qSlicerSegmentEditorAbstractLabelEffect);
+  if (!this->active())
+  {
+    // updateGUIFromMRML is called when the effect is activated
+    return;
+  }
 }
 
 //-----------------------------------------------------------------------------

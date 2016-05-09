@@ -431,6 +431,12 @@ void qSlicerSegmentEditorScriptedIslandEffect::layoutChanged()
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedIslandEffect::updateGUIFromMRML()
 {
+  if (!this->active())
+  {
+    // updateGUIFromMRML is called when the effect is activated
+    return;
+  }
+  
   // Base class implementation needs to be called before the effect-specific one
   this->Superclass::updateGUIFromMRML();
 

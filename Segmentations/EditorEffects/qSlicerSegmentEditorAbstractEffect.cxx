@@ -132,6 +132,7 @@ void qSlicerSegmentEditorAbstractEffectPrivate::scheduleRender(qMRMLWidget* view
 qSlicerSegmentEditorAbstractEffect::qSlicerSegmentEditorAbstractEffect(QObject* parent)
  : Superclass(parent)
  , m_Name(QString())
+ , m_Active(false)
  , m_PerSegment(true)
  , m_FillValue(1.0)
  , m_EraseValue(0.0)
@@ -221,6 +222,8 @@ void qSlicerSegmentEditorAbstractEffect::activate()
     }
     d->scheduleRender(viewWidget);
   }
+
+  this->m_Active = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -266,7 +269,15 @@ void qSlicerSegmentEditorAbstractEffect::deactivate()
     }
     d->scheduleRender(viewWidget);
   }
+  this->m_Active = false;
 }
+
+//-----------------------------------------------------------------------------
+bool qSlicerSegmentEditorAbstractEffect::active()
+{
+  return m_Active;
+}
+
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentEditorAbstractEffect::setCallbackSlots(QObject* receiver, const char* applySlot, const char* selectEffectSlot, const char* updateVolumeSlot)

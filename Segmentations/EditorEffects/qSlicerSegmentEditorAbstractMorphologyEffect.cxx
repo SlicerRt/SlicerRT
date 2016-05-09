@@ -108,7 +108,12 @@ void qSlicerSegmentEditorAbstractMorphologyEffect::setMRMLDefaults()
 void qSlicerSegmentEditorAbstractMorphologyEffect::updateGUIFromMRML()
 {
   Q_D(qSlicerSegmentEditorAbstractMorphologyEffect);
-
+  if (!this->active())
+  {
+    // updateGUIFromMRML is called when the effect is activated
+    return;
+  }
+  
   d->EightNeighborsRadioButton->blockSignals(true);
   d->FourNeighborsRadioButton->blockSignals(true);
 

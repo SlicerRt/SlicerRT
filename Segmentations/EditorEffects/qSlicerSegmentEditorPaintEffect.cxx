@@ -1104,6 +1104,11 @@ void qSlicerSegmentEditorPaintEffect::setMRMLDefaults()
 void qSlicerSegmentEditorPaintEffect::updateGUIFromMRML()
 {
   Q_D(qSlicerSegmentEditorPaintEffect);
+  if (!this->active())
+  {
+    // updateGUIFromMRML is called when the effect is activated
+    return;
+  }
 
   if (!this->scene())
   {

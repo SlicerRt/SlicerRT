@@ -89,6 +89,9 @@ public:
   /// NOTE: Base class implementation needs to be called BEFORE the effect-specific implementation
   Q_INVOKABLE virtual void deactivate();
 
+  /// Returns true if the effect is currently active (activated and has not deactivated since then)
+  Q_INVOKABLE virtual bool active();
+  
   /// Perform actions needed before the edited labelmap is applied back to the segment.
   /// NOTE: The default implementation only emits the signal. If the child classes override this function,
   /// they must call apply from the base class too, AFTER the effect-specific implementation
@@ -333,6 +336,7 @@ public:
 protected:
   /// Name of the effect
   QString m_Name;
+  bool m_Active;
 
   /// Flag indicating whether effect operates on individual segments (true) or the whole segmentation (false).
   /// If the selected effect works on whole segmentation, selection of the segments does not trigger creation

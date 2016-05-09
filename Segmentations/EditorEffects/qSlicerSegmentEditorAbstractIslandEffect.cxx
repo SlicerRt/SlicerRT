@@ -113,6 +113,11 @@ void qSlicerSegmentEditorAbstractIslandEffect::setMRMLDefaults()
 void qSlicerSegmentEditorAbstractIslandEffect::updateGUIFromMRML()
 {
   Q_D(qSlicerSegmentEditorAbstractIslandEffect);
+  if (!this->active())
+  {
+    // updateGUIFromMRML is called when the effect is activated
+    return;
+  }
 
   d->FullyConnectedCheckbox->blockSignals(true);
   d->FullyConnectedCheckbox->setChecked(this->integerParameter(this->fullyConnectedParameterName()));
