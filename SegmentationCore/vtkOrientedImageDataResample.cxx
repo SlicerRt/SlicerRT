@@ -548,7 +548,6 @@ void vtkOrientedImageDataResample::TransformExtent(int inputExtent[6], vtkAbstra
 
   // Apply transform on all eight corners and determine output extent based on these transformed corners
   double outputIjkExtentCorner[3] = {0.0, 0.0, 0.0};
-  double outputIjkExtentCenter[3] = { 0.0, 0.0, 0.0 };
   double outputExtentDouble[6] = {VTK_DOUBLE_MAX, VTK_DOUBLE_MIN, VTK_DOUBLE_MAX, VTK_DOUBLE_MIN, VTK_DOUBLE_MAX, VTK_DOUBLE_MIN};
   for (int i=0; i<2; ++i)
   {

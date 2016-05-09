@@ -227,8 +227,7 @@ void vtkSegment::AddRepresentation(std::string name, vtkDataObject* representati
     return;
   }
 
-  this->Representations[name] = representation;
-  representation->Register(this); // Otherwise the representation object may get deleted (and then crashes in vtkSegmentation::SegmentModified)
+  this->Representations[name] = representation; // Representations stores the pointer in a smart pointer, which makes sure the object is not deleted
   this->Modified();
 }
 
