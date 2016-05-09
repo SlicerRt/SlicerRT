@@ -123,7 +123,7 @@ bool vtkSegment::GetModifiedSinceRead(const vtkTimeStamp& storedTime)
 }
 
 //----------------------------------------------------------------------------
-void vtkSegment::ReadXMLAttributes(const char** atts)
+void vtkSegment::ReadXMLAttributes(const char** vtkNotUsed(atts))
 {
   // Note: Segment info is read by the storage node
 }
@@ -252,7 +252,8 @@ void vtkSegment::RemoveAllRepresentations(std::string exceptionRepresentationNam
   {
     if (reprIt->first.compare(exceptionRepresentationName))
     {
-      reprIt = this->Representations.erase(reprIt);
+      // reprIt++ is safe, as iterators remain valid after erasing from a map
+      this->Representations.erase(reprIt++);
       modified = true;
     }
     else
