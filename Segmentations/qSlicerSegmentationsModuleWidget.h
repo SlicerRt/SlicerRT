@@ -54,6 +54,7 @@ public:
   virtual ~qSlicerSegmentationsModuleWidget();
 
   virtual void enter();
+  virtual void exit();
 
 public slots:
   /// Update widget GUI from parameter node
@@ -133,6 +134,11 @@ protected slots:
   void onCopyFromCurrentSegmentation();
   void onCopyToCurrentSegmentation();
   void onMoveToCurrentSegmentation();
+
+  void onMRMLSceneEndImportEvent();
+  void onMRMLSceneEndRestoreEvent();
+  void onMRMLSceneEndBatchProcessEvent();
+  void onMRMLSceneEndCloseEvent();
 
 protected:
   QScopedPointer<qSlicerSegmentationsModuleWidgetPrivate> d_ptr;

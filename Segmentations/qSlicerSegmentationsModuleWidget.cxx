@@ -59,6 +59,7 @@ public:
   ~qSlicerSegmentationsModuleWidgetPrivate();
   vtkSlicerSegmentationsModuleLogic* logic() const;
 public:
+  vtkWeakPointer<vtkMRMLSegmentationNode> SegmentationNode;
   /// Using this flag prevents overriding the parameter set node contents when the
   ///   QMRMLCombobox selects the first instance of the specified node type when initializing
   bool ModuleWindowInitialized;
@@ -110,6 +111,16 @@ void qSlicerSegmentationsModuleWidget::enter()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerSegmentationsModuleWidget::exit()
+{
+  this->Superclass::exit();
+
+  // remove mrml scene observations, don't need to update the GUI while the
+  // module is not showing
+  this->qvtkDisconnectAll();
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerSegmentationsModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
@@ -121,6 +132,15 @@ void qSlicerSegmentationsModuleWidget::onEnter()
   Q_D(qSlicerSegmentationsModuleWidget);
 
   d->ModuleWindowInitialized = true;
+
+ this->qvtkConnect(this->mrmlScene(), vtkMRMLScene::EndImportEvent,
+                    this, SLOT(onMRMLSceneEndImportEvent()));
+  this->qvtkConnect(this->mrmlScene(), vtkMRMLScene::EndBatchProcessEvent,
+                    this, SLOT(onMRMLSceneEndBatchProcessEvent()));
+  this->qvtkConnect(this->mrmlScene(), vtkMRMLScene::EndCloseEvent,
+                    this, SLOT(onMRMLSceneEndCloseEvent()));
+  this->qvtkConnect(this->mrmlScene(), vtkMRMLScene::EndRestoreEvent,
+                    this, SLOT(onMRMLSceneEndRestoreEvent())); 
 
   this->onSegmentationNodeChanged( d->MRMLNodeComboBox_Segmentation->currentNode() );
 }
@@ -157,6 +177,26 @@ vtkMRMLSegmentationDisplayNode* qSlicerSegmentationsModuleWidget::segmentationDi
 void qSlicerSegmentationsModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerSegmentationsModuleWidget);
+
+  // Don't update widget while there are pending operations.
+  // (for example, we may create a new display node while a display node already exists, just the node
+  // references have not been finalized yet)
+  if (!this->mrmlScene() || this->mrmlScene()->IsBatchProcessing())
+  {
+    return;
+  }
+
+  // Hide the current node in the other segmentation combo box
+  QStringList hiddenNodeIDs;
+  if (d->SegmentationNode)
+  {
+    hiddenNodeIDs << QString(d->SegmentationNode->GetID());
+  }
+  d->MRMLNodeComboBox_OtherSegmentationOrRepresentationNode->sortFilterProxyModel()->setHiddenNodeIDs(hiddenNodeIDs);
+
+  // Populate representations comboboxes
+  this->populate3DRepresentationsCombobox();
+  this->populate2DRepresentationsCombobox();
 
   // Update display group from segmentation display node
   this->updateWidgetFromDisplayNode();
@@ -391,10 +431,8 @@ void qSlicerSegmentationsModuleWidget::init()
 void qSlicerSegmentationsModuleWidget::onSegmentationNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerSegmentationsModuleWidget);
-
-  if (!this->mrmlScene())
+  if (!this->mrmlScene() || this->mrmlScene()->IsBatchProcessing())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
   if (!d->ModuleWindowInitialized)
@@ -402,33 +440,13 @@ void qSlicerSegmentationsModuleWidget::onSegmentationNodeChanged(vtkMRMLNode* no
     return;
   }
 
-  // Disconnect all nodes from functions connected in a QVTK way
-  qvtkDisconnect( 0, vtkCommand::ModifiedEvent, this, SLOT( updateWidgetFromMRML() ) );
-  qvtkDisconnect( 0, vtkMRMLDisplayableNode::DisplayModifiedEvent, this, SLOT( updateWidgetFromDisplayNode() ) );
-  qvtkDisconnect( 0, vtkSegmentation::MasterRepresentationModified, this, SLOT( updateWidgetFromMRML() ) );
-
   vtkMRMLSegmentationNode* segmentationNode =  vtkMRMLSegmentationNode::SafeDownCast(node);
-  if (segmentationNode)
-  {
-    // Connect node modified events to update widgets in display group function
-    qvtkConnect( segmentationNode, vtkCommand::ModifiedEvent, this, SLOT( updateWidgetFromMRML() ) );
-    qvtkConnect( segmentationNode, vtkMRMLDisplayableNode::DisplayModifiedEvent, this, SLOT( updateWidgetFromDisplayNode() ) );
-    qvtkConnect( segmentationNode, vtkSegmentation::MasterRepresentationModified, this, SLOT( updateWidgetFromMRML() ) );
-  }
 
-  // Hide the current node in the other segmentation combo box
-  QStringList hiddenNodeIDs;
-  if (segmentationNode)
-  {
-    hiddenNodeIDs << QString(segmentationNode->GetID());
-  }
-  d->MRMLNodeComboBox_OtherSegmentationOrRepresentationNode->sortFilterProxyModel()->setHiddenNodeIDs(hiddenNodeIDs);
+  qvtkReconnect(d->SegmentationNode, segmentationNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
+  qvtkReconnect(d->SegmentationNode, segmentationNode, vtkMRMLDisplayableNode::DisplayModifiedEvent, this, SLOT(updateWidgetFromDisplayNode()));
+  qvtkReconnect(d->SegmentationNode, segmentationNode, vtkSegmentation::MasterRepresentationModified, this, SLOT(updateWidgetFromMRML()));
 
-  // Populate representations comboboxes
-  this->populate3DRepresentationsCombobox();
-  this->populate2DRepresentationsCombobox();
-
-  // Update UI from selected segmentation node
+  d->SegmentationNode = segmentationNode;
   this->updateWidgetFromMRML();
 }
 
@@ -1037,4 +1055,36 @@ bool qSlicerSegmentationsModuleWidget::updateMasterRepresentationInSegmentation(
   // Set master representation to the added one if user agreed
   segmentation->SetMasterRepresentationName(newMasterRepresentation.c_str());
   return true;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentationsModuleWidget::onMRMLSceneEndImportEvent()
+{
+  this->updateWidgetFromMRML();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentationsModuleWidget::onMRMLSceneEndRestoreEvent()
+{
+  this->updateWidgetFromMRML();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentationsModuleWidget::onMRMLSceneEndBatchProcessEvent()
+{
+  if (!this->mrmlScene())
+    {
+    return;
+    }
+  this->updateWidgetFromMRML();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentationsModuleWidget::onMRMLSceneEndCloseEvent()
+{
+  if (!this->mrmlScene() || this->mrmlScene()->IsBatchProcessing())
+    {
+    return;
+    }
+  this->updateWidgetFromMRML();
 }
