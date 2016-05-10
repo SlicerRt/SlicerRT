@@ -437,10 +437,7 @@ void vtkMRMLSegmentationsDisplayableManager3D::vtkInternal::UpdateDisplayNodePip
 
     // Update visibility
     vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-    if (!displayNode->GetSegmentDisplayProperties(pipeline->SegmentID, properties))
-      {
-      continue;
-      }
+    displayNode->GetSegmentDisplayProperties(pipeline->SegmentID, properties);
     bool segmentVisible = displayNodeVisible && properties.Visible && properties.Visible3D;
     pipeline->Actor->SetVisibility(segmentVisible);
     if (!segmentVisible)

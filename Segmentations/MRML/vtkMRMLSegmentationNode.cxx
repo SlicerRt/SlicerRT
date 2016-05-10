@@ -633,8 +633,7 @@ bool vtkMRMLSegmentationNode::AddSegmentDisplayProperties(std::string segmentId)
   else
   {
     // Do not add segment display properties if already present (can be present if node is cloned or scene loaded)
-    vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-    if (displayNode->GetSegmentDisplayProperties(segmentId, properties))
+    if (displayNode->GetSegmentDisplayPropertiesDefined(segmentId))
     {
       vtkDebugMacro("AddSegmentDisplayProperties: Display properties for segment " << segmentId << " was already present, leaving it unchanged");
       return true;

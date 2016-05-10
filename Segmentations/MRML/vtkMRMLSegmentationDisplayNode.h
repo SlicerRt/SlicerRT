@@ -52,6 +52,24 @@ public:
     double Opacity3D;
     double Opacity2DFill; // This one is used for labelmap volume related operations (color table, merged labelmap)
     double Opacity2DOutline;
+
+    // Initialize with default values
+    SegmentDisplayProperties()
+    : Visible(true)
+    , Visible3D(true)
+    , Visible2DFill(true)
+    , Visible2DOutline(true)
+    , Opacity3D(1.0)
+    , Opacity2DFill(0.5)
+    , Opacity2DOutline(1.0)
+    {
+      Color[0] = 1.0;
+      Color[1] = 0.0;
+      Color[2] = 0.0;
+    }
+
+    // Automatically generated operator= and copy constructor work
+    // correctly for these members, so there is no need to define them.
   };
 
   typedef std::map<std::string, SegmentDisplayProperties> SegmentDisplayPropertiesMap;
@@ -95,10 +113,16 @@ public:
 
   /// Get segment display properties for a specific segment
   /// \param segmentID Identifier of segment of which the properties are queried
-  /// \param color Output argument for segment color
-  /// \param polyDataOpacity Output argument for poly data opacity
-  /// \return Success flag
+  /// \param properties Display properties of the segment are copied into this object. If display properties
+  /// are not defined for this segment explicitly then a warning is logged and default display properties are used.
+  /// \return True if display properties are specified for the segment.
   bool GetSegmentDisplayProperties(std::string segmentID, SegmentDisplayProperties &properties);
+
+  /// Get information about segment display properties specification.
+  /// Does not log warning if display properties have not been defined for 
+  /// \param segmentID Identifier of segment of which the properties are queried
+  /// \return True if display properties are specified for the segment.
+  bool GetSegmentDisplayPropertiesDefined(std::string segmentID);
 
   /// Set segment display properties. Add new entry if not in list already
   void SetSegmentDisplayProperties(std::string segmentID, SegmentDisplayProperties &properties);

@@ -133,6 +133,11 @@ void vtkMRMLSegmentationDisplayNode::ReadXMLAttributes(const char** atts)
         while (std::getline(segmentDisplayProperties, segmentDisplayPropertyString, ' '))
         {
           // segmentDisplayPropertyString: "ColorR:0.2"
+          if (segmentDisplayPropertyString.empty())
+          {
+            // multiple spaces between properties, just get the next item
+            continue;
+          }
           size_t colonIndex = segmentDisplayPropertyString.find(':');
           if (colonIndex == std::string::npos)
           {
@@ -271,21 +276,20 @@ bool vtkMRMLSegmentationDisplayNode::GetSegmentDisplayProperties(std::string seg
   SegmentDisplayPropertiesMap::iterator propsIt = this->SegmentationDisplayProperties.find(segmentId);
   if (propsIt == this->SegmentationDisplayProperties.end())
   {
+    vtkWarningMacro("vtkMRMLSegmentationDisplayNode::GetSegmentDisplayProperties: no display properties are found for segment ID="<<segmentId<<", return default");
+    SegmentDisplayProperties defaultProperties;
+    properties = defaultProperties;
     return false;
   }
-
-  properties.Color[0] = propsIt->second.Color[0];
-  properties.Color[1] = propsIt->second.Color[1];
-  properties.Color[2] = propsIt->second.Color[2];
-  properties.Visible = propsIt->second.Visible;
-  properties.Visible3D = propsIt->second.Visible3D;
-  properties.Visible2DFill = propsIt->second.Visible2DFill;
-  properties.Visible2DOutline = propsIt->second.Visible2DOutline;
-  properties.Opacity3D = propsIt->second.Opacity3D;
-  properties.Opacity2DFill = propsIt->second.Opacity2DFill;
-  properties.Opacity2DOutline = propsIt->second.Opacity2DOutline;
-
+  properties = propsIt->second;
   return true;
+}
+
+//---------------------------------------------------------------------------
+bool vtkMRMLSegmentationDisplayNode::GetSegmentDisplayPropertiesDefined(std::string segmentId)
+{
+  SegmentDisplayPropertiesMap::iterator propsIt = this->SegmentationDisplayProperties.find(segmentId);
+  return (propsIt != this->SegmentationDisplayProperties.end());
 }
 
 //---------------------------------------------------------------------------
@@ -387,10 +391,7 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentColor(std::string segmentID, doub
 {
   // Set color in display properties
   SegmentDisplayProperties properties;
-  if (!this->GetSegmentDisplayProperties(segmentID, properties))
-    {
-    return;
-    }
+  this->GetSegmentDisplayProperties(segmentID, properties);
   properties.Color[0] = r;
   properties.Color[1] = g;
   properties.Color[2] = b;
@@ -401,10 +402,7 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentColor(std::string segmentID, doub
 void vtkMRMLSegmentationDisplayNode::SetSegmentColor(std::string segmentID, vtkVector3d color)
 {
   SegmentDisplayProperties properties;
-  if (!this->GetSegmentDisplayProperties(segmentID, properties))
-    {
-    return;
-    }
+  this->GetSegmentDisplayProperties(segmentID, properties);
   properties.Color[0] = color.GetX();
   properties.Color[1] = color.GetY();
   properties.Color[2] = color.GetZ();
@@ -427,10 +425,7 @@ bool vtkMRMLSegmentationDisplayNode::GetSegmentVisibility(std::string segmentID)
 void vtkMRMLSegmentationDisplayNode::SetSegmentVisibility(std::string segmentID, bool visible)
 {
   SegmentDisplayProperties properties;
-  if (!this->GetSegmentDisplayProperties(segmentID, properties))
-    {
-    return;
-    }
+  this->GetSegmentDisplayProperties(segmentID, properties);
   properties.Visible = visible;
   this->SetSegmentDisplayProperties(segmentID, properties);
 }
@@ -451,10 +446,7 @@ bool vtkMRMLSegmentationDisplayNode::GetSegmentVisibility3D(std::string segmentI
 void vtkMRMLSegmentationDisplayNode::SetSegmentVisibility3D(std::string segmentID, bool visible)
 {
   SegmentDisplayProperties properties;
-  if (!this->GetSegmentDisplayProperties(segmentID, properties))
-    {
-    return;
-    }
+  this->GetSegmentDisplayProperties(segmentID, properties);
   properties.Visible3D = visible;
   this->SetSegmentDisplayProperties(segmentID, properties);
 }
@@ -475,10 +467,7 @@ bool vtkMRMLSegmentationDisplayNode::GetSegmentVisibility2DFill(std::string segm
 void vtkMRMLSegmentationDisplayNode::SetSegmentVisibility2DFill(std::string segmentID, bool visible)
 {
   SegmentDisplayProperties properties;
-  if (!this->GetSegmentDisplayProperties(segmentID, properties))
-    {
-    return;
-    }
+  this->GetSegmentDisplayProperties(segmentID, properties);
   properties.Visible2DFill = visible;
   this->SetSegmentDisplayProperties(segmentID, properties);
 }
@@ -499,10 +488,7 @@ bool vtkMRMLSegmentationDisplayNode::GetSegmentVisibility2DOutline(std::string s
 void vtkMRMLSegmentationDisplayNode::SetSegmentVisibility2DOutline(std::string segmentID, bool visible)
 {
   SegmentDisplayProperties properties;
-  if (!this->GetSegmentDisplayProperties(segmentID, properties))
-    {
-    return;
-    }
+  this->GetSegmentDisplayProperties(segmentID, properties);
   properties.Visible2DOutline = visible;
   this->SetSegmentDisplayProperties(segmentID, properties);
 }
@@ -523,10 +509,7 @@ double vtkMRMLSegmentationDisplayNode::GetSegmentOpacity3D(std::string segmentID
 void vtkMRMLSegmentationDisplayNode::SetSegmentOpacity3D(std::string segmentID, double opacity)
 {
   SegmentDisplayProperties properties;
-  if (!this->GetSegmentDisplayProperties(segmentID, properties))
-    {
-    return;
-    }
+  this->GetSegmentDisplayProperties(segmentID, properties);
   properties.Opacity3D = opacity;
   this->SetSegmentDisplayProperties(segmentID, properties);
 }
@@ -537,8 +520,9 @@ double vtkMRMLSegmentationDisplayNode::GetSegmentOpacity2DFill(std::string segme
   SegmentDisplayPropertiesMap::iterator propsIt = this->SegmentationDisplayProperties.find(segmentID);
   if (propsIt == this->SegmentationDisplayProperties.end())
   {
-    vtkErrorMacro("GetSegmentOpacity2DFill: No display properties found for segment with ID " << segmentID);
-    return 0.0;
+    vtkWarningMacro("GetSegmentOpacity2DFill: No display properties found for segment with ID " << segmentID);
+    SegmentDisplayProperties defaultProperties;
+    return defaultProperties.Opacity2DFill;
   }
   return propsIt->second.Opacity2DFill;
 }
@@ -547,10 +531,7 @@ double vtkMRMLSegmentationDisplayNode::GetSegmentOpacity2DFill(std::string segme
 void vtkMRMLSegmentationDisplayNode::SetSegmentOpacity2DFill(std::string segmentID, double opacity)
 {
   SegmentDisplayProperties properties;
-  if (!this->GetSegmentDisplayProperties(segmentID, properties))
-    {
-    return;
-    }
+  this->GetSegmentDisplayProperties(segmentID, properties);
   properties.Opacity2DFill = opacity;
   this->SetSegmentDisplayProperties(segmentID, properties);
 }
@@ -562,7 +543,8 @@ double vtkMRMLSegmentationDisplayNode::GetSegmentOpacity2DOutline(std::string se
   if (propsIt == this->SegmentationDisplayProperties.end())
   {
     vtkErrorMacro("GetSegmentOpacity2DOutline: No display properties found for segment with ID " << segmentID);
-    return 0.0;
+    SegmentDisplayProperties defaultProperties;
+    return defaultProperties.Opacity2DOutline;
   }
   return propsIt->second.Opacity2DOutline;
 }
@@ -571,10 +553,7 @@ double vtkMRMLSegmentationDisplayNode::GetSegmentOpacity2DOutline(std::string se
 void vtkMRMLSegmentationDisplayNode::SetSegmentOpacity2DOutline(std::string segmentID, double opacity)
 {
   SegmentDisplayProperties properties;
-  if (!this->GetSegmentDisplayProperties(segmentID, properties))
-    {
-    return;
-    }
+  this->GetSegmentDisplayProperties(segmentID, properties);
   properties.Opacity2DOutline = opacity;
   this->SetSegmentDisplayProperties(segmentID, properties);
 }
@@ -582,9 +561,12 @@ void vtkMRMLSegmentationDisplayNode::SetSegmentOpacity2DOutline(std::string segm
 //---------------------------------------------------------------------------
 void vtkMRMLSegmentationDisplayNode::SetSegmentOpacity(std::string segmentID, double opacity)
 {
-  this->SetSegmentOpacity3D(segmentID, opacity);
-  this->SetSegmentOpacity2DFill(segmentID, opacity);
-  this->SetSegmentOpacity2DOutline(segmentID, opacity);
+  SegmentDisplayProperties properties;
+  this->GetSegmentDisplayProperties(segmentID, properties);
+  properties.Opacity3D = opacity;
+  properties.Opacity2DFill = opacity;
+  properties.Opacity2DOutline = opacity;
+  this->SetSegmentDisplayProperties(segmentID, properties);
 }
 
 //---------------------------------------------------------------------------

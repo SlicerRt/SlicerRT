@@ -155,6 +155,10 @@ QTableWidgetItem* qMRMLSegmentsTableViewPrivate::findItemBySegmentID(QString seg
   for (int row=0; row<this->SegmentsTable->rowCount(); ++row)
     {
     QTableWidgetItem* item = this->SegmentsTable->item(row, this->columnIndex("Name"));
+    if (!item)
+      {
+      return NULL;
+      }
     if (!item->data(q->IDRole).toString().compare(segmentID))
       {
       return item;
@@ -393,10 +397,7 @@ void qMRMLSegmentsTableView::populateSegmentTable()
 
     // Get segment display properties
     vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-    if (!displayNode->GetSegmentDisplayProperties(segmentIt->first, properties))
-      {
-      continue;
-      }
+    displayNode->GetSegmentDisplayProperties(segmentIt->first, properties);
 
     // Visibility (show only 3D visibility; if the user changes it then it applies to all types of visibility)
     QToolButton* visibilityButton = new QToolButton();
@@ -502,11 +503,7 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
 
     // Get segment display properties
     vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-    if (!displayNode->GetSegmentDisplayProperties(segmentIt->first, properties))
-      {
-      qWarning() << Q_FUNC_INFO << ": Unable to find display properties for segment ID '" << segmentIt->first.c_str() << " in segmentation node " << d->SegmentationNode->GetName();
-      continue;
-      }
+    displayNode->GetSegmentDisplayProperties(segmentIt->first, properties);
 
     // Visibility
     QToolButton* visibilityButton = qobject_cast<QToolButton*>(
@@ -590,10 +587,7 @@ void qMRMLSegmentsTableView::onSegmentTableItemChanged(QTableWidgetItem* changed
       }
     // Get display properties
     vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-    if (!displayNode->GetSegmentDisplayProperties(segmentId.toLatin1().constData(), properties))
-      {
-      return;
-      }
+    displayNode->GetSegmentDisplayProperties(segmentId.toLatin1().constData(), properties);
 
     bool valueChanged = false;
 
@@ -720,10 +714,7 @@ void qMRMLSegmentsTableView::setSegmentVisibility(QObject* senderObject, int vis
     return;
     }
   vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-  if (!displayNode->GetSegmentDisplayProperties(segmentId.toLatin1().constData(), properties))
-    {
-    return;
-    }
+  displayNode->GetSegmentDisplayProperties(segmentId.toLatin1().constData(), properties);
    
   // Change visibility to all modes
   bool valueChanged = false;

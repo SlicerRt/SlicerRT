@@ -689,10 +689,8 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentToRepresentationNode(vtkSeg
     if (segmentationDisplayNode && modelDisplayNode)
     {
       vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-      if (segmentationDisplayNode->GetSegmentDisplayProperties(segmentId, properties))
-      {
-        modelDisplayNode->SetColor(properties.Color);
-      }
+      segmentationDisplayNode->GetSegmentDisplayProperties(segmentId, properties);
+      modelDisplayNode->SetColor(properties.Color);
     }
 
     // Set segmentation's parent transform to exported node

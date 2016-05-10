@@ -68,8 +68,10 @@ static const std::string KEY_SEGMENT_TAGS = "Tags";
 static const std::string KEY_SEGMENT_EXTENT = "Extent";
 static const std::string KEY_SEGMENTATION_MASTER_REPRESENTATION = "MasterRepresentation";
 static const std::string KEY_SEGMENTATION_CONVERSION_PARAMETERS = "ConversionParameters";
+static const std::string KEY_SEGMENTATION_EXTENT = "Extent";
 static const std::string KEY_SEGMENTATION_CONTAINED_REPRESENTATION_NAMES = "ContainedRepresentationNames";
 
+static const int SINGLE_SEGMENT_INDEX = -1; // used as segment index when there is only a single segment
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLSegmentationStorageNode);
 
@@ -308,7 +310,7 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegm
   itk::MetaDataDictionary metadata = allSegmentLabelmapsImage->GetMetaDataDictionary();
   // Read common geometry extent
   std::string commonExtent;
-  itk::ExposeMetaData<std::string>(metadata, KEY_SEGMENT_EXTENT.c_str(), commonExtent);
+  itk::ExposeMetaData<std::string>(metadata, GetSegmentationMetaDataKey(KEY_SEGMENTATION_EXTENT).c_str(), commonExtent);
   std::stringstream ssCommonExtent;
   ssCommonExtent << commonExtent;
   int commonGeometryExtent[6] = {0,-1,0,-1,0,-1};
@@ -483,8 +485,8 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
   }
 
   // Read segment poly datas
-  std::string containedRepresentationNames("");
-  std::string conversionParameters("");
+  std::string containedRepresentationNames;
+  std::string conversionParameters;
   for (int blockIndex=0; blockIndex<multiBlockDataset->GetNumberOfBlocks(); ++blockIndex)
   {
     // Get poly data representation
@@ -525,25 +527,51 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
     currentSegment->AddRepresentation(segmentation->GetMasterRepresentationName(), currentPolyData);
 
     // Set segment properties
+
+    std::string currentSegmentID;
     vtkStringArray* idArray = vtkStringArray::SafeDownCast(
-      currentPolyData->GetFieldData()->GetAbstractArray(KEY_SEGMENT_ID.c_str()) );
-    vtkStringArray* nameArray = vtkStringArray::SafeDownCast(
-      currentPolyData->GetFieldData()->GetAbstractArray(KEY_SEGMENT_NAME.c_str()) );
-    vtkDoubleArray* defaultColorArray = vtkDoubleArray::SafeDownCast(
-      currentPolyData->GetFieldData()->GetArray(KEY_SEGMENT_DEFAULT_COLOR.c_str()) );
-    vtkStringArray* tagsArray = vtkStringArray::SafeDownCast(
-      currentPolyData->GetFieldData()->GetAbstractArray(KEY_SEGMENT_TAGS.c_str()) );
-    if (!idArray || !nameArray || !defaultColorArray)
+      currentPolyData->GetFieldData()->GetAbstractArray(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_ID).c_str()) );
+    if (idArray && idArray->GetNumberOfValues()>0)
     {
-      vtkErrorMacro("ReadPolyDataRepresentation: Unable to find segment properties for segment number " << blockIndex << " referenced from segmentation file " << path);
-      continue;
+      currentSegmentID = idArray->GetValue(0);
+    }
+    else
+    {
+      vtkWarningMacro("ReadPolyDataRepresentation: segment ID property not found when reading segment " << blockIndex << " from file " << path);
     }
 
-    std::string currentSegmentID = idArray->GetValue(0);
-    currentSegment->SetName(nameArray->GetValue(0).c_str());
-    currentSegment->SetDefaultColor(defaultColorArray->GetComponent(0,0), defaultColorArray->GetComponent(0,1), defaultColorArray->GetComponent(0,2));
+    std::string currentSegmentName;
+    vtkStringArray* nameArray = vtkStringArray::SafeDownCast(
+      currentPolyData->GetFieldData()->GetAbstractArray(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_NAME).c_str()) );
+    if (nameArray && nameArray->GetNumberOfValues()>0)
+    {
+      currentSegmentName = nameArray->GetValue(0);
+    }
+    else
+    {
+      vtkWarningMacro("ReadPolyDataRepresentation: segment Name property not found when reading segment " << blockIndex << " from file " << path);
+      std::stringstream ssCurrentSegmentName;
+      ssCurrentSegmentName << "Segment " << blockIndex;
+      currentSegmentName = ssCurrentSegmentName.str();
+    }
+    currentSegment->SetName(currentSegmentName.c_str());
+
+    double defaultColor[3]={1.0, 0.0, 0.0};
+    vtkDoubleArray* defaultColorArray = vtkDoubleArray::SafeDownCast(
+      currentPolyData->GetFieldData()->GetArray(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_DEFAULT_COLOR).c_str()) );
+    if (defaultColorArray && defaultColorArray->GetNumberOfTuples() > 0 && defaultColorArray->GetNumberOfComponents() == 3)
+    {
+      defaultColorArray->GetTuple(0, defaultColor);
+    }
+    else
+    {
+      vtkWarningMacro("ReadPolyDataRepresentation: segment DefaultColor property not found when reading segment " << blockIndex << " from file " << path);
+    }
+    currentSegment->SetDefaultColor(defaultColor);
 
     // Tags
+    vtkStringArray* tagsArray = vtkStringArray::SafeDownCast(
+      currentPolyData->GetFieldData()->GetAbstractArray(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_TAGS).c_str()) );
     if (tagsArray)
     {
       std::string tags(tagsArray->GetValue(0).c_str());
@@ -701,7 +729,7 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
   ssCommonExtent << commonGeometryExtent[0] << " " << commonGeometryExtent[1] << " " << commonGeometryExtent[2]
     << " " << commonGeometryExtent[3] << " " << commonGeometryExtent[4] << " " << commonGeometryExtent[5];
   std::string commonExtent = ssCommonExtent.str();
-  itk::EncapsulateMetaData<std::string>(metadata, KEY_SEGMENT_EXTENT.c_str(), commonExtent);
+  itk::EncapsulateMetaData<std::string>(metadata, GetSegmentationMetaDataKey(KEY_SEGMENTATION_EXTENT).c_str(), commonExtent);
   // Save master representation name
   itk::EncapsulateMetaData<std::string>(metadata, GetSegmentationMetaDataKey(KEY_SEGMENTATION_MASTER_REPRESENTATION).c_str(), masterRepresentation);
   // Save conversion parameters
@@ -929,14 +957,14 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkMRMLSegmentat
     vtkSmartPointer<vtkStringArray> idArray = vtkSmartPointer<vtkStringArray>::New();
     idArray->SetNumberOfValues(1);
     idArray->SetValue(0,currentSegmentID.c_str());
-    idArray->SetName(KEY_SEGMENT_ID.c_str());
+    idArray->SetName(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_ID).c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(idArray);
 
     // Name
     vtkSmartPointer<vtkStringArray> nameArray = vtkSmartPointer<vtkStringArray>::New();
     nameArray->SetNumberOfValues(1);
     nameArray->SetValue(0,currentSegment->GetName());
-    nameArray->SetName(KEY_SEGMENT_NAME.c_str());
+    nameArray->SetName(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_NAME).c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(nameArray);
 
     // DefaultColor
@@ -944,7 +972,7 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkMRMLSegmentat
     defaultColorArray->SetNumberOfComponents(3);
     defaultColorArray->SetNumberOfTuples(1);
     defaultColorArray->SetTuple(0, currentSegment->GetDefaultColor());
-    defaultColorArray->SetName(KEY_SEGMENT_DEFAULT_COLOR.c_str());
+    defaultColorArray->SetName(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_DEFAULT_COLOR).c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(defaultColorArray);
 
     // Tags
@@ -959,7 +987,7 @@ int vtkMRMLSegmentationStorageNode::WritePolyDataRepresentation(vtkMRMLSegmentat
     vtkSmartPointer<vtkStringArray> tagsArray = vtkSmartPointer<vtkStringArray>::New();
     tagsArray->SetNumberOfValues(1);
     tagsArray->SetValue(0,ssTags.str().c_str());
-    tagsArray->SetName(KEY_SEGMENT_TAGS.c_str());
+    tagsArray->SetName(GetSegmentMetaDataKey(SINGLE_SEGMENT_INDEX, KEY_SEGMENT_TAGS).c_str());
     currentPolyDataCopy->GetFieldData()->AddArray(tagsArray);
 
     // Save conversion parameters as metadata (save in each segment file)
@@ -1084,7 +1112,12 @@ void vtkMRMLSegmentationStorageNode::CreateRepresentationsBySerializedNames(vtkS
 std::string vtkMRMLSegmentationStorageNode::GetSegmentMetaDataKey(int segmentIndex, const std::string& keyName)
 {
   std::stringstream key;
-  key << "Segment" << segmentIndex << "_" << keyName;
+  key << "Segment";
+  if (segmentIndex != SINGLE_SEGMENT_INDEX)
+  {
+    key << segmentIndex;
+  }
+  key << "_" << keyName;
   return key.str();
 }
 

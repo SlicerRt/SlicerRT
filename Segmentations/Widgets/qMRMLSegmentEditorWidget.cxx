@@ -95,14 +95,6 @@ public:
     {
     return new vtkSegmentEditorEventCallbackCommand;
     }
-  vtkSegmentEditorEventCallbackCommand()
-  {
-    vtkGenericWarningMacro("vtkSegmentEditorEventCallbackCommand created");
-  }
-  virtual ~vtkSegmentEditorEventCallbackCommand()
-  {
-    vtkGenericWarningMacro("vtkSegmentEditorEventCallbackCommand destroyed");
-  }
   /// Segment editor widget observing the event
   QWeakPointer<qMRMLSegmentEditorWidget> EditorWidget;
   /// Slice widget or 3D widget

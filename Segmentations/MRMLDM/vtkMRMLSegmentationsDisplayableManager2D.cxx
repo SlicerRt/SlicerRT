@@ -674,10 +674,7 @@ void vtkMRMLSegmentationsDisplayableManager2D::vtkInternal::UpdateDisplayNodePip
 
     // Get visibility
     vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-    if (!displayNode->GetSegmentDisplayProperties(pipeline->SegmentID, properties))
-      {
-      continue;
-      }
+    displayNode->GetSegmentDisplayProperties(pipeline->SegmentID, properties);
     bool segmentOutlineVisible = displayNodeVisible && properties.Visible && properties.Visible2DOutline;
     bool segmentFillVisible = displayNodeVisible && properties.Visible && properties.Visible2DFill;
 
