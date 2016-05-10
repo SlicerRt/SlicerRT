@@ -2,23 +2,26 @@
 <VTKFile type="PolyData" version="0.1" byte_order="LittleEndian" header_type="UInt32" compressor="vtkZLibDataCompressor">
   <PolyData>
     <FieldData>
-      <Array type="String" Name="MasterRepresentation" NumberOfTuples="1" format="binary">
+      <Array type="String" Name="Segmentation_MasterRepresentation" NumberOfTuples="1" format="binary">
         AQAAAACAAAAPAAAAFwAAAA==eJwLyEnMSyxSSM7PK8kvLWIAAC1zBYk=
       </Array>
-      <Array type="String" Name="ID" NumberOfTuples="1" format="binary">
+      <Array type="String" Name="Segment_ID" NumberOfTuples="1" format="binary">
         AQAAAACAAAAHAAAADwAAAA==eJwLSk0uKc1lAAAKmwJx
       </Array>
-      <Array type="String" Name="Name" NumberOfTuples="1" format="binary">
+      <Array type="String" Name="Segment_Name" NumberOfTuples="1" format="binary">
         AQAAAACAAAAHAAAADwAAAA==eJwLSk0uKc1lAAAKmwJx
       </Array>
-      <DataArray type="Float64" Name="DefaultColor" NumberOfComponents="3" NumberOfTuples="1" format="binary" RangeMin="0.61477389623" RangeMax="0.61477389623">
+      <DataArray type="Float64" Name="Segment_DefaultColor" NumberOfComponents="3" NumberOfTuples="1" format="binary" RangeMin="0.61477389623" RangeMax="0.61477389623">
         AQAAAACAAAAYAAAAEwAAAA==eJwTEACBB/ZgSuACnAYAL20EXg==
       </DataArray>
-      <Array type="String" Name="ConversionParameters" NumberOfTuples="1" format="binary">
-        AQAAAACAAAANAgAAJwEAAA==eJx1UU1rwzAM3U8RPXQbtKEJpKP0NLZLT4P9A8VRUoM/gixnDPLjZyft1h6GsWU/P+vpyR8jcUA7GO166FCJ56mc3kmIrXYUQM4E/pbkuxlj6ojJKQJtsSfoyVsS/i7g1IGWxwAILtqGeJP5DtAYCNRbcpLu+CYrtfCl5TynTQDBiCYSPC0h6ZVgCV0A5+9Keb5owRmXOpcHq9fVVTKKtyha3TvQARQaFQ0KtcX68x8n03ZXHF729b467tKo6rzeYguSYlEft2WVwwKUadbl33ooj9PpLje0FBTrQbR3EIRzWe2l6Xmf3fxyLx032JCxOKQDymyCKTsA7UD5yGHulfIue015C3hDBw0laNCJ1rG36VNGb6KlDcRwFWqiSKKvH34A0BuzRw==
+      <Array type="String" Name="Segmentation_ConversionParameters" NumberOfTuples="1" format="binary">
+        AQAAAACAAAAqAwAAsAEAAA==eJx1Uttq3EAM7aeIQLcJbAZ7YVPCPoXkJVAopNB37axsC+Zi5rJpij++Gl+23odgZmTL0tE5kl5Is8XE3kGDOvkwVKoaXihyoBPIyXr8yQ5SR5B8QgMu2yMF8A303ny03kW4JdWqLXADkZKEQaUetyXFTSA0pp8w4RJQV18LAqcIPnDLToAj/6W7zc8zhYi2N+zahVUtnBIFy47iCOXXQYJTfIEaCuSkmGhqCVryllL4UPBaCn2LgDP3mRoaqUmtJScsMKxQRfw7p26EFQfBGU0muJ2M1KvBEopw56+o3M21oMOJ55Rw83SzlMzJl4brawUcQaPR2WCik9q8faJkuJe+fn/YP+wOlTy7fbnXvskjVu0P9/WumMlRy9nX/+/H+jC8XmHDiaIO3I/zjikUWqe56eW9qLnEzh03eCRjsZcPTKOIQEVB2Rftc4hjr7R3RavgKnhGB0cSV88S1gRvZShnb7KlLeS4FDrmlCR888t6n7rVIlSqHt7I4J/10kIj5wf2BjULflySFPxe5lXJdsRsZM5CTYZ2idnCe8eGLgON3DpuWKNLK6DNl38fuxid
       </Array>
-      <Array type="String" Name="ContainedRepresentationNames" NumberOfTuples="1" format="binary">
-        AQAAAACAAAAQAAAAGAAAAA==eJwLyEnMSyxSSM7PK8kvLaphAAAz9AYF
+      <Array type="String" Name="Segmentation_ContainedRepresentationNames" NumberOfTuples="1" format="binary">
+        AQAAAACAAAAfAAAAJwAAAA==eJxzzskvTk1RKC4tSktMTq0JyEnMSyxSSM7PK8kvLaphAAC/lgvk
+      </Array>
+      <Array type="String" Name="Segment_Tags" NumberOfTuples="1" format="binary">
+        AQAAAACAAAABAAAACQAAAA==eJxjAAAAAQAB
       </Array>
     </FieldData>
     <Piece NumberOfPoints="1594" NumberOfVerts="0" NumberOfLines="40" NumberOfStrips="0" NumberOfPolys="0">

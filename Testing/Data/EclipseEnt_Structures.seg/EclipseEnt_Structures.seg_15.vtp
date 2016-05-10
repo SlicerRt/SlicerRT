@@ -2,22 +2,22 @@
 <VTKFile type="PolyData" version="0.1" byte_order="LittleEndian" header_type="UInt32" compressor="vtkZLibDataCompressor">
   <PolyData>
     <FieldData>
-      <Array type="String" Name="MasterRepresentation" NumberOfTuples="1" format="binary">
+      <Array type="String" Name="Segmentation_MasterRepresentation" NumberOfTuples="1" format="binary">
         AQAAAACAAAAPAAAAFwAAAA==eJwLyEnMSyxSSM7PK8kvLWIAAC1zBYk=
       </Array>
-      <Array type="String" Name="ID" NumberOfTuples="1" format="binary">
+      <Array type="String" Name="Segment_ID" NumberOfTuples="1" format="binary">
         AQAAAACAAAAJAAAAEQAAAA==eJzLLyjxLyjJTGYAABJ3A1M=
       </Array>
-      <Array type="String" Name="Name" NumberOfTuples="1" format="binary">
+      <Array type="String" Name="Segment_Name" NumberOfTuples="1" format="binary">
         AQAAAACAAAAJAAAAEQAAAA==eJzLLyjxLyjJTGYAABJ3A1M=
       </Array>
-      <DataArray type="Float64" Name="DefaultColor" NumberOfComponents="3" NumberOfTuples="1" format="binary" RangeMin="1" RangeMax="1">
+      <DataArray type="Float64" Name="Segment_DefaultColor" NumberOfComponents="3" NumberOfTuples="1" format="binary" RangeMin="1" RangeMax="1">
         AQAAAACAAAAYAAAAEAAAAA==eJxjYACBD/YMaAAAFScBMA==
       </DataArray>
-      <Array type="String" Name="ConversionParameters" NumberOfTuples="1" format="binary">
+      <Array type="String" Name="Segmentation_ConversionParameters" NumberOfTuples="1" format="binary">
         AQAAAACAAAAOAgAAKQEAAA==eJx1UU1PwzAM5adYOwyQRtUMpoF6QnDZCYl/4KZuFykfVeIUIfXH47YbbAcUxY5fXmw/52OgmND11vgOWtQc4qjGd2KKznhKwEeCcEkK7YxFaimS1wTGYUfQUXDE8buAQwuGbxMg+OxqipuJ7wGthUSdI89yFy+yUgNfho9zWgEIBrSZ4G5xUk+BI/QJfLhq5f5UC4649Lk8WL2uziUzB4ds9LUCk0Cj1dkiU1OsP/9RMj6ootw/bdVLVcra7ndiL7EFEV/sBC/LYgnLSsneqT+rHp+r8XCVHBpKOpqeTfCQOE59NaepT+dJzi/3NHKLNVmHvQTIs4pIkwQwHnTIMc3D0sFPYiVvAW/ooSaBeiO0NgYnvzIEmx1tIKdzoTozC3198wNcnLNt
       </Array>
-      <Array type="String" Name="ContainedRepresentationNames" NumberOfTuples="1" format="binary">
+      <Array type="String" Name="Segmentation_ContainedRepresentationNames" NumberOfTuples="1" format="binary">
         AQAAAACAAAAQAAAAGAAAAA==eJwLyEnMSyxSSM7PK8kvLaphAAAz9AYF
       </Array>
     </FieldData>
