@@ -77,7 +77,7 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
   }
   
   // Convert volume to oriented image data
-  vtkOrientedImageData* orientedImageData = vtkOrientedImageData::New();
+  vtkSmartPointer<vtkOrientedImageData> orientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
   if (!SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(inVolumeNode, orientedImageData, applyRasToWorldConversion))
   {
     vtkErrorWithObjectMacro(inVolumeNode, "ConvertVolumeNodeToItkImage: Failed to convert volume node to oriented image data!");
