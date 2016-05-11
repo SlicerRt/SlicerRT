@@ -178,7 +178,7 @@ double vtkOrientedImageData::GetMaxSpacing()
 }
 
 //----------------------------------------------------------------------------
-void vtkOrientedImageData::SetGeometryFromImageToWorldMatrix(vtkMatrix4x4* argMat)
+void vtkOrientedImageData::SetImageToWorldMatrix(vtkMatrix4x4* argMat)
 {
   if (argMat == NULL)
     {
@@ -237,6 +237,12 @@ void vtkOrientedImageData::SetGeometryFromImageToWorldMatrix(vtkMatrix4x4* argMa
     {
     this->Modified();
     }
+}
+
+//----------------------------------------------------------------------------
+void vtkOrientedImageData::SetGeometryFromImageToWorldMatrix(vtkMatrix4x4* argMat)
+{
+  this->SetImageToWorldMatrix(argMat);
 }
 
 //----------------------------------------------------------------------------

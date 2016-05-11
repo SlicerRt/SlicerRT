@@ -70,9 +70,11 @@ public:
 
   /// Get the geometry matrix that includes the spacing and origin information
   void GetImageToWorldMatrix(vtkMatrix4x4* mat);
-  /// Convenience methods to set the directions, spacing, and origin from a matrix
+  /// Convenience method to set the directions, spacing, and origin from a matrix
+  void SetImageToWorldMatrix(vtkMatrix4x4* mat);
+  /// Same as SetImageToWorldMatrix. Kept for backward compatibility.
   void SetGeometryFromImageToWorldMatrix(vtkMatrix4x4* mat);
-
+  
   /// Compute image bounds (xmin,xmax, ymin,ymax, zmin,zmax).
   virtual void ComputeBounds();
 
