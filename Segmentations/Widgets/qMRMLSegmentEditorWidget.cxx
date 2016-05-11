@@ -1735,7 +1735,7 @@ void qMRMLSegmentEditorWidget::onSegmentAddedRemoved()
     for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
     {
       QString segmentName = segmentIt->second->GetName();
-      d->MaskModeComboBox->addItem(tr("Inside ")+segmentName, segmentName);
+      d->MaskModeComboBox->addItem(tr("Inside ") + segmentName, QString::fromLocal8Bit(segmentIt->first.c_str()));
     }
 
     // restore selection

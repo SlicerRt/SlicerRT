@@ -334,6 +334,7 @@ void qSlicerSegmentEditorAbstractEffect::apply()
   if (!parameterSetNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node!";
+    this->clearEditedLabelmap(); 
     return;
   }
 
@@ -342,7 +343,6 @@ void qSlicerSegmentEditorAbstractEffect::apply()
   // Apply mask to edited labelmap if paint over is turned off
   if (parameterSetNode->GetMaskMode() != vtkMRMLSegmentEditorNode::PaintAllowedEverywhere)
   {
-    // TODO:
     vtkOrientedImageData* maskImage = this->maskLabelmap();
     this->applyImageMask(labelmapImage, maskImage, this->m_EraseValue, true);
   }
@@ -350,23 +350,18 @@ void qSlicerSegmentEditorAbstractEffect::apply()
   // Apply threshold mask if paint threshold is turned on
   if (parameterSetNode->GetMasterVolumeIntensityMask())
   {
-    vtkMRMLScalarVolumeNode* masterVolumeNode = this->parameterSetNode()->GetMasterVolumeNode();
-    if (!masterVolumeNode)
-    {
-      qCritical() << Q_FUNC_INFO << ": Invalid master volume!";
-      return;
-    }
-    vtkSmartPointer<vtkOrientedImageData> masterVolumeOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::Take(
-      vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(masterVolumeNode));
+    vtkOrientedImageData* masterVolumeOrientedImageData = this->masterVolumeImageData();
     if (!masterVolumeOrientedImageData)
     {
-      qCritical() << Q_FUNC_INFO << ": Unable to get master volume image!";
+      qCritical() << Q_FUNC_INFO << ": Unable to get master volume image";
+      this->clearEditedLabelmap();
       return;
     }
     // Make sure the edited labelmap has the same geometry as the master volume
     if (!vtkOrientedImageDataResample::DoGeometriesMatch(labelmapImage, masterVolumeOrientedImageData))
     {
-      qCritical() << Q_FUNC_INFO << ": Edited labelmap should have the same geometry as the master volume!";
+      qCritical() << Q_FUNC_INFO << ": Edited labelmap should have the same geometry as the master volume";
+      this->clearEditedLabelmap();
       return;
     }
 
@@ -391,6 +386,7 @@ void qSlicerSegmentEditorAbstractEffect::apply()
   if (!d->ParameterSetNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid segment editor parameter set node";
+    this->clearEditedLabelmap();
     return;
   }
 
@@ -398,7 +394,8 @@ void qSlicerSegmentEditorAbstractEffect::apply()
   const char* selectedSegmentID = d->ParameterSetNode->GetSelectedSegmentID();
   if (!segmentationNode || !selectedSegmentID)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid segment selection!";
+    qCritical() << Q_FUNC_INFO << ": Invalid segment selection";
+    this->clearEditedLabelmap();
     return;
   }
 
@@ -407,8 +404,9 @@ void qSlicerSegmentEditorAbstractEffect::apply()
     // If per-segment flag is off, then it is not an error (the effect itself has written it back to segmentation)
     if (this->perSegment())
     {
-      qCritical() << Q_FUNC_INFO << ": Cannot apply edit operation because edited labelmap cannot be accessed!";
+      qCritical() << Q_FUNC_INFO << ": Cannot apply edit operation because edited labelmap cannot be accessed";
     }
+    this->clearEditedLabelmap();
     return;
   }
 
@@ -530,10 +528,26 @@ void qSlicerSegmentEditorAbstractEffect::apply()
   }
 
   // Update is completed, clear the edited labelmap
-  vtkOrientedImageDataResample::FillImage(d->EditedLabelmap, this->m_EraseValue, extent);
-  this->setEditedLabelmapApplyExtent(0, -1, 0, -1, 0, -1);
+  this->clearEditedLabelmap();
 
   emit d->applySignal();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorAbstractEffect::clearEditedLabelmap()
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+  if (d->EditedLabelmap)
+  {
+    int* extent = this->editedLabelmapApplyExtent();
+    if (extent[0]>extent[1] || extent[2]>extent[3] || extent[4]>extent[5])
+    {
+      // invalid extent, it means we have to work with the entire edited labelmap
+      extent = NULL;
+    }
+    vtkOrientedImageDataResample::FillImage(d->EditedLabelmap, this->m_EraseValue, extent);
+  }
+  this->setEditedLabelmapApplyExtent(0, -1, 0, -1, 0, -1);
 }
 
 //-----------------------------------------------------------------------------

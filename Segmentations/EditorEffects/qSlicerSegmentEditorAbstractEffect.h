@@ -97,6 +97,9 @@ public:
   /// they must call apply from the base class too, AFTER the effect-specific implementation
   Q_INVOKABLE virtual void apply();
 
+  /// Clears edited labelmap contents (fills with empty value and sets extent to invalid)
+  Q_INVOKABLE virtual void clearEditedLabelmap();
+
   /// Apply mask image on an input image
   /// \param input Input image to apply the mask on
   /// \param mask Mask to apply
