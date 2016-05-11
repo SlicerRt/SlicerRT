@@ -270,15 +270,17 @@ void vtkSegmentation::SetMasterRepresentationModifiedEnabled(bool enabled)
     {
       if (enabled)
       {
-        vtkEventBroker::GetInstance()->AddObservation(
-          masterRepresentation, vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );
-        masterRepresentation->Register(this);
+        if (!vtkEventBroker::GetInstance()->GetObservationExist(masterRepresentation,
+          vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand))
+        {
+          vtkEventBroker::GetInstance()->AddObservation(masterRepresentation,
+            vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );            
+        }
       }
       else
       {
         vtkEventBroker::GetInstance()->RemoveObservations(
           masterRepresentation, vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );
-        masterRepresentation->UnRegister(this);
       }
     }
   }
@@ -323,8 +325,10 @@ bool vtkSegmentation::AddSegment(vtkSegment* segment, std::string segmentId/*=""
   }
 
   // Observe segment underlying data for changes
-  vtkEventBroker::GetInstance()->AddObservation(
-    segment, vtkCommand::ModifiedEvent, this, this->SegmentCallbackCommand );
+  if (!vtkEventBroker::GetInstance()->GetObservationExist(segment, vtkCommand::ModifiedEvent, this, this->SegmentCallbackCommand))
+  {
+    vtkEventBroker::GetInstance()->AddObservation(segment, vtkCommand::ModifiedEvent, this, this->SegmentCallbackCommand );
+  }
 
   // Get representation names contained by the added segment
   std::vector<std::string> containedRepresentationNamesInAddedSegment;
@@ -420,9 +424,12 @@ bool vtkSegmentation::AddSegment(vtkSegment* segment, std::string segmentId/*=""
   if (masterRepresentation)
   {
     // Observe segment's master representation
-    vtkEventBroker::GetInstance()->AddObservation(
-      masterRepresentation, vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );
-    masterRepresentation->Register(this);
+    if (!vtkEventBroker::GetInstance()->GetObservationExist(masterRepresentation,
+      vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand))
+    {
+      vtkEventBroker::GetInstance()->AddObservation(masterRepresentation,
+        vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );            
+    }
   }
 
   // Fire segment added event
@@ -488,7 +495,6 @@ void vtkSegmentation::RemoveSegment(SegmentMap::iterator segmentIt)
   {
     vtkEventBroker::GetInstance()->RemoveObservations(
       masterRepresentation, vtkCommand::ModifiedEvent, this, this->MasterRepresentationCallbackCommand );
-    masterRepresentation->UnRegister(this);
   }
 
   // Remove segment
