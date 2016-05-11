@@ -303,7 +303,7 @@ void qSlicerSegmentationsModule::onSubjectHierarchyNodeModified(vtkObject* nodeO
   {
     // If segment name is different than subject hierarchy node name (without postfix) then rename segment
     vtkSegment* segment = vtkSlicerSegmentationsModuleLogic::GetSegmentForSegmentSubjectHierarchyNode(subjectHierarchyNode);
-    if (segment)
+    if (segment && segment->GetName())
     {
       if (strcmp(segment->GetName(), subjectHierarchyNode->GetNameWithoutPostfix().c_str()))
       {
