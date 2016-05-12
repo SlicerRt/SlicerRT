@@ -314,7 +314,7 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
 
   // Set default colormap to the dose color table
   vtkSmartPointer<vtkCollection> defaultDoseColorTableNodes = vtkSmartPointer<vtkCollection>::Take(
-    this->GetMRMLScene()->GetNodesByName(SlicerRtCommon::DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME) );
+    this->GetMRMLScene()->GetNodesByName(SlicerRtCommon::DEFAULT_DOSE_COLOR_TABLE_NAME) );
   vtkMRMLColorTableNode* defaultDoseColorTable = vtkMRMLColorTableNode::SafeDownCast(defaultDoseColorTableNodes->GetItemAsObject(0));
   if (defaultDoseColorTable)
   {

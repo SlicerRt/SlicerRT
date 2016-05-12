@@ -452,8 +452,11 @@ void qSlicerIsodoseModuleWidget::setIsodoseNode(vtkMRMLNode *node)
     // Set default color table ID if none specified yet
     if (!paramNode->GetColorTableNode())
     {
-      vtkMRMLColorTableNode* defaultIsodoseColorTableNode = vtkMRMLColorTableNode::SafeDownCast(
-        this->mrmlScene()->GetNodeByID( d->logic()->GetDefaultIsodoseColorTableNodeId() ));
+      vtkMRMLColorTableNode* defaultIsodoseColorTableNode = d->logic()->CreateDefaultIsodoseColorTable(this->mrmlScene());
+      if (!defaultIsodoseColorTableNode)
+      {
+        qCritical() << Q_FUNC_INFO << ": Unable to create default isodose color table!";
+      }
       paramNode->SetAndObserveColorTableNode(defaultIsodoseColorTableNode);
     }
   }

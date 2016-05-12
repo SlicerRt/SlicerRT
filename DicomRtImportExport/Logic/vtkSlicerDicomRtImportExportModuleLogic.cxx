@@ -123,7 +123,6 @@ vtkSlicerDicomRtImportExportModuleLogic::vtkSlicerDicomRtImportExportModuleLogic
   this->PlanarImageLogic = NULL;
 
   this->BeamModelsInSeparateBranch = true;
-  this->DefaultDoseColorTableNodeId = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -132,7 +131,6 @@ vtkSlicerDicomRtImportExportModuleLogic::~vtkSlicerDicomRtImportExportModuleLogi
   this->SetVolumesLogic(NULL);
   this->SetIsodoseLogic(NULL);
   this->SetPlanarImageLogic(NULL);
-  this->SetDefaultDoseColorTableNodeId(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -157,8 +155,6 @@ void vtkSlicerDicomRtImportExportModuleLogic::OnMRMLSceneEndClose()
     vtkErrorMacro("OnMRMLSceneEndClose: Invalid MRML scene!");
     return;
   }
-
-  this->SetDefaultDoseColorTableNodeId(NULL);
 }
 
 //---------------------------------------------------------------------------
@@ -705,6 +701,12 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader*
   volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
   // Apply dose grid scaling
+  if (!rtReader->GetDoseGridScaling())
+  {
+    vtkErrorMacro("LoadRtDose: Empty dose unit value found for dose volume " << volumeNode->GetName());
+  }
+  double doseGridScaling = vtkVariant(rtReader->GetDoseGridScaling()).ToDouble();
+
   vtkSmartPointer<vtkImageData> floatVolumeData = vtkSmartPointer<vtkImageData>::New();
 
   vtkSmartPointer<vtkImageCast> imageCast = vtkSmartPointer<vtkImageCast>::New();
@@ -712,12 +714,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader*
   imageCast->SetOutputScalarTypeToFloat();
   imageCast->Update();
   floatVolumeData->DeepCopy(imageCast->GetOutput());
-
-  std::stringstream ss;
-  ss << rtReader->GetDoseGridScaling();
-  double doubleValue;
-  ss >> doubleValue;
-  double doseGridScaling = doubleValue;
 
   float value = 0.0;
   float* floatPtr = (float*)floatVolumeData->GetScalarPointer();
@@ -730,64 +726,33 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader*
 
   volumeNode->SetAndObserveImageData(floatVolumeData);      
 
-  // Create dose color table from default isodose color table
-  if (!this->DefaultDoseColorTableNodeId)
+  // Get default isodose color table and default dose color table
+  vtkMRMLColorTableNode* defaultIsodoseColorTable = vtkSlicerIsodoseModuleLogic::CreateDefaultIsodoseColorTable(this->GetMRMLScene());
+  vtkMRMLColorTableNode* defaultDoseColorTable = vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(this->GetMRMLScene());
+  if (!defaultIsodoseColorTable || !defaultDoseColorTable)
   {
-    this->CreateDefaultDoseColorTable();
-    if (!this->DefaultDoseColorTableNodeId)
-    {
-      this->SetDefaultDoseColorTableNodeId("vtkMRMLColorTableNodeRainbow");
-    }
+    vtkErrorMacro("LoadRtDose: Failed to get default color tables!");
+    return false;
   }
 
-  vtkMRMLColorTableNode* defaultIsodoseColorTable = vtkMRMLColorTableNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->IsodoseLogic->GetDefaultIsodoseColorTableNodeId()) );
-
-  // Create isodose parameter set node and set color table to default
-  std::string isodoseParameterSetNodeName;
-  isodoseParameterSetNodeName = this->GetMRMLScene()->GenerateUniqueName(
-    vtkSlicerIsodoseModuleLogic::ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX + volumeNodeName );
-  vtkSmartPointer<vtkMRMLIsodoseNode> isodoseParameterSetNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
-  isodoseParameterSetNode->SetName(isodoseParameterSetNodeName.c_str());
-  isodoseParameterSetNode->SetAndObserveDoseVolumeNode(volumeNode);
-  if (this->IsodoseLogic && defaultIsodoseColorTable)
-  {
-    isodoseParameterSetNode->SetAndObserveColorTableNode(defaultIsodoseColorTable);
-  }
-  this->GetMRMLScene()->AddNode(isodoseParameterSetNode);
-
-  //TODO: Generate isodose surfaces if chosen so by the user in the hanging protocol options
+  //TODO: Generate isodose surfaces if chosen so by the user in the hanging protocol options (hanging protocol support not implemented yet)
 
   // Set default colormap to the loaded one if found or generated, or to rainbow otherwise
   vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> volumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
-  volumeDisplayNode->SetAndObserveColorNodeID(this->DefaultDoseColorTableNodeId);
+  volumeDisplayNode->SetAndObserveColorNodeID(defaultDoseColorTable->GetID());
   this->GetMRMLScene()->AddNode(volumeDisplayNode);
   volumeNode->SetAndObserveDisplayNodeID(volumeDisplayNode->GetID());
 
   // Set window/level to match the isodose levels
-  if (this->IsodoseLogic && defaultIsodoseColorTable)
-  {
-    std::stringstream ssMin;
-    ssMin << defaultIsodoseColorTable->GetColorName(0);;
-    int minDoseInDefaultIsodoseLevels;
-    ssMin >> minDoseInDefaultIsodoseLevels;
+  int minDoseInDefaultIsodoseLevels = vtkVariant(defaultIsodoseColorTable->GetColorName(0)).ToInt();
+  int maxDoseInDefaultIsodoseLevels = vtkVariant(defaultIsodoseColorTable->GetColorName(defaultIsodoseColorTable->GetNumberOfColors()-1)).ToInt();
 
-    std::stringstream ssMax;
-    ssMax << defaultIsodoseColorTable->GetColorName(defaultIsodoseColorTable->GetNumberOfColors()-1);
-    int maxDoseInDefaultIsodoseLevels;
-    ssMax >> maxDoseInDefaultIsodoseLevels;
-
-    volumeDisplayNode->AutoWindowLevelOff();
-    volumeDisplayNode->SetWindowLevelMinMax(minDoseInDefaultIsodoseLevels, maxDoseInDefaultIsodoseLevels);
-  }
+  volumeDisplayNode->AutoWindowLevelOff();
+  volumeDisplayNode->SetWindowLevelMinMax(minDoseInDefaultIsodoseLevels, maxDoseInDefaultIsodoseLevels);
 
   // Set display threshold
-  double doseUnitScaling = 0.0;
-  std::stringstream doseUnitScalingSs;
-  doseUnitScalingSs << rtReader->GetDoseGridScaling();
-  doseUnitScalingSs >> doseUnitScaling;
   volumeDisplayNode->AutoThresholdOff();
-  volumeDisplayNode->SetLowerThreshold(0.5 * doseUnitScaling);
+  volumeDisplayNode->SetLowerThreshold(0.5 * doseGridScaling);
   volumeDisplayNode->SetApplyThreshold(1);
 
   // Setup subject hierarchy entry
@@ -803,11 +768,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader*
 
   // Set dose unit attributes to subject hierarchy study node
   vtkMRMLSubjectHierarchyNode* studyHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(subjectHierarchySeriesNode->GetParentNode());
-  if (!studyHierarchyNode)
-  {
-    vtkErrorMacro("LoadRtDose: Unable to get parent study hierarchy node for dose volume '" << volumeNode->GetName() << "'");
-  }
-  else
+  if (studyHierarchyNode)
   {
     const char* existingDoseUnitName = studyHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
     if (!rtReader->GetDoseUnits())
@@ -830,12 +791,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader*
     }
     else if (existingDoseUnitValueChars)
     {
-      double existingDoseUnitValue = 0.0;
-      {
-        std::stringstream ss;
-        ss << existingDoseUnitValueChars;
-        ss >> existingDoseUnitValue;
-      }
+      double existingDoseUnitValue = vtkVariant(existingDoseUnitValueChars).ToDouble();
+      double doseGridScaling = vtkVariant(rtReader->GetDoseGridScaling()).ToDouble();
+
       double currentDoseUnitValue = 0.0;
       {
         std::stringstream ss;
@@ -851,6 +809,10 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader*
     {
       studyHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), rtReader->GetDoseGridScaling());
     }
+  }
+  else
+  {
+    vtkErrorMacro("LoadRtDose: Unable to get parent study hierarchy node for dose volume '" << volumeNode->GetName() << "'");
   }
 
   // Select as active volume
@@ -1258,49 +1220,6 @@ void vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy( vt
       << (rtReader->GetSeriesInstanceUid() ? rtReader->GetSeriesInstanceUid() : "Missing UID") );
     return;
   }
-}
-
-//------------------------------------------------------------------------------
-void vtkSlicerDicomRtImportExportModuleLogic::CreateDefaultDoseColorTable()
-{
-  if (!this->GetMRMLScene() || !this->IsodoseLogic)
-  {
-    vtkErrorMacro("CreateDefaultDoseColorTable: No scene or Isodose logic present!");
-    return;
-  }
-
-  // Check if default color table node already exists
-  vtkSmartPointer<vtkCollection> defaultDoseColorTableNodes = vtkSmartPointer<vtkCollection>::Take(
-    this->GetMRMLScene()->GetNodesByName(SlicerRtCommon::DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME) );
-  if (defaultDoseColorTableNodes->GetNumberOfItems() > 0)
-  {
-    vtkDebugMacro("CreateDefaultDoseColorTable: Default dose color table already exists");
-    vtkMRMLColorTableNode* doseColorTable = vtkMRMLColorTableNode::SafeDownCast(
-      defaultDoseColorTableNodes->GetItemAsObject(0) );
-    this->SetDefaultDoseColorTableNodeId(doseColorTable->GetID());
-    return;
-  }
-
-  vtkMRMLColorTableNode* defaultIsodoseColorTable = vtkMRMLColorTableNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(this->IsodoseLogic->GetDefaultIsodoseColorTableNodeId()) );
-  if (!defaultIsodoseColorTable)
-  {
-    vtkErrorMacro("CreateDefaultDoseColorTable: Invalid default isodose color table found in isodose logic!");
-    return;
-  }
-
-  vtkSmartPointer<vtkMRMLColorTableNode> defaultDoseColorTable = vtkSmartPointer<vtkMRMLColorTableNode>::New();
-  defaultDoseColorTable->SetName(SlicerRtCommon::DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME);
-  defaultDoseColorTable->SetTypeToUser();
-  defaultDoseColorTable->SetSingletonTag(SlicerRtCommon::DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME);
-  defaultDoseColorTable->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
-  defaultDoseColorTable->HideFromEditorsOff();
-  defaultDoseColorTable->SetNumberOfColors(256);
-
-  SlicerRtCommon::StretchDiscreteColorTable(defaultIsodoseColorTable, defaultDoseColorTable);
-
-  this->GetMRMLScene()->AddNode(defaultDoseColorTable);
-  this->SetDefaultDoseColorTableNodeId(defaultDoseColorTable->GetID());
 }
 
 //------------------------------------------------------------------------------

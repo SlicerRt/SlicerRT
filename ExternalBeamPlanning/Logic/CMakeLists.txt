@@ -9,6 +9,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
   ${PLASTIMATCH_INCLUDE_DIRS}
@@ -27,6 +28,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerMarkupsModuleMRML
   vtkSlicerBeamsModuleMRML
   vtkSlicerBeamsModuleLogic
+  vtkSlicerIsodoseModuleLogic
   vtkSlicerSegmentationsModuleMRML
   vtkSlicerSegmentationsModuleLogic
   vtkSlicerExternalBeamPlanningModuleMRML

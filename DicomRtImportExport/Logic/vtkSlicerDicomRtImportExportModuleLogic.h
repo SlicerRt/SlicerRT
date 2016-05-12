@@ -90,9 +90,6 @@ public:
   vtkGetMacro(BeamModelsInSeparateBranch, bool);
   vtkBooleanMacro(BeamModelsInSeparateBranch, bool);
 
-  vtkGetStringMacro(DefaultDoseColorTableNodeId);
-  vtkSetStringMacro(DefaultDoseColorTableNodeId);
-
 protected:
   vtkSlicerDicomRtImportExportModuleLogic();
   virtual ~vtkSlicerDicomRtImportExportModuleLogic();
@@ -123,10 +120,6 @@ protected:
   /// Insert currently loaded series in the proper place in subject hierarchy
   void InsertSeriesInSubjectHierarchy(vtkSlicerDicomRtReader* rtReader);
 
-  /// Creates default dose color table.
-  /// Should not be called, except when updating the default dose color table file manually, or when the file cannot be found (\sa LoadDefaultDoseColorTable)
-  void CreateDefaultDoseColorTable();
-
   /// Compute and set geometry of an RT image
   /// \param node Either the volume node of the loaded RT image, or the isocenter fiducial node (corresponding to an RT image). This function is called both when
   ///    loading an RT image and when loading a beam. Sets up the RT image geometry only if both information (the image itself and the isocenter data) are available
@@ -149,9 +142,6 @@ private:
   /// Flag determining whether the generated beam models are arranged in a separate subject hierarchy
   /// branch, or each beam model is added under its corresponding isocenter fiducial
   bool BeamModelsInSeparateBranch;
-
-  /// Default dose color table ID. Loaded on Slicer startup.
-  char* DefaultDoseColorTableNodeId;
 };
 
 #endif

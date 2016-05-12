@@ -184,8 +184,13 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   isodoseLogic->SetMRMLScene(mrmlScene);
 
   // Set the number of Isodose level to 1 by setting number of color to 1
-  vtkMRMLColorTableNode* isodoseColorNode = vtkMRMLColorTableNode::SafeDownCast(
-    mrmlScene->GetNodeByID(isodoseLogic->GetDefaultIsodoseColorTableNodeId()));
+  vtkMRMLColorTableNode* isodoseColorNode = vtkSlicerIsodoseModuleLogic::CreateDefaultIsodoseColorTable(mrmlScene);
+  if (!isodoseColorNode)
+  {
+    mrmlScene->Commit();
+    std::cerr << "ERROR: Failed to create default isodose color table!" << std::endl;
+    return EXIT_FAILURE;
+  }
   isodoseColorNode->SetNumberOfColors(1);
 
   // Create and set up parameter set MRML node

@@ -114,7 +114,7 @@ public:
   static const std::string DICOMRTIMPORT_SOURCE_HIERARCHY_NODE_NAME_POSTFIX;
   static const std::string DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
 
-  static const char* DICOMRTIMPORT_DEFAULT_DOSE_COLOR_TABLE_NAME;
+  static const char* DEFAULT_DOSE_COLOR_TABLE_NAME;
 
   //----------------------------------------------------------------------------
   // Utility functions

@@ -48,10 +48,10 @@ public:
   vtkTypeMacro(vtkSlicerDoseCalculationEngine, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// Do dose calculation
+  /// Initialize accumulated dose
   void InitializeAccumulatedDose(Plm_image::Pointer);
 
-  /// Do dose calculation
+  /// Do dose calculation for a single beam
   void CalculateDose(
     vtkMRMLRTBeamNode* beamNode, 
     Plm_image::Pointer& plmTgt,
@@ -59,20 +59,17 @@ public:
     double src[], 
     double RxDose);
 
-  /// Do dose calculation
+  /// Get range compensator volume
   itk::Image<float, 3>::Pointer GetRangeCompensatorVolume();
 
-  /// Do dose calculation
+  /// Get aperture volume
   itk::Image<unsigned char, 3>::Pointer GetApertureVolume();
 
-  /// Do dose calculation
-  itk::Image<float, 3>::Pointer GetAccumulatedDose();
-
-  /// Do dose calculation
+  /// Get computed dose
   itk::Image<float, 3>::Pointer GetComputedDose();
 
-  /// Get total Rx
-  double GetTotalRx();
+  /// Get accumulated dose
+  itk::Image<float, 3>::Pointer GetAccumulatedDose();
 
   /// Do dose calculation
   void CleanUp();

@@ -55,6 +55,7 @@
 
 // Qt includes
 #include <QDebug>
+#include <QTime>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
@@ -2013,6 +2014,10 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
   }
+
+  // Start timer
+  QTime time;
+  time.start();
   
   // The last verifications were fine so we can compute the dose
   // Dose Calculation - loop on all the beam and sum in a global dose matrix
@@ -2070,6 +2075,8 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     d->label_CalculateDoseStatus->setText("Dose calculation done");
   }
   QApplication::restoreOverrideCursor();
+
+  qDebug() << Q_FUNC_INFO << ": Dose calculated in " << time.elapsed() << " ms";
 
   return;
 }

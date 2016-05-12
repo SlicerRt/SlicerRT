@@ -36,16 +36,14 @@
 // MRML includes
 class vtkMRMLIsodoseNode;
 class vtkMRMLModelHierarchyNode;
-class vtkMRMLModelDisplayNode;
+class vtkMRMLColorTableNode;
 
 /// \ingroup SlicerRt_QtModules_Isodose
-class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerIsodoseModuleLogic :
-  public vtkSlicerModuleLogic
+class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerIsodoseModuleLogic : public vtkSlicerModuleLogic
 {
-
 public:
   // Isodose constants
-  static const char* ISODOSE_DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME;
+  static const char* DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME;
   static const std::string ISODOSE_MODEL_NODE_NAME_PREFIX;
   static const std::string ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX;
   static const std::string ISODOSE_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
@@ -68,11 +66,17 @@ public:
   /// Set and observe isodose parameter set node
   void SetAndObserveIsodoseNode(vtkMRMLIsodoseNode* node);
 
-protected:
-  /// Creates default isodose color table.
-  /// Should not be called, except when updating the default isodose color table file manually, or when the file cannot be found (\sa LoadDefaultIsodoseColorTable)
-  void CreateDefaultIsodoseColorTable();
+  /// Get dose volume node
+  vtkMRMLModelHierarchyNode* GetRootModelHierarchyNode();
 
+public:
+  /// Creates default isodose color table. Gets and returns if already exists
+  static vtkMRMLColorTableNode* CreateDefaultIsodoseColorTable(vtkMRMLScene* scene);
+
+  /// Creates default dose color table (which is the default isodose color table stretched)
+  static vtkMRMLColorTableNode* CreateDefaultDoseColorTable(vtkMRMLScene *scene);
+
+protected:
   /// Loads default isodose color table from the supplied color table file
   void LoadDefaultIsodoseColorTable();
 
@@ -80,16 +84,8 @@ public:
   /// Get isodose parameter set node
   vtkGetObjectMacro(IsodoseNode, vtkMRMLIsodoseNode);
 
-  // Get default isodose color table ID
-  vtkGetStringMacro(DefaultIsodoseColorTableNodeId);
-  // Set default isodose color table ID
-  vtkSetStringMacro(DefaultIsodoseColorTableNodeId);
-
-  /// Get dose volume node
-  vtkMRMLModelHierarchyNode* GetRootModelHierarchyNode();
-
 protected:
-  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
@@ -109,9 +105,6 @@ private:
 protected:
   /// Parameter set MRML node
   vtkMRMLIsodoseNode* IsodoseNode;
-
-  /// Default isodose color table ID. Loaded on Slicer startup.
-  char* DefaultIsodoseColorTableNodeId;
 };
 
 #endif

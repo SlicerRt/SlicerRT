@@ -50,29 +50,25 @@ class vtkSlicerDoseCalculationEngine::vtkInternal
 public:
   vtkInternal();
 
-  /// Pointer that contains the dose
-  Plm_image::Pointer plmRef;
+  /// Reference CT Plastimatch image
+  Plm_image::Pointer ReferenceVolumePlm;
 
-  /// Pointer that contains the dose --> MD Fix: vector of itk_images?
-  itk::Image<float, 3>::Pointer rcVolumeItk;
+  /// Range compensator volume --> MD TODO Fix: vector of itk_images?
+  itk::Image<float, 3>::Pointer RangeCompensatorVolumeItk;
 
-  /// Pointer that contains the dose --> MD Fix: vector of itk_images?
-  itk::Image<unsigned char, 3>::Pointer apertureVolumeItk;
+  /// Aperture volume --> MD TODO Fix: vector of itk_images?
+  itk::Image<unsigned char, 3>::Pointer ApertureVolumeItk;
 
-  /// Pointer that contains the dose --> MD Fix: vector of itk_images?
-  itk::Image<float, 3>::Pointer doseVolumeItk;
+  /// Dose volume --> MD TODO Fix: vector of itk_images?
+  itk::Image<float, 3>::Pointer DoseVolumeItk;
 
-  /// Pointer that contains the accumulate dose
-  itk::Image<float, 3>::Pointer accumulateVolumeItk;
-
-  /// Pointer that contains the dose
-  float TotalRx;
+  /// Accumulated dose
+  itk::Image<float, 3>::Pointer AccumulateVolumeItk;
 };
 
 //----------------------------------------------------------------------------
 vtkSlicerDoseCalculationEngine::vtkInternal::vtkInternal()
 {
-  this->TotalRx = 0.f;
 }
 
 vtkStandardNewMacro(vtkSlicerDoseCalculationEngine);
@@ -98,12 +94,11 @@ void vtkSlicerDoseCalculationEngine::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkSlicerDoseCalculationEngine::InitializeAccumulatedDose(Plm_image::Pointer plmRef)
 {
-  this->Internal->plmRef = plmRef;
-  itk::Image<short, 3>::Pointer referenceVolumeItk = this->Internal->plmRef->itk_short();
+  this->Internal->ReferenceVolumePlm = plmRef;
+  itk::Image<short, 3>::Pointer referenceVolumeItk = this->Internal->ReferenceVolumePlm->itk_short();
 
-  this->Internal->accumulateVolumeItk = itk_image_create<float>(Plm_image_header(referenceVolumeItk));
-  this->Internal->doseVolumeItk = itk_image_create<float>(Plm_image_header(referenceVolumeItk));
-  this->Internal->TotalRx = 0.f;
+  this->Internal->AccumulateVolumeItk = itk_image_create<float>(Plm_image_header(referenceVolumeItk));
+  this->Internal->DoseVolumeItk = itk_image_create<float>(Plm_image_header(referenceVolumeItk));
 }
 
 //----------------------------------------------------------------------------
@@ -121,7 +116,7 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
     return;
   }
   
-  this->Internal->plmRef->print ();
+  this->Internal->ReferenceVolumePlm->print ();
   plmTgt->print ();
 
   float origin[3] = {plmTgt->origin(0),plmTgt->origin(1), plmTgt->origin(2)};
@@ -132,12 +127,12 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
   /* This is debugging code, for checking the input volume */
   double min_val, max_val, avg;
   int non_zero, num_vox;
-  itk_image_stats (Internal->plmRef->m_itk_int32, &min_val, &max_val, &avg, &non_zero, &num_vox);
+  itk_image_stats (Internal->ReferenceVolumePlm->m_itk_int32, &min_val, &max_val, &avg, &non_zero, &num_vox);
   printf ("MIN %f AVE %f MAX %f NONZERO %d NUMVOX %d\n", 
     (float) min_val, (float) avg, (float) max_val, non_zero, num_vox);
 #endif
 
-  itk::Image<short, 3>::Pointer referenceVolumeItk = this->Internal->plmRef->itk_short();
+  itk::Image<short, 3>::Pointer referenceVolumeItk = this->Internal->ReferenceVolumePlm->itk_short();
   itk::Image<unsigned char, 3>::Pointer targetVolumeItk = plmTgt->itk_uchar();
 
   Rt_plan rt_plan;
@@ -145,7 +140,7 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
 
   try
   {
-    /* Connection of the beam parameters to the rt_beam class used to calculate the dose in plastimatch */
+    // Connection of the beam parameters to the rt_beam class used to calculate the dose in Plastimatch
 
     // Create a beam
     rt_beam = rt_plan.append_beam ();
@@ -286,10 +281,10 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
     printf("Energy spread = %lg\n", rt_beam->get_mebs()->get_spread());
 
     // Distal and proximal margins are updated when the SOBP is created
-    /* All the rt_beam parameters are updated to initiate the dose calculation */
+    // All the rt_beam parameters are updated to initiate the dose calculation
     if (!rt_plan.prepare_beam_for_calc (rt_beam))
     {
-      /* Failure.  How to notify the user?? */
+      // Failure. How to notify the user? //TODO: We can return error strings similarly to other module logics
       std::cerr << "Sorry, rt_plan.prepare_beam_for_calc() failed.\n";
       return;
     }
@@ -306,26 +301,26 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
     return;
   }
 
-  /* Get aperture as itk image */
+  // Get aperture as itk image
   Rpl_volume *rpl_vol = rt_beam->rpl_vol;
   Plm_image::Pointer& ap = rpl_vol->get_aperture()->get_aperture_image();
-  this->Internal->apertureVolumeItk = ap->itk_uchar();
+  this->Internal->ApertureVolumeItk = ap->itk_uchar();
 
-  /* Get range compensator as itk image */
+  // Get range compensator as itk image
   Plm_image::Pointer& rc = rpl_vol->get_aperture()->get_range_compensator_image();
-  this->Internal->rcVolumeItk = rc->itk_float();
+  this->Internal->RangeCompensatorVolumeItk = rc->itk_float();
 
-  /* Compute the dose */
+  // Compute the dose
   try
   {
     if (rt_beam->get_beam_line_type() != "passive")
     {
-        /* active */
+        // active
         rt_beam->get_mebs()->compute_particle_number_matrix_from_target_active_slicerRt(rt_beam->rpl_vol, plmTgt, rt_beam->get_smearing());
     }
     else
     {
-        /* passive */
+        // passive
         rt_beam->rpl_vol->compute_beam_modifiers_passive_scattering_slicerRt (plmTgt, rt_beam->get_smearing(), rt_beam->get_mebs()->get_proximal_margin(), rt_beam->get_mebs()->get_distal_margin());
         rt_beam->get_mebs()->set_prescription_depths(rt_beam->rpl_vol->get_min_wed(), rt_beam->rpl_vol->get_max_wed());
         rt_beam->rpl_vol->apply_beam_modifiers();
@@ -333,7 +328,7 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
         int ap_dim[2] = {rt_beam->rpl_vol->get_aperture()->get_dim()[0], rt_beam->rpl_vol->get_aperture()->get_dim()[1]};
         rt_beam->get_mebs()->generate_part_num_from_weight(ap_dim);
     }
-    /* We can compute the dose */
+    // We can compute the dose
     rt_plan.compute_dose (rt_beam);
   }
   catch (std::exception& ex)
@@ -341,46 +336,40 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
     vtkErrorMacro("ComputeDose: Plastimatch exception: " << ex.what());
     return;
   }
-  /* Get dose as itk image */
-  this->Internal->doseVolumeItk = rt_beam->get_dose()->itk_float();
+  // Get dose as itk image
+  this->Internal->DoseVolumeItk = rt_beam->get_dose()->itk_float();
   
-  /* Add into accumulate image */
-  itk_image_accumulate (this->Internal->accumulateVolumeItk, 1.0, this->Internal->doseVolumeItk);
+  // Add into accumulate image
+  itk_image_accumulate (this->Internal->AccumulateVolumeItk, 1.0, this->Internal->DoseVolumeItk);
 }
 
 //---------------------------------------------------------------------------
 itk::Image<float, 3>::Pointer vtkSlicerDoseCalculationEngine::GetRangeCompensatorVolume()
 {
-  return this->Internal->rcVolumeItk;
+  return this->Internal->RangeCompensatorVolumeItk;
 }
 
 //---------------------------------------------------------------------------
 itk::Image<unsigned char, 3>::Pointer vtkSlicerDoseCalculationEngine::GetApertureVolume()
 {
-  return this->Internal->apertureVolumeItk;
+  return this->Internal->ApertureVolumeItk;
 }
 
 //---------------------------------------------------------------------------
 itk::Image<float, 3>::Pointer vtkSlicerDoseCalculationEngine::GetComputedDose()
 {
-  return this->Internal->doseVolumeItk;
+  return this->Internal->DoseVolumeItk;
 }
 
 //---------------------------------------------------------------------------
 itk::Image<float, 3>::Pointer vtkSlicerDoseCalculationEngine::GetAccumulatedDose()
 {
-  return this->Internal->accumulateVolumeItk;
-}
-
-//---------------------------------------------------------------------------
-double vtkSlicerDoseCalculationEngine::GetTotalRx()
-{
-  return this->Internal->TotalRx; 
+  return this->Internal->AccumulateVolumeItk;
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerDoseCalculationEngine::CleanUp()
 {
   // Free up memory for reference CT
-  Internal->plmRef.reset();
+  Internal->ReferenceVolumePlm.reset();
 }

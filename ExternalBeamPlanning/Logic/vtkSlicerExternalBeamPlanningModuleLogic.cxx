@@ -28,6 +28,7 @@
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTProtonBeamNode.h"
 #include "vtkSlicerBeamsModuleLogic.h"
+#include "vtkSlicerIsodoseModuleLogic.h"
 #include "vtkSlicerDoseCalculationEngine.h"
 
 // Segmentations includes
@@ -66,6 +67,8 @@
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLSubjectHierarchyNode.h>
 #include <vtkMRMLSubjectHierarchyConstants.h>
+#include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLSliceCompositeNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -113,7 +116,6 @@ public:
   vtkSlicerDoseCalculationEngine* DoseEngine;
 
   Plm_image::Pointer plmRef;
-  float TotalRx;
 };
 
 //----------------------------------------------------------------------------
@@ -121,7 +123,6 @@ vtkSlicerExternalBeamPlanningModuleLogic::vtkInternal::vtkInternal()
 {
   this->MatlabDoseCalculationModuleLogic = 0;
   this->DoseEngine = vtkSlicerDoseCalculationEngine::New();
-  this->TotalRx = 0.f;
 }
 
 //----------------------------------------------------------------------------
@@ -997,7 +998,7 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::InitializeAccumulatedDose(
 
   vtkMRMLScalarVolumeNode* referenceVolumeNode = this->RTPlanNode->GetReferenceVolumeNode();
   Plm_image::Pointer plmRef = PlmCommon::ConvertVolumeNodeToPlmImage(referenceVolumeNode);
-  this->Internal->DoseEngine->InitializeAccumulatedDose(plmRef);
+  this->Internal->DoseEngine->InitializeAccumulatedDose(plmRef); //TODO: This pointer is also in the dose engine!
 
   return "";
 }
@@ -1054,33 +1055,55 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::FinalizeAccumulatedDose()
   }
 
   this->Internal->DoseEngine->CleanUp();
-  double totalRx = this->Internal->DoseEngine->GetTotalRx();
+  double rxDose = this->RTPlanNode->GetRxDose();
 
   doseVolumeNode->CreateDefaultDisplayNodes(); // Make sure display node is present
   if (doseVolumeNode->GetVolumeDisplayNode())
   {
+    // Set dose color table
     vtkMRMLScalarVolumeDisplayNode* doseScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(doseVolumeNode->GetDisplayNode());
-    doseScalarVolumeDisplayNode->SetAutoWindowLevel(0);
-    doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, totalRx);
+    vtkMRMLColorTableNode* defaultDoseColorTable = vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(this->GetMRMLScene());
+    if (defaultDoseColorTable)
+    {
+      doseScalarVolumeDisplayNode->SetAndObserveColorNodeID(defaultDoseColorTable->GetID());
+    }
+    else
+    {
+      vtkErrorMacro("ComputeDose: Failed to get default color tables!");
+    }
 
-    //TODO: Use dose color table
-    // Set colormap to rainbow
-    doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
-    doseScalarVolumeDisplayNode->SetLowerThreshold (0.05 * totalRx);
-    doseScalarVolumeDisplayNode->ApplyThresholdOn ();
+    // Set window level based on prescription dose
+    doseScalarVolumeDisplayNode->AutoWindowLevelOff();
+    doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, rxDose);
+
+    // Set threshold to hide very low dose values
+    doseScalarVolumeDisplayNode->SetLowerThreshold(0.05 * rxDose);
+    doseScalarVolumeDisplayNode->ApplyThresholdOn();
   }
   else
   {
-    vtkWarningMacro("ComputeDose: Display node is not available for gamma volume node. The default color table will be used.");
+    vtkWarningMacro("ComputeDose: Display node is not available for calculated dose volume node. The default color table will be used.");
   }
 
-  // Select as active volume
+  // Show total dose in foreground
   if (this->GetApplicationLogic() && this->GetApplicationLogic()->GetSelectionNode())
   {
+    // Select as foreground volume
     this->GetApplicationLogic()->GetSelectionNode()->SetReferenceSecondaryVolumeID(doseVolumeNode->GetID());
     this->GetApplicationLogic()->PropagateVolumeSelection(0);
-    //TODO: Set opacity too (it's 0 by default so the volume is not visible)
-  }
+
+    // Set opacity so that volume is visible
+    vtkMRMLSliceCompositeNode* compositeNode = NULL;
+    int numberOfCompositeNodes = this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
+    for (int i=0; i<numberOfCompositeNodes; i++)
+    {
+      compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast ( this->GetMRMLScene()->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
+      if (compositeNode && compositeNode->GetForegroundOpacity() == 0.0)
+      {
+        compositeNode->SetForegroundOpacity(0.5);
+      }
+    }
+  } 
 
   return "";
 }
