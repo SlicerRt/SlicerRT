@@ -137,6 +137,9 @@ protected:
   /// \param visible2DOutline Visibility of the segment referenced from senderObject for 2D outline. If 0, then hide, if 1 then show, otherwise don't change
   void setSegmentVisibility(QObject* senderObject, int visible, int visible3D, int visible2DFill, int visible2DOutline);
 
+  /// To prevent accidentally moving out of the widget when pressing up/down arrows
+  virtual bool eventFilter(QObject* target, QEvent* event);
+
 protected:
   QScopedPointer<qMRMLSegmentsTableViewPrivate> d_ptr;
 

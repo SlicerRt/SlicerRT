@@ -35,10 +35,11 @@
 #include <vtkMRMLModelNode.h>
 
 // Qt includes
-#include <QStringList>
-#include <QDebug>
-#include <QToolButton>
 #include <QAction>
+#include <QDebug>
+#include <QKeyEvent>
+#include <QStringList>
+#include <QToolButton>
 
 // qMRML includes
 #include "qMRMLItemDelegate.h"
@@ -128,6 +129,8 @@ void qMRMLSegmentsTableViewPrivate::init()
   this->SegmentsTable->setItemDelegateForColumn(this->columnIndex("Color"), itemDelegate);
   //this->SegmentsTable->setItemDelegateForColumn(this->columnIndex("Opacity"), itemDelegate);
   this->SegmentsTable->setItemDelegateForColumn(this->columnIndex("Opacity"), new qMRMLDoubleSpinBoxDelegate(this->SegmentsTable));
+
+  this->SegmentsTable->installEventFilter(q);
 }
 
 //-----------------------------------------------------------------------------
@@ -833,4 +836,33 @@ void qMRMLSegmentsTableView::clearSelection()
     {
     d->SegmentsTable->setItemSelected(item, false);
     }
+}
+
+//------------------------------------------------------------------------------
+bool qMRMLSegmentsTableView::eventFilter(QObject* target, QEvent* event)
+{
+  Q_D(qMRMLSegmentsTableView);
+  if (target == d->SegmentsTable)
+  {
+    // Prevent giving the focus to the previous/next widget if arrow keys are used
+    // at the edge of the table (without this: if the current cell is in the top
+    // row and user press the Up key, the focus goes from the table to the previous
+    // widget in the tab order)
+    if (event->type() == QEvent::KeyPress)
+    {
+      QKeyEvent* keyEvent = static_cast<QKeyEvent *>(event);
+      QAbstractItemModel* model = d->SegmentsTable->model();
+      QModelIndex currentIndex = d->SegmentsTable->currentIndex();
+
+      if (model && (
+        (keyEvent->key() == Qt::Key_Left && currentIndex.column() == 0)
+        || (keyEvent->key() == Qt::Key_Up && currentIndex.row() == 0)
+        || (keyEvent->key() == Qt::Key_Right && currentIndex.column() == model->columnCount() - 1)
+        || (keyEvent->key() == Qt::Key_Down && currentIndex.row() == model->rowCount() - 1)))
+      {
+        return true;
+      }
+    }
+  }
+  return this->QWidget::eventFilter(target, event);
 }
