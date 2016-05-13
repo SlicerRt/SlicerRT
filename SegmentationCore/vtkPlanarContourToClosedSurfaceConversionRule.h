@@ -84,59 +84,132 @@ protected:
   vtkPlanarContourToClosedSurfaceConversionRule();
   virtual ~vtkPlanarContourToClosedSurfaceConversionRule();
 
-  /// Construct a surface triangulation using a dynamic programming algorithm.
-  void TriangulateContours(vtkPolyData*, vtkIdList*, vtkIdList*, vtkCellArray*);
+  /// Construct a surface triangulation between two lines using a dynamic programming algorithm.
+  /// \param inputROIPoints Polydata containing all of the points and contours
+  /// \param pointsInLine1 List of points that are contained in the line to be triangulated
+  /// \param pointsInLine2 List of points that are contained in the line to be triangulated
+  /// \param Cell array that polygons are added to by the triangulation algorithm
+  void TriangulateContours(vtkPolyData* inputROIPoints, vtkIdList* pointsInLine1, vtkIdList* pointsInLine2, vtkCellArray* outputPolygons);
 
   /// Find the index of the last point in a contour.
-  int GetEndLoop(int, int, bool);
+  /// \param startLoopIndex The index of the first point in the contour
+  /// \param numberOfPoints The number of points in the contour
+  /// \param loopClosed Boolean indicating if the loop is closed or not
+  /// \return The index of the last point in the contour
+  vtkIdType GetEndLoop(vtkIdType startLoopIndex, int numberOfPoints, bool loopClosed);
 
   /// Find the point on the given line that is closest to the given point.
-  int GetClosestPoint(vtkPolyData*, double*, vtkIdList*, int);
+  /// \param inputROIPoints Polydata containing all of the points and contours
+  /// \param originalPoint The point that is being compared to the line
+  /// \param linePointIds The line that is being compared to the point
+  /// \return The index of the point in the line that is closet to the specified point
+  vtkIdType GetClosestPoint(vtkPolyData* inputROIPoints, double* originalPoint, vtkIdList* linePointIds);
 
   /// Sort the contours based on Z value.
-  void SortContours(vtkPolyData*);
+  /// \param inputROIPoints Polydata containing all of the points and contours
+  void SortContours(vtkPolyData* inputROIPoints);
 
   /// Remove the keyholes from the contours.
-  void FixKeyholes(vtkPolyData*, int, double, int);
+  /// \param inputROIPoints Polydata containing all of the points and contours
+  /// \param The minimum distance between two points in mm before points are considered to be part of a keyhole
+  /// \param The minimum number of seperation of indices between points before they can be part of a keyhole
+  void FixKeyholes(vtkPolyData* inputROIPoints, double epsilon, int minimumSeperation);
 
   /// Set all of the lines to be oriented in the clockwise direction.
-  void SetLinesCounterClockwise(vtkPolyData*);
+  /// \param inputROIPoints Polydata containing all of the points and contours
+  void SetLinesCounterClockwise(vtkPolyData* inputROIPoints);
 
   /// Determine if a line runs in a clockwise orientation.
-  bool IsLineClockwise(vtkPolyData*, vtkLine*);
+  /// \param inputROIPoints Polydata containing all of the points and contours
+  /// \param line The line that is being checked
+  bool IsLineClockwise(vtkPolyData* inputROIPoints, vtkLine* line);
 
   /// Reverse the orientation of a line from clockwise to counter-clockwise and vice versa.
-  void ReverseLine(vtkLine*, vtkLine*);
+  /// \param originalLine The line that is being reversed
+  /// \param newLine The output reversed line
+  void ReverseLine(vtkLine* originalLine, vtkLine* newLine);
 
   /// Determine the number of contours that share the same Z-coordinates.
-  int GetNumberOfLinesOnPlane(vtkPolyData*, int, int);
+  /// \param inputROIPoints Polydata containing all of the points and contours
+  /// \param originalLineIndex The index of the line that is part of the plane being checked
+  int GetNumberOfLinesOnPlane(vtkPolyData* inputROIPoints, vtkIdType originalLineIndex);
 
   /// Determine if two contours overlap in the XY axis.
-  bool DoLinesOverlap(vtkLine*, vtkLine*);
+  /// \param The first line
+  /// \param The second line
+  bool DoLinesOverlap(vtkLine* line1, vtkLine* line2);
 
   /// Create a branching pattern for overlapping contours.
-  void Branch(vtkPolyData*, vtkLine*, int, std::vector< int >, std::vector<vtkSmartPointer<vtkPointLocator> >, std::vector<vtkSmartPointer<vtkIdList> >, vtkLine*);
+  /// \param inputROIPoints Polydata containing all of the points and contours
+  /// \param branchingLine The orignal line that is being divided
+  /// \param currentLineId The ID of the current line in the input polydata that is being compared
+  /// \param overlappingLineIds List of line IDs for lines that overlap with the current line
+  /// \param pointLocators List of point locators for lines in the overlap list
+  /// \param lineIdLists List of vtkIdLists for all of the lines in the overlap list
+  /// \param outputLine The output branched line
+  void Branch(vtkPolyData* inputROIPoints, vtkLine* branchingLine, vtkIdType currentLineId, std::vector< vtkIdType > overlappingLineIds, std::vector<vtkSmartPointer<vtkPointLocator> > pointLocators, std::vector<vtkSmartPointer<vtkIdList> > lineIdLists, vtkLine* outputLine);
 
   /// Find the branch closest from the point on the trunk
-  int GetClosestBranch(vtkPolyData*, double*, std::vector< int >, std::vector<vtkSmartPointer<vtkPointLocator> >, std::vector<vtkSmartPointer<vtkIdList> >);
+  /// \param inputROIPoints Polydata containing all of the points and contours
+  /// \param originalPoint The point that is being compared
+  /// \param overlappingLineIds List of line IDs for lines that overlap with the current line
+  /// \param pointLocators List of point locators for lines in the overlap list
+  /// \param lineIdLists List of vtkIdLists for all of the lines in the overlap list
+  int GetClosestBranch(vtkPolyData* inputROIPoints, double* originalPoint, std::vector< vtkIdType > overlappingLineIds, std::vector<vtkSmartPointer<vtkPointLocator> > pointLocators, std::vector<vtkSmartPointer<vtkIdList> > lineIdLists);
 
   /// Seal the exterior contours of the mesh.
-  void SealMesh(vtkPolyData*, vtkCellArray*, vtkCellArray*, std::vector< bool >, std::vector< bool >);
+  /// \param inputROIPoints Polydata containing all of the points and contours
+  /// \param inputLines Lines
+  /// \param outputPolygons
+  /// \param lineTriganulatedToAbove
+  /// \param lineTriganulatedToBelow
+  void EndCapping(vtkPolyData* inputROIPoints, vtkCellArray* outputPolygons, std::vector< bool > lineTriganulatedToAbove, std::vector< bool > lineTriganulatedToBelow);
 
-  double GetSpacingBetweenLines(vtkPolyData*);
+  /// Calculate the spacing between the lines in the polydata
+  /// This function assumes that the spacing between the lines is always equal and only
+  /// calculates the difference between the first two
+  /// \param inputROIPoints Polydata containing all of the points and contours
+  /// \return The size of the spacing between the contours
+  double GetSpacingBetweenLines(vtkPolyData* inputROIPoints);
 
   /// Create an additional contour on the exterior of the surface to compensate for slice thickness.
   /// This step is generally called end-capping.
-  void CreateExternalLine(vtkPolyData*, vtkLine*, vtkCellArray*, double);
+  /// \param inputROIPoints Polydata containing all of the points and contours
+  /// \param inputLine The original line that needs to be extended
+  /// \param outputLines Cell array containing all of the lines that are created by the algorithm
+  /// \param The size of the spacing between the contours. Contours created by this function will be offset by 1/2 of this amount
+  void CreateEndCapContour(vtkPolyData* inputROIPoints, vtkLine* inputLine, vtkCellArray* outputLines, double lineSpacing);
 
   /// Triangulate the interior of a contour on the xy plane.
-  void TriangulateLine(vtkLine*, vtkCellArray*, bool);
+  /// \param Contour that is being triangulated
+  /// \param Cell array that the polygons are added to
+  /// \param True if the normals are positive in the z direction, false if the normals are negative
+  void TriangulateLine(vtkLine* inputLine, vtkCellArray* outputPolys, bool normalsUp);
 
   /// Find the index of the next point in the contour.
-  int GetNextLocation(int, int, bool);
+  /// \param The location of the currentId
+  /// \param The number of points in the contours
+  /// \param Whether the loop is closed
+  /// \return The id of the point that occurs next in the contour
+  vtkIdType GetNextLocation(vtkIdType currentLocation, int numberOfPoints, bool loopClosed);
 
   /// Find the index of the next point in the contour.
-  int GetPreviousLocation(int, int, bool);
+  /// \param The location of the currentId
+  /// \param The number of points in the contours
+  /// \param Whether the loop is closed
+  /// \return The id of the point that occurs previously in the contour
+  vtkIdType GetPreviousLocation(vtkIdType currentLocation, int numberOfPoints, bool loopClosed);
+
+protected:
+
+  // Spacing that is used for the image in the end-capping process
+  double DefaultSpacing[2];
+
+  // Alternative dimensions used for the image in the end-capping process
+  int AlternativeDimensions[3];
+
+  // Image padding size that is used in the end-capping process
+  int ImagePadding[3];
 
 private:
   vtkPlanarContourToClosedSurfaceConversionRule(const vtkPlanarContourToClosedSurfaceConversionRule&); // Not implemented
