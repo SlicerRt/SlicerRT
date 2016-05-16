@@ -79,6 +79,7 @@ add_subdirectory(PlmRegister)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   # In development
+  add_subdirectory(RoomsEyeView)
   add_subdirectory(PlmThreshbox)
   add_subdirectory(PinnacleDvfReader)
 
