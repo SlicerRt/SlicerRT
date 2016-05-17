@@ -63,13 +63,11 @@ vtkStandardNewMacro(vtkSlicerDoseAccumulationModuleLogic);
 //----------------------------------------------------------------------------
 vtkSlicerDoseAccumulationModuleLogic::vtkSlicerDoseAccumulationModuleLogic()
 {
-  this->DoseAccumulationNode = NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerDoseAccumulationModuleLogic::~vtkSlicerDoseAccumulationModuleLogic()
 {
-  vtkSetAndObserveMRMLNodeMacro(this->DoseAccumulationNode, NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -79,18 +77,11 @@ void vtkSlicerDoseAccumulationModuleLogic::PrintSelf(ostream& os, vtkIndent inde
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationModuleLogic::SetAndObserveDoseAccumulationNode(vtkMRMLDoseAccumulationNode *node)
-{
-  vtkSetAndObserveMRMLNodeMacro(this->DoseAccumulationNode, node);
-}
-
-//---------------------------------------------------------------------------
 void vtkSlicerDoseAccumulationModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
-  events->InsertNextValue(vtkMRMLScene::EndImportEvent);
   events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
   this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
@@ -144,29 +135,24 @@ void vtkSlicerDoseAccumulationModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* n
     return;
   }
 
+  // Remove volume node from parameter set nodes
   vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
-  if (this->DoseAccumulationNode && volumeNode)
+  if (volumeNode)
   {
-    this->DoseAccumulationNode->RemoveSelectedInputVolumeNode(volumeNode);
-    this->DoseAccumulationNode->GetVolumeNodeIdsToWeightsMap()->erase(node->GetID());
+    this->GetMRMLScene()->InitTraversal();
+    vtkMRMLNode *currentNode = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLDoseAccumulationNode");
+    while (currentNode)
+    {
+      vtkMRMLDoseAccumulationNode* doseAccumulationNode = vtkMRMLDoseAccumulationNode::SafeDownCast(currentNode);
+      doseAccumulationNode->RemoveSelectedInputVolumeNode(volumeNode);
+      doseAccumulationNode->GetVolumeNodeIdsToWeightsMap()->erase(volumeNode->GetID());
+      currentNode = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLDoseAccumulationNode");
+    }
   }
 
   if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLDoseAccumulationNode"))
   {
     this->Modified();
-  }
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerDoseAccumulationModuleLogic::OnMRMLSceneEndImport()
-{
-  // If we have a parameter node select it
-  vtkMRMLDoseAccumulationNode *paramNode = NULL;
-  vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLDoseAccumulationNode");
-  if (node)
-  {
-    paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(node);
-    vtkSetAndObserveMRMLNodeMacro(this->DoseAccumulationNode, paramNode);
   }
 }
 
@@ -183,50 +169,17 @@ void vtkSlicerDoseAccumulationModuleLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
-vtkCollection* vtkSlicerDoseAccumulationModuleLogic::GetVolumeNodesFromScene()
+const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(vtkMRMLDoseAccumulationNode* parameterNode)
 {
-  vtkCollection* volumeNodes = vtkCollection::New();
-  volumeNodes->InitTraversal();
-
-  if (this->GetMRMLScene() == NULL || this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLScalarVolumeNode") < 1
-    || this->DoseAccumulationNode == NULL)
+  if (!parameterNode)
   {
-    return volumeNodes;
-  }
-
-  this->GetMRMLScene()->InitTraversal();
-  vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLScalarVolumeNode");
-  while (node != NULL)
-  {
-    vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
-    if (volumeNode)
-    {
-      const char* doseVolumeIdentifier = volumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
-      if (doseVolumeIdentifier != NULL || !this->DoseAccumulationNode->GetShowDoseVolumesOnly())
-      {
-        volumeNodes->AddItem(volumeNode);
-      }
-    }
-
-    node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLScalarVolumeNode");
-  }
-
-  return volumeNodes;
-}
-
-//---------------------------------------------------------------------------
-const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
-{
-  vtkMRMLDoseAccumulationNode* paramNode = this->GetDoseAccumulationNode();
-  if (!paramNode)
-  {
-    const char* errorMessage = "No parameter set node";
+    const char* errorMessage = "No parameter set currentNode";
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
     return errorMessage;
   }
 
   // Make sure inputs are initialized
-  int numberOfInputDoseVolumes = paramNode->GetNumberOfSelectedInputVolumeNodes();
+  int numberOfInputDoseVolumes = parameterNode->GetNumberOfSelectedInputVolumeNodes();
   if (numberOfInputDoseVolumes == 0)
   {
     const char* errorMessage = "No dose volume selected";
@@ -235,11 +188,17 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
   }
 
   // Get reference and output dose volumes
-  vtkMRMLScalarVolumeNode* outputAccumulatedDoseVolumeNode = paramNode->GetAccumulatedDoseVolumeNode();
-  vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = paramNode->GetReferenceDoseVolumeNode();
-  if (referenceDoseVolumeNode == NULL || outputAccumulatedDoseVolumeNode == NULL)
+  vtkMRMLScalarVolumeNode* outputAccumulatedDoseVolumeNode = parameterNode->GetAccumulatedDoseVolumeNode();
+  vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = parameterNode->GetReferenceDoseVolumeNode();
+  if (referenceDoseVolumeNode == NULL)
   {
-    const char* errorMessage = "reference and/or output volume not specified!";
+    const char* errorMessage = "Reference volume not specified!";
+    vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
+    return errorMessage;
+  }
+  if (outputAccumulatedDoseVolumeNode == NULL)
+  {
+    const char* errorMessage = "Output volume not specified!";
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
     return errorMessage;
   }
@@ -252,7 +211,7 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
   vtkSmartPointer<vtkImageData> accumulatedImageData = vtkSmartPointer<vtkImageData>::New();
   for (int inputVolumeIndex = 0; inputVolumeIndex<numberOfInputDoseVolumes; inputVolumeIndex++)
   {
-    vtkMRMLScalarVolumeNode* currentInputDoseVolumeNode = paramNode->GetNthSelectedInputVolumeNode(inputVolumeIndex);
+    vtkMRMLScalarVolumeNode* currentInputDoseVolumeNode = parameterNode->GetNthSelectedInputVolumeNode(inputVolumeIndex);
     if (!currentInputDoseVolumeNode->GetImageData())
     {
       std::stringstream errorMessage;
@@ -260,7 +219,7 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
       vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage.str());
       return errorMessage.str().c_str();
     }
-    std::map<std::string,double>* volumeNodeIdsToWeightsMap = paramNode->GetVolumeNodeIdsToWeightsMap();
+    std::map<std::string,double>* volumeNodeIdsToWeightsMap = parameterNode->GetVolumeNodeIdsToWeightsMap();
     double currentWeight = (*volumeNodeIdsToWeightsMap)[currentInputDoseVolumeNode->GetID()];
 
     vtkMRMLScalarVolumeNode* resampledInputDoseVolumeNode = 
@@ -291,11 +250,11 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
       accumulatedImageData->DeepCopy(multiplyFilter->GetOutput());
     }
 
-    // Remove the resample dose node from scene and release the memory
+    // Remove the resample dose currentNode from scene and release the memory
     this->GetMRMLScene()->RemoveNode(resampledInputDoseVolumeNode);
   }
 
-  // Create display node for the accumulated volume
+  // Create display currentNode for the accumulated volume
   vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> outputAccumulatedDoseVolumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
   this->GetMRMLScene()->AddNode(outputAccumulatedDoseVolumeDisplayNode); 
 
@@ -336,7 +295,7 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
     vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(referenceDoseVolumeNode);
   if (!referenceDoseVolumeSubjectHierarchyNode)
   {
-    const char* errorMessage = "No subject hierarchy node found for reference dose!";
+    const char* errorMessage = "No subject hierarchy currentNode found for reference dose!";
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
     return errorMessage;
   }
@@ -344,12 +303,12 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
     vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy() );
   if (!studyNode)
   {
-    const char* errorMessage = "No study node found for reference dose!";
+    const char* errorMessage = "No study currentNode found for reference dose!";
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
     return errorMessage;
   }
 
-  // Create subject hierarchy node for the accumulated dose volume if it doesn't exist
+  // Create subject hierarchy currentNode for the accumulated dose volume if it doesn't exist
   vtkMRMLSubjectHierarchyNode* subjectHierarchySeriesNode =
     vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(outputAccumulatedDoseVolumeNode);
   if (!subjectHierarchySeriesNode)
@@ -358,7 +317,7 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
       this->GetMRMLScene(), studyNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), outputAccumulatedDoseVolumeNode->GetName(), outputAccumulatedDoseVolumeNode);
     if (!childSubjectHierarchyNode)
     {
-      const char* errorMessage = "Failed to create subject hierarchy node!";
+      const char* errorMessage = "Failed to create subject hierarchy currentNode!";
       vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
       return errorMessage;
     }

@@ -110,12 +110,18 @@ void qSlicerDoseAccumulationModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or create it if there is no one in the scene
-  if (scene &&  d->logic()->GetDoseAccumulationNode() == 0)
+  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLDoseAccumulationNode");
     if (node)
     {
-      this->setDoseAccumulationNode( vtkMRMLDoseAccumulationNode::SafeDownCast(node) );
+      this->setParameterNode(node);
+    }
+    else 
+    {
+      vtkSmartPointer<vtkMRMLDoseAccumulationNode> newNode = vtkSmartPointer<vtkMRMLDoseAccumulationNode>::New();
+      this->mrmlScene()->AddNode(newNode);
+      this->setParameterNode(newNode);
     }
   }
 }
@@ -150,7 +156,8 @@ void qSlicerDoseAccumulationModuleWidget::onEnter()
     qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
   }
-  vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
+
+  vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
 
   // If we have a parameter node select it
   if (paramNode == NULL)
@@ -158,32 +165,35 @@ void qSlicerDoseAccumulationModuleWidget::onEnter()
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLDoseAccumulationNode");
     if (node)
     {
-      paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(node);
-      d->logic()->SetAndObserveDoseAccumulationNode(paramNode);
-      return;
+      this->setParameterNode(node);
     }
     else 
     {
       vtkSmartPointer<vtkMRMLDoseAccumulationNode> newNode = vtkSmartPointer<vtkMRMLDoseAccumulationNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      d->logic()->SetAndObserveDoseAccumulationNode(newNode);
+      this->setParameterNode(newNode);
     }
   }
-
-  this->updateWidgetFromMRML();
+  else
+  {
+    this->updateWidgetFromMRML();
+  }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseAccumulationModuleWidget::setDoseAccumulationNode(vtkMRMLNode *node)
+void qSlicerDoseAccumulationModuleWidget::setParameterNode(vtkMRMLNode *node)
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
   vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(node);
 
-  // Each time the node is modified, the qt widgets are updated
-  qvtkReconnect( d->logic()->GetDoseAccumulationNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
+  // Make sure the parameter set node is selected (in case the function was not called by the selector combobox signal)
+  d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
 
-  d->logic()->SetAndObserveDoseAccumulationNode(paramNode);
+  // Each time the node is modified, the qt widgets are updated
+  qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
+
+  //TODO: Set parameters from UI to new node if UI selection was valid but param node selection empty (NULL, etc.)?
 
   this->updateWidgetFromMRML();
 }
@@ -193,10 +203,9 @@ void qSlicerDoseAccumulationModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
-  vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
+  vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (paramNode && this->mrmlScene())
   {
-    d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetDoseAccumulationNode());
     d->checkBox_ShowDoseVolumesOnly->setChecked(paramNode->GetShowDoseVolumesOnly());
     if (paramNode->GetAccumulatedDoseVolumeNode())
     {
@@ -240,7 +249,7 @@ void qSlicerDoseAccumulationModuleWidget::setup()
   connect( d->MRMLNodeComboBox_AccumulatedDoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(accumulatedDoseVolumeNodeChanged(vtkMRMLNode*)) );
   connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
 
-  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setDoseAccumulationNode(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setParameterNode(vtkMRMLNode*)) );
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
@@ -259,7 +268,7 @@ void qSlicerDoseAccumulationModuleWidget::referenceDoseVolumeNodeChanged(vtkMRML
     return;
   }
 
-  vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
+  vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !node)
   {
     return;
@@ -286,7 +295,7 @@ void qSlicerDoseAccumulationModuleWidget::accumulatedDoseVolumeNodeChanged(vtkMR
     return;
   }
 
-  vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
+  vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !node)
   {
     return;
@@ -303,9 +312,10 @@ void qSlicerDoseAccumulationModuleWidget::updateButtonsState()
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
-  bool applyEnabled = d->logic()->GetDoseAccumulationNode()
-                   && d->logic()->GetDoseAccumulationNode()->GetAccumulatedDoseVolumeNode()
-                   && d->logic()->GetDoseAccumulationNode()->GetNumberOfSelectedInputVolumeNodes() > 0;
+  vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  bool applyEnabled = paramNode
+                   && paramNode->GetAccumulatedDoseVolumeNode()
+                   && paramNode->GetNumberOfSelectedInputVolumeNodes() > 0;
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
 
@@ -320,15 +330,6 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
-  vtkSmartPointer<vtkCollection> volumeNodes = vtkSmartPointer<vtkCollection>::Take( d->logic()->GetVolumeNodesFromScene() );
-
-  // If number of nodes is the same in the table and the list of nodes, then we don't need refreshing the table
-  // (this function is called after each node event, so it cannot occur that a node has been removed and another added)
-  if (d->CheckboxToVolumeIdMap.size() == volumeNodes->GetNumberOfItems())
-  {
-    return;
-  }
-
   // Clear the table
   d->tableWidget_Volumes->clearContents();
 
@@ -342,13 +343,34 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
   }
   d->CheckboxToVolumeIdMap.clear();
 
-  d->tableWidget_Volumes->setRowCount(volumeNodes->GetNumberOfItems());
-
-  vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
-  if (volumeNodes->GetNumberOfItems() < 1 || !paramNode)
+  vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode)
   {
     return;
   }
+
+  // Get dose volumes from scene (or all volumes if requested)
+  vtkSmartPointer<vtkCollection> volumeNodes = vtkSmartPointer<vtkCollection>::New();
+  this->mrmlScene()->InitTraversal();
+  vtkMRMLNode *node = this->mrmlScene()->GetNextNodeByClass("vtkMRMLScalarVolumeNode");
+  while (node)
+  {
+    if (SlicerRtCommon::IsDoseVolumeNode(node) || !paramNode->GetShowDoseVolumesOnly())
+    {
+      volumeNodes->AddItem(node);
+    }
+    node = this->mrmlScene()->GetNextNodeByClass("vtkMRMLScalarVolumeNode");
+  }
+
+  // If number of nodes is the same in the table and the list of nodes, then we don't need refreshing the table
+  // (this function is called after each node event, so it cannot occur that a node has been removed and another added)
+  if ( d->CheckboxToVolumeIdMap.size() == volumeNodes->GetNumberOfItems()
+    || volumeNodes->GetNumberOfItems() == 0 )
+  {
+    return;
+  }
+
+  d->tableWidget_Volumes->setRowCount(volumeNodes->GetNumberOfItems());
 
   std::map<std::string,double>* oldVolumeNodeIdsToWeightsMap = paramNode->GetVolumeNodeIdsToWeightsMap();
   std::map<std::string,double> newVolumeNodeIdsToWeightsMap;
@@ -439,10 +461,11 @@ void qSlicerDoseAccumulationModuleWidget::onTableItemChanged(QTableWidgetItem* c
   }
 
   // Set weight if the selected cell is "editable"
-  if (d->SelectedTableItemText.isNull() && d->logic()->GetDoseAccumulationNode())
+  vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (d->SelectedTableItemText.isNull() && paramNode)
   {
     std::string volumeID = d->CheckboxToVolumeIdMap[(QCheckBox*)d->tableWidget_Volumes->cellWidget(changedItem->row(), 0)].first;
-    (*d->logic()->GetDoseAccumulationNode()->GetVolumeNodeIdsToWeightsMap())[volumeID] = changedItem->text().toDouble();
+    (*paramNode->GetVolumeNodeIdsToWeightsMap())[volumeID] = changedItem->text().toDouble();
     return;
   }
 
@@ -457,9 +480,15 @@ void qSlicerDoseAccumulationModuleWidget::applyClicked()
 {
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
+  vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode)
+  {
+    return;
+  }
+
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  const char* errorMessage = d->logic()->AccumulateDoseVolumes();
+  const char* errorMessage = d->logic()->AccumulateDoseVolumes(paramNode);
 
   d->label_Error->setVisible( errorMessage );
   if (errorMessage)
@@ -479,7 +508,7 @@ void qSlicerDoseAccumulationModuleWidget::includeVolumeCheckStateChanged(int aSt
 
   d->label_Error->setVisible(false);
 
-  vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
+  vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!this->mrmlScene() || !paramNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid scene or parameter set node!";
@@ -522,7 +551,7 @@ void qSlicerDoseAccumulationModuleWidget::showDoseOnlyChanged(int aState)
     return;
   }
 
-  vtkMRMLDoseAccumulationNode* paramNode = d->logic()->GetDoseAccumulationNode();
+  vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;

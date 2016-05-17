@@ -576,9 +576,6 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
   int numberOfAcceptedStructuresWith90 = 0;
   int numberOfAcceptedStructuresWith95 = 0;
 
-  // Instantiate logic class for comparing DVH values
-  vtkSmartPointer<vtkSlicerDoseVolumeHistogramComparisonLogic> dvhCompareLogic = vtkSmartPointer<vtkSlicerDoseVolumeHistogramComparisonLogic>::New();
-
   if (currentDvh->GetNumberOfItems() != baselineDvh->GetNumberOfItems())
   {
     std::cerr << "ERROR: Number of structures in the current and the baseline DVH tables do not match (" << currentDvh->GetNumberOfItems() << "<>" << baselineDvh->GetNumberOfItems() << ")!" << std::endl;
@@ -589,16 +586,10 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
   {
     vtkMRMLDoubleArrayNode* currentStructure = vtkMRMLDoubleArrayNode::SafeDownCast(currentDvh->GetItemAsObject(structureIndex));
     vtkMRMLDoubleArrayNode* baselineStructure = vtkMRMLDoubleArrayNode::SafeDownCast(baselineDvh->GetItemAsObject(structureIndex));
-  
-    // Set the logic parameters
-    dvhCompareLogic->SetDvh1DoubleArrayNode(currentStructure);
-    dvhCompareLogic->SetDvh2DoubleArrayNode(baselineStructure);
-    dvhCompareLogic->SetVolumeDifferenceCriterion(volumeDifferenceCriterion);
-    dvhCompareLogic->SetDoseToAgreementCriterion(doseToAgreementCriterion);
-    dvhCompareLogic->SetDoseMax(maxDose);
-    
+      
     // Calculate the agreement percentage for the current structure.
-    double acceptedBinsRatio = dvhCompareLogic->CompareDvhTables();
+    double acceptedBinsRatio = vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(
+      currentStructure, baselineStructure, NULL, volumeDifferenceCriterion, doseToAgreementCriterion, maxDose );
 
     int numberOfBinsPerStructure = baselineStructure->GetArray()->GetNumberOfTuples();
     totalNumberOfBins += numberOfBinsPerStructure;
@@ -624,7 +615,7 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
     
     std::cout << "Accepted agreements per structure (" << segmentId << ", " << structureVolume << " cc): " << numberOfAcceptedAgreementsPerStructure
       << " out of " << numberOfBinsPerStructure << " (" << std::fixed << std::setprecision(2) << acceptedBinsRatio << "%)" << std::endl;
-  } // end for
+  } // for all structures
 
   std::cout << "Accepted structures with threshold of 90%: " << std::fixed << std::setprecision(2) << (double)numberOfAcceptedStructuresWith90 / (double)currentDvh->GetNumberOfItems() * 100.0 << std::endl;
   std::cout << "Accepted structures with threshold of 95%: " << std::fixed << std::setprecision(2) << (double)numberOfAcceptedStructuresWith95 / (double)currentDvh->GetNumberOfItems() * 100.0 << std::endl;

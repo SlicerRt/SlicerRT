@@ -149,10 +149,14 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     #
     visualizeCollapsibleButton = ctk.ctkCollapsibleButton()
     visualizeCollapsibleButton.text = "Visualize"
+    sizePolicy = qt.QSizePolicy()
+    sizePolicy.setHorizontalPolicy(qt.QSizePolicy.Preferred)
+    sizePolicy.setVerticalPolicy(qt.QSizePolicy.Expanding)
+    visualizeCollapsibleButton.setSizePolicy(sizePolicy)
     self.layout.addWidget(visualizeCollapsibleButton)
 
     # Layout within the dummy collapsible button
-    visualizeFormLayout = qt.QFormLayout(visualizeCollapsibleButton)
+    visualizeLayout = qt.QVBoxLayout(visualizeCollapsibleButton)
 
     #
     # DVH Table
@@ -160,10 +164,8 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     self.dvhTable = slicer.qMRMLTableView()
     self.dvhTable.setMRMLScene(slicer.mrmlScene)
     self.dvhTable.setSelectionMode(qt.QAbstractItemView.NoSelection)
-    visualizeFormLayout.addWidget(self.dvhTable)
-
-    # Add vertical spacer
-    self.layout.addStretch(1)
+    self.dvhTable.setSizePolicy(sizePolicy)
+    visualizeLayout.addWidget(self.dvhTable)
 
     # Connections
     self.parameterSelector.connect('nodeAddedByUser(vtkMRMLNode*)', self.parameterNodeCreated)
@@ -283,24 +285,24 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     self.agreementAcceptanceOutput.setText('')
 
     # Set table to show in visualize section. It will be the metrics table for DVH 1
-    import vtkSlicerDoseVolumeHistogramModuleLogic
+    import vtkSlicerDoseVolumeHistogramModuleMRML
     dvh1MetricsTable = dvh1Node.GetNodeReference('dvhMetricsTableRef')
     self.dvhTable.setMRMLTableNode(dvh1MetricsTable)    
     self.dvhTable.setFirstRowLocked(True)
     self.dvhTable.resizeColumnsToContents()
-    self.dvhTable.setColumnWidth(vtkSlicerDoseVolumeHistogramModuleLogic.vtkMRMLDoseVolumeHistogramNode.MetricColumnVisible, 36)
+    self.dvhTable.setColumnWidth(vtkSlicerDoseVolumeHistogramModuleMRML.vtkMRMLDoseVolumeHistogramNode.MetricColumnVisible, 36)
 
   #------------------------------------------------------------------------------
   def onComputeButton(self):
     import vtkSlicerDoseVolumeHistogramModuleLogic
-    logic = vtkSlicerDoseVolumeHistogramModuleLogic.vtkSlicerDoseVolumeHistogramComparisonLogic()
-    logic.SetDvh1DoubleArrayNode(self.dvh1Selector.currentNode())
-    logic.SetDvh2DoubleArrayNode(self.dvh2Selector.currentNode())
-    logic.SetDoseVolumeNode(self.doseVolumeSelector.currentNode())
-    logic.SetVolumeDifferenceCriterion(self.volumeDifferenceSpinbox.value)
-    logic.SetDoseToAgreementCriterion(self.doseToAgreementSpinbox.value)
+    paramNode = self.parameterSelector.currentNode()
+    dvh1Node = paramNode.GetNodeReference(self.dvh1NodeReference)
+    dvh2Node = paramNode.GetNodeReference(self.dvh2NodeReference)
+    doseVolumeNode = paramNode.GetNodeReference(self.doseVolumeNodeReference)
+    doseToAgreementCriterion = float(paramNode.GetAttribute(self.doseToAgreementCriterionAttrName))
+    volumeDifferenceCriterion = float(paramNode.GetAttribute(self.volumeDifferenceCriterionAttrName))
 
-    agreementAcceptancePercentage = logic.CompareDvhTables()
+    agreementAcceptancePercentage = vtkSlicerDoseVolumeHistogramModuleLogic.vtkSlicerDoseVolumeHistogramComparisonLogic.CompareDvhTables(dvh1Node, dvh2Node, doseVolumeNode, volumeDifferenceCriterion, doseToAgreementCriterion)
 
     self.agreementAcceptanceOutput.setText(agreementAcceptancePercentage)
     self.parameterSelector.currentNode().SetAttribute(self.agreementAcceptanceAttrName, str(agreementAcceptancePercentage))

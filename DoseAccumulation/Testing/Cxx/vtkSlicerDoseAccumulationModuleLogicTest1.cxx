@@ -183,10 +183,9 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   // Create and set up logic
   vtkSmartPointer<vtkSlicerDoseAccumulationModuleLogic> doseAccumulationLogic = vtkSmartPointer<vtkSlicerDoseAccumulationModuleLogic>::New();
   doseAccumulationLogic->SetMRMLScene(mrmlScene);
-  doseAccumulationLogic->SetAndObserveDoseAccumulationNode(paramNode);
 
   // Compute DoseAccumulation
-  const char* errorMessage = doseAccumulationLogic->AccumulateDoseVolumes();
+  const char* errorMessage = doseAccumulationLogic->AccumulateDoseVolumes(paramNode);
 
   if (errorMessage)
   {

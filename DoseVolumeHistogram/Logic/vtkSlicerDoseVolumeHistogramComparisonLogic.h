@@ -37,16 +37,12 @@ public:
   vtkTypeMacro(vtkSlicerDoseVolumeHistogramComparisonLogic, vtkObject);
 
 public:
-
-  // Returns the percent of agreeing bins for two vtkMRMLDoubleArrayNodes
-  //
-  // In order to operate properly, the vtkMRMLDoubleArrayNodes need to be
-  // set before use, along with the vtkMRMLScalarVolumeNode (or DoseMax)
-  // and VolumeDifferenceCriterion and DoseToAgreementCriterion.
-  double CompareDvhTables();
+  // Returns the percent of agreeing bins for two DVH arrays.
+  // Maximum dose is calculated from the dose volume node if valid, otherwise doseMax is used.
+  static double CompareDvhTables( vtkMRMLDoubleArrayNode* dvh1DoubleArrayNode, vtkMRMLDoubleArrayNode* dvh2DoubleArrayNode, vtkMRMLScalarVolumeNode* doseVolumeNode, 
+                                  double volumeDifferenceCriterion, double doseToAgreementCriterion, double doseMax=0.0 );
 
 protected:
-
   // Formula is (based on the article Ebert2010):
   //   gamma(i) = min{ Gamma[(di, vi), (dr, vr)] } for all {r=1..P}, where
   //   compareIndexth Dvh point has dose di and volume vi
@@ -55,40 +51,9 @@ protected:
   //   volumeDifferenceCriterion is the volume-difference criterion (% of the total structure volume, totalVolume)
   //   doseToAgreementCriterion is the dose-to-agreement criterion (% of the maximum dose, maxDose)
   // A return value of < 1 indicates agreement for the Dvh bin
-  double GetAgreementForDvhPlotPoint(vtkDoubleArray *referenceDvhPlot, vtkDoubleArray *compareDvhPlot, unsigned int compareIndex, double totalVolume); 
-
-public:
-  vtkSetObjectMacro(Dvh1DoubleArrayNode, vtkMRMLDoubleArrayNode);
-  vtkGetObjectMacro(Dvh1DoubleArrayNode, vtkMRMLDoubleArrayNode);
-
-  vtkSetObjectMacro(Dvh2DoubleArrayNode, vtkMRMLDoubleArrayNode);
-  vtkGetObjectMacro(Dvh2DoubleArrayNode, vtkMRMLDoubleArrayNode);
-  
-  vtkSetObjectMacro(DoseVolumeNode, vtkMRMLScalarVolumeNode);
-  vtkGetObjectMacro(DoseVolumeNode, vtkMRMLScalarVolumeNode);
-
-  vtkSetMacro(VolumeDifferenceCriterion, double);
-  vtkGetMacro(VolumeDifferenceCriterion, double);
-
-  vtkSetMacro(DoseToAgreementCriterion, double);
-  vtkGetMacro(DoseToAgreementCriterion, double);
-
-  vtkSetMacro(DoseMax, double);
-  vtkGetMacro(DoseMax, double); 
-
-protected:
-  vtkMRMLDoubleArrayNode* Dvh1DoubleArrayNode;
-  vtkMRMLDoubleArrayNode* Dvh2DoubleArrayNode;
-  vtkMRMLScalarVolumeNode* DoseVolumeNode;
-
-  /// Volume-difference criterion (% of the total structure volume, totalVolume)
-  double VolumeDifferenceCriterion;
-
-  /// Dose-to-agreement criterion (% of the maximum dose, maxDose)
-  double DoseToAgreementCriterion;
-
-  /// Maximum dose
-  double DoseMax;
+  static double GetAgreementForDvhPlotPoint( vtkDoubleArray *referenceDvhPlot, vtkDoubleArray *compareDvhPlot,
+                                             unsigned int compareIndex, double totalVolumeCCs, double doseMax,
+                                             double volumeDifferenceCriterion, double doseToAgreementCriterion );
 
 protected:
   vtkSlicerDoseVolumeHistogramComparisonLogic();

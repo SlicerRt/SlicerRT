@@ -50,20 +50,9 @@ public:
   vtkTypeMacro(vtkSlicerDoseAccumulationModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// Collect and return volume nodes from the scene
-  /// If in DoseAccumulationNode::ShowDoseVolumesOnly is set to true, then only return dose volumes
-  vtkCollection* GetVolumeNodesFromScene();
-
   /// Accumulates dose volumes with the given IDs and corresponding weights
   /// \return Error message on failure, NULL otherwise
-  const char* AccumulateDoseVolumes();
-
-public:
-  /// Set and observe dose accumulation parameter node 
-  void SetAndObserveDoseAccumulationNode(vtkMRMLDoseAccumulationNode* node);
-
-  /// Get dose accumulation parameter node 
-  vtkGetObjectMacro(DoseAccumulationNode, vtkMRMLDoseAccumulationNode);
+  const char* AccumulateDoseVolumes(vtkMRMLDoseAccumulationNode* parameterNode);
 
 protected:
   vtkSlicerDoseAccumulationModuleLogic();
@@ -77,16 +66,11 @@ protected:
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-  virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
 
 private:
   vtkSlicerDoseAccumulationModuleLogic(const vtkSlicerDoseAccumulationModuleLogic&); // Not implemented
   void operator=(const vtkSlicerDoseAccumulationModuleLogic&);               // Not implemented
-
-protected:
-  /// Parameter set MRML node
-  vtkMRMLDoseAccumulationNode* DoseAccumulationNode;
 };
 
 #endif

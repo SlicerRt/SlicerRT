@@ -41,26 +41,28 @@ vtkStandardNewMacro(vtkSlicerDoseVolumeHistogramComparisonLogic);
 //-----------------------------------------------------------------------------
 vtkSlicerDoseVolumeHistogramComparisonLogic::vtkSlicerDoseVolumeHistogramComparisonLogic()
 {
-  this->Dvh1DoubleArrayNode = NULL;
-  this->Dvh2DoubleArrayNode = NULL;
-  this->DoseVolumeNode = NULL;
 }
 
 //-----------------------------------------------------------------------------
 vtkSlicerDoseVolumeHistogramComparisonLogic::~vtkSlicerDoseVolumeHistogramComparisonLogic()
 {
-  this->SetDvh1DoubleArrayNode(NULL);
-  this->SetDvh2DoubleArrayNode(NULL);
-  this->SetDoseVolumeNode(NULL);
 }
 
 //-----------------------------------------------------------------------------
-double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
+double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(vtkMRMLDoubleArrayNode* dvh1DoubleArrayNode, vtkMRMLDoubleArrayNode* dvh2DoubleArrayNode,
+                                                                     vtkMRMLScalarVolumeNode* doseVolumeNode, 
+                                                                     double volumeDifferenceCriterion, double doseToAgreementCriterion, double doseMax/*=0.0*/ )
 {
-  vtkDoubleArray *dvh1Array = this->Dvh1DoubleArrayNode->GetArray();
+  if (!dvh1DoubleArrayNode || !dvh2DoubleArrayNode)
+  {
+    std::cerr << "vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables: Invalid input DVH nodes!";
+    return 0.0;
+  }
+
+  vtkDoubleArray *dvh1Array = dvh1DoubleArrayNode->GetArray();
   unsigned int dvh1Size = dvh1Array->GetNumberOfTuples();
 
-  vtkDoubleArray *dvh2Array = this->Dvh2DoubleArrayNode->GetArray();
+  vtkDoubleArray *dvh2Array = dvh2DoubleArrayNode->GetArray();
   unsigned int dvh2Size = dvh2Array->GetNumberOfTuples();
 
   vtkDoubleArray *baselineDoubleArray = NULL;
@@ -83,7 +85,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
     currentDoubleArray = dvh2Array;
     //currentSize = dvh2Size;
   
-    totalVolumeChar = this->Dvh2DoubleArrayNode->GetAttribute(attributeNameStream.str().c_str());
+    totalVolumeChar = dvh2DoubleArrayNode->GetAttribute(attributeNameStream.str().c_str());
   }
   else
   {
@@ -93,7 +95,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
     currentDoubleArray = dvh1Array;
     //currentSize = dvh1Size;
 
-    totalVolumeChar = this->Dvh1DoubleArrayNode->GetAttribute(attributeNameStream.str().c_str());
+    totalVolumeChar = dvh1DoubleArrayNode->GetAttribute(attributeNameStream.str().c_str());
   }
 
   // Read the total volume from the current node attribute
@@ -109,16 +111,17 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
   
   if (totalVolumeCCs == 0)
   {
-    std::cerr << "Invalid volume for structure!" << std::endl;
+    vtkErrorWithObjectMacro(dvh1DoubleArrayNode, "vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables: Invalid volume for structure!");
   }
 
   // Determine maximum dose
-  if (this->DoseVolumeNode != NULL)
+  if (doseVolumeNode)
   {
+    vtkDebugWithObjectMacro(dvh1DoubleArrayNode, "vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables: Calculating maximum dose from the given dose volume");
     vtkNew<vtkImageAccumulate> doseStat;
-    doseStat->SetInputData(this->DoseVolumeNode->GetImageData());
+    doseStat->SetInputData(doseVolumeNode->GetImageData());
     doseStat->Update();
-    this->SetDoseMax(doseStat->GetMax()[0]);
+    doseMax = doseStat->GetMax()[0];
   }
 
   // Compare the current DVH to the baseline and determine mean and maximum difference
@@ -128,19 +131,18 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
   for (unsigned int baselineIndex=0; baselineIndex < baselineSize; ++baselineIndex)
   {
     // Compute the agreement for the current baseline bin
-    double agreement = GetAgreementForDvhPlotPoint(currentDoubleArray, baselineDoubleArray, baselineIndex, totalVolumeCCs);
+    double agreement = vtkSlicerDoseVolumeHistogramComparisonLogic::GetAgreementForDvhPlotPoint(
+      currentDoubleArray, baselineDoubleArray, baselineIndex, totalVolumeCCs, doseMax, volumeDifferenceCriterion, doseToAgreementCriterion );
 
     if (agreement == -1.0)
     {
-      std::cerr << "Invalid agreement, skipped!" << std::endl;
+      vtkErrorWithObjectMacro(dvh1DoubleArrayNode, "vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables: Invalid agreement, skipped!");
       continue;
     }
-
     if (agreement <= 1.0)
     {
       numberOfAcceptedAgreements++;
     }
-      
   }
   
   agreementAcceptancePercentage = 100.0 * (double)numberOfAcceptedAgreements / (double)baselineSize;
@@ -149,8 +151,9 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables()
 }
 
 //-----------------------------------------------------------------------------
-double vtkSlicerDoseVolumeHistogramComparisonLogic::GetAgreementForDvhPlotPoint(vtkDoubleArray *referenceDvhPlot, vtkDoubleArray *compareDvhPlot,
-                                                                                unsigned int compareIndex, double totalVolumeCCs)
+double vtkSlicerDoseVolumeHistogramComparisonLogic::GetAgreementForDvhPlotPoint( vtkDoubleArray *referenceDvhPlot, vtkDoubleArray *compareDvhPlot,
+                                                                                 unsigned int compareIndex, double totalVolumeCCs, double doseMax,
+                                                                                 double volumeDifferenceCriterion, double doseToAgreementCriterion )
 {
   // Formula is (based on the article Ebert2010):
   //   gamma(i) = min{ Gamma[(di, vi), (dr, vr)] } for all {r=1..P}, where
@@ -182,8 +185,8 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::GetAgreementForDvhPlotPoint(
     double dr = referencePlotTuple[0];
     double vr = referencePlotTuple[1];
 
-    double currentGamma = sqrt(   pow( ( 100.0*(vr-vi) ) / ( this->VolumeDifferenceCriterion*totalVolumeCCs ),2)
-                                + pow( ( 100.0*(dr-di) ) / ( this->DoseToAgreementCriterion*this->DoseMax   ),2) );
+    double currentGamma = sqrt(   pow( ( 100.0*(vr-vi) ) / ( volumeDifferenceCriterion * totalVolumeCCs ),2)
+                                + pow( ( 100.0*(dr-di) ) / ( doseToAgreementCriterion * doseMax ),2) );
 
     if (currentGamma < gamma)
     {
