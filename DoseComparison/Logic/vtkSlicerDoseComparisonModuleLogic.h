@@ -53,7 +53,7 @@ public:
 public:
   /// Compute gamma metric according to the selected input volumes and parameters (DoseComparison parameter set node content)
   /// \return Error message, empty string if no error
-  std::string ComputeGammaDoseDifference();
+  std::string ComputeGammaDoseDifference(vtkMRMLDoseComparisonNode* parameterNode);
 
   /// Function called when gamma progress is updated by algorithm
   void GammaProgressUpdated(float progress);
@@ -67,9 +67,6 @@ protected:
   void LoadDefaultGammaColorTable();
 
 public:
-  void SetAndObserveDoseComparisonNode(vtkMRMLDoseComparisonNode* node);
-  vtkGetObjectMacro(DoseComparisonNode, vtkMRMLDoseComparisonNode);
-
   vtkGetMacro(LogSpeedMeasurements, bool);
   vtkSetMacro(LogSpeedMeasurements, bool);
   vtkBooleanMacro(LogSpeedMeasurements, bool);
@@ -92,16 +89,13 @@ protected:
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-  virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
 
 private:
   vtkSlicerDoseComparisonModuleLogic(const vtkSlicerDoseComparisonModuleLogic&); // Not implemented
   void operator=(const vtkSlicerDoseComparisonModuleLogic&);               // Not implemented
-protected:
-  /// Parameter set MRML node
-  vtkMRMLDoseComparisonNode* DoseComparisonNode;
 
+protected:
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;
 

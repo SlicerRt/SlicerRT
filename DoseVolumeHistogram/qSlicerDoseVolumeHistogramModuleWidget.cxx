@@ -126,12 +126,18 @@ void qSlicerDoseVolumeHistogramModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or create it if there is no one in the scene
-  if (scene &&  d->logic()->GetDoseVolumeHistogramNode() == 0)
+  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLDoseVolumeHistogramNode");
     if (node)
     {
-      this->setDoseVolumeHistogramNode( vtkMRMLDoseVolumeHistogramNode::SafeDownCast(node) );
+      this->setParameterNode(node);
+    }
+    else 
+    {
+      vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode> newNode = vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New();
+      this->mrmlScene()->AddNode(newNode);
+      this->setParameterNode(newNode);
     }
   }
 }
@@ -166,7 +172,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::onEnter()
     qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
   }
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
 
   // If we have a parameter node select it
   if (paramNode == NULL)
@@ -174,32 +180,36 @@ void qSlicerDoseVolumeHistogramModuleWidget::onEnter()
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLDoseVolumeHistogramNode");
     if (node)
     {
-      paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(node);
-      d->logic()->SetAndObserveDoseVolumeHistogramNode(paramNode);
-      return;
+      this->setParameterNode(node);
     }
     else 
     {
       vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode> newNode = vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      d->logic()->SetAndObserveDoseVolumeHistogramNode(newNode);
+      this->setParameterNode(newNode);
     }
   }
-
-  this->updateWidgetFromMRML();
+  else
+  {
+    this->updateWidgetFromMRML();    
+  }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseVolumeHistogramModuleWidget::setDoseVolumeHistogramNode(vtkMRMLNode *node)
+void qSlicerDoseVolumeHistogramModuleWidget::setParameterNode(vtkMRMLNode *node)
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
   vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(node);
 
-  // Each time the node is modified, the qt widgets are updated
-  qvtkReconnect( d->logic()->GetDoseVolumeHistogramNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
+  // Make sure the parameter set node is selected (in case the function was not called by the selector combobox signal)
+  d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
 
-  d->logic()->SetAndObserveDoseVolumeHistogramNode(paramNode);
+  // Each time the node is modified, the qt widgets are updated
+  qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
+
+  //TODO: Set parameters from UI to new node if UI selection was valid but param node selection empty (NULL, etc.)?
+
   this->updateWidgetFromMRML();
 }
 
@@ -213,7 +223,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
     return;
   }
 
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -274,7 +284,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   d->MRMLNodeComboBox_DoseVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
 
   // Make connections
-  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( setDoseVolumeHistogramNode(vtkMRMLNode*) ) );
+  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( setParameterNode(vtkMRMLNode*) ) );
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( doseVolumeNodeChanged(vtkMRMLNode*) ) );
   connect( d->checkBox_AutomaticOversampling, SIGNAL( stateChanged(int) ), this, SLOT( automaticOversampingCheckedStateChanged(int) ) );
   connect( d->MRMLNodeComboBox_Segmentation, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( segmentationNodeChanged(vtkMRMLNode*) ) );
@@ -305,7 +315,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
 
   // Enable/disable Compute DVH button
   bool dvhCanBeComputed = paramNode && paramNode->GetDoseVolumeNode() && paramNode->GetSegmentationNode();
@@ -346,7 +356,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* 
     return;
   }
   
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !node)
   {
     return;
@@ -358,7 +368,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* 
 
   this->updateButtonsState();
 
-  d->label_NotDoseVolumeWarning->setVisible(!d->logic()->DoseVolumeContainsDose());
+  d->label_NotDoseVolumeWarning->setVisible(!paramNode->GetDoseVolumeNode() || !SlicerRtCommon::IsDoseVolumeNode(paramNode->GetDoseVolumeNode()));
 }
 
 //-----------------------------------------------------------------------------
@@ -372,7 +382,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::automaticOversampingCheckedStateCha
     return;
   }
   
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -394,7 +404,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::segmentationNodeChanged(vtkMRMLNode
     return;
   }
   
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !node)
   {
     return;
@@ -420,7 +430,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::segmentSelectionChanged(const QItem
     return;
   }
   
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -445,6 +455,12 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode)
+  {
+    return;
+  }
+
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   // Initialize progress bar
@@ -457,7 +473,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
   QApplication::processEvents();
 
   // Compute the DVH for each selected segment set using the selected dose volume
-  std::string errorMessage = d->logic()->ComputeDvh();
+  std::string errorMessage = d->logic()->ComputeDvh(paramNode);
   if (!errorMessage.empty())
   {
     d->label_Error->setVisible(true);
@@ -494,6 +510,12 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode)
+  {
+    return;
+  }
+
   // User selects file and format
   QString selectedFilter;
 
@@ -505,7 +527,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
 	bool comma = selectedFilter.compare("TSV tab separated values ( *.tsv )");
 
   // Export
-  if (! d->logic()->ExportDvhToCsv(fileName.toAscii().data(), comma) )
+  if (! d->logic()->ExportDvhToCsv(paramNode, fileName.toAscii().data(), comma) )
   {
     qCritical() << Q_FUNC_INFO << ": Error occurred while exporting DVH to file " << fileName;
   }
@@ -515,6 +537,12 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
 void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
 {
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode)
+  {
+    return;
+  }
 
   // User selects file and format
   QString selectedFilter;
@@ -527,7 +555,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
 	bool comma = selectedFilter.compare("TSV tab separated values ( *.tsv )");
 
   // Export
-  if (! d->logic()->ExportDvhMetricsToCsv(fileName.toAscii().data(), comma) )
+  if (! d->logic()->ExportDvhMetricsToCsv(paramNode, fileName.toAscii().data(), comma) )
   {
     qCritical() << Q_FUNC_INFO << ": Error occurred while exporting DVH to file " << fileName;
   }
@@ -543,7 +571,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditVDoseEdited(QString aText)
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -553,7 +582,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditVDoseEdited(QString aText)
   paramNode->SetVDoseValues(aText.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
-  if (!d->logic()->ComputeVMetrics())
+  if (!d->logic()->ComputeVMetrics(paramNode))
   {
     qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
   }
@@ -573,7 +602,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsCcCheckedStateChanged(i
     return;
   }
   
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -583,7 +612,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsCcCheckedStateChanged(i
   paramNode->SetShowVMetricsCc(aState);
   paramNode->DisableModifiedEventOff();
 
-  if (!d->logic()->ComputeVMetrics())
+  if (!d->logic()->ComputeVMetrics(paramNode))
   {
     qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
   }
@@ -602,7 +631,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsPercentCheckedStateChan
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -612,7 +642,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showVMetricsPercentCheckedStateChan
   paramNode->SetShowVMetricsPercent(aState);
   paramNode->DisableModifiedEventOff();
 
-  if (!d->logic()->ComputeVMetrics())
+  if (!d->logic()->ComputeVMetrics(paramNode))
   {
     qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
   }
@@ -631,7 +661,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeCcEdited(QString aTe
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -641,7 +672,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeCcEdited(QString aTe
   paramNode->SetDVolumeValuesCc(aText.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
-  if (!d->logic()->ComputeDMetrics())
+  if (!d->logic()->ComputeDMetrics(paramNode))
   {
     qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
   }
@@ -660,7 +691,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumePercentEdited(QStrin
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -670,7 +702,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumePercentEdited(QStrin
   paramNode->SetDVolumeValuesPercent(aText.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
-  if (!d->logic()->ComputeDMetrics())
+  if (!d->logic()->ComputeDMetrics(paramNode))
   {
     qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
   }
@@ -689,7 +721,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged(int
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -699,7 +732,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDMetricsCheckedStateChanged(int
   paramNode->SetShowDMetrics(aState);
   paramNode->DisableModifiedEventOff();
 
-  if (!d->logic()->ComputeDMetrics())
+  if (!d->logic()->ComputeDMetrics(paramNode))
   {
     qCritical() << Q_FUNC_INFO << ": Failed to compute DVH metrics!";
   }
@@ -719,7 +752,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDoseVolumesOnlyCheckboxChanged(
     return;
   }
   
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -764,7 +797,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::setVisibleAll(bool on)
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  vtkMRMLDoseVolumeHistogramNode* paramNode = d->logic()->GetDoseVolumeHistogramNode();
+
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;

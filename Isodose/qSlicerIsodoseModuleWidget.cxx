@@ -274,13 +274,13 @@ void qSlicerIsodoseModuleWidget::setMRMLScene(vtkMRMLScene* scene)
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLIsodoseNode");
     if (node)
     {
-      this->setIsodoseNode(node);
+      this->setParameterNode(node);
     }
     else 
     {
       vtkSmartPointer<vtkMRMLIsodoseNode> newNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      this->setIsodoseNode(newNode);
+      this->setParameterNode(newNode);
     }
   }
 }
@@ -323,13 +323,13 @@ void qSlicerIsodoseModuleWidget::onEnter()
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLIsodoseNode");
     if (node)
     {
-      this->setIsodoseNode(node);
+      this->setParameterNode(node);
     }
     else 
     {
       vtkSmartPointer<vtkMRMLIsodoseNode> newNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      this->setIsodoseNode(newNode);
+      this->setParameterNode(newNode);
     }
   }
   else
@@ -387,7 +387,7 @@ void qSlicerIsodoseModuleWidget::setup()
   d->MRMLNodeComboBox_DoseVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
 
   // Make connections
-  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setIsodoseNode(vtkMRMLNode*) ) );
+  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setParameterNode(vtkMRMLNode*) ) );
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( doseVolumeNodeChanged(vtkMRMLNode*) ) );
   connect( d->spinBox_NumberOfLevels, SIGNAL(valueChanged(int)), this, SLOT(setNumberOfLevels(int)));
 
@@ -436,7 +436,7 @@ void qSlicerIsodoseModuleWidget::setup()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerIsodoseModuleWidget::setIsodoseNode(vtkMRMLNode *node)
+void qSlicerIsodoseModuleWidget::setParameterNode(vtkMRMLNode *node)
 {
   Q_D(qSlicerIsodoseModuleWidget);
 

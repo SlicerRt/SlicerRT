@@ -411,7 +411,6 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   paramNode->SetAndObserveSegmentationNode(segmentationNode);
   paramNode->SetAutomaticOversampling(automaticOversamplingCalculation);
   mrmlScene->AddNode(paramNode);
-  dvhLogic->SetAndObserveDoseVolumeHistogramNode(paramNode);
 
   // Setup chart node
   vtkMRMLChartNode* chartNode = paramNode->GetChartNode();
@@ -439,7 +438,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   UNUSED_VARIABLE(checkpointStart); // Although it is used later, a warning is logged so needs to be suppressed
 
   // Compute DVH
-  std::string errorMessage = dvhLogic->ComputeDvh();
+  std::string errorMessage = dvhLogic->ComputeDvh(paramNode);
   if (!errorMessage.empty())
   {
     std::cerr << errorMessage << std::endl;
@@ -482,21 +481,21 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 
   // Export DVH to CSV
   vtksys::SystemTools::RemoveFile(temporaryDvhTableCsvFileName);
-  dvhLogic->ExportDvhToCsv(temporaryDvhTableCsvFileName);
+  dvhLogic->ExportDvhToCsv(paramNode, temporaryDvhTableCsvFileName);
 
   // Compute DVH metrics
   paramNode->SetVDoseValues("5, 20");
   paramNode->SetShowVMetricsCc(true);
   paramNode->SetShowVMetricsPercent(true);
-  dvhLogic->ComputeVMetrics();
+  dvhLogic->ComputeVMetrics(paramNode);
 
   paramNode->SetDVolumeValuesCc("2, 5");
   paramNode->SetDVolumeValuesPercent("5, 10");
   paramNode->SetShowDMetrics(true);
-  dvhLogic->ComputeDMetrics();
+  dvhLogic->ComputeDMetrics(paramNode);
 
   vtksys::SystemTools::RemoveFile(temporaryDvhMetricCsvFileName);
-  dvhLogic->ExportDvhMetricsToCsv(temporaryDvhMetricCsvFileName);
+  dvhLogic->ExportDvhMetricsToCsv(paramNode, temporaryDvhMetricCsvFileName);
 
   bool returnWithSuccess = true;
 

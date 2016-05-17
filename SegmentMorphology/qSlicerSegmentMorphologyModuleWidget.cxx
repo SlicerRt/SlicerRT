@@ -101,18 +101,18 @@ void qSlicerSegmentMorphologyModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or create it if there is no one in the scene
-  if (scene &&  d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
+  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLSegmentMorphologyNode");
     if (node)
     {
-      this->setSegmentMorphologyNode(node);
+      this->setParameterNode(node);
     }
     else 
     {
       vtkSmartPointer<vtkMRMLSegmentMorphologyNode> newNode = vtkSmartPointer<vtkMRMLSegmentMorphologyNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      this->setSegmentMorphologyNode(newNode);
+      this->setParameterNode(newNode);
     }
   }
 }
@@ -142,7 +142,7 @@ void qSlicerSegmentMorphologyModuleWidget::setup()
   d->checkBox_Uniform->setChecked(d->UniformExpandShrink);
 
   // Make connections
-  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setSegmentMorphologyNode(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setParameterNode(vtkMRMLNode*)) );
 
   connect( d->SegmentSelectorWidget_SegmentA, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(segmentationANodeChanged(vtkMRMLNode*)) );
   connect( d->SegmentSelectorWidget_SegmentA, SIGNAL(currentSegmentChanged(QString)), this, SLOT(segmentAChanged(QString)) );
@@ -200,14 +200,14 @@ void qSlicerSegmentMorphologyModuleWidget::onEnter()
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLSegmentMorphologyNode");
     if (node)
     {
-      this->setSegmentMorphologyNode(node);
+      this->setParameterNode(node);
       return;
     }
     else 
     {
       vtkSmartPointer<vtkMRMLSegmentMorphologyNode> newNode = vtkSmartPointer<vtkMRMLSegmentMorphologyNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      this->setSegmentMorphologyNode(newNode);
+      this->setParameterNode(newNode);
     }
   }
   else
@@ -346,7 +346,7 @@ void qSlicerSegmentMorphologyModuleWidget::onLogicModified()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentMorphologyModuleWidget::setSegmentMorphologyNode(vtkMRMLNode *node)
+void qSlicerSegmentMorphologyModuleWidget::setParameterNode(vtkMRMLNode *node)
 {
   Q_D(qSlicerSegmentMorphologyModuleWidget);
 
@@ -357,6 +357,9 @@ void qSlicerSegmentMorphologyModuleWidget::setSegmentMorphologyNode(vtkMRMLNode 
   }
 
   vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(node);
+
+  // Make sure the parameter set node is selected (in case the function was not called by the selector combobox signal)
+  d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
 
   // Each time the node is modified, the qt widgets are updated
   qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );

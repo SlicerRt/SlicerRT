@@ -155,10 +155,9 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
   // Create and set up logic
   vtkSmartPointer<vtkSlicerDoseComparisonModuleLogic> doseComparisonLogic = vtkSmartPointer<vtkSlicerDoseComparisonModuleLogic>::New();
   doseComparisonLogic->SetMRMLScene(mrmlScene);
-  doseComparisonLogic->SetAndObserveDoseComparisonNode(paramNode);
 
   // Compute DoseAccumulation
-  doseComparisonLogic->ComputeGammaDoseDifference();
+  doseComparisonLogic->ComputeGammaDoseDifference(paramNode);
 
   // Get saved volume
   vtkSmartPointer<vtkCollection> gammaVolumeNodes = vtkSmartPointer<vtkCollection>::Take(

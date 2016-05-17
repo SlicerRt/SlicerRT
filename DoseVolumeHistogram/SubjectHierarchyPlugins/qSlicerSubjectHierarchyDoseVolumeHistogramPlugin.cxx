@@ -191,6 +191,7 @@ void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setDisplayVisibility(vtkM
       qCritical() << Q_FUNC_INFO << ": Unable to get chart node for DVH array node!";
       return;
     }
+    vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast(chartSubjectHierarchyNode->GetAssociatedNode());
 
     // Get chart visibility
     int chartVisible = qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->getDisplayVisibility(chartSubjectHierarchyNode);
@@ -209,11 +210,11 @@ void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setDisplayVisibility(vtkM
         qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->setDisplayVisibility(chartSubjectHierarchyNode, visible);
       }
 
-      dvhLogic->AddDvhToChart(dvhArrayNode->GetID());
+      dvhLogic->AddDvhToChart(chartNode, dvhArrayNode);
     }
     else if (chartVisible)
     {
-      dvhLogic->RemoveDvhFromChart(dvhArrayNode->GetID());
+      dvhLogic->RemoveDvhFromChart(chartNode, dvhArrayNode);
     }
 
     // Trigger icon update
@@ -244,6 +245,7 @@ int qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getDisplayVisibility(vtkMR
       qCritical() << Q_FUNC_INFO << ": Unable to get chart node for DVH array node!";
       return -1;
     }
+    vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast(chartSubjectHierarchyNode->GetAssociatedNode());
 
     // Get chart visibility
     int chartVisible = qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->getDisplayVisibility(chartSubjectHierarchyNode);
@@ -254,7 +256,7 @@ int qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getDisplayVisibility(vtkMR
 
     // Only return true if the chart is visible and the DVH array is added in the chart
     vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node->GetAssociatedNode());
-    return (chartVisible && dvhLogic->IsDvhAddedToChart(dvhArrayNode->GetID()));
+    return (chartVisible && dvhLogic->IsDvhAddedToChart(chartNode, dvhArrayNode));
   }
 
   // Default

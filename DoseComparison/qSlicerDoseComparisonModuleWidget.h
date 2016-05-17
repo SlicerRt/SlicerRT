@@ -50,7 +50,7 @@ public slots:
   void onSceneImportedEvent();
 
   /// Set current parameter node
-  void setDoseComparisonNode(vtkMRMLNode *node);
+  void setParameterNode(vtkMRMLNode *node);
 
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();

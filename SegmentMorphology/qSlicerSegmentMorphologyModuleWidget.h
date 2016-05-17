@@ -52,7 +52,7 @@ public slots:
   void onSceneImportedEvent();
 
   /// Set current parameter node
-  void setSegmentMorphologyNode(vtkMRMLNode*);
+  void setParameterNode(vtkMRMLNode*);
 
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();

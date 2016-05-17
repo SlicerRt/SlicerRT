@@ -84,7 +84,6 @@ vtkStandardNewMacro(vtkSlicerDoseComparisonModuleLogic);
 //----------------------------------------------------------------------------
 vtkSlicerDoseComparisonModuleLogic::vtkSlicerDoseComparisonModuleLogic()
 {
-  this->DoseComparisonNode = NULL;
   this->DefaultGammaColorTableNodeId = NULL;
   this->Progress = 0.0;
 
@@ -96,16 +95,9 @@ vtkSlicerDoseComparisonModuleLogic::vtkSlicerDoseComparisonModuleLogic()
 //----------------------------------------------------------------------------
 vtkSlicerDoseComparisonModuleLogic::~vtkSlicerDoseComparisonModuleLogic()
 {
-  this->SetAndObserveDoseComparisonNode(NULL);
   this->SetDefaultGammaColorTableNodeId(NULL);
 
   LogicInstance = NULL;
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerDoseComparisonModuleLogic::SetAndObserveDoseComparisonNode(vtkMRMLDoseComparisonNode *node)
-{
-  vtkSetAndObserveMRMLNodeMacro(this->DoseComparisonNode, node);
 }
 
 //---------------------------------------------------------------------------
@@ -114,7 +106,6 @@ void vtkSlicerDoseComparisonModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * new
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
-  events->InsertNextValue(vtkMRMLScene::EndImportEvent);
   events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
   this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
@@ -168,7 +159,7 @@ void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     return;
   }
 
-  if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLDoseAccumulationNode"))
+  if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLDoseComparisonNode"))
   {
     this->Modified();
   }
@@ -183,25 +174,10 @@ void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* nod
     return;
   }
 
-  if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLDoseAccumulationNode"))
+  if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLDoseComparisonNode"))
   {
     this->Modified();
   }
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneEndImport()
-{
-  // If we have a parameter node select it
-  vtkMRMLDoseComparisonNode *paramNode = NULL;
-  vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLDoseComparisonNode");
-  if (node)
-  {
-    paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(node);
-    vtkSetAndObserveMRMLNodeMacro(this->DoseComparisonNode, paramNode);
-  }
-
-  this->Modified();
 }
 
 //---------------------------------------------------------------------------
@@ -213,21 +189,21 @@ void vtkSlicerDoseComparisonModuleLogic::GammaProgressUpdated(float progress)
 }
 
 //---------------------------------------------------------------------------
-std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
+std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMRMLDoseComparisonNode* parameterNode)
 {
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
 
-  this->DoseComparisonNode->ResultsValidOff();
+  parameterNode->ResultsValidOff();
 
   double checkpointConvertStart = timer->GetUniversalTime();
-  vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = this->DoseComparisonNode->GetReferenceDoseVolumeNode();
+  vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = parameterNode->GetReferenceDoseVolumeNode();
   Plm_image::Pointer referenceDose = PlmCommon::ConvertVolumeNodeToPlmImage(referenceDoseVolumeNode);
-  Plm_image::Pointer compareDose = PlmCommon::ConvertVolumeNodeToPlmImage(this->DoseComparisonNode->GetCompareDoseVolumeNode());
+  Plm_image::Pointer compareDose = PlmCommon::ConvertVolumeNodeToPlmImage(parameterNode->GetCompareDoseVolumeNode());
 
   Plm_image::Pointer maskVolume;
-  vtkMRMLSegmentationNode* maskSegmentationNode = this->DoseComparisonNode->GetMaskSegmentationNode();
-  const char* maskSegmentID = this->DoseComparisonNode->GetMaskSegmentID();
+  vtkMRMLSegmentationNode* maskSegmentationNode = parameterNode->GetMaskSegmentationNode();
+  const char* maskSegmentID = parameterNode->GetMaskSegmentID();
   if (maskSegmentationNode && maskSegmentID)
   {
     // Extract a labelmap for the dose comparison to use it as a mask
@@ -283,29 +259,29 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   {
     gamma.set_mask_image(maskVolume->itk_uchar());
   }
-  gamma.set_spatial_tolerance(this->DoseComparisonNode->GetDtaDistanceToleranceMm());
-  gamma.set_dose_difference_tolerance(this->DoseComparisonNode->GetDoseDifferenceTolerancePercent() / 100.0);
-  gamma.set_resample_nn(!this->DoseComparisonNode->GetUseLinearInterpolation());
-  gamma.set_local_gamma(this->DoseComparisonNode->GetLocalDoseDifference());
-  if (!this->DoseComparisonNode->GetUseMaximumDose())
+  gamma.set_spatial_tolerance(parameterNode->GetDtaDistanceToleranceMm());
+  gamma.set_dose_difference_tolerance(parameterNode->GetDoseDifferenceTolerancePercent() / 100.0);
+  gamma.set_resample_nn(!parameterNode->GetUseLinearInterpolation());
+  gamma.set_local_gamma(parameterNode->GetLocalDoseDifference());
+  if (!parameterNode->GetUseMaximumDose())
   {
-    gamma.set_reference_dose(this->DoseComparisonNode->GetReferenceDoseGy());
+    gamma.set_reference_dose(parameterNode->GetReferenceDoseGy());
   }
-  gamma.set_analysis_threshold(this->DoseComparisonNode->GetAnalysisThresholdPercent() / 100.0 );
-  gamma.set_gamma_max(this->DoseComparisonNode->GetMaximumGamma());
-  gamma.set_ref_only_threshold(this->DoseComparisonNode->GetDoseThresholdOnReferenceOnly());
+  gamma.set_analysis_threshold(parameterNode->GetAnalysisThresholdPercent() / 100.0 );
+  gamma.set_gamma_max(parameterNode->GetMaximumGamma());
+  gamma.set_ref_only_threshold(parameterNode->GetDoseThresholdOnReferenceOnly());
   gamma.set_progress_callback(&GammaProgressCallback);
 
   gamma.run();
 
   itk::Image<float, 3>::Pointer gammaVolumeItk = gamma.get_gamma_image_itk();
-  this->DoseComparisonNode->SetPassFractionPercent( gamma.get_pass_fraction() * 100.0 );
-  this->DoseComparisonNode->SetReportString(gamma.get_report_string().c_str());
+  parameterNode->SetPassFractionPercent( gamma.get_pass_fraction() * 100.0 );
+  parameterNode->SetReportString(gamma.get_report_string().c_str());
 
   // Convert output to VTK
   double checkpointVtkConvertStart = timer->GetUniversalTime();
 
-  vtkMRMLScalarVolumeNode* gammaVolumeNode = this->DoseComparisonNode->GetGammaVolumeNode();
+  vtkMRMLScalarVolumeNode* gammaVolumeNode = parameterNode->GetGammaVolumeNode();
   if (gammaVolumeNode == NULL)
   {
     std::string errorMessage("Invalid gamma volume node in parameter set node");
@@ -328,7 +304,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
   {
     vtkMRMLScalarVolumeDisplayNode* gammaScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(gammaVolumeNode->GetVolumeDisplayNode());
     gammaScalarVolumeDisplayNode->SetAutoWindowLevel(0);
-    gammaScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, this->DoseComparisonNode->GetMaximumGamma());
+    gammaScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, parameterNode->GetMaximumGamma());
 
     if (this->DefaultGammaColorTableNodeId)
     {
@@ -347,13 +323,13 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 
   // Determine if the input dose volumes are in subject hierarchy. Only perform related tasks if they are.
   bool areInputsInSubjectHierarchy =
-    ( vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this->DoseComparisonNode->GetReferenceDoseVolumeNode())
-    && vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this->DoseComparisonNode->GetCompareDoseVolumeNode()) );
+    ( vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(parameterNode->GetReferenceDoseVolumeNode())
+    && vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(parameterNode->GetCompareDoseVolumeNode()) );
   if (areInputsInSubjectHierarchy)
   {
     // Get common ancestor of the two input dose volumes
     vtkMRMLSubjectHierarchyNode* commonAncestor = vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch(
-      this->DoseComparisonNode->GetReferenceDoseVolumeNode(), this->DoseComparisonNode->GetCompareDoseVolumeNode(),
+      parameterNode->GetReferenceDoseVolumeNode(), parameterNode->GetCompareDoseVolumeNode(),
       vtkMRMLSubjectHierarchyConstants::GetDICOMLevelPatient() );
 
     // Add gamma volume to subject hierarchy
@@ -364,9 +340,9 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
 
   // Add connection attribute to input dose volume nodes
   gammaVolumeNode->AddNodeReferenceID( vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_REFERENCE_DOSE_VOLUME_REFERENCE_ROLE.c_str(), 
-    this->DoseComparisonNode->GetReferenceDoseVolumeNode()->GetID() );
+    parameterNode->GetReferenceDoseVolumeNode()->GetID() );
   gammaVolumeNode->AddNodeReferenceID( vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_COMPARE_DOSE_VOLUME_REFERENCE_ROLE.c_str(),
-    this->DoseComparisonNode->GetCompareDoseVolumeNode()->GetID() );
+    parameterNode->GetCompareDoseVolumeNode()->GetID() );
 
   // Select as active volume
   if (this->GetApplicationLogic()!=NULL)
@@ -378,7 +354,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference()
     }
   }
 
-  this->DoseComparisonNode->ResultsValidOn();
+  parameterNode->ResultsValidOn();
 
   if (this->LogSpeedMeasurements)
   {
@@ -443,7 +419,7 @@ void vtkSlicerDoseComparisonModuleLogic::LoadDefaultGammaColorTable()
       // Only log warning if the application exists (no warning when running automatic tests)
       vtkWarningMacro("LoadDefaultGammaColorTable: Default gamma color table file '" << colorTableFilePath << "' cannot be found!");
     }
-    // If file is not found, then create it programatically
+    // If file is not found, then create it programmatically
     this->CreateDefaultGammaColorTable();
     colorTableNode = vtkMRMLColorTableNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->DefaultGammaColorTableNodeId));
   }

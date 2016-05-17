@@ -108,12 +108,18 @@ void qSlicerDoseComparisonModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or create it if there is none in the scene
-  if (scene &&  d->logic()->GetDoseComparisonNode() == 0)
+  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLDoseComparisonNode");
     if (node)
     {
-      this->setDoseComparisonNode( vtkMRMLDoseComparisonNode::SafeDownCast(node) );
+      this->setParameterNode(node);
+    }
+    else 
+    {
+      vtkSmartPointer<vtkMRMLDoseComparisonNode> newNode = vtkSmartPointer<vtkMRMLDoseComparisonNode>::New();
+      this->mrmlScene()->AddNode(newNode);
+      this->setParameterNode(newNode);
     }
   }
 }
@@ -148,7 +154,8 @@ void qSlicerDoseComparisonModuleWidget::onEnter()
     qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
   }
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
 
   // If we have a parameter node select it
   if (!paramNode)
@@ -156,34 +163,35 @@ void qSlicerDoseComparisonModuleWidget::onEnter()
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLDoseComparisonNode");
     if (node)
     {
-      paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(node);
-      d->logic()->SetAndObserveDoseComparisonNode(paramNode);
-      return;
+      this->setParameterNode(node);
     }
     else 
     {
       vtkSmartPointer<vtkMRMLDoseComparisonNode> newNode = vtkSmartPointer<vtkMRMLDoseComparisonNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      d->logic()->SetAndObserveDoseComparisonNode(newNode);
+      this->setParameterNode(newNode);
     }
+  }
+  else
+  {
+    this->updateWidgetFromMRML();
   }
 
   d->ModuleWindowInitialized = true;
-
-  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseComparisonModuleWidget::setDoseComparisonNode(vtkMRMLNode *node)
+void qSlicerDoseComparisonModuleWidget::setParameterNode(vtkMRMLNode *node)
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
   vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(node);
 
-  // Each time the node is modified, the qt widgets are updated
-  qvtkReconnect( d->logic()->GetDoseComparisonNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
+  // Make sure the parameter set node is selected (in case the function was not called by the selector combobox signal)
+  d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
 
-  d->logic()->SetAndObserveDoseComparisonNode(paramNode);
+  // Each time the node is modified, the qt widgets are updated
+  qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
   // Set selected MRML nodes in comboboxes in the parameter set if it was NULL there
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
@@ -221,10 +229,10 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+
   if (paramNode && this->mrmlScene())
   {
-    d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetDoseComparisonNode());
     if (paramNode->GetReferenceDoseVolumeNode())
     {
       d->MRMLNodeComboBox_ReferenceDoseVolume->setCurrentNode(paramNode->GetReferenceDoseVolumeNode());
@@ -297,7 +305,7 @@ void qSlicerDoseComparisonModuleWidget::setup()
 
   connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
 
-  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setDoseComparisonNode(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setParameterNode(vtkMRMLNode*)) );
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
@@ -310,10 +318,11 @@ void qSlicerDoseComparisonModuleWidget::updateButtonsState()
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  bool applyEnabled = d->logic()->GetDoseComparisonNode()
-                   && d->logic()->GetDoseComparisonNode()->GetReferenceDoseVolumeNode()
-                   && d->logic()->GetDoseComparisonNode()->GetCompareDoseVolumeNode()
-                   && d->logic()->GetDoseComparisonNode()->GetGammaVolumeNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  bool applyEnabled = paramNode
+                   && paramNode->GetReferenceDoseVolumeNode()
+                   && paramNode->GetCompareDoseVolumeNode()
+                   && paramNode->GetGammaVolumeNode();
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
 
@@ -339,7 +348,7 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseVolumeNodeChanged(vtkMRMLNo
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -371,7 +380,7 @@ void qSlicerDoseComparisonModuleWidget::compareDoseVolumeNodeChanged(vtkMRMLNode
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -398,7 +407,7 @@ void qSlicerDoseComparisonModuleWidget::maskSegmentationNodeChanged(vtkMRMLNode*
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -422,7 +431,7 @@ void qSlicerDoseComparisonModuleWidget::maskSegmentChanged(QString segmentID)
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || segmentID.isEmpty() || !d->ModuleWindowInitialized)
   {
     return;
@@ -451,7 +460,7 @@ void qSlicerDoseComparisonModuleWidget::gammaVolumeNodeChanged(vtkMRMLNode* node
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -475,7 +484,7 @@ void qSlicerDoseComparisonModuleWidget::dtaDistanceToleranceChanged(double value
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -499,7 +508,7 @@ void qSlicerDoseComparisonModuleWidget::doseDifferenceToleranceChanged(double va
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -523,7 +532,7 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseUseMaximumDoseChanged(bool 
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -549,7 +558,7 @@ void qSlicerDoseComparisonModuleWidget::referenceDoseChanged(double value)
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -573,7 +582,7 @@ void qSlicerDoseComparisonModuleWidget::analysisThresholdChanged(double value)
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -597,7 +606,7 @@ void qSlicerDoseComparisonModuleWidget::linearInterpolationCheckedStateChanged(i
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -621,7 +630,7 @@ void qSlicerDoseComparisonModuleWidget::localDoseDifferenceCheckedStateChanged(i
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -645,7 +654,7 @@ void qSlicerDoseComparisonModuleWidget::maximumGammaChanged(double value)
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -669,7 +678,7 @@ void qSlicerDoseComparisonModuleWidget::doseThresholdOnReferenceOnlyCheckedState
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -693,7 +702,7 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
     return;
   }
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -712,7 +721,7 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
   d->GammaProgressDialog->show();
   QApplication::processEvents();
 
-  std::string errorMessage = d->logic()->ComputeGammaDoseDifference();
+  std::string errorMessage = d->logic()->ComputeGammaDoseDifference(paramNode);
   if (!errorMessage.empty())
   {
     d->label_Warning->setText( QString(errorMessage.c_str()) );
@@ -748,7 +757,7 @@ void qSlicerDoseComparisonModuleWidget::checkDoseVolumeAttributes()
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!this->mrmlScene() || !paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -776,7 +785,7 @@ void qSlicerDoseComparisonModuleWidget::refreshOutputBaseName()
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!this->mrmlScene() || !paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -804,7 +813,7 @@ void qSlicerDoseComparisonModuleWidget::invalidateResults()
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
-  vtkMRMLDoseComparisonNode* paramNode = d->logic()->GetDoseComparisonNode();
+  vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!this->mrmlScene() || !paramNode || !d->ModuleWindowInitialized)
   {
     return;

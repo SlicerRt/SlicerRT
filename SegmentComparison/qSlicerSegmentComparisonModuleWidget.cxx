@@ -102,13 +102,13 @@ void qSlicerSegmentComparisonModuleWidget::setMRMLScene(vtkMRMLScene* scene)
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLSegmentComparisonNode");
     if (node)
     {
-      this->setSegmentComparisonNode(node);
+      this->setParameterNode(node);
     }
     else 
     {
       vtkSmartPointer<vtkMRMLSegmentComparisonNode> newNode = vtkSmartPointer<vtkMRMLSegmentComparisonNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      this->setSegmentComparisonNode(newNode);
+      this->setParameterNode(newNode);
     }
   }
 }
@@ -151,13 +151,13 @@ void qSlicerSegmentComparisonModuleWidget::onEnter()
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLSegmentComparisonNode");
     if (node)
     {
-      this->setSegmentComparisonNode(node);
+      this->setParameterNode(node);
     }
     else 
     {
       vtkSmartPointer<vtkMRMLSegmentComparisonNode> newNode = vtkSmartPointer<vtkMRMLSegmentComparisonNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      this->setSegmentComparisonNode(newNode);
+      this->setParameterNode(newNode);
     }
   }
   else
@@ -169,11 +169,14 @@ void qSlicerSegmentComparisonModuleWidget::onEnter()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentComparisonModuleWidget::setSegmentComparisonNode(vtkMRMLNode *node)
+void qSlicerSegmentComparisonModuleWidget::setParameterNode(vtkMRMLNode *node)
 {
   Q_D(qSlicerSegmentComparisonModuleWidget);
 
   vtkMRMLSegmentComparisonNode* paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(node);
+
+  // Make sure the parameter set node is selected (in case the function was not called by the selector combobox signal)
+  d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
 
   // Each time the node is modified, the qt widgets are updated
   qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
@@ -285,7 +288,7 @@ void qSlicerSegmentComparisonModuleWidget::setup()
   connect( d->pushButton_ComputeHausdorff, SIGNAL(clicked()), this, SLOT(computeHausdorffClicked()) );
   connect( d->pushButton_ComputeDice, SIGNAL(clicked()), this, SLOT(computeDiceClicked()) );
 
-  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setSegmentComparisonNode(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setParameterNode(vtkMRMLNode*)) );
 
   // Setup table views
   d->MRMLTableView_Dice->verticalHeader()->setResizeMode(QHeaderView::Fixed); // Set default row height
@@ -528,7 +531,10 @@ void qSlicerSegmentComparisonModuleWidget::invalidateHausdorffResults()
 
   paramNode->HausdorffResultsValidOff();
 
-  paramNode->GetHausdorffTableNode()->RemoveAllColumns();
+  if (paramNode->GetHausdorffTableNode())
+  {
+    paramNode->GetHausdorffTableNode()->RemoveAllColumns();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -550,5 +556,8 @@ void qSlicerSegmentComparisonModuleWidget::invalidateDiceResults()
 
   paramNode->DiceResultsValidOff();
 
-  paramNode->GetDiceTableNode()->RemoveAllColumns();
+  if (paramNode->GetDiceTableNode())
+  {
+    paramNode->GetDiceTableNode()->RemoveAllColumns();
+  }
 }

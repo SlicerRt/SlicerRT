@@ -38,6 +38,8 @@
 class vtkOrientedImageData;
 class vtkCallbackCommand;
 class vtkMRMLDoubleArrayNode;
+class vtkMRMLScalarVolumeNode;
+class vtkMRMLChartNode;
 class vtkMRMLChartViewNode;
 class vtkMRMLDoseVolumeHistogramNode;
 
@@ -81,33 +83,30 @@ public:
 
 public:
   /// Compute DVH based on parameter node selections (dose volume, segmentation, segment IDs)
-  std::string ComputeDvh();
-
-  /// Add dose volume histogram of a structure (ROI) to the selected chart given its double array node ID
-  void AddDvhToChart(const char* dvhArrayNodeId);
-  
-  /// Remove dose volume histogram of a structure from the selected chart
-  void RemoveDvhFromChart(const char* dvhArrayNodeId);
-
-  /// Determine if a DVH array is added to the selected chart
-  bool IsDvhAddedToChart(const char* dvhArrayNodeId);
+  std::string ComputeDvh(vtkMRMLDoseVolumeHistogramNode* parameterNode);
 
   /// Compute V metrics for existing DVHs using the given dose values and add them in the metrics table
-  bool ComputeVMetrics();
+  bool ComputeVMetrics(vtkMRMLDoseVolumeHistogramNode* parameterNode);
 
   /// Compute D metrics for existing DVHs using the given dose values and add them in the metrics table
-  bool ComputeDMetrics();
+  bool ComputeDMetrics(vtkMRMLDoseVolumeHistogramNode* parameterNode);
 
-  /// Return false if the dose volume contains a volume that is really a dose volume
-  bool DoseVolumeContainsDose();
+  /// Add dose volume histogram of a structure (ROI) to the selected chart given its double array node
+  void AddDvhToChart(vtkMRMLChartNode* chartNode, vtkMRMLDoubleArrayNode* dvhArrayNode);
+  
+  /// Remove dose volume histogram of a structure from the selected chart
+  void RemoveDvhFromChart(vtkMRMLChartNode* chartNode, vtkMRMLDoubleArrayNode* dvhArrayNode);
+
+  /// Determine if a DVH array is added to the selected chart
+  bool IsDvhAddedToChart(vtkMRMLChartNode* chartNode, vtkMRMLDoubleArrayNode* dvhArrayNode);
 
   /// Export DVH values 
   /// \param comma Flag determining if the CSV file to be saved is deliminated using commas or tabs (regional considerations)
   /// \return True if file written and saved successfully, false otherwise
-  bool ExportDvhToCsv(const char* fileName, bool comma=true);
+  bool ExportDvhToCsv(vtkMRMLDoseVolumeHistogramNode* parameterNode, const char* fileName, bool comma=true);
 
   /// Export DVH metrics
-  bool ExportDvhMetricsToCsv(const char* fileName, bool comma=true);
+  bool ExportDvhMetricsToCsv(vtkMRMLDoseVolumeHistogramNode* parameterNode, const char* fileName, bool comma=true);
 
   /// Read DVH double arrays from a CSV file
   /// \return a vtkCollection containing vtkMRMLDoubleArrayNodes. Each node represents one structure DVH and contains the vtkDoubleArray as well as the name and total volume attributes for the structure.
@@ -115,12 +114,9 @@ public:
 
   /// Assemble dose metric name, e.g. "Mean dose (Gy)". If selected volume is not a dose, it will contain "intensity" instead of "dose"
   /// \param doseMetricAttributeNamePrefix Prefix of the desired dose metric attribute name, e.g. "Mean "
-  std::string AssembleDoseMetricName(std::string doseMetricAttributeNamePrefix);
+  std::string AssembleDoseMetricName(vtkMRMLScalarVolumeNode* doseVolumeNode, std::string doseMetricAttributeNamePrefix);
 
 public:
-  void SetAndObserveDoseVolumeHistogramNode(vtkMRMLDoseVolumeHistogramNode* node);
-  vtkGetObjectMacro(DoseVolumeHistogramNode, vtkMRMLDoseVolumeHistogramNode);
-
   vtkGetMacro(StartValue, double);
   vtkSetMacro(StartValue, double);
 
@@ -140,18 +136,19 @@ public:
 protected:
   /// Compute DVH for the given structure segment with the stenciled dose volume
   /// (the labelmap representation of a segment but with dose values instead of the labels)
+  /// \param parameterNode Dose volume histogram parameter set node
   /// \param segmentLabelmap Binary representation of the labelmap representation of the segment the DVH is calculated on
   /// \param oversampledDoseVolume Dose volume resampled to match the geometry of the segment labelmap (to allow stenciling)
   /// \param segmentID ID of segment the DVH is calculated on
   /// \param maxDoseGy Maximum dose determining the number of DVH bins (passed as argument so that it is only calculated once in \sa ComputeDvh() )
   /// \return Error message, empty string if no error
-  std::string ComputeDvh(vtkOrientedImageData* segmentLabelmap, vtkOrientedImageData* oversampledDoseVolume, std::string segmentID, double maxDoseGy);
+  std::string ComputeDvh(vtkMRMLDoseVolumeHistogramNode* parameterNode, vtkOrientedImageData* segmentLabelmap, vtkOrientedImageData* oversampledDoseVolume, std::string segmentID, double maxDoseGy);
 
   /// Return the chart view node object from the layout
   vtkMRMLChartViewNode* GetChartViewNode();
 
   /// Set up metrics table by creating the default columns
-  void InitializeMetricsTable();
+  void InitializeMetricsTable(vtkMRMLDoseVolumeHistogramNode* parameterNode);
 
   /// Determine if a metric name belongs to a V metric
   bool IsVMetricName(std::string name);
@@ -177,7 +174,6 @@ protected:
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
 
-  virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
 
 private:
@@ -185,9 +181,6 @@ private:
   void operator=(const vtkSlicerDoseVolumeHistogramModuleLogic&);               // Not implemented
 
 protected:
-  /// Parameter set MRML node
-  vtkMRMLDoseVolumeHistogramNode* DoseVolumeHistogramNode;
-
   /// Start value for the dose axis of the DVH table
   double StartValue;
 
@@ -203,9 +196,6 @@ protected:
 
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;
-
-  /// Command handling visibility column value changes
-  vtkCallbackCommand* VisibilityChangedCallbackCommand;
 };
 
 #endif
