@@ -30,12 +30,9 @@
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
+
+// Segmentations includes
 #include "vtkOrientedImageData.h"
-
-// MRML includes
-
-// ITK includes
-#include <itkImage.h>
 
 // STD includes
 #include <cstdlib>
@@ -45,6 +42,7 @@
 class vtkMRMLRTPlanNode;
 class vtkMRMLRTBeamNode;
 class vtkSlicerCLIModuleLogic;
+class vtkSlicerBeamsModuleLogic;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_LOGIC_EXPORT vtkSlicerExternalBeamPlanningModuleLogic :
@@ -60,11 +58,14 @@ public:
   /// Get RT plan Node
   vtkGetObjectMacro(RTPlanNode, vtkMRMLRTPlanNode);
 
-  /// TODO
-  bool ComputeTargetVolumeCenter(vtkMRMLRTBeamNode *beam, double* center);
+  /// Set Beams module logic
+  void SetBeamsLogic(vtkSlicerBeamsModuleLogic* beamsLogic);
+  /// Get Beams module logic
+  vtkGetObjectMacro(BeamsLogic, vtkSlicerBeamsModuleLogic);
 
-  /// TODO
-  void SetBeamIsocenterToTargetCenter(vtkMRMLRTBeamNode *beam);
+  /// Create a new beam based on another beam, and add it to the plan
+  /// \return The new beam node that has been copied and added to the plan
+  vtkMRMLRTBeamNode* CopyAndAddBeamToPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode);
 
   /// TODO
   void UpdateDRR(char*);
@@ -114,6 +115,7 @@ protected:
   virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
 
+protected:
   /// RT plan MRML node
   vtkMRMLRTPlanNode* RTPlanNode;
 
@@ -126,6 +128,9 @@ private:
 
   class vtkInternal;
   vtkInternal* Internal;
+
+  /// Beams module logic instance
+  vtkSlicerBeamsModuleLogic* BeamsLogic;
 };
 
 #endif

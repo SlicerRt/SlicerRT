@@ -28,9 +28,10 @@
 // MRML includes
 #include <vtkMRMLModelNode.h>
 
-// Slicer includes
+// SegmentationCore includes
 #include "vtkOrientedImageData.h"
 
+class vtkPolyData;
 class vtkMRMLScene;
 class vtkMRMLDoubleArrayNode;
 class vtkMRMLMarkupsFiducialNode;
@@ -65,13 +66,19 @@ public:
     SquareOneMM = 1,
     SquareTwoMM = 2
   };
-  enum IsocenterSpecification
+  enum IsocenterSpecificationType
   {
     CenterOfTarget,
     ArbitraryPoint
   };
 
   static const char* NEW_BEAM_NODE_NAME_PREFIX;
+
+  enum
+  {
+    /// Fired if isocenter position changes
+    IsocenterModifiedEvent = 62200
+  };
 
 public:
   static vtkMRMLRTBeamNode *New();
@@ -96,23 +103,15 @@ public:
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() { return "RTBeam"; };
 
-public:
-  /// Get center of gravity of target segment, return true if successful
-  /// or false if no target segment has been specified
-  bool ComputeTargetVolumeCenter(double* center);
-
-  /// Update the beam model for a new isocenter, gantry angle, etc.
-  void UpdateBeamTransform();
-
-  /// Update beam model based on current properties
-  void UpdateBeamGeometry();
+  /// Create and observe default display node
+  virtual void CreateDefaultDisplayNodes();
 
   /// Create a default beam model
   void CreateDefaultBeamModel();
 
   /// Create beam model from beam parameters, supporting MLC leaves
   /// \return Poly data, null on fail
-  vtkSmartPointer<vtkPolyData> CreateBeamPolyData();
+  void CreateBeamPolyData(vtkPolyData* beamModelPolyData);
 
 public:
   /// Get parent plan node
@@ -146,8 +145,24 @@ public:
   /// Set and observe contour BEV node
   void SetAndObserveContourBEVVolumeNode(vtkMRMLScalarVolumeNode* node);
 
+// Isocenter parameters
+public:
+  void SetIsocenterSpecification(vtkMRMLRTBeamNode::IsocenterSpecificationType);
+  void SetIsocenterToTargetCenter();
+  void GetIsocenterPosition(double*); //TODO: array
+  void SetIsocenterPosition(double*);
+
+  /// Get center of gravity of target segment, return true if successful
+  /// or false if no target segment has been specified
+  bool ComputeTargetVolumeCenter(double* center);
+
 // Beam parameters
 public:
+  const double* GetReferenceDosePointPosition();
+  double GetReferenceDosePointPosition(int dim);
+  void SetReferenceDosePointPosition(const float* position);
+  void SetReferenceDosePointPosition(const double* position);
+
   /// Get beam number
   vtkGetMacro(BeamNumber, int);
   /// Get beam number
@@ -179,8 +194,8 @@ public:
   /// Set beam type
   vtkSetMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
 
-  vtkGetMacro(IsocenterSpec, vtkMRMLRTBeamNode::IsocenterSpecification);
-  vtkGetConstMacro(IsocenterSpec, vtkMRMLRTBeamNode::IsocenterSpecification);
+  vtkGetMacro(IsocenterSpecification, vtkMRMLRTBeamNode::IsocenterSpecificationType);
+  vtkGetConstMacro(IsocenterSpecification, vtkMRMLRTBeamNode::IsocenterSpecificationType);
 
   vtkGetConstMacro(NominalEnergy, double);
   vtkSetMacro(NominalEnergy, double);
@@ -232,38 +247,23 @@ public:
   vtkGetConstMacro(BeamWeight, double);
   vtkSetMacro(BeamWeight, double);
 
-  void SetIsocenterSpec(vtkMRMLRTBeamNode::IsocenterSpecification);
-  void SetIsocenterToTargetCenter();
-  void GetIsocenterPosition(double*);
-  void SetIsocenterPosition(double*);
-
-  const double* GetReferenceDosePointPosition();
-  double GetReferenceDosePointPosition(int dim);
-  void SetReferenceDosePointPosition(const float* position);
-  void SetReferenceDosePointPosition(const double* position);
-
-protected:
-  /// Copy isocenter coordinates into fiducial
-  void CopyIsocenterCoordinatesToMarkups(double*);
-
-  /// Copy isocenter coordinates from fiducial
-  void CopyIsocenterCoordinatesFromMarkups(double*);
-
 protected:
   vtkMRMLRTBeamNode();
   ~vtkMRMLRTBeamNode();
   vtkMRMLRTBeamNode(const vtkMRMLRTBeamNode&);
   void operator=(const vtkMRMLRTBeamNode&);
 
+// Beam properties
 protected:
+  /// Beam number
   int   BeamNumber;
+
+  /// Beam description
   char* BeamDescription;
 
   /// Target segment ID in target segmentation node
   char* TargetSegmentID;
 
-// Beam properties
-protected:
   RTBeamType  BeamType;
   RTRadiationType RadiationType;
   RTCollimatorType CollimatorType;
@@ -272,7 +272,7 @@ protected:
   double NominalmA;
   double BeamOnTime;
 
-  IsocenterSpecification IsocenterSpec;
+  IsocenterSpecificationType IsocenterSpecification;
   double Isocenter[3];
   double ReferenceDosePoint[3];
 

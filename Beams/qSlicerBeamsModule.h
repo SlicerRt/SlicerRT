@@ -45,7 +45,7 @@ public:
   /// Help to use the module
   virtual QString helpText()const;
 
-  /// Return acknowledgements
+  /// Return acknowledgments
   virtual QString acknowledgementText()const;
 
   /// Return the authors of the module
@@ -56,9 +56,6 @@ public:
 
   /// List dependencies
   virtual QStringList dependencies()const;
-
-  /// Make this module hidden
-  virtual bool isHidden()const { return true; };
  
 protected:
   /// Initialize the module. Register the volumes reader/writer
@@ -76,7 +73,6 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerBeamsModule);
   Q_DISABLE_COPY(qSlicerBeamsModule);
-
 };
 
 #endif

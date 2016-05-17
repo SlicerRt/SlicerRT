@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>368</width>
-    <height>525</height>
+    <width>600</width>
+    <height>654</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,9 +23,9 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLabel" name="label_CurrentSegmentation">
+      <widget class="QLabel" name="label_ActiveSegmentation">
        <property name="text">
-        <string>Current segmentation:</string>
+        <string>Active segmentation:</string>
        </property>
       </widget>
      </item>
@@ -102,7 +102,7 @@
        </layout>
       </item>
       <item>
-       <widget class="qMRMLSegmentsTableView" name="SegmentsTableView" native="true">
+       <widget class="qMRMLSegmentsTableView" name="SegmentsTableView">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
           <horstretch>0</horstretch>
@@ -252,7 +252,7 @@
        <number>4</number>
       </property>
       <item row="0" column="0">
-       <widget class="qMRMLSegmentationRepresentationsListView" name="RepresentationsListView" native="true"/>
+       <widget class="qMRMLSegmentationRepresentationsListView" name="RepresentationsListView"/>
       </item>
      </layout>
     </widget>
@@ -297,7 +297,7 @@
          </widget>
         </item>
         <item>
-         <widget class="qMRMLSegmentsTableView" name="SegmentsTableView_Current" native="true">
+         <widget class="qMRMLSegmentsTableView" name="SegmentsTableView_Current">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
             <horstretch>0</horstretch>
@@ -510,7 +510,7 @@
          </layout>
         </item>
         <item>
-         <widget class="qMRMLSegmentsTableView" name="SegmentsTableView_Other" native="true">
+         <widget class="qMRMLSegmentsTableView" name="SegmentsTableView_Other">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
             <horstretch>0</horstretch>
@@ -563,6 +563,16 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>qMRMLSegmentsTableView</class>
+   <extends>QWidget</extends>
+   <header>qMRMLSegmentsTableView.h</header>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLSegmentationRepresentationsListView</class>
+   <extends>QWidget</extends>
+   <header>qMRMLSegmentationRepresentationsListView.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkCollapsibleButton</class>
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
@@ -578,16 +588,6 @@
    <class>ctkSliderWidget</class>
    <extends>QWidget</extends>
    <header>ctkSliderWidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>qMRMLSegmentsTableView</class>
-   <extends>QWidget</extends>
-   <header>qMRMLSegmentsTableView.h</header>
-  </customwidget>
-  <customwidget>
-   <class>qMRMLSegmentationRepresentationsListView</class>
-   <extends>QWidget</extends>
-   <header>qMRMLSegmentationRepresentationsListView.h</header>
   </customwidget>
  </customwidgets>
  <resources>

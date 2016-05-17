@@ -81,10 +81,6 @@ public:
 
   /// Add given beam node to plan
   void AddBeam(vtkMRMLRTBeamNode* beam);
-  /// Create a new beam based on another beam, and add it to the plan
-  /// \return The new beam node that has been copied and added to the plan
-  vtkMRMLRTBeamNode* CopyAndAddBeam(vtkMRMLRTBeamNode* copyFrom);
-
   /// Remove given beam node from plan
   void RemoveBeam(vtkMRMLRTBeamNode* beam);
 

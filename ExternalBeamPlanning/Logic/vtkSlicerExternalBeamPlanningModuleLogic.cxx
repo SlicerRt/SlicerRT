@@ -88,12 +88,11 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkProperty.h>
 #include <vtkActor.h>
-#include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 #include <vtkVolumeRayCastMapper.h>
 #include <vtkGPUVolumeRayCastMapper.h>
 #include <vtkVolumeRayCastCompositeFunction.h>
-#include <vtkVolumeTextureMapper3D.h>
+#include <vtkVolumeTextureMapper3D.h> //TODO:
 #include <vtkVolumeTextureMapper2D.h>
 #include <vtkWindowToImageFilter.h>
 #include <vtkImageShiftScale.h>
@@ -107,6 +106,9 @@
 #include <itkImageRegionIteratorWithIndex.h>
 
 //----------------------------------------------------------------------------
+vtkCxxSetObjectMacro(vtkSlicerExternalBeamPlanningModuleLogic, BeamsLogic, vtkSlicerBeamsModuleLogic);
+
+//----------------------------------------------------------------------------
 class vtkSlicerExternalBeamPlanningModuleLogic::vtkInternal
 {
 public:
@@ -115,7 +117,7 @@ public:
   vtkSlicerCLIModuleLogic* MatlabDoseCalculationModuleLogic;
   vtkSlicerDoseCalculationEngine* DoseEngine;
 
-  Plm_image::Pointer plmRef;
+  Plm_image::Pointer plmRef; //TODO: Rename
 };
 
 //----------------------------------------------------------------------------
@@ -136,12 +138,16 @@ vtkSlicerExternalBeamPlanningModuleLogic::vtkSlicerExternalBeamPlanningModuleLog
   this->DRRImageSize[0] = 256;
   this->DRRImageSize[1] = 256;
 
+  this->BeamsLogic = NULL;
+
   this->Internal = new vtkInternal;
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerExternalBeamPlanningModuleLogic::~vtkSlicerExternalBeamPlanningModuleLogic()
 {
+  this->SetBeamsLogic(NULL);
+
   if (this->Internal->DoseEngine)
   {
     this->Internal->DoseEngine->Delete();
@@ -189,7 +195,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateFromMRMLScene()
     return;
   }
 
-  this->Modified();
+  this->Modified(); //TODO: Needed?
 }
 
 //---------------------------------------------------------------------------
@@ -230,14 +236,15 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNod
 
   if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLRTPlanNode"))
   {
-    this->Modified();
+    this->Modified(); //TODO: Needed?
   }
 }
 
 //---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneEndImport()
 {
-  // If we have a parameter node select it
+  // If we have a plan node select it
+  //TODO: Remove when logic does not observe param node
   vtkMRMLRTPlanNode *planNode = NULL;
   vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLRTPlanNode");
   if (node)
@@ -276,32 +283,43 @@ void vtkSlicerExternalBeamPlanningModuleLogic::SetAndObserveRTPlanNode(vtkMRMLRT
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerExternalBeamPlanningModuleLogic::ComputeTargetVolumeCenter(vtkMRMLRTBeamNode *beamNode, double* center)
+vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CopyAndAddBeamToPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode)
 {
-  if (!this->GetMRMLScene() || !this->RTPlanNode)
+  if (!this->GetMRMLScene())
   {
-    vtkErrorMacro("ComputeTargetVolumeCenter: Invalid MRML scene or RT plan node!");
-    return false;
+    vtkErrorMacro("CopyAndAddBeamToPlan: Invalid MRML scene!");
+    return NULL;
   }
-  if (!beamNode)
+  if (!copiedBeamNode || !planNode)
   {
-    vtkErrorMacro("ComputeTargetVolumeCenter: Invalid beam node!");
-    return false;
-  }
-
-  return beamNode->ComputeTargetVolumeCenter(center);
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::SetBeamIsocenterToTargetCenter(vtkMRMLRTBeamNode *beamNode)
-{
-  if (!beamNode)
-  {
-    vtkErrorMacro("SetBeamIsocenterToTargetCenter: Invalid beam node!");
-    return;
+    vtkErrorMacro("CopyAndAddBeamToPlan: Invalid copied beam node or plan node!");
+    return NULL;
   }
 
-  beamNode->SetIsocenterToTargetCenter();
+  // Create beam node of the same class as the template
+  vtkSmartPointer<vtkMRMLRTBeamNode> beamNode;
+  beamNode.TakeReference((vtkMRMLRTBeamNode*)this->GetMRMLScene()->CreateNodeByClass(copiedBeamNode->GetClassName()));
+  if (!beamNode.GetPointer())
+  {
+    vtkErrorMacro("CopyAndAddBeamToPlan: Could not clone beam node");
+    return NULL;
+  }
+
+  // Copy properties from template
+  beamNode->CopyWithScene(copiedBeamNode);
+  this->GetMRMLScene()->AddNode(beamNode);
+
+  // Change name of new beam to default
+  std::string newBeamName = planNode->GenerateNewBeamName();
+  beamNode->SetName(newBeamName.c_str());
+
+  // Create default model
+  beamNode->CreateDefaultBeamModel();
+
+  // Add beam to plan
+  planNode->AddBeam(beamNode);
+
+  return beamNode;
 }
 
 //---------------------------------------------------------------------------

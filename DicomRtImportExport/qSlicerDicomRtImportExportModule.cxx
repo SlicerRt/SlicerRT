@@ -33,7 +33,6 @@
 // Slicer includes
 #include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
-#include <vtkSlicerVolumesLogic.h>
 
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
@@ -43,6 +42,7 @@
 // SlicerRT includes
 #include "vtkSlicerIsodoseModuleLogic.h"
 #include "vtkSlicerPlanarImageModuleLogic.h"
+#include "vtkSlicerBeamsModuleLogic.h"
 
 // SegmentationCore includes
 #include "vtkSegmentationConverterFactory.h"
@@ -115,7 +115,7 @@ QStringList qSlicerDicomRtImportExportModule::categories()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerDicomRtImportExportModule::dependencies()const
 {
-  return QStringList() << "Volumes" << "Isodose" << "PlanarImage";
+  return QStringList() << "Volumes" << "Isodose" << "PlanarImage" << "Beams";
 }
 
 //-----------------------------------------------------------------------------
@@ -123,20 +123,7 @@ void qSlicerDicomRtImportExportModule::setup()
 {
   this->Superclass::setup();
 
-  // Create DICOM-RT import logic
   vtkSlicerDicomRtImportExportModuleLogic* dicomRtImportExportLogic = vtkSlicerDicomRtImportExportModuleLogic::SafeDownCast(this->logic());
-
-  // Set volumes logic to the logic
-  qSlicerAbstractCoreModule* volumesModule = qSlicerCoreApplication::application()->moduleManager()->module("Volumes");
-  if (volumesModule)
-  {
-    vtkSlicerVolumesLogic* volumesLogic = vtkSlicerVolumesLogic::SafeDownCast(volumesModule->logic());
-    dicomRtImportExportLogic->SetVolumesLogic(volumesLogic);
-  }
-  else
-  {
-    qCritical() << Q_FUNC_INFO << ": Volumes module is not found";
-  } 
 
   // Set isodose logic to the logic
   qSlicerAbstractCoreModule* isodoseModule = qSlicerCoreApplication::application()->moduleManager()->module("Isodose");
@@ -160,6 +147,18 @@ void qSlicerDicomRtImportExportModule::setup()
   else
   {
     qCritical() << Q_FUNC_INFO << ": Planar Image module is not found";
+  } 
+
+  // Set beams logic to the logic
+  qSlicerAbstractCoreModule* beamsModule = qSlicerCoreApplication::application()->moduleManager()->module("Beams");
+  if (beamsModule)
+  {
+    vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(beamsModule->logic());
+    dicomRtImportExportLogic->SetBeamsLogic(beamsLogic);
+  }
+  else
+  {
+    qCritical() << Q_FUNC_INFO << ": Beams module is not found";
   } 
 
   // Register Subject Hierarchy plugins

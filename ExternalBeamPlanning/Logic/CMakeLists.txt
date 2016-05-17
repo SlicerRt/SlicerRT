@@ -31,7 +31,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerIsodoseModuleLogic
   vtkSlicerSegmentationsModuleMRML
   vtkSlicerSegmentationsModuleLogic
-  vtkSlicerExternalBeamPlanningModuleMRML
+  #vtkSlicerExternalBeamPlanningModuleMRML
   )
 
 #-----------------------------------------------------------------------------

@@ -12,7 +12,7 @@ if(NOT Plastimatch_FOUND)
 endif() 
 
 #-----------------------------------------------------------------------------
-add_subdirectory(MRML)
+#add_subdirectory(MRML)
 add_subdirectory(Logic)
 
 #-----------------------------------------------------------------------------

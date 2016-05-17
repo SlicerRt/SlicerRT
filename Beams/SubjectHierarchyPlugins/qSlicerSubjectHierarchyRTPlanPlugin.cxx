@@ -191,6 +191,7 @@ void qSlicerSubjectHierarchyRTPlanPlugin::editProperties(vtkMRMLSubjectHierarchy
   else if (associatedNode && associatedNode->IsA("vtkMRMLRTPlanNode"))
   {
     // Switch to External Beam Planning module
-    qSlicerSubjectHierarchyAbstractPlugin::switchToModule("ExternalBeamPlanning");  
+    qSlicerSubjectHierarchyAbstractPlugin::switchToModule("ExternalBeamPlanning");
+    //TODO: Select plan
   }
 }

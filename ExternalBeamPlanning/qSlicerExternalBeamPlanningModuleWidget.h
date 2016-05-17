@@ -28,7 +28,6 @@
 #include "qSlicerExternalBeamPlanningModuleExport.h"
 
 class qSlicerExternalBeamPlanningModuleWidgetPrivate;
-class vtkMRMLExternalBeamPlanningNode;
 class vtkMRMLNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLRTPlanNode;
@@ -52,40 +51,27 @@ public slots:
   /// Process loaded scene
   void onSceneImportedEvent();
 
-// Update functions
-protected:
   /// Update the entire widget based on the current parameter node
   void updateWidgetFromMRML();
 
-  void updateRTBeamTableWidget();
-
-  /// Update widget GUI from a beam node
-  void updateWidgetFromRTBeam(vtkMRMLRTBeamNode* beamNode);
-
-  void updateBeamParameters();
-
-  void updateCurrentBeamTransform();
-
-  void updateBeamGeometryModel();
-
-// Utility functions
-protected:
+public:
+  /// TODO:
   vtkMRMLRTBeamNode* currentBeamNode();
 
 protected slots:
-  /// RT plan was modified programmatically
+  /// TODO
+  void updateRTBeamTableWidget();
+
+  /// RT plan was modified 
   void onRTPlanNodeModified();
 
-  // Logic modified
+  /// Logic modified
   void onLogicModified();
 
-  // Currently selected RTBeam was modified
-  void onRTBeamNodeModifiedEvent();
-
   // RT plan page
+  void rtPlanNodeChanged(vtkMRMLNode*);
   void referenceVolumeNodeChanged(vtkMRMLNode*);
   void planSegmentationNodeChanged(vtkMRMLNode*);
-  void rtPlanNodeChanged(vtkMRMLNode*);
   void planPOIsNodeChanged(vtkMRMLNode*);
   void doseVolumeNodeChanged(vtkMRMLNode*);
   void doseROINodeChanged(vtkMRMLNode*);
@@ -97,61 +83,10 @@ protected slots:
   void addBeamClicked();
   void removeBeamClicked();
 
-  // Beam global parameters
-  void beamNameChanged(const QString &);
-  void radiationTypeChanged(int);
-
-  // Prescription page
-  void beamTypeChanged(const QString &);
-  void targetSegmentationNodeChanged(vtkMRMLNode* node);
-  void targetSegmentChanged(const QString& segment);
-  void rxDoseChanged(double);
-  void isocenterSpecChanged(const QString &);
-  void isocenterCoordinatesChanged(double*);
-  void isocenterFiducialNodeChangedfromCoordinates(double*);
-  void dosePointFiducialNodeChangedfromCoordinates(double*);
-
-  // Energy page
-  void proximalMarginChanged(double);
-  void distalMarginChanged(double);
-  void beamLineTypeChanged(const QString &);
-  void manualEnergyPrescriptionChanged(bool);
-  void minimumEnergyChanged(double);
-  void maximumEnergyChanged(double);
-
-  // Geometry page
-  void mlcPositionDoubleArrayNodeChanged(vtkMRMLNode* node);
-  void sourceDistanceChanged(double);
-  void xJawsPositionValuesChanged(double, double);
-  void yJawsPositionValuesChanged(double, double);
-  void collimatorAngleChanged(double);
-  void gantryAngleChanged(double);
-  void couchAngleChanged(double);
-  void smearingChanged(double);
-  void beamWeightChanged(double);
-
-  // Proton beam model
-  void apertureDistanceChanged(double);
-  void algorithmChanged(const QString &);
-  void pencilBeamSpacingChanged(double);
-  void sourceSizeChanged(double);
-  void energyResolutionChanged(double);
-  void energySpreadChanged(double);
-  void stepLengthChanged(double);
-  void wedApproximationChanged(bool);
-  void rangeCompensatorHighlandChanged(bool);
-
-  // Beam visualization
-  void updateDRRClicked();
-  void beamEyesViewClicked(bool);
-  void contoursInBEWClicked(bool);
-  
   // Calculation buttons
   void calculateDoseClicked();
   void calculateWEDClicked();
   void clearDoseClicked();
-
-  void collimatorTypeChanged(const QString &);
 
 protected:
   virtual void setup();

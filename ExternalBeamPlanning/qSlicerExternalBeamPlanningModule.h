@@ -59,8 +59,10 @@ public:
   /// Return the categories for the module
   virtual QStringList categories()const;
 
-protected:
+  /// List dependencies
+  virtual QStringList dependencies()const;
 
+protected:
   /// Initialize the module. Register the volumes reader/writer
   virtual void setup();
 

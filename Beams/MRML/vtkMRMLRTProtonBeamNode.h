@@ -29,7 +29,7 @@
 
 // SlicerRT includes
 #include "vtkMRMLRTBeamNode.h"
-#include "vtkSlicerExternalBeamPlanningModuleMRMLExport.h"
+#include "vtkSlicerBeamsModuleMRMLExport.h"
 
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLDisplayableNode;
@@ -39,14 +39,14 @@ class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLSegmentationNode;
 class vtkMRMLDoubleArrayNode;
 
-/// GCS 2015-09-04.  Why don't VTK macros support const functions?
+//TODO: GCS 2015-09-04.  Why don't VTK macros support const functions?
 #define vtkGetConstMacro(name,type)             \
   virtual type Get##name () const {             \
     return this->name;                          \
   }
 
 /// \ingroup SlicerRt_QtModules_Beams
-class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTProtonBeamNode : public vtkMRMLRTBeamNode
+class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTProtonBeamNode : public vtkMRMLRTBeamNode
 {
 public:
     enum RTProtonAlgorithm

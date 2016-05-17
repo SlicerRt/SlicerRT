@@ -46,6 +46,7 @@
 #include "vtkMRMLPlanarImageNode.h"
 #include "vtkSlicerIsodoseModuleLogic.h"
 #include "vtkSlicerPlanarImageModuleLogic.h"
+#include "vtkSlicerBeamsModuleLogic.h"
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
 
@@ -55,9 +56,6 @@
 #include "vtkMRMLSegmentationStorageNode.h"
 #include "vtkSlicerSegmentationsModuleLogic.h"
 #include "vtkOrientedImageDataResample.h"
-
-// Slicer Logic includes
-#include "vtkSlicerVolumesLogic.h"
 
 // DCMTK includes
 #include <dcmtk/dcmdata/dcfilefo.h>
@@ -111,16 +109,16 @@
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtImportExportModuleLogic);
-vtkCxxSetObjectMacro(vtkSlicerDicomRtImportExportModuleLogic, VolumesLogic, vtkSlicerVolumesLogic);
 vtkCxxSetObjectMacro(vtkSlicerDicomRtImportExportModuleLogic, IsodoseLogic, vtkSlicerIsodoseModuleLogic);
 vtkCxxSetObjectMacro(vtkSlicerDicomRtImportExportModuleLogic, PlanarImageLogic, vtkSlicerPlanarImageModuleLogic);
+vtkCxxSetObjectMacro(vtkSlicerDicomRtImportExportModuleLogic, BeamsLogic, vtkSlicerBeamsModuleLogic);
 
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtImportExportModuleLogic::vtkSlicerDicomRtImportExportModuleLogic()
 {
-  this->VolumesLogic = NULL;
   this->IsodoseLogic = NULL;
   this->PlanarImageLogic = NULL;
+  this->BeamsLogic = NULL;
 
   this->BeamModelsInSeparateBranch = true;
 }
@@ -128,9 +126,9 @@ vtkSlicerDicomRtImportExportModuleLogic::vtkSlicerDicomRtImportExportModuleLogic
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtImportExportModuleLogic::~vtkSlicerDicomRtImportExportModuleLogic()
 {
-  this->SetVolumesLogic(NULL);
   this->SetIsodoseLogic(NULL);
   this->SetPlanarImageLogic(NULL);
+  this->SetBeamsLogic(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -941,7 +939,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     beamNode->SetCouchAngle(rtReader->GetBeamPatientSupportAngle(dicomBeamNumber));
     beamNode->SetSAD(rtReader->GetBeamSourceAxisDistance(dicomBeamNumber));
       
-    beamNode->SetIsocenterSpec(vtkMRMLRTBeamNode::ArbitraryPoint);
+    beamNode->SetIsocenterSpecification(vtkMRMLRTBeamNode::ArbitraryPoint);
     beamNode->SetIsocenterPosition(rtReader->GetBeamIsocenterPositionRas(dicomBeamNumber));
 
     // Create beam model hierarchy root node if has not been created yet
@@ -980,8 +978,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     this->GetMRMLScene()->AddNode(beamModelHierarchyDisplayNode);
     beamModelHierarchyNode->SetAndObserveDisplayNodeID( beamModelHierarchyDisplayNode->GetID() );
 
-    beamNode->UpdateBeamGeometry();
-    beamNode->UpdateBeamTransform();
+    this->BeamsLogic->UpdateBeamGeometry(beamNode);
+    this->BeamsLogic->UpdateBeamTransform(beamNode);
   }
 
   // Compute and set geometry of possible RT image that references the loaded beams.

@@ -14,6 +14,8 @@ set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}ModuleLogic.h
   )
 
+SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
+
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleMRML
   vtkSlicerRtCommon

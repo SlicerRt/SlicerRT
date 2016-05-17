@@ -152,5 +152,6 @@ void qSlicerSubjectHierarchyRTBeamPlugin::editProperties(vtkMRMLSubjectHierarchy
   Q_UNUSED(node);
 
   // Switch to External Beam Planning module
-  qSlicerSubjectHierarchyAbstractPlugin::switchToModule("ExternalBeamPlanning");
+  qSlicerSubjectHierarchyAbstractPlugin::switchToModule("Beams");
+  //TODO: Select beam
 }

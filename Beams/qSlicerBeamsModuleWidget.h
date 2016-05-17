@@ -28,6 +28,7 @@
 
 class qSlicerBeamsModuleWidgetPrivate;
 class vtkMRMLNode;
+class vtkMRMLRTBeamNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
 class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerBeamsModuleWidget :
@@ -35,16 +36,100 @@ class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerBeamsModuleWidget :
 {
   Q_OBJECT
 
+public slots:
+  /// Set the current MRML scene to the widget
+  virtual void setMRMLScene(vtkMRMLScene*);
+
+  /// Process loaded scene
+  void onSceneImportedEvent();
+
+  /// Update the entire widget based on the current parameter node
+  void updateWidgetFromMRML();
+
+// Update functions
+protected:
+  /// TODO
+  void updateCurrentBeamTransform();
+
+  /// TODO
+  void updateBeamGeometryModel();
+
+protected slots:
+  /// Logic modified
+  void onLogicModified();
+
+  /// Handles active beam selection changed event
+  void rtBeamNodeChanged(vtkMRMLNode* node);
+  /// Currently selected RTBeam was modified
+  void onRTBeamNodeModified();
+
+  void goToParentPlanButtonClicked();
+
+  // Beam global parameters
+  void beamNameChanged(const QString &);
+  void radiationTypeChanged(int);
+
+  // Prescription page
+  void beamTypeChanged(const QString &);
+  void targetSegmentationNodeChanged(vtkMRMLNode* node);
+  void targetSegmentChanged(const QString& segment);
+  void rxDoseChanged(double);
+  void isocenterSpecChanged(const QString &);
+  void isocenterCoordinatesChanged(double*);
+  void isocenterFiducialNodeChangedfromCoordinates(double*);
+  void dosePointFiducialNodeChangedfromCoordinates(double*);
+
+  // Energy page
+  void proximalMarginChanged(double);
+  void distalMarginChanged(double);
+  void beamLineTypeChanged(const QString &);
+  void manualEnergyPrescriptionChanged(bool);
+  void minimumEnergyChanged(double);
+  void maximumEnergyChanged(double);
+
+  // Geometry page
+  void mlcPositionDoubleArrayNodeChanged(vtkMRMLNode* node);
+  void sourceDistanceChanged(double);
+  void xJawsPositionValuesChanged(double, double);
+  void yJawsPositionValuesChanged(double, double);
+  void collimatorAngleChanged(double);
+  void gantryAngleChanged(double);
+  void couchAngleChanged(double);
+  void smearingChanged(double);
+  void beamWeightChanged(double);
+
+  // Proton beam model
+  void apertureDistanceChanged(double);
+  void algorithmChanged(const QString &);
+  void pencilBeamSpacingChanged(double);
+  void sourceSizeChanged(double);
+  void energyResolutionChanged(double);
+  void energySpreadChanged(double);
+  void stepLengthChanged(double);
+  void wedApproximationChanged(bool);
+  void rangeCompensatorHighlandChanged(bool);
+
+  // Beam visualization
+  void updateDRRClicked();
+  void beamEyesViewClicked(bool);
+  void contoursInBEWClicked(bool);
+
+  //TODO: Unused function
+  void collimatorTypeChanged(const QString &);
+
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerBeamsModuleWidget(QWidget *parent=0);
   virtual ~qSlicerBeamsModuleWidget();
+
+  virtual void enter();
 
 protected:
   QScopedPointer<qSlicerBeamsModuleWidgetPrivate> d_ptr;
 
 protected:
   virtual void setup();
+  void onEnter();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerBeamsModuleWidget);

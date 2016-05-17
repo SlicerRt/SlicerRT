@@ -21,22 +21,21 @@
 
 // SlicerRt includes
 #include "PlmCommon.h"
-#include "SlicerRtCommon.h"
-#include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkSlicerSegmentationsModuleLogic.h"
+#include <vtkMRMLLinearTransformNode.h>
 
 // Plastimatch includes
 #include "image_center.h"
 
 // MRML includes
-#include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLTransformNode.h>
 #include <vtkMRMLModelDisplayNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
+#include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLSubjectHierarchyNode.h>
 #include <vtkMRMLSubjectHierarchyConstants.h>
 
@@ -44,10 +43,8 @@
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 #include <vtkIntArray.h>
+#include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
-#include <vtkImageResample.h>
-#include <vtkGeneralTransform.h>
-#include <vtkCollection.h>
 #include <vtkDoubleArray.h>
 #include <vtkCellArray.h>
 
@@ -72,15 +69,15 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 
   this->TargetSegmentID = NULL;
 
-  this->BeamType = Static;
-  this->RadiationType = Proton;
-  this->CollimatorType = SquareHalfMM;
+  this->BeamType = vtkMRMLRTBeamNode::Static;
+  this->RadiationType = vtkMRMLRTBeamNode::Proton;
+  this->CollimatorType = vtkMRMLRTBeamNode::SquareHalfMM;
 
   this->NominalEnergy = 80.0;
   this->NominalmA = 1.0;
   this->BeamOnTime = 0.0;
 
-  this->IsocenterSpec = CenterOfTarget;
+  this->IsocenterSpecification = CenterOfTarget;
   this->Isocenter[0] = 0.0;
   this->Isocenter[1] = 0.0;
   this->Isocenter[2] = 0.0;  
@@ -101,8 +98,8 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->SAD = 2000.0;
   this->BeamWeight = 1.0;
 
-  // Register parent transform modified event so that the representations
-  //   can be put under the same transform node
+  // Register parent transform modified event
+  //TODO: Needed?
   vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
   events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
   vtkObserveMRMLObjectEventsMacro(this, events);
@@ -175,7 +172,7 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
 
   this->SetTargetSegmentID(node->TargetSegmentID);
 
-  this->SetIsocenterSpec(node->GetIsocenterSpec());
+  this->SetIsocenterSpecification(node->GetIsocenterSpecification());
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -207,8 +204,8 @@ void vtkMRMLRTBeamNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
   if (eventID == vtkMRMLMarkupsNode::PointModifiedEvent)
   {
     // Update the model
-    this->UpdateBeamTransform();
     this->Modified();
+    this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::IsocenterModifiedEvent);
   }
 }
 
@@ -227,7 +224,7 @@ void vtkMRMLRTBeamNode::SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducia
   {
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLMarkupsNode::PointModifiedEvent);
-    vtkSetAndObserveMRMLObjectEventsMacro(node, node, events);
+    vtkObserveMRMLObjectEventsMacro(node, events);
   }
 }
 
@@ -398,9 +395,9 @@ vtkMRMLRTPlanNode* vtkMRMLRTBeamNode::GetPlanNode()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetIsocenterSpec(vtkMRMLRTBeamNode::IsocenterSpecification isoSpec)
+void vtkMRMLRTBeamNode::SetIsocenterSpecification(vtkMRMLRTBeamNode::IsocenterSpecificationType isoSpec)
 {
-  if (isoSpec == this->GetIsocenterSpec())
+  if (isoSpec == this->GetIsocenterSpecification())
   {
     return;
   }
@@ -409,29 +406,33 @@ void vtkMRMLRTBeamNode::SetIsocenterSpec(vtkMRMLRTBeamNode::IsocenterSpecificati
     this->SetIsocenterToTargetCenter();
   }
 
-  this->IsocenterSpec = isoSpec;
+  this->IsocenterSpecification = isoSpec;
+
+  this->Modified();
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetIsocenterToTargetCenter()
 {
-    double center[3];
-    if (this->ComputeTargetVolumeCenter(center))
-    {
-      this->CopyIsocenterCoordinatesToMarkups(center);
-    }
+  double center[3] = {0.0,0.0,0.0};
+  if (this->ComputeTargetVolumeCenter(center))
+  {
+    this->SetIsocenterPosition(center);
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::GetIsocenterPosition(double* iso)
 {
-  this->CopyIsocenterCoordinatesFromMarkups(iso);
+  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
+  fiducialNode->GetNthFiducialPosition(0,iso);
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetIsocenterPosition(double* iso)
 {
-  this->CopyIsocenterCoordinatesToMarkups(iso);
+  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
+  fiducialNode->SetNthFiducialPositionFromArray(0,iso);
 }
 
 //----------------------------------------------------------------------------
@@ -465,72 +466,26 @@ void vtkMRMLRTBeamNode::SetReferenceDosePointPosition(const double* position)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::UpdateBeamTransform()
+void vtkMRMLRTBeamNode::CreateDefaultDisplayNodes()
 {
-  if (!this->Scene)
-  {
-    vtkErrorMacro ("UpdateBeamTransform: Invalid MRML scene");
-    return;
-  }
-
-  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = this->GetIsocenterFiducialNode();
-  if (!isocenterMarkupsNode)
-  {
-    vtkErrorMacro ("UpdateBeamTransform: isocenterMarkupNode is not initialized");
-    return;
-  }
-
-  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-  transform->Identity();
-  transform->RotateZ(this->GetGantryAngle());
-  transform->RotateY(this->GetCollimatorAngle());
-  transform->RotateX(-90);
-
-  vtkDebugMacro ("Gantry angle update to " << this->GetGantryAngle());
-
-  vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
-  transform2->Identity();
-  double isoCenterPosition[3] = {0.0,0.0,0.0};
-  isocenterMarkupsNode->GetNthFiducialPosition(0,isoCenterPosition);
-  transform2->Translate(isoCenterPosition[0], isoCenterPosition[1], isoCenterPosition[2]);
-
-  transform->PostMultiply();
-  transform->Concatenate(transform2->GetMatrix());
-
-  vtkMRMLLinearTransformNode *transformNode 
-    = vtkMRMLLinearTransformNode::SafeDownCast(
-      this->Scene->GetNodeByID(this->GetTransformNodeID()));
-  if (transformNode)
-  {
-    transformNode->SetMatrixTransformToParent(transform->GetMatrix());
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::CopyIsocenterCoordinatesToMarkups(double* iso)
-{
-  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
-  fiducialNode->SetNthFiducialPositionFromArray(0,iso);
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::CopyIsocenterCoordinatesFromMarkups(double* iso)
-{
-  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
-  fiducialNode->GetNthFiducialPosition(0,iso);
+  //TODO: Create display node here when splitting CreateDefaultBeamModel
+  Superclass::CreateDefaultDisplayNodes();
 }
 
 //---------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::CreateDefaultBeamModel()
 {
-  if (!this->Scene)
+  if (!this->GetScene())
   {
     vtkErrorMacro ("CreateDefaultBeamModel: Invalid MRML scene");
     return;
   }
 
+  //TODO: Split this function into CreateDefaultDisplayNodes, CreateBeamTransformNodes, etc.
+  // and call them when MRML scene is set (make sure transforms are not created twice)
   // Create beam model
-  vtkSmartPointer<vtkPolyData> beamModelPolyData = this->CreateBeamPolyData();
+  vtkSmartPointer<vtkPolyData> beamModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+  this->CreateBeamPolyData(beamModelPolyData);
 
   // Transform for visualization
   //TODO: Awful names for transforms. They should be barToFooTransform
@@ -549,13 +504,13 @@ void vtkMRMLRTBeamNode::CreateDefaultBeamModel()
 
   // Create transform node for beam
   vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
-  transformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->Scene->AddNode(transformNode));
+  transformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetScene()->AddNode(transformNode));
   transformNode->SetMatrixTransformToParent(transform->GetMatrix());
   transformNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
 
-  // Create model node for beam
+  // Create display node for beam
   vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  beamModelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->Scene->AddNode(beamModelDisplayNode));
+  beamModelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetScene()->AddNode(beamModelDisplayNode));
   beamModelDisplayNode->SetColor(0.0, 1.0, 0.2);
   beamModelDisplayNode->SetOpacity(0.3);
   beamModelDisplayNode->SetBackfaceCulling(0); // Disable backface culling to make the back side of the contour visible as well
@@ -569,16 +524,14 @@ void vtkMRMLRTBeamNode::CreateDefaultBeamModel()
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::UpdateBeamGeometry()
+void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
 {
-  vtkSmartPointer<vtkPolyData> beamModelPolyData = this->CreateBeamPolyData();
-  this->SetAndObservePolyData(beamModelPolyData);
-}
+  if (!beamModelPolyData)
+  {
+    vtkErrorMacro("CreateBeamPolyData: Invalid beam node");
+    return;
+  }
 
-//---------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> vtkMRMLRTBeamNode::CreateBeamPolyData()
-{
-  vtkSmartPointer<vtkPolyData> beamModelPolyData = vtkSmartPointer<vtkPolyData>::New();
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> cellArray = vtkSmartPointer<vtkCellArray>::New();
 
@@ -586,38 +539,38 @@ vtkSmartPointer<vtkPolyData> vtkMRMLRTBeamNode::CreateBeamPolyData()
   if (mlcArrayNode)
   {
     // First we extract the shape of the MLC
-    int X1count = this->X1Jaw/10.0;
-    int X2count = this->X2Jaw/10.0;
-    int numLeavesVisible = X2count - X1count; // Calculate the number of leaves visible
+    int x1count = this->X1Jaw/10.0;
+    int x2count = this->X2Jaw/10.0;
+    int numLeavesVisible = x2count - x1count; // Calculate the number of leaves visible
     int numPointsEachSide = numLeavesVisible *2;
 
-    double Y2LeafPosition[40];
-    double Y1LeafPosition[40];
+    double y2LeafPosition[40];
+    double y1LeafPosition[40];
 
     // Calculate Y2 first
-    for (int i = X2count; i >= X1count; i--)
+    for (int i = x2count; i >= x1count; i--)
     {
       double leafPosition = mlcArrayNode->GetArray()->GetComponent(-(i-20), 1);
       if (leafPosition < this->Y2Jaw)
       {
-        Y2LeafPosition[-(i-20)] = leafPosition;
+        y2LeafPosition[-(i-20)] = leafPosition;
       }
       else
       {
-        Y2LeafPosition[-(i-20)] = this->Y2Jaw;
+        y2LeafPosition[-(i-20)] = this->Y2Jaw;
       }
     }
     // Calculate Y1 next
-    for (int i = X2count; i >= X1count; i--)
+    for (int i = x2count; i >= x1count; i--)
     {
       double leafPosition = mlcArrayNode->GetArray()->GetComponent(-(i-20), 0);
       if (leafPosition < this->Y1Jaw)
       {
-        Y1LeafPosition[-(i-20)] = leafPosition;
+        y1LeafPosition[-(i-20)] = leafPosition;
       }
       else
       {
-        Y1LeafPosition[-(i-20)] = this->Y1Jaw;
+        y1LeafPosition[-(i-20)] = this->Y1Jaw;
       }
     }
 
@@ -625,19 +578,19 @@ vtkSmartPointer<vtkPolyData> vtkMRMLRTBeamNode::CreateBeamPolyData()
     points->InsertPoint(0,0,0,this->SAD);
 
     int count = 1;
-    for (int i = X2count; i > X1count; i--)
+    for (int i = x2count; i > x1count; i--)
     {
-      points->InsertPoint(count,-Y2LeafPosition[-(i-20)]*2, i*10*2, -this->SAD );
+      points->InsertPoint(count,-y2LeafPosition[-(i-20)]*2, i*10*2, -this->SAD );
       count ++;
-      points->InsertPoint(count,-Y2LeafPosition[-(i-20)]*2, (i-1)*10*2, -this->SAD );
+      points->InsertPoint(count,-y2LeafPosition[-(i-20)]*2, (i-1)*10*2, -this->SAD );
       count ++;
     }
 
-    for (int i = X1count; i < X2count; i++)
+    for (int i = x1count; i < x2count; i++)
     {
-      points->InsertPoint(count,Y1LeafPosition[-(i-20)]*2, i*10*2, -this->SAD );
+      points->InsertPoint(count,y1LeafPosition[-(i-20)]*2, i*10*2, -this->SAD );
       count ++;
-      points->InsertPoint(count,Y1LeafPosition[-(i-20)]*2, (i+1)*10*2, -this->SAD );
+      points->InsertPoint(count,y1LeafPosition[-(i-20)]*2, (i+1)*10*2, -this->SAD );
       count ++;
     }
 
@@ -676,11 +629,11 @@ vtkSmartPointer<vtkPolyData> vtkMRMLRTBeamNode::CreateBeamPolyData()
   }
   else
   {
-    points->InsertPoint(0,0,0,SAD);
-    points->InsertPoint(1,-2*this->Y2Jaw, -2*this->X2Jaw, -this->SAD );
-    points->InsertPoint(2,-2*this->Y2Jaw, -2*this->X1Jaw, -this->SAD );
-    points->InsertPoint(3,-2*this->Y1Jaw, -2*this->X1Jaw, -this->SAD );
-    points->InsertPoint(4,-2*this->Y1Jaw, -2*this->X2Jaw, -this->SAD );
+    points->InsertPoint(0,0,0,this->SAD);
+    points->InsertPoint(1, -2*this->Y2Jaw, -2*this->X2Jaw, -this->SAD );
+    points->InsertPoint(2, -2*this->Y2Jaw, -2*this->X1Jaw, -this->SAD );
+    points->InsertPoint(3, -2*this->Y1Jaw, -2*this->X1Jaw, -this->SAD );
+    points->InsertPoint(4, -2*this->Y1Jaw, -2*this->X2Jaw, -this->SAD );
 
     cellArray->InsertNextCell(3);
     cellArray->InsertCellPoint(0);
@@ -712,6 +665,4 @@ vtkSmartPointer<vtkPolyData> vtkMRMLRTBeamNode::CreateBeamPolyData()
 
   beamModelPolyData->SetPoints(points);
   beamModelPolyData->SetPolys(cellArray);
-
-  return beamModelPolyData;
 }

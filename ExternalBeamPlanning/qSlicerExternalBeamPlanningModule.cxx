@@ -21,18 +21,22 @@
 
 // Qt includes
 #include <QtPlugin>
+#include <QDebug>
 
 // Slicer includes
-#include <qSlicerSubjectHierarchyPluginHandler.h>
-
-// ExtensionTemplate Logic includes
-#include <vtkSlicerExternalBeamPlanningModuleLogic.h>
+#include <qSlicerCoreApplication.h>
+#include <qSlicerModuleManager.h>
 
 // ExternalBeamPlanning includes
 #include "qSlicerExternalBeamPlanningModule.h"
 #include "qSlicerExternalBeamPlanningModuleWidget.h"
+#include "vtkSlicerExternalBeamPlanningModuleLogic.h"
+
+// SlicerRT includes
+#include "vtkSlicerBeamsModuleLogic.h"
 
 // SubjectHierarchy Plugins includes
+#include <qSlicerSubjectHierarchyPluginHandler.h>
 #include "qSlicerSubjectHierarchyRTPlanPlugin.h"
 #include "qSlicerSubjectHierarchyRTBeamPlugin.h"
 
@@ -92,12 +96,19 @@ QStringList qSlicerExternalBeamPlanningModule::categories() const
 }
 
 //-----------------------------------------------------------------------------
+QStringList qSlicerExternalBeamPlanningModule::dependencies()const
+{
+  return QStringList() << "Beams";
+}
+
+//-----------------------------------------------------------------------------
 QStringList qSlicerExternalBeamPlanningModule::contributors() const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Kevin Wang (Princess Margaret Cancer Centre)");
   moduleContributors << QString("Maxime Desplanques (CNAO, Italy)");
   moduleContributors << QString("Greg Sharp (MGH)");
+  moduleContributors << QString("Csaba Pinter (Queen's)");
   return moduleContributors;
 }
 
@@ -111,6 +122,20 @@ QIcon qSlicerExternalBeamPlanningModule::icon()const
 void qSlicerExternalBeamPlanningModule::setup()
 {
   this->Superclass::setup();
+
+  vtkSlicerExternalBeamPlanningModuleLogic* ebpLogic = vtkSlicerExternalBeamPlanningModuleLogic::SafeDownCast(this->logic());
+
+  // Set beams logic to the logic
+  qSlicerAbstractCoreModule* beamsModule = qSlicerCoreApplication::application()->moduleManager()->module("Beams");
+  if (beamsModule)
+  {
+    vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(beamsModule->logic());
+    ebpLogic->SetBeamsLogic(beamsLogic);
+  }
+  else
+  {
+    qCritical() << Q_FUNC_INFO << ": Beams module is not found";
+  } 
 }
 
 //-----------------------------------------------------------------------------

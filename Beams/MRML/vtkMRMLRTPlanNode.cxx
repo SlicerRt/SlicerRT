@@ -397,45 +397,6 @@ void vtkMRMLRTPlanNode::AddBeam(vtkMRMLRTBeamNode* beamNode)
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::CopyAndAddBeam(vtkMRMLRTBeamNode* copyFrom)
-{
-  if (!this->GetScene())
-  {
-    vtkErrorMacro("CopyBeam: Invalid MRML scene!");
-    return NULL;
-  }
-  if (!copyFrom)
-  {
-    return NULL;
-  }
-
-  // Create beam node of the same class as the template
-  vtkSmartPointer<vtkMRMLRTBeamNode> beamNode;
-  beamNode.TakeReference((vtkMRMLRTBeamNode*)this->GetScene()->CreateNodeByClass(copyFrom->GetClassName()));
-  if (!beamNode.GetPointer())
-  {
-    vtkErrorMacro("CopyAndAddBeam: Could not clone beam node");
-    return NULL;
-  }
-
-  // Copy properties from template
-  beamNode->CopyWithScene(copyFrom);
-  this->GetScene()->AddNode(beamNode);
-
-  // Change name of new beam to default
-  std::string newBeamName = this->GenerateNewBeamName();
-  beamNode->SetName(newBeamName.c_str());
-
-  // Create default model
-  beamNode->CreateDefaultBeamModel();
-
-  // Add beam to plan
-  this->AddBeam(beamNode);
-
-  return beamNode;
-}
-
-//---------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::RemoveBeam(vtkMRMLRTBeamNode* beamNode)
 {
   vtkMRMLScene *scene = this->GetScene();

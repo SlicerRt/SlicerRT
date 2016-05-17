@@ -37,9 +37,9 @@
 
 #include "vtkSlicerDicomRtImportExportModuleLogicExport.h"
 
-class vtkSlicerVolumesLogic;
 class vtkSlicerIsodoseModuleLogic;
 class vtkSlicerPlanarImageModuleLogic;
+class vtkSlicerBeamsModuleLogic;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLSegmentationNode;
@@ -68,15 +68,6 @@ public:
   /// /return True if loading successful
   bool LoadDicomRT(vtkSlicerDICOMLoadable* loadable);
 
-  /// Set Volumes module logic
-  void SetVolumesLogic(vtkSlicerVolumesLogic* volumesLogic);
-
-  /// Set Isodose module logic
-  void SetIsodoseLogic(vtkSlicerIsodoseModuleLogic* isodoseLogic);
-
-  /// Set Planar Image module logic
-  void SetPlanarImageLogic(vtkSlicerPlanarImageModuleLogic* planarImage);
-
   /// Export RT study (list of RT exportables) to DICOM files
   /// \return Error message, empty string if success
   std::string ExportDicomRTStudy(vtkCollection* exportables);
@@ -84,6 +75,14 @@ public:
   /// Get referenced volume for a segmentation according to subject hierarchy attributes
   /// \return The reference volume for the segmentation if any, NULL otherwise
   static vtkMRMLScalarVolumeNode* GetReferencedVolumeByDicomForSegmentation(vtkMRMLSegmentationNode* segmentationNode);
+
+public:
+  /// Set Isodose module logic
+  void SetIsodoseLogic(vtkSlicerIsodoseModuleLogic* isodoseLogic);
+  /// Set Planar Image module logic
+  void SetPlanarImageLogic(vtkSlicerPlanarImageModuleLogic* planarImageLogic);
+  /// Set Beams module logic
+  void SetBeamsLogic(vtkSlicerBeamsModuleLogic* beamsLogic);
 
 public:
   vtkSetMacro(BeamModelsInSeparateBranch, bool);
@@ -130,14 +129,14 @@ private:
   void operator=(const vtkSlicerDicomRtImportExportModuleLogic&);              // Not implemented
 
 private:
-  /// Volumes logic instance
-  vtkSlicerVolumesLogic* VolumesLogic;
-
   /// Isodose logic instance
   vtkSlicerIsodoseModuleLogic* IsodoseLogic;
 
   /// Planar Image logic instance
   vtkSlicerPlanarImageModuleLogic* PlanarImageLogic;
+
+  /// Beams module logic instance
+  vtkSlicerBeamsModuleLogic* BeamsLogic;
 
   /// Flag determining whether the generated beam models are arranged in a separate subject hierarchy
   /// branch, or each beam model is added under its corresponding isocenter fiducial

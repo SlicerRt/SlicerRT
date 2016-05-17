@@ -80,7 +80,7 @@ qSlicerBeamsModule::~qSlicerBeamsModule()
 //-----------------------------------------------------------------------------
 QStringList qSlicerBeamsModule::dependencies()const
 {
-  return QStringList() << "Models";
+  return QStringList() << "Models" << "Segmentations";
 }
 
 //-----------------------------------------------------------------------------

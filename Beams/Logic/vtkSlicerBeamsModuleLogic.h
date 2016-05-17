@@ -30,8 +30,9 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// STD includes
+// Beams includes
 #include "vtkSlicerBeamsModuleLogicExport.h"
+#include "vtkMRMLRTBeamNode.h"
 
 /// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkSlicerBeamsModuleLogic :
@@ -43,12 +44,26 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
+  /// Update the beam model for a new isocenter, gantry angle, etc.
+  void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode);
+
+  /// Update beam model based on current properties
+  void UpdateBeamGeometry(vtkMRMLRTBeamNode* beamNode);
+
 protected:
   vtkSlicerBeamsModuleLogic();
   virtual ~vtkSlicerBeamsModuleLogic();
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   virtual void RegisterNodes();
+
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
+
+  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
+  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+  virtual void OnMRMLSceneEndImport();
+
+  virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData);
 
 private:
   vtkSlicerBeamsModuleLogic(const vtkSlicerBeamsModuleLogic&); // Not implemented
