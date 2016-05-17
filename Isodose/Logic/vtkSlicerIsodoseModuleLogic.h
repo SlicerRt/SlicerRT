@@ -55,19 +55,13 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Set number of isodose levels
-  void SetNumberOfIsodoseLevels(int newNumberOfColors);
+  void SetNumberOfIsodoseLevels(vtkMRMLIsodoseNode* parameterNode, int newNumberOfColors);
 
   /// Accumulates dose volumes with the given IDs and corresponding weights
-  void CreateIsodoseSurfaces();
-
-  /// Return false if the dose volume contains a volume that is really a dose volume
-  bool DoseVolumeContainsDose();
-
-  /// Set and observe isodose parameter set node
-  void SetAndObserveIsodoseNode(vtkMRMLIsodoseNode* node);
+  void CreateIsodoseSurfaces(vtkMRMLIsodoseNode* parameterNode);
 
   /// Get dose volume node
-  vtkMRMLModelHierarchyNode* GetRootModelHierarchyNode();
+  vtkMRMLModelHierarchyNode* GetRootModelHierarchyNode(vtkMRMLIsodoseNode* parameterNode);
 
 public:
   /// Creates default isodose color table. Gets and returns if already exists
@@ -80,10 +74,6 @@ protected:
   /// Loads default isodose color table from the supplied color table file
   void LoadDefaultIsodoseColorTable();
 
-public:
-  /// Get isodose parameter set node
-  vtkGetObjectMacro(IsodoseNode, vtkMRMLIsodoseNode);
-
 protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
 
@@ -92,7 +82,6 @@ protected:
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-  virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
 
 protected:
@@ -102,9 +91,6 @@ protected:
 private:
   vtkSlicerIsodoseModuleLogic(const vtkSlicerIsodoseModuleLogic&); // Not implemented
   void operator=(const vtkSlicerIsodoseModuleLogic&);               // Not implemented
-protected:
-  /// Parameter set MRML node
-  vtkMRMLIsodoseNode* IsodoseNode;
 };
 
 #endif

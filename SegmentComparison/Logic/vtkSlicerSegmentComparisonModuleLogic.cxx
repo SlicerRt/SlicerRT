@@ -63,6 +63,7 @@ public:
   /// Get input segments as labelmaps, then convert them to Plm_image volumes
   /// \return Error message, empty string if no error
   std::string GetInputSegmentsAsPlmVolumes(
+    vtkMRMLSegmentComparisonNode* parameterNode,
     Plm_image::Pointer& plmRefSegmentLabelmap,
     Plm_image::Pointer& plmCmpSegmentLabelmap,
     double &checkpointItkConvertStart);
@@ -96,11 +97,12 @@ vtkSlicerSegmentComparisonModuleLogicPrivate::~vtkSlicerSegmentComparisonModuleL
 
 //---------------------------------------------------------------------------
 std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmVolumes(
+  vtkMRMLSegmentComparisonNode* parameterNode, 
   Plm_image::Pointer& plmRefSegmentLabelmap,
   Plm_image::Pointer& plmCmpSegmentLabelmap,
   double &checkpointItkConvertStart )
 {
-  if (!this->Logic->GetSegmentComparisonNode() || !this->Logic->GetMRMLScene())
+  if (!parameterNode || !this->Logic->GetMRMLScene())
   {
     std::string errorMessage("Invalid MRML scene or parameter set node");
     vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
@@ -108,10 +110,10 @@ std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmV
   }
 
   // Get selection
-  vtkMRMLSegmentationNode* referenceSegmentationNode = this->Logic->GetSegmentComparisonNode()->GetReferenceSegmentationNode();
-  const char* referenceSegmentID = this->Logic->GetSegmentComparisonNode()->GetReferenceSegmentID();
-  vtkMRMLSegmentationNode* compareSegmentationNode = this->Logic->GetSegmentComparisonNode()->GetCompareSegmentationNode();
-  const char* compareSegmentID = this->Logic->GetSegmentComparisonNode()->GetCompareSegmentID();
+  vtkMRMLSegmentationNode* referenceSegmentationNode = parameterNode->GetReferenceSegmentationNode();
+  const char* referenceSegmentID = parameterNode->GetReferenceSegmentID();
+  vtkMRMLSegmentationNode* compareSegmentationNode = parameterNode->GetCompareSegmentationNode();
+  const char* compareSegmentID = parameterNode->GetCompareSegmentID();
 
   if (!referenceSegmentationNode || !referenceSegmentID)
   {
@@ -177,8 +179,6 @@ vtkCxxSetObjectMacro(vtkSlicerSegmentComparisonModuleLogic, LogicPrivate, vtkSli
 //----------------------------------------------------------------------------
 vtkSlicerSegmentComparisonModuleLogic::vtkSlicerSegmentComparisonModuleLogic()
 {
-  this->SegmentComparisonNode = NULL;
-
   this->LogicPrivate = NULL;
   vtkSmartPointer<vtkSlicerSegmentComparisonModuleLogicPrivate> logicPrivate =
     vtkSmartPointer<vtkSlicerSegmentComparisonModuleLogicPrivate>::New();
@@ -191,7 +191,6 @@ vtkSlicerSegmentComparisonModuleLogic::vtkSlicerSegmentComparisonModuleLogic()
 //----------------------------------------------------------------------------
 vtkSlicerSegmentComparisonModuleLogic::~vtkSlicerSegmentComparisonModuleLogic()
 {
-  this->SetAndObserveSegmentComparisonNode(NULL);
   this->SetLogicPrivate(NULL);
 }
 
@@ -201,19 +200,12 @@ void vtkSlicerSegmentComparisonModuleLogic::PrintSelf(ostream& os, vtkIndent ind
   this->Superclass::PrintSelf(os, indent);
 }
 
-//----------------------------------------------------------------------------
-void vtkSlicerSegmentComparisonModuleLogic::SetAndObserveSegmentComparisonNode(vtkMRMLSegmentComparisonNode *node)
-{
-  vtkSetAndObserveMRMLNodeMacro(this->SegmentComparisonNode, node);
-}
-
 //---------------------------------------------------------------------------
 void vtkSlicerSegmentComparisonModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
-  events->InsertNextValue(vtkMRMLScene::EndImportEvent);
   events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
   this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
@@ -274,21 +266,6 @@ void vtkSlicerSegmentComparisonModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* 
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerSegmentComparisonModuleLogic::OnMRMLSceneEndImport()
-{
-  // If we have a parameter node select it
-  vtkMRMLSegmentComparisonNode *paramNode = NULL;
-  vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLSegmentComparisonNode");
-  if (node)
-  {
-    paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(node);
-    vtkSetAndObserveMRMLNodeMacro(this->SegmentComparisonNode, paramNode);
-  }
-
-  this->Modified();
-}
-
-//---------------------------------------------------------------------------
 void vtkSlicerSegmentComparisonModuleLogic::OnMRMLSceneEndClose()
 {
   if (!this->GetMRMLScene())
@@ -301,16 +278,16 @@ void vtkSlicerSegmentComparisonModuleLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
-std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics()
+std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics(vtkMRMLSegmentComparisonNode* parameterNode)
 {
-  if (!this->SegmentComparisonNode || !this->GetMRMLScene())
+  if (!parameterNode || !this->GetMRMLScene())
   {
     std::string errorMessage("Invalid MRML scene or parameter set node");
     vtkErrorMacro("ComputeDiceStatistics: " << errorMessage);
     return errorMessage;
   }
 
-  this->SegmentComparisonNode->DiceResultsValidOff();
+  parameterNode->DiceResultsValidOff();
 
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
@@ -320,7 +297,7 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics()
   // Convert input images to the format Plastimatch can use
   Plm_image::Pointer plmRefSegmentLabelmap;
   Plm_image::Pointer plmCmpSegmentLabelmap;
-  std::string inputToPlmResult = this->LogicPrivate->GetInputSegmentsAsPlmVolumes(plmRefSegmentLabelmap, plmCmpSegmentLabelmap, checkpointItkConvertStart);
+  std::string inputToPlmResult = this->LogicPrivate->GetInputSegmentsAsPlmVolumes(parameterNode, plmRefSegmentLabelmap, plmCmpSegmentLabelmap, checkpointItkConvertStart);
   if (!inputToPlmResult.empty())
   {
     std::string errorMessage("Error occurred during ITK conversion");
@@ -347,31 +324,31 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics()
   double trueNegativesPercent = dice.get_true_negatives() * 100.0 / (double)numberOfVoxels;
   double falsePositivesPercent = dice.get_false_positives() * 100.0 / (double)numberOfVoxels;
   double falseNegativesPercent = dice.get_false_negatives() * 100.0 / (double)numberOfVoxels;
-  this->SegmentComparisonNode->SetDiceCoefficient(diceCoefficient);
-  this->SegmentComparisonNode->SetTruePositivesPercent(truePositivesPercent);
-  this->SegmentComparisonNode->SetTrueNegativesPercent(trueNegativesPercent);
-  this->SegmentComparisonNode->SetFalsePositivesPercent(falsePositivesPercent);
-  this->SegmentComparisonNode->SetFalseNegativesPercent(falseNegativesPercent);
+  parameterNode->SetDiceCoefficient(diceCoefficient);
+  parameterNode->SetTruePositivesPercent(truePositivesPercent);
+  parameterNode->SetTrueNegativesPercent(trueNegativesPercent);
+  parameterNode->SetFalsePositivesPercent(falsePositivesPercent);
+  parameterNode->SetFalseNegativesPercent(falseNegativesPercent);
 
   itk::Vector<double, 3> referenceCenterItk = dice.get_reference_center();
   double referenceCenterArray[3] =
     { - referenceCenterItk[0], - referenceCenterItk[1], referenceCenterItk[2] };
-  this->SegmentComparisonNode->SetReferenceCenter(referenceCenterArray);
+  parameterNode->SetReferenceCenter(referenceCenterArray);
 
   itk::Vector<double, 3> compareCenterItk = dice.get_compare_center();
   double compareCenterArray[3] =
     { - compareCenterItk[0], - compareCenterItk[1], compareCenterItk[2] };
-  this->SegmentComparisonNode->SetCompareCenter(compareCenterArray);
+  parameterNode->SetCompareCenter(compareCenterArray);
 
   double referenceVolumeCc = dice.get_reference_volume() / 1000.0;
   double compareVolumeCc = dice.get_compare_volume() / 1000.0;
-  this->SegmentComparisonNode->SetReferenceVolumeCc(referenceVolumeCc);
-  this->SegmentComparisonNode->SetCompareVolumeCc(compareVolumeCc);
+  parameterNode->SetReferenceVolumeCc(referenceVolumeCc);
+  parameterNode->SetCompareVolumeCc(compareVolumeCc);
 
-  this->SegmentComparisonNode->DiceResultsValidOn();
+  parameterNode->DiceResultsValidOn();
 
   // Set results to table node
-  vtkMRMLTableNode* tableNode = this->SegmentComparisonNode->GetDiceTableNode();
+  vtkMRMLTableNode* tableNode = parameterNode->GetDiceTableNode();
   if (tableNode)
   {
     tableNode->SetUseColumnNameAsColumnHeader(true);
@@ -398,13 +375,13 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics()
     column->SetName("Metric value");
 
     int row = 0;
-    vtkMRMLSegmentationNode* referenceSegmentationNode = this->SegmentComparisonNode->GetReferenceSegmentationNode();
+    vtkMRMLSegmentationNode* referenceSegmentationNode = parameterNode->GetReferenceSegmentationNode();
     column->SetValue(row++, referenceSegmentationNode->GetName());
-    const char* referenceSegmentID = this->SegmentComparisonNode->GetReferenceSegmentID();
+    const char* referenceSegmentID = parameterNode->GetReferenceSegmentID();
     column->SetValue(row++, referenceSegmentID);
-    vtkMRMLSegmentationNode* compareSegmentationNode = this->SegmentComparisonNode->GetCompareSegmentationNode();
+    vtkMRMLSegmentationNode* compareSegmentationNode = parameterNode->GetCompareSegmentationNode();
     column->SetValue(row++, compareSegmentationNode->GetName());
-    const char* compareSegmentID = this->SegmentComparisonNode->GetCompareSegmentID();
+    const char* compareSegmentID = parameterNode->GetCompareSegmentID();
     column->SetValue(row++, compareSegmentID);
 
     column->SetVariantValue(row++, vtkVariant(diceCoefficient));
@@ -439,16 +416,16 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics()
 }
 
 //---------------------------------------------------------------------------
-std::string vtkSlicerSegmentComparisonModuleLogic::ComputeHausdorffDistances()
+std::string vtkSlicerSegmentComparisonModuleLogic::ComputeHausdorffDistances(vtkMRMLSegmentComparisonNode* parameterNode)
 {
-  if (!this->SegmentComparisonNode || !this->GetMRMLScene())
+  if (!parameterNode || !this->GetMRMLScene())
   {
     std::string errorMessage("Invalid MRML scene or parameter set node");
     vtkErrorMacro("ComputeHausdorffDistances: " << errorMessage);
     return errorMessage;
   }
 
-  this->SegmentComparisonNode->HausdorffResultsValidOff();
+  parameterNode->HausdorffResultsValidOff();
 
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
@@ -458,7 +435,7 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeHausdorffDistances()
   // Convert input images to the format Plastimatch can use
   Plm_image::Pointer plmRefSegmentLabelmap;
   Plm_image::Pointer plmCmpSegmentLabelmap;
-  std::string inputToPlmResult = this->LogicPrivate->GetInputSegmentsAsPlmVolumes(plmRefSegmentLabelmap, plmCmpSegmentLabelmap, checkpointItkConvertStart);
+  std::string inputToPlmResult = this->LogicPrivate->GetInputSegmentsAsPlmVolumes(parameterNode, plmRefSegmentLabelmap, plmCmpSegmentLabelmap, checkpointItkConvertStart);
   if (!inputToPlmResult.empty())
   {
     std::string errorMessage("Error occurred during ITK conversion");
@@ -478,16 +455,16 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeHausdorffDistances()
   double maximumHausdorffDistanceForBoundaryMm = hausdorff.get_hausdorff();
   double averageHausdorffDistanceForBoundaryMm = hausdorff.get_avg_average_boundary_hausdorff();
   double percent95HausdorffDistanceForBoundaryMm = hausdorff.get_percent_boundary_hausdorff();
-  this->SegmentComparisonNode->SetMaximumHausdorffDistanceForVolumeMm(hausdorff.get_boundary_hausdorff());
-  this->SegmentComparisonNode->SetMaximumHausdorffDistanceForBoundaryMm(maximumHausdorffDistanceForBoundaryMm);
-  this->SegmentComparisonNode->SetAverageHausdorffDistanceForVolumeMm(hausdorff.get_avg_average_hausdorff());
-  this->SegmentComparisonNode->SetAverageHausdorffDistanceForBoundaryMm(averageHausdorffDistanceForBoundaryMm);
-  this->SegmentComparisonNode->SetPercent95HausdorffDistanceForVolumeMm(hausdorff.get_percent_hausdorff());
-  this->SegmentComparisonNode->SetPercent95HausdorffDistanceForBoundaryMm(percent95HausdorffDistanceForBoundaryMm);
-  this->SegmentComparisonNode->HausdorffResultsValidOn();
+  parameterNode->SetMaximumHausdorffDistanceForVolumeMm(hausdorff.get_boundary_hausdorff());
+  parameterNode->SetMaximumHausdorffDistanceForBoundaryMm(maximumHausdorffDistanceForBoundaryMm);
+  parameterNode->SetAverageHausdorffDistanceForVolumeMm(hausdorff.get_avg_average_hausdorff());
+  parameterNode->SetAverageHausdorffDistanceForBoundaryMm(averageHausdorffDistanceForBoundaryMm);
+  parameterNode->SetPercent95HausdorffDistanceForVolumeMm(hausdorff.get_percent_hausdorff());
+  parameterNode->SetPercent95HausdorffDistanceForBoundaryMm(percent95HausdorffDistanceForBoundaryMm);
+  parameterNode->HausdorffResultsValidOn();
 
   // Set results to table node
-  vtkMRMLTableNode* tableNode = this->SegmentComparisonNode->GetHausdorffTableNode();
+  vtkMRMLTableNode* tableNode = parameterNode->GetHausdorffTableNode();
   if (tableNode)
   {
     tableNode->SetUseColumnNameAsColumnHeader(true);
@@ -508,13 +485,13 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeHausdorffDistances()
     column->SetName("Metric value");
 
     int row = 0;
-    vtkMRMLSegmentationNode* referenceSegmentationNode = this->SegmentComparisonNode->GetReferenceSegmentationNode();
+    vtkMRMLSegmentationNode* referenceSegmentationNode = parameterNode->GetReferenceSegmentationNode();
     column->SetValue(row++, referenceSegmentationNode->GetName());
-    const char* referenceSegmentID = this->SegmentComparisonNode->GetReferenceSegmentID();
+    const char* referenceSegmentID = parameterNode->GetReferenceSegmentID();
     column->SetValue(row++, referenceSegmentID);
-    vtkMRMLSegmentationNode* compareSegmentationNode = this->SegmentComparisonNode->GetCompareSegmentationNode();
+    vtkMRMLSegmentationNode* compareSegmentationNode = parameterNode->GetCompareSegmentationNode();
     column->SetValue(row++, compareSegmentationNode->GetName());
-    const char* compareSegmentID = this->SegmentComparisonNode->GetCompareSegmentID();
+    const char* compareSegmentID = parameterNode->GetCompareSegmentID();
     column->SetValue(row++, compareSegmentID);
 
     column->SetVariantValue(row++, vtkVariant(maximumHausdorffDistanceForBoundaryMm));

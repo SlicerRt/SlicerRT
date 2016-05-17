@@ -52,25 +52,17 @@ vtkStandardNewMacro(vtkSlicerSegmentMorphologyModuleLogic);
 //----------------------------------------------------------------------------
 vtkSlicerSegmentMorphologyModuleLogic::vtkSlicerSegmentMorphologyModuleLogic()
 {
-  this->SegmentMorphologyNode = NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerSegmentMorphologyModuleLogic::~vtkSlicerSegmentMorphologyModuleLogic()
 {
-  this->SetAndObserveSegmentMorphologyNode(NULL);
 }
 
 //----------------------------------------------------------------------------
 void vtkSlicerSegmentMorphologyModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerSegmentMorphologyModuleLogic::SetAndObserveSegmentMorphologyNode(vtkMRMLSegmentMorphologyNode *node)
-{
-  vtkSetAndObserveMRMLNodeMacro(this->SegmentMorphologyNode, node);
 }
 
 //---------------------------------------------------------------------------
@@ -118,7 +110,7 @@ void vtkSlicerSegmentMorphologyModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* no
     return;
   }
 
-  if (!node || !this->SegmentMorphologyNode)
+  if (!node)
   {
     return;
   }
@@ -144,7 +136,7 @@ void vtkSlicerSegmentMorphologyModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* 
     return;
   }
 
-  if (!node || !this->SegmentMorphologyNode)
+  if (!node)
   {
     return;
   }
@@ -162,19 +154,6 @@ void vtkSlicerSegmentMorphologyModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* 
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerSegmentMorphologyModuleLogic::OnMRMLSceneEndImport()
-{
-  // If we have a parameter node select it
-  vtkMRMLSegmentMorphologyNode *paramNode = NULL;
-  vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLSegmentMorphologyNode");
-  if (node)
-  {
-    paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(node);
-    vtkSetAndObserveMRMLNodeMacro(this->SegmentMorphologyNode, paramNode);
-  }
-}
-
-//---------------------------------------------------------------------------
 void vtkSlicerSegmentMorphologyModuleLogic::OnMRMLSceneEndClose()
 {
   if (!this->GetMRMLScene())
@@ -187,11 +166,16 @@ void vtkSlicerSegmentMorphologyModuleLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
-std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
+std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation(vtkMRMLSegmentMorphologyNode* parameterNode)
 {
-  vtkMRMLSegmentationNode* inputSegmentationANode = this->SegmentMorphologyNode->GetSegmentationANode();
-  vtkMRMLSegmentationNode* outputSegmentationNode = this->SegmentMorphologyNode->GetOutputSegmentationNode();
-  int operation = this->SegmentMorphologyNode->GetOperation();
+  if (!parameterNode)
+  {
+    vtkErrorMacro("ApplyMorphologyOperation: Invalid parameter node!");
+  }
+
+  vtkMRMLSegmentationNode* inputSegmentationANode = parameterNode->GetSegmentationANode();
+  vtkMRMLSegmentationNode* outputSegmentationNode = parameterNode->GetOutputSegmentationNode();
+  int operation = parameterNode->GetOperation();
 
   // Make sure inputs are initialized
   if (!this->GetMRMLScene() || !inputSegmentationANode)
@@ -209,7 +193,7 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
 
   // Prepare segment A for processing
   vtkSmartPointer<vtkOrientedImageData> imageA = vtkSmartPointer<vtkOrientedImageData>::New();
-  const char* segmentAID = this->SegmentMorphologyNode->GetSegmentAID();
+  const char* segmentAID = parameterNode->GetSegmentAID();
   if ( !vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(
     inputSegmentationANode, segmentAID, imageA ) )
   {
@@ -220,8 +204,8 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
 
   // If binary operation is selected, prepare segment B for processing
   vtkSmartPointer<vtkOrientedImageData> imageB = vtkSmartPointer<vtkOrientedImageData>::New();
-  vtkMRMLSegmentationNode* inputSegmentationBNode = this->SegmentMorphologyNode->GetSegmentationBNode();
-  const char* segmentBID = this->SegmentMorphologyNode->GetSegmentBID();
+  vtkMRMLSegmentationNode* inputSegmentationBNode = parameterNode->GetSegmentationBNode();
+  const char* segmentBID = parameterNode->GetSegmentBID();
   if ( operation == vtkMRMLSegmentMorphologyNode::Union
     || operation == vtkMRMLSegmentMorphologyNode::Intersect
     || operation == vtkMRMLSegmentMorphologyNode::Subtract )
@@ -268,9 +252,9 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
   double spacingA[3] = {0.0,0.0,0.0};
   imageA->GetSpacing(spacingA);
 
-  double xSize = this->GetSegmentMorphologyNode()->GetXSize();
-  double ySize = this->GetSegmentMorphologyNode()->GetYSize();
-  double zSize = this->GetSegmentMorphologyNode()->GetZSize();
+  double xSize = parameterNode->GetXSize();
+  double ySize = parameterNode->GetYSize();
+  double zSize = parameterNode->GetZSize();
 
   int kernelSize[3] = {1,1,1};
   kernelSize[0] = (int)( 2.0*(xSize/spacingA[0] + 0.5) );
@@ -386,7 +370,7 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
   outputImage->SetGeometryFromImageToWorldMatrix(imageAToWorldMatrix);
 
   vtkSmartPointer<vtkSegment> newSegment = vtkSmartPointer<vtkSegment>::New();
-  std::string newSegmentName = this->GenerateOutputSegmentName();
+  std::string newSegmentName = this->GenerateOutputSegmentName(parameterNode);
   newSegment->SetName(newSegmentName.c_str());
   newSegment->AddRepresentation(
     vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(), outputImage );
@@ -403,11 +387,16 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation()
 }
 
 //---------------------------------------------------------------------------
-std::string vtkSlicerSegmentMorphologyModuleLogic::GenerateOutputSegmentName()
+std::string vtkSlicerSegmentMorphologyModuleLogic::GenerateOutputSegmentName(vtkMRMLSegmentMorphologyNode* parameterNode)
 {
-  vtkMRMLSegmentationNode* inputSegmentationANode = this->SegmentMorphologyNode->GetSegmentationANode();
-  const char* segmentAID = this->SegmentMorphologyNode->GetSegmentAID();
-  int operation = this->SegmentMorphologyNode->GetOperation();
+  if (!parameterNode)
+  {
+    vtkErrorMacro("GenerateOutputSegmentName: Invalid parameter node!");
+  }
+
+  vtkMRMLSegmentationNode* inputSegmentationANode = parameterNode->GetSegmentationANode();
+  const char* segmentAID = parameterNode->GetSegmentAID();
+  int operation = parameterNode->GetOperation();
   if (!this->GetMRMLScene() || !inputSegmentationANode || !segmentAID)
   {
     return "";
@@ -424,8 +413,8 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::GenerateOutputSegmentName()
 
   // If binary operation is selected, get segment B name
   std::string segmentBName("");
-  vtkMRMLSegmentationNode* inputSegmentationBNode = this->SegmentMorphologyNode->GetSegmentationBNode();
-  const char* segmentBID = this->SegmentMorphologyNode->GetSegmentBID();
+  vtkMRMLSegmentationNode* inputSegmentationBNode = parameterNode->GetSegmentationBNode();
+  const char* segmentBID = parameterNode->GetSegmentBID();
   if ( operation == vtkMRMLSegmentMorphologyNode::Union
     || operation == vtkMRMLSegmentMorphologyNode::Intersect
     || operation == vtkMRMLSegmentMorphologyNode::Subtract )
@@ -444,9 +433,9 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::GenerateOutputSegmentName()
     segmentBName = std::string(segmentB->GetName());
   }
 
-  double xSize = this->GetSegmentMorphologyNode()->GetXSize();
-  double ySize = this->GetSegmentMorphologyNode()->GetYSize();
-  double zSize = this->GetSegmentMorphologyNode()->GetZSize();
+  double xSize = parameterNode->GetXSize();
+  double ySize = parameterNode->GetYSize();
+  double zSize = parameterNode->GetZSize();
 
   std::string newSegmentName("");
   UNUSED_VARIABLE(newSegmentName); // Although it is used later, a warning is logged so needs to be suppressed

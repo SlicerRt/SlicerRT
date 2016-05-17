@@ -198,12 +198,11 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   paramNode->SetAndObserveDoseVolumeNode(doseScalarVolumeNode);
   paramNode->SetAndObserveColorTableNode(isodoseColorNode);
   mrmlScene->AddNode(paramNode);
-  isodoseLogic->SetAndObserveIsodoseNode(paramNode);
 
   // Compute isodose
-  isodoseLogic->CreateIsodoseSurfaces();
+  isodoseLogic->CreateIsodoseSurfaces(paramNode);
 
-  vtkMRMLModelHierarchyNode* modelHierarchyRootNode = isodoseLogic->GetRootModelHierarchyNode();
+  vtkMRMLModelHierarchyNode* modelHierarchyRootNode = isodoseLogic->GetRootModelHierarchyNode(paramNode);
   if (modelHierarchyRootNode == NULL)
   {
     mrmlScene->Commit();

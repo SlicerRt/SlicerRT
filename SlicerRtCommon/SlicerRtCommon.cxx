@@ -177,7 +177,6 @@ bool SlicerRtCommon::IsDoseVolumeNode(vtkMRMLNode* node)
 {
   if (!node)
   {
-    std::cerr << "SlicerRtCommon::IsDoseVolumeNode: Invalid input arguments!" << std::endl;
     return false;
   }
 
@@ -198,7 +197,6 @@ bool SlicerRtCommon::IsIsodoseModelNode(vtkMRMLNode* node)
 {
   if (!node)
   {
-    std::cerr << "SlicerRtCommon::IsIsoDoseModelNode: Invalid input arguments!" << std::endl;
     return false;
   }
 

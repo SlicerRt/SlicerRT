@@ -81,13 +81,11 @@ vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
 //----------------------------------------------------------------------------
 vtkSlicerIsodoseModuleLogic::vtkSlicerIsodoseModuleLogic()
 {
-  this->IsodoseNode = NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerIsodoseModuleLogic::~vtkSlicerIsodoseModuleLogic()
 {
-  vtkSetAndObserveMRMLNodeMacro(this->IsodoseNode, NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -96,19 +94,12 @@ void vtkSlicerIsodoseModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
 }
 
-//----------------------------------------------------------------------------
-void vtkSlicerIsodoseModuleLogic::SetAndObserveIsodoseNode(vtkMRMLIsodoseNode *node)
-{
-  vtkSetAndObserveMRMLNodeMacro(this->IsodoseNode, node);
-}
-
 //---------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
-  events->InsertNextValue(vtkMRMLScene::EndImportEvent);
   events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
   this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
@@ -195,29 +186,16 @@ void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
   }
 }
 
-//---------------------------------------------------------------------------
-void vtkSlicerIsodoseModuleLogic::OnMRMLSceneEndImport()
-{
-  // If we have a parameter node select it
-  vtkMRMLIsodoseNode *paramNode = NULL;
-  vtkMRMLNode *node = this->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLIsodoseNode");
-  if (node)
-  {
-    paramNode = vtkMRMLIsodoseNode::SafeDownCast(node);
-    vtkSetAndObserveMRMLNodeMacro(this->IsodoseNode, paramNode);
-  }
-}
-
 //----------------------------------------------------------------------------
-vtkMRMLModelHierarchyNode* vtkSlicerIsodoseModuleLogic::GetRootModelHierarchyNode()
+vtkMRMLModelHierarchyNode* vtkSlicerIsodoseModuleLogic::GetRootModelHierarchyNode(vtkMRMLIsodoseNode* parameterNode)
 {
-  if (!this->GetMRMLScene() || !this->IsodoseNode)
+  if (!this->GetMRMLScene() || !parameterNode)
   {
     vtkErrorMacro("GetRootModelHierarchyNode: Invalid scene or parameter set node!");
     return NULL;
   }
 
-  vtkMRMLScalarVolumeNode* doseVolumeNode = this->IsodoseNode->GetDoseVolumeNode();
+  vtkMRMLScalarVolumeNode* doseVolumeNode = parameterNode->GetDoseVolumeNode();
   if (!doseVolumeNode || !doseVolumeNode->GetImageData())
   {
     vtkErrorMacro("GetRootModelHierarchyNode: Invalid dose volume!");
@@ -225,19 +203,6 @@ vtkMRMLModelHierarchyNode* vtkSlicerIsodoseModuleLogic::GetRootModelHierarchyNod
   }
 
   return vtkMRMLModelHierarchyNode::SafeDownCast( doseVolumeNode->GetNodeReference(ISODOSE_ROOT_MODEL_HIERARCHY_REFERENCE_ROLE) );
-}
-
-//---------------------------------------------------------------------------
-bool vtkSlicerIsodoseModuleLogic::DoseVolumeContainsDose()
-{
-  if (!this->GetMRMLScene() || !this->IsodoseNode)
-  {
-    vtkErrorMacro("DoseVolumeContainsDose: Invalid MRML scene or parameter set node!");
-    return false;
-  }
-
-  vtkMRMLScalarVolumeNode* doseVolumeNode = this->IsodoseNode->GetDoseVolumeNode();
-  return SlicerRtCommon::IsDoseVolumeNode(doseVolumeNode);
 }
 
 //------------------------------------------------------------------------------
@@ -383,9 +348,15 @@ void vtkSlicerIsodoseModuleLogic::LoadDefaultIsodoseColorTable()
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(int newNumberOfColors)
+void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(vtkMRMLIsodoseNode* parameterNode, int newNumberOfColors)
 {
-  vtkMRMLColorTableNode* colorTableNode = this->IsodoseNode->GetColorTableNode();  
+  if (!this->GetMRMLScene() || !parameterNode)
+  {
+    vtkErrorMacro("SetNumberOfIsodoseLevels: Invalid scene or parameter set node!");
+    return;
+  }
+
+  vtkMRMLColorTableNode* colorTableNode = parameterNode->GetColorTableNode();  
   if (!colorTableNode || newNumberOfColors < 1)
   {
     return;
@@ -412,15 +383,15 @@ void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(int newNumberOfColors
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
+void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* parameterNode)
 {
-  if (!this->GetMRMLScene() || !this->IsodoseNode)
+  if (!this->GetMRMLScene() || !parameterNode)
   {
     vtkErrorMacro("CreateIsodoseSurfaces: Invalid scene or parameter set node!");
     return;
   }
 
-  vtkMRMLScalarVolumeNode* doseVolumeNode = this->IsodoseNode->GetDoseVolumeNode();
+  vtkMRMLScalarVolumeNode* doseVolumeNode = parameterNode->GetDoseVolumeNode();
   if (!doseVolumeNode || !doseVolumeNode->GetImageData())
   {
     vtkErrorMacro("CreateIsodoseSurfaces: Invalid dose volume!");
@@ -494,7 +465,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces()
     isodoseShNodeName.c_str());
 
   // Get color table
-  vtkMRMLColorTableNode* colorTableNode = this->IsodoseNode->GetColorTableNode();
+  vtkMRMLColorTableNode* colorTableNode = parameterNode->GetColorTableNode();
 
   // Progress
   int stepCount = 1 /* reslice step */ + colorTableNode->GetNumberOfColors();

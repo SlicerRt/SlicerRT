@@ -54,9 +54,6 @@ public:
   /// If in DoseAccumulationNode::ShowDoseVolumesOnly is set to true, then only return dose volumes
   vtkCollection* GetVolumeNodesFromScene();
 
-  /// Determine if reference volume is a dose volume
-  bool ReferenceDoseVolumeContainsDose();
-
   /// Accumulates dose volumes with the given IDs and corresponding weights
   /// \return Error message on failure, NULL otherwise
   const char* AccumulateDoseVolumes();

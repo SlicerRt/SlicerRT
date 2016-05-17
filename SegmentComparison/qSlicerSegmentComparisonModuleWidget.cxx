@@ -97,12 +97,18 @@ void qSlicerSegmentComparisonModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or create it if there is no one in the scene
-  if (scene &&  d->logic()->GetSegmentComparisonNode() == 0)
+  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLSegmentComparisonNode");
     if (node)
     {
-      this->setSegmentComparisonNode( vtkMRMLSegmentComparisonNode::SafeDownCast(node) );
+      this->setSegmentComparisonNode(node);
+    }
+    else 
+    {
+      vtkSmartPointer<vtkMRMLSegmentComparisonNode> newNode = vtkSmartPointer<vtkMRMLSegmentComparisonNode>::New();
+      this->mrmlScene()->AddNode(newNode);
+      this->setSegmentComparisonNode(newNode);
     }
   }
 }
@@ -137,7 +143,7 @@ void qSlicerSegmentComparisonModuleWidget::onEnter()
     qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
   }
-  vtkMRMLSegmentComparisonNode* paramNode = d->logic()->GetSegmentComparisonNode();
+  vtkMRMLSegmentComparisonNode* paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
 
   // If we have a parameter node select it
   if (!paramNode)
@@ -145,20 +151,21 @@ void qSlicerSegmentComparisonModuleWidget::onEnter()
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLSegmentComparisonNode");
     if (node)
     {
-      paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(node);
-      d->logic()->SetAndObserveSegmentComparisonNode(paramNode);
+      this->setSegmentComparisonNode(node);
     }
     else 
     {
       vtkSmartPointer<vtkMRMLSegmentComparisonNode> newNode = vtkSmartPointer<vtkMRMLSegmentComparisonNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      d->logic()->SetAndObserveSegmentComparisonNode(newNode);
+      this->setSegmentComparisonNode(newNode);
     }
+  }
+  else
+  {
+    this->updateWidgetFromMRML();
   }
 
   d->ModuleWindowInitialized = true;
-
-  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -169,9 +176,7 @@ void qSlicerSegmentComparisonModuleWidget::setSegmentComparisonNode(vtkMRMLNode 
   vtkMRMLSegmentComparisonNode* paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(node);
 
   // Each time the node is modified, the qt widgets are updated
-  qvtkReconnect( d->logic()->GetSegmentComparisonNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
-
-  d->logic()->SetAndObserveSegmentComparisonNode(paramNode);
+  qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
   // Set selected MRML nodes in comboboxes in the parameter set if it was NULL there
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
@@ -213,7 +218,7 @@ void qSlicerSegmentComparisonModuleWidget::updateWidgetFromMRML()
     return;
   }
 
-  vtkMRMLSegmentComparisonNode* paramNode = d->logic()->GetSegmentComparisonNode();
+  vtkMRMLSegmentComparisonNode* paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -240,9 +245,6 @@ void qSlicerSegmentComparisonModuleWidget::updateWidgetFromMRML()
   }
   d->MRMLTableView_Hausdorff->setMRMLTableNode(paramNode->GetHausdorffTableNode());
 
-  // Set parameter node
-  d->MRMLNodeComboBox_ParameterSet->setCurrentNode(d->logic()->GetSegmentComparisonNode());
-
   // Set input selection
   if (paramNode->GetReferenceSegmentationNode())
   {
@@ -261,6 +263,8 @@ void qSlicerSegmentComparisonModuleWidget::updateWidgetFromMRML()
   {
     d->SegmentSelectorWidget_Compare->setCurrentSegmentID(paramNode->GetCompareSegmentID());
   }
+
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -300,15 +304,15 @@ void qSlicerSegmentComparisonModuleWidget::updateButtonsState()
 {
   Q_D(qSlicerSegmentComparisonModuleWidget);
 
-  bool computeEnabled = d->logic()->GetSegmentComparisonNode()
-                   && d->logic()->GetSegmentComparisonNode()->GetReferenceSegmentationNode()
-                   && d->logic()->GetSegmentComparisonNode()->GetReferenceSegmentID()
-                   && d->logic()->GetSegmentComparisonNode()->GetCompareSegmentationNode()
-                   && d->logic()->GetSegmentComparisonNode()->GetCompareSegmentID();
+  vtkMRMLSegmentComparisonNode* paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+
+  bool computeEnabled = paramNode
+                   && paramNode->GetReferenceSegmentationNode()
+                   && paramNode->GetReferenceSegmentID()
+                   && paramNode->GetCompareSegmentationNode()
+                   && paramNode->GetCompareSegmentID();
   d->pushButton_ComputeDice->setEnabled(computeEnabled);
   d->pushButton_ComputeHausdorff->setEnabled(computeEnabled);
-
-  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -328,7 +332,7 @@ void qSlicerSegmentComparisonModuleWidget::referenceSegmentationNodeChanged(vtkM
     return;
   }
 
-  vtkMRMLSegmentComparisonNode* paramNode = d->logic()->GetSegmentComparisonNode();
+  vtkMRMLSegmentComparisonNode* paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !node || !d->ModuleWindowInitialized)
   {
     return;
@@ -354,7 +358,7 @@ void qSlicerSegmentComparisonModuleWidget::referenceSegmentChanged(QString segme
     return;
   }
 
-  vtkMRMLSegmentComparisonNode* paramNode = d->logic()->GetSegmentComparisonNode();
+  vtkMRMLSegmentComparisonNode* paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || segmentID.isEmpty() || !d->ModuleWindowInitialized)
   {
     return;
@@ -380,7 +384,7 @@ void qSlicerSegmentComparisonModuleWidget::compareSegmentationNodeChanged(vtkMRM
     return;
   }
 
-  vtkMRMLSegmentComparisonNode* paramNode = d->logic()->GetSegmentComparisonNode();
+  vtkMRMLSegmentComparisonNode* paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !node || !d->ModuleWindowInitialized)
   {
     return;
@@ -406,7 +410,7 @@ void qSlicerSegmentComparisonModuleWidget::compareSegmentChanged(QString segment
     return;
   }
 
-  vtkMRMLSegmentComparisonNode* paramNode = d->logic()->GetSegmentComparisonNode();
+  vtkMRMLSegmentComparisonNode* paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || segmentID.isEmpty() || !d->ModuleWindowInitialized)
   {
     return;
@@ -432,7 +436,7 @@ void qSlicerSegmentComparisonModuleWidget::computeHausdorffClicked()
     return;
   }
 
-  vtkMRMLSegmentComparisonNode* paramNode = d->logic()->GetSegmentComparisonNode();
+  vtkMRMLSegmentComparisonNode* paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -440,7 +444,7 @@ void qSlicerSegmentComparisonModuleWidget::computeHausdorffClicked()
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  std::string errorMessage = d->logic()->ComputeHausdorffDistances();
+  std::string errorMessage = d->logic()->ComputeHausdorffDistances(paramNode);
 
   if (paramNode->GetHausdorffResultsValid())
   {
@@ -474,7 +478,7 @@ void qSlicerSegmentComparisonModuleWidget::computeDiceClicked()
     return;
   }
 
-  vtkMRMLSegmentComparisonNode* paramNode = d->logic()->GetSegmentComparisonNode();
+  vtkMRMLSegmentComparisonNode* paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -482,7 +486,7 @@ void qSlicerSegmentComparisonModuleWidget::computeDiceClicked()
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  std::string errorMessage = d->logic()->ComputeDiceStatistics();
+  std::string errorMessage = d->logic()->ComputeDiceStatistics(paramNode);
 
   if (paramNode->GetDiceResultsValid())
   {
@@ -516,7 +520,7 @@ void qSlicerSegmentComparisonModuleWidget::invalidateHausdorffResults()
     return;
   }
 
-  vtkMRMLSegmentComparisonNode* paramNode = d->logic()->GetSegmentComparisonNode();
+  vtkMRMLSegmentComparisonNode* paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
@@ -538,7 +542,7 @@ void qSlicerSegmentComparisonModuleWidget::invalidateDiceResults()
     return;
   }
 
-  vtkMRMLSegmentComparisonNode* paramNode = d->logic()->GetSegmentComparisonNode();
+  vtkMRMLSegmentComparisonNode* paramNode = vtkMRMLSegmentComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;

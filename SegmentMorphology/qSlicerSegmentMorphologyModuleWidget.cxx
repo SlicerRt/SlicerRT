@@ -101,12 +101,18 @@ void qSlicerSegmentMorphologyModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or create it if there is no one in the scene
-  if (scene &&  d->logic()->GetSegmentMorphologyNode() == 0)
+  if (scene &&  d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLSegmentMorphologyNode");
     if (node)
     {
-      this->setSegmentMorphologyNode( vtkMRMLSegmentMorphologyNode::SafeDownCast(node) );
+      this->setSegmentMorphologyNode(node);
+    }
+    else 
+    {
+      vtkSmartPointer<vtkMRMLSegmentMorphologyNode> newNode = vtkSmartPointer<vtkMRMLSegmentMorphologyNode>::New();
+      this->mrmlScene()->AddNode(newNode);
+      this->setSegmentMorphologyNode(newNode);
     }
   }
 }
@@ -185,7 +191,8 @@ void qSlicerSegmentMorphologyModuleWidget::onEnter()
     qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
   }
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
 
   // If we have a parameter node select it
   if (paramNode == NULL)
@@ -193,19 +200,20 @@ void qSlicerSegmentMorphologyModuleWidget::onEnter()
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLSegmentMorphologyNode");
     if (node)
     {
-      paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(node);
-      d->logic()->SetAndObserveSegmentMorphologyNode(paramNode);
+      this->setSegmentMorphologyNode(node);
       return;
     }
     else 
     {
       vtkSmartPointer<vtkMRMLSegmentMorphologyNode> newNode = vtkSmartPointer<vtkMRMLSegmentMorphologyNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      d->logic()->SetAndObserveSegmentMorphologyNode(newNode);
+      this->setSegmentMorphologyNode(newNode);
     }
   }
-
-  this->updateWidgetFromMRML();
+  else
+  {
+    this->updateWidgetFromMRML();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -218,7 +226,7 @@ void qSlicerSegmentMorphologyModuleWidget::updateWidgetFromMRML()
     return;
   }
 
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -266,9 +274,6 @@ void qSlicerSegmentMorphologyModuleWidget::updateWidgetFromMRML()
   d->doubleSpinBox_XSize->setEnabled(sizeSpinboxesEnabled);
   d->doubleSpinBox_YSize->setEnabled(sizeSpinboxesEnabled);
   d->doubleSpinBox_ZSize->setEnabled(sizeSpinboxesEnabled);
-
-  // Apply parameter node parameters to the selector widgets
-  d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
 
   if (paramNode->GetSegmentationANode())
   {
@@ -322,12 +327,14 @@ void qSlicerSegmentMorphologyModuleWidget::updateButtonsState()
     return;
   }
 
-  bool applyEnabled = d->logic()->GetSegmentMorphologyNode()
-                   && d->logic()->GetSegmentMorphologyNode()->GetSegmentationANode()
-                   && d->logic()->GetSegmentMorphologyNode()->GetSegmentAID()
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+
+  bool applyEnabled = paramNode
+                   && paramNode->GetSegmentationANode()
+                   && paramNode->GetSegmentAID()
                    && ( d->SegmentSelectorWidget_SegmentB->isEnabled()
-                     ?  d->logic()->GetSegmentMorphologyNode()->GetSegmentationBNode()
-                     && d->logic()->GetSegmentMorphologyNode()->GetSegmentBID()
+                     ?  paramNode->GetSegmentationBNode()
+                     && paramNode->GetSegmentBID()
                      : true );
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
@@ -352,9 +359,7 @@ void qSlicerSegmentMorphologyModuleWidget::setSegmentMorphologyNode(vtkMRMLNode 
   vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(node);
 
   // Each time the node is modified, the qt widgets are updated
-  qvtkReconnect( d->logic()->GetSegmentMorphologyNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
-
-  d->logic()->SetAndObserveSegmentMorphologyNode(paramNode);
+  qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
   // Set selected MRML nodes in comboboxes in the parameter set if it was NULL there
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
@@ -398,7 +403,7 @@ void qSlicerSegmentMorphologyModuleWidget::segmentationANodeChanged(vtkMRMLNode*
     return;
   }
 
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !node)
   {
     return;
@@ -422,7 +427,7 @@ void qSlicerSegmentMorphologyModuleWidget::segmentAChanged(QString segmentID)
     return;
   }
 
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || segmentID.isEmpty())
   {
     return;
@@ -446,7 +451,7 @@ void qSlicerSegmentMorphologyModuleWidget::segmentationBNodeChanged(vtkMRMLNode*
     return;
   }
 
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !node)
   {
     return;
@@ -470,7 +475,7 @@ void qSlicerSegmentMorphologyModuleWidget::segmentBChanged(QString segmentID)
     return;
   }
 
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || segmentID.isEmpty())
   {
     return;
@@ -494,7 +499,7 @@ void qSlicerSegmentMorphologyModuleWidget::outputSegmentationNodeChanged(vtkMRML
     return;
   }
 
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !node)
   {
     return;
@@ -518,7 +523,7 @@ void qSlicerSegmentMorphologyModuleWidget::radioButtonExpandClicked()
     return;
   }
 
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -542,7 +547,7 @@ void qSlicerSegmentMorphologyModuleWidget::radioButtonShrinkClicked()
     return;
   }
 
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -566,7 +571,7 @@ void qSlicerSegmentMorphologyModuleWidget::radioButtonUnionClicked()
     return;
   }
 
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -590,7 +595,7 @@ void qSlicerSegmentMorphologyModuleWidget::radioButtonIntersectClicked()
     return;
   }
 
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -614,7 +619,7 @@ void qSlicerSegmentMorphologyModuleWidget::radioButtonSubtractClicked()
     return;
   }
 
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -652,7 +657,7 @@ void qSlicerSegmentMorphologyModuleWidget::doubleSpinBoxXSizeChanged(double valu
     return;
   }
 
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -680,7 +685,7 @@ void qSlicerSegmentMorphologyModuleWidget::doubleSpinBoxYSizeChanged(double valu
     return;
   }
 
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -708,7 +713,7 @@ void qSlicerSegmentMorphologyModuleWidget::doubleSpinBoxZSizeChanged(double valu
     return;
   }
 
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -739,7 +744,7 @@ void qSlicerSegmentMorphologyModuleWidget::applyClicked()
   d->label_Error->setText("");
 
   // Warn user that output contains segments and data will be overwritten
-  vtkMRMLSegmentMorphologyNode* paramNode = d->logic()->GetSegmentMorphologyNode();
+  vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -760,7 +765,7 @@ void qSlicerSegmentMorphologyModuleWidget::applyClicked()
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   // Perform morphological operation
-  std::string errorMessage = d->logic()->ApplyMorphologyOperation();
+  std::string errorMessage = d->logic()->ApplyMorphologyOperation(paramNode);
   if (!errorMessage.empty())
   {
     d->label_Error->setText(QString(errorMessage.c_str()));

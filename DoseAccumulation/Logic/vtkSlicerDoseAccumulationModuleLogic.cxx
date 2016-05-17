@@ -215,19 +215,6 @@ vtkCollection* vtkSlicerDoseAccumulationModuleLogic::GetVolumeNodesFromScene()
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerDoseAccumulationModuleLogic::ReferenceDoseVolumeContainsDose()
-{
-  if (!this->GetMRMLScene() || !this->DoseAccumulationNode)
-  {
-    vtkErrorMacro("RegisterNodes: Invalid MRML scene or parameter set node!");
-    return false;
-  }
-
-  vtkMRMLNode* referenceDoseVolumeNode = this->DoseAccumulationNode->GetReferenceDoseVolumeNode();
-  return SlicerRtCommon::IsDoseVolumeNode(referenceDoseVolumeNode);
-}
-
-//---------------------------------------------------------------------------
 const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes()
 {
   vtkMRMLDoseAccumulationNode* paramNode = this->GetDoseAccumulationNode();

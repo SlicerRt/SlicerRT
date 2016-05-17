@@ -370,10 +370,9 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
   // Create and set up logic
   vtkSmartPointer<vtkSlicerSegmentMorphologyModuleLogic> segmentMorphologyLogic = vtkSmartPointer<vtkSlicerSegmentMorphologyModuleLogic>::New();
   segmentMorphologyLogic->SetMRMLScene(mrmlScene);
-  segmentMorphologyLogic->SetAndObserveSegmentMorphologyNode(paramNode);
 
   // Compute SegmentMorphology
-  segmentMorphologyLogic->ApplyMorphologyOperation();
+  segmentMorphologyLogic->ApplyMorphologyOperation(paramNode);
 
   // Check output
   outputSegmentationNode = paramNode->GetOutputSegmentationNode();  

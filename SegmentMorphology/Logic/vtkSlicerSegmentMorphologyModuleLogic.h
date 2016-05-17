@@ -43,21 +43,14 @@ public:
   static vtkSlicerSegmentMorphologyModuleLogic *New();
   vtkTypeMacro(vtkSlicerSegmentMorphologyModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
-  
-  /// Set and observe parameter set node
-  void SetAndObserveSegmentMorphologyNode(vtkMRMLSegmentMorphologyNode* node);
 
   /// Perform selected morphological operation
   /// \return Error message, empty string if no error
-  std::string ApplyMorphologyOperation();
-
-public:
-  /// Get parameter set node
-  vtkGetObjectMacro(SegmentMorphologyNode, vtkMRMLSegmentMorphologyNode);
+  std::string ApplyMorphologyOperation(vtkMRMLSegmentMorphologyNode* parameterNode);
 
 protected:
   /// Generate output segment name from input segment names
-  std::string GenerateOutputSegmentName();
+  std::string GenerateOutputSegmentName(vtkMRMLSegmentMorphologyNode* parameterNode);
 
 protected:
   vtkSlicerSegmentMorphologyModuleLogic();
@@ -71,12 +64,7 @@ protected:
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-  virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
-
-protected:
-  /// Parameter set MRML node
-  vtkMRMLSegmentMorphologyNode* SegmentMorphologyNode;
 
 private:
   vtkSlicerSegmentMorphologyModuleLogic(const vtkSlicerSegmentMorphologyModuleLogic&); // Not implemented

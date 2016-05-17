@@ -73,6 +73,7 @@ public:
   ~qSlicerIsodoseModuleWidgetPrivate();
 
   vtkSlicerIsodoseModuleLogic* logic() const;
+
   void updateScalarBarsFromSelectedColorTable();
 
   vtkScalarBarWidget* ScalarBarWidget;
@@ -208,7 +209,7 @@ void qSlicerIsodoseModuleWidgetPrivate::updateScalarBarsFromSelectedColorTable()
 {
   Q_Q(qSlicerIsodoseModuleWidget);
 
-  vtkMRMLIsodoseNode* paramNode = this->logic()->GetIsodoseNode();
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(this->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!q->mrmlScene() || !paramNode)
   {
     return;
@@ -265,13 +266,21 @@ void qSlicerIsodoseModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 
   this->Superclass::setMRMLScene(scene);
 
+  qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
+
   // Find parameters node or create it if there is no one in the scene
-  if (scene && d->logic()->GetIsodoseNode() == 0)
+  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLIsodoseNode");
     if (node)
     {
-      this->setIsodoseNode( vtkMRMLIsodoseNode::SafeDownCast(node) );
+      this->setIsodoseNode(node);
+    }
+    else 
+    {
+      vtkSmartPointer<vtkMRMLIsodoseNode> newNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
+      this->mrmlScene()->AddNode(newNode);
+      this->setIsodoseNode(newNode);
     }
   }
 }
@@ -306,7 +315,7 @@ void qSlicerIsodoseModuleWidget::onEnter()
     qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
   }
-  vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
 
   // If we have a parameter node select it
   if (!paramNode)
@@ -314,22 +323,19 @@ void qSlicerIsodoseModuleWidget::onEnter()
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLIsodoseNode");
     if (node)
     {
-      paramNode = vtkMRMLIsodoseNode::SafeDownCast(node);
-      d->logic()->SetAndObserveIsodoseNode(paramNode);
-      return;
+      this->setIsodoseNode(node);
     }
     else 
     {
       vtkSmartPointer<vtkMRMLIsodoseNode> newNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
       this->mrmlScene()->AddNode(newNode);
-      d->logic()->SetAndObserveIsodoseNode(newNode);
+      this->setIsodoseNode(newNode);
     }
   }
-
-  // set up default color node
-  d->updateScalarBarsFromSelectedColorTable();
-
-  this->updateWidgetFromMRML();
+  else
+  {
+    this->updateWidgetFromMRML();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -337,7 +343,7 @@ void qSlicerIsodoseModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerIsodoseModuleWidget);
 
-  vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (paramNode && this->mrmlScene())
   {
     d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
@@ -443,9 +449,7 @@ void qSlicerIsodoseModuleWidget::setIsodoseNode(vtkMRMLNode *node)
   vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(node);
 
   // Each time the node is modified, the qt widgets are updated
-  qvtkReconnect( d->logic()->GetIsodoseNode(), paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
-
-  d->logic()->SetAndObserveIsodoseNode(paramNode);
+  qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
   if (paramNode)
   {
@@ -475,7 +479,7 @@ void qSlicerIsodoseModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* node)
     return;
   }
 
-  vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !node)
   {
     return;
@@ -485,7 +489,7 @@ void qSlicerIsodoseModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* node)
   paramNode->SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
-  if (d->logic()->DoseVolumeContainsDose())
+  if (paramNode->GetDoseVolumeNode() && SlicerRtCommon::IsDoseVolumeNode(paramNode->GetDoseVolumeNode()))
   {
     d->label_NotDoseVolumeWarning->setText("");
   }
@@ -501,14 +505,20 @@ void qSlicerIsodoseModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* node)
 void qSlicerIsodoseModuleWidget::setNumberOfLevels(int newNumber)
 {
   Q_D(qSlicerIsodoseModuleWidget);
-  if (!d->spinBox_NumberOfLevels->isEnabled() || !d->logic()->GetIsodoseNode())
+
+  if (!d->spinBox_NumberOfLevels->isEnabled()) //TODO: Needed?
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid parameter set node!";
     return;
   }
 
-  d->logic()->SetNumberOfIsodoseLevels(newNumber);
-  vtkMRMLColorTableNode* selectedColorNode = d->logic()->GetIsodoseNode()->GetColorTableNode();
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode)
+  {
+    return;
+  }
+
+  d->logic()->SetNumberOfIsodoseLevels(paramNode, newNumber);
+  vtkMRMLColorTableNode* selectedColorNode = paramNode->GetColorTableNode();
   if (!selectedColorNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid color table node!";
@@ -538,7 +548,7 @@ void qSlicerIsodoseModuleWidget::showDoseVolumesOnlyCheckboxChanged(int aState)
     return;
   }
   
-  vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -577,7 +587,7 @@ void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
     return;
   }
 
-  vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -587,7 +597,7 @@ void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
   paramNode->SetShowIsodoseLines(visible);
   paramNode->DisableModifiedEventOff();
 
-  vtkMRMLModelHierarchyNode* modelHierarchyNode = d->logic()->GetRootModelHierarchyNode();
+  vtkMRMLModelHierarchyNode* modelHierarchyNode = d->logic()->GetRootModelHierarchyNode(paramNode);
   if(!modelHierarchyNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid isodose surface models parent hierarchy node!";
@@ -615,7 +625,7 @@ void qSlicerIsodoseModuleWidget::setIsosurfaceVisibility(bool visible)
     return;
   }
 
-  vtkMRMLIsodoseNode* paramNode = d->logic()->GetIsodoseNode();
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
   {
     return;
@@ -625,7 +635,7 @@ void qSlicerIsodoseModuleWidget::setIsosurfaceVisibility(bool visible)
   paramNode->SetShowIsodoseSurfaces(visible);
   paramNode->DisableModifiedEventOff();
 
-  vtkMRMLModelHierarchyNode* modelHierarchyNode = d->logic()->GetRootModelHierarchyNode();
+  vtkMRMLModelHierarchyNode* modelHierarchyNode = d->logic()->GetRootModelHierarchyNode(paramNode);
   if(!modelHierarchyNode)
   {
     return;
@@ -652,6 +662,12 @@ void qSlicerIsodoseModuleWidget::setScalarBarVisibility(bool visible)
     return;
   }
 
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode)
+  {
+    return;
+  }
+
   if (d->ScalarBarWidget == 0)
   {
     return;
@@ -660,7 +676,8 @@ void qSlicerIsodoseModuleWidget::setScalarBarVisibility(bool visible)
   {
     d->ScalarBarActor->UseAnnotationAsLabelOn();
   }
-  vtkMRMLColorTableNode* selectedColorNode = d->logic()->GetIsodoseNode()->GetColorTableNode();
+
+  vtkMRMLColorTableNode* selectedColorNode = paramNode->GetColorTableNode();
   if (!selectedColorNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid color table node!";
@@ -686,6 +703,12 @@ void qSlicerIsodoseModuleWidget::setScalarBar2DVisibility(bool visible)
     return;
   }
 
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode)
+  {
+    return;
+  }
+
   if (d->ScalarBarWidget2DRed == 0 || d->ScalarBarWidget2DYellow == 0 || d->ScalarBarWidget2DGreen == 0)
   {
     return;
@@ -696,7 +719,8 @@ void qSlicerIsodoseModuleWidget::setScalarBar2DVisibility(bool visible)
     d->ScalarBarActor2DYellow->UseAnnotationAsLabelOn();
     d->ScalarBarActor2DGreen->UseAnnotationAsLabelOn();
   }
-  vtkMRMLColorTableNode* selectedColorNode = d->logic()->GetIsodoseNode()->GetColorTableNode();
+
+  vtkMRMLColorTableNode* selectedColorNode = paramNode->GetColorTableNode();
   if (!selectedColorNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid color table node!";
@@ -726,10 +750,16 @@ void qSlicerIsodoseModuleWidget::applyClicked()
     return;
   }
 
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode)
+  {
+    return;
+  }
+
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   // Compute the isodose surface for the selected dose volume
-  d->logic()->CreateIsodoseSurfaces();
+  d->logic()->CreateIsodoseSurfaces(paramNode);
 
   QApplication::restoreOverrideCursor();
 }
@@ -739,9 +769,10 @@ void qSlicerIsodoseModuleWidget::updateButtonsState()
 {
   Q_D(qSlicerIsodoseModuleWidget);
 
-  bool applyEnabled = d->logic()->GetIsodoseNode()
-                   && d->logic()->GetIsodoseNode()->GetDoseVolumeNode()
-                   && d->logic()->GetIsodoseNode()->GetColorTableNode()
-                   && d->logic()->GetIsodoseNode()->GetColorTableNode()->GetNumberOfColors() > 0;
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  bool applyEnabled = paramNode
+                   && paramNode->GetDoseVolumeNode()
+                   && paramNode->GetColorTableNode()
+                   && paramNode->GetColorTableNode()->GetNumberOfColors() > 0;
   d->pushButton_Apply->setEnabled(applyEnabled);
 }

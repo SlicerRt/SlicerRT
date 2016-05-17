@@ -419,11 +419,10 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
   // Create and set up logic
   vtkSmartPointer<vtkSlicerSegmentComparisonModuleLogic> segmentComparisonLogic = vtkSmartPointer<vtkSlicerSegmentComparisonModuleLogic>::New();
   segmentComparisonLogic->SetMRMLScene(mrmlScene);
-  segmentComparisonLogic->SetAndObserveSegmentComparisonNode(paramNode);
 
   // Compute Dice and Hausdorff
-  std::string errorMessageDice = segmentComparisonLogic->ComputeDiceStatistics();
-  std::string errorMessageHausdorff = segmentComparisonLogic->ComputeHausdorffDistances();
+  std::string errorMessageDice = segmentComparisonLogic->ComputeDiceStatistics(paramNode);
+  std::string errorMessageHausdorff = segmentComparisonLogic->ComputeHausdorffDistances(paramNode);
 
   if (!paramNode->GetHausdorffResultsValid() || !paramNode->GetDiceResultsValid())
   {

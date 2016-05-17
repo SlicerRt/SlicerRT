@@ -271,7 +271,7 @@ void qSlicerDoseAccumulationModuleWidget::referenceDoseVolumeNodeChanged(vtkMRML
 
   this->updateButtonsState();
 
-  d->label_Warning->setVisible(!d->logic()->ReferenceDoseVolumeContainsDose());
+  d->label_Warning->setVisible(!paramNode->GetReferenceDoseVolumeNode() || !SlicerRtCommon::IsDoseVolumeNode(paramNode->GetReferenceDoseVolumeNode()));
   d->label_Warning->setText(QString("Volume is not a dose volume!"));
 }
 

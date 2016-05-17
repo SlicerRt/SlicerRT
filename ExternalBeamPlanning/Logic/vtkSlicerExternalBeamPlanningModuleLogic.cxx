@@ -92,7 +92,6 @@
 #include <vtkVolumeRayCastMapper.h>
 #include <vtkGPUVolumeRayCastMapper.h>
 #include <vtkVolumeRayCastCompositeFunction.h>
-#include <vtkVolumeTextureMapper3D.h> //TODO:
 #include <vtkVolumeTextureMapper2D.h>
 #include <vtkWindowToImageFilter.h>
 #include <vtkImageShiftScale.h>

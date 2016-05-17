@@ -47,16 +47,13 @@ public:
 public:
   /// Compute Dice statistics from the selected input segment labelmaps
   /// \return Error message, empty string if no error
-  std::string ComputeDiceStatistics();
+  std::string ComputeDiceStatistics(vtkMRMLSegmentComparisonNode* parameterNode);
 
   /// Compute Hausdorff distances from the selected input segment labelmaps
   /// \return Error message, empty string if no error
-  std::string ComputeHausdorffDistances();
+  std::string ComputeHausdorffDistances(vtkMRMLSegmentComparisonNode* parameterNode);
 
 public:
-  void SetAndObserveSegmentComparisonNode(vtkMRMLSegmentComparisonNode* node);
-  vtkGetObjectMacro(SegmentComparisonNode, vtkMRMLSegmentComparisonNode);
-
   vtkGetMacro(LogSpeedMeasurements, bool);
   vtkSetMacro(LogSpeedMeasurements, bool);
   vtkBooleanMacro(LogSpeedMeasurements, bool);
@@ -77,7 +74,6 @@ protected:
   virtual void UpdateFromMRMLScene();
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-  virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
 
 private:
@@ -85,9 +81,6 @@ private:
   void operator=(const vtkSlicerSegmentComparisonModuleLogic&);               // Not implemented
 
 protected:
-  /// Parameter set MRML node
-  vtkMRMLSegmentComparisonNode* SegmentComparisonNode;
-
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;
 
