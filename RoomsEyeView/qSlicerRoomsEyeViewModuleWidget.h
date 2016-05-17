@@ -30,7 +30,7 @@ class qSlicerRoomsEyeViewModuleWidgetPrivate;
 class vtkMRMLNode;
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
-class Q_SLICER_QTMODULES_RoomsEyeView_EXPORT qSlicerRoomsEyeViewModuleWidget :
+class Q_SLICER_QTMODULES_ROOMSEYEVIEW_EXPORT qSlicerRoomsEyeViewModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT

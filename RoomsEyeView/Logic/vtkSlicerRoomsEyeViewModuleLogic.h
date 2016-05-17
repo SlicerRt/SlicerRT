@@ -34,7 +34,7 @@
 #include "vtkSlicerRoomsEyeViewModuleLogicExport.h"
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
-class VTK_SLICER_RoomsEyeView_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic :
+class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:

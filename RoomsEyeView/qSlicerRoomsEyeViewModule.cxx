@@ -25,16 +25,10 @@
 #include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
 
-// SubjectHierarchy Plugins includes
-#include "qSlicerSubjectHierarchyPluginHandler.h"
-#include "qSlicerSubjectHierarchyRTPlanPlugin.h"
-#include "qSlicerSubjectHierarchyRTBeamPlugin.h"
-
-// RoomsEyeView includes
-
 // RoomsEyeView includes
 #include "qSlicerRoomsEyeViewModule.h"
 #include "qSlicerRoomsEyeViewModuleWidget.h"
+#include "vtkSlicerRoomsEyeViewModuleLogic.h"
 
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerRoomsEyeViewModule, qSlicerRoomsEyeViewModule);
@@ -101,8 +95,8 @@ QString qSlicerRoomsEyeViewModule::acknowledgementText()const
 QStringList qSlicerRoomsEyeViewModule::contributors()const
 {
   QStringList moduleContributors;
+  moduleContributors << QString("Vinith Suriyakumar (Queen's)");
   moduleContributors << QString("Csaba Pinter (Queen's)");
-  moduleContributors << QString("Kevin Wang (Techna, UHN)");
   return moduleContributors;
 }
 
@@ -110,10 +104,6 @@ QStringList qSlicerRoomsEyeViewModule::contributors()const
 void qSlicerRoomsEyeViewModule::setup()
 {
   this->Superclass::setup();
-
-  // Register Subject Hierarchy plugins
-  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRTPlanPlugin());
-  qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRTBeamPlugin());
 }
 
 //-----------------------------------------------------------------------------

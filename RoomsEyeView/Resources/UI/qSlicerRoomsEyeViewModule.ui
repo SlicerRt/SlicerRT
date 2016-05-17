@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>qSlicerBeamsModule</class>
- <widget class="qSlicerWidget" name="qSlicerBeamsModule">
+ <class>qSlicerRoomsEyeViewModule</class>
+ <widget class="qSlicerWidget" name="qSlicerRoomsEyeViewModule">
   <property name="geometry">
    <rect>
     <x>0</x>

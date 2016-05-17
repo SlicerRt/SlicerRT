@@ -22,8 +22,8 @@
 #include "vtkSlicerRoomsEyeViewModuleLogic.h"
 
 // SlicerRT includes
-#include "vtkMRMLRTPlanNode.h"
-#include "vtkMRMLRTBeamNode.h"
+//#include "vtkMRMLRTPlanNode.h"
+//#include "vtkMRMLRTBeamNode.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>

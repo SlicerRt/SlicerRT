@@ -29,7 +29,7 @@
 class qSlicerRoomsEyeViewModulePrivate;
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
-class Q_SLICER_QTMODULES_RoomsEyeView_EXPORT qSlicerRoomsEyeViewModule :
+class Q_SLICER_QTMODULES_ROOMSEYEVIEW_EXPORT qSlicerRoomsEyeViewModule :
   public qSlicerLoadableModule
 {
   Q_OBJECT
