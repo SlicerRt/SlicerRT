@@ -1065,6 +1065,8 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::FinalizeAccumulatedDose(vt
   // Show total dose in foreground
   if (this->GetApplicationLogic() && this->GetApplicationLogic()->GetSelectionNode())
   {
+    // Make sure reference volume is shown in background
+    this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(referenceVolumeNode->GetID());
     // Select as foreground volume
     this->GetApplicationLogic()->GetSelectionNode()->SetReferenceSecondaryVolumeID(doseVolumeNode->GetID());
     this->GetApplicationLogic()->PropagateVolumeSelection(0);

@@ -478,33 +478,6 @@ void qSlicerBeamsModuleWidget::onLogicModified()
 }
 
 //-----------------------------------------------------------------------------
-//void qSlicerBeamsModuleWidget::updateCurrentBeamTransform()
-//{
-//  Q_D(qSlicerBeamsModuleWidget);
-//
-//  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-//  if (beamNode)
-//  {
-//    d->logic()->UpdateBeamTransform(beamNode);
-//  }
-//}
-
-//-----------------------------------------------------------------------------
-//void qSlicerBeamsModuleWidget::updateBeamGeometryModel()
-//{
-//  Q_D(qSlicerBeamsModuleWidget);
-//
-//  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-//  if (!beamNode)
-//  {
-//    qCritical() << Q_FUNC_INFO << "Unable to access active beam node";
-//    return;
-//  }
-//
-//  d->logic()->UpdateBeamGeometry(beamNode);
-//}
-
-//-----------------------------------------------------------------------------
 void qSlicerBeamsModuleWidget::beamNameChanged(const QString &text)
 {
   Q_D(qSlicerBeamsModuleWidget);
@@ -522,15 +495,6 @@ void qSlicerBeamsModuleWidget::beamNameChanged(const QString &text)
     return;
   }
   beamNode->SetName(text.toStdString().c_str());
-
-  // Update in table
-  //this->updateRTBeamTableWidget(); //TODO: Check if beam name in table is updated when name is changed
-
-  // Update beam visualization
-  //this->updateCurrentBeamTransform();
-
-  // Update beam visualization
-  //this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -1018,10 +982,6 @@ void qSlicerBeamsModuleWidget::xJawsPositionValuesChanged(double minVal, double 
   }
   beamNode->SetX1Jaw(minVal);
   beamNode->SetX2Jaw(maxVal);
-
-  // Update beam visualization
-  //this->updateCurrentBeamTransform();
-  //this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -1044,10 +1004,6 @@ void qSlicerBeamsModuleWidget::yJawsPositionValuesChanged(double minVal, double 
   }
   beamNode->SetY1Jaw(minVal);
   beamNode->SetY2Jaw(maxVal);
-
-  // Update beam visualization
-  //this->updateCurrentBeamTransform();
-  //this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -1069,16 +1025,6 @@ void qSlicerBeamsModuleWidget::gantryAngleChanged(double value)
     return;
   }
   beamNode->SetGantryAngle(value);
-
-  // Update beam visualization
-  //this->updateCurrentBeamTransform();
-
-  // Update the table
-  //TODO: Observe beam modified event and update the table accordingly
-  //this->updateRTBeamTableWidget();
-
-  // Update beam visualization
-  //this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -1099,9 +1045,6 @@ void qSlicerBeamsModuleWidget::collimatorAngleChanged(double value)
     return;
   }
   beamNode->SetCollimatorAngle(value);
-
-  // Update beam visualization
-  //this->updateCurrentBeamTransform();
 }
 
 //-----------------------------------------------------------------------------
@@ -1123,9 +1066,6 @@ void qSlicerBeamsModuleWidget::couchAngleChanged(double value)
     return;
   }
   beamNode->SetCouchAngle(value);
-
-  // Update beam visualization
-  //this->updateCurrentBeamTransform();
 }
 
 //-----------------------------------------------------------------------------
@@ -1189,9 +1129,6 @@ void qSlicerBeamsModuleWidget::sourceDistanceChanged(double value)
     return;
   }
   beamNode->SetSAD(value);
-
-  // Update beam visualization
-  //this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------

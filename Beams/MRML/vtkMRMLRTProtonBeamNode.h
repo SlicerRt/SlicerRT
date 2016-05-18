@@ -87,64 +87,48 @@ public:
   void UpdateReferences();
 
 public:
-  
-  ///  Get/Set beam line type
   vtkGetMacro(BeamLineType, bool);
   vtkSetMacro(BeamLineType, bool);
 
-  ///  Get/Set manual energy limits
   vtkGetMacro(ManualEnergyLimits, bool);
   vtkSetMacro(ManualEnergyLimits, bool);
 
-  ///  Get/Set energy minimum
   vtkGetMacro(MinimumEnergy, double);
   vtkSetMacro(MinimumEnergy, double);
 
-  ///  Get/Set energy maximum 
   vtkGetMacro(MaximumEnergy, double);
   vtkSetMacro(MaximumEnergy, double);
 
-  ///  Get/Set proximal margin
-  vtkGetMacro(ProximalMargin, double);
-  vtkSetMacro(ProximalMargin, double);
-  
-  ///  Get/Set distal margin
-  vtkGetMacro(DistalMargin, double);
-  vtkSetMacro(DistalMargin, double);
- 
-  /// Get/Set energy resolution
   vtkGetMacro(EnergyResolution, float);
   vtkSetMacro(EnergyResolution, float);
 
-  /// Get/Set energy resolution
   vtkGetMacro(EnergySpread, float);
   vtkSetMacro(EnergySpread, float);
 
-  /// Get/Set energy resolution
   vtkGetMacro(StepLength, float);
   vtkSetMacro(StepLength, float);
 
-  /// Get/Set pencil beam resolution
+  vtkGetMacro(ProximalMargin, double);
+  vtkSetMacro(ProximalMargin, double);
+  
+  vtkGetMacro(DistalMargin, double);
+  vtkSetMacro(DistalMargin, double);
+ 
   vtkGetMacro(PBResolution, double);
   vtkSetMacro(PBResolution, double);
 
-  /// Get/Set aperture offset
   vtkGetMacro(ApertureOffset, double);
   vtkSetMacro(ApertureOffset, double);
 
-  /// Get/Set source size
   vtkGetMacro(SourceSize, double);
   vtkSetMacro(SourceSize, double);
 
-  /// Get/Set lateral spread homogeneous approximation
   vtkGetMacro(LateralSpreadHomoApprox, bool);
   vtkSetMacro(LateralSpreadHomoApprox, bool);
 
-  /// Get/Set range compensator Monte Carlo based
   vtkGetMacro(RangeCompensatorHighland, bool);
   vtkSetMacro(RangeCompensatorHighland, bool);
 
-  /// Get/Set have prescription
   vtkGetMacro(HavePrescription, bool);
   vtkSetMacro(HavePrescription, bool);
 
@@ -175,33 +159,51 @@ protected:
   void operator=(const vtkMRMLRTProtonBeamNode&);
 
 protected:
-  double ProximalMargin;
-  double DistalMargin;
+  /// Beam line type: true = active, false = passive
+  bool BeamLineType;
 
-  bool BeamLineType; // true = active, false = passive
-
+  /// Manual energy limits
   bool ManualEnergyLimits;
-  double MaximumEnergy;
+  /// Energy minimum
   double MinimumEnergy;
+  /// Energy maximum
+  double MaximumEnergy;
 
+  /// Energy resolution
   float EnergyResolution;
+  /// Energy resolution
   float EnergySpread;
+  /// Step length
   float StepLength;
 
-  RTProtonAlgorithm Algorithm;
+  /// Proximal margin
+  double ProximalMargin;
+  /// Distal margin
+  double DistalMargin;
+
+  /// Pencil beam resolution
   double PBResolution;
 
+  /// Aperture offset (must be smaller than SAD)
   double ApertureOffset;
+
+  /// Source size
+  double SourceSize;
+
+  /// Lateral spread homogeneous approximation
+  bool LateralSpreadHomoApprox;
+  /// Range compensator Monte Carlo based
+  bool RangeCompensatorHighland;
+
+  /// Have prescription flag
+  bool HavePrescription;
+
+  /// Proton dose calculation algorithm type
+  RTProtonAlgorithm Algorithm;
+
   double ApertureSpacing[2];
   double ApertureOrigin[2];
   int ApertureDim[2];
-
-  double SourceSize;
-
-  bool LateralSpreadHomoApprox;
-  bool RangeCompensatorHighland;
-
-  bool HavePrescription;
 };
 
 #endif // __vtkMRMLRTProtonBeamNode_h

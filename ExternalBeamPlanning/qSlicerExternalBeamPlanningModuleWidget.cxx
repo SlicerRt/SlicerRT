@@ -324,8 +324,6 @@ void qSlicerExternalBeamPlanningModuleWidget::onRTPlanNodeModified()
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::onLogicModified()
 {
-  //TODO: Needed after all?
-  //this->updateRTBeamTableWidget();
 }
 
 //-----------------------------------------------------------------------------
@@ -442,6 +440,7 @@ void qSlicerExternalBeamPlanningModuleWidget::doseROINodeChanged(vtkMRMLNode* no
 
   qWarning() << Q_FUNC_INFO << ": Not implemented!";
 
+  //TODO:
   // rtPlanNode->DisableModifiedEventOn();
   // rtPlanNode->SetAndObserveDoseROINode(vtkMRMLAnnotationsROINode::SafeDownCast(node));
   // rtPlanNode->DisableModifiedEventOff();

@@ -843,24 +843,15 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
   planNode->SetName(seriesName);
   this->GetMRMLScene()->AddNode(planNode);
 
-  // Put plan SH node underneath study
-  vtkMRMLSubjectHierarchyNode* studyNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-    this->GetMRMLScene(), vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetStudyInstanceUid());
-  if (!studyNode)
-  {
-    vtkWarningMacro("LoadRtPlan: No Study SH node found.");
-    return false;
-  }
+  // Set up plan subject hierarchy node
   vtkMRMLSubjectHierarchyNode* planSHNode = planNode->GetPlanSubjectHierarchyNode();
   if (!planSHNode)
   {
     vtkErrorMacro("LoadRtPlan: Created RTPlanNode, but it doesn't have a Subject Hierarchy node.");
     return false;
   }
-  if (studyNode && planSHNode)
+  if (planSHNode)
   {
-    planSHNode->SetParentNodeID(studyNode->GetID());
-
     // Attach attributes to plan SH node
     planSHNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(),
       rtReader->GetSeriesInstanceUid());
@@ -998,6 +989,18 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
   // Insert plan isocenter series in subject hierarchy
   this->InsertSeriesInSubjectHierarchy(rtReader);
 
+  // Put plan SH node underneath study
+  vtkMRMLSubjectHierarchyNode* studyNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
+    this->GetMRMLScene(), vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetStudyInstanceUid());
+  if (!studyNode)
+  {
+    vtkWarningMacro("LoadRtPlan: No Study SH node found.");
+    return false;
+  }
+  if (studyNode && planSHNode)
+  {
+    planSHNode->SetParentNodeID(studyNode->GetID());
+  }
   // Put plan markups under study within SH
   vtkMRMLSubjectHierarchyNode* planMarkupsSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(
     planNode->GetMarkupsFiducialNode(), this->GetMRMLScene() );
