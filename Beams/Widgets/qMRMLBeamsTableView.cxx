@@ -81,9 +81,9 @@ void qMRMLBeamsTableViewPrivate::init()
   this->setMessage(QString());
 
   // Set table header properties
-  this->ColumnLabels << "Number" << "Name" << "Gantry" << "Weight";
+  this->ColumnLabels << "Number" << "Name" << "Gantry" << "Weight" << "Edit";
   this->BeamsTable->setHorizontalHeaderLabels(
-    QStringList() << "#" << "Name" << "Gantry°" << "Weight" );
+    QStringList() << "#" << "Name" << "Gantry" << "Weight" << "" );
   this->BeamsTable->setColumnCount(this->ColumnLabels.size());
 
   this->BeamsTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
@@ -248,10 +248,11 @@ void qMRMLBeamsTableView::populateBeamTable()
     d->BeamsTable->setItem(row, d->columnIndex("Weight"), beamWeightItem);
 
     // Edit button
-    QPushButton* editButton = new QPushButton();
+    QPushButton* editButton = new QPushButton("Edit");
     editButton->setToolTip("Show beam details in Beams module");
     editButton->setProperty(ID_PROPERTY, beamNode->GetID());
     connect(editButton, SIGNAL(clicked()), this, SLOT(onEditButtonClicked()));
+    d->BeamsTable->setCellWidget(row, d->columnIndex("Edit"), editButton);
  }
 
   // Unblock signals
@@ -362,6 +363,10 @@ QString qMRMLBeamsTableView::selectedBeamNodeID()
   Q_D(qMRMLBeamsTableView);
 
   QList<QTableWidgetItem*> selectedItems = d->BeamsTable->selectedItems();
+  if (selectedItems.count() == 0)
+  {
+    return QString();
+  }
 
   // All selected items are in the same row as single row selection is set to the table
   return selectedItems[0]->data(IDRole).toString();

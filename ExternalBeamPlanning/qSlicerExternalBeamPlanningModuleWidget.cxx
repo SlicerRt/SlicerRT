@@ -301,8 +301,21 @@ void qSlicerExternalBeamPlanningModuleWidget::rtPlanNodeChanged(vtkMRMLNode* nod
   // Make sure the plan node is selected (in case the function was not called by the selector combobox signal)
   d->MRMLNodeComboBox_RtPlan->setCurrentNode(rtPlanNode);
 
+  // Set plan node in beams table
+  d->BeamsTableView->setPlanNode(rtPlanNode);
+
   // Each time the node is modified, the qt widgets are updated
   qvtkReconnect(rtPlanNode, vtkCommand::ModifiedEvent, this, SLOT(onRTPlanNodeModified()));
+
+  // Create and select output dose volume if missing
+  if (rtPlanNode && !rtPlanNode->GetDoseVolumeNode())
+  {
+    vtkSmartPointer<vtkMRMLScalarVolumeNode> newDoseVolume = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+    std::string newDoseVolumeName = std::string(rtPlanNode->GetName()) + "_TotalDose";
+    newDoseVolume->SetName(newDoseVolumeName.c_str());
+    this->mrmlScene()->AddNode(newDoseVolume);
+    rtPlanNode->SetAndObserveDoseVolumeNode(newDoseVolume);
+  }
 
   this->updateWidgetFromMRML();
 }
@@ -508,6 +521,11 @@ vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode()
   }
 
   QString beamNodeID = d->BeamsTableView->selectedBeamNodeID();
+  if (beamNodeID.isEmpty())
+  {
+    return NULL;
+  }
+
   return vtkMRMLRTBeamNode::SafeDownCast( rtPlanNode->GetScene()->GetNodeByID(beamNodeID.toLatin1().constData()) );
 }
 

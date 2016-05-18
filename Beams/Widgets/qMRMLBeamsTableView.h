@@ -69,6 +69,10 @@ public slots:
   /// Set plan MRML node
   void setPlanNode(vtkMRMLNode* node);
 
+signals:
+  /// Emitted if selection changes
+  void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
+
 protected slots:
   /// Handle changing of values in a cell
   void onBeamTableItemChanged(QTableWidgetItem* changedItem);

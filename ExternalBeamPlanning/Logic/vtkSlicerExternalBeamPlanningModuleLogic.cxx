@@ -1001,12 +1001,9 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::FinalizeAccumulatedDose(vt
   vtkMRMLScalarVolumeNode* doseVolumeNode = planNode->GetDoseVolumeNode();
   if (!doseVolumeNode)
   {
-    vtkSmartPointer<vtkMRMLScalarVolumeNode> newDoseVolume = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-    std::string newDoseVolumeName = std::string(planNode->GetName()) + "_TotalDose";
-    newDoseVolume->SetName(newDoseVolumeName.c_str());
-    this->GetMRMLScene()->AddNode(newDoseVolume);
-    planNode->SetAndObserveDoseVolumeNode(newDoseVolume);
-    doseVolumeNode = newDoseVolume.GetPointer();
+    std::string errorMessage("Unable to access output dose volume");
+    vtkErrorMacro("FinalizeAccumulatedDose: " << errorMessage);
+    return errorMessage;
   }
 
   // Convert dose image to vtk
