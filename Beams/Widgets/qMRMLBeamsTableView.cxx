@@ -356,6 +356,17 @@ void qMRMLBeamsTableView::onEditButtonClicked()
   qSlicerApplication::application()->openNodeModule(beamNode);
 }
 
+//-----------------------------------------------------------------------------
+QString qMRMLBeamsTableView::selectedBeamNodeID()
+{
+  Q_D(qMRMLBeamsTableView);
+
+  QList<QTableWidgetItem*> selectedItems = d->BeamsTable->selectedItems();
+
+  // All selected items are in the same row as single row selection is set to the table
+  return selectedItems[0]->data(IDRole).toString();
+}
+
 //------------------------------------------------------------------------------
 bool qMRMLBeamsTableView::eventFilter(QObject* target, QEvent* event)
 {

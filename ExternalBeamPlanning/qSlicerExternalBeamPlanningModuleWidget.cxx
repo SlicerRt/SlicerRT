@@ -57,6 +57,7 @@
 // Qt includes
 #include <QDebug>
 #include <QTime>
+#include <QItemSelection>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
@@ -128,7 +129,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find a plan node and select it if there is one in the scene
-  if (scene && d->logic()->GetRTPlanNode())
+  if (scene && d->MRMLNodeComboBox_RtPlan->currentNode())
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLRTPlanNode");
     if (node)
@@ -168,10 +169,10 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
   }
 
   // Select RT plan node
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (rtPlanNode == NULL)
   {
-    // If not, try to find one in the scene
+    // Try to find one in the scene
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLRTPlanNode");
     if (node)
     {
@@ -210,26 +211,26 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   //}
   
   // Make connections
-  this->connect( d->MRMLNodeComboBox_RtPlan, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtPlanNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_RtPlan, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtPlanNodeChanged(vtkMRMLNode*)) );
 
   // RT plan section
-  this->connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->MRMLNodeComboBox_PlanSegmentation, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planSegmentationNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->MRMLNodeComboBox_PlanPOIs, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planPOIsNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(doseVolumeNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->MRMLNodeComboBox_DoseROI, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(doseROINodeChanged(vtkMRMLNode*)) );
-  this->connect( d->lineEdit_DoseGridSpacing, SIGNAL(textChanged(const QString &)), this, SLOT(doseGridSpacingChanged(const QString &)) );
-  this->connect( d->comboBox_DoseEngineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(doseEngineTypeChanged(const QString &)) );
+  connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_PlanSegmentation, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planSegmentationNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_PlanPOIs, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planPOIsNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(doseVolumeNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_DoseROI, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(doseROINodeChanged(vtkMRMLNode*)) );
+  connect( d->lineEdit_DoseGridSpacing, SIGNAL(textChanged(const QString &)), this, SLOT(doseGridSpacingChanged(const QString &)) );
+  connect( d->comboBox_DoseEngineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(doseEngineTypeChanged(const QString &)) );
 
   // Beams section
-  this->connect( d->tableWidget_Beams, SIGNAL(cellClicked(int, int)), this, SLOT(tableWidgetCellClicked(int, int)) );
-  this->connect( d->pushButton_AddBeam, SIGNAL(clicked()), this, SLOT(addBeamClicked()) );
-  this->connect( d->pushButton_RemoveBeam, SIGNAL(clicked()), this, SLOT(removeBeamClicked()) );
+  //connect( d->BeamsTableView, SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(beamSelectionChanged(QItemSelection,QItemSelection) ) );
+  connect( d->pushButton_AddBeam, SIGNAL(clicked()), this, SLOT(addBeamClicked()) );
+  connect( d->pushButton_RemoveBeam, SIGNAL(clicked()), this, SLOT(removeBeamClicked()) );
 
   // Calculation buttons
-  this->connect( d->pushButton_CalculateDose, SIGNAL(clicked()), this, SLOT(calculateDoseClicked()) );
-  this->connect( d->pushButton_CalculateWED, SIGNAL(clicked()), this, SLOT(calculateWEDClicked()) );
-  this->connect( d->pushButton_ClearDose, SIGNAL(clicked()), this, SLOT(clearDoseClicked()) );
+  connect( d->pushButton_CalculateDose, SIGNAL(clicked()), this, SLOT(calculateDoseClicked()) );
+  connect( d->pushButton_CalculateWED, SIGNAL(clicked()), this, SLOT(calculateWEDClicked()) );
+  connect( d->pushButton_ClearDose, SIGNAL(clicked()), this, SLOT(clearDoseClicked()) );
 
   // Hide non-functional items //TODO:
   d->label_DoseROI->setVisible(false);
@@ -254,8 +255,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
     return;
   }
 
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
-  d->MRMLNodeComboBox_RtPlan->setCurrentNode(rtPlanNode);
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
 
   // Enable GUI only if a plan node is selected
   d->CollapsibleButton_PlanParameters->setEnabled(rtPlanNode);
@@ -263,7 +263,6 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
   
   if (!rtPlanNode)
   {
-    // GCS FIX TODO: Still need to wipe the GUI in this case
     return;
   }
 
@@ -298,16 +297,12 @@ void qSlicerExternalBeamPlanningModuleWidget::rtPlanNodeChanged(vtkMRMLNode* nod
     return;
   }
   vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(node);
-  if (!rtPlanNode)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
-    return;
-  }
+
+  // Make sure the plan node is selected (in case the function was not called by the selector combobox signal)
+  d->MRMLNodeComboBox_RtPlan->setCurrentNode(rtPlanNode);
 
   // Each time the node is modified, the qt widgets are updated
-  qvtkReconnect(d->logic()->GetRTPlanNode(), rtPlanNode, vtkCommand::ModifiedEvent, this, SLOT(onRTPlanNodeModified()));
-
-  d->logic()->SetAndObserveRTPlanNode(rtPlanNode);
+  qvtkReconnect(rtPlanNode, vtkCommand::ModifiedEvent, this, SLOT(onRTPlanNodeModified()));
 
   this->updateWidgetFromMRML();
 }
@@ -321,7 +316,8 @@ void qSlicerExternalBeamPlanningModuleWidget::onRTPlanNodeModified()
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::onLogicModified()
 {
-  this->updateRTBeamTableWidget();
+  //TODO: Needed after all?
+  //this->updateRTBeamTableWidget();
 }
 
 //-----------------------------------------------------------------------------
@@ -334,7 +330,8 @@ void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRML
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
+
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
@@ -356,7 +353,8 @@ void qSlicerExternalBeamPlanningModuleWidget::planSegmentationNodeChanged(vtkMRM
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
+
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
@@ -378,7 +376,8 @@ void qSlicerExternalBeamPlanningModuleWidget::planPOIsNodeChanged(vtkMRMLNode* n
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
+
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
@@ -402,7 +401,8 @@ void qSlicerExternalBeamPlanningModuleWidget::doseVolumeNodeChanged(vtkMRMLNode*
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
+
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
@@ -424,7 +424,8 @@ void qSlicerExternalBeamPlanningModuleWidget::doseROINodeChanged(vtkMRMLNode* no
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
+
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
@@ -449,7 +450,8 @@ void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingChanged(const QStri
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
+
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
@@ -466,7 +468,7 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineTypeChanged(const QStrin
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
@@ -492,23 +494,21 @@ vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return NULL;
+  }
+
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
     return NULL;
   }
 
-  QTableWidgetItem *item = NULL;
-  item = d->tableWidget_Beams->item(d->CurrentBeamRow, 0);
-  if (!item)
-  {
-    return NULL;
-  }
-  int beamNumber = item->text().toInt();
-  vtkMRMLRTBeamNode* beamNode = rtPlanNode->GetBeamByNumber(beamNumber);
-
-  return beamNode;
+  QString beamNodeID = d->BeamsTableView->selectedBeamNodeID();
+  return vtkMRMLRTBeamNode::SafeDownCast( rtPlanNode->GetScene()->GetNodeByID(beamNodeID.toLatin1().constData()) );
 }
 
 //-----------------------------------------------------------------------------
@@ -521,7 +521,8 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
+
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
@@ -550,69 +551,25 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
     return;
   }
 
-  // Disconnect events for currently selected row
-  qvtkDisconnect(beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
-
   // Make new beam current in the table
-  d->CurrentBeamRow = d->NumberOfBeamRows++;
-  d->tableWidget_Beams->selectRow(d->CurrentBeamRow);
+  //TODO:
+  //d->CurrentBeamRow = d->NumberOfBeamRows++;
+  //d->tableWidget_Beams->selectRow(d->CurrentBeamRow);
 
   // Clear instruction text
   d->label_CalculateDoseStatus->setText("");
 
-  // GCS TODO FIX -- this should be called when logic is modified, maybe it gets called twice?
-  this->updateRTBeamTableWidget();
-
   // Update UI
-  this->updateWidgetFromMRML();
+  //TODO:
+  //this->updateWidgetFromMRML();
 
   // Update beam visualization
   d->logic()->GetBeamsLogic()->UpdateBeamTransform(beamNode);
-
-  // Update beam visualization
   d->logic()->GetBeamsLogic()->UpdateBeamGeometry(beamNode);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::removeBeamClicked()
-{
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
-  if (!rtPlanNode)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
-    return;
-  }
-  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
-  if (!beamNode)
-  {
-    return;
-  }
-
-  // Disconnect events for currently selected row
-  qvtkDisconnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()) );
-
-  // Remove beam
-  rtPlanNode->RemoveBeam(beamNode);
-
-  // Select a different beam as current
-  d->NumberOfBeamRows--;
-  if (d->CurrentBeamRow >= d->NumberOfBeamRows)
-  {
-    d->CurrentBeamRow = d->NumberOfBeamRows-1;
-  }
-
-  // Update UI table
-  d->tableWidget_Beams->selectRow(d->CurrentBeamRow);
-  this->updateRTBeamTableWidget();
-
-  // Update lower UI tabs
-  this->updateWidgetFromMRML();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -622,81 +579,36 @@ void qSlicerExternalBeamPlanningModuleWidget::updateRTBeamTableWidget()
     return;
   }
 
-  // Clear the beam table
-  d->tableWidget_Beams->setRowCount(0);
-  d->tableWidget_Beams->setColumnCount(0);
-  d->tableWidget_Beams->clearContents();
-
-  // Get RT plan node
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
-  { 
+  {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
     return;
   }
-
-  // Get beam nodes for the plan
-  std::vector<vtkMRMLRTBeamNode*> beams;
-  rtPlanNode->GetBeams(beams);
-
-  // Set up the table
-  d->tableWidget_Beams->setColumnCount(4);
-  QStringList headerLabels;
-  headerLabels << "Beam#" << "Name" << "Type" << "Radiation";
-
-  d->tableWidget_Beams->blockSignals(true);
-  d->tableWidget_Beams->setColumnWidth(0, 24);
-  d->tableWidget_Beams->setHorizontalHeaderLabels(headerLabels);
-  d->tableWidget_Beams->setRowCount(beams.size());
-
-  // Fill the table
-  int i=0;
-  for (std::vector<vtkMRMLRTBeamNode*>::iterator it=beams.begin(); it!=beams.end(); ++it, ++i)
-  {
-    vtkMRMLRTBeamNode* beamNode = *it;
-    if (beamNode)
-    {
-      d->tableWidget_Beams->setItem(i, 0, new QTableWidgetItem( QString::number(beamNode->GetBeamNumber()) ) );
-      d->tableWidget_Beams->setItem(i, 1, new QTableWidgetItem( QString(beamNode->GetName()) ) );
-      d->tableWidget_Beams->setItem(i, 2, new QTableWidgetItem( QString::number(beamNode->GetGantryAngle()) ) );
-    }
-  }
-
-  d->tableWidget_Beams->blockSignals(false);
-  if (d->CurrentBeamRow >= 0)
-  {
-    d->tableWidget_Beams->selectRow(d->CurrentBeamRow);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::tableWidgetCellClicked(int row, int column)
-{
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-  UNUSED_VARIABLE(column);
-
-  // Don't do anything when clicking on already selected beam
-  if (row == d->CurrentBeamRow)
-  {
-    return;
-  }
-
-  // Disconnect events for currently selected row
-  qvtkDisconnect (this->currentBeamNode(), vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModifiedEvent()));
-
-  // Make sure inputs are initialized
-  d->CurrentBeamRow = row;
   vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
   if (!beamNode)
   {
-    qCritical() << "tableWidgetItemClicked: Inputs are not initialized!";
     return;
   }
 
-  // Copy data from beam into tabs UI
-  this->updateWidgetFromMRML();
-}
+  // Remove beam
+  rtPlanNode->RemoveBeam(beamNode);
 
+  //TODO:
+  // Select a different beam as current
+  //d->NumberOfBeamRows--;
+  //if (d->CurrentBeamRow >= d->NumberOfBeamRows)
+  //{
+  //  d->CurrentBeamRow = d->NumberOfBeamRows-1;
+  //}
+
+  // Update UI table
+  //d->tableWidget_Beams->selectRow(d->CurrentBeamRow);
+  //this->updateRTBeamTableWidget();
+
+  // Update lower UI tabs
+  //this->updateWidgetFromMRML();
+}
 
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
@@ -711,7 +623,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     return;
   }
 
-  vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetRTPlanNode();
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
     QString errorString("No RT plan node selected");
@@ -762,7 +674,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  std::string errorMessage = d->logic()->InitializeAccumulatedDose();
+  std::string errorMessage = d->logic()->InitializeAccumulatedDose(rtPlanNode);
   if (!errorMessage.empty())
   {
     d->label_CalculateDoseStatus->setText(errorMessage.c_str());
@@ -778,7 +690,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
       QString progressMessage = QString("Dose calculation in progress: %1").arg(beamNode->GetName());
       d->label_CalculateDoseStatus->setText(progressMessage);
 
-      errorMessage = d->logic()->ComputeDose(beamNode);
+      errorMessage = d->logic()->ComputeDose(rtPlanNode, beamNode);
       if (!errorMessage.empty())
       {
         d->label_CalculateDoseStatus->setText(errorMessage.c_str());
@@ -794,7 +706,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     }
   }
   
-  errorMessage = d->logic()->FinalizeAccumulatedDose();
+  errorMessage = d->logic()->FinalizeAccumulatedDose(rtPlanNode);
   if (!errorMessage.empty())
   {
     d->label_CalculateDoseStatus->setText(errorMessage.c_str());
@@ -815,7 +727,8 @@ void qSlicerExternalBeamPlanningModuleWidget::clearDoseClicked()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  d->logic()->RemoveDoseNodes();
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  d->logic()->RemoveDoseNodes(rtPlanNode);
 }
 
 //-----------------------------------------------------------------------------

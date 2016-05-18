@@ -53,11 +53,6 @@ public:
   vtkTypeMacro(vtkSlicerExternalBeamPlanningModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  /// Set and observe RT plan node
-  void SetAndObserveRTPlanNode(vtkMRMLRTPlanNode* node);
-  /// Get RT plan Node
-  vtkGetObjectMacro(RTPlanNode, vtkMRMLRTPlanNode);
-
   /// Set Beams module logic
   void SetBeamsLogic(vtkSlicerBeamsModuleLogic* beamsLogic);
   /// Get Beams module logic
@@ -68,16 +63,16 @@ public:
   vtkMRMLRTBeamNode* CopyAndAddBeamToPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode);
 
   /// TODO
-  void UpdateDRR(char*);
+  void UpdateDRR(vtkMRMLRTPlanNode* planNode, char* beamName);
 
   /// Get labelmap from target segment of beam node
   vtkSmartPointer<vtkOrientedImageData> GetTargetLabelmap(vtkMRMLRTBeamNode* beamNode);
 
   /// Compute dose for one beam
-  std::string ComputeDose(vtkMRMLRTBeamNode*);
+  std::string ComputeDose(vtkMRMLRTPlanNode* planNode, vtkMRMLRTBeamNode* beamNode);
 
   /// TODO
-  std::string ComputeDoseByPlastimatch(vtkMRMLRTBeamNode*);
+  std::string ComputeDoseByPlastimatch(vtkMRMLRTPlanNode* planNode, vtkMRMLRTBeamNode* beamNode);
 
   /// TODO
   void ComputeWED();
@@ -87,17 +82,17 @@ public:
   vtkSlicerCLIModuleLogic* GetMatlabDoseCalculationModuleLogic();
 
   /// TODO
-  std::string ComputeDoseByMatlab(vtkMRMLRTBeamNode*);
+  std::string ComputeDoseByMatlab(vtkMRMLRTPlanNode* planNode, vtkMRMLRTBeamNode* beamNode);
 
   /// TODO
-  std::string InitializeAccumulatedDose();
+  std::string InitializeAccumulatedDose(vtkMRMLRTPlanNode* planNode);
 
   /// TODO
-  std::string FinalizeAccumulatedDose();
+  std::string FinalizeAccumulatedDose(vtkMRMLRTPlanNode* planNode);
 
   /// Remove MRML nodes created by dose calculation for the current RT plan,
   /// such as apertures, range compensators, and doses
-  void RemoveDoseNodes();
+  void RemoveDoseNodes(vtkMRMLRTPlanNode* planNode);
 
 protected:
   vtkSlicerExternalBeamPlanningModuleLogic();
@@ -112,13 +107,9 @@ protected:
 
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
-  virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
 
 protected:
-  /// RT plan MRML node
-  vtkMRMLRTPlanNode* RTPlanNode;
-
   /// TODO:
   int DRRImageSize[2];
 

@@ -25,6 +25,7 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${qSlicerSegmentationsModuleWidgets_INCLUDE_DIRS}
   ${qSlicerSubjectHierarchyModuleWidgets_INCLUDE_DIRS}
   ${qSlicerBeamsSubjectHierarchyPlugins_INCLUDE_DIRS}
+  ${qSlicerBeamsModuleWidgets_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS
@@ -50,6 +51,7 @@ set(MODULE_TARGET_LIBRARIES
   vtkSlicerBeamsModuleMRML
   vtkSlicer${MODULE_NAME}ModuleLogic
   qSlicerBeamsSubjectHierarchyPlugins
+  qSlicerBeamsModuleWidgets
   )
 
 set(MODULE_RESOURCES

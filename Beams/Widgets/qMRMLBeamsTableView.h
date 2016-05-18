@@ -33,8 +33,8 @@
 #include <ctkPimpl.h>
 #include <ctkVTKObject.h>
 
-class vtkMRMLNode;
 class qMRMLBeamsTableViewPrivate;
+class vtkMRMLNode;
 class QTableWidgetItem;
 class QItemSelection;
 
@@ -61,6 +61,9 @@ public:
 
   /// Return number of beams (rows) in the table
   int beamCount() const;
+
+  /// Return selected beam node ID
+  QString selectedBeamNodeID();
 
 public slots:
   /// Set plan MRML node

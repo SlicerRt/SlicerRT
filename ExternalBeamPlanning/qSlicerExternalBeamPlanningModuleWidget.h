@@ -32,6 +32,7 @@ class vtkMRMLNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLRTPlanNode;
 class QString;
+class QItemSelection;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class Q_SLICER_QTMODULES_EXTERNALBEAMPLANNING_EXPORT qSlicerExternalBeamPlanningModuleWidget :
@@ -61,9 +62,6 @@ public:
   vtkMRMLRTBeamNode* currentBeamNode();
 
 protected slots:
-  /// TODO
-  void updateRTBeamTableWidget();
-
   /// RT plan was modified 
   void onRTPlanNodeModified();
 
@@ -81,7 +79,7 @@ protected slots:
   void doseEngineTypeChanged(const QString &);
   
   // RT Beams page
-  void tableWidgetCellClicked(int, int);
+  //void beamSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
   void addBeamClicked();
   void removeBeamClicked();
 

@@ -154,7 +154,6 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   vtkSmartPointer<vtkMRMLRTPlanNode> planNode = vtkSmartPointer<vtkMRMLRTPlanNode>::New();
   planNode->SetName("TestProtonPlan");
   mrmlScene->AddNode(planNode);
-  ebpLogic->SetAndObserveRTPlanNode(planNode);
 
   // Set plan parameters
   planNode->SetAndObserveReferenceVolumeNode(ctVolumeNode);
@@ -191,7 +190,7 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
 
   // Calculate dose
   std::string errorMessage("");
-  errorMessage = ebpLogic->InitializeAccumulatedDose();
+  errorMessage = ebpLogic->InitializeAccumulatedDose(planNode);
   if (!errorMessage.empty())
   {
     mrmlScene->Commit();
@@ -199,7 +198,7 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  errorMessage = ebpLogic->ComputeDose(firstBeamNode);
+  errorMessage = ebpLogic->ComputeDose(planNode, firstBeamNode);
   if (!errorMessage.empty())
   {
     mrmlScene->Commit();
@@ -207,7 +206,7 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  errorMessage = ebpLogic->FinalizeAccumulatedDose();
+  errorMessage = ebpLogic->FinalizeAccumulatedDose(planNode);
   if (!errorMessage.empty())
   {
     mrmlScene->Commit();
