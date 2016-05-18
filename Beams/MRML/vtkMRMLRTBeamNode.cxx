@@ -25,7 +25,6 @@
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkSlicerSegmentationsModuleLogic.h"
-#include <vtkMRMLLinearTransformNode.h>
 
 // Plastimatch includes
 #include "image_center.h"

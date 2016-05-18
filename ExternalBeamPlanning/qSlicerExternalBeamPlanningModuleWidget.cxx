@@ -862,3 +862,15 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
   QApplication::restoreOverrideCursor();
 #endif
 }
+
+//-----------------------------------------------------------------------------
+bool qSlicerExternalBeamPlanningModuleWidget::setEditedNode(vtkMRMLNode* node, QString role/*=QString()*/, QString context/*=QString()*/)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  if (vtkMRMLRTPlanNode::SafeDownCast(node))
+  {
+    d->MRMLNodeComboBox_RtPlan->setCurrentNode(node);
+    return true;
+  }
+  return false;
+}

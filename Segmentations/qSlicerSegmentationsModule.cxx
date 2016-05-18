@@ -312,3 +312,9 @@ void qSlicerSegmentationsModule::onSubjectHierarchyNodeModified(vtkObject* nodeO
     }
   }
 }
+
+//-----------------------------------------------------------------------------
+QStringList qSlicerSegmentationsModule::associatedNodeTypes() const
+{
+  return QStringList() << "vtkMRMLSegmentationNode";
+}

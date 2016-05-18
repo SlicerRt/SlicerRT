@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>820</width>
-    <height>1001</height>
+    <width>442</width>
+    <height>528</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -249,49 +249,7 @@
        <number>4</number>
       </property>
       <item row="1" column="0">
-       <widget class="QTableWidget" name="tableWidget_Beams">
-        <property name="selectionMode">
-         <enum>QAbstractItemView::SingleSelection</enum>
-        </property>
-        <property name="selectionBehavior">
-         <enum>QAbstractItemView::SelectRows</enum>
-        </property>
-        <property name="columnCount">
-         <number>4</number>
-        </property>
-        <attribute name="horizontalHeaderVisible">
-         <bool>false</bool>
-        </attribute>
-        <attribute name="horizontalHeaderDefaultSectionSize">
-         <number>70</number>
-        </attribute>
-        <attribute name="horizontalHeaderHighlightSections">
-         <bool>false</bool>
-        </attribute>
-        <attribute name="horizontalHeaderMinimumSectionSize">
-         <number>10</number>
-        </attribute>
-        <column>
-         <property name="text">
-          <string>Vis</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Name</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Type</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Radiation</string>
-         </property>
-        </column>
-       </widget>
+       <widget class="qMRMLBeamsTableView" name="BeamsTableView"/>
       </item>
       <item row="0" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -433,6 +391,11 @@
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLBeamsTableView</class>
+   <extends>QWidget</extends>
+   <header>qMRMLBeamsTableView.h</header>
   </customwidget>
   <customwidget>
    <class>ctkCollapsibleButton</class>

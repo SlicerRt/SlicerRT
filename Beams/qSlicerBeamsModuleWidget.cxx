@@ -1468,3 +1468,15 @@ void qSlicerBeamsModuleWidget::collimatorTypeChanged(const QString &text)
   //TODO:
   qWarning() << Q_FUNC_INFO << ": Not implemented!";
 }
+
+//-----------------------------------------------------------------------------
+bool qSlicerBeamsModuleWidget::setEditedNode(vtkMRMLNode* node, QString role/*=QString()*/, QString context/*=QString()*/)
+{
+  Q_D(qSlicerBeamsModuleWidget);
+  if (vtkMRMLRTBeamNode::SafeDownCast(node))
+  {
+    d->MRMLNodeComboBox_RtBeam->setCurrentNode(node);
+    return true;
+  }
+  return false;
+}

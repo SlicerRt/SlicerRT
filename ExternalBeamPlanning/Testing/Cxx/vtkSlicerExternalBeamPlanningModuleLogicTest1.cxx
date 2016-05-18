@@ -46,6 +46,7 @@
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
 #include <vtkImageMathematics.h>
+#include <vtkTimerLog.h>
 
 // ITK includes
 #include "itkFactoryRegistration.h"
@@ -183,6 +184,11 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   // Change geometry of second beam
   //TODO:
 
+  // Setup time measurement
+  vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
+  double checkpointStart = timer->GetUniversalTime();
+  UNUSED_VARIABLE(checkpointStart); // Although it is used later, a warning is logged so needs to be suppressed
+
   // Calculate dose
   std::string errorMessage("");
   errorMessage = ebpLogic->InitializeAccumulatedDose();
@@ -208,6 +214,11 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
     errorStream << "ERROR: Failed to finalize accumulated dose!" << std::endl;
     return EXIT_FAILURE;
   }
+
+  // Report time measurement
+  double checkpointEnd = timer->GetUniversalTime();
+  UNUSED_VARIABLE(checkpointEnd); // Although it is used just below, a warning is logged so needs to be suppressed
+  std::cout << "Dose computation time: " << checkpointEnd-checkpointStart << " s" << std::endl;
 
   // Check computed output
   vtkSmartPointer<vtkImageAccumulate> imageAccumulate = vtkSmartPointer<vtkImageAccumulate>::New();

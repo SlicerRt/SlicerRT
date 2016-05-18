@@ -1088,3 +1088,15 @@ void qSlicerSegmentationsModuleWidget::onMRMLSceneEndCloseEvent()
     }
   this->updateWidgetFromMRML();
 }
+
+//-----------------------------------------------------------------------------
+bool qSlicerSegmentationsModuleWidget::setEditedNode(vtkMRMLNode* node, QString role/*=QString()*/, QString context/*=QString()*/)
+{
+  Q_D(qSlicerSegmentationsModuleWidget);
+  if (vtkMRMLSegmentationNode::SafeDownCast(node))
+    {
+    d->MRMLNodeComboBox_Segmentation->setCurrentNode(node);
+    return true;
+    }
+  return false;
+}

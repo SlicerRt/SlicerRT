@@ -17,7 +17,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleMRML
   )
 
-SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkSegmentationCore_INCLUDE_DIRS} ${Slicer_Base_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
+SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS} ${Slicer_Base_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
 
 #-----------------------------------------------------------------------------
 SlicerMacroBuildModuleLogic(

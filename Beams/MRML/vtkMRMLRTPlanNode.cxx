@@ -68,8 +68,6 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
   this->DoseGrid[1] = 0;
   this->DoseGrid[2] = 0;
 
-  this->HideFromEditorsOff();
-
   // Register parent transform modified event so that the representations
   //   can be put under the same transform node
   //vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
@@ -304,6 +302,14 @@ void vtkMRMLRTPlanNode::GetBeams(std::vector<vtkMRMLRTBeamNode*>& beams)
 }
 
 //---------------------------------------------------------------------------
+int vtkMRMLRTPlanNode::GetNumberOfBeams()
+{
+  vtkSmartPointer<vtkCollection> beamCollection = vtkSmartPointer<vtkCollection>::New();
+  this->GetBeams(beamCollection);
+  return beamCollection->GetNumberOfItems();
+}
+
+//---------------------------------------------------------------------------
 vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetBeamByName(const std::string& beamName)
 {
   vtkMRMLSubjectHierarchyNode* rtPlanShNode = this->GetPlanSubjectHierarchyNode();
@@ -417,7 +423,7 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLRTPlanNode::GetPlanSubjectHierarchyNode()
   vtkMRMLSubjectHierarchyNode* planSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this, this->GetScene());
 
   // If none found, create new subject hierarchy node for the RT Plan
-  if (planSHNode == NULL)
+  if (!planSHNode && this->GetScene())
   {
     planSHNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
       this->GetScene(), NULL,

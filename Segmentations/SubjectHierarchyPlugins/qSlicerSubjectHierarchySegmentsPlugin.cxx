@@ -42,7 +42,7 @@
 #include <QMenu>
 
 // SlicerQt includes
-#include "qSlicerAbstractModuleWidget.h"
+#include "qSlicerApplication.h"
 
 // MRML widgets includes
 #include "qMRMLNodeComboBox.h"
@@ -432,26 +432,16 @@ void qSlicerSubjectHierarchySegmentsPlugin::showContextMenuActionsForNode(vtkMRM
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchySegmentsPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
 {
-  // Switch to segmentations module and select node
-  qSlicerAbstractModuleWidget* moduleWidget = qSlicerSubjectHierarchyAbstractPlugin::switchToModule("Segmentations");
-  if (moduleWidget)
+  // Switch to segmentations module and select parent segmentation node
+  vtkMRMLSegmentationNode* segmentationNode =
+    vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeForSegmentSubjectHierarchyNode(node);
+  if (!segmentationNode)
   {
-    // Get node selector combobox
-    qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_Segmentation");
-
-    // Select segmentation node corresponding to segment node
-    vtkMRMLSegmentationNode* segmentationNode =
-      vtkSlicerSegmentationsModuleLogic::GetSegmentationNodeForSegmentSubjectHierarchyNode(node);
-    if (!segmentationNode)
-    {
-      qCritical() << Q_FUNC_INFO << ": Unable to find segmentation node for segment subject hierarchy node " << node->GetName();
-      return;
-    }
-    if (nodeSelector)
-    {
-      nodeSelector->setCurrentNode(segmentationNode);
-    }
+    qCritical() << Q_FUNC_INFO << ": Unable to find segmentation node for segment subject hierarchy node " << node->GetName();
+    return;
   }
+
+  qSlicerApplication::application()->openNodeModule(segmentationNode);
 }
 
 //---------------------------------------------------------------------------

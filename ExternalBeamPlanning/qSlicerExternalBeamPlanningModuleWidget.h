@@ -44,6 +44,8 @@ public:
   qSlicerExternalBeamPlanningModuleWidget(QWidget *parent=0);
   virtual ~qSlicerExternalBeamPlanningModuleWidget();
 
+  virtual bool setEditedNode(vtkMRMLNode* node, QString role=QString(), QString context=QString());
+
 public slots:
   /// Set the current MRML scene to the widget
   virtual void setMRMLScene(vtkMRMLScene*);

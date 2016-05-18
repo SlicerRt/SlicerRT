@@ -128,3 +128,9 @@ vtkMRMLAbstractLogic* qSlicerBeamsModule::createLogic()
 {
   return vtkSlicerBeamsModuleLogic::New();
 }
+
+//-----------------------------------------------------------------------------
+QStringList qSlicerBeamsModule::associatedNodeTypes() const
+{
+  return QStringList() << "vtkMRMLRTBeamNode";
+}

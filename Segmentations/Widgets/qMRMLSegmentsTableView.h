@@ -50,7 +50,7 @@ class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qMRMLSegmentsTableView : publ
     IDRole = Qt::UserRole + 1,
     /// Integer that contains the visibility property of a node.
     /// It is closely related to the item icon.
-    VisibilityRole,
+    VisibilityRole
     };
 
 public:

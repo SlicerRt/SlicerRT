@@ -48,9 +48,6 @@
 #include <QStandardItem>
 #include <QAction>
 
-// SlicerQt includes
-#include "qSlicerAbstractModuleWidget.h"
-
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RtHierarchy
 class qSlicerSubjectHierarchyRTBeamPluginPrivate: public QObject
@@ -144,14 +141,4 @@ QIcon qSlicerSubjectHierarchyRTBeamPlugin::visibilityIcon(int visible)
 {
   // Have the default plugin (which is not registered) take care of this
   return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->visibilityIcon(visible);
-}
-
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyRTBeamPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
-{
-  Q_UNUSED(node);
-
-  // Switch to External Beam Planning module
-  qSlicerSubjectHierarchyAbstractPlugin::switchToModule("Beams");
-  //TODO: Select beam
 }

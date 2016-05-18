@@ -149,3 +149,9 @@ vtkMRMLAbstractLogic* qSlicerExternalBeamPlanningModule::createLogic()
 {
   return vtkSlicerExternalBeamPlanningModuleLogic::New();
 }
+
+//-----------------------------------------------------------------------------
+QStringList qSlicerExternalBeamPlanningModule::associatedNodeTypes() const
+{
+  return QStringList() << "vtkMRMLRTPlanNode";
+}

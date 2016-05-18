@@ -5,11 +5,10 @@ set(KIT ${PROJECT_NAME})
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_MRML_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
-  ${PlmCommon_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
-  ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
-  ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
+  ${PlmCommon_INCLUDE_DIRS}
   ${PLASTIMATCH_INCLUDE_DIRS}
+  ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
   )
 
 # --------------------------------------------------------------------------
@@ -24,7 +23,7 @@ set(${KIT}_SRCS
   vtkMRMLRTProtonBeamNode.h
   )
 
-SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
+SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
  
 # --------------------------------------------------------------------------
 # Build the library
@@ -32,10 +31,11 @@ SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "" FORCE)
 set(${KIT}_TARGET_LIBRARIES
   vtkPlmCommon
   vtkSlicerRtCommon
-  vtkSlicerMarkupsModuleMRML
-  vtkSlicerSegmentationsModuleLogic
+  vtkSegmentationCore
   vtkSlicerSegmentationsModuleMRML
+  vtkSlicerSegmentationsModuleLogic
   MRMLCore
+  vtkSlicerMarkupsModuleMRML
   )
 
 SlicerMacroBuildModuleMRML(

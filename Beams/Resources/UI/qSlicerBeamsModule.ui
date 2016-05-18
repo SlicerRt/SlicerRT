@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>820</width>
-    <height>731</height>
+    <width>424</width>
+    <height>418</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -800,7 +800,6 @@
        <property name="renameEnabled">
         <bool>true</bool>
        </property>
-       <zorder>pushButton_GoToParentPlan</zorder>
       </widget>
      </item>
      <item row="0" column="0">
@@ -832,6 +831,12 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_GoToParentPlan">
+       <property name="minimumSize">
+        <size>
+         <width>102</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="text">
         <string>Go to parent plan</string>
        </property>

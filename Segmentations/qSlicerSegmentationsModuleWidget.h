@@ -56,6 +56,8 @@ public:
   virtual void enter();
   virtual void exit();
 
+  virtual bool setEditedNode(vtkMRMLNode* node, QString role=QString(), QString context=QString());
+
 public slots:
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();

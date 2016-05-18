@@ -459,7 +459,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Report time measurement
   double checkpointEnd = timer->GetUniversalTime();
   UNUSED_VARIABLE(checkpointEnd); // Although it is used just below, a warning is logged so needs to be suppressed
-  std::cout << "DVH computation time (including rasterization): " << checkpointEnd-checkpointStart << std::endl;
+  std::cout << "DVH computation time (including rasterization): " << checkpointEnd-checkpointStart << " s" << std::endl;
 
   std::vector<vtkMRMLDoubleArrayNode*> dvhNodes;
   paramNode->GetDvhArrayNodes(dvhNodes);

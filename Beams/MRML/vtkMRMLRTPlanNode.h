@@ -88,6 +88,8 @@ public:
   void GetBeams(vtkCollection* beams);
   /// Get beam nodes belonging to this plan
   void GetBeams(std::vector<vtkMRMLRTBeamNode*>& beams);
+  /// Get number of beams
+  int GetNumberOfBeams();
 
   /// Search for a beam of a given name.  Return NULL if beam not found
   /// Note: beam names *are not* unique within a plan

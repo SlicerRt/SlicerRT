@@ -62,6 +62,9 @@ public:
   /// List dependencies
   virtual QStringList dependencies()const;
 
+  /// Define associated node types
+  virtual QStringList associatedNodeTypes()const;
+
 protected:
   /// Initialize the module. Register the volumes reader/writer
   virtual void setup();

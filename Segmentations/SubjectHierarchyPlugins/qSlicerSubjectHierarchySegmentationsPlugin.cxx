@@ -338,26 +338,6 @@ void qSlicerSubjectHierarchySegmentationsPlugin::showContextMenuActionsForNode(v
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchySegmentationsPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
-{
-  // Switch to segmentations module and select node
-  qSlicerAbstractModuleWidget* moduleWidget = qSlicerSubjectHierarchyAbstractPlugin::switchToModule("Segmentations");
-  if (moduleWidget)
-  {
-    // Get node selector combobox
-    qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_Segmentation");
-
-    vtkMRMLNode* associatedNode = node->GetAssociatedNode();
-
-    // Choose current data node
-    if (nodeSelector)
-    {
-      nodeSelector->setCurrentNode(associatedNode);
-    }
-  }
-}
-
-//---------------------------------------------------------------------------
 void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentAdded(vtkObject* caller, void* callData)
 {
   // Get segmentation node

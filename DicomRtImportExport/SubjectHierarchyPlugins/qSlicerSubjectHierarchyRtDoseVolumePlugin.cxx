@@ -206,12 +206,6 @@ int qSlicerSubjectHierarchyRtDoseVolumePlugin::getDisplayVisibility(vtkMRMLSubje
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyRtDoseVolumePlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
-{
-  return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->editProperties(node);
-}
-
-//---------------------------------------------------------------------------
 QList<QAction*> qSlicerSubjectHierarchyRtDoseVolumePlugin::nodeContextMenuActions()const
 {
   Q_D(const qSlicerSubjectHierarchyRtDoseVolumePlugin);

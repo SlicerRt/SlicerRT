@@ -48,9 +48,6 @@
 #include <QDebug>
 #include <QIcon>
 
-// SlicerQt includes
-#include "qSlicerAbstractModuleWidget.h"
-
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RtHierarchy
 class qSlicerSubjectHierarchyRTPlanPluginPrivate: public QObject
@@ -175,23 +172,4 @@ QIcon qSlicerSubjectHierarchyRTPlanPlugin::visibilityIcon(int visible)
 {
   // Have the default plugin (which is not registered) take care of this
   return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->visibilityIcon(visible);
-}
-
-//---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyRTPlanPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
-{
-  Q_UNUSED(node);
-
-  // For the time being switch to the Markups module if the node is an isocenter markup fiducial
-  vtkMRMLNode* associatedNode = node->GetAssociatedNode();
-  if (associatedNode && associatedNode->IsA("vtkMRMLMarkupsFiducialNode"))
-  {
-    qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Markups")->editProperties(node);
-  }
-  else if (associatedNode && associatedNode->IsA("vtkMRMLRTPlanNode"))
-  {
-    // Switch to External Beam Planning module
-    qSlicerSubjectHierarchyAbstractPlugin::switchToModule("ExternalBeamPlanning");
-    //TODO: Select plan
-  }
 }

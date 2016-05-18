@@ -36,6 +36,15 @@ class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerBeamsModuleWidget :
 {
   Q_OBJECT
 
+public:
+  typedef qSlicerAbstractModuleWidget Superclass;
+  qSlicerBeamsModuleWidget(QWidget *parent=0);
+  virtual ~qSlicerBeamsModuleWidget();
+
+  virtual void enter();
+
+  virtual bool setEditedNode(vtkMRMLNode* node, QString role=QString(), QString context=QString());
+
 public slots:
   /// Set the current MRML scene to the widget
   virtual void setMRMLScene(vtkMRMLScene*);
@@ -116,13 +125,6 @@ protected slots:
 
   //TODO: Unused function
   void collimatorTypeChanged(const QString &);
-
-public:
-  typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerBeamsModuleWidget(QWidget *parent=0);
-  virtual ~qSlicerBeamsModuleWidget();
-
-  virtual void enter();
 
 protected:
   QScopedPointer<qSlicerBeamsModuleWidgetPrivate> d_ptr;
