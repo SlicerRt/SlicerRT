@@ -1317,7 +1317,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
       vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid subject hierarchy node for beam '" << beamNode->GetName() << "'!");
       return;
     }
-    vtkMRMLRTPlanNode *planNode = beamNode->GetPlanNode();
+    vtkMRMLRTPlanNode *planNode = beamNode->GetParentPlanNode();
     if (!planNode)
     {
       vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid plan node for beam '" << beamNode->GetName() << "'!");

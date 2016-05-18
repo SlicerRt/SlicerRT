@@ -58,7 +58,7 @@ public slots:
   void updateWidgetFromMRML();
 
 public:
-  /// TODO:
+  /// Get selected beam node. If there are multiple selections then return the first one
   vtkMRMLRTBeamNode* currentBeamNode();
 
 protected slots:

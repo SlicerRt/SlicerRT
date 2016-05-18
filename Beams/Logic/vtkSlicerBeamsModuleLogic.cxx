@@ -97,9 +97,11 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 
   if (node->IsA("vtkMRMLRTBeamNode"))
   {
-    // Observe isocenter modified event
+    // Observe beam events
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLRTBeamNode::IsocenterModifiedEvent);
+    events->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
+    events->InsertNextValue(vtkMRMLRTBeamNode::BeamTransformModified);
     vtkObserveMRMLNodeEventsMacro(node, events);
   }
 }
@@ -121,9 +123,11 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 
   if (node->IsA("vtkMRMLRTBeamNode"))
   {
-    // Observe isocenter modified event
+    // Observe beam events
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLRTBeamNode::IsocenterModifiedEvent);
+    events->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
+    events->InsertNextValue(vtkMRMLRTBeamNode::BeamTransformModified);
     vtkObserveMRMLNodeEventsMacro(node, events);
   }
 }
@@ -131,13 +135,15 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 //---------------------------------------------------------------------------
 void vtkSlicerBeamsModuleLogic::OnMRMLSceneEndImport()
 {
-  // Observe isocenter modified events of all beam nodes
+  // Observe beam events of all beam nodes
   this->GetMRMLScene()->InitTraversal();
   vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLRTBeamNode");
   while (node != NULL)
   {
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLRTBeamNode::IsocenterModifiedEvent);
+    events->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
+    events->InsertNextValue(vtkMRMLRTBeamNode::BeamTransformModified);
     vtkObserveMRMLNodeEventsMacro(node, events);
   }
 }
@@ -162,10 +168,16 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
   {
     vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(caller);
 
-    if (event == vtkMRMLRTBeamNode::IsocenterModifiedEvent)
+    if ( event == vtkMRMLRTBeamNode::IsocenterModifiedEvent
+      || event == vtkMRMLRTBeamNode::BeamTransformModified )
     {
       // Update beam transform
       this->UpdateBeamTransform(beamNode);
+    }
+    else if (event == vtkMRMLRTBeamNode::BeamGeometryModified)
+    {
+      // Update beam model
+      this->UpdateBeamGeometry(beamNode);
     }
   }
 }

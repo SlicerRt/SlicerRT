@@ -57,17 +57,17 @@ public:
   virtual ~qMRMLBeamsTableView();
 
   /// Get plan MRML node
-  vtkMRMLNode* planNode();
+  Q_INVOKABLE vtkMRMLNode* planNode();
 
   /// Return number of beams (rows) in the table
-  int beamCount() const;
+  Q_INVOKABLE int beamCount() const;
 
   /// Return selected beam node ID
-  QString selectedBeamNodeID();
+  Q_INVOKABLE QStringList selectedBeamNodeIDs();
 
 public slots:
   /// Set plan MRML node
-  void setPlanNode(vtkMRMLNode* node);
+  Q_INVOKABLE void setPlanNode(vtkMRMLNode* node);
 
 signals:
   /// Emitted if selection changes

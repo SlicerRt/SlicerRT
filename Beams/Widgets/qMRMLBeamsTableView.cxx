@@ -249,6 +249,7 @@ void qMRMLBeamsTableView::populateBeamTable()
 
     // Edit button
     QPushButton* editButton = new QPushButton("Edit");
+    editButton->setMaximumWidth(48);
     editButton->setToolTip("Show beam details in Beams module");
     editButton->setProperty(ID_PROPERTY, beamNode->GetID());
     connect(editButton, SIGNAL(clicked()), this, SLOT(onEditButtonClicked()));
@@ -358,18 +359,24 @@ void qMRMLBeamsTableView::onEditButtonClicked()
 }
 
 //-----------------------------------------------------------------------------
-QString qMRMLBeamsTableView::selectedBeamNodeID()
+QStringList qMRMLBeamsTableView::selectedBeamNodeIDs()
 {
   Q_D(qMRMLBeamsTableView);
 
   QList<QTableWidgetItem*> selectedItems = d->BeamsTable->selectedItems();
-  if (selectedItems.count() == 0)
-  {
-    return QString();
-  }
+  QStringList selectedBeamNodeIds;
+  QSet<int> rows;
+  foreach (QTableWidgetItem* item, selectedItems)
+    {
+    int row = item->row();
+    if (!rows.contains(row))
+      {
+      rows.insert(row);
+      selectedBeamNodeIds << item->data(IDRole).toString();
+      }
+    }
 
-  // All selected items are in the same row as single row selection is set to the table
-  return selectedItems[0]->data(IDRole).toString();
+  return selectedBeamNodeIds;
 }
 
 //------------------------------------------------------------------------------

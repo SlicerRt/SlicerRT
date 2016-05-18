@@ -347,6 +347,8 @@ vtkMRMLDoubleArrayNode* vtkMRMLRTBeamNode::GetMLCPositionDoubleArrayNode()
 void vtkMRMLRTBeamNode::SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode* node)
 {
   this->SetNodeReferenceID(MLCPOSITION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+
+  this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
 }
 
 //----------------------------------------------------------------------------
@@ -374,7 +376,7 @@ void vtkMRMLRTBeamNode::SetAndObserveContourBEVVolumeNode(vtkMRMLScalarVolumeNod
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLRTPlanNode* vtkMRMLRTBeamNode::GetPlanNode()
+vtkMRMLRTPlanNode* vtkMRMLRTBeamNode::GetParentPlanNode()
 {
   vtkMRMLSubjectHierarchyNode* beamShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this);
   if (!beamShNode)
@@ -462,6 +464,70 @@ void vtkMRMLRTBeamNode::SetReferenceDosePointPosition(const double* position)
   {
     this->ReferenceDosePoint[d] = position[d];
   }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetX1Jaw(double x1Jaw)
+{
+  this->X1Jaw = x1Jaw;
+  this->Modified();
+  this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetX2Jaw(double x2Jaw)
+{
+  this->X2Jaw = x2Jaw;
+  this->Modified();
+  this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetY1Jaw(double y1Jaw)
+{
+  this->Y1Jaw = y1Jaw;
+  this->Modified();
+  this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetY2Jaw(double y2Jaw)
+{
+  this->Y2Jaw = y2Jaw;
+  this->Modified();
+  this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetGantryAngle(double angle)
+{
+  this->GantryAngle = angle;
+  this->Modified();
+  this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetCollimatorAngle(double angle)
+{
+  this->CollimatorAngle = angle;
+  this->Modified();
+  this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetCouchAngle(double angle)
+{
+  this->CouchAngle = angle;
+  this->Modified();
+  this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetSAD(double sad)
+{
+  this->SAD = sad;
+  this->Modified();
+  this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
 }
 
 //----------------------------------------------------------------------------

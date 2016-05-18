@@ -830,15 +830,19 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_GoToParentPlan">
+      <widget class="QPushButton" name="pushButton_SwitchToParentPlan">
        <property name="minimumSize">
         <size>
-         <width>102</width>
+         <width>144</width>
          <height>0</height>
         </size>
        </property>
        <property name="text">
-        <string>Go to parent plan</string>
+        <string>Switch to parent plan</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../../SubjectHierarchyPlugins/Resources/qSlicerBeamsSubjectHierarchyPlugins.qrc">
+         <normaloff>:/Icons/Plan.png</normaloff>:/Icons/Plan.png</iconset>
        </property>
       </widget>
      </item>
@@ -911,7 +915,9 @@
    <header>ctkSliderWidget.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../../SubjectHierarchyPlugins/Resources/qSlicerBeamsSubjectHierarchyPlugins.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>qSlicerBeamsModule</sender>

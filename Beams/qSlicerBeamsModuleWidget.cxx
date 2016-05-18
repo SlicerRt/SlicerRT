@@ -148,8 +148,8 @@ void qSlicerBeamsModuleWidget::setup()
   this->Superclass::setup();
 
   // Beam global parameters
-  this->connect( d->MRMLNodeComboBox_RtBeam, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtBeamNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->pushButton_GoToParentPlan, SIGNAL(clicked()), this, SLOT(goToParentPlanButtonClicked()) );
+  this->connect( d->MRMLNodeComboBox_RtBeam, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setBeamNode(vtkMRMLNode*)) );
+  this->connect( d->pushButton_SwitchToParentPlan, SIGNAL(clicked()), this, SLOT(switchToParentPlanButtonClicked()) );
   this->connect( d->lineEdit_BeamName, SIGNAL(textChanged(const QString &)), this, SLOT(beamNameChanged(const QString &)) );
   this->connect( d->comboBox_RadiationType, SIGNAL(currentIndexChanged(int)), this, SLOT(radiationTypeChanged(int)) );
 
@@ -203,6 +203,19 @@ void qSlicerBeamsModuleWidget::setup()
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
+
+  this->updateButtonsState();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerBeamsModuleWidget::updateButtonsState()
+{
+  Q_D(qSlicerBeamsModuleWidget);
+
+  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  bool applyEnabled = beamNode
+                   && beamNode->GetParentPlanNode();
+  d->pushButton_SwitchToParentPlan->setEnabled(applyEnabled);
 }
 
 //-----------------------------------------------------------------------------
@@ -338,7 +351,7 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
   }
 
   // Set segmentation to be the plan segmentation //TODO: Only allow selection of target
-  vtkMRMLRTPlanNode* rtPlanNode = beamNode->GetPlanNode();
+  vtkMRMLRTPlanNode* rtPlanNode = beamNode->GetParentPlanNode();
   if (rtPlanNode)
   {
     d->MRMLSegmentSelectorWidget_TargetVolume->setCurrentNode(rtPlanNode->GetSegmentationNode());
@@ -410,10 +423,12 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
     d->checkBox_WEDApproximation->setChecked(protonNode->GetLateralSpreadHomoApprox());
     d->checkBox_RangeCompensatorHighland->setChecked(protonNode->GetRangeCompensatorHighland());
   }
+
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::rtBeamNodeChanged(vtkMRMLNode* node)
+void qSlicerBeamsModuleWidget::setBeamNode(vtkMRMLNode* node)
 {
   Q_D(qSlicerBeamsModuleWidget);
 
@@ -430,44 +445,19 @@ void qSlicerBeamsModuleWidget::rtBeamNodeChanged(vtkMRMLNode* node)
   }
 
   // Each time the node is modified, the qt widgets are updated
-  qvtkReconnect(rtBeamNode, vtkCommand::ModifiedEvent, this, SLOT(onRTBeamNodeModified()));
+  qvtkReconnect(rtBeamNode, vtkCommand::ModifiedEvent, this, SLOT(onBeamNodeModified()));
 
   this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::onRTBeamNodeModified()
+void qSlicerBeamsModuleWidget::onBeamNodeModified()
 {
   this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::goToParentPlanButtonClicked()
-{
-  // Switch to EBP module
-  qSlicerSubjectHierarchyAbstractPlugin::switchToModule("ExternalBeamPlanning");
-  //TODO: Select plan
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::onLogicModified()
-{
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::updateCurrentBeamTransform()
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (beamNode)
-  {
-    d->logic()->UpdateBeamTransform(beamNode);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::updateBeamGeometryModel()
+void qSlicerBeamsModuleWidget::switchToParentPlanButtonClicked()
 {
   Q_D(qSlicerBeamsModuleWidget);
 
@@ -478,8 +468,41 @@ void qSlicerBeamsModuleWidget::updateBeamGeometryModel()
     return;
   }
 
-  d->logic()->UpdateBeamGeometry(beamNode);
+  // Open ExternalBeamPlanning module and select parent plan
+  qSlicerApplication::application()->openNodeModule(beamNode->GetParentPlanNode());
 }
+
+//-----------------------------------------------------------------------------
+void qSlicerBeamsModuleWidget::onLogicModified()
+{
+}
+
+//-----------------------------------------------------------------------------
+//void qSlicerBeamsModuleWidget::updateCurrentBeamTransform()
+//{
+//  Q_D(qSlicerBeamsModuleWidget);
+//
+//  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+//  if (beamNode)
+//  {
+//    d->logic()->UpdateBeamTransform(beamNode);
+//  }
+//}
+
+//-----------------------------------------------------------------------------
+//void qSlicerBeamsModuleWidget::updateBeamGeometryModel()
+//{
+//  Q_D(qSlicerBeamsModuleWidget);
+//
+//  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+//  if (!beamNode)
+//  {
+//    qCritical() << Q_FUNC_INFO << "Unable to access active beam node";
+//    return;
+//  }
+//
+//  d->logic()->UpdateBeamGeometry(beamNode);
+//}
 
 //-----------------------------------------------------------------------------
 void qSlicerBeamsModuleWidget::beamNameChanged(const QString &text)
@@ -633,7 +656,7 @@ void qSlicerBeamsModuleWidget::targetSegmentationNodeChanged(vtkMRMLNode* node)
     return;
   }
 
-  vtkMRMLRTPlanNode* rtPlanNode = beamNode->GetPlanNode();
+  vtkMRMLRTPlanNode* rtPlanNode = beamNode->GetParentPlanNode();
   if (!rtPlanNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
@@ -700,7 +723,7 @@ void qSlicerBeamsModuleWidget::rxDoseChanged(double value)
     qCritical() << Q_FUNC_INFO << ": Invalid current beam node!";
     return;
   }
-  vtkMRMLRTPlanNode* rtPlanNode = beamNode->GetPlanNode();
+  vtkMRMLRTPlanNode* rtPlanNode = beamNode->GetParentPlanNode();
   if (!rtPlanNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
@@ -997,8 +1020,8 @@ void qSlicerBeamsModuleWidget::xJawsPositionValuesChanged(double minVal, double 
   beamNode->SetX2Jaw(maxVal);
 
   // Update beam visualization
-  this->updateCurrentBeamTransform();
-  this->updateBeamGeometryModel();
+  //this->updateCurrentBeamTransform();
+  //this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -1023,8 +1046,8 @@ void qSlicerBeamsModuleWidget::yJawsPositionValuesChanged(double minVal, double 
   beamNode->SetY2Jaw(maxVal);
 
   // Update beam visualization
-  this->updateCurrentBeamTransform();
-  this->updateBeamGeometryModel();
+  //this->updateCurrentBeamTransform();
+  //this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -1048,14 +1071,14 @@ void qSlicerBeamsModuleWidget::gantryAngleChanged(double value)
   beamNode->SetGantryAngle(value);
 
   // Update beam visualization
-  this->updateCurrentBeamTransform();
+  //this->updateCurrentBeamTransform();
 
   // Update the table
   //TODO: Observe beam modified event and update the table accordingly
   //this->updateRTBeamTableWidget();
 
   // Update beam visualization
-  this->updateBeamGeometryModel();
+  //this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -1078,7 +1101,7 @@ void qSlicerBeamsModuleWidget::collimatorAngleChanged(double value)
   beamNode->SetCollimatorAngle(value);
 
   // Update beam visualization
-  this->updateCurrentBeamTransform();
+  //this->updateCurrentBeamTransform();
 }
 
 //-----------------------------------------------------------------------------
@@ -1102,8 +1125,7 @@ void qSlicerBeamsModuleWidget::couchAngleChanged(double value)
   beamNode->SetCouchAngle(value);
 
   // Update beam visualization
-
-  this->updateCurrentBeamTransform();
+  //this->updateCurrentBeamTransform();
 }
 
 //-----------------------------------------------------------------------------
@@ -1169,7 +1191,7 @@ void qSlicerBeamsModuleWidget::sourceDistanceChanged(double value)
   beamNode->SetSAD(value);
 
   // Update beam visualization
-  this->updateBeamGeometryModel();
+  //this->updateBeamGeometryModel();
 }
 
 //-----------------------------------------------------------------------------
@@ -1480,3 +1502,15 @@ bool qSlicerBeamsModuleWidget::setEditedNode(vtkMRMLNode* node, QString role/*=Q
   }
   return false;
 }
+
+//-----------------------------------------------------------
+double qSlicerBeamsModuleWidget::nodeEditable(vtkMRMLNode* node)
+{
+  /// Return a higher confidence value (0.6) for beam nodes to prevent beams to be opened by Models
+  if (vtkMRMLRTBeamNode::SafeDownCast(node))
+  {
+    return 0.6;
+  }
+
+  return 0.5;
+} 

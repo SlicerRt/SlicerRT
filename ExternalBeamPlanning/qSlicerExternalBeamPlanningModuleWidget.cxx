@@ -74,9 +74,6 @@ public:
   /// Using this flag prevents overriding the parameter set node contents when the
   ///   QMRMLCombobox selects the first instance of the specified node type when initializing
   bool ModuleWindowInitialized;
-
-  int CurrentBeamRow;
-  int NumberOfBeamRows;
 };
 
 //-----------------------------------------------------------------------------
@@ -87,8 +84,6 @@ qSlicerExternalBeamPlanningModuleWidgetPrivate::qSlicerExternalBeamPlanningModul
   : q_ptr(&object)
   , ModuleWindowInitialized(false)
 {
-  CurrentBeamRow = -1;
-  NumberOfBeamRows = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -520,13 +515,17 @@ vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode()
     return NULL;
   }
 
-  QString beamNodeID = d->BeamsTableView->selectedBeamNodeID();
-  if (beamNodeID.isEmpty())
+  QStringList beamNodeIDs = d->BeamsTableView->selectedBeamNodeIDs();
+  if (beamNodeIDs.isEmpty())
   {
     return NULL;
   }
+  else if (beamNodeIDs.count() > 1)
+  {
+    qWarning() << Q_FUNC_INFO << ": Multiple beams selected, the first one is used for the current operation";
+  }
 
-  return vtkMRMLRTBeamNode::SafeDownCast( rtPlanNode->GetScene()->GetNodeByID(beamNodeID.toLatin1().constData()) );
+  return vtkMRMLRTBeamNode::SafeDownCast( this->mrmlScene()->GetNodeByID(beamNodeIDs[0].toLatin1().constData()) );
 }
 
 //-----------------------------------------------------------------------------
@@ -569,17 +568,8 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
     return;
   }
 
-  // Make new beam current in the table
-  //TODO:
-  //d->CurrentBeamRow = d->NumberOfBeamRows++;
-  //d->tableWidget_Beams->selectRow(d->CurrentBeamRow);
-
   // Clear instruction text
   d->label_CalculateDoseStatus->setText("");
-
-  // Update UI
-  //TODO:
-  //this->updateWidgetFromMRML();
 
   // Update beam visualization
   d->logic()->GetBeamsLogic()->UpdateBeamTransform(beamNode);
@@ -603,29 +593,15 @@ void qSlicerExternalBeamPlanningModuleWidget::removeBeamClicked()
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
     return;
   }
-  vtkMRMLRTBeamNode* beamNode = this->currentBeamNode();
-  if (!beamNode)
+
+  QStringList beamNodeIDs = d->BeamsTableView->selectedBeamNodeIDs();
+  foreach (QString beamNodeID, beamNodeIDs)
   {
-    return;
+    // Remove beam
+    vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(
+      this->mrmlScene()->GetNodeByID(beamNodeID.toLatin1().constData()) );
+    rtPlanNode->RemoveBeam(beamNode);
   }
-
-  // Remove beam
-  rtPlanNode->RemoveBeam(beamNode);
-
-  //TODO:
-  // Select a different beam as current
-  //d->NumberOfBeamRows--;
-  //if (d->CurrentBeamRow >= d->NumberOfBeamRows)
-  //{
-  //  d->CurrentBeamRow = d->NumberOfBeamRows-1;
-  //}
-
-  // Update UI table
-  //d->tableWidget_Beams->selectRow(d->CurrentBeamRow);
-  //this->updateRTBeamTableWidget();
-
-  // Update lower UI tabs
-  //this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------

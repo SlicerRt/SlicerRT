@@ -43,7 +43,10 @@ public:
 
   virtual void enter();
 
+  /// Allows module to select beam nodes in the module's GUI
   virtual bool setEditedNode(vtkMRMLNode* node, QString role=QString(), QString context=QString());
+  /// Return a higher confidence value (0.6) for beam nodes to prevent beams to be opened by Models
+  virtual double nodeEditable(vtkMRMLNode* node);
 
 public slots:
   /// Set the current MRML scene to the widget
@@ -57,22 +60,20 @@ public slots:
 
 // Update functions
 protected:
-  /// TODO
-  void updateCurrentBeamTransform();
-
-  /// TODO
-  void updateBeamGeometryModel();
+  /// Updates button states
+  void updateButtonsState();
 
 protected slots:
   /// Logic modified
   void onLogicModified();
 
   /// Handles active beam selection changed event
-  void rtBeamNodeChanged(vtkMRMLNode* node);
+  void setBeamNode(vtkMRMLNode* node);
   /// Currently selected RTBeam was modified
-  void onRTBeamNodeModified();
+  void onBeamNodeModified();
 
-  void goToParentPlanButtonClicked();
+  /// Handle switch to parent plan button click, takes the user to External Beam Planning and selects parent plan
+  void switchToParentPlanButtonClicked();
 
   // Beam global parameters
   void beamNameChanged(const QString &);

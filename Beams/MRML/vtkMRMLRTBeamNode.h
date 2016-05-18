@@ -77,7 +77,9 @@ public:
   enum
   {
     /// Fired if isocenter position changes
-    IsocenterModifiedEvent = 62200
+    IsocenterModifiedEvent = 62200,
+    BeamGeometryModified,
+    BeamTransformModified
   };
 
 public:
@@ -115,7 +117,7 @@ public:
 
 public:
   /// Get parent plan node
-  vtkMRMLRTPlanNode* GetPlanNode();
+  vtkMRMLRTPlanNode* GetParentPlanNode();
 
   /// Get isocenter fiducial node
   vtkMRMLMarkupsFiducialNode* GetIsocenterFiducialNode();
@@ -132,7 +134,8 @@ public:
 
   /// Get MLC position double array node
   vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
-  /// Set and observe MLC position double array node
+  /// Set and observe MLC position double array node.
+  /// Triggers \sa BeamGeometryModified event and re-generation of beam model
   void SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode* node);
 
   /// Get DRR volume node
@@ -210,38 +213,46 @@ public:
 
   vtkGetMacro(X1Jaw, double);
   vtkGetConstMacro(X1Jaw, double);
-  vtkSetMacro(X1Jaw, double);
+  /// Set X1 jaw position. Triggers \sa BeamGeometryModified event and re-generation of beam model
+  void SetX1Jaw(double x1Jaw);
 
   vtkGetMacro(X2Jaw, double);
   vtkGetConstMacro(X2Jaw, double);
-  vtkSetMacro(X2Jaw, double);
+  /// Set X2 jaw position. Triggers \sa BeamGeometryModified event and re-generation of beam model
+  void SetX2Jaw(double x2Jaw);
 
   vtkGetMacro(Y1Jaw, double);
   vtkGetConstMacro(Y1Jaw, double);
-  vtkSetMacro(Y1Jaw, double);
+  /// Set Y1 jaw position. Triggers \sa BeamGeometryModified event and re-generation of beam model
+  void SetY1Jaw(double y1Jaw);
 
   vtkGetMacro(Y2Jaw, double);
   vtkGetConstMacro(Y2Jaw, double);
-  vtkSetMacro(Y2Jaw, double);
-
-  vtkGetMacro(GantryAngle, double);
-  vtkGetConstMacro(GantryAngle, double);
-  vtkSetMacro(GantryAngle, double);
-
-  vtkGetMacro(CollimatorAngle, double);
-  vtkGetConstMacro(CollimatorAngle, double);
-  vtkSetMacro(CollimatorAngle, double);
-
-  vtkGetMacro(CouchAngle, double);
-  vtkGetConstMacro(CouchAngle, double);
-  vtkSetMacro(CouchAngle, double);
-
-  vtkGetMacro(Smearing, double);
-  vtkSetMacro(Smearing, double);
+  /// Set Y2 jaw position. Triggers \sa BeamGeometryModified event and re-generation of beam model
+  void SetY2Jaw(double y2Jaw);
 
   vtkGetMacro(SAD, double);
   vtkGetConstMacro(SAD, double);
-  vtkSetMacro(SAD, double);
+  /// Set source-axis distance. Triggers \sa BeamGeometryModified event and re-generation of beam model
+  void SetSAD(double sad);
+
+  vtkGetMacro(GantryAngle, double);
+  vtkGetConstMacro(GantryAngle, double);
+  /// Set gantry angle. Triggers \sa BeamTransformModified event and re-generation of beam model
+  void SetGantryAngle(double angle);
+
+  vtkGetMacro(CollimatorAngle, double);
+  vtkGetConstMacro(CollimatorAngle, double);
+  /// Set collimator angle. Triggers \sa BeamTransformModified event and re-generation of beam model
+  void SetCollimatorAngle(double angle);
+
+  vtkGetMacro(CouchAngle, double);
+  vtkGetConstMacro(CouchAngle, double);
+  /// Set couch angle. Triggers \sa BeamTransformModified event and re-generation of beam model
+  void SetCouchAngle(double angle);
+
+  vtkGetMacro(Smearing, double);
+  vtkSetMacro(Smearing, double);
 
   vtkGetMacro(BeamWeight, double);
   vtkGetConstMacro(BeamWeight, double);
@@ -257,36 +268,56 @@ protected:
 protected:
   /// Beam number
   int   BeamNumber;
-
   /// Beam description
   char* BeamDescription;
 
   /// Target segment ID in target segmentation node
   char* TargetSegmentID;
 
+  /// TODO:
   RTBeamType  BeamType;
+  /// TODO:
   RTRadiationType RadiationType;
+  /// TODO:
   RTCollimatorType CollimatorType;
 
+  /// TODO:
   double NominalEnergy;
+  /// TODO:
   double NominalmA;
+  /// TODO:
   double BeamOnTime;
 
+  /// Isocenter specification determining whether it can be an arbitrary point or
+  /// always calculated to be at the center of the target structure
   IsocenterSpecificationType IsocenterSpecification;
+  /// Isocenter position
   double Isocenter[3];
+  /// TODO:
   double ReferenceDosePoint[3];
 
+  /// X1 jaw position
   double X1Jaw;
+  /// X2 jaw position
   double X2Jaw;
+  /// Y1 jaw position
   double Y1Jaw;
+  /// Y2 jaw position
   double Y2Jaw;
+  /// Source-axis distance
+  double SAD;
 
+  /// Gantry angle
   double GantryAngle;
+  /// Collimator angle
   double CollimatorAngle;
+  /// Couch angle
   double CouchAngle;
+
+  /// TODO:
   double Smearing;
 
-  double SAD;
+  /// Beam weight, taken into account when accumulating per-beam doses
   double BeamWeight;
 };
 

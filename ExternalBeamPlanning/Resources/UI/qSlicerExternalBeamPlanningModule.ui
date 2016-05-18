@@ -262,7 +262,7 @@
            </size>
           </property>
           <property name="text">
-           <string>Add Beam</string>
+           <string>Add beam</string>
           </property>
           <property name="icon">
            <iconset resource="../qSlicerExternalBeamPlanningModule.qrc">
@@ -292,7 +292,7 @@
            </size>
           </property>
           <property name="text">
-           <string>Remove Beam</string>
+           <string>Remove beam</string>
           </property>
           <property name="icon">
            <iconset resource="../qSlicerExternalBeamPlanningModule.qrc">
