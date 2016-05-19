@@ -376,6 +376,7 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
 
   // Set segmentation to be the plan segmentation
   d->MRMLSegmentSelectorWidget_TargetVolume->setCurrentNode(beamNode->GetTargetSegmentationNode());
+  d->MRMLSegmentSelectorWidget_TargetVolume->setCurrentSegmentID(beamNode->GetTargetSegmentID());
 
   //TODO: RxDose to plan?
   //d->doubleSpinBox_RxDose->setValue(beamNode->GetRxDose()); The RxDose doesn't need to be reset, it is the same for the plan
@@ -644,14 +645,7 @@ void qSlicerBeamsModuleWidget::targetSegmentChanged(const QString& segment)
   if (beamNode->GetIsocenterSpecification() == vtkMRMLRTBeamNode::CenterOfTarget)
   {
     beamNode->SetIsocenterToTargetCenter();
-
-    // GCS FIX TODO: Testing...I copied this from above.  I should be getting
-    // a markup moved event, why didn't I?
-    double iso[3];
-    beamNode->GetIsocenterPosition(iso);
-    d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(true);
-    d->MRMLCoordinatesWidget_IsocenterCoordinates->setCoordinates(iso);
-    d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(false);
+    this->centerViewToIsocenterClicked();
   }
 }
 

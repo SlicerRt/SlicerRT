@@ -262,7 +262,6 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTBeamNode::GetTargetLabelmap()
     return targetLabelmap;
   }
 
-  //segmentationNode->GetImageData ();
   if (segmentation->ContainsRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
   {
     targetLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
@@ -272,12 +271,9 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTBeamNode::GetTargetLabelmap()
   else
   {
     // Need to convert
-    targetLabelmap = vtkSmartPointer<vtkOrientedImageData>::Take(
-      vtkOrientedImageData::SafeDownCast(
-        vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment(
-          segmentation,
-          this->GetTargetSegmentID(),
-          vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName())));
+    targetLabelmap = vtkSmartPointer<vtkOrientedImageData>::Take( vtkOrientedImageData::SafeDownCast(
+      vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment(
+        segmentation, this->GetTargetSegmentID(), vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) ) );
     if (!targetLabelmap.GetPointer())
     {
       std::string errorMessage("Failed to convert target segment into binary labelmap");
@@ -307,15 +303,15 @@ bool vtkMRMLRTBeamNode::ComputeTargetVolumeCenter(double* center)
 
   // Get a labelmap for the target
   vtkSmartPointer<vtkOrientedImageData> targetLabelmap = this->GetTargetLabelmap();
-  if (targetLabelmap == NULL)
+  if (targetLabelmap.GetPointer() == NULL)
   {
     return false;
   }
 
   // Convert inputs to plm image
-  Plm_image::Pointer plmTgt 
+  Plm_image::Pointer targetPlmVolume 
     = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(targetLabelmap);
-  if (!plmTgt)
+  if (!targetPlmVolume)
   {
     std::string errorMessage("Failed to convert reference segment labelmap into Plm_image");
     vtkErrorMacro("ComputeTargetVolumeCenter: " << errorMessage);
@@ -323,15 +319,15 @@ bool vtkMRMLRTBeamNode::ComputeTargetVolumeCenter(double* center)
   }
 
   // Compute image center
-  Image_center ic;
-  ic.set_image(plmTgt);
-  ic.run();
-  itk::Vector<double,3> com = ic.get_image_center_of_mass();
+  Image_center imageCenter;
+  imageCenter.set_image(targetPlmVolume);
+  imageCenter.run();
+  itk::Vector<double,3> centerOfMass = imageCenter.get_image_center_of_mass();
 
   // Copy to output argument, and convert LPS -> RAS
-  center[0] = -com[0];
-  center[1] = -com[1];
-  center[2] = com[2];
+  center[0] = -centerOfMass[0];
+  center[1] = -centerOfMass[1];
+  center[2] =  centerOfMass[2];
   return true;
 }
 
@@ -579,7 +575,9 @@ void vtkMRMLRTBeamNode::CreateDefaultBeamModel()
 
   // Create transform node for beam
   vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
-  transformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetScene()->AddNode(transformNode));
+  std::string transformName = std::string(this->GetName()) + "_Transform";
+  transformNode->SetName(transformName.c_str());
+  this->GetScene()->AddNode(transformNode);
   transformNode->SetMatrixTransformToParent(transform->GetMatrix());
   transformNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
 

@@ -46,6 +46,9 @@ public:
   qMRMLSegmentSelectorWidgetPrivate(qMRMLSegmentSelectorWidget& object);
   void init();
 
+  /// Set message to display. If message is empty, then the label widget is hidden
+  void setMessage(QString message);
+
 public:
   /// Segmentation MRML node containing shown segments
   vtkMRMLSegmentationNode* SegmentationNode;
@@ -74,6 +77,13 @@ void qMRMLSegmentSelectorWidgetPrivate::init()
     q, SIGNAL(currentNodeChanged(vtkMRMLNode*)) );
   QObject::connect(this->comboBox_Segment, SIGNAL(currentIndexChanged(int)),
     q, SLOT(onCurrentSegmentChanged(int)));
+}
+
+//--------------------------------------------------------------------------
+void qMRMLSegmentSelectorWidgetPrivate::setMessage(QString message)
+{
+  this->label_Message->setVisible(!message.isEmpty());
+  this->label_Message->setText(message);
 }
 
 
@@ -151,7 +161,7 @@ void qMRMLSegmentSelectorWidget::populateSegmentCombobox()
   Q_D(qMRMLSegmentSelectorWidget);
 
   d->comboBox_Segment->clear();
-  d->label_Message->setText(QString());
+  d->setMessage(QString());
 
   // Block signals so that onCurrentSegmentChanged function is not called when populating
   d->comboBox_Segment->blockSignals(true);
@@ -159,7 +169,7 @@ void qMRMLSegmentSelectorWidget::populateSegmentCombobox()
   // If not representation, then segmentation must be selected. Check validity
   if (!d->SegmentationNode)
     {
-    d->label_Message->setText(tr("No node is selected"));
+    d->setMessage(tr("No node is selected"));
     d->comboBox_Segment->setVisible(false);
     d->label_Segment->setVisible(false);
     d->comboBox_Segment->blockSignals(false);
@@ -167,7 +177,7 @@ void qMRMLSegmentSelectorWidget::populateSegmentCombobox()
     }
   else if (d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() == 0)
     {
-    d->label_Message->setText(tr("No segments in segmentation"));
+    d->setMessage(tr("No segments in segmentation"));
     d->comboBox_Segment->setVisible(false);
     d->label_Segment->setVisible(false);
     d->comboBox_Segment->blockSignals(false);
@@ -203,7 +213,7 @@ void qMRMLSegmentSelectorWidget::onCurrentSegmentChanged(int index)
 {
   Q_D(qMRMLSegmentSelectorWidget);
 
-  d->label_Message->setText(QString());
+  d->setMessage(QString());
 
   if (!d->SegmentationNode)
   {

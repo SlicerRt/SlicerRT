@@ -222,11 +222,16 @@ void vtkSlicerBeamsModuleLogic::UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode)
   transform->PostMultiply();
   transform->Concatenate(transform2->GetMatrix());
 
-  vtkMRMLLinearTransformNode *transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetNodeByID(beamNode->GetTransformNodeID()));
   if (transformNode)
   {
     transformNode->SetMatrixTransformToParent(transform->GetMatrix());
+
+    // Update the name of the transform node too
+    // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
+    std::string transformName = std::string(beamNode->GetName()) + "_Transform";
+    transformNode->SetName(transformName.c_str());
   }
 }
 

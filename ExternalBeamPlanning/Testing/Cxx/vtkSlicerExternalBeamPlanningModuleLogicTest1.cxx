@@ -175,6 +175,7 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   firstBeamNode->SetX2Jaw(50.0);
   firstBeamNode->SetY1Jaw(-50.0);
   firstBeamNode->SetY2Jaw(75.0);
+  firstBeamNode->SetEnergyResolution(4.0);
 
   // Add second beam copying the first
   //TODO:
@@ -229,9 +230,9 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   double doseVoxelCount = imageAccumulate->GetVoxelCount();
 
   outputStream << "Dose volume properties:" << std::endl << "  Max=" << doseMax << ", Mean=" << doseMean << ", StdDev=" << doseStdDev << ", NumberOfVoxels=" << doseVoxelCount << std::endl;
-  if ( !IsEqualWithTolerance(doseMax, 1.0063)
-    || !IsEqualWithTolerance(doseMean, 0.0239568)
-    || !IsEqualWithTolerance(doseStdDev, 0.140406)
+  if ( !IsEqualWithTolerance(doseMax, 1.04859)
+    || !IsEqualWithTolerance(doseMean, 0.0251724)
+    || !IsEqualWithTolerance(doseStdDev, 0.144749)
     || !IsEqualWithTolerance(doseVoxelCount, 1000) )
   {
     mrmlScene->Commit();
