@@ -52,7 +52,6 @@ const char* vtkMRMLRTBeamNode::NEW_BEAM_NODE_NAME_PREFIX = "NewBeam_";
 
 //------------------------------------------------------------------------------
 static const char* ISOCENTER_FIDUCIAL_REFERENCE_ROLE = "isocenterFiducialRef";
-static const char* TARGET_SEGMENTATION_REFERENCE_ROLE = "targetContourRef";
 static const char* MLCPOSITION_REFERENCE_ROLE = "MLCPositionRef";
 static const char* DRR_REFERENCE_ROLE = "DRRRef";
 static const char* CONTOUR_BEV_REFERENCE_ROLE = "contourBEVRef";
@@ -229,13 +228,13 @@ void vtkMRMLRTBeamNode::SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducia
 //----------------------------------------------------------------------------
 vtkMRMLSegmentationNode* vtkMRMLRTBeamNode::GetTargetSegmentationNode()
 {
-  return vtkMRMLSegmentationNode::SafeDownCast( this->GetNodeReference(TARGET_SEGMENTATION_REFERENCE_ROLE) );
-}
+  vtkMRMLRTPlanNode* rtPlanNode = this->GetParentPlanNode();
+  if (!rtPlanNode)
+  {
+    return NULL;
+  }
 
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetAndObserveTargetSegmentationNode(vtkMRMLSegmentationNode* node)
-{
-  this->SetNodeReferenceID(TARGET_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  return rtPlanNode->GetSegmentationNode();
 }
 
 //----------------------------------------------------------------------------

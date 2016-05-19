@@ -47,6 +47,7 @@ class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qMRMLSegmentSelectorWidget : 
 
 public:
   Q_PROPERTY(bool noneEnabled READ noneEnabled WRITE setNoneEnabled)
+  Q_PROPERTY(bool segmentationNodeSelectorVisible READ segmentationNodeSelectorVisible WRITE setSegmentationNodeSelectorVisible)
 
 public:
   /// Constructor
@@ -68,6 +69,13 @@ public:
   /// Set whether the "none" item should be in the segmentation node comboBox list or not.
   /// \sa noneEnabled, noneEnabled()
   void setNoneEnabled(bool enable);
+
+  /// Return whether segmentation node selector combobox is visible
+  /// \sa segmentationNodeSelectorVisible, setSegmentationNodeSelectorVisible()
+  bool segmentationNodeSelectorVisible()const;
+  /// Set whether segmentation node selector combobox is visible
+  /// \sa segmentationNodeSelectorVisible, segmentationNodeSelectorVisible()
+  void setSegmentationNodeSelectorVisible(bool visible);
 
 public slots:
   /// Set segmentation MRML node

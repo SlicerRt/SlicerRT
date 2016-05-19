@@ -124,11 +124,8 @@ public:
   /// Set and observe isocenter fiducial node
   void SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node);
 
-  /// Get proton target segmentation node
+  /// Get target segmentation node from parent plan node
   vtkMRMLSegmentationNode* GetTargetSegmentationNode();
-  /// Set and observe proton target segmentation node
-  void SetAndObserveTargetSegmentationNode(vtkMRMLSegmentationNode* node);
-
   /// Get target segment as a labelmap
   vtkSmartPointer<vtkOrientedImageData> GetTargetLabelmap();
 

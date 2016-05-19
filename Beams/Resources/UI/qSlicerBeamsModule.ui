@@ -74,7 +74,7 @@
          <bool>true</bool>
         </property>
         <property name="currentIndex">
-         <number>4</number>
+         <number>0</number>
         </property>
         <property name="tabsClosable">
          <bool>false</bool>
@@ -227,7 +227,11 @@
            </spacer>
           </item>
           <item row="1" column="2">
-           <widget class="qMRMLSegmentSelectorWidget" name="MRMLSegmentSelectorWidget_TargetVolume"/>
+           <widget class="qMRMLSegmentSelectorWidget" name="MRMLSegmentSelectorWidget_TargetVolume">
+            <property name="segmentationNodeSelectorVisible">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
           <item row="4" column="2">
            <layout class="QHBoxLayout" name="horizontalLayout">

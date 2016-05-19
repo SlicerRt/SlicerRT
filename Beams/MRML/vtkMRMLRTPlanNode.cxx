@@ -390,9 +390,6 @@ void vtkMRMLRTPlanNode::AddBeam(vtkMRMLRTBeamNode* beamNode)
   // Copy the plan markups node reference into the beam
   beamNode->SetAndObserveIsocenterFiducialNode(this->GetMarkupsFiducialNode());
 
-  // Copy the segmentation node reference into the beam
-  beamNode->SetAndObserveTargetSegmentationNode(this->GetSegmentationNode());
-
   // Put the RTBeam node in the subject hierarchy
   vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
     this->GetScene(), planSHNode, 

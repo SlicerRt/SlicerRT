@@ -156,7 +156,6 @@ void qSlicerBeamsModuleWidget::setup()
 
   // Prescription page
   this->connect( d->comboBox_BeamType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamTypeChanged(const QString &)) );
-  this->connect( d->MRMLSegmentSelectorWidget_TargetVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(targetSegmentationNodeChanged(vtkMRMLNode*)) );
   this->connect( d->MRMLSegmentSelectorWidget_TargetVolume, SIGNAL(currentSegmentChanged(QString)), this, SLOT(targetSegmentChanged(const QString&)) );
   this->connect( d->doubleSpinBox_RxDose, SIGNAL(valueChanged(double)), this, SLOT(rxDoseChanged(double)) );
   this->connect( d->comboBox_IsocenterSpec, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(isocenterSpecChanged(const QString &)));
@@ -375,13 +374,10 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
     break;
   }
 
-  // Set segmentation to be the plan segmentation //TODO: Only allow selection of target
-  vtkMRMLRTPlanNode* rtPlanNode = beamNode->GetParentPlanNode();
-  if (rtPlanNode)
-  {
-    d->MRMLSegmentSelectorWidget_TargetVolume->setCurrentNode(rtPlanNode->GetSegmentationNode());
-  }
+  // Set segmentation to be the plan segmentation
+  d->MRMLSegmentSelectorWidget_TargetVolume->setCurrentNode(beamNode->GetTargetSegmentationNode());
 
+  //TODO: RxDose to plan?
   //d->doubleSpinBox_RxDose->setValue(beamNode->GetRxDose()); The RxDose doesn't need to be reset, it is the same for the plan
 
   this->updateIsocenterPosition();
@@ -623,39 +619,6 @@ void qSlicerBeamsModuleWidget::beamTypeChanged(const QString &text)
   {
     beamNode->SetBeamType(vtkMRMLRTBeamNode::Static);
   }
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::targetSegmentationNodeChanged(vtkMRMLNode* node)
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  if (!this->mrmlScene())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
-    return;
-  }
-
-  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (!beamNode)
-  {
-    return;
-  }
-
-  vtkMRMLRTPlanNode* rtPlanNode = beamNode->GetParentPlanNode();
-  if (!rtPlanNode)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
-    return;
-  }
-
-  //TODO: The segmentation node should be fixed for the plan
-  rtPlanNode->DisableModifiedEventOn();
-  rtPlanNode->SetAndObserveSegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(node));
-  rtPlanNode->DisableModifiedEventOff();
-
-  // Update in beam node
-  beamNode->SetAndObserveTargetSegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(node));
 }
 
 //-----------------------------------------------------------------------------

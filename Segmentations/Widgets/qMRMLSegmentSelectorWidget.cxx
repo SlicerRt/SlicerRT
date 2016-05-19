@@ -249,3 +249,17 @@ bool qMRMLSegmentSelectorWidget::noneEnabled()const
   Q_D(const qMRMLSegmentSelectorWidget);
   return d->MRMLNodeComboBox_Segmentation->noneEnabled();
 }
+
+//--------------------------------------------------------------------------
+void qMRMLSegmentSelectorWidget::setSegmentationNodeSelectorVisible(bool visible)
+{
+  Q_D(qMRMLSegmentSelectorWidget);
+  d->MRMLNodeComboBox_Segmentation->setVisible(visible);
+}
+
+//--------------------------------------------------------------------------
+bool qMRMLSegmentSelectorWidget::segmentationNodeSelectorVisible()const
+{
+  Q_D(const qMRMLSegmentSelectorWidget);
+  return d->MRMLNodeComboBox_Segmentation->isVisible();
+}

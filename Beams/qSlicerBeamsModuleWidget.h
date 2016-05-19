@@ -83,7 +83,6 @@ protected slots:
 
   // Prescription page
   void beamTypeChanged(const QString &);
-  void targetSegmentationNodeChanged(vtkMRMLNode* node);
   void targetSegmentChanged(const QString& segment);
   void rxDoseChanged(double);
   void isocenterSpecChanged(const QString &);
