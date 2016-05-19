@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>424</width>
-    <height>418</height>
+    <width>758</width>
+    <height>718</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="1" column="1">
+      <item row="3" column="1">
        <widget class="QComboBox" name="comboBox_RadiationType">
         <item>
          <property name="text">
@@ -51,30 +51,30 @@
         </item>
        </widget>
       </item>
-      <item row="0" column="0">
+      <item row="2" column="0">
        <widget class="QLabel" name="label_BeamName">
         <property name="text">
          <string>Beam name:</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
+      <item row="3" column="0">
        <widget class="QLabel" name="label_MachineType">
         <property name="text">
          <string>Machine type:</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
+      <item row="2" column="1">
        <widget class="QLineEdit" name="lineEdit_BeamName"/>
       </item>
-      <item row="18" column="0" colspan="2">
+      <item row="20" column="0" colspan="2">
        <widget class="QTabWidget" name="tabWidget">
         <property name="enabled">
          <bool>true</bool>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>4</number>
         </property>
         <property name="tabsClosable">
          <bool>false</bool>
@@ -83,289 +83,172 @@
          <attribute name="title">
           <string>Prescription</string>
          </attribute>
-         <layout class="QGridLayout" name="gridLayout_6">
-          <property name="margin">
-           <number>0</number>
-          </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_RxDose">
+            <property name="text">
+             <string>Rx dose (Gy):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Isocenter spec:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QComboBox" name="comboBox_BeamType">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <item>
+             <property name="text">
+              <string>Static</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Dynamic</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_TargetVolume">
+            <property name="text">
+             <string>Target volume:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_RxDose">
+            <property name="maximum">
+             <double>200.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="QComboBox" name="comboBox_IsocenterSpec">
+            <item>
+             <property name="text">
+              <string>Center of target</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Arbitrary point</string>
+             </property>
+            </item>
+           </widget>
+          </item>
           <item row="0" column="0">
-           <layout class="QFormLayout" name="formLayout_7">
-            <property name="fieldGrowthPolicy">
-             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           <widget class="QLabel" name="label_BeamType">
+            <property name="enabled">
+             <bool>false</bool>
             </property>
-            <property name="horizontalSpacing">
-             <number>4</number>
+            <property name="text">
+             <string>Beam type:</string>
             </property>
-            <property name="verticalSpacing">
-             <number>4</number>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_Isocenter">
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
             </property>
-            <property name="margin">
-             <number>4</number>
+            <property name="text">
+             <string>Isocenter:</string>
             </property>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_BeamType">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>Beam type:</string>
-              </property>
-             </widget>
+           </widget>
+          </item>
+          <item row="6" column="2">
+           <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_DosePointCoordinates">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Dose point spec:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="2">
+           <widget class="QComboBox" name="comboBox">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <item>
+             <property name="text">
+              <string>Isocenter</string>
+             </property>
             </item>
-            <item row="0" column="1">
-             <widget class="QComboBox" name="comboBox_BeamType">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <item>
-               <property name="text">
-                <string>Static</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Dynamic</string>
-               </property>
-              </item>
-             </widget>
+            <item>
+             <property name="text">
+              <string>Arbitrary point</string>
+             </property>
             </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_TargetVolume">
-              <property name="text">
-               <string>Target volume:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="qMRMLSegmentSelectorWidget" name="MRMLSegmentSelectorWidget_TargetVolume"/>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_RxDose">
-              <property name="text">
-               <string>Rx dose (Gy):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_RxDose">
-              <property name="maximum">
-               <double>200.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>Isocenter spec:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QComboBox" name="comboBox_IsocenterSpec">
-              <item>
-               <property name="text">
-                <string>Center of target</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Arbitrary point</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="label_Isocenter">
-              <property name="frameShape">
-               <enum>QFrame::NoFrame</enum>
-              </property>
-              <property name="text">
-               <string>Isocenter:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_DosePoint">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Dose point:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0" colspan="3">
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="2">
+           <widget class="qMRMLSegmentSelectorWidget" name="MRMLSegmentSelectorWidget_TargetVolume"/>
+          </item>
+          <item row="4" column="2">
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
              <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_IsocenterCoordinates">
               <property name="enabled">
                <bool>true</bool>
               </property>
              </widget>
             </item>
-            <item row="5" column="0">
-             <widget class="QLabel" name="label_5">
-              <property name="enabled">
-               <bool>false</bool>
+            <item>
+             <widget class="QPushButton" name="pushButton_CenterViewToIsocenter">
+              <property name="toolTip">
+               <string>Navigate slice views to slices where the isocenter is visible</string>
               </property>
               <property name="text">
-               <string>Dose point spec:</string>
+               <string>Center views</string>
               </property>
-             </widget>
-            </item>
-            <item row="5" column="1">
-             <widget class="QComboBox" name="comboBox">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <item>
-               <property name="text">
-                <string>Isocenter</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Arbitrary point</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="6" column="0">
-             <widget class="QLabel" name="label_DosePoint">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>Dose point:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="1">
-             <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_DosePointCoordinates">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="tabWidgetPageProtonEnergy">
-         <attribute name="title">
-          <string>Energy</string>
-         </attribute>
-         <layout class="QGridLayout" name="gridLayout_7">
-          <item row="0" column="0">
-           <layout class="QFormLayout" name="formLayout_8">
-            <property name="fieldGrowthPolicy">
-             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-            </property>
-            <property name="horizontalSpacing">
-             <number>4</number>
-            </property>
-            <property name="verticalSpacing">
-             <number>4</number>
-            </property>
-            <property name="margin">
-             <number>0</number>
-            </property>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_ProximalMargin">
-              <property name="text">
-               <string>Proximal margin (mm):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_ProximalMargin">
-              <property name="maximum">
-               <double>50.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>5.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_DistalMargin">
-              <property name="text">
-               <string>Distal margin (mm):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_DistalMargin">
-              <property name="maximum">
-               <double>50.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>5.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_BeamLineType">
-              <property name="text">
-               <string>Beam line type:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QComboBox" name="comboBox_BeamLineType">
-              <item>
-               <property name="text">
-                <string>Active scanning</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Passive scattering</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_EnergyPrescription">
-              <property name="text">
-               <string>Energy prescription:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QCheckBox" name="checkBox_EnergyPrescription">
-              <property name="text">
-               <string/>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="label_MinimumEnergy">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>Minimum energy (MeV):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_MinimumEnergy">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="0">
-             <widget class="QLabel" name="label_MaximumEnergy">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>Maximum energy (MeV):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_MaximumEnergy">
-              <property name="enabled">
-               <bool>false</bool>
+              <property name="icon">
+               <iconset resource="../../SubjectHierarchyPlugins/Resources/qSlicerBeamsSubjectHierarchyPlugins.qrc">
+                <normaloff>:/Icons/Isocenter.png</normaloff>:/Icons/Isocenter.png</iconset>
               </property>
              </widget>
             </item>
@@ -377,18 +260,8 @@
          <attribute name="title">
           <string>Geometry</string>
          </attribute>
-         <layout class="QFormLayout" name="formLayout_9">
-          <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-          </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_MLCLeafPosition">
-            <property name="text">
-             <string>MLC positions:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="1" column="1">
            <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_MLCPositionDoubleArray">
             <property name="nodeTypes">
              <stringlist>
@@ -409,6 +282,27 @@
             </property>
            </widget>
           </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_GantryAngle">
+            <property name="text">
+             <string>Gantry angle (°):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_Smearing">
+            <property name="text">
+             <string>Smearing (mm):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_MLCLeafPosition">
+            <property name="text">
+             <string>MLC positions:</string>
+            </property>
+           </widget>
+          </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_XjawPosition">
             <property name="text">
@@ -416,22 +310,50 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="ctkRangeWidget" name="RangeWidget_XJawsPosition">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_SAD">
+            <property name="toolTip">
+             <string>Source axis distance (SAD)</string>
+            </property>
+            <property name="text">
+             <string>Source distance (mm):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="ctkSliderWidget" name="SliderWidget_CollimatorAngle">
             <property name="decimals">
              <number>0</number>
             </property>
-            <property name="minimum">
-             <double>-200.000000000000000</double>
+            <property name="maximum">
+             <double>359.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="ctkSliderWidget" name="SliderWidget_GantryAngle">
+            <property name="decimals">
+             <number>0</number>
             </property>
             <property name="maximum">
-             <double>200.000000000000000</double>
+             <double>359.000000000000000</double>
             </property>
-            <property name="minimumValue">
-             <double>-100.000000000000000</double>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="ctkSliderWidget" name="SliderWidget_CouchAngle">
+            <property name="decimals">
+             <number>0</number>
             </property>
-            <property name="maximumValue">
-             <double>100.000000000000000</double>
+            <property name="maximum">
+             <double>359.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_CouchAngle">
+            <property name="text">
+             <string>Couch angle (°):</string>
             </property>
            </widget>
           </item>
@@ -461,78 +383,6 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_CollimatorAngle">
-            <property name="text">
-             <string>Collimator angle (°):</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="ctkSliderWidget" name="SliderWidget_CollimatorAngle">
-            <property name="decimals">
-             <number>0</number>
-            </property>
-            <property name="maximum">
-             <double>359.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="label_GantryAngle">
-            <property name="text">
-             <string>Gantry angle (°):</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="ctkSliderWidget" name="SliderWidget_GantryAngle">
-            <property name="decimals">
-             <number>0</number>
-            </property>
-            <property name="maximum">
-             <double>359.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="label_CouchAngle">
-            <property name="text">
-             <string>Couch angle (°):</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="1">
-           <widget class="ctkSliderWidget" name="SliderWidget_CouchAngle">
-            <property name="decimals">
-             <number>0</number>
-            </property>
-            <property name="maximum">
-             <double>359.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="0">
-           <widget class="QLabel" name="label_Smearing">
-            <property name="text">
-             <string>Smearing (mm):</string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="1">
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_Smearing">
-            <property name="value">
-             <double>5.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="8" column="0">
-           <widget class="QLabel" name="label_beamWeight">
-            <property name="text">
-             <string>Beam weight:</string>
-            </property>
-           </widget>
-          </item>
           <item row="8" column="1">
            <widget class="QDoubleSpinBox" name="doubleSpinBox_BeamWeight">
             <property name="maximum">
@@ -543,209 +393,74 @@
             </property>
            </widget>
           </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="tabWidgetPageProtonBeamModel">
-         <attribute name="title">
-          <string>Beam Model</string>
-         </attribute>
-         <layout class="QHBoxLayout" name="horizontalLayout_8">
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <item>
-           <layout class="QFormLayout" name="formLayout_10">
-            <property name="fieldGrowthPolicy">
-             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_SAD">
+            <property name="toolTip">
+             <string>Source axis distance (SAD)</string>
             </property>
-            <property name="horizontalSpacing">
-             <number>4</number>
+            <property name="minimum">
+             <double>50.000000000000000</double>
             </property>
-            <property name="verticalSpacing">
-             <number>4</number>
+            <property name="maximum">
+             <double>5000.000000000000000</double>
             </property>
-            <property name="margin">
-             <number>4</number>
+            <property name="value">
+             <double>2000.000000000000000</double>
             </property>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_ApertureDistance">
-              <property name="text">
-               <string>Aperture distance (mm):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_ApertureDistance">
-              <property name="minimum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>10000.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>1500.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_Algorithm">
-              <property name="text">
-               <string>Dose calculaton algorithm:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QComboBox" name="comboBox_Algorithm">
-              <item>
-               <property name="text">
-                <string>Ray tracer algorithm</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Cartesian geometry dose calculation</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Divergent geometry dose calculation</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Hong dose calculation</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_PencilBeamSpacing">
-              <property name="text">
-               <string>Pencil beam spacing at isocenter (mm):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_PencilBeamSpacing">
-              <property name="minimum">
-               <double>0.100000000000000</double>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="label_SourceSize">
-              <property name="text">
-               <string>Source size (mm):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_SourceSize">
-              <property name="maximum">
-               <double>50.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="0">
-             <widget class="QLabel" name="label_EnergyResolution">
-              <property name="text">
-               <string>Energy resolution (MeV):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_EnergyResolution">
-              <property name="minimum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>5.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>2.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="0">
-             <widget class="QLabel" name="label_EnergySpread">
-              <property name="text">
-               <string>Energy spread (MeV):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_EnergySpread">
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="7" column="0">
-             <widget class="QLabel" name="label_StepLength">
-              <property name="text">
-               <string>Step length:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="7" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_StepLength">
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="8" column="0">
-             <widget class="QLabel" name="label_WEDApproximation">
-              <property name="text">
-               <string>Lateral scattering WED approximation:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="8" column="1">
-             <widget class="QCheckBox" name="checkBox_WEDApproximation">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item row="9" column="0">
-             <widget class="QLabel" name="label_RangeCompensatorHighland">
-              <property name="text">
-               <string>Highland model for range compensator:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="9" column="1">
-             <widget class="QCheckBox" name="checkBox_RangeCompensatorHighland">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_SAD">
-              <property name="text">
-               <string>Source distance (mm):</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QDoubleSpinBox" name="doubleSpinBox_SAD">
-              <property name="minimum">
-               <double>50.000000000000000</double>
-              </property>
-              <property name="maximum">
-               <double>5000.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>2000.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="label_beamWeight">
+            <property name="text">
+             <string>Beam weight:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_Smearing">
+            <property name="value">
+             <double>5.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_CollimatorAngle">
+            <property name="text">
+             <string>Collimator angle (°):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="ctkRangeWidget" name="RangeWidget_XJawsPosition">
+            <property name="decimals">
+             <number>0</number>
+            </property>
+            <property name="minimum">
+             <double>-200.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>200.000000000000000</double>
+            </property>
+            <property name="minimumValue">
+             <double>-100.000000000000000</double>
+            </property>
+            <property name="maximumValue">
+             <double>100.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0" colspan="2">
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </widget>
@@ -753,10 +468,20 @@
          <attribute name="title">
           <string>Visualization</string>
          </attribute>
-         <layout class="QFormLayout" name="formLayout_11">
-          <property name="fieldGrowthPolicy">
-           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-          </property>
+         <layout class="QGridLayout" name="gridLayout_8">
+          <item row="2" column="0" colspan="2">
+           <spacer name="verticalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
           <item row="0" column="0">
            <widget class="QCheckBox" name="checkBox_BeamEyesView">
             <property name="text">
@@ -776,7 +501,319 @@
             <property name="text">
              <string>Update DRR</string>
             </property>
+            <property name="icon">
+             <iconset resource="../../../DicomRtImportExport/SubjectHierarchyPlugins/Resources/qSlicerDicomRtImportExportSubjectHierarchyPlugins.qrc">
+              <normaloff>:/Icons/PlanarImage.png</normaloff>:/Icons/PlanarImage.png</iconset>
+            </property>
            </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tabWidgetPageProtonEnergy">
+         <attribute name="title">
+          <string>Energy</string>
+         </attribute>
+         <layout class="QGridLayout" name="gridLayout_7">
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_MinimumEnergy">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Minimum energy (MeV):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_MaximumEnergy">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Maximum energy (MeV):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_DistalMargin">
+            <property name="maximum">
+             <double>50.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>5.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QCheckBox" name="checkBox_EnergyPrescription">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_MinimumEnergy">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_MaximumEnergy">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="comboBox_BeamLineType">
+            <item>
+             <property name="text">
+              <string>Active scanning</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Passive scattering</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_EnergyPrescription">
+            <property name="text">
+             <string>Energy prescription:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_ProximalMargin">
+            <property name="text">
+             <string>Proximal margin (mm):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_DistalMargin">
+            <property name="text">
+             <string>Distal margin (mm):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_BeamLineType">
+            <property name="text">
+             <string>Beam line type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_ProximalMargin">
+            <property name="maximum">
+             <double>50.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>5.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0" colspan="2">
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tabWidgetPageProtonBeamModel">
+         <attribute name="title">
+          <string>Beam model</string>
+         </attribute>
+         <layout class="QGridLayout" name="gridLayout_6">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_ApertureDistance">
+            <property name="text">
+             <string>Aperture distance (mm):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_ApertureDistance">
+            <property name="minimum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>1500.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_PencilBeamSpacing">
+            <property name="text">
+             <string>Pencil beam spacing at isocenter (mm):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_SourceSize">
+            <property name="text">
+             <string>Source size (mm):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_PencilBeamSpacing">
+            <property name="minimum">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="0" colspan="2">
+           <spacer name="verticalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="label_WEDApproximation">
+            <property name="text">
+             <string>Lateral scattering WED approximation:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1">
+           <widget class="QCheckBox" name="checkBox_WEDApproximation">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0">
+           <widget class="QLabel" name="label_RangeCompensatorHighland">
+            <property name="text">
+             <string>Highland model for range compensator:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="1">
+           <widget class="QCheckBox" name="checkBox_RangeCompensatorHighland">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_SourceSize">
+            <property name="maximum">
+             <double>50.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_EnergySpread">
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_StepLength">
+            <property name="text">
+             <string>Step length:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_EnergyResolution">
+            <property name="minimum">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>5.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>2.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_StepLength">
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_EnergyResolution">
+            <property name="text">
+             <string>Energy resolution (MeV):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_EnergySpread">
+            <property name="text">
+             <string>Energy spread (MeV):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLabel" name="label_Algorithm">
+              <property name="text">
+               <string>Dose calculaton algorithm:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBox_Algorithm">
+              <item>
+               <property name="text">
+                <string>Ray tracer</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Cartesian geometry dose summation</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Divergent geometry dose summation</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Hong geometry dose summation</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
@@ -917,6 +954,7 @@
  </customwidgets>
  <resources>
   <include location="../../SubjectHierarchyPlugins/Resources/qSlicerBeamsSubjectHierarchyPlugins.qrc"/>
+  <include location="../../../DicomRtImportExport/SubjectHierarchyPlugins/Resources/qSlicerDicomRtImportExportSubjectHierarchyPlugins.qrc"/>
  </resources>
  <connections>
   <connection>

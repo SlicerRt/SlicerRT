@@ -52,9 +52,9 @@ public:
     enum RTProtonAlgorithm
       {
         RayTracer = 0,
-        CGS = 1, // Cartesian Geometry dose Summation
-        DGS = 2, // Divergent Geometry dose Summation
-        HGS = 3  // Hong Geometry dose Summation
+        CGS = 1, // Cartesian Geometry dose summation
+        DGS = 2, // Divergent Geometry dose summation
+        HGS = 3  // Hong Geometry dose summation
       };
 
   static vtkMRMLRTProtonBeamNode *New();

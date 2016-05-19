@@ -203,7 +203,6 @@ void vtkMRMLRTBeamNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
   if (eventID == vtkMRMLMarkupsNode::PointModifiedEvent)
   {
     // Update the model
-    this->Modified();
     this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::IsocenterModifiedEvent);
   }
 }
@@ -426,6 +425,12 @@ void vtkMRMLRTBeamNode::SetIsocenterToTargetCenter()
 void vtkMRMLRTBeamNode::GetIsocenterPosition(double* iso)
 {
   vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
+  if (!fiducialNode)
+  {
+    vtkErrorMacro("GetIsocenterPosition: Unable to access fiducial node for beam " << this->GetName());
+    return;
+  }
+
   fiducialNode->GetNthFiducialPosition(0,iso);
 }
 
@@ -433,6 +438,12 @@ void vtkMRMLRTBeamNode::GetIsocenterPosition(double* iso)
 void vtkMRMLRTBeamNode::SetIsocenterPosition(double* iso)
 {
   vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
+  if (!fiducialNode)
+  {
+    vtkErrorMacro("SetIsocenterPosition: Unable to access fiducial node for beam " << this->GetName());
+    return;
+  }
+
   fiducialNode->SetNthFiducialPositionFromArray(0,iso);
 }
 

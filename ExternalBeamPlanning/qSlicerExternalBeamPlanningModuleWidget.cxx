@@ -129,7 +129,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setMRMLScene(vtkMRMLScene* scene)
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLRTPlanNode");
     if (node)
     {
-      this->rtPlanNodeChanged(node);
+      this->setPlanNode(node);
     }
   }
 }
@@ -206,7 +206,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   //}
   
   // Make connections
-  connect( d->MRMLNodeComboBox_RtPlan, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(rtPlanNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_RtPlan, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setPlanNode(vtkMRMLNode*)) );
 
   // RT plan section
   connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
@@ -261,14 +261,11 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
     return;
   }
 
-  if (rtPlanNode->GetReferenceVolumeNode())
-  {
-    d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(rtPlanNode->GetReferenceVolumeNode());
-  }
-  if (rtPlanNode->GetSegmentationNode())
-  {
-    d->MRMLNodeComboBox_PlanSegmentation->setCurrentNode(rtPlanNode->GetSegmentationNode());
-  }
+  // None is enabled for the reference volume and segmentation comboboxes, and invalid selection
+  // in plan node is set to GUI so that the user needs to select nodes that are then set to the beams.
+  d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(rtPlanNode->GetReferenceVolumeNode());
+  d->MRMLNodeComboBox_PlanSegmentation->setCurrentNode(rtPlanNode->GetSegmentationNode());
+
   if (rtPlanNode->GetDoseVolumeNode())
   {
     d->MRMLNodeComboBox_DoseVolume->setCurrentNode(rtPlanNode->GetDoseVolumeNode());
@@ -282,7 +279,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::rtPlanNodeChanged(vtkMRMLNode* node)
+void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 

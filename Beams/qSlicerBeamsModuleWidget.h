@@ -59,14 +59,16 @@ public slots:
   void updateWidgetFromMRML();
 
 // Update functions
-protected:
+protected slots:
   /// Updates button states
   void updateButtonsState();
-
-protected slots:
+  /// Update isocenter controls from isocenter markups fiducial
+  void updateIsocenterPosition();
   /// Logic modified
   void onLogicModified();
 
+// UI change handlers
+protected slots:
   /// Handles active beam selection changed event
   void setBeamNode(vtkMRMLNode* node);
   /// Currently selected RTBeam was modified
@@ -86,6 +88,7 @@ protected slots:
   void rxDoseChanged(double);
   void isocenterSpecChanged(const QString &);
   void isocenterCoordinatesChanged(double*);
+  void centerViewToIsocenterClicked();
   void isocenterFiducialNodeChangedfromCoordinates(double*);
   void dosePointFiducialNodeChangedfromCoordinates(double*);
 

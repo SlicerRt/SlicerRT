@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>442</width>
-    <height>528</height>
+    <width>651</width>
+    <height>608</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>RT Plan</string>
+   <string>ExternalBeamPlanning</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <property name="spacing">
@@ -265,7 +265,7 @@
            <string>Add beam</string>
           </property>
           <property name="icon">
-           <iconset resource="../qSlicerExternalBeamPlanningModule.qrc">
+           <iconset>
             <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
           </property>
          </widget>
@@ -295,7 +295,7 @@
            <string>Remove beam</string>
           </property>
           <property name="icon">
-           <iconset resource="../qSlicerExternalBeamPlanningModule.qrc">
+           <iconset>
             <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
           </property>
          </widget>

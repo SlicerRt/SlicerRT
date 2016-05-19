@@ -145,6 +145,7 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneEndImport()
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamTransformModified);
     vtkObserveMRMLNodeEventsMacro(node, events);
+    node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLRTBeamNode");
   }
 }
 

@@ -41,6 +41,7 @@
 
 // MRML includes
 #include <vtkMRMLScene.h>
+#include <vtkMRMLSliceNode.h>
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
@@ -160,6 +161,7 @@ void qSlicerBeamsModuleWidget::setup()
   this->connect( d->doubleSpinBox_RxDose, SIGNAL(valueChanged(double)), this, SLOT(rxDoseChanged(double)) );
   this->connect( d->comboBox_IsocenterSpec, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(isocenterSpecChanged(const QString &)));
   this->connect( d->MRMLCoordinatesWidget_IsocenterCoordinates, SIGNAL(coordinatesChanged(double*)), this, SLOT(isocenterCoordinatesChanged(double *)));
+  this->connect( d->pushButton_CenterViewToIsocenter, SIGNAL(clicked()), this, SLOT(centerViewToIsocenterClicked()) );
 
   // Energy page
   this->connect( d->doubleSpinBox_ProximalMargin, SIGNAL(valueChanged(double)), this, SLOT(proximalMarginChanged(double)) );
@@ -216,6 +218,29 @@ void qSlicerBeamsModuleWidget::updateButtonsState()
   bool applyEnabled = beamNode
                    && beamNode->GetParentPlanNode();
   d->pushButton_SwitchToParentPlan->setEnabled(applyEnabled);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerBeamsModuleWidget::updateIsocenterPosition()
+{
+  Q_D(qSlicerBeamsModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    return;
+  }
+
+  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (!beamNode)
+  {
+    return;
+  }
+
+  double iso[3] = {0.0,0.0,0.0};
+  beamNode->GetIsocenterPosition(iso);
+  d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(true);
+  d->MRMLCoordinatesWidget_IsocenterCoordinates->setCoordinates(iso);
+  d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -359,11 +384,7 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
 
   //d->doubleSpinBox_RxDose->setValue(beamNode->GetRxDose()); The RxDose doesn't need to be reset, it is the same for the plan
 
-  double iso[3] = {0.0,0.0,0.0};
-  beamNode->GetIsocenterPosition(iso);
-  d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(true);
-  d->MRMLCoordinatesWidget_IsocenterCoordinates->setCoordinates(iso);
-  d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(false);
+  this->updateIsocenterPosition();
 
   double rdp[3] = {beamNode->GetReferenceDosePointPosition(0), beamNode->GetReferenceDosePointPosition(1), beamNode->GetReferenceDosePointPosition(2)};
   d->MRMLCoordinatesWidget_DosePointCoordinates->setCoordinates(rdp);
@@ -446,6 +467,7 @@ void qSlicerBeamsModuleWidget::setBeamNode(vtkMRMLNode* node)
 
   // Each time the node is modified, the qt widgets are updated
   qvtkReconnect(rtBeamNode, vtkCommand::ModifiedEvent, this, SLOT(onBeamNodeModified()));
+  qvtkReconnect(rtBeamNode, vtkMRMLRTBeamNode::IsocenterModifiedEvent, this, SLOT(updateIsocenterPosition()));
 
   this->updateWidgetFromMRML();
 }
@@ -739,6 +761,39 @@ void qSlicerBeamsModuleWidget::isocenterCoordinatesChanged(double *coords)
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerBeamsModuleWidget::centerViewToIsocenterClicked()
+{
+  Q_D(qSlicerBeamsModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return;
+  }
+
+  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (!beamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid beam node!";
+    return;
+  }
+
+  // Get isocenter position
+  double iso[3] = {0.0,0.0,0.0};
+  beamNode->GetIsocenterPosition(iso);
+
+  // Navigate slice views to position
+  this->mrmlScene()->InitTraversal();
+  vtkMRMLNode *currentNode = this->mrmlScene()->GetNextNodeByClass("vtkMRMLSliceNode");
+  while (currentNode)
+  {
+    vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(currentNode);
+    sliceNode->JumpSlice(iso[0], iso[1], iso[2]);
+    currentNode = this->mrmlScene()->GetNextNodeByClass("vtkMRMLSliceNode");
+  }
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerBeamsModuleWidget::isocenterFiducialNodeChangedfromCoordinates(double* coordinates)
 {
   Q_D(qSlicerBeamsModuleWidget);
@@ -782,7 +837,7 @@ void qSlicerBeamsModuleWidget::proximalMarginChanged(double value)
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
+  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(beamNode);
   protonNode->SetProximalMargin(value);
 }
 

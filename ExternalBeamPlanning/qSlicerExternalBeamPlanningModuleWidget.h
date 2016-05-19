@@ -69,7 +69,7 @@ protected slots:
   void onLogicModified();
 
   // RT plan page
-  void rtPlanNodeChanged(vtkMRMLNode*);
+  void setPlanNode(vtkMRMLNode*);
   void referenceVolumeNodeChanged(vtkMRMLNode*);
   void planSegmentationNodeChanged(vtkMRMLNode*);
   void planPOIsNodeChanged(vtkMRMLNode*);
