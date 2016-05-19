@@ -62,7 +62,12 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
   this->NextBeamNumber = 1;
 
   this->DoseEngine = vtkMRMLRTPlanNode::Plastimatch;
+
   this->RxDose = 1.0;
+
+  this->ReferenceDosePoint[0] = 0.0;
+  this->ReferenceDosePoint[1] = 0.0;
+  this->ReferenceDosePoint[2] = 0.0;  
 
   this->DoseGrid[0] = 0;
   this->DoseGrid[1] = 0;

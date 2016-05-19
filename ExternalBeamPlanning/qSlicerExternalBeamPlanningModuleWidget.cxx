@@ -208,14 +208,17 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   // Make connections
   connect( d->MRMLNodeComboBox_RtPlan, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setPlanNode(vtkMRMLNode*)) );
 
-  // RT plan section
+  // Plan parameters section
   connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_PlanSegmentation, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planSegmentationNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_PlanPOIs, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planPOIsNodeChanged(vtkMRMLNode*)) );
+  connect( d->doubleSpinBox_RxDose, SIGNAL(valueChanged(double)), this, SLOT(rxDoseChanged(double)) );
+  connect( d->comboBox_DoseEngineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(doseEngineTypeChanged(const QString &)) );
+
+  // Output section
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(doseVolumeNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_DoseROI, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(doseROINodeChanged(vtkMRMLNode*)) );
   connect( d->lineEdit_DoseGridSpacing, SIGNAL(textChanged(const QString &)), this, SLOT(doseGridSpacingChanged(const QString &)) );
-  connect( d->comboBox_DoseEngineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(doseEngineTypeChanged(const QString &)) );
 
   // Beams section
   //connect( d->BeamsTableView, SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(beamSelectionChanged(QItemSelection,QItemSelection) ) );
@@ -232,6 +235,9 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   d->MRMLNodeComboBox_DoseROI->setVisible(false);
   d->label_DoseGridSpacing->setVisible(false);
   d->lineEdit_DoseGridSpacing->setVisible(false);
+  d->label_DosePoint->setVisible(false);
+  d->MRMLCoordinatesWidget_DosePointCoordinates->setVisible(false);
+  d->comboBox_DosePoint->setVisible(false);
 
   // Set status text to initial instruction
   d->label_CalculateDoseStatus->setText("Add plan and beam to start planning");
@@ -265,15 +271,20 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
   // in plan node is set to GUI so that the user needs to select nodes that are then set to the beams.
   d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(rtPlanNode->GetReferenceVolumeNode());
   d->MRMLNodeComboBox_PlanSegmentation->setCurrentNode(rtPlanNode->GetSegmentationNode());
+  if (rtPlanNode->GetMarkupsFiducialNode())
+  {
+    d->MRMLNodeComboBox_PlanPOIs->setCurrentNode(rtPlanNode->GetMarkupsFiducialNode());
+  }
+  d->doubleSpinBox_RxDose->setValue(rtPlanNode->GetRxDose());
 
   if (rtPlanNode->GetDoseVolumeNode())
   {
     d->MRMLNodeComboBox_DoseVolume->setCurrentNode(rtPlanNode->GetDoseVolumeNode());
   }
-  if (rtPlanNode->GetMarkupsFiducialNode())
-  {
-    d->MRMLNodeComboBox_PlanPOIs->setCurrentNode(rtPlanNode->GetMarkupsFiducialNode());
-  }
+
+  double rdp[3] = {0.0,0.0,0.0};
+  rtPlanNode->GetReferenceDosePoint(rdp);
+  d->MRMLCoordinatesWidget_DosePointCoordinates->setCoordinates(rdp);
 
   return;
 }
@@ -392,6 +403,29 @@ void qSlicerExternalBeamPlanningModuleWidget::planPOIsNodeChanged(vtkMRMLNode* n
   rtPlanNode->DisableModifiedEventOff();
 
   // GCS FIX TODO: Update beams isocenters
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::rxDoseChanged(double value)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return;
+  }
+
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!rtPlanNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    return;
+  }
+
+  rtPlanNode->DisableModifiedEventOn();
+  rtPlanNode->SetRxDose(value);
+  rtPlanNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------

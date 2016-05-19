@@ -79,9 +79,6 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->Isocenter[0] = 0.0;
   this->Isocenter[1] = 0.0;
   this->Isocenter[2] = 0.0;  
-  this->ReferenceDosePoint[0] = 0.0;
-  this->ReferenceDosePoint[1] = 0.0;
-  this->ReferenceDosePoint[2] = 0.0;  
 
   this->X1Jaw = -100.0;
   this->X2Jaw = 100.0;
@@ -91,7 +88,6 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->GantryAngle = 0.0;
   this->CollimatorAngle = 0.0;
   this->CouchAngle = 0.0;
-  this->Smearing = 0.0;
 
   this->SAD = 2000.0;
   this->BeamWeight = 1.0;
@@ -160,7 +156,6 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   vtkMRMLRTBeamNode *node = (vtkMRMLRTBeamNode *) anode;
 
   //TODO: Beam parameters
-  this->SetSmearing( node->GetSmearing() );
   this->SetSAD(node->GetSAD());
   double iso[3];
   node->GetIsocenterPosition (iso);
@@ -174,6 +169,7 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
+  //TODO: Beam parameters
 }
 
 //----------------------------------------------------------------------------
@@ -440,36 +436,6 @@ void vtkMRMLRTBeamNode::SetIsocenterPosition(double* iso)
   }
 
   fiducialNode->SetNthFiducialPositionFromArray(0,iso);
-}
-
-//----------------------------------------------------------------------------
-const double* vtkMRMLRTBeamNode::GetReferenceDosePointPosition()
-{
-  return this->ReferenceDosePoint;
-}
-
-//----------------------------------------------------------------------------
-double vtkMRMLRTBeamNode::GetReferenceDosePointPosition(int dim)
-{
-  return this->ReferenceDosePoint[dim];
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetReferenceDosePointPosition(const float* position)
-{
-  for (int d = 0; d < 3; d++) 
-  {
-    this->ReferenceDosePoint[d] = position[d];
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetReferenceDosePointPosition(const double* position)
-{
-  for (int d = 0; d < 3; d++) 
-  {
-    this->ReferenceDosePoint[d] = position[d];
-  }
 }
 
 //----------------------------------------------------------------------------

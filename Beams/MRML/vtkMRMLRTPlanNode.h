@@ -79,6 +79,9 @@ public:
   /// Generate new beam name from new beam name prefix and next beam number
   std::string GenerateNewBeamName();
 
+  /// Get Subject Hierarchy node associated with this node. Create if missing
+  vtkMRMLSubjectHierarchyNode* GetPlanSubjectHierarchyNode();
+
   /// Add given beam node to plan
   void AddBeam(vtkMRMLRTBeamNode* beam);
   /// Remove given beam node from plan
@@ -119,14 +122,16 @@ public:
   /// Set RT Plan Dose volume node
   void SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
+  ///TODO:
+  vtkSetVector3Macro(ReferenceDosePoint, double);
+  vtkGetVector3Macro(ReferenceDosePoint, double);
+
   void SetDoseEngine(DoseEngineType doseEngineType) { this->DoseEngine = doseEngineType; };
   DoseEngineType GetDoseEngine() { return this->DoseEngine; };
 
-  void SetDoseGrid(double* doseGrid) { this->DoseGrid[0] = doseGrid[0]; this->DoseGrid[1] = doseGrid[1]; this->DoseGrid[2] = doseGrid[2]; };
-  double* GetDoseGrid() { return this->DoseGrid; };
-
-  /// Get Subject Hierarchy node associated with this node. Create if missing
-  vtkMRMLSubjectHierarchyNode* GetPlanSubjectHierarchyNode();
+  ///TODO:
+  vtkSetVector3Macro(DoseGrid, double);
+  vtkGetVector3Macro(DoseGrid, double);
 
   /// Get prescription dose
   vtkGetMacro(RxDose, double);
@@ -151,10 +156,20 @@ protected:
   void operator=(const vtkMRMLRTPlanNode&);
 
 protected:
+  ///TODO:
   int NextBeamNumber;
+
+  ///TODO:
   DoseEngineType DoseEngine;
+
+  /// Prescription dose (Gy)
   double RxDose;
+
+  ///TODO:
   double DoseGrid[3];
+
+  ///TODO:
+  double ReferenceDosePoint[3];
 };
 
 #endif // __vtkMRMLRTPlanNode_h

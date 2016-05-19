@@ -205,7 +205,7 @@ void vtkSlicerDoseCalculationEngine::CalculateDose(
     rt_beam->set_beam_weight(beamNode->GetBeamWeight());
     printf("Beam weight = %lg\n", rt_beam->get_beam_weight());
     printf ("Setting smearing -> ");
-    rt_beam->set_smearing(beamNode->GetSmearing());
+    rt_beam->set_smearing(protonBeamNode->GetRangeCompensatorSmearingRadius());
     printf("Smearing = %lg\n", rt_beam->get_smearing());
     printf ("Setting Highland model for range compensator\n");
     if (protonBeamNode->GetRangeCompensatorHighland() == true)

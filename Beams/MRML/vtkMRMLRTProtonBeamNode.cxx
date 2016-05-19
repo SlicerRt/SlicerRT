@@ -65,8 +65,9 @@ vtkMRMLRTProtonBeamNode::vtkMRMLRTProtonBeamNode()
   this->EnergyResolution = 2.0;
   this->EnergySpread = 1.0;
   this->StepLength = 1.0;
+  this->PencilBeamResolution = 1.0;
+  this->RangeCompensatorSmearingRadius = 0.0;
   this->Algorithm = RayTracer;
-  this->PBResolution = 1.0;
 
   this->ApertureOffset = 1500.0;
   this->ApertureSpacing[0] = 1;
@@ -97,7 +98,7 @@ void vtkMRMLRTProtonBeamNode::WriteXML(ostream& of, int nIndent)
   vtkIndent indent(nIndent);
 
   // GCS FIX TODO *** Add all members ***
-  of << indent << " Smearing=\"" << this->GetSmearing() << "\"";
+  of << indent << " RangeCompensatorSmearingRadius=\"" << this->RangeCompensatorSmearingRadius << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -115,11 +116,11 @@ void vtkMRMLRTProtonBeamNode::ReadXMLAttributes(const char** atts)
     attValue = *(atts++);
 
     // GCS FIX TODO *** Add all members ***
-    if (!strcmp(attName, "Smearing")) 
+    if (!strcmp(attName, "RangeCompensatorSmearingRadius")) 
     {
       std::stringstream ss;
       ss << attValue;
-      ss >> this->Smearing;
+      ss >> this->RangeCompensatorSmearingRadius;
     }
   }
 }
@@ -136,28 +137,29 @@ void vtkMRMLRTProtonBeamNode::Copy(vtkMRMLNode *anode)
 
   // GCS FIX TODO *** Add all members ***
   
-  this->SetProximalMargin (node->GetProximalMargin());
-  this->SetDistalMargin (node->GetDistalMargin());
+  this->SetProximalMargin(node->GetProximalMargin());
+  this->SetDistalMargin(node->GetDistalMargin());
 
-  this->SetBeamLineType (node->GetBeamLineType());
+  this->SetBeamLineType(node->GetBeamLineType());
 
-  this->SetManualEnergyLimits (node->GetManualEnergyLimits());
-  this->SetMaximumEnergy (node->GetMaximumEnergy());
-  this->SetMinimumEnergy (node->GetMinimumEnergy());
+  this->SetManualEnergyLimits(node->GetManualEnergyLimits());
+  this->SetMaximumEnergy(node->GetMaximumEnergy());
+  this->SetMinimumEnergy(node->GetMinimumEnergy());
 
-  this->SetEnergyResolution (node->GetEnergyResolution());
-  this->SetEnergySpread (node->GetEnergySpread());
-  this->SetStepLength (node->GetStepLength());
-  this->SetAlgorithm (node->GetAlgorithm());
-  this->SetPBResolution (node->GetPBResolution());
+  this->SetEnergyResolution(node->GetEnergyResolution());
+  this->SetEnergySpread(node->GetEnergySpread());
+  this->SetStepLength(node->GetStepLength());
+  this->SetAlgorithm(node->GetAlgorithm());
+  this->SetPencilBeamResolution(node->GetPencilBeamResolution());
+  this->SetRangeCompensatorSmearingRadius(node->GetRangeCompensatorSmearingRadius());
 
-  this->SetApertureOffset (node->GetApertureOffset());
+  this->SetApertureOffset(node->GetApertureOffset());
 
-  this->SetSourceSize (node->GetSourceSize());
-  this->SetRadiationType (node->GetRadiationType());
+  this->SetSourceSize(node->GetSourceSize());
+  this->SetRadiationType(node->GetRadiationType());
 
-  this->SetLateralSpreadHomoApprox (node->GetLateralSpreadHomoApprox());
-  this->SetRangeCompensatorHighland (node->GetRangeCompensatorHighland());
+  this->SetLateralSpreadHomoApprox(node->GetLateralSpreadHomoApprox());
+  this->SetRangeCompensatorHighland(node->GetRangeCompensatorHighland());
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -187,7 +189,7 @@ void vtkMRMLRTProtonBeamNode::PrintSelf(ostream& os, vtkIndent indent)
   Superclass::PrintSelf(os,indent);
 
   // GCS FIX TODO *** Add all members ***
-  os << indent << "Smearing:   " << this->Smearing << "\n";
+  os << indent << "RangeCompensatorSmearingRadius:   " << this->RangeCompensatorSmearingRadius << "\n";
 }
 
 //----------------------------------------------------------------------------
@@ -283,9 +285,9 @@ void vtkMRMLRTProtonBeamNode::UpdateApertureParameters()
   double origin[2] = {this->X1Jaw * this->ApertureOffset / this->SAD , this->Y1Jaw * this->ApertureOffset / this->SAD };
   this->SetApertureOrigin(origin);
 
-  double spacing_at_aperture[2] = {1/ this->PBResolution * this->ApertureOffset / this->SAD, 1 / this->PBResolution * this->ApertureOffset / this->SAD};
+  double spacing_at_aperture[2] = {1/ this->PencilBeamResolution * this->ApertureOffset / this->SAD, 1 / this->PencilBeamResolution * this->ApertureOffset / this->SAD};
   this->SetApertureSpacing(spacing_at_aperture);
 
-  int dim[2] = { (int) ((this->X2Jaw - this->X1Jaw) / this->PBResolution + 1 ), (int) ((this->Y2Jaw - this->Y1Jaw) / this->PBResolution + 1 )};
+  int dim[2] = { (int) ((this->X2Jaw - this->X1Jaw) / this->PencilBeamResolution + 1 ), (int) ((this->Y2Jaw - this->Y1Jaw) / this->PencilBeamResolution + 1 )};
   this->SetApertureDim(dim);
 }

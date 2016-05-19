@@ -114,8 +114,8 @@ public:
   vtkGetMacro(DistalMargin, double);
   vtkSetMacro(DistalMargin, double);
  
-  vtkGetMacro(PBResolution, double);
-  vtkSetMacro(PBResolution, double);
+  vtkGetMacro(PencilBeamResolution, double);
+  vtkSetMacro(PencilBeamResolution, double);
 
   vtkGetMacro(ApertureOffset, double);
   vtkSetMacro(ApertureOffset, double);
@@ -132,7 +132,9 @@ public:
   vtkGetMacro(HavePrescription, bool);
   vtkSetMacro(HavePrescription, bool);
 
-  /// Get/Set algorithm
+  vtkGetMacro(RangeCompensatorSmearingRadius, double);
+  vtkSetMacro(RangeCompensatorSmearingRadius, double);
+
   vtkGetMacro(Algorithm, RTProtonAlgorithm);
   vtkSetMacro(Algorithm, RTProtonAlgorithm);
 
@@ -182,7 +184,7 @@ protected:
   double DistalMargin;
 
   /// Pencil beam resolution
-  double PBResolution;
+  double PencilBeamResolution;
 
   /// Aperture offset (must be smaller than SAD)
   double ApertureOffset;
@@ -197,6 +199,9 @@ protected:
 
   /// Have prescription flag
   bool HavePrescription;
+
+  /// TODO:
+  double RangeCompensatorSmearingRadius;
 
   /// Proton dose calculation algorithm type
   RTProtonAlgorithm Algorithm;

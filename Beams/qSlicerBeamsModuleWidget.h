@@ -84,12 +84,10 @@ protected slots:
   // Prescription page
   void beamTypeChanged(const QString &);
   void targetSegmentChanged(const QString& segment);
-  void rxDoseChanged(double);
   void isocenterSpecChanged(const QString &);
   void isocenterCoordinatesChanged(double*);
   void centerViewToIsocenterClicked();
   void isocenterFiducialNodeChangedfromCoordinates(double*);
-  void dosePointFiducialNodeChangedfromCoordinates(double*);
 
   // Energy page
   void proximalMarginChanged(double);

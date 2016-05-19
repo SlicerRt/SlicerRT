@@ -265,7 +265,7 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CopyAndAddBeamToPla
   }
 
   // Copy properties from template
-  beamNode->CopyWithScene(copiedBeamNode);
+  beamNode->CopyWithScene(copiedBeamNode); //TODO: Does not copy everything, Copy method not fully implemented!
   this->GetMRMLScene()->AddNode(beamNode);
 
   // Change name of new beam to default

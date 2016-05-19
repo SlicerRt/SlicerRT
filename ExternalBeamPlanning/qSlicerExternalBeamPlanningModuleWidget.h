@@ -68,15 +68,18 @@ protected slots:
   /// Logic modified
   void onLogicModified();
 
-  // RT plan page
+  // Plan parameters page
   void setPlanNode(vtkMRMLNode*);
   void referenceVolumeNodeChanged(vtkMRMLNode*);
   void planSegmentationNodeChanged(vtkMRMLNode*);
   void planPOIsNodeChanged(vtkMRMLNode*);
+  void rxDoseChanged(double);
+  void doseEngineTypeChanged(const QString &);
+
+  // Output page
   void doseVolumeNodeChanged(vtkMRMLNode*);
   void doseROINodeChanged(vtkMRMLNode*);
   void doseGridSpacingChanged(const QString &);
-  void doseEngineTypeChanged(const QString &);
   
   // RT Beams page
   //void beamSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);

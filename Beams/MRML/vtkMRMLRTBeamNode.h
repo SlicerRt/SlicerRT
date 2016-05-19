@@ -158,11 +158,6 @@ public:
 
 // Beam parameters
 public:
-  const double* GetReferenceDosePointPosition();
-  double GetReferenceDosePointPosition(int dim);
-  void SetReferenceDosePointPosition(const float* position);
-  void SetReferenceDosePointPosition(const double* position);
-
   /// Get beam number
   vtkGetMacro(BeamNumber, int);
   /// Get beam number
@@ -248,9 +243,6 @@ public:
   /// Set couch angle. Triggers \sa BeamTransformModified event and re-generation of beam model
   void SetCouchAngle(double angle);
 
-  vtkGetMacro(Smearing, double);
-  vtkSetMacro(Smearing, double);
-
   vtkGetMacro(BeamWeight, double);
   vtkGetConstMacro(BeamWeight, double);
   vtkSetMacro(BeamWeight, double);
@@ -272,7 +264,7 @@ protected:
   char* TargetSegmentID;
 
   /// TODO:
-  RTBeamType  BeamType;
+  RTBeamType BeamType;
   /// TODO:
   RTRadiationType RadiationType;
   /// TODO:
@@ -282,7 +274,7 @@ protected:
   double NominalEnergy;
   /// TODO:
   double NominalmA;
-  /// TODO:
+  /// TODO: Remove
   double BeamOnTime;
 
   /// Isocenter specification determining whether it can be an arbitrary point or
@@ -290,8 +282,6 @@ protected:
   IsocenterSpecificationType IsocenterSpecification;
   /// Isocenter position
   double Isocenter[3];
-  /// TODO:
-  double ReferenceDosePoint[3];
 
   /// X1 jaw position
   double X1Jaw;
@@ -310,9 +300,6 @@ protected:
   double CollimatorAngle;
   /// Couch angle
   double CouchAngle;
-
-  /// TODO:
-  double Smearing;
 
   /// Beam weight, taken into account when accumulating per-beam doses
   double BeamWeight;
