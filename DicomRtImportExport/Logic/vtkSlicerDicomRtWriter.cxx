@@ -72,6 +72,12 @@ vtkSlicerDicomRtWriter::vtkSlicerDicomRtWriter()
   this->ImageSeriesNumber = NULL;
   this->ImageSeriesModality = NULL;
 
+  this->DoseSeriesDescription = NULL;
+  this->DoseSeriesNumber = NULL;
+
+  this->RtssSeriesDescription = NULL;
+  this->RtssSeriesNumber = NULL;
+
   this->FileName = NULL;
 }
 
@@ -226,6 +232,22 @@ void vtkSlicerDicomRtWriter::Write()
   if (this->ImageSeriesModality && this->ImageSeriesModality[0] != 0)
   {
     rt_metadata->set_image_metadata (0x0008, 0x0060, this->ImageSeriesModality);
+  }
+  if (this->DoseSeriesDescription && this->DoseSeriesDescription[0] != 0)
+  {
+    rt_metadata->set_dose_metadata (0x0008, 0x103e, this->DoseSeriesDescription);
+  }
+  if (this->DoseSeriesNumber && this->DoseSeriesNumber[0] != 0)
+  {
+    rt_metadata->set_dose_metadata (0x0020, 0x0011, this->DoseSeriesNumber);
+  }
+  if (this->RtssSeriesDescription && this->RtssSeriesDescription[0] != 0)
+  {
+    rt_metadata->set_rtss_metadata (0x0008, 0x103e, this->RtssSeriesDescription);
+  }
+  if (this->RtssSeriesNumber && this->RtssSeriesNumber[0] != 0)
+  {
+    rt_metadata->set_rtss_metadata (0x0020, 0x0011, this->RtssSeriesNumber);
   }
   
   // Write output to files

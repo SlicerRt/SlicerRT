@@ -1571,8 +1571,12 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     studyDescription = 0;
   }
   const char* imageSeriesDescription = 0;
-  const char* imageSeriesModality = 0;
   const char* imageSeriesNumber = 0;
+  const char* imageSeriesModality = 0;
+  const char* doseSeriesDescription = 0;
+  const char* doseSeriesNumber = 0;
+  const char* rtssSeriesDescription = 0;
+  const char* rtssSeriesNumber = 0;
 
   // Get other common export parameters
   // These are the ones available in hierarchy
@@ -1631,11 +1635,25 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     if (associatedNode && SlicerRtCommon::IsDoseVolumeNode(associatedNode))
     {
       doseNode = vtkMRMLScalarVolumeNode::SafeDownCast(associatedNode);
+
+      doseSeriesDescription = exportable->GetTag("SeriesDescription");
+      if (doseSeriesDescription && !strcmp(doseSeriesDescription, "No series description"))
+      {
+        doseSeriesDescription = 0;
+      }
+      doseSeriesNumber = exportable->GetTag("SeriesNumber");
     }
     // Check if segmentation node and set if found
     else if (associatedNode && associatedNode->IsA("vtkMRMLSegmentationNode"))
     {
       segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(associatedNode);
+
+      rtssSeriesDescription = exportable->GetTag("SeriesDescription");
+      if (rtssSeriesDescription && !strcmp(rtssSeriesDescription, "No series description"))
+      {
+        rtssSeriesDescription = 0;
+      }
+      rtssSeriesNumber = exportable->GetTag("SeriesNumber");
     }
     // Check if other volume (anatomical volume role) and set if found
     else if (associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode"))
@@ -1690,6 +1708,10 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   rtWriter->SetImageSeriesDescription(imageSeriesDescription);
   rtWriter->SetImageSeriesNumber(imageSeriesNumber);
   rtWriter->SetImageSeriesModality(imageSeriesModality);
+  rtWriter->SetDoseSeriesDescription(doseSeriesDescription);
+  rtWriter->SetDoseSeriesNumber(doseSeriesNumber);
+  rtWriter->SetRtssSeriesDescription(rtssSeriesDescription);
+  rtWriter->SetRtssSeriesNumber(rtssSeriesNumber);
   
   // Convert input image (CT/MR/etc) to the format Plastimatch can use
   vtkSmartPointer<vtkOrientedImageData> imageOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();

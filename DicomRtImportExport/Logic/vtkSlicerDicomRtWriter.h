@@ -116,6 +116,22 @@ public:
   vtkGetStringMacro(ImageSeriesModality);
   /// Set the DICOM Image Modality
   vtkSetStringMacro(ImageSeriesModality);
+  /// Get the DICOM Dose Series Description 
+  vtkGetStringMacro(DoseSeriesDescription);
+  /// Set the DICOM Dose Series Description 
+  vtkSetStringMacro(DoseSeriesDescription);
+  /// Get the DICOM Dose Series Number
+  vtkGetStringMacro(DoseSeriesNumber);
+  /// Set the DICOM Dose Series Number
+  vtkSetStringMacro(DoseSeriesNumber);
+  /// Get the DICOM Rtss Series Description 
+  vtkGetStringMacro(RtssSeriesDescription);
+  /// Set the DICOM Rtss Series Description 
+  vtkSetStringMacro(RtssSeriesDescription);
+  /// Get the DICOM Rtss Series Number
+  vtkGetStringMacro(RtssSeriesNumber);
+  /// Set the DICOM Rtss Series Number
+  vtkSetStringMacro(RtssSeriesNumber);
   
   vtkGetStringMacro(FileName);
   vtkSetStringMacro(FileName);
@@ -138,6 +154,10 @@ protected:
   char* ImageSeriesDescription;
   char* ImageSeriesNumber;
   char* ImageSeriesModality;
+  char* DoseSeriesDescription;
+  char* DoseSeriesNumber;
+  char* RtssSeriesDescription;
+  char* RtssSeriesNumber;
 
   /// Output directory
   char* FileName;
