@@ -931,7 +931,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     beamNode->SetSAD(rtReader->GetBeamSourceAxisDistance(dicomBeamNumber));
       
     beamNode->SetIsocenterSpecification(vtkMRMLRTBeamNode::ArbitraryPoint);
-    beamNode->SetIsocenterPosition(rtReader->GetBeamIsocenterPositionRas(dicomBeamNumber));
+    beamNode->SetIsocenter(rtReader->GetBeamIsocenterPositionRas(dicomBeamNumber));
 
     // Create beam model hierarchy root node if has not been created yet
     if (beamModelHierarchyRootNode.GetPointer()==NULL)
@@ -1450,7 +1450,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
 
   // Get isocenter coordinates
   double isocenterWorldCoordinates[3] = {0.0, 0.0, 0.0};
-  beamNode->GetIsocenterPosition(isocenterWorldCoordinates);
+  beamNode->GetIsocenter(isocenterWorldCoordinates);
 
   // Assemble transform from isocenter IEC to RT image RAS
   vtkSmartPointer<vtkTransform> fixedToIsocenterTransform = vtkSmartPointer<vtkTransform>::New();

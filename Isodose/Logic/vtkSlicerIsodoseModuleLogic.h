@@ -67,12 +67,17 @@ public:
   /// Creates default isodose color table. Gets and returns if already exists
   static vtkMRMLColorTableNode* CreateDefaultIsodoseColorTable(vtkMRMLScene* scene);
 
-  /// Creates default dose color table (which is the default isodose color table stretched)
+  /// Creates default dose color table (which is the default isodose color table stretched.
+  /// Gets and returns if already exists
   static vtkMRMLColorTableNode* CreateDefaultDoseColorTable(vtkMRMLScene *scene);
 
 protected:
   /// Loads default isodose color table from the supplied color table file
-  void LoadDefaultIsodoseColorTable();
+  /// \return The loaded color table node if loading succeeded, NULL otherwise
+  vtkMRMLColorTableNode* LoadDefaultIsodoseColorTable();
+
+  /// Get isodose color table node name
+  static std::string GetIsodoseColorTableNodeName();
 
 protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);

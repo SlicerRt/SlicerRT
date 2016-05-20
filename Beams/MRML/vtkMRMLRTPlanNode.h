@@ -102,24 +102,24 @@ public:
   /// Note: beam numbers *are* unique within a plan
   vtkMRMLRTBeamNode* GetBeamByNumber(int beamNumber);
 
-  /// Get RT Plan Reference volume
+  /// Get plan reference volume
   vtkMRMLScalarVolumeNode* GetReferenceVolumeNode();
-  /// Set RT Plan Reference volume
+  /// Set plan reference volume
   void SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Get RT Plan POIs (isocenters, weight points, CT reference points, beam entry points)
+  /// Get plan POIs (isocenters, weight points, CT reference points, beam entry points)
   vtkMRMLMarkupsFiducialNode* GetMarkupsFiducialNode();
-  /// Set RT Plan POIs (isocenters, weight points, CT reference points, beam entry points)
+  /// Set plan POIs (isocenters, weight points, CT reference points, beam entry points)
   void SetAndObserveMarkupsFiducialNode(vtkMRMLMarkupsFiducialNode* node);
 
-  /// Get RT Plan Segmentation (structure set)
+  /// Get plan segmentation (structure set)
   vtkMRMLSegmentationNode* GetSegmentationNode();
-  /// Set RT Plan Segmentation (structure set)
+  /// Set plan segmentation (structure set)
   void SetAndObserveSegmentationNode(vtkMRMLSegmentationNode* node);
 
-  /// Get RT Plan Dose volume node
+  /// Get output total dose volume node
   vtkMRMLScalarVolumeNode* GetDoseVolumeNode();
-  /// Set RT Plan Dose volume node
+  /// Set output total dose volume node
   void SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
   ///TODO:
@@ -146,7 +146,7 @@ public:
   static std::string AssembleProtonDoseVolumeReference(vtkMRMLNode* beamNode);
 
 protected:
-  /// Create default RT plan POIs markups node
+  /// Create default plan POIs markups node
   vtkMRMLMarkupsFiducialNode* CreateMarkupsFiducialNode();
 
 protected:

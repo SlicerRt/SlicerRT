@@ -752,8 +752,8 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(v
   }
 
   // Convert inputs to ITK images
-  Plm_image::Pointer plmTgt = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(targetLabelmap);
-  if (!plmTgt)
+  Plm_image::Pointer targetPlmVolume = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(targetLabelmap);
+  if (!targetPlmVolume)
   {
     std::string errorMessage("Failed to convert reference segment labelmap");
     vtkErrorMacro("ComputeDoseByPlastimatch: " << errorMessage);
@@ -770,20 +770,19 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(v
     doseGeometryString );
 #endif
   
-  //plmTgt->print();
+  //targetPlmVolume->print();
 
   double isocenter[3] = { 0, 0, 0 };
-  beamNode->GetIsocenterPosition(isocenter);
+  beamNode->GetIsocenter(isocenter);
   isocenter[0] = -isocenter[0];
   isocenter[1] = -isocenter[1];
 
   // Adjust src according to gantry angle
-  double ga_radians = 
-    beamNode->GetGantryAngle() * M_PI / 180.;
-  double src_dist = beamNode->GetSAD();
+  double gantryAngleRadian = beamNode->GetGantryAngle() * M_PI / 180.0;
+  double souceDistance = beamNode->GetSAD();
   double src[3] = { 0, 0, 0 };
-  src[0] = isocenter[0] + src_dist * sin(ga_radians);
-  src[1] = isocenter[1] - src_dist * cos(ga_radians);
+  src[0] = isocenter[0] + souceDistance * sin(gantryAngleRadian);
+  src[1] = isocenter[1] - souceDistance * cos(gantryAngleRadian);
   src[2] = isocenter[2];
 
   double rxDose = planNode->GetRxDose();
@@ -791,7 +790,7 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(v
   // Calculate dose
   this->Internal->DoseEngine->CalculateDose(
     beamNode, 
-    plmTgt, 
+    targetPlmVolume, 
     isocenter, 
     src,
     rxDose);

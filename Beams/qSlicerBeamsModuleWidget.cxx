@@ -232,10 +232,10 @@ void qSlicerBeamsModuleWidget::updateIsocenterPosition()
     return;
   }
 
-  double iso[3] = {0.0,0.0,0.0};
-  beamNode->GetIsocenterPosition(iso);
+  double isocenter[3] = {0.0,0.0,0.0};
+  beamNode->GetIsocenter(isocenter);
   d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(true);
-  d->MRMLCoordinatesWidget_IsocenterCoordinates->setCoordinates(iso);
+  d->MRMLCoordinatesWidget_IsocenterCoordinates->setCoordinates(isocenter);
   d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(false);
 }
 
@@ -504,7 +504,9 @@ void qSlicerBeamsModuleWidget::beamNameChanged(const QString &text)
   {
     return;
   }
+  beamNode->DisableModifiedEventOn();
   beamNode->SetName(text.toStdString().c_str());
+  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -603,6 +605,7 @@ void qSlicerBeamsModuleWidget::beamTypeChanged(const QString &text)
     return;
   }
 
+  beamNode->DisableModifiedEventOn();
   if (text.compare("Dynamic") == 0)
   {
     beamNode->SetBeamType(vtkMRMLRTBeamNode::Dynamic);
@@ -611,6 +614,7 @@ void qSlicerBeamsModuleWidget::beamTypeChanged(const QString &text)
   {
     beamNode->SetBeamType(vtkMRMLRTBeamNode::Static);
   }
+  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -631,7 +635,9 @@ void qSlicerBeamsModuleWidget::targetSegmentChanged(const QString& segment)
   }
 
   // Set target segment ID
+  beamNode->DisableModifiedEventOn();
   beamNode->SetTargetSegmentID(segment.toLatin1().constData());
+  beamNode->DisableModifiedEventOff();
 
   if (beamNode->GetIsocenterSpecification() == vtkMRMLRTBeamNode::CenterOfTarget)
   {
@@ -677,7 +683,9 @@ void qSlicerBeamsModuleWidget::isocenterCoordinatesChanged(double *coords)
     return;
   }
 
-  beamNode->SetIsocenterPosition(coords);
+  beamNode->DisableModifiedEventOn();
+  beamNode->SetIsocenter(coords);
+  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -700,7 +708,7 @@ void qSlicerBeamsModuleWidget::centerViewToIsocenterClicked()
 
   // Get isocenter position
   double iso[3] = {0.0,0.0,0.0};
-  beamNode->GetIsocenterPosition(iso);
+  beamNode->GetIsocenter(iso);
 
   // Navigate slice views to position
   this->mrmlScene()->InitTraversal();
@@ -735,14 +743,16 @@ void qSlicerBeamsModuleWidget::proximalMarginChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
   }
 
-  protonNode->SetProximalMargin(value);
+  protonBeamNode->DisableModifiedEventOn();
+  protonBeamNode->SetProximalMargin(value);
+  protonBeamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -757,14 +767,16 @@ void qSlicerBeamsModuleWidget::distalMarginChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
   }
 
-  protonNode->SetDistalMargin(value);
+  protonBeamNode->DisableModifiedEventOn();
+  protonBeamNode->SetDistalMargin(value);
+  protonBeamNode->DisableModifiedEventOff();
 }
 
 //---------------------------------------------------------------------------
@@ -778,21 +790,23 @@ void qSlicerBeamsModuleWidget::beamLineTypeChanged(const QString &text)
   }
 
   // Set in proton beam node
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
   }
 
+  protonBeamNode->DisableModifiedEventOn();
   if (text.compare("Active scanning") == 0)
   {
-    protonNode->SetBeamLineType("active");
+    protonBeamNode->SetBeamLineType("active");
   }
   else
   {
-    protonNode->SetBeamLineType("passive");
+    protonBeamNode->SetBeamLineType("passive");
   }
+  protonBeamNode->DisableModifiedEventOff();
 }
 
 //---------------------------------------------------------------------------
@@ -806,16 +820,18 @@ void qSlicerBeamsModuleWidget::manualEnergyPrescriptionChanged(bool checked)
   }
 
   // Set in proton beam node
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
   }
 
-  protonNode->SetHavePrescription(checked);
+  protonBeamNode->DisableModifiedEventOn();
+  protonBeamNode->SetHavePrescription(checked);
+  protonBeamNode->DisableModifiedEventOff();
 
-  if (protonNode->GetHavePrescription())
+  if (protonBeamNode->GetHavePrescription())
   {
     d->doubleSpinBox_MinimumEnergy->setEnabled(true);
     d->doubleSpinBox_MaximumEnergy->setEnabled(true);
@@ -842,14 +858,16 @@ void qSlicerBeamsModuleWidget::minimumEnergyChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
   }
 
-  protonNode->SetMinimumEnergy(value);
+  protonBeamNode->DisableModifiedEventOn();
+  protonBeamNode->SetMinimumEnergy(value);
+  protonBeamNode->DisableModifiedEventOff();
 }
 
 //---------------------------------------------------------------------------
@@ -863,14 +881,16 @@ void qSlicerBeamsModuleWidget::maximumEnergyChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
   }
 
-  protonNode->SetMaximumEnergy(value);
+  protonBeamNode->DisableModifiedEventOn();
+  protonBeamNode->SetMaximumEnergy(value);
+  protonBeamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -913,7 +933,9 @@ void qSlicerBeamsModuleWidget::mlcPositionDoubleArrayNodeChanged(vtkMRMLNode* no
     return;
   }
 
+  beamNode->DisableModifiedEventOn();
   beamNode->SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode::SafeDownCast(node));
+  beamNode->DisableModifiedEventOff();
 #endif
 }
 
@@ -935,8 +957,11 @@ void qSlicerBeamsModuleWidget::xJawsPositionValuesChanged(double minVal, double 
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
+
+  beamNode->DisableModifiedEventOn();
   beamNode->SetX1Jaw(minVal);
   beamNode->SetX2Jaw(maxVal);
+  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -957,8 +982,11 @@ void qSlicerBeamsModuleWidget::yJawsPositionValuesChanged(double minVal, double 
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
+
+  beamNode->DisableModifiedEventOn();
   beamNode->SetY1Jaw(minVal);
   beamNode->SetY2Jaw(maxVal);
+  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -979,7 +1007,10 @@ void qSlicerBeamsModuleWidget::gantryAngleChanged(double value)
     qCritical() << Q_FUNC_INFO << ": No current beam selected!";
     return;
   }
+
+  beamNode->DisableModifiedEventOn();
   beamNode->SetGantryAngle(value);
+  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -999,7 +1030,10 @@ void qSlicerBeamsModuleWidget::collimatorAngleChanged(double value)
     qCritical() << Q_FUNC_INFO << ": No current beam selected!";
     return;
   }
+
+  beamNode->DisableModifiedEventOn();
   beamNode->SetCollimatorAngle(value);
+  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1020,7 +1054,10 @@ void qSlicerBeamsModuleWidget::couchAngleChanged(double value)
     qCritical() << Q_FUNC_INFO << ": No current beam selected!";
     return;
   }
+
+  beamNode->DisableModifiedEventOn();
   beamNode->SetCouchAngle(value);
+  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1041,7 +1078,9 @@ void qSlicerBeamsModuleWidget::smearingChanged(double value)
     return;
   }
 
+  protonBeamNode->DisableModifiedEventOn();
   protonBeamNode->SetRangeCompensatorSmearingRadius(value);
+  protonBeamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1062,7 +1101,10 @@ void qSlicerBeamsModuleWidget::beamWeightChanged(double value)
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
+
+  beamNode->DisableModifiedEventOn();
   beamNode->SetBeamWeight(value);
+  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1083,7 +1125,10 @@ void qSlicerBeamsModuleWidget::sourceDistanceChanged(double value)
     qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
+
+  beamNode->DisableModifiedEventOn();
   beamNode->SetSAD(value);
+  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1098,14 +1143,16 @@ void qSlicerBeamsModuleWidget::apertureDistanceChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
   }
 
-  protonNode->SetApertureOffset(value);
+  protonBeamNode->DisableModifiedEventOn();
+  protonBeamNode->SetApertureOffset(value);
+  protonBeamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1119,8 +1166,8 @@ void qSlicerBeamsModuleWidget::algorithmChanged(const QString &text)
     return;
   }
 
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
@@ -1128,27 +1175,27 @@ void qSlicerBeamsModuleWidget::algorithmChanged(const QString &text)
 
   //if (text == "Ray tracer algorithm")
   //{
-  //  protonNode->SetAlgorithm(vtkMRMLRTProtonBeamNode::RayTracer);
+  //  protonBeamNode->SetAlgorithm(vtkMRMLRTProtonBeamNode::RayTracer);
   //  d->label_CalculateDoseStatus->setText("Ray Tracer Algorithm");
   //}
   //else if (text == "Cartesian geometry dose calculation")
   //{
-  //  protonNode->SetAlgorithm(vtkMRMLRTProtonBeamNode::CGS);
+  //  protonBeamNode->SetAlgorithm(vtkMRMLRTProtonBeamNode::CGS);
   //  d->label_CalculateDoseStatus->setText("Cartesian Geometry Algorithm");
   //}
   //else if (text == "Divergent geometry dose calculation")
   //{
-  //  protonNode->SetAlgorithm(vtkMRMLRTProtonBeamNode::DGS);
+  //  protonBeamNode->SetAlgorithm(vtkMRMLRTProtonBeamNode::DGS);
   //  d->label_CalculateDoseStatus->setText("Divergent Geometry Algorithm");
   //}
   //else if (text == "Hong dose calculation")
   //{
-  //  protonNode->SetAlgorithm(vtkMRMLRTProtonBeamNode::HGS);
+  //  protonBeamNode->SetAlgorithm(vtkMRMLRTProtonBeamNode::HGS);
   //  d->label_CalculateDoseStatus->setText("Hong Algorithm");
   //}
   //else
   //{
-  //  protonNode->SetAlgorithm(vtkMRMLRTProtonBeamNode::RayTracer);
+  //  protonBeamNode->SetAlgorithm(vtkMRMLRTProtonBeamNode::RayTracer);
   //  d->label_CalculateDoseStatus->setText("Algorithm error, Ray Tracer chosen by default");
   //}
 }
@@ -1165,14 +1212,16 @@ void qSlicerBeamsModuleWidget::pencilBeamSpacingChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
   }
 
-  protonNode->SetPencilBeamResolution(value);
+  protonBeamNode->DisableModifiedEventOn();
+  protonBeamNode->SetPencilBeamResolution(value);
+  protonBeamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1187,14 +1236,16 @@ void qSlicerBeamsModuleWidget::sourceSizeChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
   }
 
-  protonNode->SetSourceSize(value);
+  protonBeamNode->DisableModifiedEventOn();
+  protonBeamNode->SetSourceSize(value);
+  protonBeamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1209,14 +1260,16 @@ void qSlicerBeamsModuleWidget::energyResolutionChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
   }
 
-  protonNode->SetEnergyResolution(value);
+  protonBeamNode->DisableModifiedEventOn();
+  protonBeamNode->SetEnergyResolution(value);
+  protonBeamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1231,14 +1284,16 @@ void qSlicerBeamsModuleWidget::energySpreadChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
   }
 
-  protonNode->SetEnergySpread(value);
+  protonBeamNode->DisableModifiedEventOn();
+  protonBeamNode->SetEnergySpread(value);
+  protonBeamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1253,14 +1308,16 @@ void qSlicerBeamsModuleWidget::stepLengthChanged(double value)
   }
 
   // Set in proton beam node
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
   }
 
-  protonNode->SetStepLength(value);
+  protonBeamNode->DisableModifiedEventOn();
+  protonBeamNode->SetStepLength(value);
+  protonBeamNode->DisableModifiedEventOff();
 }
 
 
@@ -1276,14 +1333,16 @@ void qSlicerBeamsModuleWidget::wedApproximationChanged(bool checked)
   }
 
   // Set in proton beam node
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
   }
 
-  protonNode->SetLateralSpreadHomoApprox(checked);
+  protonBeamNode->DisableModifiedEventOn();
+  protonBeamNode->SetLateralSpreadHomoApprox(checked);
+  protonBeamNode->DisableModifiedEventOff();
 }
 
 //---------------------------------------------------------------------------
@@ -1298,14 +1357,16 @@ void qSlicerBeamsModuleWidget::rangeCompensatorHighlandChanged(bool checked)
   }
 
   // Set in proton beam node
-  vtkMRMLRTProtonBeamNode* protonNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (protonNode == NULL)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
+  if (protonBeamNode == NULL)
   {
     qCritical() << Q_FUNC_INFO << ": No current proton beam node.";
     return;
   }
 
-  protonNode->SetRangeCompensatorHighland(checked);
+  protonBeamNode->DisableModifiedEventOn();
+  protonBeamNode->SetRangeCompensatorHighland(checked);
+  protonBeamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------

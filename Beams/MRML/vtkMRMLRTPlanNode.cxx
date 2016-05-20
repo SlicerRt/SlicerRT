@@ -72,12 +72,6 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
   this->DoseGrid[0] = 0;
   this->DoseGrid[1] = 0;
   this->DoseGrid[2] = 0;
-
-  // Register parent transform modified event so that the representations
-  //   can be put under the same transform node
-  //vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-  //events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-  //vtkObserveMRMLObjectEventsMacro(this, events);
 }
 
 //----------------------------------------------------------------------------
