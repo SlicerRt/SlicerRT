@@ -157,17 +157,19 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
 
   //TODO: Beam parameters
   this->SetSAD(node->GetSAD());
-  double isocenter[3];
-  node->GetIsocenter(isocenter);
-  this->SetIsocenter(node->GetIsocenter());
+
+  double isocenter[3] = {0.0,0.0,0.0};
+  node->GetIsocenterPosition(isocenter);
+  this->SetIsocenterPosition(isocenter);
 
   this->SetTargetSegmentID(node->TargetSegmentID);
 
   this->SetIsocenterSpecification(node->GetIsocenterSpecification());
 
+  //TODO: Beam parameters
+
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
-  //TODO: Beam parameters
 }
 
 //----------------------------------------------------------------------------
@@ -406,8 +408,34 @@ void vtkMRMLRTBeamNode::SetIsocenterToTargetCenter()
   double center[3] = {0.0,0.0,0.0};
   if (this->ComputeTargetVolumeCenter(center))
   {
-    this->SetIsocenter(center);
+    this->SetIsocenterPosition(center);
   }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::GetIsocenterPosition(double* iso)
+{
+  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
+  if (!fiducialNode)
+  {
+    vtkErrorMacro("GetIsocenterPosition: Unable to access fiducial node for beam " << this->GetName());
+    return;
+  }
+
+  fiducialNode->GetNthFiducialPosition(0,iso);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetIsocenterPosition(double* iso)
+{
+  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
+  if (!fiducialNode)
+  {
+    vtkErrorMacro("SetIsocenterPosition: Unable to access fiducial node for beam " << this->GetName());
+    return;
+  }
+
+  fiducialNode->SetNthFiducialPositionFromArray(0,iso);
 }
 
 //----------------------------------------------------------------------------

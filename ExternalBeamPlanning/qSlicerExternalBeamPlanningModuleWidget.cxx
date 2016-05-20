@@ -277,9 +277,9 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
   }
   d->doubleSpinBox_RxDose->setValue(rtPlanNode->GetRxDose());
 
-  if (rtPlanNode->GetDoseVolumeNode())
+  if (rtPlanNode->GetOutputTotalDoseVolumeNode())
   {
-    d->MRMLNodeComboBox_DoseVolume->setCurrentNode(rtPlanNode->GetDoseVolumeNode());
+    d->MRMLNodeComboBox_DoseVolume->setCurrentNode(rtPlanNode->GetOutputTotalDoseVolumeNode());
   }
 
   double rdp[3] = {0.0,0.0,0.0};
@@ -311,13 +311,13 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
   qvtkReconnect(rtPlanNode, vtkCommand::ModifiedEvent, this, SLOT(onRTPlanNodeModified()));
 
   // Create and select output dose volume if missing
-  if (rtPlanNode && !rtPlanNode->GetDoseVolumeNode())
+  if (rtPlanNode && !rtPlanNode->GetOutputTotalDoseVolumeNode())
   {
     vtkSmartPointer<vtkMRMLScalarVolumeNode> newDoseVolume = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
     std::string newDoseVolumeName = std::string(rtPlanNode->GetName()) + "_TotalDose";
     newDoseVolume->SetName(newDoseVolumeName.c_str());
     this->mrmlScene()->AddNode(newDoseVolume);
-    rtPlanNode->SetAndObserveDoseVolumeNode(newDoseVolume);
+    rtPlanNode->SetAndObserveOutputTotalDoseVolumeNode(newDoseVolume);
   }
 
   this->updateWidgetFromMRML();
@@ -447,7 +447,7 @@ void qSlicerExternalBeamPlanningModuleWidget::doseVolumeNodeChanged(vtkMRMLNode*
   }
 
   rtPlanNode->DisableModifiedEventOn();
-  rtPlanNode->SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(node));
+  rtPlanNode->SetAndObserveOutputTotalDoseVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(node));
   rtPlanNode->DisableModifiedEventOff();
 }
 
@@ -752,7 +752,7 @@ void qSlicerExternalBeamPlanningModuleWidget::clearDoseClicked()
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
-  d->logic()->RemoveDoseNodes(rtPlanNode);
+  d->logic()->RemoveIntermediateDoseNodes(rtPlanNode);
 }
 
 //-----------------------------------------------------------------------------

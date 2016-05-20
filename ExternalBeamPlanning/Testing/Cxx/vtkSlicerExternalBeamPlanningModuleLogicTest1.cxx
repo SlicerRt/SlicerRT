@@ -158,7 +158,7 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   // Set plan parameters
   planNode->SetAndObserveReferenceVolumeNode(ctVolumeNode);
   planNode->SetAndObserveSegmentationNode(segmentationNode);
-  planNode->SetAndObserveDoseVolumeNode(doseVolumeNode);
+  planNode->SetAndObserveOutputTotalDoseVolumeNode(doseVolumeNode);
   planNode->SetDoseEngine(vtkMRMLRTPlanNode::Plastimatch);
 
   // Add first beam

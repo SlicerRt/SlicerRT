@@ -41,17 +41,14 @@
 #include <vtkVariant.h>
 
 //------------------------------------------------------------------------------
-const char* vtkMRMLRTPlanNode::OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE = "outputTotalDoseVolumeRef";
-
-//------------------------------------------------------------------------------
-static const char* POIS_MARKUPS_REFERENCE_ROLE = "posMarkupsRef";
-static const char* DOSEVOLUME_REFERENCE_ROLE = "doseVolumeRef";
 static const char* REFERENCE_VOLUME_REFERENCE_ROLE = "referenceVolumeRef";
 static const char* SEGMENTATION_REFERENCE_ROLE = "segmentationRef";
+static const char* POIS_MARKUPS_REFERENCE_ROLE = "posMarkupsRef";
+static const char* OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE = "outputTotalDoseVolumeRef";
 
 static const char* APERTURE_VOLUME_REFERENCE_ROLE_PREFIX = "apertureVolumeRef_";
 static const char* RANGE_COMPENSATOR_VOLUME_REFERENCE_ROLE_PREFIX = "rangeCompensatorVolumeRef_";
-static const char* PROTON_DOSE_VOLUME_REFERENCE_ROLE_PREFIX = "protonDoseVolumeRef_";
+static const char* PER_BEAM_DOSE_VOLUME_REFERENCE_ROLE_PREFIX = "protonDoseVolumeRef_";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
@@ -240,15 +237,15 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode* vtkMRMLRTPlanNode::GetDoseVolumeNode()
+vtkMRMLScalarVolumeNode* vtkMRMLRTPlanNode::GetOutputTotalDoseVolumeNode()
 {
-  return vtkMRMLScalarVolumeNode::SafeDownCast( this->GetNodeReference(DOSEVOLUME_REFERENCE_ROLE) );
+  return vtkMRMLScalarVolumeNode::SafeDownCast( this->GetNodeReference(OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
+void vtkMRMLRTPlanNode::SetAndObserveOutputTotalDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
-  this->SetNodeReferenceID(DOSEVOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 //---------------------------------------------------------------------------
@@ -462,15 +459,15 @@ std::string vtkMRMLRTPlanNode::AssembleRangeCompensatorVolumeReference(vtkMRMLNo
 }
 
 //----------------------------------------------------------------------------
-std::string vtkMRMLRTPlanNode::AssembleProtonDoseVolumeReference(vtkMRMLNode* beamNode)
+std::string vtkMRMLRTPlanNode::AssemblePerBeamDoseVolumeReference(vtkMRMLNode* beamNode)
 {
   if (!beamNode)
   {
-    std::cerr << "vtkMRMLRTPlanNode::AssembleProtonDoseVolumeReference: Invalid beam node!";
+    std::cerr << "vtkMRMLRTPlanNode::AssemblePerBeamDoseVolumeReference: Invalid beam node!";
     return "";
   }
   
-  std::string referenceRole(PROTON_DOSE_VOLUME_REFERENCE_ROLE_PREFIX);
+  std::string referenceRole(PER_BEAM_DOSE_VOLUME_REFERENCE_ROLE_PREFIX);
   referenceRole.append(beamNode->GetID());
   return referenceRole;
 }

@@ -773,14 +773,14 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(v
   //targetPlmVolume->print();
 
   double isocenter[3] = { 0, 0, 0 };
-  beamNode->GetIsocenter(isocenter);
+  beamNode->GetIsocenterPosition(isocenter);
   isocenter[0] = -isocenter[0];
   isocenter[1] = -isocenter[1];
 
   // Adjust src according to gantry angle
   double gantryAngleRadian = beamNode->GetGantryAngle() * M_PI / 180.0;
   double souceDistance = beamNode->GetSAD();
-  double src[3] = { 0, 0, 0 };
+  double src[3] = {0.0, 0.0, 0.0};
   src[0] = isocenter[0] + souceDistance * sin(gantryAngleRadian);
   src[1] = isocenter[1] - souceDistance * cos(gantryAngleRadian);
   src[2] = isocenter[2];
@@ -871,7 +871,7 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(v
   std::string protonDoseNodeName = std::string(beamNode->GetName()) + "_ProtonDose";
   protonDoseVolumeNode->SetName(protonDoseNodeName.c_str());
   this->GetMRMLScene()->AddNode(protonDoseVolumeNode);
-  std::string protonDoseNodeRef = vtkMRMLRTPlanNode::AssembleProtonDoseVolumeReference(beamNode);
+  std::string protonDoseNodeRef = vtkMRMLRTPlanNode::AssemblePerBeamDoseVolumeReference(beamNode);
   planNode->SetNodeReferenceID(protonDoseNodeRef.c_str(), protonDoseVolumeNode->GetID());
   if (rtPlanShNode)
   {
@@ -933,7 +933,7 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(vtkMRM
 
 #if defined (commentout)
   vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();
-  vtkMRMLScalarVolumeNode* outputDoseVolume = planNode->GetDoseVolumeNode();
+  vtkMRMLScalarVolumeNode* outputDoseVolume = planNode->GetOutputTotalDoseVolumeNode();
   // Make sure inputs are initialized
   if (!referenceVolumeNode || !beamNode)
   {
@@ -997,7 +997,7 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::FinalizeAccumulatedDose(vt
     return errorMessage;
   }
 
-  vtkMRMLScalarVolumeNode* doseVolumeNode = planNode->GetDoseVolumeNode();
+  vtkMRMLScalarVolumeNode* doseVolumeNode = planNode->GetOutputTotalDoseVolumeNode();
   if (!doseVolumeNode)
   {
     std::string errorMessage("Unable to access output dose volume");
@@ -1012,8 +1012,6 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::FinalizeAccumulatedDose(vt
 
   doseVolumeNode->SetAndObserveImageData(doseImageData);
   doseVolumeNode->CopyOrientation(referenceVolumeNode);
-
-  planNode->SetNodeReferenceID(vtkMRMLRTPlanNode::OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE, doseVolumeNode->GetID());
   doseVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
   // Add total dose volume to subject hierarchy under the study of the reference volume
@@ -1087,7 +1085,7 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::FinalizeAccumulatedDose(vt
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::RemoveDoseNodes(vtkMRMLRTPlanNode* planNode)
+void vtkSlicerExternalBeamPlanningModuleLogic::RemoveIntermediateDoseNodes(vtkMRMLRTPlanNode* planNode)
 {
   vtkMRMLScene* scene = this->GetMRMLScene();
 
@@ -1112,18 +1110,18 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RemoveDoseNodes(vtkMRMLRTPlanNode
         scene->RemoveNode(rangeCompensatorVolumeNode);
       }
 
-      std::string protonDoseNodeRef = vtkMRMLRTPlanNode::AssembleProtonDoseVolumeReference(beamNode);
-      vtkMRMLNode* protonDoseVolumeNode = planNode->GetNodeReference(protonDoseNodeRef.c_str());
-      if (protonDoseVolumeNode)
+      std::string perBeamDoseNodeRef = vtkMRMLRTPlanNode::AssemblePerBeamDoseVolumeReference(beamNode);
+      vtkMRMLNode* perBeamDoseVolumeNode = planNode->GetNodeReference(perBeamDoseNodeRef.c_str());
+      if (perBeamDoseVolumeNode)
       {
-        scene->RemoveNode(protonDoseVolumeNode);
+        scene->RemoveNode(perBeamDoseVolumeNode);
       }
     }
   }
 
-  vtkMRMLNode* totalProtonDoseVolumeNode = planNode->GetNodeReference(vtkMRMLRTPlanNode::OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE);
-  if (totalProtonDoseVolumeNode)
-  {
-    scene->RemoveNode(totalProtonDoseVolumeNode);
-  }
+  //vtkMRMLNode* totalDoseVolumeNode = planNode->GetNodeReference(vtkMRMLRTPlanNode::OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE);
+  //if (totalDoseVolumeNode)
+  //{
+  //  scene->RemoveNode(totalDoseVolumeNode);
+  //}
 }

@@ -153,6 +153,11 @@ public:
   /// Calculate center of current target and set isocenter to that point
   void SetIsocenterToTargetCenter();
 
+  //TODO: Replace these with safer functions later when isocenter storage is revamped
+  //      (now the plan-level isocenter can be overwritten from a beam)
+  void GetIsocenterPosition(double*); //TODO: array
+  void SetIsocenterPosition(double*);
+
   /// Get center of gravity of target segment, return true if successful
   /// or false if no target segment has been specified
   bool ComputeTargetVolumeCenter(double* center);
@@ -175,11 +180,6 @@ public:
   vtkGetStringMacro(TargetSegmentID);
   /// Set target segment ID
   vtkSetStringMacro(TargetSegmentID);
-
-  /// Get isocenter position
-  vtkGetVector3Macro(Isocenter, double);
-  /// Set isocenter position
-  vtkSetVector3Macro(Isocenter, double);
 
   /// Get radiation type
   vtkGetMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
@@ -287,8 +287,8 @@ protected:
   /// always calculated to be at the center of the target structure
   IsocenterSpecificationType IsocenterSpecification;
   /// Isocenter position
-  ///TODO: This is redundant. Would be much better not to store the markups reference but get it from the plan,
-  ///      and store the name of the beam's isocenter fiducial within the plan POIs markups node.
+  ///TODO: This is redundant (also seemingly not used). Would be much better not to store the markups reference
+  ///      but get it from the plan,and store the name of the beam's isocenter fiducial within the plan POIs markups node.
   double Isocenter[3];
 
   /// X1 jaw position

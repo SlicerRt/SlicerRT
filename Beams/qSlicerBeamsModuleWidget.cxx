@@ -233,7 +233,7 @@ void qSlicerBeamsModuleWidget::updateIsocenterPosition()
   }
 
   double isocenter[3] = {0.0,0.0,0.0};
-  beamNode->GetIsocenter(isocenter);
+  beamNode->GetIsocenterPosition(isocenter);
   d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(true);
   d->MRMLCoordinatesWidget_IsocenterCoordinates->setCoordinates(isocenter);
   d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(false);
@@ -684,7 +684,7 @@ void qSlicerBeamsModuleWidget::isocenterCoordinatesChanged(double *coords)
   }
 
   beamNode->DisableModifiedEventOn();
-  beamNode->SetIsocenter(coords);
+  beamNode->SetIsocenterPosition(coords);
   beamNode->DisableModifiedEventOff();
 }
 
@@ -708,7 +708,7 @@ void qSlicerBeamsModuleWidget::centerViewToIsocenterClicked()
 
   // Get isocenter position
   double iso[3] = {0.0,0.0,0.0};
-  beamNode->GetIsocenter(iso);
+  beamNode->GetIsocenterPosition(iso);
 
   // Navigate slice views to position
   this->mrmlScene()->InitTraversal();
@@ -958,10 +958,9 @@ void qSlicerBeamsModuleWidget::xJawsPositionValuesChanged(double minVal, double 
     return;
   }
 
-  beamNode->DisableModifiedEventOn();
+  // Do not disable modifier events as geometry need to be updated
   beamNode->SetX1Jaw(minVal);
   beamNode->SetX2Jaw(maxVal);
-  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -983,10 +982,9 @@ void qSlicerBeamsModuleWidget::yJawsPositionValuesChanged(double minVal, double 
     return;
   }
 
-  beamNode->DisableModifiedEventOn();
+  // Do not disable modifier events as geometry need to be updated
   beamNode->SetY1Jaw(minVal);
   beamNode->SetY2Jaw(maxVal);
-  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1008,9 +1006,8 @@ void qSlicerBeamsModuleWidget::gantryAngleChanged(double value)
     return;
   }
 
-  beamNode->DisableModifiedEventOn();
+  // Do not disable modifier events as geometry need to be updated
   beamNode->SetGantryAngle(value);
-  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1031,9 +1028,8 @@ void qSlicerBeamsModuleWidget::collimatorAngleChanged(double value)
     return;
   }
 
-  beamNode->DisableModifiedEventOn();
+  // Do not disable modifier events as geometry need to be updated
   beamNode->SetCollimatorAngle(value);
-  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1055,9 +1051,9 @@ void qSlicerBeamsModuleWidget::couchAngleChanged(double value)
     return;
   }
 
-  beamNode->DisableModifiedEventOn();
+  // Do not disable modifier events as geometry need to be updated
+  //TODO: Does not seem to be doing anything (IEC logic needs to be used!)
   beamNode->SetCouchAngle(value);
-  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1126,9 +1122,8 @@ void qSlicerBeamsModuleWidget::sourceDistanceChanged(double value)
     return;
   }
 
-  beamNode->DisableModifiedEventOn();
+  // Do not disable modifier events as geometry need to be updated
   beamNode->SetSAD(value);
-  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------

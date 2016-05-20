@@ -92,7 +92,7 @@ public:
 
   /// Remove MRML nodes created by dose calculation for the current RT plan,
   /// such as apertures, range compensators, and doses
-  void RemoveDoseNodes(vtkMRMLRTPlanNode* planNode);
+  void RemoveIntermediateDoseNodes(vtkMRMLRTPlanNode* planNode);
 
 protected:
   vtkSlicerExternalBeamPlanningModuleLogic();

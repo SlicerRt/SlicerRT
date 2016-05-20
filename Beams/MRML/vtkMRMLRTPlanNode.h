@@ -48,8 +48,6 @@ public:
     Matlab = 2
   };
 
-  static const char* OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE;
-
 public:
   static vtkMRMLRTPlanNode *New();
   vtkTypeMacro(vtkMRMLRTPlanNode,vtkMRMLNode);
@@ -118,9 +116,9 @@ public:
   void SetAndObserveSegmentationNode(vtkMRMLSegmentationNode* node);
 
   /// Get output total dose volume node
-  vtkMRMLScalarVolumeNode* GetDoseVolumeNode();
+  vtkMRMLScalarVolumeNode* GetOutputTotalDoseVolumeNode();
   /// Set output total dose volume node
-  void SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
+  void SetAndObserveOutputTotalDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
   ///TODO:
   vtkSetVector3Macro(ReferenceDosePoint, double);
@@ -143,7 +141,7 @@ public:
   /// Assemble reference volume node reference role for range compensator volume node with given beam
   static std::string AssembleRangeCompensatorVolumeReference(vtkMRMLNode* beamNode);
   /// Assemble reference volume node reference role for proton dose volume node with given beam
-  static std::string AssembleProtonDoseVolumeReference(vtkMRMLNode* beamNode);
+  static std::string AssemblePerBeamDoseVolumeReference(vtkMRMLNode* beamNode);
 
 protected:
   /// Create default plan POIs markups node
