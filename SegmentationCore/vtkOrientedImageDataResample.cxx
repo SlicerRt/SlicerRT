@@ -146,20 +146,36 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage
     return false;
   }
 
+  vtkNew<vtkMatrix4x4> referenceImageToWorldMatrix;
+  referenceImage->GetImageToWorldMatrix(referenceImageToWorldMatrix.GetPointer());
+
   // Simply copy input into output if the reference has the same geometry as the input, so no resampling is necessary
-  bool isInputImageTransformIdentity = true;
-  if (!inputImageTransform)
+  bool isInputImageTransformIdentity = false;
+  if (inputImageTransform == NULL)
   {
     // TODO: this could be improved by checking if inputImageTransform is identity 
-    isInputImageTransformIdentity = false;
+    isInputImageTransformIdentity = true;
   }
   if ( isInputImageTransformIdentity
-    && vtkOrientedImageDataResample::DoGeometriesMatch(inputImage, referenceImage)
-    && vtkOrientedImageDataResample::DoExtentsMatch(inputImage, referenceImage))
+    && vtkOrientedImageDataResample::DoGeometriesMatch(inputImage, referenceImage))
   {
-    if (inputImage != outputImage)
+    if (vtkOrientedImageDataResample::DoExtentsMatch(inputImage, referenceImage))
     {
-      outputImage->DeepCopy(inputImage);
+      // Input and output are exactly the same
+      if (inputImage != outputImage)
+      {
+        outputImage->DeepCopy(inputImage);
+      }
+    }
+    else
+    {
+      // Only extent is different
+      vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
+      padder->SetInputData(inputImage);
+      padder->SetOutputWholeExtent(referenceImage->GetExtent());
+      padder->Update();
+      outputImage->ShallowCopy(padder->GetOutput());
+      outputImage->SetImageToWorldMatrix(referenceImageToWorldMatrix.GetPointer());
     }
     return true;
   }
@@ -181,8 +197,6 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage
   }
 
   // output RAS to IJK
-  vtkNew<vtkMatrix4x4> referenceImageToWorldMatrix;
-  referenceImage->GetImageToWorldMatrix(referenceImageToWorldMatrix.GetPointer());
   vtkNew<vtkMatrix4x4> worldToReferenceImageMatrix;
   vtkMatrix4x4::Invert(referenceImageToWorldMatrix.GetPointer(), worldToReferenceImageMatrix.GetPointer());
   inputImageToReferenceImageTransform->Concatenate(worldToReferenceImageMatrix.GetPointer());
@@ -199,7 +213,7 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage
   }
 
   // Return with failure if output extent is empty
-  if ( inputExtentInReferenceFrame[0] == inputExtentInReferenceFrame[1] || inputExtentInReferenceFrame[2] == inputExtentInReferenceFrame[3] || inputExtentInReferenceFrame[4] == inputExtentInReferenceFrame[5] )
+  if ( inputExtentInReferenceFrame[0] > inputExtentInReferenceFrame[1] || inputExtentInReferenceFrame[2] > inputExtentInReferenceFrame[3] || inputExtentInReferenceFrame[4] > inputExtentInReferenceFrame[5] )
   {
     return false;
   }
@@ -245,7 +259,7 @@ bool vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage
   resliceFilter->Update();
 
   // Set output
-  outputImage->DeepCopy(resliceFilter->GetOutput());
+  outputImage->ShallowCopy(resliceFilter->GetOutput());
   outputImage->SetGeometryFromImageToWorldMatrix(referenceImageToWorldMatrix.GetPointer());
 
   return true;
@@ -769,7 +783,7 @@ bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* 
     return false;
   }
 
-  // Make sure input image data fits into the extent. If padding is disabled, then union extent is the reference extent
+  // Make sure input image data fits into the extent. If padding is disabled, then output extent is the reference extent
   int inputImageExtent[6] = {0,-1,0,-1,0,-1};
   inputImage->GetExtent(inputImageExtent);
   int unionExtent[6] = { std::min(containedImageExtentInInputImageFrame[0],inputImageExtent[0]), std::max(containedImageExtentInInputImageFrame[1],inputImageExtent[1]),
