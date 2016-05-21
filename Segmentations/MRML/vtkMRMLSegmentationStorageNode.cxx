@@ -26,26 +26,34 @@
 #include "vtkOrientedImageDataResample.h"
 
 // MRML includes
+#include <vtkMRMLScene.h>
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkMRMLSegmentationDisplayNode.h"
 
 // VTK includes
-#include <vtkMRMLScene.h>
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
 #include <vtkDataObject.h>
-#include <vtkPolyData.h>
-#include <vtkFieldData.h>
-#include <vtkStringArray.h>
 #include <vtkDoubleArray.h>
-#include <vtkMultiBlockDataSet.h>
-#include <vtkXMLMultiBlockDataWriter.h>
-#include <vtkXMLMultiBlockDataReader.h>
-#include <vtksys/SystemTools.hxx>
+#include <vtkFieldData.h>
+#include <vtkImageAppendComponents.h>
+#include <vtkImageCast.h>
+#include <vtkImageConstantPad.h>
+#include <vtkImageExtractComponents.h>
 #include <vtkInformation.h>
 #include <vtkInformationIntegerVectorKey.h>
 #include <vtkInformationStringKey.h>
+#include <vtkMultiBlockDataSet.h>
+#include <vtkNew.h>
+#include <vtkNRRDReader.h>
+#include <vtkNRRDWriter.h>
+#include <vtkObjectFactory.h>
+#include <vtkPolyData.h>
+#include <vtkStringArray.h>
+#include <vtkTransform.h>
+#include <vtkXMLMultiBlockDataWriter.h>
+#include <vtkXMLMultiBlockDataReader.h>
+#include <vtksys/SystemTools.hxx>
 
+#ifdef SUPPORT_4D_SPATIAL_NRRD
 // ITK includes
 #include <itkImageFileWriter.h>
 #include <itkNrrdImageIO.h>
@@ -54,6 +62,7 @@
 #include <itkImageFileReader.h>
 #include <itkMetaDataDictionary.h>
 #include <itkMetaDataObject.h>
+#endif
 
 // STL & C++ includes
 #include <iterator>
@@ -256,6 +265,12 @@ int vtkMRMLSegmentationStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
   {
     return 1;
   }
+#ifdef SUPPORT_4D_SPATIAL_NRRD
+  else if (this->ReadBinaryLabelmapRepresentation4DSpatial(segmentationNode, fullName))
+  {
+    return 1;
+  }
+#endif
   else if (this->ReadPolyDataRepresentation(segmentationNode, fullName))
   {
     return 1;
@@ -266,8 +281,9 @@ int vtkMRMLSegmentationStorageNode::ReadDataInternal(vtkMRMLNode *refNode)
   return 0;
 }
 
+#ifdef SUPPORT_4D_SPATIAL_NRRD
 //----------------------------------------------------------------------------
-int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string path)
+int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation4DSpatial(vtkMRMLSegmentationNode* segmentationNode, std::string path)
 {
   if (!vtksys::SystemTools::FileExists(path.c_str()))
   {
@@ -311,10 +327,8 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegm
   // Read common geometry extent
   std::string commonExtent;
   itk::ExposeMetaData<std::string>(metadata, GetSegmentationMetaDataKey(KEY_SEGMENTATION_EXTENT).c_str(), commonExtent);
-  std::stringstream ssCommonExtent;
-  ssCommonExtent << commonExtent;
   int commonGeometryExtent[6] = {0,-1,0,-1,0,-1};
-  ssCommonExtent >> commonGeometryExtent[0] >> commonGeometryExtent[1] >> commonGeometryExtent[2] >> commonGeometryExtent[3] >> commonGeometryExtent[4] >> commonGeometryExtent[5];
+  GetImageExtentFromString(commonGeometryExtent, commonExtent);
   // Read conversion parameters
   std::string conversionParameters;
   itk::ExposeMetaData<std::string>(metadata, GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONVERSION_PARAMETERS).c_str(), conversionParameters);
@@ -360,37 +374,19 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegm
     // DefaultColor
     std::string defaultColorValue;
     itk::ExposeMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_DEFAULT_COLOR), defaultColorValue);
-    std::stringstream ssDefaultColorValue;
-    ssDefaultColorValue << defaultColorValue;
     double currentSegmentDefaultColor[3] = {0.0,0.0,0.0};
-    ssDefaultColorValue >> currentSegmentDefaultColor[0] >> currentSegmentDefaultColor[1] >> currentSegmentDefaultColor[2];
-    currentSegment->SetDefaultColor(currentSegmentDefaultColor);
+    GetSegmentDefaultColorFromString(currentSegmentDefaultColor, defaultColorValue);
 
     // Extent
     std::string extentValue;
     itk::ExposeMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_EXTENT), extentValue);
-    std::stringstream ssExtentValue;
-    ssExtentValue << extentValue;
     int currentSegmentExtent[6] = {0,-1,0,-1,0,-1};
-    ssExtentValue >> currentSegmentExtent[0] >> currentSegmentExtent[1] >> currentSegmentExtent[2] >> currentSegmentExtent[3] >> currentSegmentExtent[4] >> currentSegmentExtent[5];
+    GetImageExtentFromString(currentSegmentExtent, extentValue);
 
     // Tags
     std::string tagsValue;
     itk::ExposeMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_TAGS), tagsValue);
-    std::string separatorCharacter("|");
-    size_t separatorPosition = tagsValue.find(separatorCharacter);
-    while (separatorPosition != std::string::npos)
-    {
-      std::string mapPairStr = tagsValue.substr(0, separatorPosition);
-      size_t colonPosition = mapPairStr.find(":");
-      if (colonPosition == std::string::npos)
-      {
-        continue;
-      }
-      currentSegment->SetTag(mapPairStr.substr(0, colonPosition), mapPairStr.substr(colonPosition+1));
-      tagsValue = tagsValue.substr(separatorPosition+1);
-      separatorPosition = tagsValue.find(separatorCharacter);
-    }
+    SetSegmentTagsFromString(currentSegment, tagsValue);
 
     // Create binary labelmap volume
     vtkSmartPointer<vtkOrientedImageData> currentBinaryLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
@@ -448,6 +444,169 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegm
 
   return 1;
 }
+#endif // SUPPORT_4D_SPATIAL_NRRD
+
+//----------------------------------------------------------------------------
+int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string path)
+{
+  if (!vtksys::SystemTools::FileExists(path.c_str()))
+  {
+    vtkErrorMacro("ReadBinaryLabelmapRepresentation: Input file " << path << " does not exist!");
+    return 0;
+  }
+
+  // Set up output segmentation
+  if (!segmentationNode || segmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
+  {
+    vtkErrorMacro("ReadBinaryLabelmapRepresentation: Output segmentation must exist and must be empty!");
+    return 0;
+  }
+  vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
+
+  // Get display node to load displayed color and opacity
+  segmentationNode->CreateDefaultDisplayNodes();
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
+
+  vtkNew<vtkNRRDReader> reader;
+  reader->SetFileName(path.c_str());
+
+  // Check if this is a NRRD file that we can read
+  if (!reader->CanReadFile(path.c_str()))
+  {
+    vtkDebugMacro("ReadBinaryLabelmapRepresentation: This is not a nrrd file");
+    return 0;
+  }
+
+  // Read the header to see if the NRRD file corresponds to the
+  // MRML Node
+  reader->UpdateInformation();
+
+  if (reader->GetPointDataType() != vtkDataSetAttributes::SCALARS)
+  {
+    vtkDebugMacro("ReadBinaryLabelmapRepresentation: only scalar point type is supported");
+    return 0;
+  }
+
+  // Read the volume
+  reader->Update();
+
+  // Copy image data to sequence of volume nodes
+  vtkImageData* imageData = reader->GetOutput();
+  if (imageData == NULL)
+  {
+    vtkErrorMacro("vtkMRMLVolumeSequenceStorageNode::ReadDataInternal: invalid image data");
+    return 0;
+  }
+  int numberOfFrames = imageData->GetNumberOfScalarComponents();
+
+  vtkNew<vtkImageExtractComponents> extractComponents;
+  extractComponents->SetInputConnection(reader->GetOutputPort());
+
+  vtkNew<vtkImageConstantPad> padder;
+  padder->SetInputConnection(extractComponents->GetOutputPort());
+
+  // Read succeeded, set master representation
+  segmentation->SetMasterRepresentationName(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
+
+  int segmentationNodeWasModified = segmentationNode->StartModify();
+  // Get metadata dictionary from image
+  typedef std::vector<std::string> KeyVector;
+  KeyVector keys = reader->GetHeaderKeysVector();
+
+  // Read common geometry extent
+  int commonGeometryExtent[6] = { 0, -1, 0, -1, 0, -1 };
+  KeyVector::iterator kit = std::find(keys.begin(), keys.end(), GetSegmentationMetaDataKey(KEY_SEGMENTATION_EXTENT));
+  if (kit != keys.end())
+  {
+    GetImageExtentFromString(commonGeometryExtent, reader->GetHeaderValue(GetSegmentationMetaDataKey(KEY_SEGMENTATION_EXTENT).c_str()));
+  }
+
+  // Read conversion parameters
+  kit = std::find(keys.begin(), keys.end(), GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONVERSION_PARAMETERS));
+  if (kit != keys.end())
+  {
+    std::string conversionParameters = reader->GetHeaderValue(GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONVERSION_PARAMETERS).c_str());
+    segmentation->DeserializeConversionParameters(conversionParameters);
+  }
+
+  // Read contained representation names
+  std::string containedRepresentationNames;
+  kit = std::find(keys.begin(), keys.end(), GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONTAINED_REPRESENTATION_NAMES));
+  if (kit != keys.end())
+  {
+    containedRepresentationNames = reader->GetHeaderValue(GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONTAINED_REPRESENTATION_NAMES).c_str());
+  }
+
+  // Get image properties
+  vtkMatrix4x4* rasToIjkMatrix = reader->GetRasToIjkMatrix();
+  vtkNew<vtkMatrix4x4> imageToWorldMatrix;
+  vtkMatrix4x4::Invert(rasToIjkMatrix, imageToWorldMatrix.GetPointer());
+
+  // Read segment binary labelmaps
+  for (int segmentIndex = 0; segmentIndex < numberOfFrames; ++segmentIndex)
+  {
+    // Create segment
+    vtkSmartPointer<vtkSegment> currentSegment = vtkSmartPointer<vtkSegment>::New();
+    
+    // Get metadata for current segment
+
+    // ID
+    std::string currentSegmentID = reader->GetHeaderValue(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_ID).c_str());
+
+    // Name
+    std::string currentSegmentName = reader->GetHeaderValue(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_NAME).c_str());
+    currentSegment->SetName(currentSegmentName.c_str());
+
+    // DefaultColor
+    std::string defaultColorValue = reader->GetHeaderValue(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_DEFAULT_COLOR).c_str());
+    double currentSegmentDefaultColor[3] = { 0.0, 0.0, 0.0 };
+    GetSegmentDefaultColorFromString(currentSegmentDefaultColor, defaultColorValue);
+
+    // Extent
+    std::string extentValue = reader->GetHeaderValue(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_EXTENT).c_str());
+    int currentSegmentExtent[6] = { 0, -1, 0, -1, 0, -1 };
+    GetImageExtentFromString(currentSegmentExtent, extentValue);
+
+    // Tags
+    std::string tagsValue = reader->GetHeaderValue(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_TAGS).c_str());
+    SetSegmentTagsFromString(currentSegment, tagsValue);
+
+    // Create binary labelmap volume
+    vtkSmartPointer<vtkOrientedImageData> currentBinaryLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
+
+    // Copy with clipping to specified extent
+    if (currentSegmentExtent[0] <= currentSegmentExtent[1]
+      && currentSegmentExtent[2] <= currentSegmentExtent[3]
+      && currentSegmentExtent[4] <= currentSegmentExtent[5])
+    {
+      // non-empty segment
+      extractComponents->SetComponents(segmentIndex);
+      padder->SetOutputWholeExtent(currentSegmentExtent);
+      padder->Update();
+      currentBinaryLabelmap->DeepCopy(padder->GetOutput());
+    }
+    else
+    {
+      // empty segment
+      currentBinaryLabelmap->SetExtent(currentSegmentExtent);
+      currentBinaryLabelmap->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+    }
+    currentBinaryLabelmap->SetImageToWorldMatrix(imageToWorldMatrix.GetPointer());
+
+    // Set loaded binary labelmap to segment
+    currentSegment->AddRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(), currentBinaryLabelmap);
+
+    // Add segment to segmentation
+    segmentation->AddSegment(currentSegment, currentSegmentID);
+  }
+
+  segmentationNode->EndModify(segmentationNodeWasModified);
+
+  // Create contained representations now that all the data is loaded
+  this->CreateRepresentationsBySerializedNames(segmentation, containedRepresentationNames);
+
+  return 1;
+}
 
 //----------------------------------------------------------------------------
 int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string path)
@@ -478,7 +637,7 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
   reader->SetFileName(path.c_str());
   reader->Update();
   vtkMultiBlockDataSet* multiBlockDataset = vtkMultiBlockDataSet::SafeDownCast(reader->GetOutput());
-  if (!multiBlockDataset)
+  if (!multiBlockDataset || multiBlockDataset->GetNumberOfBlocks()==0)
   {
     vtkErrorMacro("ReadPolyDataRepresentation: Failed to read file " << path);
     return 0;
@@ -659,85 +818,34 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
   // Determine merged labelmap dimensions and properties
   std::string commonGeometryString = segmentation->DetermineCommonLabelmapGeometry();
   vtkSmartPointer<vtkOrientedImageData> commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
-  vtkSegmentationConverter::DeserializeImageGeometry(commonGeometryString, commonGeometryImage);
-  int* commonGeometryDimensions = commonGeometryImage->GetDimensions();
-  int dimensions[4] = {commonGeometryDimensions[0],commonGeometryDimensions[1],commonGeometryDimensions[2],segmentation->GetNumberOfSegments()};
-  double* commonGeometryOrigin = commonGeometryImage->GetOrigin();
-  double originArray[4] = {commonGeometryOrigin[0],commonGeometryOrigin[1],commonGeometryOrigin[2],0.0};
-  double* commonGeometrySpacing = commonGeometryImage->GetSpacing();
-  double spacingArray[4] = {commonGeometrySpacing[0],commonGeometrySpacing[1],commonGeometrySpacing[2],1.0};
-  double directionsArray[3][3] = {{1.0,0.0,0.0},{0.0,1.0,0.0},{0.0,0.0,1.0}};
-  commonGeometryImage->GetDirections(directionsArray);
+  vtkSegmentationConverter::DeserializeImageGeometry(commonGeometryString, commonGeometryImage, VTK_UNSIGNED_CHAR, 1);
+  vtkOrientedImageDataResample::FillImage(commonGeometryImage, 0);
+  int commonGeometryExtent[6] = { 0, -1, 0, -1, 0, -1 };
+  commonGeometryImage->GetExtent(commonGeometryExtent);
+  vtkNew<vtkMatrix4x4> rasToIjk;
+  commonGeometryImage->GetWorldToImageMatrix(rasToIjk.GetPointer());
+  vtkNew<vtkMatrix4x4> ijkToRas;
+  vtkMatrix4x4::Invert(rasToIjk.GetPointer(), ijkToRas.GetPointer());
 
-  // Determine ITK image properties
-  BinaryLabelmap4DImageType::SizeType regionSize;
-  BinaryLabelmap4DImageType::IndexType regionIndex;
-  BinaryLabelmap4DImageType::RegionType region;
-  BinaryLabelmap4DImageType::PointType origin;
-  BinaryLabelmap4DImageType::SpacingType spacing;
-  BinaryLabelmap4DImageType::DirectionType directions;
-  for (int dim = 0; dim < 4; dim++)
-  {
-    regionIndex[dim] = 0;
-    regionSize[dim] = dimensions[dim];
-    spacing[dim] = spacingArray[dim];
-    origin[dim] = originArray[dim];
-  }
-  region.SetSize(regionSize);
-  region.SetIndex(regionIndex);
-  // Normalize direction vectors
-  for (unsigned int col=0; col<3; col++)
-  {
-    double len = 0;
-    unsigned int row = 0;
-    for (row=0; row<3; row++)
-    {
-      len += directionsArray[row][col] * directionsArray[row][col];
-    }
-    if (len == 0.0)
-    {
-      len = 1.0;
-    }
-    len = sqrt(len);
-    for (row=0; row<3; row++)
-    {
-      directions[row][col] = directionsArray[row][col]/len;
-    }
-  }
-  // Add fourth dimension to directions matrix
-  directions[3][3] = 1.0;
-  for (unsigned int index=0; index<3; index++)
-  {
-    directions[3][index] = 0.0;
-    directions[index][3] = 0.0;
-  }
-
-  // Create 4D labelmap image and set ITK image properties
-  BinaryLabelmap4DImageType::Pointer itkLabelmapImage = BinaryLabelmap4DImageType::New();
-  itkLabelmapImage->SetRegions(region);
-  itkLabelmapImage->SetOrigin(origin);
-  itkLabelmapImage->SetSpacing(spacing);
-  itkLabelmapImage->SetDirection(directions);
-  itkLabelmapImage->Allocate();
+  vtkNew<vtkNRRDWriter> writer;
+  writer->SetFileName(fullName.c_str());
+  writer->SetUseCompression(this->GetUseCompression());
+  writer->SetIJKToRASMatrix(ijkToRas.GetPointer());
 
   // Create metadata dictionary
-  itk::MetaDataDictionary metadata;
+  
   // Save extent of common geometry image
-  int commonGeometryExtent[6] = {0,-1,0,-1,0,-1};
-  commonGeometryImage->GetExtent(commonGeometryExtent);
-  std::stringstream ssCommonExtent;
-  ssCommonExtent << commonGeometryExtent[0] << " " << commonGeometryExtent[1] << " " << commonGeometryExtent[2]
-    << " " << commonGeometryExtent[3] << " " << commonGeometryExtent[4] << " " << commonGeometryExtent[5];
-  std::string commonExtent = ssCommonExtent.str();
-  itk::EncapsulateMetaData<std::string>(metadata, GetSegmentationMetaDataKey(KEY_SEGMENTATION_EXTENT).c_str(), commonExtent);
+  writer->SetAttribute(GetSegmentationMetaDataKey(KEY_SEGMENTATION_EXTENT).c_str(), GetImageExtentAsString(commonGeometryImage));
   // Save master representation name
-  itk::EncapsulateMetaData<std::string>(metadata, GetSegmentationMetaDataKey(KEY_SEGMENTATION_MASTER_REPRESENTATION).c_str(), masterRepresentation);
+  writer->SetAttribute(GetSegmentationMetaDataKey(KEY_SEGMENTATION_MASTER_REPRESENTATION).c_str(), masterRepresentation);
   // Save conversion parameters
   std::string conversionParameters = segmentation->SerializeAllConversionParameters();
-  itk::EncapsulateMetaData<std::string>(metadata, GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONVERSION_PARAMETERS).c_str(), conversionParameters);
+  writer->SetAttribute(GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONVERSION_PARAMETERS).c_str(), conversionParameters);
   // Save created representation names so that they are re-created when loading
   std::string containedRepresentationNames = this->SerializeContainedRepresentationNames(segmentation);
-  itk::EncapsulateMetaData<std::string>(metadata, GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONTAINED_REPRESENTATION_NAMES).c_str(), containedRepresentationNames);
+  writer->SetAttribute(GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONTAINED_REPRESENTATION_NAMES).c_str(), containedRepresentationNames);
+
+  vtkNew<vtkImageAppendComponents> appender;
 
   // Dimensions of the output 4D NRRD file: (i, j, k, segment)
   vtkSegmentation::SegmentMap segmentMap = segmentation->GetSegments();
@@ -755,9 +863,27 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
       continue;
     }
 
-    // Resample current binary labelmap representation to common geometry if necessary
-    if (!vtkOrientedImageDataResample::DoGeometriesMatch(commonGeometryImage, currentBinaryLabelmap))
+    int currentBinaryLabelmapExtent[6] = { 0, -1, 0, -1, 0, -1 };
+    currentBinaryLabelmap->GetExtent(currentBinaryLabelmapExtent);
+    if (currentBinaryLabelmapExtent[0] <= currentBinaryLabelmapExtent[1]
+      && currentBinaryLabelmapExtent[2] <= currentBinaryLabelmapExtent[3]
+      && currentBinaryLabelmapExtent[4] <= currentBinaryLabelmapExtent[5])
     {
+      // There is a valid labelmap
+
+      // Get transformed extents of the segment in the common labelmap geometry
+      vtkNew<vtkTransform> currentBinaryLabelmapToCommonGeometryImageTransform;
+      vtkOrientedImageDataResample::GetTransformBetweenOrientedImages(currentBinaryLabelmap, commonGeometryImage, currentBinaryLabelmapToCommonGeometryImageTransform.GetPointer());
+      int currentBinaryLabelmapExtentInCommonGeometryImageFrame[6] = { 0, -1, 0, -1, 0, -1 };
+      vtkOrientedImageDataResample::TransformExtent(currentBinaryLabelmapExtent, currentBinaryLabelmapToCommonGeometryImageTransform.GetPointer(), currentBinaryLabelmapExtentInCommonGeometryImageFrame);
+      for (int i = 0; i < 3; i++)
+      {
+        currentBinaryLabelmapExtent[i * 2] = std::max(currentBinaryLabelmapExtentInCommonGeometryImageFrame[i * 2], commonGeometryExtent[i * 2]);
+        currentBinaryLabelmapExtent[i * 2 + 1] = std::min(currentBinaryLabelmapExtentInCommonGeometryImageFrame[i * 2 + 1], commonGeometryExtent[i * 2 + 1]);
+      }
+      // TODO: maybe calculate effective extent to make sure the data is as compact as possible? (saving may be a good time to make segments more compact)
+
+      // Pad/resample current binary labelmap representation to common geometry
       vtkSmartPointer<vtkOrientedImageData> resampledCurrentBinaryLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
       bool success = vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
         currentBinaryLabelmap, commonGeometryImage, resampledCurrentBinaryLabelmap);
@@ -766,135 +892,47 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
         vtkWarningMacro("WriteBinaryLabelmapRepresentation: Segment " << currentSegmentID << " cannot be resampled to common geometry!");
         continue;
       }
-      currentBinaryLabelmap = resampledCurrentBinaryLabelmap; // currentBinaryLabelmap smart pointer will keep the temporary labelmap valid until it is needed
+
+      // currentBinaryLabelmap smart pointer will keep the temporary labelmap valid until it is needed
+      currentBinaryLabelmap = resampledCurrentBinaryLabelmap;
+      if (currentBinaryLabelmap->GetScalarType() != VTK_UNSIGNED_CHAR)
+      {
+        vtkNew<vtkImageCast> castFilter;
+        castFilter->SetInputData(resampledCurrentBinaryLabelmap);
+        castFilter->SetOutputScalarType(VTK_UNSIGNED_CHAR);
+        castFilter->Update();
+        currentBinaryLabelmap->ShallowCopy(castFilter->GetOutput());
+      }
+    }
+    else
+    {
+      // empty segment, use the commonGeometryImage (filled with 0)
+      currentBinaryLabelmap = commonGeometryImage;
     }
 
     // Set metadata for current segment
+    writer->SetAttribute(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_ID).c_str(), currentSegmentID);
+    writer->SetAttribute(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_NAME).c_str(), currentSegment->GetName());
+    writer->SetAttribute(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_DEFAULT_COLOR).c_str(), GetSegmentDefaultColorAsString(currentSegment));
+    writer->SetAttribute(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_EXTENT).c_str(), GetImageExtentAsString(currentBinaryLabelmapExtent));
+    writer->SetAttribute(GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_TAGS).c_str(), GetSegmentTagsAsString(currentSegment));
 
-    // ID
-    itk::EncapsulateMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_ID), currentSegmentID);
-
-    // Name
-    itk::EncapsulateMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_NAME), std::string(currentSegment->GetName()));
-
-    // DefaultColor
-    std::stringstream ssDefaultColorValue;
-    ssDefaultColorValue << currentSegment->GetDefaultColor()[0] << " " << currentSegment->GetDefaultColor()[1] << " " << currentSegment->GetDefaultColor()[2];
-    std::string defaultColorValue = ssDefaultColorValue.str();
-    itk::EncapsulateMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_DEFAULT_COLOR), defaultColorValue);
-
-    // Extent
-    int currentSegmentExtent[6] = {0,-1,0,-1,0,-1};
-    currentBinaryLabelmap->GetExtent(currentSegmentExtent);
-    std::stringstream ssExtentValue;
-    ssExtentValue << currentSegmentExtent[0] << " " << currentSegmentExtent[1] << " " << currentSegmentExtent[2]
-      << " " << currentSegmentExtent[3] << " " << currentSegmentExtent[4] << " " << currentSegmentExtent[5];
-    std::string extentValue = ssExtentValue.str();
-    itk::EncapsulateMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_EXTENT), extentValue);
-
-    // Tags
-    std::map<std::string,std::string> tags;
-    currentSegment->GetTags(tags);
-    std::stringstream ssTagsValue;
-    std::map<std::string,std::string>::iterator tagIt;
-    for (tagIt=tags.begin(); tagIt!=tags.end(); ++tagIt)
-    {
-      ssTagsValue << tagIt->first << ":" << tagIt->second << "|";
-    }
-    std::string tagsValue = ssTagsValue.str();
-    itk::EncapsulateMetaData<std::string>(metadata, GetSegmentMetaDataKey(segmentIndex, KEY_SEGMENT_TAGS), tagsValue);
-
-    // Define ITK region for the current segment
-    BinaryLabelmap4DImageType::IndexType segmentRegionIndex;
-    segmentRegionIndex[0] = segmentRegionIndex[1] = segmentRegionIndex[2] = 0;
-    segmentRegionIndex[3] = segmentIndex;
-    BinaryLabelmap4DImageType::SizeType segmentRegionSize;
-    segmentRegionSize = regionSize;
-    segmentRegionSize[3] = 1;
-    BinaryLabelmap4DImageType::RegionType segmentRegion;
-    segmentRegion.SetIndex(segmentRegionIndex);
-    segmentRegion.SetSize(segmentRegionSize);
-
-    // Get scalar pointer for binary labelmap representation. Only a few scalar types are supported
-    int currentLabelScalarType = currentBinaryLabelmap->GetScalarType();
-    if ( currentLabelScalarType != VTK_UNSIGNED_CHAR
-      && currentLabelScalarType != VTK_UNSIGNED_SHORT
-      && currentLabelScalarType != VTK_SHORT )
-    {
-      vtkWarningMacro("WriteBinaryLabelmapRepresentation: Segment " << currentSegmentID << " cannot be written! Binary labelmap scalar type must be unsigned char, unsighed short, or short!");
-      continue;
-    }
-    void* voidScalarPointer = currentBinaryLabelmap->GetScalarPointer();
-    unsigned char* labelmapPtrUChar = (unsigned char*)voidScalarPointer;
-    unsigned short* labelmapPtrUShort = (unsigned short*)voidScalarPointer;
-    short* labelmapPtrShort = (short*)voidScalarPointer;
-
-    // Iterate through current segment labelmap and write voxel values
-    BinaryLabelmap4DIteratorType segmentLabelmapIterator(itkLabelmapImage, segmentRegion);
-    for (segmentLabelmapIterator.GoToBegin(); !segmentLabelmapIterator.IsAtEnd(); ++segmentLabelmapIterator)
-    {
-      // Skip region outside extent of current segment (consider common extent boundaries)
-      BinaryLabelmap4DImageType::IndexType segmentIndex = segmentLabelmapIterator.GetIndex();
-      if ( segmentIndex[0] + commonGeometryExtent[0] < currentSegmentExtent[0]
-        || segmentIndex[0] + commonGeometryExtent[0] > currentSegmentExtent[1]
-        || segmentIndex[1] + commonGeometryExtent[2] < currentSegmentExtent[2]
-        || segmentIndex[1] + commonGeometryExtent[2] > currentSegmentExtent[3]
-        || segmentIndex[2] + commonGeometryExtent[4] < currentSegmentExtent[4]
-        || segmentIndex[2] + commonGeometryExtent[4] > currentSegmentExtent[5] )
-      {
-        segmentLabelmapIterator.Set((unsigned char)0);
-        continue;
-      }
-
-      // Get labelmap value at voxel
-      unsigned short label = 0;
-      if (currentLabelScalarType == VTK_UNSIGNED_CHAR)
-      {
-        label = (*labelmapPtrUChar);
-      }
-      else if (currentLabelScalarType == VTK_UNSIGNED_SHORT)
-      {
-        label = (*labelmapPtrUShort);
-      }
-      else if (currentLabelScalarType == VTK_SHORT)
-      {
-        label = (*labelmapPtrShort);
-      }
-
-      // Write voxel value to ITK image
-      segmentLabelmapIterator.Set((unsigned char)label);
-
-      ++labelmapPtrUChar;
-      ++labelmapPtrUShort;
-      ++labelmapPtrShort;
-    }
+    appender->AddInputData(currentBinaryLabelmap);
   } // For each segment
 
-  // Set metadata to ITK image
-  itkLabelmapImage->SetMetaDataDictionary(metadata);
 
-  // Write image file to disk
-  itk::NrrdImageIO::Pointer io = itk::NrrdImageIO::New();
-  io->SetFileType(itk::ImageIOBase::Binary);
+  appender->Update();
 
-  typedef itk::ImageFileWriter<BinaryLabelmap4DImageType> WriterType;
-  WriterType::Pointer nrrdWriter = WriterType::New();
-  nrrdWriter->UseInputMetaDataDictionaryOn();
-  nrrdWriter->SetInput(itkLabelmapImage);
-  nrrdWriter->SetImageIO(io);
-  nrrdWriter->SetFileName(fullName);
-  nrrdWriter->SetUseCompression(this->UseCompression);
-  try
+  writer->SetInputConnection(appender->GetOutputPort());
+  writer->Write();
+  int writeFlag = 1;
+  if (writer->GetWriteError())
   {
-    nrrdWriter->Update();
-  }
-  catch (itk::ExceptionObject e)
-  {
-    vtkErrorMacro("Failed to write segmentation to file " << fullName);
-    return 0;
+    vtkErrorMacro("ERROR writing NRRD file " << (writer->GetFileName() == NULL ? "null" : writer->GetFileName()));
+    writeFlag = 0;
   }
 
-  return 1;
+  return writeFlag;
 }
 
 //----------------------------------------------------------------------------
@@ -1127,4 +1165,99 @@ std::string vtkMRMLSegmentationStorageNode::GetSegmentationMetaDataKey(const std
   std::stringstream key;
   key << "Segmentation" << "_" << keyName;
   return key.str();
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLSegmentationStorageNode::GetSegmentTagsAsString(vtkSegment* segment)
+{
+  std::map<std::string, std::string> tags;
+  if (segment)
+  {
+    segment->GetTags(tags);
+  }
+  std::stringstream ssTagsValue;
+  std::map<std::string, std::string>::iterator tagIt;
+  for (tagIt = tags.begin(); tagIt != tags.end(); ++tagIt)
+  {
+    ssTagsValue << tagIt->first << ":" << tagIt->second << "|";
+  }
+  std::string tagsValue = ssTagsValue.str();
+  return tagsValue;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSegmentationStorageNode::SetSegmentTagsFromString(vtkSegment* segment, std::string tagsValue)
+{
+  std::string separatorCharacter("|");
+  size_t separatorPosition = tagsValue.find(separatorCharacter);
+  while (separatorPosition != std::string::npos)
+  {
+    std::string mapPairStr = tagsValue.substr(0, separatorPosition);
+    size_t colonPosition = mapPairStr.find(":");
+    if (colonPosition == std::string::npos)
+    {
+      continue;
+    }
+    segment->SetTag(mapPairStr.substr(0, colonPosition), mapPairStr.substr(colonPosition + 1));
+    tagsValue = tagsValue.substr(separatorPosition + 1);
+    separatorPosition = tagsValue.find(separatorCharacter);
+  }
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLSegmentationStorageNode::GetImageExtentAsString(vtkOrientedImageData* image)
+{
+  int extent[6] = { 0, -1, 0, -1, 0, -1 };
+  if (image)
+  {
+    image->GetExtent(extent);
+  }
+  return GetImageExtentAsString(extent);
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLSegmentationStorageNode::GetImageExtentAsString(int extent[6])
+{
+  std::stringstream ssExtentValue;
+  ssExtentValue << extent[0] << " " << extent[1] << " " << extent[2]
+    << " " << extent[3] << " " << extent[4] << " " << extent[5];
+  std::string extentValue = ssExtentValue.str();
+  return extentValue;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSegmentationStorageNode::GetImageExtentFromString(int extent[6], std::string extentValue)
+{
+  std::stringstream ssExtentValue(extentValue);
+  extent[0] = 0;
+  extent[1] = -1;
+  extent[2] = 0;
+  extent[3] = -1;
+  extent[4] = 0;
+  extent[5] = -1;
+  ssExtentValue >> extent[0] >> extent[1] >> extent[2] >> extent[3] >> extent[4] >> extent[5];
+}
+
+//----------------------------------------------------------------------------
+std::string vtkMRMLSegmentationStorageNode::GetSegmentDefaultColorAsString(vtkSegment* segment)
+{
+  std::stringstream ssDefaultColorValue;
+  double defaultColor[3] = { 0.5, 0.5, 0.5 };
+  if (segment)
+  {
+    segment->GetDefaultColor(defaultColor);
+  }
+  ssDefaultColorValue << defaultColor[0] << " " << defaultColor[1] << " " << defaultColor[2];
+  std::string defaultColorValue = ssDefaultColorValue.str();
+  return defaultColorValue;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSegmentationStorageNode::GetSegmentDefaultColorFromString(double defaultColor[3], std::string defaultColorValue)
+{
+  std::stringstream ssDefaultColorValue(defaultColorValue);
+  defaultColor[0] = 0.5;
+  defaultColor[1] = 0.5;
+  defaultColor[2] = 0.5;
+  ssDefaultColorValue >> defaultColor[0] >> defaultColor[1] >> defaultColor[2];
 }

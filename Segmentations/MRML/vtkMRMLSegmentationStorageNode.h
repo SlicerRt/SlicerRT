@@ -21,14 +21,20 @@
 #ifndef __vtkMRMLSegmentationStorageNode_h
 #define __vtkMRMLSegmentationStorageNode_h
 
+// Temporarily keep support for reading nrrd files that are saved as 4D spatial image.
+// The current way of writing volume is 3 spatial dimension and a list.
+#define SUPPORT_4D_SPATIAL_NRRD
+
 // Segmentation includes
 #include "vtkSlicerSegmentationsModuleMRMLExport.h"
 
 // MRML includes
 #include "vtkMRMLStorageNode.h"
 
-// ITK includes
-#include <itkImageRegionIteratorWithIndex.h>
+#ifdef SUPPORT_4D_SPATIAL_NRRD
+  // ITK includes
+  #include <itkImageRegionIteratorWithIndex.h>
+#endif
 
 class vtkMRMLSegmentationNode;
 class vtkMatrix4x4;
@@ -44,11 +50,13 @@ class vtkInformationIntegerVectorKey;
 /// Storage nodes has methods to read/write segmentations to/from disk.
 class VTK_SLICER_SEGMENTATIONS_MODULE_MRML_EXPORT vtkMRMLSegmentationStorageNode : public vtkMRMLStorageNode
 {
+#ifdef SUPPORT_4D_SPATIAL_NRRD
   // Although internally binary labelmap representations can be of unsigned char, unsigned short
   // or short types, the output file is always unsigned char
   //TODO: This is a limitation for now
   typedef itk::Image<unsigned char, 4> BinaryLabelmap4DImageType;
   typedef itk::ImageRegionIteratorWithIndex<BinaryLabelmap4DImageType> BinaryLabelmap4DIteratorType;
+#endif
 
 public:
   static vtkMRMLSegmentationStorageNode *New();
@@ -100,8 +108,13 @@ protected:
   /// Read data and set it in the referenced node
   virtual int ReadDataInternal(vtkMRMLNode *refNode);
 
-  /// Read binary labelmap representation to file
+  /// Read binary labelmap representation from nrrd file (3D spatial + list)
   virtual int ReadBinaryLabelmapRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string path);
+
+#ifdef SUPPORT_4D_SPATIAL_NRRD
+  /// Read binary labelmap representation from 4D spatial nrrd file - obsolete
+  virtual int ReadBinaryLabelmapRepresentation4DSpatial(vtkMRMLSegmentationNode* segmentationNode, std::string path);
+#endif
 
   /// Read a poly data representation to file
   virtual int ReadPolyDataRepresentation(vtkMRMLSegmentationNode* segmentationNode, std::string path);
@@ -119,6 +132,16 @@ protected:
   static std::string GetSegmentMetaDataKey(int segmentIndex, const std::string& keyName);
 
   static std::string GetSegmentationMetaDataKey(const std::string& keyName);
+
+  static std::string GetSegmentTagsAsString(vtkSegment* segment);
+  static void SetSegmentTagsFromString(vtkSegment* segment, std::string tagsValue);
+
+  static std::string GetImageExtentAsString(vtkOrientedImageData* image);
+  static std::string GetImageExtentAsString(int extent[6]);
+  static void GetImageExtentFromString(int extent[6], std::string extentValue);
+
+  static std::string GetSegmentDefaultColorAsString(vtkSegment* segment);
+  static void GetSegmentDefaultColorFromString(double defaultColor[3], std::string defaultColorValue);
 
 protected:
   vtkMRMLSegmentationStorageNode();
