@@ -28,6 +28,7 @@
 
 class qSlicerSubjectHierarchySegmentationsPluginPrivate;
 class vtkMRMLNode;
+class vtkMRMLSegmentationNode;
 class vtkMRMLSubjectHierarchyNode;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
@@ -112,6 +113,8 @@ protected slots:
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchySegmentationsPluginPrivate> d_ptr;
+
+  void updateAllSegmentsFromMRML(vtkMRMLSegmentationNode* segmentationNode);
 
 private:
   Q_DECLARE_PRIVATE(qSlicerSubjectHierarchySegmentationsPlugin);

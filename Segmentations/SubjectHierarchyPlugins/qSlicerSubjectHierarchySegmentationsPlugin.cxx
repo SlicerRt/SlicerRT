@@ -365,6 +365,7 @@ void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentAdded(vtkObject* calle
   if (!segmentId)
   {
     // Calling InvokePendingModifiedEvent loses event parameters, so in this case segment IDs are empty
+    updateAllSegmentsFromMRML(segmentationNode);
     return;
   }
   vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(segmentId);
@@ -402,6 +403,12 @@ void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentRemoved(vtkObject* cal
 
   // Get segment ID
   char* segmentId = reinterpret_cast<char*>(callData);
+  if (!segmentId)
+  {
+    // Calling InvokePendingModifiedEvent loses event parameters, so in this case segment IDs are empty
+    updateAllSegmentsFromMRML(segmentationNode);
+    return;
+  }
 
   // Find subject hierarchy node for segment
   std::vector<vtkMRMLHierarchyNode*> segmentSubjectHierarchyNodes = segmentationSubjectHierarchyNode->GetChildrenNodes();
@@ -441,6 +448,13 @@ void qSlicerSubjectHierarchySegmentationsPlugin::onSegmentModified(vtkObject* ca
 
   // Get segment ID and segment
   char* segmentId = reinterpret_cast<char*>(callData);
+  if (!segmentId)
+  {
+    // no segmentId is specified - it means that any and all may have been changed
+    updateAllSegmentsFromMRML(segmentationNode);
+    return;
+  }
+
   vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(segmentId);
   if (!segment)
   {
@@ -521,5 +535,59 @@ void qSlicerSubjectHierarchySegmentationsPlugin::createClosedSurfaceRepresentati
     QString message = QString("Failed to create closed surface representation in segmentation %1 using default conversion parameters!\n\nPlease visit the Segmentation module and try the advanced create representation function.").
       arg(segmentationNode->GetName());
     QMessageBox::warning(NULL, tr("Failed to create closed surface"), message);
+  }
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchySegmentationsPlugin::updateAllSegmentsFromMRML(vtkMRMLSegmentationNode* segmentationNode)
+{
+  // Get segmentation node
+  if (!segmentationNode)
+  {
+    qWarning() << Q_FUNC_INFO << ": invalid segmentation node";
+    return;
+  }
+  // Get associated subject hierarchy node
+  vtkMRMLSubjectHierarchyNode* segmentationSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(segmentationNode);
+  if (!segmentationSubjectHierarchyNode)
+  {
+    // Debug message instead of warning because auto subject hierarchy node creation might not be enabled
+    qDebug() << Q_FUNC_INFO << ": Unable to find subject hierarchy node for segmentation node " << segmentationNode->GetName() << " so per-segment subject hierarchy node cannot be created";
+    return;
+  }
+  vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
+  if (!segmentation)
+  {
+    qWarning() << Q_FUNC_INFO << ": invalid segmentation";
+    return;
+  }
+
+  // List of segment IDs that have to be added to the segment list
+  std::vector<std::string> segmentIDsToBeAddedToSh;
+  segmentationNode->GetSegmentation()->GetSegmentIDs(segmentIDsToBeAddedToSh);
+
+  // Segment modify/remove
+  std::vector<vtkMRMLHierarchyNode*> segmentSubjectHierarchyNodes = segmentationSubjectHierarchyNode->GetChildrenNodes();
+  for (std::vector<vtkMRMLHierarchyNode*>::iterator childIt = segmentSubjectHierarchyNodes.begin(); childIt != segmentSubjectHierarchyNodes.end(); ++childIt)
+  {
+    vtkMRMLSubjectHierarchyNode* segmentShNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*childIt);
+    const char* segmentId = segmentShNode->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
+    vtkSegment* segment = segmentation->GetSegment(segmentId);
+    if (!segment)
+    {
+      // segment has been removed
+      onSegmentRemoved(segmentationNode, (void*)segmentId);
+      continue;
+    }
+    onSegmentModified(segmentationNode, (void*)segmentId);
+
+    // Remove segment ID from the list of segments to be added (it's already added)
+    segmentIDsToBeAddedToSh.erase(std::remove(segmentIDsToBeAddedToSh.begin(), segmentIDsToBeAddedToSh.end(), segmentId), segmentIDsToBeAddedToSh.end());
+  }
+
+  // Segment add
+  for (std::vector<std::string>::iterator segmentIdIt = segmentIDsToBeAddedToSh.begin(); segmentIdIt != segmentIDsToBeAddedToSh.end(); ++segmentIdIt)
+  {
+    onSegmentAdded(segmentationNode, (void*)(segmentIdIt->c_str()));
   }
 }
