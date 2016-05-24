@@ -761,7 +761,13 @@ bool vtkOrientedImageDataResample::DoesTransformMatrixContainShear(vtkMatrix4x4*
 }
 
 //----------------------------------------------------------------------------
-bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* containedImage, vtkOrientedImageData* outputImage, int extent[6]/*=0*/)
+bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* containedImage, vtkOrientedImageData* outputImage)
+{
+  return vtkOrientedImageDataResample::PadImageToContainImage(inputImage, containedImage, outputImage, NULL);
+}
+
+//----------------------------------------------------------------------------
+bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* containedImage, vtkOrientedImageData* outputImage, int extent[6])
 {
   if (!inputImage || !containedImage || !outputImage)
   {

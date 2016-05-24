@@ -122,8 +122,10 @@ public:
   /// Calculate transform between two oriented image data
   static bool GetTransformBetweenOrientedImages(vtkOrientedImageData* image1, vtkOrientedImageData* image2, vtkTransform* image1ToImage2Transform);
 
+  /// Pad an image to entirely contain another image using custom extent to contain
+  static bool PadImageToContainImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* containedImage, vtkOrientedImageData* outputImage, int extent[6]);
   /// Pad an image to entirely contain another image
-  static bool PadImageToContainImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* containedImage, vtkOrientedImageData* outputImage, int extent[6]=0);
+  static bool PadImageToContainImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* containedImage, vtkOrientedImageData* outputImage);
 
   /// Determine if a transform is linear and return it if it is. A simple downcast is not enough, as the transform may be
   /// a general transform, which can be linear if the concatenation it contains consist of all linear transforms.
