@@ -176,50 +176,61 @@ public:
   bool GetSegmentVisibility(std::string segmentID);
   /// Set overall segment visibility by segment ID. Convenience function for python compatibility.
   void SetSegmentVisibility(std::string segmentID, bool visible);
+  void SetAllSegmentsVisibility(bool visible);
 
   /// Get segment 3D visibility by segment ID. Convenience function for python compatibility.
   /// \return Segment 3D visibility if segment found, otherwise false
   bool GetSegmentVisibility3D(std::string segmentID);
   /// Set segment 3D visibility by segment ID. Convenience function for python compatibility.
   void SetSegmentVisibility3D(std::string segmentID, bool visible);
+  void SetAllSegmentsVisibility3D(bool visible, bool changeVisibleSegmentsOnly = false);
 
   /// Get segment 2D fill visibility by segment ID. Convenience function for python compatibility.
   /// \return Segment 2D fill visibility if segment found, otherwise false
   bool GetSegmentVisibility2DFill(std::string segmentID);
   /// Set segment 2D fill visibility by segment ID. Convenience function for python compatibility.
   void SetSegmentVisibility2DFill(std::string segmentID, bool visible);
+  void SetAllSegmentsVisibility2DFill(bool visible, bool changeVisibleSegmentsOnly = false);
 
   /// Get segment 2D outline visibility by segment ID. Convenience function for python compatibility.
   /// \return Segment 2D outline visibility if segment found, otherwise false
   bool GetSegmentVisibility2DOutline(std::string segmentID);
   /// Set segment 2D outline visibility by segment ID. Convenience function for python compatibility.
   void SetSegmentVisibility2DOutline(std::string segmentID, bool visible);
+  void SetAllSegmentsVisibility2DOutline(bool visible, bool changeVisibleSegmentsOnly = false);
 
   /// Get segment 3D opacity by segment ID. Convenience function for python compatibility.
   /// \return Segment 3D opacity if segment found, otherwise false
   double GetSegmentOpacity3D(std::string segmentID);
   /// Set segment 3D opacity by segment ID. Convenience function for python compatibility.
   void SetSegmentOpacity3D(std::string segmentID, double opacity);
+  void SetAllSegmentsOpacity3D(double opacity, bool changeVisibleSegmentsOnly = false);
 
   /// Get segment 2D fill opacity by segment ID. Convenience function for python compatibility.
   /// \return Segment 2D fill opacity if segment found, otherwise false
   double GetSegmentOpacity2DFill(std::string segmentID);
   /// Set segment 2D fill opacity by segment ID. Convenience function for python compatibility.
   void SetSegmentOpacity2DFill(std::string segmentID, double opacity);
+  void SetAllSegmentsOpacity2DFill(double opacity, bool changeVisibleSegmentsOnly = false);
 
   /// Get segment 2D outline opacity by segment ID. Convenience function for python compatibility.
   /// \return Segment 2D outline opacity if segment found, otherwise false
   double GetSegmentOpacity2DOutline(std::string segmentID);
   /// Set segment 2D outline opacity by segment ID. Convenience function for python compatibility.
   void SetSegmentOpacity2DOutline(std::string segmentID, double opacity);
+  void SetAllSegmentsOpacity2DOutline(double opacity, bool changeVisibleSegmentsOnly = false);
 
   /// Set all three types of segment opacity by segment ID
   void SetSegmentOpacity(std::string segmentID, double opacity);
+  void SetAllSegmentsOpacity(double opacity, bool changeVisibleSegmentsOnly = false);
 
 protected:
   /// Set segment color in associated color table
   /// \return Success flag
   bool SetSegmentColorTableEntry(std::string segmentId, double r, double g, double b);
+
+  /// Convenience function for getting all segment IDs.
+  void GetAllSegmentIDs(std::vector<std::string>& segmentIDs, bool visibleSegmentsOnly);
 
 protected:
   vtkMRMLSegmentationDisplayNode();

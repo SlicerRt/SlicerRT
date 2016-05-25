@@ -2065,3 +2065,33 @@ void qMRMLSegmentEditorWidget::onOverwriteModeChanged(int index)
   }
   d->ParameterSetNode->SetOverwriteMode(d->OverwriteModeComboBox->itemData(index).toInt());
 }
+
+//-----------------------------------------------------------------------------
+bool qMRMLSegmentEditorWidget::segmentationNodeSelectorVisible() const
+{
+  Q_D(const qMRMLSegmentEditorWidget);
+  return d->MRMLNodeComboBox_Segmentation->isVisible();
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::setSegmentationNodeSelectorVisible(bool visible)
+{
+  Q_D(qMRMLSegmentEditorWidget);
+  d->MRMLNodeComboBox_Segmentation->setVisible(visible);
+  d->label_Segmentation->setVisible(visible);
+}
+
+//-----------------------------------------------------------------------------
+bool qMRMLSegmentEditorWidget::masterVolumeNodeSelectorVisible() const
+{
+  Q_D(const qMRMLSegmentEditorWidget);
+  return d->MRMLNodeComboBox_MasterVolume->isVisible();
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLSegmentEditorWidget::setMasterVolumeNodeSelectorVisible(bool visible)
+{
+  Q_D(qMRMLSegmentEditorWidget);
+  d->MRMLNodeComboBox_MasterVolume->setVisible(visible);
+  d->label_MasterVolume->setVisible(visible);
+}

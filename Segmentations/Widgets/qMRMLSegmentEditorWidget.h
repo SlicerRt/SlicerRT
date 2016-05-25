@@ -59,6 +59,8 @@ class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qMRMLSegmentEditorWidget : pu
 {
   Q_OBJECT
   QVTK_OBJECT
+  Q_PROPERTY(bool segmentationNodeSelectorVisible READ segmentationNodeSelectorVisible WRITE setSegmentationNodeSelectorVisible)
+  Q_PROPERTY(bool masterVolumeNodeSelectorVisible READ masterVolumeNodeSelectorVisible WRITE setMasterVolumeNodeSelectorVisible)
 
 public:
   typedef qMRMLWidget Superclass;
@@ -104,6 +106,12 @@ public:
   ///   embedding module widget so that events are not processed unnecessarily.
   Q_INVOKABLE void removeViewObservations();
 
+  /// Show/hide the segmentation node selector widget.
+  bool segmentationNodeSelectorVisible() const;
+
+  /// Show/hide the master volume node selector widget.
+  bool masterVolumeNodeSelectorVisible() const;
+
 public slots:
   /// Set the MRML \a scene associated with the widget
   virtual void setMRMLScene(vtkMRMLScene* newScene);
@@ -132,6 +140,12 @@ public slots:
 
   /// Update editedLabelmap, maskLabelmap, or alignedMasterVolumeNode
   Q_INVOKABLE void updateVolume(void*);
+
+  /// Show/hide the segmentation node selector widget.
+  void setSegmentationNodeSelectorVisible(bool);
+
+  /// Show/hide the master volume node selector widget.
+  void setMasterVolumeNodeSelectorVisible(bool);
 
 protected slots:
   /// Handles changing of current segmentation MRML node
