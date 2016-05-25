@@ -1178,30 +1178,74 @@ double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtk
     return 0.0;
   }
 
-  vtkSmartPointer<vtkLine> line1 = vtkSmartPointer<vtkLine>::New();
-  line1->DeepCopy(inputROIPoints->GetCell(0));
-  double pointOnLine1[3] = {0,0,0};
-  inputROIPoints->GetPoint(line1->GetPointId(0), pointOnLine1);
+  // Vector containing the distance between lines on adjacent contour slices.
+  std::vector<double> distances;
+  double distanceSum = 0.0;
 
-  double distance = 0;
-
-  int lineId = 0;
-  while (distance == 0)
+  // Loop through all of the lines
+  vtkIdType lineId = 0;
+  while (lineId < inputROIPoints->GetNumberOfLines() - 1)
   {
-    ++lineId;
-    if (lineId >= inputROIPoints->GetNumberOfLines())
-    {
-      vtkErrorMacro("GetSpacingBetweenLines: All lines in input polydata are contained on the same plane!");
-      return 0.0;
-    }
+
+    // First line
+    vtkSmartPointer<vtkLine> line1 = vtkSmartPointer<vtkLine>::New();
+    line1->DeepCopy(inputROIPoints->GetCell(lineId));
+
+    double line1Bounds[6] = { 0, 0, 0, 0, 0, 0 };
+    line1->GetBounds( line1Bounds );
+
+    // Second line
     vtkSmartPointer<vtkLine> line2 = vtkSmartPointer<vtkLine>::New();
-    line2->DeepCopy(inputROIPoints->GetCell(lineId));
-    double pointOnLine2[3] = {0,0,0};
-    inputROIPoints->GetPoint(line2->GetPointId(0), pointOnLine2);
-    distance = std::abs(pointOnLine1[2] - pointOnLine2[2]);
+    line2->DeepCopy(inputROIPoints->GetCell(lineId + 1));
+
+    double line2Bounds[6] = { 0, 0, 0, 0, 0, 0 };
+    line2->GetBounds( line2Bounds );
+
+    // Calculate the distance as the difference between the z value in the middle of the bounding boxes of the two lines.
+    double distance = std::abs( (line1Bounds[4]+line1Bounds[5])/2 - (line2Bounds[4]+line2Bounds[5])/2 );
+
+    // If the distance between the lines is not zero, add it to the list
+    if (distance > 0)
+    {
+      distances.push_back( distance );
+      distanceSum += distance;
+    }
+    ++lineId;
   }
 
-  return distance;
+  if (distances.size() == 0)
+  {
+    return 0.0;
+  }
+
+  // Calculate the mean distance between the lines.
+  double distanceMean = distanceSum/distances.size();
+  
+  distanceSum = 0;
+  int numberOfLines = 0;
+  for each (double distance in distances)
+  {
+    // If the distance is greater than 10% of the mean, discard it.
+    if (std::abs(distance - distanceMean) >= distanceMean/10)
+    {
+      continue;
+    }
+
+    distanceSum += distance;
+    ++numberOfLines;
+  }
+
+  // If the number of lines is zero, return the uncorrected mean.
+  if (numberOfLines == 0)
+  {
+    vtkErrorMacro("GetSpacingBetweenLines: Contour spacing is not consistent.");
+    return distanceMean;
+  }
+
+  // Recalculate the mean distance between the lines.
+  distanceMean = distanceSum/numberOfLines;
+
+  return distanceMean;
 }
 
 //----------------------------------------------------------------------------
