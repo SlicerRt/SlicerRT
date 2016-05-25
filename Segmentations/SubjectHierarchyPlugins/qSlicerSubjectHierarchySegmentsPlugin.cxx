@@ -396,7 +396,7 @@ int qSlicerSubjectHierarchySegmentsPlugin::getDisplayVisibility(vtkMRMLSubjectHi
   const char* segmentId = node->GetAttribute(vtkMRMLSegmentationNode::GetSegmentIDAttributeName());
 
   // Get visibility
-  return (displayNode->GetSegmentVisibility3D(segmentId) ? 1 : 0);
+  return (displayNode->GetSegmentVisibility(segmentId) ? 1 : 0);
 }
 
 //---------------------------------------------------------------------------
