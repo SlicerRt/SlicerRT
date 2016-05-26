@@ -24,19 +24,20 @@
 #include "vtkOrientedImageData.h"
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkVersionMacros.h>
-#include <vtkVector.h>
-#include <vtkMatrix4x4.h>
-#include <vtkTransform.h>
+#include <vtkAppendPolyData.h>
+#include <vtkGeneralTransform.h>
 #include <vtkImageReslice.h>
 #include <vtkImageConstantPad.h>
-#include <vtkGeneralTransform.h>
-#include <vtkTransformPolyDataFilter.h>
+#include <vtkMatrix4x4.h>
+#include <vtkNew.h>
+#include <vtkObjectFactory.h>
 #include <vtkPlaneSource.h>
-#include <vtkAppendPolyData.h>
+#include <vtkPointData.h>
+#include <vtkSmartPointer.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkVersionMacros.h>
+#include <vtkVector.h>
 
 // STD includes
 #include <algorithm>
@@ -1057,7 +1058,10 @@ void vtkOrientedImageDataResample::FillImage(vtkImageData* image, double fillVal
   {
     return;
   }
-
+  if (image->GetPointData() == NULL || image->GetPointData()->GetScalars() == NULL)
+  {
+    return;
+  }
   switch (image->GetScalarType())
   {
     vtkTemplateMacro(FillImageGeneric<VTK_TT>(image, fillValue, extent));

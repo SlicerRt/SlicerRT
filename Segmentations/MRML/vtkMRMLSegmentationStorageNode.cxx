@@ -819,9 +819,25 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
   std::string commonGeometryString = segmentation->DetermineCommonLabelmapGeometry();
   vtkSmartPointer<vtkOrientedImageData> commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
   vtkSegmentationConverter::DeserializeImageGeometry(commonGeometryString, commonGeometryImage, VTK_UNSIGNED_CHAR, 1);
-  vtkOrientedImageDataResample::FillImage(commonGeometryImage, 0);
   int commonGeometryExtent[6] = { 0, -1, 0, -1, 0, -1 };
   commonGeometryImage->GetExtent(commonGeometryExtent);
+  if (commonGeometryExtent[1] > commonGeometryExtent[0]
+    || commonGeometryExtent[3] > commonGeometryExtent[2]
+    || commonGeometryExtent[5] > commonGeometryExtent[4])
+  {
+    // common image is empty, which cannot be written to image file
+    // change it to a very small image instead
+    commonGeometryExtent[0] = 0;
+    commonGeometryExtent[1] = 9;
+    commonGeometryExtent[2] = 0;
+    commonGeometryExtent[3] = 9;
+    commonGeometryExtent[4] = 0;
+    commonGeometryExtent[5] = 9;
+    commonGeometryImage->SetExtent(commonGeometryExtent);
+    commonGeometryImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+  }
+  vtkOrientedImageDataResample::FillImage(commonGeometryImage, 0);
+
   vtkNew<vtkMatrix4x4> rasToIjk;
   commonGeometryImage->GetWorldToImageMatrix(rasToIjk.GetPointer());
   vtkNew<vtkMatrix4x4> ijkToRas;
