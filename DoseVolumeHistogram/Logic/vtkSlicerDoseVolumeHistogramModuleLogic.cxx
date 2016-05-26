@@ -397,6 +397,11 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   this->SetDisableModifiedEvent(0);
   this->Modified();
   parameterNode->EndModify(disabledNodeModify);
+  // Trigger update of table
+  if (parameterNode->GetMetricsTableNode())
+  {
+    parameterNode->GetMetricsTableNode()->Modified();
+  }
 
   return "";
 }
