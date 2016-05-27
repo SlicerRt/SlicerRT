@@ -931,7 +931,30 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     beamNode->SetSAD(rtReader->GetBeamSourceAxisDistance(dicomBeamNumber));
       
     beamNode->SetIsocenterSpecification(vtkMRMLRTBeamNode::ArbitraryPoint);
-    beamNode->SetIsocenterPosition(rtReader->GetBeamIsocenterPositionRas(dicomBeamNumber));
+    double* isocenter = rtReader->GetBeamIsocenterPositionRas(dicomBeamNumber);
+    if (beamIndex == 0)
+    {
+      if (!planNode->SetIsocenterPosition(isocenter))
+      {
+        vtkErrorMacro("LoadRtPlan: Failed to set isocenter position");
+        return false;
+      }
+    }
+    else
+    {
+      double planIsocenter[3] = {0.0, 0.0, 0.0};
+      if (!planNode->GetIsocenterPosition(planIsocenter))
+      {
+        vtkErrorMacro("LoadRtPlan: Failed to get plan isocenter position");
+        return false;
+      }
+      if ( !SlicerRtCommon::AreEqualWithTolerance(planIsocenter[0], isocenter[0])
+        || !SlicerRtCommon::AreEqualWithTolerance(planIsocenter[1], isocenter[1])
+        || !SlicerRtCommon::AreEqualWithTolerance(planIsocenter[2], isocenter[2]) )
+      {
+        vtkErrorMacro("LoadRtPlan: Different isocenters for each beam are not yet supported! The first isocenter will be used for the whole plan " << planNode->GetName() << ": (" << planIsocenter[0] << ", " << planIsocenter[1] << ", " << planIsocenter[2] << ")");
+      }
+    }
 
     // Create beam model hierarchy root node if has not been created yet
     if (beamModelHierarchyRootNode.GetPointer()==NULL)
@@ -1003,7 +1026,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
   }
   // Put plan markups under study within SH
   vtkMRMLSubjectHierarchyNode* planMarkupsSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(
-    planNode->GetMarkupsFiducialNode(), this->GetMRMLScene() );
+    planNode->GetPoisMarkupsFiducialNode(), this->GetMRMLScene() );
   if (planMarkupsSHNode && studyNode)
   {
     planMarkupsSHNode->SetParentNodeID(studyNode->GetID());
@@ -1397,7 +1420,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
   }
   else
   {
-    vtkErrorMacro("SetupRtImageGeometry: Input node is neither a volume node nor an isocenter fiducial node!");
+    vtkErrorMacro("SetupRtImageGeometry: Input node is neither a volume node nor an plan POIs markups fiducial node!");
     return;
   }
 
@@ -1450,7 +1473,11 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
 
   // Get isocenter coordinates
   double isocenterWorldCoordinates[3] = {0.0, 0.0, 0.0};
-  beamNode->GetIsocenterPosition(isocenterWorldCoordinates);
+  if (!beamNode->GetPlanIsocenterPosition(isocenterWorldCoordinates))
+  {
+    vtkErrorMacro("SetupRtImageGeometry: Failed to get plan isocenter position");
+    return;
+  }
 
   // Assemble transform from isocenter IEC to RT image RAS
   vtkSmartPointer<vtkTransform> fixedToIsocenterTransform = vtkSmartPointer<vtkTransform>::New();

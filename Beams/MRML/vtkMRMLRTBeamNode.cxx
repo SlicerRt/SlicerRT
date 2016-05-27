@@ -51,7 +51,6 @@
 const char* vtkMRMLRTBeamNode::NEW_BEAM_NODE_NAME_PREFIX = "NewBeam_";
 
 //------------------------------------------------------------------------------
-static const char* ISOCENTER_FIDUCIAL_REFERENCE_ROLE = "isocenterFiducialRef";
 static const char* MLCPOSITION_REFERENCE_ROLE = "MLCPositionRef";
 static const char* DRR_REFERENCE_ROLE = "DRRRef";
 static const char* CONTOUR_BEV_REFERENCE_ROLE = "contourBEVRef";
@@ -76,9 +75,6 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->BeamOnTime = 0.0;
 
   this->IsocenterSpecification = CenterOfTarget;
-  this->Isocenter[0] = 0.0;
-  this->Isocenter[1] = 0.0;
-  this->Isocenter[2] = 0.0;  
 
   this->X1Jaw = -100.0;
   this->X2Jaw = 100.0;
@@ -158,10 +154,6 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   //TODO: Beam parameters
   this->SetSAD(node->GetSAD());
 
-  double isocenter[3] = {0.0,0.0,0.0};
-  node->GetIsocenterPosition(isocenter);
-  this->SetIsocenterPosition(isocenter);
-
   this->SetTargetSegmentID(node->TargetSegmentID);
 
   this->SetIsocenterSpecification(node->GetIsocenterSpecification());
@@ -178,47 +170,6 @@ void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
   Superclass::PrintSelf(os,indent);
 
   //TODO: Beam parameters
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData)
-{
-  Superclass::ProcessMRMLEvents(caller, eventID, callData);
-
-  if (!this->Scene)
-  {
-    vtkErrorMacro("ProcessMRMLEvents: Invalid MRML scene!");
-    return;
-  }
-  if (this->Scene->IsBatchProcessing())
-  {
-    return;
-  }
-
-  if (eventID == vtkMRMLMarkupsNode::PointModifiedEvent)
-  {
-    // Update the model
-    this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::IsocenterModifiedEvent);
-  }
-}
-
-//----------------------------------------------------------------------------
-vtkMRMLMarkupsFiducialNode* vtkMRMLRTBeamNode::GetIsocenterFiducialNode()
-{
-  return vtkMRMLMarkupsFiducialNode::SafeDownCast( this->GetNodeReference(ISOCENTER_FIDUCIAL_REFERENCE_ROLE) );
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node)
-{
-  this->SetNodeReferenceID(ISOCENTER_FIDUCIAL_REFERENCE_ROLE, (node ? node->GetID() : NULL));
-
-  if (node)
-  {
-    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-    events->InsertNextValue(vtkMRMLMarkupsNode::PointModifiedEvent);
-    vtkObserveMRMLObjectEventsMacro(node, events);
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -408,34 +359,39 @@ void vtkMRMLRTBeamNode::SetIsocenterToTargetCenter()
   double center[3] = {0.0,0.0,0.0};
   if (this->ComputeTargetVolumeCenter(center))
   {
-    this->SetIsocenterPosition(center);
+    // Set isocenter in parent plan
+    vtkMRMLRTPlanNode* parentPlanNode = this->GetParentPlanNode();
+    if (!parentPlanNode)
+    {
+      vtkErrorMacro("SetIsocenterToTargetCenter: Failed to access parent plan node");
+      return;
+    }
+    if (!parentPlanNode->SetIsocenterPosition(center))
+    {
+      vtkErrorMacro("SetIsocenterToTargetCenter: Failed to set plan isocenter");
+      return;
+    }
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::GetIsocenterPosition(double* iso)
+bool vtkMRMLRTBeamNode::GetPlanIsocenterPosition(double isocenter[3])
 {
-  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
-  if (!fiducialNode)
+  vtkMRMLRTPlanNode* parentPlanNode = this->GetParentPlanNode();
+  if (!parentPlanNode)
   {
-    vtkErrorMacro("GetIsocenterPosition: Unable to access fiducial node for beam " << this->GetName());
-    return;
+    vtkErrorMacro("GetPlanIsocenterPosition: Failed to access parent plan node");
+    return false;
+  }
+  vtkMRMLMarkupsFiducialNode* poisMarkupsNode = parentPlanNode->GetPoisMarkupsFiducialNode();
+  if (!poisMarkupsNode)
+  {
+    vtkErrorMacro("GetPlanIsocenterPosition: Failed to access POIs markups node");
+    return false;
   }
 
-  fiducialNode->GetNthFiducialPosition(0,iso);
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetIsocenterPosition(double* iso)
-{
-  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetIsocenterFiducialNode();
-  if (!fiducialNode)
-  {
-    vtkErrorMacro("SetIsocenterPosition: Unable to access fiducial node for beam " << this->GetName());
-    return;
-  }
-
-  fiducialNode->SetNthFiducialPositionFromArray(0,iso);
+  poisMarkupsNode->GetNthFiducialPosition(vtkMRMLRTPlanNode::ISOCENTER_FIDUCIAL_INDEX, isocenter);
+  return true;
 }
 
 //----------------------------------------------------------------------------

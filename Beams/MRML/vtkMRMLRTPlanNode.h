@@ -29,9 +29,7 @@
 #include "vtkSlicerBeamsModuleMRMLExport.h"
 
 class vtkCollection;
-class vtkMRMLColorTableNode;
 class vtkMRMLMarkupsFiducialNode;
-class vtkMRMLModelNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
@@ -46,6 +44,15 @@ public:
     Plastimatch = 0,
     PMH = 1,
     Matlab = 2
+  };
+
+  static const char* ISOCENTER_FIDUCIAL_NAME;
+  static const int ISOCENTER_FIDUCIAL_INDEX;
+
+  enum
+  {
+    /// Fired if isocenter position changes
+    IsocenterModifiedEvent = 62300
   };
 
 public:
@@ -69,13 +76,14 @@ public:
   virtual const char* GetNodeTagName() { return "RTPlan"; };
 
   /// Handles events registered in the observer manager
-  /// - Invalidates (deletes) all non-active representations when the active is modified
-  /// - Follows parent transform changes
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
 public:
   /// Generate new beam name from new beam name prefix and next beam number
   std::string GenerateNewBeamName();
+
+  /// Check validity of current POIs markups fiducial node (whether it contains the default fiducials at the right indices)
+  bool IsPoisMarkupsFiducialNodeValid();
 
   /// Get Subject Hierarchy node associated with this node. Create if missing
   vtkMRMLSubjectHierarchyNode* GetPlanSubjectHierarchyNode();
@@ -106,9 +114,15 @@ public:
   void SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode* node);
 
   /// Get plan POIs (isocenters, weight points, CT reference points, beam entry points)
-  vtkMRMLMarkupsFiducialNode* GetMarkupsFiducialNode();
+  vtkMRMLMarkupsFiducialNode* GetPoisMarkupsFiducialNode();
   /// Set plan POIs (isocenters, weight points, CT reference points, beam entry points)
-  void SetAndObserveMarkupsFiducialNode(vtkMRMLMarkupsFiducialNode* node);
+  void SetAndObservePoisMarkupsFiducialNode(vtkMRMLMarkupsFiducialNode* node);
+  /// Get isocenter position
+  /// \return Success flag
+  bool GetIsocenterPosition(double isocenter[3]);
+  /// Set isocenter position
+  /// \return Success flag
+  bool SetIsocenterPosition(double isocenter[3]);
 
   /// Get plan segmentation (structure set)
   vtkMRMLSegmentationNode* GetSegmentationNode();

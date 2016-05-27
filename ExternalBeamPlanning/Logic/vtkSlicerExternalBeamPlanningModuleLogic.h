@@ -52,12 +52,13 @@ public:
   static vtkSlicerExternalBeamPlanningModuleLogic *New();
   vtkTypeMacro(vtkSlicerExternalBeamPlanningModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
-  
+
   /// Set Beams module logic
   void SetBeamsLogic(vtkSlicerBeamsModuleLogic* beamsLogic);
   /// Get Beams module logic
   vtkGetObjectMacro(BeamsLogic, vtkSlicerBeamsModuleLogic);
 
+public:
   /// Create a new beam based on another beam, and add it to the plan
   /// \return The new beam node that has been copied and added to the plan
   vtkMRMLRTBeamNode* CopyAndAddBeamToPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode);
@@ -104,10 +105,13 @@ protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
 
   virtual void UpdateFromMRMLScene();
-
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
+  virtual void OnMRMLSceneEndImport();
   virtual void OnMRMLSceneEndClose();
+
+  /// Handles events registered in the observer manager
+  virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData);
 
 protected:
   /// TODO:

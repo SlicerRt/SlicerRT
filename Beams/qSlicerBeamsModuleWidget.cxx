@@ -233,7 +233,11 @@ void qSlicerBeamsModuleWidget::updateIsocenterPosition()
   }
 
   double isocenter[3] = {0.0,0.0,0.0};
-  beamNode->GetIsocenterPosition(isocenter);
+  if (!beamNode->GetPlanIsocenterPosition(isocenter))
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to get plan isocenter for beam " << beamNode->GetName();
+  }
+
   d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(true);
   d->MRMLCoordinatesWidget_IsocenterCoordinates->setCoordinates(isocenter);
   d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(false);
@@ -455,7 +459,7 @@ void qSlicerBeamsModuleWidget::setBeamNode(vtkMRMLNode* node)
 
   // Each time the node is modified, the qt widgets are updated
   qvtkReconnect(rtBeamNode, vtkCommand::ModifiedEvent, this, SLOT(onBeamNodeModified()));
-  qvtkReconnect(rtBeamNode, vtkMRMLRTBeamNode::IsocenterModifiedEvent, this, SLOT(updateIsocenterPosition()));
+  qvtkReconnect(rtBeamNode->GetParentPlanNode(), vtkMRMLRTPlanNode::IsocenterModifiedEvent, this, SLOT(updateIsocenterPosition()));
 
   this->updateWidgetFromMRML();
 }
@@ -684,7 +688,14 @@ void qSlicerBeamsModuleWidget::isocenterCoordinatesChanged(double *coords)
   }
 
   beamNode->DisableModifiedEventOn();
-  beamNode->SetIsocenterPosition(coords);
+
+  vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
+  if (!parentPlanNode || !parentPlanNode->SetIsocenterPosition(coords))
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to set plan isocenter for beam " << beamNode->GetName();
+    return;
+  }
+
   beamNode->DisableModifiedEventOff();
 }
 
@@ -708,7 +719,11 @@ void qSlicerBeamsModuleWidget::centerViewToIsocenterClicked()
 
   // Get isocenter position
   double iso[3] = {0.0,0.0,0.0};
-  beamNode->GetIsocenterPosition(iso);
+  if (!beamNode->GetPlanIsocenterPosition(iso))
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to get isocenter position!";
+    return;
+  }
 
   // Navigate slice views to position
   this->mrmlScene()->InitTraversal();

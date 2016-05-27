@@ -76,9 +76,9 @@ public:
 
   enum
   {
-    /// Fired if isocenter position changes
-    IsocenterModifiedEvent = 62200,
-    BeamGeometryModified,
+    /// Fired if beam geometry (beam model) needs to be updated
+    BeamGeometryModified = 62200,
+    /// Fired if beam transform needs to be updated
     BeamTransformModified
   };
 
@@ -86,9 +86,6 @@ public:
   static vtkMRMLRTBeamNode *New();
   vtkTypeMacro(vtkMRMLRTBeamNode,vtkMRMLModelNode);
   void PrintSelf(ostream& os, vtkIndent indent);
-
-  /// Handles events registered in the observer manager
-  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
   /// Create instance of a GAD node. 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -119,11 +116,6 @@ public:
   /// Get parent plan node
   vtkMRMLRTPlanNode* GetParentPlanNode();
 
-  /// Get isocenter fiducial node
-  vtkMRMLMarkupsFiducialNode* GetIsocenterFiducialNode();
-  /// Set and observe isocenter fiducial node
-  void SetAndObserveIsocenterFiducialNode(vtkMRMLMarkupsFiducialNode* node);
-
   /// Get target segmentation node from parent plan node
   vtkMRMLSegmentationNode* GetTargetSegmentationNode();
   /// Get target segment as a labelmap
@@ -145,6 +137,10 @@ public:
   /// Set and observe contour BEV node
   void SetAndObserveContourBEVVolumeNode(vtkMRMLScalarVolumeNode* node);
 
+  /// Get isocenter position from parent plan
+  /// \return Success flag
+  bool GetPlanIsocenterPosition(double isocenter[3]);
+
 // Isocenter parameters
 public:
   /// Set isocenter specification
@@ -152,11 +148,6 @@ public:
   void SetIsocenterSpecification(vtkMRMLRTBeamNode::IsocenterSpecificationType isoSpec);
   /// Calculate center of current target and set isocenter to that point
   void SetIsocenterToTargetCenter();
-
-  //TODO: Replace these with safer functions later when isocenter storage is revamped
-  //      (now the plan-level isocenter can be overwritten from a beam)
-  void GetIsocenterPosition(double*); //TODO: array
-  void SetIsocenterPosition(double*);
 
   /// Get center of gravity of target segment, return true if successful
   /// or false if no target segment has been specified
@@ -286,10 +277,6 @@ protected:
   /// Isocenter specification determining whether it can be an arbitrary point or
   /// always calculated to be at the center of the target structure
   IsocenterSpecificationType IsocenterSpecification;
-  /// Isocenter position
-  ///TODO: This is redundant (also seemingly not used). Would be much better not to store the markups reference
-  ///      but get it from the plan,and store the name of the beam's isocenter fiducial within the plan POIs markups node.
-  double Isocenter[3];
 
   /// X1 jaw position
   double X1Jaw;

@@ -94,11 +94,6 @@ const char* SlicerRtCommon::DEFAULT_DOSE_COLOR_TABLE_NAME = "Dose_ColorTable";
 //----------------------------------------------------------------------------
 namespace
 {
-  bool AreEqualWithTolerance(double a, double b)
-  {
-    return fabs(a - b) < EPSILON;
-  }
-
   bool AreCollinear(const vtkVector3<double>& a, const vtkVector3<double>& b)
   {
     if (AreEqualWithTolerance(a.GetX(), b.GetX()) && AreEqualWithTolerance(b.GetY(), b.GetY()) && AreEqualWithTolerance(a.GetZ(), b.GetZ()))
@@ -106,7 +101,7 @@ namespace
       return true;
     }
 
-    return AreEqualWithTolerance(1.0L, std::abs(a.Dot(b)));
+    return SlicerRtCommon::AreEqualWithTolerance(1.0L, std::abs(a.Dot(b)));
   }
 }
 
@@ -321,6 +316,12 @@ bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtk
 
   // All of the tests passed, declare the lattices the same
   return true;
+}
+
+//---------------------------------------------------------------------------
+bool SlicerRtCommon::AreEqualWithTolerance(double a, double b)
+{
+  return fabs(a - b) < EPSILON;
 }
 
 //---------------------------------------------------------------------------

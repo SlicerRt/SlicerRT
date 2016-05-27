@@ -271,9 +271,9 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
   // in plan node is set to GUI so that the user needs to select nodes that are then set to the beams.
   d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(rtPlanNode->GetReferenceVolumeNode());
   d->MRMLNodeComboBox_PlanSegmentation->setCurrentNode(rtPlanNode->GetSegmentationNode());
-  if (rtPlanNode->GetMarkupsFiducialNode())
+  if (rtPlanNode->GetPoisMarkupsFiducialNode())
   {
-    d->MRMLNodeComboBox_PlanPOIs->setCurrentNode(rtPlanNode->GetMarkupsFiducialNode());
+    d->MRMLNodeComboBox_PlanPOIs->setCurrentNode(rtPlanNode->GetPoisMarkupsFiducialNode());
   }
   d->doubleSpinBox_RxDose->setValue(rtPlanNode->GetRxDose());
 
@@ -399,10 +399,17 @@ void qSlicerExternalBeamPlanningModuleWidget::planPOIsNodeChanged(vtkMRMLNode* n
   }
 
   rtPlanNode->DisableModifiedEventOn();
-  rtPlanNode->SetAndObserveMarkupsFiducialNode(vtkMRMLMarkupsFiducialNode::SafeDownCast(node));
+  rtPlanNode->SetAndObservePoisMarkupsFiducialNode(vtkMRMLMarkupsFiducialNode::SafeDownCast(node));
   rtPlanNode->DisableModifiedEventOff();
 
-  // GCS FIX TODO: Update beams isocenters
+  // Update beam transforms based on new isocenter
+  std::vector<vtkMRMLRTBeamNode*> beams;
+  rtPlanNode->GetBeams(beams);
+  for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
+  {
+    vtkMRMLRTBeamNode* beamNode = (*beamIt);
+    d->logic()->GetBeamsLogic()->UpdateBeamTransform(beamNode);
+  }
 }
 
 //-----------------------------------------------------------------------------

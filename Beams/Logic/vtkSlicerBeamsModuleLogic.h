@@ -60,9 +60,9 @@ protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
 
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
-  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndImport();
 
+  /// Handles events registered in the observer manager
   virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData);
 
 private:

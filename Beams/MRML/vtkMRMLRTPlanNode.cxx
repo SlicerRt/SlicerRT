@@ -41,6 +41,10 @@
 #include <vtkVariant.h>
 
 //------------------------------------------------------------------------------
+const char* vtkMRMLRTPlanNode::ISOCENTER_FIDUCIAL_NAME = "Isocenter";
+const int vtkMRMLRTPlanNode::ISOCENTER_FIDUCIAL_INDEX = 0;
+
+//------------------------------------------------------------------------------
 static const char* REFERENCE_VOLUME_REFERENCE_ROLE = "referenceVolumeRef";
 static const char* SEGMENTATION_REFERENCE_ROLE = "segmentationRef";
 static const char* POIS_MARKUPS_REFERENCE_ROLE = "posMarkupsRef";
@@ -129,26 +133,20 @@ void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
   Superclass::ProcessMRMLEvents(caller, eventID, callData);
 
   if (!this->Scene)
-    {
+  {
     vtkErrorMacro("ProcessMRMLEvents: Invalid MRML scene!");
     return;
-    }
+  }
   if (this->Scene->IsBatchProcessing())
-    {
+  {
     return;
-    }
+  }
 
-  // Representation internal data changed
-  if (eventID == vtkMRMLModelNode::PolyDataModifiedEvent || eventID == vtkMRMLVolumeNode::ImageDataModifiedEvent)
-    {
-    vtkMRMLModelNode* callerModelNode = vtkMRMLModelNode::SafeDownCast(caller);
-    vtkMRMLScalarVolumeNode* callerVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(caller);
-    if (!callerModelNode && !callerVolumeNode)
-      {
-      return;
-      }
-      //TODO: Implement or delete
-    }
+  if (eventID == vtkMRMLMarkupsNode::PointModifiedEvent)
+  {
+    // Update the model
+    this->InvokeCustomModifiedEvent(vtkMRMLRTPlanNode::IsocenterModifiedEvent);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -177,35 +175,58 @@ void vtkMRMLRTPlanNode::SetAndObserveSegmentationNode(vtkMRMLSegmentationNode* n
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::GetMarkupsFiducialNode()
+vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::GetPoisMarkupsFiducialNode()
 {
   vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(this->GetNodeReference(POIS_MARKUPS_REFERENCE_ROLE));
   if (!markupsNode)
   {
     markupsNode = this->CreateMarkupsFiducialNode();
   }
+
   if (!markupsNode)
   {
-    vtkErrorMacro("vtkMRMLRTPlanNode: Could not create Markups node for RTPlan");
-    return NULL;
+    vtkErrorMacro("GetPoisMarkupsFiducialNode: Could not create Markups node for RTPlan");
   }
-
-  // Ensure that Markups has an isocenter fiducial at index 0
-  if (markupsNode->GetNumberOfFiducials() < 1) {
-    markupsNode->AddFiducial(0,0,0,"Isocenter");
-  }
-  else if (markupsNode->GetNthFiducialLabel(0) != "Isocenter") {
-    markupsNode->SetNthFiducialLabel(0,"Isocenter");
-    markupsNode->SetNthFiducialPosition(0,0,0,0);
+  else
+  {
+    this->IsPoisMarkupsFiducialNodeValid();
   }
 
   return markupsNode;
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::SetAndObserveMarkupsFiducialNode(vtkMRMLMarkupsFiducialNode* node)
+bool vtkMRMLRTPlanNode::IsPoisMarkupsFiducialNodeValid()
+{
+  vtkMRMLMarkupsFiducialNode* markupsNode = this->GetPoisMarkupsFiducialNode();
+  if (!markupsNode)
+  {
+    return false;
+  }
+
+  // Check if markups node contains default fiducials
+  if (markupsNode->GetNthFiducialLabel(ISOCENTER_FIDUCIAL_INDEX) != std::string(ISOCENTER_FIDUCIAL_NAME))
+  {
+    vtkErrorMacro("IsPoisMarkupsFiducialNodeValid: Unable to access isocenter fiducial in the markups node belonging to plan " << this->Name);
+    return false;
+  }
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::SetAndObservePoisMarkupsFiducialNode(vtkMRMLMarkupsFiducialNode* node)
 {
   this->SetNodeReferenceID(POIS_MARKUPS_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+
+  if (node)
+  {
+    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+    events->InsertNextValue(vtkMRMLMarkupsNode::PointModifiedEvent);
+    vtkObserveMRMLObjectEventsMacro(node, events);
+
+    this->IsPoisMarkupsFiducialNodeValid();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -216,9 +237,9 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
   
   // Create markups node
   vtkNew<vtkMRMLMarkupsFiducialNode> markupsNode;
-  markupsNode->SetName (markupsName.c_str());
+  markupsNode->SetName(markupsName.c_str());
   this->GetScene()->AddNode(markupsNode.GetPointer());
-  this->SetAndObserveMarkupsFiducialNode(markupsNode.GetPointer());
+  this->SetAndObservePoisMarkupsFiducialNode(markupsNode.GetPointer());
 
   // Subject hierarchy node is created automatically
   
@@ -233,7 +254,38 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
     this->GetScene(), planSHNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), 
     markupsName.c_str(), markupsNode.GetPointer() );
 
+  // Populate POI markups with default fiducials
+  markupsNode->AddFiducial(0,0,0,ISOCENTER_FIDUCIAL_NAME); // index 0: ISOCENTER_FIDUCIAL_INDEX
+
   return markupsNode.GetPointer();
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLRTPlanNode::GetIsocenterPosition(double isocenter[3])
+{
+  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetPoisMarkupsFiducialNode();
+  if (!fiducialNode)
+  {
+    vtkErrorMacro("GetIsocenterPosition: Unable to access fiducial node for plan " << this->Name);
+    return false;
+  }
+
+  fiducialNode->GetNthFiducialPosition(ISOCENTER_FIDUCIAL_INDEX, isocenter);
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLRTPlanNode::SetIsocenterPosition(double isocenter[3])
+{
+  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetPoisMarkupsFiducialNode();
+  if (!fiducialNode)
+  {
+    vtkErrorMacro("SetIsocenterPosition: Unable to access fiducial node for plan " << this->Name);
+    return false;
+  }
+
+  fiducialNode->SetNthFiducialPositionFromArray(ISOCENTER_FIDUCIAL_INDEX, isocenter);
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -382,9 +434,6 @@ void vtkMRMLRTPlanNode::AddBeam(vtkMRMLRTBeamNode* beamNode)
 
   // Set the beam number
   beamNode->SetBeamNumber(this->NextBeamNumber++);
-
-  // Copy the plan markups node reference into the beam
-  beamNode->SetAndObserveIsocenterFiducialNode(this->GetMarkupsFiducialNode());
 
   // Put the RTBeam node in the subject hierarchy
   vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(

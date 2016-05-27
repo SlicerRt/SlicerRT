@@ -99,33 +99,6 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
   {
     // Observe beam events
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-    events->InsertNextValue(vtkMRMLRTBeamNode::IsocenterModifiedEvent);
-    events->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
-    events->InsertNextValue(vtkMRMLRTBeamNode::BeamTransformModified);
-    vtkObserveMRMLNodeEventsMacro(node, events);
-  }
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
-{
-  if (!node || !this->GetMRMLScene())
-  {
-    vtkErrorMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene or input node!");
-    return;
-  }
-
-  // if the scene is still updating, jump out
-  if (this->GetMRMLScene()->IsBatchProcessing())
-  {
-    return;
-  }
-
-  if (node->IsA("vtkMRMLRTBeamNode"))
-  {
-    // Observe beam events
-    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-    events->InsertNextValue(vtkMRMLRTBeamNode::IsocenterModifiedEvent);
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamTransformModified);
     vtkObserveMRMLNodeEventsMacro(node, events);
@@ -141,7 +114,6 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneEndImport()
   while (node != NULL)
   {
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-    events->InsertNextValue(vtkMRMLRTBeamNode::IsocenterModifiedEvent);
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamTransformModified);
     vtkObserveMRMLNodeEventsMacro(node, events);
@@ -169,8 +141,7 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
   {
     vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(caller);
 
-    if ( event == vtkMRMLRTBeamNode::IsocenterModifiedEvent
-      || event == vtkMRMLRTBeamNode::BeamTransformModified )
+    if (event == vtkMRMLRTBeamNode::BeamTransformModified)
     {
       // Update beam transform
       this->UpdateBeamTransform(beamNode);
@@ -197,10 +168,11 @@ void vtkSlicerBeamsModuleLogic::UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode)
     return;
   }
 
-  vtkMRMLMarkupsFiducialNode* isocenterMarkupsNode = beamNode->GetIsocenterFiducialNode();
-  if (!isocenterMarkupsNode)
+  // Get isocenter
+  double isocenterPosition[3] = {0.0,0.0,0.0};
+  if (!beamNode->GetPlanIsocenterPosition(isocenterPosition))
   {
-    vtkErrorMacro ("UpdateBeamTransform: isocenterMarkupNode is not initialized");
+    vtkErrorMacro("UpdateBeamTransform: Failed to get isocenter position");
     return;
   }
 
@@ -215,9 +187,7 @@ void vtkSlicerBeamsModuleLogic::UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode)
 
   vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
   transform2->Identity();
-  double isoCenterPosition[3] = {0.0,0.0,0.0};
-  isocenterMarkupsNode->GetNthFiducialPosition(0,isoCenterPosition);
-  transform2->Translate(isoCenterPosition[0], isoCenterPosition[1], isoCenterPosition[2]);
+  transform2->Translate(isocenterPosition[0], isocenterPosition[1], isocenterPosition[2]);
 
   transform->PostMultiply();
   transform->Concatenate(transform2->GetMatrix());

@@ -121,12 +121,10 @@ public:
   //----------------------------------------------------------------------------
 
 public:
-  /*!
-    Compute transform between two transformable objects
-    /param fromNode Displayable node from which we want to compute the transform
-    /param toNode Displayable node to which we want to compute the transform
-    /param fromNodeTotoNodeTransform Output transform
-  */
+  /// Compute transform between two transformable objects
+  /// \param fromNode Displayable node from which we want to compute the transform
+  /// \param toNode Displayable node to which we want to compute the transform
+  /// \param fromNodeTotoNodeTransform Output transform
   static void GetTransformBetweenTransformables(vtkMRMLTransformableNode* fromNode, vtkMRMLTransformableNode* toNode, vtkGeneralTransform* fromNodeToToNodeTransform);
 
   /// Returns true if the string is null or empty, returns false otherwise
@@ -145,6 +143,9 @@ public:
 
   /// Check if the lattice (grid, geometry) of two volumes are the same
   static bool DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtkMRMLScalarVolumeNode* volume2);
+
+  /// Determine if two numbers are equal within a small tolerance (0.0001)
+  static bool AreEqualWithTolerance(double a, double b);
 
   /// Determine if two bounds are equal
   static bool AreExtentsEqual(int boundsA[6], int boundsB[6]);

@@ -190,7 +190,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateFromMRMLScene()
     return;
   }
 
-  this->Modified(); //TODO: Needed?
+  this->Modified();
 }
 
 //---------------------------------------------------------------------------
@@ -210,7 +210,28 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode*
 
   if (node->IsA("vtkMRMLRTPlanNode"))
   {
+    // Observe plan events
+    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+    events->InsertNextValue(vtkMRMLRTPlanNode::IsocenterModifiedEvent);
+    vtkObserveMRMLNodeEventsMacro(node, events);
+
     this->Modified();
+  }
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneEndImport()
+{
+  // Observe beam events of all beam nodes
+  this->GetMRMLScene()->InitTraversal();
+  vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLRTPlanNode");
+  while (node != NULL)
+  {
+    // Observe plan events
+    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+    events->InsertNextValue(vtkMRMLRTPlanNode::IsocenterModifiedEvent);
+    vtkObserveMRMLNodeEventsMacro(node, events);
+    node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLRTPlanNode");
   }
 }
 
@@ -231,7 +252,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNod
 
   if (node->IsA("vtkMRMLScalarVolumeNode") || node->IsA("vtkMRMLRTPlanNode"))
   {
-    this->Modified(); //TODO: Needed?
+    this->Modified();
   }
 }
 
@@ -239,6 +260,40 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNod
 void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneEndClose()
 {
   this->Modified();
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerExternalBeamPlanningModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData)
+{
+  Superclass::ProcessMRMLNodesEvents(caller, event, callData);
+
+  vtkMRMLScene* mrmlScene = this->GetMRMLScene();
+  if (!mrmlScene)
+  {
+    vtkErrorMacro("ProcessMRMLNodesEvents: Invalid MRML scene!");
+    return;
+  }
+  if (mrmlScene->IsBatchProcessing())
+  {
+    return;
+  }
+
+  if (caller->IsA("vtkMRMLRTPlanNode"))
+  {
+    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(caller);
+
+    if (event == vtkMRMLRTPlanNode::IsocenterModifiedEvent && this->BeamsLogic)
+    {
+      // Update transform for child beams
+      std::vector<vtkMRMLRTBeamNode*> beams;
+      planNode->GetBeams(beams);
+      for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
+      {
+        vtkMRMLRTBeamNode* beamNode = (*beamIt);
+        this->BeamsLogic->UpdateBeamTransform(beamNode);
+      }
+    }
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -772,8 +827,15 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByPlastimatch(v
   
   //targetPlmVolume->print();
 
-  double isocenter[3] = { 0, 0, 0 };
-  beamNode->GetIsocenterPosition(isocenter);
+  // Get isocenter
+  double isocenter[3] = {0.0, 0.0, 0.0};
+  if (!beamNode->GetPlanIsocenterPosition(isocenter))
+  {
+    std::string errorMessage("Failed to get isocenter position");
+    vtkErrorMacro("ComputeDoseByPlastimatch: " << errorMessage);
+    return errorMessage;
+  }
+  // Convert to LPS
   isocenter[0] = -isocenter[0];
   isocenter[1] = -isocenter[1];
 
