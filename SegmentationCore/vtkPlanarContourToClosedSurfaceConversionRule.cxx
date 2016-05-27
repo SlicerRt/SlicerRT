@@ -1223,9 +1223,10 @@ double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtk
   
   distanceSum = 0;
   int numberOfLines = 0;
-  for each (double distance in distances)
+  for (std::vector<double>::iterator distIt = distances.begin(); distIt != distances.end(); ++distIt)
   {
     // If the distance is greater than 10% of the mean, discard it.
+    double distance = (*distIt);
     if (std::abs(distance - distanceMean) >= distanceMean/10)
     {
       continue;
@@ -1759,7 +1760,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::RemovePointDecimation(vtkIdL
 //----------------------------------------------------------------------------
 double vtkPlanarContourToClosedSurfaceConversionRule::ComputeError(vtkPoints* points, vtkIdList* lineIds, vtkIdType pointIndex)
 {
-
   if (!points)
   {
    vtkErrorMacro("ComputeError: Invalid vtkPoints!");
@@ -1797,5 +1797,4 @@ double vtkPlanarContourToClosedSurfaceConversionRule::ComputeError(vtkPoints* po
     // Return the distance from the current point to the line defined by the previous and next point
     return vtkLine::DistanceToLine( currentPoint, nextPoint, previousPoint);
   }
-
 }
