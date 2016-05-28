@@ -142,7 +142,8 @@ void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
     return;
   }
 
-  if (eventID == vtkMRMLMarkupsNode::PointModifiedEvent)
+  if ( eventID == vtkMRMLMarkupsNode::PointModifiedEvent
+    && caller == this->GetPoisMarkupsFiducialNode() )
   {
     // Update the model
     this->InvokeCustomModifiedEvent(vtkMRMLRTPlanNode::IsocenterModifiedEvent);
@@ -198,7 +199,7 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::GetPoisMarkupsFiducialNode()
 //----------------------------------------------------------------------------
 bool vtkMRMLRTPlanNode::IsPoisMarkupsFiducialNodeValid()
 {
-  vtkMRMLMarkupsFiducialNode* markupsNode = this->GetPoisMarkupsFiducialNode();
+  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(this->GetNodeReference(POIS_MARKUPS_REFERENCE_ROLE));
   if (!markupsNode)
   {
     return false;
@@ -285,6 +286,7 @@ bool vtkMRMLRTPlanNode::SetIsocenterPosition(double isocenter[3])
   }
 
   fiducialNode->SetNthFiducialPositionFromArray(ISOCENTER_FIDUCIAL_INDEX, isocenter);
+
   return true;
 }
 

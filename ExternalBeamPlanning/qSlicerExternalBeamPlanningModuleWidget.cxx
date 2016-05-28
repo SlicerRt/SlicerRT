@@ -348,7 +348,10 @@ void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRML
   vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    if (node)
+    {
+      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    }
     return;
   }
 
@@ -371,7 +374,10 @@ void qSlicerExternalBeamPlanningModuleWidget::planSegmentationNodeChanged(vtkMRM
   vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    if (node)
+    {
+      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    }
     return;
   }
 
@@ -394,7 +400,10 @@ void qSlicerExternalBeamPlanningModuleWidget::planPOIsNodeChanged(vtkMRMLNode* n
   vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    if (node)
+    {
+      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    }
     return;
   }
 
@@ -449,7 +458,10 @@ void qSlicerExternalBeamPlanningModuleWidget::doseVolumeNodeChanged(vtkMRMLNode*
   vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    if (node)
+    {
+      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    }
     return;
   }
 
@@ -472,7 +484,10 @@ void qSlicerExternalBeamPlanningModuleWidget::doseROINodeChanged(vtkMRMLNode* no
   vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!rtPlanNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    if (node)
+    {
+      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    }
     return;
   }
 
