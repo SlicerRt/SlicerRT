@@ -112,9 +112,7 @@ void vtkMRMLSegmentEditorNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "maskMode")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetMaskMode(vtkMRMLSegmentEditorNode::ConvertMaskModeFromString(ss.str().c_str()));
+      this->SetMaskMode(vtkMRMLSegmentEditorNode::ConvertMaskModeFromString(attValue));
       }
     else if (!strcmp(attName, "maskSegmentID")) 
       {
@@ -137,9 +135,7 @@ void vtkMRMLSegmentEditorNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "overwriteMode")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetOverwriteMode(vtkMRMLSegmentEditorNode::ConvertOverwriteModeFromString(ss.str().c_str()));
+      this->SetOverwriteMode(vtkMRMLSegmentEditorNode::ConvertOverwriteModeFromString(attValue));
       }
     }
 
@@ -230,7 +226,7 @@ int vtkMRMLSegmentEditorNode::ConvertMaskModeFromString(const char* modeStr)
   }
   for (int i=0; i<PaintAllowed_Last; i++)
   {
-    if (strcmp(modeStr, vtkMRMLSegmentEditorNode::ConvertMaskModeToString(i)))
+    if (strcmp(modeStr, vtkMRMLSegmentEditorNode::ConvertMaskModeToString(i))==0)
     {
       return i;
     }
@@ -259,7 +255,7 @@ int vtkMRMLSegmentEditorNode::ConvertOverwriteModeFromString(const char* modeStr
   }
   for (int i=0; i<Overwrite_Last; i++)
   {
-    if (strcmp(modeStr, vtkMRMLSegmentEditorNode::ConvertOverwriteModeToString(i)))
+    if (strcmp(modeStr, vtkMRMLSegmentEditorNode::ConvertOverwriteModeToString(i))==0)
     {
       return i;
     }

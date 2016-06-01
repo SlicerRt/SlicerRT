@@ -821,9 +821,9 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
   vtkSegmentationConverter::DeserializeImageGeometry(commonGeometryString, commonGeometryImage, VTK_UNSIGNED_CHAR, 1);
   int commonGeometryExtent[6] = { 0, -1, 0, -1, 0, -1 };
   commonGeometryImage->GetExtent(commonGeometryExtent);
-  if (commonGeometryExtent[1] > commonGeometryExtent[0]
-    || commonGeometryExtent[3] > commonGeometryExtent[2]
-    || commonGeometryExtent[5] > commonGeometryExtent[4])
+  if (commonGeometryExtent[0] > commonGeometryExtent[1]
+    || commonGeometryExtent[2] > commonGeometryExtent[3]
+    || commonGeometryExtent[4] > commonGeometryExtent[5])
   {
     // common image is empty, which cannot be written to image file
     // change it to a very small image instead

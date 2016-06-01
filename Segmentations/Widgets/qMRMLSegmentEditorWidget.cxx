@@ -878,7 +878,22 @@ void qMRMLSegmentEditorWidget::updateWidgetFromMRML()
 
   // Masking section
 
-  bool wasBlocked = d->MasterVolumeIntensityMaskCheckBox->blockSignals(true);
+  bool wasBlocked = d->MaskModeComboBox->blockSignals(true);
+  int maskModeIndex = -1;
+  if (d->ParameterSetNode->GetMaskMode() == vtkMRMLSegmentEditorNode::PaintAllowedInsideSingleSegment)
+  {
+    // segment item
+    maskModeIndex = d->MaskModeComboBox->findData(d->ParameterSetNode->GetMaskSegmentID());
+  }
+  else
+  {
+    // fixed item, identified by overwrite mode id
+    maskModeIndex = d->MaskModeComboBox->findData(d->ParameterSetNode->GetMaskMode());
+  }
+  d->MaskModeComboBox->setCurrentIndex(maskModeIndex);
+  d->MaskModeComboBox->blockSignals(wasBlocked);
+
+  wasBlocked = d->MasterVolumeIntensityMaskCheckBox->blockSignals(true);
   d->MasterVolumeIntensityMaskCheckBox->setChecked(d->ParameterSetNode->GetMasterVolumeIntensityMask());
   d->MasterVolumeIntensityMaskCheckBox->blockSignals(wasBlocked);
 
@@ -899,17 +914,7 @@ void qMRMLSegmentEditorWidget::updateWidgetFromMRML()
   d->MasterVolumeIntensityMaskRangeWidget->blockSignals(wasBlocked);
 
   wasBlocked = d->OverwriteModeComboBox->blockSignals(true);
-  int overwriteModeIndex = -1;
-  if (d->ParameterSetNode->GetOverwriteMode() == vtkMRMLSegmentEditorNode::PaintAllowedInsideSingleSegment)
-  {
-    // segment item
-    overwriteModeIndex = d->OverwriteModeComboBox->findData(d->ParameterSetNode->GetMaskSegmentID());
-  }
-  else
-  {
-    // fixed item, identified by overwrite mode id
-    overwriteModeIndex = d->OverwriteModeComboBox->findData(d->ParameterSetNode->GetOverwriteMode());
-  }
+  int overwriteModeIndex = d->OverwriteModeComboBox->findData(d->ParameterSetNode->GetOverwriteMode());
   d->OverwriteModeComboBox->setCurrentIndex(overwriteModeIndex);
   d->OverwriteModeComboBox->blockSignals(wasBlocked);
 
@@ -948,6 +953,10 @@ void qMRMLSegmentEditorWidget::updateWidgetFromSegmentationNode()
   bool wasBlocked = d->MRMLNodeComboBox_Segmentation->blockSignals(true);
   d->MRMLNodeComboBox_Segmentation->setCurrentNode(d->SegmentationNode);
   d->MRMLNodeComboBox_Segmentation->blockSignals(wasBlocked);
+
+  wasBlocked = d->SegmentsTableView->blockSignals(true);
+  d->SegmentsTableView->setSegmentationNode(d->SegmentationNode);
+  d->SegmentsTableView->blockSignals(wasBlocked);
 
   // Update closed surface button with new segmentation
   this->onSegmentAddedRemoved();
