@@ -36,6 +36,9 @@
 #include <QDebug>
 
 //-----------------------------------------------------------------------------
+static const char* NONE_DISPLAY = "None";
+
+//-----------------------------------------------------------------------------
 class qMRMLSegmentSelectorWidgetPrivate: public Ui_qMRMLSegmentSelectorWidget
 {
   Q_DECLARE_PUBLIC(qMRMLSegmentSelectorWidget);
@@ -188,6 +191,13 @@ void qMRMLSegmentSelectorWidget::populateSegmentCombobox()
   d->comboBox_Segment->setVisible(true);
   d->label_Segment->setVisible(true);
 
+  // Add 'None' item if enabled
+  if (this->noneEnabled())
+  {
+    d->comboBox_Segment->addItem(NONE_DISPLAY);
+  }
+
+  // Add items for each segment
   vtkSegmentation::SegmentMap segmentMap = d->SegmentationNode->GetSegmentation()->GetSegments();
   for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
   {
@@ -205,7 +215,7 @@ void qMRMLSegmentSelectorWidget::populateSegmentCombobox()
   d->comboBox_Segment->blockSignals(false);
 
   // Make sure fist segment is selected (we checked before that there is at least one segment)
-  d->comboBox_Segment->setCurrentIndex(0);
+  d->comboBox_Segment->setCurrentIndex(this->noneEnabled() ? 1 : 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -221,7 +231,15 @@ void qMRMLSegmentSelectorWidget::onCurrentSegmentChanged(int index)
   }
 
   // All items contain the segment ID, get that
-  d->SelectedSegmentID = d->comboBox_Segment->itemData(index).toString();
+  QString selectedSegmentText = d->comboBox_Segment->itemData(index).toString();
+  if (selectedSegmentText.compare(NONE_DISPLAY))
+  {
+    d->SelectedSegmentID = selectedSegmentText;
+  }
+  else // None was selected
+  {
+    d->SelectedSegmentID = QString();
+  }
 
   emit currentSegmentChanged(d->SelectedSegmentID);
 }
@@ -238,6 +256,12 @@ QString qMRMLSegmentSelectorWidget::currentSegmentID()
 void qMRMLSegmentSelectorWidget::setCurrentSegmentID(QString segmentID)
 {
   Q_D(qMRMLSegmentSelectorWidget);
+
+  if (segmentID.isEmpty() && this->noneEnabled())
+  {
+    d->comboBox_Segment->setCurrentIndex(0);
+    return;
+  }
 
   int index = d->comboBox_Segment->findData(QVariant(segmentID));
   if (index != -1 && d->comboBox_Segment->currentIndex() != index)

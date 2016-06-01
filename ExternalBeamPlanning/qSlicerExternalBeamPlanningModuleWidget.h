@@ -45,6 +45,7 @@ public:
   qSlicerExternalBeamPlanningModuleWidget(QWidget *parent=0);
   virtual ~qSlicerExternalBeamPlanningModuleWidget();
 
+  /// Support of node editing. Selects node in user interface that the user wants to edit
   virtual bool setEditedNode(vtkMRMLNode* node, QString role=QString(), QString context=QString());
 
 public slots:

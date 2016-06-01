@@ -207,7 +207,7 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  errorMessage = ebpLogic->FinalizeAccumulatedDose(planNode);
+  errorMessage = ebpLogic->CreateAccumulatedDose(planNode);
   if (!errorMessage.empty())
   {
     mrmlScene->Commit();
@@ -230,9 +230,9 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   double doseVoxelCount = imageAccumulate->GetVoxelCount();
 
   outputStream << "Dose volume properties:" << std::endl << "  Max=" << doseMax << ", Mean=" << doseMean << ", StdDev=" << doseStdDev << ", NumberOfVoxels=" << doseVoxelCount << std::endl;
-  if ( !IsEqualWithTolerance(doseMax, 1.04859)
-    || !IsEqualWithTolerance(doseMean, 0.0251724)
-    || !IsEqualWithTolerance(doseStdDev, 0.144749)
+  if ( !IsEqualWithTolerance(doseMax, 1.05797)
+    || !IsEqualWithTolerance(doseMean, 0.0251127)
+    || !IsEqualWithTolerance(doseStdDev, 0.144932)
     || !IsEqualWithTolerance(doseVoxelCount, 1000) )
   {
     mrmlScene->Commit();

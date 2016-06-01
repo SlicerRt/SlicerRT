@@ -59,11 +59,6 @@ public:
   /// Get Beams module logic
   vtkGetObjectMacro(BeamsLogic, vtkSlicerBeamsModuleLogic);
 
-  /// Set Dose accumulation module logic
-  void SetDoseAccumulationLogic(vtkSlicerDoseAccumulationModuleLogic* doseAccumulationLogic);
-  /// Get Dose accumulation module logic
-  vtkGetObjectMacro(DoseAccumulationLogic, vtkSlicerDoseAccumulationModuleLogic);
-
 public:
   /// Create a new beam based on another beam, and add it to the plan
   /// \return The new beam node that has been copied and added to the plan
@@ -76,9 +71,6 @@ public:
   /// Compute dose for one beam
   std::string CalculateDose(vtkMRMLRTBeamNode* beamNode);
 
-  /// TODO Remove
-  std::string ComputeDoseByPlastimatch(vtkMRMLRTPlanNode* planNode, vtkMRMLRTBeamNode* beamNode);
-
   /// TODO
   void ComputeWED();
 
@@ -89,15 +81,13 @@ public:
   /// TODO Use plugin mechanism instead of dedicated function
   std::string ComputeDoseByMatlab(vtkMRMLRTPlanNode* planNode, vtkMRMLRTBeamNode* beamNode);
 
-  /// TODO Remove
-  std::string InitializeAccumulatedDose(vtkMRMLRTPlanNode* planNode);
-
-  /// TODO
-  std::string FinalizeAccumulatedDose(vtkMRMLRTPlanNode* planNode);
+  /// Accumulate per-beam dose volumes for each beam under given plan. The accumulated
+  /// total dose is 
+  std::string CreateAccumulatedDose(vtkMRMLRTPlanNode* planNode);
 
   /// Remove MRML nodes created by dose calculation for the current RT plan,
   /// such as apertures, range compensators, and doses
-  void RemoveIntermediateDoseNodes(vtkMRMLRTPlanNode* planNode);
+  void RemoveIntermediateResults(vtkMRMLRTPlanNode* planNode);
 
 protected:
   vtkSlicerExternalBeamPlanningModuleLogic();
@@ -130,9 +120,6 @@ private:
 
   /// Beams module logic instance
   vtkSlicerBeamsModuleLogic* BeamsLogic;
-
-  /// Dose accumulation module logic instance
-  vtkSlicerDoseAccumulationModuleLogic* DoseAccumulationLogic;
 };
 
 #endif

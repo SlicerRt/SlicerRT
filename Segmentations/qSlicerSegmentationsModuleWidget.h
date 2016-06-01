@@ -56,6 +56,7 @@ public:
   virtual void enter();
   virtual void exit();
 
+  /// Support of node editing. Selects node in user interface that the user wants to edit
   virtual bool setEditedNode(vtkMRMLNode* node, QString role=QString(), QString context=QString());
 
 public slots:

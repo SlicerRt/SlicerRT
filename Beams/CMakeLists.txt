@@ -51,6 +51,10 @@ set(MODULE_TARGET_LIBRARIES
   qSlicerSegmentationsModuleWidgets
   )
 
+set(MODULE_RESOURCES
+  Resources/qSlicer${MODULE_NAME}Module.qrc
+  )
+
 #-----------------------------------------------------------------------------
 slicerMacroBuildQtModule(
   NAME ${MODULE_NAME}
@@ -61,6 +65,7 @@ slicerMacroBuildQtModule(
   MOC_SRCS ${MODULE_MOC_SRCS}
   UI_SRCS ${MODULE_UI_SRCS}
   TARGET_LIBRARIES ${MODULE_TARGET_LIBRARIES}
+  RESOURCES ${MODULE_RESOURCES}
   WITH_GENERIC_TESTS
   )
 

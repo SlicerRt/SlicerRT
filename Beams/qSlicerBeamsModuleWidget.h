@@ -43,7 +43,7 @@ public:
 
   virtual void enter();
 
-  /// Allows module to select beam nodes in the module's GUI
+  /// Support of node editing. Selects node in user interface that the user wants to edit
   virtual bool setEditedNode(vtkMRMLNode* node, QString role=QString(), QString context=QString());
   /// Return a higher confidence value (0.6) for beam nodes to prevent beams to be opened by Models
   virtual double nodeEditable(vtkMRMLNode* node);

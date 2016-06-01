@@ -706,19 +706,10 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   QTime time;
   time.start();
   
-  // The last verifications were fine so we can compute the dose
-  // Dose Calculation - loop on all the beam and sum in a global dose matrix
-
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  //std::string errorMessage = d->logic()->InitializeAccumulatedDose(rtPlanNode); //TODO:
-  //if (!errorMessage.empty())
-  //{
-  //  d->label_CalculateDoseStatus->setText(errorMessage.c_str());
-  //  QApplication::restoreOverrideCursor();
-  //  return;
-  //}
-
+  // Calculate dose for each beam under the plan
+  std::string errorMessage("");
   std::vector<vtkMRMLRTBeamNode*> beams;
   rtPlanNode->GetBeams(beams);
   for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
@@ -729,14 +720,13 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
       QString progressMessage = QString("Dose calculation in progress: %1").arg(beamNode->GetName());
       d->label_CalculateDoseStatus->setText(progressMessage);
 
-      std::string errorMessage = d->logic()->CalculateDose(beamNode);
+      errorMessage = d->logic()->CalculateDose(beamNode);
       if (!errorMessage.empty())
       {
-        d->label_CalculateDoseStatus->setText(errorMessage.c_str());
-        break;
+        d->label_CalculateDoseStatus->setText(QString("ERROR: ") + QString(errorMessage.c_str()));
+        QApplication::restoreOverrideCursor();
+        return;
       }
-
-      //TODO: sum in the final dose matrix with weights externalbeam for RxDose, and beamNode for beam weight
     }
     else
     {
@@ -746,10 +736,11 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     }
   }
   
-  std::string errorMessage = d->logic()->FinalizeAccumulatedDose(rtPlanNode);
+  // Accumulate calculated per-beam dose distributions into the total dose volume
+  errorMessage = d->logic()->CreateAccumulatedDose(rtPlanNode);
   if (!errorMessage.empty())
   {
-    d->label_CalculateDoseStatus->setText(errorMessage.c_str());
+    d->label_CalculateDoseStatus->setText(QString("ERROR: ") + QString(errorMessage.c_str()));
   }
   else
   {
@@ -768,8 +759,7 @@ void qSlicerExternalBeamPlanningModuleWidget::clearDoseClicked()
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
-  d->logic()->RemoveIntermediateDoseNodes(rtPlanNode);
-  qCritical() << "Use vtkSlicerAbstractDoseEngine::RemoveIntermediateResults!!!";
+  d->logic()->RemoveIntermediateResults(rtPlanNode);
 }
 
 //-----------------------------------------------------------------------------
