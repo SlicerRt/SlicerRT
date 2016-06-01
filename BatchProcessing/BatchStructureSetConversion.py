@@ -109,10 +109,7 @@ class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
     detailsPopup.loadCheckedLoadables()
 
   def ConvertStructureSetToLabelmap(self):
-    import vtkSlicerDicomRtImportExportModuleLogic
-    import vtkSegmentationCore
-    import vtkSlicerSegmentationsModuleMRML
-    import vtkSlicerSegmentationsModuleLogic
+    import vtkSegmentationCorePython as vtkSegmentationCore
 
     labelmapsToSave = []
     
@@ -122,7 +119,7 @@ class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
     for segmentationNode in segmentationNodes.values():
       logging.info('  Converting structure set ' + segmentationNode.GetName())
       # Set referenced volume as rasterization reference
-      referenceVolume = vtkSlicerDicomRtImportExportModuleLogic.vtkSlicerDicomRtImportExportModuleLogic.GetReferencedVolumeByDicomForSegmentation(segmentationNode)
+      referenceVolume = slicer.vtkSlicerDicomRtImportExportModuleLogic.GetReferencedVolumeByDicomForSegmentation(segmentationNode)
       if referenceVolume == None:
         logging.error('No reference volume found for segmentation ' + segmentationNode.GetName())
         continue
@@ -146,7 +143,7 @@ class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
         slicer.mrmlScene.AddNode(labelmapNode)
         labelmapName = segmentationNode.GetName() + "_" + segmentID
         labelmapNode.SetName(labelmapName)
-        if not vtkSlicerSegmentationsModuleLogic.vtkSlicerSegmentationsModuleLogic.CreateLabelmapVolumeFromOrientedImageData(binaryLabelmap,labelmapNode):
+        if not slicer.vtkSlicerSegmentationsModuleLogic.CreateLabelmapVolumeFromOrientedImageData(binaryLabelmap,labelmapNode):
           logging.error('Failed to create labelmap from segment ' + segmentID + ' in segmentation ' + segmentationNode.GetName())
           continue
 

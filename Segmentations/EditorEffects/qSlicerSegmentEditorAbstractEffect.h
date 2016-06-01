@@ -44,8 +44,9 @@ class vtkOrientedImageData;
 class vtkProp3D;
 class qMRMLWidget;
 class qMRMLSliceWidget;
+class QColor; 
+class QFormLayout;
 class QFrame;
-class QColor;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
 /// \brief Abstract class for segment editor effects
@@ -163,6 +164,9 @@ public:
   /// Get effect options frame
   Q_INVOKABLE QFrame* optionsFrame();
 
+  /// Get layout of options frame
+  Q_INVOKABLE QFormLayout* optionsLayout();
+
   /// Add actor to the list of actors managed by the abstract effect class.
   /// The actor is immediately added to the renderer when this method is called
   /// and the effect automatically removes the actor from renderer on deactivation
@@ -189,6 +193,8 @@ public:
   /// The implemented effects need to create their options UI widget, make the connections,
   /// then call this function to add the options UI to the effect options frame
   Q_INVOKABLE void addOptionsWidget(QWidget* newOptionsWidget);
+
+  Q_INVOKABLE QWidget* addLabeledOptionsWidget(QString label, QWidget* newOptionsWidget);
 
   /// Get name of effect
   virtual QString name()const;

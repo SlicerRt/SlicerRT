@@ -183,11 +183,10 @@ class DicomSroExportLogic(ScriptedLoadableModuleLogic):
     Run the actual algorithm
     """
     import sys
-    import vtkSlicerPlastimatchPyModuleLogic
     loadablePath = os.path.join(slicer.modules.plastimatch_slicer_bspline.path,'..'+os.sep+'..'+os.sep+'qt-loadable-modules')
     if loadablePath not in sys.path:
       sys.path.append(loadablePath)
-    sro = vtkSlicerPlastimatchPyModuleLogic.vtkPlmpyDicomSroExport()
+    sro = slicer.vtkPlmpyDicomSroExport()
     sro.SetMRMLScene(slicer.mrmlScene)
     sro.SetFixedImageID(fixedNode.GetID())
     sro.SetMovingImageID(movingNode.GetID())

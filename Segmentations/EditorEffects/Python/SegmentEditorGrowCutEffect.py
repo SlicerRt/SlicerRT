@@ -50,7 +50,7 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
 
   def onApply(self):
     # Get master volume image data
-    import vtkSegmentationCore
+    import vtkSegmentationCorePython as vtkSegmentationCore
     masterImageData = self.scriptedEffect.masterVolumeImageData()
 
     # Check validity of master volume: whether scalar type is supported
@@ -71,10 +71,9 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
 
   def growCut(self):
     # Get master volume image data
-    import vtkSegmentationCore
+    import vtkSegmentationCorePython as vtkSegmentationCore
     masterImageData = self.scriptedEffect.masterVolumeImageData()
     # Get segmentation
-    import vtkSlicerSegmentationsModuleMRML
     segmentationNode = self.scriptedEffect.parameterSetNode().GetSegmentationNode()
 
     # Cast master image if not short
@@ -138,7 +137,6 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
     outputLabelmap.DeepCopy( growCutFilter.GetOutput() )
 
     # Write output segmentation results in segments
-    import vtkSlicerSegmentationsModuleLogic
     segmentIDs = vtk.vtkStringArray()
     segmentationNode.GetSegmentation().GetSegmentIDs(segmentIDs)
     for index in xrange(segmentIDs.GetNumberOfValues()):
@@ -147,7 +145,7 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
 
       # Get label corresponding to segment in merged labelmap (and so GrowCut output)
       colorIndexStr = vtk.mutable("")
-      tagFound = segment.GetTag(vtkSlicerSegmentationsModuleMRML.vtkMRMLSegmentationDisplayNode.GetColorIndexTag(), colorIndexStr);
+      tagFound = segment.GetTag(slicer.vtkMRMLSegmentationDisplayNode.GetColorIndexTag(), colorIndexStr);
       if not tagFound:
         logging.error('Failed to apply GrowCut result on segment ' + segmentID)
         continue
@@ -168,4 +166,4 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
       newSegmentLabelmap = vtkSegmentationCore.vtkOrientedImageData()
       newSegmentLabelmap.ShallowCopy(thresh.GetOutput())
       newSegmentLabelmap.SetGeometryFromImageToWorldMatrix(mergedImageToWorldMatrix)
-      vtkSlicerSegmentationsModuleLogic.vtkSlicerSegmentationsModuleLogic.SetBinaryLabelmapToSegment(newSegmentLabelmap, segmentationNode, segmentID, vtkSlicerSegmentationsModuleLogic.vtkSlicerSegmentationsModuleLogic.MODE_REPLACE, newSegmentLabelmap.GetExtent())
+      slicer.vtkSlicerSegmentationsModuleLogic.SetBinaryLabelmapToSegment(newSegmentLabelmap, segmentationNode, segmentID, slicer.vtkSlicerSegmentationsModuleLogic.MODE_REPLACE, newSegmentLabelmap.GetExtent())

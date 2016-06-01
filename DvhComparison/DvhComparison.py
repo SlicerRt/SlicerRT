@@ -285,16 +285,14 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     self.agreementAcceptanceOutput.setText('')
 
     # Set table to show in visualize section. It will be the metrics table for DVH 1
-    import vtkSlicerDoseVolumeHistogramModuleMRML
     dvh1MetricsTable = dvh1Node.GetNodeReference('dvhMetricsTableRef')
     self.dvhTable.setMRMLTableNode(dvh1MetricsTable)    
     self.dvhTable.setFirstRowLocked(True)
     self.dvhTable.resizeColumnsToContents()
-    self.dvhTable.setColumnWidth(vtkSlicerDoseVolumeHistogramModuleMRML.vtkMRMLDoseVolumeHistogramNode.MetricColumnVisible, 36)
+    self.dvhTable.setColumnWidth(slicer.vtkMRMLDoseVolumeHistogramNode.MetricColumnVisible, 36)
 
   #------------------------------------------------------------------------------
   def onComputeButton(self):
-    import vtkSlicerDoseVolumeHistogramModuleLogic
     paramNode = self.parameterSelector.currentNode()
     dvh1Node = paramNode.GetNodeReference(self.dvh1NodeReference)
     dvh2Node = paramNode.GetNodeReference(self.dvh2NodeReference)
@@ -302,7 +300,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     doseToAgreementCriterion = float(paramNode.GetAttribute(self.doseToAgreementCriterionAttrName))
     volumeDifferenceCriterion = float(paramNode.GetAttribute(self.volumeDifferenceCriterionAttrName))
 
-    agreementAcceptancePercentage = vtkSlicerDoseVolumeHistogramModuleLogic.vtkSlicerDoseVolumeHistogramComparisonLogic.CompareDvhTables(dvh1Node, dvh2Node, doseVolumeNode, volumeDifferenceCriterion, doseToAgreementCriterion)
+    agreementAcceptancePercentage = slicer.vtkSlicerDoseVolumeHistogramComparisonLogic.CompareDvhTables(dvh1Node, dvh2Node, doseVolumeNode, volumeDifferenceCriterion, doseToAgreementCriterion)
 
     self.agreementAcceptanceOutput.setText(agreementAcceptancePercentage)
     self.parameterSelector.currentNode().SetAttribute(self.agreementAcceptanceAttrName, str(agreementAcceptancePercentage))

@@ -12,7 +12,7 @@ class SegmentEditor(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Segment Editor"
     self.parent.categories = ["Segmentation"]
-    self.parent.dependencies = [] # TODO: Change to ["Segmentations"] after fixing https://www.assembla.com/spaces/slicerrt/tickets/806-segmenteditor-generic-test-fails
+    self.parent.dependencies = ["Segmentations"] # TODO: Change to ["Segmentations"] after fixing https://www.assembla.com/spaces/slicerrt/tickets/806-segmenteditor-generic-test-fails
     self.parent.contributors = ["Csaba Pinter (Queen's University)"]
     self.parent.helpText = """This module allows editing segmentation objects by directly drawing and using segmentaiton tools on the contained segments.\n\nRepresentations other than the labelmap one (which is used for editing) are automatically updated real-time, so for example the closed surface can be visualized as edited in the 3D view."""
     self.parent.acknowledgementText = """This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)."""
@@ -52,11 +52,10 @@ class SegmentEditorWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   def selectParameterNode(self):
     # Select parameter set node if one is found in the scene, and create one otherwise
-    import vtkSlicerSegmentationsModuleMRML
     segmentEditorSingletonTag = "SegmentEditor"
     segmentEditorNode = slicer.mrmlScene.GetSingletonNode(segmentEditorSingletonTag, "vtkMRMLSegmentEditorNode")
     if segmentEditorNode is None:
-      segmentEditorNode = vtkSlicerSegmentationsModuleMRML.vtkMRMLSegmentEditorNode()
+      segmentEditorNode = slicer.vtkMRMLSegmentEditorNode()
       segmentEditorNode.SetSingletonTag(segmentEditorSingletonTag)
       segmentEditorNode = slicer.mrmlScene.AddNode(segmentEditorNode)
     if self.parameterSetNode == segmentEditorNode:

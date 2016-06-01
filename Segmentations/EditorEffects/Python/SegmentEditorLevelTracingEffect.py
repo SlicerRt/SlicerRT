@@ -120,7 +120,7 @@ class LevelTracingPipeline:
     # Calculate the current level trace view if the mouse is inside the volume extent
     
     # Get master volume image data
-    import vtkSegmentationCore
+    import vtkSegmentationCorePython as vtkSegmentationCore
     masterImageData = self.effect.scriptedEffect.masterVolumeImageData()
 
     self.xyPoints.Reset()
@@ -176,7 +176,7 @@ class LevelTracingPipeline:
     # self.logic.undoRedo = self.undoRedo
 
     # Get edited labelmap
-    import vtkSegmentationCore
+    import vtkSegmentationCorePython as vtkSegmentationCore
     editedLabelmap = self.effect.scriptedEffect.editedLabelmap()
 
     # Apply poly data on edited labelmap

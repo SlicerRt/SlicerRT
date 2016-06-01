@@ -30,12 +30,13 @@
 
 // Qt includes
 #include <QDebug>
+#include <QFormLayout>
 #include <QImage>
+#include <QLabel>
 #include <QPixmap>
 #include <QPainter>
 #include <QPaintDevice>
 #include <QFrame>
-#include <QVBoxLayout>
 #include <QColor>
 
 // Slicer includes
@@ -82,7 +83,7 @@ qSlicerSegmentEditorAbstractEffectPrivate::qSlicerSegmentEditorAbstractEffectPri
   this->OptionsFrame = new QFrame();
   this->OptionsFrame->setFrameShape(QFrame::NoFrame);
   this->OptionsFrame->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding));
-  QVBoxLayout* layout = new QVBoxLayout(this->OptionsFrame);
+  QFormLayout* layout = new QFormLayout(this->OptionsFrame);
   layout->setContentsMargins(4, 4, 4, 4);
   layout->setSpacing(4);
   this->EditedLabelmapApplyExtent[0]=0;
@@ -725,13 +726,38 @@ QFrame* qSlicerSegmentEditorAbstractEffect::optionsFrame()
 }
 
 //-----------------------------------------------------------------------------
+QFormLayout* qSlicerSegmentEditorAbstractEffect::optionsLayout()
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+  QFormLayout* formLayout = qobject_cast<QFormLayout*>(d->OptionsFrame->layout());
+  return formLayout;
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerSegmentEditorAbstractEffect::addOptionsWidget(QWidget* newOptionsWidget)
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
 
   newOptionsWidget->setParent(d->OptionsFrame);
   newOptionsWidget->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding));
-  d->OptionsFrame->layout()->addWidget(newOptionsWidget);
+  this->optionsLayout()->addRow(newOptionsWidget);
+}
+
+//-----------------------------------------------------------------------------
+QWidget* qSlicerSegmentEditorAbstractEffect::addLabeledOptionsWidget(QString label, QWidget* newOptionsWidget)  
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+/*
+  newOptionsWidget->setParent(d->OptionsFrame);
+  newOptionsWidget->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding));
+  this->optionsLayout()->addRow(label, newOptionsWidget);
+  */
+
+  QLabel* labelWidget = new QLabel(label);
+  newOptionsWidget->setParent(d->OptionsFrame);
+  newOptionsWidget->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding));
+  this->optionsLayout()->addRow(labelWidget, newOptionsWidget);
+  return labelWidget;
 }
 
 //-----------------------------------------------------------------------------

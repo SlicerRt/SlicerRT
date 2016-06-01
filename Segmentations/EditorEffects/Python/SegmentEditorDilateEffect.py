@@ -49,7 +49,7 @@ class SegmentEditorDilateEffect(AbstractScriptedSegmentEditorMorphologyEffect):
 
     # Get edited labelmap
     editedLabelmap = self.scriptedEffect.editedLabelmap()
-    selectedSegmentLabelmap = self.scriptedEffect.selectedSegmentLabelmap()    
+    selectedSegmentLabelmap = self.scriptedEffect.selectedSegmentLabelmap()
 
     # Perform dilation
     # (use erode filter to dilate by eroding background)
@@ -74,18 +74,16 @@ class SegmentEditorDilateEffect(AbstractScriptedSegmentEditorMorphologyEffect):
     eroder.SetKernelSize(5,5,5)
     eroder.Update()
     editedLabelmap.DeepCopy(eroder.GetOutput())
-    
-    #import vtkSegmentationCore
+
+    #import vtkSegmentationCorePython as vtkSegmentationCore
     #maskLabelmapCopy = vtkSegmentationCore.vtkOrientedImageData()
     #maskLabelmapCopy.DeepCopy(self.scriptedEffect.maskLabelmap())
     #labelmapVolumeNode = slicer.vtkMRMLLabelMapVolumeNode()
     #slicer.mrmlScene.AddNode(labelmapVolumeNode)
-    #import vtkSlicerSegmentationsModuleLogic
-    #vtkSlicerSegmentationsModuleLogic.vtkSlicerSegmentationsModuleLogic.CreateLabelmapVolumeFromOrientedImageData(
+    #slicer.vtkSlicerSegmentationsModuleLogic.CreateLabelmapVolumeFromOrientedImageData(
     #  maskLabelmapCopy, labelmapVolumeNode)
-    #labelmapVolumeNode.CreateDefaultDisplayNodes()    
-    
+    #labelmapVolumeNode.CreateDefaultDisplayNodes()
+
     self.scriptedEffect.setEditedLabelmapApplyModeToSet()
     self.scriptedEffect.setEditedLabelmapApplyExtentToWholeExtent()
     self.scriptedEffect.apply()
-    

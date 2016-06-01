@@ -3,9 +3,7 @@ import unittest
 import vtk, qt, ctk, slicer
 import logging
 
-import vtkSegmentationCore
-from vtkSlicerSegmentationsModuleMRML import *
-from vtkSlicerSegmentationsModuleLogic import *
+import vtkSegmentationCorePython as vtkSegmentationCore
 
 class SegmentationsModuleTest1(unittest.TestCase):
   def setUp(self):
@@ -215,7 +213,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
     self.assertIsNone(self.sphereSegment.GetRepresentation(self.binaryLabelmapReprName))
 
     # Create new segmentation with sphere segment
-    self.secondSegmentationNode = vtkMRMLSegmentationNode()
+    self.secondSegmentationNode = slicer.vtkMRMLSegmentationNode()
     self.secondSegmentationNode.SetName('Second')
     self.secondSegmentationNode.GetSegmentation().SetMasterRepresentationName(self.binaryLabelmapReprName)
     slicer.mrmlScene.AddNode(self.secondSegmentationNode)
@@ -272,7 +270,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
     slicer.mrmlScene.AddNode(bodyModelNode)
     
     bodySegment = self.inputSegmentationNode.GetSegmentation().GetSegment('Body_Contour')
-    result = vtkSlicerSegmentationsModuleLogic.ExportSegmentToRepresentationNode(bodySegment, bodyModelNode)
+    result = slicer.vtkSlicerSegmentationsModuleLogic.ExportSegmentToRepresentationNode(bodySegment, bodyModelNode)
     self.assertTrue(result)
     self.assertIsNotNone(bodyModelNode.GetPolyData())
     #TODO: Number of points increased to 1677 due to end-capping, need to investigate!
@@ -285,7 +283,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
     bodyLabelmapNode = slicer.vtkMRMLLabelMapVolumeNode()
     bodyLabelmapNode.SetName('BodyLabelmap')
     slicer.mrmlScene.AddNode(bodyLabelmapNode)
-    result = vtkSlicerSegmentationsModuleLogic.ExportSegmentToRepresentationNode(bodySegment, bodyLabelmapNode)
+    result = slicer.vtkSlicerSegmentationsModuleLogic.ExportSegmentToRepresentationNode(bodySegment, bodyLabelmapNode)
     self.assertTrue(result)
     bodyImageData = bodyLabelmapNode.GetImageData()
     self.assertIsNotNone(bodyImageData)
@@ -300,7 +298,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
     allSegmentsLabelmapNode = slicer.vtkMRMLLabelMapVolumeNode()
     allSegmentsLabelmapNode.SetName('AllSegmentsLabelmap')
     slicer.mrmlScene.AddNode(allSegmentsLabelmapNode)
-    result = vtkSlicerSegmentationsModuleLogic.ExportAllSegmentsToLabelmapNode(self.inputSegmentationNode, allSegmentsLabelmapNode)
+    result = slicer.vtkSlicerSegmentationsModuleLogic.ExportAllSegmentsToLabelmapNode(self.inputSegmentationNode, allSegmentsLabelmapNode)
     self.assertTrue(result)
     allSegmentsImageData = allSegmentsLabelmapNode.GetImageData()
     self.assertIsNotNone(allSegmentsImageData)
@@ -319,31 +317,31 @@ class SegmentationsModuleTest1(unittest.TestCase):
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(4,0,0,0), 422605)
 
     # Import model to segment
-    modelImportSegmentationNode = vtkMRMLSegmentationNode()
+    modelImportSegmentationNode = slicer.vtkMRMLSegmentationNode()
     modelImportSegmentationNode.SetName('ModelImport')
     modelImportSegmentationNode.GetSegmentation().SetMasterRepresentationName(self.closedSurfaceReprName)
     slicer.mrmlScene.AddNode(modelImportSegmentationNode)
-    modelSegment = vtkSlicerSegmentationsModuleLogic.CreateSegmentFromModelNode(bodyModelNode)
+    modelSegment = slicer.vtkSlicerSegmentationsModuleLogic.CreateSegmentFromModelNode(bodyModelNode)
     modelSegment.UnRegister(None) # Need to release ownership
     self.assertIsNotNone(modelSegment)
     self.assertIsNotNone(modelSegment.GetRepresentation(self.closedSurfaceReprName))
 
     # Import multi-label labelmap to segmentation
-    multiLabelImportSegmentationNode = vtkMRMLSegmentationNode()
+    multiLabelImportSegmentationNode = slicer.vtkMRMLSegmentationNode()
     multiLabelImportSegmentationNode.SetName('MultiLabelImport')
     multiLabelImportSegmentationNode.GetSegmentation().SetMasterRepresentationName(self.binaryLabelmapReprName)
     slicer.mrmlScene.AddNode(multiLabelImportSegmentationNode)
-    result = vtkSlicerSegmentationsModuleLogic.ImportLabelmapToSegmentationNode(allSegmentsLabelmapNode, multiLabelImportSegmentationNode)
+    result = slicer.vtkSlicerSegmentationsModuleLogic.ImportLabelmapToSegmentationNode(allSegmentsLabelmapNode, multiLabelImportSegmentationNode)
     self.assertTrue(result)
     self.assertEqual(multiLabelImportSegmentationNode.GetSegmentation().GetNumberOfSegments(), 3)
 
     # Import labelmap into single segment
-    singleLabelImportSegmentationNode = vtkMRMLSegmentationNode()
+    singleLabelImportSegmentationNode = slicer.vtkMRMLSegmentationNode()
     singleLabelImportSegmentationNode.SetName('SingleLabelImport')
     singleLabelImportSegmentationNode.GetSegmentation().SetMasterRepresentationName(self.binaryLabelmapReprName)
     slicer.mrmlScene.AddNode(singleLabelImportSegmentationNode)
     # Should not import multi-label labelmap to segment
-    nullSegment = vtkSlicerSegmentationsModuleLogic.CreateSegmentFromLabelmapVolumeNode(allSegmentsLabelmapNode)
+    nullSegment = slicer.vtkSlicerSegmentationsModuleLogic.CreateSegmentFromLabelmapVolumeNode(allSegmentsLabelmapNode)
     self.assertIsNone(nullSegment)
     logging.info('(This error message tests an impossible scenario, it is supposed to appear)')
     # Make labelmap single-label and import again
@@ -358,7 +356,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
       threshold.SetInputData(allSegmentsLabelmapNode.GetImageData())
     threshold.SetOutput(allSegmentsLabelmapNode.GetImageData())
     threshold.Update()
-    labelSegment = vtkSlicerSegmentationsModuleLogic.CreateSegmentFromLabelmapVolumeNode(allSegmentsLabelmapNode)
+    labelSegment = slicer.vtkSlicerSegmentationsModuleLogic.CreateSegmentFromLabelmapVolumeNode(allSegmentsLabelmapNode)
     labelSegment.UnRegister(None) # Need to release ownership
     self.assertIsNotNone(labelSegment)
     self.assertIsNotNone(labelSegment.GetRepresentation(self.binaryLabelmapReprName))
@@ -381,7 +379,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
     bodyModelNodeTransformed.SetName('BodyModelTransformed')
     slicer.mrmlScene.AddNode(bodyModelNodeTransformed)
     bodySegment = self.inputSegmentationNode.GetSegmentation().GetSegment('Body_Contour')
-    result = vtkSlicerSegmentationsModuleLogic.ExportSegmentToRepresentationNode(bodySegment, bodyModelNodeTransformed)
+    result = slicer.vtkSlicerSegmentationsModuleLogic.ExportSegmentToRepresentationNode(bodySegment, bodyModelNodeTransformed)
     self.assertTrue(result)
     self.assertIsNotNone(bodyModelNodeTransformed.GetParentTransformNode())
 
@@ -389,7 +387,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
     bodyLabelmapNodeTransformed = slicer.vtkMRMLLabelMapVolumeNode()
     bodyLabelmapNodeTransformed.SetName('BodyLabelmapTransformed')
     slicer.mrmlScene.AddNode(bodyLabelmapNodeTransformed)
-    result = vtkSlicerSegmentationsModuleLogic.ExportSegmentToRepresentationNode(bodySegment, bodyLabelmapNodeTransformed)
+    result = slicer.vtkSlicerSegmentationsModuleLogic.ExportSegmentToRepresentationNode(bodySegment, bodyLabelmapNodeTransformed)
     self.assertTrue(result)
     self.assertIsNotNone(bodyLabelmapNodeTransformed.GetParentTransformNode())
 
@@ -401,12 +399,12 @@ class SegmentationsModuleTest1(unittest.TestCase):
     modelTransformedImportSegmentationTransformNode.ApplyTransformMatrix(modelTransformedImportSegmentationTransform.GetMatrix())
 
     # Import transformed model to segment in transformed segmentation
-    modelTransformedImportSegmentationNode = vtkMRMLSegmentationNode()
+    modelTransformedImportSegmentationNode = slicer.vtkMRMLSegmentationNode()
     modelTransformedImportSegmentationNode.SetName('ModelImportTransformed')
     modelTransformedImportSegmentationNode.GetSegmentation().SetMasterRepresentationName(self.closedSurfaceReprName)
     slicer.mrmlScene.AddNode(modelTransformedImportSegmentationNode)
     modelTransformedImportSegmentationNode.SetAndObserveTransformNodeID(modelTransformedImportSegmentationTransformNode.GetID())
-    modelSegmentTranformed = vtkSlicerSegmentationsModuleLogic.CreateSegmentFromModelNode(bodyModelNodeTransformed, modelTransformedImportSegmentationNode)
+    modelSegmentTranformed = slicer.vtkSlicerSegmentationsModuleLogic.CreateSegmentFromModelNode(bodyModelNodeTransformed, modelTransformedImportSegmentationNode)
     modelSegmentTranformed.UnRegister(None) # Need to release ownership
     self.assertIsNotNone(modelSegmentTranformed)
     modelSegmentTransformedPolyData = modelSegmentTranformed.GetRepresentation(self.closedSurfaceReprName)

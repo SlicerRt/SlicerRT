@@ -13,9 +13,10 @@ set(SegmentEditorEffects_PYTHON_SCRIPTS
   SegmentEditorDilateEffect
   SegmentEditorDrawEffect
   SegmentEditorErodeEffect
-	SegmentEditorGrowCutEffect
+  SegmentEditorGrowCutEffect
   SegmentEditorIdentifyIslandsEffect
   SegmentEditorLevelTracingEffect
+  SegmentEditorSmoothingEffect
   SegmentEditorThresholdEffect
   )
 
@@ -26,6 +27,7 @@ set(SegmentEditorEffects_PYTHON_RESOURCES
   Resources/Icons/GrowCut.png
   Resources/Icons/IdentifyIslands.png
   Resources/Icons/LevelTracing.png
+  Resources/Icons/Smoothing.png
   Resources/Icons/Threshold.png
   Resources/Icons/SaveIsland.png
   )

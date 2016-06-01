@@ -26,8 +26,7 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
     instances corresponding to ways of interpreting the 
     fileLists parameter.
     """    
-    import vtkSlicerDicomRtImportExportModuleLogic
-
+ 
     # Create loadables for each file list
     loadables = []
     for fileList in fileLists: # Each file list corresponds to one series, so do loadables
@@ -70,11 +69,11 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
     available techniques that this plugin offers to convert MRML
     data into DICOM data
     """
-    from vtkSlicerRtCommon import SlicerRtCommon
+    import vtkSlicerRtCommonPython as vtkSlicerRtCommon
     exportable = None
 
     # RT dose volume
-    if node.GetAssociatedNode() and SlicerRtCommon.IsDoseVolumeNode(node.GetAssociatedNode()):
+    if node.GetAssociatedNode() and vtkSlicerRtCommon.SlicerRtCommon.IsDoseVolumeNode(node.GetAssociatedNode()):
       exportable = slicer.qSlicerDICOMExportable()
       exportable.confidence = 1.0
       # Define type-specific required tags and default values
@@ -111,8 +110,6 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
     return []
 
   def export(self,exportables):
-    import vtkSlicerDicomRtImportExportModuleLogic
-    from vtkSlicerDICOMLibModuleLogicPython import vtkSlicerDICOMExportable
     
     # Convert Qt loadables to VTK ones for the RT export logic
     exportablesCollection = vtk.vtkCollection()

@@ -239,7 +239,7 @@ class DrawPipeline:
     # self.logic.undoRedo = self.undoRedo
 
     # Get edited labelmap
-    import vtkSegmentationCore
+    import vtkSegmentationCorePython as vtkSegmentationCore
     editedLabelmap = self.scriptedEffect.editedLabelmap()
 
     # Apply poly data on edited labelmap

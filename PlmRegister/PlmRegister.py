@@ -92,8 +92,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
   def __init__(self,parent=None):
     super(PlmRegisterPlugin,self).__init__(parent)
     import os, sys, vtk
-    import vtkSlicerPlastimatchPyModuleLogicPython
-    self.reg = vtkSlicerPlastimatchPyModuleLogicPython.vtkPlmpyRegistration()
+    self.reg = slicer.vtkPlmpyRegistration()
     self.reg.SetMRMLScene(slicer.mrmlScene)
 
 

@@ -8,6 +8,7 @@ from SegmentEditorErodeEffect import *
 from SegmentEditorGrowCutEffect import *
 from SegmentEditorIdentifyIslandsEffect import *
 from SegmentEditorLevelTracingEffect import *
+from SegmentEditorSmoothingEffect import *
 from SegmentEditorThresholdEffect import *
 
 # Add effect name to the list of scripted segment editor effects.
@@ -21,6 +22,7 @@ except AttributeError:
 
 slicer.modules.segmenteditorscriptedeffectnames.extend([
   "SegmentEditorThresholdEffect",
+  "SegmentEditorSmoothingEffect",
   "SegmentEditorGrowCutEffect",
   "SegmentEditorDrawEffect",
   "SegmentEditorLevelTracingEffect",

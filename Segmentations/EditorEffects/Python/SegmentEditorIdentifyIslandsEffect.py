@@ -79,7 +79,7 @@ class SegmentEditorIdentifyIslandsEffect(AbstractScriptedSegmentEditorIslandEffe
     logging.info( "%d islands created (%d ignored)" % (islandCount, ignoredIslands) )
     
     # Create oriented image data from output
-    import vtkSegmentationCore
+    import vtkSegmentationCorePython as vtkSegmentationCore
     multiLabelImage = vtkSegmentationCore.vtkOrientedImageData()
     multiLabelImage.DeepCopy(castOut.GetOutput())
     selectedSegmentLabelmapImageToWorldMatrix = vtk.vtkMatrix4x4()
@@ -87,12 +87,10 @@ class SegmentEditorIdentifyIslandsEffect(AbstractScriptedSegmentEditorIslandEffe
     multiLabelImage.SetGeometryFromImageToWorldMatrix(selectedSegmentLabelmapImageToWorldMatrix)
     
     # Import multi-label labelmap to segmentation
-    import vtkSlicerSegmentationsModuleMRML
     segmentationNode = self.scriptedEffect.parameterSetNode().GetSegmentationNode()
     selectedSegmentID = self.scriptedEffect.parameterSetNode().GetSelectedSegmentID()
     selectedSegmentName = segmentationNode.GetSegmentation().GetSegment(selectedSegmentID).GetName()
-    import vtkSlicerSegmentationsModuleLogic
-    vtkSlicerSegmentationsModuleLogic.vtkSlicerSegmentationsModuleLogic.ImportLabelmapToSegmentationNode( \
+    slicer.vtkSlicerSegmentationsModuleLogic.ImportLabelmapToSegmentationNode( \
       multiLabelImage, segmentationNode, selectedSegmentName )
 
     # Set labelmap visibility to outline for the new segments

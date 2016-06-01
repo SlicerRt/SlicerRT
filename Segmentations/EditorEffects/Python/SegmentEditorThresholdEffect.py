@@ -46,7 +46,6 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
 
   def activate(self):
     # Save segment opacity and set it to zero
-    import vtkSlicerSegmentationsModuleMRML
     segmentationNode = self.scriptedEffect.parameterSetNode().GetSegmentationNode()
     segmentID = self.scriptedEffect.parameterSetNode().GetSelectedSegmentID()
     displayNode = segmentationNode.GetDisplayNode()
@@ -60,7 +59,6 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     
   def deactivate(self):
     # Restore segment opacity
-    import vtkSlicerSegmentationsModuleMRML
     segmentationNode = self.scriptedEffect.parameterSetNode().GetSegmentationNode()
     segmentID = self.scriptedEffect.parameterSetNode().GetSelectedSegmentID()
     displayNode = segmentationNode.GetDisplayNode()
@@ -103,7 +101,7 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
 
   def masterVolumeNodeChanged(self):
     # Set scalar range of master volume image data to threshold slider
-    import vtkSegmentationCore
+    import vtkSegmentationCorePython as vtkSegmentationCore
     masterImageData = self.scriptedEffect.masterVolumeImageData()
     if masterImageData:
       lo, hi = masterImageData.GetScalarRange()
@@ -149,7 +147,7 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
   def onApply(self):
     try:
       # Get master volume image data
-      import vtkSegmentationCore
+      import vtkSegmentationCorePython as vtkSegmentationCore
       masterImageData = self.scriptedEffect.masterVolumeImageData()
       # Get edited labelmap
       editedLabelmap = self.scriptedEffect.editedLabelmap()
@@ -220,7 +218,6 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     max = self.scriptedEffect.doubleParameter("MaximumThreshold")
     
     # Get color of edited segment
-    import vtkSlicerSegmentationsModuleMRML
     segmentationNode = self.scriptedEffect.parameterSetNode().GetSegmentationNode()
     displayNode = segmentationNode.GetDisplayNode()
     if displayNode is None:
