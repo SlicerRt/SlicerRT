@@ -119,7 +119,7 @@ public:
   /// Get target segmentation node from parent plan node
   vtkMRMLSegmentationNode* GetTargetSegmentationNode();
   /// Get target segment as a labelmap
-  vtkSmartPointer<vtkOrientedImageData> GetTargetLabelmap();
+  vtkSmartPointer<vtkOrientedImageData> GetTargetOrientedImageData();
 
   /// Get MLC position double array node
   vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
@@ -141,10 +141,15 @@ public:
   /// \return Success flag
   bool GetPlanIsocenterPosition(double isocenter[3]);
 
+  /// Calculate source position using gantry angle, SAD, and isocenter
+  /// \return Success flag
+  bool CalculateSourcePosition(double source[3]);
+
 // Isocenter parameters
 public:
   /// Set isocenter specification
   /// If it's CenterOfTarget, then \sa SetIsocenterToTargetCenter is called to change isocenter to center of target
+  /// \param isoSpec The new isocenter specification (CenterOfTarget or ArbitraryPoint)
   void SetIsocenterSpecification(vtkMRMLRTBeamNode::IsocenterSpecificationType isoSpec);
   /// Calculate center of current target and set isocenter to that point
   void SetIsocenterToTargetCenter();
@@ -195,10 +200,6 @@ public:
   vtkGetMacro(NominalmA, double);
   vtkGetConstMacro(NominalmA, double);
   vtkSetMacro(NominalmA, double);
-
-  vtkGetMacro(BeamOnTime, double);
-  vtkGetConstMacro(BeamOnTime, double);
-  vtkSetMacro(BeamOnTime, double);
 
   vtkGetMacro(X1Jaw, double);
   vtkGetConstMacro(X1Jaw, double);
@@ -271,8 +272,6 @@ protected:
   double NominalEnergy;
   /// TODO:
   double NominalmA;
-  /// TODO: Remove
-  double BeamOnTime;
 
   /// Isocenter specification determining whether it can be an arbitrary point or
   /// always calculated to be at the center of the target structure

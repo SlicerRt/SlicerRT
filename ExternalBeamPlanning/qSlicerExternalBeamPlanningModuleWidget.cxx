@@ -709,34 +709,27 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   // The last verifications were fine so we can compute the dose
   // Dose Calculation - loop on all the beam and sum in a global dose matrix
 
-  vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
-  rtPlanNode->GetBeams(beams);
-  if (!beams) 
-  {
-    d->label_CalculateDoseStatus->setText("No beam found in the plan");
-    return;
-  }
-  vtkMRMLRTProtonBeamNode* beamNode = NULL;
-
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  std::string errorMessage = d->logic()->InitializeAccumulatedDose(rtPlanNode);
-  if (!errorMessage.empty())
-  {
-    d->label_CalculateDoseStatus->setText(errorMessage.c_str());
-    QApplication::restoreOverrideCursor();
-    return;
-  }
+  //std::string errorMessage = d->logic()->InitializeAccumulatedDose(rtPlanNode); //TODO:
+  //if (!errorMessage.empty())
+  //{
+  //  d->label_CalculateDoseStatus->setText(errorMessage.c_str());
+  //  QApplication::restoreOverrideCursor();
+  //  return;
+  //}
 
-  for (int i=0; i<beams->GetNumberOfItems(); ++i)
+  std::vector<vtkMRMLRTBeamNode*> beams;
+  rtPlanNode->GetBeams(beams);
+  for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
   {
-    beamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(beams->GetItemAsObject(i));
+    vtkMRMLRTBeamNode* beamNode = (*beamIt);
     if (beamNode)
     {
       QString progressMessage = QString("Dose calculation in progress: %1").arg(beamNode->GetName());
       d->label_CalculateDoseStatus->setText(progressMessage);
 
-      errorMessage = d->logic()->ComputeDose(rtPlanNode, beamNode);
+      std::string errorMessage = d->logic()->CalculateDose(beamNode);
       if (!errorMessage.empty())
       {
         d->label_CalculateDoseStatus->setText(errorMessage.c_str());
@@ -747,12 +740,13 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     }
     else
     {
-      QString message = QString("Beam %1 not found").arg(beamNode->GetName());
+      QString message("Beam not found");
+      qCritical() << Q_FUNC_INFO << ": " << message;
       d->label_CalculateDoseStatus->setText(message);
     }
   }
   
-  errorMessage = d->logic()->FinalizeAccumulatedDose(rtPlanNode);
+  std::string errorMessage = d->logic()->FinalizeAccumulatedDose(rtPlanNode);
   if (!errorMessage.empty())
   {
     d->label_CalculateDoseStatus->setText(errorMessage.c_str());
@@ -775,6 +769,7 @@ void qSlicerExternalBeamPlanningModuleWidget::clearDoseClicked()
 
   vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   d->logic()->RemoveIntermediateDoseNodes(rtPlanNode);
+  qCritical() << "Use vtkSlicerAbstractDoseEngine::RemoveIntermediateResults!!!";
 }
 
 //-----------------------------------------------------------------------------

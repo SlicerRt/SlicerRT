@@ -77,10 +77,14 @@ public:
   /// Get number of selected input volume nodes
   unsigned int GetNumberOfSelectedInputVolumeNodes();
   /// Add selected input volume node
-  void AddSelectedInputVolumeNode(vtkMRMLScalarVolumeNode* node);
+  void AddSelectedInputVolumeNode(vtkMRMLScalarVolumeNode* node, double weight=1.0);
   /// Remove selected input volume node
   void RemoveSelectedInputVolumeNode(vtkMRMLScalarVolumeNode* node);
 
+  /// Set weight for an input dose volume node
+  void SetWeightForDoseVolume(vtkMRMLScalarVolumeNode* node, double weight);
+  /// Get weight for an input dose volume node
+  double GetWeightForDoseVolume(vtkMRMLScalarVolumeNode* node);
   /// Get volumes node IDs to weights map
   std::map<std::string,double>* GetVolumeNodeIdsToWeightsMap()
   {
@@ -99,7 +103,7 @@ protected:
 
   /// Map assigning a weight to the available input volume nodes
   /// (as the user set it on the module GUI)
-  std::map<std::string,double> VolumeNodeIdsToWeightsMap;
+  std::map<std::string, double> VolumeNodeIdsToWeightsMap;
 };
 
 #endif

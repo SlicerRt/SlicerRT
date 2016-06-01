@@ -30,6 +30,7 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "vtkSlicerIsodoseModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -258,10 +259,8 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(vtkMRMLD
   vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> outputAccumulatedDoseVolumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
   this->GetMRMLScene()->AddNode(outputAccumulatedDoseVolumeDisplayNode); 
 
-  // Set default colormap to the dose color table
-  vtkSmartPointer<vtkCollection> defaultDoseColorTableNodes = vtkSmartPointer<vtkCollection>::Take(
-    this->GetMRMLScene()->GetNodesByName(SlicerRtCommon::DEFAULT_DOSE_COLOR_TABLE_NAME) );
-  vtkMRMLColorTableNode* defaultDoseColorTable = vtkMRMLColorTableNode::SafeDownCast(defaultDoseColorTableNodes->GetItemAsObject(0));
+  // Set colormap to dose
+  vtkMRMLColorTableNode* defaultDoseColorTable = vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(this->GetMRMLScene());
   if (defaultDoseColorTable)
   {
     outputAccumulatedDoseVolumeDisplayNode->SetAndObserveColorNodeID(defaultDoseColorTable->GetID());
@@ -269,10 +268,8 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(vtkMRMLD
   else
   {
     outputAccumulatedDoseVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+    vtkErrorMacro("AccumulateDoseVolumes: Failed to get default dose color table!");
   }
-
-  // Set visibility 
-  outputAccumulatedDoseVolumeDisplayNode->SetVisibility(1);
 
   // Set output accumulated dose image info
   outputAccumulatedDoseVolumeNode->CopyOrientation(referenceDoseVolumeNode);
@@ -328,14 +325,15 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(vtkMRMLD
   }
 
   // Set threshold values so that the background is black
+  double doseUnitScaling = 1.0;
   const char* doseUnitScalingChars = studyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());
-  double doseUnitScaling = 0.0;
-  std::stringstream doseUnitScalingSs;
-  doseUnitScalingSs << doseUnitScalingChars;
-  doseUnitScalingSs >> doseUnitScaling;
+  if (doseUnitScalingChars)
+  {
+    doseUnitScaling = vtkVariant(doseUnitScalingChars).ToDouble();
+  }
   outputAccumulatedDoseVolumeDisplayNode->AutoThresholdOff();
   outputAccumulatedDoseVolumeDisplayNode->SetLowerThreshold(0.5 * doseUnitScaling);
   outputAccumulatedDoseVolumeDisplayNode->SetApplyThreshold(1);
-  
+
   return NULL;
 }

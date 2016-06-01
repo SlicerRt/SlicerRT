@@ -212,9 +212,16 @@ unsigned int vtkMRMLDoseAccumulationNode::GetNumberOfSelectedInputVolumeNodes()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseAccumulationNode::AddSelectedInputVolumeNode(vtkMRMLScalarVolumeNode* node)
+void vtkMRMLDoseAccumulationNode::AddSelectedInputVolumeNode(vtkMRMLScalarVolumeNode* node, double weight/*=1.0*/)
 {
+  if (!node)
+  {
+    return;
+  }
+
   this->AddNodeReferenceID(SELECTED_INPUT_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+
+  this->VolumeNodeIdsToWeightsMap[node->GetID()] = weight;
 }
 
 //----------------------------------------------------------------------------
@@ -228,4 +235,42 @@ void vtkMRMLDoseAccumulationNode::RemoveSelectedInputVolumeNode(vtkMRMLScalarVol
       break;
     }
   }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLDoseAccumulationNode::SetWeightForDoseVolume(vtkMRMLScalarVolumeNode* node, double weight)
+{
+  if (!node)
+  {
+    vtkErrorMacro("SetWeightForDoseVolume: Invalid dose volume node given");
+    return;
+  }
+
+  std::map<std::string, double>::iterator weightIt = this->VolumeNodeIdsToWeightsMap.find(node->GetID());
+  if (weightIt == this->VolumeNodeIdsToWeightsMap.end())
+  {
+    vtkErrorMacro("SetWeightForDoseVolume: Dose volume '" << node->GetName() << "' is not present among selected inputs. Need to add it before weight can be changed");
+    return;
+  }
+
+  this->VolumeNodeIdsToWeightsMap[node->GetID()] = weight;
+}
+
+//----------------------------------------------------------------------------
+double vtkMRMLDoseAccumulationNode::GetWeightForDoseVolume(vtkMRMLScalarVolumeNode* node)
+{
+  if (!node)
+  {
+    vtkErrorMacro("GetWeightForDoseVolume: Invalid dose volume node given");
+    return 0.0;
+  }
+
+  std::map<std::string, double>::iterator weightIt = this->VolumeNodeIdsToWeightsMap.find(node->GetID());
+  if (weightIt == this->VolumeNodeIdsToWeightsMap.end())
+  {
+    vtkErrorMacro("GetWeightForDoseVolume: Dose volume '" << node->GetName() << "' is not present among selected inputs. 0 weight is returned.");
+    return 0.0;
+  }
+
+  return weightIt->second;
 }

@@ -50,10 +50,6 @@ static const char* SEGMENTATION_REFERENCE_ROLE = "segmentationRef";
 static const char* POIS_MARKUPS_REFERENCE_ROLE = "posMarkupsRef";
 static const char* OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE = "outputTotalDoseVolumeRef";
 
-static const char* APERTURE_VOLUME_REFERENCE_ROLE_PREFIX = "apertureVolumeRef_";
-static const char* RANGE_COMPENSATOR_VOLUME_REFERENCE_ROLE_PREFIX = "rangeCompensatorVolumeRef_";
-static const char* PER_BEAM_DOSE_VOLUME_REFERENCE_ROLE_PREFIX = "protonDoseVolumeRef_";
-
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
 
@@ -153,8 +149,7 @@ void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode* vtkMRMLRTPlanNode::GetReferenceVolumeNode()
 {
-  return vtkMRMLScalarVolumeNode::SafeDownCast(
-    this->GetNodeReference(REFERENCE_VOLUME_REFERENCE_ROLE));
+  return vtkMRMLScalarVolumeNode::SafeDownCast(this->GetNodeReference(REFERENCE_VOLUME_REFERENCE_ROLE));
 }
 
 //----------------------------------------------------------------------------
@@ -236,14 +231,16 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
   // Create name
   std::string markupsName = std::string(this->GetName()) + "_POI";
   
-  // Create markups node
-  vtkNew<vtkMRMLMarkupsFiducialNode> markupsNode;
+  // Create markups node (subject hierarchy node is created automatically)
+  vtkSmartPointer<vtkMRMLMarkupsFiducialNode> markupsNode = vtkSmartPointer<vtkMRMLMarkupsFiducialNode>::New();
   markupsNode->SetName(markupsName.c_str());
-  this->GetScene()->AddNode(markupsNode.GetPointer());
-  this->SetAndObservePoisMarkupsFiducialNode(markupsNode.GetPointer());
 
-  // Subject hierarchy node is created automatically
-  
+  // Populate POI markups with default fiducials
+  markupsNode->AddFiducial(0,0,0,ISOCENTER_FIDUCIAL_NAME); // index 0: ISOCENTER_FIDUCIAL_INDEX
+
+  this->GetScene()->AddNode(markupsNode);
+  this->SetAndObservePoisMarkupsFiducialNode(markupsNode);
+
   // If plan belongs to a study, set the markups node as belonging to the same study
   vtkMRMLSubjectHierarchyNode* planSHNode = this->GetPlanSubjectHierarchyNode();
   if (!planSHNode)
@@ -253,10 +250,7 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
   }
   vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
     this->GetScene(), planSHNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), 
-    markupsName.c_str(), markupsNode.GetPointer() );
-
-  // Populate POI markups with default fiducials
-  markupsNode->AddFiducial(0,0,0,ISOCENTER_FIDUCIAL_NAME); // index 0: ISOCENTER_FIDUCIAL_INDEX
+    markupsName.c_str(), markupsNode );
 
   return markupsNode.GetPointer();
 }
@@ -479,46 +473,4 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLRTPlanNode::GetPlanSubjectHierarchyNode()
   }
 
   return planSHNode;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkMRMLRTPlanNode::AssembleApertureVolumeReference(vtkMRMLNode* beamNode)
-{
-  if (!beamNode)
-  {
-    std::cerr << "vtkMRMLRTPlanNode::AssembleApertureVolumeReference: Invalid beam node!";
-    return "";
-  }
-  
-  std::string referenceRole(APERTURE_VOLUME_REFERENCE_ROLE_PREFIX);
-  referenceRole.append(beamNode->GetID());
-  return referenceRole;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkMRMLRTPlanNode::AssembleRangeCompensatorVolumeReference(vtkMRMLNode* beamNode)
-{
-  if (!beamNode)
-  {
-    std::cerr << "vtkMRMLRTPlanNode::AssembleRangeCompensatorVolumeReference: Invalid beam node!";
-    return "";
-  }
-  
-  std::string referenceRole(RANGE_COMPENSATOR_VOLUME_REFERENCE_ROLE_PREFIX);
-  referenceRole.append(beamNode->GetID());
-  return referenceRole;
-}
-
-//----------------------------------------------------------------------------
-std::string vtkMRMLRTPlanNode::AssemblePerBeamDoseVolumeReference(vtkMRMLNode* beamNode)
-{
-  if (!beamNode)
-  {
-    std::cerr << "vtkMRMLRTPlanNode::AssemblePerBeamDoseVolumeReference: Invalid beam node!";
-    return "";
-  }
-  
-  std::string referenceRole(PER_BEAM_DOSE_VOLUME_REFERENCE_ROLE_PREFIX);
-  referenceRole.append(beamNode->GetID());
-  return referenceRole;
 }

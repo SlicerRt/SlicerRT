@@ -72,9 +72,8 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 
   this->NominalEnergy = 80.0;
   this->NominalmA = 1.0;
-  this->BeamOnTime = 0.0;
 
-  this->IsocenterSpecification = CenterOfTarget;
+  this->IsocenterSpecification = vtkMRMLRTBeamNode::CenterOfTarget;
 
   this->X1Jaw = -100.0;
   this->X2Jaw = 100.0;
@@ -185,27 +184,32 @@ vtkMRMLSegmentationNode* vtkMRMLRTBeamNode::GetTargetSegmentationNode()
 }
 
 //----------------------------------------------------------------------------
-vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTBeamNode::GetTargetLabelmap()
+vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTBeamNode::GetTargetOrientedImageData()
 {
   vtkSmartPointer<vtkOrientedImageData> targetLabelmap;
   vtkMRMLSegmentationNode* targetSegmentationNode = this->GetTargetSegmentationNode();
   if (!targetSegmentationNode)
   {
-    vtkErrorMacro("GetTargetLabelmap: Failed to get target segmentation node");
+    vtkErrorMacro("GetTargetOrientedImageData: Failed to get target segmentation node");
     return targetLabelmap;
   }
 
-  vtkSegmentation *segmentation = targetSegmentationNode->GetSegmentation();
+  vtkSegmentation* segmentation = targetSegmentationNode->GetSegmentation();
   if (!segmentation)
   {
-    vtkErrorMacro("GetTargetLabelmap: Failed to get segmentation");
+    vtkErrorMacro("GetTargetOrientedImageData: Failed to get segmentation");
     return targetLabelmap;
   }
 
-  vtkSegment *segment = segmentation->GetSegment(this->GetTargetSegmentID());
+  if (!this->TargetSegmentID)
+  {
+    vtkErrorMacro("GetTargetOrientedImageData: No target segment specified");
+    return targetLabelmap;
+  }
+  vtkSegment* segment = segmentation->GetSegment(this->TargetSegmentID);
   if (!segment) 
   {
-    vtkErrorMacro("GetTargetLabelmap: Failed to get segment");
+    vtkErrorMacro("GetTargetOrientedImageData: Failed to get segment");
     return targetLabelmap;
   }
 
@@ -224,7 +228,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTBeamNode::GetTargetLabelmap()
     if (!targetLabelmap.GetPointer())
     {
       std::string errorMessage("Failed to convert target segment into binary labelmap");
-      vtkErrorMacro("GetTargetLabelmap: " << errorMessage);
+      vtkErrorMacro("GetTargetOrientedImageData: " << errorMessage);
       return targetLabelmap;
     }
   }
@@ -233,7 +237,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTBeamNode::GetTargetLabelmap()
   if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(targetSegmentationNode, targetLabelmap))
   {
     std::string errorMessage("Failed to apply parent transformation to target segment!");
-    vtkErrorMacro("GetTargetLabelmap: " << errorMessage);
+    vtkErrorMacro("GetTargetOrientedImageData: " << errorMessage);
     return targetLabelmap;
   }
   return targetLabelmap;
@@ -249,7 +253,7 @@ bool vtkMRMLRTBeamNode::ComputeTargetVolumeCenter(double* center)
   }
 
   // Get a labelmap for the target
-  vtkSmartPointer<vtkOrientedImageData> targetLabelmap = this->GetTargetLabelmap();
+  vtkSmartPointer<vtkOrientedImageData> targetLabelmap = this->GetTargetOrientedImageData();
   if (targetLabelmap.GetPointer() == NULL)
   {
     return false;
@@ -275,6 +279,7 @@ bool vtkMRMLRTBeamNode::ComputeTargetVolumeCenter(double* center)
   center[0] = -centerOfMass[0];
   center[1] = -centerOfMass[1];
   center[2] =  centerOfMass[2];
+
   return true;
 }
 
@@ -343,12 +348,14 @@ void vtkMRMLRTBeamNode::SetIsocenterSpecification(vtkMRMLRTBeamNode::IsocenterSp
   {
     return;
   }
-  if (isoSpec == CenterOfTarget)
+
+  this->IsocenterSpecification = isoSpec;
+
+  // Move isocenter to center of target if specified (and not disabled by the second parameter)
+  if (isoSpec == vtkMRMLRTBeamNode::CenterOfTarget)
   {
     this->SetIsocenterToTargetCenter();
   }
-
-  this->IsocenterSpecification = isoSpec;
 
   this->Modified();
 }
@@ -356,21 +363,31 @@ void vtkMRMLRTBeamNode::SetIsocenterSpecification(vtkMRMLRTBeamNode::IsocenterSp
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetIsocenterToTargetCenter()
 {
-  double center[3] = {0.0,0.0,0.0};
-  if (this->ComputeTargetVolumeCenter(center))
+  if (!this->TargetSegmentID)
   {
-    // Set isocenter in parent plan
-    vtkMRMLRTPlanNode* parentPlanNode = this->GetParentPlanNode();
-    if (!parentPlanNode)
-    {
-      vtkErrorMacro("SetIsocenterToTargetCenter: Failed to access parent plan node");
-      return;
-    }
-    if (!parentPlanNode->SetIsocenterPosition(center))
-    {
-      vtkErrorMacro("SetIsocenterToTargetCenter: Failed to set plan isocenter");
-      return;
-    }
+    vtkErrorMacro("SetIsocenterToTargetCenter: Unable to set isocenter to target segment as no target segment defined in beam " << this->Name);
+    return;
+  }
+  vtkMRMLRTPlanNode* parentPlanNode = this->GetParentPlanNode();
+  if (!parentPlanNode)
+  {
+    vtkErrorMacro("SetIsocenterToTargetCenter: Failed to access parent plan node");
+    return;
+  }
+
+  // Compute center of target segment
+  double center[3] = {0.0,0.0,0.0};
+  if (!this->ComputeTargetVolumeCenter(center))
+  {
+    vtkErrorMacro("SetIsocenterToTargetCenter: Failed to compute target volume center");
+    return;
+  }
+
+  // Set isocenter in parent plan
+  if (!parentPlanNode->SetIsocenterPosition(center))
+  {
+    vtkErrorMacro("SetIsocenterToTargetCenter: Failed to set plan isocenter");
+    return;
   }
 }
 
@@ -391,6 +408,25 @@ bool vtkMRMLRTBeamNode::GetPlanIsocenterPosition(double isocenter[3])
   }
 
   poisMarkupsNode->GetNthFiducialPosition(vtkMRMLRTPlanNode::ISOCENTER_FIDUCIAL_INDEX, isocenter);
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLRTBeamNode::CalculateSourcePosition(double source[3])
+{
+  double isocenter[3] = {0.0,0.0,0.0};
+  if (!this->GetPlanIsocenterPosition(isocenter))
+  {
+    vtkErrorMacro("CalculateSourcePosition: Failed to get plan isocenter position");
+    return false;
+  }
+
+  double gantryAngleRadian = this->GantryAngle * M_PI / 180.0;
+
+  source[0] = isocenter[0] + this->SAD * sin(gantryAngleRadian);
+  source[1] = isocenter[1] - this->SAD * cos(gantryAngleRadian);
+  source[2] = isocenter[2];
+
   return true;
 }
 

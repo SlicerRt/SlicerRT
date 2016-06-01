@@ -177,13 +177,12 @@ void vtkSlicerBeamsModuleLogic::UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode)
   }
 
   //TODO: Awful names for transforms. They should be barToFooTransform
+  //TODO: Use IEC logic
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
   transform->Identity();
   transform->RotateZ(beamNode->GetGantryAngle());
   transform->RotateY(beamNode->GetCollimatorAngle());
   transform->RotateX(-90);
-
-  vtkDebugMacro ("Gantry angle update to " << beamNode->GetGantryAngle());
 
   vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
   transform2->Identity();

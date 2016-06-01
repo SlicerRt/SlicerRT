@@ -171,12 +171,8 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   vtkSmartPointer<vtkMRMLDoseAccumulationNode> paramNode = vtkSmartPointer<vtkMRMLDoseAccumulationNode>::New();
   mrmlScene->AddNode(paramNode);
   
-  paramNode->AddSelectedInputVolumeNode(doseScalarVolumeNode);
-  paramNode->AddSelectedInputVolumeNode(doseScalarVolumeNode2);
-  std::map<std::string,double>* volumeNodeIdsToWeightsMap = paramNode->GetVolumeNodeIdsToWeightsMap();
-  std::string doseVolumeId(doseScalarVolumeNode->GetID());
-  (*volumeNodeIdsToWeightsMap)[doseScalarVolumeNode->GetID()] = 0.5;
-  (*volumeNodeIdsToWeightsMap)[doseScalarVolumeNode2->GetID()] = 0.5;
+  paramNode->AddSelectedInputVolumeNode(doseScalarVolumeNode, 0.5);
+  paramNode->AddSelectedInputVolumeNode(doseScalarVolumeNode2, 0.5);
   paramNode->SetAndObserveAccumulatedDoseVolumeNode(outputVolumeNode);
   paramNode->SetAndObserveReferenceDoseVolumeNode(doseScalarVolumeNode);
 
@@ -196,7 +192,7 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   // Get output volume
   vtkMRMLScalarVolumeNode* accumulatedDoseVolumeNode = paramNode->GetAccumulatedDoseVolumeNode();
   if (accumulatedDoseVolumeNode == NULL)
-  { 
+  {
     mrmlScene->Commit();
     std::cerr << "ERROR: Unable to get accumulated volume!" << std::endl;
     return EXIT_FAILURE;

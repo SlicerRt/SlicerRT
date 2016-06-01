@@ -191,15 +191,15 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
 
   // Calculate dose
   std::string errorMessage("");
-  errorMessage = ebpLogic->InitializeAccumulatedDose(planNode);
-  if (!errorMessage.empty())
-  {
-    mrmlScene->Commit();
-    errorStream << "ERROR: Failed to initialize accumulated dose!" << std::endl;
-    return EXIT_FAILURE;
-  }
+  //errorMessage = ebpLogic->InitializeAccumulatedDose(planNode);
+  //if (!errorMessage.empty())
+  //{
+  //  mrmlScene->Commit();
+  //  errorStream << "ERROR: Failed to initialize accumulated dose!" << std::endl;
+  //  return EXIT_FAILURE;
+  //}
 
-  errorMessage = ebpLogic->ComputeDose(planNode, firstBeamNode);
+  errorMessage = ebpLogic->CalculateDose(firstBeamNode);
   if (!errorMessage.empty())
   {
     mrmlScene->Commit();

@@ -150,13 +150,6 @@ public:
   /// Set prescription dose
   vtkSetMacro(RxDose, double);
 
-  /// Assemble reference volume node reference role for aperture volume node with given beam
-  static std::string AssembleApertureVolumeReference(vtkMRMLNode* beamNode);
-  /// Assemble reference volume node reference role for range compensator volume node with given beam
-  static std::string AssembleRangeCompensatorVolumeReference(vtkMRMLNode* beamNode);
-  /// Assemble reference volume node reference role for proton dose volume node with given beam
-  static std::string AssemblePerBeamDoseVolumeReference(vtkMRMLNode* beamNode);
-
 protected:
   /// Create default plan POIs markups node
   vtkMRMLMarkupsFiducialNode* CreateMarkupsFiducialNode();

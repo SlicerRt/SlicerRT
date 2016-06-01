@@ -379,6 +379,10 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
   d->MRMLSegmentSelectorWidget_TargetVolume->setCurrentNode(beamNode->GetTargetSegmentationNode());
   d->MRMLSegmentSelectorWidget_TargetVolume->setCurrentSegmentID(beamNode->GetTargetSegmentID());
 
+  // Update isocenter specification //TODO:
+  //d->comboBox_IsocenterSpec->setCurrentIndex(
+  //  (beamNode->GetIsocenterSpecification() == vtkMRMLRTBeamNode::CenterOfTarget ? 0 : 1) );
+  // Update isocenter controls based on plan isocenter position
   this->updateIsocenterPosition();
 
   // Set values into energy tab
@@ -664,8 +668,11 @@ void qSlicerBeamsModuleWidget::isocenterSpecChanged(const QString &text)
 
   if (text.compare("Center of target") == 0)
   {
-    qDebug() << "Setting isocenter spec to center of target";
-    beamNode->SetIsocenterToTargetCenter();
+    beamNode->SetIsocenterSpecification(vtkMRMLRTBeamNode::CenterOfTarget);
+  }
+  else
+  {
+    beamNode->SetIsocenterSpecification(vtkMRMLRTBeamNode::ArbitraryPoint);
   }
 }
 

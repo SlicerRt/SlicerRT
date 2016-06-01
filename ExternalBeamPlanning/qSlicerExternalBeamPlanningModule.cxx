@@ -34,6 +34,7 @@
 
 // SlicerRT includes
 #include "vtkSlicerBeamsModuleLogic.h"
+#include "vtkSlicerDoseAccumulationModuleLogic.h"
 
 // SubjectHierarchy Plugins includes
 #include <qSlicerSubjectHierarchyPluginHandler.h>
@@ -135,7 +136,19 @@ void qSlicerExternalBeamPlanningModule::setup()
   else
   {
     qCritical() << Q_FUNC_INFO << ": Beams module is not found";
-  } 
+  }
+
+  // Set dose accumulation logic to the logic
+  qSlicerAbstractCoreModule* doseAccumulationModule = qSlicerCoreApplication::application()->moduleManager()->module("DoseAccumulation");
+  if (doseAccumulationModule)
+  {
+    vtkSlicerDoseAccumulationModuleLogic* doseAccumulationLogic = vtkSlicerDoseAccumulationModuleLogic::SafeDownCast(doseAccumulationModule->logic());
+    ebpLogic->SetDoseAccumulationLogic(doseAccumulationLogic);
+  }
+  else
+  {
+    qCritical() << Q_FUNC_INFO << ": Dose accumulation module is not found";
+  }
 }
 
 //-----------------------------------------------------------------------------

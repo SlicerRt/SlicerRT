@@ -43,6 +43,7 @@ class vtkMRMLRTPlanNode;
 class vtkMRMLRTBeamNode;
 class vtkSlicerCLIModuleLogic;
 class vtkSlicerBeamsModuleLogic;
+class vtkSlicerDoseAccumulationModuleLogic;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_LOGIC_EXPORT vtkSlicerExternalBeamPlanningModuleLogic :
@@ -58,21 +59,24 @@ public:
   /// Get Beams module logic
   vtkGetObjectMacro(BeamsLogic, vtkSlicerBeamsModuleLogic);
 
+  /// Set Dose accumulation module logic
+  void SetDoseAccumulationLogic(vtkSlicerDoseAccumulationModuleLogic* doseAccumulationLogic);
+  /// Get Dose accumulation module logic
+  vtkGetObjectMacro(DoseAccumulationLogic, vtkSlicerDoseAccumulationModuleLogic);
+
 public:
   /// Create a new beam based on another beam, and add it to the plan
   /// \return The new beam node that has been copied and added to the plan
   vtkMRMLRTBeamNode* CopyAndAddBeamToPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode);
 
-  /// TODO
+  /// TODO Fix
+  /// TODO Move to separate logic
   void UpdateDRR(vtkMRMLRTPlanNode* planNode, char* beamName);
 
-  /// Get labelmap from target segment of beam node
-  vtkSmartPointer<vtkOrientedImageData> GetTargetLabelmap(vtkMRMLRTBeamNode* beamNode);
-
   /// Compute dose for one beam
-  std::string ComputeDose(vtkMRMLRTPlanNode* planNode, vtkMRMLRTBeamNode* beamNode);
+  std::string CalculateDose(vtkMRMLRTBeamNode* beamNode);
 
-  /// TODO
+  /// TODO Remove
   std::string ComputeDoseByPlastimatch(vtkMRMLRTPlanNode* planNode, vtkMRMLRTBeamNode* beamNode);
 
   /// TODO
@@ -82,10 +86,10 @@ public:
   void SetMatlabDoseCalculationModuleLogic(vtkSlicerCLIModuleLogic* logic);
   vtkSlicerCLIModuleLogic* GetMatlabDoseCalculationModuleLogic();
 
-  /// TODO
+  /// TODO Use plugin mechanism instead of dedicated function
   std::string ComputeDoseByMatlab(vtkMRMLRTPlanNode* planNode, vtkMRMLRTBeamNode* beamNode);
 
-  /// TODO
+  /// TODO Remove
   std::string InitializeAccumulatedDose(vtkMRMLRTPlanNode* planNode);
 
   /// TODO
@@ -126,6 +130,9 @@ private:
 
   /// Beams module logic instance
   vtkSlicerBeamsModuleLogic* BeamsLogic;
+
+  /// Dose accumulation module logic instance
+  vtkSlicerDoseAccumulationModuleLogic* DoseAccumulationLogic;
 };
 
 #endif

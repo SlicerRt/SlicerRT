@@ -317,7 +317,7 @@ void qMRMLBeamsTableView::onBeamTableItemChanged(QTableWidgetItem* changedItem)
     }
   }
   // If beam weight has been changed
-  else if (changedItem->column() == d->columnIndex("Number"))
+  else if (changedItem->column() == d->columnIndex("Weight"))
   {
     double beamWeight = changedItem->text().toDouble(&ok);
     if (ok)

@@ -12,7 +12,8 @@ if(NOT Plastimatch_FOUND)
 endif() 
 
 #-----------------------------------------------------------------------------
-#add_subdirectory(MRML)
+#add_subdirectory(MRML) #TODO: Remove if no EBP-specific MRML nodes will show up
+add_subdirectory(DoseEngines)
 add_subdirectory(Logic)
 
 #-----------------------------------------------------------------------------
@@ -26,6 +27,7 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${qSlicerSubjectHierarchyModuleWidgets_INCLUDE_DIRS}
   ${qSlicerBeamsSubjectHierarchyPlugins_INCLUDE_DIRS}
   ${qSlicerBeamsModuleWidgets_INCLUDE_DIRS}
+  ${vtkSlicerDoseAccumulationModuleLogic_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS
@@ -49,9 +51,10 @@ set(MODULE_TARGET_LIBRARIES
   vtkSlicerSegmentationsModuleMRML
   qSlicerSegmentationsModuleWidgets
   vtkSlicerBeamsModuleMRML
-  vtkSlicer${MODULE_NAME}ModuleLogic
   qSlicerBeamsSubjectHierarchyPlugins
   qSlicerBeamsModuleWidgets
+  vtkSlicerDoseAccumulationModuleLogic
+  vtkSlicer${MODULE_NAME}ModuleLogic
   )
 
 set(MODULE_RESOURCES
