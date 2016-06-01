@@ -55,14 +55,14 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     self.applyButton.setToolTip("Apply current threshold settings to the label map.")
     self.scriptedEffect.addOptionsWidget(self.applyButton)
 
-    # itemIndex = self.probePositionSelector.findData(probePositionId)
-    # self.probePositionSelector.setItemData(itemIndex, probePositionPreset['description'], qt.Qt.ToolTipRole)
+    # itemIndex = self.methodSelectorComboBox.findData(probePositionId)
+    # self.methodSelectorComboBox.setItemData(itemIndex, probePositionPreset['description'], qt.Qt.ToolTipRole)
 
     self.methodSelectorComboBox.connect("currentIndexChanged(int)", self.onMethodChanged)
     self.applyButton.connect('clicked()', self.onApply)
 
   def onMethodChanged(self, methodIndex):
-    methodName = self.probePositionSelector.getItemData(methodIndex)
+    methodName = self.methodSelectorComboBox.itemData(methodIndex)
     self.scriptedEffect.setParameter("SmoothingMethod", methodName)
 
   def createCursor(self, widget):
@@ -74,8 +74,8 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     self.scriptedEffect.setParameter("MedianKernelSizeMm", 3)
 
   def updateGUIFromMRML(self):
-    smoothingMethod = self.scriptedEffect.stringParameter("SmoothingMethod")
-    methodIndex = self.probePositionSelector.findData(smoothingMethod)
+    smoothingMethod = self.scriptedEffect.parameter("SmoothingMethod")
+    methodIndex = self.methodSelectorComboBox.findData(smoothingMethod)
     wasBlocked = self.methodSelectorComboBox.blockSignals(True)
     self.methodSelectorComboBox.setCurrentIndex(methodIndex)
     self.methodSelectorComboBox.blockSignals(wasBlocked)
@@ -83,7 +83,7 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     editedLabelmapSpacing = [1.0, 1.0, 1.0]
     editedLabelmap = self.scriptedEffect.editedLabelmap()
     if editedLabelmap:
-      editedLabelmap.GetSpacing(editedLabelmapSpacing)
+      editedLabelmapSpacing = editedLabelmap.GetSpacing()
 
     wasBlocked = self.medianKernelSizeRadiusPixelSpinBox.blockSignals(True)
     minimumSpacing = min(editedLabelmapSpacing)
@@ -116,19 +116,18 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     try:
       # Get master volume image data
       import vtkSegmentationCorePython
-      masterImageData = self.scriptedEffect.masterVolumeImageData()
       # Get edited labelmap
       editedLabelmap = self.scriptedEffect.editedLabelmap()
       #originalImageToWorldMatrix = vtk.vtkMatrix4x4()
       #editedLabelmap.GetImageToWorldMatrix(originalImageToWorldMatrix)
       #originalExtent = editedLabelmap.GetExtent()
 
-      editedLabelmapSpacing = [1.0, 1.0, 1.0]
-      editedLabelmap = self.scriptedEffect.editedLabelmap()
+      selectedSegmentLabelmap = self.scriptedEffect.selectedSegmentLabelmap()
+      selectedSegmentLabelmapSpacing = [1.0, 1.0, 1.0]
       if editedLabelmap:
-        editedLabelmap.GetSpacing(editedLabelmapSpacing)
+        selectedSegmentLabelmapSpacing = editedLabelmap.GetSpacing()
       medianKernelSizeMm = self.scriptedEffect.doubleParameter("MedianKernelSizeMm")
-      medianKernelSizePixel = [round(medianKernelSizeMm / editedLabelmapSpacing[componentIndex]) * editedLabelmapSpacing[componentIndex] for componentIndex in range(3)]
+      medianKernelSizePixel = [int(round(medianKernelSizeMm / selectedSegmentLabelmapSpacing[componentIndex]) * selectedSegmentLabelmapSpacing[componentIndex]) for componentIndex in range(3)]
 
       # Save state for undo
       #TODO:
@@ -136,8 +135,8 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
 
       # Perform thresholding
       medianFilter = vtk.vtkImageMedian3D()
-      medianFilter.SetInputData(masterImageData)
-      medianFilter.SetKernelSize(medianKernelSizePixel)
+      medianFilter.SetInputData(selectedSegmentLabelmap)
+      medianFilter.SetKernelSize(medianKernelSizePixel[0],medianKernelSizePixel[1],medianKernelSizePixel[2])
       medianFilter.Update()
       editedLabelmap.DeepCopy(medianFilter.GetOutput())
     except IndexError:
@@ -149,9 +148,6 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     self.scriptedEffect.setEditedLabelmapApplyModeToSet()
     self.scriptedEffect.setEditedLabelmapApplyExtentToWholeExtent()
     self.scriptedEffect.apply()
-    
-    # De-select effect
-    self.scriptedEffect.selectEffect("")
 
 MEDIAN = 'MEDIAN'
 GAUSSIAN = 'GAUSSIAN'
