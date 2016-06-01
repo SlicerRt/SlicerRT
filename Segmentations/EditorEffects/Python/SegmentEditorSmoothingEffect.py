@@ -40,54 +40,77 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     self.methodSelectorComboBox = qt.QComboBox()
     self.methodSelectorComboBox.addItem("Median", MEDIAN)
     self.methodSelectorComboBox.addItem("Gaussian", GAUSSIAN)
-    #itemIndex = self.probePositionSelector.findData(probePositionId)
-    #self.probePositionSelector.setItemData(itemIndex, probePositionPreset['description'], qt.Qt.ToolTipRole)
-    #self.probePositionSelector.connect("currentIndexChanged(int)", self.onProbePositionChanged)
-
     self.scriptedEffect.addLabeledOptionsWidget("Smoothing method:", self.methodSelectorComboBox)
+
+    self.medianKernelSizeRadiusPixelSpinBox = qt.QDoubleSpinBox()
+    self.medianKernelSizeRadiusPixelSpinBox.setToolTip("Kernel size in physical unit (typically mm)")
+    self.medianKernelSizeRadiusPixelSpinBox.minimum = 1
+    self.medianKernelSizeRadiusPixelSpinBox.maximum = 10
+    self.medianKernelSizeRadiusPixelSpinBox.singleStep = 1
+    self.medianKernelSizeRadiusPixelSpinBox.value = 3
+    self.medianKernelSizeRadiusPixelLabel = self.scriptedEffect.addLabeledOptionsWidget("Kernel size:", self.medianKernelSizeRadiusPixelSpinBox)
 
     self.applyButton = qt.QPushButton("Apply")
     self.applyButton.objectName = self.__class__.__name__ + 'Apply'
     self.applyButton.setToolTip("Apply current threshold settings to the label map.")
     self.scriptedEffect.addOptionsWidget(self.applyButton)
 
-    #self.useForPaintButton.connect('clicked()', self.onUseForPaint)
-    #self.thresholdSlider.connect('valuesChanged(double,double)', self.onThresholdValuesChanged)
+    # itemIndex = self.probePositionSelector.findData(probePositionId)
+    # self.probePositionSelector.setItemData(itemIndex, probePositionPreset['description'], qt.Qt.ToolTipRole)
+
+    self.methodSelectorComboBox.connect("currentIndexChanged(int)", self.onMethodChanged)
     self.applyButton.connect('clicked()', self.onApply)
+
+  def onMethodChanged(self, methodIndex):
+    methodName = self.probePositionSelector.getItemData(methodIndex)
+    self.scriptedEffect.setParameter("SmoothingMethod", methodName)
 
   def createCursor(self, widget):
     # Turn off effect-specific cursor for this effect
     return slicer.util.mainWindow().cursor
 
-  def editedLabelmapChanged(self):
-    pass # For the sake of example
-
   def setMRMLDefaults(self):
-    self.scriptedEffect.setParameter("MinimumThreshold", 0.)
-    self.scriptedEffect.setParameter("MaximumThreshold", 100.)
+    self.scriptedEffect.setParameter("SmoothingMethod", MEDIAN)
+    self.scriptedEffect.setParameter("MedianKernelSizeMm", 3)
 
   def updateGUIFromMRML(self):
-    self.thresholdSlider.blockSignals(True)
-    self.thresholdSlider.setMinimumValue(self.scriptedEffect.doubleParameter("MinimumThreshold"))
-    self.thresholdSlider.setMaximumValue(self.scriptedEffect.doubleParameter("MaximumThreshold"))
-    self.thresholdSlider.blockSignals(False)
+    smoothingMethod = self.scriptedEffect.stringParameter("SmoothingMethod")
+    methodIndex = self.probePositionSelector.findData(smoothingMethod)
+    wasBlocked = self.methodSelectorComboBox.blockSignals(True)
+    self.methodSelectorComboBox.setCurrentIndex(methodIndex)
+    self.methodSelectorComboBox.blockSignals(wasBlocked)
+
+    editedLabelmapSpacing = [1.0, 1.0, 1.0]
+    editedLabelmap = self.scriptedEffect.editedLabelmap()
+    if editedLabelmap:
+      editedLabelmap.GetSpacing(editedLabelmapSpacing)
+
+    wasBlocked = self.medianKernelSizeRadiusPixelSpinBox.blockSignals(True)
+    minimumSpacing = min(editedLabelmapSpacing)
+    self.medianKernelSizeRadiusPixelSpinBox.minimum = minimumSpacing
+    self.medianKernelSizeRadiusPixelSpinBox.maximum = minimumSpacing*50
+    self.medianKernelSizeRadiusPixelSpinBox.singleStep = minimumSpacing
+    medianKernelSizeRoundedToMultipleOfMinimumSpacing = round(self.medianKernelSizeRadiusPixelSpinBox.value/minimumSpacing)*minimumSpacing
+    if medianKernelSizeRoundedToMultipleOfMinimumSpacing < minimumSpacing:
+      medianKernelSizeRoundedToMultipleOfMinimumSpacing = minimumSpacing
+    self.medianKernelSizeRadiusPixelSpinBox.value = medianKernelSizeRoundedToMultipleOfMinimumSpacing
+    self.medianKernelSizeRadiusPixelSpinBox.blockSignals(wasBlocked)
+
+    self.medianKernelSizeRadiusPixelLabel.setVisible(smoothingMethod==MEDIAN)
+    self.medianKernelSizeRadiusPixelSpinBox.setVisible(smoothingMethod==MEDIAN)
+
 
   def updateMRMLFromGUI(self):
-    self.scriptedEffect.setParameter("MinimumThreshold", self.thresholdSlider.minimumValue)
-    self.scriptedEffect.setParameter("MaximumThreshold", self.thresholdSlider.maximumValue)
+    methodIndex = self.methodSelectorComboBox.currentIndex()
+    smoothingMethod = self.methodSelectorComboBox.itemData(methodIndex)
+    self.scriptedEffect.setParameter("SmoothingMethod", smoothingMethod)
+    self.scriptedEffect.setParameter("MedianKernelSizeMm", self.medianKernelSizeRadiusPixelSpinBox.value)
  
   #
   # Effect specific methods (the above ones are the API methods to override)
   #
-  def onThresholdValuesChanged(self,min,max):
-    self.scriptedEffect.updateMRMLFromGUI()
-
-  def onUseForPaint(self):    
-    parameterSetNode = self.scriptedEffect.parameterSetNode()
-    parameterSetNode.MasterVolumeIntensityMaskOn()
-    parameterSetNode.SetMasterVolumeIntensityMaskRange(self.thresholdSlider.minimumValue, self.thresholdSlider.maximumValue)
-    # Switch to paint effect
-    self.scriptedEffect.selectEffect("Paint")
+  def editedLabelmapChanged(self):
+    self.updateGUIFromMRML()
 
   def onApply(self):
     try:
@@ -96,26 +119,27 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
       masterImageData = self.scriptedEffect.masterVolumeImageData()
       # Get edited labelmap
       editedLabelmap = self.scriptedEffect.editedLabelmap()
-      originalImageToWorldMatrix = vtk.vtkMatrix4x4()
-      editedLabelmap.GetImageToWorldMatrix(originalImageToWorldMatrix)
-      originalExtent = editedLabelmap.GetExtent()
-      # Get parameters
-      min = self.scriptedEffect.doubleParameter("MinimumThreshold")
-      max = self.scriptedEffect.doubleParameter("MaximumThreshold")
+      #originalImageToWorldMatrix = vtk.vtkMatrix4x4()
+      #editedLabelmap.GetImageToWorldMatrix(originalImageToWorldMatrix)
+      #originalExtent = editedLabelmap.GetExtent()
+
+      editedLabelmapSpacing = [1.0, 1.0, 1.0]
+      editedLabelmap = self.scriptedEffect.editedLabelmap()
+      if editedLabelmap:
+        editedLabelmap.GetSpacing(editedLabelmapSpacing)
+      medianKernelSizeMm = self.scriptedEffect.doubleParameter("MedianKernelSizeMm")
+      medianKernelSizePixel = [round(medianKernelSizeMm / editedLabelmapSpacing[componentIndex]) * editedLabelmapSpacing[componentIndex] for componentIndex in range(3)]
 
       # Save state for undo
       #TODO:
       #self.undoRedo.saveState()
 
       # Perform thresholding
-      thresh = vtk.vtkImageThreshold()
-      thresh.SetInputData(masterImageData)
-      thresh.ThresholdBetween(min, max)
-      thresh.SetInValue(1)
-      thresh.SetOutValue(0)
-      thresh.SetOutputScalarType(editedLabelmap.GetScalarType())
-      thresh.Update()
-      editedLabelmap.DeepCopy(thresh.GetOutput())
+      medianFilter = vtk.vtkImageMedian3D()
+      medianFilter.SetInputData(masterImageData)
+      medianFilter.SetKernelSize(medianKernelSizePixel)
+      medianFilter.Update()
+      editedLabelmap.DeepCopy(medianFilter.GetOutput())
     except IndexError:
       logging.error('apply: Failed to threshold master volume!')
       pass
