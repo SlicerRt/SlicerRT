@@ -6,14 +6,14 @@ from SegmentEditorEffects import *
 class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
   """ SmoothingEffect is an Effect that smoothes a selected segment
   """
-  
+
   # Necessary static member to be able to set python source to scripted subject hierarchy plugin
   filePath = __file__
 
   def __init__(self, scriptedEffect):
     AbstractScriptedSegmentEditorEffect.__init__(self, scriptedEffect)
     scriptedEffect.name = 'Smoothing'
-  
+
   def clone(self):
     import qSlicerSegmentationsEditorEffectsPythonQt as effects
     clonedEffect = effects.qSlicerSegmentEditorScriptedEffect(None)
@@ -25,13 +25,13 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     if os.path.exists(iconPath):
       return qt.QIcon(iconPath)
     return qt.QIcon()
-    
+
   def helpText(self):
     return "Smooth a selected segment"
 
   def activate(self):
-    pass
-    
+    self.updateGUIFromMRML()
+
   def deactivate(self):
     pass
 
@@ -59,6 +59,7 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     # self.methodSelectorComboBox.setItemData(itemIndex, probePositionPreset['description'], qt.Qt.ToolTipRole)
 
     self.methodSelectorComboBox.connect("currentIndexChanged(int)", self.updateMRMLFromGUI)
+    self.medianKernelSizeRadiusPixelSpinBox.connect("valueChanged(double)", self.updateMRMLFromGUI)
     self.applyButton.connect('clicked()', self.onApply)
 
   def createCursor(self, widget):
@@ -84,6 +85,8 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     wasBlocked = self.medianKernelSizeRadiusPixelSpinBox.blockSignals(True)
     minimumSpacing = min(editedLabelmapSpacing)
     self.medianKernelSizeRadiusPixelSpinBox.minimum = minimumSpacing
+    self.medianKernelSizeRadiusPixelSpinBox.singleStep = minimumSpacing*2
+    self.medianKernelSizeRadiusPixelSpinBox.value = minimumSpacing*5
     self.medianKernelSizeRadiusPixelSpinBox.maximum = minimumSpacing*50
     self.medianKernelSizeRadiusPixelSpinBox.singleStep = minimumSpacing
     medianKernelSizeRoundedToMultipleOfMinimumSpacing = round(self.medianKernelSizeRadiusPixelSpinBox.value/minimumSpacing)*minimumSpacing
@@ -101,7 +104,7 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     smoothingMethod = self.methodSelectorComboBox.itemData(methodIndex)
     self.scriptedEffect.setParameter("SmoothingMethod", smoothingMethod)
     self.scriptedEffect.setParameter("MedianKernelSizeMm", self.medianKernelSizeRadiusPixelSpinBox.value)
- 
+
   #
   # Effect specific methods (the above ones are the API methods to override)
   #
@@ -123,7 +126,8 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
       if editedLabelmap:
         selectedSegmentLabelmapSpacing = editedLabelmap.GetSpacing()
       medianKernelSizeMm = self.scriptedEffect.doubleParameter("MedianKernelSizeMm")
-      medianKernelSizePixel = [int(round(medianKernelSizeMm / selectedSegmentLabelmapSpacing[componentIndex]) * selectedSegmentLabelmapSpacing[componentIndex]) for componentIndex in range(3)]
+      # size rounded to nearest odd number. If kernel size is even then image gets shifted.
+      medianKernelSizePixel = [int(round((medianKernelSizeMm / selectedSegmentLabelmapSpacing[componentIndex]+1)/2)*2-1) for componentIndex in range(3)]
 
       # Save state for undo
       #TODO:
