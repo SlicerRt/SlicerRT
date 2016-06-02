@@ -57,6 +57,9 @@ public:
   /// \param viewWidget Widget of the Slicer layout view. Can be \sa qMRMLSliceWidget or \sa qMRMLThreeDWidget
   virtual bool processInteractionEvents(vtkRenderWindowInteractor* callerInteractor, unsigned long eid, qMRMLWidget* viewWidget);
 
+  /// Perform actions to deactivate the effect (such as destroy actors, etc.)
+  Q_INVOKABLE virtual void deactivate();
+
 protected:
   QScopedPointer<qSlicerSegmentEditorRectangleEffectPrivate> d_ptr;
 

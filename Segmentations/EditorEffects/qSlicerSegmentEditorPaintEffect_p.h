@@ -100,6 +100,9 @@ protected:
   /// Get brush object for widget. Create if does not exist
   BrushPipeline* brushForWidget(qMRMLWidget* viewWidget);
 
+  /// Delete all brush pipelines
+  void clearBrushPipelines();
+
   /// Paint labelmap
   void paintApply(qMRMLWidget* viewWidget);
 
@@ -141,7 +144,7 @@ public:
   vtkSmartPointer<vtkPolyData> FeedbackPointsPolyData;
 
   QList<vtkActor2D*> FeedbackActors;
-  QMap<qMRMLWidget*, BrushPipeline*> Brushes;
+  QMap<qMRMLWidget*, BrushPipeline*> BrushPipelines;
   vtkImageSlicePaint* Painter;
   bool DelayedPaint;
   bool IsPainting;

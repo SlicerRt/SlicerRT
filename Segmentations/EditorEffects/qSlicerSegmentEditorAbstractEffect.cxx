@@ -188,42 +188,6 @@ void qSlicerSegmentEditorAbstractEffect::activate()
   // Show options frame
   d->OptionsFrame->setVisible(true);
 
-  // Remove actors from container
-  QMapIterator<qMRMLWidget*, QList< vtkSmartPointer<vtkProp3D> > > actors3DIterator(d->Actors3D);
-  while (actors3DIterator.hasNext())
-  {
-    actors3DIterator.next();
-    qMRMLWidget* viewWidget = actors3DIterator.key();
-    vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
-    if (!renderer)
-    {
-      qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
-      continue;
-    }
-    foreach(vtkSmartPointer<vtkProp3D> actor, actors3DIterator.value())
-    {
-      renderer->AddViewProp(actor);
-    }
-    d->scheduleRender(viewWidget);
-  }
-  QMapIterator<qMRMLWidget*, QList< vtkSmartPointer<vtkActor2D> > > actors2DIterator(d->Actors2D);
-  while (actors2DIterator.hasNext())
-  {
-    actors2DIterator.next();
-    qMRMLWidget* viewWidget = actors2DIterator.key();
-    vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
-    if (!renderer)
-    {
-      qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
-      continue;
-    }
-    foreach(vtkSmartPointer<vtkActor2D> actor, actors2DIterator.value())
-    {
-      renderer->AddActor2D(actor);
-    }
-    d->scheduleRender(viewWidget);
-  }
-
   this->m_Active = true;
 }
 
@@ -235,41 +199,6 @@ void qSlicerSegmentEditorAbstractEffect::deactivate()
   // Hide options frame
   d->OptionsFrame->setVisible(false);
 
-  // Remove actors from container
-  QMapIterator<qMRMLWidget*, QList< vtkSmartPointer<vtkProp3D> > > actors3DIterator(d->Actors3D);
-  while (actors3DIterator.hasNext())
-  {
-    actors3DIterator.next();
-    qMRMLWidget* viewWidget = actors3DIterator.key();
-    vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
-    if (!renderer)
-    {
-      qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
-      continue;
-    }
-    foreach(vtkSmartPointer<vtkProp3D> actor, actors3DIterator.value())
-    {
-      renderer->RemoveViewProp(actor);
-    }
-    d->scheduleRender(viewWidget);
-  }
-  QMapIterator<qMRMLWidget*, QList< vtkSmartPointer<vtkActor2D> > > actors2DIterator(d->Actors2D);
-  while (actors2DIterator.hasNext())
-  {
-    actors2DIterator.next();
-    qMRMLWidget* viewWidget = actors2DIterator.key();
-    vtkRenderer* renderer = qSlicerSegmentEditorAbstractEffect::renderer(viewWidget);
-    if (!renderer)
-    {
-      qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
-      continue;
-    }
-    foreach(vtkSmartPointer<vtkActor2D> actor, actors2DIterator.value())
-    {
-      renderer->RemoveActor2D(actor);
-    }
-    d->scheduleRender(viewWidget);
-  }
   this->m_Active = false;
 }
 
@@ -624,17 +553,6 @@ void qSlicerSegmentEditorAbstractEffect::addActor3D(qMRMLWidget* viewWidget, vtk
   {
     qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
   }
-
-  if (d->Actors3D.contains(viewWidget))
-  {
-    d->Actors3D[viewWidget] << actor;
-  }
-  else
-  {
-    QList< vtkSmartPointer<vtkProp3D> > actorList;
-    actorList << actor;
-    d->Actors3D[viewWidget] = actorList;
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -652,17 +570,6 @@ void qSlicerSegmentEditorAbstractEffect::addActor2D(qMRMLWidget* viewWidget, vtk
   {
     qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
   }
-
-  if (d->Actors2D.contains(viewWidget))
-  {
-    d->Actors2D[viewWidget] << actor;
-  }
-  else
-  {
-    QList< vtkSmartPointer<vtkActor2D> > actorList;
-    actorList << actor;
-    d->Actors2D[viewWidget] = actorList;
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -679,15 +586,6 @@ void qSlicerSegmentEditorAbstractEffect::removeActor3D(qMRMLWidget* viewWidget, 
   else
   {
     qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
-  }
-
-  if (d->Actors3D.contains(viewWidget))
-  {
-    d->Actors3D[viewWidget].removeOne(actor);
-  }
-  else
-  {
-    qWarning() << Q_FUNC_INFO << ": Actor2d that has been requested for deleting was not managed by editor effect";
   }
 }
 
@@ -707,14 +605,6 @@ void qSlicerSegmentEditorAbstractEffect::removeActor2D(qMRMLWidget* viewWidget, 
     qCritical() << Q_FUNC_INFO << ": Failed to get renderer for view widget";
   }
 
-  if (d->Actors2D.contains(viewWidget))
-  {
-    d->Actors2D[viewWidget].removeOne(actor);
-  }
-  else
-  {
-    qWarning() << Q_FUNC_INFO << ": Actor2d that has been requested for deleting was not managed by editor effect";
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -747,12 +637,6 @@ void qSlicerSegmentEditorAbstractEffect::addOptionsWidget(QWidget* newOptionsWid
 QWidget* qSlicerSegmentEditorAbstractEffect::addLabeledOptionsWidget(QString label, QWidget* newOptionsWidget)  
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);
-/*
-  newOptionsWidget->setParent(d->OptionsFrame);
-  newOptionsWidget->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding));
-  this->optionsLayout()->addRow(label, newOptionsWidget);
-  */
-
   QLabel* labelWidget = new QLabel(label);
   newOptionsWidget->setParent(d->OptionsFrame);
   newOptionsWidget->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding));

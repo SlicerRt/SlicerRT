@@ -46,7 +46,7 @@
 // Qt includes
 #include <QObject>
 #include <QCursor>
-#include <QMap>
+#include <QHash>
 
 class vtkMRMLScene;
 class vtkMRMLSegmentEditorNode;
@@ -78,10 +78,6 @@ public:
   
   /// Cursor to restore after custom cursor is not needed any more
   QCursor SavedCursor;
-
-  /// List of actors used by the effect. Removed when effect is deactivated
-  QMap<qMRMLWidget*, QList< vtkSmartPointer<vtkActor2D> > > Actors2D;
-  QMap<qMRMLWidget*, QList< vtkSmartPointer<vtkProp3D> > > Actors3D;
 
   /// Frame containing the effect options UI.
   /// Populating the frame is possible using the \sa addOptionsWidget method from the base classes

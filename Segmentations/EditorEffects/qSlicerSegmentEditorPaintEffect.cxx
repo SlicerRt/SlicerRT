@@ -94,14 +94,29 @@
 
 //-----------------------------------------------------------------------------
 /// Visualization objects and pipeline for each slice view for the paint brush
-class BrushPipeline: public QObject
+class BrushPipeline
 {
 public:
   BrushPipeline()
   {
     this->WorldToSliceTransform = vtkSmartPointer<vtkTransform>::New();
     this->SlicePlane = vtkSmartPointer<vtkPlane>::New();
+  };
+  virtual ~BrushPipeline()
+  {
+  };
+  virtual void SetBrushVisibility(bool visibility) = 0;
+  virtual void SetFeedbackVisibility(bool visibility) = 0;
 
+  vtkSmartPointer<vtkTransform> WorldToSliceTransform;
+  vtkSmartPointer<vtkPlane> SlicePlane;
+};
+
+class BrushPipeline2D : public BrushPipeline
+{
+public:
+  BrushPipeline2D()
+  {
     this->BrushCutter = vtkSmartPointer<vtkCutter>::New();
     this->BrushCutter->SetCutFunction(this->SlicePlane);
     this->BrushCutter->SetGenerateCutScalars(0);
@@ -109,20 +124,13 @@ public:
     this->BrushWorldToSliceTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
     this->BrushWorldToSliceTransformer->SetTransform(this->WorldToSliceTransform);
     this->BrushWorldToSliceTransformer->SetInputConnection(this->BrushCutter->GetOutputPort());
-    
-    this->BrushMapper2d = vtkSmartPointer<vtkPolyDataMapper2D>::New();
-    this->BrushMapper2d->SetInputConnection(this->BrushWorldToSliceTransformer->GetOutputPort());
-    
-    this->BrushActor2d = vtkSmartPointer<vtkActor2D>::New();
-    this->BrushActor2d->SetMapper(this->BrushMapper2d);
-    this->BrushActor2d->VisibilityOff();
 
-    this->BrushMapper3d = vtkSmartPointer<vtkPolyDataMapper>::New();
-    
-    this->BrushActor3d = vtkSmartPointer<vtkActor>::New();
-    this->BrushActor3d->SetMapper(this->BrushMapper3d);
-    this->BrushActor3d->VisibilityOff();
-    this->BrushActor3d->PickableOff(); // otherwise picking in 3D view would not work
+    this->BrushMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
+    this->BrushMapper->SetInputConnection(this->BrushWorldToSliceTransformer->GetOutputPort());
+
+    this->BrushActor = vtkSmartPointer<vtkActor2D>::New();
+    this->BrushActor->SetMapper(this->BrushMapper);
+    this->BrushActor->VisibilityOff();
 
     this->FeedbackCutter = vtkSmartPointer<vtkCutter>::New();
     this->FeedbackCutter->SetCutFunction(this->SlicePlane);
@@ -132,47 +140,76 @@ public:
     this->FeedbackWorldToSliceTransformer->SetTransform(this->WorldToSliceTransform);
     this->FeedbackWorldToSliceTransformer->SetInputConnection(this->FeedbackCutter->GetOutputPort());
 
-    this->FeedbackMapper2d = vtkSmartPointer<vtkPolyDataMapper2D>::New();
-    this->FeedbackMapper2d->SetInputConnection(this->FeedbackWorldToSliceTransformer->GetOutputPort());
-    this->FeedbackActor2d = vtkSmartPointer<vtkActor2D>::New();
-    vtkProperty2D* feedbackActorProperty2d = this->FeedbackActor2d->GetProperty();
-    feedbackActorProperty2d->SetColor(0.7, 0.7, 0.0);
-    feedbackActorProperty2d->SetOpacity(0.5);
-    this->FeedbackActor2d->SetMapper(this->FeedbackMapper2d);
-    this->FeedbackActor2d->VisibilityOff();
-
-    this->FeedbackMapper3d = vtkSmartPointer<vtkPolyDataMapper>::New();
-    //this->FeedbackMapper3d->SetInputConnection(this->FeedbackGlyphFilter3d->GetOutputPort());
-    this->FeedbackActor3d = vtkSmartPointer<vtkActor>::New();
-    this->FeedbackActor3d->VisibilityOff();
-    this->FeedbackActor3d->PickableOff(); // otherwise picking in 3D view would not work
-    vtkProperty* feedbackActorProperty3d = this->FeedbackActor3d->GetProperty();
-    feedbackActorProperty3d->SetColor(0.7, 0.7, 0.0);
-    //feedbackActorProperty3d->SetOpacity(0.5);
-    this->FeedbackActor3d->SetMapper(this->FeedbackMapper3d);
-    this->FeedbackActor3d->VisibilityOff();
+    this->FeedbackMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
+    this->FeedbackMapper->SetInputConnection(this->FeedbackWorldToSliceTransformer->GetOutputPort());
+    this->FeedbackActor = vtkSmartPointer<vtkActor2D>::New();
+    vtkProperty2D* feedbackActorProperty = this->FeedbackActor->GetProperty();
+    feedbackActorProperty->SetColor(0.7, 0.7, 0.0);
+    feedbackActorProperty->SetOpacity(0.5);
+    this->FeedbackActor->SetMapper(this->FeedbackMapper);
+    this->FeedbackActor->VisibilityOff();
   };
-  ~BrushPipeline()
+  ~BrushPipeline2D()
   {
   };
-public:
-  vtkSmartPointer<vtkTransform> WorldToSliceTransform;
-  vtkSmartPointer<vtkPlane> SlicePlane;
 
+  void SetBrushVisibility(bool visibility)
+  {
+    this->BrushActor->SetVisibility(visibility);
+  };
+  void SetFeedbackVisibility(bool visibility)
+  {
+    this->FeedbackActor->SetVisibility(visibility);
+  };
+
+  vtkSmartPointer<vtkActor2D> BrushActor;
+  vtkSmartPointer<vtkPolyDataMapper2D> BrushMapper;
+  vtkSmartPointer<vtkActor2D> FeedbackActor;
+  vtkSmartPointer<vtkPolyDataMapper2D> FeedbackMapper;
   vtkSmartPointer<vtkCutter> BrushCutter;
   vtkSmartPointer<vtkTransformPolyDataFilter> BrushWorldToSliceTransformer;
-  vtkSmartPointer<vtkActor2D> BrushActor2d;
-  vtkSmartPointer<vtkPolyDataMapper2D> BrushMapper2d;
-  vtkSmartPointer<vtkPolyDataMapper> BrushMapper3d;
-  vtkSmartPointer<vtkActor> BrushActor3d;
-
   vtkSmartPointer<vtkCutter> FeedbackCutter;
   vtkSmartPointer<vtkTransformPolyDataFilter> FeedbackWorldToSliceTransformer;
-  vtkSmartPointer<vtkActor2D> FeedbackActor2d;
-  vtkSmartPointer<vtkPolyDataMapper2D> FeedbackMapper2d;
-  vtkSmartPointer<vtkActor> FeedbackActor3d;
-  vtkSmartPointer<vtkPolyDataMapper> FeedbackMapper3d;
 };
+
+class BrushPipeline3D : public BrushPipeline
+{
+public:
+  BrushPipeline3D()
+  {
+    this->BrushMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    this->BrushActor = vtkSmartPointer<vtkActor>::New();
+    this->BrushActor->SetMapper(this->BrushMapper);
+    this->BrushActor->VisibilityOff();
+    this->BrushActor->PickableOff(); // otherwise picking in 3D view would not work
+
+    this->FeedbackMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    this->FeedbackActor = vtkSmartPointer<vtkActor>::New();
+    this->FeedbackActor->VisibilityOff();
+    this->FeedbackActor->PickableOff(); // otherwise picking in 3D view would not work
+    vtkProperty* feedbackActorProperty = this->FeedbackActor->GetProperty();
+    feedbackActorProperty->SetColor(0.7, 0.7, 0.0);
+    this->FeedbackActor->SetMapper(this->FeedbackMapper);
+    this->FeedbackActor->VisibilityOff();
+  };
+  ~BrushPipeline3D()
+  {
+  };
+  void SetBrushVisibility(bool visibility)
+  {
+    this->BrushActor->SetVisibility(visibility);
+  };
+  void SetFeedbackVisibility(bool visibility)
+  {
+    this->FeedbackActor->SetVisibility(visibility);
+  };
+
+  vtkSmartPointer<vtkPolyDataMapper> BrushMapper;
+  vtkSmartPointer<vtkActor> BrushActor;
+  vtkSmartPointer<vtkActor> FeedbackActor;
+  vtkSmartPointer<vtkPolyDataMapper> FeedbackMapper;
+};
+
 
 //-----------------------------------------------------------------------------
 // qSlicerSegmentEditorPaintEffectPrivate methods
@@ -236,11 +273,7 @@ qSlicerSegmentEditorPaintEffectPrivate::~qSlicerSegmentEditorPaintEffectPrivate(
     this->Painter = NULL;
   }
 
-  foreach (BrushPipeline* brush, this->Brushes)
-  {
-    delete brush;
-  }
-  this->Brushes.clear();
+  this->clearBrushPipelines();
 }
 
 //-----------------------------------------------------------------------------
@@ -248,42 +281,38 @@ BrushPipeline* qSlicerSegmentEditorPaintEffectPrivate::brushForWidget(qMRMLWidge
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  if (this->Brushes.contains(viewWidget))
+  if (this->BrushPipelines.contains(viewWidget))
   {
-    return this->Brushes[viewWidget];
+    return this->BrushPipelines[viewWidget];
   }
 
-  // Create brush if does not yet exist
-  BrushPipeline* pipeline = new BrushPipeline();
-
+  // Create brushPipeline if does not yet exist
   qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
   qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
   if (sliceWidget)
   {
+    BrushPipeline2D* pipeline = new BrushPipeline2D();
     pipeline->BrushCutter->SetInputConnection(this->WorldOriginToWorldTransformer->GetOutputPort());
     pipeline->FeedbackCutter->SetInputConnection(this->FeedbackGlyphFilter->GetOutputPort());
+    this->updateBrush(viewWidget, pipeline);
+    q->addActor2D(viewWidget, pipeline->BrushActor);
+    q->addActor2D(viewWidget, pipeline->FeedbackActor);
+    this->BrushPipelines[viewWidget] = pipeline;
+    return pipeline;
   }
-  if (threeDWidget)
+  else if (threeDWidget)
   {
-    pipeline->BrushMapper3d->SetInputConnection(this->WorldOriginToWorldTransformer->GetOutputPort());
-    pipeline->FeedbackMapper3d->SetInputConnection(this->FeedbackGlyphFilter->GetOutputPort());
+    BrushPipeline3D* pipeline = new BrushPipeline3D();
+    pipeline->BrushMapper->SetInputConnection(this->WorldOriginToWorldTransformer->GetOutputPort());
+    pipeline->FeedbackMapper->SetInputConnection(this->FeedbackGlyphFilter->GetOutputPort());
+    this->updateBrush(viewWidget, pipeline);
+    q->addActor3D(viewWidget, pipeline->BrushActor);
+    q->addActor3D(viewWidget, pipeline->FeedbackActor);
+    this->BrushPipelines[viewWidget] = pipeline;
+    return pipeline;
   }
-
-  this->updateBrush(viewWidget, pipeline);
-
-  if (sliceWidget)
-  {
-    q->addActor2D(viewWidget, pipeline->BrushActor2d);
-    q->addActor2D(viewWidget, pipeline->FeedbackActor2d);
-  }
-  if (threeDWidget)
-  {
-    q->addActor3D(viewWidget, pipeline->BrushActor3d);
-    q->addActor3D(viewWidget, pipeline->FeedbackActor3d);
-  }
-
-  this->Brushes[viewWidget] = pipeline;
-  return pipeline;
+  
+  return NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -696,12 +725,10 @@ void qSlicerSegmentEditorPaintEffectPrivate::updateBrush(qMRMLWidget* viewWidget
   Q_Q(qSlicerSegmentEditorPaintEffect);
   if (q->integerParameter("BrushPixelMode"))
   {
-    pipeline->BrushActor2d->SetVisibility(false);
-    pipeline->BrushActor3d->SetVisibility(false);
+    pipeline->SetBrushVisibility(false);
     return;
   }
-  pipeline->BrushActor2d->SetVisibility(true);
-  pipeline->BrushActor3d->SetVisibility(true);
+  pipeline->SetBrushVisibility(true);
 
   qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
   if (sliceWidget)
@@ -722,7 +749,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::updateBrushes()
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
   // unusedWidgetPipelines will contain those widget pointers that are not in the layout anymore
-  QList<qMRMLWidget*> unusedWidgetPipelines = this->Brushes.keys();
+  QList<qMRMLWidget*> unusedWidgetPipelines = this->BrushPipelines.keys();
 
   qSlicerLayoutManager* layoutManager = qSlicerApplication::application()->layoutManager();
   foreach(QString sliceViewName, layoutManager->sliceViewNames())
@@ -746,27 +773,51 @@ void qSlicerSegmentEditorPaintEffectPrivate::updateBrushes()
 
   foreach (qMRMLWidget* viewWidget, unusedWidgetPipelines)
   {
-    BrushPipeline* pipeline = this->Brushes[viewWidget];
-    if (pipeline->BrushActor2d)
+    BrushPipeline* pipeline = this->BrushPipelines[viewWidget];
+    BrushPipeline2D* pipeline2D = dynamic_cast<BrushPipeline2D*>(pipeline);
+    BrushPipeline3D* pipeline3D = dynamic_cast<BrushPipeline3D*>(pipeline);
+    if (pipeline2D)
     {
-      q->removeActor2D(viewWidget, pipeline->BrushActor2d);
+      q->removeActor2D(viewWidget, pipeline2D->BrushActor);
+      q->removeActor2D(viewWidget, pipeline2D->FeedbackActor);
     }
-    if (pipeline->FeedbackActor2d)
+    else if (pipeline3D)
     {
-      q->removeActor2D(viewWidget, pipeline->FeedbackActor2d);
-    }
-    if (pipeline->BrushActor3d)
-    {
-      q->removeActor3D(viewWidget, pipeline->BrushActor3d);
-    }
-    if (pipeline->FeedbackActor3d)
-    {
-      q->removeActor3D(viewWidget, pipeline->FeedbackActor3d);
+      q->removeActor3D(viewWidget, pipeline3D->BrushActor);
+      q->removeActor3D(viewWidget, pipeline3D->FeedbackActor);
     }
     delete pipeline;
-    this->Brushes.remove(viewWidget);
+    this->BrushPipelines.remove(viewWidget);
   }
 }
+
+//-----------------------------------------------------------------------------
+void qSlicerSegmentEditorPaintEffectPrivate::clearBrushPipelines()
+{
+  Q_Q(qSlicerSegmentEditorPaintEffect);
+  QMapIterator<qMRMLWidget*, BrushPipeline*> it(this->BrushPipelines);
+  while (it.hasNext())
+  {
+    it.next();
+    qMRMLWidget* viewWidget = it.key();
+    BrushPipeline* brushPipeline = it.value();
+    BrushPipeline2D* pipeline2D = dynamic_cast<BrushPipeline2D*>(brushPipeline);
+    BrushPipeline3D* pipeline3D = dynamic_cast<BrushPipeline3D*>(brushPipeline);
+    if (pipeline2D)
+    {
+      q->removeActor2D(viewWidget, pipeline2D->BrushActor);
+      q->removeActor2D(viewWidget, pipeline2D->FeedbackActor);
+    }
+    else if (pipeline3D)
+    {
+      q->removeActor3D(viewWidget, pipeline3D->BrushActor);
+      q->removeActor3D(viewWidget, pipeline3D->FeedbackActor);
+    }
+    delete brushPipeline;
+  }
+  this->BrushPipelines.clear();
+}
+
 
 //-----------------------------------------------------------------------------
 
@@ -810,17 +861,9 @@ qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorPaintEffect::clone()
 //---------------------------------------------------------------------------
 void qSlicerSegmentEditorPaintEffect::deactivate()
 {
-  Superclass::deactivate();
-
   Q_D(qSlicerSegmentEditorPaintEffect);
-
-  // Delete brushes because actors are removed in base class deactivate call above,
-  // and when re-activated, they will be thus created and added again
-  foreach (BrushPipeline* brush, d->Brushes)
-  {
-    delete brush;
-  }
-  d->Brushes.clear();
+  Superclass::deactivate();
+  d->clearBrushPipelines();
 }
 
 //---------------------------------------------------------------------------
@@ -835,18 +878,18 @@ bool qSlicerSegmentEditorPaintEffect::processInteractionEvents(
   // This effect only supports interactions in the 2D slice views currently
   qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
   qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
-  BrushPipeline* brush = NULL;
+  BrushPipeline* brushPipeline = NULL;
   if (sliceWidget)
   {
-    brush = d->brushForWidget(sliceWidget);
+    brushPipeline = d->brushForWidget(sliceWidget);
   }
   else if (threeDWidget)
   {
-    brush = d->brushForWidget(threeDWidget);
+    brushPipeline = d->brushForWidget(threeDWidget);
   }
-  if (!brush)
+  if (!brushPipeline)
   {
-    qCritical() << Q_FUNC_INFO << ": Failed to create brush";
+    qCritical() << Q_FUNC_INFO << ": Failed to create brushPipeline";
     return abortEvent;
   }
 
@@ -915,19 +958,10 @@ bool qSlicerSegmentEditorPaintEffect::processInteractionEvents(
     {
       //this->cursorOff(sliceWidget);
     }
-    QList<qMRMLWidget*> viewWidgets = d->Brushes.keys();
+    QList<qMRMLWidget*> viewWidgets = d->BrushPipelines.keys();
     foreach (qMRMLWidget* viewWidget, viewWidgets)
     {
-      qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
-      qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
-      if (sliceWidget)
-      {
-        d->Brushes[viewWidget]->FeedbackActor2d->SetVisibility(d->DelayedPaint);
-      }
-      else if (threeDWidget)
-      {
-        d->Brushes[viewWidget]->FeedbackActor3d->SetVisibility(d->DelayedPaint);
-      }
+      d->BrushPipelines[viewWidget]->SetFeedbackVisibility(d->DelayedPaint);
     }
     if (this->integerParameter("ColorSmudge"))
     {
@@ -942,19 +976,10 @@ bool qSlicerSegmentEditorPaintEffect::processInteractionEvents(
     d->paintApply(viewWidget);
     d->IsPainting = false;
     
-    QList<qMRMLWidget*> viewWidgets = d->Brushes.keys();
+    QList<qMRMLWidget*> viewWidgets = d->BrushPipelines.keys();
     foreach (qMRMLWidget* viewWidget, viewWidgets)
     {
-      qMRMLSliceWidget* sliceWidget = qobject_cast<qMRMLSliceWidget*>(viewWidget);
-      qMRMLThreeDWidget* threeDWidget = qobject_cast<qMRMLThreeDWidget*>(viewWidget);
-      if (sliceWidget)
-      {
-        d->Brushes[viewWidget]->FeedbackActor2d->VisibilityOff();
-      }
-      else if (threeDWidget)
-      {
-        d->Brushes[viewWidget]->FeedbackActor3d->VisibilityOff();
-      }
+      d->BrushPipelines[viewWidget]->SetFeedbackVisibility(false);
     }
 
     //this->cursorOn(sliceWidget);
@@ -969,13 +994,11 @@ bool qSlicerSegmentEditorPaintEffect::processInteractionEvents(
   }
   else if (eid == vtkCommand::EnterEvent)
   {
-    brush->BrushActor2d->SetVisibility(!this->integerParameter("BrushPixelMode"));
-    brush->BrushActor3d->SetVisibility(!this->integerParameter("BrushPixelMode"));
+    brushPipeline->SetBrushVisibility(!this->integerParameter("BrushPixelMode"));
   }
   else if (eid == vtkCommand::LeaveEvent)
   {
-    brush->BrushActor2d->VisibilityOff();
-    brush->BrushActor3d->VisibilityOff();
+    brushPipeline->SetBrushVisibility(false);
   }
   else if (eid == vtkCommand::KeyPressEvent)
   {
@@ -1009,14 +1032,14 @@ void qSlicerSegmentEditorPaintEffect::processViewNodeEvents(vtkMRMLAbstractViewN
   {
     return;
   }
-  BrushPipeline* brush = d->brushForWidget(viewWidget);
-  if (!brush)
+  BrushPipeline* brushPipeline = d->brushForWidget(viewWidget);
+  if (!brushPipeline)
   {
-    qCritical() << Q_FUNC_INFO << ": Failed to create brush!";
+    qCritical() << Q_FUNC_INFO << ": Failed to create brushPipeline!";
     return;
   }
 
-  d->updateBrush(viewWidget, brush);
+  d->updateBrush(viewWidget, brushPipeline);
 }
 
 //-----------------------------------------------------------------------------

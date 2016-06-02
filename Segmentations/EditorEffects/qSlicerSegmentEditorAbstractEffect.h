@@ -167,26 +167,18 @@ public:
   /// Get layout of options frame
   Q_INVOKABLE QFormLayout* optionsLayout();
 
-  /// Add actor to the list of actors managed by the abstract effect class.
-  /// The actor is immediately added to the renderer when this method is called
-  /// and the effect automatically removes the actor from renderer on deactivation
-  /// and adds it back on activation.
+  /// Add actor to the renderer of the view widget. The effect is responsible for
+  /// removing the actor when the effect is deactivated.
   Q_INVOKABLE void addActor2D(qMRMLWidget* viewWidget, vtkActor2D* actor);
 
-  /// Remove actor from the list of actors managed by the abstract effect class.
-  /// The actor is immediately removed from the renderer when this method is called
-  /// and it is never added back automatically.
+  /// Remove actor from the renderer of the widget.
   Q_INVOKABLE void removeActor2D(qMRMLWidget* viewWidget, vtkActor2D* actor);
   
-  /// Add actor to the list of actors managed by the abstract effect class.
-  /// The actor is immediately added to the renderer when this method is called
-  /// and the effect automatically removes the actor from renderer on deactivation
-  /// and adds it back on activation.
+  /// Add actor to the renderer of the view widget. The effect is responsible for
+  /// removing the actor when the effect is deactivated.
   Q_INVOKABLE void addActor3D(qMRMLWidget* viewWidget, vtkProp3D* actor);
 
-  /// Remove actor from the list of actors managed by the abstract effect class.
-  /// The actor is immediately removed from the renderer when this method is called
-  /// and it is never added back automatically.
+  /// Remove actor from the renderer of the widget.
   Q_INVOKABLE void removeActor3D(qMRMLWidget* viewWidget, vtkProp3D* actor);
 
   /// Add effect options widget to options frame layout

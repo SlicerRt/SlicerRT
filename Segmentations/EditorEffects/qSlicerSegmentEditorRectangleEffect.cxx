@@ -103,10 +103,12 @@ public:
   void updateRectangleGlyph(RectanglePipeline* rectangle);
 protected:
   /// Get rectangle object for widget. Create if does not exist
-  RectanglePipeline* rectangleForWidget(qMRMLSliceWidget* sliceWidget);
+  RectanglePipeline* rectanglePipelineForWidget(qMRMLSliceWidget* sliceWidget);
+  /// Delete all rectangle pipelines
+  void clearRectanglePipelines();
 public:
   QIcon RectangleIcon;
-  QMap<qMRMLSliceWidget*, RectanglePipeline*> Rectangles;
+  QMap<qMRMLSliceWidget*, RectanglePipeline*> RectanglePipelines;
 };
 
 //-----------------------------------------------------------------------------
@@ -114,28 +116,38 @@ qSlicerSegmentEditorRectangleEffectPrivate::qSlicerSegmentEditorRectangleEffectP
   : q_ptr(&object)
 {
   this->RectangleIcon = QIcon(":Icons/Rectangle.png");
-
-  this->Rectangles.clear();
 }
 
 //-----------------------------------------------------------------------------
 qSlicerSegmentEditorRectangleEffectPrivate::~qSlicerSegmentEditorRectangleEffectPrivate()
 {
-  foreach (RectanglePipeline* rectangle, this->Rectangles)
-  {
-    delete rectangle;
-  }
-  this->Rectangles.clear();
+  this->clearRectanglePipelines();
 }
 
 //-----------------------------------------------------------------------------
-RectanglePipeline* qSlicerSegmentEditorRectangleEffectPrivate::rectangleForWidget(qMRMLSliceWidget* sliceWidget)
+void qSlicerSegmentEditorRectangleEffectPrivate::clearRectanglePipelines()
+{
+  Q_Q(qSlicerSegmentEditorRectangleEffect);
+  QMapIterator<qMRMLSliceWidget*, RectanglePipeline*> it(this->RectanglePipelines);
+  while (it.hasNext())
+  {
+    it.next();
+    qMRMLWidget* viewWidget = it.key();
+    RectanglePipeline* pipeline = it.value();
+    q->removeActor2D(viewWidget, pipeline->Actor);
+    delete pipeline;
+  }
+  this->RectanglePipelines.clear();
+}
+
+//-----------------------------------------------------------------------------
+RectanglePipeline* qSlicerSegmentEditorRectangleEffectPrivate::rectanglePipelineForWidget(qMRMLSliceWidget* sliceWidget)
 {
   Q_Q(qSlicerSegmentEditorRectangleEffect);
 
-  if (this->Rectangles.contains(sliceWidget))
+  if (this->RectanglePipelines.contains(sliceWidget))
   {
-    return this->Rectangles[sliceWidget];
+    return this->RectanglePipelines[sliceWidget];
   }
 
   // Create rectangle if does not yet exist
@@ -152,7 +164,7 @@ RectanglePipeline* qSlicerSegmentEditorRectangleEffectPrivate::rectangleForWidge
     q->addActor2D(sliceWidget, rectangle->Actor);
   }
 
-  this->Rectangles[sliceWidget] = rectangle;
+  this->RectanglePipelines[sliceWidget] = rectangle;
   return rectangle;
 }
 
@@ -248,6 +260,14 @@ qSlicerSegmentEditorAbstractEffect* qSlicerSegmentEditorRectangleEffect::clone()
 }
 
 //---------------------------------------------------------------------------
+void qSlicerSegmentEditorRectangleEffect::deactivate()
+{
+  Q_D(qSlicerSegmentEditorRectangleEffect);
+  Superclass::deactivate();
+  d->clearRectanglePipelines();
+}
+
+//---------------------------------------------------------------------------
 bool qSlicerSegmentEditorRectangleEffect::processInteractionEvents(
   vtkRenderWindowInteractor* callerInteractor,
   unsigned long eid,
@@ -262,7 +282,7 @@ bool qSlicerSegmentEditorRectangleEffect::processInteractionEvents(
   {
     return abortEvent;
   }
-  RectanglePipeline* rectangle = d->rectangleForWidget(sliceWidget);
+  RectanglePipeline* rectangle = d->rectanglePipelineForWidget(sliceWidget);
   if (!rectangle)
   {
     qCritical() << Q_FUNC_INFO << ": Failed to create rectangle!";

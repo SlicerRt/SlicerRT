@@ -36,6 +36,8 @@ class SegmentEditorLevelTracingEffect(AbstractScriptedSegmentEditorLabelEffect):
     
   def deactivate(self):
     # Clear draw pipelines
+    for sliceWidget, pipeline in levelTracingPipelines.iteritems():
+      self.scriptedEffect.removeActor2D(sliceWidget, pipeline.actor)
     self.levelTracingPipelines = {}
 
   def processInteractionEvents(self, callerInteractor, eventId, viewWidget):
