@@ -182,6 +182,11 @@ protected slots:
   /// Changed selected overwriteable segments
   void onOverwriteModeChanged(int);  
 
+  void onMRMLSceneEndCloseEvent();
+
+  // Sets default parameters in parameter set node (after setting or closing scene)
+  void initializeParameterSetNode();
+
 protected:
   /// Callback function invoked when interaction happens
   static void processEvents(vtkObject* caller, unsigned long eid, void* clientData, void* callData);

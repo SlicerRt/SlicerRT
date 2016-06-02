@@ -58,12 +58,8 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     # itemIndex = self.methodSelectorComboBox.findData(probePositionId)
     # self.methodSelectorComboBox.setItemData(itemIndex, probePositionPreset['description'], qt.Qt.ToolTipRole)
 
-    self.methodSelectorComboBox.connect("currentIndexChanged(int)", self.onMethodChanged)
+    self.methodSelectorComboBox.connect("currentIndexChanged(int)", self.updateMRMLFromGUI)
     self.applyButton.connect('clicked()', self.onApply)
-
-  def onMethodChanged(self, methodIndex):
-    methodName = self.methodSelectorComboBox.itemData(methodIndex)
-    self.scriptedEffect.setParameter("SmoothingMethod", methodName)
 
   def createCursor(self, widget):
     # Turn off effect-specific cursor for this effect
@@ -101,7 +97,7 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
 
 
   def updateMRMLFromGUI(self):
-    methodIndex = self.methodSelectorComboBox.currentIndex()
+    methodIndex = self.methodSelectorComboBox.currentIndex
     smoothingMethod = self.methodSelectorComboBox.itemData(methodIndex)
     self.scriptedEffect.setParameter("SmoothingMethod", smoothingMethod)
     self.scriptedEffect.setParameter("MedianKernelSizeMm", self.medianKernelSizeRadiusPixelSpinBox.value)

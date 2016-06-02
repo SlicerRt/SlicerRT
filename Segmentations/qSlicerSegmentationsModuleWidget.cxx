@@ -133,7 +133,7 @@ void qSlicerSegmentationsModuleWidget::onEnter()
 
   d->ModuleWindowInitialized = true;
 
- this->qvtkConnect(this->mrmlScene(), vtkMRMLScene::EndImportEvent,
+  this->qvtkConnect(this->mrmlScene(), vtkMRMLScene::EndImportEvent,
                     this, SLOT(onMRMLSceneEndImportEvent()));
   this->qvtkConnect(this->mrmlScene(), vtkMRMLScene::EndBatchProcessEvent,
                     this, SLOT(onMRMLSceneEndBatchProcessEvent()));
