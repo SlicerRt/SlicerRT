@@ -70,9 +70,6 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->RadiationType = vtkMRMLRTBeamNode::Proton;
   this->CollimatorType = vtkMRMLRTBeamNode::SquareHalfMM;
 
-  this->NominalEnergy = 80.0;
-  this->NominalmA = 1.0;
-
   this->IsocenterSpecification = vtkMRMLRTBeamNode::CenterOfTarget;
 
   this->X1Jaw = -100.0;

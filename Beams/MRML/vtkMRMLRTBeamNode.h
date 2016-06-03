@@ -194,13 +194,6 @@ public:
   vtkGetMacro(IsocenterSpecification, vtkMRMLRTBeamNode::IsocenterSpecificationType);
   vtkGetConstMacro(IsocenterSpecification, vtkMRMLRTBeamNode::IsocenterSpecificationType);
 
-  vtkGetConstMacro(NominalEnergy, double);
-  vtkSetMacro(NominalEnergy, double);
-
-  vtkGetMacro(NominalmA, double);
-  vtkGetConstMacro(NominalmA, double);
-  vtkSetMacro(NominalmA, double);
-
   vtkGetMacro(X1Jaw, double);
   vtkGetConstMacro(X1Jaw, double);
   /// Set X1 jaw position. Triggers \sa BeamGeometryModified event and re-generation of beam model
@@ -267,11 +260,6 @@ protected:
   RTRadiationType RadiationType;
   /// TODO:
   RTCollimatorType CollimatorType;
-
-  /// TODO:
-  double NominalEnergy;
-  /// TODO:
-  double NominalmA;
 
   /// Isocenter specification determining whether it can be an arbitrary point or
   /// always calculated to be at the center of the target structure

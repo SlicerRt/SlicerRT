@@ -277,8 +277,8 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
     std::cout << "Setting step length -> ";
     rt_beam->set_step_length(protonBeamNode->GetStepLength());
     std::cout << "Step length = " << rt_beam->get_step_length() << std::endl;
-    // Not needed: BeamType, NominalEnergy, BeamOnTime, NominalmA, MLC_Array
-    // To be added in the future: couchAngle
+    // Not needed: BeamType, MLC_Array
+    //TODO: Add in the future: CouchAngle
 
     // Update aperture parameters
     std::cout << "\nAPERTURE PARAMETERS:" << std::endl;
@@ -296,7 +296,7 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
     std::cout << "Setting aperture dim -> ";
     rt_beam->get_aperture()->set_dim(protonBeamNode->GetApertureDim() );
     std::cout << "Aperture dim = " << rt_beam->get_aperture()->get_dim(0) << " " << rt_beam->get_aperture()->get_dim(1) << std::endl;
-    // To be added in the future: collimatorAngle
+    //TODO: Add in the future: CollimatorAngle
 
     // Update mebs parameters
     std::cout << "\nENERGY PARAMETERS:" << std::endl;
