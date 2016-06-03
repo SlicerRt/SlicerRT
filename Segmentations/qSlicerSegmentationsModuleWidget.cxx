@@ -933,7 +933,7 @@ void qSlicerSegmentationsModuleWidget::onCopyToCurrentSegmentation()
     else if (modelNode)
     {
       vtkSmartPointer<vtkSegment> segment = vtkSmartPointer<vtkSegment>::Take(
-        vtkSlicerSegmentationsModuleLogic::CreateSegmentFromModelNode(modelNode) );
+        vtkSlicerSegmentationsModuleLogic::CreateSegmentFromModelNode(modelNode, currentSegmentationNode));
       if (!segment.GetPointer())
       {
         QString message = QString("Failed to copy from model node %1!").arg(modelNode->GetName());
