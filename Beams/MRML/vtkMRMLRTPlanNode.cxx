@@ -19,12 +19,17 @@
 
 ==============================================================================*/
 
-// SlicerRt includes
-#include "vtkMRMLSegmentationNode.h"
-
-// RTPlan includes
+// Beams includes
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
+
+// SlicerRt includes
+#include "PlmCommon.h"
+#include "vtkMRMLSegmentationNode.h"
+#include "vtkSlicerSegmentationsModuleLogic.h"
+
+// Plastimatch includes
+#include "image_center.h"
 
 // MRML includes
 #include <vtkMRMLModelNode.h>
@@ -56,15 +61,15 @@ vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 {
+  this->RxDose = 1.0;
+
+  this->TargetSegmentID = NULL;
+
+  this->IsocenterSpecification = vtkMRMLRTPlanNode::CenterOfTarget;
+
   this->NextBeamNumber = 1;
 
   this->DoseEngine = vtkMRMLRTPlanNode::Plastimatch;
-
-  this->RxDose = 1.0;
-
-  this->ReferenceDosePoint[0] = 0.0;
-  this->ReferenceDosePoint[1] = 0.0;
-  this->ReferenceDosePoint[2] = 0.0;  
 
   this->DoseGrid[0] = 0;
   this->DoseGrid[1] = 0;
@@ -74,6 +79,7 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode::~vtkMRMLRTPlanNode()
 {
+  this->SetTargetSegmentID(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -83,6 +89,11 @@ void vtkMRMLRTPlanNode::WriteXML(ostream& of, int nIndent)
 
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
+
+  if (this->TargetSegmentID != NULL) 
+  {
+    of << indent << " TargetSegmentID=\"" << this->TargetSegmentID << "\"";
+  }
 
   of << indent << " NextBeamNumber=\"" << (this->NextBeamNumber) << "\"";
 }
@@ -106,6 +117,10 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
       //TODO: Great idea to use vtkVariant, should be used everywhere in the code instead of the lengthy stringstream way!
       this->NextBeamNumber = vtkVariant(attValue).ToDouble();
     }
+    else if (!strcmp(attName, "TargetSegmentID")) 
+    {
+      this->SetTargetSegmentID(attValue);
+    }
   }
 }
 
@@ -115,6 +130,25 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
 void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
 {
   Superclass::Copy(anode);
+
+  vtkMRMLRTPlanNode* node = vtkMRMLRTPlanNode::SafeDownCast(anode);
+  if (!node)
+  {
+    return;
+  }
+
+  this->DisableModifiedEventOn();
+
+  this->SetTargetSegmentID(node->TargetSegmentID);
+
+  this->SetIsocenterSpecification(node->GetIsocenterSpecification());
+
+  this->NextBeamNumber = node->NextBeamNumber;
+
+  //TODO: Beams!
+
+  this->DisableModifiedEventOff();
+  this->InvokePendingModifiedEvent();
 }
 
 //----------------------------------------------------------------------------
@@ -237,6 +271,12 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
 
   // Populate POI markups with default fiducials
   markupsNode->AddFiducial(0,0,0,ISOCENTER_FIDUCIAL_NAME); // index 0: ISOCENTER_FIDUCIAL_INDEX
+
+  // Lock isocenter fiducial based on isocenter specification setting
+  if (this->IsocenterSpecification == vtkMRMLRTPlanNode::CenterOfTarget)
+  {
+    markupsNode->SetNthMarkupLocked(ISOCENTER_FIDUCIAL_INDEX, true);
+  }
 
   this->GetScene()->AddNode(markupsNode);
   this->SetAndObservePoisMarkupsFiducialNode(markupsNode);
@@ -473,4 +513,165 @@ vtkMRMLSubjectHierarchyNode* vtkMRMLRTPlanNode::GetPlanSubjectHierarchyNode()
   }
 
   return planSHNode;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::SetIsocenterSpecification(vtkMRMLRTPlanNode::IsocenterSpecificationType isoSpec)
+{
+  if (isoSpec == this->GetIsocenterSpecification())
+  {
+    return;
+  }
+
+  // Get POIs markups node
+  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetPoisMarkupsFiducialNode();
+  if (!fiducialNode)
+  {
+    vtkErrorMacro("SetIsocenterSpecification: Unable to access fiducial node for plan " << this->Name);
+    return;
+  }
+
+  this->IsocenterSpecification = isoSpec;
+
+  // Move isocenter to center of target if specified (and not disabled by the second parameter)
+  if (isoSpec == vtkMRMLRTPlanNode::CenterOfTarget)
+  {
+    // Calculate target center and move isocenter to that point
+    this->SetIsocenterToTargetCenter();
+
+    // Lock isocenter fiducial so that user cannot move it
+    fiducialNode->SetNthMarkupLocked(ISOCENTER_FIDUCIAL_INDEX, true);
+  }
+  else // ArbitraryPoint
+  {
+    // Unlock isocenter fiducial so that user can move it
+    fiducialNode->SetNthMarkupLocked(ISOCENTER_FIDUCIAL_INDEX, false);
+  }
+
+  this->Modified();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::SetIsocenterToTargetCenter()
+{
+  if (!this->TargetSegmentID)
+  {
+    vtkErrorMacro("SetIsocenterToTargetCenter: Unable to set isocenter to target segment as no target segment defined in beam " << this->Name);
+    return;
+  }
+
+  // Compute center of target segment
+  double center[3] = {0.0,0.0,0.0};
+  if (!this->ComputeTargetVolumeCenter(center))
+  {
+    vtkErrorMacro("SetIsocenterToTargetCenter: Failed to compute target volume center");
+    return;
+  }
+
+  // Set isocenter in parent plan
+  if (!this->SetIsocenterPosition(center))
+  {
+    vtkErrorMacro("SetIsocenterToTargetCenter: Failed to set plan isocenter");
+    return;
+  }
+}
+
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetTargetOrientedImageData()
+{
+  vtkSmartPointer<vtkOrientedImageData> targetOrientedImageData;
+  vtkMRMLSegmentationNode* segmentationNode = this->GetSegmentationNode();
+  if (!segmentationNode)
+  {
+    vtkErrorMacro("GetTargetOrientedImageData: Failed to get target segmentation node");
+    return targetOrientedImageData;
+  }
+
+  vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
+  if (!segmentation)
+  {
+    vtkErrorMacro("GetTargetOrientedImageData: Failed to get segmentation");
+    return targetOrientedImageData;
+  }
+
+  if (!this->TargetSegmentID)
+  {
+    vtkErrorMacro("GetTargetOrientedImageData: No target segment specified");
+    return targetOrientedImageData;
+  }
+  vtkSegment* segment = segmentation->GetSegment(this->TargetSegmentID);
+  if (!segment) 
+  {
+    vtkErrorMacro("GetTargetOrientedImageData: Failed to get segment");
+    return targetOrientedImageData;
+  }
+
+  if (segmentation->ContainsRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+  {
+    targetOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
+    targetOrientedImageData->DeepCopy( vtkOrientedImageData::SafeDownCast(
+        segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) ) );
+  }
+  else
+  {
+    // Need to convert
+    targetOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::Take( vtkOrientedImageData::SafeDownCast(
+      vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment(
+        segmentation, this->GetTargetSegmentID(), vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) ) );
+    if (!targetOrientedImageData.GetPointer())
+    {
+      std::string errorMessage("Failed to convert target segment into binary labelmap");
+      vtkErrorMacro("GetTargetOrientedImageData: " << errorMessage);
+      return targetOrientedImageData;
+    }
+  }
+
+  // Apply parent transformation nodes if necessary
+  if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, targetOrientedImageData))
+  {
+    std::string errorMessage("Failed to apply parent transformation to target segment!");
+    vtkErrorMacro("GetTargetOrientedImageData: " << errorMessage);
+    return targetOrientedImageData;
+  }
+  return targetOrientedImageData;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double* center)
+{
+  if (!this->Scene)
+  {
+    vtkErrorMacro("ComputeTargetVolumeCenter: Invalid MRML scene");
+    return false;
+  }
+
+  // Get a labelmap for the target
+  vtkSmartPointer<vtkOrientedImageData> targetLabelmap = this->GetTargetOrientedImageData();
+  if (targetLabelmap.GetPointer() == NULL)
+  {
+    return false;
+  }
+
+  // Convert inputs to plm image
+  Plm_image::Pointer targetPlmVolume 
+    = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(targetLabelmap);
+  if (!targetPlmVolume)
+  {
+    std::string errorMessage("Failed to convert reference segment labelmap into Plm_image");
+    vtkErrorMacro("ComputeTargetVolumeCenter: " << errorMessage);
+    return false;
+  }
+
+  // Compute image center
+  Image_center imageCenter;
+  imageCenter.set_image(targetPlmVolume);
+  imageCenter.run();
+  itk::Vector<double,3> centerOfMass = imageCenter.get_image_center_of_mass();
+
+  // Copy to output argument, and convert LPS -> RAS
+  center[0] = -centerOfMass[0];
+  center[1] = -centerOfMass[1];
+  center[2] =  centerOfMass[2];
+
+  return true;
 }

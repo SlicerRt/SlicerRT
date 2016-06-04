@@ -41,7 +41,6 @@
 
 // MRML includes
 #include <vtkMRMLScene.h>
-#include <vtkMRMLSliceNode.h>
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
@@ -149,52 +148,47 @@ void qSlicerBeamsModuleWidget::setup()
   this->Superclass::setup();
 
   // Beam global parameters
-  this->connect( d->MRMLNodeComboBox_RtBeam, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setBeamNode(vtkMRMLNode*)) );
-  this->connect( d->pushButton_SwitchToParentPlan, SIGNAL(clicked()), this, SLOT(switchToParentPlanButtonClicked()) );
-  this->connect( d->lineEdit_BeamName, SIGNAL(textChanged(const QString &)), this, SLOT(beamNameChanged(const QString &)) );
-  this->connect( d->comboBox_RadiationType, SIGNAL(currentIndexChanged(int)), this, SLOT(radiationTypeChanged(int)) );
+  connect( d->MRMLNodeComboBox_RtBeam, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setBeamNode(vtkMRMLNode*)) );
+  connect( d->pushButton_SwitchToParentPlan, SIGNAL(clicked()), this, SLOT(switchToParentPlanButtonClicked()) );
+  connect( d->lineEdit_BeamName, SIGNAL(textChanged(const QString &)), this, SLOT(beamNameChanged(const QString &)) );
 
-  // Prescription page
-  this->connect( d->comboBox_BeamType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamTypeChanged(const QString &)) );
-  this->connect( d->MRMLSegmentSelectorWidget_TargetVolume, SIGNAL(currentSegmentChanged(QString)), this, SLOT(targetSegmentChanged(const QString&)) );
-  this->connect( d->comboBox_IsocenterSpec, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(isocenterSpecChanged(const QString &)));
-  this->connect( d->MRMLCoordinatesWidget_IsocenterCoordinates, SIGNAL(coordinatesChanged(double*)), this, SLOT(isocenterCoordinatesChanged(double *)));
-  this->connect( d->pushButton_CenterViewToIsocenter, SIGNAL(clicked()), this, SLOT(centerViewToIsocenterClicked()) );
+  // Prescription page //TODO: Remove
+  connect( d->comboBox_BeamType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamTypeChanged(const QString &)) );
 
   // Geometry page
-  this->connect( d->MRMLNodeComboBox_MLCPositionDoubleArray, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(mlcPositionDoubleArrayNodeChanged(vtkMRMLNode*)) );
-  this->connect( d->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), this, SLOT(sourceDistanceChanged(double)) );
-  this->connect( d->RangeWidget_XJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(xJawsPositionValuesChanged(double, double)) );
-  this->connect( d->RangeWidget_YJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(yJawsPositionValuesChanged(double, double)) );
-  this->connect( d->SliderWidget_CollimatorAngle, SIGNAL(valueChanged(double)), this, SLOT(collimatorAngleChanged(double)) );
-  this->connect( d->SliderWidget_GantryAngle, SIGNAL(valueChanged(double)), this, SLOT(gantryAngleChanged(double)) );
-  this->connect( d->SliderWidget_CouchAngle, SIGNAL(valueChanged(double)), this, SLOT(couchAngleChanged(double)) );
-  this->connect( d->doubleSpinBox_BeamWeight, SIGNAL(valueChanged(double)), this, SLOT(beamWeightChanged(double)) );
+  connect( d->MRMLNodeComboBox_MLCPositionDoubleArray, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(mlcPositionDoubleArrayNodeChanged(vtkMRMLNode*)) );
+  connect( d->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), this, SLOT(sourceDistanceChanged(double)) );
+  connect( d->RangeWidget_XJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(xJawsPositionValuesChanged(double, double)) );
+  connect( d->RangeWidget_YJawsPosition, SIGNAL(valuesChanged(double, double)), this, SLOT(yJawsPositionValuesChanged(double, double)) );
+  connect( d->SliderWidget_CollimatorAngle, SIGNAL(valueChanged(double)), this, SLOT(collimatorAngleChanged(double)) );
+  connect( d->SliderWidget_GantryAngle, SIGNAL(valueChanged(double)), this, SLOT(gantryAngleChanged(double)) );
+  connect( d->SliderWidget_CouchAngle, SIGNAL(valueChanged(double)), this, SLOT(couchAngleChanged(double)) );
+  connect( d->doubleSpinBox_BeamWeight, SIGNAL(valueChanged(double)), this, SLOT(beamWeightChanged(double)) );
 
   // Visualization page
-  this->connect( d->pushButton_UpdateDRR, SIGNAL(clicked()), this, SLOT(updateDRRClicked()) );
-  this->connect( d->checkBox_BeamEyesView, SIGNAL(clicked(bool)), this, SLOT(beamEyesViewClicked(bool)) );
-  this->connect( d->checkBox_ContoursInBEW, SIGNAL(clicked(bool)), this, SLOT(contoursInBEWClicked(bool)) );
+  connect( d->pushButton_UpdateDRR, SIGNAL(clicked()), this, SLOT(updateDRRClicked()) );
+  connect( d->checkBox_BeamEyesView, SIGNAL(clicked(bool)), this, SLOT(beamEyesViewClicked(bool)) );
+  connect( d->checkBox_ContoursInBEW, SIGNAL(clicked(bool)), this, SLOT(contoursInBEWClicked(bool)) );
 
   // Proton energy page
-  this->connect( d->doubleSpinBox_ProximalMargin, SIGNAL(valueChanged(double)), this, SLOT(proximalMarginChanged(double)) );
-  this->connect( d->doubleSpinBox_DistalMargin, SIGNAL(valueChanged(double)), this, SLOT(distalMarginChanged(double)) );
-  this->connect( d->comboBox_BeamLineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamLineTypeChanged(const QString &)) );
-  this->connect( d->checkBox_EnergyPrescription, SIGNAL(clicked(bool)), this, SLOT(manualEnergyPrescriptionChanged(bool)) );
-  this->connect( d->doubleSpinBox_MinimumEnergy, SIGNAL(valueChanged(double)), this, SLOT(minimumEnergyChanged(double)) );
-  this->connect( d->doubleSpinBox_MaximumEnergy, SIGNAL(valueChanged(double)), this, SLOT(maximumEnergyChanged(double)) );
+  connect( d->doubleSpinBox_ProximalMargin, SIGNAL(valueChanged(double)), this, SLOT(proximalMarginChanged(double)) );
+  connect( d->doubleSpinBox_DistalMargin, SIGNAL(valueChanged(double)), this, SLOT(distalMarginChanged(double)) );
+  connect( d->comboBox_BeamLineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamLineTypeChanged(const QString &)) );
+  connect( d->checkBox_EnergyPrescription, SIGNAL(clicked(bool)), this, SLOT(manualEnergyPrescriptionChanged(bool)) );
+  connect( d->doubleSpinBox_MinimumEnergy, SIGNAL(valueChanged(double)), this, SLOT(minimumEnergyChanged(double)) );
+  connect( d->doubleSpinBox_MaximumEnergy, SIGNAL(valueChanged(double)), this, SLOT(maximumEnergyChanged(double)) );
 
   // Proton beam model page
-  this->connect( d->doubleSpinBox_ApertureDistance, SIGNAL(valueChanged(double)), this, SLOT(apertureDistanceChanged(double)) );
-  this->connect( d->comboBox_Algorithm, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(algorithmChanged(const QString &)) );
-  this->connect( d->doubleSpinBox_PencilBeamSpacing, SIGNAL(valueChanged(double)), this, SLOT(pencilBeamSpacingChanged(double)) );
-  this->connect( d->doubleSpinBox_Smearing, SIGNAL(valueChanged(double)), this, SLOT(smearingChanged(double)) );
-  this->connect( d->doubleSpinBox_SourceSize, SIGNAL(valueChanged(double)), this, SLOT(sourceSizeChanged(double)) );
-  this->connect( d->doubleSpinBox_EnergyResolution, SIGNAL(valueChanged(double)), this, SLOT(energyResolutionChanged(double)) );
-  this->connect( d->doubleSpinBox_EnergySpread, SIGNAL(valueChanged(double)), this, SLOT(energySpreadChanged(double)) );
-  this->connect( d->doubleSpinBox_StepLength, SIGNAL(valueChanged(double)), this, SLOT(stepLengthChanged(double)) );
-  this->connect( d->checkBox_WEDApproximation, SIGNAL(clicked(bool)), this, SLOT(wedApproximationChanged(bool)) );
-  this->connect( d->checkBox_RangeCompensatorHighland, SIGNAL(clicked(bool)), this, SLOT(rangeCompensatorHighlandChanged(bool)) );
+  connect( d->doubleSpinBox_ApertureDistance, SIGNAL(valueChanged(double)), this, SLOT(apertureDistanceChanged(double)) );
+  connect( d->comboBox_Algorithm, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(algorithmChanged(const QString &)) );
+  connect( d->doubleSpinBox_PencilBeamSpacing, SIGNAL(valueChanged(double)), this, SLOT(pencilBeamSpacingChanged(double)) );
+  connect( d->doubleSpinBox_Smearing, SIGNAL(valueChanged(double)), this, SLOT(smearingChanged(double)) );
+  connect( d->doubleSpinBox_SourceSize, SIGNAL(valueChanged(double)), this, SLOT(sourceSizeChanged(double)) );
+  connect( d->doubleSpinBox_EnergyResolution, SIGNAL(valueChanged(double)), this, SLOT(energyResolutionChanged(double)) );
+  connect( d->doubleSpinBox_EnergySpread, SIGNAL(valueChanged(double)), this, SLOT(energySpreadChanged(double)) );
+  connect( d->doubleSpinBox_StepLength, SIGNAL(valueChanged(double)), this, SLOT(stepLengthChanged(double)) );
+  connect( d->checkBox_WEDApproximation, SIGNAL(clicked(bool)), this, SLOT(wedApproximationChanged(bool)) );
+  connect( d->checkBox_RangeCompensatorHighland, SIGNAL(clicked(bool)), this, SLOT(rangeCompensatorHighlandChanged(bool)) );
 
   // Remove all tabs in Beam TabWidget
   d->tabWidget->clear();
@@ -217,33 +211,6 @@ void qSlicerBeamsModuleWidget::updateButtonsState()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::updateIsocenterPosition()
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  if (!this->mrmlScene())
-  {
-    return;
-  }
-
-  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (!beamNode)
-  {
-    return;
-  }
-
-  double isocenter[3] = {0.0,0.0,0.0};
-  if (!beamNode->GetPlanIsocenterPosition(isocenter))
-  {
-    qCritical() << Q_FUNC_INFO << ": Failed to get plan isocenter for beam " << beamNode->GetName();
-  }
-
-  d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(true);
-  d->MRMLCoordinatesWidget_IsocenterCoordinates->setCoordinates(isocenter);
-  d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(false);
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
 {
   Q_D(qSlicerBeamsModuleWidget);
@@ -259,13 +226,20 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
   // Enable beam parameters section only if there is a valid beam node
   d->CollapsibleButton_BeamParameters->setEnabled(beamNode);
 
-  // If node is empty, remove all tabs
+  // If node is empty, disable controls
+  d->tabWidget->setEnabled(beamNode);
   if (!beamNode)
   {
-    d->tabWidget->clear();
     d->lineEdit_BeamName->setText("");
-    // GCS FIX TODO How do I disconnect ?
     return;
+  }
+
+  // Remove prescription tab that only contains beam type (that is unused now)
+  //TODO: Move beam type to another place and make use of it
+  int index = d->tabWidget->indexOf(d->tabWidgetPageRx);
+  if (index >= 0)
+  {
+    d->tabWidget->removeTab(index);
   }
 
   // Enable appropriate tabs and widgets for this beam type and set 
@@ -318,7 +292,7 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
     d->doubleSpinBox_MaximumEnergy->setEnabled(false);
 
     // Disable unneeded tabs
-    int index;
+    int index = 0;
 
     // Enable needed tabs and set widget values
     index = d->tabWidget->indexOf(d->tabWidgetPageRx);
@@ -351,39 +325,30 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
 
   // Set values into beam parameters tab
   d->lineEdit_BeamName->setText(QString::fromStdString(beamNode->GetName()));
-  switch (beamNode->GetRadiationType())
-  {
-  case vtkMRMLRTBeamNode::Photon:
-    d->comboBox_RadiationType->setCurrentIndex(1);
-    break;
-  case vtkMRMLRTBeamNode::Electron:
-    d->comboBox_RadiationType->setCurrentIndex(2);
-    break;
-  default:
-    d->comboBox_RadiationType->setCurrentIndex(0); // Proton
-    break;
-  }
 
-  // Set values into prescription tab
-  switch (beamNode->GetBeamType())
-  {
-  case vtkMRMLRTProtonBeamNode::Dynamic:
-    d->comboBox_RadiationType->setCurrentIndex(1);
-    break;
-  default:
-    d->comboBox_RadiationType->setCurrentIndex(0); // Static
-    break;
-  }
+  //switch (beamNode->GetRadiationType())
+  //{
+  //case vtkMRMLRTBeamNode::Photon:
+  //  d->comboBox_RadiationType->setCurrentIndex(1);
+  //  break;
+  //case vtkMRMLRTBeamNode::Electron:
+  //  d->comboBox_RadiationType->setCurrentIndex(2);
+  //  break;
+  //default:
+  //  d->comboBox_RadiationType->setCurrentIndex(0); // Proton
+  //  break;
+  //}
 
-  // Set segmentation to be the plan segmentation
-  d->MRMLSegmentSelectorWidget_TargetVolume->setCurrentNode(beamNode->GetTargetSegmentationNode());
-  d->MRMLSegmentSelectorWidget_TargetVolume->setCurrentSegmentID(beamNode->GetTargetSegmentID());
-
-  // Update isocenter specification //TODO:
-  //d->comboBox_IsocenterSpec->setCurrentIndex(
-  //  (beamNode->GetIsocenterSpecification() == vtkMRMLRTBeamNode::CenterOfTarget ? 0 : 1) );
-  // Update isocenter controls based on plan isocenter position
-  this->updateIsocenterPosition();
+  //// Set values into prescription tab
+  //switch (beamNode->GetBeamType())
+  //{
+  //case vtkMRMLRTProtonBeamNode::Dynamic:
+  //  d->comboBox_RadiationType->setCurrentIndex(1);
+  //  break;
+  //default:
+  //  d->comboBox_RadiationType->setCurrentIndex(0); // Static
+  //  break;
+  //}
 
   // Set values into energy tab
   vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
@@ -463,7 +428,6 @@ void qSlicerBeamsModuleWidget::setBeamNode(vtkMRMLNode* node)
 
   // Each time the node is modified, the qt widgets are updated
   qvtkReconnect(rtBeamNode, vtkCommand::ModifiedEvent, this, SLOT(onBeamNodeModified()));
-  qvtkReconnect(rtBeamNode->GetParentPlanNode(), vtkMRMLRTPlanNode::IsocenterModifiedEvent, this, SLOT(updateIsocenterPosition()));
 
   this->updateWidgetFromMRML();
 }
@@ -623,134 +587,6 @@ void qSlicerBeamsModuleWidget::beamTypeChanged(const QString &text)
     beamNode->SetBeamType(vtkMRMLRTBeamNode::Static);
   }
   beamNode->DisableModifiedEventOff();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::targetSegmentChanged(const QString& segment)
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  if (!this->mrmlScene())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
-    return;
-  }
-
-  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (!beamNode)
-  {
-    return;
-  }
-
-  // Set target segment ID
-  beamNode->DisableModifiedEventOn();
-  beamNode->SetTargetSegmentID(segment.toLatin1().constData());
-  beamNode->DisableModifiedEventOff();
-
-  if (beamNode->GetIsocenterSpecification() == vtkMRMLRTBeamNode::CenterOfTarget)
-  {
-    beamNode->SetIsocenterToTargetCenter();
-    this->centerViewToIsocenterClicked();
-  }
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::isocenterSpecChanged(const QString &text)
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (!beamNode)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid current beam node!";
-    return;
-  }
-
-  if (text.compare("Center of target") == 0)
-  {
-    beamNode->SetIsocenterSpecification(vtkMRMLRTBeamNode::CenterOfTarget);
-  }
-  else
-  {
-    beamNode->SetIsocenterSpecification(vtkMRMLRTBeamNode::ArbitraryPoint);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::isocenterCoordinatesChanged(double *coords)
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  if (!this->mrmlScene())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
-    return;
-  }
-
-  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (!beamNode)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid beam node!";
-    return;
-  }
-
-  beamNode->DisableModifiedEventOn();
-
-  vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
-  if (!parentPlanNode || !parentPlanNode->SetIsocenterPosition(coords))
-  {
-    qCritical() << Q_FUNC_INFO << ": Failed to set plan isocenter for beam " << beamNode->GetName();
-    return;
-  }
-
-  beamNode->DisableModifiedEventOff();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::centerViewToIsocenterClicked()
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  if (!this->mrmlScene())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
-    return;
-  }
-
-  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (!beamNode)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid beam node!";
-    return;
-  }
-
-  // Get isocenter position
-  double iso[3] = {0.0,0.0,0.0};
-  if (!beamNode->GetPlanIsocenterPosition(iso))
-  {
-    qCritical() << Q_FUNC_INFO << ": Failed to get isocenter position!";
-    return;
-  }
-
-  // Navigate slice views to position
-  this->mrmlScene()->InitTraversal();
-  vtkMRMLNode *currentNode = this->mrmlScene()->GetNextNodeByClass("vtkMRMLSliceNode");
-  while (currentNode)
-  {
-    vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(currentNode);
-    sliceNode->JumpSlice(iso[0], iso[1], iso[2]);
-    currentNode = this->mrmlScene()->GetNextNodeByClass("vtkMRMLSliceNode");
-  }
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::isocenterFiducialNodeChangedfromCoordinates(double* coordinates)
-{
-  Q_D(qSlicerBeamsModuleWidget);
-  UNUSED_VARIABLE(coordinates);
-
-  //TODO: Implement
-  qWarning() << Q_FUNC_INFO << ": Not implemented!";
 }
 
 //-----------------------------------------------------------------------------

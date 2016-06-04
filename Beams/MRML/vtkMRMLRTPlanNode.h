@@ -22,11 +22,15 @@
 #ifndef __vtkMRMLRTPlanNode_h
 #define __vtkMRMLRTPlanNode_h
 
+// Beams includes
+#include "vtkSlicerBeamsModuleMRMLExport.h"
+
 // MRML includes
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
 
-#include "vtkSlicerBeamsModuleMRMLExport.h"
+// SegmentationCore includes
+#include "vtkOrientedImageData.h"
 
 class vtkCollection;
 class vtkMRMLMarkupsFiducialNode;
@@ -34,6 +38,12 @@ class vtkMRMLRTBeamNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
 class vtkMRMLSubjectHierarchyNode;
+
+//TODO: GCS 2015-09-04.  Why don't VTK macros support const functions?
+#define vtkGetConstMacro(name,type)             \
+  virtual type Get##name () const {             \
+    return this->name;                          \
+  }
 
 /// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTPlanNode : public vtkMRMLNode
@@ -44,6 +54,11 @@ public:
     Plastimatch = 0,
     PMH = 1,
     Matlab = 2
+  };
+  enum IsocenterSpecificationType
+  {
+    CenterOfTarget,
+    ArbitraryPoint
   };
 
   static const char* ISOCENTER_FIDUCIAL_NAME;
@@ -79,20 +94,38 @@ public:
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
 public:
-  /// Generate new beam name from new beam name prefix and next beam number
-  std::string GenerateNewBeamName();
-
-  /// Check validity of current POIs markups fiducial node (whether it contains the default fiducials at the right indices)
-  bool IsPoisMarkupsFiducialNodeValid();
-
   /// Get Subject Hierarchy node associated with this node. Create if missing
   vtkMRMLSubjectHierarchyNode* GetPlanSubjectHierarchyNode();
+
+  /// Get target segment as a labelmap oriented image data
+  vtkSmartPointer<vtkOrientedImageData> GetTargetOrientedImageData();
 
   /// Add given beam node to plan
   void AddBeam(vtkMRMLRTBeamNode* beam);
   /// Remove given beam node from plan
   void RemoveBeam(vtkMRMLRTBeamNode* beam);
 
+  /// Generate new beam name from new beam name prefix and next beam number
+  std::string GenerateNewBeamName();
+
+  /// Check validity of current POIs markups fiducial node (whether it contains the default fiducials at the right indices)
+  bool IsPoisMarkupsFiducialNodeValid();
+
+// Isocenter parameters
+public:
+  /// Set isocenter specification
+  /// If it's CenterOfTarget, then \sa SetIsocenterToTargetCenter is called to change isocenter to center of target
+  /// \param isoSpec The new isocenter specification (CenterOfTarget or ArbitraryPoint)
+  void SetIsocenterSpecification(vtkMRMLRTPlanNode::IsocenterSpecificationType isoSpec);
+  /// Calculate center of current target and set isocenter to that point
+  void SetIsocenterToTargetCenter();
+
+  /// Get center of gravity of target segment, return true if successful
+  /// or false if no target segment has been specified
+  bool ComputeTargetVolumeCenter(double* center);
+
+// Set/get functions
+public:
   /// Get beam nodes belonging to this plan
   void GetBeams(vtkCollection* beams);
   /// Get beam nodes belonging to this plan
@@ -129,26 +162,29 @@ public:
   /// Set plan segmentation (structure set)
   void SetAndObserveSegmentationNode(vtkMRMLSegmentationNode* node);
 
+  /// Get target segment ID
+  vtkGetStringMacro(TargetSegmentID);
+  /// Set target segment ID
+  vtkSetStringMacro(TargetSegmentID);
+
+  vtkGetMacro(IsocenterSpecification, vtkMRMLRTPlanNode::IsocenterSpecificationType);
+  vtkGetConstMacro(IsocenterSpecification, vtkMRMLRTPlanNode::IsocenterSpecificationType);
+
   /// Get output total dose volume node
   vtkMRMLScalarVolumeNode* GetOutputTotalDoseVolumeNode();
   /// Set output total dose volume node
   void SetAndObserveOutputTotalDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  ///TODO:
-  vtkSetVector3Macro(ReferenceDosePoint, double);
-  vtkGetVector3Macro(ReferenceDosePoint, double);
-
   void SetDoseEngine(DoseEngineType doseEngineType) { this->DoseEngine = doseEngineType; };
   DoseEngineType GetDoseEngine() { return this->DoseEngine; };
-
-  ///TODO:
-  vtkSetVector3Macro(DoseGrid, double);
-  vtkGetVector3Macro(DoseGrid, double);
 
   /// Get prescription dose
   vtkGetMacro(RxDose, double);
   /// Set prescription dose
   vtkSetMacro(RxDose, double);
+
+  vtkSetVector3Macro(DoseGrid, double);
+  vtkGetVector3Macro(DoseGrid, double);
 
 protected:
   /// Create default plan POIs markups node
@@ -161,20 +197,25 @@ protected:
   void operator=(const vtkMRMLRTPlanNode&);
 
 protected:
-  ///TODO:
+  /// Prescription dose (Gy)
+  double RxDose;
+
+  /// Target segment ID in target segmentation node
+  char* TargetSegmentID;
+
+  /// Isocenter specification determining whether it can be an arbitrary point or
+  /// always calculated to be at the center of the target structure
+  IsocenterSpecificationType IsocenterSpecification;
+
+  /// Number of the next beam to be created. Incremented on each new beam addition
   int NextBeamNumber;
 
   ///TODO:
   DoseEngineType DoseEngine;
 
-  /// Prescription dose (Gy)
-  double RxDose;
-
-  ///TODO:
+  ///TODO: Allow user to specify dose volume resolution different from reference volume
+  /// (currently output dose volume has the same spacing as the reference anatomy)
   double DoseGrid[3];
-
-  ///TODO:
-  double ReferenceDosePoint[3];
 };
 
 #endif // __vtkMRMLRTPlanNode_h

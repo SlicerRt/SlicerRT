@@ -132,7 +132,7 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
   vtkMRMLScene* scene = beamNode->GetScene();
 
   // Get target as ITK image
-  vtkSmartPointer<vtkOrientedImageData> targetLabelmap = beamNode->GetTargetOrientedImageData();
+  vtkSmartPointer<vtkOrientedImageData> targetLabelmap = parentPlanNode->GetTargetOrientedImageData();
   if (targetLabelmap.GetPointer() == NULL)
   {
     std::string errorMessage("Failed to access target labelmap");
@@ -186,7 +186,6 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
   this->Internal->ReferenceVolumePlm->print();
   // Create ITK output dose volume based on the reference volume
   itk::Image<short, 3>::Pointer referenceVolumeItk = this->Internal->ReferenceVolumePlm->itk_short();
-  //itk::Image<float, 3>::Pointer doseVolumeItk = itk_image_create<float>(Plm_image_header(referenceVolumeItk)); //TODO: Needed after all?
 
   // Plastimatch RT plan and beam
   Rt_plan rt_plan;

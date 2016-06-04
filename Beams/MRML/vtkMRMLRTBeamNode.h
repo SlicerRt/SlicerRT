@@ -22,24 +22,20 @@
 #ifndef __vtkMRMLRTBeamNode_h
 #define __vtkMRMLRTBeamNode_h
 
-// SlicerRT includes
+// Beams includes
 #include "vtkSlicerBeamsModuleMRMLExport.h"
 
 // MRML includes
 #include <vtkMRMLModelNode.h>
 
-// SegmentationCore includes
-#include "vtkOrientedImageData.h"
-
 class vtkPolyData;
 class vtkMRMLScene;
 class vtkMRMLDoubleArrayNode;
-class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
 
-/// GCS 2015-09-04.  Why don't VTK macros support const functions?
+//TODO: GCS 2015-09-04.  Why don't VTK macros support const functions?
 #define vtkGetConstMacro(name,type)             \
   virtual type Get##name () const {             \
     return this->name;                          \
@@ -65,11 +61,6 @@ public:
     SquareHalfMM = 0,
     SquareOneMM = 1,
     SquareTwoMM = 2
-  };
-  enum IsocenterSpecificationType
-  {
-    CenterOfTarget,
-    ArbitraryPoint
   };
 
   static const char* NEW_BEAM_NODE_NAME_PREFIX;
@@ -116,11 +107,6 @@ public:
   /// Get parent plan node
   vtkMRMLRTPlanNode* GetParentPlanNode();
 
-  /// Get target segmentation node from parent plan node
-  vtkMRMLSegmentationNode* GetTargetSegmentationNode();
-  /// Get target segment as a labelmap
-  vtkSmartPointer<vtkOrientedImageData> GetTargetOrientedImageData();
-
   /// Get MLC position double array node
   vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
   /// Set and observe MLC position double array node.
@@ -145,19 +131,6 @@ public:
   /// \return Success flag
   bool CalculateSourcePosition(double source[3]);
 
-// Isocenter parameters
-public:
-  /// Set isocenter specification
-  /// If it's CenterOfTarget, then \sa SetIsocenterToTargetCenter is called to change isocenter to center of target
-  /// \param isoSpec The new isocenter specification (CenterOfTarget or ArbitraryPoint)
-  void SetIsocenterSpecification(vtkMRMLRTBeamNode::IsocenterSpecificationType isoSpec);
-  /// Calculate center of current target and set isocenter to that point
-  void SetIsocenterToTargetCenter();
-
-  /// Get center of gravity of target segment, return true if successful
-  /// or false if no target segment has been specified
-  bool ComputeTargetVolumeCenter(double* center);
-
 // Beam parameters
 public:
   /// Get beam number
@@ -172,11 +145,6 @@ public:
   /// Set beam description
   vtkSetStringMacro(BeamDescription);
 
-  /// Get target segment ID
-  vtkGetStringMacro(TargetSegmentID);
-  /// Set target segment ID
-  vtkSetStringMacro(TargetSegmentID);
-
   /// Get radiation type
   vtkGetMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
   /// Set radiation type
@@ -190,9 +158,6 @@ public:
   vtkGetConstMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
   /// Set beam type
   vtkSetMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
-
-  vtkGetMacro(IsocenterSpecification, vtkMRMLRTBeamNode::IsocenterSpecificationType);
-  vtkGetConstMacro(IsocenterSpecification, vtkMRMLRTBeamNode::IsocenterSpecificationType);
 
   vtkGetMacro(X1Jaw, double);
   vtkGetConstMacro(X1Jaw, double);
@@ -251,19 +216,12 @@ protected:
   /// Beam description
   char* BeamDescription;
 
-  /// Target segment ID in target segmentation node
-  char* TargetSegmentID;
-
   /// TODO:
   RTBeamType BeamType;
   /// TODO:
   RTRadiationType RadiationType;
   /// TODO:
   RTCollimatorType CollimatorType;
-
-  /// Isocenter specification determining whether it can be an arbitrary point or
-  /// always calculated to be at the center of the target structure
-  IsocenterSpecificationType IsocenterSpecification;
 
   /// X1 jaw position
   double X1Jaw;

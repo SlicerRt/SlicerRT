@@ -160,6 +160,8 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   planNode->SetAndObserveSegmentationNode(segmentationNode);
   planNode->SetAndObserveOutputTotalDoseVolumeNode(doseVolumeNode);
   planNode->SetDoseEngine(vtkMRMLRTPlanNode::Plastimatch);
+  planNode->SetTargetSegmentID("Tumor_Contour");
+  planNode->SetIsocenterToTargetCenter();
 
   // Add first beam
   vtkSmartPointer<vtkMRMLRTProtonBeamNode> firstBeamNode = vtkSmartPointer<vtkMRMLRTProtonBeamNode>::New();
@@ -169,8 +171,6 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   planNode->AddBeam(firstBeamNode);
 
   // Set first beam parameters
-  firstBeamNode->SetTargetSegmentID("Tumor_Contour");
-  firstBeamNode->SetIsocenterToTargetCenter();
   firstBeamNode->SetX1Jaw(-50.0);
   firstBeamNode->SetX2Jaw(50.0);
   firstBeamNode->SetY1Jaw(-50.0);

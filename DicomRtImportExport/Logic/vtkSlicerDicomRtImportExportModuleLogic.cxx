@@ -930,8 +930,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     beamNode->SetCouchAngle(rtReader->GetBeamPatientSupportAngle(dicomBeamNumber));
     beamNode->SetSAD(rtReader->GetBeamSourceAxisDistance(dicomBeamNumber));
       
-    beamNode->SetIsocenterSpecification(vtkMRMLRTBeamNode::ArbitraryPoint);
     double* isocenter = rtReader->GetBeamIsocenterPositionRas(dicomBeamNumber);
+    planNode->SetIsocenterSpecification(vtkMRMLRTPlanNode::ArbitraryPoint);
     if (beamIndex == 0)
     {
       if (!planNode->SetIsocenterPosition(isocenter))

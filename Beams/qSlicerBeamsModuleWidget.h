@@ -62,8 +62,6 @@ public slots:
 protected slots:
   /// Updates button states
   void updateButtonsState();
-  /// Update isocenter controls from isocenter markups fiducial
-  void updateIsocenterPosition();
   /// Logic modified
   void onLogicModified();
 
@@ -83,11 +81,6 @@ protected slots:
 
   // Prescription page
   void beamTypeChanged(const QString &);
-  void targetSegmentChanged(const QString& segment);
-  void isocenterSpecChanged(const QString &);
-  void isocenterCoordinatesChanged(double*);
-  void centerViewToIsocenterClicked();
-  void isocenterFiducialNodeChangedfromCoordinates(double*);
 
   // Energy page
   void proximalMarginChanged(double);

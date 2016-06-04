@@ -32,25 +32,6 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="3" column="1">
-       <widget class="QComboBox" name="comboBox_RadiationType">
-        <item>
-         <property name="text">
-          <string>Proton</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Photon</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Electron</string>
-         </property>
-        </item>
-       </widget>
-      </item>
       <item row="2" column="0">
        <widget class="QLabel" name="label_BeamName">
         <property name="text">
@@ -58,17 +39,10 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_MachineType">
-        <property name="text">
-         <string>Machine type:</string>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="1">
        <widget class="QLineEdit" name="lineEdit_BeamName"/>
       </item>
-      <item row="20" column="0" colspan="2">
+      <item row="19" column="0" colspan="2">
        <widget class="QTabWidget" name="tabWidget">
         <property name="enabled">
          <bool>true</bool>
@@ -111,45 +85,7 @@
             </item>
            </widget>
           </item>
-          <item row="3" column="2">
-           <widget class="QComboBox" name="comboBox_IsocenterSpec">
-            <item>
-             <property name="text">
-              <string>Center of target</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Arbitrary point</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_TargetVolume">
-            <property name="text">
-             <string>Target volume:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Isocenter spec:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_Isocenter">
-            <property name="frameShape">
-             <enum>QFrame::NoFrame</enum>
-            </property>
-            <property name="text">
-             <string>Isocenter:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0" colspan="3">
+          <item row="2" column="0" colspan="3">
            <spacer name="verticalSpacer_3">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -161,41 +97,6 @@
              </size>
             </property>
            </spacer>
-          </item>
-          <item row="4" column="2">
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <item>
-             <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_IsocenterCoordinates">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_CenterViewToIsocenter">
-              <property name="toolTip">
-               <string>Navigate slice views to slices where the isocenter is visible</string>
-              </property>
-              <property name="text">
-               <string>Center views</string>
-              </property>
-              <property name="icon">
-               <iconset resource="../../SubjectHierarchyPlugins/Resources/qSlicerBeamsSubjectHierarchyPlugins.qrc">
-                <normaloff>:/Icons/Isocenter.png</normaloff>:/Icons/Isocenter.png</iconset>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="2">
-           <widget class="qMRMLSegmentSelectorWidget" name="MRMLSegmentSelectorWidget_TargetVolume">
-            <property name="noneEnabled">
-             <bool>true</bool>
-            </property>
-            <property name="segmentationNodeSelectorVisible">
-             <bool>false</bool>
-            </property>
-           </widget>
           </item>
          </layout>
         </widget>
@@ -845,20 +746,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>qMRMLCoordinatesWidget</class>
-   <extends>ctkCoordinatesWidget</extends>
-   <header>qMRMLCoordinatesWidget.h</header>
-  </customwidget>
-  <customwidget>
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
    <header>qMRMLNodeComboBox.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>qMRMLWidget</class>
-   <extends>QWidget</extends>
-   <header>qMRMLWidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -868,21 +758,10 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>qMRMLSegmentSelectorWidget</class>
-   <extends>qMRMLWidget</extends>
-   <header>qMRMLSegmentSelectorWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>ctkCollapsibleButton</class>
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ctkCoordinatesWidget</class>
-   <extends>QWidget</extends>
-   <header>ctkCoordinatesWidget.h</header>
   </customwidget>
   <customwidget>
    <class>ctkRangeWidget</class>
@@ -913,22 +792,6 @@
     <hint type="destinationlabel">
      <x>220</x>
      <y>14</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>qSlicerBeamsModule</sender>
-   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-   <receiver>MRMLSegmentSelectorWidget_TargetVolume</receiver>
-   <slot>setMRMLScene(vtkMRMLScene*)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>144</x>
-     <y>68</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>251</x>
-     <y>304</y>
     </hint>
    </hints>
   </connection>

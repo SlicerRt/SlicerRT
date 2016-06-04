@@ -49,6 +49,7 @@
 #include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLLayoutNode.h>
+#include <vtkMRMLSliceNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -210,10 +211,17 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
 
   // Plan parameters section
   connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
-  connect( d->MRMLNodeComboBox_PlanSegmentation, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planSegmentationNodeChanged(vtkMRMLNode*)) );
-  connect( d->MRMLNodeComboBox_PlanPOIs, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(planPOIsNodeChanged(vtkMRMLNode*)) );
-  connect( d->doubleSpinBox_RxDose, SIGNAL(valueChanged(double)), this, SLOT(rxDoseChanged(double)) );
+  connect( d->MRMLNodeComboBox_PlanSegmentation, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(segmentationNodeChanged(vtkMRMLNode*)) );
+  connect( d->MRMLNodeComboBox_PlanPOIs, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(poisMarkupsNodeChanged(vtkMRMLNode*)) );
+
+  connect( d->MRMLCoordinatesWidget_IsocenterCoordinates, SIGNAL(coordinatesChanged(double*)), this, SLOT(isocenterCoordinatesChanged(double *)));
+  connect( d->pushButton_CenterViewToIsocenter, SIGNAL(clicked()), this, SLOT(centerViewToIsocenterClicked()) );
+
+  connect( d->MRMLSegmentSelectorWidget_TargetStructure, SIGNAL(currentSegmentChanged(QString)), this, SLOT(targetSegmentChanged(const QString&)) );
+  connect( d->checkBox_IsocetnerAtTargetCenter, SIGNAL(stateChanged(int)), this, SLOT(isocenterAtTargetCenterCheckboxStateChanged(int)));
+
   connect( d->comboBox_DoseEngineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(doseEngineTypeChanged(const QString &)) );
+  connect( d->doubleSpinBox_RxDose, SIGNAL(valueChanged(double)), this, SLOT(rxDoseChanged(double)) );
 
   // Output section
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(doseVolumeNodeChanged(vtkMRMLNode*)) );
@@ -235,9 +243,6 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   d->MRMLNodeComboBox_DoseROI->setVisible(false);
   d->label_DoseGridSpacing->setVisible(false);
   d->lineEdit_DoseGridSpacing->setVisible(false);
-  d->label_DosePoint->setVisible(false);
-  d->MRMLCoordinatesWidget_DosePointCoordinates->setVisible(false);
-  d->comboBox_DosePoint->setVisible(false);
 
   // Set status text to initial instruction
   d->label_CalculateDoseStatus->setText("Add plan and beam to start planning");
@@ -281,10 +286,16 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
   {
     d->MRMLNodeComboBox_DoseVolume->setCurrentNode(rtPlanNode->GetOutputTotalDoseVolumeNode());
   }
+  // Set target segment
+  d->MRMLSegmentSelectorWidget_TargetStructure->setCurrentNode(rtPlanNode->GetSegmentationNode());
+  d->MRMLSegmentSelectorWidget_TargetStructure->setCurrentSegmentID(rtPlanNode->GetTargetSegmentID());
 
-  double rdp[3] = {0.0,0.0,0.0};
-  rtPlanNode->GetReferenceDosePoint(rdp);
-  d->MRMLCoordinatesWidget_DosePointCoordinates->setCoordinates(rdp);
+  // Update isocenter specification //TODO:
+  //d->comboBox_IsocenterSpec->setCurrentIndex(
+  //  (beamNode->GetIsocenterSpecification() == vtkMRMLRTBeamNode::CenterOfTarget ? 0 : 1) );
+  // Update isocenter controls based on plan isocenter position
+  this->updateIsocenterPosition();
+
 
   return;
 }
@@ -309,6 +320,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
 
   // Each time the node is modified, the qt widgets are updated
   qvtkReconnect(rtPlanNode, vtkCommand::ModifiedEvent, this, SLOT(onRTPlanNodeModified()));
+  qvtkReconnect(rtPlanNode, vtkMRMLRTPlanNode::IsocenterModifiedEvent, this, SLOT(updateIsocenterPosition()));
 
   // Create and select output dose volume if missing
   if (rtPlanNode && !rtPlanNode->GetOutputTotalDoseVolumeNode())
@@ -361,7 +373,7 @@ void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRML
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::planSegmentationNodeChanged(vtkMRMLNode* node)
+void qSlicerExternalBeamPlanningModuleWidget::segmentationNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -381,13 +393,16 @@ void qSlicerExternalBeamPlanningModuleWidget::planSegmentationNodeChanged(vtkMRM
     return;
   }
 
+  // Set segmentation node to target selector
+  d->MRMLSegmentSelectorWidget_TargetStructure->setCurrentNode(node);
+
   rtPlanNode->DisableModifiedEventOn();
   rtPlanNode->SetAndObserveSegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(node));
   rtPlanNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::planPOIsNodeChanged(vtkMRMLNode* node)
+void qSlicerExternalBeamPlanningModuleWidget::poisMarkupsNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -522,6 +537,150 @@ void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingChanged(const QStri
 
   // TODO: to be implemented
 }
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::targetSegmentChanged(const QString& segment)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return;
+  }
+
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!rtPlanNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    return;
+  }
+
+  // Set target segment ID
+  rtPlanNode->DisableModifiedEventOn();
+  rtPlanNode->SetTargetSegmentID(segment.toLatin1().constData());
+  rtPlanNode->DisableModifiedEventOff();
+
+  if (rtPlanNode->GetIsocenterSpecification() == vtkMRMLRTPlanNode::CenterOfTarget)
+  {
+    rtPlanNode->SetIsocenterToTargetCenter();
+    this->centerViewToIsocenterClicked();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::isocenterAtTargetCenterCheckboxStateChanged(int state)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!rtPlanNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    return;
+  }
+
+  if (state > 0)
+  {
+    rtPlanNode->SetIsocenterSpecification(vtkMRMLRTPlanNode::CenterOfTarget);
+  }
+  else
+  {
+    rtPlanNode->SetIsocenterSpecification(vtkMRMLRTPlanNode::ArbitraryPoint);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::isocenterCoordinatesChanged(double* coords)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!rtPlanNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    return;
+  }
+
+  // If isocenter specification is CenterOfTarget, then reset it to previous isocenter
+  if (rtPlanNode->GetIsocenterSpecification() == vtkMRMLRTPlanNode::CenterOfTarget)
+  {
+    double isocenter[3] = {0.0,0.0,0.0};
+    if (!rtPlanNode->GetIsocenterPosition(isocenter))
+    {
+      qCritical() << Q_FUNC_INFO << ": Failed to get plan isocenter for plan " << rtPlanNode->GetName();
+    }
+    d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(true);
+    d->MRMLCoordinatesWidget_IsocenterCoordinates->setCoordinates(isocenter);
+    d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(false);
+  }
+  else // Otherwise (if ArbitraryPoint) set coordinates as isocenter position
+  {
+    rtPlanNode->DisableModifiedEventOn();
+    rtPlanNode->SetIsocenterPosition(coords);
+    rtPlanNode->DisableModifiedEventOff();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::centerViewToIsocenterClicked()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!rtPlanNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    return;
+  }
+
+  // Get isocenter position
+  double isocenter[3] = {0.0,0.0,0.0};
+  if (!rtPlanNode->GetIsocenterPosition(isocenter))
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to get plan isocenter for plan " << rtPlanNode->GetName();
+  }
+
+  // Navigate slice views to position
+  this->mrmlScene()->InitTraversal();
+  vtkMRMLNode *currentNode = this->mrmlScene()->GetNextNodeByClass("vtkMRMLSliceNode");
+  while (currentNode)
+  {
+    vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(currentNode);
+    sliceNode->JumpSlice(isocenter[0], isocenter[1], isocenter[2]);
+    currentNode = this->mrmlScene()->GetNextNodeByClass("vtkMRMLSliceNode");
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::updateIsocenterPosition()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    return;
+  }
+
+  vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!rtPlanNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    return;
+  }
+
+  // Get isocenter position
+  double isocenter[3] = {0.0,0.0,0.0};
+  if (!rtPlanNode->GetIsocenterPosition(isocenter))
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to get plan isocenter for plan " << rtPlanNode->GetName();
+  }
+
+  d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(true);
+  d->MRMLCoordinatesWidget_IsocenterCoordinates->setCoordinates(isocenter);
+  d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(false);
+}
+
 
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::doseEngineTypeChanged(const QString &text)

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>424</width>
-    <height>478</height>
+    <height>541</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -55,76 +55,18 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_RxDose">
-        <property name="text">
-         <string>Rx dose (Gy):</string>
+      <item row="2" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanSegmentation">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLSegmentationNode</string>
+         </stringlist>
         </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QDoubleSpinBox" name="doubleSpinBox_RxDose">
-        <property name="maximum">
-         <double>200.000000000000000</double>
-        </property>
-        <property name="singleStep">
-         <double>1.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>1.000000000000000</double>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_PlanContours">
-        <property name="enabled">
+        <property name="noneEnabled">
          <bool>true</bool>
         </property>
-        <property name="text">
-         <string>Segmentations:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_ReferenceVolume">
-        <property name="text">
-         <string>Reference volume:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_POIs">
-        <property name="text">
-         <string>Points of interest:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QComboBox" name="comboBox_DoseEngineType">
-        <item>
-         <property name="text">
-          <string>Plastimatch</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>PMH</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Matlab</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_DoseEngine">
-        <property name="text">
-         <string>Dose engine:</string>
+        <property name="noneDisplay">
+         <string>Please select node</string>
         </property>
        </widget>
       </item>
@@ -167,56 +109,196 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanSegmentation">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLSegmentationNode</string>
-         </stringlist>
-        </property>
-        <property name="noneEnabled">
-         <bool>true</bool>
-        </property>
-        <property name="noneDisplay">
-         <string>Please select node</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_DosePoint">
-        <property name="enabled">
-         <bool>false</bool>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_Isocenter">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
         </property>
         <property name="text">
-         <string>Dose point:</string>
+         <string>Isocenter:</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_PlanSegmentation">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>Structure set:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_POIs">
+        <property name="text">
+         <string>Points of interest:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_ReferenceVolume">
+        <property name="text">
+         <string>Reference volume:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_DosePointCoordinates">
+         <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_IsocenterCoordinates">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="comboBox_DosePoint">
-          <property name="enabled">
-           <bool>false</bool>
+         <widget class="QPushButton" name="pushButton_CenterViewToIsocenter">
+          <property name="toolTip">
+           <string>Navigate slice views to slices where the isocenter is visible</string>
+          </property>
+          <property name="text">
+           <string>Center views</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../../../Beams/SubjectHierarchyPlugins/Resources/qSlicerBeamsSubjectHierarchyPlugins.qrc">
+            <normaloff>:/Icons/Isocenter.png</normaloff>:/Icons/Isocenter.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="7" column="0" colspan="2">
+       <layout class="QGridLayout" name="gridLayout_4">
+        <property name="horizontalSpacing">
+         <number>12</number>
+        </property>
+        <property name="verticalSpacing">
+         <number>4</number>
+        </property>
+        <item row="0" column="4">
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <property name="spacing">
+           <number>8</number>
           </property>
           <item>
-           <property name="text">
-            <string>Isocenter</string>
-           </property>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Isocenter at target center:</string>
+            </property>
+           </widget>
           </item>
           <item>
-           <property name="text">
-            <string>Arbitrary point</string>
-           </property>
+           <widget class="QCheckBox" name="checkBox_IsocetnerAtTargetCenter">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
           </item>
-         </widget>
+         </layout>
+        </item>
+        <item row="1" column="4">
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QLabel" name="label_RxDose">
+            <property name="text">
+             <string>Rx dose (Gy):</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="doubleSpinBox_RxDose">
+            <property name="maximum">
+             <double>200.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>1.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="1" rowspan="2">
+         <layout class="QHBoxLayout" name="horizontalLayout_9">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <widget class="QLabel" name="label_TargetVolume">
+              <property name="text">
+               <string>Target volume:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_DoseEngine">
+              <property name="text">
+               <string>Dose engine:</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <item>
+             <widget class="qMRMLSegmentSelectorWidget" name="MRMLSegmentSelectorWidget_TargetStructure">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="noneEnabled">
+               <bool>true</bool>
+              </property>
+              <property name="segmentationNodeSelectorVisible">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBox_DoseEngineType">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <item>
+               <property name="text">
+                <string>Plastimatch</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>PMH</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Matlab</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
@@ -452,6 +534,12 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>qMRMLWidget</class>
+   <extends>QWidget</extends>
+   <header>qMRMLWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>qSlicerWidget</class>
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
@@ -461,6 +549,12 @@
    <class>qMRMLBeamsTableView</class>
    <extends>QWidget</extends>
    <header>qMRMLBeamsTableView.h</header>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLSegmentSelectorWidget</class>
+   <extends>qMRMLWidget</extends>
+   <header>qMRMLSegmentSelectorWidget.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>ctkCollapsibleButton</class>
@@ -476,6 +570,7 @@
  </customwidgets>
  <resources>
   <include location="../qSlicerExternalBeamPlanningModule.qrc"/>
+  <include location="../../../Beams/SubjectHierarchyPlugins/Resources/qSlicerBeamsSubjectHierarchyPlugins.qrc"/>
  </resources>
  <connections>
   <connection>
@@ -489,8 +584,8 @@
      <y>3</y>
     </hint>
     <hint type="destinationlabel">
-     <x>558</x>
-     <y>133</y>
+     <x>415</x>
+     <y>76</y>
     </hint>
    </hints>
   </connection>
@@ -521,8 +616,8 @@
      <y>824</y>
     </hint>
     <hint type="destinationlabel">
-     <x>329</x>
-     <y>211</y>
+     <x>415</x>
+     <y>263</y>
     </hint>
    </hints>
   </connection>
@@ -537,8 +632,8 @@
      <y>822</y>
     </hint>
     <hint type="destinationlabel">
-     <x>372</x>
-     <y>237</y>
+     <x>415</x>
+     <y>287</y>
     </hint>
    </hints>
   </connection>
@@ -554,7 +649,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>415</x>
-     <y>185</y>
+     <y>124</y>
     </hint>
    </hints>
   </connection>
@@ -569,8 +664,40 @@
      <y>3</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>149</y>
+     <x>389</x>
+     <y>100</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerExternalBeamPlanningModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLSegmentSelectorWidget_TargetStructure</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>182</x>
+     <y>3</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>182</x>
+     <y>168</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerExternalBeamPlanningModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLCoordinatesWidget_IsocenterCoordinates</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>207</x>
+     <y>4</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>225</x>
+     <y>136</y>
     </hint>
    </hints>
   </connection>
