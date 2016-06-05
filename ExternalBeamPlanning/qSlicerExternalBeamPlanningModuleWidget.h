@@ -78,7 +78,7 @@ protected slots:
   void updateIsocenterPosition();
 
   void rxDoseChanged(double);
-  void doseEngineTypeChanged(const QString &);
+  void doseEngineChanged(const QString &);
 
   // Output page
   void doseVolumeNodeChanged(vtkMRMLNode*);
@@ -103,6 +103,9 @@ protected:
   virtual void setup();
   virtual void enter();
   void onEnter();
+
+  // Populate dose engines combobox from registered dose engines
+  void updateDoseEngines();
 
 protected:
   QScopedPointer<qSlicerExternalBeamPlanningModuleWidgetPrivate> d_ptr;

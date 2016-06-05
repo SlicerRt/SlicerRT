@@ -16,6 +16,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkSlicerAbstractDoseEngine.cxx
   vtkSlicerAbstractDoseEngine.h
+  vtkSlicerDoseEnginePluginHandler.cxx
+  vtkSlicerDoseEnginePluginHandler.h
   vtkSlicerPlastimatchProtonDoseEngine.cxx
   vtkSlicerPlastimatchProtonDoseEngine.h
   )

@@ -31,9 +31,6 @@
 // ExternalBeamPlanning includes
 #include "vtkSlicerAbstractDoseEngine.h"
 
-// Beams includes
-#include "vtkMRMLRTProtonBeamNode.h"
-
 // Plastimatch includes
 #include "plm_image.h"
 #include "plm_image_header.h"
@@ -45,33 +42,14 @@ public:
   static vtkSlicerPlastimatchProtonDoseEngine *New();
   vtkTypeMacro(vtkSlicerPlastimatchProtonDoseEngine, vtkSlicerAbstractDoseEngine);
   void PrintSelf(ostream& os, vtkIndent indent);
-  /*
-  /// Initialize accumulated dose
-  void InitializeAccumulatedDose(Plm_image::Pointer);
 
-  /// Do dose calculation for a single beam
-  void CalculateDose(
-    vtkMRMLRTBeamNode* beamNode, 
-    Plm_image::Pointer& plmTgt,
-    double isocenter[],
-    double src[], 
-    double RxDose);
+  /// Create beam node of type the dose engine uses.
+  /// Dose engines need to override this to return beam node of type they use.
+  /// Note: Need to take ownership of the created object! For example using vtkSmartPointer<vtkDataObject>::Take
+  virtual vtkMRMLRTBeamNode* CreateBeamForEngine();
 
-  /// Get range compensator volume
-  itk::Image<float, 3>::Pointer GetRangeCompensatorVolume();
-
-  /// Get aperture volume
-  itk::Image<unsigned char, 3>::Pointer GetApertureVolume();
-
-  /// Get computed dose
-  itk::Image<float, 3>::Pointer GetComputedDose();
-
-  /// Get accumulated dose
-  itk::Image<float, 3>::Pointer GetAccumulatedDose();
-
-  /// Do dose calculation
-  void CleanUp();
-  */
+  /// Do dose calculation //TODO:
+  //void CleanUp();
 
 protected:
   /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic

@@ -108,14 +108,6 @@ protected:
 
   /// Registered converter rules
   RuleListType Rules;
-
-private:
-  /// DetachObservations is a fast (but dangerous) method to delete all the
-  /// observations. It leaves the event broker in an inconsistent state:
-  ///  - SubjectMap and ObserverMap are not being updated.
-  void DetachObservations();
-  /// vtkObservation can call these methods
-  friend class vtkObservation;
 };
 
 /// Utility class to make sure qSlicerModuleManager is initialized before it is used.

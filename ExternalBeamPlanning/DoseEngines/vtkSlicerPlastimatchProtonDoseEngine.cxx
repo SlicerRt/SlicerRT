@@ -25,6 +25,7 @@
 
 // Beams includes
 #include "vtkMRMLRTPlanNode.h"
+#include "vtkMRMLRTProtonBeamNode.h"
 
 // Plastimatch includes
 #include "itk_image_accumulate.h"
@@ -60,7 +61,7 @@ class vtkSlicerPlastimatchProtonDoseEngine::vtkInternal
 public:
   vtkInternal();
 
-  /// Reference CT Plastimatch image (cache) //TODO:
+  /// Reference CT Plastimatch image (cache) //TODO: Only reconvert if necessary
   Plm_image::Pointer ReferenceVolumePlm;
 };
 
@@ -72,6 +73,8 @@ vtkSlicerPlastimatchProtonDoseEngine::vtkInternal::vtkInternal()
 //----------------------------------------------------------------------------
 vtkSlicerPlastimatchProtonDoseEngine::vtkSlicerPlastimatchProtonDoseEngine()
 {
+  this->Name = "Plastimatch proton";
+
   this->Internal = new vtkInternal;
 }
 
@@ -87,15 +90,19 @@ void vtkSlicerPlastimatchProtonDoseEngine::PrintSelf(ostream& os, vtkIndent inde
   this->Superclass::PrintSelf(os, indent);
 }
 
-/*
 //---------------------------------------------------------------------------
-void vtkSlicerPlastimatchProtonDoseEngine::CleanUp()
+//void vtkSlicerPlastimatchProtonDoseEngine::CleanUp()
+//{
+//  vtkErrorMacro("Obsolete method!");
+//  // Free up memory for reference CT
+//  Internal->ReferenceVolumePlm.reset();
+//}
+
+//----------------------------------------------------------------------------
+vtkMRMLRTBeamNode* vtkSlicerPlastimatchProtonDoseEngine::CreateBeamForEngine()
 {
-  vtkErrorMacro("Obsolete method!");
-  // Free up memory for reference CT
-  Internal->ReferenceVolumePlm.reset();
+  return (vtkMRMLRTBeamNode*)vtkMRMLRTProtonBeamNode::New();
 }
-*/
 
 //---------------------------------------------------------------------------
 std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode)
@@ -181,7 +188,7 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
   }
 
   // Convert reference volume to Plastimatch image
-  //TODO: Cache it in internal class
+  //TODO: Cache it in internal class?
   this->Internal->ReferenceVolumePlm = PlmCommon::ConvertVolumeNodeToPlmImage(referenceVolumeNode);
   this->Internal->ReferenceVolumePlm->print();
   // Create ITK output dose volume based on the reference volume

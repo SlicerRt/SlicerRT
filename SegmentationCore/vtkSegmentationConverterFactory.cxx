@@ -28,10 +28,9 @@
 #include "vtkSegmentationConverterRule.h"
 
 //----------------------------------------------------------------------------
-// The IO manager singleton.
+// The segmentation converter rule manager singleton.
 // This MUST be default initialized to zero by the compiler and is
-// therefore not initialized here.  The ClassInitialize and
-// ClassFinalize methods handle this instance.
+// therefore not initialized here.  The ClassInitialize and ClassFinalize methods handle this instance.
 static vtkSegmentationConverterFactory* vtkSegmentationConverterFactoryInstance;
 
 //----------------------------------------------------------------------------
@@ -124,11 +123,12 @@ void vtkSegmentationConverterFactory::classFinalize()
 //----------------------------------------------------------------------------
 void vtkSegmentationConverterFactory::RegisterConverterRule(vtkSegmentationConverterRule* rule)
 {
-  if (rule==NULL)
+  if (!rule)
   {
-    vtkErrorMacro("vtkSegmentationConverterFactory::RegisterConverterRule failed: invalid input rule");
+    vtkErrorMacro("RegisterConverterRule failed: invalid input rule");
     return;
   }
+
   this->Rules.push_back(rule);
 }
 
@@ -137,14 +137,14 @@ void vtkSegmentationConverterFactory::UnregisterConverterRule(vtkSegmentationCon
 {
   for (RuleListType::iterator ruleIt = this->Rules.begin(); ruleIt != this->Rules.end(); ++ruleIt)
   {
-    if ((*ruleIt).GetPointer()==rule)
+    if (ruleIt->GetPointer() == rule)
     {
-      // found
+      // Found
       this->Rules.erase(ruleIt);
       return;
     }
   }
-  vtkWarningMacro("vtkSegmentationConverterFactory::UnregisterConverterRule failed: rule not found");
+  vtkWarningMacro("UnregisterConverterRule failed: rule not found");
 }
 
 //----------------------------------------------------------------------------

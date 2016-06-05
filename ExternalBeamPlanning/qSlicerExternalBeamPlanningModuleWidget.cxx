@@ -33,16 +33,22 @@
 #include <qSlicerModuleManager.h>
 #include <qSlicerAbstractCoreModule.h>
 
-// ExtensionTemplate Logic includes
-#include <vtkSlicerCLIModuleLogic.h>
+// CLI logic includes
+//#include <vtkSlicerCLIModuleLogic.h>
 
-// SlicerRt includes
+// Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
+
+// Beams includes
 #include "vtkMRMLRTProtonBeamNode.h"
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
-#include "vtkSlicerExternalBeamPlanningModuleLogic.h"
 #include "vtkSlicerBeamsModuleLogic.h"
+
+// ExternalBeamPlanning
+#include "vtkSlicerExternalBeamPlanningModuleLogic.h"
+#include "vtkSlicerDoseEnginePluginHandler.h"
+#include "vtkSlicerAbstractDoseEngine.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -59,6 +65,7 @@
 #include <QDebug>
 #include <QTime>
 #include <QItemSelection>
+#include <QMessageBox>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
@@ -218,15 +225,15 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   connect( d->pushButton_CenterViewToIsocenter, SIGNAL(clicked()), this, SLOT(centerViewToIsocenterClicked()) );
 
   connect( d->MRMLSegmentSelectorWidget_TargetStructure, SIGNAL(currentSegmentChanged(QString)), this, SLOT(targetSegmentChanged(const QString&)) );
-  connect( d->checkBox_IsocetnerAtTargetCenter, SIGNAL(stateChanged(int)), this, SLOT(isocenterAtTargetCenterCheckboxStateChanged(int)));
+  connect( d->checkBox_IsocenterAtTargetCenter, SIGNAL(stateChanged(int)), this, SLOT(isocenterAtTargetCenterCheckboxStateChanged(int)));
 
-  connect( d->comboBox_DoseEngineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(doseEngineTypeChanged(const QString &)) );
+  connect( d->comboBox_DoseEngine, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(doseEngineChanged(const QString&)) );
   connect( d->doubleSpinBox_RxDose, SIGNAL(valueChanged(double)), this, SLOT(rxDoseChanged(double)) );
 
   // Output section
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(doseVolumeNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_DoseROI, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(doseROINodeChanged(vtkMRMLNode*)) );
-  connect( d->lineEdit_DoseGridSpacing, SIGNAL(textChanged(const QString &)), this, SLOT(doseGridSpacingChanged(const QString &)) );
+  connect( d->lineEdit_DoseGridSpacing, SIGNAL(textChanged(const QString&)), this, SLOT(doseGridSpacingChanged(const QString&)) );
 
   // Beams section
   //connect( d->BeamsTableView, SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(beamSelectionChanged(QItemSelection,QItemSelection) ) );
@@ -276,26 +283,30 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
   // in plan node is set to GUI so that the user needs to select nodes that are then set to the beams.
   d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(rtPlanNode->GetReferenceVolumeNode());
   d->MRMLNodeComboBox_PlanSegmentation->setCurrentNode(rtPlanNode->GetSegmentationNode());
+
   if (rtPlanNode->GetPoisMarkupsFiducialNode())
   {
     d->MRMLNodeComboBox_PlanPOIs->setCurrentNode(rtPlanNode->GetPoisMarkupsFiducialNode());
   }
-  d->doubleSpinBox_RxDose->setValue(rtPlanNode->GetRxDose());
-
   if (rtPlanNode->GetOutputTotalDoseVolumeNode())
   {
     d->MRMLNodeComboBox_DoseVolume->setCurrentNode(rtPlanNode->GetOutputTotalDoseVolumeNode());
   }
+
   // Set target segment
   d->MRMLSegmentSelectorWidget_TargetStructure->setCurrentNode(rtPlanNode->GetSegmentationNode());
   d->MRMLSegmentSelectorWidget_TargetStructure->setCurrentSegmentID(rtPlanNode->GetTargetSegmentID());
 
-  // Update isocenter specification //TODO:
-  //d->comboBox_IsocenterSpec->setCurrentIndex(
-  //  (beamNode->GetIsocenterSpecification() == vtkMRMLRTBeamNode::CenterOfTarget ? 0 : 1) );
+  // Update isocenter specification
+  d->checkBox_IsocenterAtTargetCenter->setChecked(rtPlanNode->GetIsocenterSpecification() == vtkMRMLRTPlanNode::CenterOfTarget);
   // Update isocenter controls based on plan isocenter position
   this->updateIsocenterPosition();
 
+  // Populate dose engines combobox
+  this->updateDoseEngines();
+
+  // Set prescription
+  d->doubleSpinBox_RxDose->setValue(rtPlanNode->GetRxDose());
 
   return;
 }
@@ -681,9 +692,24 @@ void qSlicerExternalBeamPlanningModuleWidget::updateIsocenterPosition()
   d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(false);
 }
 
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  d->comboBox_DoseEngine->clear();
+
+  vtkSlicerDoseEnginePluginHandler::DoseEngineListType engines =
+    vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngines();
+  for (vtkSlicerDoseEnginePluginHandler::DoseEngineListType::iterator engineIt = engines.begin();
+    engineIt != engines.end(); ++engineIt)
+  {
+    d->comboBox_DoseEngine->addItem(engineIt->GetPointer()->GetName());
+  }
+}
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::doseEngineTypeChanged(const QString &text)
+void qSlicerExternalBeamPlanningModuleWidget::doseEngineChanged(const QString &text)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -694,18 +720,65 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineTypeChanged(const QStrin
     return;
   }
 
-  if (text.compare("Plastimatch") == 0)
+  // Get selected dose engine
+  vtkSlicerAbstractDoseEngine* selectedEngine =
+    vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngineByName(text.toLatin1().constData());
+  if (!selectedEngine)
   {
-    rtPlanNode->SetDoseEngine(vtkMRMLRTPlanNode::Plastimatch);
+    qCritical() << Q_FUNC_INFO << ": Failed to access dose engine with name" << text;
+    return;
   }
-  else if (text.compare("PMH") == 0)
+
+  // If plan contains beams of type different than the type the newly selected dose engine
+  // uses, then those need to be removed, because they will be incompatible with new engine
+  if (rtPlanNode->GetNumberOfBeams() > 0)
   {
-    rtPlanNode->SetDoseEngine(vtkMRMLRTPlanNode::PMH);
+    vtkMRMLRTBeamNode* newBeamNodeType = selectedEngine->CreateBeamForEngine();
+    bool differentBeamTypePresent = false;
+
+    std::vector<vtkMRMLRTBeamNode*> beams;
+    rtPlanNode->GetBeams(beams);
+    for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
+    {
+      vtkMRMLRTBeamNode* beamNode = (*beamIt);
+      if (strcmp(beamNode->GetClassName(), newBeamNodeType->GetClassName()))
+      {
+        differentBeamTypePresent = true;
+        break;
+      }
+    }
+
+    newBeamNodeType->Delete();
+
+    if (differentBeamTypePresent)
+    {
+      QString message = QString("Beams under the current plan are incompatible with the beam type the selected dose engine called %1 uses!\n\nIn order to switch to this dose engine, existing beams need to be removed!\nDo you want to proceed?")
+        .arg(selectedEngine->GetName() );
+      QMessageBox::StandardButton answer =
+        QMessageBox::question(NULL, tr("Beams incompatible with selected dose engine"), message,
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+      if (answer == QMessageBox::Yes)
+      {
+        for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
+        {
+          rtPlanNode->RemoveBeam(*beamIt);
+        }
+      }
+      else
+      {
+        // Reset selection to previous dose engine
+        d->comboBox_DoseEngine->blockSignals(true);
+        d->comboBox_DoseEngine->setCurrentIndex(d->comboBox_DoseEngine->findText(rtPlanNode->GetDoseEngineName()));
+        d->comboBox_DoseEngine->blockSignals(false);
+      }
+    }
   }
-  else if (text.compare("Matlab") == 0)
-  {
-    rtPlanNode->SetDoseEngine(vtkMRMLRTPlanNode::Matlab);
-  }
+
+  qDebug() << "Dose engine selection changed to " << text;
+
+  rtPlanNode->DisableModifiedEventOn();
+  rtPlanNode->SetDoseEngineName(selectedEngine->GetName());
+  rtPlanNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -765,8 +838,16 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   }
   else
   {
-    //TODO: Create the type of beam specified by the selected dose engine plugin
-    beamNode = vtkMRMLRTProtonBeamNode::New();
+    // Get selected dose engine
+    vtkSlicerAbstractDoseEngine* selectedEngine =
+      vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngineByName(rtPlanNode->GetDoseEngineName());
+    if (!selectedEngine)
+    {
+      qCritical() << Q_FUNC_INFO << ": Failed to access dose engine with name" << (rtPlanNode->GetDoseEngineName() ? rtPlanNode->GetDoseEngineName() : "NULL");
+      return;
+    }
+
+    vtkMRMLRTBeamNode* beamNode = selectedEngine->CreateBeamForEngine();
     beamNode->SetName(rtPlanNode->GenerateNewBeamName().c_str());
     this->mrmlScene()->AddNode(beamNode);
     beamNode->CreateDefaultBeamModel();
@@ -837,13 +918,6 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     return;
   }
   // Make sure inputs were specified
-  if (rtPlanNode->GetDoseEngine() != vtkMRMLRTPlanNode::Plastimatch)
-  {
-    QString errorString("Dose calculation is not available for this dose calculation engine");
-    d->label_CalculateDoseStatus->setText(errorString);
-    qCritical() << Q_FUNC_INFO << ": " << errorString;
-    return;
-  }
   vtkMRMLScalarVolumeNode* referenceVolume = rtPlanNode->GetReferenceVolumeNode();
   if (!referenceVolume)
   {
@@ -855,7 +929,17 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   vtkMRMLSegmentationNode* segmentationNode = rtPlanNode->GetSegmentationNode();
   if (!segmentationNode)
   {
-    QString errorString("No plan segmentation node is selected"); // MD Fix TODO -> dose could be computed without target
+    QString errorString("No plan segmentation node is selected"); //TODO MD Fix -> dose could be computed without target
+    d->label_CalculateDoseStatus->setText(errorString);
+    qCritical() << Q_FUNC_INFO << ": " << errorString;
+    return;
+  }
+  // Get selected dose engine
+  vtkSlicerAbstractDoseEngine* selectedEngine =
+    vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngineByName(rtPlanNode->GetDoseEngineName());
+  if (!selectedEngine)
+  {
+    QString errorString = QString("Failed to access dose engine with name %1").arg(rtPlanNode->GetDoseEngineName());
     d->label_CalculateDoseStatus->setText(errorString);
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
@@ -879,7 +963,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
       QString progressMessage = QString("Dose calculation in progress: %1").arg(beamNode->GetName());
       d->label_CalculateDoseStatus->setText(progressMessage);
 
-      errorMessage = d->logic()->CalculateDose(beamNode);
+      errorMessage = selectedEngine->CalculateDose(beamNode);
       if (!errorMessage.empty())
       {
         d->label_CalculateDoseStatus->setText(QString("ERROR: ") + QString(errorMessage.c_str()));

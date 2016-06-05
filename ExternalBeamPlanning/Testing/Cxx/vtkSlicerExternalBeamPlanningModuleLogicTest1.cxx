@@ -21,6 +21,10 @@
 
 // ExternalBeamPlanning includes
 #include "vtkSlicerExternalBeamPlanningModuleLogic.h"
+#include "vtkSlicerDoseEnginePluginHandler.h"
+#include "vtkSlicerPlastimatchProtonDoseEngine.h"
+
+// Beams includes
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTProtonBeamNode.h"
 
@@ -111,6 +115,7 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
+  // Create logic classes used
   vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic =
     vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
   subjectHierarchyLogic->SetMRMLScene(mrmlScene);
@@ -122,6 +127,10 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   vtkSmartPointer<vtkSlicerExternalBeamPlanningModuleLogic> ebpLogic = 
     vtkSmartPointer<vtkSlicerExternalBeamPlanningModuleLogic>::New();
   ebpLogic->SetMRMLScene(mrmlScene);
+
+  // Register Plastimatch proton dose engine
+  vtkSlicerDoseEnginePluginHandler::GetInstance()->RegisterDoseEngine(
+    vtkSmartPointer<vtkSlicerPlastimatchProtonDoseEngine>::New() );
 
   // Load test scene into temporary scene
   mrmlScene->SetURL(testSceneFileName);
@@ -150,6 +159,16 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   vtkMRMLScalarVolumeNode* doseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(segmentationNodes->GetItemAsObject(0));
 
+  // Get dose engine
+  vtkSlicerPlastimatchProtonDoseEngine* protonDoseEngine = vtkSlicerPlastimatchProtonDoseEngine::SafeDownCast(
+    vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngineByName("Plastimatch proton") );
+  if (!protonDoseEngine)
+  {
+    mrmlScene->Commit();
+    errorStream << "ERROR: Failed to get Plastimatch proton dose engine!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
   // Create plan
   vtkSmartPointer<vtkMRMLRTPlanNode> planNode = vtkSmartPointer<vtkMRMLRTPlanNode>::New();
   planNode->SetName("TestProtonPlan");
@@ -159,7 +178,6 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   planNode->SetAndObserveReferenceVolumeNode(ctVolumeNode);
   planNode->SetAndObserveSegmentationNode(segmentationNode);
   planNode->SetAndObserveOutputTotalDoseVolumeNode(doseVolumeNode);
-  planNode->SetDoseEngine(vtkMRMLRTPlanNode::Plastimatch);
   planNode->SetTargetSegmentID("Tumor_Contour");
   planNode->SetIsocenterToTargetCenter();
 
@@ -189,17 +207,10 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   double checkpointStart = timer->GetUniversalTime();
   UNUSED_VARIABLE(checkpointStart); // Although it is used later, a warning is logged so needs to be suppressed
 
-  // Calculate dose
   std::string errorMessage("");
-  //errorMessage = ebpLogic->InitializeAccumulatedDose(planNode);
-  //if (!errorMessage.empty())
-  //{
-  //  mrmlScene->Commit();
-  //  errorStream << "ERROR: Failed to initialize accumulated dose!" << std::endl;
-  //  return EXIT_FAILURE;
-  //}
 
-  errorMessage = ebpLogic->CalculateDose(firstBeamNode);
+  // Calculate dose
+  errorMessage = protonDoseEngine->CalculateDose(firstBeamNode);
   if (!errorMessage.empty())
   {
     mrmlScene->Commit();

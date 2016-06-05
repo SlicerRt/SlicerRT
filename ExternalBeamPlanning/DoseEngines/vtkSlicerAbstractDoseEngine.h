@@ -28,13 +28,12 @@
 
 #include "vtkSlicerExternalBeamPlanningDoseEnginesExport.h"
 
-// Beams includes
-#include "vtkMRMLRTBeamNode.h"
-
 // VTK includes
 #include "vtkObject.h"
 
 class vtkMRMLScalarVolumeNode;
+class vtkMRMLRTBeamNode;
+class vtkMRMLNode;
 
 /// \ingroup SlicerRt_ExternalBeamPlanning
 /// \brief Abstract dose calculation algorithm that can be used in the
@@ -49,6 +48,12 @@ public:
   vtkTypeMacro(vtkSlicerAbstractDoseEngine, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  /// Create beam node of type the dose engine uses.
+  /// Dose engines need to override this to return beam node of type they use.
+  /// By default it returns a vtkMRMLRTBeamNode.
+  /// Note: Need to take ownership of the created object! For example using vtkSmartPointer<vtkDataObject>::Take
+  virtual vtkMRMLRTBeamNode* CreateBeamForEngine();
+
   /// Perform dose calculation for a single beam
   /// \param Beam node for which the dose is calculated
   /// \return Error message. Empty string on success
@@ -59,6 +64,9 @@ public:
 
   /// Remove intermediate nodes created by the dose engine for a certain beam
   void RemoveIntermediateResults(vtkMRMLRTBeamNode* beamNode);
+
+  /// Get dose engine name
+  vtkGetStringMacro(Name);
 
 protected:
   /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic
@@ -87,6 +95,10 @@ protected:
 private:
   vtkSlicerAbstractDoseEngine(const vtkSlicerAbstractDoseEngine&); // Not implemented
   void operator=(const vtkSlicerAbstractDoseEngine&);         // Not implemented
+
+protected:
+  /// Name of the engine. Must be set in dose engine constructor
+  char* Name;
 };
 
 #endif

@@ -68,9 +68,6 @@ public:
   /// TODO Move to separate logic
   void UpdateDRR(vtkMRMLRTPlanNode* planNode, char* beamName);
 
-  /// Compute dose for one beam
-  std::string CalculateDose(vtkMRMLRTBeamNode* beamNode);
-
   /// TODO
   void ComputeWED();
 
@@ -115,6 +112,7 @@ private:
   vtkSlicerExternalBeamPlanningModuleLogic(const vtkSlicerExternalBeamPlanningModuleLogic&); // Not implemented
   void operator=(const vtkSlicerExternalBeamPlanningModuleLogic&);               // Not implemented
 
+  //TODO: Remove internal class and this member when it becomes empty (Matlab dose engines)
   class vtkInternal;
   vtkInternal* Internal;
 

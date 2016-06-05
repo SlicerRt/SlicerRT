@@ -69,7 +69,7 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 
   this->NextBeamNumber = 1;
 
-  this->DoseEngine = vtkMRMLRTPlanNode::Plastimatch;
+  this->DoseEngineName = NULL;
 
   this->DoseGrid[0] = 0;
   this->DoseGrid[1] = 0;
@@ -80,6 +80,7 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 vtkMRMLRTPlanNode::~vtkMRMLRTPlanNode()
 {
   this->SetTargetSegmentID(NULL);
+  this->SetDoseEngineName(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -94,8 +95,14 @@ void vtkMRMLRTPlanNode::WriteXML(ostream& of, int nIndent)
   {
     of << indent << " TargetSegmentID=\"" << this->TargetSegmentID << "\"";
   }
+  if (this->DoseEngineName != NULL) 
+  {
+    of << indent << " DoseEngineName=\"" << this->DoseEngineName << "\"";
+  }
 
   of << indent << " NextBeamNumber=\"" << (this->NextBeamNumber) << "\"";
+
+  //TODO: Isocenter specification
 }
 
 //----------------------------------------------------------------------------
@@ -121,6 +128,10 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
     {
       this->SetTargetSegmentID(attValue);
     }
+    else if (!strcmp(attName, "DoseEngineName")) 
+    {
+      this->SetDoseEngineName(attValue);
+    }
   }
 }
 
@@ -140,6 +151,7 @@ void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
   this->DisableModifiedEventOn();
 
   this->SetTargetSegmentID(node->TargetSegmentID);
+  this->SetDoseEngineName(node->DoseEngineName);
 
   this->SetIsocenterSpecification(node->GetIsocenterSpecification());
 
@@ -155,6 +167,8 @@ void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
 void vtkMRMLRTPlanNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
+
+  //TODO: Plan parameters
 }
 
 //----------------------------------------------------------------------------

@@ -22,6 +22,7 @@
 #include "vtkSlicerAbstractDoseEngine.h"
 
 // Beams includes
+#include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
 
 // SlicerRT includes
@@ -50,17 +51,31 @@ static const char* RESULT_DOSE_REFERENCE_ROLE = "ResultDoseRef";
 //----------------------------------------------------------------------------
 vtkSlicerAbstractDoseEngine::vtkSlicerAbstractDoseEngine()
 {
+  this->Name = NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerAbstractDoseEngine::~vtkSlicerAbstractDoseEngine()
 {
+  if (this->Name)
+  {
+    delete[] this->Name;
+    this->Name = NULL;
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkSlicerAbstractDoseEngine::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+
+  os << indent << "Name: " << (this->Name ? this->Name : "NULL");
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLRTBeamNode* vtkSlicerAbstractDoseEngine::CreateBeamForEngine()
+{
+  return vtkMRMLRTBeamNode::New();
 }
 
 //----------------------------------------------------------------------------

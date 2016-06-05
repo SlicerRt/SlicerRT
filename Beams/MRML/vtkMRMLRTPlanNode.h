@@ -49,12 +49,6 @@ class vtkMRMLSubjectHierarchyNode;
 class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTPlanNode : public vtkMRMLNode
 {
 public:
-  enum DoseEngineType
-  {
-    Plastimatch = 0,
-    PMH = 1,
-    Matlab = 2
-  };
   enum IsocenterSpecificationType
   {
     CenterOfTarget,
@@ -175,8 +169,10 @@ public:
   /// Set output total dose volume node
   void SetAndObserveOutputTotalDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  void SetDoseEngine(DoseEngineType doseEngineType) { this->DoseEngine = doseEngineType; };
-  DoseEngineType GetDoseEngine() { return this->DoseEngine; };
+  /// Get dose engine name
+  vtkGetStringMacro(DoseEngineName);
+  /// Set dose engine name
+  vtkSetStringMacro(DoseEngineName);
 
   /// Get prescription dose
   vtkGetMacro(RxDose, double);
@@ -210,8 +206,8 @@ protected:
   /// Number of the next beam to be created. Incremented on each new beam addition
   int NextBeamNumber;
 
-  ///TODO:
-  DoseEngineType DoseEngine;
+  /// Name of the selected dose engine
+  char* DoseEngineName;
 
   ///TODO: Allow user to specify dose volume resolution different from reference volume
   /// (currently output dose volume has the same spacing as the reference anatomy)

@@ -192,7 +192,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_IsocetnerAtTargetCenter">
+           <widget class="QCheckBox" name="checkBox_IsocenterAtTargetCenter">
             <property name="minimumSize">
              <size>
               <width>0</width>
@@ -272,28 +272,13 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="comboBox_DoseEngineType">
+             <widget class="QComboBox" name="comboBox_DoseEngine">
               <property name="sizePolicy">
                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <item>
-               <property name="text">
-                <string>Plastimatch</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>PMH</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Matlab</string>
-               </property>
-              </item>
              </widget>
             </item>
            </layout>
