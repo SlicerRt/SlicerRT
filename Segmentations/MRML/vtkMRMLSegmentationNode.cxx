@@ -1226,24 +1226,21 @@ void vtkMRMLSegmentationNode::ShiftVolumeNodeExtentToZeroStart(vtkMRMLScalarVolu
     return;
   }
 
-  double origin[3] = {0.0,0.0,0.0};
-  volumeNode->GetOrigin(origin);
-  double spacing[3] = {0.0,0.0,0.0};
-  volumeNode->GetSpacing(spacing);
-  // Need to apply directions on spacing
-  vtkSmartPointer<vtkMatrix4x4> volumeNodeIjkToRasDirectionMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  volumeNode->GetIJKToRASDirectionMatrix(volumeNodeIjkToRasDirectionMatrix);
+  // Shift the origin to the extent's start
+  vtkSmartPointer<vtkMatrix4x4> volumeNodeIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  volumeNode->GetIJKToRASMatrix(volumeNodeIjkToRasMatrix);
+  double shiftedOrigin_IJK[4] = { extent[0], extent[2], extent[4], 1 };
+  double shiftedOrigin_RAS[4] = { 0, 0, 0, 1 };
+  volumeNodeIjkToRasMatrix->MultiplyPoint(shiftedOrigin_IJK, shiftedOrigin_RAS);
+  volumeNode->SetOrigin(shiftedOrigin_RAS);
 
   for (int i=0; i<3; ++i)
   {
-    spacing[i] *= volumeNodeIjkToRasDirectionMatrix->GetElement(i,i);
-    origin[i] += extent[2*i] * spacing[i];
     extent[2*i+1] -= extent[2*i];
     extent[2*i] = 0;
   }
-
   imageData->SetExtent(extent);
-  volumeNode->SetOrigin(origin);
+
 }
 
 //---------------------------------------------------------------------------
