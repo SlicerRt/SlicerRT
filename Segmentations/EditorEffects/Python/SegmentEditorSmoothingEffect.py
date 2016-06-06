@@ -27,7 +27,7 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     return qt.QIcon()
 
   def helpText(self):
-    return "Smooth a selected segment"
+    return "Smooth a selected segment."
 
   def activate(self):
     self.updateGUIFromMRML()
@@ -39,27 +39,33 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
 
     self.methodSelectorComboBox = qt.QComboBox()
     self.methodSelectorComboBox.addItem("Median", MEDIAN)
+    self.methodSelectorComboBox.addItem("Opening (remove extrusions)", MORPHOLOGICAL_OPENING)
+    self.methodSelectorComboBox.addItem("Closing (fill holes)", MORPHOLOGICAL_CLOSING)
     self.methodSelectorComboBox.addItem("Gaussian", GAUSSIAN)
+
     self.scriptedEffect.addLabeledOptionsWidget("Smoothing method:", self.methodSelectorComboBox)
+   
+    self.kernelSizeMmSpinBox = slicer.qMRMLSpinBox()
+    self.kernelSizeMmSpinBox.setToolTip("Size of the nieghborhood that will be considered around each voxel to determine if that voxel will be included in the smoothed output. Higher value makes smoothing stronger (more details are suppressed).")
+    self.kernelSizeMmSpinBox.quantity = "length"
+    self.kernelSizeMmSpinBox.value = 3
+    self.kernelSizeMmLabel = self.scriptedEffect.addLabeledOptionsWidget("Kernel size:", self.kernelSizeMmSpinBox)
 
-    self.medianKernelSizeRadiusPixelSpinBox = qt.QDoubleSpinBox()
-    self.medianKernelSizeRadiusPixelSpinBox.setToolTip("Kernel size in physical unit (typically mm)")
-    self.medianKernelSizeRadiusPixelSpinBox.minimum = 1
-    self.medianKernelSizeRadiusPixelSpinBox.maximum = 10
-    self.medianKernelSizeRadiusPixelSpinBox.singleStep = 1
-    self.medianKernelSizeRadiusPixelSpinBox.value = 3
-    self.medianKernelSizeRadiusPixelLabel = self.scriptedEffect.addLabeledOptionsWidget("Kernel size:", self.medianKernelSizeRadiusPixelSpinBox)
+    self.gaussianStandardDeviationMmSpinBox = slicer.qMRMLSpinBox()
+    self.gaussianStandardDeviationMmSpinBox.setToolTip("Standard deviatiRadius of the region where median value will be computed around each voxel. Higher value makes smoothing stronger (more details are suppressed).")
+    self.gaussianStandardDeviationMmSpinBox.quantity = "length"
+    self.gaussianStandardDeviationMmSpinBox.value = 3
+    self.gaussianStandardDeviationMmLabel = self.scriptedEffect.addLabeledOptionsWidget("Standard deviation:", self.gaussianStandardDeviationMmSpinBox)
 
+    
     self.applyButton = qt.QPushButton("Apply")
     self.applyButton.objectName = self.__class__.__name__ + 'Apply'
     self.applyButton.setToolTip("Apply current threshold settings to the label map.")
     self.scriptedEffect.addOptionsWidget(self.applyButton)
 
-    # itemIndex = self.methodSelectorComboBox.findData(probePositionId)
-    # self.methodSelectorComboBox.setItemData(itemIndex, probePositionPreset['description'], qt.Qt.ToolTipRole)
-
     self.methodSelectorComboBox.connect("currentIndexChanged(int)", self.updateMRMLFromGUI)
-    self.medianKernelSizeRadiusPixelSpinBox.connect("valueChanged(double)", self.updateMRMLFromGUI)
+    self.kernelSizeMmSpinBox.connect("valueChanged(double)", self.updateMRMLFromGUI)
+    self.gaussianStandardDeviationMmSpinBox.connect("valueChanged(double)", self.updateMRMLFromGUI)
     self.applyButton.connect('clicked()', self.onApply)
 
   def createCursor(self, widget):
@@ -68,48 +74,48 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
 
   def setMRMLDefaults(self):
     self.scriptedEffect.setParameter("SmoothingMethod", MEDIAN)
-    self.scriptedEffect.setParameter("MedianKernelSizeMm", 3)
+    self.scriptedEffect.setParameter("KernelSizeMm", 3)
+    self.scriptedEffect.setParameter("GaussianStandardDeviationMm", 3)    
 
+  def updateParameterWidgetsVisibility(self):
+    methodIndex = self.methodSelectorComboBox.currentIndex
+    smoothingMethod = self.methodSelectorComboBox.itemData(methodIndex)
+    self.kernelSizeMmLabel.setVisible(smoothingMethod!=GAUSSIAN)
+    self.kernelSizeMmSpinBox.setVisible(smoothingMethod!=GAUSSIAN)    
+    self.gaussianStandardDeviationMmLabel.setVisible(smoothingMethod==GAUSSIAN)
+    self.gaussianStandardDeviationMmSpinBox.setVisible(smoothingMethod==GAUSSIAN)    
+    
   def updateGUIFromMRML(self):
-    smoothingMethod = self.scriptedEffect.parameter("SmoothingMethod")
-    methodIndex = self.methodSelectorComboBox.findData(smoothingMethod)
+    methodIndex = self.methodSelectorComboBox.findData(self.scriptedEffect.parameter("SmoothingMethod"))
     wasBlocked = self.methodSelectorComboBox.blockSignals(True)
     self.methodSelectorComboBox.setCurrentIndex(methodIndex)
     self.methodSelectorComboBox.blockSignals(wasBlocked)
-
-    editedLabelmapSpacing = [1.0, 1.0, 1.0]
-    editedLabelmap = self.scriptedEffect.editedLabelmap()
-    if editedLabelmap:
-      editedLabelmapSpacing = editedLabelmap.GetSpacing()
-
-    wasBlocked = self.medianKernelSizeRadiusPixelSpinBox.blockSignals(True)
-    minimumSpacing = min(editedLabelmapSpacing)
-    self.medianKernelSizeRadiusPixelSpinBox.minimum = minimumSpacing
-    self.medianKernelSizeRadiusPixelSpinBox.singleStep = minimumSpacing*2
-    self.medianKernelSizeRadiusPixelSpinBox.value = minimumSpacing*5
-    self.medianKernelSizeRadiusPixelSpinBox.maximum = minimumSpacing*50
-    self.medianKernelSizeRadiusPixelSpinBox.singleStep = minimumSpacing
-    medianKernelSizeRoundedToMultipleOfMinimumSpacing = round(self.medianKernelSizeRadiusPixelSpinBox.value/minimumSpacing)*minimumSpacing
-    if medianKernelSizeRoundedToMultipleOfMinimumSpacing < minimumSpacing:
-      medianKernelSizeRoundedToMultipleOfMinimumSpacing = minimumSpacing
-    self.medianKernelSizeRadiusPixelSpinBox.value = medianKernelSizeRoundedToMultipleOfMinimumSpacing
-    self.medianKernelSizeRadiusPixelSpinBox.blockSignals(wasBlocked)
-
-    self.medianKernelSizeRadiusPixelLabel.setVisible(smoothingMethod==MEDIAN)
-    self.medianKernelSizeRadiusPixelSpinBox.setVisible(smoothingMethod==MEDIAN)
-
+   
+    wasBlocked = self.kernelSizeMmSpinBox.blockSignals(True)
+    self.kernelSizeMmSpinBox.value = self.scriptedEffect.doubleParameter("KernelSizeMm")
+    self.kernelSizeMmSpinBox.blockSignals(wasBlocked)
+  
+    wasBlocked = self.gaussianStandardDeviationMmSpinBox.blockSignals(True)
+    self.gaussianStandardDeviationMmSpinBox.value = self.scriptedEffect.doubleParameter("GaussianStandardDeviationMm")
+    self.gaussianStandardDeviationMmSpinBox.blockSignals(wasBlocked)
+    
+    self.updateParameterWidgetsVisibility()
 
   def updateMRMLFromGUI(self):
     methodIndex = self.methodSelectorComboBox.currentIndex
     smoothingMethod = self.methodSelectorComboBox.itemData(methodIndex)
     self.scriptedEffect.setParameter("SmoothingMethod", smoothingMethod)
-    self.scriptedEffect.setParameter("MedianKernelSizeMm", self.medianKernelSizeRadiusPixelSpinBox.value)
-
+    self.scriptedEffect.setParameter("KernelSizeMm", self.kernelSizeMmSpinBox.value)
+    self.scriptedEffect.setParameter("GaussianStandardDeviationMm", self.gaussianStandardDeviationMmSpinBox.value)
+    
+    self.updateParameterWidgetsVisibility()
+    
   #
   # Effect specific methods (the above ones are the API methods to override)
   #
   def editedLabelmapChanged(self):
-    self.updateGUIFromMRML()
+    #self.updateGUIFromMRML()
+    pass
 
   def onApply(self):
     try:
@@ -117,28 +123,76 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
       import vtkSegmentationCorePython
       # Get edited labelmap
       editedLabelmap = self.scriptedEffect.editedLabelmap()
-      #originalImageToWorldMatrix = vtk.vtkMatrix4x4()
-      #editedLabelmap.GetImageToWorldMatrix(originalImageToWorldMatrix)
-      #originalExtent = editedLabelmap.GetExtent()
 
       selectedSegmentLabelmap = self.scriptedEffect.selectedSegmentLabelmap()
       selectedSegmentLabelmapSpacing = [1.0, 1.0, 1.0]
       if editedLabelmap:
         selectedSegmentLabelmapSpacing = editedLabelmap.GetSpacing()
-      medianKernelSizeMm = self.scriptedEffect.doubleParameter("MedianKernelSizeMm")
-      # size rounded to nearest odd number. If kernel size is even then image gets shifted.
-      medianKernelSizePixel = [int(round((medianKernelSizeMm / selectedSegmentLabelmapSpacing[componentIndex]+1)/2)*2-1) for componentIndex in range(3)]
 
       # Save state for undo
       #TODO:
       #self.undoRedo.saveState()
 
-      # Perform thresholding
-      medianFilter = vtk.vtkImageMedian3D()
-      medianFilter.SetInputData(selectedSegmentLabelmap)
-      medianFilter.SetKernelSize(medianKernelSizePixel[0],medianKernelSizePixel[1],medianKernelSizePixel[2])
-      medianFilter.Update()
-      editedLabelmap.DeepCopy(medianFilter.GetOutput())
+      smoothingMethod = self.scriptedEffect.parameter("SmoothingMethod")
+           
+      if smoothingMethod == GAUSSIAN:
+        maxValue = 255
+      
+        thresh = vtk.vtkImageThreshold()
+        thresh.SetInputData(selectedSegmentLabelmap)
+        thresh.ThresholdByLower(0)
+        thresh.SetInValue(0)
+        thresh.SetOutValue(maxValue)
+        thresh.SetOutputScalarType(vtk.VTK_UNSIGNED_CHAR)
+
+        standardDeviationMm = self.scriptedEffect.doubleParameter("GaussianStandardDeviationMm")
+        gaussianFilter = vtk.vtkImageGaussianSmooth()
+        gaussianFilter.SetInputConnection(thresh.GetOutputPort())
+        gaussianFilter.SetStandardDeviation(standardDeviationMm)
+        gaussianFilter.SetRadiusFactor(4)
+        
+        thresh2 = vtk.vtkImageThreshold()
+        thresh2.SetInputConnection(gaussianFilter.GetOutputPort())
+        thresh2.ThresholdByUpper(maxValue/2)
+        thresh2.SetInValue(1)
+        thresh2.SetOutValue(0)
+        thresh2.SetOutputScalarType(selectedSegmentLabelmap.GetScalarType())
+        thresh2.Update()
+        editedLabelmap.DeepCopy(thresh2.GetOutput())
+        
+      else:
+        kernelSizeMm = self.scriptedEffect.doubleParameter("KernelSizeMm")
+        # size rounded to nearest odd number. If kernel size is even then image gets shifted.
+        kernelSizePixel = [int(round((kernelSizeMm / selectedSegmentLabelmapSpacing[componentIndex]+1)/2)*2-1) for componentIndex in range(3)]
+        
+        if smoothingMethod == MEDIAN:
+          # Median filter does not require a particular label value
+          smoothingFilter = vtk.vtkImageMedian3D()
+          smoothingFilter.SetInputData(selectedSegmentLabelmap)
+
+        else:
+          # We need to know exactly the value of the segment voxels, apply threshold to make force the selected label value
+          labelValue = 1
+          thresh = vtk.vtkImageThreshold()
+          thresh.SetInputData(selectedSegmentLabelmap)
+          thresh.ThresholdByLower(0)
+          thresh.SetInValue(0)
+          thresh.SetOutValue(labelValue)
+          thresh.SetOutputScalarType(selectedSegmentLabelmap.GetScalarType())
+          
+          smoothingFilter = vtk.vtkImageOpenClose3D()
+          smoothingFilter.SetInputConnection(thresh.GetOutputPort())
+          if smoothingMethod == MORPHOLOGICAL_OPENING:
+            smoothingFilter.SetOpenValue(labelValue)
+            smoothingFilter.SetCloseValue(0)
+          else: # must be smoothingMethod == MORPHOLOGICAL_CLOSING:
+            smoothingFilter.SetOpenValue(0)
+            smoothingFilter.SetCloseValue(labelValue)
+
+        smoothingFilter.SetKernelSize(kernelSizePixel[0],kernelSizePixel[1],kernelSizePixel[2])
+        smoothingFilter.Update()
+        editedLabelmap.DeepCopy(smoothingFilter.GetOutput())
+        
     except IndexError:
       logging.error('apply: Failed to threshold master volume!')
       pass
@@ -151,3 +205,5 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
 
 MEDIAN = 'MEDIAN'
 GAUSSIAN = 'GAUSSIAN'
+MORPHOLOGICAL_OPENING = 'MORPHOLOGICAL_OPENING'
+MORPHOLOGICAL_CLOSING = 'MORPHOLOGICAL_CLOSING'

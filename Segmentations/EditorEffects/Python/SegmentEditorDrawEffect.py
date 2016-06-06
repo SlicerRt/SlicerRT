@@ -13,10 +13,8 @@ class SegmentEditorDrawEffect(AbstractScriptedSegmentEditorLabelEffect):
 
   def __init__(self, scriptedEffect):
     scriptedEffect.name = 'Draw'
-    AbstractScriptedSegmentEditorLabelEffect.__init__(self, scriptedEffect)
-
-    # Effect-specific members
     self.drawPipelines = {}
+    AbstractScriptedSegmentEditorLabelEffect.__init__(self, scriptedEffect)
 
   def clone(self):
     import qSlicerSegmentationsEditorEffectsPythonQt as effects
