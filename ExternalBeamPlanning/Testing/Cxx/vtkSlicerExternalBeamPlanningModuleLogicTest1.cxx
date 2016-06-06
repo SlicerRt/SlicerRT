@@ -180,6 +180,7 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   planNode->SetAndObserveOutputTotalDoseVolumeNode(doseVolumeNode);
   planNode->SetTargetSegmentID("Tumor_Contour");
   planNode->SetIsocenterToTargetCenter();
+  planNode->SetDoseEngineName(protonDoseEngine->GetName());
 
   // Add first beam
   vtkSmartPointer<vtkMRMLRTProtonBeamNode> firstBeamNode = vtkSmartPointer<vtkMRMLRTProtonBeamNode>::New();
@@ -210,7 +211,7 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   std::string errorMessage("");
 
   // Calculate dose
-  errorMessage = protonDoseEngine->CalculateDose(firstBeamNode);
+  errorMessage = protonDoseEngine->CalculateDose(firstBeamNode); //TODO: Use logic instead
   if (!errorMessage.empty())
   {
     mrmlScene->Commit();
