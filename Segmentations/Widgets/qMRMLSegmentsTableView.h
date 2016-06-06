@@ -23,11 +23,11 @@
 #ifndef __qMRMLSegmentsTableView_h
 #define __qMRMLSegmentsTableView_h
 
-// Qt includes
-#include <QWidget>
+// Segmentations includes
+#include "qSlicerSegmentationsModuleWidgetsExport.h"
 
 // MRMLWidgets includes
-#include "qSlicerSegmentationsModuleWidgetsExport.h"
+#include "qMRMLWidget.h"
 
 // CTK includes
 #include <ctkPimpl.h>
@@ -39,7 +39,7 @@ class QTableWidgetItem;
 class QItemSelection;
 
 /// \ingroup SlicerRt_QtModules_Segmentations_Widgets
-class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qMRMLSegmentsTableView : public QWidget
+class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qMRMLSegmentsTableView : public qMRMLWidget
 {
   Q_OBJECT
   QVTK_OBJECT
@@ -69,6 +69,7 @@ public:
   Q_PROPERTY(int mode READ mode WRITE setMode)
 
 public:
+  typedef qMRMLWidget Superclass;
   /// Constructor
   explicit qMRMLSegmentsTableView(QWidget* parent = 0);
   /// Destructor
@@ -108,6 +109,8 @@ public slots:
   /// Set representation MRML node (model or labelmap volume MRML node for import/export)
   void setRepresentationNode(vtkMRMLNode* node);
 
+  virtual void setMRMLScene(vtkMRMLScene* newScene);
+
 signals:
   /// Emitted if selection changes
   void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
@@ -127,6 +130,9 @@ protected slots:
 
   /// Update from segmentation node state (invoked when segment count stays the same)
   void updateWidgetFromMRML();
+
+  // Handle MRML scene event
+  void endProcessing();
 
 protected:
   /// Convenience function to set segment visibility options from event handlers

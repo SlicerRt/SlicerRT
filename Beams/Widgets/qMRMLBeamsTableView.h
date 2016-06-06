@@ -23,11 +23,11 @@
 #ifndef __qMRMLBeamsTableView_h
 #define __qMRMLBeamsTableView_h
 
-// Qt includes
-#include <QWidget>
+// Beams includes
+#include "qSlicerBeamsModuleWidgetsExport.h"
 
 // MRMLWidgets includes
-#include "qSlicerBeamsModuleWidgetsExport.h"
+#include "qMRMLWidget.h"
 
 // CTK includes
 #include <ctkPimpl.h>
@@ -39,7 +39,7 @@ class QTableWidgetItem;
 class QItemSelection;
 
 /// \ingroup SlicerRt_QtModules_Beams_Widgets
-class Q_SLICER_MODULE_BEAMS_WIDGETS_EXPORT qMRMLBeamsTableView : public QWidget
+class Q_SLICER_MODULE_BEAMS_WIDGETS_EXPORT qMRMLBeamsTableView : public qMRMLWidget
 {
   Q_OBJECT
   QVTK_OBJECT
@@ -51,6 +51,7 @@ class Q_SLICER_MODULE_BEAMS_WIDGETS_EXPORT qMRMLBeamsTableView : public QWidget
   };
 
 public:
+  typedef qMRMLWidget Superclass;
   /// Constructor
   explicit qMRMLBeamsTableView(QWidget* parent = 0);
   /// Destructor

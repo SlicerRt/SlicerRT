@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>654</height>
+    <width>358</width>
+    <height>502</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -557,6 +557,12 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>qMRMLWidget</class>
+   <extends>QWidget</extends>
+   <header>qMRMLWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>qSlicerWidget</class>
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
@@ -564,7 +570,7 @@
   </customwidget>
   <customwidget>
    <class>qMRMLSegmentsTableView</class>
-   <extends>QWidget</extends>
+   <extends>qMRMLWidget</extends>
    <header>qMRMLSegmentsTableView.h</header>
   </customwidget>
   <customwidget>
@@ -621,8 +627,24 @@
      <y>3</y>
     </hint>
     <hint type="destinationlabel">
-     <x>390</x>
-     <y>358</y>
+     <x>535</x>
+     <y>510</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerSegmentationsModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>SegmentsTableView</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>93</x>
+     <y>3</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>103</y>
     </hint>
    </hints>
   </connection>

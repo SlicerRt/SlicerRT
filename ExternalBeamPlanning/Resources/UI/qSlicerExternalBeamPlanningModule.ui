@@ -532,7 +532,7 @@
   </customwidget>
   <customwidget>
    <class>qMRMLBeamsTableView</class>
-   <extends>QWidget</extends>
+   <extends>qMRMLWidget</extends>
    <header>qMRMLBeamsTableView.h</header>
   </customwidget>
   <customwidget>

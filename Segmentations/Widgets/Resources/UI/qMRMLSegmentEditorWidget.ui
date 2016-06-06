@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>429</width>
-    <height>536</height>
+    <width>382</width>
+    <height>452</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -138,7 +138,7 @@
     </layout>
    </item>
    <item>
-    <widget class="qMRMLSegmentsTableView" name="SegmentsTableView" native="true"/>
+    <widget class="qMRMLSegmentsTableView" name="SegmentsTableView"/>
    </item>
    <item>
     <widget class="QGroupBox" name="EffectsGroupBox">
@@ -318,6 +318,11 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>qMRMLSegmentsTableView</class>
+   <extends>qMRMLWidget</extends>
+   <header>qMRMLSegmentsTableView.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkCheckBox</class>
    <extends>QCheckBox</extends>
    <header>ctkCheckBox.h</header>
@@ -332,11 +337,6 @@
    <class>ctkRangeWidget</class>
    <extends>QWidget</extends>
    <header>ctkRangeWidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>qMRMLSegmentsTableView</class>
-   <extends>QWidget</extends>
-   <header>qMRMLSegmentsTableView.h</header>
   </customwidget>
  </customwidgets>
  <resources>
@@ -398,12 +398,28 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>235</x>
-     <y>324</y>
+     <x>374</x>
+     <y>454</y>
     </hint>
     <hint type="destinationlabel">
-     <x>174</x>
-     <y>357</y>
+     <x>179</x>
+     <y>506</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qMRMLSegmentEditorWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>SegmentsTableView</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>78</x>
+     <y>2</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>86</x>
+     <y>148</y>
     </hint>
    </hints>
   </connection>

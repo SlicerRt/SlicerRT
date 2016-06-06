@@ -31,8 +31,12 @@
 #include "vtkSegment.h"
 
 // MRML includes
+#include <vtkMRMLScene.h>
 #include <vtkMRMLLabelMapVolumeNode.h>
 #include <vtkMRMLModelNode.h>
+
+// VTK includes
+#include <vtkWeakPointer.h>
 
 // Qt includes
 #include <QAction>
@@ -69,10 +73,10 @@ public:
 
 public:
   /// Segmentation MRML node containing shown segments
-  vtkMRMLSegmentationNode* SegmentationNode;
+  vtkWeakPointer<vtkMRMLSegmentationNode> SegmentationNode;
 
   /// Model or labelmap volume MRML node containing a representation (for import/export)
-  vtkMRMLDisplayableNode* RepresentationNode;
+  vtkWeakPointer<vtkMRMLDisplayableNode> RepresentationNode;
 
   /// Mode of segment table. See modes \sa SegmentTableMode
   qMRMLSegmentsTableView::SegmentTableMode Mode;
@@ -87,9 +91,9 @@ private:
 //-----------------------------------------------------------------------------
 qMRMLSegmentsTableViewPrivate::qMRMLSegmentsTableViewPrivate(qMRMLSegmentsTableView& object)
   : q_ptr(&object)
+  , SegmentationNode(NULL)
+  , RepresentationNode(NULL)
 {
-  this->SegmentationNode = NULL;
-  this->RepresentationNode = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -180,7 +184,7 @@ QTableWidgetItem* qMRMLSegmentsTableViewPrivate::findItemBySegmentID(QString seg
 
 //-----------------------------------------------------------------------------
 qMRMLSegmentsTableView::qMRMLSegmentsTableView(QWidget* _parent)
-  : QWidget(_parent)
+  : qMRMLWidget(_parent)
   , d_ptr(new qMRMLSegmentsTableViewPrivate(*this))
 {
   Q_D(qMRMLSegmentsTableView);
@@ -237,8 +241,28 @@ void qMRMLSegmentsTableView::setRepresentationNode(vtkMRMLNode* node)
     this->setSegmentationNode(NULL);
     }
 
-  d->RepresentationNode = (labelmapNode ? (vtkMRMLDisplayableNode*)labelmapNode : (vtkMRMLDisplayableNode*)modelNode);
+  d->RepresentationNode = ( (labelmapNode ? (vtkMRMLDisplayableNode*)labelmapNode : (vtkMRMLDisplayableNode*)modelNode) );
+
   this->populateSegmentTable();
+}
+
+//---------------------------------------------------------------------------
+void qMRMLSegmentsTableView::setMRMLScene(vtkMRMLScene* newScene)
+{
+  Q_D(qMRMLSegmentsTableView);
+  if (newScene == this->mrmlScene())
+    {
+    return;
+    }
+
+  this->qvtkReconnect(this->mrmlScene(), newScene, vtkMRMLScene::EndBatchProcessEvent, this, SLOT(endProcessing()));
+
+  if (d->SegmentationNode && newScene != d->SegmentationNode->GetScene())
+    {
+    this->setSegmentationNode(NULL);
+    }
+
+  Superclass::setMRMLScene(newScene);
 }
 
 //-----------------------------------------------------------------------------
@@ -329,6 +353,7 @@ void qMRMLSegmentsTableView::populateSegmentTable()
   // Block signals so that onSegmentTableItemChanged function is not called when populating
   d->SegmentsTable->blockSignals(true);
 
+  // Clear table so that it can be populated
   d->SegmentsTable->clearContents();
 
   // Show node name and type if representation node
@@ -496,7 +521,7 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
     QTableWidgetItem* nameItem = d->findItemBySegmentID(segmentIt->first.c_str());
     if (!nameItem)
       {
-      qCritical() << Q_FUNC_INFO << ": Cannot find table item correspondig to segment ID '" << segmentIt->first.c_str() << " in segmentation node " << d->SegmentationNode->GetName();
+      qCritical() << Q_FUNC_INFO << ": Cannot find table item corresponding to segment ID '" << segmentIt->first.c_str() << " in segmentation node " << d->SegmentationNode->GetName();
       continue;
       }
     int row = nameItem->row();
@@ -815,8 +840,8 @@ void qMRMLSegmentsTableView::setSelectedSegmentIDs(QStringList segmentIDs)
     QTableWidgetItem* segmentItem = d->findItemBySegmentID(segmentID);
     if (!segmentItem)
       {
-      qCritical() << Q_FUNC_INFO << ": Cannot find table item correspondig to segment ID '" << segmentID << " in segmentation node "
-        << (d->SegmentationNode->GetName()?d->SegmentationNode->GetName():"(undefined)");
+      qCritical() << Q_FUNC_INFO << ": Cannot find table item corresponding to segment ID '" << segmentID << " in segmentation node "
+        << (d->SegmentationNode->GetName() ? d->SegmentationNode->GetName() : "(undefined)");
       continue;
       }
 
@@ -865,4 +890,10 @@ bool qMRMLSegmentsTableView::eventFilter(QObject* target, QEvent* event)
     }
   }
   return this->QWidget::eventFilter(target, event);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLSegmentsTableView::endProcessing()
+{
+  this->populateSegmentTable();
 }

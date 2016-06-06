@@ -26,6 +26,9 @@
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
 
+// VTK includes
+#include <vtkWeakPointer.h>
+
 // Qt includes
 #include <QDebug>
 #include <QKeyEvent>
@@ -59,7 +62,7 @@ public:
 
 public:
   /// RT plan MRML node containing shown beams
-  vtkMRMLRTPlanNode* PlanNode;
+  vtkWeakPointer<vtkMRMLRTPlanNode> PlanNode;
 
 private:
   QStringList ColumnLabels;
@@ -148,7 +151,7 @@ QTableWidgetItem* qMRMLBeamsTableViewPrivate::findItemByBeamNodeID(QString beamN
 
 //-----------------------------------------------------------------------------
 qMRMLBeamsTableView::qMRMLBeamsTableView(QWidget* _parent)
-  : QWidget(_parent)
+  : qMRMLWidget(_parent)
   , d_ptr(new qMRMLBeamsTableViewPrivate(*this))
 {
   Q_D(qMRMLBeamsTableView);
