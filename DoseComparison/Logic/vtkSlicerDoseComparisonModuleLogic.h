@@ -74,9 +74,6 @@ public:
   vtkSetStringMacro(DefaultGammaColorTableNodeId);
   vtkGetStringMacro(DefaultGammaColorTableNodeId);
 
-  vtkGetMacro(Progress, double);
-  vtkSetMacro(Progress, double);
-
 protected:
   vtkSlicerDoseComparisonModuleLogic();
   virtual ~vtkSlicerDoseComparisonModuleLogic();
@@ -101,9 +98,6 @@ protected:
 
   /// Default gamma color table ID. Loaded on Slicer startup.
   char* DefaultGammaColorTableNodeId;
-
-  /// Progress value (between 0 and 1)
-  double Progress;
 };
 
 #endif

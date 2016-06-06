@@ -297,6 +297,59 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ProcessMRMLNodesEvents(vtkObject*
 }
 
 //---------------------------------------------------------------------------
+vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CreateBeamInPlan(vtkMRMLRTPlanNode* planNode)
+{
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("CreateBeamInPlan: Invalid MRML scene!");
+    return NULL;
+  }
+  if (!planNode)
+  {
+    vtkErrorMacro("CreateBeamInPlan: Invalid copied beam node or plan node!");
+    return NULL;
+  }
+  if (!this->BeamsLogic)
+  {
+    vtkErrorMacro("CreateBeamInPlan: Invalid beams logic!");
+    return NULL;
+  }
+
+  // Get dose engine for plan
+  vtkSlicerAbstractDoseEngine* doseEngine =
+    vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngineByName(planNode->GetDoseEngineName());
+  if (!doseEngine)
+  {
+    vtkErrorMacro("CreateBeamInPlan: Failed to access dose engine with name " << (planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL"));
+    return NULL;
+  }
+
+  // Create beam using engine
+  vtkMRMLRTBeamNode* beamNode = doseEngine->CreateBeamForEngine();
+  if (!beamNode)
+  {
+    vtkErrorMacro("CreateBeamInPlan: Failed to create beam with dose engine " << planNode->GetDoseEngineName());
+    return NULL;
+  }
+  
+  // Add to scene
+  beamNode->SetName(planNode->GenerateNewBeamName().c_str());
+  this->GetMRMLScene()->AddNode(beamNode);
+  beamNode->Delete(); // Return ownership to scene only
+
+  // Create default beam model
+  beamNode->CreateDefaultBeamModel();
+
+  // Add beam to plan
+  planNode->AddBeam(beamNode);
+
+  this->BeamsLogic->UpdateBeamTransform(beamNode);
+  this->BeamsLogic->UpdateBeamGeometry(beamNode);
+
+  return beamNode;
+}
+
+//---------------------------------------------------------------------------
 vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CopyAndAddBeamToPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode)
 {
   if (!this->GetMRMLScene())
@@ -307,6 +360,11 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CopyAndAddBeamToPla
   if (!copiedBeamNode || !planNode)
   {
     vtkErrorMacro("CopyAndAddBeamToPlan: Invalid copied beam node or plan node!");
+    return NULL;
+  }
+  if (!this->BeamsLogic)
+  {
+    vtkErrorMacro("CopyAndAddBeamToPlan: Invalid beams logic!");
     return NULL;
   }
 
@@ -332,6 +390,10 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CopyAndAddBeamToPla
 
   // Add beam to plan
   planNode->AddBeam(beamNode);
+
+  // Update beam visualization
+  this->BeamsLogic->UpdateBeamTransform(beamNode);
+  this->BeamsLogic->UpdateBeamGeometry(beamNode);
 
   return beamNode;
 }
@@ -717,6 +779,68 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(vtkMRM
 #endif
 
   return "Matlab dose engine unavailable";
+}
+
+//---------------------------------------------------------------------------
+std::string vtkSlicerExternalBeamPlanningModuleLogic::CalculateDose(vtkMRMLRTPlanNode* planNode)
+{
+  std::string errorMessage("");
+  if (!this->GetMRMLScene() || !planNode)
+  {
+    errorMessage = std::string("Invalid MRML scene or RT plan node");
+    vtkErrorMacro("CalculateDose: " << errorMessage);
+    return errorMessage;
+  }
+
+  // Get selected dose engine
+  vtkSlicerAbstractDoseEngine* selectedEngine =
+    vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngineByName(planNode->GetDoseEngineName());
+  if (!selectedEngine)
+  {
+    errorMessage = std::string("Unable to access dose engine with name ") + (planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL");
+    vtkErrorMacro("CalculateDose: " << errorMessage);
+    return errorMessage;
+  }
+
+  // Calculate dose for each beam under the plan
+  std::vector<vtkMRMLRTBeamNode*> beams;
+  planNode->GetBeams(beams);
+  int numberOfBeams = beams.size();
+  int currentBeamIndex = 0;
+
+  for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt, ++currentBeamIndex)
+  {
+    vtkMRMLRTBeamNode* beamNode = (*beamIt);
+    if (beamNode)
+    {
+      double progress = (double)(currentBeamIndex / numberOfBeams+1);
+      this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
+
+      // Calculate dose for current beam
+      errorMessage = selectedEngine->CalculateDose(beamNode);
+      if (!errorMessage.empty())
+      {
+        vtkErrorMacro("CalculateDose: " << errorMessage);
+        return errorMessage;
+      }
+    }
+    else
+    {
+      errorMessage = std::string("Invalid beam!");
+      vtkErrorMacro("CalculateDose: " << errorMessage);
+      return errorMessage;
+    }
+  }
+  
+  // Accumulate calculated per-beam dose distributions into the total dose volume
+  errorMessage = this->CreateAccumulatedDose(planNode);
+  if (!errorMessage.empty())
+  {
+    vtkErrorMacro("CalculateDose: " << errorMessage);
+    return errorMessage;
+  }
+
+  return "";
 }
 
 //---------------------------------------------------------------------------

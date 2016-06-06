@@ -838,21 +838,7 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   }
   else
   {
-    // Get selected dose engine
-    vtkSlicerAbstractDoseEngine* selectedEngine =
-      vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngineByName(rtPlanNode->GetDoseEngineName());
-    if (!selectedEngine)
-    {
-      qCritical() << Q_FUNC_INFO << ": Failed to access dose engine with name" << (rtPlanNode->GetDoseEngineName() ? rtPlanNode->GetDoseEngineName() : "NULL");
-      return;
-    }
-
-    vtkMRMLRTBeamNode* beamNode = selectedEngine->CreateBeamForEngine();
-    beamNode->SetName(rtPlanNode->GenerateNewBeamName().c_str());
-    this->mrmlScene()->AddNode(beamNode);
-    beamNode->CreateDefaultBeamModel();
-    beamNode->Delete(); // Return ownership to scene only
-    rtPlanNode->AddBeam(beamNode);
+    beamNode = d->logic()->CreateBeamInPlan(rtPlanNode);
   }
   if (!beamNode)
   {
@@ -862,10 +848,6 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
 
   // Clear instruction text
   d->label_CalculateDoseStatus->setText("");
-
-  // Update beam visualization
-  d->logic()->GetBeamsLogic()->UpdateBeamTransform(beamNode);
-  d->logic()->GetBeamsLogic()->UpdateBeamGeometry(beamNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -917,83 +899,43 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
   }
-  // Make sure inputs were specified
-  vtkMRMLScalarVolumeNode* referenceVolume = rtPlanNode->GetReferenceVolumeNode();
-  if (!referenceVolume)
-  {
-    QString errorString("No reference anatomical volume is selected");
-    d->label_CalculateDoseStatus->setText(errorString);
-    qCritical() << Q_FUNC_INFO << ": " << errorString;
-    return;
-  }
-  vtkMRMLSegmentationNode* segmentationNode = rtPlanNode->GetSegmentationNode();
-  if (!segmentationNode)
-  {
-    QString errorString("No plan segmentation node is selected"); //TODO MD Fix -> dose could be computed without target
-    d->label_CalculateDoseStatus->setText(errorString);
-    qCritical() << Q_FUNC_INFO << ": " << errorString;
-    return;
-  }
-  // Get selected dose engine
-  vtkSlicerAbstractDoseEngine* selectedEngine =
-    vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngineByName(rtPlanNode->GetDoseEngineName());
-  if (!selectedEngine)
-  {
-    QString errorString = QString("Failed to access dose engine with name %1").arg(rtPlanNode->GetDoseEngineName());
-    d->label_CalculateDoseStatus->setText(errorString);
-    qCritical() << Q_FUNC_INFO << ": " << errorString;
-    return;
-  }
 
   // Start timer
   QTime time;
   time.start();
-  
+  // Connect to progress event
+  qvtkConnect( d->logic(), SlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
+  // Set busy cursor
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  // Calculate dose for each beam under the plan
-  std::string errorMessage("");
-  std::vector<vtkMRMLRTBeamNode*> beams;
-  rtPlanNode->GetBeams(beams);
-  for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
-  {
-    vtkMRMLRTBeamNode* beamNode = (*beamIt);
-    if (beamNode)
-    {
-      QString progressMessage = QString("Dose calculation in progress: %1").arg(beamNode->GetName());
-      d->label_CalculateDoseStatus->setText(progressMessage);
+  // Calculate dose
+  std::string errorMessage = d->logic()->CalculateDose(rtPlanNode);
 
-      errorMessage = selectedEngine->CalculateDose(beamNode);
-      if (!errorMessage.empty())
-      {
-        d->label_CalculateDoseStatus->setText(QString("ERROR: ") + QString(errorMessage.c_str()));
-        QApplication::restoreOverrideCursor();
-        return;
-      }
-    }
-    else
-    {
-      QString message("Beam not found");
-      qCritical() << Q_FUNC_INFO << ": " << message;
-      d->label_CalculateDoseStatus->setText(message);
-    }
-  }
-  
-  // Accumulate calculated per-beam dose distributions into the total dose volume
-  errorMessage = d->logic()->CreateAccumulatedDose(rtPlanNode);
-  if (!errorMessage.empty())
+  if (errorMessage.empty())
   {
-    d->label_CalculateDoseStatus->setText(QString("ERROR: ") + QString(errorMessage.c_str()));
+    QString message = QString("Dose calculated successfully in %1 s").arg(time.elapsed()/1000.0);
+    qDebug() << Q_FUNC_INFO << ": " << message;
+    d->label_CalculateDoseStatus->setText(message);
   }
   else
   {
-    d->label_CalculateDoseStatus->setText("Dose calculation done");
+    QString message = QString("ERROR: %1").arg(errorMessage.c_str());
+    qCritical() << Q_FUNC_INFO << ": " << message;
+    d->label_CalculateDoseStatus->setText(message);
   }
+
+  qvtkDisconnect( d->logic(), SlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
   QApplication::restoreOverrideCursor();
+}
 
-  qDebug() << Q_FUNC_INFO << ": Dose calculated in " << time.elapsed() << " ms";
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::onProgressUpdated(vtkObject* caller, void* callData, unsigned long eid, void* clientData)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  return;
+  double* progress = reinterpret_cast<double*>(callData);
+  QString progressMessage = QString("Dose calculation in progress: %1 %").arg(*progress);
+  d->label_CalculateDoseStatus->setText(progressMessage);
 }
 
 //-----------------------------------------------------------------------------

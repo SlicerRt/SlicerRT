@@ -98,6 +98,7 @@ protected slots:
   // Update functions
   void onRTPlanNodeModified();
   void onLogicModified();
+  void onProgressUpdated(vtkObject*, void*, unsigned long, void*);
 
 protected:
   virtual void setup();
