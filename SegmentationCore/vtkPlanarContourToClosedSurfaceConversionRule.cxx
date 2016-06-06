@@ -134,7 +134,7 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
   this->SortContours(inputContoursCopy);
 
   // remove keyholes from the lines
-  this->FixKeyholes(inputContoursCopy, 0.1, 2);
+  this->FixKeyholes(inputContoursCopy, 0.001, 3);
 
   // set all lines to be counter-clockwise
   this->SetLinesCounterClockwise(inputContoursCopy);
@@ -1288,8 +1288,12 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CreateEndCapContour(vtkPolyD
 
   // The image spacing is set to either the default or alternative, whichever is smaller
   double spacing[3] = { 1.0, 1.0, 1.0 };
-  spacing[0] = std::min(this->DefaultSpacing[0], alternativeSpacing[0]);
-  spacing[1] = std::min(this->DefaultSpacing[1], alternativeSpacing[1]);
+
+  if( alternativeSpacing[0] > 0 && alternativeSpacing[1] > 0)
+  {
+    spacing[0] = std::min(this->DefaultSpacing[0], alternativeSpacing[0]);
+    spacing[1] = std::min(this->DefaultSpacing[1], alternativeSpacing[1]);
+  }
 
   // Add a border of pixels to the outside of the image
   // Recalculate the image bounds based on the added padding and spacing
