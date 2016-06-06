@@ -27,6 +27,7 @@
 // Beams includes
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTProtonBeamNode.h"
+#include "vtkSlicerBeamsModuleLogic.h"
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
@@ -128,6 +129,11 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
     vtkSmartPointer<vtkSlicerExternalBeamPlanningModuleLogic>::New();
   ebpLogic->SetMRMLScene(mrmlScene);
 
+  vtkSmartPointer<vtkSlicerBeamsModuleLogic> beamsLogic =
+    vtkSmartPointer<vtkSlicerBeamsModuleLogic>::New();
+  beamsLogic->SetMRMLScene(mrmlScene);
+  ebpLogic->SetBeamsLogic(beamsLogic);
+
   // Register Plastimatch proton dose engine
   vtkSlicerDoseEnginePluginHandler::GetInstance()->RegisterDoseEngine(
     vtkSmartPointer<vtkSlicerPlastimatchProtonDoseEngine>::New() );
@@ -183,18 +189,27 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   planNode->SetDoseEngineName(protonDoseEngine->GetName());
 
   // Add first beam
-  vtkSmartPointer<vtkMRMLRTProtonBeamNode> firstBeamNode = vtkSmartPointer<vtkMRMLRTProtonBeamNode>::New();
-  firstBeamNode->SetName("FirstBeam");
-  mrmlScene->AddNode(firstBeamNode);
-  firstBeamNode->CreateDefaultBeamModel();
-  planNode->AddBeam(firstBeamNode);
+  vtkMRMLRTBeamNode* firstBeamNode = ebpLogic->CreateBeamInPlan(planNode);
+  if (!firstBeamNode)
+  {
+    mrmlScene->Commit();
+    errorStream << "ERROR: Failed to create first beam!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  vtkMRMLRTProtonBeamNode* firstProtonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(firstBeamNode);
+  if (!firstProtonBeamNode)
+  {
+    mrmlScene->Commit();
+    errorStream << "ERROR: First beam is not a proton beam!" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   // Set first beam parameters
-  firstBeamNode->SetX1Jaw(-50.0);
-  firstBeamNode->SetX2Jaw(50.0);
-  firstBeamNode->SetY1Jaw(-50.0);
-  firstBeamNode->SetY2Jaw(75.0);
-  firstBeamNode->SetEnergyResolution(4.0);
+  firstProtonBeamNode->SetX1Jaw(-50.0);
+  firstProtonBeamNode->SetX2Jaw(50.0);
+  firstProtonBeamNode->SetY1Jaw(-50.0);
+  firstProtonBeamNode->SetY2Jaw(75.0);
+  firstProtonBeamNode->SetEnergyResolution(4.0);
 
   // Add second beam copying the first
   //TODO:
@@ -211,19 +226,11 @@ int vtkSlicerExternalBeamPlanningModuleLogicTest1( int argc, char * argv[] )
   std::string errorMessage("");
 
   // Calculate dose
-  errorMessage = protonDoseEngine->CalculateDose(firstBeamNode); //TODO: Use logic instead
+  errorMessage = ebpLogic->CalculateDose(planNode);
   if (!errorMessage.empty())
   {
     mrmlScene->Commit();
-    errorStream << "ERROR: Failed to calculate dose for beam " << firstBeamNode->GetName() << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  errorMessage = ebpLogic->CreateAccumulatedDose(planNode);
-  if (!errorMessage.empty())
-  {
-    mrmlScene->Commit();
-    errorStream << "ERROR: Failed to finalize accumulated dose!" << std::endl;
+    errorStream << "ERROR: Failed to calculate dose: " << errorMessage << std::endl;
     return EXIT_FAILURE;
   }
 
