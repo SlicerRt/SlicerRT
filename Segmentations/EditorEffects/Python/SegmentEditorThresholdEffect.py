@@ -42,7 +42,7 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     return qt.QIcon()
     
   def helpText(self):
-    return "Set segment based on threshold range.\nNote: this replaces the current values."
+    return "Set segment based on master volume intensity range. All previous contents of the segment is overwritten on Apply."
 
   def activate(self):
     # Save segment opacity and set it to zero

@@ -28,7 +28,7 @@ class SegmentEditorErodeEffect(AbstractScriptedSegmentEditorMorphologyEffect):
     return qt.QIcon()
 
   def helpText(self):
-    return "Use this tool to remove pixels from the boundary of the current label."
+    return "Remove pixels from the boundary of selected segment."
 
   def setupOptionsFrame(self):
     self.applyButton = qt.QPushButton("Apply")

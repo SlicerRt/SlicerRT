@@ -27,7 +27,7 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     return qt.QIcon()
 
   def helpText(self):
-    return "Smooth a selected segment."
+    return "Smooth selected segment. Avilable methods:\n-Median: removes small details while keeps smooth contours mostly unchanged.\n-Opening: removes extrusions smaller than the specified kernel size.\n-Closing: fills sharp corners and holes smaller than the specified kernel size.\n-Gaussian: smoothes all contours, tends to shrink the segment."
 
   def activate(self):
     self.updateGUIFromMRML()
@@ -46,13 +46,13 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     self.scriptedEffect.addLabeledOptionsWidget("Smoothing method:", self.methodSelectorComboBox)
    
     self.kernelSizeMmSpinBox = slicer.qMRMLSpinBox()
-    self.kernelSizeMmSpinBox.setToolTip("Size of the nieghborhood that will be considered around each voxel to determine if that voxel will be included in the smoothed output. Higher value makes smoothing stronger (more details are suppressed).")
+    self.kernelSizeMmSpinBox.setToolTip("Diameter of the neighborhood that will be considered around each voxel. Higher value makes smoothing stronger (more details are suppressed).")
     self.kernelSizeMmSpinBox.quantity = "length"
     self.kernelSizeMmSpinBox.value = 3
     self.kernelSizeMmLabel = self.scriptedEffect.addLabeledOptionsWidget("Kernel size:", self.kernelSizeMmSpinBox)
 
     self.gaussianStandardDeviationMmSpinBox = slicer.qMRMLSpinBox()
-    self.gaussianStandardDeviationMmSpinBox.setToolTip("Standard deviatiRadius of the region where median value will be computed around each voxel. Higher value makes smoothing stronger (more details are suppressed).")
+    self.gaussianStandardDeviationMmSpinBox.setToolTip("Standard deviation of the Gaussian smoothing filter coefficients. Higher value makes smoothing stronger (more details are suppressed).")
     self.gaussianStandardDeviationMmSpinBox.quantity = "length"
     self.gaussianStandardDeviationMmSpinBox.value = 3
     self.gaussianStandardDeviationMmLabel = self.scriptedEffect.addLabeledOptionsWidget("Standard deviation:", self.gaussianStandardDeviationMmSpinBox)
@@ -60,7 +60,7 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     
     self.applyButton = qt.QPushButton("Apply")
     self.applyButton.objectName = self.__class__.__name__ + 'Apply'
-    self.applyButton.setToolTip("Apply current threshold settings to the label map.")
+    self.applyButton.setToolTip("Apply smoothing to selected segment")
     self.scriptedEffect.addOptionsWidget(self.applyButton)
 
     self.methodSelectorComboBox.connect("currentIndexChanged(int)", self.updateMRMLFromGUI)
@@ -132,69 +132,78 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
       # Save state for undo
       #TODO:
       #self.undoRedo.saveState()
-
-      smoothingMethod = self.scriptedEffect.parameter("SmoothingMethod")
-           
-      if smoothingMethod == GAUSSIAN:
-        maxValue = 255
       
-        thresh = vtk.vtkImageThreshold()
-        thresh.SetInputData(selectedSegmentLabelmap)
-        thresh.ThresholdByLower(0)
-        thresh.SetInValue(0)
-        thresh.SetOutValue(maxValue)
-        thresh.SetOutputScalarType(vtk.VTK_UNSIGNED_CHAR)
-
-        standardDeviationMm = self.scriptedEffect.doubleParameter("GaussianStandardDeviationMm")
-        gaussianFilter = vtk.vtkImageGaussianSmooth()
-        gaussianFilter.SetInputConnection(thresh.GetOutputPort())
-        gaussianFilter.SetStandardDeviation(standardDeviationMm)
-        gaussianFilter.SetRadiusFactor(4)
+      # This can be a long operation - indicate it to the user
+      qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+      try:      
+      
+        smoothingMethod = self.scriptedEffect.parameter("SmoothingMethod")
+        if smoothingMethod == GAUSSIAN:
+          maxValue = 255
         
-        thresh2 = vtk.vtkImageThreshold()
-        thresh2.SetInputConnection(gaussianFilter.GetOutputPort())
-        thresh2.ThresholdByUpper(maxValue/2)
-        thresh2.SetInValue(1)
-        thresh2.SetOutValue(0)
-        thresh2.SetOutputScalarType(selectedSegmentLabelmap.GetScalarType())
-        thresh2.Update()
-        editedLabelmap.DeepCopy(thresh2.GetOutput())
-        
-      else:
-        kernelSizeMm = self.scriptedEffect.doubleParameter("KernelSizeMm")
-        # size rounded to nearest odd number. If kernel size is even then image gets shifted.
-        kernelSizePixel = [int(round((kernelSizeMm / selectedSegmentLabelmapSpacing[componentIndex]+1)/2)*2-1) for componentIndex in range(3)]
-        
-        if smoothingMethod == MEDIAN:
-          # Median filter does not require a particular label value
-          smoothingFilter = vtk.vtkImageMedian3D()
-          smoothingFilter.SetInputData(selectedSegmentLabelmap)
-
-        else:
-          # We need to know exactly the value of the segment voxels, apply threshold to make force the selected label value
-          labelValue = 1
           thresh = vtk.vtkImageThreshold()
           thresh.SetInputData(selectedSegmentLabelmap)
           thresh.ThresholdByLower(0)
           thresh.SetInValue(0)
-          thresh.SetOutValue(labelValue)
-          thresh.SetOutputScalarType(selectedSegmentLabelmap.GetScalarType())
-          
-          smoothingFilter = vtk.vtkImageOpenClose3D()
-          smoothingFilter.SetInputConnection(thresh.GetOutputPort())
-          if smoothingMethod == MORPHOLOGICAL_OPENING:
-            smoothingFilter.SetOpenValue(labelValue)
-            smoothingFilter.SetCloseValue(0)
-          else: # must be smoothingMethod == MORPHOLOGICAL_CLOSING:
-            smoothingFilter.SetOpenValue(0)
-            smoothingFilter.SetCloseValue(labelValue)
+          thresh.SetOutValue(maxValue)
+          thresh.SetOutputScalarType(vtk.VTK_UNSIGNED_CHAR)
 
-        smoothingFilter.SetKernelSize(kernelSizePixel[0],kernelSizePixel[1],kernelSizePixel[2])
-        smoothingFilter.Update()
-        editedLabelmap.DeepCopy(smoothingFilter.GetOutput())
-        
+          standardDeviationMm = self.scriptedEffect.doubleParameter("GaussianStandardDeviationMm")
+          gaussianFilter = vtk.vtkImageGaussianSmooth()
+          gaussianFilter.SetInputConnection(thresh.GetOutputPort())
+          gaussianFilter.SetStandardDeviation(standardDeviationMm)
+          gaussianFilter.SetRadiusFactor(4)
+          
+          thresh2 = vtk.vtkImageThreshold()
+          thresh2.SetInputConnection(gaussianFilter.GetOutputPort())
+          thresh2.ThresholdByUpper(maxValue/2)
+          thresh2.SetInValue(1)
+          thresh2.SetOutValue(0)
+          thresh2.SetOutputScalarType(selectedSegmentLabelmap.GetScalarType())
+          thresh2.Update()
+          editedLabelmap.DeepCopy(thresh2.GetOutput())
+          
+        else:
+          kernelSizeMm = self.scriptedEffect.doubleParameter("KernelSizeMm")
+          # size rounded to nearest odd number. If kernel size is even then image gets shifted.
+          kernelSizePixel = [int(round((kernelSizeMm / selectedSegmentLabelmapSpacing[componentIndex]+1)/2)*2-1) for componentIndex in range(3)]
+          
+          if smoothingMethod == MEDIAN:
+            # Median filter does not require a particular label value
+            smoothingFilter = vtk.vtkImageMedian3D()
+            smoothingFilter.SetInputData(selectedSegmentLabelmap)
+
+          else:
+            # We need to know exactly the value of the segment voxels, apply threshold to make force the selected label value
+            labelValue = 1
+            thresh = vtk.vtkImageThreshold()
+            thresh.SetInputData(selectedSegmentLabelmap)
+            thresh.ThresholdByLower(0)
+            thresh.SetInValue(0)
+            thresh.SetOutValue(labelValue)
+            thresh.SetOutputScalarType(selectedSegmentLabelmap.GetScalarType())
+            
+            smoothingFilter = vtk.vtkImageOpenClose3D()
+            smoothingFilter.SetInputConnection(thresh.GetOutputPort())
+            if smoothingMethod == MORPHOLOGICAL_OPENING:
+              smoothingFilter.SetOpenValue(labelValue)
+              smoothingFilter.SetCloseValue(0)
+            else: # must be smoothingMethod == MORPHOLOGICAL_CLOSING:
+              smoothingFilter.SetOpenValue(0)
+              smoothingFilter.SetCloseValue(labelValue)
+
+          smoothingFilter.SetKernelSize(kernelSizePixel[0],kernelSizePixel[1],kernelSizePixel[2])
+          smoothingFilter.Update()
+          editedLabelmap.DeepCopy(smoothingFilter.GetOutput())
+
+      except:
+        qt.QApplication.restoreOverrideCursor()
+        raise
+
+      qt.QApplication.restoreOverrideCursor() 
+          
     except IndexError:
-      logging.error('apply: Failed to threshold master volume!')
+      logging.error('apply: Failed to apply smoothing')
       pass
 
     # Notify editor about changes.

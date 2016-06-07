@@ -31,10 +31,9 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
     return qt.QIcon()
 
   def helpText(self):
-    return "Use this tool to apply grow cut segmentation.\n\n Paint as many different classes as you want on separate segments "
-    "using the standard drawing tools. Each segment in the segmentation is used as an input class.\n"
-    "To run segmentation correctly, you need to supply a minimum or two class labels.\n"
-    "If input class segments overlap, then a segment shown below another in the table will overwrite its values for the GrowCut operation!"
+    return """Create complete segmentation by expanding existing segments.
+Create segments using any editor effect: one segment inside each each region that should belong to a separate segment, then click Apply.
+Minimum two segments are required. If segments overlap, segment higher in the segments table will have priority."""
 
   def setupOptionsFrame(self):
     self.applyButton = qt.QPushButton("Apply")

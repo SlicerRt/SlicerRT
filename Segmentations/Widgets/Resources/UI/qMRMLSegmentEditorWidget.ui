@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>382</width>
-    <height>452</height>
+    <width>396</width>
+    <height>449</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -138,7 +138,23 @@
     </layout>
    </item>
    <item>
-    <widget class="qMRMLSegmentsTableView" name="SegmentsTableView"/>
+    <widget class="ctkExpandableWidget" name="ResizableFrame">
+     <property name="orientations">
+      <set>Qt::Vertical</set>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="qMRMLSegmentsTableView" name="SegmentsTableView">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>3</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
    <item>
     <widget class="QGroupBox" name="EffectsGroupBox">
@@ -155,6 +171,9 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="toolTip">
+      <string>Tooltip is populated by effect</string>
+     </property>
      <property name="title">
       <string>Options</string>
      </property>
@@ -165,48 +184,12 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="0" column="1">
-       <widget class="QLabel" name="ActiveEffectLabel">
-        <property name="text">
-         <string>None</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_ActiveEffectText">
-        <property name="text">
-         <string>Active effect:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QLabel" name="HelpLabel">
-        <property name="maximumSize">
-         <size>
-          <width>21</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>Tooltip is populated by the effects</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="pixmap">
-         <pixmap resource="../qSlicerSegmentationsModuleWidgets.qrc">:/Icons/Help.png</pixmap>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" colspan="3">
+      <item row="1" column="0" colspan="2">
        <widget class="QFrame" name="EffectsOptionsFrame">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
           <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
+          <verstretch>1</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
@@ -214,6 +197,21 @@
           <width>0</width>
           <height>4</height>
          </size>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="2">
+       <widget class="QLabel" name="label_EffectHelp">
+        <property name="font">
+         <font>
+          <italic>true</italic>
+         </font>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -274,9 +272,6 @@
         <property name="singleStep">
          <double>0.010000000000000</double>
         </property>
-        <property name="spinBoxAlignment">
-         <set>Qt::AlignBottom</set>
-        </property>
        </widget>
       </item>
       <item row="3" column="0">
@@ -318,11 +313,6 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>qMRMLSegmentsTableView</class>
-   <extends>qMRMLWidget</extends>
-   <header>qMRMLSegmentsTableView.h</header>
-  </customwidget>
-  <customwidget>
    <class>ctkCheckBox</class>
    <extends>QCheckBox</extends>
    <header>ctkCheckBox.h</header>
@@ -334,9 +324,21 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>ctkExpandableWidget</class>
+   <extends>QFrame</extends>
+   <header>ctkExpandableWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>ctkRangeWidget</class>
    <extends>QWidget</extends>
    <header>ctkRangeWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLSegmentsTableView</class>
+   <extends>qMRMLWidget</extends>
+   <header>qMRMLSegmentsTableView.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

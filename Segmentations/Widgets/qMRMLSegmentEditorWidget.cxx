@@ -1222,8 +1222,9 @@ void qMRMLSegmentEditorWidget::updateWidgetFromEffect()
     d->updateEditedLabelmap(); // always pre-allocate editedLabelmap image (it may be modified by the effect)
     activeEffect->activate();
     activeEffect->updateGUIFromMRML();
-    d->ActiveEffectLabel->setText(activeEffect->name());
-    d->HelpLabel->setToolTip(activeEffect->helpText());
+    d->OptionsGroupBox->setTitle(activeEffect->name());
+    //d->OptionsGroupBox->setToolTip(activeEffect->helpText());
+    d->label_EffectHelp->setText(activeEffect->helpText());
 
     // Check button that belongs to the effect in case this call did not come from the GUI
     QList<QAbstractButton*> effectButtons = d->EffectButtonGroup.buttons();
@@ -1254,8 +1255,9 @@ void qMRMLSegmentEditorWidget::updateWidgetFromEffect()
   }
   else
   {
-    d->ActiveEffectLabel->setText("None");
-    d->HelpLabel->setToolTip("No effect is selected");
+    d->OptionsGroupBox->setTitle("");
+    //d->OptionsGroupBox->setToolTip("No effect is selected");
+    d->label_EffectHelp->setText("No effect is selected");
 
     // Uncheck button that belongs to the effect in case this call did not come from the GUI
     QAbstractButton* effectButton = d->EffectButtonGroup.checkedButton();

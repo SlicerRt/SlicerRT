@@ -250,7 +250,7 @@ QIcon qSlicerSegmentEditorRectangleEffect::icon()
 //---------------------------------------------------------------------------
 QString const qSlicerSegmentEditorRectangleEffect::helpText()const
 {
-  return QString("Use this tool to draw a rectangle.\n\nLeft Click and Drag: sweep out an outline that will draw when the button is released.");
+  return QString("Add a rectangular area to selected segment.\nLeft-click and drag to sweep out an outline, release the button when ready.");
 }
 
 //-----------------------------------------------------------------------------

@@ -610,7 +610,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::scaleRadius(double scaleFactor)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  q->setCommonParameter("BrushRadius", q->doubleParameter("BrushRadius") * scaleFactor, true); // Emit parameter modified event
+  q->setCommonParameter("BrushRadius", q->doubleParameter("BrushRadius") * scaleFactor);
 }
 
 //-----------------------------------------------------------------------------
@@ -659,7 +659,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::onRadiusValueChanged(double value)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  q->setCommonParameter("BrushRadius", value, true); // Emit parameter modified event
+  q->setCommonParameter("BrushRadius", value);
 }
 
 //----------------------------------------------------------------------------
@@ -849,7 +849,7 @@ QIcon qSlicerSegmentEditorPaintEffect::icon()
 //---------------------------------------------------------------------------
 QString const qSlicerSegmentEditorPaintEffect::helpText()const
 {
-  return QString("Use this tool to paint with a round brush of the selected radius");
+  return QString("Left-click and drag in slice or 3D viewers to paint on selected segment with a round brush.");
 }
 
 //-----------------------------------------------------------------------------

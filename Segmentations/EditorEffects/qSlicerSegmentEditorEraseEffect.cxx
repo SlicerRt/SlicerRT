@@ -74,7 +74,7 @@ QIcon qSlicerSegmentEditorEraseEffect::icon()
 //---------------------------------------------------------------------------
 QString const qSlicerSegmentEditorEraseEffect::helpText()const
 {
-  return QString("Use this tool to erase with a round brush of the selected radius");
+  return QString("Left-click and drag in slice or 3D viewers to erase from current segment with a round brush.");
 }
 
 //-----------------------------------------------------------------------------

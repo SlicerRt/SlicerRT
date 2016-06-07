@@ -30,7 +30,7 @@ class SegmentEditorIdentifyIslandsEffect(AbstractScriptedSegmentEditorIslandEffe
     return qt.QIcon()
     
   def helpText(self):
-    return "Create a unique segment for islands larger than minimum size (label number is ordered by size of island)"
+    return "Create a unique segment for islands larger than minimum size. Segment list will be ordered by size of island."
     
   def setupOptionsFrame(self):
     self.applyButton = qt.QPushButton("Apply")

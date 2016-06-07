@@ -32,11 +32,11 @@ class SegmentEditorLevelTracingEffect(AbstractScriptedSegmentEditorLabelEffect):
     return qt.QIcon()
     
   def helpText(self):
-    return "Use this tool to track around similar intensity levels.\n\nAs you move the mouse, the current background voxel is used to find a closed path that follows the same intensity value back to the starting point within the current slice.  Pressing the left mouse button fills the the path according to the current labeling rules."
+    return "Add uniform intensity region to selected segment.\nAs you move the mouse, the current background voxel is used to find a closed path that follows the same intensity value back to the starting point within the current slice.  Pressing the left mouse button fills the the path according to the current labeling rules."
     
   def deactivate(self):
     # Clear draw pipelines
-    for sliceWidget, pipeline in levelTracingPipelines.iteritems():
+    for sliceWidget, pipeline in self.levelTracingPipelines.iteritems():
       self.scriptedEffect.removeActor2D(sliceWidget, pipeline.actor)
     self.levelTracingPipelines = {}
 
