@@ -611,18 +611,13 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
 
   #------------------------------------------------------------------------------
   def DoseAccumulationUtility_SelectDoseVolume(self, volumeName, checked):
-    logic = slicer.modules.doseaccumulation.logic()
-    paramNode = logic.GetDoseAccumulationNode()
-    if paramNode == None:
-      logging.error('Failed to get dose accumulation parameter set node')
-      return
     volumeNode = slicer.util.getNode(volumeName)
     if volumeNode == None:
       return
     if checked:
-      paramNode.AddSelectedInputVolumeNode(volumeNode)
+      self.doseAccumulationParamNode.AddSelectedInputVolumeNode(volumeNode)
     else:
-      paramNode.RemoveSelectedInputVolumeNode(volumeNode)
+      self.doseAccumulationParamNode.RemoveSelectedInputVolumeNode(volumeNode)
 
   #------------------------------------------------------------------------------
   def TestSection_07_AccumulateDose(self):
@@ -630,6 +625,9 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       slicer.util.selectModule('DoseAccumulation')
       doseAccumulationWidget = slicer.modules.doseaccumulation.widgetRepresentation()
       doseAccumulationLogic = slicer.modules.doseaccumulation.logic()
+      
+      self.doseAccumulationParamNode = slicer.util.getNode('DoseAccumulation')
+      self.assertIsNotNone( self.doseAccumulationParamNode )
 
       day1Dose = slicer.util.getNode(self.day1DoseName)
       inputFrame = slicer.util.findChildren(widget=doseAccumulationWidget, className='ctkCollapsibleButton', text='Input')[0]
@@ -659,7 +657,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.delayDisplay("Accumulate Day 1 dose with unregistered Day 2 dose",self.delayMs)
       self.DoseAccumulationUtility_SelectDoseVolume(self.day2DoseName, True)
       outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseUnregistered)
-      doseAccumulationLogic.AccumulateDoseVolumes()
+      doseAccumulationLogic.AccumulateDoseVolumes(self.doseAccumulationParamNode)
 
       self.assertIsNotNone( accumulatedDoseUnregistered.GetImageData() )
       self.delayDisplay("Accumulate Day 1 dose with unregistered Day 2 dose finished",self.delayMs)
@@ -668,7 +666,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.DoseAccumulationUtility_SelectDoseVolume(self.day2DoseName, False)
       self.DoseAccumulationUtility_SelectDoseVolume(self.day2DoseRigidName, True)
       outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseRigid)
-      doseAccumulationLogic.AccumulateDoseVolumes()
+      doseAccumulationLogic.AccumulateDoseVolumes(self.doseAccumulationParamNode)
       
       self.assertIsNotNone( accumulatedDoseRigid.GetImageData() )
 
