@@ -200,11 +200,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-AutomaticOversamplingCalculation") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      int intValue;
-      ss >> intValue;
-      automaticOversamplingCalculation = (intValue > 0 ? true : false);
+      automaticOversamplingCalculation = (vtkVariant(argv[argIndex+1]).ToInt() > 0 ? true : false);
       std::cout << "Automatic oversampling calculation: " << (automaticOversamplingCalculation ? "true" : "false") << std::endl;
       argIndex += 2;
     }
@@ -220,11 +216,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-VolumeDifferenceCriterion") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      volumeDifferenceCriterion = doubleValue;
+      volumeDifferenceCriterion = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "Volume difference criterion: " << volumeDifferenceCriterion << std::endl;
       argIndex += 2;
     }
@@ -240,11 +232,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-DoseToAgreementCriterion") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      doseToAgreementCriterion = doubleValue;
+      doseToAgreementCriterion = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "Dose-to-agreement criterion: " << doseToAgreementCriterion << std::endl;
       argIndex += 2;
     }
@@ -260,11 +248,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-AgreementAcceptancePercentageThreshold") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      agreementAcceptancePercentageThreshold = doubleValue;
+      agreementAcceptancePercentageThreshold = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "Agreement acceptance percentage threshold: " << agreementAcceptancePercentageThreshold << std::endl;
       argIndex += 2;
     }
@@ -280,11 +264,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-MetricDifferenceThreshold") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      metricDifferenceThreshold = doubleValue;
+      metricDifferenceThreshold = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "Metric difference threshold: " << metricDifferenceThreshold << std::endl;
       argIndex += 2;
     }
@@ -300,11 +280,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-DvhStartValue") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      dvhStartValue = doubleValue;
+      dvhStartValue = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "DVH start value: " << dvhStartValue << std::endl;
       argIndex += 2;
     }
@@ -320,11 +296,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-DvhStepSize") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      dvhStepSize = doubleValue;
+      dvhStepSize = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "DVH step size: " << dvhStepSize << std::endl;
       argIndex += 2;
     }
@@ -722,19 +694,8 @@ int CompareCsvDvhMetrics(std::string dvhMetricsCsvFileName, std::string baseline
         }
         else
         {
-          double doubleValue;
-          {
-            std::stringstream ss;
-            ss << currentLineStr.substr(0, currentCommaPosition);
-            ss >> doubleValue;
-          }
-          double currentMetric = doubleValue;
-          {
-            std::stringstream ss;
-            ss << baselineLineStr.substr(0, baselineCommaPosition);
-            ss >> doubleValue;
-          }
-          double baselineMetric = doubleValue;
+          double currentMetric = vtkVariant(currentLineStr.substr(0, currentCommaPosition)).ToDouble();
+          double baselineMetric = vtkVariant(baselineLineStr.substr(0, baselineCommaPosition)).ToDouble();
 
           double error = DBL_MAX;
           if (baselineMetric < EPSILON && currentMetric < EPSILON)

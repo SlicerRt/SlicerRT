@@ -119,10 +119,8 @@ bool vtkBinaryLabelmapToClosedSurfaceConversionRule::Convert(vtkDataObject* sour
   }
 
   // Get conversion parameters
-  double decimationFactor = vtkSegmentationConverter::DeserializeFloatingPointConversionParameter(
-    this->ConversionParameters[GetDecimationFactorParameterName()].first );
-  double smoothingFactor = vtkSegmentationConverter::DeserializeFloatingPointConversionParameter(
-    this->ConversionParameters[GetSmoothingFactorParameterName()].first );
+  double decimationFactor = vtkVariant(this->ConversionParameters[GetDecimationFactorParameterName()].first).ToDouble();
+  double smoothingFactor = vtkVariant(this->ConversionParameters[GetSmoothingFactorParameterName()].first).ToDouble();
 
   // Save geometry of oriented image data before conversion so that it can be applied on the poly data afterwards
   vtkSmartPointer<vtkMatrix4x4> labelmapImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();

@@ -60,6 +60,7 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 {
   this->BeamNumber = -1;
   this->BeamDescription = NULL;
+  this->BeamWeight = 1.0;
 
   this->BeamType = vtkMRMLRTBeamNode::Static;
   this->RadiationType = vtkMRMLRTBeamNode::Proton;
@@ -75,7 +76,6 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->CouchAngle = 0.0;
 
   this->SAD = 2000.0;
-  this->BeamWeight = 1.0;
 
   // Register parent transform modified event
   //TODO: Needed?
@@ -98,7 +98,21 @@ void vtkMRMLRTBeamNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  //TODO: Beam parameters
+  of << indent << " BeamNumber=\"" << this->BeamNumber << "\"";
+  of << indent << " BeamDescription=\"" << (this->BeamDescription ? BeamDescription : "") << "\"";
+  of << indent << " BeamWeight=\"" << this->BeamWeight << "\"";
+
+  //TODO: BeamType, RadiationType, CollimatorType members (if still needed later)
+
+  of << indent << " X1Jaw=\"" << this->X1Jaw << "\"";
+  of << indent << " X2Jaw=\"" << this->X2Jaw << "\"";
+  of << indent << " Y1Jaw=\"" << this->Y1Jaw << "\"";
+  of << indent << " Y2Jaw=\"" << this->Y2Jaw << "\"";
+  of << indent << " SAD=\"" << this->SAD << "\"";
+
+  of << indent << " GantryAngle=\"" << this->GantryAngle << "\"";
+  of << indent << " CollimatorAngle=\"" << this->CollimatorAngle << "\"";
+  of << indent << " CouchAngle=\"" << this->CouchAngle << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -115,13 +129,51 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    //if (!strcmp(attName, "TargetSegmentID")) 
-    //{
-    //  //this->NextBeamNumber = vtkVariant(attValue).ToDouble();
-    //  this->SetTargetSegmentID(attValue);
-    //}
-
-    //TODO: Beam parameters
+    if (!strcmp(attName, "BeamNumber")) 
+    {
+      this->BeamNumber = vtkVariant(attValue).ToInt();
+    }
+    else if (!strcmp(attName, "BeamDescription")) 
+    {
+      this->SetBeamDescription(attValue);
+    }
+    else if (!strcmp(attName, "BeamWeight")) 
+    {
+      this->BeamWeight = vtkVariant(attValue).ToDouble();
+    }
+    //TODO: BeamType, RadiationType, CollimatorType members (if still needed later)
+    else if (!strcmp(attName, "X1Jaw")) 
+    {
+      this->X1Jaw = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "X2Jaw")) 
+    {
+      this->X2Jaw = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "Y1Jaw")) 
+    {
+      this->Y1Jaw = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "Y2Jaw")) 
+    {
+      this->Y2Jaw = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "SAD")) 
+    {
+      this->SAD = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "GantryAngle")) 
+    {
+      this->GantryAngle = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "CollimatorAngle")) 
+    {
+      this->CollimatorAngle = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "CouchAngle")) 
+    {
+      this->CouchAngle = vtkVariant(attValue).ToDouble();
+    }
   }
 }
 
@@ -140,10 +192,17 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
 
   this->DisableModifiedEventOn();
 
-  //TODO: Beam parameters
-  this->SetSAD(node->GetSAD());
-
-  //TODO: Beam parameters
+  this->SetBeamNumber(node->GetBeamNumber());
+  this->SetBeamDescription(node->GetBeamDescription());
+  this->SetBeamWeight(node->GetBeamWeight());
+  //TODO: BeamType, RadiationType, CollimatorType members (if still needed later)
+  this->SetX1Jaw(node->GetX1Jaw());
+  this->SetX2Jaw(node->GetX2Jaw());
+  this->SetY1Jaw(node->GetY1Jaw());
+  this->SetY2Jaw(node->GetY2Jaw());
+  this->SetGantryAngle(node->GetGantryAngle());
+  this->SetCollimatorAngle(node->GetCollimatorAngle());
+  this->SetCouchAngle(node->GetCouchAngle());
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -154,7 +213,21 @@ void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  //TODO: Beam parameters
+  os << indent << " BeamNumber:   " << this->BeamNumber << "\n";
+  os << indent << " BeamDescription:   " << (this->BeamDescription ? BeamDescription : "NULL") << "\n";
+  os << indent << " BeamWeight:   " << this->BeamWeight << "\n";
+
+  //TODO: BeamType, RadiationType, CollimatorType members (if still needed later)
+
+  os << indent << " X1Jaw:   " << this->X1Jaw << "\n";
+  os << indent << " X2Jaw:   " << this->X2Jaw << "\n";
+  os << indent << " Y1Jaw:   " << this->Y1Jaw << "\n";
+  os << indent << " Y2Jaw:   " << this->Y2Jaw << "\n";
+  os << indent << " SAD:   " << this->SAD << "\n";
+
+  os << indent << " GantryAngle:   " << this->GantryAngle << "\n";
+  os << indent << " CollimatorAngle:   " << this->CollimatorAngle << "\n";
+  os << indent << " CouchAngle:   " << this->CouchAngle << "\n";
 }
 
 //----------------------------------------------------------------------------

@@ -150,141 +150,71 @@ void vtkMRMLSegmentComparisonNode::ReadXMLAttributes(const char** atts)
 
     if (!strcmp(attName, "ReferenceSegmentID")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetReferenceSegmentID(ss.str().c_str());
+      this->SetReferenceSegmentID(attValue);
       }
     else if (!strcmp(attName, "CompareSegmentID")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetCompareSegmentID(ss.str().c_str());
+      this->SetCompareSegmentID(attValue);
       }
     else if (!strcmp(attName, "DiceCoefficient")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->DiceCoefficient = doubleAttValue;
+      this->DiceCoefficient = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "TruePositivesPercent")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->TruePositivesPercent = doubleAttValue;
+      this->TruePositivesPercent = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "TrueNegativesPercent")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->TrueNegativesPercent = doubleAttValue;
+      this->TrueNegativesPercent = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "FalsePositivesPercent")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->FalsePositivesPercent = doubleAttValue;
+      this->FalsePositivesPercent = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "FalseNegativesPercent")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->FalseNegativesPercent = doubleAttValue;
+      this->FalseNegativesPercent = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "ReferenceCenter")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      std::string valueStr = ss.str();
+      std::string valueStr(attValue);
       std::string separatorCharacter("|");
 
       size_t separatorPosition = valueStr.find( separatorCharacter );
+      this->ReferenceCenter[0] = vtkVariant(valueStr.substr(0, separatorPosition)).ToDouble();
 
-        {
-        std::stringstream ss;
-        ss << valueStr.substr(0, separatorPosition);
-        double doubleValue;
-        ss >> doubleValue;
-        this->ReferenceCenter[0] = doubleValue;
-        }
-        {
-        valueStr = valueStr.substr( separatorPosition+1 );
-        separatorPosition = valueStr.find( separatorCharacter );
-        std::stringstream ss;
-        ss << valueStr.substr(0, separatorPosition);
-        double doubleValue;
-        ss >> doubleValue;
-        this->ReferenceCenter[1] = doubleValue;
-        }
-        {
-        valueStr = valueStr.substr( separatorPosition+1 );
-        separatorPosition = valueStr.find( separatorCharacter );
-        std::stringstream ss;
-        ss << valueStr.substr(0, separatorPosition);
-        double doubleValue;
-        ss >> doubleValue;
-        this->ReferenceCenter[2] = doubleValue;
-        }
+      valueStr = valueStr.substr( separatorPosition+1 );
+      separatorPosition = valueStr.find( separatorCharacter );
+      this->ReferenceCenter[1] = vtkVariant(valueStr.substr(0, separatorPosition)).ToDouble();
+
+      valueStr = valueStr.substr( separatorPosition+1 );
+      separatorPosition = valueStr.find( separatorCharacter );
+      this->ReferenceCenter[2] = vtkVariant(valueStr.substr(0, separatorPosition)).ToDouble();
       }
     else if (!strcmp(attName, "CompareCenter")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      std::string valueStr = ss.str();
+      std::string valueStr(attValue);
       std::string separatorCharacter("|");
 
       size_t separatorPosition = valueStr.find( separatorCharacter );
+      this->CompareCenter[0] = vtkVariant(valueStr.substr(0, separatorPosition)).ToDouble();
 
-        {
-        std::stringstream ss;
-        ss << valueStr.substr(0, separatorPosition);
-        double doubleValue;
-        ss >> doubleValue;
-        this->CompareCenter[0] = doubleValue;
-        }
-        {
-        valueStr = valueStr.substr( separatorPosition+1 );
-        separatorPosition = valueStr.find( separatorCharacter );
-        std::stringstream ss;
-        ss << valueStr.substr(0, separatorPosition);
-        double doubleValue;
-        ss >> doubleValue;
-        this->CompareCenter[1] = doubleValue;
-        }
-        {
-        valueStr = valueStr.substr( separatorPosition+1 );
-        separatorPosition = valueStr.find( separatorCharacter );
-        std::stringstream ss;
-        ss << valueStr.substr(0, separatorPosition);
-        double doubleValue;
-        ss >> doubleValue;
-        this->CompareCenter[2] = doubleValue;
-        }
+      valueStr = valueStr.substr( separatorPosition+1 );
+      separatorPosition = valueStr.find( separatorCharacter );
+      this->CompareCenter[1] = vtkVariant(valueStr.substr(0, separatorPosition)).ToDouble();
+
+      valueStr = valueStr.substr( separatorPosition+1 );
+      separatorPosition = valueStr.find( separatorCharacter );
+      this->CompareCenter[2] = vtkVariant(valueStr.substr(0, separatorPosition)).ToDouble();
       }
     else if (!strcmp(attName, "ReferenceVolumeCc")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->ReferenceVolumeCc = doubleAttValue;
+      this->ReferenceVolumeCc = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "CompareVolumeCc")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->CompareVolumeCc = doubleAttValue;
+      this->CompareVolumeCc = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "DiceResultsValid")) 
       {
@@ -292,51 +222,27 @@ void vtkMRMLSegmentComparisonNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "MaximumHausdorffDistanceForVolumeMm")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->MaximumHausdorffDistanceForVolumeMm = doubleAttValue;
+      this->MaximumHausdorffDistanceForVolumeMm = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "MaximumHausdorffDistanceForBoundaryMm")) 
     {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->MaximumHausdorffDistanceForBoundaryMm = doubleAttValue;
+      this->MaximumHausdorffDistanceForBoundaryMm = vtkVariant(attValue).ToDouble();
     }
     else if (!strcmp(attName, "AverageHausdorffDistanceForVolumeMm")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->AverageHausdorffDistanceForVolumeMm = doubleAttValue;
+      this->AverageHausdorffDistanceForVolumeMm = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "AverageHausdorffDistanceForBoundaryMm")) 
     {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->AverageHausdorffDistanceForBoundaryMm = doubleAttValue;
+      this->AverageHausdorffDistanceForBoundaryMm = vtkVariant(attValue).ToDouble();
     }
     else if (!strcmp(attName, "Percent95HausdorffDistanceForVolumeMm")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->Percent95HausdorffDistanceForVolumeMm = doubleAttValue;
+      this->Percent95HausdorffDistanceForVolumeMm = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "Percent95HausdorffDistanceForBoundaryMm")) 
     {
-      std::stringstream ss;
-      ss << attValue;
-      double doubleAttValue;
-      ss >> doubleAttValue;
-      this->Percent95HausdorffDistanceForBoundaryMm = doubleAttValue;
+      this->Percent95HausdorffDistanceForBoundaryMm = vtkVariant(attValue).ToDouble();
     }
     else if (!strcmp(attName, "HausdorffResultsValid")) 
       {

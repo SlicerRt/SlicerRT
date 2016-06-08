@@ -141,9 +141,6 @@ public:
   /// \return Success flag
   static bool DeserializeImageGeometry(std::string geometryString, vtkMatrix4x4* geometryMatrix, int extent[6]);
 
-  /// Deserialize a string containing a floating point number into a double variable
-  static double DeserializeFloatingPointConversionParameter(std::string parameterString);
-
 protected:
   /// Build a graph from ConverterRules list to facilitate faster finding of rules from a specific representation
   void RebuildRulesGraph();

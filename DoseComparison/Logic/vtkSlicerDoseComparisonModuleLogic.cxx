@@ -85,6 +85,7 @@ vtkStandardNewMacro(vtkSlicerDoseComparisonModuleLogic);
 vtkSlicerDoseComparisonModuleLogic::vtkSlicerDoseComparisonModuleLogic()
 {
   this->DefaultGammaColorTableNodeId = NULL;
+  this->Progress = 0.0;
 
   this->LogSpeedMeasurementsOff();
 
@@ -183,6 +184,7 @@ void vtkSlicerDoseComparisonModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* nod
 void vtkSlicerDoseComparisonModuleLogic::GammaProgressUpdated(float progress)
 {
   double progressDouble = (double)progress;
+  this->Progress = progressDouble;
   this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progressDouble);
 }
 

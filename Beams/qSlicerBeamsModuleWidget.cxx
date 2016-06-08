@@ -354,7 +354,7 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
   vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
   d->doubleSpinBox_ProximalMargin->setValue(protonBeamNode->GetProximalMargin());
   d->doubleSpinBox_DistalMargin->setValue(protonBeamNode->GetDistalMargin());
-  if (protonBeamNode->GetBeamLineType() == true)
+  if (protonBeamNode->GetBeamLineTypeActive() == true)
   {
     d->comboBox_BeamLineType->setCurrentIndex(0);
   }
@@ -656,14 +656,7 @@ void qSlicerBeamsModuleWidget::beamLineTypeChanged(const QString &text)
   }
 
   protonBeamNode->DisableModifiedEventOn();
-  if (text.compare("Active scanning") == 0)
-  {
-    protonBeamNode->SetBeamLineType("active");
-  }
-  else
-  {
-    protonBeamNode->SetBeamLineType("passive");
-  }
+  protonBeamNode->SetBeamLineTypeActive( text.compare("Active scanning") == 0 );
   protonBeamNode->DisableModifiedEventOff();
 }
 

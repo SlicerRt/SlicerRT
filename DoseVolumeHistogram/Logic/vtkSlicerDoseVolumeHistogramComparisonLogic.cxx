@@ -102,11 +102,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(vtkMRMLDoub
   double totalVolumeCCs = 0;
   if (totalVolumeChar != NULL)
   {
-    std::stringstream ss;
-    ss << totalVolumeChar;
-    double doubleValue;
-    ss >> doubleValue;
-    totalVolumeCCs = doubleValue;
+    totalVolumeCCs = vtkVariant(totalVolumeChar).ToDouble();
   }
   
   if (totalVolumeCCs == 0)

@@ -807,13 +807,14 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::CalculateDose(vtkMRMLRTPla
   planNode->GetBeams(beams);
   int numberOfBeams = beams.size();
   int currentBeamIndex = 0;
+  double progress = 0.0;
 
   for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt, ++currentBeamIndex)
   {
     vtkMRMLRTBeamNode* beamNode = (*beamIt);
     if (beamNode)
     {
-      double progress = (double)(currentBeamIndex / numberOfBeams+1);
+      progress = (double)currentBeamIndex / (numberOfBeams+1);
       this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
 
       // Calculate dose for current beam
@@ -831,7 +832,10 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::CalculateDose(vtkMRMLRTPla
       return errorMessage;
     }
   }
-  
+
+  progress = (double)numberOfBeams / (numberOfBeams+1);
+  this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
+
   // Accumulate calculated per-beam dose distributions into the total dose volume
   errorMessage = this->CreateAccumulatedDose(planNode);
   if (!errorMessage.empty())
@@ -839,6 +843,9 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::CalculateDose(vtkMRMLRTPla
     vtkErrorMacro("CalculateDose: " << errorMessage);
     return errorMessage;
   }
+
+  progress = 1.0;
+  this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
 
   return "";
 }

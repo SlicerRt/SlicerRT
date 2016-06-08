@@ -94,9 +94,7 @@ void vtkMRMLDoseAccumulationNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "VolumeNodeIdsToWeightsMap")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      std::string valueStr = ss.str();
+      std::string valueStr(attValue);
       std::string separatorCharacter("|");
 
       this->VolumeNodeIdsToWeightsMap.clear();
@@ -110,13 +108,7 @@ void vtkMRMLDoseAccumulationNode::ReadXMLAttributes(const char** atts)
           continue;
           }
         std::string volumeNodeId = mapPairStr.substr(0, colonPosition);
-
-        double weight;
-        std::stringstream vss;
-        vss << mapPairStr.substr( colonPosition+1 );
-        vss >> weight;
-
-        this->VolumeNodeIdsToWeightsMap[volumeNodeId] = weight;
+        this->VolumeNodeIdsToWeightsMap[volumeNodeId] = vtkVariant(mapPairStr.substr(colonPosition+1)).ToDouble();
         valueStr = valueStr.substr( separatorPosition+1 );
         separatorPosition = valueStr.find( separatorCharacter );
         }
@@ -127,13 +119,7 @@ void vtkMRMLDoseAccumulationNode::ReadXMLAttributes(const char** atts)
         if (colonPosition != std::string::npos)
           {
           std::string volumeNodeId = mapPairStr.substr(0, colonPosition);
-
-          double weight;
-          std::stringstream vss;
-          vss << mapPairStr.substr( colonPosition+1 );
-          vss >> weight;
-
-          this->VolumeNodeIdsToWeightsMap[volumeNodeId] = weight;
+          this->VolumeNodeIdsToWeightsMap[volumeNodeId] = vtkVariant(mapPairStr.substr(colonPosition+1)).ToDouble();
           }
         }
       }

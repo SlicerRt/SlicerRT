@@ -144,11 +144,7 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-ApplySimpleTransformToInputCompare") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      int intValue;
-      ss >> intValue;
-      applySimpleTransformToInputCompare = (intValue == 1 ? true : false);
+      applySimpleTransformToInputCompare = (vtkVariant(argv[argIndex+1]).ToInt() == 1 ? true : false);
       std::cout << "Apply simple transform to input compare: " << (applySimpleTransformToInputCompare ? "true" : "false") << std::endl;
       argIndex += 2;
     }
@@ -164,11 +160,7 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-HausdorffMaximumMm") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      hausdorffMaximumMm = doubleValue;
+      hausdorffMaximumMm = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "Hausdorff maximum (mm): " << hausdorffMaximumMm << std::endl;
       argIndex += 2;
     }
@@ -184,11 +176,7 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-HausdorffAverageMm") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      hausdorffAverageMm = doubleValue;
+      hausdorffAverageMm = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "Hausdorff average (mm): " << hausdorffAverageMm << std::endl;
       argIndex += 2;
     }
@@ -204,11 +192,7 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-Hausdorff95PercentMm") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      hausdorff95PercentMm = doubleValue;
+      hausdorff95PercentMm = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "Hausdorff 95% (mm): " << hausdorff95PercentMm << std::endl;
       argIndex += 2;
     }
@@ -224,11 +208,7 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-DiceCoefficient") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      diceCoefficient = doubleValue;
+      diceCoefficient = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "Dice coefficient: " << diceCoefficient << std::endl;
       argIndex += 2;
     }
@@ -244,11 +224,7 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-TruePositivesPercent") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      truePositivesPercent = doubleValue;
+      truePositivesPercent = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "True positives (%): " << truePositivesPercent << std::endl;
       argIndex += 2;
     }
@@ -264,11 +240,7 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-TrueNegativesPercent") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      trueNegativesPercent = doubleValue;
+      trueNegativesPercent = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "True negatives (%): " << trueNegativesPercent << std::endl;
       argIndex += 2;
     }
@@ -284,11 +256,7 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-FalsePositivesPercent") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      falsePositivesPercent = doubleValue;
+      falsePositivesPercent = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "False positives (%): " << falsePositivesPercent << std::endl;
       argIndex += 2;
     }
@@ -304,11 +272,7 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-FalseNegativesPercent") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      falseNegativesPercent = doubleValue;
+      falseNegativesPercent = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "False negatives (%): " << falseNegativesPercent << std::endl;
       argIndex += 2;
     }

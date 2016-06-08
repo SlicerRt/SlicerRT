@@ -534,12 +534,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   {
     double val[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     const char* strIsoLevel = colorTableNode->GetColorName(i);
-
-    std::stringstream ss;
-    ss << strIsoLevel;
-    double doubleValue;
-    ss >> doubleValue;
-    double isoLevel = doubleValue;
+    double isoLevel = vtkVariant(strIsoLevel).ToDouble();
     colorTableNode->GetColor(i, val);
 
     vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();

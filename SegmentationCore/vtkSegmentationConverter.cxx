@@ -31,6 +31,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include <vtkMatrix4x4.h>
 #include <vtkImageData.h>
 #include <vtkTransform.h>
+#include <vtkVariant.h>
 
 // STD includes
 #include <sstream>
@@ -166,11 +167,7 @@ bool vtkSegmentationConverter::DeserializeImageGeometry(std::string geometryStri
         return false;
       }
 
-      std::string elementStr = geometryString.substr(0, separatorPosition);
-      double element = 0.0;
-      std::stringstream elementParseStream;
-      elementParseStream << elementStr;
-      elementParseStream >> element;
+      double element = vtkVariant(geometryString.substr(0, separatorPosition)).ToDouble();
       geometryMatrix->SetElement(i,j,element);
 
       geometryString = geometryString.substr(separatorPosition + SERIALIZED_GEOMETRY_SEPARATOR.size());
@@ -187,13 +184,7 @@ bool vtkSegmentationConverter::DeserializeImageGeometry(std::string geometryStri
       return false;
     }
 
-    std::string extentStr = geometryString.substr(0, separatorPosition);
-    int extentInt = 0;
-    std::stringstream extentParseStream;
-    extentParseStream << extentStr;
-    extentParseStream >> extentInt;
-    extent[i] = extentInt;
-
+    extent[i] = vtkVariant(geometryString.substr(0, separatorPosition)).ToInt();
     geometryString = geometryString.substr(separatorPosition + SERIALIZED_GEOMETRY_SEPARATOR.size());
     separatorPosition = geometryString.find(SERIALIZED_GEOMETRY_SEPARATOR);
   }
@@ -226,16 +217,6 @@ bool vtkSegmentationConverter::DeserializeImageGeometry(std::string geometryStri
   orientedImageData->AllocateScalars(allocateScalarType, allocateNumberOfScalarsComponents);
 
   return true;
-}
-
-//----------------------------------------------------------------------------
-double vtkSegmentationConverter::DeserializeFloatingPointConversionParameter(std::string parameterString)
-{
-  std::stringstream ss;
-  ss << parameterString;
-  double doubleParameterValue;
-  ss >> doubleParameterValue;
-  return doubleParameterValue;
 }
 
 //----------------------------------------------------------------------------

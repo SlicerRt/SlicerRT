@@ -215,6 +215,8 @@ protected:
   int   BeamNumber;
   /// Beam description
   char* BeamDescription;
+  /// Beam weight, taken into account when accumulating per-beam doses
+  double BeamWeight;
 
   /// TODO:
   RTBeamType BeamType;
@@ -240,9 +242,6 @@ protected:
   double CollimatorAngle;
   /// Couch angle
   double CouchAngle;
-
-  /// Beam weight, taken into account when accumulating per-beam doses
-  double BeamWeight;
 };
 
 #endif // __vtkMRMLRTBeamNode_h

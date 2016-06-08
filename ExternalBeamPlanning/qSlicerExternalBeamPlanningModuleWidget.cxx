@@ -933,9 +933,11 @@ void qSlicerExternalBeamPlanningModuleWidget::onProgressUpdated(vtkObject* calle
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  double* progress = reinterpret_cast<double*>(callData);
-  QString progressMessage = QString("Dose calculation in progress: %1 %").arg(*progress);
+  double* progressPtr = reinterpret_cast<double*>(callData);
+  int progressPercent = (int)((*progressPtr) * 100.0);
+  QString progressMessage = QString("Dose calculation in progress: %1 %").arg(progressPercent);
   d->label_CalculateDoseStatus->setText(progressMessage);
+  QApplication::processEvents();
 }
 
 //-----------------------------------------------------------------------------

@@ -24,26 +24,11 @@
 
 // MRML includes
 #include <vtkMRML.h>
-#include <vtkMRMLDisplayableNode.h>
 #include <vtkMRMLScene.h>
 
 // SlicerRT includes
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkSlicerBeamsModuleMRMLExport.h"
-
-class vtkMRMLScalarVolumeNode;
-class vtkMRMLDisplayableNode;
-class vtkMRMLRTPlanNode;
-class vtkMRMLModelNode;
-class vtkMRMLMarkupsFiducialNode;
-class vtkMRMLSegmentationNode;
-class vtkMRMLDoubleArrayNode;
-
-//TODO: GCS 2015-09-04.  Why don't VTK macros support const functions?
-#define vtkGetConstMacro(name,type)             \
-  virtual type Get##name () const {             \
-    return this->name;                          \
-  }
 
 /// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTProtonBeamNode : public vtkMRMLRTBeamNode
@@ -73,22 +58,16 @@ public:
   /// Copy the node's attributes to this object 
   virtual void Copy(vtkMRMLNode *node);
 
-  /// Updates the referenced nodes from the updated scene
-  virtual void UpdateScene(vtkMRMLScene *scene);
-
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() {return "RTProtonBeam";};
 
-  /// Update the stored reference to another node in the scene 
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
-
-  /// Updates this node if it depends on other nodes 
-  /// when the node is deleted in the scene
-  void UpdateReferences();
+  /// Calculate and set aperture parameters (origin, spacing, dimensions) based on
+  /// the jaw positions, SAD, aperture offset, and pencil beam resolution
+  void UpdateApertureParameters();
 
 public:
-  vtkGetMacro(BeamLineType, bool);
-  vtkSetMacro(BeamLineType, bool);
+  vtkGetMacro(BeamLineTypeActive, bool);
+  vtkSetMacro(BeamLineTypeActive, bool);
 
   vtkGetMacro(ManualEnergyLimits, bool);
   vtkSetMacro(ManualEnergyLimits, bool);
@@ -138,21 +117,14 @@ public:
   vtkGetMacro(Algorithm, RTProtonAlgorithm);
   vtkSetMacro(Algorithm, RTProtonAlgorithm);
 
-  const double* GetApertureSpacing();
-  double GetApertureSpacing(int dim);
-  void SetApertureSpacing(const float* spacing);
-  void SetApertureSpacing(const double* spacing);
+  vtkGetVector2Macro(ApertureSpacing, double);
+  vtkSetVector2Macro(ApertureSpacing, double);
 
-  const double* GetApertureOrigin();
-  double GetApertureOrigin(int dim);
-  void SetApertureOrigin(const float* origin);
-  void SetApertureOrigin(const double* origin);
+  vtkGetVector2Macro(ApertureOrigin, double);
+  vtkSetVector2Macro(ApertureOrigin, double);
 
-  const int* GetApertureDim();
-  int GetApertureDim(int dim);
-  void SetApertureDim(const int* dim);
-
-  void UpdateApertureParameters();
+  vtkGetVector2Macro(ApertureDim, int);
+  vtkSetVector2Macro(ApertureDim, int);
 
 protected:
   vtkMRMLRTProtonBeamNode();
@@ -162,7 +134,7 @@ protected:
 
 protected:
   /// Beam line type: true = active, false = passive
-  bool BeamLineType;
+  bool BeamLineTypeActive;
 
   /// Manual energy limits
   bool ManualEnergyLimits;

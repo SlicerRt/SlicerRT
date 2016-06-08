@@ -100,15 +100,11 @@ void vtkMRMLSegmentEditorNode::ReadXMLAttributes(const char** atts)
 
     if (!strcmp(attName, "selectedSegmentID")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetSelectedSegmentID(ss.str().c_str());
+      this->SetSelectedSegmentID(attValue);
       }
     else if (!strcmp(attName, "activeEffectName")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetActiveEffectName(ss.str().c_str());
+      this->SetActiveEffectName(attValue);
       }
     else if (!strcmp(attName, "maskMode")) 
       {
@@ -116,9 +112,7 @@ void vtkMRMLSegmentEditorNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "maskSegmentID")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetMaskSegmentID(ss.str().c_str());
+      this->SetMaskSegmentID(attValue);
       }
     else if (!strcmp(attName, "masterVolumeIntensityMask"))
       {

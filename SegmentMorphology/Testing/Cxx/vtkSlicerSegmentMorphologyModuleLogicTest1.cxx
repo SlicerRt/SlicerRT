@@ -205,11 +205,7 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-MorphologicalParameter") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      morphologicalParameter = doubleValue;
+      morphologicalParameter = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "Morphological Parameter: " << morphologicalParameter << std::endl;
       argIndex += 2;
     }
@@ -220,11 +216,7 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-ApplySimpleTransformToInput") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      unsigned int intValue;
-      ss >> intValue;
-      applySimpleTransformToInput = intValue;
+      applySimpleTransformToInput = vtkVariant(argv[argIndex+1]).ToInt();
       std::cout << "Apply Transform to Input: " << applySimpleTransformToInput << std::endl;
       argIndex += 2;
     }
@@ -235,11 +227,7 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-VolumeDifferenceToleranceVoxel") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      volumeDifferenceToleranceVoxel = doubleValue;
+      volumeDifferenceToleranceVoxel = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "Volume difference Tolerance(Voxel): " << volumeDifferenceToleranceVoxel << std::endl;
       argIndex += 2;
     }

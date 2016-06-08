@@ -125,11 +125,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   {
     if (STRCASECMP(argv[argIndex], "-VolumeDifferenceToleranceCc") == 0)
     {
-      std::stringstream ss;
-      ss << argv[argIndex+1];
-      double doubleValue;
-      ss >> doubleValue;
-      volumeDifferenceToleranceCc = doubleValue;
+      volumeDifferenceToleranceCc = vtkVariant(argv[argIndex+1]).ToDouble();
       std::cout << "Volume difference Tolerance(Cc): " << volumeDifferenceToleranceCc << std::endl;
       argIndex += 2;
     }

@@ -511,9 +511,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   }
   else if (arrayNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str()))
   {
-    std::stringstream ss;
-    ss << arrayNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str());
-    ss >> tableRow;
+    tableRow = vtkVariant(arrayNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str())).ToInt();
   }
   else
   {
@@ -1397,10 +1395,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(vtkMRMLDoseVolumeHi
   for (std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhIt=dvhArrayNodes.begin(); dvhIt!=dvhArrayNodes.end(); ++dvhIt)
   {
     vtkMRMLDoubleArrayNode* dvhArrayNode = (*dvhIt);
-    int tableRow = -1;
-    std::stringstream ss;
-    ss << dvhArrayNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str());
-    ss >> tableRow;
+    int tableRow = vtkVariant(dvhArrayNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str())).ToInt();
 
     double volume = metricsTable->GetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnVolumeCc).ToDouble();
     std::string structureName = metricsTable->GetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnStructure).ToString();
@@ -1547,11 +1542,7 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
           {
             std::string structureVolumeString = field.substr( middlePosition + DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size(),
               field.size() - middlePosition - DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size() - DVH_CSV_HEADER_VOLUME_FIELD_END.size() );
-            std::stringstream ss;
-            ss << structureVolumeString;
-            double doubleValue;
-            ss >> doubleValue;
-            volumeCCs = doubleValue;
+            volumeCCs = vtkVariant(structureVolumeString).ToDouble();
           }
           structureVolumeCCs.push_back(volumeCCs);
 
@@ -1581,11 +1572,7 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
           {
             std::string structureVolumeString = lineStr.substr( middlePosition + DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size(),
               lineStr.size() - middlePosition - DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE.size() - DVH_CSV_HEADER_VOLUME_FIELD_END.size() );
-            std::stringstream ss;
-            ss << structureVolumeString;
-            double doubleValue;
-            ss >> doubleValue;
-            volumeCCs = doubleValue;
+            volumeCCs = vtkVariant(structureVolumeString).ToDouble();
           }
           structureVolumeCCs.push_back(volumeCCs);
 
@@ -1621,24 +1608,16 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
       // Get the current bin's dose from the string
       double doseGy = 0;
       {
-        double doubleValue;
-        std::stringstream ss;
-        ss << lineStr.substr(0, commaPosition);
-        ss >> doubleValue;
-        doseGy = doubleValue;
+        doseGy = vtkVariant(lineStr.substr(0, commaPosition)).ToDouble();
       }
       tupleToInsert[0] = doseGy;
 
       // Get the current bin's volume from the string
       double volumePercent = 0;
       {
-        double doubleValue;
         lineStr = lineStr.substr(commaPosition+1);
         commaPosition = lineStr.find(csvSeparatorCharacter);
-        std::stringstream ss;
-        ss << lineStr.substr(0, commaPosition);
-        ss >> doubleValue;
-        volumePercent = doubleValue;
+        volumePercent = vtkVariant(lineStr.substr(0, commaPosition)).ToDouble();
       }
       tupleToInsert[1] = volumePercent;
       

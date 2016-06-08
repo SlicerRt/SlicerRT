@@ -791,13 +791,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader*
     {
       double existingDoseUnitValue = vtkVariant(existingDoseUnitValueChars).ToDouble();
       double doseGridScaling = vtkVariant(rtReader->GetDoseGridScaling()).ToDouble();
-
-      double currentDoseUnitValue = 0.0;
-      {
-        std::stringstream ss;
-        ss << rtReader->GetDoseGridScaling();
-        ss >> currentDoseUnitValue;
-      }
+      double currentDoseUnitValue = vtkVariant(rtReader->GetDoseGridScaling()).ToDouble();
       if (fabs(existingDoseUnitValue - currentDoseUnitValue) > EPSILON)
       {
         vtkErrorMacro("LoadRtDose: Dose unit value already exists (" << existingDoseUnitValue << ") for study and differs from current one (" << currentDoseUnitValue << ")!");
@@ -1431,9 +1425,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
   const char* rtImageSidChars = rtImageSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME.c_str());
   if (rtImageSidChars != NULL)
   {
-    std::stringstream ss;
-    ss << rtImageSidChars;
-    ss >> rtImageSid;
+    rtImageSid = vtkVariant(rtImageSidChars).ToDouble();
   }
   // Get RT image position (the x and y coordinates (in mm) of the upper left hand corner of the image, in the IEC X-RAY IMAGE RECEPTOR coordinate system)
   double rtImagePosition[2] = {0.0, 0.0};
@@ -1450,25 +1442,19 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
   const char* sourceAxisDistanceChars = beamSHNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str());
   if (sourceAxisDistanceChars)
   {
-    std::stringstream ss;
-    ss << sourceAxisDistanceChars;
-    ss >> sourceAxisDistance;
+    sourceAxisDistance = vtkVariant(sourceAxisDistanceChars).ToDouble();
   }
   double gantryAngle = 0.0;
   const char* gantryAngleChars = beamSHNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str());
   if (gantryAngleChars)
   {
-    std::stringstream ss;
-    ss << gantryAngleChars;
-    ss >> gantryAngle;
+    gantryAngle = vtkVariant(gantryAngleChars).ToDouble();
   }
   double couchAngle = 0.0;
   const char* couchAngleChars = beamSHNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME.c_str());
   if (couchAngleChars != NULL)
   {
-    std::stringstream ss;
-    ss << couchAngleChars;
-    ss >> couchAngle;
+    couchAngle = vtkVariant(couchAngleChars).ToDouble();
   }
 
   // Get isocenter coordinates

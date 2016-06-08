@@ -295,7 +295,7 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
     std::cout << "Aperture distance = " << rt_beam->get_aperture()->get_distance() << std::endl;
     std::cout << "Setting aperture origin -> ";
     rt_beam->get_aperture()->set_origin(protonBeamNode->GetApertureOrigin());
-    std::cout << "Aperture origin = " << protonBeamNode->GetApertureOrigin(0) << " " << protonBeamNode->GetApertureOrigin(1) << std::endl;
+    std::cout << "Aperture origin = " << protonBeamNode->GetApertureOrigin()[0] << " " << protonBeamNode->GetApertureOrigin()[1] << std::endl;
     std::cout << "Setting aperture spacing -> ";
     rt_beam->get_aperture()->set_spacing(protonBeamNode->GetApertureSpacing());
     std::cout << "Aperture Spacing = " << rt_beam->get_aperture()->get_spacing(0) << " " << rt_beam->get_aperture()->get_spacing(1) << std::endl;
@@ -307,7 +307,7 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
     // Update mebs parameters
     std::cout << "\nENERGY PARAMETERS:" << std::endl;
     std::cout << "Setting beam line type -> ";
-    if (protonBeamNode->GetBeamLineType() == true)
+    if (protonBeamNode->GetBeamLineTypeActive() == true)
     {
       rt_beam->set_beam_line_type("active");      
       std::cout << "beam line type set to active" << std::endl;

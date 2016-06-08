@@ -123,9 +123,7 @@ void vtkSegmentation::ReadXMLAttributes(const char** atts)
 
     if (!strcmp(attName, "MasterRepresentationName")) 
     {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetMasterRepresentationName(ss.str().c_str());
+      this->SetMasterRepresentationName(attValue);
     }
   }
 }

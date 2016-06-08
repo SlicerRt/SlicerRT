@@ -121,7 +121,6 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
 
     if (!strcmp(attName, "NextBeamNumber")) 
     {
-      //TODO: Great idea to use vtkVariant, should be used everywhere in the code instead of the lengthy stringstream way!
       this->NextBeamNumber = vtkVariant(attValue).ToDouble();
     }
     else if (!strcmp(attName, "TargetSegmentID")) 

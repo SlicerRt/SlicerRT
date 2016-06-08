@@ -92,47 +92,17 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
     }
   of << "\"";
 
-  {
-    std::stringstream ss;
-    ss << this->ShowHideAll;
-    of << indent << " ShowHideAll=\"" << ss.str() << "\"";
-  }
+  of << indent << " ShowHideAll=\"" << this->ShowHideAll << "\"";
 
-  {
-    std::stringstream ss;
-    if ( this->VDoseValues )
-      {
-      ss << this->VDoseValues;
-      of << indent << " VDoseValues=\"" << ss.str() << "\"";
-      }
-  }
-
+  of << indent << " VDoseValues=\"" << (this->VDoseValues ? this->VDoseValues : "") << "\"";
   of << indent << " ShowVMetricsCc=\"" << (this->ShowVMetricsCc ? "true" : "false") << "\"";
-
   of << indent << " ShowVMetricsPercent=\"" << (this->ShowVMetricsPercent ? "true" : "false") << "\"";
 
-  {
-    std::stringstream ss;
-    if ( this->DVolumeValuesCc )
-      {
-      ss << this->DVolumeValuesCc;
-      of << indent << " DVolumeValuesCc=\"" << ss.str() << "\"";
-      }
-  }
-
-  {
-    std::stringstream ss;
-    if ( this->DVolumeValuesPercent )
-      {
-      ss << this->DVolumeValuesPercent;
-      of << indent << " DVolumeValuesPercent=\"" << ss.str() << "\"";
-      }
-  }
-
+  of << indent << " DVolumeValuesCc=\"" << (this->DVolumeValuesCc ? this->DVolumeValuesCc : "") << "\"";
+  of << indent << " DVolumeValuesPercent=\"" << (this->DVolumeValuesPercent ? this->DVolumeValuesPercent : "") << "\"";
   of << indent << " ShowDMetrics=\"" << (this->ShowDMetrics ? "true" : "false") << "\"";
 
   of << indent << " ShowDoseVolumesOnly=\"" << (this->ShowDoseVolumesOnly ? "true" : "false") << "\"";
-
   of << indent << " AutomaticOversampling=\"" << (this->AutomaticOversampling ? "true" : "false") << "\"";
 }
 
@@ -152,9 +122,7 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
 
     if (!strcmp(attName, "SelectedSegmentIDs")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      std::string valueStr = ss.str();
+      std::string valueStr(attValue);
       std::string separatorCharacter("|");
 
       this->SelectedSegmentIDs.clear();
@@ -172,39 +140,27 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "ShowHideAll")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      int intAttValue;
-      ss >> intAttValue;
-      this->ShowHideAll = intAttValue;
+      this->ShowHideAll = vtkVariant(attValue).ToInt();;
       }
     else if (!strcmp(attName, "VDoseValues")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetVDoseValues(ss.str().c_str());
+      this->SetVDoseValues(attValue);
       }
     else if (!strcmp(attName, "ShowVMetricsCc")) 
       {
-      this->ShowVMetricsCc = 
-        (strcmp(attValue,"true") ? false : true);
+      this->ShowVMetricsCc = (strcmp(attValue,"true") ? false : true);
       }
     else if (!strcmp(attName, "ShowVMetricsPercent")) 
       {
-      this->ShowVMetricsPercent = 
-        (strcmp(attValue,"true") ? false : true);
+      this->ShowVMetricsPercent = (strcmp(attValue,"true") ? false : true);
       }
     else if (!strcmp(attName, "DVolumeValuesCc")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetDVolumeValuesCc(ss.str().c_str());
+      this->SetDVolumeValuesCc(attValue);
       }
     else if (!strcmp(attName, "DVolumeValuesPercent")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetDVolumeValuesPercent(ss.str().c_str());
+      this->SetDVolumeValuesPercent(attValue);
       }
     else if (!strcmp(attName, "ShowDMetrics")) 
       {

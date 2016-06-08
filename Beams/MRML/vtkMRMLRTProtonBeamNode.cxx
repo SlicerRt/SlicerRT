@@ -56,7 +56,7 @@ vtkMRMLRTProtonBeamNode::vtkMRMLRTProtonBeamNode()
   this->ProximalMargin = 0.0;
   this->DistalMargin = 0.0;
 
-  this->BeamLineType = true;
+  this->BeamLineTypeActive = true;
 
   this->ManualEnergyLimits = false;
   this->MaximumEnergy = 0;
@@ -97,8 +97,58 @@ void vtkMRMLRTProtonBeamNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkIndent indent(nIndent);
 
-  // GCS FIX TODO *** Add all members ***
+  of << indent << " BeamLineTypeActive=\"" << (this->BeamLineTypeActive ? "true" : "false") << "\"";
+
+  of << indent << " ManualEnergyLimits=\"" << (this->ManualEnergyLimits ? "true" : "false") << "\"";
+  of << indent << " MinimumEnergy=\"" << this->MinimumEnergy << "\"";
+  of << indent << " MaximumEnergy=\"" << this->MaximumEnergy << "\"";
+
+  of << indent << " EnergyResolution=\"" << this->EnergyResolution << "\"";
+  of << indent << " EnergySpread=\"" << this->EnergySpread << "\"";
+  of << indent << " StepLength=\"" << this->StepLength << "\"";
+
+  of << indent << " ProximalMargin=\"" << this->ProximalMargin << "\"";
+  of << indent << " DistalMargin=\"" << this->DistalMargin << "\"";
+
+  of << indent << " PencilBeamResolution=\"" << this->PencilBeamResolution << "\"";
+
+  of << indent << " ApertureOffset=\"" << this->ApertureOffset << "\"";
+
+  of << indent << " SourceSize=\"" << this->SourceSize << "\"";
+
+  of << indent << " LateralSpreadHomoApprox=\"" << (this->LateralSpreadHomoApprox ? "true" : "false") << "\"";
+  of << indent << " RangeCompensatorHighland=\"" << (this->RangeCompensatorHighland ? "true" : "false") << "\"";
+
+  of << indent << " HavePrescription=\"" << (this->HavePrescription ? "true" : "false") << "\"";
+
   of << indent << " RangeCompensatorSmearingRadius=\"" << this->RangeCompensatorSmearingRadius << "\"";
+
+  of << indent << " Algorithm=\"" << (int)this->Algorithm << "\"";
+
+  {
+    of << indent << " ApertureSpacing=\"";
+    for (int i=0; i<2; ++i)
+    {
+      of << this->ApertureSpacing[i] << "|";
+    }
+    of << "\"";
+  }
+  {
+    of << indent << " ApertureOrigin=\"";
+    for (int i=0; i<2; ++i)
+    {
+      of << this->ApertureOrigin[i] << "|";
+    }
+    of << "\"";
+  }
+  {
+    of << indent << " ReferenceCenter=\"";
+    for (int i=0; i<2; ++i)
+    {
+      of << this->ApertureDim[i] << "|";
+    }
+    of << "\"";
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -115,12 +165,109 @@ void vtkMRMLRTProtonBeamNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    // GCS FIX TODO *** Add all members ***
-    if (!strcmp(attName, "RangeCompensatorSmearingRadius")) 
+    if (!strcmp(attName, "BeamNumber")) 
     {
-      std::stringstream ss;
-      ss << attValue;
-      ss >> this->RangeCompensatorSmearingRadius;
+      this->BeamLineTypeActive = (strcmp(attValue,"true") ? false : true);
+    }
+    else if (!strcmp(attName, "BeamDescription")) 
+    {
+      this->ManualEnergyLimits = (strcmp(attValue,"true") ? false : true);
+    }
+    else if (!strcmp(attName, "MinimumEnergy")) 
+    {
+      this->MinimumEnergy = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "MaximumEnergy")) 
+    {
+      this->MaximumEnergy = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "EnergyResolution")) 
+    {
+      this->EnergyResolution = vtkVariant(attValue).ToFloat();
+    }
+    else if (!strcmp(attName, "EnergySpread")) 
+    {
+      this->EnergySpread = vtkVariant(attValue).ToFloat();
+    }
+    else if (!strcmp(attName, "StepLength")) 
+    {
+      this->StepLength = vtkVariant(attValue).ToFloat();
+    }
+    else if (!strcmp(attName, "ProximalMargin")) 
+    {
+      this->ProximalMargin = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "DistalMargin")) 
+    {
+      this->DistalMargin = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "PencilBeamResolution")) 
+    {
+      this->PencilBeamResolution = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "ApertureOffset")) 
+    {
+      this->ApertureOffset = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "SourceSize")) 
+    {
+      this->SourceSize = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "LateralSpreadHomoApprox")) 
+    {
+      this->LateralSpreadHomoApprox = (strcmp(attValue,"true") ? false : true);
+    }
+    else if (!strcmp(attName, "RangeCompensatorHighland")) 
+    {
+      this->RangeCompensatorHighland = (strcmp(attValue,"true") ? false : true);
+    }
+    else if (!strcmp(attName, "HavePrescription")) 
+    {
+      this->HavePrescription = (strcmp(attValue,"true") ? false : true);
+    }
+    else if (!strcmp(attName, "RangeCompensatorSmearingRadius")) 
+    {
+      this->RangeCompensatorSmearingRadius = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "Algorithm")) 
+    {
+      this->Algorithm = (RTProtonAlgorithm)vtkVariant(attValue).ToInt();
+    }
+    else if (!strcmp(attName, "ApertureSpacing")) 
+    {
+      std::string valueStr(attValue);
+      std::string separatorCharacter("|");
+
+      size_t separatorPosition = valueStr.find( separatorCharacter );
+      this->ApertureSpacing[0] = vtkVariant(valueStr.substr(0, separatorPosition)).ToDouble();
+
+      valueStr = valueStr.substr( separatorPosition+1 );
+      separatorPosition = valueStr.find( separatorCharacter );
+      this->ApertureSpacing[1] = vtkVariant(valueStr.substr(0, separatorPosition)).ToDouble();
+    }
+    else if (!strcmp(attName, "ApertureOrigin")) 
+    {
+      std::string valueStr(attValue);
+      std::string separatorCharacter("|");
+
+      size_t separatorPosition = valueStr.find( separatorCharacter );
+      this->ApertureOrigin[0] = vtkVariant(valueStr.substr(0, separatorPosition)).ToDouble();
+
+      valueStr = valueStr.substr( separatorPosition+1 );
+      separatorPosition = valueStr.find( separatorCharacter );
+      this->ApertureOrigin[1] = vtkVariant(valueStr.substr(0, separatorPosition)).ToDouble();
+    }
+    else if (!strcmp(attName, "ApertureDim")) 
+    {
+      std::string valueStr(attValue);
+      std::string separatorCharacter("|");
+
+      size_t separatorPosition = valueStr.find( separatorCharacter );
+      this->ApertureDim[0] = vtkVariant(valueStr.substr(0, separatorPosition)).ToInt();
+
+      valueStr = valueStr.substr( separatorPosition+1 );
+      separatorPosition = valueStr.find( separatorCharacter );
+      this->ApertureDim[1] = vtkVariant(valueStr.substr(0, separatorPosition)).ToInt();
     }
   }
 }
@@ -135,12 +282,7 @@ void vtkMRMLRTProtonBeamNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLRTProtonBeamNode *node = (vtkMRMLRTProtonBeamNode *) anode;
 
-  // GCS FIX TODO *** Add all members ***
-  
-  this->SetProximalMargin(node->GetProximalMargin());
-  this->SetDistalMargin(node->GetDistalMargin());
-
-  this->SetBeamLineType(node->GetBeamLineType());
+  this->SetBeamLineTypeActive(node->GetBeamLineTypeActive());
 
   this->SetManualEnergyLimits(node->GetManualEnergyLimits());
   this->SetMaximumEnergy(node->GetMaximumEnergy());
@@ -149,38 +291,31 @@ void vtkMRMLRTProtonBeamNode::Copy(vtkMRMLNode *anode)
   this->SetEnergyResolution(node->GetEnergyResolution());
   this->SetEnergySpread(node->GetEnergySpread());
   this->SetStepLength(node->GetStepLength());
-  this->SetAlgorithm(node->GetAlgorithm());
+
+  this->SetProximalMargin(node->GetProximalMargin());
+  this->SetDistalMargin(node->GetDistalMargin());
+
   this->SetPencilBeamResolution(node->GetPencilBeamResolution());
-  this->SetRangeCompensatorSmearingRadius(node->GetRangeCompensatorSmearingRadius());
 
   this->SetApertureOffset(node->GetApertureOffset());
 
   this->SetSourceSize(node->GetSourceSize());
-  this->SetRadiationType(node->GetRadiationType());
 
   this->SetLateralSpreadHomoApprox(node->GetLateralSpreadHomoApprox());
   this->SetRangeCompensatorHighland(node->GetRangeCompensatorHighland());
 
+  this->SetHavePrescription(node->GetHavePrescription());
+
+  this->SetRangeCompensatorSmearingRadius(node->GetRangeCompensatorSmearingRadius());
+
+  this->SetAlgorithm(node->GetAlgorithm());
+
+  this->SetApertureSpacing(node->GetApertureSpacing());
+  this->SetApertureOrigin(node->GetApertureOrigin());
+  this->SetApertureDim(node->GetApertureDim());
+
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTProtonBeamNode::UpdateReferences()
-{
-  Superclass::UpdateReferences();
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTProtonBeamNode::UpdateReferenceID(const char *oldID, const char *newID)
-{
-  Superclass::UpdateReferenceID(oldID, newID);
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTProtonBeamNode::UpdateScene(vtkMRMLScene *scene)
-{
-  Superclass::UpdateScene(scene);
 }
 
 //----------------------------------------------------------------------------
@@ -188,88 +323,57 @@ void vtkMRMLRTProtonBeamNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  // GCS FIX TODO *** Add all members ***
-  os << indent << "RangeCompensatorSmearingRadius:   " << this->RangeCompensatorSmearingRadius << "\n";
-}
+  os << indent << " BeamLineTypeActive:   " << (this->BeamLineTypeActive ? "true" : "false") << "\n";
 
-//----------------------------------------------------------------------------
-const double* vtkMRMLRTProtonBeamNode::GetApertureSpacing ()
-{
-  return this->ApertureSpacing;
-}
+  os << indent << " ManualEnergyLimits:   " << (this->ManualEnergyLimits ? "true" : "false") << "\n";
+  os << indent << " MinimumEnergy:   " << this->MinimumEnergy << "\n";
+  os << indent << " MaximumEnergy:   " << this->MaximumEnergy << "\n";
 
-//----------------------------------------------------------------------------
-double vtkMRMLRTProtonBeamNode::GetApertureSpacing (int dim)
-{
-  return this->ApertureSpacing[dim];
-}
+  os << indent << " EnergyResolution:   " << this->EnergyResolution << "\n";
+  os << indent << " EnergySpread:   " << this->EnergySpread << "\n";
+  os << indent << " StepLength:   " << this->StepLength << "\n";
 
-//----------------------------------------------------------------------------
-void vtkMRMLRTProtonBeamNode::SetApertureSpacing (const float* spacing)
-{
-  for (int d = 0; d < 2; d++) 
+  os << indent << " ProximalMargin:   " << this->ProximalMargin << "\n";
+  os << indent << " DistalMargin:   " << this->DistalMargin << "\n";
+
+  os << indent << " PencilBeamResolution:   " << this->PencilBeamResolution << "\n";
+
+  os << indent << " ApertureOffset:   " << this->ApertureOffset << "\n";
+
+  os << indent << " SourceSize:   " << this->SourceSize << "\n";
+
+  os << indent << " LateralSpreadHomoApprox:   " << (this->LateralSpreadHomoApprox ? "true" : "false") << "\n";
+  os << indent << " RangeCompensatorHighland:   " << (this->RangeCompensatorHighland ? "true" : "false") << "\n";
+
+  os << indent << " HavePrescription:   " << (this->HavePrescription ? "true" : "false") << "\n";
+
+  os << indent << " RangeCompensatorSmearingRadius:   " << this->RangeCompensatorSmearingRadius << "\n";
+
+  os << indent << " Algorithm:   " << (int)this->Algorithm << "\n";
+
   {
-    this->ApertureSpacing[d] = spacing[d];
+    os << indent << " ApertureSpacing:   ";
+    for (int i=0; i<2; ++i)
+    {
+      os << this->ApertureSpacing[i] << (i<2?", ":"");
+    }
+    os << "\n";
   }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTProtonBeamNode::SetApertureSpacing (const double* spacing)
-{
-  for (int d = 0; d < 2; d++) 
   {
-    this->ApertureSpacing[d] = spacing[d];
+    os << indent << " ApertureOrigin:   ";
+    for (int i=0; i<2; ++i)
+    {
+      os << this->ApertureOrigin[i] << (i<2?", ":"");
+    }
+    os << "\n";
   }
-}
-
-//----------------------------------------------------------------------------
-const double* vtkMRMLRTProtonBeamNode::GetApertureOrigin ()
-{
-  return this->ApertureOrigin;
-}
-
-//----------------------------------------------------------------------------
-double vtkMRMLRTProtonBeamNode::GetApertureOrigin (int dim)
-{
-  return this->ApertureOrigin[dim];
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTProtonBeamNode::SetApertureOrigin (const float* position)
-{
-  for (int d = 0; d < 2; d++) 
   {
-    this->ApertureOrigin[d] = position[d];
-  }
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTProtonBeamNode::SetApertureOrigin (const double* position)
-{
-  for (int d = 0; d < 2; d++) 
-  {
-    this->ApertureOrigin[d] = position[d];
-  }
-}
-
-//----------------------------------------------------------------------------
-const int* vtkMRMLRTProtonBeamNode::GetApertureDim ()
-{
-  return this->ApertureDim;
-}
-
-//----------------------------------------------------------------------------
-int vtkMRMLRTProtonBeamNode::GetApertureDim (int dim)
-{
-  return this->ApertureDim[dim];
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTProtonBeamNode::SetApertureDim (const int* dim)
-{
-  for (int d = 0; d < 2; d++) 
-  {
-    this->ApertureDim[d] = dim[d];
+    os << indent << " ApertureDim:   ";
+    for (int i=0; i<2; ++i)
+    {
+      os << this->ApertureDim[i] << (i<2?", ":"");
+    }
+    os << "\n";
   }
 }
 
@@ -279,15 +383,14 @@ void vtkMRMLRTProtonBeamNode::UpdateApertureParameters()
   if (this->SAD < 0 || this->SAD < this->ApertureOffset)
   {
     vtkErrorMacro("UpdateApertureParameters: SAD (=" << this->SAD << ") must be positive and greater than Aperture offset (" << this->ApertureOffset << ")");
-    printf("SAD = %lg, Aperture offset = %lg\n", this->SAD, this->ApertureOffset);
     return;
   }
-  double origin[2] = {this->X1Jaw * this->ApertureOffset / this->SAD , this->Y1Jaw * this->ApertureOffset / this->SAD };
+  double origin[2] = { this->X1Jaw * this->ApertureOffset / this->SAD , this->Y1Jaw * this->ApertureOffset / this->SAD };
   this->SetApertureOrigin(origin);
 
-  double spacing_at_aperture[2] = {1/ this->PencilBeamResolution * this->ApertureOffset / this->SAD, 1 / this->PencilBeamResolution * this->ApertureOffset / this->SAD};
+  double spacing_at_aperture[2] = { 1.0 / this->PencilBeamResolution * this->ApertureOffset / this->SAD, 1.0 / this->PencilBeamResolution * this->ApertureOffset / this->SAD };
   this->SetApertureSpacing(spacing_at_aperture);
 
-  int dim[2] = { (int) ((this->X2Jaw - this->X1Jaw) / this->PencilBeamResolution + 1 ), (int) ((this->Y2Jaw - this->Y1Jaw) / this->PencilBeamResolution + 1 )};
+  int dim[2] = { (int)((this->X2Jaw - this->X1Jaw) / this->PencilBeamResolution + 1 ), (int)((this->Y2Jaw - this->Y1Jaw) / this->PencilBeamResolution + 1 ) };
   this->SetApertureDim(dim);
 }

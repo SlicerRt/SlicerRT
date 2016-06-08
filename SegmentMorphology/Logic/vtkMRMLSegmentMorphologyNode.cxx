@@ -96,47 +96,27 @@ void vtkMRMLSegmentMorphologyNode::ReadXMLAttributes(const char** atts)
 
     if (!strcmp(attName, "SegmentAID")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetSegmentAID(ss.str().c_str());
+      this->SetSegmentAID(attValue);
       }
     else if (!strcmp(attName, "SegmentBID")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      this->SetSegmentBID(ss.str().c_str());
+      this->SetSegmentBID(attValue);
       }
     else if (!strcmp(attName, "Operation")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      int operation;
-      ss >> operation;
-      this->Operation = operation;
+      this->Operation = vtkVariant(attValue).ToInt();
       }
     else if (!strcmp(attName, "XSize")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double xSize;
-      ss >> xSize;
-      this->XSize = xSize;
+      this->XSize = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "YSize")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double ySize;
-      ss >> ySize;
-      this->YSize = ySize;
+      this->YSize = vtkVariant(attValue).ToDouble();
       }
     else if (!strcmp(attName, "ZSize")) 
       {
-      std::stringstream ss;
-      ss << attValue;
-      double zSize;
-      ss >> zSize;
-      this->ZSize = zSize;
+      this->ZSize = vtkVariant(attValue).ToDouble();
       }
     }
 }
