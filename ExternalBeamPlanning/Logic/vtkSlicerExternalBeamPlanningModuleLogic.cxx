@@ -712,7 +712,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(vtkMRMLRTPlanNode* plan
   transformSlice->RotateX(-90);
   transformSlice->Update();
 
-  sliceNode->SetOrientationToReformat();
   sliceNode->SetSliceToRAS(transformSlice->GetMatrix());
   sliceNode->UpdateMatrices();
 
