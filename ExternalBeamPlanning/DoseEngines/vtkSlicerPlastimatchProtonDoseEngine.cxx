@@ -355,8 +355,8 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
   }
   catch (std::exception& ex)
   {
-    std::string errorMessage("Plastimatch exception happened");
-    vtkErrorMacro("CalculateDoseUsingEngine: " << errorMessage << ": " << ex.what());
+    std::string errorMessage = std::string("Plastimatch exception: ") + ex.what();
+    vtkErrorMacro("CalculateDoseUsingEngine: " << errorMessage);
     return errorMessage;
   }
 
