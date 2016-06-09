@@ -193,7 +193,7 @@ bool vtkSegmentationConverter::DeserializeImageGeometry(std::string geometryStri
 }
 
 //----------------------------------------------------------------------------
-bool vtkSegmentationConverter::DeserializeImageGeometry(std::string geometryString, vtkOrientedImageData* orientedImageData, int scalarType/*=VTK_VOID*/, int numberOfScalarsComponents/*=-1*/)
+bool vtkSegmentationConverter::DeserializeImageGeometry(std::string geometryString, vtkOrientedImageData* orientedImageData, bool allocateScalars/*=true*/, int scalarType/*=VTK_VOID*/, int numberOfScalarsComponents/*=-1*/)
 {
   if (!orientedImageData)
   {

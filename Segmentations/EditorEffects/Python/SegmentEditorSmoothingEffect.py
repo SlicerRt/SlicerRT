@@ -27,7 +27,7 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     return qt.QIcon()
 
   def helpText(self):
-    return "Smooth selected segment. Avilable methods:\n-Median: removes small details while keeps smooth contours mostly unchanged.\n-Opening: removes extrusions smaller than the specified kernel size.\n-Closing: fills sharp corners and holes smaller than the specified kernel size.\n-Gaussian: smoothes all contours, tends to shrink the segment."
+    return "<html>Smooth selected segment. Avilable methods:<ul><li>Median: removes small details while keeps smooth contours mostly unchanged.</li><li>Opening: removes extrusions smaller than the specified kernel size.</li><li>Closing: fills sharp corners and holes smaller than the specified kernel size.</li><li>Gaussian: smoothes all contours, tends to shrink the segment.</li></ul></html>"
 
   def activate(self):
     self.updateGUIFromMRML()

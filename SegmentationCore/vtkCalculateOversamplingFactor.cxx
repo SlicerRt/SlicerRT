@@ -460,10 +460,9 @@ void vtkCalculateOversamplingFactor::ApplyOversamplingOnImageGeometry(vtkOriente
     imageData->GetSpacing(spacing);
     for (unsigned int axis=0; axis<3; ++axis)
     {
-      unsigned int dimension = extent[axis*2+1] - extent[axis*2] + 1;
-      int extentMin = (int)(ceil(static_cast<double>(extent[axis*2]) * oversamplingFactor));
-      int extentMax = (int)(floor(static_cast<double>(extentMin + dimension) * oversamplingFactor) - 1);
-
+      int dimension = extent[axis*2+1] - extent[axis*2] + 1;
+      int extentMin = static_cast<int>(ceil(oversamplingFactor * extent[axis * 2]));
+      int extentMax = extentMin + static_cast<int>(floor(oversamplingFactor*dimension)) - 1;
       newExtent[axis*2] = extentMin;
       newExtent[axis*2+1] = extentMax;
       newSpacing[axis] = spacing[axis] 

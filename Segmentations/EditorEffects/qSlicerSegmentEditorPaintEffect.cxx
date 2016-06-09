@@ -442,52 +442,12 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLWidget* viewWidget)
       int shift[3] = {int(shiftDouble[0]+0.5), int(shiftDouble[1]+0.5), int(shiftDouble[2]+0.5)};
       brushPositioner->SetExtentTranslation(shift);
       brushPositioner->Update();
-      vtkOrientedImageDataResample::ModifyImage(labelmapImage, brushPositioner->GetOutput(), true /*computeMax*/);
+      vtkNew<vtkOrientedImageData> orientedBrushPositionerOutput;
+      orientedBrushPositionerOutput->ShallowCopy(brushPositioner->GetOutput());
+      orientedBrushPositionerOutput->CopyDirections(labelmapImage);
+      vtkOrientedImageDataResample::ModifyImage(labelmapImage, orientedBrushPositionerOutput.GetPointer(), vtkOrientedImageDataResample::OPERATION_MAXIMUM);
     }
     labelmapImage->Modified();
-    /*
-    vtkNew<vtkImageStencilData> combinedStencilData;
-    combinedStencilData->SetExtent(combinedStencilExtent);
-    combinedStencilData->AllocateExtents();
-
-    double brushCenter_Ijk[3]={0};
-    vtkIdType numberOfPoints = this->PaintCoordinates_World->GetNumberOfPoints();
-    for (int pointIndex = 0; pointIndex < numberOfPoints; pointIndex++)
-    {
-      double* shiftDouble = paintCoordinates_Ijk->GetPoint(pointIndex);
-      int shift[3] = {int(shiftDouble[0]+0.5), int(shiftDouble[1]+0.5), int(shiftDouble[2]+0.5)};
-
-      for (int idZ=stencilExtent[4]; idZ<=stencilExtent[5]; idZ++)
-      {
-        int shiftedIdZ = idZ + shift[2];
-        for (int idY = stencilExtent[2]; idY <= stencilExtent[3]; idY++)
-        {
-          int shiftedIdY = idY + shift[1];
-          int iter=0;
-          int moreSubExtents = 1;
-          while( moreSubExtents )
-          {
-            int r1, r2;
-            moreSubExtents = stencilData->GetNextExtent(r1, r2, stencilExtent[0], stencilExtent[1], idY, idZ, iter);
-            if (r1 <= r2 ) // sanity check
-            {
-              combinedStencilData->InsertAndMergeExtent(r1+shift[0], r2+shift[0], shiftedIdY, shiftedIdZ);
-            }
-          }
-        }
-      }
-    }
-    combinedStencilData->Modified();
-
-    vtkNew<vtkImageStencil> stencil;
-    stencil->SetInputData(labelmapImage);
-    stencil->SetStencilData(combinedStencilData.GetPointer());
-    stencil->ReverseStencilOn();
-    stencil->SetBackgroundValue(q->m_FillValue);
-    stencil->Update();
-    vtkImageData* updatedLabelmapImage = stencil->GetOutput();
-    labelmapImage->ShallowCopy(updatedLabelmapImage);
-    */
   }
   this->PaintCoordinates_World->Reset();
 

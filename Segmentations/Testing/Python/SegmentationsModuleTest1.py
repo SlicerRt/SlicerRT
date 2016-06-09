@@ -237,7 +237,7 @@ class SegmentationsModuleTest1(unittest.TestCase):
 
     # Check merged labelmap
     # Reference geometry has the tiny patient spacing, and it is oversampled to have smimilar
-    # voxel size as the sphere labelmap with the unifirm 1mm spacing
+    # voxel size as the sphere labelmap with the uniform 1mm spacing
     mergedLabelmap = self.inputSegmentationNode.GetImageData()
     self.assertIsNotNone(mergedLabelmap)
     mergedLabelmapSpacing = self.inputSegmentationNode.GetSpacing()

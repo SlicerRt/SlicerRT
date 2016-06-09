@@ -903,42 +903,16 @@ bool vtkMRMLSegmentationNode::HasMergedLabelmap()
 }
 
 //---------------------------------------------------------------------------
-bool vtkMRMLSegmentationNode::GenerateDisplayedMergedLabelmap(vtkImageData* imageData)
-{
-  vtkSmartPointer<vtkMatrix4x4> mergedImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (this->GenerateMergedLabelmap(imageData, mergedImageToWorldMatrix))
-  {
-    // Save labelmap merge timestamp
-    this->LabelmapMergeTime.Modified();
-
-    // Save common labelmap geometry in segmentation node
-    this->SetIJKToRASMatrix(mergedImageToWorldMatrix);
-
-    // Make sure merged labelmap extents starts at zeros for compatibility reasons
-    vtkMRMLSegmentationNode::ShiftVolumeNodeExtentToZeroStart(this);
-
-    return true;
-  }
-
-  return false;
-}
-
-//---------------------------------------------------------------------------
 bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
-  vtkImageData* mergedImageData,
-  vtkMatrix4x4* mergedImageToWorldMatrix,
+  vtkOrientedImageData* mergedImageData,
   vtkOrientedImageData* mergedLabelmapGeometry/*=NULL*/,
-  const std::vector<std::string>& segmentIDs/*=std::vector<std::string>()*/
+  const std::vector<std::string>& segmentIDs/*=std::vector<std::string>()*/,
+  bool allowExpandReferenceGeometry /*=true*/
   )
 {
   if (!mergedImageData)
   {
     vtkErrorMacro("GenerateMergedLabelmap: Invalid image data!");
-    return false;
-  }
-  if (!mergedImageToWorldMatrix)
-  {
-    vtkErrorMacro("GenerateMergedLabelmap: Invalid geometry matrix!");
     return false;
   }
   // If segmentation is missing or empty then we cannot create a merged image data
@@ -969,6 +943,7 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
   }
 
   // Determine common labelmap geometry that will be used for the merged labelmap
+  vtkSmartPointer<vtkMatrix4x4> mergedImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   vtkSmartPointer<vtkOrientedImageData> commonGeometryImage;
   if (mergedLabelmapGeometry)
   {
@@ -979,7 +954,7 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
   else
   {
     commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
-    std::string commonGeometryString = this->Segmentation->DetermineCommonLabelmapGeometry(mergedSegmentIDs);
+    std::string commonGeometryString = this->Segmentation->DetermineCommonLabelmapGeometry(mergedSegmentIDs, allowExpandReferenceGeometry);
     if (commonGeometryString.empty())
     {
       // This can occur if there are only empty segments in the segmentation
@@ -1003,11 +978,12 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
   {
     if (mergedImageData->GetScalarType() != VTK_SHORT)
     {
-      vtkWarningMacro("GenerateMergedLabelmap: Merged image data scalar type is not short! Allocating using short.");
+      vtkWarningMacro("GenerateMergedLabelmap: Merged image data scalar type is not short. Allocating using short.");
     }
     mergedImageData->SetExtent(referenceExtent);
     mergedImageData->AllocateScalars(VTK_SHORT, 1);
   }
+  mergedImageData->SetImageToWorldMatrix(mergedImageToWorldMatrix);
 
   // Paint the image data background first
   unsigned short backgroundColor = vtkMRMLSegmentationDisplayNode::GetSegmentationColorIndexBackground();
@@ -1018,14 +994,6 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
     return false;
   }
 
-  /*
-  vtkIdType mergedImageDataNumberOfPoints = mergedImageData->GetNumberOfPoints();
-  for (vtkIdType i=0; i<mergedImageDataNumberOfPoints; ++i)
-  {
-    (*mergedImagePtr) = (short)backgroundColor;
-    ++mergedImagePtr;
-  }
-*/
   vtkOrientedImageDataResample::FillImage(mergedImageData, backgroundColor);
 
   // Skip the rest if there are no segments
@@ -1074,7 +1042,7 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
     // Set oriented image data used for merging to the representation (may change later if resampling is needed)
     vtkOrientedImageData* binaryLabelmap = representationBinaryLabelmap;
 
-    // If labelmap geometries (spacings and directions) do not match reference then resample temporarily
+    // If labelmap geometries (origin, spacing, and directions) do not match reference then resample temporarily
     vtkSmartPointer<vtkOrientedImageData> resampledBinaryLabelmap;
     if (!vtkOrientedImageDataResample::DoGeometriesMatch(commonGeometryImage, representationBinaryLabelmap))
     {
@@ -1091,79 +1059,17 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
     }
 
     // Copy image data voxels into merged labelmap with the proper color index
-    int labelmapExtent[6] = {0,-1,0,-1,0,-1};
-    binaryLabelmap->GetExtent(labelmapExtent);
-    int labelmapDimensions[3] = {0,0,0};
-    binaryLabelmap->GetDimensions(labelmapDimensions);
-    int labelmapCoordinates[3] = {0,0,0};
-    long residualIndex = 0;
+    vtkOrientedImageDataResample::ModifyImage(mergedImageData, binaryLabelmap, vtkOrientedImageDataResample::OPERATION_MASKING, NULL, 0, colorIndex);
 
-    int segmentLabelScalarType = binaryLabelmap->GetScalarType();
-    if ( segmentLabelScalarType != VTK_UNSIGNED_CHAR
-      && segmentLabelScalarType != VTK_UNSIGNED_SHORT
-      && segmentLabelScalarType != VTK_SHORT )
-    {
-      vtkWarningMacro("GenerateMergedLabelmap: Segment " << currentSegmentId << " cannot be merged! Binary labelmap scalar type must be unsigned char, unsighed short, or short!");
-      continue;
-    }
-    void* voidScalarPointer = binaryLabelmap->GetScalarPointer();
-    unsigned char* labelmapPtrUChar = (unsigned char*)voidScalarPointer;
-    unsigned short* labelmapPtrUShort = (unsigned short*)voidScalarPointer;
-    short* labelmapPtrShort = (short*)voidScalarPointer;
-
-    mergedImagePtr = (short*)mergedImageData->GetScalarPointer();
-    short* imagePtrMax = mergedImagePtr + referenceDimensions[0]*referenceDimensions[1]*referenceDimensions[2];
-    vtkIdType binaryLabelmapNumberOfPoints = binaryLabelmap->GetNumberOfPoints();
-    for (vtkIdType i=0; i<binaryLabelmapNumberOfPoints; ++i)
-    {
-      // Get labelmap color at voxel
-      unsigned short color = 0;
-      if (segmentLabelScalarType == VTK_UNSIGNED_CHAR)
-      {
-        color = (*labelmapPtrUChar);
-      }
-      else if (segmentLabelScalarType == VTK_UNSIGNED_SHORT)
-      {
-        color = (*labelmapPtrUShort);
-      }
-      else if (segmentLabelScalarType == VTK_SHORT)
-      {
-        color = (*labelmapPtrShort);
-      }
-
-      // Get labelmap coordinates
-      labelmapCoordinates[2] = i / (labelmapDimensions[1]*labelmapDimensions[0]);
-      residualIndex = i - labelmapCoordinates[2]*labelmapDimensions[1]*labelmapDimensions[0];
-      labelmapCoordinates[1] = residualIndex / labelmapDimensions[0];
-      residualIndex -= labelmapCoordinates[1]*labelmapDimensions[0];
-      labelmapCoordinates[0] = residualIndex;
-
-      // Apply extent offset and current offset
-      short* offsetImagePtr = mergedImagePtr +
-                              (labelmapExtent[4]-referenceExtent[4]+labelmapCoordinates[2]) * referenceDimensions[1]*referenceDimensions[0] +
-                              (labelmapExtent[2]-referenceExtent[2]+labelmapCoordinates[1]) * referenceDimensions[0] +
-                              (labelmapExtent[0]-referenceExtent[0]+labelmapCoordinates[0]);
-
-      // Paint merged labelmap voxel if foreground and in extent
-      if ( color != backgroundColor
-        && offsetImagePtr >= mergedImagePtr && offsetImagePtr < imagePtrMax )
-      {
-        (*offsetImagePtr) = colorIndex;
-      }
-
-      ++labelmapPtrUChar;
-      ++labelmapPtrUShort;
-      ++labelmapPtrShort;
-    }
   }
 
   return true;
 }
 
 //---------------------------------------------------------------------------
-bool vtkMRMLSegmentationNode::GenerateMergedLabelmapForAllSegments(vtkImageData* mergedImageData, vtkMatrix4x4* mergedImageToWorldMatrix, vtkOrientedImageData* mergedLabelmapGeometry)
+bool vtkMRMLSegmentationNode::GenerateMergedLabelmapForAllSegments(vtkOrientedImageData* mergedImageData, vtkOrientedImageData* mergedLabelmapGeometry, bool allowExpandReferenceGeometry /*=true*/)
 {
-  return this->GenerateMergedLabelmap(mergedImageData, mergedImageToWorldMatrix, mergedLabelmapGeometry);
+  return this->GenerateMergedLabelmap(mergedImageData, mergedLabelmapGeometry);
 }
 
 //---------------------------------------------------------------------------
@@ -1174,13 +1080,40 @@ void vtkMRMLSegmentationNode::ReGenerateDisplayedMergedLabelmap()
   {
     vtkErrorMacro("ReGenerateDisplayedMergedLabelmap: Unable to get labelmap representation from segments!");
     this->LabelmapMergeTime.Modified();
+    return;
   }
 
-  if (!this->GenerateDisplayedMergedLabelmap(Superclass::GetImageData()))
+  // Create an oriented labelmap that shares pixel buffer with the displayed (non-oriented) labelmap
+  vtkImageData* displayedNonOrientedLabelmap = Superclass::GetImageData();
+  if (!displayedNonOrientedLabelmap)
+  {
+    vtkErrorMacro("ReGenerateDisplayedMergedLabelmap: cannot get displayable image data");
+    return;
+  }
+  vtkNew<vtkOrientedImageData> displayedOrientedLabelmap;
+  displayedOrientedLabelmap->ShallowCopy(displayedNonOrientedLabelmap);
+
+  if (!this->GenerateMergedLabelmap(displayedOrientedLabelmap.GetPointer(), NULL, std::vector<std::string>(),
+    false /* use reference geometry extent as output extent */))
   {
     vtkErrorMacro("ReGenerateDisplayedMergedLabelmap: Failed to create merged labelmap for 2D visualization!");
     this->LabelmapMergeTime.Modified();
+    return;
   }
+
+  // Save labelmap merge timestamp
+  this->LabelmapMergeTime.Modified();
+
+  // Save common labelmap geometry in segmentation node
+  vtkNew<vtkMatrix4x4> mergedImageToWorldMatrix;
+  displayedOrientedLabelmap->GetImageToWorldMatrix(mergedImageToWorldMatrix.GetPointer());
+  this->SetIJKToRASMatrix(mergedImageToWorldMatrix.GetPointer());
+  displayedNonOrientedLabelmap->ShallowCopy(displayedOrientedLabelmap.GetPointer());
+  displayedNonOrientedLabelmap->SetOrigin(0, 0, 0);
+  displayedNonOrientedLabelmap->SetSpacing(1, 1, 1);
+
+  // Make sure merged labelmap extents starts at zeros for compatibility reasons
+  vtkMRMLSegmentationNode::ShiftVolumeNodeExtentToZeroStart(this);
 }
 
 //---------------------------------------------------------------------------

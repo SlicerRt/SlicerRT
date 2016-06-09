@@ -818,7 +818,7 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
   // Determine merged labelmap dimensions and properties
   std::string commonGeometryString = segmentation->DetermineCommonLabelmapGeometry();
   vtkSmartPointer<vtkOrientedImageData> commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
-  vtkSegmentationConverter::DeserializeImageGeometry(commonGeometryString, commonGeometryImage, VTK_UNSIGNED_CHAR, 1);
+  vtkSegmentationConverter::DeserializeImageGeometry(commonGeometryString, commonGeometryImage, true, VTK_UNSIGNED_CHAR, 1);
   int commonGeometryExtent[6] = { 0, -1, 0, -1, 0, -1 };
   commonGeometryImage->GetExtent(commonGeometryExtent);
   if (commonGeometryExtent[0] > commonGeometryExtent[1]

@@ -40,6 +40,13 @@ public:
   static vtkOrientedImageDataResample *New();
   vtkTypeMacro(vtkOrientedImageDataResample,vtkObject);
 
+  enum
+  {
+    OPERATION_MINIMUM,
+    OPERATION_MAXIMUM,
+    OPERATION_MASKING
+  };
+
   /// Resample an oriented image data to match the geometry of a reference geometry matrix.
   /// Origin and dimensions are determined from the contents of the input image.
   /// \param inputImage Oriented image to resample
@@ -73,12 +80,12 @@ public:
   /// Combines the inputImage and imageToAppend into a new image by max/min operation. The extent will be the union of the two images.
   /// Extent can be specified to restrict imageToAppend's extent to a smaller region.
   /// inputImage and imageToAppend must have the same geometry, but they may have different extents.
-  static bool MergeImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* imageToAppend, vtkOrientedImageData* outputImage, bool computeMax, int extent[6]=0);
+  static bool MergeImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* imageToAppend, vtkOrientedImageData* outputImage, int operation, int extent[6] = 0, int maskThreshold=0, int fillValue=1);
 
   /// Modifies inputImage in-place by combining with modifierImage using max/min operation. The extent will remain unchanged.
   /// Extent can be specified to restrict modifierImage's extent to a smaller region.
-  /// inputImage and modifierImage must have the same geometry, but they may have different extents.
-  static bool ModifyImage(vtkOrientedImageData* inputImage, vtkImageData* modifierImage, bool computeMax, int extent[6]=0);
+  /// inputImage and modifierImage must have the same geometry (origin, spacing, directions) and scalar type, but they may have different extents.
+  static bool ModifyImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* modifierImage, int operation, int extent[6] = 0, int maskThreshold = 0, int fillValue = 1);
 
   /// Copy image with clipping to the specified extent
   static bool CopyImage(vtkOrientedImageData* imageToCopy, vtkOrientedImageData* outputImage, int extent[6]=0);

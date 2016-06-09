@@ -108,8 +108,14 @@ public:
   /// the geometry of the highest resolution labelmap in the segments.
   /// \param segmentIDs List of IDs of segments to include in the merged labelmap. If empty or missing, then all segments are included
   /// \return Geometry string that can be deserialized using \sa vtkSegmentationConverter::SerializeImageGeometry
-  std::string DetermineCommonLabelmapGeometry(const std::vector<std::string>& segmentIDs=std::vector<std::string>());
-//ETX
+  std::string DetermineCommonLabelmapGeometry(const std::vector<std::string>& segmentIDs = std::vector<std::string>(), bool allowExpandReferenceGeometry=true);
+  
+  /// Determine common labelmap extent for whole segmentation.
+  /// \param commonGeometryExtent Computed extent that contains all the specified segments.
+  /// \param commonGeometryImage Extent will be returned in this image geometry
+  /// \param segmentIDs List of IDs of segments to include in the merged labelmap. If empty or missing, then all segments are included
+  void DetermineCommonLabelmapExtent(int commonGeometryExtent[6], vtkOrientedImageData* commonGeometryImage, const std::vector<std::string>& segmentIDs = std::vector<std::string>());
+  //ETX
 
 // Segment related methods
 public:

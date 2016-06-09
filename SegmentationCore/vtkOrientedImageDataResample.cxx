@@ -46,8 +46,8 @@ vtkStandardNewMacro(vtkOrientedImageDataResample);
 
 //----------------------------------------------------------------------------
 // This templated function executes the filter for any type of data.
-template <class T>
-void MergeImageGeneric(vtkImageData *baseImage, vtkImageData *modifierImage, bool computeMax, int extent[6])
+template <class BaseImageScalarType, class ModifierImageScalarType>
+void MergeImageGeneric2(vtkImageData *baseImage, vtkImageData *modifierImage, int operation, int extent[6], int maskThreshold, int fillValue)
 {
   // Compute update extent as intersection of base and modifier image extents
   int updateExt[6] = { 0, -1, 0, -1, 0, -1 };
@@ -77,13 +77,13 @@ void MergeImageGeneric(vtkImageData *baseImage, vtkImageData *modifierImage, boo
   int maxX = (updateExt[1] - updateExt[0]) * baseImage->GetNumberOfScalarComponents();
   int maxY = updateExt[3] - updateExt[2];
   int maxZ = updateExt[5] - updateExt[4];
-  T* baseImagePtr = static_cast<T*>(baseImage->GetScalarPointerForExtent(updateExt));
-  T* modifierImagePtr = static_cast<T*>(modifierImage->GetScalarPointerForExtent(updateExt));
+  BaseImageScalarType* baseImagePtr = static_cast<BaseImageScalarType*>(baseImage->GetScalarPointerForExtent(updateExt));
+  ModifierImageScalarType* modifierImagePtr = static_cast<ModifierImageScalarType*>(modifierImage->GetScalarPointerForExtent(updateExt));
 
   // Loop through output pixels
   // There is difference in only one line between min/max computation but the comparison
   // is performed for each pixel, so it is faster to make the conditional expression in the outer loop.
-  if (computeMax)
+  if (operation == vtkOrientedImageDataResample::OPERATION_MAXIMUM)
   {
     for (vtkIdType idxZ = 0; idxZ <= maxZ; idxZ++)
     {
@@ -105,7 +105,7 @@ void MergeImageGeneric(vtkImageData *baseImage, vtkImageData *modifierImage, boo
       modifierImagePtr += modifierIncZ;
     }
   }
-  else
+  else if (operation == vtkOrientedImageDataResample::OPERATION_MINIMUM)
   {
     for (vtkIdType idxZ = 0; idxZ <= maxZ; idxZ++)
     {
@@ -126,6 +126,41 @@ void MergeImageGeneric(vtkImageData *baseImage, vtkImageData *modifierImage, boo
       baseImagePtr += baseIncZ;
       modifierImagePtr += modifierIncZ;
     }
+  }
+  else if (operation == vtkOrientedImageDataResample::OPERATION_MASKING)
+  {
+    BaseImageScalarType fillValueBaseImageType = static_cast<BaseImageScalarType>(fillValue);
+    for (vtkIdType idxZ = 0; idxZ <= maxZ; idxZ++)
+    {
+      for (vtkIdType idxY = 0; idxY <= maxY; idxY++)
+      {
+        for (vtkIdType idxX = 0; idxX <= maxX; idxX++)
+        {
+          if (*modifierImagePtr > maskThreshold)
+          {
+            *baseImagePtr = fillValueBaseImageType;
+          }
+          baseImagePtr++;
+          modifierImagePtr++;
+        }
+        baseImagePtr += baseIncY;
+        modifierImagePtr += modifierIncY;
+      }
+      baseImagePtr += baseIncZ;
+      modifierImagePtr += modifierIncZ;
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+template <class BaseImageScalarType>
+void MergeImageGeneric(vtkImageData *baseImage, vtkImageData *modifierImage, int operation, int extent[6], int maskThreshold, int fillValue)
+{
+  switch (modifierImage->GetScalarType())
+  {
+    vtkTemplateMacro((MergeImageGeneric2<BaseImageScalarType, VTK_TT>(baseImage, modifierImage, operation, extent, maskThreshold, fillValue)));
+  default:
+    vtkGenericWarningMacro("vtkOrientedImageDataResample::MergeImage: Unknown ScalarType");
   }
 }
 
@@ -815,44 +850,50 @@ bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* 
 }
 
 //----------------------------------------------------------------------------
-bool vtkOrientedImageDataResample::MergeImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* imageToAppend, vtkOrientedImageData* outputImage, bool computeMax, int extent[6]/*=0*/)
+bool vtkOrientedImageDataResample::MergeImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* imageToAppend, vtkOrientedImageData* outputImage, int operation, int extent[6]/*=0*/, int maskThreshold /*=0*/, int fillValue /*=1*/)
 {
   if (!inputImage || !imageToAppend || !outputImage)
   {
     return false;
   }
 
-  // TODO: check if baseImage and modifierImage geometry is the same (only difference can be in extent)
-
+  if (!vtkOrientedImageDataResample::DoGeometriesMatch(inputImage, imageToAppend))
+  {
+    vtkGenericWarningMacro("vtkOrientedImageDataResample::MergeImage failed: geometry mismatch between inputImage and imageToAppend");
+    return false;
+  }
   if (!vtkOrientedImageDataResample::PadImageToContainImage(inputImage, imageToAppend, outputImage, extent))
   {
-    vtkGenericWarningMacro("vtkOrientedImageDataResample::AppendImageMax: Failed to pad segment labelmap");
+    vtkGenericWarningMacro("vtkOrientedImageDataResample::MergeImage: Failed to pad segment labelmap");
     return false;
   }
   switch (inputImage->GetScalarType())
   {
-    vtkTemplateMacro(MergeImageGeneric<VTK_TT>(outputImage, imageToAppend, computeMax, extent));
+    vtkTemplateMacro(MergeImageGeneric<VTK_TT>(outputImage, imageToAppend, operation, extent, maskThreshold, fillValue));
   default:
-    vtkGenericWarningMacro("Execute: Unknown ScalarType");
+    vtkGenericWarningMacro("vtkOrientedImageDataResample::MergeImage: Unknown ScalarType");
     return false;
   }
   return true;
 }
 
 //----------------------------------------------------------------------------
-bool vtkOrientedImageDataResample::ModifyImage(vtkOrientedImageData* inputImage, vtkImageData* modifierImage, bool computeMax, int extent[6]/*=0*/)
+bool vtkOrientedImageDataResample::ModifyImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* modifierImage, int operation, int extent[6]/*=0*/, int maskThreshold /*=0*/, int fillValue /*=1*/)
 {
   if (!inputImage || !modifierImage)
   {
     return false;
   }
-
-  // TODO: check if baseImage and modifierImage geometry is the same (only difference can be in extent)
+  if (!vtkOrientedImageDataResample::DoGeometriesMatch(inputImage, modifierImage))
+  {
+    vtkGenericWarningMacro("vtkOrientedImageDataResample::ModifyImage failed: geometry mismatch between inputImage and modifierImage");
+    return false;
+  }
   switch (inputImage->GetScalarType())
   {
-    vtkTemplateMacro(MergeImageGeneric<VTK_TT>(inputImage, modifierImage, computeMax, extent));
+    vtkTemplateMacro(MergeImageGeneric<VTK_TT>(inputImage, modifierImage, operation, extent, maskThreshold, fillValue));
   default:
-    vtkGenericWarningMacro("Execute: Unknown ScalarType");
+    vtkGenericWarningMacro("vtkOrientedImageDataResample::ModifyImage failed: unknown ScalarType");
     return false;
   }
   return true;

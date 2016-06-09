@@ -731,15 +731,11 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(vtkMRMLSegm
 
   // Generate merged labelmap for the exported segments
   vtkSmartPointer<vtkOrientedImageData> mergedImage = vtkSmartPointer<vtkOrientedImageData>::New();
-  vtkSmartPointer<vtkMatrix4x4> mergedImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (!segmentationNode->GenerateMergedLabelmap(mergedImage, mergedImageToWorldMatrix, NULL, segmentIDs))
+  if (!segmentationNode->GenerateMergedLabelmap(mergedImage, NULL, segmentIDs))
   {
     vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToLabelmapNode: Failed to generate merged labelmap!");
     return false;
   }
-
-  // Set calculated geometry to merged oriented image
-  mergedImage->SetGeometryFromImageToWorldMatrix(mergedImageToWorldMatrix);
 
   // Export merged labelmap to the output node
   if (!vtkSlicerSegmentationsModuleLogic::CreateLabelmapVolumeFromOrientedImageData(mergedImage, labelmapNode))
@@ -1151,7 +1147,7 @@ bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedIm
     if (mergeMode == MODE_MERGE_MIN)
     {
       // empty image is assumed to have minimum value everywhere, combining it with MAX operation
-      // results an empty image, so we don't need to do anything7
+      // results an empty image, so we don't need to do anything.
       return true;
     }
     // Replace the empty image with the modifier image
@@ -1168,10 +1164,26 @@ bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedIm
   }
   else
   {
-    if (!vtkOrientedImageDataResample::MergeImage(segmentLabelmap, labelmap, newSegmentLabelmap, mergeMode==MODE_MERGE_MAX, extent))
+    int operation = (mergeMode==MODE_MERGE_MAX ? vtkOrientedImageDataResample::OPERATION_MAXIMUM : vtkOrientedImageDataResample::OPERATION_MINIMUM);
+
+    if (!vtkOrientedImageDataResample::DoGeometriesMatch(segmentLabelmap, labelmap))
     {
-      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Failed to merge labelmap (max)");
-      return false;
+      // Make sure appended image has the same lattice as the input image
+      vtkSmartPointer<vtkOrientedImageData> resampledSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
+      vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(segmentLabelmap, labelmap, resampledSegmentLabelmap);
+      if (!vtkOrientedImageDataResample::MergeImage(resampledSegmentLabelmap, labelmap, newSegmentLabelmap, operation, extent))
+      {
+        vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Failed to merge labelmap (max)");
+        return false;
+      }
+    }
+    else
+    {
+      if (!vtkOrientedImageDataResample::MergeImage(segmentLabelmap, labelmap, newSegmentLabelmap, operation, extent))
+      {
+        vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Failed to merge labelmap (max)");
+        return false;
+      }
     }
   }
 

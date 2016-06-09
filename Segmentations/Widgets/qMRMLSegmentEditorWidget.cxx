@@ -149,7 +149,10 @@ public:
   /// Set cursor for effect. If effect is NULL then the cursor is reset to default.
   void setEffectCursor(qSlicerSegmentEditorAbstractEffect* effect);
 
-  /// Updates edited labelmap based on reference geometry. Updates reference geometry if it is empty.
+  /// Updates edited labelmap based on reference geometry (to set origin, spacing, and directions)
+  /// and existing segment (to set extents). If reference geometry conversion parameter is empty
+  /// then existing segments are used for determining origin, spacing, and directions and the resulting
+  /// geometry is written to reference geometry conversion parameter.
   bool updateEditedLabelmap();
 
   /// Updates selected segment labelmap in a geometry aligned with editedLabelmap.
@@ -445,25 +448,16 @@ bool qMRMLSegmentEditorWidgetPrivate::updateEditedLabelmap()
   if (referenceImageGeometry.empty())
   {
     // If no reference image geometry could be determined then use the master volume's geometry
-
     vtkMRMLScalarVolumeNode* masterVolumeNode = this->ParameterSetNode->GetMasterVolumeNode();
     if (!masterVolumeNode)
     {
       // cannot determine reference geometry
       return false;
     }
-    // Transform the master volume to the segmentation node's coordinate system
-    // TODO: this is inefficient, as it actually creates a resampled data set, while we would only need the geometry
-    //vtkSmartPointer<vtkOrientedImageData> masterVolume = vtkSmartPointer<vtkOrientedImageData>::Take(
-    //  vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(masterVolumeNode, segmentationNode->GetParentTransformNode()));
-
-    //referenceImageGeometry = vtkSegmentationConverter::SerializeImageGeometry(masterVolume);
-
-    // Update the referenceImageGeometry parameter so that next time
+    // Update the referenceImageGeometry parameter for next time
     segmentationNode->SetReferenceImageGeometryParameterFromVolumeNode(masterVolumeNode);
-    //segmentation->SetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName(), referenceImageGeometry);
+    // Update extents to include all existing segments
     referenceImageGeometry = this->getReferenceImageGeometryFromSegmentation(segmentation);
-
   }
 
   // Set reference geometry to labelmap (origin, spacing, directions, extents) and allocate scalars
@@ -472,13 +466,13 @@ bool qMRMLSegmentEditorWidgetPrivate::updateEditedLabelmap()
   vtkSegmentationConverter::DeserializeImageGeometry(referenceImageGeometry, referenceGeometryMatrix.GetPointer(), referenceExtent);
   bool labelmapVoxelDataReallocated = false;
   int* labelmapExtent = this->EditedLabelmap->GetExtent();
-  if (referenceExtent[1]-referenceExtent[0] != labelmapExtent[1]-labelmapExtent[0]
-    || referenceExtent[3]-referenceExtent[2] != labelmapExtent[3]-labelmapExtent[2]
-    || referenceExtent[5]-referenceExtent[4] != labelmapExtent[5]-labelmapExtent[4])
-    {
-      labelmapVoxelDataReallocated = true;
-    }
-  vtkSegmentationConverter::DeserializeImageGeometry(referenceImageGeometry, this->EditedLabelmap, BINARY_LABELMAP_SCALAR_TYPE, 1);
+  if (referenceExtent[1] - referenceExtent[0] != labelmapExtent[1] - labelmapExtent[0]
+    || referenceExtent[3] - referenceExtent[2] != labelmapExtent[3] - labelmapExtent[2]
+    || referenceExtent[5] - referenceExtent[4] != labelmapExtent[5] - labelmapExtent[4])
+  {
+    labelmapVoxelDataReallocated = true;
+  }
+  vtkSegmentationConverter::DeserializeImageGeometry(referenceImageGeometry, this->EditedLabelmap, true, BINARY_LABELMAP_SCALAR_TYPE, 1);
 
   // If scalars were reallocate then make sure the new memory area is initialized with zeros
   if (labelmapVoxelDataReallocated)
@@ -696,17 +690,19 @@ void qMRMLSegmentEditorWidgetPrivate::updateMaskLabelmap()
     maskSegmentIDs.erase(std::remove(maskSegmentIDs.begin(), maskSegmentIDs.end(), editedSegmentID), maskSegmentIDs.end());
   }
 
-  // Update mask if edited labelmap is valid, and the edited labelmap was modified after the last time the mask was updated
+  // Update mask if edited labelmap is valid
   int editedLabelmapExtent[6] = { 0, -1, 0, -1, 0, -1 };
   this->EditedLabelmap->GetExtent(editedLabelmapExtent);
-  if (this->EditedLabelmap->GetMTime() > maskImage->GetMTime()
-    && editedLabelmapExtent[0] < editedLabelmapExtent[1] && editedLabelmapExtent[2] < editedLabelmapExtent[3] && editedLabelmapExtent[4] < editedLabelmapExtent[5])
+  if (editedLabelmapExtent[0] <= editedLabelmapExtent[1]
+    && editedLabelmapExtent[2] <= editedLabelmapExtent[3]
+    && editedLabelmapExtent[4] <= editedLabelmapExtent[5])
   {
     maskImage->SetExtent(editedLabelmapExtent);
     maskImage->AllocateScalars(VTK_SHORT, 1); // Change scalar type from unsigned int back to short for merged labelmap generation
 
+    segmentationNode->GenerateMergedLabelmap(maskImage, this->EditedLabelmap, maskSegmentIDs);
     vtkSmartPointer<vtkMatrix4x4> mergedImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-    segmentationNode->GenerateMergedLabelmap(maskImage, mergedImageToWorldMatrix, this->EditedLabelmap, maskSegmentIDs);
+    maskImage->GetImageToWorldMatrix(mergedImageToWorldMatrix);
 
     vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
     threshold->SetInputData(maskImage);
@@ -718,7 +714,7 @@ void qMRMLSegmentEditorWidgetPrivate::updateMaskLabelmap()
     threshold->Update();
 
     maskImage->DeepCopy(threshold->GetOutput());
-    maskImage->SetGeometryFromImageToWorldMatrix(mergedImageToWorldMatrix);
+    maskImage->SetImageToWorldMatrix(mergedImageToWorldMatrix);
   }
 }
 
@@ -1084,6 +1080,29 @@ std::string qMRMLSegmentEditorWidgetPrivate::getReferenceImageGeometryFromSegmen
   std::string referenceImageGeometry = segmentation->GetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName());
   if (!referenceImageGeometry.empty())
   {
+    // Extend reference image geometry to contain all segments (needed for example for properly handling imported segments
+    // that do not fit into the reference image geometry)
+    vtkSmartPointer<vtkOrientedImageData> commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
+    vtkSegmentationConverter::DeserializeImageGeometry(referenceImageGeometry, commonGeometryImage, false);
+    // Determine extent that contains all segments
+    int commonSegmentExtent[6] = { 0, -1, 0, -1, 0, -1 };
+    segmentation->DetermineCommonLabelmapExtent(commonSegmentExtent, commonGeometryImage);
+    if (commonSegmentExtent[0] <= commonSegmentExtent[1]
+      && commonSegmentExtent[2] <= commonSegmentExtent[3]
+      && commonSegmentExtent[4] <= commonSegmentExtent[5])
+    {
+      // Expand commonGeometryExtent as needed to contain commonSegmentExtent
+      int commonGeometryExtent[6] = { 0, -1, 0, -1, 0, -1 };
+      commonGeometryImage->GetExtent(commonGeometryExtent);
+      for (int i = 0; i < 3; i++)
+      {
+        commonGeometryExtent[i * 2] = std::min(commonSegmentExtent[i * 2], commonGeometryExtent[i * 2]);
+        commonGeometryExtent[i * 2 + 1] = std::max(commonSegmentExtent[i * 2 + 1], commonGeometryExtent[i * 2 + 1]);
+      }
+      commonGeometryImage->SetExtent(commonGeometryExtent);
+      referenceImageGeometry = vtkSegmentationConverter::SerializeImageGeometry(commonGeometryImage);
+    }
+
     // TODO: Use oversampling (if it's 'A' then ignore and changed to 1)
     return referenceImageGeometry;
   }

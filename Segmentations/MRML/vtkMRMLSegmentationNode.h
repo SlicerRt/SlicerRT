@@ -129,18 +129,17 @@ public:
 //BTX
   /// Build merged labelmap of the binary labelmap representations of the specified segments
   /// \param mergedImageData Output image data for the merged labelmap image data
-  /// \param mergedImageToWorldMatrix Image to world matrix for the output labelmap
-  ///    (can be set to a volume node or to an oriented image data)
   /// \param mergedLabelmapGeometry Determines geometry of merged labelmap if not NULL, automatically determined otherwise
   /// \param segmentIDs List of IDs of segments to include in the merged labelmap. If empty or missing, then all segments are included
   /// \return Success flag
-  virtual bool GenerateMergedLabelmap(vtkImageData* mergedImageData, vtkMatrix4x4* mergedImageToWorldMatrix, vtkOrientedImageData* mergedLabelmapGeometry=NULL, const std::vector<std::string>& segmentIDs=std::vector<std::string>());
+  virtual bool GenerateMergedLabelmap(vtkOrientedImageData* mergedImageData, vtkOrientedImageData* mergedLabelmapGeometry = NULL, const std::vector<std::string>& segmentIDs = std::vector<std::string>(), bool allowExpandReferenceGeometry=true);
 //ETX
 
   /// Python-accessible version of the more generic \sa GenerateMergedLabelmap.
   /// The last argument specifying the list of segments to be included is omitted, which means that 
   /// all the segments will be merged.
-  bool GenerateMergedLabelmapForAllSegments(vtkImageData* mergedImageData, vtkMatrix4x4* mergedImageToWorldMatrix, vtkOrientedImageData* mergedLabelmapGeometry);
+  /// \sa GenerateMergedLabelmap
+  bool GenerateMergedLabelmapForAllSegments(vtkOrientedImageData* mergedImageData, vtkOrientedImageData* mergedLabelmapGeometry, bool allowExpandReferenceGeometry=true);
 
   /// Re-generate displayed merged labelmap
   void ReGenerateDisplayedMergedLabelmap();
@@ -167,9 +166,6 @@ public:
   bool HasMergedLabelmap();
 
 protected:
-  /// Build merged labelmap for 2D labelmap display from all contained segments
-  virtual bool GenerateDisplayedMergedLabelmap(vtkImageData* imageData);
-
   /// Add display properties for segment with given ID
   virtual bool AddSegmentDisplayProperties(std::string segmentId);
 

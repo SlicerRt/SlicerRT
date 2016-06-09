@@ -175,6 +175,8 @@ void vtkSegmentation::PrintSelf(ostream& os, vtkIndent indent)
     vtkSegment* segment = it->second;
     segment->PrintSelf(os, indent.GetNextIndent());
   }
+  os << indent << "Segment converter:\n";
+  this->Converter->PrintSelf(os, indent.GetNextIndent());
 }
 
 //---------------------------------------------------------------------------
@@ -1185,10 +1187,11 @@ bool vtkSegmentation::CopySegmentFromSegmentation(vtkSegmentation* fromSegmentat
   }
 
   // If segment with the same ID is present in the target (this instance), then do not copy
+  std::string targetSegmentId = segmentId;
   if (this->GetSegment(segmentId))
   {
-    vtkWarningMacro("CopySegmentFromSegmentation: Segment with the same ID as the copied one (" << segmentId << ") already exists in the target segmentation");
-    return false;
+    targetSegmentId = this->GenerateUniqueSegmentId(segmentId);
+    vtkWarningMacro("CopySegmentFromSegmentation: Segment with the same ID as the copied one (" << segmentId << ") already exists in the target segmentation. Generate a new unique segment ID: " << targetSegmentId);
   }
 
   // Get segment from source
@@ -1225,18 +1228,18 @@ bool vtkSegmentation::CopySegmentFromSegmentation(vtkSegmentation* fromSegmentat
   {
     vtkSmartPointer<vtkSegment> segmentCopy = vtkSmartPointer<vtkSegment>::New();
     segmentCopy->DeepCopy(segment);
-    if (!this->AddSegment(segmentCopy, segmentId))
+    if (!this->AddSegment(segmentCopy, targetSegmentId))
     {
-      vtkErrorMacro("CopySegmentFromSegmentation: Failed to add segment '" << segmentId << "' to segmentation!");
+      vtkErrorMacro("CopySegmentFromSegmentation: Failed to add segment '" << targetSegmentId << "' to segmentation");
       return false;
     }
   }
   // If move, then just add segment to target and remove from source (ownership is transferred)
   else
   {
-    if (!this->AddSegment(segment, segmentId))
+    if (!this->AddSegment(segment, targetSegmentId))
     {
-      vtkErrorMacro("CopySegmentFromSegmentation: Failed to add segment '" << segmentId << "' to segmentation!");
+      vtkErrorMacro("CopySegmentFromSegmentation: Failed to add segment '" << targetSegmentId << "' to segmentation");
       return false;
     }
     fromSegmentation->RemoveSegment(segmentId);
@@ -1246,7 +1249,7 @@ bool vtkSegmentation::CopySegmentFromSegmentation(vtkSegmentation* fromSegmentat
 }
 
 //-----------------------------------------------------------------------------
-std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<std::string>& segmentIDs/*=std::vector<std::string>()*/)
+std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<std::string>& segmentIDs/*=std::vector<std::string>()*/, bool allowExpandReferenceGeometry /*=true*/)
 {
   // If segment IDs list is empty then include all segments
   std::vector<std::string> mergedSegmentIDs;
@@ -1265,7 +1268,7 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
 
   // Get highest resolution reference geometry available in segments
   vtkOrientedImageData* highestResolutionLabelmap = NULL;
-  double lowestSpacing[3] = {pow(VTK_DOUBLE_MAX,0.3), pow(VTK_DOUBLE_MAX,0.3), pow(VTK_DOUBLE_MAX,0.3)}; // We'll multiply the spacings together to get the voxel size
+  double lowestSpacing[3] = {1, 1, 1}; // We'll multiply the spacings together to get the voxel size
   for (std::vector<std::string>::iterator segmentIt = mergedSegmentIDs.begin(); segmentIt != mergedSegmentIDs.end(); ++segmentIt)
   {
     vtkSegment* currentSegment = this->GetSegment(*segmentIt);
@@ -1281,9 +1284,10 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
       continue;
     }
 
-    double currentSpacing[3] = {0.0,0.0,0.0};
+    double currentSpacing[3] = {1, 1, 1};
     currentBinaryLabelmap->GetSpacing(currentSpacing);
-    if (currentSpacing[0]*currentSpacing[1]*currentSpacing[2] < lowestSpacing[0]*lowestSpacing[1]*lowestSpacing[2])
+    if (!highestResolutionLabelmap
+      || currentSpacing[0] * currentSpacing[1] * currentSpacing[2] < lowestSpacing[0] * lowestSpacing[1] * lowestSpacing[2])
     {
       lowestSpacing[0] = currentSpacing[0];
       lowestSpacing[1] = currentSpacing[1];
@@ -1302,34 +1306,7 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
   if (referenceGeometryString.empty())
   {
     // Reference image geometry might be missing because segmentation was created from labelmaps.
-    // Set reference image geometry from largest segment labelmap
-    double largestExtentMm3 = 0;
-    for (std::vector<std::string>::iterator segmentIt = mergedSegmentIDs.begin(); segmentIt != mergedSegmentIDs.end(); ++segmentIt)
-    {
-      vtkSegment* currentSegment = this->GetSegment(*segmentIt);
-      if (!currentSegment)
-      {
-        vtkWarningMacro("DetermineCommonLabelmapGeometry: Segment ID " << (*segmentIt) << " not found in segmentation");
-        continue;
-      }
-      vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
-        currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
-      if (currentBinaryLabelmap->IsEmpty())
-      {
-        continue;
-      }
-
-      // Calculate extent in mm
-      int extent[6] = {0,-1,0,-1,0,-1};
-      currentBinaryLabelmap->GetExtent(extent);
-      double spacing[3] = {0.0,0.0,0.0};
-      currentBinaryLabelmap->GetSpacing(spacing);
-      double extentMm3 = ((extent[1]-extent[0]+1) * spacing[0]) * ((extent[3]-extent[2]+1) * spacing[1]) * ((extent[5]-extent[4]+1) * spacing[2]);
-      if (extentMm3 > largestExtentMm3)
-      {
-        largestExtentMm3 = extentMm3;
-      }
-    }
+    // Set reference image geometry from highest resolution segment labelmap
     if (!highestResolutionLabelmap)
     {
       vtkErrorMacro("DetermineCommonLabelmapGeometry: Unable to find largest extent labelmap to define reference image geometry!");
@@ -1338,9 +1315,17 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
     referenceGeometryString = vtkSegmentationConverter::SerializeImageGeometry(highestResolutionLabelmap);
   }
 
-  // Oversample reference image geometry to match highest resolution labelmap's spacing
   vtkSmartPointer<vtkOrientedImageData> commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
-  vtkSegmentationConverter::DeserializeImageGeometry(referenceGeometryString, commonGeometryImage);
+  vtkSegmentationConverter::DeserializeImageGeometry(referenceGeometryString, commonGeometryImage, false);
+
+  if (allowExpandReferenceGeometry)
+  {
+    // Determine extent that contains all segments
+    int commonGeometryExtent[6] = { 0, -1, 0, -1, 0, -1 };
+    this->DetermineCommonLabelmapExtent(commonGeometryExtent, commonGeometryImage, mergedSegmentIDs);
+  }
+
+  // Oversample reference image geometry to match highest resolution labelmap's spacing
   double referenceSpacing[3] = {0.0,0.0,0.0};
   commonGeometryImage->GetSpacing(referenceSpacing);
   double voxelSizeRatio = ((referenceSpacing[0]*referenceSpacing[1]*referenceSpacing[2]) / (lowestSpacing[0]*lowestSpacing[1]*lowestSpacing[2]));
@@ -1351,6 +1336,81 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
 
   // Serialize common geometry and return it
   return vtkSegmentationConverter::SerializeImageGeometry(commonGeometryImage);
+}
+
+//-----------------------------------------------------------------------------
+void vtkSegmentation::DetermineCommonLabelmapExtent(int commonGeometryExtent[6], vtkOrientedImageData* commonGeometryImage, const std::vector<std::string>& segmentIDs/*=std::vector<std::string>()*/)
+{
+  // If segment IDs list is empty then include all segments
+  std::vector<std::string> mergedSegmentIDs;
+  if (segmentIDs.empty())
+  {
+    vtkSegmentation::SegmentMap segmentMap = this->GetSegments();
+    for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+    {
+      mergedSegmentIDs.push_back(segmentIt->first);
+    }
+  }
+  else
+  {
+    mergedSegmentIDs = segmentIDs;
+  }
+
+  // Determine extent that contains all segments
+  commonGeometryExtent[0] = 0;
+  commonGeometryExtent[1] = -1;
+  commonGeometryExtent[2] = 0;
+  commonGeometryExtent[3] = -1;
+  commonGeometryExtent[4] = 0;
+  commonGeometryExtent[5] = -1;
+  for (std::vector<std::string>::iterator segmentIt = mergedSegmentIDs.begin(); segmentIt != mergedSegmentIDs.end(); ++segmentIt)
+  {
+    vtkSegment* currentSegment = this->GetSegment(*segmentIt);
+    if (!currentSegment)
+    {
+      vtkWarningMacro("DetermineCommonLabelmapGeometry: Segment ID " << (*segmentIt) << " not found in segmentation");
+      continue;
+    }
+    vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
+      currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()));
+    if (currentBinaryLabelmap->IsEmpty())
+    {
+      continue;
+    }
+
+    int currentBinaryLabelmapExtent[6] = { 0, -1, 0, -1, 0, -1 };
+    currentBinaryLabelmap->GetExtent(currentBinaryLabelmapExtent);
+    if (currentBinaryLabelmapExtent[0] <= currentBinaryLabelmapExtent[1]
+      && currentBinaryLabelmapExtent[2] <= currentBinaryLabelmapExtent[3]
+      && currentBinaryLabelmapExtent[4] <= currentBinaryLabelmapExtent[5])
+    {
+      // There is a valid labelmap
+
+      // Get transformed extents of the segment in the common labelmap geometry
+      vtkNew<vtkTransform> currentBinaryLabelmapToCommonGeometryImageTransform;
+      vtkOrientedImageDataResample::GetTransformBetweenOrientedImages(currentBinaryLabelmap, commonGeometryImage, currentBinaryLabelmapToCommonGeometryImageTransform.GetPointer());
+      int currentBinaryLabelmapExtentInCommonGeometryImageFrame[6] = { 0, -1, 0, -1, 0, -1 };
+      vtkOrientedImageDataResample::TransformExtent(currentBinaryLabelmapExtent, currentBinaryLabelmapToCommonGeometryImageTransform.GetPointer(), currentBinaryLabelmapExtentInCommonGeometryImageFrame);
+      if (commonGeometryExtent[0] > commonGeometryExtent[1] || commonGeometryExtent[2] > commonGeometryExtent[3] || commonGeometryExtent[4] > commonGeometryExtent[5])
+      {
+        // empty commonGeometryExtent
+        for (int i = 0; i < 3; i++)
+        {
+          commonGeometryExtent[i * 2] = currentBinaryLabelmapExtentInCommonGeometryImageFrame[i * 2];
+          commonGeometryExtent[i * 2 + 1] = currentBinaryLabelmapExtentInCommonGeometryImageFrame[i * 2 + 1];
+        }
+      }
+      else
+      {
+        for (int i = 0; i < 3; i++)
+        {
+          commonGeometryExtent[i * 2] = std::min(currentBinaryLabelmapExtentInCommonGeometryImageFrame[i * 2], commonGeometryExtent[i * 2]);
+          commonGeometryExtent[i * 2 + 1] = std::max(currentBinaryLabelmapExtentInCommonGeometryImageFrame[i * 2 + 1], commonGeometryExtent[i * 2 + 1]);
+        }
+      }
+      // TODO: maybe calculate effective extent to make sure the data is as compact as possible? (saving may be a good time to make segments more compact)
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
