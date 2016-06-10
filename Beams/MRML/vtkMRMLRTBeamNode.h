@@ -35,12 +35,6 @@ class vtkMRMLRTPlanNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
 
-//TODO: GCS 2015-09-04.  Why don't VTK macros support const functions?
-#define vtkGetConstMacro(name,type)             \
-  virtual type Get##name () const {             \
-    return this->name;                          \
-  }
-
 /// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLModelNode
 {
@@ -52,7 +46,10 @@ public:
     /// Fired if beam geometry (beam model) needs to be updated
     BeamGeometryModified = 62200,
     /// Fired if beam transform needs to be updated
-    BeamTransformModified
+    BeamTransformModified,
+    /// Invoke if the beam is to be cloned.
+    /// External Beam Planning logic processes the event if exists
+    CloningRequested
   };
 
 public:
@@ -72,18 +69,25 @@ public:
   /// Copy the node's attributes to this object 
   virtual void Copy(vtkMRMLNode *node);
 
+  /// Make sure display node and transform node are present and valid
+  virtual void SetScene(vtkMRMLScene* scene);
+
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() { return "RTBeam"; };
 
   /// Create and observe default display node
   virtual void CreateDefaultDisplayNodes();
 
-  /// Create a default beam model
-  void CreateDefaultBeamModel();
+  /// Create transform node that places the beam poly data in the right position based on geometry
+  virtual void CreateDefaultTransformNode();
 
   /// Create beam model from beam parameters, supporting MLC leaves
   /// \return Poly data, null on fail
   void CreateBeamPolyData(vtkPolyData* beamModelPolyData);
+
+  /// Invoke cloning requested event. External Beam Planning logic processes the event and
+  /// clones the beam if exists
+  void RequestCloning();
 
 public:
   /// Get parent plan node
@@ -117,8 +121,6 @@ public:
 public:
   /// Get beam number
   vtkGetMacro(BeamNumber, int);
-  /// Get beam number
-  vtkGetConstMacro(BeamNumber, int);
   /// Set beam number
   vtkSetMacro(BeamNumber, int);
 
@@ -127,48 +129,49 @@ public:
   /// Set beam description
   vtkSetStringMacro(BeamDescription);
 
+  /// Get X1 jaw position
   vtkGetMacro(X1Jaw, double);
-  vtkGetConstMacro(X1Jaw, double);
   /// Set X1 jaw position. Triggers \sa BeamGeometryModified event and re-generation of beam model
   void SetX1Jaw(double x1Jaw);
 
+  /// Get X2 jaw position
   vtkGetMacro(X2Jaw, double);
-  vtkGetConstMacro(X2Jaw, double);
   /// Set X2 jaw position. Triggers \sa BeamGeometryModified event and re-generation of beam model
   void SetX2Jaw(double x2Jaw);
 
+  /// Get Y1 jaw position
   vtkGetMacro(Y1Jaw, double);
-  vtkGetConstMacro(Y1Jaw, double);
   /// Set Y1 jaw position. Triggers \sa BeamGeometryModified event and re-generation of beam model
   void SetY1Jaw(double y1Jaw);
 
+  /// Get Y2 jaw position
   vtkGetMacro(Y2Jaw, double);
-  vtkGetConstMacro(Y2Jaw, double);
   /// Set Y2 jaw position. Triggers \sa BeamGeometryModified event and re-generation of beam model
   void SetY2Jaw(double y2Jaw);
 
+  /// Get source-axis distance
   vtkGetMacro(SAD, double);
-  vtkGetConstMacro(SAD, double);
   /// Set source-axis distance. Triggers \sa BeamGeometryModified event and re-generation of beam model
   void SetSAD(double sad);
 
+  /// Get gantry angle
   vtkGetMacro(GantryAngle, double);
-  vtkGetConstMacro(GantryAngle, double);
   /// Set gantry angle. Triggers \sa BeamTransformModified event and re-generation of beam model
   void SetGantryAngle(double angle);
 
+  /// Get collimator angle
   vtkGetMacro(CollimatorAngle, double);
-  vtkGetConstMacro(CollimatorAngle, double);
   /// Set collimator angle. Triggers \sa BeamTransformModified event and re-generation of beam model
   void SetCollimatorAngle(double angle);
 
+  /// Get couch angle
   vtkGetMacro(CouchAngle, double);
-  vtkGetConstMacro(CouchAngle, double);
   /// Set couch angle. Triggers \sa BeamTransformModified event and re-generation of beam model
   void SetCouchAngle(double angle);
 
+  /// Get beam weight
   vtkGetMacro(BeamWeight, double);
-  vtkGetConstMacro(BeamWeight, double);
+  /// Set beam weight
   vtkSetMacro(BeamWeight, double);
 
 protected:

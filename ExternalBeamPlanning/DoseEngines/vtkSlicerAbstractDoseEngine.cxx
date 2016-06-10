@@ -57,11 +57,7 @@ vtkSlicerAbstractDoseEngine::vtkSlicerAbstractDoseEngine()
 //----------------------------------------------------------------------------
 vtkSlicerAbstractDoseEngine::~vtkSlicerAbstractDoseEngine()
 {
-  if (this->Name)
-  {
-    delete[] this->Name;
-    this->Name = NULL;
-  }
+  this->SetName(NULL);
 }
 
 //----------------------------------------------------------------------------

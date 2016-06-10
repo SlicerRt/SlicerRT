@@ -92,6 +92,9 @@ protected:
   vtkSlicerAbstractDoseEngine();
   virtual ~vtkSlicerAbstractDoseEngine();
 
+  /// Set name (only in constructor)
+  vtkSetStringMacro(Name);
+
 private:
   vtkSlicerAbstractDoseEngine(const vtkSlicerAbstractDoseEngine&); // Not implemented
   void operator=(const vtkSlicerAbstractDoseEngine&);         // Not implemented

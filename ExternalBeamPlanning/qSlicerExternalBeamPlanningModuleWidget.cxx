@@ -839,15 +839,7 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   }
 
   // Create new beam node by replicating currently selected beam
-  vtkMRMLRTBeamNode* beamNode = NULL;
-  if (this->currentBeamNode())
-  {
-    beamNode = d->logic()->CopyAndAddBeamToPlan(this->currentBeamNode(), rtPlanNode);
-  }
-  else
-  {
-    beamNode = d->logic()->CreateBeamInPlan(rtPlanNode);
-  }
+  vtkMRMLRTBeamNode* beamNode = beamNode = d->logic()->CreateBeamInPlan(rtPlanNode);
   if (!beamNode)
   {
     qCritical() << Q_FUNC_INFO << ": Failed to add beam!";

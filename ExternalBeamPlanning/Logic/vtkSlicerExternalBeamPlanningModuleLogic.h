@@ -65,7 +65,7 @@ public:
 
   /// Create a new beam based on another beam, and add it to the plan
   /// \return The new beam node that has been copied and added to the plan
-  vtkMRMLRTBeamNode* CopyAndAddBeamToPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode);
+  vtkMRMLRTBeamNode* CloneBeamInPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode);
 
   /// Calculate dose for a plan
   std::string CalculateDose(vtkMRMLRTPlanNode* planNode);

@@ -73,7 +73,7 @@ vtkSlicerPlastimatchProtonDoseEngine::vtkInternal::vtkInternal()
 //----------------------------------------------------------------------------
 vtkSlicerPlastimatchProtonDoseEngine::vtkSlicerPlastimatchProtonDoseEngine()
 {
-  this->Name = "Plastimatch proton";
+  this->SetName("Plastimatch proton");
 
   this->Internal = new vtkInternal;
 }

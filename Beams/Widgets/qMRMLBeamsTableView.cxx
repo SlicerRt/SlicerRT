@@ -84,7 +84,7 @@ void qMRMLBeamsTableViewPrivate::init()
   this->setMessage(QString());
 
   // Set table header properties
-  this->ColumnLabels << "Number" << "Name" << "Gantry" << "Weight" << "Edit";
+  this->ColumnLabels << "Number" << "Name" << "Gantry" << "Weight" << "Edit" << "Clone";
   this->BeamsTable->setHorizontalHeaderLabels(
     QStringList() << "#" << "Name" << "Gantry" << "Weight" << "" );
   this->BeamsTable->setColumnCount(this->ColumnLabels.size());
@@ -252,12 +252,20 @@ void qMRMLBeamsTableView::populateBeamTable()
 
     // Edit button
     QPushButton* editButton = new QPushButton("Edit");
-    editButton->setMaximumWidth(48);
+    editButton->setMaximumWidth(52);
     editButton->setToolTip("Show beam details in Beams module");
     editButton->setProperty(ID_PROPERTY, beamNode->GetID());
     connect(editButton, SIGNAL(clicked()), this, SLOT(onEditButtonClicked()));
     d->BeamsTable->setCellWidget(row, d->columnIndex("Edit"), editButton);
- }
+
+    // Clone button
+    QPushButton* cloneButton = new QPushButton("Clone");
+    cloneButton->setMaximumWidth(52);
+    cloneButton->setToolTip("Create a copy of this beam");
+    cloneButton->setProperty(ID_PROPERTY, beamNode->GetID());
+    connect(cloneButton, SIGNAL(clicked()), this, SLOT(onCloneButtonClicked()));
+    d->BeamsTable->setCellWidget(row, d->columnIndex("Clone"), cloneButton);
+}
 
   // Unblock signals
   d->BeamsTable->blockSignals(false);
@@ -359,6 +367,25 @@ void qMRMLBeamsTableView::onEditButtonClicked()
 
   // Open Beams module and select beam
   qSlicerApplication::application()->openNodeModule(beamNode);
+}
+
+//------------------------------------------------------------------------------
+void qMRMLBeamsTableView::onCloneButtonClicked()
+{
+  Q_D(qMRMLBeamsTableView);
+  QPushButton* senderButton = qobject_cast<QPushButton*>(sender());
+  if (!senderButton || !d->PlanNode || !d->PlanNode->GetScene())
+    {
+    return;
+    }
+
+  // Get beam node from scene
+  QString beamNodeID = senderButton->property(ID_PROPERTY).toString();
+  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(
+    d->PlanNode->GetScene()->GetNodeByID(beamNodeID.toLatin1().constData()) );
+
+  // Clone beam node in its parent plan
+  beamNode->RequestCloning();
 }
 
 //-----------------------------------------------------------------------------

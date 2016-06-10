@@ -81,6 +81,9 @@ protected slots:
   /// Handle edit button click. Switches to Beams module and selects beam
   void onEditButtonClicked();
 
+  /// Handle clone button click. Creates clone of the beam for which the button was clicked
+  void onCloneButtonClicked();
+
   /// Populate beam table according to the plan node
   void populateBeamTable();
 

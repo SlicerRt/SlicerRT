@@ -864,7 +864,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     vtkSmartPointer<vtkMRMLRTBeamNode> beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
     beamNode->SetName(beamName);
     this->GetMRMLScene()->AddNode(beamNode);
-    beamNode->CreateDefaultBeamModel();
 
     // Add the RTBeam node to the plan.
     // TODO: In current implementation, markups node is not fixated to beam until we add the beam to the plan. Therefore,

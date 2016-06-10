@@ -175,7 +175,9 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
 {
-  Superclass::Copy(anode);
+  // Do not call Copy function of base classes, as it copies the poly data too, which
+  // is undesired for beams, as they generate their own poly data from their properties.
+  //Superclass::Copy(anode);
 
   vtkMRMLRTBeamNode* node = vtkMRMLRTBeamNode::SafeDownCast(anode);
   if (!node)
@@ -188,16 +190,38 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   this->SetBeamNumber(node->GetBeamNumber());
   this->SetBeamDescription(node->GetBeamDescription());
   this->SetBeamWeight(node->GetBeamWeight());
+
   this->SetX1Jaw(node->GetX1Jaw());
   this->SetX2Jaw(node->GetX2Jaw());
   this->SetY1Jaw(node->GetY1Jaw());
   this->SetY2Jaw(node->GetY2Jaw());
+
   this->SetGantryAngle(node->GetGantryAngle());
   this->SetCollimatorAngle(node->GetCollimatorAngle());
   this->SetCouchAngle(node->GetCouchAngle());
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetScene(vtkMRMLScene* scene)
+{
+  Superclass::SetScene(scene);
+
+  if (scene)
+  {
+    // Create beam model
+    vtkSmartPointer<vtkPolyData> beamModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+    this->CreateBeamPolyData(beamModelPolyData);
+    this->SetAndObservePolyData(beamModelPolyData);
+
+    // Create default display node
+    this->CreateDefaultDisplayNodes();
+
+    // Create default transform node
+    this->CreateDefaultTransformNode();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -384,25 +408,27 @@ void vtkMRMLRTBeamNode::SetSAD(double sad)
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::CreateDefaultDisplayNodes()
 {
-  //TODO: Create display node here when splitting CreateDefaultBeamModel
+  // Create default model display node
   Superclass::CreateDefaultDisplayNodes();
-}
 
-//---------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::CreateDefaultBeamModel()
-{
-  if (!this->GetScene())
+  // Set beam-specific parameters
+  vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetDisplayNode());
+  if (!displayNode)
   {
-    vtkErrorMacro ("CreateDefaultBeamModel: Invalid MRML scene");
+    vtkErrorMacro("CreateDefaultDisplayNodes: Failed to create default display node");
     return;
   }
 
-  //TODO: Split this function into CreateDefaultDisplayNodes, CreateBeamTransformNodes, etc.
-  // and call them when MRML scene is set (make sure transforms are not created twice)
-  // Create beam model
-  vtkSmartPointer<vtkPolyData> beamModelPolyData = vtkSmartPointer<vtkPolyData>::New();
-  this->CreateBeamPolyData(beamModelPolyData);
+  displayNode->SetColor(0.0, 1.0, 0.2);
+  displayNode->SetOpacity(0.3);
+  displayNode->SetBackfaceCulling(0); // Disable backface culling to make the back side of the contour visible as well
+  displayNode->VisibilityOn(); 
+  displayNode->SliceIntersectionVisibilityOn();
+}
 
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::CreateDefaultTransformNode()
+{
   // Transform for visualization
   //TODO: Awful names for transforms. They should be barToFooTransform
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
@@ -424,21 +450,11 @@ void vtkMRMLRTBeamNode::CreateDefaultBeamModel()
   transformNode->SetName(transformName.c_str());
   this->GetScene()->AddNode(transformNode);
   transformNode->SetMatrixTransformToParent(transform->GetMatrix());
+
+  // Hide transform node from subject hierarchy as it is not supposed to be used by the user
   transformNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
 
-  // Create display node for beam
-  vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-  beamModelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetScene()->AddNode(beamModelDisplayNode));
-  beamModelDisplayNode->SetColor(0.0, 1.0, 0.2);
-  beamModelDisplayNode->SetOpacity(0.3);
-  beamModelDisplayNode->SetBackfaceCulling(0); // Disable backface culling to make the back side of the contour visible as well
-  beamModelDisplayNode->VisibilityOn(); 
-  beamModelDisplayNode->SliceIntersectionVisibilityOn();
-
-  // Setup beam model node
-  this->SetAndObservePolyData(beamModelPolyData);
   this->SetAndObserveTransformNodeID(transformNode->GetID());
-  this->SetAndObserveDisplayNodeID(beamModelDisplayNode->GetID());
 }
 
 //---------------------------------------------------------------------------
@@ -583,4 +599,10 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
 
   beamModelPolyData->SetPoints(points);
   beamModelPolyData->SetPolys(cellArray);
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::RequestCloning()
+{
+  this->InvokeEvent(vtkMRMLRTBeamNode::CloningRequested);
 }
