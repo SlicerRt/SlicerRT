@@ -150,6 +150,12 @@ void vtkSlicerDoseEnginePluginHandler::UnregisterDoseEngine(vtkSlicerAbstractDos
 //----------------------------------------------------------------------------
 vtkSlicerAbstractDoseEngine* vtkSlicerDoseEnginePluginHandler::GetDoseEngineByName(const char* name)
 {
+  if (!name)
+  {
+    vtkErrorMacro("GetDoseEngineByName: Empty name given!");
+    return NULL;
+  }
+
   for (DoseEngineListType::iterator engineIt = this->DoseEngines.begin(); engineIt != this->DoseEngines.end(); ++engineIt)
   {
     if (!engineIt->GetPointer()->GetName())

@@ -152,9 +152,6 @@ void qSlicerBeamsModuleWidget::setup()
   connect( d->pushButton_SwitchToParentPlan, SIGNAL(clicked()), this, SLOT(switchToParentPlanButtonClicked()) );
   connect( d->lineEdit_BeamName, SIGNAL(textChanged(const QString &)), this, SLOT(beamNameChanged(const QString &)) );
 
-  // Prescription page //TODO: Remove
-  connect( d->comboBox_BeamType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamTypeChanged(const QString &)) );
-
   // Geometry page
   connect( d->MRMLNodeComboBox_MLCPositionDoubleArray, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(mlcPositionDoubleArrayNodeChanged(vtkMRMLNode*)) );
   connect( d->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), this, SLOT(sourceDistanceChanged(double)) );
@@ -234,16 +231,9 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
     return;
   }
 
-  // Remove prescription tab that only contains beam type (that is unused now)
-  //TODO: Move beam type to another place and make use of it
-  int index = d->tabWidget->indexOf(d->tabWidgetPageRx);
-  if (index >= 0)
-  {
-    d->tabWidget->removeTab(index);
-  }
-
   // Enable appropriate tabs and widgets for this beam type and set 
   // widget values from MRML node
+  /*
   vtkMRMLRTBeamNode::RTRadiationType radType = beamNode->GetRadiationType();
   if (radType == vtkMRMLRTBeamNode::Photon)
   {
@@ -277,7 +267,7 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
     }
   }
   else if (radType == vtkMRMLRTBeamNode::Proton)
-  {
+  {*/
     // Enable needed fields
     // Just in case there is a common index between photons and protons
     d->label_BeamLineType->setEnabled(true);
@@ -295,11 +285,6 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
     int index = 0;
 
     // Enable needed tabs and set widget values
-    index = d->tabWidget->indexOf(d->tabWidgetPageRx);
-    if (index == -1)
-    {
-      d->tabWidget->addTab(d->tabWidgetPageRx, "Prescription");
-    }
     index = d->tabWidget->indexOf(d->tabWidgetPageProtonEnergy);
     if (index == -1)
     {
@@ -314,7 +299,7 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
     if (index == -1)
     {
       d->tabWidget->addTab(d->tabWidgetPageProtonBeamModel, "Beam Model");
-    }
+    }/*
   }
   else if (radType == vtkMRMLRTBeamNode::Electron)
   {
@@ -322,7 +307,7 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
     qWarning() << Q_FUNC_INFO << ": Electron beam not yet supported";
     d->tabWidget->clear();
   }
-
+  */
   // Set values into beam parameters tab
   d->lineEdit_BeamName->setText(QString::fromStdString(beamNode->GetName()));
 
@@ -378,7 +363,7 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
   d->doubleSpinBox_BeamWeight->setValue(beamNode->GetBeamWeight());
 
   // Set values into proton beam model
-  if (beamNode->GetRadiationType() == vtkMRMLRTBeamNode::Proton)
+  //if (beamNode->GetRadiationType() == vtkMRMLRTBeamNode::Proton)
   {
     d->doubleSpinBox_ApertureDistance->setValue(protonBeamNode->GetApertureOffset());
     switch (protonBeamNode->GetAlgorithm())
@@ -558,35 +543,6 @@ void qSlicerBeamsModuleWidget::radiationTypeChanged(int index)
   {
   }
 #endif
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerBeamsModuleWidget::beamTypeChanged(const QString &text)
-{
-  Q_D(qSlicerBeamsModuleWidget);
-
-  if (!this->mrmlScene())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
-    return;
-  }
-
-  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (beamNode == NULL) {
-    qCritical() << Q_FUNC_INFO << ": No current beam node.";
-    return;
-  }
-
-  beamNode->DisableModifiedEventOn();
-  if (text.compare("Dynamic") == 0)
-  {
-    beamNode->SetBeamType(vtkMRMLRTBeamNode::Dynamic);
-  }
-  else
-  {
-    beamNode->SetBeamType(vtkMRMLRTBeamNode::Static);
-  }
-  beamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------

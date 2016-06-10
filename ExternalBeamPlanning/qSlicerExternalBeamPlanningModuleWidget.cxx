@@ -404,12 +404,12 @@ void qSlicerExternalBeamPlanningModuleWidget::segmentationNodeChanged(vtkMRMLNod
     return;
   }
 
-  // Set segmentation node to target selector
-  d->MRMLSegmentSelectorWidget_TargetStructure->setCurrentNode(node);
-
   rtPlanNode->DisableModifiedEventOn();
   rtPlanNode->SetAndObserveSegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(node));
   rtPlanNode->DisableModifiedEventOff();
+
+  // Set segmentation node to target selector
+  d->MRMLSegmentSelectorWidget_TargetStructure->setCurrentNode(node);
 }
 
 //-----------------------------------------------------------------------------
@@ -697,6 +697,8 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
+  d->comboBox_DoseEngine->blockSignals(true);
+
   d->comboBox_DoseEngine->clear();
 
   vtkSlicerDoseEnginePluginHandler::DoseEngineListType engines =
@@ -706,6 +708,12 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
   {
     d->comboBox_DoseEngine->addItem(engineIt->GetPointer()->GetName());
   }
+
+  // Select first engine
+  d->comboBox_DoseEngine->setCurrentIndex(0);
+  this->doseEngineChanged(d->comboBox_DoseEngine->currentText());
+
+  d->comboBox_DoseEngine->blockSignals(false);
 }
 
 //-----------------------------------------------------------------------------

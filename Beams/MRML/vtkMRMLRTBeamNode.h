@@ -45,24 +45,6 @@ class vtkMRMLSegmentationNode;
 class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLModelNode
 {
 public:
-  enum RTBeamType
-  {
-    Static = 0,
-    Dynamic = 1
-  };
-  enum RTRadiationType
-  {
-    Photon = 0,
-    Electron = 1,
-    Proton = 2
-  };
-  enum RTCollimatorType
-  {
-    SquareHalfMM = 0,
-    SquareOneMM = 1,
-    SquareTwoMM = 2
-  };
-
   static const char* NEW_BEAM_NODE_NAME_PREFIX;
 
   enum
@@ -145,20 +127,6 @@ public:
   /// Set beam description
   vtkSetStringMacro(BeamDescription);
 
-  /// Get radiation type
-  vtkGetMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
-  /// Set radiation type
-  vtkGetConstMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
-  /// Set radiation type
-  vtkSetMacro(RadiationType, vtkMRMLRTBeamNode::RTRadiationType);
-
-  /// Get beam type
-  vtkGetMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
-  /// Get beam type
-  vtkGetConstMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
-  /// Set beam type
-  vtkSetMacro(BeamType, vtkMRMLRTBeamNode::RTBeamType);
-
   vtkGetMacro(X1Jaw, double);
   vtkGetConstMacro(X1Jaw, double);
   /// Set X1 jaw position. Triggers \sa BeamGeometryModified event and re-generation of beam model
@@ -217,13 +185,6 @@ protected:
   char* BeamDescription;
   /// Beam weight, taken into account when accumulating per-beam doses
   double BeamWeight;
-
-  /// TODO:
-  RTBeamType BeamType;
-  /// TODO:
-  RTRadiationType RadiationType;
-  /// TODO:
-  RTCollimatorType CollimatorType;
 
   /// X1 jaw position
   double X1Jaw;

@@ -62,10 +62,6 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->BeamDescription = NULL;
   this->BeamWeight = 1.0;
 
-  this->BeamType = vtkMRMLRTBeamNode::Static;
-  this->RadiationType = vtkMRMLRTBeamNode::Proton;
-  this->CollimatorType = vtkMRMLRTBeamNode::SquareHalfMM;
-
   this->X1Jaw = -100.0;
   this->X2Jaw = 100.0;
   this->Y1Jaw = -100.0;
@@ -101,8 +97,6 @@ void vtkMRMLRTBeamNode::WriteXML(ostream& of, int nIndent)
   of << indent << " BeamNumber=\"" << this->BeamNumber << "\"";
   of << indent << " BeamDescription=\"" << (this->BeamDescription ? BeamDescription : "") << "\"";
   of << indent << " BeamWeight=\"" << this->BeamWeight << "\"";
-
-  //TODO: BeamType, RadiationType, CollimatorType members (if still needed later)
 
   of << indent << " X1Jaw=\"" << this->X1Jaw << "\"";
   of << indent << " X2Jaw=\"" << this->X2Jaw << "\"";
@@ -141,7 +135,6 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
     {
       this->BeamWeight = vtkVariant(attValue).ToDouble();
     }
-    //TODO: BeamType, RadiationType, CollimatorType members (if still needed later)
     else if (!strcmp(attName, "X1Jaw")) 
     {
       this->X1Jaw = vtkVariant(attValue).ToDouble();
@@ -195,7 +188,6 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   this->SetBeamNumber(node->GetBeamNumber());
   this->SetBeamDescription(node->GetBeamDescription());
   this->SetBeamWeight(node->GetBeamWeight());
-  //TODO: BeamType, RadiationType, CollimatorType members (if still needed later)
   this->SetX1Jaw(node->GetX1Jaw());
   this->SetX2Jaw(node->GetX2Jaw());
   this->SetY1Jaw(node->GetY1Jaw());
@@ -216,8 +208,6 @@ void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << " BeamNumber:   " << this->BeamNumber << "\n";
   os << indent << " BeamDescription:   " << (this->BeamDescription ? BeamDescription : "NULL") << "\n";
   os << indent << " BeamWeight:   " << this->BeamWeight << "\n";
-
-  //TODO: BeamType, RadiationType, CollimatorType members (if still needed later)
 
   os << indent << " X1Jaw:   " << this->X1Jaw << "\n";
   os << indent << " X2Jaw:   " << this->X2Jaw << "\n";

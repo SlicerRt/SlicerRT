@@ -79,9 +79,6 @@ protected slots:
   void beamNameChanged(const QString &);
   void radiationTypeChanged(int);
 
-  // Prescription page
-  void beamTypeChanged(const QString &);
-
   // Energy page
   void proximalMarginChanged(double);
   void distalMarginChanged(double);

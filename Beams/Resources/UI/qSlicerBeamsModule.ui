@@ -53,53 +53,6 @@
         <property name="tabsClosable">
          <bool>false</bool>
         </property>
-        <widget class="QWidget" name="tabWidgetPageRx">
-         <attribute name="title">
-          <string>Prescription</string>
-         </attribute>
-         <layout class="QGridLayout" name="gridLayout_4">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_BeamType">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Beam type:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QComboBox" name="comboBox_BeamType">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <item>
-             <property name="text">
-              <string>Static</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Dynamic</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="2" column="0" colspan="3">
-           <spacer name="verticalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </widget>
         <widget class="QWidget" name="tabWidgetPageGeometry">
          <attribute name="title">
           <string>Geometry</string>

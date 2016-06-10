@@ -78,7 +78,6 @@ vtkMRMLRTProtonBeamNode::vtkMRMLRTProtonBeamNode()
   this->ApertureDim[1] = 1;
 
   this->SourceSize = 0.0;
-  this->SetRadiationType(Proton);
 
   this->LateralSpreadHomoApprox = false;
   this->RangeCompensatorHighland = false;
