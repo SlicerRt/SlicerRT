@@ -81,9 +81,11 @@ public:
   /// Create transform node that places the beam poly data in the right position based on geometry
   virtual void CreateDefaultTransformNode();
 
-  /// Create beam model from beam parameters, supporting MLC leaves
-  /// \return Poly data, null on fail
-  void CreateBeamPolyData(vtkPolyData* beamModelPolyData);
+  /// Update beam transform based on beam and plan parameters
+  void UpdateTransform();
+
+  /// Update beam poly data based on beam geometry parameters (jaws, MLC)
+  void UpdateGeometry();
 
   /// Invoke cloning requested event. External Beam Planning logic processes the event and
   /// clones the beam if exists
@@ -175,6 +177,10 @@ public:
   vtkSetMacro(BeamWeight, double);
 
 protected:
+  /// Create beam model from beam parameters, supporting MLC leaves
+  void CreateBeamPolyData(vtkPolyData* beamModelPolyData);
+
+protected:
   vtkMRMLRTBeamNode();
   ~vtkMRMLRTBeamNode();
   vtkMRMLRTBeamNode(const vtkMRMLRTBeamNode&);
@@ -183,7 +189,7 @@ protected:
 // Beam properties
 protected:
   /// Beam number
-  int   BeamNumber;
+  int  BeamNumber;
   /// Beam description
   char* BeamDescription;
   /// Beam weight, taken into account when accumulating per-beam doses

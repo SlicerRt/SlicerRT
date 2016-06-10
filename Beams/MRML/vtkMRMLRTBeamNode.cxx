@@ -429,32 +429,63 @@ void vtkMRMLRTBeamNode::CreateDefaultDisplayNodes()
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::CreateDefaultTransformNode()
 {
-  // Transform for visualization
-  //TODO: Awful names for transforms. They should be barToFooTransform
-  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-  transform->Identity();
-  transform->RotateZ(0);
-  transform->RotateY(0);
-  transform->RotateX(-90);
-
-  vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
-  transform2->Identity();
-  transform2->Translate(0.0, 0.0, 0.0);
-
-  transform->PostMultiply();
-  transform->Concatenate(transform2->GetMatrix());
-
   // Create transform node for beam
   vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
   std::string transformName = std::string(this->GetName()) + "_Transform";
   transformNode->SetName(transformName.c_str());
   this->GetScene()->AddNode(transformNode);
-  transformNode->SetMatrixTransformToParent(transform->GetMatrix());
 
   // Hide transform node from subject hierarchy as it is not supposed to be used by the user
   transformNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
 
   this->SetAndObserveTransformNodeID(transformNode->GetID());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::UpdateTransform()
+{
+  if (!this->GetScene())
+  {
+    vtkErrorMacro("UpdateTransform: Invalid MRML scene");
+    return;
+  }
+
+  // Get isocenter
+  double isocenterPosition[3] = {0.0,0.0,0.0};
+  if (!this->GetPlanIsocenterPosition(isocenterPosition))
+  {
+    vtkErrorMacro("UpdateTransform: Failed to get isocenter position");
+    return;
+  }
+
+  //TODO: Awful names for transforms. They should be barToFooTransform
+  //TODO: Use IEC logic
+  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+  transform->Identity();
+  transform->RotateZ(this->GantryAngle);
+  transform->RotateY(this->CollimatorAngle);
+  transform->RotateX(-90);
+
+  vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
+  transform2->Identity();
+  transform2->Translate(isocenterPosition[0], isocenterPosition[1], isocenterPosition[2]);
+
+  transform->PostMultiply();
+  transform->Concatenate(transform2->GetMatrix());
+
+  // Get transform node
+  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetScene()->GetNodeByID(this->GetTransformNodeID()));
+  if (transformNode)
+  {
+    // Set transform to transform node
+    transformNode->SetMatrixTransformToParent(transform->GetMatrix());
+
+    // Update the name of the transform node too
+    // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
+    std::string transformName = std::string(this->Name) + "_Transform";
+    transformNode->SetName(transformName.c_str());
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -599,6 +630,12 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
 
   beamModelPolyData->SetPoints(points);
   beamModelPolyData->SetPolys(cellArray);
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::UpdateGeometry()
+{
+  this->CreateBeamPolyData(this->GetPolyData());
 }
 
 //---------------------------------------------------------------------------

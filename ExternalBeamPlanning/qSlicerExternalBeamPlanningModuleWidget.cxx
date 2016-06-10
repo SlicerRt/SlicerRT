@@ -443,7 +443,7 @@ void qSlicerExternalBeamPlanningModuleWidget::poisMarkupsNodeChanged(vtkMRMLNode
   for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
   {
     vtkMRMLRTBeamNode* beamNode = (*beamIt);
-    d->logic()->GetBeamsLogic()->UpdateBeamTransform(beamNode);
+    beamNode->UpdateTransform();
   }
 }
 

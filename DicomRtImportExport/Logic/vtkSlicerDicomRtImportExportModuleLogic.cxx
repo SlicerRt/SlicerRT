@@ -858,71 +858,27 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
   for (int beamIndex = 0; beamIndex < numberOfBeams; beamIndex++) // DICOM starts indexing from 1
   {
     unsigned int dicomBeamNumber = rtReader->GetBeamNumberForIndex(beamIndex);
-    const char *beamName = rtReader->GetBeamName(dicomBeamNumber);
+    const char* beamName = rtReader->GetBeamName(dicomBeamNumber);
 
     // Create the beam node
     vtkSmartPointer<vtkMRMLRTBeamNode> beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
     beamNode->SetName(beamName);
-    this->GetMRMLScene()->AddNode(beamNode);
 
-    // Add the RTBeam node to the plan.
-    // TODO: In current implementation, markups node is not fixated to beam until we add the beam to the plan. Therefore,
-    //   cannot set the isocenter until this happens. Design of vtkMRMLRTBeamNode should be improved to simplify
-    //   construction and use, such as asking the plan to create the beam rather than asking the beams logic to do so.
-    planNode->AddBeam(beamNode);
-
-    // Get the beam subject hierarchy node
-    vtkMRMLSubjectHierarchyNode* beamSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(beamNode, this->GetMRMLScene());
-    if (!beamSHNode)
-    {
-      vtkErrorMacro("LoadRtPlan: Created RTBeamNode, but it doesn't have a Subject Hierarchy node.");
-      return false;
-    }
-
-    // Set beam related attributes
-    std::stringstream beamNumberStream;
-    beamNumberStream << dicomBeamNumber;
-    beamSHNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str(),
-      beamNumberStream.str().c_str());
-
-    std::stringstream sourceAxisDistanceStream;
-    sourceAxisDistanceStream << rtReader->GetBeamSourceAxisDistance(dicomBeamNumber);
-    beamSHNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str(),
-      sourceAxisDistanceStream.str().c_str() );
-
-    std::stringstream gantryAngleStream;
-    gantryAngleStream << rtReader->GetBeamGantryAngle(dicomBeamNumber);
-    beamSHNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str(),
-      gantryAngleStream.str().c_str() );
-
-    std::stringstream couchAngleStream;
-    couchAngleStream << rtReader->GetBeamPatientSupportAngle(dicomBeamNumber);
-    beamSHNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME.c_str(),
-      couchAngleStream.str().c_str() );
-
-    std::stringstream collimatorAngleStream;
-    collimatorAngleStream << rtReader->GetBeamBeamLimitingDeviceAngle(dicomBeamNumber);
-    beamSHNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_COLLIMATOR_ANGLE_ATTRIBUTE_NAME.c_str(),
-      collimatorAngleStream.str().c_str() );
-
-    std::stringstream jawPositionsStream;
+    // Set beam geometry parameters from DICOM
     double jawPositions[2][2] = {{0.0, 0.0},{0.0, 0.0}};
     rtReader->GetBeamLeafJawPositions(dicomBeamNumber, jawPositions);
-    jawPositionsStream << "X [" << jawPositions[0][0] << ", " << jawPositions[0][1] << "], Y [ "
-                       << jawPositions[1][0] << ", " << jawPositions[1][1] << "]";
-    beamSHNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME.c_str(),
-      jawPositionsStream.str().c_str() );
-
-    // Set beam member variables
     beamNode->SetX1Jaw(jawPositions[0][0]);
     beamNode->SetX2Jaw(jawPositions[0][1]);
     beamNode->SetY1Jaw(jawPositions[1][0]);
     beamNode->SetY2Jaw(jawPositions[1][1]);
+
     beamNode->SetGantryAngle(rtReader->GetBeamGantryAngle(dicomBeamNumber));
     beamNode->SetCollimatorAngle(rtReader->GetBeamBeamLimitingDeviceAngle(dicomBeamNumber));
     beamNode->SetCouchAngle(rtReader->GetBeamPatientSupportAngle(dicomBeamNumber));
+
     beamNode->SetSAD(rtReader->GetBeamSourceAxisDistance(dicomBeamNumber));
-      
+
+    // Set isocenter to parent plan
     double* isocenter = rtReader->GetBeamIsocenterPositionRas(dicomBeamNumber);
     planNode->SetIsocenterSpecification(vtkMRMLRTPlanNode::ArbitraryPoint);
     if (beamIndex == 0)
@@ -941,6 +897,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
         vtkErrorMacro("LoadRtPlan: Failed to get plan isocenter position");
         return false;
       }
+      //TODO: Multiple isocenters per plan is not yet supported. Will be part of the beams group nodes developed later
       if ( !SlicerRtCommon::AreEqualWithTolerance(planIsocenter[0], isocenter[0])
         || !SlicerRtCommon::AreEqualWithTolerance(planIsocenter[1], isocenter[1])
         || !SlicerRtCommon::AreEqualWithTolerance(planIsocenter[2], isocenter[2]) )
@@ -948,6 +905,11 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
         vtkErrorMacro("LoadRtPlan: Different isocenters for each beam are not yet supported! The first isocenter will be used for the whole plan " << planNode->GetName() << ": (" << planIsocenter[0] << ", " << planIsocenter[1] << ", " << planIsocenter[2] << ")");
       }
     }
+
+    // Add beam to scene (triggers poly data and transform creation and update)
+    this->GetMRMLScene()->AddNode(beamNode);
+    // Add beam to plan
+    planNode->AddBeam(beamNode);
 
     // Create beam model hierarchy root node if has not been created yet
     if (beamModelHierarchyRootNode.GetPointer()==NULL)
@@ -984,9 +946,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     beamModelHierarchyDisplayNode->SetVisibility(1);
     this->GetMRMLScene()->AddNode(beamModelHierarchyDisplayNode);
     beamModelHierarchyNode->SetAndObserveDisplayNodeID( beamModelHierarchyDisplayNode->GetID() );
-
-    this->BeamsLogic->UpdateBeamGeometry(beamNode);
-    this->BeamsLogic->UpdateBeamTransform(beamNode);
   }
 
   // Compute and set geometry of possible RT image that references the loaded beams.
@@ -1288,8 +1247,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
     }
 
     // Get isocenters contained by the plan
-    std::vector<vtkMRMLHierarchyNode*> beamSHNodes =
-      rtPlanSubjectHierarchyNode->GetChildrenNodes();
+    std::vector<vtkMRMLHierarchyNode*> beamSHNodes = rtPlanSubjectHierarchyNode->GetChildrenNodes();
 
     // Get isocenter according to referenced beam number
     if (beamSHNodes.size() == 1)
@@ -1304,17 +1262,13 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
       const char* referencedBeamNumberChars = rtImageSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
       if (referencedBeamNumberChars)
       {
+        int referencedBeamNumber = vtkVariant(referencedBeamNumberChars).ToInt();
         for (std::vector<vtkMRMLHierarchyNode*>::iterator beamSHIt = beamSHNodes.begin(); beamSHIt != beamSHNodes.end(); ++beamSHIt)
         {
-          const char* beamNumberChars = (*beamSHIt)->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
-          if (!beamNumberChars)
+          beamSHNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*beamSHIt);
+          beamNode = vtkMRMLRTBeamNode::SafeDownCast(beamSHNode->GetAssociatedNode());
+          if (beamNode->GetBeamNumber() == referencedBeamNumber)
           {
-            continue;
-          }
-          if (!STRCASECMP(beamNumberChars, referencedBeamNumberChars))
-          {
-            beamSHNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*beamSHIt);
-            beamNode = vtkMRMLRTBeamNode::SafeDownCast(beamSHNode->GetAssociatedNode());
             break;
           }
         }
@@ -1356,7 +1310,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
     }
 
     // Get isocenter beam number
-    const char* isocenterBeamNumberChars = beamSHNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
+    int beamNumber = beamNode->GetBeamNumber();
 
     // Get number of beams in the plan (if there is only one, then the beam number may nor be correctly referenced, so we cannot find it that way
     bool oneBeamInPlan = false;
@@ -1379,9 +1333,9 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
         if (referencedPlanSopInstanceUid && !STRCASECMP(referencedPlanSopInstanceUid, rtPlanSopInstanceUid))
         {
           // Get RT image referenced beam number
-          const char* referencedBeamNumberChars = hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
+          int referencedBeamNumber = vtkVariant(hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str())).ToInt();
           // If the referenced beam number matches the isocenter beam number, or if there is one beam in the plan, then we found the RT image
-          if (!STRCASECMP(referencedBeamNumberChars, isocenterBeamNumberChars) || oneBeamInPlan)
+          if (referencedBeamNumber == beamNumber || oneBeamInPlan)
           {
             rtImageVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(hierarchyNode->GetAssociatedNode());
             rtImageSubjectHierarchyNode = hierarchyNode;
@@ -1437,24 +1391,9 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
   }
 
   // Extract beam-related parameters needed to compute RT image coordinate system
-  double sourceAxisDistance = 0.0;
-  const char* sourceAxisDistanceChars = beamSHNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str());
-  if (sourceAxisDistanceChars)
-  {
-    sourceAxisDistance = vtkVariant(sourceAxisDistanceChars).ToDouble();
-  }
-  double gantryAngle = 0.0;
-  const char* gantryAngleChars = beamSHNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str());
-  if (gantryAngleChars)
-  {
-    gantryAngle = vtkVariant(gantryAngleChars).ToDouble();
-  }
-  double couchAngle = 0.0;
-  const char* couchAngleChars = beamSHNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME.c_str());
-  if (couchAngleChars != NULL)
-  {
-    couchAngle = vtkVariant(couchAngleChars).ToDouble();
-  }
+  double sourceAxisDistance = beamNode->GetSAD();
+  double gantryAngle = beamNode->GetGantryAngle();
+  double couchAngle = beamNode->GetCouchAngle();
 
   // Get isocenter coordinates
   double isocenterWorldCoordinates[3] = {0.0, 0.0, 0.0};

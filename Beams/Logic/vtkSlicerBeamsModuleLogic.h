@@ -43,13 +43,6 @@ public:
   vtkTypeMacro(vtkSlicerBeamsModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-public:
-  /// Update the beam model for a new isocenter, gantry angle, etc.
-  void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode);
-
-  /// Update beam model based on current properties
-  void UpdateBeamGeometry(vtkMRMLRTBeamNode* beamNode);
-
 protected:
   vtkSlicerBeamsModuleLogic();
   virtual ~vtkSlicerBeamsModuleLogic();

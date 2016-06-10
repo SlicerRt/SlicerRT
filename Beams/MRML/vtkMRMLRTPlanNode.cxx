@@ -484,11 +484,12 @@ void vtkMRMLRTPlanNode::AddBeam(vtkMRMLRTBeamNode* beamNode)
   // Set the beam number
   beamNode->SetBeamNumber(this->NextBeamNumber++);
 
-  // Put the RTBeam node in the subject hierarchy
+  // Put the beam node in the subject hierarchy
   vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    this->GetScene(), planSHNode, 
-    vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), 
-    beamNode->GetName(), beamNode );
+    this->GetScene(), planSHNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), beamNode->GetName(), beamNode );
+
+  // Calculate transform from beam parameters and isocenter from plan
+  beamNode->UpdateTransform();
 
   this->Modified();
 }

@@ -144,74 +144,12 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
     if (event == vtkMRMLRTBeamNode::BeamTransformModified)
     {
       // Update beam transform
-      this->UpdateBeamTransform(beamNode);
+      beamNode->UpdateTransform();
     }
     else if (event == vtkMRMLRTBeamNode::BeamGeometryModified)
     {
       // Update beam model
-      this->UpdateBeamGeometry(beamNode);
+      beamNode->UpdateGeometry();
     }
   }
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerBeamsModuleLogic::UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode)
-{
-  if (!beamNode)
-  {
-    vtkErrorMacro("UpdateBeamTransform: Invalid beam node");
-    return;
-  }
-  if (!this->GetMRMLScene())
-  {
-    vtkErrorMacro ("UpdateBeamTransform: Invalid MRML scene");
-    return;
-  }
-
-  // Get isocenter
-  double isocenterPosition[3] = {0.0,0.0,0.0};
-  if (!beamNode->GetPlanIsocenterPosition(isocenterPosition))
-  {
-    vtkErrorMacro("UpdateBeamTransform: Failed to get isocenter position");
-    return;
-  }
-
-  //TODO: Awful names for transforms. They should be barToFooTransform
-  //TODO: Use IEC logic
-  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-  transform->Identity();
-  transform->RotateZ(beamNode->GetGantryAngle());
-  transform->RotateY(beamNode->GetCollimatorAngle());
-  transform->RotateX(-90);
-
-  vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
-  transform2->Identity();
-  transform2->Translate(isocenterPosition[0], isocenterPosition[1], isocenterPosition[2]);
-
-  transform->PostMultiply();
-  transform->Concatenate(transform2->GetMatrix());
-
-  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetNodeByID(beamNode->GetTransformNodeID()));
-  if (transformNode)
-  {
-    transformNode->SetMatrixTransformToParent(transform->GetMatrix());
-
-    // Update the name of the transform node too
-    // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
-    std::string transformName = std::string(beamNode->GetName()) + "_Transform";
-    transformNode->SetName(transformName.c_str());
-  }
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerBeamsModuleLogic::UpdateBeamGeometry(vtkMRMLRTBeamNode* beamNode)
-{
-  if (!beamNode)
-  {
-    vtkErrorMacro("UpdateBeamGeometry: Invalid beam node");
-    return;
-  }
-
-  beamNode->CreateBeamPolyData(beamNode->GetPolyData());
 }

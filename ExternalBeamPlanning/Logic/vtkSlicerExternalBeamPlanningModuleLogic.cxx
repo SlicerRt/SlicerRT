@@ -309,7 +309,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ProcessMRMLNodesEvents(vtkObject*
       for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
       {
         vtkMRMLRTBeamNode* beamNode = (*beamIt);
-        this->BeamsLogic->UpdateBeamTransform(beamNode);
+        beamNode->UpdateTransform();
       }
     }
   }
