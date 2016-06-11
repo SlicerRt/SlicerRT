@@ -90,7 +90,7 @@ Minimum two segments are required. If segments overlap, segment higher in the se
     # Generate merged labelmap as input to GrowCut
     mergedImage = vtk.vtkImageData()
     mergedImageToWorldMatrix = vtk.vtkMatrix4x4()
-    segmentationNode.GenerateMergedLabelmapForAllSegments(mergedImage, mergedImageToWorldMatrix, masterImageData)
+    segmentationNode.GenerateMergedLabelmapForAllSegments(mergedImage, vtkSegmentationCore.vtkSegmentation.EXTENT_UNION_OF_SEGMENTS, mergedImageToWorldMatrix, masterImageData)
 
     # Make a zero-valued volume for the output
     outputLabelmap = vtkSegmentationCore.vtkOrientedImageData()

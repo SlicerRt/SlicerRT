@@ -499,12 +499,6 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegm
   }
   int numberOfFrames = imageData->GetNumberOfScalarComponents();
 
-  vtkNew<vtkImageExtractComponents> extractComponents;
-  extractComponents->SetInputConnection(reader->GetOutputPort());
-
-  vtkNew<vtkImageConstantPad> padder;
-  padder->SetInputConnection(extractComponents->GetOutputPort());
-
   // Read succeeded, set master representation
   segmentation->SetMasterRepresentationName(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
 
@@ -520,6 +514,22 @@ int vtkMRMLSegmentationStorageNode::ReadBinaryLabelmapRepresentation(vtkMRMLSegm
   {
     GetImageExtentFromString(commonGeometryExtent, reader->GetHeaderValue(GetSegmentationMetaDataKey(KEY_SEGMENTATION_EXTENT).c_str()));
   }
+
+  int imageExtentInFile[6] = { 0, -1, 0, -1, 0, -1 };
+  imageData->GetExtent(imageExtentInFile);
+  if (imageExtentInFile[1] - imageExtentInFile[0] != commonGeometryExtent[1] - commonGeometryExtent[0]
+    || imageExtentInFile[3] - imageExtentInFile[2] != commonGeometryExtent[3] - commonGeometryExtent[2]
+    || imageExtentInFile[5] - imageExtentInFile[4] != commonGeometryExtent[5] - commonGeometryExtent[4])
+  {
+    vtkErrorMacro("vtkMRMLVolumeSequenceStorageNode::ReadDataInternal: " << GetSegmentationMetaDataKey(KEY_SEGMENTATION_EXTENT)<<" is inconsistent with the image size");
+    return 0;
+  }
+  imageData->SetExtent(commonGeometryExtent);
+  vtkNew<vtkImageExtractComponents> extractComponents;
+  extractComponents->SetInputData(imageData);
+
+  vtkNew<vtkImageConstantPad> padder;
+  padder->SetInputConnection(extractComponents->GetOutputPort());
 
   // Read conversion parameters
   kit = std::find(keys.begin(), keys.end(), GetSegmentationMetaDataKey(KEY_SEGMENTATION_CONVERSION_PARAMETERS));
@@ -644,6 +654,7 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
   }
 
   // Read segment poly datas
+  std::string masterRepresentationName;
   std::string containedRepresentationNames;
   std::string conversionParameters;
   for (int blockIndex=0; blockIndex<multiBlockDataset->GetNumberOfBlocks(); ++blockIndex)
@@ -652,8 +663,8 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
     vtkPolyData* currentPolyData = vtkPolyData::SafeDownCast(multiBlockDataset->GetBlock(blockIndex));
 
     // Set master representation if it has not been set yet
-    // (segment field data contains it, there is no global place to store it)
-    if (!segmentation->GetMasterRepresentationName())
+    // (there is no global place to store it, but every segment field data contains a copy of it)
+    if (masterRepresentationName.empty())
     {
       vtkStringArray* masterRepresentationArray = vtkStringArray::SafeDownCast(
         currentPolyData->GetFieldData()->GetAbstractArray(GetSegmentationMetaDataKey(KEY_SEGMENTATION_MASTER_REPRESENTATION).c_str()));
@@ -662,7 +673,8 @@ int vtkMRMLSegmentationStorageNode::ReadPolyDataRepresentation(vtkMRMLSegmentati
         vtkErrorMacro("ReadPolyDataRepresentation: Unable to find master representation for segmentation in file " << path);
         return 0;
       }
-      segmentation->SetMasterRepresentationName(masterRepresentationArray->GetValue(0).c_str());
+      masterRepresentationName = masterRepresentationArray->GetValue(0);
+      segmentation->SetMasterRepresentationName(masterRepresentationName.c_str());
     }
     // Read conversion parameters (stored in each segment file, but need to set only once)
     if ( conversionParameters.empty()
@@ -816,7 +828,7 @@ int vtkMRMLSegmentationStorageNode::WriteBinaryLabelmapRepresentation(vtkMRMLSeg
   vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
 
   // Determine merged labelmap dimensions and properties
-  std::string commonGeometryString = segmentation->DetermineCommonLabelmapGeometry();
+  std::string commonGeometryString = segmentation->DetermineCommonLabelmapGeometry(vtkSegmentation::EXTENT_UNION_OF_EFFECTIVE_SEGMENTS);
   vtkSmartPointer<vtkOrientedImageData> commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
   vtkSegmentationConverter::DeserializeImageGeometry(commonGeometryString, commonGeometryImage, true, VTK_UNSIGNED_CHAR, 1);
   int commonGeometryExtent[6] = { 0, -1, 0, -1, 0, -1 };

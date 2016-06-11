@@ -62,6 +62,16 @@ public:
     RepresentationRemoved
   };
 
+  enum
+  {
+    /// Extent of common geometry is used as extent
+    EXTENT_REFERENCE_GEOMETRY,
+    /// Extent is computed as union of extent of all segments
+    EXTENT_UNION_OF_SEGMENTS,
+    /// Extent is computed as union of effective extent of all segments
+    EXTENT_UNION_OF_EFFECTIVE_SEGMENTS
+  };
+
   /// Container type for segments. Maps segment IDs to segment objects
   typedef std::map<std::string, vtkSmartPointer<vtkSegment> > SegmentMap;
 
@@ -106,15 +116,17 @@ public:
   /// If the segmentation has reference image geometry conversion parameter, then oversample it to
   /// be at least as fine resolution as the highest resolution labelmap contained, otherwise just use
   /// the geometry of the highest resolution labelmap in the segments.
+  /// \param extentComputationMode Determines how to compute extents (EXTENT_REFERENCE_GEOMETRY, EXTENT_UNION_OF_SEGMENTS, or EXTENT_UNION_OF_EFFECTIVE_SEGMENTS).
   /// \param segmentIDs List of IDs of segments to include in the merged labelmap. If empty or missing, then all segments are included
   /// \return Geometry string that can be deserialized using \sa vtkSegmentationConverter::SerializeImageGeometry
-  std::string DetermineCommonLabelmapGeometry(const std::vector<std::string>& segmentIDs = std::vector<std::string>(), bool allowExpandReferenceGeometry=true);
+  std::string DetermineCommonLabelmapGeometry(int extentComputationMode = EXTENT_UNION_OF_SEGMENTS, const std::vector<std::string>& segmentIDs = std::vector<std::string>());
   
   /// Determine common labelmap extent for whole segmentation.
   /// \param commonGeometryExtent Computed extent that contains all the specified segments.
   /// \param commonGeometryImage Extent will be returned in this image geometry
   /// \param segmentIDs List of IDs of segments to include in the merged labelmap. If empty or missing, then all segments are included
-  void DetermineCommonLabelmapExtent(int commonGeometryExtent[6], vtkOrientedImageData* commonGeometryImage, const std::vector<std::string>& segmentIDs = std::vector<std::string>());
+  /// \param computeEffectiveExtent Specifies if the extent of a segment is the whole extent or the effective extent (where voxel values >0 found)
+  void DetermineCommonLabelmapExtent(int commonGeometryExtent[6], vtkOrientedImageData* commonGeometryImage, const std::vector<std::string>& segmentIDs = std::vector<std::string>(), bool computeEffectiveExtent=false);
   //ETX
 
 // Segment related methods

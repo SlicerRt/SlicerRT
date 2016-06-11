@@ -129,17 +129,18 @@ public:
 //BTX
   /// Build merged labelmap of the binary labelmap representations of the specified segments
   /// \param mergedImageData Output image data for the merged labelmap image data
+  /// \param extentComputationMode Determines how to compute extents (EXTENT_REFERENCE_GEOMETRY, EXTENT_UNION_OF_SEGMENTS, or EXTENT_UNION_OF_EFFECTIVE_SEGMENTS).
   /// \param mergedLabelmapGeometry Determines geometry of merged labelmap if not NULL, automatically determined otherwise
   /// \param segmentIDs List of IDs of segments to include in the merged labelmap. If empty or missing, then all segments are included
   /// \return Success flag
-  virtual bool GenerateMergedLabelmap(vtkOrientedImageData* mergedImageData, vtkOrientedImageData* mergedLabelmapGeometry = NULL, const std::vector<std::string>& segmentIDs = std::vector<std::string>(), bool allowExpandReferenceGeometry=true);
+  virtual bool GenerateMergedLabelmap(vtkOrientedImageData* mergedImageData, int extentComputationMode, vtkOrientedImageData* mergedLabelmapGeometry = NULL, const std::vector<std::string>& segmentIDs = std::vector<std::string>());
 //ETX
 
   /// Python-accessible version of the more generic \sa GenerateMergedLabelmap.
   /// The last argument specifying the list of segments to be included is omitted, which means that 
   /// all the segments will be merged.
   /// \sa GenerateMergedLabelmap
-  bool GenerateMergedLabelmapForAllSegments(vtkOrientedImageData* mergedImageData, vtkOrientedImageData* mergedLabelmapGeometry, bool allowExpandReferenceGeometry=true);
+  bool GenerateMergedLabelmapForAllSegments(vtkOrientedImageData* mergedImageData, int extentComputationMode, vtkOrientedImageData* mergedLabelmapGeometry);
 
   /// Re-generate displayed merged labelmap
   void ReGenerateDisplayedMergedLabelmap();

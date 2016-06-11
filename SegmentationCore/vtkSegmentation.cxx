@@ -67,6 +67,7 @@ public:
 vtkSegmentation::vtkSegmentation()
 {
   this->MasterRepresentationName = NULL;
+  this->SetMasterRepresentationName(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
   this->Converter = vtkSegmentationConverter::New();
 
   this->SegmentCallbackCommand = vtkCallbackCommand::New();
@@ -334,73 +335,108 @@ bool vtkSegmentation::AddSegment(vtkSegment* segment, std::string segmentId/*=""
   std::vector<std::string> containedRepresentationNamesInAddedSegment;
   segment->GetContainedRepresentationNames(containedRepresentationNamesInAddedSegment);
 
-  // Perform necessary conversions if needed on the added segment:
-  // 1. If the segment can be added, and it does not contain the master representation,
-  // then the master representation is converted using the cheapest available path.
-  if (!segment->GetRepresentation(this->MasterRepresentationName))
+  if (containedRepresentationNamesInAddedSegment.empty())
   {
-    // Collect all available paths to master representation
-    vtkSegmentationConverter::ConversionPathAndCostListType allPathsToMaster;
-    for (std::vector<std::string>::iterator reprIt = containedRepresentationNamesInAddedSegment.begin();
-      reprIt != containedRepresentationNamesInAddedSegment.end(); ++reprIt)
+    // Add empty segment.
+    // Create empty representations for all types that are present in this segmentation
+    // (the representation configuration in all segments needs to match in a segmentation).
+    std::vector<std::string> requiredRepresentationNames;
+    if (this->Segments.empty())
     {
-      vtkSegmentationConverter::ConversionPathAndCostListType pathsFromCurrentRepresentationToMaster;
-      this->Converter->GetPossibleConversions((*reprIt), this->MasterRepresentationName, pathsFromCurrentRepresentationToMaster);
-      // Append paths from current representation to master to all found paths to master
-      allPathsToMaster.insert( allPathsToMaster.end(),
-        pathsFromCurrentRepresentationToMaster.begin(), pathsFromCurrentRepresentationToMaster.end() );
+      // No segments, so the only representation that should be created is the master representation.
+      requiredRepresentationNames.push_back(this->MasterRepresentationName);
     }
-    // Get cheapest path from any representation to master and try to convert
-    vtkSegmentationConverter::ConversionPathType cheapestPath =
-      vtkSegmentationConverter::GetCheapestPath(allPathsToMaster);
-    if (cheapestPath.empty() || !this->ConvertSegmentUsingPath(segment, cheapestPath))
+    else
     {
-      // Return if cannot convert to master representation
-      vtkErrorMacro("AddSegment: Unable to create master representation!");
-      return false;
+      vtkSegment* firstSegment = this->Segments.begin()->second;
+      firstSegment->GetContainedRepresentationNames(requiredRepresentationNames);
     }
-  }
 
-  /// 2. Make sure that the segment contains the same types of representations that are
-  /// present in the existing segments of the segmentation (because we expect all segments
-  /// in a segmentation to contain the same types of representations).
-  if (this->GetNumberOfSegments() > 0)
-  {
-    vtkSegment* firstSegment = this->Segments.begin()->second;
-    std::vector<std::string> containedRepresentationNamesInFirstSegment;
-    firstSegment->GetContainedRepresentationNames(containedRepresentationNamesInFirstSegment);
-
-    // Convert to representations that exist in this segmentation
-    for (std::vector<std::string>::iterator reprIt = containedRepresentationNamesInFirstSegment.begin();
-      reprIt != containedRepresentationNamesInFirstSegment.end(); ++reprIt)
+    for (std::vector<std::string>::iterator reprIt = requiredRepresentationNames.begin();
+      reprIt != requiredRepresentationNames.end(); ++reprIt)
     {
-      // If representation exists then there is nothing to do
-      if (segment->GetRepresentation(*reprIt))
+      vtkSmartPointer<vtkDataObject> emptyRepresentation = vtkSmartPointer<vtkDataObject>::Take(
+        vtkSegmentationConverterFactory::GetInstance()->ConstructRepresentationObjectByRepresentation(*reprIt));
+      if (!emptyRepresentation)
       {
-        continue;
-      }
-
-      // Convert using the cheapest available path
-      vtkSegmentationConverter::ConversionPathAndCostListType pathsToCurrentRepresentation;
-      this->Converter->GetPossibleConversions(this->MasterRepresentationName, (*reprIt), pathsToCurrentRepresentation);
-      vtkSegmentationConverter::ConversionPathType cheapestPath =
-        vtkSegmentationConverter::GetCheapestPath(pathsToCurrentRepresentation);
-      if (cheapestPath.empty())
-      {
-        vtkErrorMacro("AddSegment: Unable to perform conversion!"); // Sanity check, it should never happen
+        vtkErrorMacro("AddEmptySegment: Unable to construct empty representation type '" << (*reprIt) << "'");
         return false;
       }
-      // Perform conversion
-      this->ConvertSegmentUsingPath(segment, cheapestPath);
+      segment->AddRepresentation(*reprIt, emptyRepresentation);
+    }
+  }
+  else
+  {
+    // Add non-empty segment.
+
+    // Perform necessary conversions if needed on the added segment:
+    // 1. If the segment can be added, and it does not contain the master representation,
+    // then the master representation is converted using the cheapest available path.
+    if (!segment->GetRepresentation(this->MasterRepresentationName))
+    {
+      // Collect all available paths to master representation
+      vtkSegmentationConverter::ConversionPathAndCostListType allPathsToMaster;
+      for (std::vector<std::string>::iterator reprIt = containedRepresentationNamesInAddedSegment.begin();
+        reprIt != containedRepresentationNamesInAddedSegment.end(); ++reprIt)
+      {
+        vtkSegmentationConverter::ConversionPathAndCostListType pathsFromCurrentRepresentationToMaster;
+        this->Converter->GetPossibleConversions((*reprIt), this->MasterRepresentationName, pathsFromCurrentRepresentationToMaster);
+        // Append paths from current representation to master to all found paths to master
+        allPathsToMaster.insert(allPathsToMaster.end(),
+          pathsFromCurrentRepresentationToMaster.begin(), pathsFromCurrentRepresentationToMaster.end());
+      }
+      // Get cheapest path from any representation to master and try to convert
+      vtkSegmentationConverter::ConversionPathType cheapestPath =
+        vtkSegmentationConverter::GetCheapestPath(allPathsToMaster);
+      if (cheapestPath.empty() || !this->ConvertSegmentUsingPath(segment, cheapestPath))
+      {
+        // Return if cannot convert to master representation
+        vtkErrorMacro("AddSegment: Unable to create master representation!");
+        return false;
+      }
     }
 
-    // Remove representations that do not exist in this segmentation
-    for (std::vector<std::string>::iterator reprIt = containedRepresentationNamesInAddedSegment.begin();
-      reprIt != containedRepresentationNamesInAddedSegment.end(); ++reprIt)
+    /// 2. Make sure that the segment contains the same types of representations that are
+    /// present in the existing segments of the segmentation (because we expect all segments
+    /// in a segmentation to contain the same types of representations).
+    if (this->GetNumberOfSegments() > 0)
     {
-      if (!firstSegment->GetRepresentation(*reprIt))
+      vtkSegment* firstSegment = this->Segments.begin()->second;
+      std::vector<std::string> requiredRepresentationNames;
+      firstSegment->GetContainedRepresentationNames(requiredRepresentationNames);
+
+      // Convert to representations that exist in this segmentation
+      for (std::vector<std::string>::iterator reprIt = requiredRepresentationNames.begin();
+        reprIt != requiredRepresentationNames.end(); ++reprIt)
       {
-        segment->RemoveRepresentation(*reprIt);
+        // If representation exists then there is nothing to do
+        if (segment->GetRepresentation(*reprIt))
+        {
+          continue;
+        }
+
+        // Convert using the cheapest available path
+        vtkSegmentationConverter::ConversionPathAndCostListType pathsToCurrentRepresentation;
+        this->Converter->GetPossibleConversions(this->MasterRepresentationName, (*reprIt), pathsToCurrentRepresentation);
+        vtkSegmentationConverter::ConversionPathType cheapestPath =
+          vtkSegmentationConverter::GetCheapestPath(pathsToCurrentRepresentation);
+        if (cheapestPath.empty())
+        {
+          vtkErrorMacro("AddSegment: Unable to perform conversion!"); // Sanity check, it should never happen
+          return false;
+        }
+        // Perform conversion
+        this->ConvertSegmentUsingPath(segment, cheapestPath);
+      }
+
+      // Remove representations that do not exist in this segmentation
+      for (std::vector<std::string>::iterator reprIt = containedRepresentationNamesInAddedSegment.begin();
+        reprIt != containedRepresentationNamesInAddedSegment.end(); ++reprIt)
+      {
+        if (!firstSegment->GetRepresentation(*reprIt))
+        {
+          segment->RemoveRepresentation(*reprIt);
+        }
       }
     }
   }
@@ -1095,80 +1131,6 @@ std::string vtkSegmentation::AddEmptySegment(std::string segmentId/*=""*/, std::
   {
     segment->SetName(segmentId.c_str());
   }
-  
-  // If there are no segments in segmentation then just create a master representation.
-  if (this->GetNumberOfSegments() == 0)
-  {
-    // If there is no master representation then set it to binary labelmap
-    if (this->MasterRepresentationName == NULL)
-    {
-      this->SetMasterRepresentationName(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
-    }
-
-    // Add empty labelmap to representations
-    vtkSmartPointer<vtkDataObject> emptyMasterRepresentation = vtkSmartPointer<vtkDataObject>::Take(
-      vtkSegmentationConverterFactory::GetInstance()->ConstructRepresentationObjectByRepresentation(this->MasterRepresentationName) );
-    if (!emptyMasterRepresentation)
-    {
-      vtkErrorMacro("AddEmptySegment: Unable to construct empty master representation type '" << this->MasterRepresentationName << "'");
-      return "";
-    }
-    // Setup geometry of image data representation
-    vtkOrientedImageData* emptyImageData = vtkOrientedImageData::SafeDownCast(emptyMasterRepresentation);
-    if (emptyImageData)
-    {
-      std::string referenceImageGeometryParameter = this->GetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName());
-      if (!referenceImageGeometryParameter.empty())
-      {
-        // Set reference geometry to new empty labelmap
-        vtkSegmentationConverter::DeserializeImageGeometry(referenceImageGeometryParameter, emptyImageData);
-      }
-      // Set invalid extent to indicate empty image (the above deserialization operation set the extent too).
-      // Segment will be extended on editing as needed.
-      int extent[6] = {0,-1,0,-1,0,-1};
-      emptyImageData->SetExtent(extent);
-      emptyImageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-    }
-    segment->AddRepresentation(this->MasterRepresentationName, emptyMasterRepresentation);
-  }
-  // Create empty representations for all types that are present in this segmentation
-  // (the representation configuration in all segments needs to match in a segmentation)
-  else
-  {
-    vtkSegment* firstSegment = this->Segments.begin()->second;
-    std::vector<std::string> containedRepresentationNamesInFirstSegment;
-    firstSegment->GetContainedRepresentationNames(containedRepresentationNamesInFirstSegment);
-
-    for (std::vector<std::string>::iterator reprIt = containedRepresentationNamesInFirstSegment.begin();
-      reprIt != containedRepresentationNamesInFirstSegment.end(); ++reprIt)
-    {
-      vtkSmartPointer<vtkDataObject> emptyRepresentation = vtkSmartPointer<vtkDataObject>::Take(
-        vtkSegmentationConverterFactory::GetInstance()->ConstructRepresentationObjectByRepresentation(*reprIt) );
-      if (!emptyRepresentation)
-      {
-        vtkErrorMacro("AddEmptySegment: Unable to construct empty representation type '" << (*reprIt) << "'");
-        return "";
-      }
-      // Setup geometry of image data representation
-      vtkOrientedImageData* emptyImageData = vtkOrientedImageData::SafeDownCast(emptyRepresentation);
-      if (emptyImageData)
-      {
-        std::string referenceImageGeometryParameter = this->GetConversionParameter(vtkSegmentationConverter::GetReferenceImageGeometryParameterName());
-        if (!referenceImageGeometryParameter.empty())
-        {
-          // Set reference geometry to new empty labelmap
-          vtkSegmentationConverter::DeserializeImageGeometry(referenceImageGeometryParameter, emptyImageData);
-        }
-        // Set invalid extent to indicate empty image (the above deserialization operation set the extent too).
-        // Segment will be extended on editing as needed.
-        int extent[6] = {0,-1,0,-1,0,-1};
-        emptyImageData->SetExtent(extent);
-        emptyImageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-      }
-
-      segment->AddRepresentation((*reprIt), emptyRepresentation);
-    }
-  }
 
   // Add segment
   if (!this->AddSegment(segment))
@@ -1249,7 +1211,7 @@ bool vtkSegmentation::CopySegmentFromSegmentation(vtkSegmentation* fromSegmentat
 }
 
 //-----------------------------------------------------------------------------
-std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<std::string>& segmentIDs/*=std::vector<std::string>()*/, bool allowExpandReferenceGeometry /*=true*/)
+std::string vtkSegmentation::DetermineCommonLabelmapGeometry(int extentComputationMode, const std::vector<std::string>& segmentIDs/*=std::vector<std::string>()*/)
 {
   // If segment IDs list is empty then include all segments
   std::vector<std::string> mergedSegmentIDs;
@@ -1318,11 +1280,13 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
   vtkSmartPointer<vtkOrientedImageData> commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
   vtkSegmentationConverter::DeserializeImageGeometry(referenceGeometryString, commonGeometryImage, false);
 
-  if (allowExpandReferenceGeometry)
+  if (extentComputationMode == EXTENT_UNION_OF_SEGMENTS || extentComputationMode == EXTENT_UNION_OF_EFFECTIVE_SEGMENTS)
   {
     // Determine extent that contains all segments
     int commonGeometryExtent[6] = { 0, -1, 0, -1, 0, -1 };
-    this->DetermineCommonLabelmapExtent(commonGeometryExtent, commonGeometryImage, mergedSegmentIDs);
+    this->DetermineCommonLabelmapExtent(commonGeometryExtent, commonGeometryImage, mergedSegmentIDs,
+      extentComputationMode == EXTENT_UNION_OF_EFFECTIVE_SEGMENTS);
+    commonGeometryImage->SetExtent(commonGeometryExtent);
   }
 
   // Oversample reference image geometry to match highest resolution labelmap's spacing
@@ -1339,7 +1303,7 @@ std::string vtkSegmentation::DetermineCommonLabelmapGeometry(const std::vector<s
 }
 
 //-----------------------------------------------------------------------------
-void vtkSegmentation::DetermineCommonLabelmapExtent(int commonGeometryExtent[6], vtkOrientedImageData* commonGeometryImage, const std::vector<std::string>& segmentIDs/*=std::vector<std::string>()*/)
+void vtkSegmentation::DetermineCommonLabelmapExtent(int commonGeometryExtent[6], vtkOrientedImageData* commonGeometryImage, const std::vector<std::string>& segmentIDs/*=std::vector<std::string>()*/, bool computeEffectiveExtent /*=false*/)
 {
   // If segment IDs list is empty then include all segments
   std::vector<std::string> mergedSegmentIDs;
@@ -1373,14 +1337,22 @@ void vtkSegmentation::DetermineCommonLabelmapExtent(int commonGeometryExtent[6],
     }
     vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
       currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()));
-    if (currentBinaryLabelmap->IsEmpty())
+    if (currentBinaryLabelmap==NULL || currentBinaryLabelmap->IsEmpty())
     {
       continue;
     }
 
     int currentBinaryLabelmapExtent[6] = { 0, -1, 0, -1, 0, -1 };
-    currentBinaryLabelmap->GetExtent(currentBinaryLabelmapExtent);
-    if (currentBinaryLabelmapExtent[0] <= currentBinaryLabelmapExtent[1]
+    bool validExtent = true;
+    if (computeEffectiveExtent)
+    {
+      validExtent = vtkOrientedImageDataResample::CalculateEffectiveExtent(currentBinaryLabelmap, currentBinaryLabelmapExtent);
+    }
+    else
+    {
+      currentBinaryLabelmap->GetExtent(currentBinaryLabelmapExtent);
+    }
+    if (validExtent && currentBinaryLabelmapExtent[0] <= currentBinaryLabelmapExtent[1]
       && currentBinaryLabelmapExtent[2] <= currentBinaryLabelmapExtent[3]
       && currentBinaryLabelmapExtent[4] <= currentBinaryLabelmapExtent[5])
     {

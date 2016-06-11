@@ -195,6 +195,10 @@ protected:
   void updateWidgetFromMasterVolumeNode();
   void updateWidgetFromEffect();
 
+  /// Switches the master representation to binary labelmap. If the master representation
+  /// cannot be set to binary labelmap (e.g., the user does not allow it) then false is returned.
+  bool setMasterRepresentationToBinaryLabelmap();
+
 protected:
   QScopedPointer<qMRMLSegmentEditorWidgetPrivate> d_ptr;
 

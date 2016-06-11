@@ -87,6 +87,8 @@ static const int BINARY_LABELMAP_SCALAR_TYPE = VTK_UNSIGNED_CHAR;
 static const unsigned char BINARY_LABELMAP_VOXEL_FULL = 255;
 static const unsigned char BINARY_LABELMAP_VOXEL_EMPTY = 0;
 
+static const char NULL_EFFECT_NAME[] = "NULL";
+
 //---------------------------------------------------------------------------
 class vtkSegmentEditorEventCallbackCommand : public vtkCallbackCommand
 {
@@ -342,6 +344,7 @@ void qMRMLSegmentEditorWidgetPrivate::initializeEffects()
   this->EffectsGroupBox->setLayout(effectsGroupLayout);
 
   // Initialize effects specified in default ordering
+  this->initializeEffect(NULL); // add NULL effect (arrow button to deactivate all effects)
   QList<qSlicerSegmentEditorAbstractEffect*> registeredEffectsCopy = this->RegisteredEffects;
   foreach (QString effectName, this->DefaultEffectOrder)
   {
@@ -365,6 +368,19 @@ void qMRMLSegmentEditorWidgetPrivate::initializeEffect(qSlicerSegmentEditorAbstr
   Q_Q(qMRMLSegmentEditorWidget);
   if (!effect)
   {
+    // NULL effect (used for deactivating all effects)
+    QPushButton* effectButton = new QPushButton(this->EffectsGroupBox);
+    effectButton->setObjectName(NULL_EFFECT_NAME);
+    effectButton->setCheckable(true);
+    effectButton->setIcon(QIcon(":Icons/NullEffect.png"));
+    effectButton->setToolTip("No editing");
+    effectButton->setMaximumWidth(31);
+    effectButton->setProperty("Effect", QVariant::fromValue<QObject*>(NULL));
+    this->EffectButtonGroup.addButton(effectButton);
+    this->EffectsGroupBox->layout()->addWidget(effectButton);
+    this->EffectsGroupBox->layout()->addItem(
+      new QSpacerItem(3, 0, QSizePolicy::Fixed,
+      QSizePolicy::MinimumExpanding));
     return;
   }
 
@@ -700,7 +716,7 @@ void qMRMLSegmentEditorWidgetPrivate::updateMaskLabelmap()
     maskImage->SetExtent(editedLabelmapExtent);
     maskImage->AllocateScalars(VTK_SHORT, 1); // Change scalar type from unsigned int back to short for merged labelmap generation
 
-    segmentationNode->GenerateMergedLabelmap(maskImage, this->EditedLabelmap, maskSegmentIDs);
+    segmentationNode->GenerateMergedLabelmap(maskImage, vtkSegmentation::EXTENT_UNION_OF_SEGMENTS, this->EditedLabelmap, maskSegmentIDs);
     vtkSmartPointer<vtkMatrix4x4> mergedImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     maskImage->GetImageToWorldMatrix(mergedImageToWorldMatrix);
 
@@ -772,10 +788,9 @@ void qMRMLSegmentEditorWidgetPrivate::updateEffectsEnabled()
       effectButton->property("Effect").value<QObject*>() );
     if (!effect)
     {
-      qCritical() << Q_FUNC_INFO << ": Failed to get effect from effect button " << effectButton->objectName();
+      // NULL effect
       continue;
     }
-
     effectButton->setEnabled(segmentSelected || !effect->perSegment());
   }
 }
@@ -926,6 +941,93 @@ void qMRMLSegmentEditorWidget::updateWidgetFromMRML()
 }
 
 //-----------------------------------------------------------------------------
+bool qMRMLSegmentEditorWidget::setMasterRepresentationToBinaryLabelmap()
+{
+  Q_D(qMRMLSegmentEditorWidget);
+
+  if (d->SegmentationNode == NULL)
+  {
+    qDebug() << Q_FUNC_INFO << " failed: segmentation node is invalid.";
+    return false;
+  }
+
+  if (d->SegmentationNode->GetSegmentation()->GetNumberOfSegments() < 1)
+  {
+    // If segmentation contains no segments, then set binary labelmap as master by default
+    d->SegmentationNode->GetSegmentation()->SetMasterRepresentationName(
+      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
+    return true;
+  }
+
+  const char* masterRepresentationName = d->SegmentationNode->GetSegmentation()->GetMasterRepresentationName();
+  if (masterRepresentationName!=NULL 
+    && strcmp(masterRepresentationName, vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) == 0)
+  {
+    // Current master representation is already binary labelmap
+    return true;
+  }
+
+  // Editing is only possible if binary labelmap is the master representation
+  // If master is not binary labelmap, then ask the user if they wants to make it master
+  QString message = QString("Editing requires binary labelmap master representation, but currently the master representation is %1. "
+    "Changing the master representation requires conversion. Some details may be lost during conversion process.\n\n"
+    "Change master representation to binary labelmap?").
+    arg(d->SegmentationNode->GetSegmentation()->GetMasterRepresentationName());
+  QMessageBox::StandardButton answer =
+    QMessageBox::question(NULL, tr("Change master representation to binary labelmap?"), message,
+    QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+  if (answer != QMessageBox::Yes)
+  {
+    // User rejected the conversion
+    qDebug() << Q_FUNC_INFO << " failed: user rejected changing of master representation.";
+    return false;
+  }
+
+  // All other representations are invalidated when changing to binary labelmap.
+  // Re-creating closed surface if it was present before, so that changes can be seen.
+  bool closedSurfacePresent = d->SegmentationNode->GetSegmentation()->ContainsRepresentation(
+    vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+
+  // Make sure binary labelmap representation exists
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+  bool createBinaryLabelmapRepresetnationSuccess = d->SegmentationNode->GetSegmentation()->CreateRepresentation(
+    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
+  QApplication::restoreOverrideCursor();
+  if (!createBinaryLabelmapRepresetnationSuccess)
+  {
+    QString message = QString("Failed to create binary labelmap representation in segmentation %1 for editing!\nPlease see Segmentations module for details.").
+      arg(d->SegmentationNode->GetName());
+    QMessageBox::critical(NULL, tr("Failed to create binary labelmap for editing"), message);
+    qCritical() << Q_FUNC_INFO << ": " << message;
+    return false;
+  }
+
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
+  d->SegmentationNode->GetSegmentation()->SetMasterRepresentationName(
+    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
+
+  if (closedSurfacePresent)
+  {
+    d->SegmentationNode->GetSegmentation()->CreateRepresentation(
+      vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+  }
+  
+  // Show binary labelmap in 2D
+  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(d->SegmentationNode->GetDisplayNode());
+  if (displayNode)
+  {
+    displayNode->SetPreferredDisplayRepresentationName2D(
+      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
+  }
+
+  QApplication::restoreOverrideCursor();
+
+  return true;
+}
+
+
+//-----------------------------------------------------------------------------
 void qMRMLSegmentEditorWidget::updateWidgetFromSegmentationNode()
 {
   Q_D(qMRMLSegmentEditorWidget);
@@ -993,68 +1095,17 @@ void qMRMLSegmentEditorWidget::updateWidgetFromSegmentationNode()
       vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
   }
 
-  // Representation related operations
+  // Show binary labelmap in 2D
+  if (displayNode)
+  {
+    displayNode->SetPreferredDisplayRepresentationName2D(
+      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
+  }
+
   if (segmentationNode->GetSegmentation()->GetNumberOfSegments() > 0)
   {
-    // Make sure binary labelmap representation exists
-    if (!segmentationNode->GetSegmentation()->CreateRepresentation(
-      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
-    {
-      QString message = QString("Failed to create binary labelmap representation in segmentation %1 for editing!\nPlease see Segmentations module for details.").
-        arg(segmentationNode->GetName());
-      QMessageBox::critical(NULL, tr("Failed to create binary labelmap for editing"), message);
-      qCritical() << Q_FUNC_INFO << ": " << message;
-      return;
-    }
-
-    // Editing is only possible if binary labelmap is the master representation
-    if (strcmp(segmentationNode->GetSegmentation()->GetMasterRepresentationName(),
-      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
-    {
-      // If master is not binary labelmap, then ask the user if they wants to make it master
-      QString message = QString("Editing is only possible if the master representation is binary labelmap, but currently the master representation is %1.\n\n"
-        "Changing the master may mean losing important data that cannot be created again from the new master representation, "
-        "such as nuance details in the model that is too fine to be represented in the labelmap grid.\n\n"
-        "(Reminder: Master representation is the data type which is saved to disk, and which is used as input when creating other representations)\n\n").
-        arg(segmentationNode->GetSegmentation()->GetMasterRepresentationName());
-      QMessageBox::StandardButton answer =
-        QMessageBox::question(NULL, tr("Change master representation to binary labelmap?"), message,
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-      if (answer == QMessageBox::Yes)
-      {
-        segmentationNode->GetSegmentation()->SetMasterRepresentationName(
-          vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
-
-        // All other representations are invalidated when changing to binary labelmap.
-        // Re-creating closed surface if it was present before, so that changes can be seen.
-        if (closedSurfacePresent)
-        {
-          segmentationNode->GetSegmentation()->CreateRepresentation(
-            vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
-        }
-      }
-      else
-      {
-        d->MRMLNodeComboBox_Segmentation->setCurrentNode(NULL);
-        return;
-      }
-    }
-
-    // Show binary labelmap in 2D
-    if (displayNode)
-    {
-      displayNode->SetPreferredDisplayRepresentationName2D(
-        vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
-    }
-
     // Select first segment to enable all effects (including per-segment ones)
     d->selectFirstSegment();
-  }
-  else
-  {
-    // If segmentation contains no segments, then set binary labelmap as master by default
-    segmentationNode->GetSegmentation()->SetMasterRepresentationName(
-      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
   }
 
   // Set label layer to empty, because edit actor will be shown in the slice views during editing
@@ -1227,15 +1278,18 @@ void qMRMLSegmentEditorWidget::updateWidgetFromEffect()
     d->ActiveEffect->deactivate();
   }
 
+  if (activeEffect && !this->setMasterRepresentationToBinaryLabelmap())
+  {
+    // effect cannot be activated because master representation has to be binary labelmap
+    qDebug() << Q_FUNC_INFO << ": Cannot activate effect, failed to set binary labelmap as master representation.";
+    activeEffect = NULL;
+  }
+
   if (activeEffect)
   {
     // Create observations between view interactors and the editor widget.
     // The captured events are propagated to the active effect if any.
     this->setupViewObservations();
-
-    // TODO: we should check if edited labelmap and aligned master volume is up-to-date,
-    // switch here instead of qMRMLSegmentEditorWidget::onSegmentationNodeChanged, as
-    // a segmentation node may be selected by the user accidentally.
 
     // Activate newly selected effect
     d->updateEditedLabelmap(); // always pre-allocate editedLabelmap image (it may be modified by the effect)
@@ -1244,20 +1298,6 @@ void qMRMLSegmentEditorWidget::updateWidgetFromEffect()
     d->OptionsGroupBox->setTitle(activeEffect->name());
     //d->OptionsGroupBox->setToolTip(activeEffect->helpText());
     d->label_EffectHelp->setText(activeEffect->helpText());
-
-    // Check button that belongs to the effect in case this call did not come from the GUI
-    QList<QAbstractButton*> effectButtons = d->EffectButtonGroup.buttons();
-    foreach (QAbstractButton* effectButton, effectButtons)
-    {
-      if (!effectButton->objectName().compare(activeEffect->name()))
-      {
-        effectButton->blockSignals(true);
-        effectButton->setChecked(true);
-        effectButton->blockSignals(false);
-        break;
-      }
-    }
-
 
     // If selected effect is not per-segment, then clear segment selection
     // and prevent selection until a per-segment one is selected
@@ -1278,18 +1318,26 @@ void qMRMLSegmentEditorWidget::updateWidgetFromEffect()
     //d->OptionsGroupBox->setToolTip("No effect is selected");
     d->label_EffectHelp->setText("No effect is selected");
 
-    // Uncheck button that belongs to the effect in case this call did not come from the GUI
-    QAbstractButton* effectButton = d->EffectButtonGroup.checkedButton();
-    if (effectButton)
-    {
-      d->EffectButtonGroup.setExclusive(false);
-      effectButton->blockSignals(true);
-      effectButton->setChecked(false);
-      effectButton->blockSignals(false);
-      d->EffectButtonGroup.setExclusive(true);
-    }
-
     this->removeViewObservations();
+  }
+
+  // Update button checked states
+  QString effectName(NULL_EFFECT_NAME);
+  if (activeEffect)
+  {
+    effectName = activeEffect->name();
+  }
+  QList<QAbstractButton*> effectButtons = d->EffectButtonGroup.buttons();
+  foreach(QAbstractButton* effectButton, effectButtons)
+  {
+    bool checked = effectButton->isChecked();
+    bool needToBeChecked = (effectButton->objectName().compare(effectName) == 0);
+    if (checked != needToBeChecked)
+    {
+      bool wasBlocked = effectButton->blockSignals(true);
+      effectButton->setChecked(needToBeChecked);
+      effectButton->blockSignals(wasBlocked);
+    }
   }
 
   // Set cursor for active effect
@@ -1603,22 +1651,7 @@ void qMRMLSegmentEditorWidget::onEffectButtonClicked(QAbstractButton* button)
   qSlicerSegmentEditorAbstractEffect* clickedEffect = qobject_cast<qSlicerSegmentEditorAbstractEffect*>(
     button->property("Effect").value<QObject*>() );
 
-  // If the selected effect was clicked again, then de-select
-  if (d->ActiveEffect == clickedEffect)
-  {
-    d->EffectButtonGroup.setExclusive(false);
-    button->blockSignals(true);
-
-    button->setChecked(false);
-    this->setActiveEffect(NULL);
-
-    button->blockSignals(false);
-    d->EffectButtonGroup.setExclusive(true);
-  }
-  else
-  {
-    this->setActiveEffect(clickedEffect);
-  }
+  this->setActiveEffect(clickedEffect);
 }
 
 //-----------------------------------------------------------------------------

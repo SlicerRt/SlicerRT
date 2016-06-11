@@ -731,7 +731,7 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(vtkMRMLSegm
 
   // Generate merged labelmap for the exported segments
   vtkSmartPointer<vtkOrientedImageData> mergedImage = vtkSmartPointer<vtkOrientedImageData>::New();
-  if (!segmentationNode->GenerateMergedLabelmap(mergedImage, NULL, segmentIDs))
+  if (!segmentationNode->GenerateMergedLabelmap(mergedImage, vtkSegmentation::EXTENT_REFERENCE_GEOMETRY, NULL, segmentIDs))
   {
     vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToLabelmapNode: Failed to generate merged labelmap!");
     return false;
@@ -1080,8 +1080,14 @@ bool vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(v
     vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) )
   {
     // Get and copy binary labelmap into output oriented image data
-    imageData->DeepCopy( vtkOrientedImageData::SafeDownCast(
-      segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) ) );
+    vtkOrientedImageData* binaryLabelmap = vtkOrientedImageData::SafeDownCast(
+      segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()));
+    if (!binaryLabelmap)
+    {
+      vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation: Unable to get binary labelmap from segment with ID " << segmentID << " in segmentation " << segmentationNode->GetName());
+      return false;
+    }
+    imageData->DeepCopy(binaryLabelmap);
   }
   else // Need to convert
   {

@@ -905,9 +905,9 @@ bool vtkMRMLSegmentationNode::HasMergedLabelmap()
 //---------------------------------------------------------------------------
 bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
   vtkOrientedImageData* mergedImageData,
+  int extentComputationMode,
   vtkOrientedImageData* mergedLabelmapGeometry/*=NULL*/,
-  const std::vector<std::string>& segmentIDs/*=std::vector<std::string>()*/,
-  bool allowExpandReferenceGeometry /*=true*/
+  const std::vector<std::string>& segmentIDs/*=std::vector<std::string>()*/
   )
 {
   if (!mergedImageData)
@@ -954,7 +954,7 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
   else
   {
     commonGeometryImage = vtkSmartPointer<vtkOrientedImageData>::New();
-    std::string commonGeometryString = this->Segmentation->DetermineCommonLabelmapGeometry(mergedSegmentIDs, allowExpandReferenceGeometry);
+    std::string commonGeometryString = this->Segmentation->DetermineCommonLabelmapGeometry(extentComputationMode, mergedSegmentIDs);
     if (commonGeometryString.empty())
     {
       // This can occur if there are only empty segments in the segmentation
@@ -1067,9 +1067,9 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
 }
 
 //---------------------------------------------------------------------------
-bool vtkMRMLSegmentationNode::GenerateMergedLabelmapForAllSegments(vtkOrientedImageData* mergedImageData, vtkOrientedImageData* mergedLabelmapGeometry, bool allowExpandReferenceGeometry /*=true*/)
+bool vtkMRMLSegmentationNode::GenerateMergedLabelmapForAllSegments(vtkOrientedImageData* mergedImageData, int extentComputationMode, vtkOrientedImageData* mergedLabelmapGeometry)
 {
-  return this->GenerateMergedLabelmap(mergedImageData, mergedLabelmapGeometry);
+  return this->GenerateMergedLabelmap(mergedImageData, extentComputationMode, mergedLabelmapGeometry);
 }
 
 //---------------------------------------------------------------------------
@@ -1093,8 +1093,7 @@ void vtkMRMLSegmentationNode::ReGenerateDisplayedMergedLabelmap()
   vtkNew<vtkOrientedImageData> displayedOrientedLabelmap;
   displayedOrientedLabelmap->ShallowCopy(displayedNonOrientedLabelmap);
 
-  if (!this->GenerateMergedLabelmap(displayedOrientedLabelmap.GetPointer(), NULL, std::vector<std::string>(),
-    false /* use reference geometry extent as output extent */))
+  if (!this->GenerateMergedLabelmap(displayedOrientedLabelmap.GetPointer(), vtkSegmentation::EXTENT_REFERENCE_GEOMETRY, NULL, std::vector<std::string>()))
   {
     vtkErrorMacro("ReGenerateDisplayedMergedLabelmap: Failed to create merged labelmap for 2D visualization!");
     this->LabelmapMergeTime.Modified();

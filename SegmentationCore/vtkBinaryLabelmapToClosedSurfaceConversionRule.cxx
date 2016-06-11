@@ -98,17 +98,26 @@ bool vtkBinaryLabelmapToClosedSurfaceConversionRule::Convert(vtkDataObject* sour
   vtkOrientedImageData* binaryLabelMap = vtkOrientedImageData::SafeDownCast(sourceRepresentation);
   if (!binaryLabelMap)
   {
-    vtkErrorMacro("Convert: Source representation is not an oriented image data!");
+    vtkErrorMacro("Convert: Source representation is not an oriented image data");
     return false;
   }
   vtkPolyData* closedSurfacePolyData = vtkPolyData::SafeDownCast(targetRepresentation);
   if (!closedSurfacePolyData)
   {
-    vtkErrorMacro("Convert: Target representation is not a poly data!");
+    vtkErrorMacro("Convert: Target representation is not a poly data");
     return false;
   }
 
   // Pad labelmap if it has non-background border voxels
+  int *binaryLabelMapExtent = binaryLabelMap->GetExtent();
+  if (binaryLabelMapExtent[0] > binaryLabelMapExtent[1]
+    || binaryLabelMapExtent[2] > binaryLabelMapExtent[3]
+    || binaryLabelMapExtent[4] > binaryLabelMapExtent[5])
+  {
+    // empty labelmap
+    vtkErrorMacro("Convert: No polygons can be created, input image extent is empty");
+    return false;
+  }
   bool paddingNecessary = this->IsLabelmapPaddingNecessary(binaryLabelMap);
   if (paddingNecessary)
   {
@@ -153,7 +162,7 @@ bool vtkBinaryLabelmapToClosedSurfaceConversionRule::Convert(vtkDataObject* sour
   }
   if (marchingCubes->GetOutput()->GetNumberOfPolys() == 0)
   {
-    vtkErrorMacro("Convert: No polygons can be created!");
+    vtkErrorMacro("Convert: No polygons can be created");
     return false;
   }
 
