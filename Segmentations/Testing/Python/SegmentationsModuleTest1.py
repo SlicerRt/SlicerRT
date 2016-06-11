@@ -308,9 +308,9 @@ class SegmentationsModuleTest1(unittest.TestCase):
     imageStat.SetComponentOrigin(0,0,0)
     imageStat.SetComponentSpacing(1,1,1)
     imageStat.Update()
-    self.assertEqual(imageStat.GetVoxelCount(), 54872000)
+    self.assertEqual(imageStat.GetVoxelCount(), 24198552)
     imageStatResult = imageStat.GetOutput()
-    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 43573723)
+    self.assertEqual(imageStatResult.GetScalarComponentAsDouble(0,0,0,0), 12900275)
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(1,0,0,0), 10601312)
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(2,0,0,0), 274360)
     self.assertEqual(imageStatResult.GetScalarComponentAsDouble(3,0,0,0), 0) # Built from color table and color four is removed in previous test section

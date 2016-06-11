@@ -731,7 +731,7 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(vtkMRMLSegm
 
   // Generate merged labelmap for the exported segments
   vtkSmartPointer<vtkOrientedImageData> mergedImage = vtkSmartPointer<vtkOrientedImageData>::New();
-  if (!segmentationNode->GenerateMergedLabelmap(mergedImage, vtkSegmentation::EXTENT_REFERENCE_GEOMETRY, NULL, segmentIDs))
+  if (!segmentationNode->GenerateMergedLabelmap(mergedImage, vtkSegmentation::EXTENT_UNION_OF_EFFECTIVE_SEGMENTS, NULL, segmentIDs))
   {
     vtkErrorWithObjectMacro(segmentationNode, "ExportSegmentsToLabelmapNode: Failed to generate merged labelmap!");
     return false;
