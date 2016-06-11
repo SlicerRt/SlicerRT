@@ -529,6 +529,11 @@ bool qMRMLSegmentEditorWidgetPrivate::updateSelectedSegmentLabelmap()
   }
 
   vtkSegment* selectedSegment = segmentationNode->GetSegmentation()->GetSegment(selectedSegmentID);
+  if (selectedSegment == NULL)
+  {
+    qWarning() << Q_FUNC_INFO << " failed: Segment " << selectedSegmentID << " not found in segmentation";
+    return false;
+  }
   vtkOrientedImageData* segmentLabelmap = vtkOrientedImageData::SafeDownCast(
     selectedSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()));
   if (!segmentLabelmap)

@@ -645,6 +645,15 @@ QWidget* qSlicerSegmentEditorAbstractEffect::addLabeledOptionsWidget(QString lab
 }
 
 //-----------------------------------------------------------------------------
+QWidget* qSlicerSegmentEditorAbstractEffect::addLabeledOptionsWidget(QString label, QLayout* newOptionsWidget)
+{
+  Q_D(qSlicerSegmentEditorAbstractEffect);
+  QLabel* labelWidget = new QLabel(label);
+  this->optionsLayout()->addRow(labelWidget, newOptionsWidget);
+  return labelWidget;
+}
+
+//-----------------------------------------------------------------------------
 vtkMRMLScene* qSlicerSegmentEditorAbstractEffect::scene()
 {
   Q_D(qSlicerSegmentEditorAbstractEffect);

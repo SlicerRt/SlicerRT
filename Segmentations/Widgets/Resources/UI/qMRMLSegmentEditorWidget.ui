@@ -171,9 +171,6 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="toolTip">
-      <string>Tooltip is populated by effect</string>
-     </property>
      <property name="title">
       <string>Options</string>
      </property>

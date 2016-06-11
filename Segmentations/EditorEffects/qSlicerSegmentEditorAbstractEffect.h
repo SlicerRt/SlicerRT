@@ -47,6 +47,7 @@ class qMRMLSliceWidget;
 class QColor; 
 class QFormLayout;
 class QFrame;
+class QLayout;
 
 /// \ingroup SlicerRt_QtModules_Segmentations
 /// \brief Abstract class for segment editor effects
@@ -187,6 +188,7 @@ public:
   Q_INVOKABLE void addOptionsWidget(QWidget* newOptionsWidget);
 
   Q_INVOKABLE QWidget* addLabeledOptionsWidget(QString label, QWidget* newOptionsWidget);
+  Q_INVOKABLE QWidget* addLabeledOptionsWidget(QString label, QLayout* newOptionsWidget);
 
   /// Get name of effect
   virtual QString name()const;
