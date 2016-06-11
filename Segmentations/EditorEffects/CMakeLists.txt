@@ -23,8 +23,6 @@ set(${KIT}_SRCS
   qSlicerSegmentEditorAbstractLabelEffect.cxx
   qSlicerSegmentEditorAbstractLabelEffect.h
   qSlicerSegmentEditorAbstractLabelEffect_p.h
-  qSlicerSegmentEditorAbstractMorphologyEffect.cxx
-  qSlicerSegmentEditorAbstractMorphologyEffect.h
   qSlicerSegmentEditorAbstractIslandEffect.cxx
   qSlicerSegmentEditorAbstractIslandEffect.h
   qSlicerSegmentEditorPaintEffect.cxx
@@ -38,8 +36,6 @@ set(${KIT}_SRCS
   qSlicerSegmentEditorScriptedEffect.h
   qSlicerSegmentEditorScriptedLabelEffect.cxx
   qSlicerSegmentEditorScriptedLabelEffect.h
-  qSlicerSegmentEditorScriptedMorphologyEffect.cxx
-  qSlicerSegmentEditorScriptedMorphologyEffect.h
   qSlicerSegmentEditorScriptedIslandEffect.cxx
   qSlicerSegmentEditorScriptedIslandEffect.h
   )
@@ -50,7 +46,6 @@ set(${KIT}_MOC_SRCS
   qSlicerSegmentEditorAbstractEffect_p.h
   qSlicerSegmentEditorAbstractLabelEffect.h
   qSlicerSegmentEditorAbstractLabelEffect_p.h
-  qSlicerSegmentEditorAbstractMorphologyEffect.h
   qSlicerSegmentEditorAbstractIslandEffect.h
   qSlicerSegmentEditorPaintEffect.h
   qSlicerSegmentEditorPaintEffect_p.h
@@ -58,7 +53,6 @@ set(${KIT}_MOC_SRCS
   qSlicerSegmentEditorRectangleEffect.h
   qSlicerSegmentEditorScriptedEffect.h
   qSlicerSegmentEditorScriptedLabelEffect.h
-  qSlicerSegmentEditorScriptedMorphologyEffect.h
   qSlicerSegmentEditorScriptedIslandEffect.h
   )
 

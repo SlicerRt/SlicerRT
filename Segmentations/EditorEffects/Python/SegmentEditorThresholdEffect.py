@@ -12,7 +12,7 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
       qSlicerSegmentEditorAbstractEffect is satisfactory) can simply be omitted.
   """
   
-  # Necessary static member to be able to set python source to scripted subject hierarchy plugin
+  # Necessary static member to be able to set python source to scripted segment editor effect plugin
   filePath = __file__
 
   def __init__(self, scriptedEffect):

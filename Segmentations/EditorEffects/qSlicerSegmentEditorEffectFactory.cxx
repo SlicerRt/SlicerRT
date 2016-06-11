@@ -135,6 +135,13 @@ void qSlicerSegmentEditorEffectFactory::copyEffects(QList<qSlicerSegmentEditorAb
   effects.clear();
   foreach(qSlicerSegmentEditorAbstractEffect* effect, m_RegisteredEffects)
   {
-    effects << effect->clone();
+    qSlicerSegmentEditorAbstractEffect* clonedEffect = effect->clone();
+    if (!clonedEffect)
+    {
+      // make sure we don't put a NULL pointer in the effect list
+      qCritical() << Q_FUNC_INFO << " failed to clone effect: " << effect->name();
+      continue;
+    }
+    effects << clonedEffect;
   }
 }

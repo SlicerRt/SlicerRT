@@ -36,7 +36,7 @@ class AbstractScriptedSegmentEditorIslandEffect(AbstractScriptedSegmentEditorEff
         class qSlicerSegmentEditorScriptedIslandEffect) using the adaptor accessor:
         > self.scriptedEffect.updateGUIFromMRML()
 
-      An example for a generic effect is the DilateEffect
+      An example for a generic effect is the MarginEffect
 
   """
 

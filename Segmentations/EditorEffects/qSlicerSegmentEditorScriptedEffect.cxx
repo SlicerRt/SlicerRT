@@ -394,7 +394,7 @@ void qSlicerSegmentEditorScriptedEffect::setMRMLDefaults()
   // Base class implementation needs to be called before the effect-specific one
   // Note: Left here as comment in case this class is used as template for adaptor
   //  classes of effect base classes that have default implementation of this method
-  //  (such as LabelEffect, MorphologyEffect, etc.)
+  //  (such as LabelEffect, etc.)
   //this->Superclass::setMRMLDefaults();
 
   Q_D(const qSlicerSegmentEditorScriptedEffect);
@@ -443,7 +443,7 @@ void qSlicerSegmentEditorScriptedEffect::updateGUIFromMRML()
   // Base class implementation needs to be called before the effect-specific one
   // Note: Left here as comment in case this class is used as template for adaptor
   //  classes of effect base classes that have default implementation of this method
-  //  (such as LabelEffect, MorphologyEffect, etc.)
+  //  (such as LabelEffect, etc.)
   //this->Superclass::updateGUIFromMRML();
 
   Q_D(const qSlicerSegmentEditorScriptedEffect);
@@ -456,7 +456,7 @@ void qSlicerSegmentEditorScriptedEffect::updateMRMLFromGUI()
   // Base class implementation needs to be called before the effect-specific one
   // Note: Left here as comment in case this class is used as template for adaptor
   //  classes of effect base classes that have default implementation of this method
-  //  (such as LabelEffect, MorphologyEffect, etc.)
+  //  (such as LabelEffect, etc.)
   //this->Superclass::updateMRMLFromGUI();
 
   Q_D(const qSlicerSegmentEditorScriptedEffect);

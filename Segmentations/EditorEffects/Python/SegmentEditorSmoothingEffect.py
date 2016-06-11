@@ -7,12 +7,12 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
   """ SmoothingEffect is an Effect that smoothes a selected segment
   """
 
-  # Necessary static member to be able to set python source to scripted subject hierarchy plugin
+  # Necessary static member to be able to set python source to scripted segment editor effect plugin
   filePath = __file__
 
   def __init__(self, scriptedEffect):
-    AbstractScriptedSegmentEditorEffect.__init__(self, scriptedEffect)
     scriptedEffect.name = 'Smoothing'
+    AbstractScriptedSegmentEditorEffect.__init__(self, scriptedEffect)
 
   def clone(self):
     import qSlicerSegmentationsEditorEffectsPythonQt as effects
@@ -43,7 +43,6 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     self.methodSelectorComboBox.addItem("Closing (fill holes)", MORPHOLOGICAL_CLOSING)
     self.methodSelectorComboBox.addItem("Gaussian", GAUSSIAN)
     self.methodSelectorComboBox.setToolTip('<html>Smoothing methods:<ul style="margin: 0"><li><b>Median:</b> removes small details while keeps smooth contours mostly unchanged.</li><li><b>Opening:</b> removes extrusions smaller than the specified kernel size.</li><li><b>Closing:</b> fills sharp corners and holes smaller than the specified kernel size.</li><li><b>Gaussian:</b> smoothes all contours, tends to shrink the segment.</li></ul></html>')
-
     self.scriptedEffect.addLabeledOptionsWidget("Smoothing method:", self.methodSelectorComboBox)
 
     self.kernelSizeMmSpinBox = slicer.qMRMLSpinBox()
@@ -198,10 +197,11 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
           else:
             # We need to know exactly the value of the segment voxels, apply threshold to make force the selected label value
             labelValue = 1
+            backgroundValue = 0
             thresh = vtk.vtkImageThreshold()
             thresh.SetInputData(selectedSegmentLabelmap)
             thresh.ThresholdByLower(0)
-            thresh.SetInValue(0)
+            thresh.SetInValue(backgroundValue)
             thresh.SetOutValue(labelValue)
             thresh.SetOutputScalarType(selectedSegmentLabelmap.GetScalarType())
 
@@ -209,9 +209,9 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
             smoothingFilter.SetInputConnection(thresh.GetOutputPort())
             if smoothingMethod == MORPHOLOGICAL_OPENING:
               smoothingFilter.SetOpenValue(labelValue)
-              smoothingFilter.SetCloseValue(0)
+              smoothingFilter.SetCloseValue(backgroundValue)
             else: # must be smoothingMethod == MORPHOLOGICAL_CLOSING:
-              smoothingFilter.SetOpenValue(0)
+              smoothingFilter.SetOpenValue(backgroundValue)
               smoothingFilter.SetCloseValue(labelValue)
 
           smoothingFilter.SetKernelSize(kernelSizePixel[0],kernelSizePixel[1],kernelSizePixel[2])

@@ -237,7 +237,7 @@ public:
   /// \param value Parameter value string
   Q_INVOKABLE void setParameter(QString name, QString value);
   /// Set parameters that are common for multiple effects. Typically used by base class effects, such
-  ///   as label or morphology \sa setParameter
+  ///   as label \sa setParameter
   /// By default the parameter names are prefixed for each effect, so they are unique for effects.
   /// This method does not prefix the parameter, so can be the same for multiple effects.
   /// Note: Parameter getter functions look for effect parameters first, then common parameter if the

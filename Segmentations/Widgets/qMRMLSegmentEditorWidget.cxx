@@ -312,7 +312,7 @@ void qMRMLSegmentEditorWidgetPrivate::init()
 
   // Define default effect order
   this->DefaultEffectOrder << "Paint" << "Draw" << "Erase" << "Wand" << "LevelTracing"
-    << "Rectangle" << "Dilate" << "Erode" << "GrowCut" << "Threshold"; //TODO: Add island effects, etc.
+    << "Rectangle" << "Margin"  << "GrowCut" << "Threshold" << "Logical"; //TODO: Add island effects, etc.
 
   // Instantiate and expose effects
   this->initializeEffects();
@@ -1877,19 +1877,19 @@ qSlicerSegmentEditorAbstractEffect* qMRMLSegmentEditorWidget::effectByName(QStri
   Q_D(qMRMLSegmentEditorWidget);
 
   if (name.isEmpty())
-    {
+  {
     return NULL;
-    }
+  }
 
   // Find effect with name
   qSlicerSegmentEditorAbstractEffect* currentEffect = NULL;
-  foreach (currentEffect, d->RegisteredEffects)
-    {
+  foreach(currentEffect, d->RegisteredEffects)
+  {
     if (currentEffect->name().compare(name) == 0)
-      {
+    {
       return currentEffect;
-      }
     }
+  }
 
   return NULL;
 }

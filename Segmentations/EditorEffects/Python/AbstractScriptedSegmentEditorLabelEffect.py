@@ -8,7 +8,7 @@ __all__ = ['AbstractScriptedSegmentEditorLabelEffect']
 # Abstract class of python scripted segment editor label effects
 #
 # Label effects are a subtype of general effects that edit the currently selected
-# segment (i.e. for things like paint or draw, but not for things like threshold or morphology)
+# segment (i.e. for things like paint or draw, but not for things like threshold)
 #
 
 class AbstractScriptedSegmentEditorLabelEffect(AbstractScriptedSegmentEditorEffect):

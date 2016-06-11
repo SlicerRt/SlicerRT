@@ -8,11 +8,10 @@ configure_file(
 set(SegmentEditorEffects_PYTHON_SCRIPTS
   AbstractScriptedSegmentEditorEffect
   AbstractScriptedSegmentEditorLabelEffect
-  AbstractScriptedSegmentEditorMorphologyEffect
   AbstractScriptedSegmentEditorIslandEffect
-  SegmentEditorDilateEffect
+  SegmentEditorMarginEffect
   SegmentEditorDrawEffect
-  SegmentEditorErodeEffect
+  SegmentEditorLogicalEffect
   SegmentEditorGrowCutEffect
   SegmentEditorIdentifyIslandsEffect
   SegmentEditorLevelTracingEffect
@@ -21,9 +20,9 @@ set(SegmentEditorEffects_PYTHON_SCRIPTS
   )
 
 set(SegmentEditorEffects_PYTHON_RESOURCES
-  Resources/Icons/Dilate.png
+  Resources/Icons/Margin.png
   Resources/Icons/Draw.png
-  Resources/Icons/Erode.png
+  Resources/Icons/Logical.png
   Resources/Icons/GrowCut.png
   Resources/Icons/IdentifyIslands.png
   Resources/Icons/LevelTracing.png

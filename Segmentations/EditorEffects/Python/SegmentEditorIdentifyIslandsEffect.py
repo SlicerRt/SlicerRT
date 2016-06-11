@@ -10,7 +10,7 @@ class SegmentEditorIdentifyIslandsEffect(AbstractScriptedSegmentEditorIslandEffe
       another operation such as threshold
   """
   
-  # Necessary static member to be able to set python source to scripted subject hierarchy plugin
+  # Necessary static member to be able to set python source to scripted segment editor effect plugin
   filePath = __file__
 
   def __init__(self, scriptedEffect):
@@ -35,7 +35,7 @@ class SegmentEditorIdentifyIslandsEffect(AbstractScriptedSegmentEditorIslandEffe
   def setupOptionsFrame(self):
     self.applyButton = qt.QPushButton("Apply")
     self.applyButton.objectName = self.__class__.__name__ + 'Apply'
-    self.applyButton.setToolTip("Erode selected segment")
+    self.applyButton.setToolTip("Create a new segment from each isolated segment parts")
     self.scriptedEffect.addOptionsWidget(self.applyButton)
 
     self.applyButton.connect('clicked()', self.onApply)

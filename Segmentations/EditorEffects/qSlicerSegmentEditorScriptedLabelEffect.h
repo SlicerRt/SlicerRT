@@ -40,7 +40,7 @@ class qSlicerSegmentEditorScriptedLabelEffectPrivate;
 ///
 /// This class provides an interface to label effects implemented in python.
 /// Label effects are a subtype of general effects that edit the currently selected
-/// segment (i.e. for things like paint or draw, but not for things like threshold or morphology)
+/// segment (i.e. for things like paint or draw, but not for things like threshold)
 /// USAGE: Subclass AbstractScriptedSegmentEditorLabelEffect in EditorEffects/Python subfolder,
 ///   and register effect by creating this class and setting python source to implemented
 ///   effect subclass. One example is the DrawEffect.

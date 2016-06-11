@@ -1,10 +1,9 @@
 from AbstractScriptedSegmentEditorEffect import *
 from AbstractScriptedSegmentEditorLabelEffect import *
-from AbstractScriptedSegmentEditorMorphologyEffect import *
 from AbstractScriptedSegmentEditorIslandEffect import *
-from SegmentEditorDilateEffect import *
+from SegmentEditorMarginEffect import *
 from SegmentEditorDrawEffect import *
-from SegmentEditorErodeEffect import *
+from SegmentEditorLogicalEffect import *
 from SegmentEditorGrowCutEffect import *
 from SegmentEditorIdentifyIslandsEffect import *
 from SegmentEditorLevelTracingEffect import *
@@ -26,6 +25,6 @@ slicer.modules.segmenteditorscriptedeffectnames.extend([
   "SegmentEditorGrowCutEffect",
   "SegmentEditorDrawEffect",
   "SegmentEditorLevelTracingEffect",
-  "SegmentEditorDilateEffect",
-  "SegmentEditorErodeEffect",
+  "SegmentEditorMarginEffect",
+  "SegmentEditorLogicalEffect",
   "SegmentEditorIdentifyIslandsEffect" ])
