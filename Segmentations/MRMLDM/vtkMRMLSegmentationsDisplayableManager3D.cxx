@@ -363,6 +363,7 @@ void vtkMRMLSegmentationsDisplayableManager3D::vtkInternal::UpdateSegmentPipelin
     if (pipelineIt == pipelines.end())
       {
       pipelines[segmentIt->first] = this->CreateSegmentPipeline(segmentIt->first);
+      this->GetNodeTransformToWorld(segmentationNode, pipelines[segmentIt->first]->NodeToWorld);
       }
     }
 
