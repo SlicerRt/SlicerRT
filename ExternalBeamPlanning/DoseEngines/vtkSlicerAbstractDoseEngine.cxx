@@ -198,13 +198,25 @@ void vtkSlicerAbstractDoseEngine::AddResultDose(vtkMRMLScalarVolumeNode* resultD
   // Set dose volume attribute so that it is identified as dose
   resultDose->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
-  // Add result under beam in subject hierarchy
+  // Subject hierarchy related operations
   vtkMRMLSubjectHierarchyNode* beamShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(beamNode);
   if (beamShNode)
   {
+    // Add result under beam in subject hierarchy
     vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
       beamNode->GetScene(), beamShNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), 
       resultDose->GetName(), resultDose );
+
+    // Set dose unit value to Gy if dose engine did not set it already (potentially to other unit)
+    vtkMRMLSubjectHierarchyNode* studyNode = beamShNode->GetAncestorAtLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+    if (!studyNode)
+    {
+      vtkWarningMacro("AddResultDose: Unable to find study node that contains the plan! Creating a study node and adding the reference dose and the plan under it is necessary in order for dose evaluation steps to work properly");
+    }
+    else if (!studyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str()))
+    {
+      studyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), "Gy");
+    }
   }
 
   // Set up display for dose volume

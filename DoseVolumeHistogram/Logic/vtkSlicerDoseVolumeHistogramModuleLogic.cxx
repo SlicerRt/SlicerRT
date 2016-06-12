@@ -737,7 +737,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
     {
       const char* doseUnitName = doseSubjectHierarchyNode->GetAttributeFromAncestor(
         SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
-      doseAxisName=std::string("Dose [")+doseUnitName+"]";
+      doseAxisName=std::string("Dose [") + (doseUnitName?doseUnitName:"?") + "]";
     }
     else
     {

@@ -215,12 +215,6 @@ void vtkMRMLRTBeamNode::SetScene(vtkMRMLScene* scene)
     vtkSmartPointer<vtkPolyData> beamModelPolyData = vtkSmartPointer<vtkPolyData>::New();
     this->CreateBeamPolyData(beamModelPolyData);
     this->SetAndObservePolyData(beamModelPolyData);
-
-    // Create default display node
-    this->CreateDefaultDisplayNodes();
-
-    // Create default transform node
-    this->CreateDefaultTransformNode();
   }
 }
 
@@ -429,6 +423,11 @@ void vtkMRMLRTBeamNode::CreateDefaultDisplayNodes()
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::CreateDefaultTransformNode()
 {
+  if (this->GetParentTransformNode())
+  {
+    return;
+  }
+
   // Create transform node for beam
   vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
   std::string transformName = std::string(this->GetName()) + "_Transform";
@@ -449,6 +448,9 @@ void vtkMRMLRTBeamNode::UpdateTransform()
     vtkErrorMacro("UpdateTransform: Invalid MRML scene");
     return;
   }
+
+  // Make sure transform node exists
+  this->CreateDefaultTransformNode();
 
   // Get isocenter
   double isocenterPosition[3] = {0.0,0.0,0.0};
@@ -635,6 +637,10 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
 //---------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::UpdateGeometry()
 {
+  // Make sure display node exists
+  this->CreateDefaultDisplayNodes();
+
+  // Update beam poly data based on jaws and MLC
   this->CreateBeamPolyData(this->GetPolyData());
 }
 

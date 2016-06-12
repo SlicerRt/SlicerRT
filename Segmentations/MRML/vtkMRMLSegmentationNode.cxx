@@ -1060,7 +1060,6 @@ bool vtkMRMLSegmentationNode::GenerateMergedLabelmap(
 
     // Copy image data voxels into merged labelmap with the proper color index
     vtkOrientedImageDataResample::ModifyImage(mergedImageData, binaryLabelmap, vtkOrientedImageDataResample::OPERATION_MASKING, NULL, 0, colorIndex);
-
   }
 
   return true;

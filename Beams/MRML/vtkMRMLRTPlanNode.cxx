@@ -490,6 +490,8 @@ void vtkMRMLRTPlanNode::AddBeam(vtkMRMLRTBeamNode* beamNode)
 
   // Calculate transform from beam parameters and isocenter from plan
   beamNode->UpdateTransform();
+  // Make sure display is set up
+  beamNode->UpdateGeometry();
 
   this->Modified();
 }
