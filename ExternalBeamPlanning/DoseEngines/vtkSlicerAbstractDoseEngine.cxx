@@ -117,6 +117,9 @@ std::string vtkSlicerAbstractDoseEngine::CalculateDose(vtkMRMLRTBeamNode* beamNo
     vtkErrorMacro("CalculateDose: Failed to access reference volume subject hierarchy node!");
   }
 
+  // Remove past intermediate results for beam before calculating dose again
+  this->RemoveIntermediateResults(beamNode);
+
   // Create output dose volume for beam
   vtkSmartPointer<vtkMRMLScalarVolumeNode> resultDoseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   beamNode->GetScene()->AddNode(resultDoseVolumeNode);
@@ -163,7 +166,7 @@ void vtkSlicerAbstractDoseEngine::AddIntermediateResult(vtkMRMLNode* result, vtk
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerAbstractDoseEngine::AddResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTBeamNode* beamNode)
+void vtkSlicerAbstractDoseEngine::AddResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTBeamNode* beamNode, bool replace/*=true*/)
 {
   if (!resultDose)
   {
@@ -174,6 +177,19 @@ void vtkSlicerAbstractDoseEngine::AddResultDose(vtkMRMLScalarVolumeNode* resultD
   {
     vtkErrorMacro("AddResultDose: Invalid beam node");
     return;
+  }
+
+  // Remove already existing referenced dose volume if any
+  if (replace)
+  {
+    vtkMRMLScene* scene = beamNode->GetScene();
+    std::vector<const char*> referencedDoseNodeIds;
+    beamNode->GetNodeReferenceIDs(RESULT_DOSE_REFERENCE_ROLE, referencedDoseNodeIds);
+    for (std::vector<const char*>::iterator refIt=referencedDoseNodeIds.begin(); refIt != referencedDoseNodeIds.end(); ++refIt)
+    {
+      vtkMRMLNode* node = scene->GetNodeByID(*refIt);
+      scene->RemoveNode(node);
+    }
   }
 
   // Add reference in beam to result dose for later access
@@ -239,7 +255,9 @@ vtkMRMLScalarVolumeNode* vtkSlicerAbstractDoseEngine::GetResultDoseForBeam(vtkMR
     return NULL;
   }
 
-  return vtkMRMLScalarVolumeNode::SafeDownCast(beamNode->GetNodeReference(RESULT_DOSE_REFERENCE_ROLE));
+  // Get last node reference if there are more than one, so that the dose calculated last is returned
+  return vtkMRMLScalarVolumeNode::SafeDownCast(
+    beamNode->GetNthNodeReference(RESULT_DOSE_REFERENCE_ROLE, beamNode->GetNumberOfNodeReferences(RESULT_DOSE_REFERENCE_ROLE)-1) );
 }
 
 //---------------------------------------------------------------------------

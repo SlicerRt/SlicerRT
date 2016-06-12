@@ -86,7 +86,10 @@ protected:
   void AddIntermediateResult(vtkMRMLNode* result, vtkMRMLRTBeamNode* beamNode);
 
   /// Add result per-beam dose volume to beam
-  void AddResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTBeamNode* beamNode);
+  /// \param resultDose Dose volume to add to beam as result
+  /// \param beamNode Beam node to add dose as result to
+  /// \param replace Remove referenced dose volume if already exists. True by default
+  void AddResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTBeamNode* beamNode, bool replace=true);
 
 protected:
   vtkSlicerAbstractDoseEngine();
