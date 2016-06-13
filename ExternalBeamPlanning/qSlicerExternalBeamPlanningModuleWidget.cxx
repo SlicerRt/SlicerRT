@@ -697,20 +697,37 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  d->comboBox_DoseEngine->blockSignals(true);
-
-  d->comboBox_DoseEngine->clear();
-
   vtkSlicerDoseEnginePluginHandler::DoseEngineListType engines =
     vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngines();
+  if (engines.size() == d->comboBox_DoseEngine->count())
+  {
+    return;
+  }
+
+  QString selectedEngineName = d->comboBox_DoseEngine->currentText();
+
+  d->comboBox_DoseEngine->blockSignals(true);
+  d->comboBox_DoseEngine->clear();
+
   for (vtkSlicerDoseEnginePluginHandler::DoseEngineListType::iterator engineIt = engines.begin();
     engineIt != engines.end(); ++engineIt)
   {
     d->comboBox_DoseEngine->addItem(engineIt->GetPointer()->GetName());
   }
 
-  // Select first engine
-  d->comboBox_DoseEngine->setCurrentIndex(0);
+  // Select previously selected engine
+  int index = d->comboBox_DoseEngine->findText(selectedEngineName);
+  if (index != -1)
+  {
+    d->comboBox_DoseEngine->setCurrentIndex(index);
+  }
+  // If previous selection not found (e.g. no selection has been made yet), then select first engine
+  else
+  {
+    d->comboBox_DoseEngine->setCurrentIndex(0);
+  }
+  // Apply engine selection (signals are blocked, plus if first index has been selected and it has
+  // not been applied, then it needs to be done now)
   this->doseEngineChanged(d->comboBox_DoseEngine->currentText());
 
   d->comboBox_DoseEngine->blockSignals(false);
@@ -725,6 +742,11 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineChanged(const QString &t
   if (!rtPlanNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    return;
+  }
+
+  if (rtPlanNode->GetDoseEngineName() && !text.compare(rtPlanNode->GetDoseEngineName()))
+  {
     return;
   }
 

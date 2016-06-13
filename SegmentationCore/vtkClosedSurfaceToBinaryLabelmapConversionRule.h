@@ -73,6 +73,8 @@ public:
   /// Human-readable name of the target representation
   virtual const char* GetTargetRepresentationName() { return vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(); };
 
+  vtkSetMacro(UseOutputImageDataGeometry, bool);
+
 protected:
   /// Calculate actual geometry of the output labelmap volume by verifying that the reference image geometry
   /// encompasses the input surface model, and extending it to the proper directions if necessary.

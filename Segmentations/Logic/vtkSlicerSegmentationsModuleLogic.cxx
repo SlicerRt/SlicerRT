@@ -1050,12 +1050,35 @@ bool vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(
 //-----------------------------------------------------------------------------
 bool vtkSlicerSegmentationsModuleLogic::GetTransformBetweenRepresentationAndSegmentation(vtkMRMLTransformableNode* representationNode, vtkMRMLSegmentationNode* segmentationNode, vtkGeneralTransform* representationToSegmentationTransform)
 {
-  if (!representationNode || !segmentationNode || !representationToSegmentationTransform)
+  if (!representationNode || !representationToSegmentationTransform)
   {
     std::cerr << "vtkSlicerSegmentationsModuleLogic::GetTransformBetweenRepresentationAndSegmentation: Invalid inputs";
     return false;
   }
-  vtkMRMLTransformNode::GetTransformBetweenNodes(representationNode->GetParentTransformNode(), segmentationNode->GetParentTransformNode(), representationToSegmentationTransform);
+
+  // Get parent transforms
+  vtkSmartPointer<vtkGeneralTransform> representationToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  vtkMRMLTransformNode* representationParentTransformNode = representationNode->GetParentTransformNode();
+  if (representationParentTransformNode)
+  {
+    representationParentTransformNode->GetTransformToWorld(representationToWorldTransform);
+  }
+  vtkSmartPointer<vtkGeneralTransform> worldToSegmentationTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  if (segmentationNode)
+  {
+    vtkMRMLTransformNode* segmentationParentTransformNode = segmentationNode->GetParentTransformNode();
+    if (segmentationParentTransformNode)
+    {
+      segmentationParentTransformNode->GetTransformFromWorld(worldToSegmentationTransform);
+    }
+  }
+
+  // P[s] = T[s2w]^-1 * T[r2w] * P[r] (where s=segmentation, r=representation, w=world, square brackets for subscript)
+  representationToSegmentationTransform->Identity();
+  representationToSegmentationTransform->PreMultiply();
+  representationToSegmentationTransform->Concatenate(worldToSegmentationTransform);
+  representationToSegmentationTransform->Concatenate(representationToWorldTransform);
+
   return true;
 }
 

@@ -37,6 +37,7 @@
 // ExternalBeamPlanning includes
 #include "vtkSlicerDoseEnginePluginHandler.h"
 #include "vtkSlicerPlastimatchProtonDoseEngine.h"
+#include "vtkSlicerMockDoseEngine.h"
 
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
@@ -167,6 +168,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterNodes()
   }
 
   // Register dose engines
+  vtkSlicerDoseEnginePluginHandler::GetInstance()->RegisterDoseEngine(
+    vtkSmartPointer<vtkSlicerMockDoseEngine>::New() );
   vtkSlicerDoseEnginePluginHandler::GetInstance()->RegisterDoseEngine(
     vtkSmartPointer<vtkSlicerPlastimatchProtonDoseEngine>::New() );
 }

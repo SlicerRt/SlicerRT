@@ -61,9 +61,6 @@ class vtkSlicerPlastimatchProtonDoseEngine::vtkInternal
 public:
   vtkInternal();
 
-  /// Flag allowing convenient testing and debugging of EBP without the need to wait for lengthy computation
-  bool RandomValuesDebugMode;
-
   /// Reference CT Plastimatch image (cache) //TODO: Only reconvert if necessary
   Plm_image::Pointer ReferenceVolumePlm;
 };
@@ -71,9 +68,9 @@ public:
 //----------------------------------------------------------------------------
 vtkSlicerPlastimatchProtonDoseEngine::vtkInternal::vtkInternal()
 {
-  // Set this temporarily to true when need to debug EBP
-  this->RandomValuesDebugMode = false;
 }
+
+//----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
 vtkSlicerPlastimatchProtonDoseEngine::vtkSlicerPlastimatchProtonDoseEngine()
@@ -142,42 +139,6 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
   }
 
   vtkMRMLScene* scene = beamNode->GetScene();
-
-  // Skip dose calculation and generate random image for result dose if debug mode is enabled
-  if (this->Internal->RandomValuesDebugMode)
-  {
-    // Random noise debug mode: fill dose volume with random values
-    int scalarType = referenceVolumeNode->GetImageData()->GetScalarType();
-    if (scalarType != VTK_SHORT && scalarType != VTK_INT)
-    {
-      std::string errorMessage = std::string("Wrong scalar type ") + referenceVolumeNode->GetImageData()->GetScalarTypeAsString();
-      vtkErrorMacro("CalculateDoseUsingEngine: " << errorMessage);
-      return errorMessage;
-    }
-    short rxDose = std::min((short)parentPlanNode->GetRxDose(), VTK_SHORT_MAX);
-    vtkSmartPointer<vtkImageData> protonDoseImageData = vtkSmartPointer<vtkImageData>::New();
-    protonDoseImageData->DeepCopy(referenceVolumeNode->GetImageData());
-    short* shortPtr = (short*)protonDoseImageData->GetScalarPointer();
-    int* intPtr = (int*)protonDoseImageData->GetScalarPointer();
-    for (long i=0; i<protonDoseImageData->GetNumberOfPoints(); ++i)
-    {
-      if (scalarType == VTK_SHORT)
-      {
-        (*shortPtr) = rand() % rxDose+1;
-        ++shortPtr;
-      }
-      else if (scalarType == VTK_INT)
-      {
-        (*intPtr) = rand() % rxDose+1;
-        ++intPtr;
-      }
-    }
-    resultDoseVolumeNode->SetAndObserveImageData(protonDoseImageData);
-    resultDoseVolumeNode->CopyOrientation(referenceVolumeNode);
-    std::string randomDoseNodeName = std::string(beamNode->GetName()) + "_RandomDose";
-    resultDoseVolumeNode->SetName(randomDoseNodeName.c_str());
-    return "";
-  }
 
   // Get target as ITK image
   vtkSmartPointer<vtkOrientedImageData> targetLabelmap = parentPlanNode->GetTargetOrientedImageData();

@@ -245,7 +245,7 @@ void vtkSlicerAbstractDoseEngine::AddResultDose(vtkMRMLScalarVolumeNode* resultD
       // Set window level based on prescription dose
       double rxDose = planNode->GetRxDose();
       doseScalarVolumeDisplayNode->AutoWindowLevelOff();
-      doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, rxDose);
+      doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, rxDose*1.1);
 
       // Set threshold to hide very low dose values
       doseScalarVolumeDisplayNode->SetLowerThreshold(0.05 * rxDose);

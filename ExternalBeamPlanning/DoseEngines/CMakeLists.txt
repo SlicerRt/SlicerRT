@@ -18,6 +18,8 @@ set(${KIT}_SRCS
   vtkSlicerAbstractDoseEngine.h
   vtkSlicerDoseEnginePluginHandler.cxx
   vtkSlicerDoseEnginePluginHandler.h
+  vtkSlicerMockDoseEngine.cxx
+  vtkSlicerMockDoseEngine.h
   vtkSlicerPlastimatchProtonDoseEngine.cxx
   vtkSlicerPlastimatchProtonDoseEngine.h
   )

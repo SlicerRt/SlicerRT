@@ -19,12 +19,12 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerPlastimatchProtonDoseEngine - 
+// .NAME vtkSlicerMockDoseEngine - 
 // .SECTION Description
 // This class represents the Plastimatch proton dose calculation algorithm
 
-#ifndef __vtkSlicerPlastimatchProtonDoseEngine_h
-#define __vtkSlicerPlastimatchProtonDoseEngine_h
+#ifndef __vtkSlicerMockDoseEngine_h
+#define __vtkSlicerMockDoseEngine_h
 
 #include "vtkSlicerExternalBeamPlanningDoseEnginesExport.h"
 
@@ -32,20 +32,17 @@
 #include "vtkSlicerAbstractDoseEngine.h"
 
 /// \ingroup SlicerRt_ExternalBeamPlanning
-class VTK_SLICER_EXTERNALBEAMPLANNING_DOSE_ENGINES_EXPORT vtkSlicerPlastimatchProtonDoseEngine : public vtkSlicerAbstractDoseEngine
+class VTK_SLICER_EXTERNALBEAMPLANNING_DOSE_ENGINES_EXPORT vtkSlicerMockDoseEngine : public vtkSlicerAbstractDoseEngine
 {
 public:
-  static vtkSlicerPlastimatchProtonDoseEngine *New();
-  vtkTypeMacro(vtkSlicerPlastimatchProtonDoseEngine, vtkSlicerAbstractDoseEngine);
+  static vtkSlicerMockDoseEngine *New();
+  vtkTypeMacro(vtkSlicerMockDoseEngine, vtkSlicerAbstractDoseEngine);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Create beam node of type the dose engine uses.
   /// Dose engines need to override this to return beam node of type they use.
   /// Note: Need to take ownership of the created object! For example using vtkSmartPointer<vtkDataObject>::Take
   virtual vtkMRMLRTBeamNode* CreateBeamForEngine();
-
-  /// Do dose calculation //TODO:
-  //void CleanUp();
 
 protected:
   /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic
@@ -56,12 +53,12 @@ protected:
   virtual std::string CalculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode);
 
 protected:
-  vtkSlicerPlastimatchProtonDoseEngine();
-  virtual ~vtkSlicerPlastimatchProtonDoseEngine();
+  vtkSlicerMockDoseEngine();
+  virtual ~vtkSlicerMockDoseEngine();
 
 private:
-  vtkSlicerPlastimatchProtonDoseEngine(const vtkSlicerPlastimatchProtonDoseEngine&); // Not implemented
-  void operator=(const vtkSlicerPlastimatchProtonDoseEngine&);         // Not implemented
+  vtkSlicerMockDoseEngine(const vtkSlicerMockDoseEngine&); // Not implemented
+  void operator=(const vtkSlicerMockDoseEngine&);         // Not implemented
 
   class vtkInternal;
   vtkInternal* Internal;

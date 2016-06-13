@@ -335,22 +335,6 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
   //  break;
   //}
 
-  // Set values into energy tab
-  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
-  d->doubleSpinBox_ProximalMargin->setValue(protonBeamNode->GetProximalMargin());
-  d->doubleSpinBox_DistalMargin->setValue(protonBeamNode->GetDistalMargin());
-  if (protonBeamNode->GetBeamLineTypeActive() == true)
-  {
-    d->comboBox_BeamLineType->setCurrentIndex(0);
-  }
-  else
-  {
-    d->comboBox_BeamLineType->setCurrentIndex(1);
-  }
-  d->checkBox_EnergyPrescription->setChecked(protonBeamNode->GetManualEnergyLimits());
-  d->doubleSpinBox_MinimumEnergy->setValue(protonBeamNode->GetMinimumEnergy());
-  d->doubleSpinBox_MaximumEnergy->setValue(protonBeamNode->GetMaximumEnergy());
-
   // Set values into geometry tab
   d->doubleSpinBox_SAD->setValue(beamNode->GetSAD());
   d->RangeWidget_XJawsPosition->setValues(beamNode->GetX1Jaw(), beamNode->GetX2Jaw());
@@ -362,33 +346,52 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
   d->SliderWidget_CouchAngle->setValue(beamNode->GetCouchAngle());
   d->doubleSpinBox_BeamWeight->setValue(beamNode->GetBeamWeight());
 
-  // Set values into proton beam model
-  //if (beamNode->GetRadiationType() == vtkMRMLRTBeamNode::Proton)
+  vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast (beamNode);
+  if (protonBeamNode)
   {
-    d->doubleSpinBox_ApertureDistance->setValue(protonBeamNode->GetApertureOffset());
-    switch (protonBeamNode->GetAlgorithm())
+    // Set values into energy tab
+    d->doubleSpinBox_ProximalMargin->setValue(protonBeamNode->GetProximalMargin());
+    d->doubleSpinBox_DistalMargin->setValue(protonBeamNode->GetDistalMargin());
+    if (protonBeamNode->GetBeamLineTypeActive() == true)
     {
-    case vtkMRMLRTProtonBeamNode::CGS:
-      d->comboBox_Algorithm->setCurrentIndex(1);
-      break;
-    case vtkMRMLRTProtonBeamNode::DGS:
-      d->comboBox_Algorithm->setCurrentIndex(2);
-      break;
-    case vtkMRMLRTProtonBeamNode::HGS:
-      d->comboBox_Algorithm->setCurrentIndex(3);
-      break;
-    default: // Ray Tracer or any other mistake
-      d->comboBox_Algorithm->setCurrentIndex(0);
-      break;
+      d->comboBox_BeamLineType->setCurrentIndex(0);
     }
-    d->doubleSpinBox_PencilBeamSpacing->setValue(protonBeamNode->GetPencilBeamResolution());
-    d->doubleSpinBox_Smearing->setValue(protonBeamNode->GetRangeCompensatorSmearingRadius());
-    d->doubleSpinBox_SourceSize->setValue(protonBeamNode->GetSourceSize());
-    d->doubleSpinBox_EnergyResolution->setValue(protonBeamNode->GetEnergyResolution());
-    d->doubleSpinBox_EnergySpread->setValue(protonBeamNode->GetEnergySpread());
-    d->doubleSpinBox_StepLength->setValue(protonBeamNode->GetStepLength());
-    d->checkBox_WEDApproximation->setChecked(protonBeamNode->GetLateralSpreadHomoApprox());
-    d->checkBox_RangeCompensatorHighland->setChecked(protonBeamNode->GetRangeCompensatorHighland());
+    else
+    {
+      d->comboBox_BeamLineType->setCurrentIndex(1);
+    }
+    d->checkBox_EnergyPrescription->setChecked(protonBeamNode->GetManualEnergyLimits());
+    d->doubleSpinBox_MinimumEnergy->setValue(protonBeamNode->GetMinimumEnergy());
+    d->doubleSpinBox_MaximumEnergy->setValue(protonBeamNode->GetMaximumEnergy());
+
+    // Set values into proton beam model
+    //if (beamNode->GetRadiationType() == vtkMRMLRTBeamNode::Proton)
+    {
+      d->doubleSpinBox_ApertureDistance->setValue(protonBeamNode->GetApertureOffset());
+      switch (protonBeamNode->GetAlgorithm())
+      {
+      case vtkMRMLRTProtonBeamNode::CGS:
+        d->comboBox_Algorithm->setCurrentIndex(1);
+        break;
+      case vtkMRMLRTProtonBeamNode::DGS:
+        d->comboBox_Algorithm->setCurrentIndex(2);
+        break;
+      case vtkMRMLRTProtonBeamNode::HGS:
+        d->comboBox_Algorithm->setCurrentIndex(3);
+        break;
+      default: // Ray Tracer or any other mistake
+        d->comboBox_Algorithm->setCurrentIndex(0);
+        break;
+      }
+      d->doubleSpinBox_PencilBeamSpacing->setValue(protonBeamNode->GetPencilBeamResolution());
+      d->doubleSpinBox_Smearing->setValue(protonBeamNode->GetRangeCompensatorSmearingRadius());
+      d->doubleSpinBox_SourceSize->setValue(protonBeamNode->GetSourceSize());
+      d->doubleSpinBox_EnergyResolution->setValue(protonBeamNode->GetEnergyResolution());
+      d->doubleSpinBox_EnergySpread->setValue(protonBeamNode->GetEnergySpread());
+      d->doubleSpinBox_StepLength->setValue(protonBeamNode->GetStepLength());
+      d->checkBox_WEDApproximation->setChecked(protonBeamNode->GetLateralSpreadHomoApprox());
+      d->checkBox_RangeCompensatorHighland->setChecked(protonBeamNode->GetRangeCompensatorHighland());
+    }
   }
 
   this->updateButtonsState();
