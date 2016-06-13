@@ -575,11 +575,11 @@ void qSlicerSubjectHierarchySegmentationsPlugin::updateAllSegmentsFromMRML(vtkMR
     vtkSegment* segment = segmentation->GetSegment(segmentId);
     if (!segment)
     {
-      // segment has been removed
-      onSegmentRemoved(segmentationNode, (void*)segmentId);
+      // Segment has been removed
+      this->onSegmentRemoved(segmentationNode, (void*)segmentId);
       continue;
     }
-    onSegmentModified(segmentationNode, (void*)segmentId);
+    this->onSegmentModified(segmentationNode, (void*)segmentId);
 
     // Remove segment ID from the list of segments to be added (it's already added)
     segmentIDsToBeAddedToSh.erase(std::remove(segmentIDsToBeAddedToSh.begin(), segmentIDsToBeAddedToSh.end(), segmentId), segmentIDsToBeAddedToSh.end());
@@ -588,6 +588,6 @@ void qSlicerSubjectHierarchySegmentationsPlugin::updateAllSegmentsFromMRML(vtkMR
   // Segment add
   for (std::vector<std::string>::iterator segmentIdIt = segmentIDsToBeAddedToSh.begin(); segmentIdIt != segmentIDsToBeAddedToSh.end(); ++segmentIdIt)
   {
-    onSegmentAdded(segmentationNode, (void*)(segmentIdIt->c_str()));
+    this->onSegmentAdded(segmentationNode, (void*)(segmentIdIt->c_str()));
   }
 }

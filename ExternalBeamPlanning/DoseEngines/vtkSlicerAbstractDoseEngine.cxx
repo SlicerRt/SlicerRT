@@ -224,8 +224,6 @@ void vtkSlicerAbstractDoseEngine::AddResultDose(vtkMRMLScalarVolumeNode* resultD
   if (resultDose->GetDisplayNode())
   {
     vtkMRMLScalarVolumeDisplayNode* doseScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(resultDose->GetVolumeDisplayNode());
-    doseScalarVolumeDisplayNode->SetAutoWindowLevel(0);
-    doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, vtkSlicerAbstractDoseEngine::DEFAULT_DOSE_VOLUME_WINDOW_LEVEL_MAXIMUM);
 
     // Set colormap to dose
     vtkMRMLColorTableNode* defaultDoseColorTable = vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(resultDose->GetScene());
@@ -250,6 +248,11 @@ void vtkSlicerAbstractDoseEngine::AddResultDose(vtkMRMLScalarVolumeNode* resultD
       // Set threshold to hide very low dose values
       doseScalarVolumeDisplayNode->SetLowerThreshold(0.05 * rxDose);
       doseScalarVolumeDisplayNode->ApplyThresholdOn();
+    }
+    else
+    {
+      doseScalarVolumeDisplayNode->AutoWindowLevelOff();
+      doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, vtkSlicerAbstractDoseEngine::DEFAULT_DOSE_VOLUME_WINDOW_LEVEL_MAXIMUM);
     }
   }
   else

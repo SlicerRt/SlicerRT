@@ -159,8 +159,7 @@ public:
   /// of the segmentation's parent transform. It needs to be applied on the representation.
   /// \param representationNode Transformable node which contains the representation we want to add to the segment
   /// \param segmentationNode Segmentation node that will contain the segment to which the representation is added. It is the
-  ///   representation node's parent transform concatenated with the inverse of the segmentation's parent transform. If this
-  ///   parameter is NULL, then it will not be considered
+  ///   representation node's parent transform concatenated with the inverse of the segmentation's parent transform.
   /// \param representationToSegmentationTransform General transform between the representation node and the segmentation node. 
   /// \return Success flag
   static bool GetTransformBetweenRepresentationAndSegmentation(vtkMRMLTransformableNode* representationNode, vtkMRMLSegmentationNode* segmentationNode, vtkGeneralTransform* representationToSegmentationTransform);

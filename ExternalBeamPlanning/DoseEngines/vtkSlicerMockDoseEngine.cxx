@@ -41,8 +41,6 @@
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
 
-#include <vtkMRMLLabelMapVolumeNode.h> //TODO: Remove
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerMockDoseEngine);
 
@@ -98,28 +96,6 @@ std::string vtkSlicerMockDoseEngine::CalculateDoseUsingEngine(vtkMRMLRTBeamNode*
     vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(referenceVolumeNode) );
   converter->Convert(beamPolyData, beamImageData);
 
-vtkSmartPointer<vtkMRMLLabelMapVolumeNode> testVolumeNode = vtkSmartPointer<vtkMRMLLabelMapVolumeNode>::New();
-testVolumeNode->SetName("Test");
-scene->AddNode(testVolumeNode);
-vtkSlicerSegmentationsModuleLogic::CreateLabelmapVolumeFromOrientedImageData(beamImageData, testVolumeNode);
-  /*
-  // Create beam segmentation so that beam mask can be got
-  vtkSmartPointer<vtkSegment> beamSegment = vtkSmartPointer<vtkSegment>::Take(
-    vtkSlicerSegmentationsModuleLogic::CreateSegmentFromModelNode(beamNode) );
-  vtkSmartPointer<vtkSegmentation> beamSegmentation = vtkSmartPointer<vtkSegmentation>::New();
-  beamSegmentation->AddSegment(beamSegment);
-
-  // Convert beam model into image data to get beam mask
-  vtkSmartPointer<vtkMatrix4x4> referenceVolumeIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  referenceVolumeNode->GetIJKToRASMatrix(referenceVolumeIjkToRasMatrix);
-  std::string serializedImageGeometry = vtkSegmentationConverter::SerializeImageGeometry(
-    referenceVolumeIjkToRasMatrix, referenceVolumeNode->GetImageData() );
-  beamSegmentation->SetConversionParameter(
-    vtkSegmentationConverter::GetReferenceImageGeometryParameterName(), serializedImageGeometry);
-  beamSegmentation->CreateRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName());
-  vtkOrientedImageData* beamImageData = vtkOrientedImageData::SafeDownCast(
-    beamSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
-  */
   // Create dose image
   vtkSmartPointer<vtkImageData> protonDoseImageData = vtkSmartPointer<vtkImageData>::New();
   protonDoseImageData->SetExtent(referenceVolumeNode->GetImageData()->GetExtent());
@@ -134,6 +110,7 @@ vtkSlicerSegmentationsModuleLogic::CreateLabelmapVolumeFromOrientedImageData(bea
     return errorMessage;
   }
 
+  // Paint voxels touched by beam prescription+noise, all others zero
   double rxDose = parentPlanNode->GetRxDose();
   unsigned char* beamPtr = (unsigned char*)beamImageData->GetScalarPointer();
   float* floatPtr = (float*)protonDoseImageData->GetScalarPointer();
@@ -154,7 +131,7 @@ vtkSlicerSegmentationsModuleLogic::CreateLabelmapVolumeFromOrientedImageData(bea
   resultDoseVolumeNode->SetAndObserveImageData(protonDoseImageData);
   resultDoseVolumeNode->CopyOrientation(referenceVolumeNode);
 
-  std::string randomDoseNodeName = std::string(beamNode->GetName()) + "_RandomDose";
+  std::string randomDoseNodeName = std::string(beamNode->GetName()) + "_MockDose";
   resultDoseVolumeNode->SetName(randomDoseNodeName.c_str());
 
   return "";

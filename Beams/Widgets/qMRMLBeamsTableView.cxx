@@ -171,8 +171,24 @@ void qMRMLBeamsTableView::setPlanNode(vtkMRMLNode* node)
 
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(node);
 
-  // Connect segment added/removed and display modified events to population of the table
-  qvtkReconnect( planNode, vtkCommand::ModifiedEvent, this, SLOT( populateBeamTable() ) );
+  // Connect plan modified events to population of the table
+  qvtkReconnect( d->PlanNode, planNode, vtkCommand::ModifiedEvent, this, SLOT( populateBeamTable() ) );
+
+  if (planNode)
+  {
+    // Connect beam added and removed events
+    qvtkReconnect( d->PlanNode, planNode, vtkMRMLRTPlanNode::BeamAdded, this, SLOT( onBeamAdded(vtkObject*,void*) ) );
+    qvtkReconnect( d->PlanNode, planNode, vtkMRMLRTPlanNode::BeamRemoved, this, SLOT( onBeamRemoved(vtkObject*,void*) ) );
+
+    // Connect modified events of contained beam nodes to update table
+    std::vector<vtkMRMLRTBeamNode*> beams;
+    planNode->GetBeams(beams);
+    for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
+    {
+      vtkMRMLRTBeamNode* beamNode = (*beamIt);
+      qvtkConnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( populateBeamTable() ) );
+    }
+  }
 
   d->PlanNode = planNode;
   this->populateBeamTable();
@@ -436,4 +452,40 @@ bool qMRMLBeamsTableView::eventFilter(QObject* target, QEvent* event)
     }
   }
   return this->QWidget::eventFilter(target, event);
+}
+
+//------------------------------------------------------------------------------
+void qMRMLBeamsTableView::onBeamAdded(vtkObject* caller, void* callData)
+{
+  Q_D(qMRMLBeamsTableView);
+
+  char* beamNodeId = reinterpret_cast<char*>(callData);
+  if (!beamNodeId)
+  {
+    return;
+  }
+
+  if (d->PlanNode)
+  {
+    vtkMRMLNode* beamNode = d->PlanNode->GetScene()->GetNodeByID(beamNodeId);
+    qvtkConnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( populateBeamTable() ) );
+  }
+}
+
+//------------------------------------------------------------------------------
+void qMRMLBeamsTableView::onBeamRemoved(vtkObject* caller, void* callData)
+{
+  Q_D(qMRMLBeamsTableView);
+
+  char* beamNodeId = reinterpret_cast<char*>(callData);
+  if (!beamNodeId)
+  {
+    return;
+  }
+
+  if (d->PlanNode)
+  {
+    vtkMRMLNode* beamNode = d->PlanNode->GetScene()->GetNodeByID(beamNodeId);
+    qvtkDisconnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( populateBeamTable() ) );
+  }
 }

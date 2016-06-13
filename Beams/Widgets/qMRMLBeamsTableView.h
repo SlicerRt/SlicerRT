@@ -70,6 +70,12 @@ public slots:
   /// Set plan MRML node
   Q_INVOKABLE void setPlanNode(vtkMRMLNode* node);
 
+  /// Called when beam is added in an observed plan node
+  void onBeamAdded(vtkObject* caller, void* callData);
+
+  /// Called when beam is removed in an observed plan node
+  void onBeamRemoved(vtkObject* caller, void* callData);
+
 signals:
   /// Emitted if selection changes
   void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);

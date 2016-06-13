@@ -121,12 +121,6 @@ public:
   //----------------------------------------------------------------------------
 
 public:
-  /// Compute transform between two transformable objects
-  /// \param fromNode Displayable node from which we want to compute the transform
-  /// \param toNode Displayable node to which we want to compute the transform
-  /// \param fromNodeTotoNodeTransform Output transform
-  static void GetTransformBetweenTransformables(vtkMRMLTransformableNode* fromNode, vtkMRMLTransformableNode* toNode, vtkGeneralTransform* fromNodeToToNodeTransform);
-
   /// Returns true if the string is null or empty, returns false otherwise
   static bool IsStringNullOrEmpty(const char* aString);
 

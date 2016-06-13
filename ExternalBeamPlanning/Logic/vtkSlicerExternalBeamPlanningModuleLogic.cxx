@@ -169,9 +169,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterNodes()
 
   // Register dose engines
   vtkSlicerDoseEnginePluginHandler::GetInstance()->RegisterDoseEngine(
-    vtkSmartPointer<vtkSlicerMockDoseEngine>::New() );
-  vtkSlicerDoseEnginePluginHandler::GetInstance()->RegisterDoseEngine(
     vtkSmartPointer<vtkSlicerPlastimatchProtonDoseEngine>::New() );
+  vtkSlicerDoseEnginePluginHandler::GetInstance()->RegisterDoseEngine(
+    vtkSmartPointer<vtkSlicerMockDoseEngine>::New() );
 }
 
 //---------------------------------------------------------------------------

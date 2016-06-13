@@ -61,7 +61,11 @@ public:
   enum
   {
     /// Fired if isocenter position changes
-    IsocenterModifiedEvent = 62300
+    IsocenterModifiedEvent = 62300,
+    /// Fired if beam is added
+    BeamAdded,
+    /// Fired if beam is removed
+    BeamRemoved
   };
 
 public:

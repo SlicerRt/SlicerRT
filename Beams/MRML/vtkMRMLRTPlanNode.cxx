@@ -493,12 +493,18 @@ void vtkMRMLRTPlanNode::AddBeam(vtkMRMLRTBeamNode* beamNode)
   // Make sure display is set up
   beamNode->UpdateGeometry();
 
+  // Fire beam added event
+  this->InvokeEvent(vtkMRMLRTPlanNode::BeamAdded, (void*)beamNode->GetID());
+
   this->Modified();
 }
 
 //---------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::RemoveBeam(vtkMRMLRTBeamNode* beamNode)
 {
+  // Fire beam added event (do it first so that operations can be performed with beam while exists)
+  this->InvokeEvent(vtkMRMLRTPlanNode::BeamRemoved, (void*)beamNode->GetID());
+
   vtkMRMLScene *scene = this->GetScene();
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(beamNode);
   if (!shNode)

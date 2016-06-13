@@ -109,50 +109,6 @@ namespace
 // Utility functions
 //----------------------------------------------------------------------------
 
-void SlicerRtCommon::GetTransformBetweenTransformables(vtkMRMLTransformableNode* fromNode, vtkMRMLTransformableNode* toNode, vtkGeneralTransform* fromNodeToToNodeTransform)
-{
-  if (!fromNodeToToNodeTransform || !fromNode || !toNode)
-  {
-    std::cerr << "SlicerRtCommon::GetTransformBetweenTransformables: Invalid input arguments!" << std::endl;
-    return;
-  }
-
-  vtkSmartPointer<vtkGeneralTransform> toNodeToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-  vtkMRMLTransformNode* fromNodeTransformNode = fromNode->GetParentTransformNode();
-  vtkMRMLTransformNode* toNodeTransformNode = toNode->GetParentTransformNode();
-
-  if (toNodeTransformNode!=NULL)
-  {
-    // toNode is transformed
-    toNodeTransformNode->GetTransformToWorld(toNodeToWorldTransform);    
-    if (fromNodeTransformNode!=NULL)
-    {
-      fromNodeToToNodeTransform->PostMultiply(); // GetTransformToNode assumes PostMultiply
-      fromNodeTransformNode->GetTransformToNode(toNodeTransformNode, fromNodeToToNodeTransform);
-    }
-    else
-    {
-      // fromNodeTransformNode is NULL => the transform will be computed for the world coordinate frame
-      toNodeTransformNode->GetTransformToWorld(fromNodeToToNodeTransform);
-      fromNodeToToNodeTransform->Inverse();
-    }
-  }
-  else
-  {
-    // toNode is not transformed => fromNodeToToNodeTransform = fromNodeToWorldTransformMatrix
-    if (fromNodeTransformNode!=NULL)
-    {
-      // fromNode is transformed
-      fromNodeTransformNode->GetTransformToWorld(fromNodeToToNodeTransform);
-    }
-    else
-    {
-      // neither fromNode nor toNode is transformed
-      fromNodeToToNodeTransform->Identity();
-    }
-  }
-}
-
 //----------------------------------------------------------------------------
 bool SlicerRtCommon::IsStringNullOrEmpty(const char* aString)
 {
