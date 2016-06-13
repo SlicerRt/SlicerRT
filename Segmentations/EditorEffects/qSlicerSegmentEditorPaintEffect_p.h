@@ -93,7 +93,7 @@ public:
   void updateBrushModel(qMRMLWidget* viewWidget, double brushPosition_World[3]);
 
   /// Updates the brush stencil that can be used to quickly paint the brush shape into
-  /// editedLabelmap at many different positions.
+  /// modifierLabelmap at many different positions.
   void updateBrushStencil(qMRMLWidget* viewWidget);
 
 protected:
@@ -134,8 +134,8 @@ public:
   vtkSmartPointer<vtkTransformPolyDataFilter> WorldOriginToWorldTransformer;
   vtkSmartPointer<vtkTransform> WorldOriginToWorldTransform;
   vtkSmartPointer<vtkPolyDataNormals> BrushPolyDataNormals;
-  vtkSmartPointer<vtkTransformPolyDataFilter> WorldOriginToEditedLabelmapIjkTransformer;
-  vtkSmartPointer<vtkTransform> WorldOriginToEditedLabelmapIjkTransform; // transforms from polydata source to editedLabelmap's IJK coordinate system (brush origin in IJK origin)
+  vtkSmartPointer<vtkTransformPolyDataFilter> WorldOriginToModifierLabelmapIjkTransformer;
+  vtkSmartPointer<vtkTransform> WorldOriginToModifierLabelmapIjkTransform; // transforms from polydata source to modifierLabelmap's IJK coordinate system (brush origin in IJK origin)
   vtkSmartPointer<vtkPolyDataToImageStencil> BrushPolyDataToStencil;
 
   vtkSmartPointer<vtkGlyph3D> FeedbackGlyphFilter;

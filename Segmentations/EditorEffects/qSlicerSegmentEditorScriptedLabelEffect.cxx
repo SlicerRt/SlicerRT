@@ -60,7 +60,7 @@ public:
     ProcessInteractionEventsMethod,
     ProcessViewNodeEventsMethod,
     SetMRMLDefaultsMethod,
-    EditedLabelmapChangedMethod,
+    ModifierLabelmapChangedMethod,
     MasterVolumeNodeChangedMethod,
     LayoutChangedMethod,
     UpdateGUIFromMRMLMethod,
@@ -88,7 +88,7 @@ qSlicerSegmentEditorScriptedLabelEffectPrivate::qSlicerSegmentEditorScriptedLabe
   this->PythonCppAPI.declareMethod(Self::ProcessInteractionEventsMethod, "processInteractionEvents");
   this->PythonCppAPI.declareMethod(Self::ProcessViewNodeEventsMethod, "processViewNodeEvents");
   this->PythonCppAPI.declareMethod(Self::SetMRMLDefaultsMethod, "setMRMLDefaults");
-  this->PythonCppAPI.declareMethod(Self::EditedLabelmapChangedMethod, "editedLabelmapChanged");
+  this->PythonCppAPI.declareMethod(Self::ModifierLabelmapChangedMethod, "modifierLabelmapChanged");
   this->PythonCppAPI.declareMethod(Self::MasterVolumeNodeChangedMethod, "masterVolumeNodeChanged");
   this->PythonCppAPI.declareMethod(Self::LayoutChangedMethod, "layoutChanged");
   this->PythonCppAPI.declareMethod(Self::UpdateGUIFromMRMLMethod, "updateGUIFromMRML");
@@ -400,13 +400,13 @@ void qSlicerSegmentEditorScriptedLabelEffect::setMRMLDefaults()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedLabelEffect::editedLabelmapChanged()
+void qSlicerSegmentEditorScriptedLabelEffect::modifierLabelmapChanged()
 {
   // Base class implementation needs to be called before the effect-specific one
-  this->Superclass::editedLabelmapChanged();
+  this->Superclass::modifierLabelmapChanged();
 
   Q_D(const qSlicerSegmentEditorScriptedLabelEffect);
-  PyObject* result = d->PythonCppAPI.callMethod(d->EditedLabelmapChangedMethod);
+  PyObject* result = d->PythonCppAPI.callMethod(d->ModifierLabelmapChangedMethod);
 }
 
 //-----------------------------------------------------------------------------

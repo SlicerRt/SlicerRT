@@ -139,7 +139,7 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
   #
   # Effect specific methods (the above ones are the API methods to override)
   #
-  def editedLabelmapChanged(self):
+  def modifierLabelmapChanged(self):
     #self.updateGUIFromMRML()
     pass
 
@@ -147,8 +147,8 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
     try:
       # Get master volume image data
       import vtkSegmentationCorePython
-      # Get edited labelmap
-      editedLabelmap = self.scriptedEffect.editedLabelmap()
+      # Get modifier labelmap
+      modifierLabelmap = self.scriptedEffect.modifierLabelmap()
       selectedSegmentLabelmap = self.scriptedEffect.selectedSegmentLabelmap()
 
       # Save state for undo
@@ -183,7 +183,7 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
           thresh2.SetOutValue(0)
           thresh2.SetOutputScalarType(selectedSegmentLabelmap.GetScalarType())
           thresh2.Update()
-          editedLabelmap.DeepCopy(thresh2.GetOutput())
+          modifierLabelmap.DeepCopy(thresh2.GetOutput())
 
         else:
           # size rounded to nearest odd number. If kernel size is even then image gets shifted.
@@ -216,7 +216,7 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
 
           smoothingFilter.SetKernelSize(kernelSizePixel[0],kernelSizePixel[1],kernelSizePixel[2])
           smoothingFilter.Update()
-          editedLabelmap.DeepCopy(smoothingFilter.GetOutput())
+          modifierLabelmap.DeepCopy(smoothingFilter.GetOutput())
 
       except:
         qt.QApplication.restoreOverrideCursor()
@@ -230,8 +230,8 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
 
     # Notify editor about changes.
     # This needs to be called so that the changes are written back to the edited segment
-    self.scriptedEffect.setEditedLabelmapApplyModeToSet()
-    self.scriptedEffect.setEditedLabelmapApplyExtentToWholeExtent()
+    self.scriptedEffect.setModifierLabelmapApplyModeToSet()
+    self.scriptedEffect.setModifierLabelmapApplyExtentToWholeExtent()
     self.scriptedEffect.apply()
 
 MEDIAN = 'MEDIAN'

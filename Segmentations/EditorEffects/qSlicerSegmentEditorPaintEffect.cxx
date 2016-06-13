@@ -250,13 +250,13 @@ qSlicerSegmentEditorPaintEffectPrivate::qSlicerSegmentEditorPaintEffectPrivate(q
   this->WorldOriginToWorldTransformer->SetTransform(this->WorldOriginToWorldTransform);
   this->WorldOriginToWorldTransformer->SetInputConnection(this->BrushPolyDataNormals->GetOutputPort());
 
-  this->WorldOriginToEditedLabelmapIjkTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  this->WorldOriginToEditedLabelmapIjkTransform = vtkSmartPointer<vtkTransform>::New();
-  this->WorldOriginToEditedLabelmapIjkTransformer->SetTransform(this->WorldOriginToEditedLabelmapIjkTransform);
-  this->WorldOriginToEditedLabelmapIjkTransformer->SetInputConnection(this->BrushPolyDataNormals->GetOutputPort());
+  this->WorldOriginToModifierLabelmapIjkTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  this->WorldOriginToModifierLabelmapIjkTransform = vtkSmartPointer<vtkTransform>::New();
+  this->WorldOriginToModifierLabelmapIjkTransformer->SetTransform(this->WorldOriginToModifierLabelmapIjkTransform);
+  this->WorldOriginToModifierLabelmapIjkTransformer->SetInputConnection(this->BrushPolyDataNormals->GetOutputPort());
   this->BrushPolyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
   this->BrushPolyDataToStencil->SetOutputSpacing(1.0,1.0,1.0);
-  this->BrushPolyDataToStencil->SetInputConnection(this->WorldOriginToEditedLabelmapIjkTransformer->GetOutputPort());
+  this->BrushPolyDataToStencil->SetInputConnection(this->WorldOriginToModifierLabelmapIjkTransformer->GetOutputPort());
 
   this->FeedbackGlyphFilter = vtkSmartPointer<vtkGlyph3D>::New();
   this->FeedbackGlyphFilter->SetInputData(this->FeedbackPointsPolyData);
@@ -365,7 +365,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLWidget* viewWidget)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  vtkOrientedImageData* labelmapImage = q->editedLabelmap();
+  vtkOrientedImageData* labelmapImage = q->modifierLabelmap();
   if (!labelmapImage)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid segmentationNode";
@@ -400,21 +400,21 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLWidget* viewWidget)
     int stencilExtent[6]={0,-1,0,-1,0,-1};
     stencilData->GetExtent(stencilExtent);
 
-    vtkNew<vtkTransform> worldToEditedLabelmapIjkTransform;
+    vtkNew<vtkTransform> worldToModifierLabelmapIjkTransform;
 
     vtkNew<vtkMatrix4x4> segmentationToSegmentationIjkTransformMatrix;
     labelmapImage->GetImageToWorldMatrix(segmentationToSegmentationIjkTransformMatrix.GetPointer());
     segmentationToSegmentationIjkTransformMatrix->Invert();
-    worldToEditedLabelmapIjkTransform->Concatenate(segmentationToSegmentationIjkTransformMatrix.GetPointer());
+    worldToModifierLabelmapIjkTransform->Concatenate(segmentationToSegmentationIjkTransformMatrix.GetPointer());
 
     vtkNew<vtkMatrix4x4> worldToSegmentationTransformMatrix;
     // We don't support painting in non-linearly transformed node (it could be implemented, but would probably slow down things too much)
     // TODO: show a meaningful error message to the user if attempted
     vtkMRMLTransformNode::GetMatrixTransformBetweenNodes(NULL, segmentationNode->GetParentTransformNode(), worldToSegmentationTransformMatrix.GetPointer());
-    worldToEditedLabelmapIjkTransform->Concatenate(worldToSegmentationTransformMatrix.GetPointer());
+    worldToModifierLabelmapIjkTransform->Concatenate(worldToSegmentationTransformMatrix.GetPointer());
 
     vtkNew<vtkPoints> paintCoordinates_Ijk;
-    worldToEditedLabelmapIjkTransform->TransformPoints(this->PaintCoordinates_World, paintCoordinates_Ijk.GetPointer());
+    worldToModifierLabelmapIjkTransform->TransformPoints(this->PaintCoordinates_World, paintCoordinates_Ijk.GetPointer());
     double* paintCoordinatesBounds_Ijk = paintCoordinates_Ijk->GetBounds();
     int combinedStencilExtent[6] = 
     { 
@@ -454,15 +454,15 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLWidget* viewWidget)
   // Notify editor about changes
   if (q->m_Erase)
   {
-    q->setEditedLabelmapApplyModeToRemove();
+    q->setModifierLabelmapApplyModeToRemove();
   }
   else
   {
-    q->setEditedLabelmapApplyModeToAdd();
+    q->setModifierLabelmapApplyModeToAdd();
   }
-  q->setEditedLabelmapApplyExtentToWholeExtent();
+  q->setModifierLabelmapApplyExtentToWholeExtent();
   //TODO: compute paint extent before
-  //q->setEditedLabelmapApplyExtent(this->paintExtent);
+  //q->setModifierLabelmapApplyExtent(this->paintExtent);
   q->apply();
 }
 
@@ -482,16 +482,16 @@ void qSlicerSegmentEditorPaintEffectPrivate::updateBrushStencil(qMRMLWidget* vie
     qCritical() << Q_FUNC_INFO << ": Invalid segmentationNode";
     return;
   }
-  vtkOrientedImageData* labelmapImage = q->editedLabelmap();
+  vtkOrientedImageData* labelmapImage = q->modifierLabelmap();
   if (!labelmapImage)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid editedLabelmap";
+    qCritical() << Q_FUNC_INFO << ": Invalid modifierLabelmap";
     return;
   }
 
   // Brush stencil transform
 
-  this->WorldOriginToEditedLabelmapIjkTransform->Identity();
+  this->WorldOriginToModifierLabelmapIjkTransform->Identity();
 
   vtkNew<vtkMatrix4x4> segmentationToSegmentationIjkTransformMatrix;
   labelmapImage->GetImageToWorldMatrix(segmentationToSegmentationIjkTransformMatrix.GetPointer());
@@ -499,7 +499,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::updateBrushStencil(qMRMLWidget* vie
   segmentationToSegmentationIjkTransformMatrix->SetElement(0,3, 0);
   segmentationToSegmentationIjkTransformMatrix->SetElement(1,3, 0);
   segmentationToSegmentationIjkTransformMatrix->SetElement(2,3, 0);
-  this->WorldOriginToEditedLabelmapIjkTransform->Concatenate(segmentationToSegmentationIjkTransformMatrix.GetPointer());
+  this->WorldOriginToModifierLabelmapIjkTransform->Concatenate(segmentationToSegmentationIjkTransformMatrix.GetPointer());
   
   vtkNew<vtkMatrix4x4> worldToSegmentationTransformMatrix;
   // We don't support painting in non-linearly transformed node (it could be implemented, but would probably slow down things too much)
@@ -508,11 +508,11 @@ void qSlicerSegmentEditorPaintEffectPrivate::updateBrushStencil(qMRMLWidget* vie
   worldToSegmentationTransformMatrix->SetElement(0,3, 0);
   worldToSegmentationTransformMatrix->SetElement(1,3, 0);
   worldToSegmentationTransformMatrix->SetElement(2,3, 0);
-  this->WorldOriginToEditedLabelmapIjkTransform->Concatenate(worldToSegmentationTransformMatrix.GetPointer());
+  this->WorldOriginToModifierLabelmapIjkTransform->Concatenate(worldToSegmentationTransformMatrix.GetPointer());
 
-  this->WorldOriginToEditedLabelmapIjkTransformer->Update();
-  vtkPolyData* brushModel_EditedLabelmapIjk = this->WorldOriginToEditedLabelmapIjkTransformer->GetOutput();
-  double* boundsIjk = brushModel_EditedLabelmapIjk->GetBounds();
+  this->WorldOriginToModifierLabelmapIjkTransformer->Update();
+  vtkPolyData* brushModel_ModifierLabelmapIjk = this->WorldOriginToModifierLabelmapIjkTransformer->GetOutput();
+  double* boundsIjk = brushModel_ModifierLabelmapIjk->GetBounds();
   this->BrushPolyDataToStencil->SetOutputWholeExtent(floor(boundsIjk[0])-1, ceil(boundsIjk[1])+1,
     floor(boundsIjk[2])-1, ceil(boundsIjk[3])+1, floor(boundsIjk[4])-1, ceil(boundsIjk[5])+1);
 }
@@ -538,7 +538,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintPixels(qMRMLWidget* viewWidget
   }
   /*
   TODO: implement
-  vtkOrientedImageData* labelmapImage = q->editedLabelmap();
+  vtkOrientedImageData* labelmapImage = q->modifierLabelmap();
   if (!labelmapImage)
   {
     return;
@@ -591,7 +591,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::onQuickRadiusButtonClicked()
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  vtkOrientedImageData* labelmapImage = q->editedLabelmap();
+  vtkOrientedImageData* labelmapImage = q->modifierLabelmap();
   QPushButton* senderButton = dynamic_cast<QPushButton*>(sender());
   int radius = senderButton->property("BrushRadius").toInt();
 
@@ -1164,11 +1164,11 @@ void qSlicerSegmentEditorPaintEffect::updateMRMLFromGUI()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffect::editedLabelmapChanged()
+void qSlicerSegmentEditorPaintEffect::modifierLabelmapChanged()
 {
-  Superclass::editedLabelmapChanged();
+  Superclass::modifierLabelmapChanged();
 
-  vtkOrientedImageData* labelmapImage = this->editedLabelmap();
+  vtkOrientedImageData* labelmapImage = this->modifierLabelmap();
   if (labelmapImage)
   {
     double spacing[3] = {0.0, 0.0, 0.0};

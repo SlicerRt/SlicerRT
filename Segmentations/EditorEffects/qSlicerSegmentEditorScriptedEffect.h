@@ -86,8 +86,8 @@ public:
   /// Perform actions to deactivate the effect (hide options frame, destroy actors, etc.)
   virtual void deactivate();
 
-  /// Perform actions needed before the edited labelmap is applied back to the segment.
-  /// Needs to be called from the python implementation to apply changes in the edited labelmap.
+  /// Perform actions needed before the modifier labelmap is applied back to the segment.
+  /// Needs to be called from the python implementation to apply changes in the modifier labelmap.
   Q_INVOKABLE virtual void apply();
 
   /// Create options frame widgets, make connections, and add them to the main options frame using \sa addOptionsWidget
@@ -111,8 +111,8 @@ public:
   /// Set default parameters in the parameter MRML node
   virtual void setMRMLDefaults();
 
-  /// Simple mechanism to let the effects know that edited labelmap has changed
-  virtual void editedLabelmapChanged();
+  /// Simple mechanism to let the effects know that modifier labelmap has changed
+  virtual void modifierLabelmapChanged();
   /// Simple mechanism to let the effects know that master volume has changed
   virtual void masterVolumeNodeChanged();
   /// Simple mechanism to let the effects know that the layout has changed

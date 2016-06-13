@@ -112,8 +112,8 @@ class SegmentEditorLogicalEffect(AbstractScriptedSegmentEditorEffect):
 
     import vtkSegmentationCorePython as vtkSegmentationCore
 
-    # Get edited labelmap and parameters
-    editedLabelmap = self.scriptedEffect.editedLabelmap()
+    # Get modifier labelmap and parameters
+    modifierLabelmap = self.scriptedEffect.modifierLabelmap()
     selectedSegmentLabelmap = self.scriptedEffect.selectedSegmentLabelmap()
 
     operation = self.scriptedEffect.parameter("Operation")
@@ -129,9 +129,9 @@ class SegmentEditorLogicalEffect(AbstractScriptedSegmentEditorEffect):
       modifierSegmentLabelmap = modifierSegment.GetRepresentation(vtkSegmentationCore.vtkSegmentationConverter.GetSegmentationBinaryLabelmapRepresentationName())
 
     if operation == LOGICAL_COPY:
-      editedLabelmap.DeepCopy(modifierSegmentLabelmap)
-      self.scriptedEffect.setEditedLabelmapApplyModeToSet()
-      self.scriptedEffect.setEditedLabelmapApplyExtentToWholeExtent()
+      modifierLabelmap.DeepCopy(modifierSegmentLabelmap)
+      self.scriptedEffect.setModifierLabelmapApplyModeToSet()
+      self.scriptedEffect.setModifierLabelmapApplyExtentToWholeExtent()
     else:
       return
 

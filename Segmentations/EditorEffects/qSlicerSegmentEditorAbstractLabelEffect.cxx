@@ -87,7 +87,7 @@ qSlicerSegmentEditorAbstractLabelEffect::~qSlicerSegmentEditorAbstractLabelEffec
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorAbstractLabelEffect::editedLabelmapChanged()
+void qSlicerSegmentEditorAbstractLabelEffect::modifierLabelmapChanged()
 {
 }
 

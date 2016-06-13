@@ -1216,7 +1216,7 @@ bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedIm
     }
   }
 
-  // 2. Copy the temporary padded edited labelmap to the segment.
+  // 2. Copy the temporary padded modifier labelmap to the segment.
   //    Disable modified event so that the consequently emitted MasterRepresentationModified event that causes
   //    removal of all other representations in all segments does not get activated. Instead, explicitly create
   //    representations for the edited segment that the other segments have.

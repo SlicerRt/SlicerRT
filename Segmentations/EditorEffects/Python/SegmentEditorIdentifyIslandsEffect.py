@@ -52,7 +52,7 @@ class SegmentEditorIdentifyIslandsEffect(AbstractScriptedSegmentEditorIslandEffe
     fullyConnected = self.scriptedEffect.integerParameter("FullyConnected")
     minimumSize = self.scriptedEffect.integerParameter("MinimumSize")
 
-    # Get edited labelmap
+    # Get modifier labelmap
     selectedSegmentLabelmap = self.scriptedEffect.selectedSegmentLabelmap()    
 
     castIn = vtk.vtkImageCast()
@@ -102,4 +102,4 @@ class SegmentEditorIdentifyIslandsEffect(AbstractScriptedSegmentEditorIslandEffe
 
     displayNode.SetSegmentVisibility(selectedSegmentID, False)
 
-    # Note: no need to call apply, as the edited labelmap did not change
+    # Note: no need to call apply, as the modifier labelmap did not change

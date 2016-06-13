@@ -238,18 +238,18 @@ class DrawPipeline:
     #TODO:
     # self.logic.undoRedo = self.undoRedo
 
-    # Get edited labelmap
+    # Get modifier labelmap
     import vtkSegmentationCorePython as vtkSegmentationCore
-    editedLabelmap = self.scriptedEffect.editedLabelmap()
+    modifierLabelmap = self.scriptedEffect.modifierLabelmap()
 
-    # Apply poly data on edited labelmap
-    self.scriptedEffect.appendPolyMask(editedLabelmap, self.polyData, self.sliceWidget)
+    # Apply poly data on modifier labelmap
+    self.scriptedEffect.appendPolyMask(modifierLabelmap, self.polyData, self.sliceWidget)
     self.resetPolyData()
 
     # Notify editor about changes.
     # This needs to be called so that the changes are written back to the edited segment
-    self.scriptedEffect.setEditedLabelmapApplyModeToAdd()
-    self.scriptedEffect.setEditedLabelmapApplyExtentToWholeExtent() # TODO: reduce
+    self.scriptedEffect.setModifierLabelmapApplyModeToAdd()
+    self.scriptedEffect.setModifierLabelmapApplyExtentToWholeExtent() # TODO: reduce
     self.scriptedEffect.apply()
 
   def resetPolyData(self):

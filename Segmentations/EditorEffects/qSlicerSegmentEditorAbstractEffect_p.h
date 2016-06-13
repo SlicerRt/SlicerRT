@@ -91,9 +91,9 @@ public:
 
   /// Active labelmap for editing. Mainly needed because the segment binary labelmaps are shrunk
   /// to the smallest possible extent, but the user wants to draw on the whole master volume.
-  vtkWeakPointer<vtkOrientedImageData> EditedLabelmap;
-  int EditedLabelmapApplyMode;
-  int EditedLabelmapApplyExtent[6];
+  vtkWeakPointer<vtkOrientedImageData> ModifierLabelmap;
+  int ModifierLabelmapApplyMode;
+  int ModifierLabelmapApplyExtent[6];
 
   /// Mask labelmap containing a merged silhouette of all the segments other than the selected one.
   /// Used if the paint over feature is turned off.

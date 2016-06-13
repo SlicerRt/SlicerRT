@@ -131,14 +131,14 @@ public slots:
   /// Set master volume MRML node by its ID
   Q_INVOKABLE void setMasterVolumeNodeID(const QString& nodeID);
 
-  /// Commit changes to selected segment from the temporary padded edited labelmap.
+  /// Commit changes to selected segment from the temporary padded modifier labelmap.
   /// Called when effect sub-classes emit the signal \sa qSlicerSegmentEditorAbstractEffect::apply()
   Q_INVOKABLE void applyChangesToSelectedSegment();
 
   /// Set active effect by name
   Q_INVOKABLE void setActiveEffectByName(QString effectName);
 
-  /// Update editedLabelmap, maskLabelmap, or alignedMasterVolumeNode
+  /// Update modifierLabelmap, maskLabelmap, or alignedMasterVolumeNode
   Q_INVOKABLE void updateVolume(void*);
 
   /// Show/hide the segmentation node selector widget.

@@ -52,8 +52,8 @@ class SegmentEditorLevelTracingEffect(AbstractScriptedSegmentEditorLabelEffect):
       return abortEvent
 
     if eventId == vtk.vtkCommand.LeftButtonPressEvent:
-      self.scriptedEffect.setEditedLabelmapApplyModeToAdd()
-      self.scriptedEffect.setEditedLabelmapApplyExtentToWholeExtent() # TODO: reduce
+      self.scriptedEffect.setModifierLabelmapApplyModeToAdd()
+      self.scriptedEffect.setModifierLabelmapApplyExtentToWholeExtent() # TODO: reduce
       pipeline.apply()
       abortEvent = True
     elif eventId == vtk.vtkCommand.MouseMoveEvent:
@@ -177,12 +177,12 @@ class LevelTracingPipeline:
     #TODO:
     # self.logic.undoRedo = self.undoRedo
 
-    # Get edited labelmap
+    # Get modifier labelmap
     import vtkSegmentationCorePython as vtkSegmentationCore
-    editedLabelmap = self.effect.scriptedEffect.editedLabelmap()
+    modifierLabelmap = self.effect.scriptedEffect.modifierLabelmap()
 
-    # Apply poly data on edited labelmap
-    self.effect.scriptedEffect.appendPolyMask(editedLabelmap, self.polyData, self.sliceWidget)
+    # Apply poly data on modifier labelmap
+    self.effect.scriptedEffect.appendPolyMask(modifierLabelmap, self.polyData, self.sliceWidget)
 
     # Notify editor about changes.
     # This needs to be called so that the changes are written back to the edited segment

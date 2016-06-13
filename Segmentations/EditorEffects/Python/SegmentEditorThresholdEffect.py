@@ -96,7 +96,7 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     # Turn off effect-specific cursor for this effect
     return slicer.util.mainWindow().cursor
 
-  def editedLabelmapChanged(self):
+  def modifierLabelmapChanged(self):
     pass # For the sake of example
 
   def masterVolumeNodeChanged(self):
@@ -149,11 +149,11 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
       # Get master volume image data
       import vtkSegmentationCorePython as vtkSegmentationCore
       masterImageData = self.scriptedEffect.masterVolumeImageData()
-      # Get edited labelmap
-      editedLabelmap = self.scriptedEffect.editedLabelmap()
+      # Get modifier labelmap
+      modifierLabelmap = self.scriptedEffect.modifierLabelmap()
       originalImageToWorldMatrix = vtk.vtkMatrix4x4()
-      editedLabelmap.GetImageToWorldMatrix(originalImageToWorldMatrix)
-      originalExtent = editedLabelmap.GetExtent()
+      modifierLabelmap.GetImageToWorldMatrix(originalImageToWorldMatrix)
+      originalExtent = modifierLabelmap.GetExtent()
       # Get parameters
       min = self.scriptedEffect.doubleParameter("MinimumThreshold")
       max = self.scriptedEffect.doubleParameter("MaximumThreshold")
@@ -168,17 +168,17 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
       thresh.ThresholdBetween(min, max)
       thresh.SetInValue(1)
       thresh.SetOutValue(0)
-      thresh.SetOutputScalarType(editedLabelmap.GetScalarType())
+      thresh.SetOutputScalarType(modifierLabelmap.GetScalarType())
       thresh.Update()
-      editedLabelmap.DeepCopy(thresh.GetOutput())
+      modifierLabelmap.DeepCopy(thresh.GetOutput())
     except IndexError:
       logging.error('apply: Failed to threshold master volume!')
       pass
 
     # Notify editor about changes.
     # This needs to be called so that the changes are written back to the edited segment
-    self.scriptedEffect.setEditedLabelmapApplyModeToSet()
-    self.scriptedEffect.setEditedLabelmapApplyExtentToWholeExtent()
+    self.scriptedEffect.setModifierLabelmapApplyModeToSet()
+    self.scriptedEffect.setModifierLabelmapApplyExtentToWholeExtent()
     self.scriptedEffect.apply()
     
     # De-select effect

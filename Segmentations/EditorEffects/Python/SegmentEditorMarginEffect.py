@@ -93,8 +93,8 @@ class SegmentEditorMarginEffect(AbstractScriptedSegmentEditorEffect):
 
   def onApply(self):
 
-    # Get edited labelmap and parameters
-    editedLabelmap = self.scriptedEffect.editedLabelmap()
+    # Get modifier labelmap and parameters
+    modifierLabelmap = self.scriptedEffect.modifierLabelmap()
     selectedSegmentLabelmap = self.scriptedEffect.selectedSegmentLabelmap()
 
     marginSizeMm = self.scriptedEffect.doubleParameter("MarginSizeMm")
@@ -122,10 +122,10 @@ class SegmentEditorMarginEffect(AbstractScriptedSegmentEditorEffect):
       erodeDilate.SetErodeValue(labelValue)
     erodeDilate.SetKernelSize(kernelSizePixel[0],kernelSizePixel[1],kernelSizePixel[2])
     erodeDilate.Update()
-    editedLabelmap.DeepCopy(erodeDilate.GetOutput())
+    modifierLabelmap.DeepCopy(erodeDilate.GetOutput())
 
     # Notify editor about changes.
     # This needs to be called so that the changes are written back to the edited segment
-    self.scriptedEffect.setEditedLabelmapApplyModeToSet()
-    self.scriptedEffect.setEditedLabelmapApplyExtentToWholeExtent()
+    self.scriptedEffect.setModifierLabelmapApplyModeToSet()
+    self.scriptedEffect.setModifierLabelmapApplyExtentToWholeExtent()
     self.scriptedEffect.apply()

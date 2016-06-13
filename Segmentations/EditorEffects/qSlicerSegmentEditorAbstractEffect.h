@@ -94,13 +94,13 @@ public:
   /// Returns true if the effect is currently active (activated and has not deactivated since then)
   Q_INVOKABLE virtual bool active();
   
-  /// Perform actions needed before the edited labelmap is applied back to the segment.
+  /// Perform actions needed before the modifier labelmap is applied back to the segment.
   /// NOTE: The default implementation only emits the signal. If the child classes override this function,
   /// they must call apply from the base class too, AFTER the effect-specific implementation
   Q_INVOKABLE virtual void apply();
 
-  /// Clears edited labelmap contents (fills with empty value and sets extent to invalid)
-  Q_INVOKABLE virtual void clearEditedLabelmap();
+  /// Clears modifier labelmap contents (fills with empty value and sets extent to invalid)
+  Q_INVOKABLE virtual void clearModifierLabelmap();
 
   /// Apply mask image on an input image
   /// \param input Input image to apply the mask on
@@ -134,9 +134,9 @@ public:
   /// NOTE: Base class implementation needs to be called with the effect-specific implementation
   virtual void setMRMLDefaults() = 0;
 
-  /// Simple mechanism to let the effects know that edited labelmap geometry has changed
+  /// Simple mechanism to let the effects know that modifier labelmap geometry has changed
   /// NOTE: Base class implementation needs to be called with the effect-specific implementation
-  virtual void editedLabelmapChanged() { };
+  virtual void modifierLabelmapChanged() { };
   /// Simple mechanism to let the effects know that master volume has changed
   /// NOTE: Base class implementation needs to be called with the effect-specific implementation
   virtual void masterVolumeNodeChanged() { };
@@ -212,13 +212,13 @@ public:
   Q_INVOKABLE void selectEffect(QString effectName);
 
   /// Connect callback signals. Callbacks are called by the editor effect to request operations from the editor widget.
-  /// applySlot: called when the edited labelmap is to be applied to the currently edited segment.
+  /// applySlot: called when the modifier labelmap is to be applied to the currently edited segment.
   /// selectEffectSlot: called from the active effect to initiate switching to another effect (or de-select).
-  /// updateVolumeSlot: called to request update of a volume (editedLabelmap, alignedMasterVolume, maskLabelmap).
+  /// updateVolumeSlot: called to request update of a volume (modifierLabelmap, alignedMasterVolume, maskLabelmap).
   void setCallbackSlots(QObject* receiver, const char* applySlot, const char* selectEffectSlot, const char* updateVolumeSlot);
 
   /// Called by the editor widget.
-  void setVolumes(vtkOrientedImageData* alignedMasterVolume, vtkOrientedImageData* editedLabelmap,
+  void setVolumes(vtkOrientedImageData* alignedMasterVolume, vtkOrientedImageData* modifierLabelmap,
     vtkOrientedImageData* maskLabelmap, vtkOrientedImageData* selectedSegmentLabelmap);
 
 // Effect parameter functions
@@ -260,18 +260,18 @@ public:
 
 // Utility functions
 public:
-  Q_INVOKABLE vtkOrientedImageData* editedLabelmap();
+  Q_INVOKABLE vtkOrientedImageData* modifierLabelmap();
 
   Q_INVOKABLE vtkOrientedImageData* maskLabelmap();
 
   Q_INVOKABLE vtkOrientedImageData* selectedSegmentLabelmap();
 
 
-  /// Get image data of master volume aligned with the edited labelmap.
+  /// Get image data of master volume aligned with the modifier labelmap.
   /// \return Pointer to the image data
   Q_INVOKABLE vtkOrientedImageData* masterVolumeImageData();
 
-  /// Modes for updating a segment with the contents of the current edited labelmap
+  /// Modes for updating a segment with the contents of the current modifier labelmap
   enum
   {
     APPLY_MODE_SET = 0,
@@ -279,17 +279,17 @@ public:
     APPLY_MODE_REMOVE
   };
 
-  Q_INVOKABLE int editedLabelmapApplyMode();
-  Q_INVOKABLE void setEditedLabelmapApplyMode(int applyMode);
-  Q_INVOKABLE void setEditedLabelmapApplyModeToSet();
-  Q_INVOKABLE void setEditedLabelmapApplyModeToAdd();
-  Q_INVOKABLE void setEditedLabelmapApplyModeToRemove();
+  Q_INVOKABLE int modifierLabelmapApplyMode();
+  Q_INVOKABLE void setModifierLabelmapApplyMode(int applyMode);
+  Q_INVOKABLE void setModifierLabelmapApplyModeToSet();
+  Q_INVOKABLE void setModifierLabelmapApplyModeToAdd();
+  Q_INVOKABLE void setModifierLabelmapApplyModeToRemove();
 
-  Q_INVOKABLE void setEditedLabelmapApplyExtent(int extent[6]);
-  Q_INVOKABLE void setEditedLabelmapApplyExtent(int xStart, int xEnd, int yStart, int yEnd, int zStart, int zEnd);
-  Q_INVOKABLE void setEditedLabelmapApplyExtentToWholeExtent();
-  Q_INVOKABLE void editedLabelmapApplyExtent(int extent[6])const;
-  Q_INVOKABLE int* editedLabelmapApplyExtent();
+  Q_INVOKABLE void setModifierLabelmapApplyExtent(int extent[6]);
+  Q_INVOKABLE void setModifierLabelmapApplyExtent(int xStart, int xEnd, int yStart, int yEnd, int zStart, int zEnd);
+  Q_INVOKABLE void setModifierLabelmapApplyExtentToWholeExtent();
+  Q_INVOKABLE void modifierLabelmapApplyExtent(int extent[6])const;
+  Q_INVOKABLE int* modifierLabelmapApplyExtent();
 
   /// Get render window for view widget
   Q_INVOKABLE static vtkRenderWindow* renderWindow(qMRMLWidget* viewWidget);
@@ -333,7 +333,7 @@ protected:
 
   /// Flag indicating whether effect operates on individual segments (true) or the whole segmentation (false).
   /// If the selected effect works on whole segmentation, selection of the segments does not trigger creation
-  /// of edited labelmap, but it is set to empty in the parameter set node.
+  /// of modifier labelmap, but it is set to empty in the parameter set node.
   /// True by default.
   bool m_PerSegment;
 
