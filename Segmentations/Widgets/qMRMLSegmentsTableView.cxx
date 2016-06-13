@@ -78,9 +78,6 @@ public:
   /// Model or labelmap volume MRML node containing a representation (for import/export)
   vtkWeakPointer<vtkMRMLDisplayableNode> RepresentationNode;
 
-  /// Mode of segment table. See modes \sa SegmentTableMode
-  qMRMLSegmentsTableView::SegmentTableMode Mode;
-
   QIcon VisibleIcon;
   QIcon InvisibleIcon;
 
@@ -189,7 +186,6 @@ qMRMLSegmentsTableView::qMRMLSegmentsTableView(QWidget* _parent)
 {
   Q_D(qMRMLSegmentsTableView);
   d->init();
-  this->setMode(VisibilityOptionsMode);
   this->populateSegmentTable();
 }
 
@@ -282,65 +278,10 @@ vtkMRMLNode* qMRMLSegmentsTableView::representationNode()
 }
 
 //-----------------------------------------------------------------------------
-int qMRMLSegmentsTableView::mode()const
-{
-  Q_D(const qMRMLSegmentsTableView);
-
-  return (int)d->Mode;
-}
-
-//-----------------------------------------------------------------------------
-void qMRMLSegmentsTableView::setMode(SegmentTableMode mode)
+QTableWidget* qMRMLSegmentsTableView::tableWidget()
 {
   Q_D(qMRMLSegmentsTableView);
-
-  if (mode == VisibilityOptionsMode)
-    {
-    d->SegmentsTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
-
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), false);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), false);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), false);
-    }
-  else if (mode == SimpleListMode)
-    {
-    d->SegmentsTable->horizontalHeader()->setVisible(false);
-    d->SegmentsTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
-
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), true);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), true);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), true);
-    }
-  else if (mode == RepresentationMode)
-    {
-    d->SegmentsTable->horizontalHeader()->setVisible(false);
-    d->SegmentsTable->setSelectionMode(QAbstractItemView::NoSelection);
-
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), true);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), true);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), true);
-    }
-  else if (mode == EditorMode)
-    {
-    d->SegmentsTable->horizontalHeader()->setVisible(true);
-    d->SegmentsTable->setSelectionMode(QAbstractItemView::SingleSelection);
-
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), false);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), false);
-    d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), true);
-    }
-  else
-    {
-    qWarning() << Q_FUNC_INFO << ": Invalid mode";
-    }
-
-  d->Mode = mode;
-}
-
-//-----------------------------------------------------------------------------
-void qMRMLSegmentsTableView::setMode(int mode)
-{
-  this->setMode((SegmentTableMode)mode);
+  return d->SegmentsTable;
 }
 
 //-----------------------------------------------------------------------------
@@ -359,13 +300,6 @@ void qMRMLSegmentsTableView::populateSegmentTable()
   // Show node name and type if representation node
   if (d->RepresentationNode)
     {
-    // Force simple list mode
-    if (d->Mode != RepresentationMode)
-      {
-      qWarning() << Q_FUNC_INFO << ": Representation node is selected, but mode is not representation mode! Setting to representation mode.";
-      this->setMode(RepresentationMode);
-      }
-
     d->SegmentsTable->setRowCount(1);
     d->SegmentsTable->setRowHeight(0, 52);
 
@@ -494,9 +428,9 @@ void qMRMLSegmentsTableView::updateWidgetFromMRML()
 {
   Q_D(qMRMLSegmentsTableView);
 
-  if (d->Mode == RepresentationMode)
+  if (d->RepresentationNode!=NULL)
     {
-    qCritical() << Q_FUNC_INFO << ": This function must not be called in representation mode!";
+    qCritical() << Q_FUNC_INFO << ": This function must not be called in representation mode";
     return;
     }
   if ( !d->SegmentationNode
@@ -896,4 +830,74 @@ bool qMRMLSegmentsTableView::eventFilter(QObject* target, QEvent* event)
 void qMRMLSegmentsTableView::endProcessing()
 {
   this->populateSegmentTable();
+}
+
+// --------------------------------------------------------------------------
+void qMRMLSegmentsTableView::setSelectionMode(int mode)
+{
+  Q_D(qMRMLSegmentsTableView);
+  d->SegmentsTable->setSelectionMode(static_cast<QAbstractItemView::SelectionMode>(mode));
+}
+
+// --------------------------------------------------------------------------
+void qMRMLSegmentsTableView::setHeaderVisible(bool visible)
+{
+  Q_D(qMRMLSegmentsTableView);
+  d->SegmentsTable->horizontalHeader()->setVisible(visible);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLSegmentsTableView::setVisibilityColumnVisible(bool visible)
+{
+  Q_D(qMRMLSegmentsTableView);
+  d->SegmentsTable->setColumnHidden(d->columnIndex("Visible"), !visible);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLSegmentsTableView::setColorColumnVisible(bool visible)
+{
+  Q_D(qMRMLSegmentsTableView);
+  d->SegmentsTable->setColumnHidden(d->columnIndex("Color"), !visible);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLSegmentsTableView::setOpacityColumnVisible(bool visible)
+{
+  Q_D(qMRMLSegmentsTableView);
+  d->SegmentsTable->setColumnHidden(d->columnIndex("Opacity"), !visible);
+}
+
+// --------------------------------------------------------------------------
+int qMRMLSegmentsTableView::selectionMode()
+{
+  Q_D(qMRMLSegmentsTableView);
+  return d->SegmentsTable->selectionMode();
+}
+
+// --------------------------------------------------------------------------
+bool qMRMLSegmentsTableView::headerVisible()
+{
+  Q_D(qMRMLSegmentsTableView);
+  return d->SegmentsTable->horizontalHeader()->isVisible();
+}
+
+// --------------------------------------------------------------------------
+bool qMRMLSegmentsTableView::visibilityColumnVisible()
+{
+  Q_D(qMRMLSegmentsTableView);
+  return !d->SegmentsTable->isColumnHidden(d->columnIndex("Visible"));
+}
+
+// --------------------------------------------------------------------------
+bool qMRMLSegmentsTableView::colorColumnVisible()
+{
+  Q_D(qMRMLSegmentsTableView);
+  return !d->SegmentsTable->isColumnHidden(d->columnIndex("Color"));
+}
+
+// --------------------------------------------------------------------------
+bool qMRMLSegmentsTableView::opacityColumnVisible()
+{
+  Q_D(qMRMLSegmentsTableView);
+  return !d->SegmentsTable->isColumnHidden(d->columnIndex("Opacity"));
 }

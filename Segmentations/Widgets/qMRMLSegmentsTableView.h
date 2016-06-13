@@ -35,6 +35,7 @@
 
 class vtkMRMLNode;
 class qMRMLSegmentsTableViewPrivate;
+class QTableWidget;
 class QTableWidgetItem;
 class QItemSelection;
 
@@ -54,21 +55,12 @@ class Q_SLICER_MODULE_SEGMENTATIONS_WIDGETS_EXPORT qMRMLSegmentsTableView : publ
     };
 
 public:
-  enum SegmentTableMode
-    {
-    /// Show visibility options and allow multiple selections
-    VisibilityOptionsMode = 0,
-    /// Only show name and allow multiple selection, no header is visible
-    SimpleListMode,
-    /// Only show name, do not allow selection, no header is visible
-    RepresentationMode,
-    /// Show name and color, allow single selection
-    EditorMode
-    };
+  Q_PROPERTY(int selectionMode READ selectionMode WRITE setSelectionMode)
+  Q_PROPERTY(bool headerVisible READ headerVisible WRITE setHeaderVisible)
+  Q_PROPERTY(bool visibilityColumnVisible READ visibilityColumnVisible WRITE setVisibilityColumnVisible)
+  Q_PROPERTY(bool colorColumnVisible READ colorColumnVisible WRITE setColorColumnVisible)
+  Q_PROPERTY(bool opacityColumnVisible READ opacityColumnVisible WRITE setOpacityColumnVisible)
 
-  Q_PROPERTY(int mode READ mode WRITE setMode)
-
-public:
   typedef qMRMLWidget Superclass;
   /// Constructor
   explicit qMRMLSegmentsTableView(QWidget* parent = 0);
@@ -76,24 +68,16 @@ public:
   virtual ~qMRMLSegmentsTableView();
 
   /// Get segmentation MRML node
-  vtkMRMLNode* segmentationNode();
+  Q_INVOKABLE vtkMRMLNode* segmentationNode();
 
   /// Get representation MRML node (model or labelmap volume MRML node for import/export)
-  vtkMRMLNode* representationNode();
+  Q_INVOKABLE vtkMRMLNode* representationNode();
+
+  /// Get access to the table widget to allow low-level customization
+  Q_INVOKABLE QTableWidget* tableWidget();
 
   /// Return number of segments (rows) in the table
   int segmentCount() const;
-
-  /// Get mode
-  int mode()const;
-  /// Set mode of segment table. There are two modes:
-  /// 1. VisibilityOptionsMode: Not selectable table with visibility options
-  /// 2. SelectableSimpleListMode: Selectable list with only segment names, no header is visible
-  /// 3. RepresentationMode: Not selectable list with only names, no header is visible
-  /// 4. EditorMode: Table with single selection, showing name and color
-  void setMode(SegmentTableMode mode);
-  /// Set segment table mode. Python compatibility function.
-  void setMode(int mode);
 
   /// Get segment ID of selected segments
   Q_INVOKABLE QStringList selectedSegmentIDs();
@@ -102,14 +86,32 @@ public:
   /// Clear segment selection
   Q_INVOKABLE void clearSelection();
 
+  int selectionMode();
+  bool headerVisible();
+  bool visibilityColumnVisible();
+  bool colorColumnVisible();
+  bool opacityColumnVisible();
+
 public slots:
   /// Set segmentation MRML node
   void setSegmentationNode(vtkMRMLNode* node);
 
   /// Set representation MRML node (model or labelmap volume MRML node for import/export)
+  /// If representation node is set then instead of showing segments, a single node is displayed in the table.
+  /// It allows using the same widget for selecting source/target segment or MRML node.
   void setRepresentationNode(vtkMRMLNode* node);
 
   virtual void setMRMLScene(vtkMRMLScene* newScene);
+
+  /// Set selection modein the table. Input value is int for Python compatibility. Actual values are
+  /// defined in QAbstractItemView::SelectionMode. For example, QAbstractItemView::NoSelection,
+  /// QAbstractItemView::SingleSelection, QAbstractItemView::ExtendedSelection.
+  void setSelectionMode(int mode);
+
+  void setHeaderVisible(bool visible);
+  void setVisibilityColumnVisible(bool visible);
+  void setColorColumnVisible(bool visible);
+  void setOpacityColumnVisible(bool visible);
 
 signals:
   /// Emitted if selection changes

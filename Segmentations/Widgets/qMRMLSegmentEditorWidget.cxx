@@ -295,7 +295,11 @@ void qMRMLSegmentEditorWidgetPrivate::init()
   QObject::connect( this->OverwriteModeComboBox, SIGNAL(currentIndexChanged(int)), q, SLOT(onOverwriteModeChanged(int)));
 
   // Widget properties
-  this->SegmentsTableView->setMode(qMRMLSegmentsTableView::EditorMode);
+  this->SegmentsTableView->setSelectionMode(QAbstractItemView::SingleSelection);
+  this->SegmentsTableView->setHeaderVisible(true);
+  this->SegmentsTableView->setVisibilityColumnVisible(true);
+  this->SegmentsTableView->setColorColumnVisible(true);
+  this->SegmentsTableView->setOpacityColumnVisible(false);
   this->AddSegmentButton->setEnabled(false);
   this->RemoveSegmentButton->setEnabled(false);
   this->CreateSurfaceButton->setEnabled(false);
@@ -727,10 +731,10 @@ void qMRMLSegmentEditorWidgetPrivate::updateMaskLabelmap()
 
     vtkSmartPointer<vtkImageThreshold> threshold = vtkSmartPointer<vtkImageThreshold>::New();
     threshold->SetInputData(maskImage);
-    threshold->SetInValue(paintInsideSegments ? 0 : 255);
-    threshold->SetOutValue(paintInsideSegments ? 255 : 0);
+    threshold->SetInValue(paintInsideSegments ? 1 : 0);
+    threshold->SetOutValue(paintInsideSegments ? 0 : 1);
     threshold->ReplaceInOn();
-    threshold->ThresholdByUpper(1);
+    threshold->ThresholdByLower(0);
     threshold->SetOutputScalarType(VTK_UNSIGNED_CHAR);
     threshold->Update();
 

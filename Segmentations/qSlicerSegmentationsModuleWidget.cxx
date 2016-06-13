@@ -423,8 +423,17 @@ void qSlicerSegmentationsModuleWidget::init()
     this, SLOT(onMoveToCurrentSegmentation()) );
 
   // Show only segment names in copy/view segment list and make it non-editable
-  d->SegmentsTableView_Current->setMode(qMRMLSegmentsTableView::SimpleListMode);
-  d->SegmentsTableView_Other->setMode(qMRMLSegmentsTableView::SimpleListMode);
+  d->SegmentsTableView_Current->setSelectionMode(QAbstractItemView::SingleSelection);
+  d->SegmentsTableView_Current->setHeaderVisible(false);
+  d->SegmentsTableView_Current->setVisibilityColumnVisible(false);
+  d->SegmentsTableView_Current->setColorColumnVisible(false);
+  d->SegmentsTableView_Current->setOpacityColumnVisible(false);
+
+  d->SegmentsTableView_Other->setSelectionMode(QAbstractItemView::SingleSelection);
+  d->SegmentsTableView_Other->setHeaderVisible(false);
+  d->SegmentsTableView_Other->setVisibilityColumnVisible(false);
+  d->SegmentsTableView_Other->setColorColumnVisible(false);
+  d->SegmentsTableView_Other->setOpacityColumnVisible(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -569,12 +578,10 @@ void qSlicerSegmentationsModuleWidget::setOtherSegmentationOrRepresentationNode(
 
   if (segmentationNode)
   {
-    d->SegmentsTableView_Other->setMode(qMRMLSegmentsTableView::SimpleListMode);
     d->SegmentsTableView_Other->setSegmentationNode(node);
   }
   else if (labelmapNode || modelNode)
   {
-    d->SegmentsTableView_Other->setMode(qMRMLSegmentsTableView::RepresentationMode);
     d->SegmentsTableView_Other->setRepresentationNode(node);
   }
   else

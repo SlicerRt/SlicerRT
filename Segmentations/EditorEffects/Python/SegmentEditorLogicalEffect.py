@@ -30,7 +30,7 @@ class SegmentEditorLogicalEffect(AbstractScriptedSegmentEditorEffect):
     return "Apply logical operators on a segment or combine it with other segments."
 
   def setupOptionsFrame(self):
-    
+
     self.methodSelectorComboBox = qt.QComboBox()
     self.methodSelectorComboBox.addItem("Copy from segment", LOGICAL_COPY)
     self.methodSelectorComboBox.addItem("Union with segment", LOGICAL_UNION)
@@ -48,14 +48,19 @@ class SegmentEditorLogicalEffect(AbstractScriptedSegmentEditorEffect):
       '<li><b>Invert:</b> clears selected segment.</li>'
       '<li><b>Invert:</b> completely fills selected segment.</li>')
     self.scriptedEffect.addLabeledOptionsWidget("Operation:", self.methodSelectorComboBox)
-    
+
     self.modifierSegmentSelectorLabel = qt.QLabel("Modifier segment:")
     self.scriptedEffect.addOptionsWidget(self.modifierSegmentSelectorLabel)
-    
-    self.modifierSegmentSelectorComboBox = slicer.qMRMLSegmentsTableView()
-    self.modifierSegmentSelectorComboBox.setMRMLScene(slicer.mrmlScene)
-    self.modifierSegmentSelectorComboBox.setToolTip('Contents of this segment will be used for modifying the selected segment. This segment itself will not be changed.')
-    self.scriptedEffect.addOptionsWidget(self.modifierSegmentSelectorComboBox)
+
+    self.modifierSegmentSelector = slicer.qMRMLSegmentsTableView()
+    self.modifierSegmentSelector.selectionMode = qt.QAbstractItemView.SingleSelection
+    self.modifierSegmentSelector.headerVisible = False
+    self.modifierSegmentSelector.visibilityColumnVisible = False
+    self.modifierSegmentSelector.opacityColumnVisible = False
+
+    self.modifierSegmentSelector.setMRMLScene(slicer.mrmlScene)
+    self.modifierSegmentSelector.setToolTip('Contents of this segment will be used for modifying the selected segment. This segment itself will not be changed.')
+    self.scriptedEffect.addOptionsWidget(self.modifierSegmentSelector)
 
     self.applyButton = qt.QPushButton("Apply")
     self.applyButton.objectName = self.__class__.__name__ + 'Apply'
@@ -64,9 +69,7 @@ class SegmentEditorLogicalEffect(AbstractScriptedSegmentEditorEffect):
 
     self.applyButton.connect('clicked()', self.onApply)
     self.methodSelectorComboBox.connect("currentIndexChanged(int)", self.updateMRMLFromGUI)
-    
-    self.applyButton.setToolTip("This effect has not been implemented yet.")
-    self.applyButton.setEnabled(False)
+    self.modifierSegmentSelector.connect("selectionChanged(QItemSelection, QItemSelection)", self.updateMRMLFromGUI)
 
   def createCursor(self, widget):
     # Turn off effect-specific cursor for this effect
@@ -74,11 +77,11 @@ class SegmentEditorLogicalEffect(AbstractScriptedSegmentEditorEffect):
 
   def setMRMLDefaults(self):
     self.scriptedEffect.setParameter("Operation", LOGICAL_COPY)
-    
+
   def activate(self):
     # TODO: is this needed? probably it should be called for all effects on activation
     self.updateGUIFromMRML()
-    
+
   def updateGUIFromMRML(self):
     operation = self.scriptedEffect.parameter("Operation")
     operationIndex = self.methodSelectorComboBox.findData(operation)
@@ -88,53 +91,52 @@ class SegmentEditorLogicalEffect(AbstractScriptedSegmentEditorEffect):
 
     modifierSegmentRequired = (operation == LOGICAL_COPY or operation == LOGICAL_UNION or operation == LOGICAL_INTERSECTION or operation == LOGICAL_SUBTRACT)
     self.modifierSegmentSelectorLabel.setVisible(modifierSegmentRequired)
-    self.modifierSegmentSelectorComboBox.setVisible(modifierSegmentRequired)
-    
+    self.modifierSegmentSelector.setVisible(modifierSegmentRequired)
+
     segmentationNode = self.scriptedEffect.parameterSetNode().GetSegmentationNode()
-    self.modifierSegmentSelectorComboBox.setSegmentationNode(segmentationNode)    
+    selectedSegmentIDs = self.scriptedEffect.parameter("SelectedSegmentID").split(';')
+    wasBlocked = self.modifierSegmentSelector.blockSignals(True)
+    self.modifierSegmentSelector.setSegmentationNode(segmentationNode)
+    self.modifierSegmentSelector.setSelectedSegmentIDs(selectedSegmentIDs)
+    self.modifierSegmentSelector.blockSignals(wasBlocked)
 
   def updateMRMLFromGUI(self):
     operationIndex = self.methodSelectorComboBox.currentIndex
     operation = self.methodSelectorComboBox.itemData(operationIndex)
     self.scriptedEffect.setParameter("Operation", operation)
-    
+
+    selectedSegmentIDs = ';'.join(self.modifierSegmentSelector.selectedSegmentIDs()) # semicolon-separated list of segment IDs
+    self.scriptedEffect.setParameter("SelectedSegmentID", selectedSegmentIDs)
+
   def onApply(self):
 
-      # Get edited labelmap and parameters
+    import vtkSegmentationCorePython as vtkSegmentationCore
+
+    # Get edited labelmap and parameters
     editedLabelmap = self.scriptedEffect.editedLabelmap()
     selectedSegmentLabelmap = self.scriptedEffect.selectedSegmentLabelmap()
 
-    marginSizeMm = self.scriptedEffect.doubleParameter("MarginSizeMm")
-    kernelSizePixel = self.getKernelSizePixel()
+    operation = self.scriptedEffect.parameter("Operation")
 
-    # We need to know exactly the value of the segment voxels, apply threshold to make force the selected label value
-    labelValue = 1
-    backgroundValue = 0
-    thresh = vtk.vtkImageThreshold()
-    thresh.SetInputData(selectedSegmentLabelmap)
-    thresh.ThresholdByLower(0)
-    thresh.SetInValue(backgroundValue)
-    thresh.SetOutValue(labelValue)
-    thresh.SetOutputScalarType(selectedSegmentLabelmap.GetScalarType())
+    # Get modifier segment
+    segmentationNode = self.scriptedEffect.parameterSetNode().GetSegmentationNode()
+    segmentation = segmentationNode.GetSegmentation()
+    selectedSegmentIDs = self.scriptedEffect.parameter("SelectedSegmentID").split(';')
+    modifierSegment = None
+    if selectedSegmentIDs:
+      firstSelectedSegmentID = selectedSegmentIDs[0]
+      modifierSegment = segmentation.GetSegment(firstSelectedSegmentID)
+      modifierSegmentLabelmap = modifierSegment.GetRepresentation(vtkSegmentationCore.vtkSegmentationConverter.GetSegmentationBinaryLabelmapRepresentationName())
 
-    erodeDilate = vtk.vtkImageDilateErode3D()
-    erodeDilate.SetInputConnection(thresh.GetOutputPort())
-    if marginSizeMm>0:
-      # grow
-      erodeDilate.SetDilateValue(labelValue)
-      erodeDilate.SetErodeValue(backgroundValue)
+    if operation == LOGICAL_COPY:
+      editedLabelmap.DeepCopy(modifierSegmentLabelmap)
+      self.scriptedEffect.setEditedLabelmapApplyModeToSet()
+      self.scriptedEffect.setEditedLabelmapApplyExtentToWholeExtent()
     else:
-      # shrink
-      erodeDilate.SetDilateValue(backgroundValue)
-      erodeDilate.SetErodeValue(labelValue)
-    erodeDilate.SetKernelSize(kernelSizePixel[0],kernelSizePixel[1],kernelSizePixel[2])
-    erodeDilate.Update()
-    editedLabelmap.DeepCopy(erodeDilate.GetOutput())
+      return
 
     # Notify editor about changes.
     # This needs to be called so that the changes are written back to the edited segment
-    self.scriptedEffect.setEditedLabelmapApplyModeToSet()
-    self.scriptedEffect.setEditedLabelmapApplyExtentToWholeExtent()
     self.scriptedEffect.apply()
 
 LOGICAL_INVERT = 'INVERT'

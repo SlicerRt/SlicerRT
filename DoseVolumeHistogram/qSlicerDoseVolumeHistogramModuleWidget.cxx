@@ -268,7 +268,11 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
-  d->SegmentsTableView->setMode(qMRMLSegmentsTableView::SimpleListMode);
+  d->SegmentsTableView->setSelectionMode(QAbstractItemView::SingleSelection);
+  d->SegmentsTableView->setHeaderVisible(false);
+  d->SegmentsTableView->setVisibilityColumnVisible(false);
+  d->SegmentsTableView->setColorColumnVisible(false);
+  d->SegmentsTableView->setOpacityColumnVisible(false);
 
   d->MRMLTableView->setSelectionMode(QAbstractItemView::NoSelection);
 
