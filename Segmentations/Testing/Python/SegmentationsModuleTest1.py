@@ -346,9 +346,9 @@ class SegmentationsModuleTest1(unittest.TestCase):
     logging.info('(This error message tests an impossible scenario, it is supposed to appear)')
     # Make labelmap single-label and import again
     threshold = vtk.vtkImageThreshold()
-    threshold.ThresholdByUpper(0.5)
-    threshold.SetInValue(1)
-    threshold.SetOutValue(0)
+    threshold.ThresholdByLower(0)
+    threshold.SetInValue(0)
+    threshold.SetOutValue(1)
     threshold.SetOutputScalarType(vtk.VTK_UNSIGNED_CHAR)
     if vtk.VTK_MAJOR_VERSION <= 5:
       threshold.SetInput(allSegmentsLabelmapNode.GetImageData())

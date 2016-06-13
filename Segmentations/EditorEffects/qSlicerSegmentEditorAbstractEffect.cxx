@@ -224,16 +224,16 @@ void qSlicerSegmentEditorAbstractEffect::applyImageMask(vtkOrientedImageData* in
 {
   if (!input || !mask)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid inputs!";
+    qCritical() << Q_FUNC_INFO << " failed: Invalid inputs";
     return;
   }
 
   // Make sure mask has the same lattice as the edited labelmap
-  /*
-  vtkSmartPointer<vtkOrientedImageData> resampledMask = vtkSmartPointer<vtkOrientedImageData>::New();
-  vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
-    mask, input, resampledMask);
-    */
+  if (!vtkOrientedImageDataResample::DoGeometriesMatch(input, mask))
+  {
+    qCritical() << Q_FUNC_INFO << " failed: input and mask image geometry mismatch";
+    return;
+  }
 
   // Make sure mask has the same extent as the edited labelmap
   vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
@@ -251,7 +251,12 @@ void qSlicerSegmentEditorAbstractEffect::applyImageMask(vtkOrientedImageData* in
   masker->SetNotMask(notMask);
   masker->SetMaskedOutputValue(fillValue);
   masker->Update();
+
+  // Copy masked input to input
+  vtkSmartPointer<vtkMatrix4x4> inputImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  input->GetImageToWorldMatrix(inputImageToWorldMatrix);
   input->DeepCopy(masker->GetOutput());
+  input->SetGeometryFromImageToWorldMatrix(inputImageToWorldMatrix);
 }
 
 

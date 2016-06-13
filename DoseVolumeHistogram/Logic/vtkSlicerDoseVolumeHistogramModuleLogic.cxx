@@ -444,7 +444,12 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   // Create stencil for structure
   vtkNew<vtkImageToImageStencil> stencil;
   stencil->SetInputData(segmentLabelmap);
-  stencil->ThresholdByUpper(0.5); // Thresholds only the labelmap, so the point is to keep the ones bigger than 0
+  // Foreground voxels are all those with an intensity >0.
+  // Unfortunately, vtkImageToImageStencil only have options for < and >= comparison.
+  // So, we have yo choose >=epsilon (epsilon is a very small positive number).
+  // How small the number is has a significance when the segmentLabelmap is a floating-point image,
+  // which is a rare scenario, but may still happen.
+  stencil->ThresholdByUpper(1e-10);
   stencil->Update();
 
   vtkSmartPointer<vtkImageStencilData> structureStencil = vtkSmartPointer<vtkImageStencilData>::New();
