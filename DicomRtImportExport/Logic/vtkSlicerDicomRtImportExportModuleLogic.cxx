@@ -849,8 +849,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     // Attach attributes to plan SH node
     planSHNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(),
       rtReader->GetSeriesInstanceUid());
-    planSHNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str(),
-      rtReader->GetSOPInstanceUID());
     planSHNode->SetName(shSeriesNodeName.c_str());
   }
 
@@ -948,19 +946,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     beamModelHierarchyNode->SetAndObserveDisplayNodeID( beamModelHierarchyDisplayNode->GetID() );
   }
 
-  // Compute and set geometry of possible RT image that references the loaded beams.
-  // Uses the referenced RT image if available, otherwise the geometry will be set up when loading the corresponding RT image
-  vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
-  planNode->GetBeams(beams);
-  if (beams)
-  {
-    for (int i=0; i<beams->GetNumberOfItems(); ++i)
-    {
-      vtkMRMLRTBeamNode *beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
-      this->SetupRtImageGeometry(beamNode);
-    }
-  }
-  
   // Insert plan isocenter series in subject hierarchy
   this->InsertSeriesInSubjectHierarchy(rtReader);
 
@@ -984,6 +969,19 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     planMarkupsSHNode->SetParentNodeID(studyNode->GetID());
   }
 
+  // Compute and set geometry of possible RT image that references the loaded beams.
+  // Uses the referenced RT image if available, otherwise the geometry will be set up when loading the corresponding RT image
+  vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
+  planNode->GetBeams(beams);
+  if (beams)
+  {
+    for (int i=0; i<beams->GetNumberOfItems(); ++i)
+    {
+      vtkMRMLRTBeamNode *beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
+      this->SetupRtImageGeometry(beamNode);
+    }
+  }
+  
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
 
   return true;
@@ -1038,8 +1036,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtImage(vtkSlicerDicomRtReader
 
   // Set RT image specific attributes
   subjectHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
-  subjectHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str(),
-    rtReader->GetRTImageReferencedRTPlanSOPInstanceUID());
   subjectHierarchySeriesNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName().c_str(),
     rtReader->GetRTImageReferencedRTPlanSOPInstanceUID());
 
@@ -1206,7 +1202,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
   vtkMRMLSubjectHierarchyNode* rtImageSubjectHierarchyNode = NULL;
   vtkMRMLSubjectHierarchyNode* beamSHNode = NULL;
 
-  // If the function is called from the LoadRtImage function with an RT image volume
+  // If the function is called from the LoadRtImage function with an RT image volume: find corresponding RT beam
   if (rtImageVolumeNode)
   {
     // Get subject hierarchy node for RT image
@@ -1218,92 +1214,58 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
     }
 
     // Find referenced RT plan node
-    const char* referencedPlanSopInstanceUid = rtImageSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str());
+    const char* referencedPlanSopInstanceUid = rtImageSubjectHierarchyNode->GetAttribute(
+      vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName().c_str() );
     if (!referencedPlanSopInstanceUid)
     {
       vtkErrorMacro("SetupRtImageGeometry: Unable to find referenced plan SOP instance UID for RT image '" << rtImageVolumeNode->GetName() << "'!");
       return;
     }
-    vtkMRMLSubjectHierarchyNode* rtPlanSubjectHierarchyNode = NULL;
-    std::vector<vtkMRMLNode*> subjectHierarchyNodes;
-    unsigned int numberOfNodes = this->GetMRMLScene()->GetNodesByClass("vtkMRMLSubjectHierarchyNode", subjectHierarchyNodes);
-    for (unsigned int shNodeIndex=0; shNodeIndex<numberOfNodes; shNodeIndex++)
-    {
-      vtkMRMLSubjectHierarchyNode* currentShNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(subjectHierarchyNodes[shNodeIndex]);
-      if (currentShNode)
-      {
-        const char* sopInstanceUid = currentShNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str());
-        if (sopInstanceUid && !STRCASECMP(referencedPlanSopInstanceUid, sopInstanceUid))
-        {
-          rtPlanSubjectHierarchyNode = currentShNode;
-        }
-      }
-    }
+    vtkMRMLSubjectHierarchyNode* rtPlanSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
+      this->GetMRMLScene(), vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName(), referencedPlanSopInstanceUid );
     if (!rtPlanSubjectHierarchyNode)
     {
       vtkDebugMacro("SetupRtImageGeometry: Cannot set up geometry of RT image '" << rtImageVolumeNode->GetName()
         << "' without the referenced RT plan. Will be set up upon loading the related plan");
       return;
     }
+    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(rtPlanSubjectHierarchyNode->GetAssociatedNode());
 
-    // Get isocenters contained by the plan
-    std::vector<vtkMRMLHierarchyNode*> beamSHNodes = rtPlanSubjectHierarchyNode->GetChildrenNodes();
+    // Get referenced beam number
+    const char* referencedBeamNumberChars = rtImageSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
+    if (!referencedBeamNumberChars)
+    {
+      vtkErrorMacro("SetupRtImageGeometry: No referenced beam number specified in RT image '" << rtImageVolumeNode->GetName() << "'!");
+      return;
+    }
+    int referencedBeamNumber = vtkVariant(referencedBeamNumberChars).ToInt();
 
-    // Get isocenter according to referenced beam number
-    if (beamSHNodes.size() == 1)
-    {
-      // If there is only one beam in the plan, then we don't need to search in the list
-      beamSHNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*(beamSHNodes.begin()));
-      beamNode = vtkMRMLRTBeamNode::SafeDownCast(beamSHNode->GetAssociatedNode());
-    }
-    else
-    {
-      // Get referenced beam number (string)
-      const char* referencedBeamNumberChars = rtImageSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
-      if (referencedBeamNumberChars)
-      {
-        int referencedBeamNumber = vtkVariant(referencedBeamNumberChars).ToInt();
-        for (std::vector<vtkMRMLHierarchyNode*>::iterator beamSHIt = beamSHNodes.begin(); beamSHIt != beamSHNodes.end(); ++beamSHIt)
-        {
-          beamSHNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(*beamSHIt);
-          beamNode = vtkMRMLRTBeamNode::SafeDownCast(beamSHNode->GetAssociatedNode());
-          if (beamNode->GetBeamNumber() == referencedBeamNumber)
-          {
-            break;
-          }
-        }
-      }
-    }
+    // Get beam according to referenced beam number
+    beamNode = planNode->GetBeamByNumber(referencedBeamNumber);
     if (!beamNode)
     {
       vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve beam node for RT image '" << rtImageVolumeNode->GetName() << "' in RT plan '" << rtPlanSubjectHierarchyNode->GetName() << "'!");
       return;
     }
   }
-  // If the function is called from the LoadRtPlan function with an isocenter
+  // If the function is called from the LoadRtPlan function with a beam: find corresponding RT image
   else if (beamNode)
   {
-    // Get RT plan DICOM UID for isocenter
-    beamSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(beamNode, this->GetMRMLScene());
-    if (!beamSHNode || !beamSHNode->GetParentNode())
-    {
-      vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid subject hierarchy node for beam '" << beamNode->GetName() << "'!");
-      return;
-    }
+    // Get RT plan for beam
     vtkMRMLRTPlanNode *planNode = beamNode->GetParentPlanNode();
     if (!planNode)
     {
       vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid plan node for beam '" << beamNode->GetName() << "'!");
       return;
     }
-    vtkMRMLSubjectHierarchyNode *planSHNode = planNode->GetPlanSubjectHierarchyNode();
-    if (!planSHNode)
+    vtkMRMLSubjectHierarchyNode *planShNode = planNode->GetPlanSubjectHierarchyNode();
+    if (!planShNode)
     {
       vtkErrorMacro("SetupRtImageGeometry: Failed to retrieve valid plan subject hierarchy node for beam '" << beamNode->GetName() << "'!");
       return;
     }
-    const char* rtPlanSopInstanceUid = planSHNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str());
-    if (!rtPlanSopInstanceUid)
+    std::string rtPlanSopInstanceUid = planShNode->GetUID(vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName());
+    if (rtPlanSopInstanceUid.empty())
     {
       vtkErrorMacro("SetupRtImageGeometry: Failed to get RT Plan DICOM UID for beam '" << beamNode->GetName() << "'!");
       return;
@@ -1311,34 +1273,40 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
 
     // Get isocenter beam number
     int beamNumber = beamNode->GetBeamNumber();
-
     // Get number of beams in the plan (if there is only one, then the beam number may nor be correctly referenced, so we cannot find it that way
-    bool oneBeamInPlan = false;
-    if (planSHNode->GetNumberOfChildrenNodes() == 1)
-    {
-      oneBeamInPlan = true;
-    }
+    bool oneBeamInPlan = (planShNode->GetNumberOfChildrenNodes() == 1);
     
     // Find corresponding RT image according to beam (isocenter) UID
-    vtkSmartPointer<vtkCollection> hierarchyNodes = vtkSmartPointer<vtkCollection>::Take(
-      this->GetMRMLScene()->GetNodesByClass("vtkMRMLSubjectHierarchyNode") );
+    vtkSmartPointer<vtkCollection> hierarchyNodes = vtkSmartPointer<vtkCollection>::Take(this->GetMRMLScene()->GetNodesByClass("vtkMRMLSubjectHierarchyNode"));
     vtkObject* nextObject = NULL;
     for (hierarchyNodes->InitTraversal(); (nextObject = hierarchyNodes->GetNextItemAsObject()); )
     {
-      vtkMRMLSubjectHierarchyNode* hierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(nextObject);
-      if (hierarchyNode && hierarchyNode->GetAssociatedNode() && hierarchyNode->GetAssociatedNode()->IsA("vtkMRMLScalarVolumeNode"))
+      vtkMRMLSubjectHierarchyNode* currentShNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(nextObject);
+      bool currentShNodeReferencesPlan = false;
+      if (currentShNode && currentShNode->GetAssociatedNode() && currentShNode->GetAssociatedNode()->IsA("vtkMRMLScalarVolumeNode")
+        && currentShNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
       {
-        // If this volume node has a referenced plan UID and it matches the isocenter UID then this may be the corresponding RT image
-        const char* referencedPlanSopInstanceUid = hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_REFERENCED_PLAN_SOP_INSTANCE_UID_ATTRIBUTE_NAME.c_str());
-        if (referencedPlanSopInstanceUid && !STRCASECMP(referencedPlanSopInstanceUid, rtPlanSopInstanceUid))
+        // If current node is the subject hierarchy node of an RT image, then determine it references the RT plan by DICOM
+        std::vector<vtkMRMLSubjectHierarchyNode*> referencedShNodes = currentShNode->GetSubjectHierarchyNodesReferencedByDICOM();
+        for (std::vector<vtkMRMLSubjectHierarchyNode*>::iterator refIt=referencedShNodes.begin(); refIt!=referencedShNodes.end(); ++refIt)
+        {
+          if ((*refIt) == planShNode)
+          {
+            currentShNodeReferencesPlan = true;
+            break;
+          }
+        }
+
+        // If RT image node references plan node, then it is the corresponding RT image if beam numbers match
+        if (currentShNodeReferencesPlan)
         {
           // Get RT image referenced beam number
-          int referencedBeamNumber = vtkVariant(hierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str())).ToInt();
+          int referencedBeamNumber = vtkVariant(currentShNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str())).ToInt();
           // If the referenced beam number matches the isocenter beam number, or if there is one beam in the plan, then we found the RT image
           if (referencedBeamNumber == beamNumber || oneBeamInPlan)
           {
-            rtImageVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(hierarchyNode->GetAssociatedNode());
-            rtImageSubjectHierarchyNode = hierarchyNode;
+            rtImageVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(currentShNode->GetAssociatedNode());
+            rtImageSubjectHierarchyNode = currentShNode;
             break;
           }
         }

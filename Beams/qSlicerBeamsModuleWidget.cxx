@@ -42,9 +42,6 @@
 // MRML includes
 #include <vtkMRMLScene.h>
 
-// SlicerRT includes
-#include "SlicerRtCommon.h"
-
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_Beams
 class qSlicerBeamsModuleWidgetPrivate: public Ui_qSlicerBeamsModule
@@ -1241,7 +1238,6 @@ void qSlicerBeamsModuleWidget::updateDRRClicked()
 void qSlicerBeamsModuleWidget::collimatorTypeChanged(const QString &text)
 {
   Q_D(qSlicerBeamsModuleWidget);
-  UNUSED_VARIABLE(text);
 
   //TODO:
   qWarning() << Q_FUNC_INFO << ": Not implemented!";

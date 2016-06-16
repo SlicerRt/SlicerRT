@@ -20,7 +20,7 @@
 
 ==============================================================================*/
 
-// SubjectHierarchy plugins includes
+// Segmentations EditorEffects includes
 #include "qSlicerSegmentEditorEffectFactory.h"
 #include "qSlicerSegmentEditorAbstractEffect.h"
 
