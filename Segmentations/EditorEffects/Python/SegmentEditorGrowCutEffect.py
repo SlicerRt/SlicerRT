@@ -85,9 +85,8 @@ Minimum two segments are required. If segments overlap, segment higher in the se
       masterImageData = masterImageDataShort
 
     # Generate merged labelmap as input to GrowCut
-    mergedImage = vtk.vtkImageData()
-    mergedImageToWorldMatrix = vtk.vtkMatrix4x4()
-    segmentationNode.GenerateMergedLabelmapForAllSegments(mergedImage, vtkSegmentationCore.vtkSegmentation.EXTENT_UNION_OF_SEGMENTS, mergedImageToWorldMatrix, masterImageData)
+    mergedImage = vtkSegmentationCore.vtkOrientedImageData()
+    segmentationNode.GenerateMergedLabelmapForAllSegments(mergedImage, vtkSegmentationCore.vtkSegmentation.EXTENT_UNION_OF_SEGMENTS, masterImageData)
 
     # Make a zero-valued volume for the output
     outputLabelmap = vtkSegmentationCore.vtkOrientedImageData()
@@ -103,6 +102,7 @@ Minimum two segments are required. If segments overlap, segment higher in the se
     outputLabelmap.DeepCopy( mergedImage ) #TODO: It was thresholded just above, why deep copy now?
 
     # Perform grow cut
+    import vtkITK
     growCutFilter = vtkITK.vtkITKGrowCutSegmentationImageFilter()
     growCutFilter.SetInputData( 0, masterImageData )
     growCutFilter.SetInputData( 1, mergedImage )
@@ -161,5 +161,5 @@ Minimum two segments are required. If segments overlap, segment higher in the se
       # Write label to segment
       newSegmentLabelmap = vtkSegmentationCore.vtkOrientedImageData()
       newSegmentLabelmap.ShallowCopy(thresh.GetOutput())
-      newSegmentLabelmap.SetGeometryFromImageToWorldMatrix(mergedImageToWorldMatrix)
+      newSegmentLabelmap.CopyDirections(mergedImage)
       slicer.vtkSlicerSegmentationsModuleLogic.SetBinaryLabelmapToSegment(newSegmentLabelmap, segmentationNode, segmentID, slicer.vtkSlicerSegmentationsModuleLogic.MODE_REPLACE, newSegmentLabelmap.GetExtent())
