@@ -346,16 +346,17 @@ class SegmentationsModuleTest1(unittest.TestCase):
     logging.info('(This error message tests an impossible scenario, it is supposed to appear)')
     # Make labelmap single-label and import again
     threshold = vtk.vtkImageThreshold()
-    threshold.ThresholdByLower(0)
     threshold.SetInValue(0)
     threshold.SetOutValue(1)
+    threshold.ReplaceInOn()
+    threshold.ThresholdByLower(0)
     threshold.SetOutputScalarType(vtk.VTK_UNSIGNED_CHAR)
     if vtk.VTK_MAJOR_VERSION <= 5:
       threshold.SetInput(allSegmentsLabelmapNode.GetImageData())
     else:
       threshold.SetInputData(allSegmentsLabelmapNode.GetImageData())
-    threshold.SetOutput(allSegmentsLabelmapNode.GetImageData())
     threshold.Update()
+    allSegmentsLabelmapNode.GetImageData().ShallowCopy(threshold.GetOutput())
     labelSegment = slicer.vtkSlicerSegmentationsModuleLogic.CreateSegmentFromLabelmapVolumeNode(allSegmentsLabelmapNode)
     labelSegment.UnRegister(None) # Need to release ownership
     self.assertIsNotNone(labelSegment)

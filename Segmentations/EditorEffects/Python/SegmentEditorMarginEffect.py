@@ -7,9 +7,6 @@ class SegmentEditorMarginEffect(AbstractScriptedSegmentEditorEffect):
   """ MaringEffect grows or shrinks the segment by a specified margin
   """
 
-  # Necessary static member to be able to set python source to scripted segment editor effect plugin
-  filePath = __file__
-
   def __init__(self, scriptedEffect):
     scriptedEffect.name = 'Margin'
     AbstractScriptedSegmentEditorEffect.__init__(self, scriptedEffect)
@@ -17,7 +14,7 @@ class SegmentEditorMarginEffect(AbstractScriptedSegmentEditorEffect):
   def clone(self):
     import qSlicerSegmentationsEditorEffectsPythonQt as effects
     clonedEffect = effects.qSlicerSegmentEditorScriptedEffect(None)
-    clonedEffect.setPythonSource(SegmentEditorMarginEffect.filePath)
+    clonedEffect.setPythonSource(__file__.replace('\\','/'))
     return clonedEffect
 
   def icon(self):
@@ -94,7 +91,7 @@ class SegmentEditorMarginEffect(AbstractScriptedSegmentEditorEffect):
   def onApply(self):
 
     # Get modifier labelmap and parameters
-    modifierLabelmap = self.scriptedEffect.modifierLabelmap()
+    modifierLabelmap = self.scriptedEffect.defaultModifierLabelmap()
     selectedSegmentLabelmap = self.scriptedEffect.selectedSegmentLabelmap()
 
     marginSizeMm = self.scriptedEffect.doubleParameter("MarginSizeMm")
@@ -120,12 +117,15 @@ class SegmentEditorMarginEffect(AbstractScriptedSegmentEditorEffect):
       # shrink
       erodeDilate.SetDilateValue(backgroundValue)
       erodeDilate.SetErodeValue(labelValue)
+
+    # This can be a long operation - indicate it to the user
+    qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+
     erodeDilate.SetKernelSize(kernelSizePixel[0],kernelSizePixel[1],kernelSizePixel[2])
     erodeDilate.Update()
     modifierLabelmap.DeepCopy(erodeDilate.GetOutput())
 
-    # Notify editor about changes.
-    # This needs to be called so that the changes are written back to the edited segment
-    self.scriptedEffect.setModifierLabelmapApplyModeToSet()
-    self.scriptedEffect.setModifierLabelmapApplyExtentToWholeExtent()
-    self.scriptedEffect.apply()
+    # Apply changes
+    self.scriptedEffect.modifySelectedSegmentByLabelmap(modifierLabelmap, slicer.qSlicerSegmentEditorAbstractEffect.ModificationModeSet)
+
+    qt.QApplication.restoreOverrideCursor()

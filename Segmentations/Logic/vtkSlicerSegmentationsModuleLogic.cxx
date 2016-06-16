@@ -43,6 +43,7 @@
 #include <vtkTrivialProducer.h>
 #include <vtkMatrix4x4.h>
 #include <vtkCallbackCommand.h>
+#include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkImageAccumulate.h>
 #include <vtkImageThreshold.h>
@@ -330,12 +331,12 @@ bool vtkSlicerSegmentationsModuleLogic::CreateLabelmapVolumeFromOrientedImageDat
 {
   if (!orientedImageData)
   {
-    std::cerr << "vtkSlicerSegmentationsModuleLogic::CreateLabelmapVolumeFromOrientedImageData: Invalid input image data!";
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::CreateLabelmapVolumeFromOrientedImageData: Invalid input image data");
     return false;
   }
   if (!labelmapVolumeNode)
   {
-    vtkErrorWithObjectMacro(orientedImageData, "CreateLabelmapVolumeFromOrientedImageData: Invalid labelmap volume node!");
+    vtkErrorWithObjectMacro(orientedImageData, "CreateLabelmapVolumeFromOrientedImageData: Invalid labelmap volume node");
     return false;
   }
 
@@ -375,7 +376,7 @@ vtkOrientedImageData* vtkSlicerSegmentationsModuleLogic::CreateOrientedImageData
 {
   if (!volumeNode || !volumeNode->GetImageData())
   {
-    std::cerr << "vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode: Invalid volume node!";
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode: Invalid volume node");
     return NULL;
   }
 
@@ -403,7 +404,7 @@ int vtkSlicerSegmentationsModuleLogic::DoesLabelmapContainSingleLabel(vtkMRMLLab
 {
   if (!labelmapVolumeNode)
   {
-    std::cerr << "vtkSlicerSegmentationsModuleLogic::DoesLabelmapContainSingleLabel: Invalid labelmap volume MRML node!";
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::DoesLabelmapContainSingleLabel: Invalid labelmap volume MRML node");
     return 0;
   }
   vtkSmartPointer<vtkImageAccumulate> imageAccumulate = vtkSmartPointer<vtkImageAccumulate>::New();
@@ -432,7 +433,7 @@ vtkSegment* vtkSlicerSegmentationsModuleLogic::CreateSegmentFromLabelmapVolumeNo
 {
   if (!labelmapVolumeNode)
   {
-    std::cerr << "vtkSlicerSegmentationsModuleLogic::CreateSegmentFromLabelmapVolumeNode: Invalid labelmap volume MRML node!";
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::CreateSegmentFromLabelmapVolumeNode: Invalid labelmap volume MRML node");
     return NULL;
   }
 
@@ -500,7 +501,7 @@ vtkSegment* vtkSlicerSegmentationsModuleLogic::CreateSegmentFromModelNode(vtkMRM
 {
   if (!modelNode)
   {
-    std::cerr << "vtkSlicerSegmentationsModuleLogic::CreateSegmentFromModelNode: Invalid model MRML node!";
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::CreateSegmentFromModelNode: Invalid model MRML node");
     return NULL;
   }
   if (!modelNode->GetPolyData())
@@ -621,7 +622,7 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentToRepresentationNode(vtkSeg
 {
   if (!segment)
   {
-    std::cerr << "vtkSlicerSegmentationsModuleLogic::ExportSegmentToRepresentationNode: Invalid segment!";
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ExportSegmentToRepresentationNode: Invalid segment");
     return false;
   }
   if (!representationNode)
@@ -736,7 +737,7 @@ bool vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode(vtkMRMLSegm
 {
   if (!segmentationNode)
   {
-    std::cerr << "vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode: Invalid segmentation node!";
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::ExportSegmentsToLabelmapNode: Invalid segmentation node");
     return false;
   }
   if (!labelmapNode)
@@ -1144,16 +1145,16 @@ bool vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(v
 }
 
 //-----------------------------------------------------------------------------
-bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedImageData* labelmap, vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, int mergeMode/*=MODE_REPLACE*/, int extent[6]/*=0*/)
+bool vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment(vtkOrientedImageData* labelmap, vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, int mergeMode/*=MODE_REPLACE*/, const int extent[6]/*=0*/)
 {
   if (!segmentationNode || segmentID.empty() || !labelmap)
   {
-    std::cerr << "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Invalid inputs!";
+    vtkGenericWarningMacro("vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Invalid inputs");
     return false;
   }
-  if (labelmap->GetScalarPointer()==NULL)
+  if (labelmap->GetPointData()->GetScalars() == NULL)
   {
-    std::cerr << "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Invalid input labelmap";
+    vtkErrorWithObjectMacro(segmentationNode, "vtkSlicerSegmentationsModuleLogic::SetBinaryLabelmapToSegment: Invalid input labelmap");
     return false;
   }
 

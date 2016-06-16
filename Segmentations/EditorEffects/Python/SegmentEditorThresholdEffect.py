@@ -12,9 +12,6 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
       qSlicerSegmentEditorAbstractEffect is satisfactory) can simply be omitted.
   """
   
-  # Necessary static member to be able to set python source to scripted segment editor effect plugin
-  filePath = __file__
-
   def __init__(self, scriptedEffect):
     AbstractScriptedSegmentEditorEffect.__init__(self, scriptedEffect)
     scriptedEffect.name = 'Threshold'
@@ -32,7 +29,7 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
   def clone(self):
     import qSlicerSegmentationsEditorEffectsPythonQt as effects
     clonedEffect = effects.qSlicerSegmentEditorScriptedEffect(None)
-    clonedEffect.setPythonSource(SegmentEditorThresholdEffect.filePath)
+    clonedEffect.setPythonSource(__file__.replace('\\','/'))
     return clonedEffect
 
   def icon(self):
@@ -50,8 +47,13 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     segmentID = self.scriptedEffect.parameterSetNode().GetSelectedSegmentID()
     displayNode = segmentationNode.GetDisplayNode()
     if displayNode is not None:
-      self.segmentOpacity = displayNode.GetSegmentOpacity2DFill(segmentID)
+      self.segment2DFillOpacity = displayNode.GetSegmentOpacity2DFill(segmentID)
+      self.segment2DOutlineOpacity = displayNode.GetSegmentOpacity2DOutline(segmentID)
       displayNode.SetSegmentOpacity2DFill(segmentID, 0)
+      displayNode.SetSegmentOpacity2DOutline(segmentID, 0)
+
+    # Update intensity range
+    self.masterVolumeNodeChanged()
 
     # Setup and start preview pulse
     self.setupPreviewDisplay()
@@ -63,7 +65,8 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     segmentID = self.scriptedEffect.parameterSetNode().GetSelectedSegmentID()
     displayNode = segmentationNode.GetDisplayNode()
     if displayNode is not None:
-      displayNode.SetSegmentOpacity2DFill(segmentID, self.segmentOpacity)
+      displayNode.SetSegmentOpacity2DFill(segmentID, self.segment2DFillOpacity)
+      displayNode.SetSegmentOpacity2DOutline(segmentID, self.segment2DOutlineOpacity)
 
     # Clear preview pipeline and stop timer
     self.clearPreviewDisplay()
@@ -96,9 +99,6 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
     # Turn off effect-specific cursor for this effect
     return slicer.util.mainWindow().cursor
 
-  def modifierLabelmapChanged(self):
-    pass # For the sake of example
-
   def masterVolumeNodeChanged(self):
     # Set scalar range of master volume image data to threshold slider
     import vtkSegmentationCorePython as vtkSegmentationCore
@@ -107,6 +107,10 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
       lo, hi = masterImageData.GetScalarRange()
       self.thresholdSlider.minimum, self.thresholdSlider.maximum = lo, hi
       self.thresholdSlider.singleStep = (hi - lo) / 1000.
+      if (self.scriptedEffect.doubleParameter("MinimumThreshold") == self.scriptedEffect.doubleParameter("MaximumThreshold")):
+        # has not been initialized yet
+        self.scriptedEffect.setParameter("MinimumThreshold", lo+(hi-lo)*0.25)
+        self.scriptedEffect.setParameter("MaximumThreshold", lo+(hi-lo)*0.75)
 
   def layoutChanged(self):
     self.setupPreviewDisplay()
@@ -119,7 +123,7 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
 
   def setMRMLDefaults(self):
     self.scriptedEffect.setParameter("MinimumThreshold", 0.)
-    self.scriptedEffect.setParameter("MaximumThreshold", 100.)
+    self.scriptedEffect.setParameter("MaximumThreshold", 0)
 
   def updateGUIFromMRML(self):
     self.thresholdSlider.blockSignals(True)
@@ -150,10 +154,9 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
       import vtkSegmentationCorePython as vtkSegmentationCore
       masterImageData = self.scriptedEffect.masterVolumeImageData()
       # Get modifier labelmap
-      modifierLabelmap = self.scriptedEffect.modifierLabelmap()
+      modifierLabelmap = self.scriptedEffect.defaultModifierLabelmap()
       originalImageToWorldMatrix = vtk.vtkMatrix4x4()
       modifierLabelmap.GetImageToWorldMatrix(originalImageToWorldMatrix)
-      originalExtent = modifierLabelmap.GetExtent()
       # Get parameters
       min = self.scriptedEffect.doubleParameter("MinimumThreshold")
       max = self.scriptedEffect.doubleParameter("MaximumThreshold")
@@ -175,11 +178,8 @@ class SegmentEditorThresholdEffect(AbstractScriptedSegmentEditorEffect):
       logging.error('apply: Failed to threshold master volume!')
       pass
 
-    # Notify editor about changes.
-    # This needs to be called so that the changes are written back to the edited segment
-    self.scriptedEffect.setModifierLabelmapApplyModeToSet()
-    self.scriptedEffect.setModifierLabelmapApplyExtentToWholeExtent()
-    self.scriptedEffect.apply()
+    # Apply changes
+    self.scriptedEffect.modifySelectedSegmentByLabelmap(modifierLabelmap, slicer.qSlicerSegmentEditorAbstractEffect.ModificationModeSet)
     
     # De-select effect
     self.scriptedEffect.selectEffect("")

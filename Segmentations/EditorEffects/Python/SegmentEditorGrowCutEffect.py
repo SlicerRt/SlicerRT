@@ -8,9 +8,6 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
       GrowCut segmentation in segment editor
   """
 
-  # Necessary static member to be able to set python source to scripted segment editor effect plugin
-  filePath = __file__
-
   def __init__(self, scriptedEffect):
     scriptedEffect.name = 'GrowCut'
     # Indicates that effect does not operate on one segment, but the whole segmentation.
@@ -21,7 +18,7 @@ class SegmentEditorGrowCutEffect(AbstractScriptedSegmentEditorEffect):
   def clone(self):
     import qSlicerSegmentationsEditorEffectsPythonQt as effects
     clonedEffect = effects.qSlicerSegmentEditorScriptedEffect(None)
-    clonedEffect.setPythonSource(SegmentEditorGrowCutEffect.filePath)
+    clonedEffect.setPythonSource(__file__.replace('\\','/'))
     return clonedEffect
 
   def icon(self):

@@ -316,19 +316,14 @@ bool qSlicerSegmentEditorRectangleEffect::processInteractionEvents(
 
     // Paint rectangle on modifier labelmap
     vtkCellArray* lines = rectangle->PolyData->GetLines();
-    if (lines->GetNumberOfCells() > 0)
+    vtkOrientedImageData* modifierLabelmap = defaultModifierLabelmap();
+    if (lines->GetNumberOfCells() > 0 && modifierLabelmap)
     {
       //TODO:
       //self.logic.undoRedo = self.undoRedo
-
-      if (modifierLabelmap())
-      {
-        this->appendPolyMask(modifierLabelmap(), rectangle->PolyData, sliceWidget);
-      }
+      this->appendPolyMask(modifierLabelmap, rectangle->PolyData, sliceWidget);
     }
-    // Notify editor about changes
-    this->setModifierLabelmapApplyModeToAdd();
-    this->apply();
+    this->modifySelectedSegmentByLabelmap(modifierLabelmap, ModificationModeAdd);
     abortEvent = true;
   }
   return abortEvent;

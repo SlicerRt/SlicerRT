@@ -189,7 +189,7 @@ public:
     MODE_MERGE_MAX,
     MODE_MERGE_MIN
   };
-  static bool SetBinaryLabelmapToSegment(vtkOrientedImageData* labelmap, vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, int mergeMode=MODE_REPLACE, int extent[6]=0);
+  static bool SetBinaryLabelmapToSegment(vtkOrientedImageData* labelmap, vtkMRMLSegmentationNode* segmentationNode, std::string segmentID, int mergeMode=MODE_REPLACE, const int extent[6]=0);
 
 protected:
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);

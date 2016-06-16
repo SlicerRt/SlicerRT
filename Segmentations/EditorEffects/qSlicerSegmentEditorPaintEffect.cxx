@@ -365,8 +365,8 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLWidget* viewWidget)
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  vtkOrientedImageData* labelmapImage = q->modifierLabelmap();
-  if (!labelmapImage)
+  vtkOrientedImageData* modifierLabelmap = q->defaultModifierLabelmap();
+  if (!modifierLabelmap)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid segmentationNode";
     return;
@@ -403,7 +403,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLWidget* viewWidget)
     vtkNew<vtkTransform> worldToModifierLabelmapIjkTransform;
 
     vtkNew<vtkMatrix4x4> segmentationToSegmentationIjkTransformMatrix;
-    labelmapImage->GetImageToWorldMatrix(segmentationToSegmentationIjkTransformMatrix.GetPointer());
+    modifierLabelmap->GetImageToWorldMatrix(segmentationToSegmentationIjkTransformMatrix.GetPointer());
     segmentationToSegmentationIjkTransformMatrix->Invert();
     worldToModifierLabelmapIjkTransform->Concatenate(segmentationToSegmentationIjkTransformMatrix.GetPointer());
 
@@ -427,12 +427,12 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLWidget* viewWidget)
     stencilToImage->SetInputConnection(this->BrushPolyDataToStencil->GetOutputPort());
     stencilToImage->SetInsideValue(q->m_FillValue);
     stencilToImage->SetOutsideValue(q->m_EraseValue);
-    stencilToImage->SetOutputScalarType(labelmapImage->GetScalarType());
+    stencilToImage->SetOutputScalarType(modifierLabelmap->GetScalarType());
 
     vtkNew<vtkImageChangeInformation> brushPositioner;
     brushPositioner->SetInputConnection(stencilToImage->GetOutputPort());
-    brushPositioner->SetOutputSpacing(labelmapImage->GetSpacing());
-    brushPositioner->SetOutputOrigin(labelmapImage->GetOrigin());
+    brushPositioner->SetOutputSpacing(modifierLabelmap->GetSpacing());
+    brushPositioner->SetOutputOrigin(modifierLabelmap->GetOrigin());
 
     double brushCenter_Ijk[3]={0};
     vtkIdType numberOfPoints = this->PaintCoordinates_World->GetNumberOfPoints();
@@ -444,26 +444,17 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintApply(qMRMLWidget* viewWidget)
       brushPositioner->Update();
       vtkNew<vtkOrientedImageData> orientedBrushPositionerOutput;
       orientedBrushPositionerOutput->ShallowCopy(brushPositioner->GetOutput());
-      orientedBrushPositionerOutput->CopyDirections(labelmapImage);
-      vtkOrientedImageDataResample::ModifyImage(labelmapImage, orientedBrushPositionerOutput.GetPointer(), vtkOrientedImageDataResample::OPERATION_MAXIMUM);
+      orientedBrushPositionerOutput->CopyDirections(modifierLabelmap);
+      vtkOrientedImageDataResample::ModifyImage(modifierLabelmap, orientedBrushPositionerOutput.GetPointer(), vtkOrientedImageDataResample::OPERATION_MAXIMUM);
     }
-    labelmapImage->Modified();
+    modifierLabelmap->Modified();
   }
   this->PaintCoordinates_World->Reset();
 
   // Notify editor about changes
-  if (q->m_Erase)
-  {
-    q->setModifierLabelmapApplyModeToRemove();
-  }
-  else
-  {
-    q->setModifierLabelmapApplyModeToAdd();
-  }
-  q->setModifierLabelmapApplyExtentToWholeExtent();
-  //TODO: compute paint extent before
-  //q->setModifierLabelmapApplyExtent(this->paintExtent);
-  q->apply();
+  qSlicerSegmentEditorAbstractEffect::ModificationMode modificationMode = (q->m_Erase ? qSlicerSegmentEditorAbstractEffect::ModificationModeRemove : qSlicerSegmentEditorAbstractEffect::ModificationModeAdd);
+  //TODO: it would be nice to compute paint extent and pass it to make the painting operation faster
+  q->modifySelectedSegmentByLabelmap(modifierLabelmap, modificationMode);
 }
 
 //-----------------------------------------------------------------------------
@@ -482,8 +473,8 @@ void qSlicerSegmentEditorPaintEffectPrivate::updateBrushStencil(qMRMLWidget* vie
     qCritical() << Q_FUNC_INFO << ": Invalid segmentationNode";
     return;
   }
-  vtkOrientedImageData* labelmapImage = q->modifierLabelmap();
-  if (!labelmapImage)
+  vtkOrientedImageData* modifierLabelmap = q->modifierLabelmap();
+  if (!modifierLabelmap)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid modifierLabelmap";
     return;
@@ -494,7 +485,7 @@ void qSlicerSegmentEditorPaintEffectPrivate::updateBrushStencil(qMRMLWidget* vie
   this->WorldOriginToModifierLabelmapIjkTransform->Identity();
 
   vtkNew<vtkMatrix4x4> segmentationToSegmentationIjkTransformMatrix;
-  labelmapImage->GetImageToWorldMatrix(segmentationToSegmentationIjkTransformMatrix.GetPointer());
+  modifierLabelmap->GetImageToWorldMatrix(segmentationToSegmentationIjkTransformMatrix.GetPointer());
   segmentationToSegmentationIjkTransformMatrix->Invert();
   segmentationToSegmentationIjkTransformMatrix->SetElement(0,3, 0);
   segmentationToSegmentationIjkTransformMatrix->SetElement(1,3, 0);
@@ -538,14 +529,14 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintPixels(qMRMLWidget* viewWidget
   }
   /*
   TODO: implement
-  vtkOrientedImageData* labelmapImage = q->modifierLabelmap();
-  if (!labelmapImage)
+  vtkOrientedImageData* modifierLabelmap = q->modifierLabelmap();
+  if (!modifierLabelmap)
   {
     return;
   }
 
   int dims[3] = { 0, 0, 0 };
-  labelmapImage->GetDimensions(dims);
+  modifierLabelmap->GetDimensions(dims);
 
   double valueToSet = (q->m_Erase ? q->m_EraseValue : q->m_FillValue);
 
@@ -553,14 +544,14 @@ void qSlicerSegmentEditorPaintEffectPrivate::paintPixels(qMRMLWidget* viewWidget
   for (int pointIndex = 0; pointIndex < numberOfPoints; pointIndex++)
   {
     int ijk[3] = { 0, 0, 0 };
-    q->xyzToIjk(pixelPositions->GetPoint(pointIndex), ijk, sliceWidget, labelmapImage);
+    q->xyzToIjk(pixelPositions->GetPoint(pointIndex), ijk, sliceWidget, modifierLabelmap);
 
     // Clamp to image extent
     if (ijk[0] < 0 || ijk[0] >= dims[0]) { continue; }
     if (ijk[1] < 0 || ijk[1] >= dims[1]) { continue; }
     if (ijk[2] < 0 || ijk[2] >= dims[2]) { continue; }
 
-    labelmapImage->SetScalarComponentFromDouble(ijk[0], ijk[1], ijk[2], 0, valueToSet);
+    modifierLabelmap->SetScalarComponentFromDouble(ijk[0], ijk[1], ijk[2], 0, valueToSet);
   }
   */
 }
@@ -591,17 +582,17 @@ void qSlicerSegmentEditorPaintEffectPrivate::onQuickRadiusButtonClicked()
 {
   Q_Q(qSlicerSegmentEditorPaintEffect);
 
-  vtkOrientedImageData* labelmapImage = q->modifierLabelmap();
+  vtkOrientedImageData* modifierLabelmap = q->modifierLabelmap();
   QPushButton* senderButton = dynamic_cast<QPushButton*>(sender());
   int radius = senderButton->property("BrushRadius").toInt();
 
   double radiusMm = 0.0;
   if (!this->BrushRadiusUnitsToggle->text().compare("px:"))
   {
-    if (labelmapImage)
+    if (modifierLabelmap)
     {
       double spacing[3] = {0.0, 0.0, 0.0};
-      labelmapImage->GetSpacing(spacing);
+      modifierLabelmap->GetSpacing(spacing);
       double minimumSpacing = qMin(spacing[0], qMin(spacing[1], spacing[2]));
       radiusMm = minimumSpacing * radius;
     }
@@ -1077,7 +1068,7 @@ void qSlicerSegmentEditorPaintEffect::setMRMLDefaults()
 
   this->setCommonParameter("BrushMinimumRadius", 0.01);
   this->setCommonParameter("BrushMaximumRadius", 100.0);
-  this->setCommonParameter("BrushRadius", 0.5);
+  this->setCommonParameter("BrushRadius", 5.0);
   this->setCommonParameter("BrushSphere", 0);
   this->setCommonParameter("ColorSmudge", 0);
   this->setCommonParameter("BrushPixelMode", 0);
@@ -1164,28 +1155,29 @@ void qSlicerSegmentEditorPaintEffect::updateMRMLFromGUI()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorPaintEffect::modifierLabelmapChanged()
+void qSlicerSegmentEditorPaintEffect::referenceGeometryChanged()
 {
-  Superclass::modifierLabelmapChanged();
+  Superclass::referenceGeometryChanged();
 
-  vtkOrientedImageData* labelmapImage = this->modifierLabelmap();
-  if (labelmapImage)
+  vtkOrientedImageData* referenceGeometryImage = this->referenceGeometryImage();
+  if (referenceGeometryImage == NULL)
   {
-    double spacing[3] = {0.0, 0.0, 0.0};
-    labelmapImage->GetSpacing(spacing);
-    double minimumSpacing = qMin(spacing[0], qMin(spacing[1], spacing[2]));
-    double minimumRadius = 0.5 * minimumSpacing;
-    this->setCommonParameter("BrushMinimumRadius", minimumRadius);
-
-    int dimensions[3] = {0, 0, 0};
-    labelmapImage->GetDimensions(dimensions);
-    double bounds[3] = {spacing[0]*dimensions[0], spacing[1]*dimensions[1], spacing[2]*dimensions[2]};
-    double maximumBounds = qMax(bounds[0], qMax(bounds[1], bounds[2]));
-    double maximumRadius = 0.5 * maximumBounds;
-    this->setCommonParameter("BrushMaximumRadius", maximumRadius);
-
-    this->setCommonParameter("BrushRadius", qMin(50.0 * minimumRadius, 0.5 * maximumRadius));
-
-    this->updateGUIFromMRML();
+    return;
   }
+  double spacing[3] = {0.0, 0.0, 0.0};
+  referenceGeometryImage->GetSpacing(spacing);
+  double minimumSpacing = qMin(spacing[0], qMin(spacing[1], spacing[2]));
+  double minimumRadius = 0.5 * minimumSpacing;
+
+  int dimensions[3] = {0, 0, 0};
+  referenceGeometryImage->GetDimensions(dimensions);
+  double bounds[3] = {spacing[0]*dimensions[0], spacing[1]*dimensions[1], spacing[2]*dimensions[2]};
+  double maximumBounds = qMax(bounds[0], qMax(bounds[1], bounds[2]));
+  double maximumRadius = 0.5 * maximumBounds;
+
+  this->setCommonParameter("BrushMinimumRadius", minimumRadius);
+  this->setCommonParameter("BrushMaximumRadius", maximumRadius);
+  this->setCommonParameter("BrushRadius", qMin(50.0 * minimumRadius, 0.5 * maximumRadius));
+
+  this->updateGUIFromMRML();
 }

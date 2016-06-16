@@ -66,9 +66,8 @@ public:
   ~qSlicerSegmentEditorAbstractEffectPrivate();
   void scheduleRender(qMRMLWidget* viewWidget);
 signals:
-  void applySignal();
   void selectEffectSignal(QString);
-  void updateVolumeSignal(void*);
+  void updateVolumeSignal(void*,bool&);
 public:
   /// Segment editor parameter set node
   vtkWeakPointer<vtkMRMLSegmentEditorNode> ParameterSetNode;
@@ -91,9 +90,9 @@ public:
 
   /// Active labelmap for editing. Mainly needed because the segment binary labelmaps are shrunk
   /// to the smallest possible extent, but the user wants to draw on the whole master volume.
+  /// It also allows modifying a segment by adding/removing regions (and performing inverse
+  /// of that on all other segments).
   vtkWeakPointer<vtkOrientedImageData> ModifierLabelmap;
-  int ModifierLabelmapApplyMode;
-  int ModifierLabelmapApplyExtent[6];
 
   /// Mask labelmap containing a merged silhouette of all the segments other than the selected one.
   /// Used if the paint over feature is turned off.
@@ -102,6 +101,11 @@ public:
   /// SelectedSegmentLabelmap is a copy of the labelmap of the current segment
   /// resampled into the reference image geometry of the segmentation.
   vtkWeakPointer<vtkOrientedImageData> SelectedSegmentLabelmap;
+
+  /// Image that holds current reference geometry information. Scalars are not allocated.
+  /// Changing it does not change the reference geometry of the segment, it is just a copy,
+  /// for convenience.
+  vtkWeakPointer<vtkOrientedImageData> ReferenceGeometryImage;
 };
 
 #endif

@@ -8,9 +8,6 @@ class SegmentEditorLevelTracingEffect(AbstractScriptedSegmentEditorLabelEffect):
   """ LevelTracingEffect is a LabelEffect implementing level tracing fill
       using intensity-based isolines
   """
-  
-  # Necessary static member to be able to set python source to scripted segment editor effect plugin
-  filePath = __file__
 
   def __init__(self, scriptedEffect):
     scriptedEffect.name = 'LevelTracing'
@@ -22,7 +19,7 @@ class SegmentEditorLevelTracingEffect(AbstractScriptedSegmentEditorLabelEffect):
   def clone(self):
     import qSlicerSegmentationsEditorEffectsPythonQt as effects
     clonedEffect = effects.qSlicerSegmentEditorScriptedLabelEffect(None)
-    clonedEffect.setPythonSource(SegmentEditorLevelTracingEffect.filePath)
+    clonedEffect.setPythonSource(__file__.replace('\\','/'))
     return clonedEffect
 
   def icon(self):
@@ -52,9 +49,18 @@ class SegmentEditorLevelTracingEffect(AbstractScriptedSegmentEditorLabelEffect):
       return abortEvent
 
     if eventId == vtk.vtkCommand.LeftButtonPressEvent:
-      self.scriptedEffect.setModifierLabelmapApplyModeToAdd()
-      self.scriptedEffect.setModifierLabelmapApplyExtentToWholeExtent() # TODO: reduce
-      pipeline.apply()
+      # Save state for undo
+      #TODO:
+      # self.logic.undoRedo = self.undoRedo
+
+      # Get modifier labelmap
+      import vtkSegmentationCorePython as vtkSegmentationCore
+      modifierLabelmap = self.scriptedEffect.defaultModifierLabelmap()
+
+      # Apply poly data on modifier labelmap
+      pipeline.appendPolyMask(modifierLabelmap)
+      # TODO: it would be nice to reduce extent
+      self.scriptedEffect.modifySelectedSegmentByLabelmap(modifierLabelmap, slicer.qSlicerSegmentEditorAbstractEffect.ModificationModeAdd)
       abortEvent = True
     elif eventId == vtk.vtkCommand.MouseMoveEvent:
       if pipeline.actionState == '':
@@ -168,22 +174,11 @@ class LevelTracingPipeline:
     self.polyData.DeepCopy(polyData)
     self.polyData.GetPoints().DeepCopy(self.xyPoints)
     self.sliceWidget.sliceView().scheduleRender()
-
-  def apply(self):
+   
+  def appendPolyMask(self, modifierLabelmap):
     lines = self.polyData.GetLines()
-    if lines.GetNumberOfCells() == 0: return
-
-    # Save state for undo
-    #TODO:
-    # self.logic.undoRedo = self.undoRedo
-
-    # Get modifier labelmap
-    import vtkSegmentationCorePython as vtkSegmentationCore
-    modifierLabelmap = self.effect.scriptedEffect.modifierLabelmap()
+    if lines.GetNumberOfCells() == 0:
+      return
 
     # Apply poly data on modifier labelmap
     self.effect.scriptedEffect.appendPolyMask(modifierLabelmap, self.polyData, self.sliceWidget)
-
-    # Notify editor about changes.
-    # This needs to be called so that the changes are written back to the edited segment
-    self.effect.scriptedEffect.apply()

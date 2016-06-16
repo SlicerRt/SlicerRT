@@ -80,22 +80,22 @@ public:
   /// Combines the inputImage and imageToAppend into a new image by max/min operation. The extent will be the union of the two images.
   /// Extent can be specified to restrict imageToAppend's extent to a smaller region.
   /// inputImage and imageToAppend must have the same geometry, but they may have different extents.
-  static bool MergeImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* imageToAppend, vtkOrientedImageData* outputImage, int operation, int extent[6] = 0, int maskThreshold=0, int fillValue=1);
+  static bool MergeImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* imageToAppend, vtkOrientedImageData* outputImage, int operation, const int extent[6] = 0, int maskThreshold=0, int fillValue=1);
 
   /// Modifies inputImage in-place by combining with modifierImage using max/min operation. The extent will remain unchanged.
   /// Extent can be specified to restrict modifierImage's extent to a smaller region.
   /// inputImage and modifierImage must have the same geometry (origin, spacing, directions) and scalar type, but they may have different extents.
-  static bool ModifyImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* modifierImage, int operation, int extent[6] = 0, int maskThreshold = 0, int fillValue = 1);
+  static bool ModifyImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* modifierImage, int operation, const int extent[6] = 0, int maskThreshold = 0, int fillValue = 1);
 
   /// Copy image with clipping to the specified extent
-  static bool CopyImage(vtkOrientedImageData* imageToCopy, vtkOrientedImageData* outputImage, int extent[6]=0);
+  static bool CopyImage(vtkOrientedImageData* imageToCopy, vtkOrientedImageData* outputImage, const int extent[6]=0);
 
   /// Prints image information. Does not print lots of irrelevant information that default PrintSelf would print.
   static void PrintImageInformation(vtkImageData* imageData, ostream& os, vtkIndent indent);
 
   /// Fills an image with the specified value
   /// \param extent The whole extent is filled if extent is not specified
-  static void FillImage(vtkImageData* image, double fillValue, int extent[6]=NULL);
+  static void FillImage(vtkImageData* image, double fillValue, const int extent[6]=NULL);
 
 public:
   /// Calculate effective extent of an image: the IJK extent where non-zero voxels are located
@@ -113,7 +113,7 @@ public:
   static bool DoGeometriesMatchIgnoreOrigin(vtkOrientedImageData* image1, vtkOrientedImageData* image2);
 
   /// Transform input extent to determine output extent of an image. Use all bounding box corners
-  static void TransformExtent(int inputExtent[6], vtkAbstractTransform* inputToOutputTransform, int outputExtent[6]);
+  static void TransformExtent(const int inputExtent[6], vtkAbstractTransform* inputToOutputTransform, int outputExtent[6]);
 
   /// Transform bounds of oriented image data using a linear or non-linear transform
   static void TransformOrientedImageDataBounds(vtkOrientedImageData* image, vtkAbstractTransform* transform, double transformedBounds[6]);
@@ -130,7 +130,7 @@ public:
   static bool GetTransformBetweenOrientedImages(vtkOrientedImageData* image1, vtkOrientedImageData* image2, vtkTransform* image1ToImage2Transform);
 
   /// Pad an image to entirely contain another image using custom extent to contain
-  static bool PadImageToContainImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* containedImage, vtkOrientedImageData* outputImage, int extent[6]);
+  static bool PadImageToContainImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* containedImage, vtkOrientedImageData* outputImage, const int extent[6]);
   /// Pad an image to entirely contain another image
   static bool PadImageToContainImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* containedImage, vtkOrientedImageData* outputImage);
 

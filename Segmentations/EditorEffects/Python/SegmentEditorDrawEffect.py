@@ -8,9 +8,6 @@ class SegmentEditorDrawEffect(AbstractScriptedSegmentEditorLabelEffect):
       tool in the segment editor
   """
   
-  # Necessary static member to be able to set python source to scripted segment editor effect plugin
-  filePath = __file__
-
   def __init__(self, scriptedEffect):
     scriptedEffect.name = 'Draw'
     self.drawPipelines = {}
@@ -19,7 +16,7 @@ class SegmentEditorDrawEffect(AbstractScriptedSegmentEditorLabelEffect):
   def clone(self):
     import qSlicerSegmentationsEditorEffectsPythonQt as effects
     clonedEffect = effects.qSlicerSegmentEditorScriptedLabelEffect(None)
-    clonedEffect.setPythonSource(SegmentEditorDrawEffect.filePath)
+    clonedEffect.setPythonSource(__file__.replace('\\','/'))
     return clonedEffect
 
   def icon(self):
@@ -240,17 +237,12 @@ class DrawPipeline:
 
     # Get modifier labelmap
     import vtkSegmentationCorePython as vtkSegmentationCore
-    modifierLabelmap = self.scriptedEffect.modifierLabelmap()
+    modifierLabelmap = self.scriptedEffect.defaultModifierLabelmap()
 
     # Apply poly data on modifier labelmap
     self.scriptedEffect.appendPolyMask(modifierLabelmap, self.polyData, self.sliceWidget)
     self.resetPolyData()
-
-    # Notify editor about changes.
-    # This needs to be called so that the changes are written back to the edited segment
-    self.scriptedEffect.setModifierLabelmapApplyModeToAdd()
-    self.scriptedEffect.setModifierLabelmapApplyExtentToWholeExtent() # TODO: reduce
-    self.scriptedEffect.apply()
+    self.scriptedEffect.modifySelectedSegmentByLabelmap(modifierLabelmap, slicer.qSlicerSegmentEditorAbstractEffect.ModificationModeAdd)
 
   def resetPolyData(self):
     # Return the polyline to initial state with no points

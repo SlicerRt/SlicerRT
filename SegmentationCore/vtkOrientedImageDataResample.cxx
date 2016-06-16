@@ -47,22 +47,35 @@ vtkStandardNewMacro(vtkOrientedImageDataResample);
 //----------------------------------------------------------------------------
 // This templated function executes the filter for any type of data.
 template <class BaseImageScalarType, class ModifierImageScalarType>
-void MergeImageGeneric2(vtkImageData *baseImage, vtkImageData *modifierImage, int operation, int extent[6], int maskThreshold, int fillValue)
+void MergeImageGeneric2(vtkImageData *baseImage, vtkImageData *modifierImage, int operation, const int extent[6], int maskThreshold, int fillValue)
 {
-  // Compute update extent as intersection of base and modifier image extents
+  // Compute update extent as intersection of base and modifier image extents (extent can be further reduced by specifying a smaller extent)
   int updateExt[6] = { 0, -1, 0, -1, 0, -1 };
   baseImage->GetExtent(updateExt);
-  int* modifierExt = extent ? extent : modifierImage->GetExtent();
+  int* modifierExt = modifierImage->GetExtent();
   for (int idx = 0; idx < 3; ++idx)
   {
     if (modifierExt[idx * 2] > updateExt[idx * 2])
     {
       updateExt[idx * 2] = modifierExt[idx * 2];
     }
+    if (extent && extent[idx * 2] > updateExt[idx * 2])
+    {
+      updateExt[idx * 2] = extent[idx * 2];
+    }
     if (modifierExt[idx * 2 + 1] < updateExt[idx * 2 + 1])
     {
       updateExt[idx * 2 + 1] = modifierExt[idx * 2 + 1];
     }
+    if (extent && extent[idx * 2 + 1] < updateExt[idx * 2 + 1])
+    {
+      updateExt[idx * 2 + 1] = extent[idx * 2 + 1];
+    }
+  }
+  if (updateExt[0] > updateExt[1] || updateExt[2] > updateExt[3] || updateExt[4] > updateExt[5])
+  {
+    // base and modifier images don't intersect, nothing need to be done
+    return;
   }
 
   // Get increments to march through data
@@ -80,6 +93,16 @@ void MergeImageGeneric2(vtkImageData *baseImage, vtkImageData *modifierImage, in
   BaseImageScalarType* baseImagePtr = static_cast<BaseImageScalarType*>(baseImage->GetScalarPointerForExtent(updateExt));
   ModifierImageScalarType* modifierImagePtr = static_cast<ModifierImageScalarType*>(modifierImage->GetScalarPointerForExtent(updateExt));
 
+  if (baseImagePtr == NULL)
+  {
+    vtkGenericWarningMacro("vtkOrientedImageDataResample::MergeImageGeneric: Base image pointer is invalid");
+    return;
+  }
+  if (modifierImagePtr == NULL)
+  {
+    vtkGenericWarningMacro("vtkOrientedImageDataResample::MergeImageGeneric: Modifier image pointer is invalid");
+    return;
+  }
   // Loop through output pixels
   // There is difference in only one line between min/max computation but the comparison
   // is performed for each pixel, so it is faster to make the conditional expression in the outer loop.
@@ -154,7 +177,7 @@ void MergeImageGeneric2(vtkImageData *baseImage, vtkImageData *modifierImage, in
 
 //----------------------------------------------------------------------------
 template <class BaseImageScalarType>
-void MergeImageGeneric(vtkImageData *baseImage, vtkImageData *modifierImage, int operation, int extent[6], int maskThreshold, int fillValue)
+void MergeImageGeneric(vtkImageData *baseImage, vtkImageData *modifierImage, int operation, const int extent[6], int maskThreshold, int fillValue)
 {
   switch (modifierImage->GetScalarType())
   {
@@ -582,7 +605,7 @@ bool vtkOrientedImageDataResample::DoGeometriesMatchIgnoreOrigin(vtkOrientedImag
 }
 
 //----------------------------------------------------------------------------
-void vtkOrientedImageDataResample::TransformExtent(int inputExtent[6], vtkAbstractTransform* inputToOutputTransform, int outputExtent[6])
+void vtkOrientedImageDataResample::TransformExtent(const int inputExtent[6], vtkAbstractTransform* inputToOutputTransform, int outputExtent[6])
 {
   if (!inputToOutputTransform)
   {
@@ -803,7 +826,7 @@ bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* 
 }
 
 //----------------------------------------------------------------------------
-bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* containedImage, vtkOrientedImageData* outputImage, int extent[6])
+bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* containedImage, vtkOrientedImageData* outputImage, const int extent[6])
 {
   if (!inputImage || !containedImage || !outputImage)
   {
@@ -816,7 +839,7 @@ bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* 
 
   // Calculate output extent in reference frame for padding if requested. Use all bounding box corners
   int containedImageExtentInInputImageFrame[6] = {0,-1,0,-1,0,-1};
-  int* containedExtent = extent ? extent : containedImage->GetExtent();
+  const int* containedExtent = extent ? extent : containedImage->GetExtent();
   vtkOrientedImageDataResample::TransformExtent(containedExtent, containedImageToInputImageTransform, containedImageExtentInInputImageFrame);
 
   // Return with failure if output extent is invalid
@@ -850,7 +873,7 @@ bool vtkOrientedImageDataResample::PadImageToContainImage(vtkOrientedImageData* 
 }
 
 //----------------------------------------------------------------------------
-bool vtkOrientedImageDataResample::MergeImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* imageToAppend, vtkOrientedImageData* outputImage, int operation, int extent[6]/*=0*/, int maskThreshold /*=0*/, int fillValue /*=1*/)
+bool vtkOrientedImageDataResample::MergeImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* imageToAppend, vtkOrientedImageData* outputImage, int operation, const int extent[6]/*=0*/, int maskThreshold /*=0*/, int fillValue /*=1*/)
 {
   if (!inputImage || !imageToAppend || !outputImage)
   {
@@ -878,7 +901,7 @@ bool vtkOrientedImageDataResample::MergeImage(vtkOrientedImageData* inputImage, 
 }
 
 //----------------------------------------------------------------------------
-bool vtkOrientedImageDataResample::ModifyImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* modifierImage, int operation, int extent[6]/*=0*/, int maskThreshold /*=0*/, int fillValue /*=1*/)
+bool vtkOrientedImageDataResample::ModifyImage(vtkOrientedImageData* inputImage, vtkOrientedImageData* modifierImage, int operation, const int extent[6]/*=0*/, int maskThreshold /*=0*/, int fillValue /*=1*/)
 {
   if (!inputImage || !modifierImage)
   {
@@ -900,7 +923,7 @@ bool vtkOrientedImageDataResample::ModifyImage(vtkOrientedImageData* inputImage,
 }
 
 //----------------------------------------------------------------------------
-bool vtkOrientedImageDataResample::CopyImage(vtkOrientedImageData* imageToCopy, vtkOrientedImageData* outputImage, int extent[6]/*=0*/)
+bool vtkOrientedImageDataResample::CopyImage(vtkOrientedImageData* imageToCopy, vtkOrientedImageData* outputImage, const int extent[6]/*=0*/)
 {
   if (!imageToCopy || !outputImage)
   {
@@ -910,7 +933,7 @@ bool vtkOrientedImageDataResample::CopyImage(vtkOrientedImageData* imageToCopy, 
   // Copy with clipping to specified extent
   vtkNew<vtkImageConstantPad> padder;
   padder->SetInputData(imageToCopy);
-  padder->SetOutputWholeExtent(extent ? extent : imageToCopy->GetExtent());
+  padder->SetOutputWholeExtent(extent ? const_cast<int*>(extent) : imageToCopy->GetExtent());
   padder->Update();
   outputImage->ShallowCopy(padder->GetOutput());
   outputImage->CopyDirections(imageToCopy);
@@ -1059,7 +1082,7 @@ void vtkOrientedImageDataResample::PrintImageInformation(vtkImageData* imageData
 }
 
 //----------------------------------------------------------------------------
-template <typename T> void FillImageGeneric(vtkImageData* image, T fillValue, int extent[6])
+template <typename T> void FillImageGeneric(vtkImageData* image, T fillValue, const int extent[6])
 {
   if (image->GetScalarPointer() == NULL)
   {
@@ -1067,8 +1090,8 @@ template <typename T> void FillImageGeneric(vtkImageData* image, T fillValue, in
     return;
   }
   // Use the whole extent if extent is not specified
-  int *wholeExt = extent ? extent : image->GetExtent();
-  if (wholeExt[1]<wholeExt[0])
+  const int *wholeExt = extent ? extent : image->GetExtent();
+  if (wholeExt[0]>wholeExt[1] || wholeExt[2]>wholeExt[3] || wholeExt[4]>wholeExt[5])
   {
     // empty image
     return;
@@ -1093,7 +1116,7 @@ template <typename T> void FillImageGeneric(vtkImageData* image, T fillValue, in
 }
 
 //----------------------------------------------------------------------------
-void vtkOrientedImageDataResample::FillImage(vtkImageData* image, double fillValue, int extent[6]/*=NULL*/)
+void vtkOrientedImageDataResample::FillImage(vtkImageData* image, double fillValue, const int extent[6]/*=NULL*/)
 {
   if (!image)
   {

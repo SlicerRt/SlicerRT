@@ -9,9 +9,6 @@ class SegmentEditorIdentifyIslandsEffect(AbstractScriptedSegmentEditorIslandEffe
       to separate small islands (connected components) that are a result of
       another operation such as threshold
   """
-  
-  # Necessary static member to be able to set python source to scripted segment editor effect plugin
-  filePath = __file__
 
   def __init__(self, scriptedEffect):
     scriptedEffect.name = 'IdentifyIslands'
@@ -20,7 +17,7 @@ class SegmentEditorIdentifyIslandsEffect(AbstractScriptedSegmentEditorIslandEffe
   def clone(self):
     import qSlicerSegmentationsEditorEffectsPythonQt as effects
     clonedEffect = effects.qSlicerSegmentEditorScriptedIslandEffect(None)
-    clonedEffect.setPythonSource(SegmentEditorIdentifyIslandsEffect.filePath)
+    clonedEffect.setPythonSource(__file__.replace('\\','/'))
     return clonedEffect
 
   def icon(self):
@@ -102,4 +99,3 @@ class SegmentEditorIdentifyIslandsEffect(AbstractScriptedSegmentEditorIslandEffe
 
     displayNode.SetSegmentVisibility(selectedSegmentID, False)
 
-    # Note: no need to call apply, as the modifier labelmap did not change

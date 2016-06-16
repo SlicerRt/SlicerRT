@@ -7,9 +7,6 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
   """ SmoothingEffect is an Effect that smoothes a selected segment
   """
 
-  # Necessary static member to be able to set python source to scripted segment editor effect plugin
-  filePath = __file__
-
   def __init__(self, scriptedEffect):
     scriptedEffect.name = 'Smoothing'
     AbstractScriptedSegmentEditorEffect.__init__(self, scriptedEffect)
@@ -17,7 +14,7 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
   def clone(self):
     import qSlicerSegmentationsEditorEffectsPythonQt as effects
     clonedEffect = effects.qSlicerSegmentEditorScriptedEffect(None)
-    clonedEffect.setPythonSource(SegmentEditorSmoothingEffect.filePath)
+    clonedEffect.setPythonSource(__file__.replace('\\','/'))
     return clonedEffect
 
   def icon(self):
@@ -139,16 +136,13 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
   #
   # Effect specific methods (the above ones are the API methods to override)
   #
-  def modifierLabelmapChanged(self):
-    #self.updateGUIFromMRML()
-    pass
 
   def onApply(self):
     try:
       # Get master volume image data
       import vtkSegmentationCorePython
       # Get modifier labelmap
-      modifierLabelmap = self.scriptedEffect.modifierLabelmap()
+      modifierLabelmap = self.scriptedEffect.defaultModifierLabelmap()
       selectedSegmentLabelmap = self.scriptedEffect.selectedSegmentLabelmap()
 
       # Save state for undo
@@ -228,11 +222,8 @@ class SegmentEditorSmoothingEffect(AbstractScriptedSegmentEditorEffect):
       logging.error('apply: Failed to apply smoothing')
       pass
 
-    # Notify editor about changes.
-    # This needs to be called so that the changes are written back to the edited segment
-    self.scriptedEffect.setModifierLabelmapApplyModeToSet()
-    self.scriptedEffect.setModifierLabelmapApplyExtentToWholeExtent()
-    self.scriptedEffect.apply()
+    # Apply changes
+    self.scriptedEffect.modifySelectedSegmentByLabelmap(modifierLabelmap, slicer.qSlicerSegmentEditorAbstractEffect.ModificationModeSet)
 
 MEDIAN = 'MEDIAN'
 GAUSSIAN = 'GAUSSIAN'

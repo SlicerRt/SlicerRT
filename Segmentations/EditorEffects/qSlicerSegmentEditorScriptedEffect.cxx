@@ -60,7 +60,7 @@ public:
     ProcessInteractionEventsMethod,
     ProcessViewNodeEventsMethod,
     SetMRMLDefaultsMethod,
-    ModifierLabelmapChangedMethod,
+    ReferenceGeometryChangedMethod,
     MasterVolumeNodeChangedMethod,
     LayoutChangedMethod,
     UpdateGUIFromMRMLMethod,
@@ -88,7 +88,7 @@ qSlicerSegmentEditorScriptedEffectPrivate::qSlicerSegmentEditorScriptedEffectPri
   this->PythonCppAPI.declareMethod(Self::ProcessInteractionEventsMethod, "processInteractionEvents");
   this->PythonCppAPI.declareMethod(Self::ProcessViewNodeEventsMethod, "processViewNodeEvents");
   this->PythonCppAPI.declareMethod(Self::SetMRMLDefaultsMethod, "setMRMLDefaults");
-  this->PythonCppAPI.declareMethod(Self::ModifierLabelmapChangedMethod, "modifierLabelmapChanged");
+  this->PythonCppAPI.declareMethod(Self::ReferenceGeometryChangedMethod, "referenceGeometryChanged");
   this->PythonCppAPI.declareMethod(Self::MasterVolumeNodeChangedMethod, "masterVolumeNodeChanged");
   this->PythonCppAPI.declareMethod(Self::LayoutChangedMethod, "layoutChanged");
   this->PythonCppAPI.declareMethod(Self::UpdateGUIFromMRMLMethod, "updateGUIFromMRML");
@@ -310,14 +310,6 @@ void qSlicerSegmentEditorScriptedEffect::deactivate()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::apply()
-{
-  // Notify editor about changes
-  // This method needs to be called so that the changes are written back to the edited segment
-  this->Superclass::apply();
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerSegmentEditorScriptedEffect::setupOptionsFrame()
 {
   // Base class implementation needs to be called before the effect-specific one
@@ -402,13 +394,13 @@ void qSlicerSegmentEditorScriptedEffect::setMRMLDefaults()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerSegmentEditorScriptedEffect::modifierLabelmapChanged()
+void qSlicerSegmentEditorScriptedEffect::referenceGeometryChanged()
 {
   // Base class implementation needs to be called before the effect-specific one
-  this->Superclass::modifierLabelmapChanged();
+  this->Superclass::referenceGeometryChanged();
 
   Q_D(const qSlicerSegmentEditorScriptedEffect);
-  PyObject* result = d->PythonCppAPI.callMethod(d->ModifierLabelmapChangedMethod);
+  PyObject* result = d->PythonCppAPI.callMethod(d->ReferenceGeometryChangedMethod);
 }
 
 //-----------------------------------------------------------------------------

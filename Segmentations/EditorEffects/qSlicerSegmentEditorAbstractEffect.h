@@ -27,6 +27,7 @@
 // Qt includes
 #include <QIcon>
 #include <QPoint>
+#include <QList>
 #include <QVector3D>
 
 class qSlicerSegmentEditorAbstractEffectPrivate;
@@ -55,6 +56,7 @@ class Q_SLICER_SEGMENTATIONS_EFFECTS_EXPORT qSlicerSegmentEditorAbstractEffect :
 {
 public:
   Q_OBJECT
+  Q_ENUMS(ModificationMode)
 
   /// This property stores the name of the effect
   /// Cannot be empty.
@@ -73,7 +75,15 @@ public:
   virtual ~qSlicerSegmentEditorAbstractEffect();
 
 // API: Methods that are to be reimplemented in the effect subclasses
-public:  
+public:
+
+  enum ModificationMode
+  {
+    ModificationModeSet,
+    ModificationModeAdd,
+    ModificationModeRemove
+  };
+
   /// Get icon for effect to be displayed in segment editor
   virtual QIcon icon() { return QIcon(); };
 
@@ -94,13 +104,9 @@ public:
   /// Returns true if the effect is currently active (activated and has not deactivated since then)
   Q_INVOKABLE virtual bool active();
   
-  /// Perform actions needed before the modifier labelmap is applied back to the segment.
-  /// NOTE: The default implementation only emits the signal. If the child classes override this function,
-  /// they must call apply from the base class too, AFTER the effect-specific implementation
-  Q_INVOKABLE virtual void apply();
-
-  /// Clears modifier labelmap contents (fills with empty value and sets extent to invalid)
-  Q_INVOKABLE virtual void clearModifierLabelmap();
+  Q_INVOKABLE virtual void modifySelectedSegmentByLabelmap(vtkOrientedImageData* modifierLabelmap, ModificationMode modificationMode, const int modificationExtent[6]);
+  Q_INVOKABLE virtual void modifySelectedSegmentByLabelmap(vtkOrientedImageData* modifierLabelmap, ModificationMode modificationMode);
+  Q_INVOKABLE virtual void modifySelectedSegmentByLabelmap(vtkOrientedImageData* modifierLabelmap, ModificationMode modificationMode, QList<int> extent);
 
   /// Apply mask image on an input image
   /// \param input Input image to apply the mask on
@@ -134,9 +140,9 @@ public:
   /// NOTE: Base class implementation needs to be called with the effect-specific implementation
   virtual void setMRMLDefaults() = 0;
 
-  /// Simple mechanism to let the effects know that modifier labelmap geometry has changed
-  /// NOTE: Base class implementation needs to be called with the effect-specific implementation
-  virtual void modifierLabelmapChanged() { };
+  /// Simple mechanism to let the effects know that reference geometry has changed
+  /// NOTE: Base class implementation needs to be called with the effect-specific implementation.
+  virtual void referenceGeometryChanged() { };
   /// Simple mechanism to let the effects know that master volume has changed
   /// NOTE: Base class implementation needs to be called with the effect-specific implementation
   virtual void masterVolumeNodeChanged() { };
@@ -212,14 +218,13 @@ public:
   Q_INVOKABLE void selectEffect(QString effectName);
 
   /// Connect callback signals. Callbacks are called by the editor effect to request operations from the editor widget.
-  /// applySlot: called when the modifier labelmap is to be applied to the currently edited segment.
   /// selectEffectSlot: called from the active effect to initiate switching to another effect (or de-select).
   /// updateVolumeSlot: called to request update of a volume (modifierLabelmap, alignedMasterVolume, maskLabelmap).
-  void setCallbackSlots(QObject* receiver, const char* applySlot, const char* selectEffectSlot, const char* updateVolumeSlot);
+  void setCallbackSlots(QObject* receiver, const char* selectEffectSlot, const char* updateVolumeSlot);
 
   /// Called by the editor widget.
   void setVolumes(vtkOrientedImageData* alignedMasterVolume, vtkOrientedImageData* modifierLabelmap,
-    vtkOrientedImageData* maskLabelmap, vtkOrientedImageData* selectedSegmentLabelmap);
+    vtkOrientedImageData* maskLabelmap, vtkOrientedImageData* selectedSegmentLabelmap, vtkOrientedImageData* referenceGeometryImage);
 
 // Effect parameter functions
 public:
@@ -262,34 +267,19 @@ public:
 public:
   Q_INVOKABLE vtkOrientedImageData* modifierLabelmap();
 
+  /// Reset modifier labelmap to default (resets geometry, clears content)
+  /// and return it.
+  Q_INVOKABLE vtkOrientedImageData* defaultModifierLabelmap();
+
   Q_INVOKABLE vtkOrientedImageData* maskLabelmap();
 
   Q_INVOKABLE vtkOrientedImageData* selectedSegmentLabelmap();
 
+  Q_INVOKABLE vtkOrientedImageData* referenceGeometryImage();
 
   /// Get image data of master volume aligned with the modifier labelmap.
   /// \return Pointer to the image data
   Q_INVOKABLE vtkOrientedImageData* masterVolumeImageData();
-
-  /// Modes for updating a segment with the contents of the current modifier labelmap
-  enum
-  {
-    APPLY_MODE_SET = 0,
-    APPLY_MODE_ADD,
-    APPLY_MODE_REMOVE
-  };
-
-  Q_INVOKABLE int modifierLabelmapApplyMode();
-  Q_INVOKABLE void setModifierLabelmapApplyMode(int applyMode);
-  Q_INVOKABLE void setModifierLabelmapApplyModeToSet();
-  Q_INVOKABLE void setModifierLabelmapApplyModeToAdd();
-  Q_INVOKABLE void setModifierLabelmapApplyModeToRemove();
-
-  Q_INVOKABLE void setModifierLabelmapApplyExtent(int extent[6]);
-  Q_INVOKABLE void setModifierLabelmapApplyExtent(int xStart, int xEnd, int yStart, int yEnd, int zStart, int zEnd);
-  Q_INVOKABLE void setModifierLabelmapApplyExtentToWholeExtent();
-  Q_INVOKABLE void modifierLabelmapApplyExtent(int extent[6])const;
-  Q_INVOKABLE int* modifierLabelmapApplyExtent();
 
   /// Get render window for view widget
   Q_INVOKABLE static vtkRenderWindow* renderWindow(qMRMLWidget* viewWidget);
