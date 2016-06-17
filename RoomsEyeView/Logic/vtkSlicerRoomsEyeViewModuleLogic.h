@@ -30,7 +30,6 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// STD includes
 #include "vtkSlicerRoomsEyeViewModuleLogicExport.h"
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
@@ -43,9 +42,39 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
+  void LoadLinacModels(vtkMRMLScene*, const char*);
+  void ModelToParentTransforms(vtkMRMLScene*);
+  
+  void CollimatorRotationValueChanged(vtkMRMLScene*, double);
+  void GantryRotationValueChanged(vtkMRMLScene*, double);
+  
+  void LeftImagingPanelToOrigin(vtkMRMLScene*, double);
+  void LeftImagingPanelOriginToLeftImagingPanelRotated(vtkMRMLScene*, double);
+  void LeftImagingPanelRotatedToGantry(vtkMRMLScene*, double);
+  void LeftImagingPanelTranslation(vtkMRMLScene*, double);
+
+  void RightImagingPanelToOrigin(vtkMRMLScene*, double);
+  void RightImagingPanelOriginToRightImagingPanelRotated(vtkMRMLScene*, double);
+  void RightImagingPanelRotatedToGantry(vtkMRMLScene*, double);
+  void RightImagingPanelTranslation(vtkMRMLScene*, double);
+
+  void ImagingPanelMovementValueChanged(vtkMRMLScene*, double);
+
+  void PatientSupportRotationValueChanged(vtkMRMLScene*, double);
+
+  void TableTopMovedPatientSupportMoved(vtkMRMLScene*, double);
+  void TableTopDisplacementPatientSupportChanged(vtkMRMLScene*, double);
+  void PatientSupportScaledMovedToPatientSupportCompress(vtkMRMLScene*, double);
+  void TableTopDisplacementValueChanged(vtkMRMLScene*, double, double, double);
+  void VerticalDisplacementValueChanged(vtkMRMLScene*, double, double, double);
+  void LateralDisplacementValueChanged(vtkMRMLScene*, double, double, double);
+  void LongitudinalDisplacementValueChanged(vtkMRMLScene*, double, double, double);
+
 protected:
   vtkSlicerRoomsEyeViewModuleLogic();
   virtual ~vtkSlicerRoomsEyeViewModuleLogic();
+
+  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
 
 private:
   vtkSlicerRoomsEyeViewModuleLogic(const vtkSlicerRoomsEyeViewModuleLogic&); // Not implemented

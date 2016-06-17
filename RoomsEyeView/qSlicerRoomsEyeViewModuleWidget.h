@@ -40,11 +40,33 @@ public:
   qSlicerRoomsEyeViewModuleWidget(QWidget *parent=0);
   virtual ~qSlicerRoomsEyeViewModuleWidget();
 
+  virtual void enter();
+
+public slots:
+	virtual void setMRMLScene(vtkMRMLScene*);
+  void setParameterNode(vtkMRMLNode*);
+	void onSceneImportedEvent();
+
+	//void updateWidgetFromMRML();
+
+protected slots:
+	void loadModelButtonClicked();
+  void SliderWidget_4Clicked();
+  void SliderWidgetValueChanged();
+  void SliderWidget_2ValueChanged();
+  void SliderWidget_5ValueChanged();
+  void SliderWidget_6ValueChanged();
+  void SliderWidget_7ValueChanged();
+  void SliderWidget_8ValueChanged();
+//void onLogicModified();
+
+
 protected:
   QScopedPointer<qSlicerRoomsEyeViewModuleWidgetPrivate> d_ptr;
 
 protected:
   virtual void setup();
+  void onEnter();
 
 private:
   Q_DECLARE_PRIVATE(qSlicerRoomsEyeViewModuleWidget);
