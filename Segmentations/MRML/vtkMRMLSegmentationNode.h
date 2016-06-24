@@ -25,11 +25,12 @@
 // MRML includes
 #include <vtkMRML.h>
 #include <vtkMRMLLabelMapVolumeNode.h>
+#include <vtkMRMLColorTableNode.h>
 
 // STD includes
 #include <cstdlib>
 
-// Segmentation includes
+// vtkSegmentationCore includes
 #include "vtkSegmentation.h"
 
 #include "vtkSlicerSegmentationsModuleMRMLExport.h"
@@ -161,10 +162,20 @@ public:
   /// Set and observe segmentation object
   void SetAndObserveSegmentation(vtkSegmentation* segmentation);
 
+  /// Get reference terminology color table node.
+  /// This node contains the terminology from which the user can assign terminology to new segments
+  vtkMRMLColorTableNode* GetReferenceTerminologyColorNode();
+  /// Set and observe reference terminology color table node.
+  /// This node contains the terminology from which the user can assign terminology to new segments
+  void SetAndObserveReferenceTerminologyColorNode(vtkMRMLColorTableNode* node);
+
   /// Generate merged labelmap image data for display if needed
   virtual vtkImageData* GetImageData();
   /// Query existence or merged labelmap. Do not trigger merged labelmap generation
   bool HasMergedLabelmap();
+
+  /// Set default reference terminology color table node when node is added to a scene
+  virtual void SetSceneReferences();
 
 protected:
   /// Add display properties for segment with given ID

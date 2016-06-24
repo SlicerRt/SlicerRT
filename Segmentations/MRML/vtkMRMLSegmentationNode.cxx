@@ -36,7 +36,6 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include <vtkEventBroker.h>
 #include <vtkMRMLSubjectHierarchyNode.h>
 #include <vtkMRMLSubjectHierarchyConstants.h>
-#include <vtkMRMLColorTableNode.h>
 
 // VTK includes
 #include <vtkCallbackCommand.h>
@@ -53,6 +52,9 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 // STD includes
 #include <algorithm>
+
+//------------------------------------------------------------------------------
+static const char* REFERENCETERMINOLOGYCOLORTABLE_REFERENCE_ROLE = "referenceTerminologyColorTableRef";
 
 //----------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLSegmentationNode);
@@ -1210,4 +1212,33 @@ void vtkMRMLSegmentationNode::SetReferenceImageGeometryParameterFromVolumeNode(v
   // Set node reference from segmentation to reference geometry volume
   this->SetNodeReferenceID(
     vtkMRMLSegmentationNode::GetReferenceImageGeometryReferenceRole().c_str(), volumeNode->GetID() );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLSegmentationNode::SetSceneReferences()
+{
+  Superclass::SetSceneReferences();
+
+  if (!this->Scene)
+  {
+    vtkErrorMacro("SetSceneReferences: Scene is expected to be non NULL.");
+    return;
+  }
+
+  // Reference terminology is the generic anatomical colors by default
+  vtkMRMLColorTableNode* genericAnatomyColorsNode = vtkMRMLColorTableNode::SafeDownCast(
+    this->Scene->GetNodeByID("vtkMRMLColorTableNodeFileGenericAnatomyColors.txt") );
+  this->SetAndObserveReferenceTerminologyColorNode(genericAnatomyColorsNode);
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLColorTableNode* vtkMRMLSegmentationNode::GetReferenceTerminologyColorNode()
+{
+  return vtkMRMLColorTableNode::SafeDownCast( this->GetNodeReference(REFERENCETERMINOLOGYCOLORTABLE_REFERENCE_ROLE) );
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLSegmentationNode::SetAndObserveReferenceTerminologyColorNode(vtkMRMLColorTableNode* node)
+{
+  this->SetNodeReferenceID(REFERENCETERMINOLOGYCOLORTABLE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
