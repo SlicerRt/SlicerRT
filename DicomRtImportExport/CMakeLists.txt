@@ -21,15 +21,13 @@ set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
 
 set(MODULE_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
-  ${CMAKE_CURRENT_SOURCE_DIR}/Logic
-  ${CMAKE_CURRENT_BINARY_DIR}/Logic
+  ${vtkSlicerDicomRtImportExportLogic_INCLUDE_DIRS}
   ${vtkSlicerVolumesModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerPlanarImageModuleLogic_INCLUDE_DIRS}
   ${vtkSegmentationCore_INCLUDE_DIRS}
-  ${CMAKE_CURRENT_SOURCE_DIR}/SubjectHierarchyPlugins
-  ${CMAKE_CURRENT_BINARY_DIR}/SubjectHierarchyPlugins
+  ${qSlicerDicomRtImportExportSubjectHierarchyPlugins_INCLUDE_DIRS}
   ${qSlicerSubjectHierarchyModuleWidgets_INCLUDE_DIRS}
   )
 

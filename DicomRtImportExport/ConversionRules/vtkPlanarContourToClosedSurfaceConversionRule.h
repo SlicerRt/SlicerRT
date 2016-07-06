@@ -25,7 +25,7 @@
 #include "vtkSegmentationConverterRule.h"
 #include "vtkSegmentationConverter.h"
 
-#include "vtkSegmentationCoreConfigure.h"
+#include "vtkSlicerDicomRtImportExportConversionRulesExport.h"
 
 // VTK includes
 #include "vtkPointLocator.h"
@@ -37,7 +37,7 @@ class vtkLine;
 class vtkPoints;
 class vtkPriorityQueue;
 
-/// \ingroup SegmentationCore
+/// \ingroup DicomRtImportImportExportConversionRules
 /// \brief Convert planar contour representation (vtkPolyData type) to
 ///   closed surface representation (also vtkPolyData type). The conversion algorithm
 ///   triangulates the contour points while handling special cases (keyhole contours,
@@ -45,16 +45,13 @@ class vtkPriorityQueue;
 ///   Paper about the method:
 ///   http://perk.cs.queensu.ca/contents/reconstruction-surfaces-planar-contours-through-contour-interpolation
 ///
-class vtkSegmentationCore_EXPORT vtkPlanarContourToClosedSurfaceConversionRule
+class VTK_SLICER_DICOMRTIMPORTEXPORT_CONVERSIONRULES_EXPORT vtkPlanarContourToClosedSurfaceConversionRule
   : public vtkSegmentationConverterRule
 {
 public:
   static vtkPlanarContourToClosedSurfaceConversionRule *New();
   vtkTypeMacro(vtkPlanarContourToClosedSurfaceConversionRule, vtkSegmentationConverterRule );
   virtual vtkSegmentationConverterRule* CreateRuleInstance();
-
-  // /// Convert a set of contours into a surface mesh.
-  // void ConvertContoursToMesh(vtkPolyData*, vtkPolyData*);
 
   /// Constructs representation object from representation name for the supported representation classes
   /// (typically source and target representation VTK classes, subclasses of vtkDataObject)

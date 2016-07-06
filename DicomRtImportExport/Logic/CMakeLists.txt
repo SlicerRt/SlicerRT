@@ -26,6 +26,7 @@ set(${KIT}_SRCS
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
+  vtkSlicer${MODULE_NAME}ConversionRules
   vtkSlicerSubjectHierarchyModuleLogic
   vtkSlicerSegmentationsModuleMRML
   vtkSlicerSegmentationsModuleLogic
@@ -41,6 +42,8 @@ set(${KIT}_TARGET_LIBRARIES
   vtkPlmCommon
   ${PLASTIMATCH_LIBRARIES}
   )
+
+SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkSlicerDicomRtImportExportConversionRules_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
 
 #-----------------------------------------------------------------------------
 SlicerMacroBuildModuleLogic(

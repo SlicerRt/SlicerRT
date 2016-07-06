@@ -27,6 +27,9 @@
 #include "vtkSlicerDicomRtImportExportModuleLogic.h"
 #include "vtkSlicerDicomRtReader.h"
 #include "vtkSlicerDicomRtWriter.h"
+#include "vtkRibbonModelToBinaryLabelmapConversionRule.h"
+#include "vtkPlanarContourToRibbonModelConversionRule.h"
+#include "vtkPlanarContourToClosedSurfaceConversionRule.h"
 
 // Qt includes
 #include <QSettings>
@@ -55,7 +58,10 @@
 #include "vtkMRMLSegmentationDisplayNode.h"
 #include "vtkMRMLSegmentationStorageNode.h"
 #include "vtkSlicerSegmentationsModuleLogic.h"
+
+// vtkSegmentationCore includes
 #include "vtkOrientedImageDataResample.h"
+#include "vtkSegmentationConverterFactory.h"
 
 // DCMTK includes
 #include <dcmtk/dcmdata/dcfilefo.h>
@@ -153,6 +159,24 @@ void vtkSlicerDicomRtImportExportModuleLogic::OnMRMLSceneEndClose()
     vtkErrorMacro("OnMRMLSceneEndClose: Invalid MRML scene!");
     return;
   }
+}
+
+//-----------------------------------------------------------------------------
+void vtkSlicerDicomRtImportExportModuleLogic::RegisterNodes()
+{
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
+    return;
+  }
+
+  // Register converter rules
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
+    vtkSmartPointer<vtkRibbonModelToBinaryLabelmapConversionRule>::New() );
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
+    vtkSmartPointer<vtkPlanarContourToRibbonModelConversionRule>::New() );
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
+    vtkSmartPointer<vtkPlanarContourToClosedSurfaceConversionRule>::New() );
 }
 
 //---------------------------------------------------------------------------

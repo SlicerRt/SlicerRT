@@ -90,13 +90,6 @@ public:
   vtkBooleanMacro(BeamModelsInSeparateBranch, bool);
 
 protected:
-  vtkSlicerDicomRtImportExportModuleLogic();
-  virtual ~vtkSlicerDicomRtImportExportModuleLogic();
-
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
-  virtual void OnMRMLSceneEndClose();
-
-protected:
   /// Load RT Structure Set and related objects into the MRML scene
   /// \return Success flag
   bool LoadRtStructureSet(vtkSlicerDicomRtReader* rtReader, vtkSlicerDICOMLoadable* loadable);
@@ -123,6 +116,16 @@ protected:
   /// \param node Either the volume node of the loaded RT image, or the isocenter fiducial node (corresponding to an RT image). This function is called both when
   ///    loading an RT image and when loading a beam. Sets up the RT image geometry only if both information (the image itself and the isocenter data) are available
   void SetupRtImageGeometry(vtkMRMLNode* node);
+
+protected:
+  vtkSlicerDicomRtImportExportModuleLogic();
+  virtual ~vtkSlicerDicomRtImportExportModuleLogic();
+
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
+  virtual void OnMRMLSceneEndClose();
+
+  /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
+  virtual void RegisterNodes();
 
 private:
   vtkSlicerDicomRtImportExportModuleLogic(const vtkSlicerDicomRtImportExportModuleLogic&); // Not implemented
