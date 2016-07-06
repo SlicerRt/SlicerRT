@@ -47,7 +47,26 @@ public:
   enum CoordinateSystemIdentifier
   {
     FixedReference = 0,
-    Gantry
+    GantryToFixedReference,
+    CollimatorToGantry,
+    LeftImagingPanelTranslation,
+    LeftImagingPanelRotatedToGantry,
+    LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated,
+    LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter,
+    RightImagingPanelTranslation,
+    RightImagingPanelRotatedToGantry,
+    RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated,
+    RightImagingPanelToRightImagingPanelFixedReferenceIsocenter,
+    PatientSupportToFixedReference,
+    PatientSupportScaledTranslatedToTableTopVerticalTranslation,
+    PatientSupportScaledByTableTopVerticalMovement,
+    PatientSupportPositiveVerticalTranslation,
+    TableTopEccentricRotationToPatientSupport,
+    TableTopToTableEccentricRotation,
+
+
+
+
     //TODO: Add all others (in order of chain)
   };
 
@@ -66,6 +85,21 @@ public:
 public:
   /// Get gantry to fixed reference transform
   vtkGetObjectMacro(GantryToFixedReferenceTransform, vtkTransform);
+  vtkGetObjectMacro(CollimatorToGantryTransform, vtkTransform);
+  vtkGetObjectMacro(LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform, vtkTransform);
+  vtkGetObjectMacro(LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform, vtkTransform);
+  vtkGetObjectMacro(LeftImagingPanelRotatedToGantryTransform, vtkTransform);
+  vtkGetObjectMacro(LeftImagingPanelTranslationTransform, vtkTransform);
+  vtkGetObjectMacro(RightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform, vtkTransform);
+  vtkGetObjectMacro(RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform, vtkTransform);
+  vtkGetObjectMacro(RightImagingPanelRotatedToGantryTransform, vtkTransform);
+  vtkGetObjectMacro(RightImagingPanelTranslationTransform, vtkTransform);
+  vtkGetObjectMacro(PatientSupportToFixedReferenceTransform, vtkTransform);
+  vtkGetObjectMacro(PatientSupportScaledTranslatedToTableTopVerticalTranslationTransform, vtkTransform);
+  vtkGetObjectMacro(PatientSupportScaledByTableTopVerticalMovementTransform, vtkTransform);
+  vtkGetObjectMacro(PatientSupportPositiveVerticalTranslationTransform, vtkTransform);
+  vtkGetObjectMacro(TableTopEccentricRotationToPatientSupportTransform, vtkTransform);
+  vtkGetObjectMacro(TableTopToTableTopEccentricRotationTransform, vtkTransform);
 
 protected:
   /// Update transforms according to beam node
@@ -74,10 +108,40 @@ protected:
 protected:
   /// Set gantry to fixed reference transform
   vtkSetObjectMacro(GantryToFixedReferenceTransform, vtkTransform);
+  vtkSetObjectMacro(CollimatorToGantryTransform, vtkTransform);
+  vtkSetObjectMacro(LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform, vtkTransform);
+  vtkSetObjectMacro(LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform, vtkTransform);
+  vtkSetObjectMacro(LeftImagingPanelRotatedToGantryTransform, vtkTransform);
+  vtkSetObjectMacro(LeftImagingPanelTranslationTransform, vtkTransform);
+  vtkSetObjectMacro(RightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform, vtkTransform);
+  vtkSetObjectMacro(RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform, vtkTransform);
+  vtkSetObjectMacro(RightImagingPanelRotatedToGantryTransform, vtkTransform);
+  vtkSetObjectMacro(RightImagingPanelTranslationTransform, vtkTransform);
+  vtkSetObjectMacro(PatientSupportToFixedReferenceTransform, vtkTransform);
+  vtkSetObjectMacro(PatientSupportScaledTranslatedToTableTopVerticalTranslationTransform, vtkTransform);
+  vtkSetObjectMacro(PatientSupportScaledByTableTopVerticalMovementTransform, vtkTransform);
+  vtkSetObjectMacro(PatientSupportPositiveVerticalTranslationTransform, vtkTransform);
+  vtkSetObjectMacro(TableTopEccentricRotationToPatientSupportTransform, vtkTransform);
+  vtkSetObjectMacro(TableTopToTableTopEccentricRotationTransform, vtkTransform);
 
 protected:
   /// Gantry to fixed reference transform
   vtkTransform* GantryToFixedReferenceTransform;
+  vtkTransform* CollimatorToGantryTransform;
+  vtkTransform* LeftImagingPanelTranslationTransform;
+  vtkTransform* LeftImagingPanelRotatedToGantryTransform;
+  vtkTransform* LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform;
+  vtkTransform* LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform;
+  vtkTransform* RightImagingPanelTranslationTransform;
+  vtkTransform* RightImagingPanelRotatedToGantryTransform;
+  vtkTransform* RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform;
+  vtkTransform* RightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform;
+  vtkTransform* PatientSupportToFixedReferenceTransform;
+  vtkTransform* PatientSupportScaledTranslatedToTableTopVerticalTranslationTransform;
+  vtkTransform* PatientSupportScaledByTableTopVerticalMovementTransform;
+  vtkTransform* PatientSupportPositiveVerticalTranslationTransform;
+  vtkTransform* TableTopEccentricRotationToPatientSupportTransform;
+  vtkTransform* TableTopToTableTopEccentricRotationTransform;
 
   //TODO: All transforms (please include X-ray image receptor too)
                                              
