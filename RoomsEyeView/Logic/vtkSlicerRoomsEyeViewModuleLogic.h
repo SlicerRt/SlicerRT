@@ -27,10 +27,12 @@
 #ifndef __vtkSlicerRoomsEyeViewModuleLogic_h
 #define __vtkSlicerRoomsEyeViewModuleLogic_h
 
+#include "vtkSlicerRoomsEyeViewModuleLogicExport.h"
+
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-#include "vtkSlicerRoomsEyeViewModuleLogicExport.h"
+#include <vtkCollisionDetectionFilter.h>
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
 class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic :
@@ -42,19 +44,19 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
-  void LoadLinacModels(vtkMRMLScene*, const char*);
+  void LoadLinacModels(vtkMRMLScene* scene, const char* );
   void ModelToParentTransforms(vtkMRMLScene*);
   
   void CollimatorRotationValueChanged(vtkMRMLScene*, double);
   void GantryRotationValueChanged(vtkMRMLScene*, double);
   
-  void LeftImagingPanelToOrigin(vtkMRMLScene*, double);
-  void LeftImagingPanelOriginToLeftImagingPanelRotated(vtkMRMLScene*, double);
+  void LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter(vtkMRMLScene*, double);
+  void LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated(vtkMRMLScene*, double);
   void LeftImagingPanelRotatedToGantry(vtkMRMLScene*, double);
   void LeftImagingPanelTranslation(vtkMRMLScene*, double);
 
-  void RightImagingPanelToOrigin(vtkMRMLScene*, double);
-  void RightImagingPanelOriginToRightImagingPanelRotated(vtkMRMLScene*, double);
+  void RightImagingPanelToRightImagingPanelFixedReferenceIsocenter(vtkMRMLScene*, double);
+  void RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated(vtkMRMLScene*, double);
   void RightImagingPanelRotatedToGantry(vtkMRMLScene*, double);
   void RightImagingPanelTranslation(vtkMRMLScene*, double);
 
@@ -62,13 +64,25 @@ public:
 
   void PatientSupportRotationValueChanged(vtkMRMLScene*, double);
 
-  void TableTopMovedPatientSupportMoved(vtkMRMLScene*, double);
+  void PatientSupportScaledTranslatedToTableTopVerticalTranslation(vtkMRMLScene*, double);
   void TableTopDisplacementPatientSupportChanged(vtkMRMLScene*, double);
-  void PatientSupportScaledMovedToPatientSupportCompress(vtkMRMLScene*, double);
+  void PatientSupportPositiveVerticalTranslation(vtkMRMLScene*, double);
   void TableTopDisplacementValueChanged(vtkMRMLScene*, double, double, double);
   void VerticalDisplacementValueChanged(vtkMRMLScene*, double, double, double);
   void LateralDisplacementValueChanged(vtkMRMLScene*, double, double, double);
   void LongitudinalDisplacementValueChanged(vtkMRMLScene*, double, double, double);
+  std::string CheckForCollisions();
+
+protected:
+  vtkMatrix4x4* CollimatorToWorldTransformMatrix;
+  vtkMatrix4x4* TableTopToWorldTransformMatrix;
+
+  vtkCollisionDetectionFilter* GantryPatientCollisionDetection;
+  vtkCollisionDetectionFilter* GantryTableTopCollisionDetection;
+  vtkCollisionDetectionFilter* GantryPatientSupportCollisionDetection;
+
+  vtkCollisionDetectionFilter* CollimatorPatientCollisionDetection;
+  vtkCollisionDetectionFilter* CollimatorTableTopCollisionDetection;
 
 protected:
   vtkSlicerRoomsEyeViewModuleLogic();

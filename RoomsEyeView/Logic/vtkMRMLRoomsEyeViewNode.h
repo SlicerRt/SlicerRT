@@ -56,45 +56,46 @@ public:
   /// Get TODO:
   vtkMRMLLinearTransformNode* GetGantryToFixedReferenceTransformNode();
   vtkMRMLLinearTransformNode* GetCollimatorToGantryTransformNode();
-  vtkMRMLLinearTransformNode* GetLeftImagingPanelToLeftImagingPanelOriginTransformNode();
-  vtkMRMLLinearTransformNode* GetLeftImagingPanelOriginToLeftImagingPanelRotatedTransformNode(); 
+  vtkMRMLLinearTransformNode* GetLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode();
+  vtkMRMLLinearTransformNode* GetLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode(); 
   vtkMRMLLinearTransformNode* GetLeftImagingPanelRotatedToGantryTransformNode();
   vtkMRMLLinearTransformNode* GetLeftImagingPanelTranslationTransformNode();
 
-  vtkMRMLLinearTransformNode* GetRightImagingPanelToRightImagingPanelOriginTransformNode();
-  vtkMRMLLinearTransformNode* GetRightImagingPanelOriginToRightImagingPanelRotatedTransformNode();
+  vtkMRMLLinearTransformNode* GetRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode();
+  vtkMRMLLinearTransformNode* GetRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode();
   vtkMRMLLinearTransformNode* GetRightImagingPanelRotatedToGantryTransformNode();
   vtkMRMLLinearTransformNode* GetRightImagingPanelTranslationTransformNode();
 
   vtkMRMLLinearTransformNode* GetPatientSupportToFixedReferenceTransformNode();
-  vtkMRMLLinearTransformNode* GetPatientSupportScaledToPatientSupportTransformNode();
-  vtkMRMLLinearTransformNode* GetPatientSupportScaledMovedToPatientSupportCompressTransformNode();
+  vtkMRMLLinearTransformNode* GetPatientSupportScaledByTableTopVerticalMovementTransformNode();
+  vtkMRMLLinearTransformNode* GetPatientSupportPositiveVerticalTranslationTransformNode();
 
   vtkMRMLLinearTransformNode* GetTableTopToTableTopEccentricRotationTransformNode();
   vtkMRMLLinearTransformNode* GetTableTopEccentricRotationToPatientSupportTransformNode();
-  vtkMRMLLinearTransformNode* GetTableTopMovedToPatientSupportMovedTransformNode();
+  vtkMRMLLinearTransformNode* GetPatientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode();
 
   /// Set TODO:
   void SetAndObserveGantryToFixedReferenceTransformNode(vtkMRMLLinearTransformNode* node);
   void SetAndObserveCollimatorToGantryTransformNode(vtkMRMLLinearTransformNode* node);
 
-  void SetAndObserveLeftImagingPanelToLeftImagingPanelOriginTransformNode(vtkMRMLLinearTransformNode* node);
-  void SetAndObserveLeftImagingPanelOriginToLeftImagingPanelRotatedTransformNode(vtkMRMLLinearTransformNode* node);
+  void SetAndObserveLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode(vtkMRMLLinearTransformNode* node);
+  void SetAndObserveLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode(vtkMRMLLinearTransformNode* node);
   void SetAndObserveLeftImagingPanelRotatedToGantryTransformNode(vtkMRMLLinearTransformNode* node);
   void SetAndObserveLeftImagingPanelTranslationTransformNode(vtkMRMLLinearTransformNode* node);
 
-  void SetAndObserveRightImagingPanelToRightImagingPanelOriginTransformNode(vtkMRMLLinearTransformNode* node);
-  void SetAndObserveRightImagingPanelOriginToRightImagingPanelRotatedTransformNode(vtkMRMLLinearTransformNode* node);
+  void SetAndObserveRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode(vtkMRMLLinearTransformNode* node);
+  void SetAndObserveRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode(vtkMRMLLinearTransformNode* node);
   void SetAndObserveRightImagingPanelRotatedToGantryTransformNode(vtkMRMLLinearTransformNode* node);
   void SetAndObserveRightImagingPanelTranslationTransformNode(vtkMRMLLinearTransformNode* node);
 
   void SetAndObservePatientSupportToFixedReferenceTransformNode(vtkMRMLLinearTransformNode* node);
-  void SetAndObservePatientSupportScaledToPatientSupportTransformNode(vtkMRMLLinearTransformNode* node);
-  void SetAndObservePatientSupportScaledMovedToPatientSupportCompressTransformNode(vtkMRMLLinearTransformNode* node);
-
+  void SetAndObservePatientSupportScaledByTableTopVerticalMovementTransformNode(vtkMRMLLinearTransformNode* node);
+  void SetAndObservePatientSupportPositiveVerticalTranslationTransformNode(vtkMRMLLinearTransformNode* node);
+  void SetAndObservePatientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode(vtkMRMLLinearTransformNode* node);
+  
   void SetAndObserveTableTopToTableTopEccentricRotationTransformNode(vtkMRMLLinearTransformNode* node);
   void SetAndObserveTableTopEccentricRotationToPatientSupportTransformNode(vtkMRMLLinearTransformNode* node);
-  void SetAndObserveTableMovedToPatientSupportMovedTransformNode(vtkMRMLLinearTransformNode* node);
+ 
 
   //void SetAndObserveRightImagingPanel
   /// Get TODO:

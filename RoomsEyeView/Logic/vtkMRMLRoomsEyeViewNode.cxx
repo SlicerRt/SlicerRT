@@ -36,23 +36,24 @@
 static const char* GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_REFERENCE_ROLE = "gantryToFixedReferenceTransformRef";
 static const char* COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_REFERENCE_ROLE = "collimatorToGantryTransformRef";
 
-static const char* LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELORIGIN_TRANSFORM_NODE_REFERENCE_ROLE = "leftImagingPanelToLeftImagingPanelTransformRef";
-static const char* LEFTIMAGINGPANELORIGIN_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_REFERENCE_ROLE = "leftImagingPanelOriginToLeftImagingPanelRotated";
+static const char* LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_REFERENCE_ROLE = "leftImagingPanelToLeftImagingPanelTransformRef";
+static const char* LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_REFERENCE_ROLE = "leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated";
 static const char* LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_REFERENCE_ROLE = "leftImagingPanelRotatedToGantryTransformRef";
 static const char* LEFTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_REFERENCE_ROLE = "leftImagingPanelTranslationTransformRef";
 
-static const char* RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELORIGIN_TRANSFORM_NODE_REFERENCE_ROLE = "rightImagingPanelToRightImagingPanelTransformRef";
-static const char* RIGHTIMAGINGPANELORIGIN_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_REFERENCE_ROLE = "rightImagingPanelOriginToRightImagingPanelRotated";
+static const char* RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_REFERENCE_ROLE = "rightImagingPanelToRightImagingPanelTransformRef";
+static const char* RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_REFERENCE_ROLE = "rightImagingPanelOriginToRightImagingPanelRotated";
 static const char* RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_REFERENCE_ROLE = "rightImagingPanelRotatedToGantryTransformRef";
 static const char* RIGHTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_REFERENCE_ROLE = "rightImagingPanelTranslationTransformRef";
 
 static const char* PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_REFERENCE_ROLE = "patientSupportToFixedReferenceTransformRef";
-static const char* PATIENTSUPPORTSCALED_TO_PATIENTSUPPORT_TRANSFORM_NODE_REFERENCE_ROLE = "patientSupportScaledToPatientSupportTransformRef";
-static const char* PATIENTSUPPORTSCALEDMOVED_TO_PATIENTSUPPORTCOMPRESS_TRANSFORM_NODE_REFERENCE_ROLE = "patientSupportScaledMovedToPatientSupportCompressTransformRef";
+static const char* PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_REFERENCE_ROLE = "patientSupportScaledByTableTopVerticalMovementTransformRef";
+static const char* PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_REFERENCE_ROLE = "patientSupportPositiveVerticalTranslationTransformRef";
+static const char* PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_REFERENCE_ROLE = "patientSupportScaledTranslatedToTableTopVerticalTranslationTransformRef";
+
 
 static const char* TABLETOP_TO_TABLETOPECCENTRICROTATION_TRANSFORM_NODE_REFERENCE_ROLE = "tableTopToTableTopEccentricRotationTransformRef";
 static const char* TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_REFERENCE_ROLE = "tableTopEccentricToPatientSupportTransformRef";
-static const char* TABLETOPMOVED_TO_PATIENTSUPPORTMOVED_TRANSFORM_NODE_REFERENCE_ROLE = "tableTopMovedToPatientSupportMovedTransformRef";
 
 
 //------------------------------------------------------------------------------
@@ -199,24 +200,24 @@ void vtkMRMLRoomsEyeViewNode::SetAndObserveCollimatorToGantryTransformNode(vtkMR
   this->SetNodeReferenceID(COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetLeftImagingPanelToLeftImagingPanelOriginTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode()
 {
-  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELORIGIN_TRANSFORM_NODE_REFERENCE_ROLE));
+  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_REFERENCE_ROLE));
 }
 
-void vtkMRMLRoomsEyeViewNode::SetAndObserveLeftImagingPanelToLeftImagingPanelOriginTransformNode(vtkMRMLLinearTransformNode* node)
+void vtkMRMLRoomsEyeViewNode::SetAndObserveLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode(vtkMRMLLinearTransformNode* node)
 {
-  this->SetNodeReferenceID(LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELORIGIN_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
-vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetLeftImagingPanelOriginToLeftImagingPanelRotatedTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode()
 {
-  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(LEFTIMAGINGPANELORIGIN_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_REFERENCE_ROLE));
+  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_REFERENCE_ROLE));
 }
 
-void vtkMRMLRoomsEyeViewNode::SetAndObserveLeftImagingPanelOriginToLeftImagingPanelRotatedTransformNode(vtkMRMLLinearTransformNode* node)
+void vtkMRMLRoomsEyeViewNode::SetAndObserveLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode(vtkMRMLLinearTransformNode* node)
 {
-  this->SetNodeReferenceID(LEFTIMAGINGPANELORIGIN_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetLeftImagingPanelRotatedToGantryTransformNode()
@@ -238,24 +239,24 @@ void vtkMRMLRoomsEyeViewNode::SetAndObserveLeftImagingPanelTranslationTransformN
   this->SetNodeReferenceID(LEFTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetRightImagingPanelToRightImagingPanelOriginTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode()
 {
-  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELORIGIN_TRANSFORM_NODE_REFERENCE_ROLE));
+  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_REFERENCE_ROLE));
 }
 
-void vtkMRMLRoomsEyeViewNode::SetAndObserveRightImagingPanelToRightImagingPanelOriginTransformNode(vtkMRMLLinearTransformNode* node)
+void vtkMRMLRoomsEyeViewNode::SetAndObserveRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode(vtkMRMLLinearTransformNode* node)
 {
-  this->SetNodeReferenceID(RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELORIGIN_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
-vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetRightImagingPanelOriginToRightImagingPanelRotatedTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode()
 {
-  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(RIGHTIMAGINGPANELORIGIN_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_REFERENCE_ROLE));
+  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_REFERENCE_ROLE));
 }
 
-void vtkMRMLRoomsEyeViewNode::SetAndObserveRightImagingPanelOriginToRightImagingPanelRotatedTransformNode(vtkMRMLLinearTransformNode* node)
+void vtkMRMLRoomsEyeViewNode::SetAndObserveRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode(vtkMRMLLinearTransformNode* node)
 {
-  this->SetNodeReferenceID(RIGHTIMAGINGPANELORIGIN_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
 vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetRightImagingPanelRotatedToGantryTransformNode()
@@ -290,26 +291,35 @@ void vtkMRMLRoomsEyeViewNode::SetAndObservePatientSupportToFixedReferenceTransfo
 
 }
 
-vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetPatientSupportScaledToPatientSupportTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetPatientSupportScaledByTableTopVerticalMovementTransformNode()
 {
-  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(PATIENTSUPPORTSCALED_TO_PATIENTSUPPORT_TRANSFORM_NODE_REFERENCE_ROLE));
+  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_REFERENCE_ROLE));
 }
 
-void vtkMRMLRoomsEyeViewNode::SetAndObservePatientSupportScaledToPatientSupportTransformNode(vtkMRMLLinearTransformNode* node)
+void vtkMRMLRoomsEyeViewNode::SetAndObservePatientSupportScaledByTableTopVerticalMovementTransformNode(vtkMRMLLinearTransformNode* node)
 {
-  this->SetNodeReferenceID(PATIENTSUPPORTSCALED_TO_PATIENTSUPPORT_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
-vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetPatientSupportScaledMovedToPatientSupportCompressTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetPatientSupportPositiveVerticalTranslationTransformNode()
 {
-  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(PATIENTSUPPORTSCALEDMOVED_TO_PATIENTSUPPORTCOMPRESS_TRANSFORM_NODE_REFERENCE_ROLE));
+  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_REFERENCE_ROLE));
 }
 
-void vtkMRMLRoomsEyeViewNode::SetAndObservePatientSupportScaledMovedToPatientSupportCompressTransformNode(vtkMRMLLinearTransformNode* node)
+void vtkMRMLRoomsEyeViewNode::SetAndObservePatientSupportPositiveVerticalTranslationTransformNode(vtkMRMLLinearTransformNode* node)
 {
-  this->SetNodeReferenceID(PATIENTSUPPORTSCALEDMOVED_TO_PATIENTSUPPORTCOMPRESS_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
+vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetPatientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode()
+{
+  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_REFERENCE_ROLE));
+}
+
+void vtkMRMLRoomsEyeViewNode::SetAndObservePatientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode(vtkMRMLLinearTransformNode* node)
+{
+  this->SetNodeReferenceID(PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+}
 //-----------------------------------------------------------
 
 vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetTableTopToTableTopEccentricRotationTransformNode()
@@ -332,12 +342,3 @@ void vtkMRMLRoomsEyeViewNode::SetAndObserveTableTopEccentricRotationToPatientSup
   this->SetNodeReferenceID(TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
-vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetTableTopMovedToPatientSupportMovedTransformNode()
-{
-  return vtkMRMLLinearTransformNode::SafeDownCast(this->GetNodeReference(TABLETOPMOVED_TO_PATIENTSUPPORTMOVED_TRANSFORM_NODE_REFERENCE_ROLE));
-}
-
-void vtkMRMLRoomsEyeViewNode::SetAndObserveTableMovedToPatientSupportMovedTransformNode(vtkMRMLLinearTransformNode* node)
-{
-  this->SetNodeReferenceID(TABLETOPMOVED_TO_PATIENTSUPPORTMOVED_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
-}

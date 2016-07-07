@@ -86,6 +86,7 @@ qSlicerRoomsEyeViewModuleWidget::qSlicerRoomsEyeViewModuleWidget(QWidget* _paren
 //-----------------------------------------------------------------------------
 qSlicerRoomsEyeViewModuleWidget::~qSlicerRoomsEyeViewModuleWidget()
 {
+  
 }
 
 //-----------------------------------------------------------------------------
@@ -175,11 +176,6 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
   connect(d->SliderWidget_6, SIGNAL(valueChanged(double)), this, SLOT(SliderWidget_6ValueChanged()));
   connect(d->SliderWidget_7, SIGNAL(valueChanged(double)), this, SLOT(SliderWidget_7ValueChanged()));
   connect(d->SliderWidget_8, SIGNAL(valueChanged(double)), this, SLOT(SliderWidget_8ValueChanged()));
-  
-
-
-
-  
 }
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::loadModelButtonClicked() //TODO: Rename to loadModelButtonClicked
@@ -198,30 +194,90 @@ void qSlicerRoomsEyeViewModuleWidget::loadModelButtonClicked() //TODO: Rename to
   d->logic()->LoadLinacModels(this->mrmlScene(), "C:/Users/Vinith/Documents/Third Year/Perk Lab/slicerrt/trunk/SlicerRt/sandbox/RoomsEyeView/Resources/tableTopModel.stl");
 
   d->logic()->ModelToParentTransforms(this->mrmlScene());
+  
  
 }
 void qSlicerRoomsEyeViewModuleWidget::SliderWidgetValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
   d->logic()->GantryRotationValueChanged(this->mrmlScene(), d->SliderWidget->value());
+  std::string collisionString = d->logic()->CheckForCollisions();
+  
+  if (collisionString.length() > 0)
+  {
+    d->CollisionsDetected->setText(QString::fromStdString(collisionString));
+    d->CollisionsDetected->setStyleSheet("color: red");
+
+  }
+
+  else
+  {
+    d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
+    d->CollisionsDetected->setStyleSheet("color: green");
+  }
 }
 
 void qSlicerRoomsEyeViewModuleWidget::SliderWidget_2ValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
   d->logic()->ImagingPanelMovementValueChanged(this->mrmlScene(), d->SliderWidget_2->value());
+
+  std::string collisionString = d->logic()->CheckForCollisions();
+
+  if (collisionString.length() > 0)
+  {
+    d->CollisionsDetected->setText(QString::fromStdString(collisionString));
+    d->CollisionsDetected->setStyleSheet("color: red");
+
+  }
+
+  else
+  {
+    d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
+    d->CollisionsDetected->setStyleSheet("color: green");
+  }
 }
 
 void qSlicerRoomsEyeViewModuleWidget::SliderWidget_4Clicked()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
   d->logic()->CollimatorRotationValueChanged(this->mrmlScene(), d->SliderWidget_4->value());
+
+  std::string collisionString = d->logic()->CheckForCollisions();
+
+  if (collisionString.length() > 0)
+  {
+    d->CollisionsDetected->setText(QString::fromStdString(collisionString));
+    d->CollisionsDetected->setStyleSheet("color: red");
+
+  }
+
+  else
+  {
+    d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
+    d->CollisionsDetected->setStyleSheet("color: green");
+  }
 }
 
 void qSlicerRoomsEyeViewModuleWidget::SliderWidget_5ValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
   d->logic()->PatientSupportRotationValueChanged(this->mrmlScene(), d->SliderWidget_5->value());
+
+  std::string collisionString = d->logic()->CheckForCollisions();
+
+  if (collisionString.length() > 0)
+  {
+    d->CollisionsDetected->setText(QString::fromStdString(collisionString));
+    d->CollisionsDetected->setStyleSheet("color: red");
+
+  }
+
+  else
+  {
+    d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
+    d->CollisionsDetected->setStyleSheet("color: green");
+  }
 
 }
 
@@ -230,6 +286,21 @@ void qSlicerRoomsEyeViewModuleWidget::SliderWidget_6ValueChanged()
   Q_D(qSlicerRoomsEyeViewModuleWidget);
   d->logic()->VerticalDisplacementValueChanged(this->mrmlScene(), d->SliderWidget_8->value(), d->SliderWidget_7->value(), d->SliderWidget_6->value() );
 
+  std::string collisionString = d->logic()->CheckForCollisions();
+
+  if (collisionString.length() > 0)
+  {
+    d->CollisionsDetected->setText(QString::fromStdString(collisionString));
+    d->CollisionsDetected->setStyleSheet("color: red");
+
+  }
+
+  else
+  {
+    d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
+    d->CollisionsDetected->setStyleSheet("color: green");
+  }
+
 }
 
 void qSlicerRoomsEyeViewModuleWidget::SliderWidget_7ValueChanged()
@@ -237,11 +308,41 @@ void qSlicerRoomsEyeViewModuleWidget::SliderWidget_7ValueChanged()
   Q_D(qSlicerRoomsEyeViewModuleWidget);
   d->logic()->LongitudinalDisplacementValueChanged(this->mrmlScene(), d->SliderWidget_8->value(), d->SliderWidget_7->value(), d->SliderWidget_6->value());
 
+  std::string collisionString = d->logic()->CheckForCollisions();
+
+  if (collisionString.length() > 0)
+  {
+    d->CollisionsDetected->setText(QString::fromStdString(collisionString));
+    d->CollisionsDetected->setStyleSheet("color: red");
+
+  }
+
+  else
+  {
+    d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
+    d->CollisionsDetected->setStyleSheet("color: green");
+  }
+
 }
 
 void qSlicerRoomsEyeViewModuleWidget::SliderWidget_8ValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
   d->logic()->LateralDisplacementValueChanged(this->mrmlScene(), d->SliderWidget_8->value(), d->SliderWidget_7->value(), d->SliderWidget_6->value());
+
+  std::string collisionString = d->logic()->CheckForCollisions();
+
+  if (collisionString.length() > 0)
+  {
+    d->CollisionsDetected->setText(QString::fromStdString(collisionString));
+    d->CollisionsDetected->setStyleSheet("color: red");
+
+  }
+
+  else
+  {
+    d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
+    d->CollisionsDetected->setStyleSheet("color: green");
+  }
 
 }

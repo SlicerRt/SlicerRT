@@ -20,6 +20,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
   vtkSlicerSubjectHierarchyModuleLogic
   vtkSlicerModelsModuleLogic
+  vtkSlicerBeamsModuleMRML
   ${ITK_LIBRARIES}
   )
 

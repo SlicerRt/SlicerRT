@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>660</width>
-    <height>639</height>
+    <height>725</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -149,13 +149,13 @@
          <item row="0" column="1" colspan="3">
           <widget class="ctkSliderWidget" name="SliderWidget_5">
            <property name="minimum">
-            <double>-123.000000000000000</double>
+            <double>0.000000000000000</double>
            </property>
            <property name="maximum">
-            <double>123.000000000000000</double>
+            <double>359.000000000000000</double>
            </property>
            <property name="value">
-            <double>-68.500000000000000</double>
+            <double>0.000000000000000</double>
            </property>
            <property name="tickPosition">
             <enum>QSlider::TicksAbove</enum>
