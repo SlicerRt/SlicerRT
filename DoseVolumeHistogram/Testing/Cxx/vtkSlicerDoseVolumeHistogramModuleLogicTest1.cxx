@@ -25,6 +25,7 @@
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
+#include "vtkPlanarContourToClosedSurfaceConversionRule.h"
 
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
@@ -32,6 +33,7 @@
 
 // SegmentationCore includes
 #include "vtkOrientedImageData.h"
+#include "vtkSegmentationConverterFactory.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
@@ -323,6 +325,10 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 
   // Make sure NRRD reading works
   itk::itkFactoryRegistration();
+
+  // Register planar contour to closed surface conversion rule
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
+    vtkSmartPointer<vtkPlanarContourToClosedSurfaceConversionRule>::New() );
 
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
