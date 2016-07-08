@@ -91,7 +91,7 @@ vtkSlicerRoomsEyeViewModuleLogic::vtkSlicerRoomsEyeViewModuleLogic()
 //----------------------------------------------------------------------------
 vtkSlicerRoomsEyeViewModuleLogic::~vtkSlicerRoomsEyeViewModuleLogic()
 {
-  cout << "Hello!";
+ 
   if (this->CollimatorToWorldTransformMatrix)
   {
     this->CollimatorToWorldTransformMatrix->Delete();
@@ -160,8 +160,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newSce
   vtkSmartPointer<vtkMRMLLinearTransformNode> tableTopEccentricRotationToPatientSupportTransformNode;
   vtkSmartPointer<vtkMRMLLinearTransformNode> tableTopToTableTopEccentricRotationTransformNode;
 
-  
-
   // Create transform nodes
   if (newScene->GetFirstNodeByName(GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME) == NULL)
   {
@@ -229,7 +227,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newSce
     tableTopToTableTopEccentricRotationTransformNode->SetName(TABLETOP_TO_TABLETOPECCENENTRICROTATION_TRANSFORM_NODE_NAME);
     newScene->AddNode(tableTopToTableTopEccentricRotationTransformNode);
   }
-  
   else
   {
       gantryToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
@@ -281,7 +278,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newSce
         newScene->GetFirstNodeByName(PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_NAME));
 
   }
-
   // Organize transforms into hierarchy based on IEC Standard 61217
   collimatorToGantryTransformNode->SetAndObserveTransformNodeID(gantryToFixedReferenceTransformNode->GetID());
   leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode->SetAndObserveTransformNodeID(leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode->GetID());
@@ -340,7 +336,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadLinacModels(vtkMRMLScene* scene, cons
   vtkSmartPointer <vtkSlicerModelsLogic> modelsLogic = vtkSmartPointer<vtkSlicerModelsLogic>::New();
   modelsLogic->SetMRMLScene(scene);
   modelsLogic->AddModel(path);
-
 }
 
 //----------------------------------------------------------------------------
@@ -446,7 +441,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::CollimatorRotationValueChanged(vtkMRMLSce
   collimatorToGantryTransform->Translate(implicitCenterToActualCenterDisplacement);
   collimatorToGantryTransform->Modified();
   CheckForCollisions();
-
 }
 
 //----------------------------------------------------------------------------
@@ -652,8 +646,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::PatientSupportScaledTranslatedToTableTopV
 
   tableTopEccentricRotationToPatientSupportTransformNode->GetMatrixTransformToWorld(this->TableTopToWorldTransformMatrix);
   CheckForCollisions();
-
-
 }
 //-----------------------------------------------------------------------------
 void vtkSlicerRoomsEyeViewModuleLogic::TableTopDisplacementPatientSupportChanged(vtkMRMLScene* scene, double tableTopDisplacement)
