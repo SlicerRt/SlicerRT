@@ -24,7 +24,7 @@
     <widget class="qMRMLWidget" name="MRMLWidget">
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">
-       <widget class="ctkCollapsibleButton" name="CollapsibleButton_2">
+       <widget class="ctkCollapsibleButton" name="LoadModel">
         <property name="text">
          <string>Reload and Test</string>
         </property>
@@ -50,7 +50,7 @@
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="ctkCollapsibleButton" name="CollapsibleButton_3">
+       <widget class="ctkCollapsibleButton" name="GantryRotation">
         <property name="text">
          <string>Gantry Rotation</string>
         </property>
@@ -59,7 +59,7 @@
         </property>
         <layout class="QGridLayout" name="gridLayout_4">
          <item row="0" column="0">
-          <widget class="ctkSliderWidget" name="SliderWidget">
+          <widget class="ctkSliderWidget" name="GantryRotationSlider">
            <property name="minimum">
             <double>0.000000000000000</double>
            </property>
@@ -75,7 +75,7 @@
        </widget>
       </item>
       <item row="3" column="0">
-       <widget class="ctkCollapsibleButton" name="CollapsibleButton_4">
+       <widget class="ctkCollapsibleButton" name="ImagingPanelMovement">
         <property name="text">
          <string>Imaging Panel Movement</string>
         </property>
@@ -84,7 +84,7 @@
         </property>
         <layout class="QGridLayout" name="gridLayout_5">
          <item row="0" column="0">
-          <widget class="ctkSliderWidget" name="SliderWidget_2">
+          <widget class="ctkSliderWidget" name="ImagingPanelMovementSlider">
            <property name="minimum">
             <double>-68.500000000000000</double>
            </property>
@@ -103,7 +103,7 @@
        </widget>
       </item>
       <item row="4" column="0">
-       <widget class="ctkCollapsibleButton" name="CollapsibleButton_6">
+       <widget class="ctkCollapsibleButton" name="CollimatorRotation">
         <property name="text">
          <string>Collimator Rotation</string>
         </property>
@@ -112,7 +112,7 @@
         </property>
         <layout class="QGridLayout" name="gridLayout_6">
          <item row="0" column="0">
-          <widget class="ctkSliderWidget" name="SliderWidget_4">
+          <widget class="ctkSliderWidget" name="CollimatorRotationSlider">
            <property name="minimum">
             <double>0.000000000000000</double>
            </property>
@@ -131,23 +131,23 @@
        </widget>
       </item>
       <item row="5" column="0">
-       <widget class="ctkCollapsibleButton" name="CollapsibleButton_7">
+       <widget class="ctkCollapsibleButton" name="TableTopMovement">
         <property name="text">
-         <string>Table Movement</string>
+         <string>Table Top Movement</string>
         </property>
         <property name="contentsFrameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
         <layout class="QGridLayout" name="gridLayout_7">
          <item row="0" column="0">
-          <widget class="QLabel" name="label">
+          <widget class="QLabel" name="PatientSupportRotationLabel">
            <property name="text">
             <string>Patient Support Rotation:</string>
            </property>
           </widget>
          </item>
          <item row="0" column="1" colspan="3">
-          <widget class="ctkSliderWidget" name="SliderWidget_5">
+          <widget class="ctkSliderWidget" name="PatientSupportRotationSlider">
            <property name="minimum">
             <double>0.000000000000000</double>
            </property>
@@ -163,14 +163,14 @@
           </widget>
          </item>
          <item row="1" column="0" colspan="2">
-          <widget class="QLabel" name="label_2">
+          <widget class="QLabel" name="VerticalTableTopDisplacementLabel">
            <property name="text">
             <string>Vertical Table Top Displacement:</string>
            </property>
           </widget>
          </item>
          <item row="1" column="2" colspan="2">
-          <widget class="ctkSliderWidget" name="SliderWidget_6">
+          <widget class="ctkSliderWidget" name="VerticalTableTopDisplacementSlider">
            <property name="minimum">
             <double>-500.000000000000000</double>
            </property>
@@ -186,14 +186,14 @@
           </widget>
          </item>
          <item row="2" column="0" colspan="3">
-          <widget class="QLabel" name="label_3">
+          <widget class="QLabel" name="LongitudinalTableTopDisplacementLabel">
            <property name="text">
             <string>Longitudinal Table Top Displacement:</string>
            </property>
           </widget>
          </item>
          <item row="2" column="3">
-          <widget class="ctkSliderWidget" name="SliderWidget_7">
+          <widget class="ctkSliderWidget" name="LongitudinalTableTopDisplacementSlider">
            <property name="minimum">
             <double>0.000000000000000</double>
            </property>
@@ -209,14 +209,14 @@
           </widget>
          </item>
          <item row="3" column="0" colspan="2">
-          <widget class="QLabel" name="label_4">
+          <widget class="QLabel" name="LateralTableTopDisplacementLabel">
            <property name="text">
             <string>Lateral Table Top Displacement:</string>
            </property>
           </widget>
          </item>
          <item row="3" column="2" colspan="2">
-          <widget class="ctkSliderWidget" name="SliderWidget_8">
+          <widget class="ctkSliderWidget" name="LateralTableTopDisplacementSlider">
            <property name="minimum">
             <double>-230.000000000000000</double>
            </property>

@@ -51,13 +51,13 @@ public slots:
 
 protected slots:
 	void loadModelButtonClicked();
-  void SliderWidget_4Clicked();
-  void SliderWidgetValueChanged();
-  void SliderWidget_2ValueChanged();
-  void SliderWidget_5ValueChanged();
-  void SliderWidget_6ValueChanged();
-  void SliderWidget_7ValueChanged();
-  void SliderWidget_8ValueChanged();
+  void CollimatorRotationSliderValueChanged();
+  void GantryRotationSliderValueChanged();
+  void ImagingPanelMovementSliderValueChanged();
+  void PatientSupportRotationSliderValueChanged();
+  void VerticalTableTopDisplacementSliderValueChanged();
+  void LongitudinalTableTopDisplacementSliderValueChanged();
+  void LateralTableTopDisplacementSliderValueChanged();
 //void onLogicModified();
 
 
