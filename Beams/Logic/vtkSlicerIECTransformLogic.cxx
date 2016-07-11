@@ -62,9 +62,8 @@ void vtkSlicerIECTransformLogic::SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNo
   {
     vtkErrorMacro("Failed to access parent plan node");
   }
-
-
-
+  
+  vtkErrorMacro("Not yet implemented!"); //TODO:
 }
 
 //-----------------------------------------------------------------------------
@@ -77,7 +76,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   }
 
   outputTransform->PreMultiply();
-  //TODO:
+  //TODO: ???
 
   if (fromFrame == GantryToFixedReference && toFrame == FixedReference)
   {
@@ -95,8 +94,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
     outputTransform = this->CollimatorToGantryTransform;
   }
 
-
- //Left Imaging Panel:
+  // Left Imaging Panel
   else if (fromFrame == LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter && toFrame == FixedReference)
   {
     outputTransform = this->LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform;
@@ -187,7 +185,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
     outputTransform = this->LeftImagingPanelTranslationTransform;
   }
 
-  //Right Imaging Panel:
+  // Right Imaging Panel:
   else if (fromFrame == RightImagingPanelToRightImagingPanelFixedReferenceIsocenter && toFrame == FixedReference)
   {
     outputTransform = this->RightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform;
@@ -279,7 +277,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
     outputTransform = this->RightImagingPanelTranslationTransform;
   }
 
-  //Patient Support
+  // Patient Support
   else if (fromFrame == PatientSupportToFixedReference && toFrame == FixedReference)
   {
     outputTransform = this->PatientSupportToFixedReferenceTransform;
@@ -371,8 +369,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
     outputTransform = this->TableTopToTableTopEccentricRotationTransform;
   }
 
-  //Inverse:
-
+  // Inverse
   if (fromFrame == FixedReference && toFrame == GantryToFixedReference)
   {
     
@@ -499,7 +496,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
     outputTransform->Inverse();
   }
 
-  //Right Imaging Panel:
+  // Right Imaging Panel:
   else if (fromFrame == FixedReference && toFrame == RightImagingPanelToRightImagingPanelFixedReferenceIsocenter)
   {
     outputTransform = this->RightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform;
@@ -605,7 +602,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
     outputTransform->Inverse();
   }
 
-  //Patient Support
+  // Patient Support
   else if (fromFrame == FixedReference && toFrame == PatientSupportToFixedReference)
   {
     outputTransform = this->PatientSupportToFixedReferenceTransform;
@@ -676,7 +673,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
     outputTransform->Inverse();
   }
 
-  //Table Top:
+  // Table Top
   else if (fromFrame == FixedReference && toFrame == TableTopToTableEccentricRotation)
   {
     outputTransform = this->TableTopToTableTopEccentricRotationTransform;
@@ -717,4 +714,5 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 //-----------------------------------------------------------------------------
 void vtkSlicerIECTransformLogic::UpdateTransformsFromBeamGeometry(vtkMRMLRTBeamNode* beamNode)
 {
+  vtkErrorMacro("Not yet implemented!"); //TODO:
 }
