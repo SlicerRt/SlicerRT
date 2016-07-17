@@ -1,7 +1,7 @@
 /*==============================================================================
 
-  Copyright (c) Radiation Medicine Program, University Health Network,
-  Princess Margaret Hospital, Toronto, ON, Canada. All Rights Reserved.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -12,16 +12,14 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
-  with funds provided by the Ontario Ministry of Health and Long-Term Care
-  and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
+  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
-
 // Dose engines includes
-#include "vtkSlicerMockDoseEngine.h"
+#include "qSlicerMockDoseEngine.h"
 
 // Beams includes
 #include "vtkMRMLRTPlanNode.h"
@@ -36,51 +34,40 @@
 #include "SlicerRtCommon.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
 
-//----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerMockDoseEngine);
+// Qt includes
+#include <QDebug>
 
 //----------------------------------------------------------------------------
-vtkSlicerMockDoseEngine::vtkSlicerMockDoseEngine()
+qSlicerMockDoseEngine::qSlicerMockDoseEngine(QObject* parent)
+  : qSlicerAbstractDoseEngine(parent)
 {
-  this->SetName("Mock random");
+  this->m_Name = QString("Mock random");
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerMockDoseEngine::~vtkSlicerMockDoseEngine()
+qSlicerMockDoseEngine::~qSlicerMockDoseEngine()
 {
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerMockDoseEngine::PrintSelf(ostream& os, vtkIndent indent)
-{
-  this->Superclass::PrintSelf(os, indent);
-}
-
-//----------------------------------------------------------------------------
-vtkMRMLRTBeamNode* vtkSlicerMockDoseEngine::CreateBeamForEngine()
-{
-  return vtkMRMLRTBeamNode::New();
 }
 
 //---------------------------------------------------------------------------
-std::string vtkSlicerMockDoseEngine::CalculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode)
+QString qSlicerMockDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode)
 {
   if (!beamNode)
   {
-    std::cerr << "vtkSlicerMockDoseEngine::vtkInternal::CalculateDoseUsingDebugEngine: Invalid beam!";
-    return "Invalid beam";
+    QString errorMessage("Invalid beam node");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+    return errorMessage;
   }
   vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
   vtkMRMLScalarVolumeNode* referenceVolumeNode = parentPlanNode->GetReferenceVolumeNode();
   if (!parentPlanNode || !referenceVolumeNode || !resultDoseVolumeNode)
   {
-    std::string errorMessage("Unable to access reference volume");
-    vtkErrorWithObjectMacro(beamNode, "CalculateDoseUsingEngine: " << errorMessage);
+    QString errorMessage("Unable to access reference volume");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
 
@@ -105,8 +92,8 @@ std::string vtkSlicerMockDoseEngine::CalculateDoseUsingEngine(vtkMRMLRTBeamNode*
   if ( beamImageData->GetNumberOfPoints() != protonDoseImageData->GetNumberOfPoints()
     || beamImageData->GetScalarType() != VTK_UNSIGNED_CHAR )
   {
-    std::string errorMessage("Geometrical discrepancy between beam and dose");
-    vtkErrorWithObjectMacro(beamNode, "CalculateDoseUsingEngine: " << errorMessage);
+    QString errorMessage("Geometrical discrepancy between beam and dose");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
 
@@ -134,5 +121,5 @@ std::string vtkSlicerMockDoseEngine::CalculateDoseUsingEngine(vtkMRMLRTBeamNode*
   std::string randomDoseNodeName = std::string(beamNode->GetName()) + "_MockDose";
   resultDoseVolumeNode->SetName(randomDoseNodeName.c_str());
 
-  return "";
+  return QString();
 }

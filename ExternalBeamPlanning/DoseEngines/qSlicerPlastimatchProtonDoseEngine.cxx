@@ -21,7 +21,7 @@
 
 
 // Dose engines includes
-#include "vtkSlicerPlastimatchProtonDoseEngine.h"
+#include "qSlicerPlastimatchProtonDoseEngine.h"
 
 // Beams includes
 #include "vtkMRMLRTPlanNode.h"
@@ -48,93 +48,53 @@
 #include "PlmCommon.h"
 
 // VTK includes
-#include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 
-//----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerPlastimatchProtonDoseEngine);
+// Qt includes
+#include <QDebug>
 
 //----------------------------------------------------------------------------
-class vtkSlicerPlastimatchProtonDoseEngine::vtkInternal
+qSlicerPlastimatchProtonDoseEngine::qSlicerPlastimatchProtonDoseEngine(QObject* parent)
+  : qSlicerAbstractDoseEngine(parent)
 {
-public:
-  vtkInternal();
-
-  /// Reference CT Plastimatch image (cache) //TODO: Only reconvert if necessary
-  Plm_image::Pointer ReferenceVolumePlm;
-};
-
-//----------------------------------------------------------------------------
-vtkSlicerPlastimatchProtonDoseEngine::vtkInternal::vtkInternal()
-{
+  this->m_Name = QString("Plastimatch proton");
 }
 
 //----------------------------------------------------------------------------
-
-//----------------------------------------------------------------------------
-vtkSlicerPlastimatchProtonDoseEngine::vtkSlicerPlastimatchProtonDoseEngine()
+qSlicerPlastimatchProtonDoseEngine::~qSlicerPlastimatchProtonDoseEngine()
 {
-  this->SetName("Plastimatch proton");
-
-  this->Internal = new vtkInternal;
-}
-
-//----------------------------------------------------------------------------
-vtkSlicerPlastimatchProtonDoseEngine::~vtkSlicerPlastimatchProtonDoseEngine()
-{
-  delete this->Internal;
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerPlastimatchProtonDoseEngine::PrintSelf(ostream& os, vtkIndent indent)
-{
-  this->Superclass::PrintSelf(os, indent);
 }
 
 //---------------------------------------------------------------------------
-//void vtkSlicerPlastimatchProtonDoseEngine::CleanUp()
-//{
-//  vtkErrorMacro("Obsolete method!");
-//  // Free up memory for reference CT
-//  Internal->ReferenceVolumePlm.reset();
-//}
-
-//----------------------------------------------------------------------------
-vtkMRMLRTBeamNode* vtkSlicerPlastimatchProtonDoseEngine::CreateBeamForEngine()
-{
-  return (vtkMRMLRTBeamNode*)vtkMRMLRTProtonBeamNode::New();
-}
-
-//---------------------------------------------------------------------------
-std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode)
+QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode)
 {
   vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(beamNode);
   if (!protonBeamNode)
   {
-    std::string errorMessage("Invalid input proton beam");
-    vtkErrorMacro("CalculateDoseUsingEngine: " << errorMessage);
+    QString errorMessage("Invalid input proton beam");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
 
   vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
   if (!parentPlanNode)
   {
-    std::string errorMessage = std::string("Unable to access parent node for beam ") + beamNode->GetName();
-    vtkErrorMacro("CalculateDoseUsingEngine: " << errorMessage);
+    QString errorMessage = QString("Unable to access parent node for beam %1").arg(beamNode->GetName());
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   vtkMRMLScalarVolumeNode* referenceVolumeNode = parentPlanNode->GetReferenceVolumeNode();
   if (!referenceVolumeNode)
   {
-    std::string errorMessage("Unable to access reference volume");
-    vtkErrorMacro("CalculateDoseUsingEngine: " << errorMessage);
+    QString errorMessage("Unable to access reference volume");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   if (!resultDoseVolumeNode)
   {
-    std::string errorMessage("Invalid result dose volume");
-    vtkErrorMacro("CalculateDoseUsingEngine: " << errorMessage);
+    QString errorMessage("Invalid result dose volume");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
 
@@ -144,15 +104,15 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
   vtkSmartPointer<vtkOrientedImageData> targetLabelmap = parentPlanNode->GetTargetOrientedImageData();
   if (targetLabelmap.GetPointer() == NULL)
   {
-    std::string errorMessage("Failed to access target labelmap");
-    vtkErrorMacro("CalculateDoseUsingEngine: " << errorMessage);
+    QString errorMessage("Failed to access target labelmap");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   Plm_image::Pointer targetPlmVolume = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(targetLabelmap);
   if (!targetPlmVolume)
   {
-    std::string errorMessage("Failed to convert segment labelmap");
-    vtkErrorMacro("CalculateDoseUsingEngine: " << errorMessage);
+    QString errorMessage("Failed to convert segment labelmap");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   targetPlmVolume->print();
@@ -172,8 +132,8 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
   double isocenter[3] = {0.0, 0.0, 0.0};
   if (!beamNode->GetPlanIsocenterPosition(isocenter))
   {
-    std::string errorMessage("Failed to get isocenter position");
-    vtkErrorMacro("CalculateDoseUsingEngine: " << errorMessage);
+    QString errorMessage("Failed to get isocenter position");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   // Convert isocenter position to LPS for Plastimatch
@@ -184,17 +144,17 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
   double sourcePosition[3] = {0.0, 0.0, 0.0};
   if (!beamNode->CalculateSourcePosition(sourcePosition))
   {
-    std::string errorMessage("Failed to calculate source position");
-    vtkErrorMacro("ComputeDoseByPlastimatch: " << errorMessage);
+    QString errorMessage("Failed to calculate source position");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
 
   // Convert reference volume to Plastimatch image
-  //TODO: Cache it in internal class?
-  this->Internal->ReferenceVolumePlm = PlmCommon::ConvertVolumeNodeToPlmImage(referenceVolumeNode);
-  this->Internal->ReferenceVolumePlm->print();
+  //TODO: Cache it so that it does not need to be reconverted every time
+  Plm_image::Pointer referenceVolumePlm = PlmCommon::ConvertVolumeNodeToPlmImage(referenceVolumeNode);
+  referenceVolumePlm->print();
   // Create ITK output dose volume based on the reference volume
-  itk::Image<short, 3>::Pointer referenceVolumeItk = this->Internal->ReferenceVolumePlm->itk_short();
+  itk::Image<short, 3>::Pointer referenceVolumeItk = referenceVolumePlm->itk_short();
 
   // Plastimatch RT plan and beam
   Rt_plan rt_plan;
@@ -345,8 +305,8 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
     // All the rt_beam parameters are updated to initiate the dose calculation
     if (!rt_plan.prepare_beam_for_calc (rt_beam))
     {
-      std::string errorMessage("Sorry, rt_plan.prepare_beam_for_calc() failed");
-      vtkErrorMacro("CalculateDoseUsingEngine: " << errorMessage);
+      QString errorMessage("Sorry, rt_plan.prepare_beam_for_calc() failed");
+      qCritical() << Q_FUNC_INFO << ": " << errorMessage;
       return errorMessage;
     }
 
@@ -357,8 +317,8 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
   }
   catch (std::exception& ex)
   {
-    std::string errorMessage = std::string("Plastimatch exception: ") + ex.what();
-    vtkErrorMacro("CalculateDoseUsingEngine: " << errorMessage);
+    QString errorMessage("Plastimatch exception happened! See log for details");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage << ": " << ex.what();
     return errorMessage;
   }
 
@@ -378,7 +338,7 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
   apertureVolumeNode->SetName(apertureNodeName.c_str());
   scene->AddNode(apertureVolumeNode);
   
-  this->AddIntermediateResult(apertureVolumeNode, beamNode);
+  this->addIntermediateResult(apertureVolumeNode, beamNode);
 
   // Get range compensator image, create volume node, and add as intermediate result
   Plm_image::Pointer& rc = rt_beam->rpl_vol->get_aperture()->get_range_compensator_image();
@@ -396,7 +356,7 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
   rangeCompensatorVolumeNode->SetName(rangeCompensatorNodeName.c_str());
   scene->AddNode(rangeCompensatorVolumeNode);
   
-  this->AddIntermediateResult(rangeCompensatorVolumeNode, beamNode);
+  this->addIntermediateResult(rangeCompensatorVolumeNode, beamNode);
 
   // Compute the dose
   try
@@ -422,8 +382,8 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
   }
   catch (std::exception& ex)
   {
-    std::string errorMessage("Plastimatch exception happened");
-    vtkErrorMacro("CalculateDoseUsingEngine: " << errorMessage << ": " << ex.what());
+    QString errorMessage("Plastimatch exception happened! See log for details");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage << ": " << ex.what();
     return errorMessage;
   }
 
@@ -441,5 +401,5 @@ std::string vtkSlicerPlastimatchProtonDoseEngine::CalculateDoseUsingEngine(vtkMR
   std::string protonDoseNodeName = std::string(beamNode->GetName()) + "_ProtonDose";
   resultDoseVolumeNode->SetName(protonDoseNodeName.c_str());
 
-  return "";
+  return QString();
 }

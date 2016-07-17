@@ -1,7 +1,7 @@
 /*==============================================================================
 
-  Copyright (c) Radiation Medicine Program, University Health Network,
-  Princess Margaret Hospital, Toronto, ON, Canada. All Rights Reserved.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -19,7 +19,7 @@
 ==============================================================================*/
 
 // Dose engines includes
-#include "vtkSlicerAbstractDoseEngine.h"
+#include "qSlicerAbstractDoseEngine.h"
 
 // Beams includes
 #include "vtkMRMLRTBeamNode.h"
@@ -38,56 +38,50 @@
 #include <vtkMRMLColorTableNode.h>
 
 // VTK includes
-#include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 
+// Qt includes
+#include <QDebug>
+
 //----------------------------------------------------------------------------
-double vtkSlicerAbstractDoseEngine::DEFAULT_DOSE_VOLUME_WINDOW_LEVEL_MAXIMUM = 16.0;
+double qSlicerAbstractDoseEngine::DEFAULT_DOSE_VOLUME_WINDOW_LEVEL_MAXIMUM = 16.0;
 
 //----------------------------------------------------------------------------
 static const char* INTERMEDIATE_RESULT_REFERENCE_ROLE = "IntermediateResultRef";
 static const char* RESULT_DOSE_REFERENCE_ROLE = "ResultDoseRef";
 
 //----------------------------------------------------------------------------
-vtkSlicerAbstractDoseEngine::vtkSlicerAbstractDoseEngine()
+qSlicerAbstractDoseEngine::qSlicerAbstractDoseEngine(QObject* parent)
+  : QObject(parent)
+  , m_Name(QString())
 {
-  this->Name = NULL;
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerAbstractDoseEngine::~vtkSlicerAbstractDoseEngine()
+qSlicerAbstractDoseEngine::~qSlicerAbstractDoseEngine()
 {
-  this->SetName(NULL);
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerAbstractDoseEngine::PrintSelf(ostream& os, vtkIndent indent)
+QString qSlicerAbstractDoseEngine::name() const
 {
-  this->Superclass::PrintSelf(os, indent);
-
-  os << indent << "Name: " << (this->Name ? this->Name : "NULL");
+  return m_Name;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLRTBeamNode* vtkSlicerAbstractDoseEngine::CreateBeamForEngine()
-{
-  return vtkMRMLRTBeamNode::New();
-}
-
-//----------------------------------------------------------------------------
-std::string vtkSlicerAbstractDoseEngine::CalculateDose(vtkMRMLRTBeamNode* beamNode)
+QString qSlicerAbstractDoseEngine::calculateDose(vtkMRMLRTBeamNode* beamNode)
 {
   if (!beamNode)
   {
-    std::string errorMessage("Invalid beam node");
-    vtkErrorMacro("CalculateDose: " << errorMessage);
+    QString errorMessage("Invalid beam node");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
   if (!parentPlanNode)
   {
-    std::string errorMessage = std::string("Unable to access parent node for beam ") + beamNode->GetName();
-    vtkErrorMacro("CalculateDose: " << errorMessage);
+    QString errorMessage = QString("Unable to access parent node for beam %1").arg(beamNode->GetName());
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
 
@@ -95,8 +89,8 @@ std::string vtkSlicerAbstractDoseEngine::CalculateDose(vtkMRMLRTBeamNode* beamNo
   vtkMRMLScalarVolumeNode* referenceVolumeNode = parentPlanNode->GetReferenceVolumeNode();
   if (!referenceVolumeNode)
   {
-    std::string errorMessage("Unable to access reference volume");
-    vtkErrorMacro("CalculateDose: " << errorMessage);
+    QString errorMessage("Unable to access reference volume");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   vtkMRMLSubjectHierarchyNode* referenceVolumeShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(referenceVolumeNode);
@@ -109,16 +103,16 @@ std::string vtkSlicerAbstractDoseEngine::CalculateDose(vtkMRMLRTBeamNode* beamNo
     }
     else
     {
-      vtkErrorMacro("CalculateDose: Failed to access RT plan subject hierarchy node, although it should always be available!");
+      qCritical() << Q_FUNC_INFO << ": Failed to access RT plan subject hierarchy node, although it should always be available!";
     }
   }
   else
   {
-    vtkErrorMacro("CalculateDose: Failed to access reference volume subject hierarchy node!");
+    qCritical() << Q_FUNC_INFO << ": Failed to access reference volume subject hierarchy node!";
   }
 
   // Remove past intermediate results for beam before calculating dose again
-  this->RemoveIntermediateResults(beamNode);
+  this->removeIntermediateResults(beamNode);
 
   // Create output dose volume for beam
   vtkSmartPointer<vtkMRMLScalarVolumeNode> resultDoseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
@@ -128,27 +122,27 @@ std::string vtkSlicerAbstractDoseEngine::CalculateDose(vtkMRMLRTBeamNode* beamNo
   resultDoseVolumeNode->SetName(resultDoseNodeName.c_str());
   
   // Calculate dose
-  std::string errorMessage = this->CalculateDoseUsingEngine(beamNode, resultDoseVolumeNode);
-  if (errorMessage.empty())
+  QString errorMessage = this->calculateDoseUsingEngine(beamNode, resultDoseVolumeNode);
+  if (errorMessage.isEmpty())
   {
     // Add result dose volume to beam
-    this->AddResultDose(resultDoseVolumeNode, beamNode);
+    this->addResultDose(resultDoseVolumeNode, beamNode);
   }
 
   return errorMessage;
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerAbstractDoseEngine::AddIntermediateResult(vtkMRMLNode* result, vtkMRMLRTBeamNode* beamNode)
+void qSlicerAbstractDoseEngine::addIntermediateResult(vtkMRMLNode* result, vtkMRMLRTBeamNode* beamNode)
 {
   if (!result)
   {
-    vtkErrorMacro("AddIntermediateResult: Invalid intermediate result");
+    qCritical() << Q_FUNC_INFO << ": Invalid intermediate result";
     return;
   }
   if (!beamNode)
   {
-    vtkErrorMacro("AddIntermediateResult: Invalid beam node");
+    qCritical() << Q_FUNC_INFO << ": Invalid beam node";
     return;
   }
 
@@ -166,16 +160,16 @@ void vtkSlicerAbstractDoseEngine::AddIntermediateResult(vtkMRMLNode* result, vtk
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerAbstractDoseEngine::AddResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTBeamNode* beamNode, bool replace/*=true*/)
+void qSlicerAbstractDoseEngine::addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTBeamNode* beamNode, bool replace/*=true*/)
 {
   if (!resultDose)
   {
-    vtkErrorMacro("AddResultDose: Invalid result dose");
+    qCritical() << Q_FUNC_INFO << ": Invalid result dose";
     return;
   }
   if (!beamNode)
   {
-    vtkErrorMacro("AddResultDose: Invalid beam node");
+    qCritical() << Q_FUNC_INFO << ": Invalid beam node";
     return;
   }
 
@@ -211,7 +205,7 @@ void vtkSlicerAbstractDoseEngine::AddResultDose(vtkMRMLScalarVolumeNode* resultD
     vtkMRMLSubjectHierarchyNode* studyNode = beamShNode->GetAncestorAtLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
     if (!studyNode)
     {
-      vtkWarningMacro("AddResultDose: Unable to find study node that contains the plan! Creating a study node and adding the reference dose and the plan under it is necessary in order for dose evaluation steps to work properly");
+      qWarning() << Q_FUNC_INFO << ": Unable to find study node that contains the plan! Creating a study node and adding the reference dose and the plan under it is necessary in order for dose evaluation steps to work properly";
     }
     else if (!studyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str()))
     {
@@ -234,7 +228,7 @@ void vtkSlicerAbstractDoseEngine::AddResultDose(vtkMRMLScalarVolumeNode* resultD
     else
     {
       doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
-      vtkErrorMacro("AddResultDose: Failed to get default dose color table!");
+      qCritical() << Q_FUNC_INFO << ": Failed to get default dose color table!";
     }
 
     vtkMRMLRTPlanNode* planNode = beamNode->GetParentPlanNode();
@@ -252,21 +246,21 @@ void vtkSlicerAbstractDoseEngine::AddResultDose(vtkMRMLScalarVolumeNode* resultD
     else
     {
       doseScalarVolumeDisplayNode->AutoWindowLevelOff();
-      doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, vtkSlicerAbstractDoseEngine::DEFAULT_DOSE_VOLUME_WINDOW_LEVEL_MAXIMUM);
+      doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, qSlicerAbstractDoseEngine::DEFAULT_DOSE_VOLUME_WINDOW_LEVEL_MAXIMUM);
     }
   }
   else
   {
-    vtkWarningMacro("AddResultDose: Display node is not available for dose volume node. The default color table will be used.");
+    qWarning() << Q_FUNC_INFO << ": Display node is not available for dose volume node. The default color table will be used.";
   }
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode* vtkSlicerAbstractDoseEngine::GetResultDoseForBeam(vtkMRMLRTBeamNode* beamNode)
+vtkMRMLScalarVolumeNode* qSlicerAbstractDoseEngine::getResultDoseForBeam(vtkMRMLRTBeamNode* beamNode)
 {
   if (!beamNode)
   {
-    vtkErrorMacro("AddResultDose: Invalid beam node");
+    qCritical() << Q_FUNC_INFO << ": Invalid beam node";
     return NULL;
   }
 
@@ -276,11 +270,11 @@ vtkMRMLScalarVolumeNode* vtkSlicerAbstractDoseEngine::GetResultDoseForBeam(vtkMR
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerAbstractDoseEngine::RemoveIntermediateResults(vtkMRMLRTBeamNode* beamNode)
+void qSlicerAbstractDoseEngine::removeIntermediateResults(vtkMRMLRTBeamNode* beamNode)
 {
   if (!beamNode)
   {
-    vtkErrorMacro("RemoveIntermediateResults: Invalid beam node");
+    qCritical() << Q_FUNC_INFO << ": Invalid beam node";
     return;
   }
 
@@ -292,4 +286,120 @@ void vtkSlicerAbstractDoseEngine::RemoveIntermediateResults(vtkMRMLRTBeamNode* b
     vtkMRMLNode* node = scene->GetNodeByID(*refIt);
     scene->RemoveNode(node);
   }
+}
+
+//-----------------------------------------------------------------------------
+QString qSlicerAbstractDoseEngine::parameter(vtkMRMLRTBeamNode* beamNode, QString name)
+{
+  if (!beamNode)
+  {
+    return QString();
+  }
+
+  // Get effect-specific prefixed parameter first
+  QString attributeName = QString("%1.%2").arg(this->name()).arg(name);
+  const char* value = beamNode->GetAttribute(attributeName.toLatin1().constData());
+  // Look for common parameter if effect-specific one is not found
+  if (!value)
+  {
+    value = beamNode->GetAttribute(name.toLatin1().constData());
+  }
+  if (!value)
+  {
+    qCritical() << Q_FUNC_INFO << ": Parameter named " << name << " cannot be found for beam " << beamNode->GetName();
+    return QString();
+  }
+
+  return QString(value);
+}
+
+//-----------------------------------------------------------------------------
+int qSlicerAbstractDoseEngine::integerParameter(vtkMRMLRTBeamNode* beamNode, QString name)
+{
+  if (!beamNode)
+  {
+    return 0;
+  }
+
+  QString parameterStr = this->parameter(beamNode, name);
+  bool ok = false;
+  int parameterInt = parameterStr.toInt(&ok);
+  if (!ok)
+  {
+    qCritical() << Q_FUNC_INFO << ": Parameter named " << name << " cannot be converted to integer!";
+    return 0;
+  }
+
+  return parameterInt;
+}
+
+//-----------------------------------------------------------------------------
+double qSlicerAbstractDoseEngine::doubleParameter(vtkMRMLRTBeamNode* beamNode, QString name)
+{
+  if (!beamNode)
+  {
+    return 0.0;
+  }
+
+  QString parameterStr = this->parameter(beamNode, name);
+  bool ok = false;
+  double parameterDouble = parameterStr.toDouble(&ok);
+  if (!ok)
+  {
+    qCritical() << Q_FUNC_INFO << ": Parameter named " << name << " cannot be converted to floating point number!";
+    return 0.0;
+  }
+
+  return parameterDouble;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QString name, QString value)
+{
+  if (!beamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid beam node!";
+    return;
+  }
+
+  const char* oldValue = beamNode->GetAttribute(name.toLatin1().constData());
+  if (oldValue == NULL && value.isEmpty())
+    {
+    // no change
+    return;
+    }
+  if (value == QString(oldValue))
+    {
+    // no change
+    return;
+    }
+
+  //TODO: Decide whether modified events are needed and handle custom modified events if necessary
+  //      (e.g. could create setGeometryParameter or add bool arguments to specify special parameter type)
+  // Disable full modified events in all cases (observe EffectParameterModified instead if necessary)
+  //int disableState = beamNode->GetDisableModifiedEvent();
+  //beamNode->SetDisableModifiedEvent(1);
+
+  // Set parameter as attribute
+  beamNode->SetAttribute(name.toLatin1().constData(), value.toLatin1().constData());
+
+  // Re-enable full modified events for parameter node
+  //beamNode->SetDisableModifiedEvent(disableState);
+
+  // Emit parameter modified event if requested
+  // Don't pass parameter name as char pointer, as custom modified events may be compressed and invoked after EndModify()
+  // and by that time the pointer may not be valid anymore.
+  //beamNode->InvokeCustomModifiedEvent(vtkMRMLSegmentEditorNode::EffectParameterModified);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QString name, int value)
+{
+  this->setParameter(beamNode, name, QString::number(value));
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QString name, double value)
+{
+  this->setParameter(beamNode, name, QString::number(value));
 }

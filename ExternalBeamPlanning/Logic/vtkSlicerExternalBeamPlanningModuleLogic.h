@@ -67,17 +67,6 @@ public:
   /// \return The new beam node that has been copied and added to the plan
   vtkMRMLRTBeamNode* CloneBeamInPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode);
 
-  /// Calculate dose for a plan
-  std::string CalculateDose(vtkMRMLRTPlanNode* planNode);
-
-  /// Accumulate per-beam dose volumes for each beam under given plan. The accumulated
-  /// total dose is 
-  std::string CreateAccumulatedDose(vtkMRMLRTPlanNode* planNode);
-
-  /// Remove MRML nodes created by dose calculation for the current RT plan,
-  /// such as apertures, range compensators, and doses
-  void RemoveIntermediateResults(vtkMRMLRTPlanNode* planNode);
-
 //TODO: Obsolete functions
 public:
   /// TODO Fix

@@ -47,8 +47,11 @@
 
 // ExternalBeamPlanning
 #include "vtkSlicerExternalBeamPlanningModuleLogic.h"
-#include "vtkSlicerDoseEnginePluginHandler.h"
-#include "vtkSlicerAbstractDoseEngine.h"
+
+// DoseEngines includes
+#include "qSlicerDoseEnginePluginHandler.h"
+#include "qSlicerAbstractDoseEngine.h"
+#include "qSlicerDoseEngineLogic.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -82,6 +85,8 @@ public:
   /// Using this flag prevents overriding the parameter set node contents when the
   ///   QMRMLCombobox selects the first instance of the specified node type when initializing
   bool ModuleWindowInitialized;
+  /// Dose engine logic for dose calculation related functions
+  qSlicerDoseEngineLogic* DoseEngineLogic;
 };
 
 //-----------------------------------------------------------------------------
@@ -91,12 +96,20 @@ public:
 qSlicerExternalBeamPlanningModuleWidgetPrivate::qSlicerExternalBeamPlanningModuleWidgetPrivate(qSlicerExternalBeamPlanningModuleWidget& object)
   : q_ptr(&object)
   , ModuleWindowInitialized(false)
+  , DoseEngineLogic(NULL)
 {
+  this->DoseEngineLogic = new qSlicerDoseEngineLogic(&object);
 }
 
 //-----------------------------------------------------------------------------
 qSlicerExternalBeamPlanningModuleWidgetPrivate::~qSlicerExternalBeamPlanningModuleWidgetPrivate()
 {
+  //TODO: Leak?
+  //if (this->DoseEngineLogic)
+  //{
+  //  delete this->DoseEngineLogic;
+  //  this->DoseEngineLogic = NULL;
+  //}
 }
 
 //-----------------------------------------------------------------------------
@@ -244,6 +257,9 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   connect( d->pushButton_CalculateDose, SIGNAL(clicked()), this, SLOT(calculateDoseClicked()) );
   connect( d->pushButton_CalculateWED, SIGNAL(clicked()), this, SLOT(calculateWEDClicked()) );
   connect( d->pushButton_ClearDose, SIGNAL(clicked()), this, SLOT(clearDoseClicked()) );
+
+  // Connect to progress event
+  connect( d->DoseEngineLogic, SIGNAL(progressUpdated(double)), this, SLOT(onProgressUpdated(double)) );
 
   // Hide non-functional items //TODO:
   d->label_DoseROI->setVisible(false);
@@ -697,8 +713,8 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  vtkSlicerDoseEnginePluginHandler::DoseEngineListType engines =
-    vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngines();
+  qSlicerDoseEnginePluginHandler::DoseEngineListType engines =
+    qSlicerDoseEnginePluginHandler::instance()->registeredDoseEngines();
   if (engines.size() == d->comboBox_DoseEngine->count())
   {
     return;
@@ -709,10 +725,10 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
   d->comboBox_DoseEngine->blockSignals(true);
   d->comboBox_DoseEngine->clear();
 
-  for (vtkSlicerDoseEnginePluginHandler::DoseEngineListType::iterator engineIt = engines.begin();
+  for (qSlicerDoseEnginePluginHandler::DoseEngineListType::iterator engineIt = engines.begin();
     engineIt != engines.end(); ++engineIt)
   {
-    d->comboBox_DoseEngine->addItem(engineIt->GetPointer()->GetName());
+    d->comboBox_DoseEngine->addItem((*engineIt)->name());
   }
 
   // Select previously selected engine
@@ -751,8 +767,8 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineChanged(const QString &t
   }
 
   // Get selected dose engine
-  vtkSlicerAbstractDoseEngine* selectedEngine =
-    vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngineByName(text.toLatin1().constData());
+  qSlicerAbstractDoseEngine* selectedEngine =
+    qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(text.toLatin1().constData());
   if (!selectedEngine)
   {
     qCritical() << Q_FUNC_INFO << ": Failed to access dose engine with name" << text;
@@ -763,6 +779,8 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineChanged(const QString &t
   // uses, then those need to be removed, because they will be incompatible with new engine
   if (rtPlanNode->GetNumberOfBeams() > 0)
   {
+    //TODO:
+    /*
     vtkMRMLRTBeamNode* newBeamNodeType = selectedEngine->CreateBeamForEngine();
     bool differentBeamTypePresent = false;
 
@@ -801,13 +819,13 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineChanged(const QString &t
         d->comboBox_DoseEngine->setCurrentIndex(d->comboBox_DoseEngine->findText(rtPlanNode->GetDoseEngineName()));
         d->comboBox_DoseEngine->blockSignals(false);
       }
-    }
+    }*/
   }
 
   qDebug() << "Dose engine selection changed to " << text;
 
   rtPlanNode->DisableModifiedEventOn();
-  rtPlanNode->SetDoseEngineName(selectedEngine->GetName());
+  rtPlanNode->SetDoseEngineName(selectedEngine->name().toLatin1().constData());
   rtPlanNode->DisableModifiedEventOff();
 }
 
@@ -925,15 +943,23 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   // Start timer
   QTime time;
   time.start();
-  // Connect to progress event
-  qvtkConnect( d->logic(), SlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
   // Set busy cursor
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
+  // Get selected dose engine
+  qSlicerAbstractDoseEngine* selectedEngine =
+    qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(rtPlanNode->GetDoseEngineName());
+  if (!selectedEngine)
+  {
+    QString errorString = QString("Unable to access dose engine with name %1").arg(rtPlanNode->GetDoseEngineName() ? rtPlanNode->GetDoseEngineName() : "NULL");
+    d->label_CalculateDoseStatus->setText(errorString);
+    qCritical() << Q_FUNC_INFO << ": " << errorString;
+    return;
+  }
   // Calculate dose
-  std::string errorMessage = d->logic()->CalculateDose(rtPlanNode);
+  QString errorMessage = d->DoseEngineLogic->calculateDose(rtPlanNode);
 
-  if (errorMessage.empty())
+  if (errorMessage.isEmpty())
   {
     QString message = QString("Dose calculated successfully in %1 s").arg(time.elapsed()/1000.0);
     qDebug() << Q_FUNC_INFO << ": " << message;
@@ -941,22 +967,20 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   }
   else
   {
-    QString message = QString("ERROR: %1").arg(errorMessage.c_str());
+    QString message = QString("ERROR: %1").arg(errorMessage);
     qCritical() << Q_FUNC_INFO << ": " << message;
     d->label_CalculateDoseStatus->setText(message);
   }
 
-  qvtkDisconnect( d->logic(), SlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
   QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::onProgressUpdated(vtkObject* caller, void* callData, unsigned long eid, void* clientData)
+void qSlicerExternalBeamPlanningModuleWidget::onProgressUpdated(double progress)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  double* progressPtr = reinterpret_cast<double*>(callData);
-  int progressPercent = (int)((*progressPtr) * 100.0);
+  int progressPercent = (int)(progress * 100.0);
   QString progressMessage = QString("Dose calculation in progress: %1 %").arg(progressPercent);
   d->label_CalculateDoseStatus->setText(progressMessage);
   QApplication::processEvents();
@@ -968,7 +992,7 @@ void qSlicerExternalBeamPlanningModuleWidget::clearDoseClicked()
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
-  d->logic()->RemoveIntermediateResults(rtPlanNode);
+  d->DoseEngineLogic->removeIntermediateResults(rtPlanNode);
 }
 
 //-----------------------------------------------------------------------------

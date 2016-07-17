@@ -21,94 +21,54 @@
 
 #include "vtkSlicerExternalBeamPlanningModuleLogic.h"
 
-// SlicerRT includes
-#include "PlmCommon.h"
-#include "SlicerRtCommon.h"
-#include "vtkMRMLDoseAccumulationNode.h"
-#include "vtkSlicerDoseAccumulationModuleLogic.h"
-#include "vtkSlicerIsodoseModuleLogic.h"
-
 // Beams includes
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
-#include "vtkMRMLRTProtonBeamNode.h"
 #include "vtkSlicerBeamsModuleLogic.h"
 
-// ExternalBeamPlanning includes
-#include "vtkSlicerDoseEnginePluginHandler.h"
-#include "vtkSlicerPlastimatchProtonDoseEngine.h"
-#include "vtkSlicerMockDoseEngine.h"
-
-// Segmentations includes
-#include "vtkMRMLSegmentationNode.h"
-#include "vtkSlicerSegmentationsModuleLogic.h"
-
-// Plastimatch includes
-#include "itk_image_accumulate.h"
-#include "itk_image_create.h"
-#include "itk_image_save.h"
-#include "itk_image_scale.h"
-#include "itk_image_stats.h"
-#include "plm_image.h"
-#include "plm_image_header.h"
-#include "rpl_volume.h"
-#include "rt_beam.h"
-#include "rt_plan.h"
-#include "string_util.h"
-
 // CLI invocation
-#include <qSlicerCLIModule.h>
 #include <vtkSlicerCLIModuleLogic.h>
 
 // MRML includes
-#include <vtkMRMLMarkupsFiducialNode.h>
-#include <vtkMRMLLinearTransformNode.h>
+//#include <vtkMRMLMarkupsFiducialNode.h> //TODO:
+//#include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLScalarVolumeDisplayNode.h>
-#include <vtkMRMLDoubleArrayNode.h>
-#include <vtkMRMLSliceLogic.h>
-#include <vtkMRMLSliceNode.h>
-#include <vtkMRMLSliceCompositeNode.h>
-#include <vtkMRMLScalarVolumeDisplayNode.h>
-#include <vtkMRMLSelectionNode.h>
-#include <vtkMRMLSubjectHierarchyNode.h>
-#include <vtkMRMLSubjectHierarchyConstants.h>
-#include <vtkMRMLColorTableNode.h>
-#include <vtkMRMLSliceCompositeNode.h>
+//#include <vtkMRMLScalarVolumeDisplayNode.h>
+//#include <vtkMRMLDoubleArrayNode.h>
+//#include <vtkMRMLSliceLogic.h>
+//#include <vtkMRMLSliceNode.h>
+//#include <vtkMRMLSliceCompositeNode.h>
 
 // VTK includes
 #include <vtkNew.h>
 #include <vtkSmartPointer.h>
-#include <vtkConeSource.h>
-#include <vtkPoints.h>
-#include <vtkCellArray.h>
-#include <vtkDoubleArray.h>
-#include <vtkPolyData.h>
-#include <vtkObjectFactory.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkCamera.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkImageData.h>
-#include <vtkImageCast.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkProperty.h>
-#include <vtkActor.h>
-#include <vtkVolumeProperty.h>
-#include <vtkVolumeRayCastMapper.h>
-#include <vtkGPUVolumeRayCastMapper.h>
-#include <vtkVolumeRayCastCompositeFunction.h>
-#include <vtkVolumeTextureMapper2D.h>
-#include <vtkWindowToImageFilter.h>
-#include <vtkImageShiftScale.h>
-#include <vtkImageExtractComponents.h>
-#include <vtkTransform.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkImageGradientMagnitude.h>
-#include <vtkImageMathematics.h>
-
-// ITK includes
-#include <itkImageRegionIteratorWithIndex.h>
+//#include <vtkConeSource.h>
+//#include <vtkPoints.h>
+//#include <vtkCellArray.h>
+//#include <vtkDoubleArray.h>
+//#include <vtkPolyData.h>
+//#include <vtkObjectFactory.h>
+//#include <vtkRenderer.h>
+//#include <vtkRenderWindow.h>
+//#include <vtkCamera.h>
+//#include <vtkColorTransferFunction.h>
+//#include <vtkImageData.h>
+//#include <vtkImageCast.h>
+//#include <vtkPiecewiseFunction.h>
+//#include <vtkProperty.h>
+//#include <vtkActor.h>
+//#include <vtkVolumeProperty.h>
+//#include <vtkVolumeRayCastMapper.h>
+//#include <vtkGPUVolumeRayCastMapper.h>
+//#include <vtkVolumeRayCastCompositeFunction.h>
+//#include <vtkVolumeTextureMapper2D.h>
+//#include <vtkWindowToImageFilter.h>
+//#include <vtkImageShiftScale.h>
+//#include <vtkImageExtractComponents.h>
+//#include <vtkTransform.h>
+//#include <vtkPolyDataMapper.h>
+//#include <vtkImageGradientMagnitude.h>
+//#include <vtkImageMathematics.h>
 
 //----------------------------------------------------------------------------
 vtkCxxSetObjectMacro(vtkSlicerExternalBeamPlanningModuleLogic, BeamsLogic, vtkSlicerBeamsModuleLogic);
@@ -167,11 +127,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterNodes()
     return;
   }
 
-  // Register dose engines
-  vtkSlicerDoseEnginePluginHandler::GetInstance()->RegisterDoseEngine(
-    vtkSmartPointer<vtkSlicerPlastimatchProtonDoseEngine>::New() );
-  vtkSlicerDoseEnginePluginHandler::GetInstance()->RegisterDoseEngine(
-    vtkSmartPointer<vtkSlicerMockDoseEngine>::New() );
+  //TODO: Remove if still unused
 }
 
 //---------------------------------------------------------------------------
@@ -346,17 +302,8 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CreateBeamInPlan(vt
     return NULL;
   }
 
-  // Get dose engine for plan
-  vtkSlicerAbstractDoseEngine* doseEngine =
-    vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngineByName(planNode->GetDoseEngineName());
-  if (!doseEngine)
-  {
-    vtkErrorMacro("CreateBeamInPlan: Failed to access dose engine with name " << (planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL"));
-    return NULL;
-  }
-
   // Create beam using engine
-  vtkMRMLRTBeamNode* beamNode = doseEngine->CreateBeamForEngine();
+  vtkSmartPointer<vtkMRMLRTBeamNode> beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
   if (!beamNode)
   {
     vtkErrorMacro("CreateBeamInPlan: Failed to create beam with dose engine " << planNode->GetDoseEngineName());
@@ -366,7 +313,6 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CreateBeamInPlan(vt
   // Add to scene
   beamNode->SetName(planNode->GenerateNewBeamName().c_str());
   this->GetMRMLScene()->AddNode(beamNode);
-  beamNode->Delete(); // Return ownership to scene only
 
   // Add beam to plan
   planNode->AddBeam(beamNode);
@@ -393,17 +339,8 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtk
     return NULL;
   }
 
-  // Get dose engine for plan
-  vtkSlicerAbstractDoseEngine* doseEngine =
-    vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngineByName(planNode->GetDoseEngineName());
-  if (!doseEngine)
-  {
-    vtkErrorMacro("CloneBeamInPlan: Failed to access dose engine with name " << (planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL"));
-    return NULL;
-  }
-
   // Create beam using engine
-  vtkMRMLRTBeamNode* beamNode = doseEngine->CreateBeamForEngine();
+  vtkSmartPointer<vtkMRMLRTBeamNode> beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
   if (!beamNode)
   {
     vtkErrorMacro("CloneBeamInPlan: Failed to create beam with dose engine " << planNode->GetDoseEngineName());
@@ -413,7 +350,6 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtk
   // Copy properties from template
   beamNode->Copy(copiedBeamNode);
   this->GetMRMLScene()->AddNode(beamNode);
-  beamNode->Delete(); // Return ownership to scene only
 
   // Change name of new beam to default
   std::string newBeamName = planNode->GenerateNewBeamName();
@@ -423,256 +359,6 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtk
   planNode->AddBeam(beamNode);
 
   return beamNode;
-}
-
-//---------------------------------------------------------------------------
-std::string vtkSlicerExternalBeamPlanningModuleLogic::CalculateDose(vtkMRMLRTPlanNode* planNode)
-{
-  std::string errorMessage("");
-  if (!this->GetMRMLScene() || !planNode)
-  {
-    errorMessage = std::string("Invalid MRML scene or RT plan node");
-    vtkErrorMacro("CalculateDose: " << errorMessage);
-    return errorMessage;
-  }
-
-  // Get selected dose engine
-  vtkSlicerAbstractDoseEngine* selectedEngine =
-    vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngineByName(planNode->GetDoseEngineName());
-  if (!selectedEngine)
-  {
-    errorMessage = std::string("Unable to access dose engine with name ") + (planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL");
-    vtkErrorMacro("CalculateDose: " << errorMessage);
-    return errorMessage;
-  }
-
-  // Calculate dose for each beam under the plan
-  std::vector<vtkMRMLRTBeamNode*> beams;
-  planNode->GetBeams(beams);
-  int numberOfBeams = beams.size();
-  int currentBeamIndex = 0;
-  double progress = 0.0;
-
-  for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt, ++currentBeamIndex)
-  {
-    vtkMRMLRTBeamNode* beamNode = (*beamIt);
-    if (beamNode)
-    {
-      progress = (double)currentBeamIndex / (numberOfBeams+1);
-      this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
-
-      // Calculate dose for current beam
-      errorMessage = selectedEngine->CalculateDose(beamNode);
-      if (!errorMessage.empty())
-      {
-        vtkErrorMacro("CalculateDose: " << errorMessage);
-        return errorMessage;
-      }
-    }
-    else
-    {
-      errorMessage = std::string("Invalid beam!");
-      vtkErrorMacro("CalculateDose: " << errorMessage);
-      return errorMessage;
-    }
-  }
-
-  progress = (double)numberOfBeams / (numberOfBeams+1);
-  this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
-
-  // Accumulate calculated per-beam dose distributions into the total dose volume
-  errorMessage = this->CreateAccumulatedDose(planNode);
-  if (!errorMessage.empty())
-  {
-    vtkErrorMacro("CalculateDose: " << errorMessage);
-    return errorMessage;
-  }
-
-  progress = 1.0;
-  this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
-
-  return "";
-}
-
-//---------------------------------------------------------------------------
-std::string vtkSlicerExternalBeamPlanningModuleLogic::CreateAccumulatedDose(vtkMRMLRTPlanNode* planNode)
-{
-  if (!this->GetMRMLScene() || !planNode)
-  {
-    std::string errorMessage("Invalid MRML scene or RT plan node");
-    vtkErrorMacro("CreateAccumulatedDose: " << errorMessage);
-    return errorMessage;
-  }
-
-  vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();
-  if (!referenceVolumeNode)
-  {
-    std::string errorMessage("Unable to access reference volume");
-    vtkErrorMacro("CreateAccumulatedDose: " << errorMessage);
-    return errorMessage;
-  }
-
-  vtkMRMLScalarVolumeNode* totalDoseVolumeNode = planNode->GetOutputTotalDoseVolumeNode();
-  if (!totalDoseVolumeNode)
-  {
-    std::string errorMessage("Unable to access output dose volume");
-    vtkErrorMacro("CreateAccumulatedDose: " << errorMessage);
-    return errorMessage;
-  }
-
-  // Get selected dose engine
-  vtkSlicerAbstractDoseEngine* selectedEngine =
-    vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngineByName(planNode->GetDoseEngineName());
-  if (!selectedEngine)
-  {
-    std::string errorMessage = std::string("Unable to access dose engine with name ") + (planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL");
-    vtkErrorMacro("CreateAccumulatedDose: " << errorMessage);
-    return errorMessage;
-  }
-
-  // Create parameter node for dose accumulation
-  vtkSmartPointer<vtkMRMLDoseAccumulationNode> doseAccumulationNode = vtkSmartPointer<vtkMRMLDoseAccumulationNode>::New();
-  this->GetMRMLScene()->AddNode(doseAccumulationNode);
-  std::string doseAccumulationNodeName = std::string("DoseAccumulation_") + planNode->GetName();
-  doseAccumulationNodeName = this->GetMRMLScene()->GenerateUniqueName(doseAccumulationNodeName);
-  doseAccumulationNode->SetName(doseAccumulationNodeName.c_str());
-  doseAccumulationNode->SetAndObserveAccumulatedDoseVolumeNode(totalDoseVolumeNode);
-  doseAccumulationNode->SetAndObserveReferenceDoseVolumeNode(referenceVolumeNode); //TODO: CT seems to be the reference based on old code but dose accumulation code suggests it should be a dose
-
-  // Collect per-beam dose volumes from beams under the plan
-  std::vector<vtkMRMLRTBeamNode*> beams;
-  planNode->GetBeams(beams);
-  for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
-  {
-    vtkMRMLRTBeamNode* beamNode = (*beamIt);
-    if (!beamNode)
-    {
-      std::string errorMessage("Beam not found");
-      vtkErrorMacro("CreateAccumulatedDose: " << errorMessage);
-      continue;
-    }
-
-    // Get calculation result dose volume from beam
-    vtkMRMLScalarVolumeNode* perBeamDoseVolume = selectedEngine->GetResultDoseForBeam(beamNode);
-    if (!perBeamDoseVolume)
-    {
-      std::string errorMessage = std::string("No calculated dose found for beam ") + beamNode->GetName();
-      vtkErrorMacro("CreateAccumulatedDose: " << errorMessage);
-      continue;
-    }
-
-    // Add dose volume to dose accumulation
-    doseAccumulationNode->AddSelectedInputVolumeNode(perBeamDoseVolume, beamNode->GetBeamWeight());
-  }
-
-  // Accumulate dose
-  vtkSmartPointer<vtkSlicerDoseAccumulationModuleLogic> doseAccumulationLogic = vtkSmartPointer<vtkSlicerDoseAccumulationModuleLogic>::New();
-  doseAccumulationLogic->SetMRMLScene(this->GetMRMLScene());
-  const char* errorMessage = doseAccumulationLogic->AccumulateDoseVolumes(doseAccumulationNode);
-  if (errorMessage)
-  {
-    return errorMessage;
-  }
-
-  // Add total dose volume to subject hierarchy under the study of the reference volume
-  vtkMRMLSubjectHierarchyNode* referenceVolumeSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(referenceVolumeNode);
-  if (referenceVolumeSHNode)
-  {
-    vtkMRMLSubjectHierarchyNode* studySHNode = referenceVolumeSHNode->GetAncestorAtLevel(
-      vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
-    if (studySHNode)
-    {
-      vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-        this->GetMRMLScene(), studySHNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), 
-        NULL, totalDoseVolumeNode );
-    }
-  }
-
-  totalDoseVolumeNode->CreateDefaultDisplayNodes(); // Make sure display node is present
-  if (totalDoseVolumeNode->GetVolumeDisplayNode())
-  {
-    // Set dose color table
-    vtkMRMLScalarVolumeDisplayNode* doseScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(totalDoseVolumeNode->GetDisplayNode());
-    vtkMRMLColorTableNode* defaultDoseColorTable = vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(this->GetMRMLScene());
-    if (defaultDoseColorTable)
-    {
-      doseScalarVolumeDisplayNode->SetAndObserveColorNodeID(defaultDoseColorTable->GetID());
-    }
-    else
-    {
-      doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
-      vtkErrorMacro("CalculateDose: Failed to get default dose color table!");
-    }
-
-    // Set window level based on prescription dose
-    double rxDose = planNode->GetRxDose();
-    doseScalarVolumeDisplayNode->AutoWindowLevelOff();
-    doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, rxDose);
-
-    // Set threshold to hide very low dose values
-    doseScalarVolumeDisplayNode->SetLowerThreshold(0.05 * rxDose);
-    doseScalarVolumeDisplayNode->ApplyThresholdOn();
-  }
-  else
-  {
-    vtkWarningMacro("CalculateDose: Display node is not available for calculated dose volume node. The default color table will be used.");
-  }
-
-  // Show total dose in foreground
-  if (this->GetApplicationLogic() && this->GetApplicationLogic()->GetSelectionNode())
-  {
-    // Make sure reference volume is shown in background
-    this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(referenceVolumeNode->GetID());
-    // Select as foreground volume
-    this->GetApplicationLogic()->GetSelectionNode()->SetReferenceSecondaryVolumeID(totalDoseVolumeNode->GetID());
-    this->GetApplicationLogic()->PropagateVolumeSelection(0);
-
-    // Set opacity so that volume is visible
-    vtkMRMLSliceCompositeNode* compositeNode = NULL;
-    int numberOfCompositeNodes = this->GetMRMLScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
-    for (int i=0; i<numberOfCompositeNodes; i++)
-    {
-      compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast ( this->GetMRMLScene()->GetNthNodeByClass( i, "vtkMRMLSliceCompositeNode" ) );
-      if (compositeNode && compositeNode->GetForegroundOpacity() == 0.0)
-      {
-        compositeNode->SetForegroundOpacity(0.5);
-      }
-    }
-  } 
-
-  return "";
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerExternalBeamPlanningModuleLogic::RemoveIntermediateResults(vtkMRMLRTPlanNode* planNode)
-{
-  if (!planNode)
-  {
-    return;
-  }
-
-  // Get selected dose engine
-  vtkSlicerAbstractDoseEngine* selectedEngine =
-    vtkSlicerDoseEnginePluginHandler::GetInstance()->GetDoseEngineByName(planNode->GetDoseEngineName());
-  if (!selectedEngine)
-  {
-    vtkErrorMacro("RemoveIntermediateResults: Unable to access dose engine with name " << (planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL"));
-    return;
-  }
-
-  std::vector<vtkMRMLRTBeamNode*> beams;
-  planNode->GetBeams(beams);
-  for (std::vector<vtkMRMLRTBeamNode*>::iterator it=beams.begin(); it!=beams.end(); ++it)
-  {
-    vtkMRMLRTBeamNode* currentBeam = (*it);
-
-    // Remove intermediate results other than the per-beam dose volume
-    selectedEngine->RemoveIntermediateResults(currentBeam);
-
-    // Remove per-beam dose volume
-    vtkMRMLScalarVolumeNode* currentDose = selectedEngine->GetResultDoseForBeam(currentBeam);
-    currentBeam->GetScene()->RemoveNode(currentDose);
-  }
 }
 
 //---------------------------------------------------------------------------

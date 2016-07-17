@@ -19,30 +19,26 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerMockDoseEngine - 
-// .SECTION Description
-// This class represents the Plastimatch proton dose calculation algorithm
+#ifndef __qSlicerPlastimatchProtonDoseEngine_h
+#define __qSlicerPlastimatchProtonDoseEngine_h
 
-#ifndef __vtkSlicerMockDoseEngine_h
-#define __vtkSlicerMockDoseEngine_h
-
-#include "vtkSlicerExternalBeamPlanningDoseEnginesExport.h"
+#include "qSlicerExternalBeamPlanningDoseEnginesExport.h"
 
 // ExternalBeamPlanning includes
-#include "vtkSlicerAbstractDoseEngine.h"
+#include "qSlicerAbstractDoseEngine.h"
 
 /// \ingroup SlicerRt_ExternalBeamPlanning
-class VTK_SLICER_EXTERNALBEAMPLANNING_DOSE_ENGINES_EXPORT vtkSlicerMockDoseEngine : public vtkSlicerAbstractDoseEngine
+/// \brief Plastimatch proton dose calculation algorithm
+class Q_SLICER_EXTERNALBEAMPLANNING_DOSE_ENGINES_EXPORT qSlicerPlastimatchProtonDoseEngine : public qSlicerAbstractDoseEngine
 {
-public:
-  static vtkSlicerMockDoseEngine *New();
-  vtkTypeMacro(vtkSlicerMockDoseEngine, vtkSlicerAbstractDoseEngine);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  Q_OBJECT
 
-  /// Create beam node of type the dose engine uses.
-  /// Dose engines need to override this to return beam node of type they use.
-  /// Note: Need to take ownership of the created object! For example using vtkSmartPointer<vtkDataObject>::Take
-  virtual vtkMRMLRTBeamNode* CreateBeamForEngine();
+public:
+  typedef qSlicerAbstractDoseEngine Superclass;
+  /// Constructor
+  explicit qSlicerPlastimatchProtonDoseEngine(QObject* parent=NULL);
+  /// Destructor
+  virtual ~qSlicerPlastimatchProtonDoseEngine();
 
 protected:
   /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic
@@ -50,18 +46,10 @@ protected:
   /// \param beamNode Beam for which the dose is calculated. Each beam has a parent plan from which the
   ///   plan-specific parameters are got
   /// \param resultDoseVolumeNode Output volume node for the result dose. It is created by \sa CalculateDose
-  virtual std::string CalculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode);
-
-protected:
-  vtkSlicerMockDoseEngine();
-  virtual ~vtkSlicerMockDoseEngine();
+  virtual QString calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode);
 
 private:
-  vtkSlicerMockDoseEngine(const vtkSlicerMockDoseEngine&); // Not implemented
-  void operator=(const vtkSlicerMockDoseEngine&);         // Not implemented
-
-  class vtkInternal;
-  vtkInternal* Internal;
+  Q_DISABLE_COPY(qSlicerPlastimatchProtonDoseEngine);
 };
 
 #endif

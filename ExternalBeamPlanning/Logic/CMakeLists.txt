@@ -7,8 +7,6 @@ set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_LOGIC_EXPORT
 set(${KIT}_INCLUDE_DIRECTORIES
   ${PlmCommon_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
-  ${vtkSlicerExternalBeamPlanningDoseEngines_INCLUDE_DIRS}
-  ${vtkSlicerDoseAccumulationModuleLogic_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -16,7 +14,7 @@ set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}ModuleLogic.h
   )
 
-SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkSlicerExternalBeamPlanningDoseEngines_INCLUDE_DIRS} ${vtkSlicerDoseAccumulationModuleLogic_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
+SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "" FORCE)
 
 set(${KIT}_TARGET_LIBRARIES
   vtkPlmCommon
@@ -24,12 +22,6 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerMarkupsModuleMRML
   vtkSlicerBeamsModuleMRML
   vtkSlicerBeamsModuleLogic
-  vtkSlicerIsodoseModuleLogic
-  vtkSlicerSegmentationsModuleMRML
-  vtkSlicerSegmentationsModuleLogic
-  vtkSlicerDoseAccumulationModuleLogic
-  #vtkSlicerExternalBeamPlanningModuleMRML #TODO: Remove if no EBP-specific MRML nodes will show up
-  vtkSlicerExternalBeamPlanningDoseEngines
   )
 
 #-----------------------------------------------------------------------------

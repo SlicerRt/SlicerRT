@@ -1,30 +1,53 @@
-project(vtkSlicer${MODULE_NAME}DoseEngines)
+project(qSlicer${MODULE_NAME}DoseEngines)
 
 set(KIT ${PROJECT_NAME})
 
-set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_DOSE_ENGINES_EXPORT")
+set(${KIT}_EXPORT_DIRECTIVE "Q_SLICER_${MODULE_NAME_UPPER}_DOSE_ENGINES_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
   ${PlmCommon_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerDoseAccumulationModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
   ${PLASTIMATCH_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
-  vtkSlicerAbstractDoseEngine.cxx
-  vtkSlicerAbstractDoseEngine.h
-  vtkSlicerDoseEnginePluginHandler.cxx
-  vtkSlicerDoseEnginePluginHandler.h
-  vtkSlicerMockDoseEngine.cxx
-  vtkSlicerMockDoseEngine.h
-  vtkSlicerPlastimatchProtonDoseEngine.cxx
-  vtkSlicerPlastimatchProtonDoseEngine.h
+  qSlicerAbstractDoseEngine.cxx
+  qSlicerAbstractDoseEngine.h
+  qSlicerDoseEnginePluginHandler.cxx
+  qSlicerDoseEnginePluginHandler.h
+  qSlicerDoseEngineLogic.cxx
+  qSlicerDoseEngineLogic.h
+  qSlicerMockDoseEngine.cxx
+  qSlicerMockDoseEngine.h
+  qSlicerPlastimatchProtonDoseEngine.cxx
+  qSlicerPlastimatchProtonDoseEngine.h
   )
 
-SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS} ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS} ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
+set(${KIT}_UI_SRCS
+  )
+
+# Since the wrapper doesn't consider hierarchy of classes, we need to exclude
+# classes deriving from pure abstract class and remaining abstract pure
+set_source_files_properties(
+  qSlicerAbstractDoseEngine.h
+  WRAP_EXCLUDE
+  )
+
+set(${KIT}_MOC_SRCS
+  qSlicerAbstractDoseEngine.h
+  qSlicerDoseEnginePluginHandler.h
+  qSlicerDoseEngineLogic.h
+  qSlicerMockDoseEngine.h
+  qSlicerPlastimatchProtonDoseEngine.h
+)
+
+set(${KIT}_RESOURCES
+  # Resources/${KIT}.qrc
+  )
 
 set(${KIT}_TARGET_LIBRARIES
   vtkPlmCommon
@@ -34,19 +57,21 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerSegmentationsModuleMRML
   vtkSlicerSegmentationsModuleLogic
   vtkSlicerIsodoseModuleLogic
+  vtkSlicerDoseAccumulationModuleLogic
   )
+
+set(${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS} ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS} ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS} ${vtkSlicerDoseAccumulationModuleLogic_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
 
 #-----------------------------------------------------------------------------
-SlicerMacroBuildModuleLogic(
+SlicerMacroBuildModuleQtLibrary(
   NAME ${KIT}
   EXPORT_DIRECTIVE ${${KIT}_EXPORT_DIRECTIVE}
+  FOLDER "Module-${MODULE_NAME}"
   INCLUDE_DIRECTORIES ${${KIT}_INCLUDE_DIRECTORIES}
   SRCS ${${KIT}_SRCS}
+  MOC_SRCS ${${KIT}_MOC_SRCS}
+  UI_SRCS ${${KIT}_UI_SRCS}
   TARGET_LIBRARIES ${${KIT}_TARGET_LIBRARIES}
+  RESOURCES ${${KIT}_RESOURCES}
+  WRAP_PYTHONQT
   )
-
-# Set linker flags, needed for OpenMP
-if (NOT ${PLASTIMATCH_LDFLAGS} STREQUAL "")
-  set_target_properties (${KIT}
-    PROPERTIES LINK_FLAGS ${PLASTIMATCH_LDFLAGS})
-endif ()

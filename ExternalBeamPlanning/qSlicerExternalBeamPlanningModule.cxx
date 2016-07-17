@@ -32,6 +32,11 @@
 #include "qSlicerExternalBeamPlanningModuleWidget.h"
 #include "vtkSlicerExternalBeamPlanningModuleLogic.h"
 
+// DoseEngines includes
+#include "qSlicerDoseEnginePluginHandler.h"
+#include "qSlicerPlastimatchProtonDoseEngine.h"
+#include "qSlicerMockDoseEngine.h"
+
 // SlicerRT includes
 #include "vtkSlicerBeamsModuleLogic.h"
 
@@ -105,10 +110,10 @@ QStringList qSlicerExternalBeamPlanningModule::dependencies()const
 QStringList qSlicerExternalBeamPlanningModule::contributors() const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Kevin Wang (Princess Margaret Cancer Centre)");
-  moduleContributors << QString("Maxime Desplanques (CNAO, Italy)");
   moduleContributors << QString("Greg Sharp (MGH)");
   moduleContributors << QString("Csaba Pinter (Queen's)");
+  moduleContributors << QString("Kevin Wang (Princess Margaret Cancer Centre)");
+  moduleContributors << QString("Maxime Desplanques (CNAO, Italy)");
   return moduleContributors;
 }
 
@@ -136,6 +141,10 @@ void qSlicerExternalBeamPlanningModule::setup()
   {
     qCritical() << Q_FUNC_INFO << ": Beams module is not found";
   }
+
+  // Register dose engines
+  qSlicerDoseEnginePluginHandler::instance()->registerDoseEngine(new qSlicerPlastimatchProtonDoseEngine());
+  qSlicerDoseEnginePluginHandler::instance()->registerDoseEngine(new qSlicerMockDoseEngine());
 }
 
 //-----------------------------------------------------------------------------
