@@ -40,7 +40,6 @@
 #include "vtkMRMLSegmentationNode.h"
 
 // Beams includes
-#include "vtkMRMLRTProtonBeamNode.h"
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkSlicerBeamsModuleLogic.h"

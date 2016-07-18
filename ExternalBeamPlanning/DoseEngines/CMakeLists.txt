@@ -11,7 +11,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerDoseAccumulationModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
-  ${PLASTIMATCH_INCLUDE_DIRS}
+  ${qSlicerBeamsModuleWidgets_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -58,6 +58,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerSegmentationsModuleLogic
   vtkSlicerIsodoseModuleLogic
   vtkSlicerDoseAccumulationModuleLogic
+  qSlicerBeamsModuleWidgets
   )
 
 set(${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS} ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS} ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS} ${vtkSlicerDoseAccumulationModuleLogic_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)

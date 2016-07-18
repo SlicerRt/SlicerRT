@@ -26,6 +26,7 @@
 // Qt includes
 #include "QObject"
 
+class qSlicerAbstractDoseEnginePrivate;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLNode;
@@ -49,6 +50,10 @@ public:
   /// Destructor
   virtual ~qSlicerAbstractDoseEngine();
 
+  /// Get dose engine name
+  QString name() const;
+
+// Dose calculation related functions
 public:
   /// Perform dose calculation for a single beam
   /// \param Beam node for which the dose is calculated
@@ -61,8 +66,59 @@ public:
   /// Remove intermediate nodes created by the dose engine for a certain beam
   void removeIntermediateResults(vtkMRMLRTBeamNode* beamNode);
 
-  /// Get dose engine name
-  QString name() const;
+// Dose calculation related functions (API functions to call from the subclass)
+protected:
+  /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic
+  /// to any dose engine before and after calculation.
+  /// This is the method that needs to be implemented in each engine.
+  /// 
+  /// \param beamNode Beam for which the dose is calculated. Each beam has a parent plan from which the
+  ///   plan-specific parameters are got
+  /// \param resultDoseVolumeNode Output volume node for the result dose. It is created by \sa CalculateDose
+  virtual QString calculateDoseUsingEngine(
+    vtkMRMLRTBeamNode* beamNode,
+    vtkMRMLScalarVolumeNode* resultDoseVolumeNode ) = 0;
+
+  /// Define engine-specific beam parameters.
+  /// This is the method that needs to be implemented in each engine.
+  virtual void defineBeamParameters() = 0;
+
+  /// Add intermediate results to beam. Doing so allows easily cleaning up the intermediate results
+  /// \param result MRML node containing the intermediate result to add
+  /// \param beamNode Beam to add the intermediate result to
+  void addIntermediateResult(vtkMRMLNode* result, vtkMRMLRTBeamNode* beamNode);
+
+  /// Add result per-beam dose volume to beam
+  /// \param resultDose Dose volume to add to beam as result
+  /// \param beamNode Beam node to add dose as result to
+  /// \param replace Remove referenced dose volume if already exists. True by default
+  void addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTBeamNode* beamNode, bool replace=true);
+
+// Beam parameter user interface functions
+protected:
+  /// Add new floating point beam parameter as a spin box
+  /// \param TODO
+  void addBeamParameterSpinBox(
+    QString tabName, QString parameterName, QString parameterLabel,
+    QString tooltip, double minimum, double maximum,
+    double default, double stepSize, int precision );
+  /// Add new floating point beam parameter as a slider
+  /// \param TODO
+  void addBeamParameterSlider(
+    QString tabName, QString parameterName, QString parameterLabel,
+    QString tooltip, double minimum, double maximum,
+    double default, double stepSize, int precision );
+  
+  /// Add new multiple choice beam parameter as a combo box
+  /// \param TODO
+  void addBeamParameterComboBox(
+    QString tabName, QString parameterName, QString parameterLabel,
+    QString tooltip, QList<QString> options,int defaultIndex );
+
+  /// Add new boolean type beam parameter as a check box
+  /// \param TODO
+  void addBeamParameterCheckBox(
+    QString tabName, QString parameterName, QString parameterLabel, QString tooltip, bool default);
 
 // Beam parameter functions
 public:
@@ -90,34 +146,35 @@ public:
   /// \param value Parameter value double
   Q_INVOKABLE void setParameter(vtkMRMLRTBeamNode* beamNode, QString name, double value);
 
-protected:
-  /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic
-  /// to any dose engine before and after calculation.
-  /// This is the method that needs to be implemented in each engine.
-  /// 
-  /// \param beamNode Beam for which the dose is calculated. Each beam has a parent plan from which the
-  ///   plan-specific parameters are got
-  /// \param resultDoseVolumeNode Output volume node for the result dose. It is created by \sa CalculateDose
-  virtual QString calculateDoseUsingEngine(
-    vtkMRMLRTBeamNode* beamNode,
-    vtkMRMLScalarVolumeNode* resultDoseVolumeNode ) = 0;
+// Beam parameter user interface functions called from only this class
+private:
+  /// Add double parameter of desired type. Called by \sa addBeamParameterSpinBox and \sa addBeamParameterSlider
+  /// \param TODO
+  void addBeamParameterDouble(
+    QString tabName, QString parameterName, QString parameterLabel,
+    QString tooltip, double minimum, double maximum,
+    double default, double stepSize, int precision, bool slider=false);
 
-  /// Add intermediate results to beam. Doing so allows easily cleaning up the intermediate results
-  /// \param result MRML node containing the intermediate result to add
-  /// \param beamNode Beam to add the intermediate result to
-  void addIntermediateResult(vtkMRMLNode* result, vtkMRMLRTBeamNode* beamNode);
+  /// Set dose engine type in beam node.
+  /// This function is called from each parameter adding function
+  /// (assuming only one engine uses a beam at one time)
+  void setDoseEngineTypeToBeam(vtkMRMLRTBeamNode* beamNode);
 
-  /// Add result per-beam dose volume to beam
-  /// \param resultDose Dose volume to add to beam as result
-  /// \param beamNode Beam node to add dose as result to
-  /// \param replace Remove referenced dose volume if already exists. True by default
-  void addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTBeamNode* beamNode, bool replace=true);
+  /// Get tab widget from beams module widget into which the parameters are added.
+  /// If no tab of the specified name exists, a new one is created with that name
+  /// \param tabName Name of the tab to return
+  /// \return Tab widget with given name
+  QWidget* qSlicerAbstractDoseEngine::beamParametersTab(QString tabName);
 
 protected:
   /// Name of the engine. Must be set in dose engine constructor
   QString m_Name;
 
+protected:
+  QScopedPointer<qSlicerAbstractDoseEnginePrivate> d_ptr;
+
 private:
+  Q_DECLARE_PRIVATE(qSlicerAbstractDoseEngine);
   Q_DISABLE_COPY(qSlicerAbstractDoseEngine);
 };
 

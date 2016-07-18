@@ -37,7 +37,6 @@ public:
   QString  includeFile() const;
   bool     isContainer() const;
   QString  name() const;
-
 };
 
 #endif

@@ -75,9 +75,9 @@ protected slots:
   /// Handle switch to parent plan button click, takes the user to External Beam Planning and selects parent plan
   void switchToParentPlanButtonClicked();
 
-  // Beam global parameters
+  // Main parameters
   void beamNameChanged(const QString &);
-  void radiationTypeChanged(int);
+  void beamWeightChanged(double);
 
   // Energy page
   void proximalMarginChanged(double);
@@ -86,17 +86,7 @@ protected slots:
   void manualEnergyPrescriptionChanged(bool);
   void minimumEnergyChanged(double);
   void maximumEnergyChanged(double);
-
-  // Geometry page
-  void mlcPositionDoubleArrayNodeChanged(vtkMRMLNode* node);
-  void sourceDistanceChanged(double);
-  void xJawsPositionValuesChanged(double, double);
-  void yJawsPositionValuesChanged(double, double);
-  void collimatorAngleChanged(double);
-  void gantryAngleChanged(double);
-  void couchAngleChanged(double);
   void smearingChanged(double);
-  void beamWeightChanged(double);
 
   // Proton beam model
   void apertureDistanceChanged(double);
@@ -108,14 +98,6 @@ protected slots:
   void stepLengthChanged(double);
   void wedApproximationChanged(bool);
   void rangeCompensatorHighlandChanged(bool);
-
-  // Beam visualization
-  void updateDRRClicked();
-  void beamEyesViewClicked(bool);
-  void contoursInBEWClicked(bool);
-
-  //TODO: Unused function
-  void collimatorTypeChanged(const QString &);
 
 protected:
   QScopedPointer<qSlicerBeamsModuleWidgetPrivate> d_ptr;

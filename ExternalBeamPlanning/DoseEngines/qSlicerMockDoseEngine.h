@@ -49,6 +49,9 @@ protected:
   /// \param resultDoseVolumeNode Output volume node for the result dose. It is created by \sa CalculateDose
   virtual QString calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode);
 
+  /// Define engine-specific beam parameters
+  void defineBeamParameters();
+
 private:
   Q_DISABLE_COPY(qSlicerMockDoseEngine);
 };

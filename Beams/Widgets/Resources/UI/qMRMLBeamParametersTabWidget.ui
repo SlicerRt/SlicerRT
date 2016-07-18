@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>qMRMLBeamParametersTabWidget</class>
+ <widget class="QTabWidget" name="qMRMLBeamParametersTabWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>TabWidget</string>
+  </property>
+  <property name="currentIndex">
+   <number>0</number>
+  </property>
+  <widget class="QWidget" name="tabGeometry">
+   <attribute name="title">
+    <string>Geometry</string>
+   </attribute>
+   <layout class="QFormLayout" name="formLayout">
+    <property name="fieldGrowthPolicy">
+     <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+    </property>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_SAD">
+      <property name="toolTip">
+       <string>Source axis distance (SAD)</string>
+      </property>
+      <property name="text">
+       <string>Source distance (mm):</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_SAD">
+      <property name="toolTip">
+       <string>Source axis distance (SAD)</string>
+      </property>
+      <property name="minimum">
+       <double>50.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>5000.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>2000.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_MLCLeafPosition">
+      <property name="text">
+       <string>MLC positions:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_MLCPositionDoubleArray">
+      <property name="nodeTypes">
+       <stringlist>
+        <string>vtkMRMLDoubleArrayNode</string>
+       </stringlist>
+      </property>
+      <property name="noneEnabled">
+       <bool>true</bool>
+      </property>
+      <property name="addEnabled">
+       <bool>false</bool>
+      </property>
+      <property name="removeEnabled">
+       <bool>false</bool>
+      </property>
+      <property name="selectNodeUponCreation">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_XjawPosition">
+      <property name="text">
+       <string>X jaw positions (mm):</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="ctkRangeWidget" name="RangeWidget_XJawsPosition">
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>-200.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>200.000000000000000</double>
+      </property>
+      <property name="minimumValue">
+       <double>-100.000000000000000</double>
+      </property>
+      <property name="maximumValue">
+       <double>100.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_YJawPosition">
+      <property name="text">
+       <string>Y jaw positions (mm):</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="ctkRangeWidget" name="RangeWidget_YJawsPosition">
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="minimum">
+       <double>-200.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>200.000000000000000</double>
+      </property>
+      <property name="minimumValue">
+       <double>-100.000000000000000</double>
+      </property>
+      <property name="maximumValue">
+       <double>100.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_CollimatorAngle">
+      <property name="text">
+       <string>Collimator angle (°):</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="ctkSliderWidget" name="SliderWidget_CollimatorAngle">
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <double>359.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="label_GantryAngle">
+      <property name="text">
+       <string>Gantry angle (°):</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
+     <widget class="ctkSliderWidget" name="SliderWidget_GantryAngle">
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <double>359.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0">
+     <widget class="QLabel" name="label_CouchAngle">
+      <property name="text">
+       <string>Couch angle (°):</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="1">
+     <widget class="ctkSliderWidget" name="SliderWidget_CouchAngle">
+      <property name="decimals">
+       <number>0</number>
+      </property>
+      <property name="maximum">
+       <double>359.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="tabVisualization">
+   <attribute name="title">
+    <string>Visualization</string>
+   </attribute>
+   <layout class="QFormLayout" name="formLayout_3">
+    <property name="fieldGrowthPolicy">
+     <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+    </property>
+    <item row="0" column="0">
+     <widget class="QLabel" name="beamSEyeViewLabel">
+      <property name="text">
+       <string>Beam's eye view</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QCheckBox" name="checkBox_BeamsEyeView"/>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="includeContourInBEWLabel">
+      <property name="text">
+       <string>Include contour in BEW</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QCheckBox" name="checkBox_ContoursInBEW"/>
+    </item>
+    <item row="2" column="1">
+     <widget class="QPushButton" name="pushButton_UpdateDRR">
+      <property name="text">
+       <string>Update DRR</string>
+      </property>
+      <property name="icon">
+       <iconset resource="../../../../DicomRtImportExport/SubjectHierarchyPlugins/Resources/qSlicerDicomRtImportExportSubjectHierarchyPlugins.qrc">
+        <normaloff>:/Icons/PlanarImage.png</normaloff>:/Icons/PlanarImage.png</iconset>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>qMRMLNodeComboBox</class>
+   <extends>QWidget</extends>
+   <header>qMRMLNodeComboBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkRangeWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkRangeWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkSliderWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkSliderWidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../../../../DicomRtImportExport/SubjectHierarchyPlugins/Resources/qSlicerDicomRtImportExportSubjectHierarchyPlugins.qrc"/>
+ </resources>
+ <connections/>
+</ui>

@@ -54,6 +54,12 @@ qSlicerMockDoseEngine::~qSlicerMockDoseEngine()
 }
 
 //---------------------------------------------------------------------------
+void qSlicerMockDoseEngine::defineBeamParameters()
+{
+  //TODO:
+}
+
+//---------------------------------------------------------------------------
 QString qSlicerMockDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode)
 {
   if (!beamNode)

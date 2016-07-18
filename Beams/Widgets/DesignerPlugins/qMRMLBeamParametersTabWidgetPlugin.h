@@ -18,31 +18,25 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerBeamsModuleWidgetsPlugin_h
-#define __qSlicerBeamsModuleWidgetsPlugin_h
+#ifndef __qMRMLBeamParametersTabWidgetPlugin_h
+#define __qMRMLBeamParametersTabWidgetPlugin_h
 
-// Qt includes
-#include <QDesignerCustomWidgetCollectionInterface>
+#include "qSlicerBeamsModuleWidgetsAbstractPlugin.h"
 
-// Beams includes
-#include "qMRMLBeamParametersTabWidgetPlugin.h"
-#include "qMRMLBeamsTableViewPlugin.h"
-
-// \class Group the plugins in one library
-class Q_SLICER_MODULE_BEAMS_WIDGETS_PLUGINS_EXPORT qSlicerBeamsModuleWidgetsPlugin
+class Q_SLICER_MODULE_BEAMS_WIDGETS_PLUGINS_EXPORT qMRMLBeamParametersTabWidgetPlugin
   : public QObject
-  , public QDesignerCustomWidgetCollectionInterface
+  , public qSlicerBeamsModuleWidgetsAbstractPlugin
 {
   Q_OBJECT
-  Q_INTERFACES(QDesignerCustomWidgetCollectionInterface);
 
 public:
-  QList<QDesignerCustomWidgetInterface*> customWidgets() const
-    {
-    QList<QDesignerCustomWidgetInterface *> plugins;
-    plugins << new qMRMLBeamsTableViewPlugin << new qMRMLBeamParametersTabWidgetPlugin;
-    return plugins;
-    }
+  qMRMLBeamParametersTabWidgetPlugin(QObject* parent = 0);
+
+  QWidget *createWidget(QWidget* parent);
+  QString  domXml() const;
+  QString  includeFile() const;
+  bool     isContainer() const;
+  QString  name() const;
 };
 
 #endif

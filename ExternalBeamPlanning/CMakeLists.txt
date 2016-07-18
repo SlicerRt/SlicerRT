@@ -20,6 +20,7 @@ set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
 
 set(MODULE_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
+  ${qSlicerExternalBeamPlanningDoseEngines_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
   ${qSlicerSegmentationsModuleWidgets_INCLUDE_DIRS}

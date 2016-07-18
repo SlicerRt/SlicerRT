@@ -37,7 +37,6 @@ public:
   virtual QIcon icon() const;
   virtual QString toolTip() const;
   virtual QString whatsThis() const;
-
 };
 
 #endif

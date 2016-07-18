@@ -9,15 +9,19 @@ set(${KIT}_INCLUDE_DIRECTORIES
   )
 
 set(${KIT}_SRCS
+  qMRMLBeamParametersTabWidget.cxx
+  qMRMLBeamParametersTabWidget.h
   qMRMLBeamsTableView.cxx
   qMRMLBeamsTableView.h
   )
 
 set(${KIT}_MOC_SRCS
+  qMRMLBeamParametersTabWidget.h
   qMRMLBeamsTableView.h
 )
 
 set(${KIT}_UI_SRCS
+  Resources/UI/qMRMLBeamParametersTabWidget.ui
   Resources/UI/qMRMLBeamsTableView.ui
   )
 

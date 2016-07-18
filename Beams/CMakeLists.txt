@@ -22,6 +22,7 @@ set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
 
 set(MODULE_INCLUDE_DIRECTORIES
   ${qSlicerBeamsSubjectHierarchyPlugins_INCLUDE_DIRS}
+  ${qSlicerBeamsModuleWidgets_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${qSlicerSubjectHierarchyModuleWidgets_INCLUDE_DIRS}
   ${qSlicerSegmentationsModuleWidgets_INCLUDE_DIRS}

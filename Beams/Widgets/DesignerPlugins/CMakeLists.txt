@@ -7,12 +7,15 @@ set(${KIT}_SRCS
   qSlicerBeamsModuleWidgetsAbstractPlugin.h
   qSlicerBeamsModuleWidgetsPlugin.cxx
   qSlicerBeamsModuleWidgetsPlugin.h
+  qMRMLBeamParametersTabWidgetPlugin.cxx
+  qMRMLBeamParametersTabWidgetPlugin.h
   qMRMLBeamsTableViewPlugin.cxx
   qMRMLBeamsTableViewPlugin.h
   )
 
 set(${KIT}_MOC_SRCS
   qSlicerBeamsModuleWidgetsPlugin.h
+  qMRMLBeamParametersTabWidgetPlugin.h
   qMRMLBeamsTableViewPlugin.h
   )
 
