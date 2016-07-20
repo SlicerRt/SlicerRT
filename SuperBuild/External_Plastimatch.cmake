@@ -37,7 +37,13 @@ if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
 endif ()
 
 # Choose which Plastimatch revision to build
-set (PLM_SVN_REVISION "5338")
+set (PLM_GIT_TAG "ca86bd737c7f9c0994911b04db94ae062d1fade7")
+
+# Figure out whether to use git or https
+if(NOT DEFINED git_protocol)
+  #set(git_protocol "git")
+  set(git_protocol "https")
+endif()
 
 # With CMake 2.8.9 or later, the UPDATE_COMMAND is required for updates to occur.
 # For earlier versions, we nullify the update state to prevent updates and
@@ -60,13 +66,8 @@ ExternalProject_Add( Plastimatch
   SOURCE_DIR "${SLICERRT_PLASTIMATCH_SOURCE_DIR}" 
   BINARY_DIR "${SLICERRT_PLASTIMATCH_DIR}"
   #--Download step--------------
-  SVN_USERNAME "anonymous"
-  SVN_PASSWORD "anonymous"
-  SVN_REPOSITORY https://forge.abcd.harvard.edu/svn/plastimatch/plastimatch/trunk
-  SVN_REVISION -r "${PLM_SVN_REVISION}"
-  "${Plastimatch_EP_UPDATE_IF_CMAKE_LATER_THAN_288}"
-  # Avoid "Server certificate verification failed: issuer is not trusted" error
-  SVN_TRUST_CERT 1
+  GIT_REPOSITORY "${git_protocol}://gitlab.com/plastimatch/plastimatch.git"
+  GIT_TAG "${PLM_GIT_TAG}"
   #--Configure step-------------
   CMAKE_ARGS 
     # If Plastimatch is build in library mode (PLM_CONFIG_LIBRARY_BUILD) then does not use Slicer libraries
