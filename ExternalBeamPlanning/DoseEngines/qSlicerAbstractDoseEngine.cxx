@@ -552,6 +552,28 @@ double qSlicerAbstractDoseEngine::doubleParameter(vtkMRMLRTBeamNode* beamNode, Q
 }
 
 //-----------------------------------------------------------------------------
+bool qSlicerAbstractDoseEngine::booleanParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName)
+{
+  if (!beamNode)
+  {
+    return false;
+  }
+
+  QString parameterStr = this->parameter(beamNode, parameterName);
+  if (parameterStr == QVariant(true).toString())
+  {
+    return true;
+  }
+  else if (parameterStr == QVariant(false).toString())
+  {
+    return false;
+  }
+
+  qCritical() << Q_FUNC_INFO << ": Parameter named " << parameterName << " contains invalid boolean value '" << parameterStr << "'";
+  return false;
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, QString parameterValue)
 {
   if (!beamNode)
@@ -601,6 +623,12 @@ void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QStrin
 void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, double parameterValue)
 {
   this->setParameter(beamNode, parameterName, QString::number(parameterValue));
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, bool parameterValue)
+{
+  this->setParameter(beamNode, parameterName, QVariant(parameterValue).toString());
 }
 
 //-----------------------------------------------------------------------------

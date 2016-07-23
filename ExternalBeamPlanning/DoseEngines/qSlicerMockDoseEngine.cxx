@@ -56,7 +56,7 @@ qSlicerMockDoseEngine::~qSlicerMockDoseEngine()
 //---------------------------------------------------------------------------
 void qSlicerMockDoseEngine::defineBeamParameters()
 {
-  //TODO:
+  // No engine-specific beam parameters
 }
 
 //---------------------------------------------------------------------------

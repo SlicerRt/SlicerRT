@@ -133,7 +133,7 @@ protected:
     QString tooltip, bool default, QStringList dependentParameterNames=QStringList() );
 
 // Beam parameter get/set functions
-private:
+protected:
   /// Get beam parameter from beam node
   QString parameter(vtkMRMLRTBeamNode* beamNode, QString parameterName);
 
@@ -142,6 +142,9 @@ private:
 
   /// Convenience function to get double parameter
   double doubleParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName);
+
+  /// Convenience function to get boolean parameter
+  bool booleanParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName);
 
   /// Set beam parameter in beam node. This function is called by both convenience functions.
   /// \param parameterName Parameter name string
@@ -158,6 +161,13 @@ private:
   /// \param parameterValue Parameter value double
   void setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, double parameterValue);
 
+  /// Convenience function to set boolean parameter
+  /// \param parameterName Parameter name string
+  /// \param parameterValue Parameter value boolean
+  void setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, bool parameterValue);
+
+// Private helper functions
+private:
   /// Add engine name prefix to the parameter name.
   /// This prefixed parameter name will be the attribute name for the beam parameter in the beam nodes.
   QString assembleEngineParameterName(QString parameterName);
