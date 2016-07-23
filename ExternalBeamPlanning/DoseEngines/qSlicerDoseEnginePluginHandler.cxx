@@ -124,6 +124,9 @@ bool qSlicerDoseEnginePluginHandler::registerDoseEngine(qSlicerAbstractDoseEngin
   // Add the effect to the list
   this->m_RegisteredDoseEngines << engineToRegister;
 
+  // Define beam parameters specified by engine
+  engineToRegister->defineBeamParameters();
+
   return true;
 }
 

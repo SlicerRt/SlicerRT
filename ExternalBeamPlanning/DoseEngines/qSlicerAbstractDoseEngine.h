@@ -24,12 +24,14 @@
 #include "qSlicerExternalBeamPlanningDoseEnginesExport.h"
 
 // Qt includes
-#include "QObject"
+#include <QObject>
+#include <QStringList>
 
 class qSlicerAbstractDoseEnginePrivate;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLNode;
+class qMRMLBeamParametersTabWidget;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 /// \brief Abstract dose calculation algorithm that can be used in the
@@ -66,6 +68,12 @@ public:
   /// Remove intermediate nodes created by the dose engine for a certain beam
   void removeIntermediateResults(vtkMRMLRTBeamNode* beamNode);
 
+  /// Show/hide all engine-specific beam parameters in the beam parameters tab widget in Beams module
+  void setBeamParametersVisible(bool visible);
+
+  /// Add all engine-specific beam parameters to given beam node (do not override value if parameter exists)
+  void addBeamParameterAttributesToBeamNode(vtkMRMLRTBeamNode* beamNode);
+
 // Dose calculation related functions (API functions to call from the subclass)
 protected:
   /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic
@@ -94,77 +102,71 @@ protected:
   /// \param replace Remove referenced dose volume if already exists. True by default
   void addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTBeamNode* beamNode, bool replace=true);
 
-// Beam parameter user interface functions
+// Beam parameter definition functions.
+// Need to be called from the implemented \sa defineBeamParameters method.
 protected:
-  /// Add new floating point beam parameter as a spin box
+  /// Add new floating point parameter to beam parameters widget as a spin box with text edit
   /// \param TODO
   void addBeamParameterSpinBox(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, double minimum, double maximum,
     double default, double stepSize, int precision );
-  /// Add new floating point beam parameter as a slider
+  /// Add new floating point parameter to beam parameters widget as a slider
   /// \param TODO
   void addBeamParameterSlider(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, double minimum, double maximum,
     double default, double stepSize, int precision );
-  
-  /// Add new multiple choice beam parameter as a combo box
+
+  /// Add new multiple choice beam parameter to beam parameters widget as a combo box
   /// \param TODO
   void addBeamParameterComboBox(
     QString tabName, QString parameterName, QString parameterLabel,
-    QString tooltip, QList<QString> options,int defaultIndex );
+    QString tooltip, QStringList options, int defaultIndex );
 
-  /// Add new boolean type beam parameter as a check box
+  /// Add new boolean type beam parameter to beam parameters widget as a check box
   /// \param TODO
+  /// \param dependentParameterNames Names of parameters (full names including engine prefix) that
+  ///   need to be enabled/disabled based on the checked state of the created checkbox
   void addBeamParameterCheckBox(
-    QString tabName, QString parameterName, QString parameterLabel, QString tooltip, bool default);
+    QString tabName, QString parameterName, QString parameterLabel,
+    QString tooltip, bool default, QStringList dependentParameterNames=QStringList() );
 
-// Beam parameter functions
-public:
+// Beam parameter get/set functions
+private:
   /// Get beam parameter from beam node
-  Q_INVOKABLE QString parameter(vtkMRMLRTBeamNode* beamNode, QString name);
+  QString parameter(vtkMRMLRTBeamNode* beamNode, QString parameterName);
 
   /// Convenience function to get integer parameter
-  Q_INVOKABLE int integerParameter(vtkMRMLRTBeamNode* beamNode, QString name);
+  int integerParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName);
 
   /// Convenience function to get double parameter
-  Q_INVOKABLE double doubleParameter(vtkMRMLRTBeamNode* beamNode, QString name);
+  double doubleParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName);
 
   /// Set beam parameter in beam node. This function is called by both convenience functions.
-  /// \param name Parameter name string
-  /// \param value Parameter value string
-  Q_INVOKABLE void setParameter(vtkMRMLRTBeamNode* beamNode, QString name, QString value);
+  /// \param parameterName Parameter name string
+  /// \param parameterValue Parameter value string
+  void setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, QString parameterValue);
 
   /// Convenience function to set integer parameter
   /// \param name Parameter name string
-  /// \param value Parameter value integer
-  Q_INVOKABLE void setParameter(vtkMRMLRTBeamNode* beamNode, QString name, int value);
+  /// \param parameterValue Parameter value integer
+  void setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, int parameterValue);
 
   /// Convenience function to set double parameter
-  /// \param name Parameter name string
-  /// \param value Parameter value double
-  Q_INVOKABLE void setParameter(vtkMRMLRTBeamNode* beamNode, QString name, double value);
+  /// \param parameterName Parameter name string
+  /// \param parameterValue Parameter value double
+  void setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, double parameterValue);
 
-// Beam parameter user interface functions called from only this class
-private:
-  /// Add double parameter of desired type. Called by \sa addBeamParameterSpinBox and \sa addBeamParameterSlider
-  /// \param TODO
-  void addBeamParameterDouble(
-    QString tabName, QString parameterName, QString parameterLabel,
-    QString tooltip, double minimum, double maximum,
-    double default, double stepSize, int precision, bool slider=false);
+  /// Add engine name prefix to the parameter name.
+  /// This prefixed parameter name will be the attribute name for the beam parameter in the beam nodes.
+  QString assembleEngineParameterName(QString parameterName);
 
-  /// Set dose engine type in beam node.
-  /// This function is called from each parameter adding function
-  /// (assuming only one engine uses a beam at one time)
-  void setDoseEngineTypeToBeam(vtkMRMLRTBeamNode* beamNode);
-
-  /// Get tab widget from beams module widget into which the parameters are added.
-  /// If no tab of the specified name exists, a new one is created with that name
+  /// Get beam parameters tab widget from beams module widget
+  /// TODO: Kind of a hack, a direct way of accessing it would be nicer, for example through a MRML node
   /// \param tabName Name of the tab to return
   /// \return Tab widget with given name
-  QWidget* qSlicerAbstractDoseEngine::beamParametersTab(QString tabName);
+  qMRMLBeamParametersTabWidget* beamParametersTabWidgetFromBeamsModule();
 
 protected:
   /// Name of the engine. Must be set in dose engine constructor
@@ -176,6 +178,7 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerAbstractDoseEngine);
   Q_DISABLE_COPY(qSlicerAbstractDoseEngine);
+  friend class qSlicerDoseEnginePluginHandler;
 };
 
 #endif

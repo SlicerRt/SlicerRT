@@ -53,6 +53,7 @@
 
 // Qt includes
 #include <QDebug>
+#include <QStringList>
 
 //----------------------------------------------------------------------------
 qSlicerPlastimatchProtonDoseEngine::qSlicerPlastimatchProtonDoseEngine(QObject* parent)
@@ -69,7 +70,73 @@ qSlicerPlastimatchProtonDoseEngine::~qSlicerPlastimatchProtonDoseEngine()
 //---------------------------------------------------------------------------
 void qSlicerPlastimatchProtonDoseEngine::defineBeamParameters()
 {
-  //TODO:
+  //TODO: Tooltips for each parameter
+
+  // Energy tab
+
+  this->addBeamParameterSpinBox(
+    "Energy", "ProximalMargin", "Proximal margin (mm):", "",
+    0.0, 50.0, 5.0, 1.0, 2 );
+  this->addBeamParameterSpinBox(
+    "Energy", "DistalMargin", "Distal margin (mm):", "",
+    0.0, 50.0, 5.0, 1.0, 2 );
+
+  QStringList beamLineTypeOptions;
+  beamLineTypeOptions << "Active scanning" << "Passive scattering";
+  this->addBeamParameterComboBox(
+    "Energy", "BeamLineTypeActive", "Beam line type:", "",
+    beamLineTypeOptions, 0 );
+
+  //TODO: Attribute name not consistent with label (ManualEnergyLimits vs Energy prescription)
+  //  (also there is a HavePrescription member in proton beam that seems to be erroneously used in previous code and also a duplicate of ManualEnergyLimits)
+  QStringList dependentParameters;
+  dependentParameters << "MinimumEnergy" << "MaximumEnergy";
+  this->addBeamParameterCheckBox(
+    "Energy", "ManualEnergyLimits", "Energy prescription:", "", false, dependentParameters);
+
+  this->addBeamParameterSpinBox(
+    "Energy", "MinimumEnergy", "Minimum energy (MeV):", "",
+    0.0, 99.99, 0.0, 1.0, 2 );
+  this->addBeamParameterSpinBox(
+    "Energy", "MaximumEnergy", "Maximum energy (MeV):", "",
+    0.0, 99.99, 0.0, 1.0, 2 );
+
+  // Beam model tab
+
+  //TODO: Attribute name not consistent with label (ApertureOffset vs Aperture distance)
+  this->addBeamParameterSpinBox(
+    "Beam model", "ApertureOffset", "Aperture distance (mm):", "",
+    1.0, 10000.0, 1500.0, 100.0, 2 );
+
+  QStringList algorithmOptions;
+  algorithmOptions << "Ray tracer" << "Cartesian geometry dose summation" << "Divergent geometry dose summation" << "Hong geometry dose summation";
+  this->addBeamParameterComboBox(
+    "Beam model", "Algorithm", "Dose calculation algorithm:", "",
+    algorithmOptions, 0 );
+
+  this->addBeamParameterSpinBox(
+    "Beam model", "PencilBeamResolution", "Pencil beam spacing at isocenter (mm):", "",
+    0.1, 99.99, 1.0, 1.0, 2 );
+  this->addBeamParameterSpinBox(
+    "Beam model", "RangeCompensatorSmearingRadius", "Smearing radius (mm):", "",
+    0.0, 99.99, 5.0, 1.0, 2 );
+  this->addBeamParameterSpinBox(
+    "Beam model", "SourceSize", "Source size (mm):", "",
+    0.0, 50.0, 0.0, 1.0, 2 );
+  this->addBeamParameterSpinBox(
+    "Beam model", "EnergyResolution", "Energy resolution (MeV):", "",
+    1.0, 5.0, 2.0, 1.0, 2 );
+  this->addBeamParameterSpinBox(
+    "Beam model", "EnergySpread", "Energy spread (MeV):", "",
+    0.0, 99.99, 1.0, 1.0, 2 );
+  this->addBeamParameterSpinBox(
+    "Beam model", "StepLength", "Step length:", "",
+    0.0, 99.99, 1.0, 1.0, 2 );
+
+  this->addBeamParameterCheckBox(
+    "Beam model", "LateralSpreadHomoApprox", "Lateral scattering WED approximation:", "", false);
+  this->addBeamParameterCheckBox(
+    "Beam model", "RangeCompensatorHighland", "Highland model for range compensator:", "", false);
 }
 
 //---------------------------------------------------------------------------

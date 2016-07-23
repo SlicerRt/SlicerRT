@@ -79,26 +79,6 @@ protected slots:
   void beamNameChanged(const QString &);
   void beamWeightChanged(double);
 
-  // Energy page
-  void proximalMarginChanged(double);
-  void distalMarginChanged(double);
-  void beamLineTypeChanged(const QString &);
-  void manualEnergyPrescriptionChanged(bool);
-  void minimumEnergyChanged(double);
-  void maximumEnergyChanged(double);
-  void smearingChanged(double);
-
-  // Proton beam model
-  void apertureDistanceChanged(double);
-  void algorithmChanged(const QString &);
-  void pencilBeamSpacingChanged(double);
-  void sourceSizeChanged(double);
-  void energyResolutionChanged(double);
-  void energySpreadChanged(double);
-  void stepLengthChanged(double);
-  void wedApproximationChanged(bool);
-  void rangeCompensatorHighlandChanged(bool);
-
 protected:
   QScopedPointer<qSlicerBeamsModuleWidgetPrivate> d_ptr;
 

@@ -1,20 +1,20 @@
 /*==============================================================================
 
-  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
-  Queen's University, Kingston, ON, Canada. All Rights Reserved.
+Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
-  See COPYRIGHT.txt
-  or http://www.slicer.org/copyright/copyright.txt for details.
+See COPYRIGHT.txt
+or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
-  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
-  and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+and was supported through the Applied Cancer Research Unit program of Cancer Care
+Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
@@ -73,8 +73,9 @@ protected:
 public:
   qSlicerAbstractDoseEnginePrivate(qSlicerAbstractDoseEngine& object);
 public:
-  /// Cache for getting beam parameter tab widget for name
-  QMap<QString,QWidget*> BeamParametersTabCache;
+  /// Engine-specific parameters defined in \sa defineBeamParameters.
+  /// Key is the parameter name (without engine name prefix), value is the default
+  QMap<QString,QVariant> BeamParameters;
 };
 
 //-----------------------------------------------------------------------------
@@ -84,7 +85,6 @@ public:
 qSlicerAbstractDoseEnginePrivate::qSlicerAbstractDoseEnginePrivate(qSlicerAbstractDoseEngine& object)
   : q_ptr(&object)
 {
-  this->BeamParametersTabCache.clear();
 }
 
 
@@ -93,7 +93,8 @@ qSlicerAbstractDoseEnginePrivate::qSlicerAbstractDoseEnginePrivate(qSlicerAbstra
 
 //----------------------------------------------------------------------------
 qSlicerAbstractDoseEngine::qSlicerAbstractDoseEngine(QObject* parent)
-  : QObject(parent)
+  : Superclass(parent)
+  , d_ptr( new qSlicerAbstractDoseEnginePrivate(*this) )
   , m_Name(QString())
 {
 }
@@ -161,7 +162,7 @@ QString qSlicerAbstractDoseEngine::calculateDose(vtkMRMLRTBeamNode* beamNode)
   // Give default name for result node (engine can give it a more meaningful name)
   std::string resultDoseNodeName = std::string(beamNode->GetName()) + "_Dose";
   resultDoseVolumeNode->SetName(resultDoseNodeName.c_str());
-  
+
   // Calculate dose
   QString errorMessage = this->calculateDoseUsingEngine(beamNode, resultDoseVolumeNode);
   if (errorMessage.isEmpty())
@@ -329,8 +330,163 @@ void qSlicerAbstractDoseEngine::removeIntermediateResults(vtkMRMLRTBeamNode* bea
   }
 }
 
+//---------------------------------------------------------------------------
+// Beam parameter definition functions.
+// Need to be called from the implemented \sa defineBeamParameters method.
 //-----------------------------------------------------------------------------
-QString qSlicerAbstractDoseEngine::parameter(vtkMRMLRTBeamNode* beamNode, QString name)
+
+//-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::addBeamParameterSpinBox(
+  QString tabName, QString parameterName, QString parameterLabel,
+  QString tooltip, double minimum, double maximum, double default, double stepSize, int precision )
+{
+  Q_D(qSlicerAbstractDoseEngine);
+
+  // Add parameter to container
+  d->BeamParameters[parameterName] = QVariant(default);
+
+  // Get beam parameters tab widget from beams module widget
+  qMRMLBeamParametersTabWidget* beamParametersTabWidget = this->beamParametersTabWidgetFromBeamsModule();
+  if (!beamParametersTabWidget)
+  {
+    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module!";
+    return;
+  }
+
+  // Add beam parameter to tab widget
+  beamParametersTabWidget->addBeamParameterFloatingPointNumber(
+    tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
+    tooltip, minimum, maximum, default, stepSize, precision, false );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::addBeamParameterSlider(
+  QString tabName, QString parameterName, QString parameterLabel,
+  QString tooltip, double minimum, double maximum, double default, double stepSize, int precision )
+{
+  Q_D(qSlicerAbstractDoseEngine);
+
+  // Add parameter to container
+  d->BeamParameters[parameterName] = QVariant(default);
+
+  // Get beam parameters tab widget from beams module widget
+  qMRMLBeamParametersTabWidget* beamParametersTabWidget = this->beamParametersTabWidgetFromBeamsModule();
+  if (!beamParametersTabWidget)
+  {
+    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module!";
+    return;
+  }
+
+  // Add beam parameter to tab widget
+  beamParametersTabWidget->addBeamParameterFloatingPointNumber(
+    tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
+    tooltip, minimum, maximum, default, stepSize, precision, true );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::addBeamParameterComboBox(
+  QString tabName, QString parameterName, QString parameterLabel,
+  QString tooltip, QStringList options, int defaultIndex)
+{
+  Q_D(qSlicerAbstractDoseEngine);
+
+  // Add parameter to container
+  d->BeamParameters[parameterName] = QVariant(defaultIndex);
+
+  // Get beam parameters tab widget from beams module widget
+  qMRMLBeamParametersTabWidget* beamParametersTabWidget = this->beamParametersTabWidgetFromBeamsModule();
+  if (!beamParametersTabWidget)
+  {
+    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module!";
+    return;
+  }
+
+  // Add beam parameter to tab widget
+  beamParametersTabWidget->addBeamParameterComboBox(
+    tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
+    tooltip, options, defaultIndex );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::addBeamParameterCheckBox(
+  QString tabName, QString parameterName, QString parameterLabel,
+  QString tooltip, bool default, QStringList dependentParameterNames/*=QStringList()*/)
+{
+  Q_D(qSlicerAbstractDoseEngine);
+
+  // Add parameter to container
+  d->BeamParameters[parameterName] = QVariant(default);
+
+  // Get beam parameters tab widget from beams module widget
+  qMRMLBeamParametersTabWidget* beamParametersTabWidget = this->beamParametersTabWidgetFromBeamsModule();
+  if (!beamParametersTabWidget)
+  {
+    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module!";
+    return;
+  }
+
+  // Add beam parameter to tab widget
+  beamParametersTabWidget->addBeamParameterCheckBox(
+    tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
+    tooltip, default, dependentParameterNames );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::setBeamParametersVisible(bool visible)
+{
+  Q_D(qSlicerAbstractDoseEngine);
+
+  // Get beam parameters tab widget from beams module widget
+  qMRMLBeamParametersTabWidget* beamParametersTabWidget = this->beamParametersTabWidgetFromBeamsModule();
+  if (!beamParametersTabWidget)
+  {
+    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module!";
+    return;
+  }
+
+  // Set visibility for all beam parameters specific to this engine
+  foreach (QString parameterName, d->BeamParameters.keys())
+  {
+    bool success = beamParametersTabWidget->setBeamParameterVisible(
+      this->assembleEngineParameterName(parameterName), visible );
+    if (!success)
+    {
+      qCritical() << Q_FUNC_INFO << ": Failed to " << (visible?"show":"hide") << " beam parameter widget for parameter '" << parameterName << "'";
+      return;
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::addBeamParameterAttributesToBeamNode(vtkMRMLRTBeamNode* beamNode)
+{
+  Q_D(qSlicerAbstractDoseEngine);
+
+  if (!beamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid beam node!";
+    return;
+  }
+
+  // Add each beam parameter if missing
+  foreach (QString parameterName, d->BeamParameters.keys())
+  {
+    if ( !beamNode->GetAttribute(
+      this->assembleEngineParameterName(parameterName).toLatin1().constData()) )
+    {
+      beamNode->SetAttribute(
+        this->assembleEngineParameterName(parameterName).toLatin1().constData(),
+        d->BeamParameters[parameterName].toString().toLatin1().constData() );
+    }
+  }
+}
+
+//---------------------------------------------------------------------------
+// Beam parameter get/set functions
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+QString qSlicerAbstractDoseEngine::parameter(vtkMRMLRTBeamNode* beamNode, QString parameterName)
 {
   if (!beamNode)
   {
@@ -338,16 +494,17 @@ QString qSlicerAbstractDoseEngine::parameter(vtkMRMLRTBeamNode* beamNode, QStrin
   }
 
   // Get effect-specific prefixed parameter first
-  QString attributeName = QString("%1.%2").arg(this->name()).arg(name);
+  QString attributeName = this->assembleEngineParameterName(parameterName);
   const char* value = beamNode->GetAttribute(attributeName.toLatin1().constData());
   // Look for common parameter if effect-specific one is not found
+  //TODO: Needed?
+  //if (!value)
+  //{
+  //  value = beamNode->GetAttribute(parameterName.toLatin1().constData());
+  //}
   if (!value)
   {
-    value = beamNode->GetAttribute(name.toLatin1().constData());
-  }
-  if (!value)
-  {
-    qCritical() << Q_FUNC_INFO << ": Parameter named " << name << " cannot be found for beam " << beamNode->GetName();
+    qCritical() << Q_FUNC_INFO << ": Parameter named " << parameterName << " cannot be found for beam " << beamNode->GetName();
     return QString();
   }
 
@@ -355,19 +512,19 @@ QString qSlicerAbstractDoseEngine::parameter(vtkMRMLRTBeamNode* beamNode, QStrin
 }
 
 //-----------------------------------------------------------------------------
-int qSlicerAbstractDoseEngine::integerParameter(vtkMRMLRTBeamNode* beamNode, QString name)
+int qSlicerAbstractDoseEngine::integerParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName)
 {
   if (!beamNode)
   {
     return 0;
   }
 
-  QString parameterStr = this->parameter(beamNode, name);
+  QString parameterStr = this->parameter(beamNode, parameterName);
   bool ok = false;
   int parameterInt = parameterStr.toInt(&ok);
   if (!ok)
   {
-    qCritical() << Q_FUNC_INFO << ": Parameter named " << name << " cannot be converted to integer!";
+    qCritical() << Q_FUNC_INFO << ": Parameter named " << parameterName << " cannot be converted to integer!";
     return 0;
   }
 
@@ -375,19 +532,19 @@ int qSlicerAbstractDoseEngine::integerParameter(vtkMRMLRTBeamNode* beamNode, QSt
 }
 
 //-----------------------------------------------------------------------------
-double qSlicerAbstractDoseEngine::doubleParameter(vtkMRMLRTBeamNode* beamNode, QString name)
+double qSlicerAbstractDoseEngine::doubleParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName)
 {
   if (!beamNode)
   {
     return 0.0;
   }
 
-  QString parameterStr = this->parameter(beamNode, name);
+  QString parameterStr = this->parameter(beamNode, parameterName);
   bool ok = false;
   double parameterDouble = parameterStr.toDouble(&ok);
   if (!ok)
   {
-    qCritical() << Q_FUNC_INFO << ": Parameter named " << name << " cannot be converted to floating point number!";
+    qCritical() << Q_FUNC_INFO << ": Parameter named " << parameterName << " cannot be converted to floating point number!";
     return 0.0;
   }
 
@@ -395,7 +552,7 @@ double qSlicerAbstractDoseEngine::doubleParameter(vtkMRMLRTBeamNode* beamNode, Q
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QString name, QString value)
+void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, QString parameterValue)
 {
   if (!beamNode)
   {
@@ -403,13 +560,14 @@ void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QStrin
     return;
   }
 
-  const char* oldValue = beamNode->GetAttribute(name.toLatin1().constData());
-  if (oldValue == NULL && value.isEmpty())
+  QString attributeName = this->assembleEngineParameterName(parameterName);
+  const char* oldValue = beamNode->GetAttribute(attributeName.toLatin1().constData());
+  if (oldValue == NULL && parameterValue.isEmpty())
     {
     // no change
     return;
     }
-  if (value == QString(oldValue))
+  if (parameterValue == QString(oldValue))
     {
     // no change
     return;
@@ -422,8 +580,7 @@ void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QStrin
   //beamNode->SetDisableModifiedEvent(1);
 
   // Set parameter as attribute
-  QString attributeName = QString("%1.%2").arg(this->name()).arg(name);
-  beamNode->SetAttribute(attributeName.toLatin1().constData(), value.toLatin1().constData());
+  beamNode->SetAttribute(attributeName.toLatin1().constData(), parameterValue.toLatin1().constData());
 
   // Re-enable full modified events for parameter node
   //beamNode->SetDisableModifiedEvent(disableState);
@@ -435,136 +592,38 @@ void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QStrin
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QString name, int value)
+void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, int parameterValue)
 {
-  this->setParameter(beamNode, name, QString::number(value));
+  this->setParameter(beamNode, parameterName, QString::number(parameterValue));
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QString name, double value)
+void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, double parameterValue)
 {
-  this->setParameter(beamNode, name, QString::number(value));
+  this->setParameter(beamNode, parameterName, QString::number(parameterValue));
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerAbstractDoseEngine::addBeamParameterSpinBox(
-  QString tabName, QString parameterName, QString parameterLabel,
-  QString tooltip, double minimum, double maximum,
-  double default, double stepSize, int precision )
+QString qSlicerAbstractDoseEngine::assembleEngineParameterName(QString parameterName)
 {
-  // Get tab to which the spin box needs to be added
-  QWidget* tabWidget = this->beamParametersTab(tabName);
-  if (!tabWidget)
-  {
-    qCritical() << Q_FUNC_INFO << ": Unable to access widget for tab named " << tabName;
-    return;
-  }
-  QFormLayout* tabLayout = qobject_cast<QFormLayout*>(tabWidget->layout());
-  if (!tabLayout)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid layout in tab named " << tabName;
-    return;
-  }
-
-  QDoubleSpinBox* spinBox = new QDoubleSpinBox(tabWidget);
-  spinBox->setToolTip(tooltip);
-  spinBox->setRange(minimum, maximum);
-  spinBox->setValue(default);
-  spinBox->setSingleStep(stepSize);
-  spinBox->setDecimals(precision);
-  connect( spinBox, SIGNAL(valueChanged(double)), this, SLOT(doubleBeamParameterChanged(double)) );
-
+  return QString("%1.%2").arg(this->m_Name).arg(parameterName);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerAbstractDoseEngine::addBeamParameterSlider(
-  QString tabName, QString parameterName, QString parameterLabel,
-  QString tooltip, double minimum, double maximum,
-  double default, double stepSize, int precision )
+qMRMLBeamParametersTabWidget* qSlicerAbstractDoseEngine::beamParametersTabWidgetFromBeamsModule()
 {
-  //TODO:
-  qCritical() << Q_FUNC_INFO << ": Not implemented!";
+  // Get tab widget from beams module widget
+  //TODO: Kind of a hack, a direct way of accessing it would be nicer, for example through a MRML node
+  qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module("Beams");
+  qSlicerAbstractModuleWidget* moduleWidget = dynamic_cast<qSlicerAbstractModuleWidget*>(module->widgetRepresentation());
+  return moduleWidget->findChild<qMRMLBeamParametersTabWidget*>("BeamParametersTabWidget");
 }
 
-//-----------------------------------------------------------------------------
-void qSlicerAbstractDoseEngine::addBeamParameterComboBox(
-  QString tabName, QString parameterName, QString parameterLabel,
-  QString tooltip, QList<QString> options, int defaultIndex)
-{
-  //TODO:
-  qCritical() << Q_FUNC_INFO << ": Not implemented!";
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerAbstractDoseEngine::addBeamParameterCheckBox(
-  QString tabName, QString parameterName, QString parameterLabel, QString tooltip, bool default)
-{
-  //TODO:
-  qCritical() << Q_FUNC_INFO << ": Not implemented!";
-}
-
+/*
 //-----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::setDoseEngineTypeToBeam(vtkMRMLRTBeamNode* beamNode)
 {
-  //TODO:
+  //TODO: Needed?
   qCritical() << Q_FUNC_INFO << ": Not implemented!";
 }
-
-//-----------------------------------------------------------------------------
-void qSlicerAbstractDoseEngine::addBeamParameterDouble(
-  QString tabName, QString parameterName, QString parameterLabel,
-  QString tooltip, double minimum, double maximum,
-  double default, double stepSize, int precision, bool slider/*=false*/)
-{
-  //TODO:
-  qCritical() << Q_FUNC_INFO << ": Not implemented!";
-}
-
-//-----------------------------------------------------------------------------
-QWidget* qSlicerAbstractDoseEngine::beamParametersTab(QString tabName)
-{
-  Q_D(qSlicerAbstractDoseEngine);
-
-  // Check if the tab is cached already
-  if (d->BeamParametersTabCache.contains(tabName))
-  {
-    return d->BeamParametersTabCache[tabName];
-  }
-
-  // Get tab widget from beams module widget
-  //TODO: Kind of a hack, a direct way of accessing it would be nicer
-  qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module("Beams");
-  qSlicerAbstractModuleWidget* moduleWidget = dynamic_cast<qSlicerAbstractModuleWidget*>(module->widgetRepresentation());
-  qMRMLBeamParametersTabWidget* beamParametersTabWidget = moduleWidget->findChild<qMRMLBeamParametersTabWidget*>("tabWidget");
-
-  // Find tab with given name
-  QWidget* tabWidget = NULL;
-  for (int index=0; index<beamParametersTabWidget->count(); ++index)
-  {
-    if (!beamParametersTabWidget->tabText(index).compare(tabName))
-    {
-      tabWidget = beamParametersTabWidget->widget(index);
-      if (!qobject_cast<QFormLayout*>(tabWidget->layout()))
-      {
-        // Tab layout must be form layout
-        qCritical() << Q_FUNC_INFO << ": Invalid layout in tab named " << tabName;
-        return NULL;
-      }
-      break;
-    }
-  }
-
-  // If tab was not found, then create a new one with given name
-  if (!tabWidget)
-  {
-    tabWidget = new QWidget(beamParametersTabWidget);
-    QFormLayout* tabLayout = new QFormLayout(tabWidget);
-    tabWidget->setLayout(tabLayout);
-
-    beamParametersTabWidget->addTab(tabWidget, tabName);
-  }
-
-  // Add tab widget to cache
-  d->BeamParametersTabCache[tabName] = tabWidget;
-  return tabWidget;
-}
+*/

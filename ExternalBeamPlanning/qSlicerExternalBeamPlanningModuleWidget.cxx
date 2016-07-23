@@ -765,7 +765,20 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineChanged(const QString &t
     return;
   }
 
-  // Get selected dose engine
+  // Hide parameters belonging to the previously selected dose engine from user interface
+  if (rtPlanNode->GetDoseEngineName())
+  {
+    qSlicerAbstractDoseEngine* previousEngine =
+      qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(rtPlanNode->GetDoseEngineName());
+    if (!previousEngine)
+    {
+      qCritical() << Q_FUNC_INFO << ": Failed to access dose engine with name" << rtPlanNode->GetDoseEngineName();
+      return;
+    }
+    previousEngine->setBeamParametersVisible(false);
+  }
+
+  // Get newly selected dose engine
   qSlicerAbstractDoseEngine* selectedEngine =
     qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(text.toLatin1().constData());
   if (!selectedEngine)
@@ -774,55 +787,19 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineChanged(const QString &t
     return;
   }
 
-  // If plan contains beams of type different than the type the newly selected dose engine
-  // uses, then those need to be removed, because they will be incompatible with new engine
-  if (rtPlanNode->GetNumberOfBeams() > 0)
+  // Add engine-specific beam parameters to user interface
+  selectedEngine->setBeamParametersVisible(true);
+
+  // Add engine-specific beam parameters to beam nodes under current plan
+  std::vector<vtkMRMLRTBeamNode*> beams;
+  rtPlanNode->GetBeams(beams);
+  for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
   {
-    //TODO:
-    /*
-    vtkMRMLRTBeamNode* newBeamNodeType = selectedEngine->CreateBeamForEngine();
-    bool differentBeamTypePresent = false;
-
-    std::vector<vtkMRMLRTBeamNode*> beams;
-    rtPlanNode->GetBeams(beams);
-    for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
-    {
-      vtkMRMLRTBeamNode* beamNode = (*beamIt);
-      if (strcmp(beamNode->GetClassName(), newBeamNodeType->GetClassName()))
-      {
-        differentBeamTypePresent = true;
-        break;
-      }
-    }
-
-    newBeamNodeType->Delete();
-
-    if (differentBeamTypePresent)
-    {
-      QString message = QString("Beams under the current plan are incompatible with the beam type the selected dose engine called %1 uses!\n\nIn order to switch to this dose engine, existing beams need to be removed!\nDo you want to proceed?")
-        .arg(selectedEngine->GetName() );
-      QMessageBox::StandardButton answer =
-        QMessageBox::question(NULL, tr("Beams incompatible with selected dose engine"), message,
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-      if (answer == QMessageBox::Yes)
-      {
-        for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
-        {
-          rtPlanNode->RemoveBeam(*beamIt);
-        }
-      }
-      else
-      {
-        // Reset selection to previous dose engine
-        d->comboBox_DoseEngine->blockSignals(true);
-        d->comboBox_DoseEngine->setCurrentIndex(d->comboBox_DoseEngine->findText(rtPlanNode->GetDoseEngineName()));
-        d->comboBox_DoseEngine->blockSignals(false);
-      }
-    }*/
+    vtkMRMLRTBeamNode* beamNode = (*beamIt);
+    selectedEngine->addBeamParameterAttributesToBeamNode(beamNode);
   }
 
   qDebug() << "Dose engine selection changed to " << text;
-
   rtPlanNode->DisableModifiedEventOn();
   rtPlanNode->SetDoseEngineName(selectedEngine->name().toLatin1().constData());
   rtPlanNode->DisableModifiedEventOff();
@@ -884,6 +861,16 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
     qCritical() << Q_FUNC_INFO << ": Failed to add beam!";
     return;
   }
+
+  // Add engine-specific beam parameters to newly created beam node
+  qSlicerAbstractDoseEngine* selectedEngine =
+    qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(rtPlanNode->GetDoseEngineName());
+  if (!selectedEngine)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access dose engine with name" << rtPlanNode->GetDoseEngineName();
+    return;
+  }
+  selectedEngine->addBeamParameterAttributesToBeamNode(beamNode);
 
   // Clear instruction text
   d->label_CalculateDoseStatus->setText("");

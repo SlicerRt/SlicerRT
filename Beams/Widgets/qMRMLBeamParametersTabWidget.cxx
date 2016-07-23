@@ -34,6 +34,10 @@
 // Qt includes
 #include <QDebug>
 
+//----------------------------------------------------------------------------
+const char* qMRMLBeamParametersTabWidget::BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY = "BeamParameterNodeAttribute";
+const char* qMRMLBeamParametersTabWidget::DEPENDENT_PARAMETER_NAMES_PROPERTY = "DependentParameterNames";
+
 //-----------------------------------------------------------------------------
 class qMRMLBeamParametersTabWidgetPrivate: public Ui_qMRMLBeamParametersTabWidget
 {
@@ -48,6 +52,9 @@ public:
 public:
   /// RT beam MRML node containing shown parameters
   vtkWeakPointer<vtkMRMLRTBeamNode> BeamNode;
+
+  /// Map storing beam parameter tab widgets by name
+  QMap<QString,QWidget*> BeamParametersTabWidgets;
 };
 
 //-----------------------------------------------------------------------------
@@ -123,6 +130,257 @@ vtkMRMLNode* qMRMLBeamParametersTabWidget::beamNode()
 }
 
 //-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::addBeamParameterFloatingPointNumber(
+  QString tabName, QString parameterName, QString parameterLabel,
+  QString tooltip, double minimum, double maximum,
+  double default, double stepSize, int precision, bool slider/*=false*/)
+{
+  // Get tab to which the widget needs to be added
+  QWidget* tabWidget = this->beamParametersTab(tabName);
+  if (!tabWidget)
+  {
+    qCritical() << Q_FUNC_INFO << ": Unable to access widget for beam parameters tab named " << tabName;
+    return;
+  }
+  QFormLayout* tabLayout = qobject_cast<QFormLayout*>(tabWidget->layout());
+  if (!tabLayout)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid layout in beam parameters tab named " << tabName;
+    return;
+  }
+
+  if (slider)
+  {
+    QSlider* slider = new QSlider(tabWidget);
+    slider->setToolTip(tooltip);
+    slider->setRange(minimum, maximum);
+    slider->setValue(default);
+    slider->setSingleStep(stepSize);
+    slider->setProperty(qMRMLBeamParametersTabWidget::BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY, parameterName);
+    connect( slider, SIGNAL(valueChanged(double)), this, SLOT(doubleBeamParameterChanged(double)) );
+    tabLayout->addRow(parameterLabel, slider);
+  }
+  else
+  {
+    QDoubleSpinBox* spinBox = new QDoubleSpinBox(tabWidget);
+    spinBox->setToolTip(tooltip);
+    spinBox->setRange(minimum, maximum);
+    spinBox->setValue(default);
+    spinBox->setSingleStep(stepSize);
+    spinBox->setDecimals(precision);
+    spinBox->setProperty(qMRMLBeamParametersTabWidget::BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY, parameterName);
+    connect( spinBox, SIGNAL(valueChanged(double)), this, SLOT(doubleBeamParameterChanged(double)) );
+    tabLayout->addRow(parameterLabel, spinBox);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::addBeamParameterComboBox(
+  QString tabName, QString parameterName, QString parameterLabel,
+  QString tooltip, QStringList options, int defaultIndex )
+{
+  // Get tab to which the spin box needs to be added
+  QWidget* tabWidget = this->beamParametersTab(tabName);
+  if (!tabWidget)
+  {
+    qCritical() << Q_FUNC_INFO << ": Unable to access widget for beam parameters tab named " << tabName;
+    return;
+  }
+  QFormLayout* tabLayout = qobject_cast<QFormLayout*>(tabWidget->layout());
+  if (!tabLayout)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid layout in beam parameters tab named " << tabName;
+    return;
+  }
+
+  QComboBox* comboBox = new QComboBox(tabWidget);
+  foreach (QString option, options)
+  {
+    comboBox->addItem(option);
+  }
+  comboBox->setToolTip(tooltip);
+  comboBox->setCurrentIndex(defaultIndex);
+  comboBox->setProperty(qMRMLBeamParametersTabWidget::BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY, parameterName);
+  connect( comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(integerBeamParameterChanged(int)) );
+  tabLayout->addRow(parameterLabel, comboBox);
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::addBeamParameterCheckBox(
+  QString tabName, QString parameterName, QString parameterLabel,
+  QString tooltip, bool default, QStringList dependentParameterNames/*=QStringList()*/ )
+{
+  // Get tab to which the spin box needs to be added
+  QWidget* tabWidget = this->beamParametersTab(tabName);
+  if (!tabWidget)
+  {
+    qCritical() << Q_FUNC_INFO << ": Unable to access widget for beam parameters tab named " << tabName;
+    return;
+  }
+  QFormLayout* tabLayout = qobject_cast<QFormLayout*>(tabWidget->layout());
+  if (!tabLayout)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid layout in beam parameters tab named " << tabName;
+    return;
+  }
+
+  QCheckBox* checkBox = new QCheckBox(tabWidget);
+  checkBox->setToolTip(tooltip);
+  checkBox->setChecked(default);
+  checkBox->setProperty(qMRMLBeamParametersTabWidget::BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY, parameterName);
+  checkBox->setProperty(qMRMLBeamParametersTabWidget::DEPENDENT_PARAMETER_NAMES_PROPERTY, dependentParameterNames);
+  connect( checkBox, SIGNAL(stateChanged(int)), this, SLOT(booleanBeamParameterChanged(int)) );
+  tabLayout->addRow(parameterLabel, checkBox);
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::doubleBeamParameterChanged(double newValue)
+{
+  Q_D(qMRMLBeamParametersTabWidget);
+  if (!d->BeamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid beam node, cannot set parameter!";
+    return;
+  }
+
+  // Get attribute name that belongs to the widget in which the value was changed
+  QString attributeName = this->sender()->property(qMRMLBeamParametersTabWidget::BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY).toString();
+
+  // Set parameter as attribute in beam node
+  d->BeamNode->DisableModifiedEventOn();
+  d->BeamNode->SetAttribute(
+    attributeName.toLatin1().constData(),
+    QString::number(newValue).toLatin1().constData() );
+  d->BeamNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::integerBeamParameterChanged(int newValue)
+{
+  Q_D(qMRMLBeamParametersTabWidget);
+  if (!d->BeamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid beam node, cannot set parameter!";
+    return;
+  }
+
+  // Get attribute name that belongs to the widget in which the value was changed
+  QString attributeName = this->sender()->property(qMRMLBeamParametersTabWidget::BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY).toString();
+
+  // Set parameter as attribute in beam node
+  d->BeamNode->DisableModifiedEventOn();
+  d->BeamNode->SetAttribute(
+    attributeName.toLatin1().constData(),
+    QString::number(newValue).toLatin1().constData() );
+  d->BeamNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::booleanBeamParameterChanged(int newValue)
+{
+  Q_D(qMRMLBeamParametersTabWidget);
+  if (!d->BeamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid beam node, cannot set parameter!";
+    return;
+  }
+
+  // Get attribute name that belongs to the widget in which the value was changed
+  QString attributeName = this->sender()->property(qMRMLBeamParametersTabWidget::BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY).toString();
+
+  // Set parameter as attribute in beam node
+  d->BeamNode->DisableModifiedEventOn();
+  d->BeamNode->SetAttribute(
+    attributeName.toLatin1().constData(),
+    QString::number(newValue == 0 ? 0 : 1).toLatin1().constData() );
+  d->BeamNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
+bool qMRMLBeamParametersTabWidget::setBeamParameterVisible(QString parameterName, bool visible)
+{
+  Q_D(qMRMLBeamParametersTabWidget);
+
+  // Go through all tabs to find the widget for the specified parameter
+  foreach (QWidget* tabWidget, d->BeamParametersTabWidgets)
+  {
+    QFormLayout* currentLayout = qobject_cast<QFormLayout*>(tabWidget->layout());
+    if (!currentLayout)
+    {
+      // Tab layout must be form layout
+      qWarning() << Q_FUNC_INFO << ": Invalid layout in beams parameter tab";
+      continue;
+    }
+
+    // Go through the layout rows (because both the parameter widget and its label need to be hidden)
+    for (int currentRow=0; currentRow<currentLayout->rowCount(); ++currentRow)
+    {
+      QWidget* currentParameterFieldWidget = currentLayout->itemAt(currentRow, QFormLayout::FieldRole)->widget();
+      if ( currentParameterFieldWidget->property(qMRMLBeamParametersTabWidget::BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY).toString()
+        == parameterName )
+      {
+        // Widget for parameter found. Set visibility for that and the label
+        currentParameterFieldWidget->setVisible(visible);
+        QWidget* currentParameterLabelWidget = currentLayout->itemAt(currentRow, QFormLayout::LabelRole)->widget();
+        currentParameterLabelWidget->setVisible(visible);
+
+        // Hide tab if became empty, show tab if was empty but not any more
+        //TODO: Use removeTab(index) and addTab(widget, title)
+
+        // Visibility set, task completed
+        return true;
+      }
+    }
+  }
+
+  qCritical() << Q_FUNC_INFO << ": Failed to find widget for beam parameter named '" << parameterName << "'";
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+QWidget* qMRMLBeamParametersTabWidget::beamParametersTab(QString tabName)
+{
+  Q_D(qMRMLBeamParametersTabWidget);
+
+  // Check if the tab is cached already
+  if (d->BeamParametersTabWidgets.contains(tabName))
+  {
+    return d->BeamParametersTabWidgets[tabName];
+  }
+
+  // Find tab with given name
+  QWidget* tabWidget = NULL;
+  for (int index=0; index<this->count(); ++index)
+  {
+    if (!this->tabText(index).compare(tabName))
+    {
+      tabWidget = this->widget(index);
+      if (!qobject_cast<QFormLayout*>(tabWidget->layout()))
+      {
+        // Tab layout must be form layout
+        qCritical() << Q_FUNC_INFO << ": Invalid layout in tab named " << tabName;
+        return NULL;
+      }
+      break;
+    }
+  }
+
+  // If tab was not found, then create a new one with given name
+  if (!tabWidget)
+  {
+    tabWidget = new QWidget(this);
+    QFormLayout* tabLayout = new QFormLayout(tabWidget);
+    tabWidget->setLayout(tabLayout);
+
+    this->addTab(tabWidget, tabName);
+  }
+
+  // Add tab widget to cache
+  d->BeamParametersTabWidgets[tabName] = tabWidget;
+  return tabWidget;
+}
+
+//-----------------------------------------------------------------------------
 void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
 {
   Q_D(qMRMLBeamParametersTabWidget);
@@ -142,8 +400,12 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
   d->SliderWidget_GantryAngle->blockSignals(false);
   d->SliderWidget_CouchAngle->setValue(d->BeamNode->GetCouchAngle());
 
-  //TODO:
+  //TODO: Dynamically added widgets
 }
+
+//-----------------------------------------------------------------------------
+// Default beam parameter handler functions
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 void qMRMLBeamParametersTabWidget::mlcPositionDoubleArrayNodeChanged(vtkMRMLNode* node)

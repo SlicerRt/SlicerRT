@@ -43,6 +43,13 @@ class Q_SLICER_MODULE_BEAMS_WIDGETS_EXPORT qMRMLBeamParametersTabWidget : public
   QVTK_OBJECT
 
 public:
+  /// Name of property in widgets specifying which attribute it belongs to in the beam parameter nodes
+  static const char* BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY;
+  /// Name of property in checkbox widgets specifying the beam parameter widgets to be enabled/disabled
+  /// based on the checked state of the checkbox by containing their parameter node attribute names (see above)
+  static const char* DEPENDENT_PARAMETER_NAMES_PROPERTY;
+
+public:
   typedef QTabWidget Superclass;
   /// Constructor
   explicit qMRMLBeamParametersTabWidget(QWidget* parent = 0);
@@ -52,9 +59,51 @@ public:
   /// Get RT beam MRML node
   Q_INVOKABLE vtkMRMLNode* beamNode();
 
+  /// Get widget of tab widget by name.
+  /// If no tab of the specified name exists, a new one is created with that name
+  /// \param tabName Name of the tab to return
+  /// \return Tab widget with given name
+  QWidget* beamParametersTab(QString tabName);
+
+  /// Add floating point parameter to the given tab of the beam parameters widget
+  /// \param TODO
+  /// \param slider If true then a slider is created, otherwise (by default) a spin box with text edit
+  void addBeamParameterFloatingPointNumber(
+    QString tabName, QString parameterName, QString parameterLabel,
+    QString tooltip, double minimum, double maximum,
+    double default, double stepSize, int precision, bool slider=false );
+
+  /// Add new multiple choice beam parameter to beam parameters widget as a combo box
+  /// \param TODO
+  void addBeamParameterComboBox(
+    QString tabName, QString parameterName, QString parameterLabel,
+    QString tooltip, QStringList options, int defaultIndex );
+
+  /// Add new boolean type beam parameter to beam parameters widget as a check box
+  /// \param TODO
+  /// \param dependentParameterNames Names of parameters (full names including engine prefix) that
+  ///   need to be enabled/disabled based on the checked state of the created checkbox
+  void addBeamParameterCheckBox(
+    QString tabName, QString parameterName, QString parameterLabel,
+    QString tooltip, bool default, QStringList dependentParameterNames=QStringList() );
+
+  /// Show/hide beam parameter with specified name.
+  /// Removes tab if becomes empty after hiding parameter, and re-adds tab if needed after showing parameter
+  bool setBeamParameterVisible(QString parameterName, bool visible);
+
 public slots:
   /// Set RT beam MRML node
   void setBeamNode(vtkMRMLNode* node);
+
+  /// Handle floating point parameter changes in engine-specific beam parameter widgets
+  void doubleBeamParameterChanged(double);
+
+  /// Handle integer parameter changes in engine-specific beam parameter widgets
+  void integerBeamParameterChanged(int);
+
+  /// Handle boolean parameter changes in engine-specific beam parameter widgets
+  /// (converts the input integer to boolean)
+  void booleanBeamParameterChanged(int);
 
 signals:
 
@@ -62,6 +111,8 @@ protected slots:
   /// Update from beam node state
   void updateWidgetFromMRML();
 
+// Default beam parameter handler functions
+protected slots:
   // Geometry page
   void mlcPositionDoubleArrayNodeChanged(vtkMRMLNode* node);
   void sourceDistanceChanged(double);
