@@ -70,8 +70,8 @@ public:
   /// \param slider If true then a slider is created, otherwise (by default) a spin box with text edit
   void addBeamParameterFloatingPointNumber(
     QString tabName, QString parameterName, QString parameterLabel,
-    QString tooltip, double minimum, double maximum,
-    double default, double stepSize, int precision, bool slider=false );
+    QString tooltip, double minimumValue, double maximumValue,
+    double defaultValue, double stepSize, int precision, bool slider=false );
 
   /// Add new multiple choice beam parameter to beam parameters widget as a combo box
   /// \param TODO
@@ -85,7 +85,7 @@ public:
   ///   need to be enabled/disabled based on the checked state of the created checkbox
   void addBeamParameterCheckBox(
     QString tabName, QString parameterName, QString parameterLabel,
-    QString tooltip, bool default, QStringList dependentParameterNames=QStringList() );
+    QString tooltip, bool defaultValue, QStringList dependentParameterNames=QStringList() );
 
   /// Show/hide beam parameter with specified name.
   /// Removes tab if becomes empty after hiding parameter, and re-adds tab if needed after showing parameter

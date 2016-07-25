@@ -229,7 +229,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateDefaultIsodoseColorTab
 {
   if (!scene)
   {
-    std::cerr << "vtkSlicerIsodoseModuleLogic::CreateDefaultIsodoseColorTable: Invalid MRML scene!";
+    vtkGenericWarningMacro("vtkSlicerIsodoseModuleLogic::CreateDefaultIsodoseColorTable: Invalid MRML scene!");
     return NULL;
   }
 
@@ -326,7 +326,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(
 {
   if (!scene)
   {
-    std::cerr << "vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable: Invalid MRML scene!";
+    vtkGenericWarningMacro("vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable: Invalid MRML scene!");
     return NULL;
   }
 

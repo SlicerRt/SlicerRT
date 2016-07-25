@@ -132,8 +132,8 @@ vtkMRMLNode* qMRMLBeamParametersTabWidget::beamNode()
 //-----------------------------------------------------------------------------
 void qMRMLBeamParametersTabWidget::addBeamParameterFloatingPointNumber(
   QString tabName, QString parameterName, QString parameterLabel,
-  QString tooltip, double minimum, double maximum,
-  double default, double stepSize, int precision, bool slider/*=false*/)
+  QString tooltip, double minimumValue, double maximumValue,
+  double defaultValue, double stepSize, int precision, bool slider/*=false*/)
 {
   // Get tab to which the widget needs to be added
   QWidget* tabWidget = this->beamParametersTab(tabName);
@@ -153,8 +153,8 @@ void qMRMLBeamParametersTabWidget::addBeamParameterFloatingPointNumber(
   {
     QSlider* slider = new QSlider(tabWidget);
     slider->setToolTip(tooltip);
-    slider->setRange(minimum, maximum);
-    slider->setValue(default);
+    slider->setRange(minimumValue, maximumValue);
+    slider->setValue(defaultValue);
     slider->setSingleStep(stepSize);
     slider->setProperty(qMRMLBeamParametersTabWidget::BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY, parameterName);
     connect( slider, SIGNAL(valueChanged(double)), this, SLOT(doubleBeamParameterChanged(double)) );
@@ -164,8 +164,8 @@ void qMRMLBeamParametersTabWidget::addBeamParameterFloatingPointNumber(
   {
     QDoubleSpinBox* spinBox = new QDoubleSpinBox(tabWidget);
     spinBox->setToolTip(tooltip);
-    spinBox->setRange(minimum, maximum);
-    spinBox->setValue(default);
+    spinBox->setRange(minimumValue, maximumValue);
+    spinBox->setValue(defaultValue);
     spinBox->setSingleStep(stepSize);
     spinBox->setDecimals(precision);
     spinBox->setProperty(qMRMLBeamParametersTabWidget::BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY, parameterName);
@@ -208,7 +208,7 @@ void qMRMLBeamParametersTabWidget::addBeamParameterComboBox(
 //-----------------------------------------------------------------------------
 void qMRMLBeamParametersTabWidget::addBeamParameterCheckBox(
   QString tabName, QString parameterName, QString parameterLabel,
-  QString tooltip, bool default, QStringList dependentParameterNames/*=QStringList()*/ )
+  QString tooltip, bool defaultValue, QStringList dependentParameterNames/*=QStringList()*/ )
 {
   // Get tab to which the spin box needs to be added
   QWidget* tabWidget = this->beamParametersTab(tabName);
@@ -226,7 +226,7 @@ void qMRMLBeamParametersTabWidget::addBeamParameterCheckBox(
 
   QCheckBox* checkBox = new QCheckBox(tabWidget);
   checkBox->setToolTip(tooltip);
-  checkBox->setChecked(default);
+  checkBox->setChecked(defaultValue);
   checkBox->setProperty(qMRMLBeamParametersTabWidget::BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY, parameterName);
   checkBox->setProperty(qMRMLBeamParametersTabWidget::DEPENDENT_PARAMETER_NAMES_PROPERTY, dependentParameterNames);
   connect( checkBox, SIGNAL(stateChanged(int)), this, SLOT(booleanBeamParameterChanged(int)) );

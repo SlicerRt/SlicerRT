@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 set(MODULE_TEST_PYTHON_SCRIPTS
-  DicomRtImportTest.py
+  ExternalBeamPlanningTest.py
   )
 
 set(MODULE_TEST_PYTHON_RESOURCES
@@ -33,7 +33,7 @@ foreach(script_name ${KIT_UNITTEST_SCRIPTS})
 endforeach()
 
 slicer_add_python_unittest(
-  SCRIPT DicomRtImportTest.py
+  SCRIPT ExternalBeamPlanningTest.py
   SLICER_ARGS --disable-cli-modules
               --no-main-window
               --additional-module-paths

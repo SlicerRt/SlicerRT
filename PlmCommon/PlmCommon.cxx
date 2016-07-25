@@ -45,7 +45,7 @@ convert_to_itk (vtkMRMLScalarVolumeNode* inVolumeNode, bool applyWorldTransform)
   typename itk::Image<T,3>::Pointer image = itk::Image<T,3>::New ();
   if (!SlicerRtCommon::ConvertVolumeNodeToItkImage<T>(inVolumeNode, image, applyWorldTransform, true))
   {
-    std::cerr << "PlmCommon::convert_to_itk(vtkMRMLScalarVolumeNode): Failed to convert volume node to PlmImage!";
+    vtkGenericWarningMacro("PlmCommon::convert_to_itk(vtkMRMLScalarVolumeNode): Failed to convert volume node to PlmImage!");
   }
   return image;
 }
@@ -58,7 +58,7 @@ convert_to_itk (vtkOrientedImageData* inImageData)
   typename itk::Image<T,3>::Pointer image = itk::Image<T,3>::New ();
   if (!SlicerRtCommon::ConvertVtkOrientedImageDataToItkImage<T>(inImageData, image, true))
   {
-    std::cerr << "PlmCommon::convert_to_itk(vtkOrientedImageData): Failed to convert oriented image data to PlmImage!";
+    vtkGenericWarningMacro("PlmCommon::convert_to_itk(vtkOrientedImageData): Failed to convert oriented image data to PlmImage!");
   }
   return image;
 }
@@ -72,7 +72,7 @@ PlmCommon::ConvertVolumeNodeToPlmImage(vtkMRMLScalarVolumeNode* inVolumeNode, bo
 
   if (!inVolumeNode || !inVolumeNode->GetImageData())
   {
-    std::cerr << "PlmCommon::ConvertVolumeNodeToPlmImage: Invalid input volume node!";
+    vtkGenericWarningMacro("PlmCommon::ConvertVolumeNodeToPlmImage: Invalid input volume node!");
     return image;
   }
 
@@ -151,7 +151,7 @@ PlmCommon::ConvertVtkOrientedImageDataToPlmImage(vtkOrientedImageData* inImageDa
 
   if (!inImageData)
   {
-    std::cerr << "PlmCommon::ConvertVtkOrientedImageDataToPlmImage: Invalid input image data!";
+    vtkGenericWarningMacro("PlmCommon::ConvertVtkOrientedImageDataToPlmImage: Invalid input image data!");
     return image;
   }
 

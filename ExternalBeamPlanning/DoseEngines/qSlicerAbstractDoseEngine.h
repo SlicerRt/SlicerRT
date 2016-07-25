@@ -133,38 +133,38 @@ protected:
     QString tooltip, bool default, QStringList dependentParameterNames=QStringList() );
 
 // Beam parameter get/set functions
-protected:
+public:
   /// Get beam parameter from beam node
-  QString parameter(vtkMRMLRTBeamNode* beamNode, QString parameterName);
+  Q_INVOKABLE QString parameter(vtkMRMLRTBeamNode* beamNode, QString parameterName);
 
   /// Convenience function to get integer parameter
-  int integerParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName);
+  Q_INVOKABLE int integerParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName);
 
   /// Convenience function to get double parameter
-  double doubleParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName);
+  Q_INVOKABLE double doubleParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName);
 
   /// Convenience function to get boolean parameter
-  bool booleanParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName);
+  Q_INVOKABLE bool booleanParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName);
 
   /// Set beam parameter in beam node. This function is called by both convenience functions.
   /// \param parameterName Parameter name string
   /// \param parameterValue Parameter value string
-  void setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, QString parameterValue);
+  Q_INVOKABLE void setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, QString parameterValue);
 
   /// Convenience function to set integer parameter
   /// \param name Parameter name string
   /// \param parameterValue Parameter value integer
-  void setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, int parameterValue);
+  Q_INVOKABLE void setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, int parameterValue);
 
   /// Convenience function to set double parameter
   /// \param parameterName Parameter name string
   /// \param parameterValue Parameter value double
-  void setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, double parameterValue);
+  Q_INVOKABLE void setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, double parameterValue);
 
   /// Convenience function to set boolean parameter
   /// \param parameterName Parameter name string
   /// \param parameterValue Parameter value boolean
-  void setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, bool parameterValue);
+  Q_INVOKABLE void setParameter(vtkMRMLRTBeamNode* beamNode, QString parameterName, bool parameterValue);
 
 // Private helper functions
 private:

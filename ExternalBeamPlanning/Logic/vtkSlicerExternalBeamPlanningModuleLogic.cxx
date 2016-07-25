@@ -406,7 +406,7 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(vtkMRM
 
   if (this->Internal->MatlabDoseCalculationModuleLogic == 0)
   {
-    std::cerr << "ComputeDoseByMatlab: ERROR: logic is not set!";
+    vtkErrorMacro("ComputeDoseByMatlab: ERROR: logic is not set!");
     return;
   }
 

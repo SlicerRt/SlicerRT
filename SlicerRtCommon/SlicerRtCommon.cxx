@@ -166,7 +166,7 @@ void SlicerRtCommon::StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDiscr
 {
   if (!inputDiscreteColorTable || !outputColorTable)
   {
-    std::cerr << "SlicerRtCommon::StretchDiscreteColorTable: Invalid input arguments!" << std::endl;
+    vtkGenericWarningMacro("SlicerRtCommon::StretchDiscreteColorTable: Invalid input arguments!");
     return;
   }
 
@@ -206,7 +206,7 @@ bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtk
 {
   if (!volume1 || !volume2)
   {
-    std::cerr << "SlicerRtCommon::DoVolumeLatticesMatch: Invalid (NULL) argument!" << std::endl;
+    vtkGenericWarningMacro("SlicerRtCommon::DoVolumeLatticesMatch: Invalid (NULL) argument!");
     return false;
   }
 
@@ -328,13 +328,13 @@ void SlicerRtCommon::WriteImageDataToFile(vtkMRMLScene* scene, vtkImageData* ima
 {
   if (scene == NULL)
   {
-    std::cerr << "Invalid scene sent to SlicerRtCommon::WriteImageDataToFile." << std::endl;
+    vtkGenericWarningMacro("SlicerRtCommon::WriteImageDataToFile: Invalid scene");
     return;
   }
 
   if (fileName == NULL || strcmp(fileName, "") == 0)
   {
-    std::cerr << "Invalid filename sent to SlicerRtCommon::WriteImageDataToFile." << std::endl;
+    vtkGenericWarningMacro("SlicerRtCommon::WriteImageDataToFile: Invalid filename");
     return;
   }
 
@@ -361,7 +361,7 @@ void SlicerRtCommon::WriteImageDataToFile(vtkMRMLScene* scene, vtkImageData* ima
   volumeNode->SetAndObserveStorageNodeID(storageNode->GetID());
   if (storageNode->WriteData(volumeNode) == 0)
   {
-    std::cerr << "Unable to write image data to file." << std::endl;
+    vtkGenericWarningMacro("SlicerRtCommon::WriteImageDataToFile: Unable to write image data to file");
   }
 
   scene->RemoveNode(storageNode);
@@ -375,7 +375,7 @@ bool SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(vtkMRMLScalarVolume
 {
   if (!inVolumeNode || !inVolumeNode->GetImageData())
   {
-    std::cerr << "SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData: Invalid volume node!";
+    vtkGenericWarningMacro("SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData: Invalid volume node!");
     return false;
   }
   if (!outImageData)

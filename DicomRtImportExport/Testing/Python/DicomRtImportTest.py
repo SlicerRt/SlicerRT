@@ -4,87 +4,27 @@ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
 
-#
-# DicomRtImportSelfTest
-#
-
-class DicomRtImportSelfTest(ScriptedLoadableModule):
-  def __init__(self, parent):
-    ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "DICOM-RT Import Self Test"
-    self.parent.categories = ["Testing.SlicerRT Tests"]
-    self.parent.dependencies = ["DicomRtImportExport", "Segmentations", "DICOM"]
-    self.parent.contributors = ["Csaba Pinter (Queen's)"]
-    self.parent.helpText = """
-    This is a self test for the DicomRtImportExport DICOM plugin module.
-    """
-    self.parent.acknowledgementText = """This file was originally developed by Csaba Pinter, PerkLab, Queen's University and was supported through the Applied Cancer Research Unit program of Cancer Care Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care""" # replace with organization, grant and thanks.
-
-#
-# DicomRtImportSelfTestWidget
-#
-
-class DicomRtImportSelfTestWidget(ScriptedLoadableModuleWidget):
-
-  def setup(self):
-    self.developerMode = True
-    ScriptedLoadableModuleWidget.setup(self)
-    
-    # Add vertical spacer
-    self.layout.addStretch(1)
-
-#
-# DicomRtImportSelfTestLogic
-#
-
-class DicomRtImportSelfTestLogic(ScriptedLoadableModuleLogic):
-  """This class should implement all the actual 
-  computation done by your module.  The interface 
-  should be such that other python code can import
-  this class and make use of the functionality without
-  requiring an instance of the Widget
-  """
-
-  def hasImageData(self,volumeNode):
-    """This is a dummy logic method that 
-    returns true if the passed in volume
-    node has valid image data
-    """
-    if not volumeNode:
-      logging.error('no volume node')
-      return False
-    if volumeNode.GetImageData() == None:
-      logging.error('no image data')
-      return False
-    return True
-
-
-class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
-  """
-  This is the test case for your scripted module.
-  """
-
+class DicomRtImportTest(unittest.TestCase):
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
     slicer.mrmlScene.Clear(0)
 
-    self.delayMs = 700
-
     #TODO: Comment out
     #logFile = open('d:/pyTestLog.txt', 'a')
-    #logFile.write(repr(slicer.modules.dicomrtimportselftest) + '\n')
+    #logFile.write(repr(slicer.modules.DicomRtImportTest) + '\n')
     #logFile.write(repr(slicer.modules.dicomrtimportexport) + '\n')
     #logFile.close()
 
+  #------------------------------------------------------------------------------
   def runTest(self):
     """Run as few or as many tests as needed here.
     """
     self.setUp()
+    self.test_DicomRtImportTest_FullTest1()
 
-    self.test_DicomRtImportSelfTest_FullTest1()
-
-  def test_DicomRtImportSelfTest_FullTest1(self):
+  #------------------------------------------------------------------------------
+  def test_DicomRtImportTest_FullTest1(self):
     # Check for modules
     self.assertIsNotNone( slicer.modules.dicomrtimportexport )
     self.assertIsNotNone( slicer.modules.segmentations )
@@ -101,18 +41,20 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     self.TestSection_5SaveScene()
     self.TestSection_6ClearDatabase()
 
+    logging.info("Test finished")
 
+  #------------------------------------------------------------------------------
   def TestSection_0RetrieveInputData(self):
     import urllib
 
-    dicomRtImportSelfTestDir = slicer.app.temporaryPath + '/DicomRtImportSelfTest'
-    if not os.access(dicomRtImportSelfTestDir, os.F_OK):
-      os.mkdir(dicomRtImportSelfTestDir)
-    self.dataDir = dicomRtImportSelfTestDir + '/EclipseProstatePhantomRtData'
+    dicomRtImportTestDir = slicer.app.temporaryPath + '/DicomRtImportTest'
+    if not os.access(dicomRtImportTestDir, os.F_OK):
+      os.mkdir(dicomRtImportTestDir)
+    self.dataDir = dicomRtImportTestDir + '/EclipseProstatePhantomRtData'
     if not os.access(self.dataDir, os.F_OK):
       os.mkdir(self.dataDir)
-    self.dicomDatabaseDir = dicomRtImportSelfTestDir + '/CtkDicomDatabase'
-    self.tempDir = dicomRtImportSelfTestDir + '/Temp'
+    self.dicomDatabaseDir = dicomRtImportTestDir + '/CtkDicomDatabase'
+    self.tempDir = dicomRtImportTestDir + '/Temp'
 
     downloads = (
         ('http://slicer.kitware.com/midas3/download?items=10613', 'RD.1.2.246.352.71.7.2088656855.452083.20110920153746.dcm'),
@@ -126,8 +68,10 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
       if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
         logging.info('Requesting download %s from %s...\n' % (name, url))
         urllib.urlretrieve(url, filePath)
-    self.delayDisplay('Finished with download test data',self.delayMs)
+    # slicer.util.delayDisplay("Finished with download test data",self.delayMs)
+    logging.info("Finished with download test data")
 
+  #------------------------------------------------------------------------------
   def TestSection_1OpenTempDatabase(self):
     # Open test database and empty it
     if not os.access(self.dicomDatabaseDir, os.F_OK):
@@ -146,8 +90,10 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     initialized = slicer.dicomDatabase.initializeDatabase()
     self.assertTrue( initialized )
 
+  #------------------------------------------------------------------------------
   def TestSection_2ImportStudy(self):
-    self.delayDisplay("Import study",self.delayMs)
+    # slicer.util.delayDisplay("Import study",self.delayMs)
+    logging.info("Import study")
 
     indexer = ctk.ctkDICOMIndexer()
     self.assertIsNotNone( indexer )
@@ -159,8 +105,10 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     self.assertEqual( len(slicer.dicomDatabase.patients()), 1 )
     self.assertIsNotNone( slicer.dicomDatabase.patients()[0] )
 
+  #------------------------------------------------------------------------------
   def TestSection_3SelectLoadables(self):
-    self.delayDisplay("Select loadables",self.delayMs)
+    # slicer.util.delayDisplay("Select loadables",self.delayMs)
+    logging.info("Select loadables")
 
     # Choose first patient from the patient list
     patient = slicer.dicomDatabase.patients()[0]
@@ -189,8 +137,10 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     self.assertTrue( rtFound )
     self.assertEqual( loadablesForRt, 4 )
 
+  #------------------------------------------------------------------------------
   def TestSection_4LoadIntoSlicer(self):
-    self.delayDisplay("Load into Slicer",self.delayMs)
+    # slicer.util.delayDisplay("Load into Slicer",self.delayMs)
+    logging.info("Load into Slicer")
 
     self.dicomWidget.detailsPopup.loadCheckedLoadables()
 
@@ -209,8 +159,10 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     # Markups: the RT plan POI
     self.assertEqual( len( slicer.util.getNodes('vtkMRMLMarkupsFiducialNode*') ), 1 )
 
+  #------------------------------------------------------------------------------
   def TestSection_5SaveScene(self):
-    self.delayDisplay("Save scene",self.delayMs)
+    # slicer.util.delayDisplay("Save scene",self.delayMs)
+    logging.info("Save scene")
 
     if not os.access(self.tempDir, os.F_OK):
       os.mkdir(self.tempDir)
@@ -225,8 +177,10 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     readable = os.access(sceneFileName, os.R_OK)
     self.assertTrue( readable )
 
+  #------------------------------------------------------------------------------
   def TestSection_6ClearDatabase(self):
-    self.delayDisplay("Clear database",self.delayMs)
+    # slicer.util.delayDisplay("Clear database",self.delayMs)
+    logging.info("Clear database")
 
     initialized = slicer.dicomDatabase.initializeDatabase()
     self.assertTrue( initialized )
@@ -234,6 +188,7 @@ class DicomRtImportSelfTestTest(ScriptedLoadableModuleTest):
     slicer.dicomDatabase.closeDatabase()
     self.assertFalse( slicer.dicomDatabase.isOpen )
 
-    self.delayDisplay("Restoring original database directory",self.delayMs)
+    # slicer.util.delayDisplay("Restoring original database directory",self.delayMs)
+    logging.info("Restoring original database directory")
     if self.originalDatabaseDirectory:
       self.dicomWidget.onDatabaseDirectoryChanged(self.originalDatabaseDirectory)

@@ -55,7 +55,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(vtkMRMLDoub
 {
   if (!dvh1DoubleArrayNode || !dvh2DoubleArrayNode)
   {
-    std::cerr << "vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables: Invalid input DVH nodes!";
+    vtkGenericWarningMacro("vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables: Invalid input DVH nodes!");
     return 0.0;
   }
 
@@ -163,7 +163,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::GetAgreementForDvhPlotPoint(
   unsigned int compareSize = compareDvhPlot->GetNumberOfTuples();
   if (compareIndex >= compareSize)
   {
-    std::cerr << "Invalid bin index for compare plot! (" << compareIndex << ">=" << compareSize << ")" << std::endl;
+    vtkGenericWarningMacro("Invalid bin index for compare plot! (" << compareIndex << ">=" << compareSize << ")");
     return -1.0;
   }
 

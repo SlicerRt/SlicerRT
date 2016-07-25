@@ -44,15 +44,15 @@ public:
 
 public:
   /// Calculate dose for a plan
-  QString calculateDose(vtkMRMLRTPlanNode* planNode);
+  Q_INVOKABLE QString calculateDose(vtkMRMLRTPlanNode* planNode);
 
   /// Accumulate per-beam dose volumes for each beam under given plan. The accumulated
   /// total dose is 
-  QString createAccumulatedDose(vtkMRMLRTPlanNode* planNode);
+  Q_INVOKABLE QString createAccumulatedDose(vtkMRMLRTPlanNode* planNode);
 
   /// Remove MRML nodes created by dose calculation for the current RT plan,
   /// such as apertures, range compensators, and doses
-  void removeIntermediateResults(vtkMRMLRTPlanNode* planNode);
+  Q_INVOKABLE void removeIntermediateResults(vtkMRMLRTPlanNode* planNode);
 
 signals:
   /// Signals for dose calculation progress update
