@@ -56,7 +56,10 @@ qSlicerMockDoseEngine::~qSlicerMockDoseEngine()
 //---------------------------------------------------------------------------
 void qSlicerMockDoseEngine::defineBeamParameters()
 {
-  // No engine-specific beam parameters
+  // Noise level parameter
+  this->addBeamParameterSpinBox(
+    "Mock dose", "NoiseRange", "Noise range (% of Rx):", "Range of noise added to the prescription dose (+- half of the percentage of the Rx dose)",
+    0.0, 99.99, 10.0, 1.0, 2 );
 }
 
 //---------------------------------------------------------------------------
@@ -104,6 +107,7 @@ QString qSlicerMockDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamN
   }
 
   // Paint voxels touched by beam prescription+noise, all others zero
+  float noiseRange = (float)this->doubleParameter(beamNode, "NoiseRange");
   double rxDose = parentPlanNode->GetRxDose();
   unsigned char* beamPtr = (unsigned char*)beamImageData->GetScalarPointer();
   float* floatPtr = (float*)protonDoseImageData->GetScalarPointer();
@@ -111,7 +115,7 @@ QString qSlicerMockDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamN
   {
     if ((*beamPtr) > 0)
     {
-      (*floatPtr) = rxDose*19.0/20.0 + (float)(rand()%100)*rxDose/1000.0;
+      (*floatPtr) = rxDose + (float)((float)rand()/RAND_MAX)*rxDose * noiseRange/100.0 - noiseRange/200.0;
     }
     else
     {
