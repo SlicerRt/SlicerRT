@@ -171,6 +171,33 @@ void vtkMRMLRTPlanNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::SetDoseEngineName(const char* engineName)
+{
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting DoseEngineName to " << (engineName?engineName:"(null)") );
+  if ( this->DoseEngineName == NULL && engineName == NULL) { return;}
+  if ( this->DoseEngineName && engineName && (!strcmp(this->DoseEngineName,engineName))) { return;}
+
+  // Set dose engine name
+  delete [] this->DoseEngineName;
+  if (engineName)
+  {
+    size_t n = strlen(engineName) + 1;
+    char *cp1 =  new char[n];
+    const char *cp2 = (engineName);
+    this->DoseEngineName = cp1;
+    do { *cp1++ = *cp2++; } while ( --n );
+  }
+  else
+  {
+    this->DoseEngineName = NULL;
+  }
+
+  // Invoke events
+  this->Modified();
+  this->InvokeEvent(vtkMRMLRTPlanNode::DoseEngineChanged, this);
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData)
 {
   Superclass::ProcessMRMLEvents(caller, eventID, callData);
@@ -479,14 +506,14 @@ void vtkMRMLRTPlanNode::AddBeam(vtkMRMLRTBeamNode* beamNode)
   }
 
   // Get subject hierarchy node for the RT Plan
-  vtkMRMLSubjectHierarchyNode* planSHNode = this->GetPlanSubjectHierarchyNode();
+  vtkMRMLSubjectHierarchyNode* planShNode = this->GetPlanSubjectHierarchyNode();
 
   // Set the beam number
   beamNode->SetBeamNumber(this->NextBeamNumber++);
 
   // Put the beam node in the subject hierarchy
   vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    this->GetScene(), planSHNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), beamNode->GetName(), beamNode );
+    this->GetScene(), planShNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), beamNode->GetName(), beamNode );
 
   // Calculate transform from beam parameters and isocenter from plan
   beamNode->UpdateTransform();

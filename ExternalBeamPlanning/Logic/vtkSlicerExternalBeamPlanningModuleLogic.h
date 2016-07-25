@@ -60,9 +60,6 @@ public:
   vtkGetObjectMacro(BeamsLogic, vtkSlicerBeamsModuleLogic);
 
 public:
-  /// Create a beam for a plan (with type defined by the dose engine of the plan)
-  vtkMRMLRTBeamNode* CreateBeamInPlan(vtkMRMLRTPlanNode* planNode);
-
   /// Create a new beam based on another beam, and add it to the plan
   /// \return The new beam node that has been copied and added to the plan
   vtkMRMLRTBeamNode* CloneBeamInPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode);

@@ -83,6 +83,10 @@ void qMRMLBeamParametersTabWidgetPrivate::init()
   QObject::connect( this->pushButton_UpdateDRR, SIGNAL(clicked()), q, SLOT(updateDRRClicked()) );
   QObject::connect( this->checkBox_BeamsEyeView, SIGNAL(clicked(bool)), q, SLOT(beamEyesViewClicked(bool)) );
   QObject::connect( this->checkBox_ContoursInBEW, SIGNAL(clicked(bool)), q, SLOT(contoursInBEWClicked(bool)) );
+
+  // Remove Visualization tab as it is not yet functional
+  //TODO: Re-enable when works
+  q->removeTab(1);
 }
 
 
@@ -399,8 +403,6 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
   d->SliderWidget_GantryAngle->setValue(d->BeamNode->GetGantryAngle());
   d->SliderWidget_GantryAngle->blockSignals(false);
   d->SliderWidget_CouchAngle->setValue(d->BeamNode->GetCouchAngle());
-
-  //TODO: Dynamically added widgets
 }
 
 //-----------------------------------------------------------------------------

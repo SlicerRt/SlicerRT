@@ -53,6 +53,43 @@
 // Qt includes
 #include <QDebug>
 
+//-----------------------------------------------------------------------------
+/// \ingroup Slicer_QtModules_SubjectHierarchy
+class qSlicerDoseEngineLogicPrivate
+{
+  Q_DECLARE_PUBLIC(qSlicerDoseEngineLogic);
+protected:
+  qSlicerDoseEngineLogic* const q_ptr;
+public:
+  qSlicerDoseEngineLogicPrivate(qSlicerDoseEngineLogic& object);
+  ~qSlicerDoseEngineLogicPrivate();
+  void loadApplicationSettings();
+};
+
+//-----------------------------------------------------------------------------
+// qSlicerDoseEngineLogicPrivate methods
+
+//-----------------------------------------------------------------------------
+qSlicerDoseEngineLogicPrivate::qSlicerDoseEngineLogicPrivate(qSlicerDoseEngineLogic& object)
+  : q_ptr(&object)
+{
+}
+
+//-----------------------------------------------------------------------------
+qSlicerDoseEngineLogicPrivate::~qSlicerDoseEngineLogicPrivate()
+{
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseEngineLogicPrivate::loadApplicationSettings()
+{
+  //TODO: Implement if there are application settings (such as default dose engine)
+  //      See qSlicerSubjectHierarchyPluginLogicPrivate::loadApplicationSettings
+}
+
+//-----------------------------------------------------------------------------
+// qSlicerDoseEngineLogic methods
+
 //----------------------------------------------------------------------------
 qSlicerDoseEngineLogic::qSlicerDoseEngineLogic(QObject* parent)
   : QObject(parent)
@@ -62,6 +99,85 @@ qSlicerDoseEngineLogic::qSlicerDoseEngineLogic(QObject* parent)
 //----------------------------------------------------------------------------
 qSlicerDoseEngineLogic::~qSlicerDoseEngineLogic()
 {
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseEngineLogic::setMRMLScene(vtkMRMLScene* scene)
+{
+  this->qSlicerObject::setMRMLScene(scene);
+
+  // Connect scene node added event so that the new subject hierarchy nodes can be claimed by a plugin
+  qvtkReconnect( scene, vtkMRMLScene::NodeAddedEvent, this, SLOT( onNodeAdded(vtkObject*,vtkObject*) ) );
+  // Connect scene import ended event so that subject hierarchy nodes can be created for supported data nodes if missing (backwards compatibility)
+  qvtkReconnect( scene, vtkMRMLScene::EndImportEvent, this, SLOT( onSceneImportEnded(vtkObject*) ) );
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseEngineLogic::onNodeAdded(vtkObject* sceneObject, vtkObject* nodeObject)
+{
+  vtkMRMLScene* scene = vtkMRMLScene::SafeDownCast(sceneObject);
+  if (!scene)
+  {
+    return;
+  }
+
+  if (nodeObject->IsA("vtkMRMLRTPlanNode"))
+  {
+    // Observe dose engine changed event so that default beam parameters
+    // can be added for the newly selected engine in the beams contained by the plan
+    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(nodeObject);
+    qvtkConnect( planNode, vtkMRMLRTPlanNode::DoseEngineChanged, this, SLOT( onDoseEngineChangedInPlan(vtkObject*) ) );
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseEngineLogic::onSceneImportEnded(vtkObject* sceneObject)
+{
+  vtkMRMLScene* scene = vtkMRMLScene::SafeDownCast(sceneObject);
+  if (!scene)
+  {
+    return;
+  }
+
+  // Traverse all plan nodes in the scene and observe dose engine changed event so that default
+  // beam parameters can be added for the newly selected engine in the beams contained by the plan
+  std::vector<vtkMRMLNode*> planNodes;
+  scene->GetNodesByClass("vtkMRMLRTPlanNode", planNodes);
+  for (std::vector<vtkMRMLNode*>::iterator planNodeIt = planNodes.begin(); planNodeIt != planNodes.end(); ++planNodeIt)
+  {
+    vtkMRMLNode* planNode = (*planNodeIt);
+    qvtkConnect( planNode, vtkMRMLRTPlanNode::DoseEngineChanged, this, SLOT( onDoseEngineChangedInPlan(vtkObject*) ) );
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseEngineLogic::onDoseEngineChangedInPlan(vtkObject* nodeObject)
+{
+  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(nodeObject);
+  if (!planNode)
+  {
+    return;
+  }
+
+  // Get newly selected dose engine
+  qSlicerAbstractDoseEngine* selectedEngine =
+    qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(planNode->GetDoseEngineName());
+  if (!selectedEngine)
+  {
+    QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL");
+    qCritical() << Q_FUNC_INFO << ": " << errorString;
+    return;
+  }
+
+  // Add engine-specific beam parameters to all beams contained by the plan.
+  // Existing parameters are not overwritten, missing ones get the default values.
+  std::vector<vtkMRMLRTBeamNode*> beams;
+  planNode->GetBeams(beams);
+  for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
+  {
+    vtkMRMLRTBeamNode* beamNode = (*beamIt);
+    selectedEngine->addBeamParameterAttributesToBeamNode(beamNode);
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -314,4 +430,35 @@ void qSlicerDoseEngineLogic::removeIntermediateResults(vtkMRMLRTPlanNode* planNo
     vtkMRMLScalarVolumeNode* currentDose = selectedEngine->getResultDoseForBeam(currentBeam);
     currentBeam->GetScene()->RemoveNode(currentDose);
   }
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLRTBeamNode* qSlicerDoseEngineLogic::createBeamInPlan(vtkMRMLRTPlanNode* planNode)
+{
+  if (!planNode || !planNode->GetScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid plan node!";
+    return NULL;
+  }
+
+  // Create beam and add to scene
+  vtkSmartPointer<vtkMRMLRTBeamNode> beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
+  beamNode->SetName(planNode->GenerateNewBeamName().c_str());
+  planNode->GetScene()->AddNode(beamNode);
+
+  // Add beam parameters specific to the current engine selected for plan
+  qSlicerAbstractDoseEngine* selectedEngine =
+    qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(planNode->GetDoseEngineName());
+  if (!selectedEngine)
+  {
+    QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL");
+    qCritical() << Q_FUNC_INFO << ": " << errorString;
+    return NULL;
+  }
+  selectedEngine->addBeamParameterAttributesToBeamNode(beamNode);
+
+  // Add beam to plan
+  planNode->AddBeam(beamNode);
+
+  return beamNode;
 }

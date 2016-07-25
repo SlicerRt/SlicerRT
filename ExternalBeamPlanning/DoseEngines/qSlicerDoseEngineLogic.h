@@ -23,17 +23,29 @@
 
 #include "qSlicerExternalBeamPlanningDoseEnginesExport.h"
 
-// Qt includes
-#include "QObject"
+// SlicerQt includes
+#include "qSlicerObject.h"
 
+// CTK includes
+#include <ctkPimpl.h>
+#include <ctkVTKObject.h>
+
+// Qt includes
+#include <QObject>
+
+class vtkMRMLScene;
 class vtkMRMLRTPlanNode;
+class vtkMRMLRTBeamNode;
+class qSlicerDoseEngineLogicPrivate; 
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 /// \brief Abstract dose calculation algorithm that can be used in the
 ///        External Beam Planning SlicerRT module as a base class for specific dose engine plugins
-class Q_SLICER_EXTERNALBEAMPLANNING_DOSE_ENGINES_EXPORT qSlicerDoseEngineLogic : public QObject
+class Q_SLICER_EXTERNALBEAMPLANNING_DOSE_ENGINES_EXPORT qSlicerDoseEngineLogic :
+  public QObject, public virtual qSlicerObject
 {
   Q_OBJECT
+  QVTK_OBJECT
 
 public:
   typedef QObject Superclass;
@@ -43,6 +55,9 @@ public:
   virtual ~qSlicerDoseEngineLogic();
 
 public:
+  /// Set the current MRML scene to the widget
+  Q_INVOKABLE virtual void setMRMLScene(vtkMRMLScene* scene);
+
   /// Calculate dose for a plan
   Q_INVOKABLE QString calculateDose(vtkMRMLRTPlanNode* planNode);
 
@@ -54,12 +69,31 @@ public:
   /// such as apertures, range compensators, and doses
   Q_INVOKABLE void removeIntermediateResults(vtkMRMLRTPlanNode* planNode);
 
+  /// Create a beam for a plan (with beam parameters defined by the dose engine of the plan)
+  Q_INVOKABLE vtkMRMLRTBeamNode* createBeamInPlan(vtkMRMLRTPlanNode* planNode);
+
 signals:
   /// Signals for dose calculation progress update
   /// \param progress Value between 0 and 1
   void progressUpdated(double progress);
 
+protected slots:
+  /// Called when a node is added to the scene
+  void onNodeAdded(vtkObject* scene, vtkObject* nodeObject);
+
+  /// Called when scene import is finished
+  void onSceneImportEnded(vtkObject* sceneObject);
+
+  /// Called when the dose engine of a plan is changed.
+  /// The beam parameters specific to the new engine are added to all the beams
+  /// under the plan containing default values
+  void onDoseEngineChangedInPlan(vtkObject* nodeObject);
+
+protected:
+  QScopedPointer<qSlicerDoseEngineLogic> d_ptr; 
+
 private:
+  Q_DECLARE_PRIVATE(qSlicerDoseEngineLogic);
   Q_DISABLE_COPY(qSlicerDoseEngineLogic);
 };
 

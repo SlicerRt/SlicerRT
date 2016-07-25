@@ -143,6 +143,9 @@ void qSlicerExternalBeamPlanningModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
+  // Set scene to dose engine logic
+  d->DoseEngineLogic->setMRMLScene(scene);
+
   // Find a plan node and select it if there is one in the scene
   if (scene && d->MRMLNodeComboBox_RtPlan->currentNode())
   {
@@ -855,7 +858,7 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   }
 
   // Create new beam node by replicating currently selected beam
-  vtkMRMLRTBeamNode* beamNode = beamNode = d->logic()->CreateBeamInPlan(rtPlanNode);
+  vtkMRMLRTBeamNode* beamNode = beamNode = d->DoseEngineLogic->createBeamInPlan(rtPlanNode);
   if (!beamNode)
   {
     qCritical() << Q_FUNC_INFO << ": Failed to add beam!";

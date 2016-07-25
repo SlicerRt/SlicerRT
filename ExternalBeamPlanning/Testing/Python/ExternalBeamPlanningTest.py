@@ -110,9 +110,9 @@ class ExternalBeamPlanningTest(unittest.TestCase):
   #------------------------------------------------------------------------------
   def TestSection_1_RunPlastimatchProtonDoseEngine(self):
     logging.info('Test section 1: Run Plastimatch proton dose engine')
-    
-    ebpLogic = slicer.modules.externalbeamplanning.logic()
-    self.assertIsNotNone(ebpLogic)
+
+    engineLogic = slicer.qSlicerDoseEngineLogic()
+    engineLogic.setMRMLScene(slicer.mrmlScene)
 
     # Get input
     ctVolumeNode = slicer.util.getNode('TinyPatient_CT')
@@ -138,7 +138,7 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     planNode.SetDoseEngineName("Plastimatch proton")
 
     # Add first beam
-    firstBeamNode = ebpLogic.CreateBeamInPlan(planNode)
+    firstBeamNode = engineLogic.createBeamInPlan(planNode)
     firstBeamNode.SetX1Jaw(-50.0)
     firstBeamNode.SetX2Jaw(50.0)
     firstBeamNode.SetY1Jaw(-50.0)
@@ -149,12 +149,14 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     engineHandlerSingleton = engineHandler.instance()
     plastimatchProtonEngine = engineHandlerSingleton.doseEngineByName('Plastimatch proton')
     plastimatchProtonEngine.setParameter(firstBeamNode, 'EnergyResolution', 4.0)
+    plastimatchProtonEngine.setParameter(firstBeamNode, 'RangeCompensatorSmearingRadius', 0.0)
+    plastimatchProtonEngine.setParameter(firstBeamNode, 'ProximalMargin', 0.0)
+    plastimatchProtonEngine.setParameter(firstBeamNode, 'DistalMargin', 0.0)
     
     # Calculate dose
     import time
     startTime = time.time()
     
-    engineLogic = slicer.qSlicerDoseEngineLogic()
     errorMessage = engineLogic.calculateDose(planNode)
     self.assertNotEqual(errorMessage, "")
     
@@ -165,15 +167,18 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     imageAccumulate = vtk.vtkImageAccumulate()
     imageAccumulate.SetInputConnection(totalDoseVolumeNode.GetImageDataConnection())
     imageAccumulate.Update()
+
     doseMax = imageAccumulate.GetMax()[0]
     doseMean = imageAccumulate.GetMean()[0]
     doseStdDev = imageAccumulate.GetStandardDeviation()[0]
-    doseVoxelCount = imageAccumulate.GetVoxelCount()[0]
-    self.AssertTrue(self.isEqualWithTolerance(doseMax, 1.05797))
-    self.AssertTrue(self.isEqualWithTolerance(doseMean, 0.0251127))
-    self.AssertTrue(self.isEqualWithTolerance(doseStdDev, 0.144932))
-    self.AssertTrue(self.isEqualWithTolerance(doseVoxelCount, 1000))
+    doseVoxelCount = imageAccumulate.GetVoxelCount()
+    logging.info("Dose volume properties:\n  Max=" + str(doseMax) + ", Mean=" + str(doseMean) + ", StdDev=" + str(doseStdDev) + ", NumberOfVoxels=" + str(doseVoxelCount))
+
+    self.assertTrue(self.isEqualWithTolerance(doseMax, 1.05797))
+    self.assertTrue(self.isEqualWithTolerance(doseMean, 0.0251127))
+    self.assertTrue(self.isEqualWithTolerance(doseStdDev, 0.144932))
+    self.assertTrue(self.isEqualWithTolerance(doseVoxelCount, 1000))
 
   #------------------------------------------------------------------------------
-  def isEqualWithTolerance(a, b):
+  def isEqualWithTolerance(self, a, b):
     return abs(a-b) < 0.0001

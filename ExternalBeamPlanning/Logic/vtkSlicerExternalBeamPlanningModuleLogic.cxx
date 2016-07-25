@@ -30,7 +30,7 @@
 #include <vtkSlicerCLIModuleLogic.h>
 
 // MRML includes
-//#include <vtkMRMLMarkupsFiducialNode.h> //TODO:
+//#include <vtkMRMLMarkupsFiducialNode.h> //TODO: Includes commented out due to obsolete methods, see below
 //#include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 //#include <vtkMRMLScalarVolumeDisplayNode.h>
@@ -284,43 +284,6 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ProcessMRMLNodesEvents(vtkObject*
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CreateBeamInPlan(vtkMRMLRTPlanNode* planNode)
-{
-  if (!this->GetMRMLScene())
-  {
-    vtkErrorMacro("CreateBeamInPlan: Invalid MRML scene!");
-    return NULL;
-  }
-  if (!planNode)
-  {
-    vtkErrorMacro("CreateBeamInPlan: Invalid copied beam node or plan node!");
-    return NULL;
-  }
-  if (!this->BeamsLogic)
-  {
-    vtkErrorMacro("CreateBeamInPlan: Invalid beams logic!");
-    return NULL;
-  }
-
-  // Create beam using engine
-  vtkSmartPointer<vtkMRMLRTBeamNode> beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
-  if (!beamNode)
-  {
-    vtkErrorMacro("CreateBeamInPlan: Failed to create beam with dose engine " << planNode->GetDoseEngineName());
-    return NULL;
-  }
-  
-  // Add to scene
-  beamNode->SetName(planNode->GenerateNewBeamName().c_str());
-  this->GetMRMLScene()->AddNode(beamNode);
-
-  // Add beam to plan
-  planNode->AddBeam(beamNode);
-
-  return beamNode;
-}
-
-//---------------------------------------------------------------------------
 vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode)
 {
   if (!this->GetMRMLScene())
@@ -360,6 +323,7 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtk
 
   return beamNode;
 }
+
 
 //---------------------------------------------------------------------------
 // Obsolete methods

@@ -65,7 +65,9 @@ public:
     /// Fired if beam is added
     BeamAdded,
     /// Fired if beam is removed
-    BeamRemoved
+    BeamRemoved,
+    /// Fired if dose engine is changed
+    DoseEngineChanged
   };
 
 public:
@@ -165,8 +167,8 @@ public:
   /// Set target segment ID
   vtkSetStringMacro(TargetSegmentID);
 
+  /// Get isocenter specification
   vtkGetMacro(IsocenterSpecification, vtkMRMLRTPlanNode::IsocenterSpecificationType);
-  vtkGetConstMacro(IsocenterSpecification, vtkMRMLRTPlanNode::IsocenterSpecificationType);
 
   /// Get output total dose volume node
   vtkMRMLScalarVolumeNode* GetOutputTotalDoseVolumeNode();
@@ -175,8 +177,8 @@ public:
 
   /// Get dose engine name
   vtkGetStringMacro(DoseEngineName);
-  /// Set dose engine name
-  vtkSetStringMacro(DoseEngineName);
+  /// Set dose engine name (and invoke setting the default beam parameters for the new engine)
+  void SetDoseEngineName(const char* engineName);
 
   /// Get prescription dose
   vtkGetMacro(RxDose, double);
