@@ -338,12 +338,12 @@ void qSlicerAbstractDoseEngine::removeIntermediateResults(vtkMRMLRTBeamNode* bea
 //-----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::addBeamParameterSpinBox(
   QString tabName, QString parameterName, QString parameterLabel,
-  QString tooltip, double minimum, double maximum, double default, double stepSize, int precision )
+  QString tooltip, double minimum, double maximum, double defaultValue, double stepSize, int precision )
 {
   Q_D(qSlicerAbstractDoseEngine);
 
   // Add parameter to container
-  d->BeamParameters[parameterName] = QVariant(default);
+  d->BeamParameters[parameterName] = QVariant(defaultValue);
 
   // Get beam parameters tab widget from beams module widget
   qMRMLBeamParametersTabWidget* beamParametersTabWidget = this->beamParametersTabWidgetFromBeamsModule();
@@ -356,18 +356,18 @@ void qSlicerAbstractDoseEngine::addBeamParameterSpinBox(
   // Add beam parameter to tab widget
   beamParametersTabWidget->addBeamParameterFloatingPointNumber(
     tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
-    tooltip, minimum, maximum, default, stepSize, precision, false );
+    tooltip, minimum, maximum, defaultValue, stepSize, precision, false );
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::addBeamParameterSlider(
   QString tabName, QString parameterName, QString parameterLabel,
-  QString tooltip, double minimum, double maximum, double default, double stepSize, int precision )
+  QString tooltip, double minimum, double maximum, double defaultValue, double stepSize, int precision )
 {
   Q_D(qSlicerAbstractDoseEngine);
 
   // Add parameter to container
-  d->BeamParameters[parameterName] = QVariant(default);
+  d->BeamParameters[parameterName] = QVariant(defaultValue);
 
   // Get beam parameters tab widget from beams module widget
   qMRMLBeamParametersTabWidget* beamParametersTabWidget = this->beamParametersTabWidgetFromBeamsModule();
@@ -380,7 +380,7 @@ void qSlicerAbstractDoseEngine::addBeamParameterSlider(
   // Add beam parameter to tab widget
   beamParametersTabWidget->addBeamParameterFloatingPointNumber(
     tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
-    tooltip, minimum, maximum, default, stepSize, precision, true );
+    tooltip, minimum, maximum, defaultValue, stepSize, precision, true );
 }
 
 //-----------------------------------------------------------------------------
@@ -410,12 +410,12 @@ void qSlicerAbstractDoseEngine::addBeamParameterComboBox(
 //-----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::addBeamParameterCheckBox(
   QString tabName, QString parameterName, QString parameterLabel,
-  QString tooltip, bool default, QStringList dependentParameterNames/*=QStringList()*/)
+  QString tooltip, bool defaultValue, QStringList dependentParameterNames/*=QStringList()*/)
 {
   Q_D(qSlicerAbstractDoseEngine);
 
   // Add parameter to container
-  d->BeamParameters[parameterName] = QVariant(default);
+  d->BeamParameters[parameterName] = QVariant(defaultValue);
 
   // Get beam parameters tab widget from beams module widget
   qMRMLBeamParametersTabWidget* beamParametersTabWidget = this->beamParametersTabWidgetFromBeamsModule();
@@ -428,7 +428,7 @@ void qSlicerAbstractDoseEngine::addBeamParameterCheckBox(
   // Add beam parameter to tab widget
   beamParametersTabWidget->addBeamParameterCheckBox(
     tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
-    tooltip, default, dependentParameterNames );
+    tooltip, defaultValue, dependentParameterNames );
 }
 
 //-----------------------------------------------------------------------------
