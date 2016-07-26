@@ -109,13 +109,13 @@ protected:
   /// \param TODO
   void addBeamParameterSpinBox(
     QString tabName, QString parameterName, QString parameterLabel,
-    QString tooltip, double minimum, double maximum,
+    QString tooltip, double minimumValue, double maximumValue,
     double defaultValue, double stepSize, int precision );
   /// Add new floating point parameter to beam parameters widget as a slider
   /// \param TODO
   void addBeamParameterSlider(
     QString tabName, QString parameterName, QString parameterLabel,
-    QString tooltip, double minimum, double maximum,
+    QString tooltip, double minimumValue, double maximumValue,
     double defaultValue, double stepSize, int precision );
 
   /// Add new multiple choice beam parameter to beam parameters widget as a combo box
@@ -130,7 +130,7 @@ protected:
   ///   need to be enabled/disabled based on the checked state of the created checkbox
   void addBeamParameterCheckBox(
     QString tabName, QString parameterName, QString parameterLabel,
-    QString tooltip, bool defaultValue, QStringList dependentParameterNames=QStringList() );
+    QString tooltip, bool default, QStringList dependentParameterNames=QStringList() );
 
 // Beam parameter get/set functions
 public:

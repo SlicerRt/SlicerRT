@@ -338,7 +338,8 @@ void qSlicerAbstractDoseEngine::removeIntermediateResults(vtkMRMLRTBeamNode* bea
 //-----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::addBeamParameterSpinBox(
   QString tabName, QString parameterName, QString parameterLabel,
-  QString tooltip, double minimum, double maximum, double defaultValue, double stepSize, int precision )
+  QString tooltip, double minimumValue, double maximumValue,
+  double defaultValue, double stepSize, int precision )
 {
   Q_D(qSlicerAbstractDoseEngine);
 
@@ -356,13 +357,14 @@ void qSlicerAbstractDoseEngine::addBeamParameterSpinBox(
   // Add beam parameter to tab widget
   beamParametersTabWidget->addBeamParameterFloatingPointNumber(
     tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
-    tooltip, minimum, maximum, defaultValue, stepSize, precision, false );
+    tooltip, minimumValue, maximumValue, defaultValue, stepSize, precision, false );
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::addBeamParameterSlider(
   QString tabName, QString parameterName, QString parameterLabel,
-  QString tooltip, double minimum, double maximum, double defaultValue, double stepSize, int precision )
+  QString tooltip, double minimumValue, double maximumValue,
+  double defaultValue, double stepSize, int precision )
 {
   Q_D(qSlicerAbstractDoseEngine);
 
@@ -380,7 +382,7 @@ void qSlicerAbstractDoseEngine::addBeamParameterSlider(
   // Add beam parameter to tab widget
   beamParametersTabWidget->addBeamParameterFloatingPointNumber(
     tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
-    tooltip, minimum, maximum, defaultValue, stepSize, precision, true );
+    tooltip, minimumValue, maximumValue, defaultValue, stepSize, precision, true );
 }
 
 //-----------------------------------------------------------------------------
