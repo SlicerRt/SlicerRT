@@ -1,0 +1,14 @@
+set(DoseEngines_PYTHON_SCRIPTS
+  AbstractScriptedDoseEngine
+  )
+
+set(DoseEngines_PYTHON_RESOURCES
+  )
+
+ctkMacroCompilePythonScript(
+  TARGET_NAME DoseEngines
+  SCRIPTS "${DoseEngines_PYTHON_SCRIPTS}"
+  RESOURCES "${DoseEngines_PYTHON_RESOURCES}"
+  DESTINATION_DIR ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR}
+  INSTALL_DIR ${Slicer_INSTALL_QTSCRIPTEDMODULES_LIB_DIR}
+  )

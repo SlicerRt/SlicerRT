@@ -66,15 +66,9 @@ public:
   vtkMRMLScalarVolumeNode* getResultDoseForBeam(vtkMRMLRTBeamNode* beamNode);
 
   /// Remove intermediate nodes created by the dose engine for a certain beam
-  void removeIntermediateResults(vtkMRMLRTBeamNode* beamNode);
+  Q_INVOKABLE void removeIntermediateResults(vtkMRMLRTBeamNode* beamNode);
 
-  /// Show/hide all engine-specific beam parameters in the beam parameters tab widget in Beams module
-  void setBeamParametersVisible(bool visible);
-
-  /// Add all engine-specific beam parameters to given beam node (do not override value if parameter exists)
-  void addBeamParameterAttributesToBeamNode(vtkMRMLRTBeamNode* beamNode);
-
-// Dose calculation related functions (API functions to call from the subclass)
+// API functions to implement in the subclass
 protected:
   /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic
   /// to any dose engine before and after calculation.
@@ -91,16 +85,18 @@ protected:
   /// This is the method that needs to be implemented in each engine.
   virtual void defineBeamParameters() = 0;
 
+// Dose calculation related functions (functions to call from the subclass)
+protected:
   /// Add intermediate results to beam. Doing so allows easily cleaning up the intermediate results
   /// \param result MRML node containing the intermediate result to add
   /// \param beamNode Beam to add the intermediate result to
-  void addIntermediateResult(vtkMRMLNode* result, vtkMRMLRTBeamNode* beamNode);
+  Q_INVOKABLE void addIntermediateResult(vtkMRMLNode* result, vtkMRMLRTBeamNode* beamNode);
 
   /// Add result per-beam dose volume to beam
   /// \param resultDose Dose volume to add to beam as result
   /// \param beamNode Beam node to add dose as result to
   /// \param replace Remove referenced dose volume if already exists. True by default
-  void addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTBeamNode* beamNode, bool replace=true);
+  Q_INVOKABLE void addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTBeamNode* beamNode, bool replace=true);
 
 // Beam parameter definition functions.
 // Need to be called from the implemented \sa defineBeamParameters method.
@@ -116,7 +112,7 @@ protected:
   /// \param defaultValue Default parameter value
   /// \param stepSize Size of a step in the parameter spinbox widget
   /// \param precision Number of decimals to be shown in the spinbox widget
-  void addBeamParameterSpinBox(
+  Q_INVOKABLE void addBeamParameterSpinBox(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, double minimumValue, double maximumValue,
     double defaultValue, double stepSize, int precision );
@@ -131,7 +127,7 @@ protected:
   /// \param defaultValue Default parameter value
   /// \param stepSize Size of a step in the parameter slider widget
   /// \param precision Number of decimals to be shown on the sides of the slider
-  void addBeamParameterSlider(
+  Q_INVOKABLE void addBeamParameterSlider(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, double minimumValue, double maximumValue,
     double defaultValue, double stepSize, int precision );
@@ -145,7 +141,7 @@ protected:
   /// \param options List of options in the combobox. Their order defines the index for \sa defaultIndex
   ///   and the integer parameter accessed with \sa integerParameter for calculation
   /// \param defaultIndex Default selection in the combobox
-  void addBeamParameterComboBox(
+  Q_INVOKABLE void addBeamParameterComboBox(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, QStringList options, int defaultIndex );
 
@@ -158,7 +154,7 @@ protected:
   /// \param defaultValue Default parameter value (on/off)
   /// \param dependentParameterNames Names of parameters (full names including engine prefix) that
   ///   are to be enabled/disabled based on the checked state of the created checkbox
-  void addBeamParameterCheckBox(
+  Q_INVOKABLE void addBeamParameterCheckBox(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, bool defaultValue, QStringList dependentParameterNames=QStringList() );
 
@@ -208,6 +204,12 @@ private:
   /// \return Tab widget with given name
   qMRMLBeamParametersTabWidget* beamParametersTabWidgetFromBeamsModule();
 
+  /// Show/hide all engine-specific beam parameters in the beam parameters tab widget in Beams module
+  void setBeamParametersVisible(bool visible);
+
+  /// Add all engine-specific beam parameters to given beam node (do not override value if parameter exists)
+  void addBeamParameterAttributesToBeamNode(vtkMRMLRTBeamNode* beamNode);
+
 protected:
   /// Name of the engine. Must be set in dose engine constructor
   QString m_Name;
@@ -219,6 +221,8 @@ private:
   Q_DECLARE_PRIVATE(qSlicerAbstractDoseEngine);
   Q_DISABLE_COPY(qSlicerAbstractDoseEngine);
   friend class qSlicerDoseEnginePluginHandler;
+  friend class qSlicerDoseEngineLogic;
+  friend class qSlicerExternalBeamPlanningModuleWidget;
 };
 
 #endif

@@ -87,11 +87,17 @@
          <string>vtkMRMLRTBeamNode</string>
         </stringlist>
        </property>
+       <property name="noneEnabled">
+        <bool>true</bool>
+       </property>
        <property name="addEnabled">
         <bool>false</bool>
        </property>
        <property name="renameEnabled">
         <bool>true</bool>
+       </property>
+       <property name="noneDisplay">
+        <string>Beams can be created under plans in External Beam Planning</string>
        </property>
       </widget>
      </item>

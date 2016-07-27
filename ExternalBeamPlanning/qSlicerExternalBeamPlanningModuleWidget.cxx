@@ -793,15 +793,6 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineChanged(const QString &t
   // Add engine-specific beam parameters to user interface
   selectedEngine->setBeamParametersVisible(true);
 
-  // Add engine-specific beam parameters to beam nodes under current plan
-  std::vector<vtkMRMLRTBeamNode*> beams;
-  rtPlanNode->GetBeams(beams);
-  for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
-  {
-    vtkMRMLRTBeamNode* beamNode = (*beamIt);
-    selectedEngine->addBeamParameterAttributesToBeamNode(beamNode);
-  }
-
   qDebug() << "Dose engine selection changed to " << text;
   rtPlanNode->DisableModifiedEventOn();
   rtPlanNode->SetDoseEngineName(selectedEngine->name().toLatin1().constData());

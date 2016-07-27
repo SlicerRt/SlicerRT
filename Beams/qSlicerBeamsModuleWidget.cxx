@@ -150,27 +150,6 @@ void qSlicerBeamsModuleWidget::setup()
   connect( d->lineEdit_BeamName, SIGNAL(textChanged(const QString &)), this, SLOT(beamNameChanged(const QString &)) );
   connect( d->doubleSpinBox_BeamWeight, SIGNAL(valueChanged(double)), this, SLOT(beamWeightChanged(double)) );
 
-//TODO:
-  // Proton energy page
-  //connect( d->doubleSpinBox_ProximalMargin, SIGNAL(valueChanged(double)), this, SLOT(proximalMarginChanged(double)) );
-  //connect( d->doubleSpinBox_DistalMargin, SIGNAL(valueChanged(double)), this, SLOT(distalMarginChanged(double)) );
-  //connect( d->comboBox_BeamLineType, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(beamLineTypeChanged(const QString &)) );
-  //connect( d->checkBox_EnergyPrescription, SIGNAL(clicked(bool)), this, SLOT(manualEnergyPrescriptionChanged(bool)) );
-  //connect( d->doubleSpinBox_MinimumEnergy, SIGNAL(valueChanged(double)), this, SLOT(minimumEnergyChanged(double)) );
-  //connect( d->doubleSpinBox_MaximumEnergy, SIGNAL(valueChanged(double)), this, SLOT(maximumEnergyChanged(double)) );
-
-  //// Proton beam model page
-  //connect( d->doubleSpinBox_ApertureDistance, SIGNAL(valueChanged(double)), this, SLOT(apertureDistanceChanged(double)) );
-  //connect( d->comboBox_Algorithm, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(algorithmChanged(const QString &)) );
-  //connect( d->doubleSpinBox_PencilBeamSpacing, SIGNAL(valueChanged(double)), this, SLOT(pencilBeamSpacingChanged(double)) );
-  //connect( d->doubleSpinBox_Smearing, SIGNAL(valueChanged(double)), this, SLOT(smearingChanged(double)) );
-  //connect( d->doubleSpinBox_SourceSize, SIGNAL(valueChanged(double)), this, SLOT(sourceSizeChanged(double)) );
-  //connect( d->doubleSpinBox_EnergyResolution, SIGNAL(valueChanged(double)), this, SLOT(energyResolutionChanged(double)) );
-  //connect( d->doubleSpinBox_EnergySpread, SIGNAL(valueChanged(double)), this, SLOT(energySpreadChanged(double)) );
-  //connect( d->doubleSpinBox_StepLength, SIGNAL(valueChanged(double)), this, SLOT(stepLengthChanged(double)) );
-  //connect( d->checkBox_WEDApproximation, SIGNAL(clicked(bool)), this, SLOT(wedApproximationChanged(bool)) );
-  //connect( d->checkBox_RangeCompensatorHighland, SIGNAL(clicked(bool)), this, SLOT(rangeCompensatorHighlandChanged(bool)) );
-
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 
@@ -185,7 +164,8 @@ void qSlicerBeamsModuleWidget::updateButtonsState()
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
   bool applyEnabled = beamNode
                    && beamNode->GetParentPlanNode();
-  d->pushButton_SwitchToParentPlan->setEnabled(applyEnabled);
+
+  d->pushButton_SwitchToParentPlan->setText(beamNode ? "Switch to parent plan" : "Go to External Beam Planning");
 }
 
 //-----------------------------------------------------------------------------
@@ -210,164 +190,13 @@ void qSlicerBeamsModuleWidget::updateWidgetFromMRML()
   {
     d->lineEdit_BeamName->setText("");
     d->doubleSpinBox_BeamWeight->setValue(0.0);
-    return;
   }
-
-  // Main parameters
-  d->lineEdit_BeamName->setText(QString::fromStdString(beamNode->GetName()));
-  d->doubleSpinBox_BeamWeight->setValue(beamNode->GetBeamWeight());
-
-//TODO:
-  // Enable appropriate tabs and widgets for this beam type and set 
-  // widget values from MRML node
-  /*
-  vtkMRMLRTBeamNode::RTRadiationType radType = beamNode->GetRadiationType();
-  if (radType == vtkMRMLRTBeamNode::Photon)
+  else
   {
-    // Enable or disable widgets on the prescription tab 
-    d->label_BeamType->setEnabled(true);
-    d->comboBox_BeamType->setEnabled(true);
-
-    // Disable unneeded fields
-    // Just in case there is a common index between photons and protons
-    d->label_BeamLineType->setEnabled(false);
-    d->comboBox_BeamLineType->setEnabled(false);
-    d->label_EnergyPrescription->setEnabled(false);
-    d->checkBox_EnergyPrescription->setEnabled(false);
-    d->label_MinimumEnergy->setEnabled(false);
-    d->doubleSpinBox_MinimumEnergy->setEnabled(false);
-    d->label_MaximumEnergy->setEnabled(false);
-    d->doubleSpinBox_MaximumEnergy->setEnabled(false);
-
-    // Disable unneeded tabs
-    int index = d->tabWidget->indexOf(d->tabWidgetPageProtonBeamModel);
-    if (index >= 0)
-    {
-      d->tabWidget->removeTab(index);
-    }
-
-    // Enable needed tabs and set widget values
-    index = d->tabWidget->indexOf(d->tabWidgetPageGeometry);
-    if (index == -1)
-    {
-      d->tabWidget->addTab(d->tabWidgetPageGeometry, "Geometry");
-    }
+    // Main parameters
+    d->lineEdit_BeamName->setText(QString::fromStdString(beamNode->GetName()));
+    d->doubleSpinBox_BeamWeight->setValue(beamNode->GetBeamWeight());
   }
-  else if (radType == vtkMRMLRTBeamNode::Proton)
-  {
-    // Enable needed fields
-    // Just in case there is a common index between photons and protons
-    d->label_BeamLineType->setEnabled(true);
-    d->comboBox_BeamLineType->setEnabled(true);
-    d->label_EnergyPrescription->setEnabled(true);
-    d->checkBox_EnergyPrescription->setEnabled(true);
-
-    // no energy prescription, so must be disabled for the moment
-    d->label_MinimumEnergy->setEnabled(false);
-    d->doubleSpinBox_MinimumEnergy->setEnabled(false);
-    d->label_MaximumEnergy->setEnabled(false);
-    d->doubleSpinBox_MaximumEnergy->setEnabled(false);
-
-    // Disable unneeded tabs
-    int index = 0;
-
-    // Enable needed tabs and set widget values
-    index = d->tabWidget->indexOf(d->tabWidgetPageProtonEnergy);
-    if (index == -1)
-    {
-      d->tabWidget->addTab(d->tabWidgetPageProtonEnergy, "Energy");
-    }
-    index = d->tabWidget->indexOf(d->tabWidgetPageGeometry);
-    if (index == -1)
-    {
-      d->tabWidget->addTab(d->tabWidgetPageGeometry, "Geometry");
-    }
-    index = d->tabWidget->indexOf(d->tabWidgetPageProtonBeamModel);
-    if (index == -1)
-    {
-      d->tabWidget->addTab(d->tabWidgetPageProtonBeamModel, "Beam Model");
-    }
-  }
-  else if (radType == vtkMRMLRTBeamNode::Electron)
-  {
-    // Not implemented
-    qWarning() << Q_FUNC_INFO << ": Electron beam not yet supported";
-    d->tabWidget->clear();
-  }
-  */
-
-  //switch (beamNode->GetRadiationType())
-  //{
-  //case vtkMRMLRTBeamNode::Photon:
-  //  d->comboBox_RadiationType->setCurrentIndex(1);
-  //  break;
-  //case vtkMRMLRTBeamNode::Electron:
-  //  d->comboBox_RadiationType->setCurrentIndex(2);
-  //  break;
-  //default:
-  //  d->comboBox_RadiationType->setCurrentIndex(0); // Proton
-  //  break;
-  //}
-
-  //// Set values into prescription tab
-  //switch (beamNode->GetBeamType())
-  //{
-  //case vtkMRMLRTProtonBeamNode::Dynamic:
-  //  d->comboBox_RadiationType->setCurrentIndex(1);
-  //  break;
-  //default:
-  //  d->comboBox_RadiationType->setCurrentIndex(0); // Static
-  //  break;
-  //}
-
-//TODO:
-  //vtkMRMLRTProtonBeamNode* protonBeamNode = vtkMRMLRTProtonBeamNode::SafeDownCast(beamNode);
-  //if (protonBeamNode)
-  //{
-  //  // Set values into energy tab
-  //  d->doubleSpinBox_ProximalMargin->setValue(protonBeamNode->GetProximalMargin());
-  //  d->doubleSpinBox_DistalMargin->setValue(protonBeamNode->GetDistalMargin());
-  //  if (protonBeamNode->GetBeamLineTypeActive() == true)
-  //  {
-  //    d->comboBox_BeamLineType->setCurrentIndex(0);
-  //  }
-  //  else
-  //  {
-  //    d->comboBox_BeamLineType->setCurrentIndex(1);
-  //  }
-  //  d->checkBox_EnergyPrescription->setChecked(protonBeamNode->GetManualEnergyLimits());
-  //  d->doubleSpinBox_MinimumEnergy->setValue(protonBeamNode->GetMinimumEnergy());
-  //  d->doubleSpinBox_MaximumEnergy->setValue(protonBeamNode->GetMaximumEnergy());
-
-  //  // Set values into proton beam model
-  //  //if (beamNode->GetRadiationType() == vtkMRMLRTBeamNode::Proton)
-  //  {
-  //    d->doubleSpinBox_ApertureDistance->setValue(protonBeamNode->GetApertureOffset());
-  //    switch (protonBeamNode->GetAlgorithm())
-  //    {
-  //    case vtkMRMLRTProtonBeamNode::CGS:
-  //      d->comboBox_Algorithm->setCurrentIndex(1);
-  //      break;
-  //    case vtkMRMLRTProtonBeamNode::DGS:
-  //      d->comboBox_Algorithm->setCurrentIndex(2);
-  //      break;
-  //    case vtkMRMLRTProtonBeamNode::HGS:
-  //      d->comboBox_Algorithm->setCurrentIndex(3);
-  //      break;
-  //    default: // Ray Tracer or any other mistake
-  //      d->comboBox_Algorithm->setCurrentIndex(0);
-  //      break;
-  //    }
-  //    d->doubleSpinBox_PencilBeamSpacing->setValue(protonBeamNode->GetPencilBeamResolution());
-  //    d->doubleSpinBox_Smearing->setValue(protonBeamNode->GetRangeCompensatorSmearingRadius());
-  //    d->doubleSpinBox_SourceSize->setValue(protonBeamNode->GetSourceSize());
-  //    d->doubleSpinBox_EnergyResolution->setValue(protonBeamNode->GetEnergyResolution());
-  //    d->doubleSpinBox_EnergySpread->setValue(protonBeamNode->GetEnergySpread());
-  //    d->doubleSpinBox_StepLength->setValue(protonBeamNode->GetStepLength());
-  //    d->checkBox_WEDApproximation->setChecked(protonBeamNode->GetLateralSpreadHomoApprox());
-  //    d->checkBox_RangeCompensatorHighland->setChecked(protonBeamNode->GetRangeCompensatorHighland());
-  //  }
-  //}
 
   this->updateButtonsState();
 }
@@ -409,7 +238,7 @@ void qSlicerBeamsModuleWidget::switchToParentPlanButtonClicked()
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
   if (!beamNode)
   {
-    qCritical() << Q_FUNC_INFO << "Unable to access active beam node";
+    qSlicerSubjectHierarchyAbstractPlugin::switchToModule("ExternalBeamPlanning");
     return;
   }
 

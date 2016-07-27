@@ -76,3 +76,8 @@ SlicerMacroBuildModuleQtLibrary(
   RESOURCES ${${KIT}_RESOURCES}
   WRAP_PYTHONQT
   )
+
+#-----------------------------------------------------------------------------
+if(Slicer_USE_PYTHONQT)
+  add_subdirectory(Python)
+endif()
