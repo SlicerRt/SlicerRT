@@ -102,7 +102,9 @@ void vtkMRMLRTPlanNode::WriteXML(ostream& of, int nIndent)
 
   of << indent << " NextBeamNumber=\"" << (this->NextBeamNumber) << "\"";
 
-  //TODO: Isocenter specification
+  of << indent << " RxDose=\"" << (this->RxDose) << "\"";
+
+  of << indent << " IsocenterSpecification=\"" << (int)(this->IsocenterSpecification) << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -131,6 +133,14 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
     {
       this->SetDoseEngineName(attValue);
     }
+    else if (!strcmp(attName, "RxDose")) 
+    {
+      this->RxDose = vtkVariant(attValue).ToDouble();
+    }
+    else if (!strcmp(attName, "IsocenterSpecification")) 
+    {
+      this->IsocenterSpecification = (IsocenterSpecificationType)(vtkVariant(attValue).ToInt());
+    }
   }
 }
 
@@ -156,7 +166,18 @@ void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
 
   this->NextBeamNumber = node->NextBeamNumber;
 
-  //TODO: Beams!
+  // Copy beams
+  this->RemoveAllBeams();
+
+  std::vector<vtkMRMLRTBeamNode*> beams;
+  this->GetBeams(beams);
+  for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
+  {
+    vtkMRMLRTBeamNode* beamNode = (*beamIt);
+    vtkSmartPointer<vtkMRMLRTBeamNode> beamNodeCopy = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
+    this->GetScene()->AddNode(beamNodeCopy);
+    beamNodeCopy->Copy(beamNode);
+  }
 
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
@@ -167,7 +188,20 @@ void vtkMRMLRTPlanNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  //TODO: Plan parameters
+  os << indent << " TargetSegmentID:   " << (this->TargetSegmentID?this->TargetSegmentID:"NULL") << "\n";
+  os << indent << " DoseEngineName:   " << (this->DoseEngineName?this->DoseEngineName:"NULL") << "\n";
+  os << indent << " NextBeamNumber:   " << this->NextBeamNumber << "\n";
+  os << indent << " RxDose:   " << this->RxDose << "\n";
+  os << indent << " IsocenterSpecification:   " << (int)(this->IsocenterSpecification) << "\n";
+
+  // Beams
+  std::vector<vtkMRMLRTBeamNode*> beams;
+  this->GetBeams(beams);
+  for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
+  {
+    vtkMRMLRTBeamNode* beamNode = (*beamIt);
+    beamNode->PrintSelf(os, indent.GetNextIndent());
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -542,6 +576,23 @@ void vtkMRMLRTPlanNode::RemoveBeam(vtkMRMLRTBeamNode* beamNode)
   scene->RemoveNode(shNode);
 
   this->Modified();
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::RemoveAllBeams()
+{
+  this->DisableModifiedEventOn();
+
+  std::vector<vtkMRMLRTBeamNode*> beams;
+  this->GetBeams(beams);
+  for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
+  {
+    vtkMRMLRTBeamNode* beamNode = (*beamIt);
+    this->RemoveBeam(beamNode);
+  }
+
+  this->DisableModifiedEventOff();
+  this->InvokePendingModifiedEvent();
 }
 
 //---------------------------------------------------------------------------

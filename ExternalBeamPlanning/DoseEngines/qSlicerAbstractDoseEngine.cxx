@@ -498,12 +498,6 @@ QString qSlicerAbstractDoseEngine::parameter(vtkMRMLRTBeamNode* beamNode, QStrin
   // Get effect-specific prefixed parameter first
   QString attributeName = this->assembleEngineParameterName(parameterName);
   const char* value = beamNode->GetAttribute(attributeName.toLatin1().constData());
-  // Look for common parameter if effect-specific one is not found
-  //TODO: Needed?
-  //if (!value)
-  //{
-  //  value = beamNode->GetAttribute(parameterName.toLatin1().constData());
-  //}
   if (!value)
   {
     qCritical() << Q_FUNC_INFO << ": Parameter named " << parameterName << " cannot be found for beam " << beamNode->GetName();

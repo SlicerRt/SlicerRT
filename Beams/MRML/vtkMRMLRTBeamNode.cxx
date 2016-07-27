@@ -175,9 +175,9 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
 {
-  // Do not call Copy function of base classes, as it copies the poly data too, which
-  // is undesired for beams, as they generate their own poly data from their properties.
-  //Superclass::Copy(anode);
+  // Do not call Copy function of the direct model base class, as it copies the poly data too,
+  // which is undesired for beams, as they generate their own poly data from their properties.
+  vtkMRMLDisplayableNode::Copy(anode);
 
   vtkMRMLRTBeamNode* node = vtkMRMLRTBeamNode::SafeDownCast(anode);
   if (!node)

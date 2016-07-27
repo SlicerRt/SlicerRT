@@ -131,13 +131,6 @@ bool qSlicerDoseEnginePluginHandler::registerDoseEngine(qSlicerAbstractDoseEngin
 }
 
 //----------------------------------------------------------------------------
-void qSlicerDoseEnginePluginHandler::unregisterDoseEngine(qSlicerAbstractDoseEngine* engine)
-{
-  //TODO: Implement
-  qCritical() << Q_FUNC_INFO << ": Not implemented yet!";
-}
-
-//----------------------------------------------------------------------------
 qSlicerAbstractDoseEngine* qSlicerDoseEnginePluginHandler::doseEngineByName(QString name)
 {
 if (name.isEmpty())

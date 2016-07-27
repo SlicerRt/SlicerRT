@@ -52,10 +52,6 @@ public:
   /// and it will not be deleted until all these referring classes are deleted.
   Q_INVOKABLE bool registerDoseEngine(qSlicerAbstractDoseEngine* engine);
 
-  /// Remove a dose engine from the factory.
-  /// This does not affect dose engines that have already been created.
-  Q_INVOKABLE void unregisterDoseEngine(qSlicerAbstractDoseEngine* engine);
-
   /// Get dose engine by its name
   Q_INVOKABLE qSlicerAbstractDoseEngine* doseEngineByName(QString name);
 

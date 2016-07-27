@@ -106,28 +106,58 @@ protected:
 // Need to be called from the implemented \sa defineBeamParameters method.
 protected:
   /// Add new floating point parameter to beam parameters widget as a spin box with text edit
-  /// \param TODO
+  /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
+  /// \param parameterName Name of the beam parameter. This is prefixed with the dose engine name
+  ///   and added to the beam node as attribute
+  /// \param parameterLabel Text to be shown in the beam parameters widget in the left column
+  /// \param tooltip Tooltip describing the beam parameter that pop up on the parameter widget
+  /// \param minimumValue Minimum parameter value
+  /// \param maximumValue Maximum parameter value
+  /// \param defaultValue Default parameter value
+  /// \param stepSize Size of a step in the parameter spinbox widget
+  /// \param precision Number of decimals to be shown in the spinbox widget
   void addBeamParameterSpinBox(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, double minimumValue, double maximumValue,
     double defaultValue, double stepSize, int precision );
   /// Add new floating point parameter to beam parameters widget as a slider
-  /// \param TODO
+  /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
+  /// \param parameterName Name of the beam parameter. This is prefixed with the dose engine name
+  ///   and added to the beam node as attribute
+  /// \param parameterLabel Text to be shown in the beam parameters widget in the left column
+  /// \param tooltip Tooltip describing the beam parameter that pop up on the parameter widget
+  /// \param minimumValue Minimum parameter value
+  /// \param maximumValue Maximum parameter value
+  /// \param defaultValue Default parameter value
+  /// \param stepSize Size of a step in the parameter slider widget
+  /// \param precision Number of decimals to be shown on the sides of the slider
   void addBeamParameterSlider(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, double minimumValue, double maximumValue,
     double defaultValue, double stepSize, int precision );
 
   /// Add new multiple choice beam parameter to beam parameters widget as a combo box
-  /// \param TODO
+  /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
+  /// \param parameterName Name of the beam parameter. This is prefixed with the dose engine name
+  ///   and added to the beam node as attribute
+  /// \param parameterLabel Text to be shown in the beam parameters widget in the left column
+  /// \param tooltip Tooltip describing the beam parameter that pop up on the parameter widget
+  /// \param options List of options in the combobox. Their order defines the index for \sa defaultIndex
+  ///   and the integer parameter accessed with \sa integerParameter for calculation
+  /// \param defaultIndex Default selection in the combobox
   void addBeamParameterComboBox(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, QStringList options, int defaultIndex );
 
   /// Add new boolean type beam parameter to beam parameters widget as a check box
-  /// \param TODO
+  /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
+  /// \param parameterName Name of the beam parameter. This is prefixed with the dose engine name
+  ///   and added to the beam node as attribute
+  /// \param parameterLabel Text to be shown in the beam parameters widget in the left column
+  /// \param tooltip Tooltip describing the beam parameter that pop up on the parameter widget
+  /// \param defaultValue Default parameter value (on/off)
   /// \param dependentParameterNames Names of parameters (full names including engine prefix) that
-  ///   need to be enabled/disabled based on the checked state of the created checkbox
+  ///   are to be enabled/disabled based on the checked state of the created checkbox
   void addBeamParameterCheckBox(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, bool defaultValue, QStringList dependentParameterNames=QStringList() );

@@ -72,7 +72,6 @@ protected slots:
   void targetSegmentChanged(const QString& segment);
   void isocenterAtTargetCenterCheckboxStateChanged(int state);
   void isocenterCoordinatesChanged(double* isocenterCoordinates);
-  //void isocenterFiducialNodeChangedfromCoordinates(double*); //TODO:
   void centerViewToIsocenterClicked();
   /// Update isocenter controls from isocenter markups fiducial
   void updateIsocenterPosition();

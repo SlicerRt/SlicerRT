@@ -39,19 +39,13 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
 class vtkMRMLSubjectHierarchyNode;
 
-//TODO: GCS 2015-09-04.  Why don't VTK macros support const functions?
-#define vtkGetConstMacro(name,type)             \
-  virtual type Get##name () const {             \
-    return this->name;                          \
-  }
-
 /// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTPlanNode : public vtkMRMLNode
 {
 public:
   enum IsocenterSpecificationType
   {
-    CenterOfTarget,
+    CenterOfTarget = 0,
     ArbitraryPoint
   };
 
@@ -104,6 +98,8 @@ public:
   void AddBeam(vtkMRMLRTBeamNode* beam);
   /// Remove given beam node from plan
   void RemoveBeam(vtkMRMLRTBeamNode* beam);
+  /// Remove all beam nodes from plan
+  void RemoveAllBeams();
 
   /// Generate new beam name from new beam name prefix and next beam number
   std::string GenerateNewBeamName();
