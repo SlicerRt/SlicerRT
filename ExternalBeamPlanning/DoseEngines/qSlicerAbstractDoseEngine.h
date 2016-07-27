@@ -130,7 +130,7 @@ protected:
   ///   need to be enabled/disabled based on the checked state of the created checkbox
   void addBeamParameterCheckBox(
     QString tabName, QString parameterName, QString parameterLabel,
-    QString tooltip, bool default, QStringList dependentParameterNames=QStringList() );
+    QString tooltip, bool defaultValue, QStringList dependentParameterNames=QStringList() );
 
 // Beam parameter get/set functions
 public:
