@@ -1,10 +1,9 @@
 #ifndef __vtkPolyDataDistanceHistogramFilter_h
 #define __vtkPolyDataDistanceHistogramFilter_h
 
-#include "vtkTableAlgorithm.h"
-#include "vtkPolyData.h"
-#include "vtkDoubleArray.h"
-#include "vtkTable.h"
+#include <vtkPolyData.h>
+#include <vtkDoubleArray.h>
+#include <vtkTable.h>
 
 #include "vtkSlicerSegmentComparisonModuleLogicExport.h"
 
@@ -55,9 +54,19 @@ public:
   /// Get the distance values in the form of a histogram.
   vtkTable* GetOutputHistogram();
 
-  /// Get the raw (unprocessed) distance values.
-  /// TODO: The meaning of "the distance values" is ambiguous
+  /// Get the minimum of the distances from each point of the compare mesh to the reference mesh
+  /// Contains as many distance values as there are samples (points, etc.) in the compare mesh
   vtkDoubleArray* GetOutputDistances();
+  
+  /// Get maximum of the absolute of the minimum distances \sa GetOutputDistances from the compare mesh to the reference mesh.
+  /// This is what is traditionally called Hausdorff distance.
+  double GetMaximumHausdorffDistance();
+  
+  /// Get average of the absolute of the minimum distances \sa GetOutputDistances from the compare mesh to the reference mesh.
+  double GetAverageHausdorffDistance();
+  
+  /// Get 95th percentile of the absolute of the minimum distances \sa GetOutputDistances from the compare mesh to the reference mesh.
+  double GetPercent95HausdorffDistance();
   
   /// Set whether the filter should sample on the vertices of the input vtkPolyData objects.
   vtkSetMacro(SamplePolyDataVertices, int);

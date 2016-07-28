@@ -1,19 +1,18 @@
 #include "vtkPolyDataDistanceHistogramFilter.h"
 
 // vtk includes
-#include "vtkObjectFactory.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtkInformationVector.h"
-#include "vtkInformation.h"
-#include "vtkDataObject.h"
-#include "vtkSmartPointer.h"
-#include "vtkPolyDataPointSampler.h"
-#include "vtkImplicitPolyDataDistance.h"
-#include "vtkImageData.h"
-#include "vtkImageAccumulate.h"
-#include "vtkDoubleArray.h"
-#include "vtkIntArray.h"
-#include "vtkTable.h"
+#include <vtkObjectFactory.h>
+#include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtkInformationVector.h>
+#include <vtkInformation.h>
+#include <vtkDataObject.h>
+#include <vtkSmartPointer.h>
+#include <vtkPolyDataPointSampler.h>
+#include <vtkImplicitPolyDataDistance.h>
+#include <vtkImageData.h>
+#include <vtkImageAccumulate.h>
+#include <vtkIntArray.h>
+#include <vtkSortDataArray.h>
 
 vtkStandardNewMacro(vtkPolyDataDistanceHistogramFilter);
 
@@ -107,6 +106,56 @@ vtkTable* vtkPolyDataDistanceHistogramFilter::GetOutputHistogram()
 {
   //return vtkTable::GetData(this->GetOutputInformation(OUTPUT_PORT_HISTOGRAM));
   return this->OutputHistogram;
+}
+
+//----------------------------------------------------------------------------
+double vtkPolyDataDistanceHistogramFilter::GetMaximumHausdorffDistance()
+{
+  if (!this->OutputDistances)
+  {
+    vtkErrorMacro("GetMaximumHausdorffDistance: Output distances has not been created! Need to call Update after setting the inputs.");
+    return 0.0;
+  }
+
+  return this->OutputDistances->GetMaxNorm();
+}
+  
+//----------------------------------------------------------------------------
+double vtkPolyDataDistanceHistogramFilter::GetAverageHausdorffDistance()
+{
+  if (!this->OutputDistances)
+  {
+    vtkErrorMacro("GetAverageHausdorffDistance: Output distances has not been created! Need to call Update after setting the inputs.");
+    return 0.0;
+  }
+
+  double sum = 0.0;
+  for (int i=0; i<this->OutputDistances->GetNumberOfValues(); ++i)
+  {
+    sum += this->OutputDistances->GetValue(i);
+  }
+
+  return sum / (double)this->OutputDistances->GetNumberOfValues();
+}
+  
+//----------------------------------------------------------------------------
+double vtkPolyDataDistanceHistogramFilter::GetPercent95HausdorffDistance()
+{
+  if (!this->OutputDistances)
+  {
+    vtkErrorMacro("GetPercent95HausdorffDistance: Output distances has not been created! Need to call Update after setting the inputs.");
+    return 0.0;
+  }
+
+  vtkSmartPointer<vtkDoubleArray> sortedDistances = vtkSmartPointer<vtkDoubleArray>::New();
+  sortedDistances->DeepCopy(this->OutputDistances);
+
+  vtkSmartPointer<vtkSortDataArray> sortDataArray = vtkSmartPointer<vtkSortDataArray>::New();
+  sortDataArray->Sort(sortedDistances);
+
+  double percentile95thDistance = sortedDistances->GetValue(
+    (int)(0.95 * (double)(sortedDistances->GetNumberOfValues()) + 0.5) );
+  return percentile95thDistance;
 }
 
 //----------------------------------------------------------------------------
