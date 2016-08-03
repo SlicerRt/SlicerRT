@@ -14,27 +14,25 @@ class AbstractScriptedDoseEngine():
         Instantiate segment editor effect adaptor class from
         module (e.g. from setup function), and set python source:
         > import qSlicerExternalBeamPlanningDoseEnginesPythonQt as engines
-        > scriptedEffect = engines.qSlicerSegmentEditorScriptedEffect(None)
-        > scriptedEffect.setPythonSource(MyEngine.filePath)
+        > scriptedEngine = engines.qSlicerScriptedDoseEngine(None)
+        > scriptedEngine.setPythonSource(MyEffect.filePath)
         > scriptedEffect.self().register()
-        If effect name is added to slicer.modules.segmenteditorscriptedeffectnames
+        If engine name is added to slicer.modules.doseenginenames
         list then the above instantiation and registration steps are not necessary,
-        as the SegmentEditor module do all these.
+        as the ExternalBeamPlanning module do all these.
 
       2. Call host C++ implementation using
-        > self.scriptedEffect.functionName()
+        > self.scriptedEngine.functionName()
 
       2.a. Most frequently used such methods are:
         Parameter get/set: parameter, integerParameter, doubleParameter, setParameter
-        Add options widget: addOptionsWidget
-        Coordinate transforms: rasToXy, xyzToRas, xyToRas, xyzToIjk, xyToIjk
-        Convenience getters: renderWindow, renderer, viewNode
+        Add beam parameters: addBeamParameterSpinBox, addBeamParameterSlider, addBeamParameterComboBox, addBeamParameterCheckBox
 
       2.b. Always call API functions (the ones that are defined in the adaptor
-        class qSlicerSegmentEditorScriptedEffect) using the adaptor accessor:
-        > self.scriptedEffect.updateGUIFromMRML()
+        class qSlicerScriptedDoseEngine) using the adaptor accessor:
+        > self.scriptedEffect.addResultDose()
 
-      An example for a generic effect is the ThresholdEffect
+      An example for a generic effect is the MockPythonDoseEngine
 
   """
 
@@ -42,8 +40,8 @@ class AbstractScriptedDoseEngine():
     self.scriptedEngine = scriptedEngine
 
   def register(self):
-    import qSlicerSegmentationsEditorEffectsPythonQt
+    import qSlicerExternalBeamPlanningDoseEnginesPythonQt
     #TODO: For some reason the instance() function cannot be called as a class function although it's static
-    factory = qSlicerSegmentationsEditorEffectsPythonQt.qSlicerSegmentEditorEffectFactory()
-    effectFactorySingleton = factory.instance()
-    effectFactorySingleton.registerEffect(self.scriptedEngine)
+    handler = qSlicerExternalBeamPlanningDoseEnginesPythonQt.qSlicerDoseEnginePluginHandler()
+    engineHandlerSingleton = handler.instance()
+    engineHandlerSingleton.registerDoseEngine(self.scriptedEngine)

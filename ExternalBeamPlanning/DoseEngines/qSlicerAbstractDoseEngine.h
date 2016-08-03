@@ -39,7 +39,11 @@ class qMRMLBeamParametersTabWidget;
 class Q_SLICER_EXTERNALBEAMPLANNING_DOSE_ENGINES_EXPORT qSlicerAbstractDoseEngine : public QObject
 {
   Q_OBJECT
-  Q_PROPERTY(QString name READ name)
+
+  /// This property stores the name of the dose engine.
+  /// Cannot be empty.
+  /// \sa name(), \sa setName()
+  Q_PROPERTY(QString name READ name WRITE setName)
 
 public:
   /// Maximum Gray value for visualization window/level of the newly created per-beam dose volumes
@@ -53,7 +57,10 @@ public:
   virtual ~qSlicerAbstractDoseEngine();
 
   /// Get dose engine name
-  QString name() const;
+  virtual QString name()const;
+  /// Set the name of the dose engine
+  /// NOTE: name must be defined in constructor in C++ engines, this can only be used in python scripted ones
+  virtual void setName(QString name);
 
 // Dose calculation related functions
 public:
@@ -85,8 +92,9 @@ protected:
   /// This is the method that needs to be implemented in each engine.
   virtual void defineBeamParameters() = 0;
 
-// Dose calculation related functions (functions to call from the subclass)
-protected:
+// Dose calculation related functions (functions to call from the subclass).
+// Public so that they can be called from python.
+public:
   /// Add intermediate results to beam. Doing so allows easily cleaning up the intermediate results
   /// \param result MRML node containing the intermediate result to add
   /// \param beamNode Beam to add the intermediate result to
@@ -100,7 +108,8 @@ protected:
 
 // Beam parameter definition functions.
 // Need to be called from the implemented \sa defineBeamParameters method.
-protected:
+// Public so that they can be called from python.
+public:
   /// Add new floating point parameter to beam parameters widget as a spin box with text edit
   /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
   /// \param parameterName Name of the beam parameter. This is prefixed with the dose engine name

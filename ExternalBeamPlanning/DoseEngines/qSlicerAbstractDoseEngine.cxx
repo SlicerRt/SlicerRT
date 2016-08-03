@@ -107,7 +107,18 @@ qSlicerAbstractDoseEngine::~qSlicerAbstractDoseEngine()
 //----------------------------------------------------------------------------
 QString qSlicerAbstractDoseEngine::name() const
 {
-  return m_Name;
+  if (m_Name.isEmpty())
+  {
+    qCritical() << Q_FUNC_INFO << ": Empty dose engine name!";
+  }
+  return this->m_Name;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::setName(QString name)
+{
+  Q_UNUSED(name);
+  qCritical() << Q_FUNC_INFO << ": Cannot set dose engine name by method, only in constructor!";
 }
 
 //----------------------------------------------------------------------------

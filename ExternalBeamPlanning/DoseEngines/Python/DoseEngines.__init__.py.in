@@ -1,0 +1,21 @@
+from AbstractScriptedDoseEngine import *
+
+# Add engine name to the list of scripted dose engines.
+# ExternalBeamPlanning module will instantiate the effect class and register
+# in the engine handler.
+try:
+  slicer.modules.doseenginenames
+except AttributeError:
+  slicer.modules.doseenginenames=[]
+
+import importlib
+import traceback
+engineNames = [
+  "MockPythonDoseEngine"
+  ]
+for engineName in engineNames:
+  try:
+    m=importlib.import_module("DoseEngines."+engineName)
+    slicer.modules.doseenginenames.extend([engineName])
+  except Exception as e:
+    logging.error(traceback.format_exc())

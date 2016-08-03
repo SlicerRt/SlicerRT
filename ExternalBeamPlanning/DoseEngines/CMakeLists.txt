@@ -25,6 +25,8 @@ set(${KIT}_SRCS
   qSlicerMockDoseEngine.h
   qSlicerPlastimatchProtonDoseEngine.cxx
   qSlicerPlastimatchProtonDoseEngine.h
+  qSlicerScriptedDoseEngine.cxx
+  qSlicerScriptedDoseEngine.h
   )
 
 set(${KIT}_UI_SRCS
@@ -43,6 +45,7 @@ set(${KIT}_MOC_SRCS
   qSlicerDoseEngineLogic.h
   qSlicerMockDoseEngine.h
   qSlicerPlastimatchProtonDoseEngine.h
+  qSlicerScriptedDoseEngine.h
 )
 
 set(${KIT}_RESOURCES

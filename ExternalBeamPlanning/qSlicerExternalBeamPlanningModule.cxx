@@ -45,6 +45,9 @@
 #include "qSlicerSubjectHierarchyRTPlanPlugin.h"
 #include "qSlicerSubjectHierarchyRTBeamPlugin.h"
 
+// PythonQt includes
+#include "PythonQt.h"
+
 //-----------------------------------------------------------------------------
 Q_EXPORT_PLUGIN2(qSlicerExternalBeamPlanningModule, qSlicerExternalBeamPlanningModule);
 
@@ -145,6 +148,25 @@ void qSlicerExternalBeamPlanningModule::setup()
   // Register dose engines
   qSlicerDoseEnginePluginHandler::instance()->registerDoseEngine(new qSlicerPlastimatchProtonDoseEngine());
   qSlicerDoseEnginePluginHandler::instance()->registerDoseEngine(new qSlicerMockDoseEngine());
+
+  // Python engines
+  // (otherwise it would be the responsibility of the module that embeds the dose engine)
+  PythonQt::init();
+  PythonQtObjectPtr context = PythonQt::self()->getMainModule();
+  context.evalScript( QString(
+    "from DoseEngines import * \n"
+    "import qSlicerExternalBeamPlanningDoseEnginesPythonQt as engines \n"
+    "import traceback \n"
+    "import logging \n"
+    "try: \n"
+    "  slicer.modules.doseenginenames \n"
+    "except AttributeError: \n"
+    "  slicer.modules.doseenginenames=[] \n"
+    "for engineName in slicer.modules.doseenginenames: \n"
+    "  try: \n"
+    "    exec(\"{0}Instance = engines.qSlicerScriptedDoseEngine(None);{0}Instance.setPythonSource({0}.__file__.replace('\\\\\\\\','/'));{0}Instance.self().register()\".format(engineName)) \n"
+    "  except Exception as e: \n"
+    "    logging.error(traceback.format_exc()) \n") );
 }
 
 //-----------------------------------------------------------------------------
