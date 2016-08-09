@@ -33,7 +33,7 @@ set (PLASTIMATCH_EXTRA_LIBRARIES
   -DPLMLIB_CONFIG_ENABLE_DOSE:BOOL=TRUE)
 
 # Choose which Plastimatch revision to build
-set (PLM_GIT_TAG "ca86bd737c7f9c0994911b04db94ae062d1fade7")
+set (PLM_GIT_TAG "f93a97bcd06f9ffe24789f36b5bb5ac56d2cc9c6")
 
 # Figure out whether to use git or https
 if(NOT DEFINED git_protocol)
