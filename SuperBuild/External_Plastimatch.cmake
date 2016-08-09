@@ -53,9 +53,10 @@ endif()
 
 # Disable OpenMP on Windows until a better solution can be found
 # http://www.na-mic.org/Bug/view.php?id=3823
-set (DISABLE_OPENMP_ON_WINDOWS "")
+set (HANDLE_OPENMP_ON_WINDOWS "")
 if (WIN32)
-  set (DISABLE_OPENMP_ON_WINDOWS "-DPLM_CONFIG_DISABLE_OPENMP:BOOL=ON")
+  #  set (HANDLE_OPENMP_ON_WINDOWS "-DPLM_CONFIG_DISABLE_OPENMP:BOOL=ON")
+  set (HANDLE_OPENMP_ON_WINDOWS "-DPLM_CONFIG_NOMANIFEST:BOOL=ON")
 endif ()
 
 ExternalProject_Add( Plastimatch
@@ -73,7 +74,8 @@ ExternalProject_Add( Plastimatch
     -DPLM_CONFIG_INSTALL_LIBRARIES:BOOL=ON 
     # CUDA build is disabled until ticket #226 can be resolved.
     -DPLM_CONFIG_DISABLE_CUDA:BOOL=ON
-    ${DISABLE_OPENMP_ON_WINDOWS}
+    # Set PLM_LINK_FLAGS to build without manifest on windows 
+    ${HANDLE_OPENMP_ON_WINDOWS}
     ${PLASTIMATCH_EXTRA_LIBRARIES}
     -DDCMTK_DIR:STRING=${DCMTK_DIR}
     -DITK_DIR:STRING=${ITK_DIR}
