@@ -545,11 +545,8 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     try:
       self.delayDisplay("Apply Day 2 CT to Day 1 CT rigid transform to Day 2 Dose",self.delayMs)
 
-      cloneNodePlugin = slicer.qSlicerSubjectHierarchyPluginHandler.instance().pluginByName('CloneNode')
-      self.assertIsNotNone( cloneNodePlugin )
-
       day2DoseSH = slicer.util.getNode(self.day2DoseName + slicer.vtkMRMLSubjectHierarchyConstants.GetSubjectHierarchyNodeNamePostfix())
-      day2DoseCloneSH = cloneNodePlugin.cloneSubjectHierarchyNode(day2DoseSH, self.day2DoseRigidName)
+      day2DoseCloneSH = slicer.vtkSlicerSubjectHierarchyModuleLogic.CloneSubjectHierarchyNode(day2DoseSH, self.day2DoseRigidName)
       transformDay2ToDay1Rigid = slicer.util.getNode(self.transformDay2ToDay1RigidName)
       slicer.vtkSlicerSubjectHierarchyModuleLogic.TransformBranch(day2DoseCloneSH, transformDay2ToDay1Rigid)
 

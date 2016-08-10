@@ -72,12 +72,6 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->CouchAngle = 0.0;
 
   this->SAD = 2000.0;
-
-  // Register parent transform modified event
-  //TODO: Needed?
-  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-  events->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-  vtkObserveMRMLObjectEventsMacro(this, events);
 }
 
 //----------------------------------------------------------------------------
@@ -185,6 +179,17 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
     return;
   }
 
+  // Create transform node for beam
+  this->CreateNewBeamTransformNode();
+
+  // Add beam in the same plan
+  vtkMRMLRTPlanNode* planNode = node->GetParentPlanNode();
+  if (planNode)
+  {
+    planNode->AddBeam(this);
+  }
+
+  // Copy beam parameters
   this->DisableModifiedEventOn();
 
   this->SetBeamNumber(node->GetBeamNumber());
@@ -199,7 +204,7 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   this->SetGantryAngle(node->GetGantryAngle());
   this->SetCollimatorAngle(node->GetCollimatorAngle());
   this->SetCouchAngle(node->GetCouchAngle());
-
+  
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
 }
@@ -236,6 +241,53 @@ void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << " GantryAngle:   " << this->GantryAngle << "\n";
   os << indent << " CollimatorAngle:   " << this->CollimatorAngle << "\n";
   os << indent << " CouchAngle:   " << this->CouchAngle << "\n";
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::CreateDefaultDisplayNodes()
+{
+  // Create default model display node
+  Superclass::CreateDefaultDisplayNodes();
+
+  // Set beam-specific parameters
+  vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetDisplayNode());
+  if (!displayNode)
+  {
+    vtkErrorMacro("CreateDefaultDisplayNodes: Failed to create default display node");
+    return;
+  }
+
+  displayNode->SetColor(0.0, 1.0, 0.2);
+  displayNode->SetOpacity(0.3);
+  displayNode->SetBackfaceCulling(0); // Disable backface culling to make the back side of the contour visible as well
+  displayNode->VisibilityOn(); 
+  displayNode->SliceIntersectionVisibilityOn();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::CreateDefaultTransformNode()
+{
+  if (this->GetParentTransformNode())
+  {
+    return;
+  }
+
+  this->CreateNewBeamTransformNode();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::CreateNewBeamTransformNode()
+{
+  // Create transform node for beam
+  vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
+  std::string transformName = std::string(this->GetName()) + "_Transform";
+  transformNode->SetName(transformName.c_str());
+  this->GetScene()->AddNode(transformNode);
+
+  // Hide transform node from subject hierarchy as it is not supposed to be used by the user
+  transformNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
+
+  this->SetAndObserveTransformNodeID(transformNode->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -400,47 +452,6 @@ void vtkMRMLRTBeamNode::SetSAD(double sad)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::CreateDefaultDisplayNodes()
-{
-  // Create default model display node
-  Superclass::CreateDefaultDisplayNodes();
-
-  // Set beam-specific parameters
-  vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast(this->GetDisplayNode());
-  if (!displayNode)
-  {
-    vtkErrorMacro("CreateDefaultDisplayNodes: Failed to create default display node");
-    return;
-  }
-
-  displayNode->SetColor(0.0, 1.0, 0.2);
-  displayNode->SetOpacity(0.3);
-  displayNode->SetBackfaceCulling(0); // Disable backface culling to make the back side of the contour visible as well
-  displayNode->VisibilityOn(); 
-  displayNode->SliceIntersectionVisibilityOn();
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::CreateDefaultTransformNode()
-{
-  if (this->GetParentTransformNode())
-  {
-    return;
-  }
-
-  // Create transform node for beam
-  vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
-  std::string transformName = std::string(this->GetName()) + "_Transform";
-  transformNode->SetName(transformName.c_str());
-  this->GetScene()->AddNode(transformNode);
-
-  // Hide transform node from subject hierarchy as it is not supposed to be used by the user
-  transformNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
-
-  this->SetAndObserveTransformNodeID(transformNode->GetID());
-}
-
-//----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::UpdateTransform()
 {
   if (!this->GetScene())
@@ -488,6 +499,16 @@ void vtkMRMLRTBeamNode::UpdateTransform()
     std::string transformName = std::string(this->Name) + "_Transform";
     transformNode->SetName(transformName.c_str());
   }
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::UpdateGeometry()
+{
+  // Make sure display node exists
+  this->CreateDefaultDisplayNodes();
+
+  // Update beam poly data based on jaws and MLC
+  this->CreateBeamPolyData(this->GetPolyData());
 }
 
 //---------------------------------------------------------------------------
@@ -632,16 +653,6 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
 
   beamModelPolyData->SetPoints(points);
   beamModelPolyData->SetPolys(cellArray);
-}
-
-//---------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::UpdateGeometry()
-{
-  // Make sure display node exists
-  this->CreateDefaultDisplayNodes();
-
-  // Update beam poly data based on jaws and MLC
-  this->CreateBeamPolyData(this->GetPolyData());
 }
 
 //---------------------------------------------------------------------------

@@ -61,8 +61,10 @@ public:
 
 public:
   /// Create a new beam based on another beam, and add it to the plan
+  /// \param copiedBeamNode Beam node to clone
+  /// \param planNode Plan to add beam clone to. If omitted then beam clone is added in same plan as copiedBeamNode
   /// \return The new beam node that has been copied and added to the plan
-  vtkMRMLRTBeamNode* CloneBeamInPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode);
+  vtkMRMLRTBeamNode* CloneBeamInPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode=NULL);
 
 //TODO: Obsolete functions
 public:

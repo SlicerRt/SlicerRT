@@ -38,6 +38,10 @@
 //#include <vtkMRMLSliceLogic.h>
 //#include <vtkMRMLSliceNode.h>
 //#include <vtkMRMLSliceCompositeNode.h>
+#include <vtkMRMLSubjectHierarchyNode.h>
+
+// Slicer includes
+#include <vtkSlicerSubjectHierarchyModuleLogic.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -278,50 +282,40 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ProcessMRMLNodesEvents(vtkObject*
 
     if (event == vtkMRMLRTBeamNode::CloningRequested)
     {
-      this->CloneBeamInPlan(beamNode, beamNode->GetParentPlanNode());
+      this->CloneBeamInPlan(beamNode);
     }
   }
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode)
+vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode/*=NULL*/)
 {
   if (!this->GetMRMLScene())
   {
     vtkErrorMacro("CloneBeamInPlan: Invalid MRML scene!");
     return NULL;
   }
-  if (!copiedBeamNode || !planNode)
+  if (!copiedBeamNode)
   {
-    vtkErrorMacro("CloneBeamInPlan: Invalid copied beam node or plan node!");
-    return NULL;
-  }
-  if (!this->BeamsLogic)
-  {
-    vtkErrorMacro("CloneBeamInPlan: Invalid beams logic!");
+    vtkErrorMacro("CloneBeamInPlan: Invalid copied beam node");
     return NULL;
   }
 
-  // Create beam using engine
-  vtkSmartPointer<vtkMRMLRTBeamNode> beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
-  if (!beamNode)
+  // Determine name of beam clone
+  std::string newBeamName = (planNode ? planNode->GenerateNewBeamName() : (copiedBeamNode->GetParentPlanNode() ? copiedBeamNode->GetParentPlanNode()->GenerateNewBeamName() : "") );
+  // Clone beam node via subject hierarchy
+  vtkMRMLSubjectHierarchyNode* beamShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(copiedBeamNode);
+  vtkMRMLSubjectHierarchyNode* beamCloneShNode = vtkSlicerSubjectHierarchyModuleLogic::CloneSubjectHierarchyNode( beamShNode, (newBeamName.empty() ? NULL : newBeamName.c_str()) );
+  vtkMRMLRTBeamNode* beamCloneNode = vtkMRMLRTBeamNode::SafeDownCast(beamCloneShNode->GetAssociatedNode());
+
+  // Add beam clone to given plan if specified and different than default
+  if (planNode && planNode != beamCloneNode->GetParentPlanNode())
   {
-    vtkErrorMacro("CloneBeamInPlan: Failed to create beam with dose engine " << planNode->GetDoseEngineName());
-    return NULL;
+    beamCloneNode->GetParentPlanNode()->RemoveBeam(beamCloneNode);
+    planNode->AddBeam(beamCloneNode);
   }
 
-  // Copy properties from template
-  beamNode->Copy(copiedBeamNode);
-  this->GetMRMLScene()->AddNode(beamNode);
-
-  // Change name of new beam to default
-  std::string newBeamName = planNode->GenerateNewBeamName();
-  beamNode->SetName(newBeamName.c_str());
-
-  // Add beam to plan
-  planNode->AddBeam(beamNode);
-
-  return beamNode;
+  return beamCloneNode;
 }
 
 

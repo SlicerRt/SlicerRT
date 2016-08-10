@@ -78,8 +78,13 @@ public:
   /// Create and observe default display node
   virtual void CreateDefaultDisplayNodes();
 
-  /// Create transform node that places the beam poly data in the right position based on geometry
+  /// Create transform node that places the beam poly data in the right position based on geometry.
+  /// Only creates it if missing
   virtual void CreateDefaultTransformNode();
+
+  /// Create transform node that places the beam poly data in the right position based on geometry.
+  /// Always creates a new transform node.
+  virtual void CreateNewBeamTransformNode();
 
   /// Update beam transform based on beam and plan parameters
   void UpdateTransform();
