@@ -295,7 +295,7 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
     }
 
     std::cout << "Setting beam weight -> ";
-    rt_beam->set_beam_weight(beamNode->GetBeamWeight());
+    rt_beam->set_beam_weight(1.0); // Beam weight is applied centrally by the dose engine logic (qSlicerDoseEngineLogic::createAccumulatedDose)
     std::cout << "Beam weight = " << rt_beam->get_beam_weight() << std::endl;
 
     std::cout << "Setting smearing -> ";
