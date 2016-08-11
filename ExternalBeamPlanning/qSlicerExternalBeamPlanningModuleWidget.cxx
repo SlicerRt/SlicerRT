@@ -768,19 +768,6 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineChanged(const QString &t
     return;
   }
 
-  // Hide parameters belonging to the previously selected dose engine from user interface
-  if (rtPlanNode->GetDoseEngineName())
-  {
-    qSlicerAbstractDoseEngine* previousEngine =
-      qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(rtPlanNode->GetDoseEngineName());
-    if (!previousEngine)
-    {
-      qCritical() << Q_FUNC_INFO << ": Failed to access dose engine with name" << rtPlanNode->GetDoseEngineName();
-      return;
-    }
-    previousEngine->setBeamParametersVisible(false);
-  }
-
   // Get newly selected dose engine
   qSlicerAbstractDoseEngine* selectedEngine =
     qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(text.toLatin1().constData());
@@ -789,9 +776,6 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineChanged(const QString &t
     qCritical() << Q_FUNC_INFO << ": Failed to access dose engine with name" << text;
     return;
   }
-
-  // Add engine-specific beam parameters to user interface
-  selectedEngine->setBeamParametersVisible(true);
 
   qDebug() << "Dose engine selection changed to " << text;
   rtPlanNode->DisableModifiedEventOn();

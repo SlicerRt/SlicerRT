@@ -35,6 +35,7 @@
 
 class vtkMRMLNode;
 class qMRMLBeamParametersTabWidgetPrivate;
+class QCheckBox;
 
 /// \ingroup SlicerRt_QtModules_Beams_Widgets
 class Q_SLICER_MODULE_BEAMS_WIDGETS_EXPORT qMRMLBeamParametersTabWidget : public QTabWidget
@@ -48,6 +49,8 @@ public:
   /// Name of property in checkbox widgets specifying the beam parameter widgets to be enabled/disabled
   /// based on the checked state of the checkbox by containing their parameter node attribute names (see above)
   static const char* DEPENDENT_PARAMETER_NAMES_PROPERTY;
+  /// Name of property in widgets indicating whether the parameter it represents is used by the current engine
+  static const char* USED_BY_CURRENT_ENGINE_PROPERTY;
 
 public:
   typedef QTabWidget Superclass;
@@ -91,6 +94,9 @@ public:
   /// Removes tab if becomes empty after hiding parameter, and re-adds tab if needed after showing parameter
   bool setBeamParameterVisible(QString parameterName, bool visible);
 
+  /// Hide tabs where all parameters are hidden, and show tabs that contain visible parameters
+  void updateTabVisibility();
+
 public slots:
   /// Set RT beam MRML node
   void setBeamNode(vtkMRMLNode* node);
@@ -110,6 +116,9 @@ signals:
 protected slots:
   /// Update from beam node state
   void updateWidgetFromMRML();
+
+  /// Enable/disable widgets for dependent parameters for a checkbox based on the checkbox's state
+  void updateDependentParameterWidgetsForCheckbox(QCheckBox* checkBox);
 
 // Default beam parameter handler functions
 protected slots:

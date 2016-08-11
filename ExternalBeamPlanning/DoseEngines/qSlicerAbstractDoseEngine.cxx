@@ -438,10 +438,17 @@ void qSlicerAbstractDoseEngine::addBeamParameterCheckBox(
     return;
   }
 
+  // Assemble dependent parameter names to be prefixed with dose engine name
+  QStringList assembledDependentParameterNames = QStringList();
+  foreach (QString parameter, dependentParameterNames)
+  {
+    assembledDependentParameterNames << this->assembleEngineParameterName(parameter);
+  }
+
   // Add beam parameter to tab widget
   beamParametersTabWidget->addBeamParameterCheckBox(
     tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
-    tooltip, defaultValue, dependentParameterNames );
+    tooltip, defaultValue, assembledDependentParameterNames );
 }
 
 //-----------------------------------------------------------------------------
@@ -468,6 +475,9 @@ void qSlicerAbstractDoseEngine::setBeamParametersVisible(bool visible)
       return;
     }
   }
+
+  // Update tab visibility in parameters widget
+  beamParametersTabWidget->updateTabVisibility();
 }
 
 //-----------------------------------------------------------------------------

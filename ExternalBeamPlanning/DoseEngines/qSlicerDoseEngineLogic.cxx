@@ -169,6 +169,13 @@ void qSlicerDoseEngineLogic::onDoseEngineChangedInPlan(vtkObject* nodeObject)
     return;
   }
 
+  // Update beam parameter visibilities in tab widget
+  foreach (qSlicerAbstractDoseEngine* currentEngine, qSlicerDoseEnginePluginHandler::instance()->registeredDoseEngines())
+  {
+    // Show parameters if engine is the current engine, hide otherwise
+    currentEngine->setBeamParametersVisible(currentEngine == selectedEngine);
+  }
+
   // Add engine-specific beam parameters to all beams contained by the plan.
   // Existing parameters are not overwritten, missing ones get the default values.
   std::vector<vtkMRMLRTBeamNode*> beams;

@@ -303,6 +303,7 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtk
 
   // Determine name of beam clone
   std::string newBeamName = (planNode ? planNode->GenerateNewBeamName() : (copiedBeamNode->GetParentPlanNode() ? copiedBeamNode->GetParentPlanNode()->GenerateNewBeamName() : "") );
+
   // Clone beam node via subject hierarchy
   vtkMRMLSubjectHierarchyNode* beamShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(copiedBeamNode);
   vtkMRMLSubjectHierarchyNode* beamCloneShNode = vtkSlicerSubjectHierarchyModuleLogic::CloneSubjectHierarchyNode( beamShNode, (newBeamName.empty() ? NULL : newBeamName.c_str()) );

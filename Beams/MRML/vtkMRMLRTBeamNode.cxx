@@ -659,4 +659,10 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
 void vtkMRMLRTBeamNode::RequestCloning()
 {
   this->InvokeEvent(vtkMRMLRTBeamNode::CloningRequested);
+
+  // Update display
+  if (this->GetDisplayNode())
+  {
+    this->GetDisplayNode()->Modified();
+  }
 }

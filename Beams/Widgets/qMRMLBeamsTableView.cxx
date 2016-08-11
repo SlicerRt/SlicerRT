@@ -24,7 +24,6 @@
 
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
-#include "vtkMRMLDisplayNode.h"
 
 // VTK includes
 #include <vtkWeakPointer.h>
@@ -402,9 +401,6 @@ void qMRMLBeamsTableView::onCloneButtonClicked()
 
   // Clone beam node in its parent plan
   beamNode->RequestCloning();
-
-  // Update display
-  beamNode->GetDisplayNode()->Modified();
 }
 
 //-----------------------------------------------------------------------------

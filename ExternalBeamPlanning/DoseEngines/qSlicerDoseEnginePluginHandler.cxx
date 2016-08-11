@@ -90,9 +90,9 @@ qSlicerDoseEnginePluginHandler::qSlicerDoseEnginePluginHandler(QObject* parent)
 //-----------------------------------------------------------------------------
 qSlicerDoseEnginePluginHandler::~qSlicerDoseEnginePluginHandler()
 {
-  foreach(qSlicerAbstractDoseEngine* effect, m_RegisteredDoseEngines)
+  foreach(qSlicerAbstractDoseEngine* engine, m_RegisteredDoseEngines)
   {
-    delete effect;
+    delete engine;
   }
   this->m_RegisteredDoseEngines.clear();
 }
@@ -112,16 +112,16 @@ bool qSlicerDoseEnginePluginHandler::registerDoseEngine(qSlicerAbstractDoseEngin
   }
 
   // Check if the same engine has already been registered
-  qSlicerAbstractDoseEngine* currentEffect = NULL;
-  foreach (currentEffect, this->m_RegisteredDoseEngines)
+  qSlicerAbstractDoseEngine* currentEngine = NULL;
+  foreach (currentEngine, this->m_RegisteredDoseEngines)
   {
-    if (engineToRegister->name().compare(currentEffect->name()) == 0)
+    if (engineToRegister->name().compare(currentEngine->name()) == 0)
     {
       return false;
     }
   }
 
-  // Add the effect to the list
+  // Add the engine to the list
   this->m_RegisteredDoseEngines << engineToRegister;
 
   // Define beam parameters specified by engine
