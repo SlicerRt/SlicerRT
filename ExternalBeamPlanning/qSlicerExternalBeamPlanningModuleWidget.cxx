@@ -352,9 +352,9 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
   qvtkReconnect(rtPlanNode, vtkCommand::ModifiedEvent, this, SLOT(onRTPlanNodeModified()));
   qvtkReconnect(rtPlanNode, vtkMRMLRTPlanNode::IsocenterModifiedEvent, this, SLOT(updateIsocenterPosition()));
 
-  // Set input segmentation and reference volume if specified by DICOM
   if (rtPlanNode)
   {
+    // Set input segmentation and reference volume if specified by DICOM
     vtkMRMLSubjectHierarchyNode* planShNode = rtPlanNode->GetPlanSubjectHierarchyNode();
     vtkMRMLSubjectHierarchyNode* referencedSegmentationShNode = NULL;
     if (planShNode)
@@ -395,16 +395,22 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
       qCritical() << Q_FUNC_INFO << ": Invalid subject hierarchy node for plan " << rtPlanNode->GetName();
       return;
     }
-  }
 
-  // Create and select output dose volume if missing
-  if (rtPlanNode && !rtPlanNode->GetOutputTotalDoseVolumeNode())
-  {
-    vtkSmartPointer<vtkMRMLScalarVolumeNode> newDoseVolume = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-    std::string newDoseVolumeName = std::string(rtPlanNode->GetName()) + "_TotalDose";
-    newDoseVolume->SetName(newDoseVolumeName.c_str());
-    this->mrmlScene()->AddNode(newDoseVolume);
-    rtPlanNode->SetAndObserveOutputTotalDoseVolumeNode(newDoseVolume);
+    // Create and select output dose volume if missing
+    if (!rtPlanNode->GetOutputTotalDoseVolumeNode())
+    {
+      vtkSmartPointer<vtkMRMLScalarVolumeNode> newDoseVolume = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+      std::string newDoseVolumeName = std::string(rtPlanNode->GetName()) + "_TotalDose";
+      newDoseVolume->SetName(newDoseVolumeName.c_str());
+      this->mrmlScene()->AddNode(newDoseVolume);
+      rtPlanNode->SetAndObserveOutputTotalDoseVolumeNode(newDoseVolume);
+    }
+
+    // Set dose engine from UI if not specified in plan
+    if (!rtPlanNode->GetDoseEngineName())
+    {
+      rtPlanNode->SetDoseEngineName(d->comboBox_DoseEngine->currentText().toLatin1().constData());
+    }
   }
 
   this->updateWidgetFromMRML();
