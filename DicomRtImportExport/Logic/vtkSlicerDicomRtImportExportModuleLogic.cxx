@@ -862,20 +862,36 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
   this->GetMRMLScene()->AddNode(planNode);
 
   // Set up plan subject hierarchy node
-  vtkMRMLSubjectHierarchyNode* planSHNode = planNode->GetPlanSubjectHierarchyNode();
-  if (!planSHNode)
+  vtkMRMLSubjectHierarchyNode* planShNode = planNode->GetPlanSubjectHierarchyNode();
+  if (!planShNode)
   {
-    vtkErrorMacro("LoadRtPlan: Created RTPlanNode, but it doesn't have a Subject Hierarchy node.");
+    vtkErrorMacro("LoadRtPlan: Created RTPlanNode, but it doesn't have a subject hierarchy node.");
     return false;
   }
-  if (planSHNode)
+  if (planShNode)
   {
     // Attach attributes to plan SH node
-    planSHNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(),
+    planShNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(),
       rtReader->GetSeriesInstanceUid());
-    planSHNode->SetName(shSeriesNodeName.c_str());
+    planShNode->SetName(shSeriesNodeName.c_str());
+
+    const char* referencedStructureSetSopInstanceUid = rtReader->GetRTPlanReferencedStructureSetSOPInstanceUID();
+    const char* referencedDoseSopInstanceUids = rtReader->GetRTPlanReferencedDoseSOPInstanceUIDs();
+    std::string referencedSopInstanceUids = "";
+    if (referencedStructureSetSopInstanceUid)
+    {
+      referencedSopInstanceUids = std::string(referencedStructureSetSopInstanceUid);
+    }
+    if (referencedDoseSopInstanceUids)
+    {        
+      referencedSopInstanceUids = referencedSopInstanceUids +
+        (referencedStructureSetSopInstanceUid?" ":"") + std::string(referencedDoseSopInstanceUids);
+    }
+    planShNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName().c_str(),
+      referencedSopInstanceUids.c_str() );
   }
 
+  // Load beams in plan
   int numberOfBeams = rtReader->GetNumberOfBeams();
   for (int beamIndex = 0; beamIndex < numberOfBeams; beamIndex++) // DICOM starts indexing from 1
   {
@@ -981,9 +997,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
     vtkWarningMacro("LoadRtPlan: No Study SH node found.");
     return false;
   }
-  if (studyNode && planSHNode)
+  if (studyNode && planShNode)
   {
-    planSHNode->SetParentNodeID(studyNode->GetID());
+    planShNode->SetParentNodeID(studyNode->GetID());
   }
   // Put plan markups under study within SH
   vtkMRMLSubjectHierarchyNode* planMarkupsSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(

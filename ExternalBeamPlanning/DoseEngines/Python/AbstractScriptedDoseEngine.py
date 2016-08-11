@@ -6,12 +6,11 @@ import vtk, qt, ctk, slicer, logging
 #
 
 class AbstractScriptedDoseEngine():
-  #TODO:
   """ Abstract scripted dose engines implemented in python
 
       USAGE:
       1. Instantiation and registration
-        Instantiate segment editor effect adaptor class from
+        Instantiate dose engine adaptor class from
         module (e.g. from setup function), and set python source:
         > import qSlicerExternalBeamPlanningDoseEnginesPythonQt as engines
         > scriptedEngine = engines.qSlicerScriptedDoseEngine(None)

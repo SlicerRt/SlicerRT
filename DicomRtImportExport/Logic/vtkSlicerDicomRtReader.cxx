@@ -154,6 +154,9 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
 
   this->SOPInstanceUID = NULL;
 
+  this->RTPlanReferencedStructureSetSOPInstanceUID = NULL;
+  this->RTPlanReferencedDoseSOPInstanceUIDs = NULL;
+
   this->ImageType = NULL;
   this->RTImageLabel = NULL;
   this->RTImageReferencedRTPlanSOPInstanceUID = NULL;
@@ -666,6 +669,45 @@ void vtkSlicerDicomRtReader::LoadRTPlan(DcmDataset* dataset)
     return; // mandatory DICOM value
   }
   this->SetSOPInstanceUID(sopInstanceUid.c_str());
+
+  // Referenced structure set UID
+  DRTReferencedStructureSetSequence &referencedStructureSetSequence = rtPlanObject.getReferencedStructureSetSequence();
+  if (referencedStructureSetSequence.gotoFirstItem().good())
+  {
+    DRTReferencedStructureSetSequence::Item &referencedStructureSetSequenceItem = referencedStructureSetSequence.getCurrentItem();
+    if (referencedStructureSetSequenceItem.isValid())
+    {
+      OFString referencedSOPInstanceUID("");
+      if (referencedStructureSetSequenceItem.getReferencedSOPInstanceUID(referencedSOPInstanceUID).good())
+      {
+        this->SetRTPlanReferencedStructureSetSOPInstanceUID(referencedSOPInstanceUID.c_str());
+      }
+    }
+  }
+
+  // Referenced dose UID
+  DRTReferencedDoseSequence &referencedDoseSequence = rtPlanObject.getReferencedDoseSequence();
+  std::string serializedDoseUidList("");
+  if (referencedDoseSequence.gotoFirstItem().good())
+  {
+    do
+    {
+      DRTReferencedDoseSequence::Item &currentDoseSequenceItem = referencedDoseSequence.getCurrentItem();
+      if (currentDoseSequenceItem.isValid())
+      {
+        OFString referencedSOPInstanceUID("");
+        if (currentDoseSequenceItem.getReferencedSOPInstanceUID(referencedSOPInstanceUID).good())
+        {
+          serializedDoseUidList.append(referencedSOPInstanceUID.c_str());
+          serializedDoseUidList.append(" ");
+        }
+      }
+    }
+    while (referencedDoseSequence.gotoNextItem().good());
+  }
+  // Strip last space
+  serializedDoseUidList = serializedDoseUidList.substr(0, serializedDoseUidList.size()-1);
+  this->SetRTPlanReferencedDoseSOPInstanceUIDs(serializedDoseUidList.size() > 0 ? serializedDoseUidList.c_str() : NULL);
 
   // Get and store patient, study and series information
   this->GetAndStoreHierarchyInformation(&rtPlanObject);

@@ -149,6 +149,16 @@ public:
   /// Set SOP instance UID
   vtkSetStringMacro(SOPInstanceUID);
 
+  /// Get structure set SOP instance UID referenced by RT Plan
+  vtkGetStringMacro(RTPlanReferencedStructureSetSOPInstanceUID);
+  /// Set structure set SOP instance UID referenced by RT Plan
+  vtkSetStringMacro(RTPlanReferencedStructureSetSOPInstanceUID);
+
+  /// Get dose SOP instance UIDs referenced by RT Plan
+  vtkGetStringMacro(RTPlanReferencedDoseSOPInstanceUIDs);
+  /// Set dose SOP instance UIDs referenced by RT Plan
+  vtkSetStringMacro(RTPlanReferencedDoseSOPInstanceUIDs);
+
   /// Get image type
   vtkGetStringMacro(ImageType);
   /// Set image type
@@ -411,6 +421,12 @@ protected:
 
   /// SOP instance UID
   char* SOPInstanceUID;
+
+  /// Structure set SOP instance UID referenced by RT Plan
+  char* RTPlanReferencedStructureSetSOPInstanceUID;
+
+  /// Dose SOP instance UIDs referenced by RT Plan
+  char* RTPlanReferencedDoseSOPInstanceUIDs;
 
   /// Image type for RT images (DRR / PORTAL / SIMULATOR / RADIOGRAPH / BLANK / FLUENCE)
   char* ImageType;

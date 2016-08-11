@@ -58,6 +58,7 @@
 #include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLLayoutNode.h>
 #include <vtkMRMLSliceNode.h>
+#include <vtkMRMLSubjectHierarchyNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -350,6 +351,51 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
   // Each time the node is modified, the qt widgets are updated
   qvtkReconnect(rtPlanNode, vtkCommand::ModifiedEvent, this, SLOT(onRTPlanNodeModified()));
   qvtkReconnect(rtPlanNode, vtkMRMLRTPlanNode::IsocenterModifiedEvent, this, SLOT(updateIsocenterPosition()));
+
+  // Set input segmentation and reference volume if specified by DICOM
+  if (rtPlanNode)
+  {
+    vtkMRMLSubjectHierarchyNode* planShNode = rtPlanNode->GetPlanSubjectHierarchyNode();
+    vtkMRMLSubjectHierarchyNode* referencedSegmentationShNode = NULL;
+    if (planShNode)
+    {
+      std::vector<vtkMRMLSubjectHierarchyNode*> referencedShNodesFromPlan = planShNode->GetSubjectHierarchyNodesReferencedByDICOM();
+      for (std::vector<vtkMRMLSubjectHierarchyNode*>::iterator refIt=referencedShNodesFromPlan.begin(); refIt!=referencedShNodesFromPlan.end(); ++refIt)
+      {
+        vtkMRMLSubjectHierarchyNode* referencedShNode = (*refIt);
+        if ( referencedShNode->GetAssociatedNode()
+          && referencedShNode->GetAssociatedNode()->IsA("vtkMRMLSegmentationNode") )
+        {
+          // Referenced structure set segmentation node found
+          referencedSegmentationShNode = referencedShNode;
+          rtPlanNode->SetAndObserveSegmentationNode( vtkMRMLSegmentationNode::SafeDownCast(referencedShNode->GetAssociatedNode()) );
+          break;
+        }
+      }
+
+      // Look for the reference anatomical volume too if referenced structure set was found
+      if (referencedSegmentationShNode)
+      {
+        std::vector<vtkMRMLSubjectHierarchyNode*> referencedShNodesFromStructureSet = referencedSegmentationShNode->GetSubjectHierarchyNodesReferencedByDICOM();
+        for (std::vector<vtkMRMLSubjectHierarchyNode*>::iterator refIt=referencedShNodesFromStructureSet.begin(); refIt!=referencedShNodesFromStructureSet.end(); ++refIt)
+        {
+          vtkMRMLSubjectHierarchyNode* referencedShNode = (*refIt);
+          if ( referencedShNode->GetAssociatedNode()
+            && referencedShNode->GetAssociatedNode()->IsA("vtkMRMLScalarVolumeNode") )
+          {
+            // Referenced volume found, set it as referenced anatomical volume
+            rtPlanNode->SetAndObserveReferenceVolumeNode( vtkMRMLScalarVolumeNode::SafeDownCast(referencedShNode->GetAssociatedNode()) );
+            break;
+          }
+        }
+      }
+    }
+    else
+    {
+      qCritical() << Q_FUNC_INFO << ": Invalid subject hierarchy node for plan " << rtPlanNode->GetName();
+      return;
+    }
+  }
 
   // Create and select output dose volume if missing
   if (rtPlanNode && !rtPlanNode->GetOutputTotalDoseVolumeNode())
