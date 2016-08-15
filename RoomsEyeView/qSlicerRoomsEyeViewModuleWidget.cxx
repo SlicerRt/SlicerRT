@@ -63,6 +63,7 @@ public:
 
   bool ModuleWindowInitialized;
 };
+
 //-----------------------------------------------------------------------------
 // qSlicerBeamsModuleWidgetPrivate methods
 
@@ -95,9 +96,9 @@ void qSlicerRoomsEyeViewModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 {
 	Q_D(qSlicerRoomsEyeViewModuleWidget);
 	this->Superclass::setMRMLScene(scene);
-	qvtkReconnect(d->logic(), scene, vtkMRMLScene::EndImportEvent,this, SLOT(onSceneImportedEvent())	);
-  
+	qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent,this, SLOT(onSceneImportedEvent()) );
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::onSceneImportedEvent()
 {
@@ -110,6 +111,7 @@ void qSlicerRoomsEyeViewModuleWidget::enter()
 	this->onEnter();
 	this->Superclass::enter();
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::onEnter()
 {
@@ -129,14 +131,16 @@ void qSlicerRoomsEyeViewModuleWidget::onEnter()
 	}
 
 	d->ModuleWindowInitialized = true;
-
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
   
   vtkSmartPointer<vtkMRMLRoomsEyeViewNode> paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(node);
+
+  //TODO: What is this?
   //qvtkReconnect(paramNode, vtkCommand::ModifiedEvent,this,SLOT(updateWidgetFromMRML())  );
   /*
   if (paramNode)
@@ -147,6 +151,7 @@ void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
     }
   }*/
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::setup()
 {
@@ -162,30 +167,23 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
   connect(d->VerticalTableTopDisplacementSlider, SIGNAL(valueChanged(double)), this, SLOT(VerticalTableTopDisplacementSliderValueChanged()));
   connect(d->LongitudinalTableTopDisplacementSlider, SIGNAL(valueChanged(double)), this, SLOT(LongitudinalTableTopDisplacementSliderValueChanged()));
   connect(d->LateralTableTopDisplacementSlider, SIGNAL(valueChanged(double)), this, SLOT(LateralTableTopDisplacementSliderValueChanged()));
-
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::loadModelButtonClicked() //TODO: Rename to loadModelButtonClicked
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
  
-  //TODO: No file path names!
-  d->logic()->LoadLinacModels(this->mrmlScene(), "C:/Users/Vinith/Documents/Third Year/Perk Lab/slicerrt/trunk/SlicerRt/sandbox/RoomsEyeView/Resources/gantryModel.stl");
-  d->logic()->LoadLinacModels(this->mrmlScene(), "C:/Users/Vinith/Documents/Third Year/Perk Lab/slicerrt/trunk/SlicerRt/sandbox/RoomsEyeView/Resources/collimatorModel.stl");
-  d->logic()->LoadLinacModels(this->mrmlScene(), "C:/Users/Vinith/Documents/Third Year/Perk Lab/slicerrt/trunk/SlicerRt/sandbox/RoomsEyeView/Resources/leftImagingPanelModel.stl");
-  d->logic()->LoadLinacModels(this->mrmlScene(), "C:/Users/Vinith/Documents/Third Year/Perk Lab/slicerrt/trunk/SlicerRt/sandbox/RoomsEyeView/Resources/linacModel.stl");
-  d->logic()->LoadLinacModels(this->mrmlScene(), "C:/Users/Vinith/Documents/Third Year/Perk Lab/slicerrt/trunk/SlicerRt/sandbox/RoomsEyeView/Resources/patientModel.stl");
-  d->logic()->LoadLinacModels(this->mrmlScene(), "C:/Users/Vinith/Documents/Third Year/Perk Lab/slicerrt/trunk/SlicerRt/sandbox/RoomsEyeView/Resources/patientSupportModel.stl");
-  d->logic()->LoadLinacModels(this->mrmlScene(), "C:/Users/Vinith/Documents/Third Year/Perk Lab/slicerrt/trunk/SlicerRt/sandbox/RoomsEyeView/Resources/rightImagingPanelModel.stl");
-  d->logic()->LoadLinacModels(this->mrmlScene(), "C:/Users/Vinith/Documents/Third Year/Perk Lab/slicerrt/trunk/SlicerRt/sandbox/RoomsEyeView/Resources/tableTopModel.stl");
+  d->logic()->LoadLinacModels();
 
-  d->logic()->ModelToParentTransforms(this->mrmlScene());
+  d->logic()->SetupTreatmentMachineTransforms();
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::GantryRotationSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
-  d->logic()->GantryRotationValueChanged(this->mrmlScene(), d->GantryRotationSlider->value());
+  d->logic()->GantryRotationValueChanged(d->GantryRotationSlider->value());
   std::string collisionString = d->logic()->CheckForCollisions();
   
   if (collisionString.length() > 0)
@@ -199,11 +197,12 @@ void qSlicerRoomsEyeViewModuleWidget::GantryRotationSliderValueChanged()
     d->CollisionsDetected->setStyleSheet("color: green");
   }
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::ImagingPanelMovementSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
-  d->logic()->ImagingPanelMovementValueChanged(this->mrmlScene(), d->ImagingPanelMovementSlider->value());
+  d->logic()->ImagingPanelMovementValueChanged(d->ImagingPanelMovementSlider->value());
 
   std::string collisionString = d->logic()->CheckForCollisions();
 
@@ -211,20 +210,19 @@ void qSlicerRoomsEyeViewModuleWidget::ImagingPanelMovementSliderValueChanged()
   {
     d->CollisionsDetected->setText(QString::fromStdString(collisionString));
     d->CollisionsDetected->setStyleSheet("color: red");
-
   }
-
   else
   {
     d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
     d->CollisionsDetected->setStyleSheet("color: green");
   }
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::CollimatorRotationSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
-  d->logic()->CollimatorRotationValueChanged(this->mrmlScene(), d->CollimatorRotationSlider->value());
+  d->logic()->CollimatorRotationValueChanged(d->CollimatorRotationSlider->value());
 
   std::string collisionString = d->logic()->CheckForCollisions();
 
@@ -232,20 +230,19 @@ void qSlicerRoomsEyeViewModuleWidget::CollimatorRotationSliderValueChanged()
   {
     d->CollisionsDetected->setText(QString::fromStdString(collisionString));
     d->CollisionsDetected->setStyleSheet("color: red");
-
   }
-
   else
   {
     d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
     d->CollisionsDetected->setStyleSheet("color: green");
   }
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::PatientSupportRotationSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
-  d->logic()->PatientSupportRotationValueChanged(this->mrmlScene(), d->PatientSupportRotationSlider->value());
+  d->logic()->PatientSupportRotationValueChanged(d->PatientSupportRotationSlider->value());
 
   std::string collisionString = d->logic()->CheckForCollisions();
 
@@ -253,21 +250,20 @@ void qSlicerRoomsEyeViewModuleWidget::PatientSupportRotationSliderValueChanged()
   {
     d->CollisionsDetected->setText(QString::fromStdString(collisionString));
     d->CollisionsDetected->setStyleSheet("color: red");
-
   }
-
   else
   {
     d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
     d->CollisionsDetected->setStyleSheet("color: green");
   }
-
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::VerticalTableTopDisplacementSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
-  d->logic()->VerticalDisplacementValueChanged(this->mrmlScene(), d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value() );
+  d->logic()->VerticalDisplacementValueChanged(
+    d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value() );
 
   std::string collisionString = d->logic()->CheckForCollisions();
 
@@ -275,21 +271,20 @@ void qSlicerRoomsEyeViewModuleWidget::VerticalTableTopDisplacementSliderValueCha
   {
     d->CollisionsDetected->setText(QString::fromStdString(collisionString));
     d->CollisionsDetected->setStyleSheet("color: red");
-
   }
-
   else
   {
     d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
     d->CollisionsDetected->setStyleSheet("color: green");
   }
-
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::LongitudinalTableTopDisplacementSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
-  d->logic()->LongitudinalDisplacementValueChanged(this->mrmlScene(), d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value());
+  d->logic()->LongitudinalDisplacementValueChanged(
+    d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value() );
 
   std::string collisionString = d->logic()->CheckForCollisions();
 
@@ -297,21 +292,20 @@ void qSlicerRoomsEyeViewModuleWidget::LongitudinalTableTopDisplacementSliderValu
   {
     d->CollisionsDetected->setText(QString::fromStdString(collisionString));
     d->CollisionsDetected->setStyleSheet("color: red");
-
   }
-
   else
   {
     d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
     d->CollisionsDetected->setStyleSheet("color: green");
   }
-
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::LateralTableTopDisplacementSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
-  d->logic()->LateralDisplacementValueChanged(this->mrmlScene(), d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value());
+  d->logic()->LateralDisplacementValueChanged(
+    d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value() );
 
   std::string collisionString = d->logic()->CheckForCollisions();
 
@@ -319,13 +313,10 @@ void qSlicerRoomsEyeViewModuleWidget::LateralTableTopDisplacementSliderValueChan
   {
     d->CollisionsDetected->setText(QString::fromStdString(collisionString));
     d->CollisionsDetected->setStyleSheet("color: red");
-
   }
-
   else
   {
     d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
     d->CollisionsDetected->setStyleSheet("color: green");
   }
-
 }

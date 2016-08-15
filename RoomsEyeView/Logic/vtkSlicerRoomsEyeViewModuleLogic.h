@@ -43,55 +43,55 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
-  /// Load separate pieces of the linac model into the vtkMRMLScene (takes model file name as parameter)
-  void LoadLinacModels(vtkMRMLScene* scene, const char* modelFileName );
+  /// Load pre-defined components of the treatment machine into the scene
+  void LoadLinacModels();
   /// Set up the IEC transform hierarchy and the collision detection filters
-  void ModelToParentTransforms(vtkMRMLScene* scene);
+  void SetupTreatmentMachineTransforms();
   
   /// Update CollimatorToGantry transform based on collimator angle from UI slider
-  void CollimatorRotationValueChanged(vtkMRMLScene* scene, double collimatorAngle);
+  void CollimatorRotationValueChanged(double collimatorAngle);
   /// Update GantryToFixedReference transform based on gantry angle from UI slider
-  void GantryRotationValueChanged(vtkMRMLScene* scene, double gantryAngle);
+  void GantryRotationValueChanged(double gantryAngle);
   
   /// Translate center of left imaging panel to isocenter of fixed reference coordinate system
-  void LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter(vtkMRMLScene* scene, double imagingPanelMovement);
+  void LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter(double imagingPanelMovement);
   /// Rotate left imaging panel based on imagingPanelMovement from UI slider
-  void LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated(vtkMRMLScene* scene, double imagingPanelMovement);
+  void LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated(double imagingPanelMovement);
   /// Translate rotated left imaging panel from fixed reference isocenter back to gantry
-  void LeftImagingPanelRotatedToGantry(vtkMRMLScene* scene, double imagingPanelMovement);
+  void LeftImagingPanelRotatedToGantry(double imagingPanelMovement);
   /// Translate the left imaging panel forward based on imagingPanelMovement from UI slider
-  void LeftImagingPanelTranslation(vtkMRMLScene* scene, double imagingPanelMovement);
+  void LeftImagingPanelTranslation(double imagingPanelMovement);
 
   /// Translate center of right imaging panel to isocenter of fixed reference coordinate system
-  void RightImagingPanelToRightImagingPanelFixedReferenceIsocenter(vtkMRMLScene* scene, double imagingPanelMovement);
+  void RightImagingPanelToRightImagingPanelFixedReferenceIsocenter(double imagingPanelMovement);
   /// Rotate rights imaging panel based on imagingPanelMovement from UI slider
-  void RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated(vtkMRMLScene* scene, double imagingPanelMovement);
+  void RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated(double imagingPanelMovement);
   /// Translate rotated right imaging panel from fixed reference isocenter back to gantry
-  void RightImagingPanelRotatedToGantry(vtkMRMLScene* scene, double imagingPanelMovement);
+  void RightImagingPanelRotatedToGantry(double imagingPanelMovement);
   /// Translate the right imaging panel forward based on imagingPanelMovement from UI slider
-  void RightImagingPanelTranslation(vtkMRMLScene* scene, double imagingPanelMovement);
+  void RightImagingPanelTranslation(double imagingPanelMovement);
 
   /// Initiate imagingPanel transform functions based on imagingPanelMovement from UI slider
-  void ImagingPanelMovementValueChanged(vtkMRMLScene* scene, double imagingPanelMovement);
+  void ImagingPanelMovementValueChanged(double imagingPanelMovement);
 
   /// Rotate patient support (couch) with respect to fixed reference coordinate system based on rotation angle from UI slider
-  void PatientSupportRotationValueChanged(vtkMRMLScene* scene, double rotationAngle);
+  void PatientSupportRotationValueChanged(double rotationAngle);
 
   /// Translate scaled patient support back to position with respect to the vertically translated table top
-  void PatientSupportScaledTranslatedToTableTopVerticalTranslation(vtkMRMLScene* scene, double tableTopVerticalDisplacement);
+  void PatientSupportScaledTranslatedToTableTopVerticalTranslation(double tableTopVerticalDisplacement);
   /// Scale the patient support based on the vertical displacement of the table top from the starting position of 0
-  void TableTopDisplacementPatientSupportChanged(vtkMRMLScene* scene, double tableTopVerticalDisplacement);
+  void TableTopDisplacementPatientSupportChanged(double tableTopVerticalDisplacement);
   /// Translate the patient support positively so that base of the support is located at 0, preventing the base from getting scaled
-  void PatientSupportPositiveVerticalTranslation(vtkMRMLScene* scene, double tableTopVerticalDisplacement);
+  void PatientSupportPositiveVerticalTranslation(double tableTopVerticalDisplacement);
   
   /// Call functions that translates the table top along the x,y, and z axes based on changes to table top displacement UI sliders
-  void TableTopDisplacementValueChanged(vtkMRMLScene* scene, double latTableTopDisplacement , double longTableTopDisplacement, double vertTableTopDisplacement);
+  void TableTopDisplacementValueChanged(double latTableTopDisplacement , double longTableTopDisplacement, double vertTableTopDisplacement);
   /// Translate the table top vertically along the z axes  based on change to Vertical Table Top Displacement UI slider
-  void VerticalDisplacementValueChanged(vtkMRMLScene*, double latTableTopDisplacement, double longTableTopDisplacement, double vertTableTopDisplacement);
+  void VerticalDisplacementValueChanged(double latTableTopDisplacement, double longTableTopDisplacement, double vertTableTopDisplacement);
   /// Translate the table top laterally along the x axes  based on change to Lateral Table Top Displacement UI slider
-  void LateralDisplacementValueChanged(vtkMRMLScene*, double latTableTopDisplacement, double longTableTopDisplacement, double vertTableTopDisplacement);
+  void LateralDisplacementValueChanged(double latTableTopDisplacement, double longTableTopDisplacement, double vertTableTopDisplacement);
   /// Translate the table top laterally along the y axes  based on change to Longitudinal Table Top Displacement UI slider
-  void LongitudinalDisplacementValueChanged(vtkMRMLScene*, double latTableTopDisplacement, double longTableTopDisplacement, double vertTableTopDisplacement);
+  void LongitudinalDisplacementValueChanged(double latTableTopDisplacement, double longTableTopDisplacement, double vertTableTopDisplacement);
   /// Check for collisions between pieces of linac model using vtkCollisionDetectionFilter
   /// \return string indicating whether collision occurred
   std::string CheckForCollisions();
