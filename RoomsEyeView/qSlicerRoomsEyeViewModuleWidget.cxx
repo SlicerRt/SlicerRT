@@ -18,7 +18,7 @@
 
 ==============================================================================*/
 
-// SlicerQt includes
+// Room's Eye View includes
 #include "qSlicerRoomsEyeViewModuleWidget.h"
 #include "ui_qSlicerRoomsEyeViewModule.h"
 
@@ -27,26 +27,18 @@
 
 // Slicer includes
 #include <qSlicerApplication.h>
-#include <qSlicerSubjectHierarchyAbstractPlugin.h>
-#include <qSlicerIO.h>
-#include <qSlicerCoreIOManager.h>
 
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLDisplayNode.h>
-#include <vtkSlicerModelsLogic.h>
 #include <vtkMRMLModelNode.h>
-
-
-// SlicerRT includes
-#include "SlicerRtCommon.h"
-
-
+#include <vtkMRMLSegmentationNode.h>
 
 // Qt includes
 #include <QDebug>
-#include <QTableWidgetItem>
+
+// CTK includes
 #include <ctkSliderWidget.h>
 
 //-----------------------------------------------------------------------------
@@ -97,6 +89,22 @@ void qSlicerRoomsEyeViewModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 	Q_D(qSlicerRoomsEyeViewModuleWidget);
 	this->Superclass::setMRMLScene(scene);
 	qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent,this, SLOT(onSceneImportedEvent()) );
+
+  // Find parameters node or create it if there is none in the scene
+  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
+  {
+    vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLRoomsEyeViewNode");
+    if (node)
+    {
+      this->setParameterNode(node);
+    }
+    else 
+    {
+      vtkSmartPointer<vtkMRMLRoomsEyeViewNode> newNode = vtkSmartPointer<vtkMRMLRoomsEyeViewNode>::New();
+      this->mrmlScene()->AddNode(newNode);
+      this->setParameterNode(newNode);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -138,18 +146,45 @@ void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
   
-  vtkSmartPointer<vtkMRMLRoomsEyeViewNode> paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(node);
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(node);
 
-  //TODO: What is this?
-  //qvtkReconnect(paramNode, vtkCommand::ModifiedEvent,this,SLOT(updateWidgetFromMRML())  );
-  /*
+  qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
+
   if (paramNode)
   {
-    if (!paramNode->GetGantryToFixedReferenceTransformNode())
+    if (!paramNode->GetPatientBodySegmentationNode())
     {
-      paramNode->SetAndObserveGantryToFixedReferenceTransformNode(vtkMRMLLinearTransformNode::SafeDownCast(d->));
+      paramNode->SetAndObservePatientBodySegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(d->SegmentSelectorWidget->currentNode()));
     }
-  }*/
+    if ( !paramNode->GetPatientBodySegmentID() && !d->SegmentSelectorWidget->currentSegmentID().isEmpty() )
+    {
+      paramNode->SetPatientBodySegmentID(d->SegmentSelectorWidget->currentSegmentID().toLatin1().constData());
+    }
+  }
+
+  this->updateWidgetFromMRML();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerRoomsEyeViewModuleWidget::updateWidgetFromMRML()
+{
+  Q_D(qSlicerRoomsEyeViewModuleWidget);
+
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+
+  if (paramNode && this->mrmlScene())
+  {
+    if (paramNode->GetPatientBodySegmentationNode())
+    {
+      d->SegmentSelectorWidget->setCurrentNode(paramNode->GetPatientBodySegmentationNode());
+    }
+    if (paramNode->GetPatientBodySegmentID())
+    {
+      d->SegmentSelectorWidget->setCurrentSegmentID(paramNode->GetPatientBodySegmentID());
+    }
+
+    //TODO:
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -157,157 +192,191 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
   d->setupUi(this);
+
   this->Superclass::setup();
+
   this->setMRMLScene(this->mrmlScene());
+
   connect(d->loadModelButton, SIGNAL(clicked()), this, SLOT(loadModelButtonClicked()));
-  connect(d->CollimatorRotationSlider, SIGNAL(valueChanged(double)), this, SLOT(CollimatorRotationSliderValueChanged()));
-  connect(d->GantryRotationSlider, SIGNAL(valueChanged(double)), this, SLOT(GantryRotationSliderValueChanged()));
-  connect(d->ImagingPanelMovementSlider, SIGNAL(valueChanged(double)), this, SLOT(ImagingPanelMovementSliderValueChanged()));
-  connect(d->PatientSupportRotationSlider, SIGNAL(valueChanged(double)), this, SLOT(PatientSupportRotationSliderValueChanged()));
-  connect(d->VerticalTableTopDisplacementSlider, SIGNAL(valueChanged(double)), this, SLOT(VerticalTableTopDisplacementSliderValueChanged()));
-  connect(d->LongitudinalTableTopDisplacementSlider, SIGNAL(valueChanged(double)), this, SLOT(LongitudinalTableTopDisplacementSliderValueChanged()));
-  connect(d->LateralTableTopDisplacementSlider, SIGNAL(valueChanged(double)), this, SLOT(LateralTableTopDisplacementSliderValueChanged()));
+  connect(d->CollimatorRotationSlider, SIGNAL(valueChanged(double)), this, SLOT(collimatorRotationSliderValueChanged()));
+  connect(d->GantryRotationSlider, SIGNAL(valueChanged(double)), this, SLOT(gantryRotationSliderValueChanged()));
+  connect(d->ImagingPanelMovementSlider, SIGNAL(valueChanged(double)), this, SLOT(imagingPanelMovementSliderValueChanged()));
+  connect(d->PatientSupportRotationSlider, SIGNAL(valueChanged(double)), this, SLOT(patientSupportRotationSliderValueChanged()));
+  connect(d->VerticalTableTopDisplacementSlider, SIGNAL(valueChanged(double)), this, SLOT(verticalTableTopDisplacementSliderValueChanged()));
+  connect(d->LongitudinalTableTopDisplacementSlider, SIGNAL(valueChanged(double)), this, SLOT(longitudinalTableTopDisplacementSliderValueChanged()));
+  connect(d->LateralTableTopDisplacementSlider, SIGNAL(valueChanged(double)), this, SLOT(lateralTableTopDisplacementSliderValueChanged()));
+
+  connect( d->SegmentSelectorWidget, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(patientBodySegmentationNodeChanged(vtkMRMLNode*)) );
+  connect( d->SegmentSelectorWidget, SIGNAL(currentSegmentChanged(QString)), this, SLOT(patientBodySegmentChanged(QString)) );
+
+  // Handle scene change event if occurs
+  qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::loadModelButtonClicked() //TODO: Rename to loadModelButtonClicked
+void qSlicerRoomsEyeViewModuleWidget::onLogicModified()
+{
+  this->updateWidgetFromMRML();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerRoomsEyeViewModuleWidget::loadModelButtonClicked()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
  
   d->logic()->LoadLinacModels();
 
-  d->logic()->SetupTreatmentMachineTransforms();
+  //TODO: Move this a more central place after integrating REV into EBP
+  // Initialize logic
+  d->logic()->InitializeIEC();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::GantryRotationSliderValueChanged()
+void qSlicerRoomsEyeViewModuleWidget::patientBodySegmentationNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return;
+  }
+
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObservePatientBodySegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(node));
+  paramNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerRoomsEyeViewModuleWidget::patientBodySegmentChanged(QString segmentID)
+{
+  Q_D(qSlicerRoomsEyeViewModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return;
+  }
+
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode || segmentID.isEmpty() || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetPatientBodySegmentID(segmentID.toLatin1().constData());
+  paramNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerRoomsEyeViewModuleWidget::gantryRotationSliderValueChanged()
+{
+  Q_D(qSlicerRoomsEyeViewModuleWidget);
+
   d->logic()->GantryRotationValueChanged(d->GantryRotationSlider->value());
-  std::string collisionString = d->logic()->CheckForCollisions();
-  
-  if (collisionString.length() > 0)
+
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode || !d->ModuleWindowInitialized)
   {
-    d->CollisionsDetected->setText(QString::fromStdString(collisionString));
-    d->CollisionsDetected->setStyleSheet("color: red");
+    return;
   }
-  else
-  {
-    d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
-    d->CollisionsDetected->setStyleSheet("color: green");
-  }
+
+  this->checkForCollisions();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::ImagingPanelMovementSliderValueChanged()
+void qSlicerRoomsEyeViewModuleWidget::imagingPanelMovementSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
+
   d->logic()->ImagingPanelMovementValueChanged(d->ImagingPanelMovementSlider->value());
 
-  std::string collisionString = d->logic()->CheckForCollisions();
-
-  if (collisionString.length() > 0)
-  {
-    d->CollisionsDetected->setText(QString::fromStdString(collisionString));
-    d->CollisionsDetected->setStyleSheet("color: red");
-  }
-  else
-  {
-    d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
-    d->CollisionsDetected->setStyleSheet("color: green");
-  }
+  this->checkForCollisions();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::CollimatorRotationSliderValueChanged()
+void qSlicerRoomsEyeViewModuleWidget::collimatorRotationSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
-  d->logic()->CollimatorRotationValueChanged(d->CollimatorRotationSlider->value());
 
-  std::string collisionString = d->logic()->CheckForCollisions();
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
 
-  if (collisionString.length() > 0)
-  {
-    d->CollisionsDetected->setText(QString::fromStdString(collisionString));
-    d->CollisionsDetected->setStyleSheet("color: red");
-  }
-  else
-  {
-    d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
-    d->CollisionsDetected->setStyleSheet("color: green");
-  }
+  //TODO: Same for all other ...ValueChanged functions
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetCollimatorRotationAngle(d->CollimatorRotationSlider->value());
+  paramNode->DisableModifiedEventOff();
+
+  d->logic()->UpdateCollimatorToGantryTransform(paramNode);
+
+  this->checkForCollisions();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::PatientSupportRotationSliderValueChanged()
+void qSlicerRoomsEyeViewModuleWidget::patientSupportRotationSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
+
   d->logic()->PatientSupportRotationValueChanged(d->PatientSupportRotationSlider->value());
 
-  std::string collisionString = d->logic()->CheckForCollisions();
-
-  if (collisionString.length() > 0)
-  {
-    d->CollisionsDetected->setText(QString::fromStdString(collisionString));
-    d->CollisionsDetected->setStyleSheet("color: red");
-  }
-  else
-  {
-    d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
-    d->CollisionsDetected->setStyleSheet("color: green");
-  }
+  this->checkForCollisions();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::VerticalTableTopDisplacementSliderValueChanged()
+void qSlicerRoomsEyeViewModuleWidget::verticalTableTopDisplacementSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
+
   d->logic()->VerticalDisplacementValueChanged(
     d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value() );
 
-  std::string collisionString = d->logic()->CheckForCollisions();
-
-  if (collisionString.length() > 0)
-  {
-    d->CollisionsDetected->setText(QString::fromStdString(collisionString));
-    d->CollisionsDetected->setStyleSheet("color: red");
-  }
-  else
-  {
-    d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
-    d->CollisionsDetected->setStyleSheet("color: green");
-  }
+  this->checkForCollisions();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::LongitudinalTableTopDisplacementSliderValueChanged()
+void qSlicerRoomsEyeViewModuleWidget::longitudinalTableTopDisplacementSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
+
   d->logic()->LongitudinalDisplacementValueChanged(
     d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value() );
 
-  std::string collisionString = d->logic()->CheckForCollisions();
-
-  if (collisionString.length() > 0)
-  {
-    d->CollisionsDetected->setText(QString::fromStdString(collisionString));
-    d->CollisionsDetected->setStyleSheet("color: red");
-  }
-  else
-  {
-    d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
-    d->CollisionsDetected->setStyleSheet("color: green");
-  }
+  this->checkForCollisions();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::LateralTableTopDisplacementSliderValueChanged()
+void qSlicerRoomsEyeViewModuleWidget::lateralTableTopDisplacementSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
+
   d->logic()->LateralDisplacementValueChanged(
     d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value() );
 
-  std::string collisionString = d->logic()->CheckForCollisions();
+  this->checkForCollisions();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerRoomsEyeViewModuleWidget::checkForCollisions()
+{
+  Q_D(qSlicerRoomsEyeViewModuleWidget);
+
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  std::string collisionString = d->logic()->CheckForCollisions(paramNode);
 
   if (collisionString.length() > 0)
   {

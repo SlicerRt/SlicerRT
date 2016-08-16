@@ -42,25 +42,32 @@ public:
 
   virtual void enter();
 
+  /// Check for collisions and update UI to indicate result
+  void checkForCollisions();
+
 public slots:
 	virtual void setMRMLScene(vtkMRMLScene*);
   void setParameterNode(vtkMRMLNode*);
 	void onSceneImportedEvent();
 
-	//void updateWidgetFromMRML();
+  /// Update widget GUI from parameter node
+  void updateWidgetFromMRML();
 
 protected slots:
 	void loadModelButtonClicked();
-  void CollimatorRotationSliderValueChanged();
-  void GantryRotationSliderValueChanged();
-  void ImagingPanelMovementSliderValueChanged();
-  void PatientSupportRotationSliderValueChanged();
-  void VerticalTableTopDisplacementSliderValueChanged();
-  void LongitudinalTableTopDisplacementSliderValueChanged();
-  void LateralTableTopDisplacementSliderValueChanged();
-//void onLogicModified();
+  void collimatorRotationSliderValueChanged();
+  void gantryRotationSliderValueChanged();
+  void imagingPanelMovementSliderValueChanged();
+  void patientSupportRotationSliderValueChanged();
+  void verticalTableTopDisplacementSliderValueChanged();
+  void longitudinalTableTopDisplacementSliderValueChanged();
+  void lateralTableTopDisplacementSliderValueChanged();
+  
+  void patientBodySegmentationNodeChanged(vtkMRMLNode*);
+  void patientBodySegmentChanged(QString);
 
-
+  void onLogicModified();
+  
 protected:
   QScopedPointer<qSlicerRoomsEyeViewModuleWidgetPrivate> d_ptr;
 

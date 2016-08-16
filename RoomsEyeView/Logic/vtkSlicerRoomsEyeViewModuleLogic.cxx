@@ -28,6 +28,10 @@
 #include <vtkMRMLDisplayNode.h>
 #include "vtkMRMLModelNode.h"
 
+// Slicer includes
+#include <vtkSlicerSegmentationsModuleLogic.h>
+#include <vtkSegmentationConverter.h>
+
 // VTK includes
 #include <vtkNew.h>
 #include <vtkSmartPointer.h>
@@ -381,17 +385,23 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadLinacModels()
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineTransforms()
+void vtkSlicerRoomsEyeViewModuleLogic::InitializeIEC()
 {
   if (!this->GetMRMLScene())
   {
-    vtkErrorMacro("SetupTreatmentMachineTransforms: Invalid scene!");
+    vtkErrorMacro("InitializeIEC: Invalid scene!");
     return;
   }
 
   // Display all pieces of the treatment room and sets each piece a color to provide realistic representation
-  vtkSmartPointer<vtkMRMLModelNode> gantryModel = vtkMRMLModelNode::SafeDownCast(
+  vtkMRMLModelNode* gantryModel = vtkMRMLModelNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(GANTRY_MODEL_NAME));
+  if (!gantryModel)
+  {
+    //TODO: Same for all other models and transforms that are got by node name
+    vtkErrorMacro("InitializeIEC: Unable to access gantry model!");
+    return;
+  }
   vtkSmartPointer<vtkMRMLLinearTransformNode> gantryModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName("GantryToFixedReferenceTransform"));
   gantryModel->SetAndObserveTransformNodeID(gantryModelTransforms->GetID());
@@ -399,7 +409,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineTransforms()
   vtkSmartPointer<vtkMRMLDisplayNode> gantryModelDisplayNode = gantryModel->GetDisplayNode();
   gantryModelDisplayNode->SetColor(0.95, 0.95, 0.95);
 
-  vtkSmartPointer<vtkMRMLModelNode> collimatorModel = vtkMRMLModelNode::SafeDownCast(
+  vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_MODEL_NAME));
   vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName("CollimatorToGantryTransform"));
@@ -408,7 +418,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineTransforms()
   vtkSmartPointer<vtkMRMLDisplayNode> collimatorModelDisplayNode = collimatorModel->GetDisplayNode();
   collimatorModelDisplayNode->SetColor(0.7, 0.7, 0.95);
 
-  vtkSmartPointer<vtkMRMLModelNode> leftImagingPanelModel = vtkMRMLModelNode::SafeDownCast(
+  vtkMRMLModelNode* leftImagingPanelModel = vtkMRMLModelNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELLEFT_MODEL_NAME));
   vtkSmartPointer<vtkMRMLLinearTransformNode> leftImagingPanelModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName("LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform"));
@@ -417,7 +427,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineTransforms()
   vtkSmartPointer<vtkMRMLDisplayNode> leftImagingPanelModelDisplayNode = leftImagingPanelModel->GetDisplayNode();
   leftImagingPanelModelDisplayNode->SetColor(0.95, 0.95, 0.95);
 
-  vtkSmartPointer<vtkMRMLModelNode> rightImagingPanelModel = vtkMRMLModelNode::SafeDownCast(
+  vtkMRMLModelNode* rightImagingPanelModel = vtkMRMLModelNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELRIGHT_MODEL_NAME));
   vtkSmartPointer<vtkMRMLLinearTransformNode> rightImagingPanelModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName("RightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform"));
@@ -426,7 +436,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineTransforms()
   vtkSmartPointer<vtkMRMLDisplayNode> rightImagingPanelModelDisplayNode = rightImagingPanelModel->GetDisplayNode();
   rightImagingPanelModelDisplayNode->SetColor(0.95, 0.95, 0.95);
 
-  vtkSmartPointer<vtkMRMLModelNode> patientSupportModel = vtkMRMLModelNode::SafeDownCast(
+  vtkMRMLModelNode* patientSupportModel = vtkMRMLModelNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(PATIENTSUPPORT_MODEL_NAME));
   vtkSmartPointer<vtkMRMLLinearTransformNode> patientSupportModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName("PatientSupportPositiveVerticalTranslationTransform"));
@@ -437,7 +447,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineTransforms()
   vtkSmartPointer<vtkMRMLDisplayNode> patientSupportModelDisplayNode = patientSupportModel->GetDisplayNode();
   patientSupportModelDisplayNode->SetColor(0.85, 0.85, 0.85);
 
-  vtkSmartPointer<vtkMRMLModelNode> tableTopModel = vtkMRMLModelNode::SafeDownCast(
+  vtkMRMLModelNode* tableTopModel = vtkMRMLModelNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(TABLETOP_MODEL_NAME));
   vtkSmartPointer<vtkMRMLLinearTransformNode> tableTopModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName("TableTopEccentricRotationToPatientSupportTransform"));
@@ -446,27 +456,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineTransforms()
   vtkSmartPointer<vtkMRMLDisplayNode> tableTopModelDisplayNode = tableTopModel->GetDisplayNode();
   tableTopModelDisplayNode->SetColor(0, 0, 0);
 
-  //TODO: Patient model needs to come from loaded study
-  //      See other parts of this function, and also CheckForCollisions
-  //vtkSmartPointer<vtkMRMLModelNode> patientModel = vtkMRMLModelNode::SafeDownCast(
-  //  this->GetMRMLScene()->GetFirstNodeByName("patientModel"));
-  //vtkSmartPointer<vtkMRMLLinearTransformNode> patientModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-  //  this->GetMRMLScene()->GetFirstNodeByName("TableTopEccentricRotationToPatientSupportTransform"));
-  //patientModel->SetAndObserveTransformNodeID(patientModelTransforms->GetID());
-  //patientModel->CreateDefaultDisplayNodes();
-  //vtkSmartPointer<vtkMRMLDisplayNode> patientModelDisplayNode = patientModel->GetDisplayNode();
-  //patientModelDisplayNode->SetColor(0, 1, 1);
-
-  // Set up collision detection between pieces of the treatment room
-
-  //TODO: Patient model needs to come from loaded study
-  //this->GantryPatientCollisionDetection->SetInput(0, gantryModel->GetPolyData());
-  //this->GantryPatientCollisionDetection->SetInput(1, patientModel->GetPolyData());
-  //this->GantryPatientCollisionDetection->SetTransform(0,
-  //  vtkLinearTransform::SafeDownCast(gantryModelTransforms->GetTransformToParent()));
-  //this->GantryPatientCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
-  //this->GantryPatientCollisionDetection->Update();
-
+  // Set up collision detection between components
   this->GantryTableTopCollisionDetection->SetInput(0, gantryModel->GetPolyData());
   this->GantryTableTopCollisionDetection->SetInput(1, tableTopModel->GetPolyData());
   this->GantryTableTopCollisionDetection->SetTransform(0,
@@ -482,27 +472,71 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineTransforms()
     vtkLinearTransform::SafeDownCast(patientSupportToFixedReferenceTransform->GetTransformToParent()));
   this->GantryPatientSupportCollisionDetection->Update();
 
-  //TODO: Patient model needs to come from loaded study
-  //this->CollimatorPatientCollisionDetection->SetInput(0, collimatorModel->GetPolyData());
-  //this->CollimatorPatientCollisionDetection->SetInput(1, patientModel->GetPolyData());
-  //this->CollimatorPatientCollisionDetection->SetMatrix(0, this->CollimatorToWorldTransformMatrix);
-  //this->CollimatorPatientCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
-  //this->CollimatorPatientCollisionDetection->Update();
-
   this->CollimatorTableTopCollisionDetection->SetInput(0, collimatorModel->GetPolyData());
   this->CollimatorTableTopCollisionDetection->SetInput(1, tableTopModel->GetPolyData());
   this->CollimatorTableTopCollisionDetection->SetMatrix(0, this->CollimatorToWorldTransformMatrix);
   this->CollimatorTableTopCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
   this->CollimatorTableTopCollisionDetection->Update();
+
+  //TODO: Whole patient (segmentation, CT) will need to be transformed when the table top is transformed
+  //vtkMRMLLinearTransformNode* patientModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+  //  this->GetMRMLScene()->GetFirstNodeByName("TableTopEccentricRotationToPatientSupportTransform"));
+  //patientModel->SetAndObserveTransformNodeID(patientModelTransforms->GetID());
+
+  this->GantryPatientCollisionDetection->SetInput(0, gantryModel->GetPolyData());
+  this->GantryPatientCollisionDetection->SetTransform(0,
+    vtkLinearTransform::SafeDownCast(gantryModelTransforms->GetTransformToParent()));
+  this->GantryPatientCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
+  this->GantryPatientCollisionDetection->Update();
+
+  this->CollimatorPatientCollisionDetection->SetInput(0, collimatorModel->GetPolyData());
+  this->CollimatorPatientCollisionDetection->SetMatrix(0, this->CollimatorToWorldTransformMatrix);
+  this->CollimatorPatientCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
+  this->CollimatorPatientCollisionDetection->Update();
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::CollimatorRotationValueChanged(double rotationAngle)
+bool vtkSlicerRoomsEyeViewModuleLogic::GetPatientBodyPolyData(vtkMRMLRoomsEyeViewNode* parameterNode, vtkPolyData* patientBodyPolyData)
 {
+  if (!parameterNode)
+  {
+    vtkErrorMacro("GetPatientBodyPolyData: Invalid parameter set node!");
+    return false;
+  }
+  if (!patientBodyPolyData)
+  {
+    vtkErrorMacro("GetPatientBodyPolyData: Invalid output poly data!");
+    return false;
+  }
+
+  // Get patient body segmentation
+  vtkMRMLSegmentationNode* segmentationNode = parameterNode->GetPatientBodySegmentationNode();
+  if (!segmentationNode || !parameterNode->GetPatientBodySegmentID())
+  {
+    return false;
+  }
+  
+  // Get closed surface representation for patient body
+  return vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation(
+    segmentationNode, parameterNode->GetPatientBodySegmentID(),
+    vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName(),
+    patientBodyPolyData );
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
+{
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateCollimatorToGantryTransform: Invalid parameter set node!");
+    return;
+  }
+
   vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName("CollimatorToGantryTransform"));
   vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
 
+  //TODO: This is specific to the Varian TrueBeam STx model, move this somewhere else when generalizing for any treatment machine
   // Translates collimator to actual center of rotation and then rotates based on rotationAngle
   // TODO: Look into why translating the object twice prevents wobble
   collimatorToGantryTransform->Identity();
@@ -510,10 +544,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::CollimatorRotationValueChanged(double rot
   double actualCenterOfRotation[3] = { -0.041, 0.094, 528.0714111328125 };
   double implicitCenterToActualCenterDisplacement[3] = { actualCenterOfRotation[0] - implicitCenterOfRotation[0], actualCenterOfRotation[1] - implicitCenterOfRotation[1], actualCenterOfRotation[2] - implicitCenterOfRotation[2] };
   collimatorToGantryTransform->Translate(implicitCenterToActualCenterDisplacement);
-  collimatorToGantryTransform->RotateZ(rotationAngle);
+  collimatorToGantryTransform->RotateZ(parameterNode->GetCollimatorRotationAngle());
   collimatorToGantryTransform->Translate(implicitCenterToActualCenterDisplacement);
   collimatorToGantryTransform->Modified();
-  this->CheckForCollisions();
 }
 
 //----------------------------------------------------------------------------
@@ -532,7 +565,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::GantryRotationValueChanged(double rotatio
   vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
-  this->CheckForCollisions();
 }
 
 //-----------------------------------------------------------------------------
@@ -551,7 +583,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::LeftImagingPanelToLeftImagingPanelFixedRe
   vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
-  this->CheckForCollisions();
 }
 
 //-----------------------------------------------------------------------------
@@ -569,7 +600,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::LeftImagingPanelFixedReferenceIsocenterTo
   vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
-  this->CheckForCollisions();
 }
 
 //-----------------------------------------------------------------------------
@@ -588,7 +618,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::LeftImagingPanelRotatedToGantry(double pa
   vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
-  this->CheckForCollisions();
 }
 
 //-----------------------------------------------------------------------------
@@ -607,7 +636,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::LeftImagingPanelTranslation(double panelM
   vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
-  this->CheckForCollisions();
 }
 
 //-----------------------------------------------------------------------------
@@ -626,7 +654,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::RightImagingPanelToRightImagingPanelFixed
   vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
-  this->CheckForCollisions();
 }
 
 //-----------------------------------------------------------------------------
@@ -717,7 +744,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::PatientSupportRotationValueChanged(double
   vtkSmartPointer<vtkTransform> tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent());
 
   tableTopEccentricRotationToPatientSupportTransformNode->GetMatrixTransformToWorld(this->TableTopToWorldTransformMatrix);
-  this->CheckForCollisions();
 }
 
 //-----------------------------------------------------------------------------
@@ -733,7 +759,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::TableTopDisplacementValueChanged(double l
   tableTopEccentricRotationToPatientSupportTransform->Modified();
 
   tableTopEccentricRotationToPatientSupportTransformNode->GetMatrixTransformToWorld(this->TableTopToWorldTransformMatrix);
-  this->CheckForCollisions();
 }
 
 //-----------------------------------------------------------------------------
@@ -753,7 +778,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::PatientSupportScaledTranslatedToTableTopV
   vtkSmartPointer<vtkTransform> tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent());
 
   tableTopEccentricRotationToPatientSupportTransformNode->GetMatrixTransformToWorld(this->TableTopToWorldTransformMatrix);
-  this->CheckForCollisions();
 }
 
 //-----------------------------------------------------------------------------
@@ -772,7 +796,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::TableTopDisplacementPatientSupportChanged
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent());
 
   tableTopEccentricRotationToPatientSupportTransformNode->GetMatrixTransformToWorld(this->TableTopToWorldTransformMatrix);
-  this->CheckForCollisions();
 }
 
 //-----------------------------------------------------------------------------
@@ -792,7 +815,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::PatientSupportPositiveVerticalTranslation
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent());
 
   tableTopEccentricRotationToPatientSupportTransformNode->GetMatrixTransformToWorld(this->TableTopToWorldTransformMatrix);
-  this->CheckForCollisions();
 }
 
 //-----------------------------------------------------------------------------
@@ -802,57 +824,69 @@ void vtkSlicerRoomsEyeViewModuleLogic::VerticalDisplacementValueChanged(double l
   this->PatientSupportScaledTranslatedToTableTopVerticalTranslation(vertDisplacementValue);
   this->TableTopDisplacementPatientSupportChanged(vertDisplacementValue);
   this->PatientSupportPositiveVerticalTranslation(vertDisplacementValue);
-  this->CheckForCollisions();
 }
 
 //-----------------------------------------------------------------------------
 void vtkSlicerRoomsEyeViewModuleLogic::LongitudinalDisplacementValueChanged(double latDisplacementValue, double longDisplacementValue, double vertDisplacementValue)
 {
   this->TableTopDisplacementValueChanged(latDisplacementValue, longDisplacementValue, vertDisplacementValue);
-  this->CheckForCollisions();
 }
-
+//TODO: These two functions seem redundant, remove both and call TableTopDisplacementValueChanged (renamed!)
 //-----------------------------------------------------------------------------
 void vtkSlicerRoomsEyeViewModuleLogic::LateralDisplacementValueChanged(double latDisplacementValue, double longDisplacementValue, double vertDisplacementValue)
 {
   this->TableTopDisplacementValueChanged(latDisplacementValue, longDisplacementValue, vertDisplacementValue);
-  this->CheckForCollisions();
 }
 
 //-----------------------------------------------------------------------------
-std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions()
+std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  // Updates all collision detection filters before checking if collisions are present
-  //TODO: Re-enable patient collision calculations when patient is added back
-  //this->GantryPatientCollisionDetection->Update();
-  this->GantryTableTopCollisionDetection->Update();
-  this->GantryPatientSupportCollisionDetection->Update();
-  //this->CollimatorPatientCollisionDetection->Update();
-  this->CollimatorTableTopCollisionDetection->Update();
+  if (!parameterNode)
+  {
+    vtkErrorMacro("CheckForCollisions: Invalid parameter set node!");
+    return "Invalid parameters!";
+  }
 
-  std::string text = "";
+  std::string statusString = "";
 
   // If number of contacts between pieces of treatment room is greater than 0, the collision between which pieces
   // will be set to the output string and returned by the function.
-  //if (this->GantryPatientCollisionDetection->GetNumberOfContacts() > 0)
-  //{
-  //  text = text + "Collision between gantry and patient\n";
-  //}
+  this->GantryTableTopCollisionDetection->Update();
   if (this->GantryTableTopCollisionDetection->GetNumberOfContacts() > 0)
   {
-    text = text + "Collision between gantry and table top\n";
+    statusString = statusString + "Collision between gantry and table top\n";
   }
+
+  this->GantryPatientSupportCollisionDetection->Update();
   if (this->GantryPatientSupportCollisionDetection->GetNumberOfContacts() > 0)
   {
-    text = text + "Collision between gantry and patient support\n";
+    statusString = statusString + "Collision between gantry and patient support\n";
   }
-  //if (this->CollimatorPatientCollisionDetection->GetNumberOfContacts() > 0)
-  //{
-  //  text = text + "Collision between collimator and patient\n";
-  //}
+
+  this->CollimatorTableTopCollisionDetection->Update();
   if (this->CollimatorTableTopCollisionDetection->GetNumberOfContacts() > 0)
   {
-    text = text + "Collision between collimator and table top\n";
+    statusString = statusString + "Collision between collimator and table top\n";
   }
-  return text;
+
+  // Get patient body poly data
+  vtkSmartPointer<vtkPolyData> patientBodyPolyData = vtkSmartPointer<vtkPolyData>::New();
+  if (this->GetPatientBodyPolyData(parameterNode, patientBodyPolyData))
+  {
+    this->GantryPatientCollisionDetection->SetInput(1, patientBodyPolyData);
+    this->GantryPatientCollisionDetection->Update();
+    if (this->GantryPatientCollisionDetection->GetNumberOfContacts() > 0)
+    {
+      statusString = statusString + "Collision between gantry and patient\n";
+    }
+
+    this->CollimatorPatientCollisionDetection->SetInput(1, patientBodyPolyData);
+    this->CollimatorPatientCollisionDetection->Update();
+    if (this->CollimatorPatientCollisionDetection->GetNumberOfContacts() > 0)
+    {
+      statusString = statusString + "Collision between collimator and patient\n";
+    }
+  }
+
+  return statusString;
 }

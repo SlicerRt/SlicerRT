@@ -21,12 +21,10 @@
 // MRMLDoseAccumulation includes
 #include "vtkMRMLDoseComparisonNode.h"
 
-// SlicerRT includes
-#include "vtkMRMLSegmentationNode.h"
-
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLSegmentationNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>

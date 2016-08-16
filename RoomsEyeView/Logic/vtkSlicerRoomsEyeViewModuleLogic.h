@@ -29,9 +29,11 @@
 #include "vtkSlicerRoomsEyeViewModuleLogicExport.h"
 
 // Slicer includes
-#include "vtkSlicerModuleLogic.h"
+#include <vtkSlicerModuleLogic.h>
 
-#include <vtkCollisionDetectionFilter.h>
+#include "vtkCollisionDetectionFilter.h"
+
+class vtkMRMLRoomsEyeViewNode;
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
 class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic :
@@ -45,11 +47,11 @@ public:
 public:
   /// Load pre-defined components of the treatment machine into the scene
   void LoadLinacModels();
-  /// Set up the IEC transform hierarchy and the collision detection filters
-  void SetupTreatmentMachineTransforms();
+  /// Set up the IEC transform hierarchy
+  void InitializeIEC();
   
   /// Update CollimatorToGantry transform based on collimator angle from UI slider
-  void CollimatorRotationValueChanged(double collimatorAngle);
+  void UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Update GantryToFixedReference transform based on gantry angle from UI slider
   void GantryRotationValueChanged(double gantryAngle);
   
@@ -92,9 +94,14 @@ public:
   void LateralDisplacementValueChanged(double latTableTopDisplacement, double longTableTopDisplacement, double vertTableTopDisplacement);
   /// Translate the table top laterally along the y axes  based on change to Longitudinal Table Top Displacement UI slider
   void LongitudinalDisplacementValueChanged(double latTableTopDisplacement, double longTableTopDisplacement, double vertTableTopDisplacement);
+
   /// Check for collisions between pieces of linac model using vtkCollisionDetectionFilter
   /// \return string indicating whether collision occurred
-  std::string CheckForCollisions();
+  std::string CheckForCollisions(vtkMRMLRoomsEyeViewNode* parameterNode);
+
+protected:
+  /// Get patient body closed surface poly data from segmentation node and segment selection in the parameter node
+  bool GetPatientBodyPolyData(vtkMRMLRoomsEyeViewNode* parameterNode, vtkPolyData* patientBodyPolyData);
 
 protected:
   vtkMatrix4x4* CollimatorToWorldTransformMatrix;
