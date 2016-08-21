@@ -1,20 +1,20 @@
 /*==============================================================================
 
-  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
-  Queen's University, Kingston, ON, Canada. All Rights Reserved.
+Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
-  See COPYRIGHT.txt
-  or http://www.slicer.org/copyright/copyright.txt for details.
+See COPYRIGHT.txt
+or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
-  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
-  and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+and was supported through the Applied Cancer Research Unit program of Cancer Care
+Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
@@ -41,7 +41,7 @@ class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic :
 {
 public:
   static vtkSlicerRoomsEyeViewModuleLogic *New();
-  vtkTypeMacro(vtkSlicerRoomsEyeViewModuleLogic,vtkSlicerModuleLogic);
+  vtkTypeMacro(vtkSlicerRoomsEyeViewModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
@@ -49,51 +49,47 @@ public:
   void LoadLinacModels();
   /// Set up the IEC transform hierarchy
   void InitializeIEC();
-  
+
   /// Update CollimatorToGantry transform based on collimator angle from UI slider
   void UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Update GantryToFixedReference transform based on gantry angle from UI slider
-  void GantryRotationValueChanged(double gantryAngle);
-  
+  void UpdateGantryToFixedReferenceTransform(double gantryAngle);
+
   /// Translate center of left imaging panel to isocenter of fixed reference coordinate system
-  void LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter(double imagingPanelMovement);
+  void UpdateLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform(double imagingPanelMovement);
   /// Rotate left imaging panel based on imagingPanelMovement from UI slider
-  void LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated(double imagingPanelMovement);
+  void UpdateLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform(double imagingPanelMovement);
   /// Translate rotated left imaging panel from fixed reference isocenter back to gantry
-  void LeftImagingPanelRotatedToGantry(double imagingPanelMovement);
+  void UpdateLeftImagingPanelRotatedToGantryTransform(double imagingPanelMovement);
   /// Translate the left imaging panel forward based on imagingPanelMovement from UI slider
-  void LeftImagingPanelTranslation(double imagingPanelMovement);
+  void UpdateLeftImagingPanelTranslationTransform(double imagingPanelMovement);
 
   /// Translate center of right imaging panel to isocenter of fixed reference coordinate system
-  void RightImagingPanelToRightImagingPanelFixedReferenceIsocenter(double imagingPanelMovement);
+  void UpdateRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform(double imagingPanelMovement);
   /// Rotate rights imaging panel based on imagingPanelMovement from UI slider
-  void RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated(double imagingPanelMovement);
+  void UpdateRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform(double imagingPanelMovement);
   /// Translate rotated right imaging panel from fixed reference isocenter back to gantry
-  void RightImagingPanelRotatedToGantry(double imagingPanelMovement);
+  void UpdateRightImagingPanelRotatedToGantryTransform(double imagingPanelMovement);
   /// Translate the right imaging panel forward based on imagingPanelMovement from UI slider
-  void RightImagingPanelTranslation(double imagingPanelMovement);
+  void UpdateRightImagingPanelTranslationTransform(double imagingPanelMovement);
 
   /// Initiate imagingPanel transform functions based on imagingPanelMovement from UI slider
-  void ImagingPanelMovementValueChanged(double imagingPanelMovement);
+  void UpdateImagingPanelMovementTransforms(double imagingPanelMovement);
 
   /// Rotate patient support (couch) with respect to fixed reference coordinate system based on rotation angle from UI slider
-  void PatientSupportRotationValueChanged(double rotationAngle);
+  void UpdatePatientSupportToFixedReferenceTransform(double rotationAngle);
 
   /// Translate scaled patient support back to position with respect to the vertically translated table top
-  void PatientSupportScaledTranslatedToTableTopVerticalTranslation(double tableTopVerticalDisplacement);
+  void UpdatePatientSupportScaledTranslatedToTableTopVerticalTranslationTransform(double tableTopVerticalDisplacement);
   /// Scale the patient support based on the vertical displacement of the table top from the starting position of 0
-  void TableTopDisplacementPatientSupportChanged(double tableTopVerticalDisplacement);
+  void UpdatePatientSupportScaledByTableTopVerticalMovementTransform(double tableTopVerticalDisplacement);
   /// Translate the patient support positively so that base of the support is located at 0, preventing the base from getting scaled
-  void PatientSupportPositiveVerticalTranslation(double tableTopVerticalDisplacement);
-  
+  void UpdatePatientSupportPositiveVerticalTranslationTransform(double tableTopVerticalDisplacement);
+
   /// Call functions that translates the table top along the x,y, and z axes based on changes to table top displacement UI sliders
-  void TableTopDisplacementValueChanged(double latTableTopDisplacement , double longTableTopDisplacement, double vertTableTopDisplacement);
+  void UpdateTableTopEccentricRotationToPatientSupportTransform(double latTableTopDisplacement, double longTableTopDisplacement, double vertTableTopDisplacement);
   /// Translate the table top vertically along the z axes  based on change to Vertical Table Top Displacement UI slider
-  void VerticalDisplacementValueChanged(double latTableTopDisplacement, double longTableTopDisplacement, double vertTableTopDisplacement);
-  /// Translate the table top laterally along the x axes  based on change to Lateral Table Top Displacement UI slider
-  void LateralDisplacementValueChanged(double latTableTopDisplacement, double longTableTopDisplacement, double vertTableTopDisplacement);
-  /// Translate the table top laterally along the y axes  based on change to Longitudinal Table Top Displacement UI slider
-  void LongitudinalDisplacementValueChanged(double latTableTopDisplacement, double longTableTopDisplacement, double vertTableTopDisplacement);
+  void UpdateVerticalDisplacementTransforms(double latTableTopDisplacement, double longTableTopDisplacement, double vertTableTopDisplacement);
 
   /// Check for collisions between pieces of linac model using vtkCollisionDetectionFilter
   /// \return string indicating whether collision occurred

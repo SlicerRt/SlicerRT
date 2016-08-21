@@ -1,20 +1,20 @@
 /*==============================================================================
 
-  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
-  Queen's University, Kingston, ON, Canada. All Rights Reserved.
+Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
-  See COPYRIGHT.txt
-  or http://www.slicer.org/copyright/copyright.txt for details.
+See COPYRIGHT.txt
+or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
-  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
-  and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+and was supported through the Applied Cancer Research Unit program of Cancer Care
+Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
@@ -43,13 +43,13 @@
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
-class qSlicerRoomsEyeViewModuleWidgetPrivate: public Ui_qSlicerRoomsEyeViewModule
+class qSlicerRoomsEyeViewModuleWidgetPrivate : public Ui_qSlicerRoomsEyeViewModule
 {
   Q_DECLARE_PUBLIC(qSlicerRoomsEyeViewModuleWidget);
 protected:
   qSlicerRoomsEyeViewModuleWidget* const q_ptr;
 public:
-  qSlicerRoomsEyeViewModuleWidgetPrivate(qSlicerRoomsEyeViewModuleWidget& object): q_ptr(&object) { };
+  qSlicerRoomsEyeViewModuleWidgetPrivate(qSlicerRoomsEyeViewModuleWidget& object) : q_ptr(&object) { };
   ~qSlicerRoomsEyeViewModuleWidgetPrivate() { };
   vtkSmartPointer<vtkSlicerRoomsEyeViewModuleLogic> logic() const;
 
@@ -64,8 +64,8 @@ public:
 //-----------------------------------------------------------------------------
 vtkSmartPointer<vtkSlicerRoomsEyeViewModuleLogic> qSlicerRoomsEyeViewModuleWidgetPrivate::logic() const
 {
-	Q_Q(const qSlicerRoomsEyeViewModuleWidget);
-	return vtkSlicerRoomsEyeViewModuleLogic::SafeDownCast(q->logic());
+  Q_Q(const qSlicerRoomsEyeViewModuleWidget);
+  return vtkSlicerRoomsEyeViewModuleLogic::SafeDownCast(q->logic());
 }
 
 //-----------------------------------------------------------------------------
@@ -73,8 +73,8 @@ vtkSmartPointer<vtkSlicerRoomsEyeViewModuleLogic> qSlicerRoomsEyeViewModuleWidge
 
 //-----------------------------------------------------------------------------
 qSlicerRoomsEyeViewModuleWidget::qSlicerRoomsEyeViewModuleWidget(QWidget* _parent)
-  : Superclass( _parent )
-  , d_ptr( new qSlicerRoomsEyeViewModuleWidgetPrivate(*this) )
+: Superclass(_parent)
+, d_ptr(new qSlicerRoomsEyeViewModuleWidgetPrivate(*this))
 {
 }
 
@@ -86,9 +86,9 @@ qSlicerRoomsEyeViewModuleWidget::~qSlicerRoomsEyeViewModuleWidget()
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 {
-	Q_D(qSlicerRoomsEyeViewModuleWidget);
-	this->Superclass::setMRMLScene(scene);
-	qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent,this, SLOT(onSceneImportedEvent()) );
+  Q_D(qSlicerRoomsEyeViewModuleWidget);
+  this->Superclass::setMRMLScene(scene);
+  qvtkReconnect(d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()));
 
   // Find parameters node or create it if there is none in the scene
   if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
@@ -98,7 +98,7 @@ void qSlicerRoomsEyeViewModuleWidget::setMRMLScene(vtkMRMLScene* scene)
     {
       this->setParameterNode(node);
     }
-    else 
+    else
     {
       vtkSmartPointer<vtkMRMLRoomsEyeViewNode> newNode = vtkSmartPointer<vtkMRMLRoomsEyeViewNode>::New();
       this->mrmlScene()->AddNode(newNode);
@@ -110,45 +110,45 @@ void qSlicerRoomsEyeViewModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::onSceneImportedEvent()
 {
-	this->onEnter();
+  this->onEnter();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::enter()
 {
-	this->onEnter();
-	this->Superclass::enter();
+  this->onEnter();
+  this->Superclass::enter();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::onEnter()
 {
-	if (!this->mrmlScene())
-	{
-		qCritical() << Q_FUNC_INFO << ": Invalid scene!";
-		return;
-	}
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return;
+  }
 
-	Q_D(qSlicerRoomsEyeViewModuleWidget);
-	
-	// First check the logic if it has a parameter node
-	if (!d->logic())
-	{
-		qCritical() << Q_FUNC_INFO << ": Invalid logic!";
-		return;
-	}
+  Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-	d->ModuleWindowInitialized = true;
+  // First check the logic if it has a parameter node
+  if (!d->logic())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid logic!";
+    return;
+  }
+
+  d->ModuleWindowInitialized = true;
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
-  
+
   vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(node);
 
-  qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
+  qvtkReconnect(paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
 
   if (paramNode)
   {
@@ -156,7 +156,7 @@ void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
     {
       paramNode->SetAndObservePatientBodySegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(d->SegmentSelectorWidget->currentNode()));
     }
-    if ( !paramNode->GetPatientBodySegmentID() && !d->SegmentSelectorWidget->currentSegmentID().isEmpty() )
+    if (!paramNode->GetPatientBodySegmentID() && !d->SegmentSelectorWidget->currentSegmentID().isEmpty())
     {
       paramNode->SetPatientBodySegmentID(d->SegmentSelectorWidget->currentSegmentID().toLatin1().constData());
     }
@@ -184,6 +184,34 @@ void qSlicerRoomsEyeViewModuleWidget::updateWidgetFromMRML()
     }
 
     //TODO:
+    if (paramNode->GetGantryRotationAngle())
+    {
+      d->GantryRotationSlider->setValue(paramNode->GetGantryRotationAngle());
+    }
+    if (paramNode->GetCollimatorRotationAngle())
+    {
+      d->CollimatorRotationSlider->setValue(paramNode->GetCollimatorRotationAngle());
+    }
+    if (paramNode->GetPatientSupportRotationAngle())
+    {
+      d->PatientSupportRotationSlider->setValue(paramNode->GetPatientSupportRotationAngle());
+    }
+    if (paramNode->GetImagingPanelMovement())
+    {
+      d->ImagingPanelMovementSlider->setValue(paramNode->GetImagingPanelMovement());
+    }
+    if (paramNode->GetVerticalTableTopDisplacement())
+    {
+      d->VerticalTableTopDisplacementSlider->setValue(paramNode->GetVerticalTableTopDisplacement());
+    }
+    if (paramNode->GetLateralTableTopDisplacement())
+    {
+      d->LateralTableTopDisplacementSlider->setValue(paramNode->GetLateralTableTopDisplacement());
+    }
+    if (paramNode->GetLongitudinalTableTopDisplacement())
+    {
+      d->LongitudinalTableTopDisplacementSlider->setValue(paramNode->GetLongitudinalTableTopDisplacement());
+    }
   }
 }
 
@@ -206,11 +234,11 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
   connect(d->LongitudinalTableTopDisplacementSlider, SIGNAL(valueChanged(double)), this, SLOT(longitudinalTableTopDisplacementSliderValueChanged()));
   connect(d->LateralTableTopDisplacementSlider, SIGNAL(valueChanged(double)), this, SLOT(lateralTableTopDisplacementSliderValueChanged()));
 
-  connect( d->SegmentSelectorWidget, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(patientBodySegmentationNodeChanged(vtkMRMLNode*)) );
-  connect( d->SegmentSelectorWidget, SIGNAL(currentSegmentChanged(QString)), this, SLOT(patientBodySegmentChanged(QString)) );
+  connect(d->SegmentSelectorWidget, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(patientBodySegmentationNodeChanged(vtkMRMLNode*)));
+  connect(d->SegmentSelectorWidget, SIGNAL(currentSegmentChanged(QString)), this, SLOT(patientBodySegmentChanged(QString)));
 
   // Handle scene change event if occurs
-  qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
+  qvtkConnect(d->logic(), vtkCommand::ModifiedEvent, this, SLOT(onLogicModified()));
 }
 
 //-----------------------------------------------------------------------------
@@ -223,7 +251,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLogicModified()
 void qSlicerRoomsEyeViewModuleWidget::loadModelButtonClicked()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
- 
+
   d->logic()->LoadLinacModels();
 
   //TODO: Move this a more central place after integrating REV into EBP
@@ -280,7 +308,7 @@ void qSlicerRoomsEyeViewModuleWidget::gantryRotationSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  d->logic()->GantryRotationValueChanged(d->GantryRotationSlider->value());
+  d->logic()->UpdateGantryToFixedReferenceTransform(d->GantryRotationSlider->value());
 
   vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
@@ -296,7 +324,7 @@ void qSlicerRoomsEyeViewModuleWidget::imagingPanelMovementSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  d->logic()->ImagingPanelMovementValueChanged(d->ImagingPanelMovementSlider->value());
+  d->logic()->UpdateImagingPanelMovementTransforms(d->ImagingPanelMovementSlider->value());
 
   this->checkForCollisions();
 }
@@ -312,7 +340,7 @@ void qSlicerRoomsEyeViewModuleWidget::collimatorRotationSliderValueChanged()
     return;
   }
 
-  //TODO: Same for all other ...ValueChanged functions
+  //TODO: Same for all other ...ValueChanged functions, need to look into why transform is not working anymore
   paramNode->DisableModifiedEventOn();
   paramNode->SetCollimatorRotationAngle(d->CollimatorRotationSlider->value());
   paramNode->DisableModifiedEventOff();
@@ -327,7 +355,7 @@ void qSlicerRoomsEyeViewModuleWidget::patientSupportRotationSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  d->logic()->PatientSupportRotationValueChanged(d->PatientSupportRotationSlider->value());
+  d->logic()->UpdatePatientSupportToFixedReferenceTransform(d->PatientSupportRotationSlider->value());
 
   this->checkForCollisions();
 }
@@ -337,8 +365,8 @@ void qSlicerRoomsEyeViewModuleWidget::verticalTableTopDisplacementSliderValueCha
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  d->logic()->VerticalDisplacementValueChanged(
-    d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value() );
+  d->logic()->UpdateVerticalDisplacementTransforms(
+    d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value());
 
   this->checkForCollisions();
 }
@@ -348,8 +376,8 @@ void qSlicerRoomsEyeViewModuleWidget::longitudinalTableTopDisplacementSliderValu
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  d->logic()->LongitudinalDisplacementValueChanged(
-    d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value() );
+  d->logic()->UpdateTableTopEccentricRotationToPatientSupportTransform(
+    d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value());
 
   this->checkForCollisions();
 }
@@ -359,8 +387,8 @@ void qSlicerRoomsEyeViewModuleWidget::lateralTableTopDisplacementSliderValueChan
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  d->logic()->LateralDisplacementValueChanged(
-    d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value() );
+  d->logic()->UpdateTableTopEccentricRotationToPatientSupportTransform(
+    d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value());
 
   this->checkForCollisions();
 }
