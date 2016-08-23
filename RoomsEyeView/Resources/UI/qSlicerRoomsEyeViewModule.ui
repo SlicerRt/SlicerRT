@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>412</width>
-    <height>558</height>
+    <height>559</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,7 +33,13 @@
       </widget>
      </item>
      <item>
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet"/>
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
+       <property name="nodeTypes">
+        <stringlist>
+         <string>vtkMRMLRoomsEyeViewNode</string>
+        </stringlist>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

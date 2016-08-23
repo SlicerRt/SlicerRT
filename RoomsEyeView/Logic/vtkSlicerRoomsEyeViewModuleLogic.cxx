@@ -1,20 +1,20 @@
 /*==============================================================================
 
-Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
-Queen's University, Kingston, ON, Canada. All Rights Reserved.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
-See COPYRIGHT.txt
-or http://www.slicer.org/copyright/copyright.txt for details.
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 
-This file was originally developed by Csaba Pinter, PerkLab, Queen's University
-and was supported through the Applied Cancer Research Unit program of Cancer Care
-Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
@@ -73,13 +73,13 @@ vtkStandardNewMacro(vtkSlicerRoomsEyeViewModuleLogic);
 
 //----------------------------------------------------------------------------
 vtkSlicerRoomsEyeViewModuleLogic::vtkSlicerRoomsEyeViewModuleLogic()
-: CollimatorToWorldTransformMatrix(NULL)
-, TableTopToWorldTransformMatrix(NULL)
-, GantryPatientCollisionDetection(NULL)
-, GantryTableTopCollisionDetection(NULL)
-, GantryPatientSupportCollisionDetection(NULL)
-, CollimatorPatientCollisionDetection(NULL)
-, CollimatorTableTopCollisionDetection(NULL)
+  : CollimatorToWorldTransformMatrix(NULL)
+  , TableTopToWorldTransformMatrix(NULL)
+  , GantryPatientCollisionDetection(NULL)
+  , GantryTableTopCollisionDetection(NULL)
+  , GantryPatientSupportCollisionDetection(NULL)
+  , CollimatorPatientCollisionDetection(NULL)
+  , CollimatorTableTopCollisionDetection(NULL)
 {
   this->CollimatorToWorldTransformMatrix = vtkMatrix4x4::New();
   this->TableTopToWorldTransformMatrix = vtkMatrix4x4::New();
@@ -320,12 +320,13 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newSce
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
   tableTopEccentricRotationToPatientSupportTransformNode->GetMatrixTransformToWorld(this->TableTopToWorldTransformMatrix);
 
+  //TODO: Should not be needed!
   // Set transform nodes to parameter set nodes
   std::vector<vtkMRMLNode*> roomsEyeViewNodes;
   unsigned int numberOfNodes = newScene->GetNodesByClass("vtkMRMLRoomsEyeViewNode", roomsEyeViewNodes);
   for (unsigned int nodeIndex = 0; nodeIndex < numberOfNodes; nodeIndex++)
   {
-    vtkSmartPointer<vtkMRMLRoomsEyeViewNode> node = vtkMRMLRoomsEyeViewNode::SafeDownCast(roomsEyeViewNodes[nodeIndex]);
+    vtkMRMLRoomsEyeViewNode* node = vtkMRMLRoomsEyeViewNode::SafeDownCast(roomsEyeViewNodes[nodeIndex]);
     node->SetAndObserveGantryToFixedReferenceTransformNode(gantryToFixedReferenceTransformNode);
     node->SetAndObserveCollimatorToGantryTransformNode(collimatorToGantryTransformNode);
 
@@ -395,105 +396,99 @@ void vtkSlicerRoomsEyeViewModuleLogic::InitializeIEC()
 
   // Display all pieces of the treatment room and sets each piece a color to provide realistic representation
   vtkMRMLModelNode* gantryModel = vtkMRMLModelNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(GANTRY_MODEL_NAME));
+    this->GetMRMLScene()->GetFirstNodeByName(GANTRY_MODEL_NAME) );
   if (!gantryModel)
   {
     vtkErrorMacro("InitializeIEC: Unable to access gantry model!");
     return;
   }
-  vtkSmartPointer<vtkMRMLLinearTransformNode> gantryModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("GantryToFixedReferenceTransform"));
+  vtkMRMLLinearTransformNode* gantryModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME) );
   gantryModel->SetAndObserveTransformNodeID(gantryModelTransforms->GetID());
   gantryModel->CreateDefaultDisplayNodes();
-  vtkSmartPointer<vtkMRMLDisplayNode> gantryModelDisplayNode = gantryModel->GetDisplayNode();
-  gantryModelDisplayNode->SetColor(0.95, 0.95, 0.95);
+  gantryModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
 
   vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_MODEL_NAME));
+    this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_MODEL_NAME) );
   if (!collimatorModel)
   {
     vtkErrorMacro("InitializeIEC: Unable to access collimator model!");
     return;
   }
-  vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("CollimatorToGantryTransform"));
+  vtkMRMLLinearTransformNode* collimatorModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME) );
   collimatorModel->SetAndObserveTransformNodeID(collimatorModelTransforms->GetID());
   collimatorModel->CreateDefaultDisplayNodes();
-  vtkSmartPointer<vtkMRMLDisplayNode> collimatorModelDisplayNode = collimatorModel->GetDisplayNode();
-  collimatorModelDisplayNode->SetColor(0.7, 0.7, 0.95);
+  collimatorModel->GetDisplayNode()->SetColor(0.7, 0.7, 0.95);
 
   vtkMRMLModelNode* leftImagingPanelModel = vtkMRMLModelNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELLEFT_MODEL_NAME));
+    this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELLEFT_MODEL_NAME) );
   if (!leftImagingPanelModel)
   {
     vtkErrorMacro("InitializeIEC: Unable to access left imaging panel model!");
     return;
   }
-  vtkSmartPointer<vtkMRMLLinearTransformNode> leftImagingPanelModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform"));
+  vtkMRMLLinearTransformNode* leftImagingPanelModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME) );
   leftImagingPanelModel->SetAndObserveTransformNodeID(leftImagingPanelModelTransforms->GetID());
   leftImagingPanelModel->CreateDefaultDisplayNodes();
-  vtkSmartPointer<vtkMRMLDisplayNode> leftImagingPanelModelDisplayNode = leftImagingPanelModel->GetDisplayNode();
-  leftImagingPanelModelDisplayNode->SetColor(0.95, 0.95, 0.95);
+  leftImagingPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
 
   vtkMRMLModelNode* rightImagingPanelModel = vtkMRMLModelNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELRIGHT_MODEL_NAME));
+    this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELRIGHT_MODEL_NAME) );
   if (!rightImagingPanelModel)
   {
     vtkErrorMacro("InitializeIEC: Unable to access right imaging panel model!");
     return;
   }
-  vtkSmartPointer<vtkMRMLLinearTransformNode> rightImagingPanelModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("RightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform"));
+  vtkMRMLLinearTransformNode* rightImagingPanelModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME) );
   rightImagingPanelModel->SetAndObserveTransformNodeID(rightImagingPanelModelTransforms->GetID());
   rightImagingPanelModel->CreateDefaultDisplayNodes();
-  vtkSmartPointer<vtkMRMLDisplayNode> rightImagingPanelModelDisplayNode = rightImagingPanelModel->GetDisplayNode();
-  rightImagingPanelModelDisplayNode->SetColor(0.95, 0.95, 0.95);
+  rightImagingPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
 
   vtkMRMLModelNode* patientSupportModel = vtkMRMLModelNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(PATIENTSUPPORT_MODEL_NAME));
+    this->GetMRMLScene()->GetFirstNodeByName(PATIENTSUPPORT_MODEL_NAME) );
   if (!patientSupportModel)
   {
     vtkErrorMacro("InitializeIEC: Unable to access patient support model!");
     return;
   }
-  vtkSmartPointer<vtkMRMLLinearTransformNode> patientSupportModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("PatientSupportPositiveVerticalTranslationTransform"));
-  vtkSmartPointer<vtkMRMLLinearTransformNode> patientSupportToFixedReferenceTransform = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("PatientSupportToFixedReferenceTransform"));
+  vtkMRMLLinearTransformNode* patientSupportModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransform = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME) );
   patientSupportModel->SetAndObserveTransformNodeID(patientSupportModelTransforms->GetID());
   patientSupportModel->CreateDefaultDisplayNodes();
-  vtkSmartPointer<vtkMRMLDisplayNode> patientSupportModelDisplayNode = patientSupportModel->GetDisplayNode();
-  patientSupportModelDisplayNode->SetColor(0.85, 0.85, 0.85);
+  patientSupportModel->GetDisplayNode()->SetColor(0.85, 0.85, 0.85);
 
   vtkMRMLModelNode* tableTopModel = vtkMRMLModelNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(TABLETOP_MODEL_NAME));
+    this->GetMRMLScene()->GetFirstNodeByName(TABLETOP_MODEL_NAME) );
   if (!tableTopModel)
   {
     vtkErrorMacro("InitializeIEC: Unable to access table top model!");
     return;
   }
-  vtkSmartPointer<vtkMRMLLinearTransformNode> tableTopModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("TableTopEccentricRotationToPatientSupportTransform"));
+  vtkMRMLLinearTransformNode* tableTopModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME) );
   tableTopModel->SetAndObserveTransformNodeID(tableTopModelTransforms->GetID());
   tableTopModel->CreateDefaultDisplayNodes();
-  vtkSmartPointer<vtkMRMLDisplayNode> tableTopModelDisplayNode = tableTopModel->GetDisplayNode();
-  tableTopModelDisplayNode->SetColor(0, 0, 0);
+  tableTopModel->GetDisplayNode()->SetColor(0, 0, 0);
 
   // Set up collision detection between components
   this->GantryTableTopCollisionDetection->SetInput(0, gantryModel->GetPolyData());
   this->GantryTableTopCollisionDetection->SetInput(1, tableTopModel->GetPolyData());
   this->GantryTableTopCollisionDetection->SetTransform(0,
-    vtkLinearTransform::SafeDownCast(gantryModelTransforms->GetTransformToParent()));
+    vtkLinearTransform::SafeDownCast(gantryModelTransforms->GetTransformToParent()) );
   this->GantryTableTopCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
   this->GantryTableTopCollisionDetection->Update();
 
   this->GantryPatientSupportCollisionDetection->SetInput(0, gantryModel->GetPolyData());
   this->GantryPatientSupportCollisionDetection->SetInput(1, patientSupportModel->GetPolyData());
   this->GantryPatientSupportCollisionDetection->SetTransform(0,
-    vtkLinearTransform::SafeDownCast(gantryModelTransforms->GetTransformToParent()));
+    vtkLinearTransform::SafeDownCast(gantryModelTransforms->GetTransformToParent()) );
   this->GantryPatientSupportCollisionDetection->SetTransform(1,
-    vtkLinearTransform::SafeDownCast(patientSupportToFixedReferenceTransform->GetTransformToParent()));
+    vtkLinearTransform::SafeDownCast(patientSupportToFixedReferenceTransform->GetTransformToParent()) );
   this->GantryPatientSupportCollisionDetection->Update();
 
   this->CollimatorTableTopCollisionDetection->SetInput(0, collimatorModel->GetPolyData());
@@ -509,7 +504,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::InitializeIEC()
 
   this->GantryPatientCollisionDetection->SetInput(0, gantryModel->GetPolyData());
   this->GantryPatientCollisionDetection->SetTransform(0,
-    vtkLinearTransform::SafeDownCast(gantryModelTransforms->GetTransformToParent()));
+    vtkLinearTransform::SafeDownCast(gantryModelTransforms->GetTransformToParent()) );
   this->GantryPatientCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
   this->GantryPatientCollisionDetection->Update();
 
@@ -544,7 +539,7 @@ bool vtkSlicerRoomsEyeViewModuleLogic::GetPatientBodyPolyData(vtkMRMLRoomsEyeVie
   return vtkSlicerSegmentationsModuleLogic::GetSegmentRepresentation(
     segmentationNode, parameterNode->GetPatientBodySegmentID(),
     vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName(),
-    patientBodyPolyData);
+    patientBodyPolyData );
 }
 
 //----------------------------------------------------------------------------
@@ -556,9 +551,10 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRML
     return;
   }
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("CollimatorToGantryTransform"));
-  vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
+    collimatorToGantryTransformNode->GetTransformToParent() );
 
   //TODO: This is specific to the Varian TrueBeam STx model, move this somewhere else when generalizing for any treatment machine
   // Translates collimator to actual center of rotation and then rotates based on rotationAngle
@@ -574,220 +570,342 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRML
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateGantryToFixedReferenceTransform(double rotationAngle)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateGantryToFixedReferenceTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  vtkSmartPointer<vtkMRMLLinearTransformNode> gantryToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("GantryToFixedReferenceTransform"));
-  vtkSmartPointer<vtkTransform> gantryToFixedReferenceTransform = vtkTransform::SafeDownCast(gantryToFixedReferenceTransformNode->GetTransformToParent());
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateGantryToFixedReferenceTransform: Invalid parameter set node!");
+    return;
+  }
+
+  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME) );
+  vtkTransform* gantryToFixedReferenceTransform = vtkTransform::SafeDownCast(
+    gantryToFixedReferenceTransformNode->GetTransformToParent() );
 
   gantryToFixedReferenceTransform->Identity();
-  gantryToFixedReferenceTransform->RotateY(rotationAngle);
+  gantryToFixedReferenceTransform->RotateY(parameterNode->GetGantryRotationAngle());
   gantryToFixedReferenceTransform->Modified();
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("CollimatorToGantryTransform"));
-  vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
+    collimatorToGantryTransformNode->GetTransformToParent() );
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform(double panelMovement)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  vtkSmartPointer<vtkMRMLLinearTransformNode> leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform"));
-  vtkSmartPointer<vtkTransform> leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform = vtkTransform::SafeDownCast(leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode->GetTransformToParent());
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform: Invalid parameter set node!");
+    return;
+  }
+
+  //TODO: This method does not use any input
+  vtkMRMLLinearTransformNode* leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME) );
+  vtkTransform* leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform = vtkTransform::SafeDownCast(
+    leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode->GetTransformToParent() );
+
   leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform->Identity();
   double translationArray[3] = { 656.606, -1518.434, -345.164 };
   leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform->Translate(translationArray);
   leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform->Modified();
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("CollimatorToGantryTransform"));
-  vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
+    collimatorToGantryTransformNode->GetTransformToParent() );
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform(double panelMovement)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  vtkSmartPointer<vtkMRMLLinearTransformNode> leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform"));
-  vtkSmartPointer<vtkTransform> LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform = vtkTransform::SafeDownCast(leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode->GetTransformToParent());
-  LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform->Identity();
-  if (panelMovement > 0){
-    LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform->RotateZ(68.5);
-  }
-  else{
-    LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform->RotateZ(panelMovement + 68.5);
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform: Invalid parameter set node!");
+    return;
   }
 
-  LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform->Modified();
+  double panelMovement = parameterNode->GetImagingPanelMovement();
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("CollimatorToGantryTransform"));
-  vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
+  vtkMRMLLinearTransformNode* leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME) );
+  vtkTransform* leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform = vtkTransform::SafeDownCast(
+    leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode->GetTransformToParent() );
+
+  leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform->Identity();
+  if (panelMovement > 0)
+  {
+    leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform->RotateZ(68.5);
+  }
+  else
+  {
+    leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform->RotateZ(panelMovement + 68.5);
+  }
+
+  leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform->Modified();
+
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
+    collimatorToGantryTransformNode->GetTransformToParent() );
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelRotatedToGantryTransform(double panelMovement)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelRotatedToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  vtkSmartPointer<vtkMRMLLinearTransformNode> leftImagingPanelRotatedToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("LeftImagingPanelRotatedToGantryTransform"));
-  vtkSmartPointer<vtkTransform> leftImagingPanelRotatedToGantryTransform = vtkTransform::SafeDownCast(leftImagingPanelRotatedToGantryTransformNode->GetTransformToParent());
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateLeftImagingPanelRotatedToGantryTransform: Invalid parameter set node!");
+    return;
+  }
+
+  //TODO: This method does not use any input
+  vtkMRMLLinearTransformNode* leftImagingPanelRotatedToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkTransform* leftImagingPanelRotatedToGantryTransform = vtkTransform::SafeDownCast(
+    leftImagingPanelRotatedToGantryTransformNode->GetTransformToParent() );
+
   leftImagingPanelRotatedToGantryTransform->Identity();
   double translationArray[3] = { -656.606, 1518.434, 345.164 };
   leftImagingPanelRotatedToGantryTransform->Translate(translationArray);
   leftImagingPanelRotatedToGantryTransform->Modified();
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("CollimatorToGantryTransform"));
-  vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
+    collimatorToGantryTransformNode->GetTransformToParent() );
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelTranslationTransform(double panelMovement)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelTranslationTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  vtkSmartPointer<vtkMRMLLinearTransformNode> leftImagingPanelTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("LeftImagingPanelTranslationTransform"));
-  vtkSmartPointer<vtkTransform> leftImagingPanelTranslationTransform = vtkTransform::SafeDownCast(leftImagingPanelTranslationTransformNode->GetTransformToParent());
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateLeftImagingPanelTranslationTransform: Invalid parameter set node!");
+    return;
+  }
+
+  double panelMovement = parameterNode->GetImagingPanelMovement();
+
+  vtkMRMLLinearTransformNode* leftImagingPanelTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(LEFTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME) );
+  vtkTransform* leftImagingPanelTranslationTransform = vtkTransform::SafeDownCast(
+    leftImagingPanelTranslationTransformNode->GetTransformToParent() );
+
   leftImagingPanelTranslationTransform->Identity();
   double translationArray[3] = { 0, -(panelMovement), 0 };
   leftImagingPanelTranslationTransform->Translate(translationArray);
   leftImagingPanelTranslationTransform->Modified();
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("CollimatorToGantryTransform"));
-  vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
+    collimatorToGantryTransformNode->GetTransformToParent() );
 
-  collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
+  collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix); //TODO: Why is this done in every function?
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform(double panelMovement)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  vtkSmartPointer<vtkMRMLLinearTransformNode> rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("RightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform"));
-  vtkSmartPointer<vtkTransform> rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform = vtkTransform::SafeDownCast(rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode->GetTransformToParent());
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform: Invalid parameter set node!");
+    return;
+  }
+
+  //TODO: This method does not use any input
+  vtkMRMLLinearTransformNode* rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME) );
+  vtkTransform* rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform = vtkTransform::SafeDownCast(
+    rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode->GetTransformToParent() );
+
   rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform->Identity();
   double translationArray[3] = { -649.763, -1504.412, -342.200 };
   rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform->Translate(translationArray);
   rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform->Modified();
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("CollimatorToGantryTransform"));
-  vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
+    collimatorToGantryTransformNode->GetTransformToParent() );
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform(double panelMovement)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  vtkSmartPointer<vtkMRMLLinearTransformNode> rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform"));
-  vtkSmartPointer<vtkTransform> rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform = vtkTransform::SafeDownCast(rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode->GetTransformToParent());
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform: Invalid parameter set node!");
+    return;
+  }
+
+  double panelMovement = parameterNode->GetImagingPanelMovement();
+
+  vtkMRMLLinearTransformNode* rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME) );
+  vtkTransform* rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform = vtkTransform::SafeDownCast(
+    rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode->GetTransformToParent() );
+
   rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform->Identity();
-  if (panelMovement > 0){
+  if (panelMovement > 0)
+  {
     rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform->RotateZ(-(68.5));
   }
-  else{
+  else
+  {
     rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform->RotateZ(-(68.5 + panelMovement));
   }
   rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform->Modified();
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("CollimatorToGantryTransform"));
-  vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
+    collimatorToGantryTransformNode->GetTransformToParent() );
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelRotatedToGantryTransform(double panelMovement)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelRotatedToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  vtkSmartPointer<vtkMRMLLinearTransformNode> rightImagingPanelRotatedToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("RightImagingPanelRotatedToGantryTransform"));
-  vtkSmartPointer<vtkTransform> rightImagingPanelRotatedToGantryTransform = vtkTransform::SafeDownCast(rightImagingPanelRotatedToGantryTransformNode->GetTransformToParent());
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateRightImagingPanelRotatedToGantryTransform: Invalid parameter set node!");
+    return;
+  }
+
+  //TODO: This method does not use any input
+  vtkMRMLLinearTransformNode* rightImagingPanelRotatedToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkTransform* rightImagingPanelRotatedToGantryTransform = vtkTransform::SafeDownCast(
+    rightImagingPanelRotatedToGantryTransformNode->GetTransformToParent() );
+
   rightImagingPanelRotatedToGantryTransform->Identity();
   double translationArray[3] = { 649.763, 1504.412, 342.200 };
   rightImagingPanelRotatedToGantryTransform->Translate(translationArray);
   rightImagingPanelRotatedToGantryTransform->Modified();
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("CollimatorToGantryTransform"));
-  vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
+    collimatorToGantryTransformNode->GetTransformToParent() );
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelTranslationTransform(double panelMovement)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelTranslationTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  vtkSmartPointer<vtkMRMLLinearTransformNode> rightImagingPanelTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("RightImagingPanelTranslationTransform"));
-  vtkSmartPointer<vtkTransform> rightImagingPanelTranslationTransform = vtkTransform::SafeDownCast(rightImagingPanelTranslationTransformNode->GetTransformToParent());
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateRightImagingPanelTranslationTransform: Invalid parameter set node!");
+    return;
+  }
+
+  double panelMovement = parameterNode->GetImagingPanelMovement();
+
+  vtkMRMLLinearTransformNode* rightImagingPanelTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(RIGHTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME) );
+  vtkTransform* rightImagingPanelTranslationTransform = vtkTransform::SafeDownCast(
+    rightImagingPanelTranslationTransformNode->GetTransformToParent() );
+
   rightImagingPanelTranslationTransform->Identity();
   double translationArray[3] = { 0, -(panelMovement), 0 };
   rightImagingPanelTranslationTransform->Translate(translationArray);
   rightImagingPanelTranslationTransform->Modified();
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("CollimatorToGantryTransform"));
-  vtkSmartPointer<vtkTransform> collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
+    collimatorToGantryTransformNode->GetTransformToParent() );
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateImagingPanelMovementTransforms(double panelMovement)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateImagingPanelMovementTransforms(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  this->UpdateLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform(panelMovement);
-  this->UpdateLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform(panelMovement);
-  this->UpdateLeftImagingPanelRotatedToGantryTransform(panelMovement);
-  this->UpdateRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform(panelMovement);
-  this->UpdateRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform(panelMovement);
-  this->UpdateRightImagingPanelRotatedToGantryTransform(panelMovement);
-
-  if (panelMovement > 0)
+  if (!parameterNode)
   {
-    this->UpdateLeftImagingPanelTranslationTransform(panelMovement);
-    this->UpdateRightImagingPanelTranslationTransform(panelMovement);
+    vtkErrorMacro("UpdateImagingPanelMovementTransforms: Invalid parameter set node!");
+    return;
+  }
+
+  this->UpdateLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform(parameterNode);
+  this->UpdateLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform(parameterNode);
+  this->UpdateLeftImagingPanelRotatedToGantryTransform(parameterNode);
+  this->UpdateRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform(parameterNode);
+  this->UpdateRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform(parameterNode);
+  this->UpdateRightImagingPanelRotatedToGantryTransform(parameterNode);
+
+  double panelMovement = parameterNode->GetImagingPanelMovement();
+  if (panelMovement > 0) //TODO: This check should be in the two functions in the if branch?
+  {
+    this->UpdateLeftImagingPanelTranslationTransform(parameterNode);
+    this->UpdateRightImagingPanelTranslationTransform(parameterNode);
   }
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToFixedReferenceTransform(double rotationAngle)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToFixedReferenceTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  vtkSmartPointer<vtkMRMLLinearTransformNode> patientSupportToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("PatientSupportToFixedReferenceTransform"));
-  vtkSmartPointer<vtkTransform> patientSupportToFixedReferenceTransform = vtkTransform::SafeDownCast(patientSupportToFixedReferenceTransformNode->GetTransformToParent());
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdatePatientSupportToFixedReferenceTransform: Invalid parameter set node!");
+    return;
+  }
+
+  double rotationAngle = parameterNode->GetPatientSupportRotationAngle();
+
+  vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME) );
+  vtkTransform* patientSupportToFixedReferenceTransform = vtkTransform::SafeDownCast(
+    patientSupportToFixedReferenceTransformNode->GetTransformToParent() );
 
   patientSupportToFixedReferenceTransform->Identity();
   patientSupportToFixedReferenceTransform->RotateZ(rotationAngle);
   patientSupportToFixedReferenceTransform->Modified();
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("TableTopEccentricRotationToPatientSupportTransform"));
-  vtkSmartPointer<vtkTransform> tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent());
+  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME) );
+  vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(
+    tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent() );
 
   tableTopEccentricRotationToPatientSupportTransformNode->GetMatrixTransformToWorld(this->TableTopToWorldTransformMatrix);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateTableTopEccentricRotationToPatientSupportTransform(double lattableTopDisplacement, double longTableTopDisplacement, double vertTableTopDisplacement)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateTableTopEccentricRotationToPatientSupportTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  vtkSmartPointer<vtkMRMLLinearTransformNode> tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("TableTopEccentricRotationToPatientSupportTransform"));
-  vtkSmartPointer<vtkTransform> tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent());
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateTableTopEccentricRotationToPatientSupportTransform: Invalid parameter set node!");
+    return;
+  }
+
+  //TODO: This method does not use any input
+  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME) );
+  vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(
+    tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent() );
 
   tableTopEccentricRotationToPatientSupportTransform->Identity();
-  double translationArray[3] = { lattableTopDisplacement, longTableTopDisplacement, vertTableTopDisplacement };
+  double translationArray[3] = {
+    parameterNode->GetLateralTableTopDisplacement(), parameterNode->GetLongitudinalTableTopDisplacement(), parameterNode->GetVerticalTableTopDisplacement() };
   tableTopEccentricRotationToPatientSupportTransform->Translate(translationArray);
   tableTopEccentricRotationToPatientSupportTransform->Modified();
 
@@ -795,68 +913,102 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateTableTopEccentricRotationToPatientS
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportScaledTranslatedToTableTopVerticalTranslationTransform(double tableTopDisplacement)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportScaledTranslatedToTableTopVerticalTranslationTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  vtkSmartPointer<vtkMRMLLinearTransformNode> patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("PatientSupportScaledTranslatedToTableTopVerticalTranslationTransform"));
-  vtkSmartPointer<vtkTransform> patientSupportScaledTranslatedToTableTopVerticalTranslationTransform = vtkTransform::SafeDownCast(patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode->GetTransformToParent());
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdatePatientSupportScaledTranslatedToTableTopVerticalTranslationTransform: Invalid parameter set node!");
+    return;
+  }
+
+  //TODO: This method does not use any input
+  vtkMRMLLinearTransformNode* patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_NAME) );
+  vtkTransform* patientSupportScaledTranslatedToTableTopVerticalTranslationTransform = vtkTransform::SafeDownCast(
+    patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode->GetTransformToParent() );
 
   patientSupportScaledTranslatedToTableTopVerticalTranslationTransform->Identity();
   double translationArray[3] = { 0, 0, -1359.469848632281225 };
   patientSupportScaledTranslatedToTableTopVerticalTranslationTransform->Translate(translationArray);
   patientSupportScaledTranslatedToTableTopVerticalTranslationTransform->Modified();
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("TableTopEccentricRotationToPatientSupportTransform"));
-  vtkSmartPointer<vtkTransform> tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent());
+  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME) );
+  vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(
+    tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent() );
 
   tableTopEccentricRotationToPatientSupportTransformNode->GetMatrixTransformToWorld(this->TableTopToWorldTransformMatrix);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportScaledByTableTopVerticalMovementTransform(double tableTopDisplacement)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportScaledByTableTopVerticalMovementTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  vtkSmartPointer<vtkMRMLLinearTransformNode> patientSupportScaledByTableTopVerticalMovementTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("PatientSupportScaledByTableTopVerticalMovementTransform"));
-  vtkTransform* patientSupportScaledByTableTopVerticalMovementTransform = vtkTransform::SafeDownCast(patientSupportScaledByTableTopVerticalMovementTransformNode->GetTransformToParent());
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdatePatientSupportScaledByTableTopVerticalMovementTransform: Invalid parameter set node!");
+    return;
+  }
+
+  double tableTopDisplacement = parameterNode->GetVerticalTableTopDisplacement();
+
+  vtkMRMLLinearTransformNode* patientSupportScaledByTableTopVerticalMovementTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_NAME) );
+  vtkTransform* patientSupportScaledByTableTopVerticalMovementTransform = vtkTransform::SafeDownCast(
+    patientSupportScaledByTableTopVerticalMovementTransformNode->GetTransformToParent() );
 
   patientSupportScaledByTableTopVerticalMovementTransform->Identity();
   patientSupportScaledByTableTopVerticalMovementTransform->Scale(1, 1, ((906 + tableTopDisplacement*1.01)) / 900);
   patientSupportScaledByTableTopVerticalMovementTransform->Modified();
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("TableTopEccentricRotationToPatientSupportTransform"));
-  vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent());
+  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME) );
+  vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(
+    tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent() );
 
   tableTopEccentricRotationToPatientSupportTransformNode->GetMatrixTransformToWorld(this->TableTopToWorldTransformMatrix);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportPositiveVerticalTranslationTransform(double tableTopDisplacement)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportPositiveVerticalTranslationTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  vtkSmartPointer<vtkMRMLLinearTransformNode> patientSupportPositiveVerticalTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("PatientSupportPositiveVerticalTranslationTransform"));
-  vtkTransform* patientSupportPositiveVerticalTranslationTransform = vtkTransform::SafeDownCast(patientSupportPositiveVerticalTranslationTransformNode->GetTransformToParent());
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdatePatientSupportPositiveVerticalTranslationTransform: Invalid parameter set node!");
+    return;
+  }
+
+  //TODO: This method does not use any input
+  vtkMRMLLinearTransformNode* patientSupportPositiveVerticalTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME) );
+  vtkTransform* patientSupportPositiveVerticalTranslationTransform = vtkTransform::SafeDownCast(
+    patientSupportPositiveVerticalTranslationTransformNode->GetTransformToParent() );
 
   patientSupportPositiveVerticalTranslationTransform->Identity();
   double translationArray[3] = { 0, 0, 1359.469848632281225 };
   patientSupportPositiveVerticalTranslationTransform->Translate(translationArray);
   patientSupportPositiveVerticalTranslationTransform->Modified();
 
-  vtkSmartPointer<vtkMRMLLinearTransformNode> tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName("TableTopEccentricRotationToPatientSupportTransform"));
-  vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent());
+  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME) );
+  vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(
+    tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent() );
 
   tableTopEccentricRotationToPatientSupportTransformNode->GetMatrixTransformToWorld(this->TableTopToWorldTransformMatrix);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateVerticalDisplacementTransforms(double latDisplacementValue, double longDisplacementValue, double vertDisplacementValue)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateVerticalDisplacementTransforms(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
-  this->UpdateTableTopEccentricRotationToPatientSupportTransform(latDisplacementValue, longDisplacementValue, vertDisplacementValue);
-  this->UpdatePatientSupportScaledTranslatedToTableTopVerticalTranslationTransform(vertDisplacementValue);
-  this->UpdatePatientSupportScaledByTableTopVerticalMovementTransform(vertDisplacementValue);
-  this->UpdatePatientSupportPositiveVerticalTranslationTransform(vertDisplacementValue);
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateVerticalDisplacementTransforms: Invalid parameter set node!");
+    return;
+  }
+
+  this->UpdateTableTopEccentricRotationToPatientSupportTransform(parameterNode);
+  this->UpdatePatientSupportScaledTranslatedToTableTopVerticalTranslationTransform(parameterNode);
+  this->UpdatePatientSupportScaledByTableTopVerticalMovementTransform(parameterNode);
+  this->UpdatePatientSupportPositiveVerticalTranslationTransform(parameterNode);
 }
 
 //-----------------------------------------------------------------------------

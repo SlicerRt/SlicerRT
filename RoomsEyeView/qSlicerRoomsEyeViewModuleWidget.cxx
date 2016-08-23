@@ -1,20 +1,20 @@
 /*==============================================================================
 
-Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
-Queen's University, Kingston, ON, Canada. All Rights Reserved.
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
-See COPYRIGHT.txt
-or http://www.slicer.org/copyright/copyright.txt for details.
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 
-This file was originally developed by Csaba Pinter, PerkLab, Queen's University
-and was supported through the Applied Cancer Research Unit program of Cancer Care
-Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
+  This file was originally developed by Csaba Pinter, PerkLab, Queen's University
+  and was supported through the Applied Cancer Research Unit program of Cancer Care
+  Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
@@ -148,8 +148,14 @@ void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
 
   vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(node);
 
+  // Make sure the parameter set node is selected (in case the function was not called by the selector combobox signal)
+  d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
+
+  // Each time the node is modified, the UI widgets are updated
   qvtkReconnect(paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
 
+  // Set selected MRML nodes in comboboxes in the parameter set if it was NULL there
+  // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
   if (paramNode)
   {
     if (!paramNode->GetPatientBodySegmentationNode())
@@ -183,35 +189,13 @@ void qSlicerRoomsEyeViewModuleWidget::updateWidgetFromMRML()
       d->SegmentSelectorWidget->setCurrentSegmentID(paramNode->GetPatientBodySegmentID());
     }
 
-    //TODO:
-    if (paramNode->GetGantryRotationAngle())
-    {
-      d->GantryRotationSlider->setValue(paramNode->GetGantryRotationAngle());
-    }
-    if (paramNode->GetCollimatorRotationAngle())
-    {
-      d->CollimatorRotationSlider->setValue(paramNode->GetCollimatorRotationAngle());
-    }
-    if (paramNode->GetPatientSupportRotationAngle())
-    {
-      d->PatientSupportRotationSlider->setValue(paramNode->GetPatientSupportRotationAngle());
-    }
-    if (paramNode->GetImagingPanelMovement())
-    {
-      d->ImagingPanelMovementSlider->setValue(paramNode->GetImagingPanelMovement());
-    }
-    if (paramNode->GetVerticalTableTopDisplacement())
-    {
-      d->VerticalTableTopDisplacementSlider->setValue(paramNode->GetVerticalTableTopDisplacement());
-    }
-    if (paramNode->GetLateralTableTopDisplacement())
-    {
-      d->LateralTableTopDisplacementSlider->setValue(paramNode->GetLateralTableTopDisplacement());
-    }
-    if (paramNode->GetLongitudinalTableTopDisplacement())
-    {
-      d->LongitudinalTableTopDisplacementSlider->setValue(paramNode->GetLongitudinalTableTopDisplacement());
-    }
+    d->GantryRotationSlider->setValue(paramNode->GetGantryRotationAngle());
+    d->CollimatorRotationSlider->setValue(paramNode->GetCollimatorRotationAngle());
+    d->PatientSupportRotationSlider->setValue(paramNode->GetPatientSupportRotationAngle());
+    d->ImagingPanelMovementSlider->setValue(paramNode->GetImagingPanelMovement());
+    d->VerticalTableTopDisplacementSlider->setValue(paramNode->GetVerticalTableTopDisplacement());
+    d->LateralTableTopDisplacementSlider->setValue(paramNode->GetLateralTableTopDisplacement());
+    d->LongitudinalTableTopDisplacementSlider->setValue(paramNode->GetLongitudinalTableTopDisplacement());
   }
 }
 
@@ -308,13 +292,17 @@ void qSlicerRoomsEyeViewModuleWidget::gantryRotationSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  d->logic()->UpdateGantryToFixedReferenceTransform(d->GantryRotationSlider->value());
-
   vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
   }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetGantryRotationAngle(d->GantryRotationSlider->value());
+  paramNode->DisableModifiedEventOff();
+
+  d->logic()->UpdateGantryToFixedReferenceTransform(paramNode);
 
   this->checkForCollisions();
 }
@@ -324,7 +312,17 @@ void qSlicerRoomsEyeViewModuleWidget::imagingPanelMovementSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  d->logic()->UpdateImagingPanelMovementTransforms(d->ImagingPanelMovementSlider->value());
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetImagingPanelMovement(d->ImagingPanelMovementSlider->value());
+  paramNode->DisableModifiedEventOff();
+
+  d->logic()->UpdateImagingPanelMovementTransforms(paramNode);
 
   this->checkForCollisions();
 }
@@ -340,7 +338,6 @@ void qSlicerRoomsEyeViewModuleWidget::collimatorRotationSliderValueChanged()
     return;
   }
 
-  //TODO: Same for all other ...ValueChanged functions, need to look into why transform is not working anymore
   paramNode->DisableModifiedEventOn();
   paramNode->SetCollimatorRotationAngle(d->CollimatorRotationSlider->value());
   paramNode->DisableModifiedEventOff();
@@ -355,7 +352,17 @@ void qSlicerRoomsEyeViewModuleWidget::patientSupportRotationSliderValueChanged()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  d->logic()->UpdatePatientSupportToFixedReferenceTransform(d->PatientSupportRotationSlider->value());
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetPatientSupportRotationAngle(d->PatientSupportRotationSlider->value());
+  paramNode->DisableModifiedEventOff();
+
+  d->logic()->UpdatePatientSupportToFixedReferenceTransform(paramNode);
 
   this->checkForCollisions();
 }
@@ -365,8 +372,17 @@ void qSlicerRoomsEyeViewModuleWidget::verticalTableTopDisplacementSliderValueCha
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  d->logic()->UpdateVerticalDisplacementTransforms(
-    d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value());
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetVerticalTableTopDisplacement(d->VerticalTableTopDisplacementSlider->value());
+  paramNode->DisableModifiedEventOff();
+
+  d->logic()->UpdateVerticalDisplacementTransforms(paramNode);
 
   this->checkForCollisions();
 }
@@ -376,8 +392,17 @@ void qSlicerRoomsEyeViewModuleWidget::longitudinalTableTopDisplacementSliderValu
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  d->logic()->UpdateTableTopEccentricRotationToPatientSupportTransform(
-    d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value());
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetLongitudinalTableTopDisplacement(d->LongitudinalTableTopDisplacementSlider->value());
+  paramNode->DisableModifiedEventOff();
+
+  d->logic()->UpdateTableTopEccentricRotationToPatientSupportTransform(paramNode);
 
   this->checkForCollisions();
 }
@@ -387,8 +412,17 @@ void qSlicerRoomsEyeViewModuleWidget::lateralTableTopDisplacementSliderValueChan
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  d->logic()->UpdateTableTopEccentricRotationToPatientSupportTransform(
-    d->LateralTableTopDisplacementSlider->value(), d->LongitudinalTableTopDisplacementSlider->value(), d->VerticalTableTopDisplacementSlider->value());
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetLateralTableTopDisplacement(d->LateralTableTopDisplacementSlider->value());
+  paramNode->DisableModifiedEventOff();
+
+  d->logic()->UpdateTableTopEccentricRotationToPatientSupportTransform(paramNode);
 
   this->checkForCollisions();
 }
