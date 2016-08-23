@@ -432,13 +432,13 @@ void qSlicerDoseComparisonModuleWidget::maskSegmentChanged(QString segmentID)
   }
 
   vtkMRMLDoseComparisonNode* paramNode = vtkMRMLDoseComparisonNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
-  if (!paramNode || segmentID.isEmpty() || !d->ModuleWindowInitialized)
+  if (!paramNode || !d->ModuleWindowInitialized)
   {
     return;
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetMaskSegmentID(segmentID.toLatin1().constData());
+  paramNode->SetMaskSegmentID(segmentID.isEmpty() ? NULL : segmentID.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();

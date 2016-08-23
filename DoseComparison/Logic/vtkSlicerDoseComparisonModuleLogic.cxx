@@ -255,7 +255,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
   Gamma_dose_comparison gamma;
   gamma.set_reference_image(referenceDose->itk_float());
   gamma.set_compare_image(compareDose->itk_float());
-  if (maskSegmentationNode)
+  if (maskSegmentationNode && maskSegmentID)
   {
     gamma.set_mask_image(maskVolume->itk_uchar());
   }
