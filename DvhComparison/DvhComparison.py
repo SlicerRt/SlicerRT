@@ -13,7 +13,7 @@ class DvhComparison(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "DVH Comparison"
     self.parent.categories = ["Radiotherapy"]
-    self.parent.dependencies = []
+    self.parent.dependencies = ["DoseVolumeHistogram"]
     self.parent.contributors = ["Kyle Sunderland (Queen's University), Csaba Pinter (Queen's University)"]
     self.parent.helpText = """This module compares two Dose Volume Histograms from corresponding Double Array Nodes."""
     self.parent.acknowledgementText = """ """
