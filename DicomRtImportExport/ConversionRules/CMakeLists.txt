@@ -16,11 +16,16 @@ set(${KIT}_SRCS
   vtkPlanarContourToRibbonModelConversionRule.h
   vtkRibbonModelToBinaryLabelmapConversionRule.cxx
   vtkRibbonModelToBinaryLabelmapConversionRule.h
+  vtkClosedSurfaceToFractionalLabelmapConversionRule.cxx
+  vtkClosedSurfaceToFractionalLabelmapConversionRule.h
+  vtkFractionalLabelmapToClosedSurfaceConversionRule.cxx
+  vtkFractionalLabelmapToClosedSurfaceConversionRule.h
   )
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
   vtkSegmentationCore
+  vtkSlicerSegmentationsModuleMRMLDisplayableManager
   )
 
 SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${SlicerRtCommon_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)

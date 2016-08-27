@@ -14,7 +14,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
+  This file was originally developed by Kevin Wang, Radiation Medicine Program,
   University Health Network and Csaba Pinter, PerkLab, Queen's University and
   Andras Lasso, PerkLab, Queen's University, and was supported by Cancer Care
   Ontario (CCO)'s ACRU program with funds provided by the Ontario Ministry of
@@ -30,6 +30,8 @@
 #include "vtkRibbonModelToBinaryLabelmapConversionRule.h"
 #include "vtkPlanarContourToRibbonModelConversionRule.h"
 #include "vtkPlanarContourToClosedSurfaceConversionRule.h"
+#include "vtkClosedSurfaceToFractionalLabelmapConversionRule.h"
+#include "vtkFractionalLabelmapToClosedSurfaceConversionRule.h"
 
 // Qt includes
 #include <QSettings>
@@ -177,6 +179,10 @@ void vtkSlicerDicomRtImportExportModuleLogic::RegisterNodes()
     vtkSmartPointer<vtkPlanarContourToRibbonModelConversionRule>::New() );
   vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
     vtkSmartPointer<vtkPlanarContourToClosedSurfaceConversionRule>::New() );
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
+    vtkSmartPointer<vtkClosedSurfaceToFractionalLabelmapConversionRule>::New() );
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
+    vtkSmartPointer<vtkFractionalLabelmapToClosedSurfaceConversionRule>::New() );
 }
 
 //---------------------------------------------------------------------------
@@ -207,7 +213,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::ExamineForLoad(vtkStringArray* fil
       continue; // Failed to parse this file, skip it
     }
 
-    // DICOM parsing is successful, now check if the object is loadable 
+    // DICOM parsing is successful, now check if the object is loadable
     OFString name("");
     OFString seriesNumber("");
     std::vector<OFString> referencedSOPInstanceUIDs;
@@ -228,11 +234,11 @@ void vtkSlicerDicomRtImportExportModuleLogic::ExamineForLoad(vtkStringArray* fil
       dataset->findAndGetOFString(DCM_SeriesDescription, seriesDescription);
       if (!seriesDescription.empty())
       {
-        name += ": " + seriesDescription; 
+        name += ": " + seriesDescription;
       }
       if (!instanceNumber.empty())
       {
-        name += " [" + instanceNumber + "]"; 
+        name += " [" + instanceNumber + "]";
       }
 
       // Find RTPlan name for RTDose series
@@ -524,7 +530,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtStructureSet(vtkSlicerDicomR
   const char* seriesName = loadable->GetName();
   std::string structureSetReferencedSeriesUid("");
 
-  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
+  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
 
   // Get referenced SOP instance UIDs
   const char* referencedSopInstanceUids = rtReader->GetRTStructureSetReferencedSOPInstanceUIDs();
@@ -746,7 +752,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtDose(vtkSlicerDicomRtReader*
     ++floatPtr;
   }
 
-  volumeNode->SetAndObserveImageData(floatVolumeData);      
+  volumeNode->SetAndObserveImageData(floatVolumeData);
 
   // Get default isodose color table and default dose color table
   vtkMRMLColorTableNode* defaultIsodoseColorTable = vtkSlicerIsodoseModuleLogic::CreateDefaultIsodoseColorTable(this->GetMRMLScene());
@@ -854,7 +860,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
   shSeriesNodeName.append(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix());
   shSeriesNodeName = this->GetMRMLScene()->GenerateUniqueName(shSeriesNodeName);
 
-  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState); 
+  this->GetMRMLScene()->StartState(vtkMRMLScene::BatchProcessState);
 
   // Create plan node
   vtkSmartPointer<vtkMRMLRTPlanNode> planNode = vtkSmartPointer<vtkMRMLRTPlanNode>::New();
@@ -883,7 +889,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
       referencedSopInstanceUids = std::string(referencedStructureSetSopInstanceUid);
     }
     if (referencedDoseSopInstanceUids)
-    {        
+    {
       referencedSopInstanceUids = referencedSopInstanceUids +
         (referencedStructureSetSopInstanceUid?" ":"") + std::string(referencedDoseSopInstanceUids);
     }
@@ -1021,8 +1027,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadRtPlan(vtkSlicerDicomRtReader*
       this->SetupRtImageGeometry(beamNode);
     }
   }
-  
-  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 
+
+  this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState);
 
   return true;
 }
@@ -1315,7 +1321,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::SetupRtImageGeometry(vtkMRMLNode* 
     int beamNumber = beamNode->GetBeamNumber();
     // Get number of beams in the plan (if there is only one, then the beam number may nor be correctly referenced, so we cannot find it that way
     bool oneBeamInPlan = (planShNode->GetNumberOfChildrenNodes() == 1);
-    
+
     // Find corresponding RT image according to beam (isocenter) UID
     vtkSmartPointer<vtkCollection> hierarchyNodes = vtkSmartPointer<vtkCollection>::Take(this->GetMRMLScene()->GetNodesByClass("vtkMRMLSubjectHierarchyNode"));
     vtkObject* nextObject = NULL;
@@ -1586,7 +1592,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     }
     vtkMRMLNode* associatedNode = shNode->GetAssociatedNode();
 
-    // GCS FIX TODO: The below logic seems to allow only a single dose, 
+    // GCS FIX TODO: The below logic seems to allow only a single dose,
     // single image, and single segmentation per study.
     // However, there is no check to enforce this.
 
@@ -1671,7 +1677,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   rtWriter->SetDoseSeriesNumber(doseSeriesNumber);
   rtWriter->SetRtssSeriesDescription(rtssSeriesDescription);
   rtWriter->SetRtssSeriesNumber(rtssSeriesNumber);
-  
+
   // Convert input image (CT/MR/etc) to the format Plastimatch can use
   vtkSmartPointer<vtkOrientedImageData> imageOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
   if (!SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(imageNode, imageOrientedImageData))
@@ -1908,7 +1914,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
 
           // Cut closed surface at slice
           cutter->SetCutFunction(slicePlane);
-          
+
           // Get instance UID of corresponding slice
           int sliceNumber = slice-imageExtent[0];
           sliceNumbers.push_back(sliceNumber);

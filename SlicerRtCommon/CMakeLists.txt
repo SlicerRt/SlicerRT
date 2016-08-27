@@ -25,9 +25,13 @@ SET (SlicerRtCommon_SRCS
   vtkSlicerAutoWindowLevelLogic.h
   vtkCollisionDetectionFilter.cxx
   vtkCollisionDetectionFilter.h
+  vtkFractionalImageAccumulate.cxx
+  vtkFractionalImageAccumulate.h
+  vtkFractionalPolyDataToImageStencil.cxx
+  vtkFractionalPolyDataToImageStencil.h
   )
 
-SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${Slicer_Libs_INCLUDE_DIRS} ${vtkSegmentationCore_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
+SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${Slicer_Libs_INCLUDE_DIRS} ${vtkSegmentationCore_INCLUDE_DIRS} ${vtkSlicerDicomRtImportExportConversionRules_INCLUDE_DIRS}  CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library

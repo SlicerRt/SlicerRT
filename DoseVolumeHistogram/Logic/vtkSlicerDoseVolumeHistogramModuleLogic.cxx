@@ -24,6 +24,8 @@
 
 // SlicerRT includes
 #include "SlicerRtCommon.h"
+#include "vtkFractionalImageAccumulate.h"
+#include "vtkClosedSurfaceToFractionalLabelmapConversionRule.h"
 
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
@@ -119,6 +121,7 @@ vtkSlicerDoseVolumeHistogramModuleLogic::vtkSlicerDoseVolumeHistogramModuleLogic
   this->DefaultDoseVolumeOversamplingFactor = 2.0;
 
   this->LogSpeedMeasurements = false;
+  this->UseFractionalLabelmap = false;
 }
 
 //----------------------------------------------------------------------------
@@ -138,7 +141,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::SetMRMLSceneInternal(vtkMRMLScene 
 //-----------------------------------------------------------------------------
 void vtkSlicerDoseVolumeHistogramModuleLogic::RegisterNodes()
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
@@ -223,14 +226,23 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   fixedOversamplingValuStream << this->DefaultDoseVolumeOversamplingFactor;
   segmentationCopy->SetConversionParameter( vtkClosedSurfaceToBinaryLabelmapConversionRule::GetOversamplingFactorParameterName(),
     parameterNode->GetAutomaticOversampling() ? "A" : fixedOversamplingValuStream.str().c_str() );
-  
+
+  char* representationName = "";
+  if (this->UseFractionalLabelmap)
+  {
+    representationName = (char*)vtkSegmentationConverter::GetSegmentationFractionalLabelmapRepresentationName();
+  }
+  else
+  {
+    representationName = (char*)vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName();
+  }
+
   // Reconvert segments to specified geometry if possible
   bool resamplingRequired = false;
-  if ( !segmentationCopy->CreateRepresentation(
-    vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(), true) )
+  if ( !segmentationCopy->CreateRepresentation(representationName, true) )
   {
     // If conversion failed and there is no binary labelmap in the segmentation, then cannot calculate DVH
-    if (!segmentationCopy->ContainsRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
+    if (!segmentationCopy->ContainsRepresentation(representationName) )
     {
       std::string errorMessage("Unable to acquire binary labelmap from segmentation");
       vtkErrorMacro("ComputeDvh: " << errorMessage);
@@ -253,16 +265,16 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
     {
       vtkSegment* currentSegment = segmentIt->second;
-      vtkOrientedImageData* currentBinaryLabelmap = vtkOrientedImageData::SafeDownCast(
-        currentSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
-      if (!currentBinaryLabelmap)
+      vtkOrientedImageData* currentLabelmap = vtkOrientedImageData::SafeDownCast(
+        currentSegment->GetRepresentation(representationName) );
+      if (!currentLabelmap)
       {
-        std::string errorMessage("Binary representation missing after converting with automatic oversampling factor!");
+        std::string errorMessage("Representation missing after converting with automatic oversampling factor!");
         vtkErrorMacro("ComputeDvh: " << errorMessage);
         return errorMessage;
       }
       double currentSpacing[3] = {0.0,0.0,0.0};
-      currentBinaryLabelmap->GetSpacing(currentSpacing);
+      currentLabelmap->GetSpacing(currentSpacing);
 
       double voxelSizeRatio = ((doseSpacing[0]*doseSpacing[1]*doseSpacing[2]) / (currentSpacing[0]*currentSpacing[1]*currentSpacing[2]));
       // Round oversampling to two decimals
@@ -317,12 +329,12 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   int numberOfSelectedSegments = segmentationCopy->GetNumberOfSegments();
   for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt, ++counter)
   {
-    // Get segment binary labelmap
-    vtkOrientedImageData* segmentBinaryLabelmap = vtkOrientedImageData::SafeDownCast( segmentIt->second->GetRepresentation(
-      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) );
-    if (!segmentBinaryLabelmap)
+    // Get segment labelmap
+    vtkOrientedImageData* segmentLabelmap = vtkOrientedImageData::SafeDownCast( segmentIt->second->GetRepresentation(
+      representationName ) );
+    if (!segmentLabelmap)
     {
-      std::string errorMessage("Failed to get binary labelmap for segments");
+      std::string errorMessage("Failed to get labelmap for segments");
       vtkErrorMacro("ComputeDvh: " << errorMessage);
       return errorMessage;
     }
@@ -330,7 +342,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     // Apply parent transformation nodes if necessary
     if (segmentationNode->GetParentTransformNode())
     {
-      if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, segmentBinaryLabelmap))
+      if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, segmentLabelmap))
       {
         std::string errorMessage("Failed to apply parent transformation to segment!");
         vtkErrorMacro("ComputeDvh: " << errorMessage);
@@ -343,7 +355,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     {
       // Resample dose volume using linear interpolation
       if ( !vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
-        segmentBinaryLabelmap, fixedOversampledDoseVolume, segmentBinaryLabelmap ) )
+        segmentLabelmap, fixedOversampledDoseVolume, segmentLabelmap ) )
       {
         std::string errorMessage("Failed to resample segment binary labelmap");
         vtkErrorMacro("ComputeDvh: " << errorMessage);
@@ -363,7 +375,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     {
       oversampledDoseVolume = vtkSmartPointer<vtkOrientedImageData>::New();
       if ( !vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
-        doseImageData, segmentBinaryLabelmap, oversampledDoseVolume, true ) )
+        doseImageData, segmentLabelmap, oversampledDoseVolume, true ) )
       {
         std::string errorMessage("Failed to resample dose volume");
         vtkErrorMacro("ComputeDvh: " << errorMessage);
@@ -373,15 +385,15 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
 
     // Make sure the segment labelmap is the same dimension as the dose volume
     vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
-    padder->SetInputData(segmentBinaryLabelmap);
+    padder->SetInputData(segmentLabelmap);
     int extent[6] = {0,-1,0,-1,0,-1};
     oversampledDoseVolume->GetExtent(extent);
     padder->SetOutputWholeExtent(extent);
     padder->Update();
-    segmentBinaryLabelmap->vtkImageData::DeepCopy(padder->GetOutput());
+    segmentLabelmap->vtkImageData::DeepCopy(padder->GetOutput());
 
     // Calculate DVH for current segment
-    std::string errorMessage = this->ComputeDvh(parameterNode, segmentBinaryLabelmap, oversampledDoseVolume, segmentIt->first, maxDose);
+    std::string errorMessage = this->ComputeDvh(parameterNode, segmentLabelmap, oversampledDoseVolume, segmentIt->first, maxDose);
     if (!errorMessage.empty())
     {
       vtkErrorMacro("ComputeDvh: " << errorMessage);
@@ -449,7 +461,14 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   // So, we have yo choose >=epsilon (epsilon is a very small positive number).
   // How small the number is has a significance when the segmentLabelmap is a floating-point image,
   // which is a rare scenario, but may still happen.
-  stencil->ThresholdByUpper(1e-10);
+  if (this->UseFractionalLabelmap)
+  {
+    stencil->ThresholdByUpper(FRACTIONAL_MIN+1e-10);
+  }
+  else
+  {
+    stencil->ThresholdByUpper(1e-10);
+  }
   stencil->Update();
 
   vtkSmartPointer<vtkImageStencilData> structureStencil = vtkSmartPointer<vtkImageStencilData>::New();
@@ -465,7 +484,17 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   }
 
   // Compute statistics
-  vtkNew<vtkImageAccumulate> structureStat;
+  vtkSmartPointer<vtkImageAccumulate> structureStat;
+  if (this->UseFractionalLabelmap)
+  {
+    structureStat = vtkSmartPointer<vtkFractionalImageAccumulate>::New();
+    vtkFractionalImageAccumulate::SafeDownCast(structureStat)->UseFractionalLabelmapOn();
+    vtkFractionalImageAccumulate::SafeDownCast(structureStat)->SetFractionalLabelmap(segmentLabelmap);
+  }
+  else
+  {
+    structureStat = vtkSmartPointer<vtkImageAccumulate>::New();
+  }
   structureStat->SetInputData(oversampledDoseVolume);
   structureStat->SetStencilData(structureStencil);
   structureStat->Update();
@@ -545,7 +574,15 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   // Volume name
   metricsTable->SetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnDoseVolume, vtkVariant(doseVolumeNode->GetName()));
   // Volume (cc) - save as attribute too (the DVH contains percentages that often need to be converted to volume)
-  double volumeCc = structureStat->GetVoxelCount() * cubicMMPerVoxel * ccPerCubicMM;
+  double volumeCc = 0;
+  if (this->UseFractionalLabelmap)
+  {
+    volumeCc = vtkFractionalImageAccumulate::SafeDownCast(structureStat)->GetFractionalVoxelCount() * cubicMMPerVoxel * ccPerCubicMM;
+  }
+  else
+  {
+    volumeCc = structureStat->GetVoxelCount() * cubicMMPerVoxel * ccPerCubicMM;
+  }
   metricsTable->SetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnVolumeCc, vtkVariant(volumeCc));
   std::ostringstream attributeNameStream;
   std::ostringstream attributeValueStream;
@@ -590,7 +627,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   structureStat->SetComponentOrigin(0,0,0);
   structureStat->SetComponentSpacing(startValue,1,1);
   structureStat->Update();
-  unsigned long voxelBelowDose = structureStat->GetOutput()->GetScalarComponentAsDouble(0,0,0,0);
+  double voxelBelowDose = structureStat->GetOutput()->GetScalarComponentAsDouble(0,0,0,0);
 
   // We put a fixed point at (0.0, 100%), but only if there are only positive values in the histogram
   // Negative values can occur when the user requests histogram for an image, such as s CT volume (in this case Intensity Volume Histogram is computed),
@@ -621,12 +658,28 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   }
 
   vtkImageData* statArray = structureStat->GetOutput();
-  unsigned long totalVoxels = structureStat->GetVoxelCount();
+  double totalVoxels = 0;
+  if (this->UseFractionalLabelmap)
+  {
+    totalVoxels = vtkFractionalImageAccumulate::SafeDownCast(structureStat)->GetFractionalVoxelCount();
+  }
+  else
+  {
+    totalVoxels = structureStat->GetVoxelCount();
+  }
+
   for (int sampleIndex=0; sampleIndex<numSamples; ++sampleIndex)
   {
-    unsigned long voxelsInBin = statArray->GetScalarComponentAsDouble(sampleIndex,0,0,0);
+    double voxelsInBin = statArray->GetScalarComponentAsDouble(sampleIndex,0,0,0);
     doubleArray->SetComponent( outputArrayIndex, 0, startValue + sampleIndex * stepSize );
-    doubleArray->SetComponent( outputArrayIndex, 1, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0 );
+    if (this->UseFractionalLabelmap)
+    {
+      doubleArray->SetComponent( outputArrayIndex, 1, std::max(0.0, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0) );
+    }
+    else
+    {
+      doubleArray->SetComponent( outputArrayIndex, 1, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0 );
+    }
     doubleArray->SetComponent( outputArrayIndex, 2, 0 );
     ++outputArrayIndex;
     voxelBelowDose += voxelsInBin;
@@ -899,7 +952,7 @@ vtkMRMLChartViewNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetChartViewNode(
     return NULL;
   }
   layoutNode->SetViewArrangement( vtkMRMLLayoutNode::SlicerLayoutConventionalQuantitativeView );
-  
+
   vtkSmartPointer<vtkCollection> chartViewNodes =
     vtkSmartPointer<vtkCollection>::Take( this->GetMRMLScene()->GetNodesByClass("vtkMRMLChartViewNode") );
   chartViewNodes->InitTraversal();
@@ -917,7 +970,7 @@ vtkMRMLChartViewNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetChartViewNode(
 void vtkSlicerDoseVolumeHistogramModuleLogic::GetNumbersFromMetricString(std::string metricStr, std::vector<double> &metricNumbers)
 {
   metricNumbers.clear();
-  
+
   size_t commaPosition = metricStr.find(",");
   while (commaPosition != std::string::npos)
   {
@@ -991,7 +1044,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeVMetrics(vtkMRMLDoseVolumeH
   // Remove all V metrics from the table
   vtkTable* metricsTable = metricsTableNode->GetTable();
   int numberOfColumnsBeforeRemoval = -1;
-  do 
+  do
   {
     numberOfColumnsBeforeRemoval = metricsTable->GetNumberOfColumns();
     for (int col=0; col<metricsTable->GetNumberOfColumns(); ++col)
@@ -1170,7 +1223,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDMetrics(vtkMRMLDoseVolumeH
   // Remove all D metrics from the table
   vtkTable* metricsTable = metricsTableNode->GetTable();
   int numberOfColumnsBeforeRemoval = -1;
-  do 
+  do
   {
     numberOfColumnsBeforeRemoval = metricsTable->GetNumberOfColumns();
     for (int col=0; col<metricsTable->GetNumberOfColumns(); ++col)
@@ -1509,9 +1562,9 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhMetricsToCsv(vtkMRMLDoseV
 vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode(std::string csvFilename)
 {
   std::string csvSeparatorCharacter = ",";
-  
+
   std::vector< vtkSmartPointer< vtkDoubleArray > > currentDvh;
-  
+
   // Vectors containing the names and total volumes of structures
   std::vector<std::string> structureNames;
   std::vector<double> structureVolumeCCs;
@@ -1562,7 +1615,7 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
         lineStr = lineStr.substr(commaPosition+1);
         commaPosition = lineStr.find(csvSeparatorCharacter);
       }
-      
+
       // Handle last field (if there was no comma at the end)
       if (!lineStr.empty() )
       {
@@ -1589,7 +1642,7 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
           fieldCount++;
         }
       }
-        
+
       // Add a vtkDoubleArray for each structure into the vector
       for (int structureIndex=0; structureIndex < fieldCount/2; ++structureIndex)
       {
@@ -1609,7 +1662,7 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
       double *tupleToInsert = new double[3];
       for(int j=0; j<3; ++j)
         tupleToInsert[j] = 0;
-      
+
       // Get the current bin's dose from the string
       double doseGy = 0;
       {
@@ -1625,17 +1678,17 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
         volumePercent = vtkVariant(lineStr.substr(0, commaPosition)).ToDouble();
       }
       tupleToInsert[1] = volumePercent;
-      
+
       if ((doseGy != 0.0 || volumePercent != 0.0) && (commaPosition > 0))
       {
         // Add the current bin into the vtkDoubleArray for the current structure
-        currentDvh.at(structureNumber)->InsertTuple(lineNumber, tupleToInsert);        
+        currentDvh.at(structureNumber)->InsertTuple(lineNumber, tupleToInsert);
       }
-      
+
       // Destroy the tuple
       delete tupleToInsert;
       tupleToInsert = NULL;
-      
+
       // Move to the next structure's bin in the string
       lineStr = lineStr.substr(commaPosition+1);
       commaPosition = lineStr.find(csvSeparatorCharacter);
@@ -1643,23 +1696,23 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
     }
     lineNumber++;
   }
- 
+
   dvhStream.close();
-  
+
   vtkCollection* doubleArrayNodes = vtkCollection::New();
   for (unsigned int structureIndex=0; structureIndex < currentDvh.size(); structureIndex++)
   {
     // Create the vtkMRMLDoubleArrayNodes which will be passed to the logic function.
     vtkNew<vtkMRMLDoubleArrayNode> currentNode;
     currentNode->SetArray(currentDvh.at(structureIndex));
-    
+
     // Set the total volume attribute in the vtkMRMLDoubleArrayNode attributes
     std::ostringstream attributeNameStream;
     attributeNameStream << vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX << vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_TOTAL_VOLUME_CC;
     std::ostringstream attributeValueStream;
     attributeValueStream << structureVolumeCCs[structureIndex];
     currentNode->SetAttribute(attributeNameStream.str().c_str(), attributeValueStream.str().c_str());
-    
+
     // Set the structure's name attribute and variables
     currentNode->SetAttribute(DVH_SEGMENT_ID_ATTRIBUTE_NAME.c_str(), structureNames.at(structureIndex).c_str());
     std::string nameAttribute = structureNames.at(structureIndex) + DVH_ARRAY_NODE_NAME_POSTFIX;

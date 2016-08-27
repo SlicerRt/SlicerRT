@@ -93,14 +93,14 @@ public:
 
   /// Add dose volume histogram of a structure (ROI) to the selected chart given its double array node
   void AddDvhToChart(vtkMRMLChartNode* chartNode, vtkMRMLDoubleArrayNode* dvhArrayNode);
-  
+
   /// Remove dose volume histogram of a structure from the selected chart
   void RemoveDvhFromChart(vtkMRMLChartNode* chartNode, vtkMRMLDoubleArrayNode* dvhArrayNode);
 
   /// Determine if a DVH array is added to the selected chart
   bool IsDvhAddedToChart(vtkMRMLChartNode* chartNode, vtkMRMLDoubleArrayNode* dvhArrayNode);
 
-  /// Export DVH values 
+  /// Export DVH values
   /// \param comma Flag determining if the CSV file to be saved is deliminated using commas or tabs (regional considerations)
   /// \return True if file written and saved successfully, false otherwise
   bool ExportDvhToCsv(vtkMRMLDoseVolumeHistogramNode* parameterNode, const char* fileName, bool comma=true);
@@ -133,6 +133,10 @@ public:
   vtkSetMacro(LogSpeedMeasurements, bool);
   vtkBooleanMacro(LogSpeedMeasurements, bool);
 
+  vtkGetMacro(UseFractionalLabelmap, bool);
+  vtkSetMacro(UseFractionalLabelmap, bool);
+  vtkBooleanMacro(UseFractionalLabelmap, bool);
+
 protected:
   /// Compute DVH for the given structure segment with the stenciled dose volume
   /// (the labelmap representation of a segment but with dose values instead of the labels)
@@ -164,7 +168,7 @@ protected:
 
   /// Callback function observing the visibility column of the metrics table
   static void OnVisibilityChanged(vtkObject* caller, unsigned long eid, void* clientData, void* callData);
-  
+
 protected:
   vtkSlicerDoseVolumeHistogramModuleLogic();
   virtual ~vtkSlicerDoseVolumeHistogramModuleLogic();
@@ -196,6 +200,9 @@ protected:
 
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;
+
+  /// Flag telling whether or not to use fractional labelmaps
+  bool UseFractionalLabelmap;
 };
 
 #endif
