@@ -38,19 +38,6 @@
 
 class vtkPolyData;
 
-// Change the value of FRACTIONAL_DATA_TYPE, FRACTIONAL_MIN, and FRACTIONAL_MAX based on the value of VTK_FRACTIONAL_DATA_TYPE
-#define VTK_FRACTIONAL_DATA_TYPE VTK_UNSIGNED_CHAR
-
-#if VTK_FRACTIONAL_DATA_TYPE == VTK_UNSIGNED_CHAR
-  #define FRACTIONAL_DATA_TYPE unsigned char
-  #define FRACTIONAL_MIN 0
-  #define FRACTIONAL_MAX 216
-#elif VTK_FRACTIONAL_DATA_TYPE == VTK_CHAR
-  #define FRACTIONAL_DATA_TYPE char
-  #define FRACTIONAL_MIN -108
-  #define FRACTIONAL_MAX 108
-#endif
-
 /// \ingroup SegmentationCore
 /// \brief Convert closed surface representation (vtkPolyData type) to fractional
 ///   labelmap representation (vtkOrientedImageData type). The conversion algorithm

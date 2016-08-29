@@ -57,6 +57,19 @@ class vtkMatrix4x4;
 #  define STRCASECMP strcasecmp
 #endif
 
+// Define the datatype and fractional constants for fractional labelmap conversion based on the value of VTK_FRACTIONAL_DATA_TYPE
+#define VTK_FRACTIONAL_DATA_TYPE VTK_UNSIGNED_CHAR
+
+#if VTK_FRACTIONAL_DATA_TYPE == VTK_UNSIGNED_CHAR
+  #define FRACTIONAL_DATA_TYPE unsigned char
+  #define FRACTIONAL_MIN 0
+  #define FRACTIONAL_MAX 216
+#elif VTK_FRACTIONAL_DATA_TYPE == VTK_CHAR
+  #define FRACTIONAL_DATA_TYPE char
+  #define FRACTIONAL_MIN -108
+  #define FRACTIONAL_MAX 108
+#endif
+
 #include "vtkSlicerRtCommonWin32Header.h"
 
 /// \ingroup SlicerRt_SlicerRtCommon

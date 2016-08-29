@@ -22,14 +22,14 @@
 
 
 #include "vtkFractionalPolyDataToImageStencil.h"
-#include "vtkImageStencilData.h"
-#include "vtkObjectFactory.h"
 
-#include "vtkCellArray.h"
-#include "vtkPolyData.h"
-#include "vtkInformation.h"
-#include "vtkInformationVector.h"
+// VTK includes
+#include <vtkImageStencilData.h>
+#include <vtkPolyData.h>
+#include <vtkInformation.h>
+#include <vtkInformationVector.h>
 
+// std includes
 #include <map>
 
 vtkStandardNewMacro(vtkFractionalPolyDataToImageStencil);

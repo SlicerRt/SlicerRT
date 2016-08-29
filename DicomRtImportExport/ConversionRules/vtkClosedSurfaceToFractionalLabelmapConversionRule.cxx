@@ -27,6 +27,9 @@
 // DicomRtImportExport includes
 #include "vtkClosedSurfaceToFractionalLabelmapConversionRule.h"
 
+// SlicerRtCommon includes
+#include "SlicerRtCommon.h"
+
 // Slicer includes
 #include "vtkLoggingMacros.h"
 

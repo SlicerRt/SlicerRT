@@ -21,7 +21,11 @@
 // DicomRtImportExport includes
 #include "vtkClosedSurfaceToFractionalLabelmapConversionRule.h"
 
-#include "vtkOrientedImageData.h"
+// SlicerRtCommon includes
+#include "SlicerRtCommon.h"
+
+// SegmentationCore includes
+#include <vtkOrientedImageData.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
