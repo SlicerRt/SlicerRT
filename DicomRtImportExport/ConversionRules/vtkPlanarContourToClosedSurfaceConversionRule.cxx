@@ -1578,18 +1578,18 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixLines(vtkPolyData* oldLin
     }
 
   vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
+  lines->Initialize();
 
   for (vtkIdType lineId = 0; lineId < oldLines->GetNumberOfLines(); ++lineId)
     {
     vtkSmartPointer<vtkLine> oldLine = vtkSmartPointer<vtkLine>::New();
     oldLine->DeepCopy(oldLines->GetCell(lineId));
-    vtkSmartPointer<vtkIdList> oldLineIds = oldLine->GetPointIds();
 
     // We identified an issue with vtkMarchingSquares that caused the some of the lines generated
     // to loop back on themselves by the third point. This check causes these contours to be ignored.
     //  When there is only one contour, it is not acceptable to throw it away.
     // TODO: This method is not working well and needs to be improved.
-    if (oldLine->GetNumberOfPoints() <= 2)
+    if (oldLine->GetNumberOfPoints() <= 3)
       {
       continue;
       }
@@ -1748,6 +1748,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::RemovePointDecimation(vtkIdL
     }
 
   vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
+  idList->Initialize();
   for (int i=0; i < originalIdList->GetNumberOfIds(); ++i)
     {
     vtkIdType id = originalIdList->GetId(i);
