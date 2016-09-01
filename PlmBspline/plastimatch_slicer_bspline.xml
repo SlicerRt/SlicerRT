@@ -13,17 +13,17 @@
     <description>Input/output parameters</description>
     <image>
       <name>plmslc_fixed_volume</name>
+      <index>0</index>
       <label>Fixed volume</label>
       <channel>input</channel>
-      <index>0</index>
       <default>None</default>
       <description>Reference volume</description>
     </image>
     <image>
       <name>plmslc_moving_volume</name>
+      <index>1</index>
       <label>Moving volume</label>
       <channel>input</channel>
-      <index>1</index>
       <default>None</default>
       <description>Volume to warp</description>
     </image>
@@ -53,25 +53,25 @@
     </string>
     <point coordinateSystem="ras" multiple="true">
       <name>plmslc_fixed_fiducials</name>
-      <longflag>--plmslc_fixed_fiducials</longflag>
+      <longflag>plmslc_fixed_fiducials</longflag>
       <label>Fixed fiducials</label>
-      <channel>input</channel>
       <description>Fiducials in fixed volume</description>
       <default>0,0,0</default>
+      <channel>input</channel>
     </point>
     <point coordinateSystem="ras" multiple="true">
       <name>plmslc_moving_fiducials</name>
-      <longflag>--plmslc_moving_fiducials</longflag>
+      <longflag>plmslc_moving_fiducials</longflag>
       <label>Moving fiducials</label>
-      <channel>input</channel>
       <description>Fiducials in moving volume</description>
       <default>0,0,0</default>
+      <channel>input</channel>
     </point>
     
     <!-- Outputs -->
     <image>
       <name>plmslc_output_warped</name>
-      <longflag>--plmslc_output_warped</longflag>
+      <longflag>plmslc_output_warped</longflag>
       <description>Warped output image</description>
       <label>Output volume</label>
       <default>None</default>
@@ -79,7 +79,7 @@
     </image>
     <transform fileExtensions=".txt" type="bspline">
       <name>plmslc_output_bsp</name>
-      <longflag>--plmslc_output_bsp</longflag>
+      <longflag>plmslc_output_bsp</longflag>
       <description>B-spline coefficients created by registration</description>
       <label>Output B-spline transform (MRML)</label>
       <default>None</default>
@@ -87,7 +87,7 @@
     </transform>
     <transform fileExtensions=".nrrd" type="nonlinear">
       <name>plmslc_output_vf</name>
-      <longflag>--plmslc_output_vf</longflag>
+      <longflag>plmslc_output_vf</longflag>
       <description>Deformation field created by registration</description>
       <label>Output vector field (MRML)</label>
       <default>None</default>
@@ -125,13 +125,13 @@
       <description>Warped fiducials file (absolute path)</description>
       <label>Warped fiducials (file)</label>
       <default>None</default>
-      <channel>output</channel>
+      <channel>input</channel>
     </string>
 
     <!-- Settings -->
     <string-enumeration>
       <name>metric</name>
-      <longflag>--metric</longflag>
+      <longflag>metric</longflag>
       <description>Cost function: MSE = mean squared error, MI = mutual information</description>
       <label>Cost function</label>
       <default>MSE</default>
@@ -140,7 +140,7 @@
     </string-enumeration>
     <string-enumeration>
       <name>hardware</name>
-      <longflag>--hardware</longflag>
+      <longflag>hardware</longflag>
       <description>Choose hardware: GPU (CUDA), or CPU (OpenMP)</description>
       <label>Hardware</label>
       <default>CPU</default>
@@ -149,7 +149,7 @@
     </string-enumeration>
     <string-enumeration>
       <name>output_type</name>
-      <longflag>--output_type</longflag>
+      <longflag>output_type</longflag>
       <description>Data type of output image.  Choose "auto" to retain the same type as the input image.  Other choices are 8, 16, and 32 bit signed and unsigned integers, float, and double.</description>
       <label>Output type</label>
       <default>auto</default>
@@ -173,26 +173,26 @@
       <name>enable_stage_0</name>
       <label>Enable Stage 0?</label>
       <default>false</default>
-      <longflag>--enablestage0</longflag>
+      <longflag>enablestage0</longflag>
       <description>Check this box if you want to run initial translation, rigid, or affine registration</description>
     </boolean>
     <integer-vector>
       <name>stage_0_resolution</name>
       <label>Image subsampling rate (vox)</label>
       <default>5,5,3</default>
-      <longflag>--stage0res</longflag>
+      <longflag>stage0res</longflag>
       <description>This defines the image subsampling rate.  For example, (4,4,2) would subsample a 4x4x2 voxel block down to a single voxel.</description>
     </integer-vector>
     <integer>
       <name>stage_0_its</name>
       <label>Max iterations</label>
       <default>50</default>
-      <longflag>--stage0its</longflag>
+      <longflag>stage0its</longflag>
       <description>Maximum number of iterations</description>
     </integer>
     <string-enumeration>
       <name>stage_0_xform</name>
-      <longflag>--stage0xform</longflag>
+      <longflag>stage0xform</longflag>
       <description>Transformation: T = translation, R = rigid, A = affine</description>
       <label>Transformation</label>
       <default>T</default>
@@ -211,40 +211,40 @@
       <name>stage_1_resolution</name>
       <label>Image subsampling rate (vox)</label>
       <default>4,4,2</default>
-      <longflag>--stage1res</longflag>
+      <longflag>stage1res</longflag>
       <description>This defines the image subsampling rate.  For example, (4,4,2) would subsample a 4x4x2 voxel block down to a single voxel.</description>
     </integer-vector>
     <double>
       <name>stage_1_grid_size</name>
       <label>Grid size (mm)</label>
       <default>100</default>
-      <longflag>--stage1gridsize</longflag>
+      <longflag>stage1gridsize</longflag>
       <description>Approximate B-Spline Grid Spacing (isotropic)</description>
     </double>
     <double>
       <name>stage_1_regularization</name>
       <label>Regularization</label>
       <default>0.005</default>
-      <longflag>--stage_1_regularization</longflag>
+      <longflag>stage_1_regularization</longflag>
       <description>Second derivative smoothness penalty</description>
     </double>
     <double>
       <name>stage_1_landm_penalty</name>
       <label>Landmark Penalty</label>
       <default>0.005</default>
-      <longflag>--stage_1_landm_penalty</longflag>
+      <longflag>stage_1_landm_penalty</longflag>
       <description>Penalty for landmark mismatch</description>
     </double>
     <integer>
       <name>stage_1_its</name>
       <label>Max iterations</label>
       <default>50</default>
-      <longflag>--stage1its</longflag>
+      <longflag>stage1its</longflag>
       <description>Maximum number of iterations</description>
     </integer>
     <image>
       <name>plmslc_output_warped_1</name>
-      <longflag>--plmslc_output_warped_1</longflag>
+      <longflag>plmslc_output_warped_1</longflag>
       <description>Warped output image</description>
       <label>Output volume_1</label>
       <default>None</default>
@@ -260,47 +260,47 @@
       <name>enable_stage_2</name>
       <label>Enable Stage 2?</label>
       <default>false</default>
-      <longflag>--enablestage2</longflag>
+      <longflag>enablestage2</longflag>
       <description>Check this box if you want to run two registration stages</description>
     </boolean>
     <integer-vector>
       <name>stage_2_resolution</name>
       <label>Image subsampling rate (vox)</label>
       <default>2,2,1</default>
-      <longflag>--stage2res</longflag>
+      <longflag>stage2res</longflag>
       <description>This defines the image subsampling rate.  For example, (4,4,2) would subsample a 4x4x2 voxel block down to a single voxel.</description>
     </integer-vector>
     <double>
       <name>stage_2_grid_size</name>
       <label>Grid size (mm)</label>
       <default>50</default>
-      <longflag>--stage2gridsize</longflag>
+      <longflag>stage2gridsize</longflag>
       <description>Approximate B-Spline Grid Spacing (isotropic)</description>
     </double>
     <double>
       <name>stage_2_regularization</name>
       <label>Regularization</label>
       <default>0.005</default>
-      <longflag>--stage2_regularization</longflag>
+      <longflag>stage2_regularization</longflag>
       <description>Second derivative smoothness penalty</description>
     </double>
     <double>
       <name>stage_2_landm_penalty</name>
       <label>Landmark Penalty</label>
       <default>0.005</default>
-      <longflag>--stage_2_landm_penalty</longflag>
+      <longflag>stage_2_landm_penalty</longflag>
       <description>Penalty for landmark mismatch</description>
     </double>
     <integer>
       <name>stage_2_its</name>
       <label>Max iterations</label>
       <default>50</default>
-      <longflag>--stage2its</longflag>
+      <longflag>stage2its</longflag>
       <description>Maximum number of iterations</description>
     </integer>
     <image>
       <name>plmslc_output_warped_2</name>
-      <longflag>--plmslc_output_warped_2</longflag>
+      <longflag>plmslc_output_warped_2</longflag>
       <description>Warped output image</description>
       <label>Output volume_2</label>
       <default>None</default>
@@ -316,47 +316,47 @@
       <name>enable_stage_3</name>
       <label>Enable Stage 3?</label>
       <default>false</default>
-      <longflag>--enablestage3</longflag>
+      <longflag>enablestage3</longflag>
       <description>Check this box if you want to run three registration stages</description>
     </boolean>
     <integer-vector>
       <name>stage_3_resolution</name>
       <label>Image subsampling rate (vox)</label>
       <default>2,2,1</default>
-      <longflag>--stage3res</longflag>
+      <longflag>stage3res</longflag>
       <description>This defines the image subsampling rate.  For example, (4,4,2) would subsample a 4x4x2 voxel block down to a single voxel.</description>
     </integer-vector>
     <double>
       <name>stage_3_grid_size</name>
       <label>Grid size (mm)</label>
       <default>50</default>
-      <longflag>--stage3gridsize</longflag>
+      <longflag>stage3gridsize</longflag>
       <description>Approximate B-Spline Grid Spacing (isotropic)</description>
     </double>
     <double>
       <name>stage_3_regularization</name>
       <label>Regularization</label>
       <default>0.005</default>
-      <longflag>--stage3_regularization</longflag>
+      <longflag>stage3_regularization</longflag>
       <description>Second derivative smoothness penalty</description>
     </double>
     <double>
       <name>stage_3_landm_penalty</name>
       <label>Landmark Penalty</label>
       <default>0.005</default>
-      <longflag>--stage_3_landm_penalty</longflag>
+      <longflag>stage_3_landm_penalty</longflag>
       <description>Penalty for landmark mismatch</description>
     </double>
     <integer>
       <name>stage_3_its</name>
       <label>Max iterations</label>
       <default>50</default>
-      <longflag>--stage3its</longflag>
+      <longflag>stage3its</longflag>
       <description>Maximum number of iterations</description>
     </integer>
     <image>
       <name>plmslc_output_warped_3</name>
-      <longflag>--plmslc_output_warped_3</longflag>
+      <longflag>plmslc_output_warped_3</longflag>
       <description>Warped output image</description>
       <label>Output volume_3</label>
       <default>None</default>
@@ -372,7 +372,7 @@
       <name>plmslc_interactive_registration</name>
       <label>Interactive registration</label>
       <default>false</default>
-      <longflag>--interactive_registration</longflag>
+      <longflag>interactive_registration</longflag>
       <description>Check this box if you want to manually control registration</description>
     </boolean>
     <label>Options</label>
@@ -381,35 +381,35 @@
       <name>resolution</name>
       <label>Image subsampling rate (vox)</label>
       <default>4,4,2</default>
-      <longflag>--resolution</longflag>
+      <longflag>resolution</longflag>
       <description>This defines the image subsampling rate.  For example, (4,4,2) would subsample a 4x4x2 voxel block down to a single voxel.</description>
     </integer-vector>
     <double>
       <name>grid_size</name>
       <label>Grid size (mm)</label>
       <default>100</default>
-      <longflag>--gridsize</longflag>
+      <longflag>gridsize</longflag>
       <description>Approximate B-Spline Grid Spacing (isotropic)</description>
     </double>
     <double>
       <name>regularization</name>
       <label>Regularization</label>
       <default>0.005</default>
-      <longflag>--regularization</longflag>
+      <longflag>regularization</longflag>
       <description>Second derivative smoothness penalty</description>
     </double>
     <double>
       <name>landm_penalty</name>
       <label>Landmark Penalty</label>
       <default>0.05</default>
-      <longflag>--landm_penalty</longflag>
+      <longflag>landm_penalty</longflag>
       <description>Penalty for landmark mismatch</description>
     </double>
     <integer>
       <name>its</name>
       <label>Max iterations</label>
       <default>50</default>
-      <longflag>--its</longflag>
+      <longflag>its</longflag>
       <description>Maximum number of iterations</description>
     </integer>
   </parameters>    
