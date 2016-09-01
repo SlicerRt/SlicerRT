@@ -160,7 +160,7 @@ main (int argc, char * argv [])
     }
 
     if (plmslc_output_ssmha != "" && plmslc_output_ssmha != "None") {
-      itk_image_save (rtds.get_rtss()->get_structure_image (1),
+      itk_image_save (rtds.get_segmentation()->get_structure_image (1),
                       plmslc_output_ssmha.c_str());
     }
   }

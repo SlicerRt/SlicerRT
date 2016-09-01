@@ -146,14 +146,14 @@ void vtkSlicerDicomRtWriter::AddStructure(const char *name, double *color,
 
   // Make sure there is a segmentation in the RT study
   Segmentation::Pointer segmentation;
-  if (this->RtStudy.have_rtss())
+  if (this->RtStudy.have_segmentation())
   {
-    segmentation = this->RtStudy.get_rtss();
+    segmentation = this->RtStudy.get_segmentation();
   }
   else
   {
     segmentation = Segmentation::New();
-    this->RtStudy.set_rtss(segmentation);
+    this->RtStudy.set_segmentation(segmentation);
   }
   Rtss_roi* roi = segmentation->add_rtss_roi(name, colorString.c_str());
 
@@ -243,11 +243,11 @@ void vtkSlicerDicomRtWriter::Write()
   }
   if (this->RtssSeriesDescription && this->RtssSeriesDescription[0] != 0)
   {
-    rt_metadata->set_rtss_metadata (0x0008, 0x103e, this->RtssSeriesDescription);
+    rt_metadata->set_rtstruct_metadata (0x0008, 0x103e, this->RtssSeriesDescription);
   }
   if (this->RtssSeriesNumber && this->RtssSeriesNumber[0] != 0)
   {
-    rt_metadata->set_rtss_metadata (0x0020, 0x0011, this->RtssSeriesNumber);
+    rt_metadata->set_rtstruct_metadata (0x0020, 0x0011, this->RtssSeriesNumber);
   }
   
   // Write output to files
