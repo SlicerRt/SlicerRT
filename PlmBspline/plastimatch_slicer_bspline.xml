@@ -14,118 +14,132 @@
     <image>
       <name>plmslc_fixed_volume</name>
       <index>0</index>
-      <label>Fixed volume</label>
       <channel>input</channel>
       <default>None</default>
       <description>Reference volume</description>
+      <label>Fixed volume</label>
     </image>
     <image>
       <name>plmslc_moving_volume</name>
       <index>1</index>
-      <label>Moving volume</label>
       <channel>input</channel>
       <default>None</default>
       <description>Volume to warp</description>
+      <label>Moving volume</label>
     </image>
     <transform fileExtensions=".txt" type="bspline">
       <name>plmslc_xformwarp_input_xform_s</name>
       <longflag>plmslc_xformwarp_input_xform_s</longflag>
+      <channel>input</channel>
+      <default>None</default>
       <description>Input B-spline transform from MRML tree</description>
       <label>Input B-spline transform (MRML)</label>
-      <default>None</default>
-      <channel>input</channel>
     </transform>
     <transform fileExtensions=".nrrd" type="nonlinear">
       <name>plmslc_xformwarp_input_vf_s</name>
       <longflag>plmslc_xformwarp_input_vf_s</longflag>
+      <channel>input</channel>
+      <default>None</default>
       <description>Input GridTransform from MRML tree</description>
       <label>Input vector field (MRML)</label>
-      <default>None</default>
-      <channel>input</channel>
     </transform>
     <string>
       <name>plmslc_xformwarp_input_xform_f</name>
       <longflag>plmslc_xformwarp_input_xform_f</longflag>
+      <channel>input</channel>
+      <default>None</default>
       <description>Input transform</description>
       <label>Input transform (file)</label>
-      <default>None</default>
-      <channel>input</channel>
     </string>
+    <pointfile multiple="true" fileExtensions=".fcsv" coordinateSystem="ras">
+      <name>plmslc_fixed_fiducials_pointfile</name>
+      <longflag>plmslc_fixed_fiducials_pointfile</longflag>
+      <channel>input</channel>
+      <default>None</default>
+      <description>Fiducials in fixed volume</description>
+      <label>Fixed fiducials</label>
+    </pointfile>
+    <pointfile multiple="true" fileExtensions=".fcsv" coordinateSystem="ras">
+      <name>plmslc_moving_fiducials_pointfile</name>
+      <longflag>plmslc_moving_fiducials_pointfile</longflag>
+      <channel>input</channel>
+      <default>None</default>
+      <description>Fiducials in moving volume</description>
+      <label>Moving fiducials</label>
+    </pointfile>
     <point coordinateSystem="ras" multiple="true">
       <name>plmslc_fixed_fiducials</name>
       <longflag>plmslc_fixed_fiducials</longflag>
-      <label>Fixed fiducials</label>
-      <description>Fiducials in fixed volume</description>
-      <default>0,0,0</default>
       <channel>input</channel>
+      <default>0,0,0</default>
+      <description>Fiducials in fixed volume</description>
+      <label>Fixed fiducials (old)</label>
     </point>
     <point coordinateSystem="ras" multiple="true">
       <name>plmslc_moving_fiducials</name>
       <longflag>plmslc_moving_fiducials</longflag>
-      <label>Moving fiducials</label>
-      <description>Fiducials in moving volume</description>
-      <default>0,0,0</default>
       <channel>input</channel>
+      <default>0,0,0</default>
+      <description>Fiducials in moving volume</description>
+      <label>Moving fiducials (old)</label>
     </point>
     
     <!-- Outputs -->
     <image>
       <name>plmslc_output_warped</name>
       <longflag>plmslc_output_warped</longflag>
+      <channel>output</channel>
+      <default>None</default>
       <description>Warped output image</description>
       <label>Output volume</label>
-      <default>None</default>
-      <channel>output</channel>
     </image>
     <transform fileExtensions=".txt" type="bspline">
       <name>plmslc_output_bsp</name>
       <longflag>plmslc_output_bsp</longflag>
+      <channel>output</channel>
+      <default>None</default>
       <description>B-spline coefficients created by registration</description>
       <label>Output B-spline transform (MRML)</label>
-      <default>None</default>
-      <channel>output</channel>
     </transform>
     <transform fileExtensions=".nrrd" type="nonlinear">
       <name>plmslc_output_vf</name>
       <longflag>plmslc_output_vf</longflag>
+      <channel>output</channel>
+      <default>None</default>
       <description>Deformation field created by registration</description>
       <label>Output vector field (MRML)</label>
-      <default>None</default>
-      <channel>output</channel>
     </transform>
+    <pointfile multiple="true" fileExtensions=".fcsv" coordinateSystem="ras">
+      <name>plmslc_warped_fiducials_pointfile</name>
+      <longflag>plmslc_warped_fiducials_pointfile</longflag>
+      <channel>output</channel>
+      <default>None</default>
+      <description>Fiducials in moving volume</description>
+      <label>Warped fiducials (MRML)</label>
+    </pointfile>
     <string>
       <name>plmslc_output_bsp_f</name>
       <longflag>plmslc_output_bsp_f</longflag>
+      <channel>input</channel>
+      <default>None</default>
       <description>Output B-spline coefficients as file (absolute path)</description>
       <label>Output B-spline transform (file)</label>
-      <default>None</default>
-      <channel>input</channel>
     </string>
     <string>
       <name>plmslc_output_vf_f</name>
       <longflag>plmslc_output_vf_f</longflag>
+      <channel>input</channel>
+      <default>None</default>
       <description>Output vector field as file (absolute path)</description>
       <label>Output vector field (file)</label>
-      <default>None</default>
-      <channel>input</channel>
     </string>
-<!--
-    <point coordinateSystem="ras" multiple="true">
-      <name>plmslc_warped_fiducials</name>
-      <longflag>plmslc_warped_fiducials</longflag>
-      <label>Warped Fiducials</label>
-      <channel>output</channel>
-      <description>Fiducials warped by the vector field</description>
-      <default>None</default>
-    </point>
--->
     <string>
       <name>plmslc_warped_fiducials_f</name>
       <longflag>plmslc_warped_fiducials_f</longflag>
+      <channel>input</channel>
+      <default>None</default>
       <description>Warped fiducials file (absolute path)</description>
       <label>Warped fiducials (file)</label>
-      <default>None</default>
-      <channel>input</channel>
     </string>
 
     <!-- Settings -->

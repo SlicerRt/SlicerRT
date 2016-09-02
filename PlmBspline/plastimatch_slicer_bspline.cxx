@@ -51,17 +51,17 @@ main (int argc, char * argv [])
 
   /* Get xform either from MRML scene or file */
   if (plmslc_xformwarp_input_xform_s != "" 
-      && plmslc_xformwarp_input_xform_s != "None")
+    && plmslc_xformwarp_input_xform_s != "None")
   {
     parms.xf_in_fn = plmslc_xformwarp_input_xform_s.c_str();
   }
   else if (plmslc_xformwarp_input_vf_s != "" 
-           && plmslc_xformwarp_input_vf_s != "None")
+    && plmslc_xformwarp_input_vf_s != "None")
   {
     parms.xf_in_fn = plmslc_xformwarp_input_vf_s.c_str();
   }
   else if (plmslc_xformwarp_input_xform_f != "" 
-           && plmslc_xformwarp_input_xform_f != "None")
+    && plmslc_xformwarp_input_xform_f != "None")
   {
     parms.xf_in_fn = plmslc_xformwarp_input_xform_f.c_str();
   }
@@ -104,6 +104,8 @@ main (int argc, char * argv [])
   }
 
   /* Figure out fiducials */
+#if defined (commentout)
+  /* Old way, using <point> */
   unsigned long num_fiducials = plmslc_fixed_fiducials.size();
   if (plmslc_moving_fiducials.size() < num_fiducials) {
     num_fiducials = plmslc_moving_fiducials.size();
@@ -112,12 +114,35 @@ main (int argc, char * argv [])
   if (num_fiducials == 0) {
     printf (">> No fiducials.\n");
   }
+#endif
+  /* New way, using <pointfile> */
+  printf ("Fiducials (new): %d %d\n",
+    (int) plmslc_fixed_fiducials_pointfile.size(),
+    (int) plmslc_moving_fiducials_pointfile.size());
+  if (plmslc_fixed_fiducials_pointfile.size() > 0
+    && plmslc_moving_fiducials_pointfile.size() > 0)
+  {
+    printf ("Fiducials (new): %s %s\n",
+      plmslc_fixed_fiducials_pointfile[0].c_str(), 
+      plmslc_moving_fiducials_pointfile[0].c_str());
+    command_string
+      << "fixed_landmarks=" 
+      << plmslc_fixed_fiducials_pointfile[0] << "\n"
+      << "moving_landmarks=" 
+      << plmslc_moving_fiducials_pointfile[0] << "\n";
+      if (plmslc_warped_fiducials_pointfile.size() > 0) {
+        command_string
+          << "warped_landmarks=" 
+          << plmslc_warped_fiducials_pointfile[0] << "\n";
+      }
+  }
+
   /* Stage 0 */
   if (enable_stage_0) {
-    command_string << 
+    command_string <<
       "[STAGE]\n"
       "metric=" 
-                   << metric << "\n"
+      << metric << "\n"
       "xform=translation\n"
       "optim=rsg\n"
       "impl=itk\n"
@@ -125,10 +150,11 @@ main (int argc, char * argv [])
       "convergence_tol=5\n"
       "grad_tol=1.5\n"
       "res=" 
-                   << stage_0_resolution[0] << " "
-                   << stage_0_resolution[1] << " "
-                   << stage_0_resolution[2] << "\n";
+      << stage_0_resolution[0] << " "
+      << stage_0_resolution[1] << " "
+      << stage_0_resolution[2] << "\n";
   }
+#if defined (commentout)
   if (num_fiducials > 0) {
     command_string << "fixed_landmark_list=";
     for (unsigned long i = 0; i < num_fiducials; i++) {
@@ -155,7 +181,8 @@ main (int argc, char * argv [])
       }
     }
   }
-
+#endif
+  
   /* Stage 1 */
   command_string << 
     "[STAGE]\n"
