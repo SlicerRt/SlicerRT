@@ -1388,15 +1388,14 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CreateEndCapContour(vtkPolyD
 
   // Fix the lines to prevent later issues
   // TODO: This will need to be changed when the true cause is found
-  vtkSmartPointer<vtkPolyData> fixedLines = vtkSmartPointer<vtkPolyData>::New();
-  this->FixLines(stripper->GetOutput(), fixedLines);
+  vtkSmartPointer<vtkPolyData> newLines = vtkSmartPointer<vtkPolyData>::New();
+  this->FixLines(stripper->GetOutput(), newLines);
 
   // Calculate the decimation factor with the following formula: ( # of lines in input * number of points in original line ) / number of points in input
-  double decimationFactor = (1.0 * fixedLines->GetNumberOfLines() * inputLine->GetNumberOfPoints() + 1 ) / fixedLines->GetNumberOfPoints();
+  double decimationFactor = (1.0 * newLines->GetNumberOfLines() * inputLine->GetNumberOfPoints() + 1 ) / newLines->GetNumberOfPoints();
 
   // Reduce the number of points in the line until the ration between the input and output lines meets the specified decimation factor
-  vtkSmartPointer<vtkPolyData> newLines = vtkSmartPointer<vtkPolyData>::New();
-  this->DecimateLines(fixedLines, decimationFactor, newLines);
+  this->DecimateLines(newLines, decimationFactor);
 
   vtkSmartPointer<vtkPoints> inputPoints = inputROIPoints->GetPoints();
 
@@ -1589,7 +1588,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixLines(vtkPolyData* oldLin
     // to loop back on themselves by the third point. This check causes these contours to be ignored.
     //  When there is only one contour, it is not acceptable to throw it away.
     // TODO: This method is not working well and needs to be improved.
-    if (oldLine->GetNumberOfPoints() <= 3)
+    if (oldLine->GetNumberOfPoints() <= 2)
       {
       continue;
       }
@@ -1661,9 +1660,8 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixLine(vtkLine* oldLine, vt
     }
 }
 
-
 //----------------------------------------------------------------------------
-void vtkPlanarContourToClosedSurfaceConversionRule::DecimateLines(vtkPolyData* inputPolyData, double decimationFactor, vtkPolyData* outputPolyData)
+void vtkPlanarContourToClosedSurfaceConversionRule::DecimateLines(vtkPolyData* inputPolyData, double decimationFactor)
 {
 
   if (!inputPolyData)
@@ -1672,55 +1670,58 @@ void vtkPlanarContourToClosedSurfaceConversionRule::DecimateLines(vtkPolyData* i
    return;
     }
 
-  if (!outputPolyData)
-    {
-   vtkErrorMacro("DecimateLines: Invalid vtkPolyData!");
-   return;
-    }
-
   vtkSmartPointer<vtkCellArray> inputLines = inputPolyData->GetLines();
   vtkSmartPointer<vtkPoints> inputPoints = inputPolyData->GetPoints();
+
   vtkSmartPointer<vtkCellArray> outputLines = vtkSmartPointer<vtkCellArray>::New();
 
   vtkSmartPointer<vtkPriorityQueue> priorityQueue = vtkSmartPointer<vtkPriorityQueue>::New();
 
   // Loop through all of the lines
-  for (vtkIdType inputLineId = 0; inputLineId < inputLines->GetNumberOfCells(); ++inputLineId)
+  for (vtkIdType inputLineId = 0; inputLineId < inputPolyData->GetNumberOfLines(); ++inputLineId)
     {
-    vtkSmartPointer<vtkIdList> inputLineIds = vtkSmartPointer<vtkIdList>::New();
-    inputLines->GetCell(inputLineId, inputLineIds);
 
-    vtkSmartPointer<vtkIdList> outputLineIds = vtkSmartPointer<vtkIdList>::New();
+    vtkSmartPointer<vtkLine> outputLine = vtkSmartPointer<vtkLine>::New();
+    outputLine->DeepCopy(inputPolyData->GetCell(inputLineId));
+
+    vtkSmartPointer<vtkLine> inputLine =  vtkSmartPointer<vtkLine>::New();
+    inputLine->ShallowCopy(inputPolyData->GetCell(inputLineId));
+
+    vtkSmartPointer<vtkIdList> outputLineIds = outputLine->GetPointIds();
 
     // If there are less than 2 points, then just copy the line
-    if (inputLineIds->GetNumberOfIds() > 2)
+    if (outputLineIds->GetNumberOfIds() > 2)
       {
 
-      // Loop through the points in the current line
-      for (int pointIndex = 0; pointIndex < inputLineIds->GetNumberOfIds(); ++pointIndex)
+      //// Loop through the points in the current line
+      for (int pointIndex = 0; pointIndex < outputLineIds->GetNumberOfIds(); ++pointIndex)
         {
         // Add the current point to the output line
-        vtkIdType pointId = inputLineIds->GetId(pointIndex);
-        outputLineIds->InsertNextId(pointId);
+        vtkIdType pointId = outputLineIds->GetId(pointIndex);
 
         // Calculate the error and add it to the priority queue
-        priorityQueue->Insert(this->ComputeError(inputPoints, inputLineIds, pointIndex), pointId);
+        priorityQueue->Insert(this->ComputeError(inputPoints, outputLineIds, pointIndex), pointId);
         }
 
       // While the priority queue is not empty, doesn't contain any errors that are less than the machine epsilon,
       // and while the ratio of the # output points / # input points is greater than the decimation factor
-      while (priorityQueue->GetNumberOfItems() > 0 &&
-            (priorityQueue->GetPriority(priorityQueue->Peek()) < VTK_DBL_EPSILON ||
-            (1.0 * outputLineIds->GetNumberOfIds() / inputLineIds->GetNumberOfIds() > decimationFactor)))
+      while (priorityQueue->GetNumberOfItems() > 3 &&
+            ((priorityQueue->GetPriority(priorityQueue->Peek()) < VTK_DBL_EPSILON) ||
+            (1.0 * outputLineIds->GetNumberOfIds() / inputLine->GetNumberOfPoints() > decimationFactor)))
         {
         // Remove the point from the outputLineIds
         this->RemovePointDecimation(outputLineIds, priorityQueue->Pop());
         }
 
       }
-    else
+
+    // Make sure the contour is closed
+    if (outputLineIds->GetNumberOfIds() > 1)
       {
-      outputLineIds->DeepCopy(inputLineIds);
+      if (outputLineIds->GetId(0) != outputLineIds->GetId(outputLineIds->GetNumberOfIds()))
+        {
+        outputLineIds->InsertNextId(outputLineIds->GetId(0));
+        }
       }
 
     // If there are no points, then the line doesn't need to be added
@@ -1732,8 +1733,10 @@ void vtkPlanarContourToClosedSurfaceConversionRule::DecimateLines(vtkPolyData* i
     }
 
   // Set the output data
+  vtkSmartPointer<vtkPolyData> outputPolyData = vtkSmartPointer<vtkPolyData>::New();
   outputPolyData->SetPoints(inputPoints);
   outputPolyData->SetLines(outputLines);
+  inputPolyData->DeepCopy(outputPolyData);
 
 }
 

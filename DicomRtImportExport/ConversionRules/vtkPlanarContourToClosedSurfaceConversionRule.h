@@ -200,10 +200,9 @@ protected:
 
   /// Remove points from the input lines, until there are no points with error less than VTK_DBL_EPSILON and
   /// the following is acheived (number of points in new line) / (number of points in old line) < decimation factor
-  /// \param inputLines Contains the undecimated lines
+  /// \param inputLines Lines to be decimated
   /// \param decimationFactor Represents the goal decimation
-  /// \param outputLines Contains the decimated lines
-  void DecimateLines(vtkPolyData* inputPolyData, double decimationFactor, vtkPolyData* outputLines);
+  void DecimateLines(vtkPolyData* inputPolyData, double decimationFactor);
 
   /// Remove a point from the line, and make sure the points in the line are still in order
   /// \param idList The idList that the point is to be removed from
