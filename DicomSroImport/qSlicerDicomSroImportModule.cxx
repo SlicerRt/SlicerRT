@@ -26,7 +26,6 @@
 // Slicer includes
 #include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
-#include <vtkSlicerVolumesLogic.h>
 
 // ExtensionTemplate Logic includes
 #include <vtkSlicerDicomSroImportModuleLogic.h>

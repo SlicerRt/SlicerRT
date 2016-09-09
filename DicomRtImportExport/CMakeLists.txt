@@ -22,7 +22,6 @@ set(MODULE_EXPORT_DIRECTIVE "Q_SLICER_QTMODULES_${MODULE_NAME_UPPER}_EXPORT")
 set(MODULE_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerDicomRtImportExportLogic_INCLUDE_DIRS}
-  ${vtkSlicerVolumesModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerPlanarImageModuleLogic_INCLUDE_DIRS}
@@ -50,7 +49,6 @@ set(MODULE_UI_SRCS
 set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleLogic
   vtkSlicer${MODULE_NAME}ConversionRules
-  vtkSlicerVolumesModuleLogic
   vtkSlicerBeamsModuleLogic
   vtkSlicerIsodoseModuleLogic
   vtkSlicerPlanarImageModuleLogic

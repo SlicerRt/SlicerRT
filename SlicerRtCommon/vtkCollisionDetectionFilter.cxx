@@ -744,10 +744,10 @@ int vtkCollisionDetectionFilter::IntersectPolygonWithPolygon(int npts, double *p
 
 // Description:
 // Make sure filter executes if transform are changed
-unsigned long vtkCollisionDetectionFilter::GetMTime()
+vtkMTimeType vtkCollisionDetectionFilter::GetMTime()
 {
-  unsigned long mTime=this->MTime.GetMTime();
-  unsigned long transMTime, matrixMTime;
+  vtkMTimeType mTime=this->MTime.GetMTime();
+  vtkMTimeType transMTime, matrixMTime;
 
   if ( this->Transform[0] )
     {

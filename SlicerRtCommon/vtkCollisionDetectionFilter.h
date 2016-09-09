@@ -167,7 +167,7 @@ public:
 
   // Description:
   // Return the MTime also considering the transform.
-  unsigned long GetMTime();
+  vtkMTimeType GetMTime();
 
 protected:
   vtkCollisionDetectionFilter();
