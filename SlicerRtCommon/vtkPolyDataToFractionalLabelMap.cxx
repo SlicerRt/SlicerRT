@@ -21,45 +21,314 @@
 ==============================================================================*/
 
 
-#include "vtkFractionalPolyDataToImageStencil.h"
+#include "vtkPolyDataToFractionalLabelMap.h"
 
 // VTK includes
 #include <vtkImageStencilData.h>
 #include <vtkPolyData.h>
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
+#include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkNew.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkTriangleFilter.h>
+#include <vtkStripper.h>
+#include <vtkImageStencil.h>
+#include <vtkImageCast.h>
+
+// SlicerRtCommon includes
+#include "SlicerRtCommon.h"
 
 // std includes
 #include <map>
 
-vtkStandardNewMacro(vtkFractionalPolyDataToImageStencil);
-
-std::map<double, vtkSmartPointer<vtkCellArray> > LinesCache;
-std::map<double, vtkSmartPointer<vtkPolyData> > SliceCache;
-std::map<double, vtkIdType*> PointIdsCache;
-std::map<double, vtkIdType> NptsCache;
-std::map<double, std::vector<vtkIdType> > PointNeighborCountsCache;
+vtkStandardNewMacro(vtkPolyDataToFractionalLabelMap);
 
 //----------------------------------------------------------------------------
-vtkFractionalPolyDataToImageStencil::vtkFractionalPolyDataToImageStencil()
+vtkPolyDataToFractionalLabelMap::vtkPolyDataToFractionalLabelMap()
 {
-  LinesCache = std::map<double, vtkSmartPointer<vtkCellArray> >();
-  SliceCache = std::map<double, vtkSmartPointer<vtkPolyData> >();
-  PointIdsCache = std::map<double, vtkIdType*>();
-  NptsCache = std::map<double, vtkIdType>();
-  PointNeighborCountsCache = std::map<double,  std::vector<vtkIdType> >();
+  this->NumberOfOffsets = 6;
+
+  this->LinesCache = std::map<double, vtkSmartPointer<vtkCellArray> >();
+  this->SliceCache = std::map<double, vtkSmartPointer<vtkPolyData> >();
+  this->PointIdsCache = std::map<double, vtkIdType*>();
+  this->NptsCache = std::map<double, vtkIdType>();
+  this->PointNeighborCountsCache = std::map<double,  std::vector<vtkIdType> >();
+
+  this->OutputImageToWorldMatrix = NULL;
+
+  vtkOrientedImageData* output = vtkOrientedImageData::New();
+
+  this->GetExecutive()->SetOutputData(0, output);
+
+  output->ReleaseData();
+  output->Delete();
 }
 
 //----------------------------------------------------------------------------
-vtkFractionalPolyDataToImageStencil::~vtkFractionalPolyDataToImageStencil()
+vtkPolyDataToFractionalLabelMap::~vtkPolyDataToFractionalLabelMap()
 {
+  this->OutputImageToWorldMatrix->Delete();
 }
 
 //----------------------------------------------------------------------------
-void vtkFractionalPolyDataToImageStencil::ThreadedExecute(
-  vtkImageStencilData *data,
-  int extent[6],
-  int threadId)
+void vtkPolyDataToFractionalLabelMap::SetOutput(vtkOrientedImageData* output)
+{
+    this->GetExecutive()->SetOutputData(0, output);
+}
+
+//----------------------------------------------------------------------------
+vtkOrientedImageData* vtkPolyDataToFractionalLabelMap::GetOutput()
+{
+  if (this->GetNumberOfOutputPorts() < 1)
+    {
+    return NULL;
+    }
+
+  return vtkOrientedImageData::SafeDownCast(
+    this->GetExecutive()->GetOutputData(0));
+}
+
+//----------------------------------------------------------------------------
+int vtkPolyDataToFractionalLabelMap::FillOutputPortInformation(
+  int, vtkInformation* info)
+{
+  info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkOrientedImageData");
+  return 1;
+}
+
+//----------------------------------------------------------------------------
+vtkOrientedImageData *vtkPolyDataToFractionalLabelMap::AllocateOutputData(
+  vtkDataObject *out, int* uExt)
+{
+  vtkOrientedImageData *res = vtkOrientedImageData::SafeDownCast(out);
+  if (!res)
+    {
+    vtkWarningMacro("Call to AllocateOutputData with non vtkOrientedImageData"
+                    " output");
+    return NULL;
+    }
+  res->SetExtent(uExt);
+  res->AllocateScalars(VTK_FRACTIONAL_DATA_TYPE, 1);
+
+  // Allocate output image data
+  res->AllocateScalars(VTK_FRACTIONAL_DATA_TYPE, 1);
+
+  // Set-up fractional labelmap
+  void* fractionalLabelMapVoxelsPointer = res->GetScalarPointerForExtent(res->GetExtent());
+  if (!fractionalLabelMapVoxelsPointer)
+    {
+    vtkErrorMacro("Convert: Failed to allocate memory for output labelmap image!");
+    return false;
+    }
+  else
+    {
+    int extent[6];
+    res->GetExtent(extent);
+    memset(fractionalLabelMapVoxelsPointer, FRACTIONAL_MIN, ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1) * res->GetScalarSize() * res->GetNumberOfScalarComponents()));
+    }
+
+  return res;
+}
+
+//----------------------------------------------------------------------------
+int vtkPolyDataToFractionalLabelMap::RequestData(
+  vtkInformation *request,
+  vtkInformationVector **inputVector,
+  vtkInformationVector *outputVector)
+{
+
+  vtkInformation *outInfo = outputVector->GetInformationObject(0);
+  vtkOrientedImageData *outputData = vtkOrientedImageData::SafeDownCast(
+    outInfo->Get(vtkDataObject::DATA_OBJECT()));
+  
+    this->AllocateOutputData(
+    outputData,
+    outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT()));
+
+  vtkInformation *inputInfo = inputVector[0]->GetInformationObject(0);
+  vtkPolyData *inputData = vtkPolyData::SafeDownCast(
+    inputInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+  if (this->OutputImageToWorldMatrix)
+    {
+    outputData->SetImageToWorldMatrix(this->OutputImageToWorldMatrix);
+    }
+  else
+    {
+    vtkSmartPointer<vtkMatrix4x4> identityMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+    identityMatrix->Identity();
+    outputData->SetImageToWorldMatrix(identityMatrix);
+    }
+
+  if (this->OutputOrigin)
+    {
+    outputData->SetOrigin(this->OutputOrigin);
+    }
+
+  if (this->OutputSpacing)
+    {
+    outputData->SetSpacing(this->OutputSpacing);
+    }
+  
+  outputData->SetExtent(this->OutputWholeExtent);
+
+  vtkSmartPointer<vtkMatrix4x4> outputLabelmapImageToWorldMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  outputData->GetImageToWorldMatrix(outputLabelmapImageToWorldMatrix);
+
+  vtkSmartPointer<vtkTransform> inverseOutputLabelmapGeometryTransform = vtkSmartPointer<vtkTransform>::New();
+  inverseOutputLabelmapGeometryTransform->SetMatrix(outputLabelmapImageToWorldMatrix);
+  inverseOutputLabelmapGeometryTransform->Inverse();
+
+  // Transform the polydata from RAS to IJK space
+  vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyDataFilter =
+    vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  transformPolyDataFilter->SetInputData(inputData);
+  transformPolyDataFilter->SetTransform(inverseOutputLabelmapGeometryTransform);
+
+  // Compute polydata normals
+  vtkNew<vtkPolyDataNormals> normalFilter;
+  normalFilter->SetInputConnection(transformPolyDataFilter->GetOutputPort());
+  normalFilter->ConsistencyOn();
+
+  // Make sure that we have a clean triangle polydata
+  vtkNew<vtkTriangleFilter> triangle;
+  triangle->SetInputConnection(normalFilter->GetOutputPort());
+
+  // Convert to triangle strip
+  vtkSmartPointer<vtkStripper> stripper = vtkSmartPointer<vtkStripper>::New();
+  stripper->SetInputConnection(triangle->GetOutputPort());
+  stripper->Update();
+
+  // PolyData of the closed surface in IJK space
+  vtkSmartPointer<vtkPolyData> transformedClosedSurface = stripper->GetOutput();
+
+  int extent[6];
+  outputData->GetExtent(extent);
+
+  vtkSmartPointer<vtkOrientedImageData> binaryLabelMap = vtkSmartPointer<vtkOrientedImageData>::New();
+  binaryLabelMap->SetExtent(extent);
+  binaryLabelMap->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+  
+
+  // The magnitude of the offset step size ( n-1 / 2n )
+  double offsetStepSize = (double)(this->NumberOfOffsets-1.0)/(2 * this->NumberOfOffsets);
+  
+  // Iterate through "NumberOfOffsets" in each of the dimensions and create a binary labelmap at each offset
+  for (int k = 0; k < this->NumberOfOffsets; ++k)
+  {
+    double kOffset = ( (double) k / this->NumberOfOffsets - offsetStepSize );
+
+    for (int j = 0; j < this->NumberOfOffsets; ++j)
+    {
+      double jOffset = ( (double) j / this->NumberOfOffsets - offsetStepSize );
+
+      for (int i = 0; i < this->NumberOfOffsets; ++i)
+      {
+        double iOffset = ( (double) i / this->NumberOfOffsets - offsetStepSize );
+
+        vtkSmartPointer<vtkImageStencilData> imageStencilData = vtkSmartPointer<vtkImageStencilData>::New();
+        imageStencilData->SetSpacing(1.0, 1.0, 1.0);
+        imageStencilData->SetExtent(extent);
+        imageStencilData->AllocateExtents();
+        imageStencilData->SetOrigin(iOffset, jOffset, kOffset);
+
+        binaryLabelMap->SetOrigin(iOffset, jOffset, kOffset);
+        
+        // Create stencil for the current binary labelmap offset
+        this->FillImageStencilData(imageStencilData, transformedClosedSurface, extent);
+
+        void* binaryLabelMapVoxelsPointer = binaryLabelMap->GetScalarPointerForExtent(binaryLabelMap->GetExtent());
+        if (!binaryLabelMapVoxelsPointer)
+          {
+          vtkErrorMacro("Convert: Failed to allocate memory for output labelmap image!");
+          return false;
+          }
+        else
+          {
+          memset(binaryLabelMapVoxelsPointer, 0, ((extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1) * binaryLabelMap->GetScalarSize() * binaryLabelMap->GetNumberOfScalarComponents()));
+          }
+
+        // Convert stencil to image
+        vtkNew<vtkImageStencil> stencil;
+        stencil->SetInputData(binaryLabelMap);
+        stencil->SetStencilData(imageStencilData);
+        stencil->ReverseStencilOn();
+        stencil->SetBackgroundValue(1); // General foreground value is 1 (background value because of reverse stencil)
+
+        // Save result to output
+        vtkNew<vtkImageCast> imageCast;
+        imageCast->SetInputConnection(stencil->GetOutputPort());
+        imageCast->SetOutputScalarTypeToUnsignedChar();
+        imageCast->Update();
+        
+        binaryLabelMap->ShallowCopy(imageCast->GetOutput());
+        this->AddBinaryLabelMapToFractionalLabelMap(binaryLabelMap, outputData);       
+
+        this->UpdateProgress(((i+1)*(j+1)*(k+1))/(this->NumberOfOffsets*this->NumberOfOffsets*this->NumberOfOffsets));
+
+      } // i
+    } // j
+  } // k
+
+
+  return 1;
+}
+
+//----------------------------------------------------------------------------
+void vtkPolyDataToFractionalLabelMap::AddBinaryLabelMapToFractionalLabelMap(vtkOrientedImageData* binaryLabelMap, vtkOrientedImageData* fractionalLabelMap)
+{
+
+  if (!binaryLabelMap)
+  {
+    vtkErrorMacro("AddBinaryLabelMapToFractionalLabelMap: Invalid vtkOrientedImageData!");
+    return;
+  }
+
+  if (!fractionalLabelMap)
+  {
+    vtkErrorMacro("AddBinaryLabelMapToFractionalLabelMap: Invalid vtkOrientedImageData!");
+    return;
+  }
+
+  int binaryExtent[6] = {0,-1,0,-1,0,-1};
+  binaryLabelMap->GetExtent(binaryExtent);
+
+  int fractionalExtent[6] = {0,-1,0,-1,0,-1};
+  fractionalLabelMap->GetExtent(fractionalExtent);
+
+  // Get points to the extent in both the binary and fractional labelmaps
+  char* binaryLabelMapPointer = (char*)binaryLabelMap->GetScalarPointerForExtent(binaryExtent);
+  FRACTIONAL_DATA_TYPE* fractionalLabelMapPointer = (FRACTIONAL_DATA_TYPE*)fractionalLabelMap->GetScalarPointerForExtent(fractionalExtent);
+
+  // Loop through each of the voxels in the current extent of the binary labelmap
+  for (int k=binaryExtent[4]; k <= binaryExtent[5]; ++k)
+  {
+    for (int j=binaryExtent[2]; j <= binaryExtent[3]; ++j)
+    {
+      for (int i=binaryExtent[0]; i <= binaryExtent[1]; ++i)
+      {
+
+        // If the binary voxel is not empty
+        if ( (*binaryLabelMapPointer) > 0 )
+        {
+          ++(*fractionalLabelMapPointer);
+        }
+
+        // Increment the pointer to the next binary voxel
+        ++binaryLabelMapPointer;
+        ++fractionalLabelMapPointer;
+      }
+    }
+  }
+
+}
+
+//----------------------------------------------------------------------------
+void vtkPolyDataToFractionalLabelMap::FillImageStencilData(
+  vtkImageStencilData *data, vtkPolyData* closedSurface,
+  int extent[6])
 {
   // Description of algorithm:
   // 1) cut the polydata at each z slice to create polylines
@@ -87,7 +356,7 @@ void vtkFractionalPolyDataToImageStencil::ThreadedExecute(
   invspacing[2] = 1.0/spacing[2];
 
   // get the input data
-  vtkPolyData *input = this->GetInput();
+  vtkPolyData *input = closedSurface;
 
   // the output produced by cutting the polydata with the Z plane
   vtkPolyData *slice = vtkPolyData::New();
@@ -106,17 +375,13 @@ void vtkFractionalPolyDataToImageStencil::ThreadedExecute(
   // Loop through the slices
   for (int idxZ = extent[4]; idxZ <= extent[5]; idxZ++)
     {
-    if (threadId == 0)
-      {
-      this->UpdateProgress((idxZ - extent[4])*1.0/(extent[5] - extent[4] + 1));
-      }
 
     double z = idxZ*spacing[2] + origin[2];
 
     slice->PrepareForNewData();
     raster.PrepareForNewData();
 
-    if ( LinesCache.count(z) == 0 )
+    if ( this->LinesCache.count(z) == 0 )
       {
 
       // Step 1: Cut the data into slices
@@ -137,11 +402,11 @@ void vtkFractionalPolyDataToImageStencil::ThreadedExecute(
 
       vtkSmartPointer<vtkPolyData> sliceCopy = vtkSmartPointer<vtkPolyData>::New();
       sliceCopy->DeepCopy(slice);
-      SliceCache.insert(std::pair<double, vtkPolyData*>(z, sliceCopy));
+      this->SliceCache.insert(std::pair<double, vtkPolyData*>(z, sliceCopy));
 
     }
 
-    slice->DeepCopy(SliceCache[z]);
+    slice->DeepCopy(this->SliceCache[z]);
 
     // convert to structured coords via origin and spacing
     vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
@@ -158,7 +423,7 @@ void vtkFractionalPolyDataToImageStencil::ThreadedExecute(
       points->SetPoint(j, tempPoint);
       }
 
-    if (LinesCache.count(z) == 0)
+    if (this->LinesCache.count(z) == 0)
     {
 
       // Step 2: Find and connect all the loose ends
@@ -347,18 +612,18 @@ void vtkFractionalPolyDataToImageStencil::ThreadedExecute(
         vtkSmartPointer<vtkCellArray> linesCopy = vtkSmartPointer<vtkCellArray>::New();
         linesCopy->DeepCopy(lines);
 
-        LinesCache.insert(std::pair<double, vtkCellArray*>(z, linesCopy));
-        PointIdsCache.insert(std::pair<double, vtkIdType*>(z, pointIds));
-        NptsCache.insert(std::pair<double, vtkIdType>(z, npts));
-        PointNeighborCountsCache.insert(std::pair<double, std::vector<vtkIdType> >(z, pointNeighborCounts));
+        this->LinesCache.insert(std::pair<double, vtkCellArray*>(z, linesCopy));
+        this->PointIdsCache.insert(std::pair<double, vtkIdType*>(z, pointIds));
+        this->NptsCache.insert(std::pair<double, vtkIdType>(z, npts));
+        this->PointNeighborCountsCache.insert(std::pair<double, std::vector<vtkIdType> >(z, pointNeighborCounts));
 
       }
 
-    vtkCellArray* lines = LinesCache[z];
+    vtkCellArray* lines = this->LinesCache[z];
     vtkIdType count = lines->GetNumberOfConnectivityEntries();
-    vtkIdType* pointIds = PointIdsCache[z];
-    vtkIdType npts = NptsCache[z];
-    std::vector<vtkIdType> pointNeighborCounts = PointNeighborCountsCache[z];
+    vtkIdType* pointIds = this->PointIdsCache[z];
+    vtkIdType npts = this->NptsCache[z];
+    std::vector<vtkIdType> pointNeighborCounts = this->PointNeighborCountsCache[z];
     
     // Step 3: Go through all the line segments for this slice,
     // and for each integer y position on the line segment,
@@ -404,23 +669,13 @@ void vtkFractionalPolyDataToImageStencil::ThreadedExecute(
 }
 
 //----------------------------------------------------------------------------
-int vtkFractionalPolyDataToImageStencil::RequestData(
-  vtkInformation *request,
-  vtkInformationVector **inputVector,
-  vtkInformationVector *outputVector)
+void vtkPolyDataToFractionalLabelMap::DeleteCache()
 {
-  this->Superclass::Superclass::RequestData(request, inputVector, outputVector);
 
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
+  this->SliceCache.clear();
+  this->LinesCache.clear();
+  this->NptsCache.clear();
+  this->PointIdsCache.clear();
+  this->PointNeighborCountsCache.clear();
 
-  vtkImageStencilData *data = vtkImageStencilData::SafeDownCast(
-    outInfo->Get(vtkDataObject::DATA_OBJECT()));
-
-  int extent[6];
-  data->GetExtent(extent);
-  // ThreadedExecute is only called from a single thread for
-  // now, but it could as easily be called from ThreadedRequestData
-  this->ThreadedExecute(data, extent, 0);
-
-  return 1;
 }

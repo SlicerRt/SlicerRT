@@ -27,8 +27,8 @@ SET (SlicerRtCommon_SRCS
   vtkCollisionDetectionFilter.h
   vtkFractionalImageAccumulate.cxx
   vtkFractionalImageAccumulate.h
-  vtkFractionalPolyDataToImageStencil.cxx
-  vtkFractionalPolyDataToImageStencil.h
+  vtkPolyDataToFractionalLabelMap.cxx
+  vtkPolyDataToFractionalLabelMap.h
   )
 
 SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${Slicer_Libs_INCLUDE_DIRS} ${vtkSegmentationCore_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)

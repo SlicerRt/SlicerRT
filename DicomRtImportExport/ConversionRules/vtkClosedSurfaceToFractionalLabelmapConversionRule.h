@@ -31,7 +31,7 @@
 #include "vtkSlicerDicomRtImportExportConversionRulesExport.h"
 
 // SlicerRtCommon includes
-#include "vtkFractionalPolyDataToImageStencil.h"
+#include "vtkPolyDataToFractionalLabelMap.h"
 
 // VTK includes
 #include <vtkPolyDataToImageStencil.h>
@@ -75,20 +75,6 @@ public:
 
   /// Human-readable name of the target representation
   virtual const char* GetTargetRepresentationName() { return vtkSegmentationConverter::GetSegmentationFractionalLabelmapRepresentationName(); };
-
-protected:
-
-  /// Create a binary labelmap from a closed surface and add it to the fractional labelmap
-  /// This function accepts a void pointer to a struct of the following format:
-  /// \param closedSurface Closed surface that is being converted to a binary labelmap
-  /// \param binaryLabelMap The binary labelmap that is created from the closed surface
-  /// \param polyDataToImageStencil The vtkFractionalPolyDataToImageStencil containing cached information
-  void CreateBinaryLabelMap(vtkPolyData* closedSurface, vtkOrientedImageData* binaryLabelMap, vtkFractionalPolyDataToImageStencil* polyDataToImageStencil);
-
-  /// Add the values of the binary labelmap to the fractional labelmap.
-  /// \param binaryLabelMap Binary labelmap that will be added to the fractional labelmap
-  /// \param fractionalLabelMap The fractional labelmap that the binary labelmap is added to
-  void AddBinaryLabelMapToFractionalLabelMap(vtkOrientedImageData* binaryLabelMap, vtkOrientedImageData* fractionalLabelMap);
 
 protected:
   // Oversampling factor that will be used to calculate the size of the binary labelmap

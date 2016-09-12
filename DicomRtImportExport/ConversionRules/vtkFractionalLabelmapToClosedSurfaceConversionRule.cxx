@@ -235,6 +235,7 @@ void vtkFractionalLabelmapToClosedSurfaceConversionRule::PadLabelmap(vtkOriented
 {
   vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
   padder->SetInputData(FractionalLabelMap);
+  padder->SetConstant(FRACTIONAL_MIN);
   int extent[6] = {0,-1,0,-1,0,-1};
   FractionalLabelMap->GetExtent(extent);
   // Set the output extent to the new size
@@ -242,4 +243,3 @@ void vtkFractionalLabelmapToClosedSurfaceConversionRule::PadLabelmap(vtkOriented
   padder->Update();
   FractionalLabelMap->vtkImageData::DeepCopy(padder->GetOutput());
 }
- 
