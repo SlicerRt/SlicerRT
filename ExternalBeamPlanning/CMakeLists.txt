@@ -71,7 +71,7 @@ slicerMacroBuildLoadableModule(
   UI_SRCS ${MODULE_UI_SRCS}
   TARGET_LIBRARIES ${MODULE_TARGET_LIBRARIES}
   RESOURCES ${MODULE_RESOURCES}
-  WITH_GENERIC_TESTS
+  # WITH_GENERIC_TESTS #TODO: Enable after https://app.assembla.com/spaces/slicerrt/tickets/838-failing-slicerrt-tests-cause-dependent-extensions-not-to-build/details is fixed
   )
 
 #-----------------------------------------------------------------------------
