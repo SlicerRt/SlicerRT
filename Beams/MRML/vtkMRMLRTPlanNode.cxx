@@ -25,8 +25,6 @@
 
 // SlicerRt includes
 #include "PlmCommon.h"
-#include "vtkMRMLSegmentationNode.h"
-#include "vtkSlicerSegmentationsModuleLogic.h"
 
 // Plastimatch includes
 #include "image_center.h"
@@ -36,6 +34,9 @@
 #include <vtkMRMLSubjectHierarchyNode.h>
 #include <vtkMRMLSubjectHierarchyConstants.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
+#include <vtkMRMLSegmentationNode.h>
+#include <vtkSlicerSegmentationsModuleLogic.h>
+#include <vtkMRMLScalarVolumeNode.h>
 
 // VTK includes
 #include <vtkCollection.h>
