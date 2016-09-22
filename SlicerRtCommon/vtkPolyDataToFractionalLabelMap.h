@@ -31,6 +31,7 @@
 #include <vtkCellArray.h>
 #include <vtkSetGet.h>
 #include <vtkMatrix4x4.h>
+#include <vtkCellLocator.h>
 
 //
 #include <vtkOrientedImageData.h>
@@ -47,6 +48,8 @@ private:
   std::map<double, vtkIdType> NptsCache;
   std::map<double, std::vector<vtkIdType> > PointNeighborCountsCache;
 
+  vtkCellLocator* CellLocator;
+
   vtkMatrix4x4* OutputImageToWorldMatrix;
   int NumberOfOffsets;
 
@@ -57,6 +60,7 @@ public:
   virtual vtkOrientedImageData* GetOutput();
   virtual void SetOutput(vtkOrientedImageData* output);
 
+  /// This method deletes the currently stored cache variables
   void DeleteCache();
 
   vtkSetObjectMacro(OutputImageToWorldMatrix, vtkMatrix4x4);
@@ -75,6 +79,7 @@ protected:
   virtual int FillOutputPortInformation(int, vtkInformation*);
 
   /// Create a binary image stencil for the closed surface within the current extent
+  /// This method is a modified version of vtkPolyDataToImageStencil::ThreadedExecute
   /// \param output Output stencil data
   /// \param closedSurface The input surface to be converted
   /// \param extent The extent region that is being converted
@@ -84,6 +89,14 @@ protected:
   /// \param binaryLabelMap Binary labelmap that will be added to the fractional labelmap
   /// \param fractionalLabelMap The fractional labelmap that the binary labelmap is added to
   void AddBinaryLabelMapToFractionalLabelMap(vtkOrientedImageData* binaryLabelMap, vtkOrientedImageData* fractionalLabelMap);
+
+  /// Clip the polydata at the specified z coordinate to create a planar contour.
+  /// This method is a modified version of vtkPolyDataToImageStencil::PolyDataCutter to decrease execution time
+  /// \param input The closed surface that is being cut
+  /// \param output Polydata containing the contour lines
+  /// \param z The z coordinate for the cutting plane
+  void PolyDataCutter(vtkPolyData *input, vtkPolyData *output,
+                             double z);
 
 private:
   vtkPolyDataToFractionalLabelMap(const vtkPolyDataToFractionalLabelMap&);  // Not implemented.

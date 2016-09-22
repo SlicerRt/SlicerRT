@@ -56,6 +56,8 @@ vtkPolyDataToFractionalLabelMap::vtkPolyDataToFractionalLabelMap()
   this->NptsCache = std::map<double, vtkIdType>();
   this->PointNeighborCountsCache = std::map<double,  std::vector<vtkIdType> >();
 
+  this->CellLocator = vtkCellLocator::New();
+
   this->OutputImageToWorldMatrix = NULL;
 
   vtkOrientedImageData* output = vtkOrientedImageData::New();
@@ -70,6 +72,7 @@ vtkPolyDataToFractionalLabelMap::vtkPolyDataToFractionalLabelMap()
 vtkPolyDataToFractionalLabelMap::~vtkPolyDataToFractionalLabelMap()
 {
   this->OutputImageToWorldMatrix->Delete();
+  this->CellLocator->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -99,6 +102,180 @@ int vtkPolyDataToFractionalLabelMap::FillOutputPortInformation(
 }
 
 //----------------------------------------------------------------------------
+// A helper class to quickly locate an edge, given the endpoint ids.
+// It uses an stl map rather than a table partitioning scheme, since
+// we have no idea how many entries there will be when we start.  So
+// the performance is approximately log(n).
+//
+// These classes and methods are not inherited from vtkPolyDataToImageStencil,
+// so they needed to be duplicated here to allow PolyDataCutter to function.
+namespace {
+
+// A Node in a linked list that contains information about one edge
+class EdgeLocatorNode
+{
+public:
+  EdgeLocatorNode() :
+    ptId(-1), edgeId(-1), next(0) {}
+
+  // Free the list that this node is the head of
+  void FreeList() {
+    EdgeLocatorNode *ptr = this->next;
+    while (ptr)
+      {
+      EdgeLocatorNode *tmp = ptr;
+      ptr = ptr->next;
+      tmp->next = 0;
+      delete tmp;
+      }
+  }
+
+  vtkIdType ptId;
+  vtkIdType edgeId;
+  EdgeLocatorNode *next;
+};
+
+// The EdgeLocator class itself, for keeping track of edges
+class EdgeLocator
+{
+private:
+  typedef std::map<vtkIdType, EdgeLocatorNode> MapType;
+  MapType EdgeMap;
+
+public:
+  EdgeLocator() : EdgeMap() {}
+  ~EdgeLocator() { this->Initialize(); }
+
+  // Description:
+  // Initialize the locator.
+  void Initialize();
+
+  // Description:
+  // If the edge (i0, i1) is not in the list, then it will be added and
+  // given the supplied edgeId, and the return value will be false.  If
+  // the edge (i0, i1) is in the list, then edgeId will be set to the
+  // stored value and the return value will be true.
+  bool InsertUniqueEdge(vtkIdType i0, vtkIdType i1, vtkIdType &edgeId);
+
+  // Description:
+  // A helper function for interpolating a new point along an edge.  It
+  // stores the index of the interpolated point in "i", and returns true
+  // if a new point was added to the locator.  The values i0, i1, v0, v1
+  // are the edge endpoints and scalar values, respectively.
+  bool InterpolateEdge(
+    vtkPoints *inPoints, vtkPoints *outPoints,
+    vtkIdType i0, vtkIdType i1, double v0, double v1,
+    vtkIdType &i);
+};
+
+void EdgeLocator::Initialize()
+{
+  for (MapType::iterator i = this->EdgeMap.begin();
+       i != this->EdgeMap.end();
+       ++i)
+    {
+    i->second.FreeList();
+    }
+  this->EdgeMap.clear();
+}
+
+bool EdgeLocator::InsertUniqueEdge(
+  vtkIdType i0, vtkIdType i1, vtkIdType &edgeId)
+{
+  // Ensure consistent ordering of edge
+  if (i1 < i0)
+    {
+    vtkIdType tmp = i0;
+    i0 = i1;
+    i1 = tmp;
+    }
+
+  EdgeLocatorNode *node = &this->EdgeMap[i0];
+
+  if (node->ptId < 0)
+    {
+    // Didn't find key, so add a new edge entry
+    node->ptId = i1;
+    node->edgeId = edgeId;
+    return true;
+    }
+
+  // Search through the list for i1
+  if (node->ptId == i1)
+    {
+    edgeId = node->edgeId;
+    return false;
+    }
+
+  int i = 1;
+  while (node->next != 0)
+    {
+    i++;
+    node = node->next;
+
+    if (node->ptId == i1)
+      {
+      edgeId = node->edgeId;
+      return false;
+      }
+    }
+
+  // No entry for i1, so make one and return
+  node->next = new EdgeLocatorNode;
+  node = node->next;
+  node->ptId = i1;
+  node->edgeId = edgeId;
+  return true;
+}
+
+bool EdgeLocator::InterpolateEdge(
+  vtkPoints *points, vtkPoints *outPoints,
+  vtkIdType i0, vtkIdType i1, double v0, double v1,
+  vtkIdType &i)
+{
+  // This swap guarantees that exactly the same point is computed
+  // for both line directions, as long as the endpoints are the same.
+  if (v1 > 0)
+    {
+    vtkIdType tmpi = i0;
+    i0 = i1;
+    i1 = tmpi;
+
+    double tmp = v0;
+    v0 = v1;
+    v1 = tmp;
+    }
+
+  // Check to see if this point has already been computed
+  i = outPoints->GetNumberOfPoints();
+  if (!this->InsertUniqueEdge(i0, i1, i))
+    {
+    return false;
+    }
+
+  // Get the edge and interpolate the new point
+  double p0[3], p1[3], p[3];
+  points->GetPoint(i0, p0);
+  points->GetPoint(i1, p1);
+
+  double f = v0/(v0 - v1);
+  double s = 1.0 - f;
+  double t = 1.0 - s;
+
+  p[0] = s*p0[0] + t*p1[0];
+  p[1] = s*p0[1] + t*p1[1];
+  p[2] = s*p0[2] + t*p1[2];
+
+  // Add the point, store the new index in the locator
+  outPoints->InsertNextPoint(p);
+
+  return true;
+}
+
+} // end anonymous namespace
+
+
+//----------------------------------------------------------------------------
 vtkOrientedImageData *vtkPolyDataToFractionalLabelMap::AllocateOutputData(
   vtkDataObject *out, int* uExt)
 {
@@ -109,10 +286,9 @@ vtkOrientedImageData *vtkPolyDataToFractionalLabelMap::AllocateOutputData(
                     " output");
     return NULL;
     }
-  res->SetExtent(uExt);
-  res->AllocateScalars(VTK_FRACTIONAL_DATA_TYPE, 1);
 
   // Allocate output image data
+  res->SetExtent(uExt);
   res->AllocateScalars(VTK_FRACTIONAL_DATA_TYPE, 1);
 
   // Set-up fractional labelmap
@@ -204,13 +380,15 @@ int vtkPolyDataToFractionalLabelMap::RequestData(
   // PolyData of the closed surface in IJK space
   vtkSmartPointer<vtkPolyData> transformedClosedSurface = stripper->GetOutput();
 
+  this->CellLocator->SetDataSet(transformedClosedSurface);
+  this->CellLocator->BuildLocator();
+
   int extent[6];
   outputData->GetExtent(extent);
 
   vtkSmartPointer<vtkOrientedImageData> binaryLabelMap = vtkSmartPointer<vtkOrientedImageData>::New();
   binaryLabelMap->SetExtent(extent);
   binaryLabelMap->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-  
 
   // The magnitude of the offset step size ( n-1 / 2n )
   double offsetStepSize = (double)(this->NumberOfOffsets-1.0)/(2 * this->NumberOfOffsets);
@@ -359,7 +537,7 @@ void vtkPolyDataToFractionalLabelMap::FillImageStencilData(
   vtkPolyData *input = closedSurface;
 
   // the output produced by cutting the polydata with the Z plane
-  vtkPolyData *slice = vtkPolyData::New();
+  vtkSmartPointer<vtkPolyData> slice;
 
   // This raster stores all line segments by recording all "x"
   // positions on the surface for each y integer position.
@@ -378,16 +556,19 @@ void vtkPolyDataToFractionalLabelMap::FillImageStencilData(
 
     double z = idxZ*spacing[2] + origin[2];
 
-    slice->PrepareForNewData();
+    slice = NULL;
     raster.PrepareForNewData();
 
     if ( this->LinesCache.count(z) == 0 )
       {
 
+      slice = vtkSmartPointer<vtkPolyData>::New();    
+
       // Step 1: Cut the data into slices
       if (input->GetNumberOfPolys() > 0 || input->GetNumberOfStrips() > 0)
         {
-            this->PolyDataCutter(input, slice, z);
+
+        this->PolyDataCutter(input, slice, z);
         }
       else
         {
@@ -400,13 +581,19 @@ void vtkPolyDataToFractionalLabelMap::FillImageStencilData(
         continue;
         }
 
-      vtkSmartPointer<vtkPolyData> sliceCopy = vtkSmartPointer<vtkPolyData>::New();
-      sliceCopy->DeepCopy(slice);
-      this->SliceCache.insert(std::pair<double, vtkPolyData*>(z, sliceCopy));
+      this->SliceCache.insert(std::pair<double, vtkPolyData*>(z, slice));
 
-    }
+      }
 
-    slice->DeepCopy(this->SliceCache[z]);
+    if (this->SliceCache.count(z) == 0)
+      {
+        continue;
+      }
+
+    if (!slice)
+      {
+      slice = this->SliceCache[z];
+      }
 
     // convert to structured coords via origin and spacing
     vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
@@ -432,7 +619,7 @@ void vtkPolyDataToFractionalLabelMap::FillImageStencilData(
       std::fill(pointNeighborCounts.begin(), pointNeighborCounts.end(), 0);
 
       // get the connectivity count for each point
-      vtkCellArray *lines = slice->GetLines();
+      vtkSmartPointer<vtkCellArray> lines = slice->GetLines();
       vtkIdType npts = 0;
       vtkIdType *pointIds = 0;
       vtkIdType count = lines->GetNumberOfConnectivityEntries();
@@ -609,15 +796,16 @@ void vtkPolyDataToFractionalLabelMap::FillImageStencilData(
           }
         }
 
-        vtkSmartPointer<vtkCellArray> linesCopy = vtkSmartPointer<vtkCellArray>::New();
-        linesCopy->DeepCopy(lines);
-
-        this->LinesCache.insert(std::pair<double, vtkCellArray*>(z, linesCopy));
-        this->PointIdsCache.insert(std::pair<double, vtkIdType*>(z, pointIds));
+        this->LinesCache.insert(std::pair<double, vtkCellArray*>(z, lines));
         this->NptsCache.insert(std::pair<double, vtkIdType>(z, npts));
         this->PointNeighborCountsCache.insert(std::pair<double, std::vector<vtkIdType> >(z, pointNeighborCounts));
 
       }
+
+   if (this->LinesCache.count(z) == 0)
+    {
+     continue;
+    }
 
     vtkCellArray* lines = this->LinesCache[z];
     vtkIdType count = lines->GetNumberOfConnectivityEntries();
@@ -665,7 +853,117 @@ void vtkPolyDataToFractionalLabelMap::FillImageStencilData(
 
     }
 
-  slice->Delete();
+}
+
+//----------------------------------------------------------------------------
+void vtkPolyDataToFractionalLabelMap::PolyDataCutter(
+  vtkPolyData *input, vtkPolyData *output, double z)
+{
+  vtkPoints *points = input->GetPoints();
+  vtkCellArray *inputPolys = input->GetPolys();
+  vtkCellArray *inputStrips = input->GetStrips();
+  vtkPoints *newPoints = vtkPoints::New();
+  newPoints->SetDataType(points->GetDataType());
+  newPoints->Allocate(333);
+  vtkCellArray *newLines = vtkCellArray::New();
+  newLines->Allocate(1000);
+
+  // An edge locator to avoid point duplication while clipping
+  EdgeLocator edgeLocator;
+
+  vtkSmartPointer<vtkIdList> cells = vtkSmartPointer<vtkIdList>::New();
+  cells->Initialize();
+
+  double bounds[6] = {0,0,0,0,0,0};
+  input->GetBounds(bounds);
+  bounds[4] = z;
+  bounds[5] = z;
+
+  // Find cells that intersect with the current slice.
+  this->CellLocator->FindCellsWithinBounds(bounds, cells);
+
+  // Go through all cells and clip them.
+  vtkIdType numCells = cells->GetNumberOfIds();
+
+
+  vtkIdType loc = 0;
+  vtkCellArray *cellArray = inputPolys;
+  for (vtkIdType cellId = 0; cellId < numCells; cellId++)
+    {
+
+    vtkIdType id = cells->GetId(cellId);
+    
+    if (input->GetCellType(id) != VTK_TRIANGLE &&
+        input->GetCellType(id) != VTK_TRIANGLE_STRIP)
+      {
+        continue;
+      }
+
+    vtkIdType npts, *ptIds;
+    input->GetCellPoints(id, npts, ptIds);
+    loc += npts + 1;
+
+    vtkIdType numSubCells = 1;
+    if (input->GetCellType(id) == VTK_TRIANGLE_STRIP)
+      {
+      numSubCells = npts - 2;
+      npts = 3;
+      }
+
+    for (vtkIdType subId = 0; subId < numSubCells; subId++)
+      {
+      vtkIdType i1 = ptIds[npts-1];
+      double point[3];
+      points->GetPoint(i1, point);
+      double v1 = point[2] - z;
+      bool c1 = (v1 > 0);
+      bool odd = ((subId & 1) != 0);
+
+      // To store the ids of the contour line
+      vtkIdType linePts[2];
+      linePts[0] = 0;
+      linePts[1] = 0;
+
+      for (vtkIdType i = 0; i < npts; i++)
+        {
+        // Save previous point info
+        vtkIdType i0 = i1;
+        double v0 = v1;
+        bool c0 = c1;
+
+        // Generate new point info
+        i1 = ptIds[i];
+        points->GetPoint(i1, point);
+        v1 = point[2] - z;
+        c1 = (v1 > 0);
+
+        // If at least one edge end point wasn't clipped
+        if ( (c0 | c1) )
+          {
+          // If only one end was clipped, interpolate new point
+          if ( (c0 ^ c1) )
+            {
+            edgeLocator.InterpolateEdge(
+              points, newPoints, i0, i1, v0, v1, linePts[c0 ^ odd]);
+            }
+          }
+        }
+
+      // Insert the contour line if one was created
+      if (linePts[0] != linePts[1])
+        {
+        newLines->InsertNextCell(2, linePts);
+        }
+
+      // Increment to get to the next triangle, if cell is a strip
+      ptIds++;
+      }
+    }
+
+  output->SetPoints(newPoints);
+  output->SetLines(newLines);
+  newPoints->Delete();
+  newLines->Delete();
 }
 
 //----------------------------------------------------------------------------
