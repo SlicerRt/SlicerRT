@@ -46,7 +46,7 @@ private:
   std::map<double, vtkSmartPointer<vtkPolyData> > SliceCache;
   std::map<double, vtkIdType*> PointIdsCache;
   std::map<double, vtkIdType> NptsCache;
-  std::map<double, std::vector<vtkIdType> > PointNeighborCountsCache;
+  std::map<double,  vtkSmartPointer<vtkIdTypeArray> > PointNeighborCountsCache;
 
   vtkCellLocator* CellLocator;
 
@@ -84,11 +84,11 @@ protected:
   /// \param closedSurface The input surface to be converted
   /// \param extent The extent region that is being converted
   void FillImageStencilData(vtkImageStencilData *output, vtkPolyData* closedSurface, int extent[6]);
-  
+
   /// Add the values of the binary labelmap to the fractional labelmap.
   /// \param binaryLabelMap Binary labelmap that will be added to the fractional labelmap
   /// \param fractionalLabelMap The fractional labelmap that the binary labelmap is added to
-  void AddBinaryLabelMapToFractionalLabelMap(vtkOrientedImageData* binaryLabelMap, vtkOrientedImageData* fractionalLabelMap);
+  void AddBinaryLabelMapToFractionalLabelMap(vtkImageData* binaryLabelMap, vtkImageData* fractionalLabelMap);
 
   /// Clip the polydata at the specified z coordinate to create a planar contour.
   /// This method is a modified version of vtkPolyDataToImageStencil::PolyDataCutter to decrease execution time
