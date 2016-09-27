@@ -429,7 +429,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::InitializeIEC()
     return;
   }
   vtkMRMLLinearTransformNode* leftImagingPanelModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME) );
+    this->GetMRMLScene()->GetFirstNodeByName(LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME));
   leftImagingPanelModel->SetAndObserveTransformNodeID(leftImagingPanelModelTransforms->GetID());
   leftImagingPanelModel->CreateDefaultDisplayNodes();
   leftImagingPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
