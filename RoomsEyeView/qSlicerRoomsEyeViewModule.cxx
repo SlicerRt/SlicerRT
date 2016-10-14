@@ -101,6 +101,12 @@ QStringList qSlicerRoomsEyeViewModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
+QIcon qSlicerRoomsEyeViewModule::icon()const
+{
+  return QIcon(":/Icons/RoomsEyeView.png");
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModule::setup()
 {
   this->Superclass::setup();
