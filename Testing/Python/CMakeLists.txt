@@ -25,10 +25,9 @@ else()
   set(MODULE_BUILD_DIR "${CMAKE_BINARY_DIR}/${Slicer_QTLOADABLEMODULES_LIB_DIR}")
 endif()
 
-#TODO: Enable after https://app.assembla.com/spaces/slicerrt/tickets/838-failing-slicerrt-tests-cause-dependent-extensions-not-to-build/details is fixed
-# slicer_add_python_unittest(
-#   SCRIPT IGRTWorkflow_SelfTest.py
-#   SLICER_ARGS --additional-module-paths
-#                 ${MODULE_BUILD_DIR}
-#                 ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR} 
-#   )
+slicer_add_python_unittest(
+  SCRIPT IGRTWorkflow_SelfTest.py
+  SLICER_ARGS --additional-module-paths
+                ${MODULE_BUILD_DIR}
+                ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR} 
+  )
