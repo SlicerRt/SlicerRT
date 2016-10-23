@@ -452,6 +452,7 @@ void vtkMRMLRTBeamNode::SetSAD(double sad)
 }
 
 //----------------------------------------------------------------------------
+// TODO: Remove function after IEC Logic has been deemed to be viable
 void vtkMRMLRTBeamNode::UpdateTransform()
 {
   if (!this->GetScene())
@@ -486,19 +487,19 @@ void vtkMRMLRTBeamNode::UpdateTransform()
   transform->PostMultiply();
   transform->Concatenate(transform2->GetMatrix());
 
-  // Get transform node
-  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetScene()->GetNodeByID(this->GetTransformNodeID()));
-  if (transformNode)
-  {
-    // Set transform to transform node
-    transformNode->SetMatrixTransformToParent(transform->GetMatrix());
+    // Get transform node
+    vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+      this->GetScene()->GetNodeByID(this->GetTransformNodeID()));
+    if (transformNode)
+    {
+      // Set transform to transform node
+      transformNode->SetMatrixTransformToParent(transform->GetMatrix());
 
-    // Update the name of the transform node too
-    // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
-    std::string transformName = std::string(this->Name) + "_Transform";
-    transformNode->SetName(transformName.c_str());
-  }
+      // Update the name of the transform node too
+      // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
+      std::string transformName = std::string(this->Name) + "_Transform";
+      transformNode->SetName(transformName.c_str());
+    }
 }
 
 //---------------------------------------------------------------------------

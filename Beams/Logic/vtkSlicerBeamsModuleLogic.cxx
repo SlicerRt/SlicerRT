@@ -20,6 +20,7 @@
 
 // Beams includes
 #include "vtkSlicerBeamsModuleLogic.h"
+#include "vtkSlicerIECTransformLogic.h"
 
 // SlicerRT includes
 #include "vtkMRMLRTPlanNode.h"
@@ -35,6 +36,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkObjectFactory.h>
 #include <vtkTransform.h>
+#include <vtkGeneralTransform.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerBeamsModuleLogic);
@@ -138,11 +140,12 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
   if (caller->IsA("vtkMRMLRTBeamNode"))
   {
     vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(caller);
+    vtkSlicerIECTransformLogic* IECTransformLogic = vtkSlicerIECTransformLogic::New();
 
-    if (event == vtkMRMLRTBeamNode::BeamTransformModified)
+    if(event == vtkMRMLRTBeamNode::BeamTransformModified)
     {
-      // Update beam transform
-      beamNode->UpdateTransform();
+      IECTransformLogic->SetAndObserveBeamNode(beamNode, event);
+      
     }
     else if (event == vtkMRMLRTBeamNode::BeamGeometryModified)
     {

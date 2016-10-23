@@ -24,9 +24,13 @@
 
 #include "vtkSlicerBeamsModuleLogicExport.h"
 
+#include "vtkSlicerModuleLogic.h"
+
 // VTK includes
 #include <vtkObject.h>
 #include <vtkTransform.h>
+#include <vtkGeneralTransform.h>
+
 
 class vtkMRMLRTBeamNode;
 
@@ -48,7 +52,7 @@ public:
   {
     FixedReference = 0,
     GantryToFixedReference,
-    CollimatorToGantry,
+    FixedReferenceIsocenterToCollimatorRotated,
     LeftImagingPanelTranslation,
     LeftImagingPanelRotatedToGantry,
     LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated,
@@ -63,10 +67,6 @@ public:
     PatientSupportPositiveVerticalTranslation,
     TableTopEccentricRotationToPatientSupport,
     TableTopToTableEccentricRotation,
-
-
-
-
     //TODO: Add all others (in order of chain)
   };
 
@@ -76,16 +76,18 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Set and observe beam node. If a geometry-related parameter changes in the beam node, the transforms are updated
-  void SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNode);
+  void SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNode, unsigned long event);
 
   /// Get transform from one coordinate frame to another
   /// \return Success flag (false on any error)
-  bool GetTransformBetween(CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame, vtkTransform* outputTransform);
+  bool GetTransformBetween(CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame, vtkMRMLRTBeamNode* beamNode, vtkGeneralTransform* outputTransform);
+
+  
 
 public:
   /// Get gantry to fixed reference transform
   vtkGetObjectMacro(GantryToFixedReferenceTransform, vtkTransform);
-  vtkGetObjectMacro(CollimatorToGantryTransform, vtkTransform);
+  vtkGetObjectMacro(FixedReferenceIsocenterToCollimatorRotatedTransform, vtkTransform);
   vtkGetObjectMacro(LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform, vtkTransform);
   vtkGetObjectMacro(LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform, vtkTransform);
   vtkGetObjectMacro(LeftImagingPanelRotatedToGantryTransform, vtkTransform);
@@ -100,7 +102,7 @@ public:
   vtkGetObjectMacro(PatientSupportPositiveVerticalTranslationTransform, vtkTransform);
   vtkGetObjectMacro(TableTopEccentricRotationToPatientSupportTransform, vtkTransform);
   vtkGetObjectMacro(TableTopToTableTopEccentricRotationTransform, vtkTransform);
-
+  
 protected:
   /// Update transforms according to beam node
   void UpdateTransformsFromBeamGeometry(vtkMRMLRTBeamNode* beamNode);
@@ -108,7 +110,7 @@ protected:
 protected:
   /// Set gantry to fixed reference transform
   vtkSetObjectMacro(GantryToFixedReferenceTransform, vtkTransform);
-  vtkSetObjectMacro(CollimatorToGantryTransform, vtkTransform);
+  vtkSetObjectMacro(FixedReferenceIsocenterToCollimatorRotatedTransform, vtkTransform);
   vtkSetObjectMacro(LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform, vtkTransform);
   vtkSetObjectMacro(LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform, vtkTransform);
   vtkSetObjectMacro(LeftImagingPanelRotatedToGantryTransform, vtkTransform);
@@ -125,9 +127,10 @@ protected:
   vtkSetObjectMacro(TableTopToTableTopEccentricRotationTransform, vtkTransform);
 
 protected:
+  // TODO: Determine if these are still necessary?
   /// Gantry to fixed reference transform
   vtkTransform* GantryToFixedReferenceTransform;
-  vtkTransform* CollimatorToGantryTransform;
+  vtkTransform* FixedReferenceIsocenterToCollimatorRotatedTransform;
   vtkTransform* LeftImagingPanelTranslationTransform;
   vtkTransform* LeftImagingPanelRotatedToGantryTransform;
   vtkTransform* LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform;
@@ -143,7 +146,7 @@ protected:
   vtkTransform* TableTopEccentricRotationToPatientSupportTransform;
   vtkTransform* TableTopToTableTopEccentricRotationTransform;
 
-  //TODO: All transforms (please include X-ray image receptor too)
+ 
                                              
 protected:
   vtkSlicerIECTransformLogic();
