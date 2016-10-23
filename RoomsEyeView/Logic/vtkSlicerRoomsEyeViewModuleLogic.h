@@ -50,26 +50,31 @@ public:
   /// Set up the IEC transform hierarchy
   void InitializeIEC();
 
-  /// Update CollimatorToGantry transform based on collimator angle from UI slider
+  /// Update CollimatorToFixedReference Isocenter transform by translating collimator model to isocenter
+  void UpdateCollimatorToFixedReferenceIsocenterTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+  /// Update FixedReferenceIsocenterToCollimatorRotated transform based on collimator angle from UI slider
+  void UpdateFixedReferenceIsocenterToCollimatorRotatedTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+  /// Update CollimatorToGantry transform by translating collimator model back to the gantry
   void UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+
   /// Update GantryToFixedReference transform based on gantry angle from UI slider
   void UpdateGantryToFixedReferenceTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 
   /// Translate center of left imaging panel to isocenter of fixed reference coordinate system
-  void UpdateLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+  void UpdateLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform();
   /// Rotate left imaging panel based on imagingPanelMovement from UI slider
   void UpdateLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Translate rotated left imaging panel from fixed reference isocenter back to gantry
-  void UpdateLeftImagingPanelRotatedToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+  void UpdateLeftImagingPanelRotatedToGantryTransform();
   /// Translate the left imaging panel forward based on imagingPanelMovement from UI slider
   void UpdateLeftImagingPanelTranslationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 
   /// Translate center of right imaging panel to isocenter of fixed reference coordinate system
-  void UpdateRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+  void UpdateRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform();
   /// Rotate rights imaging panel based on imagingPanelMovement from UI slider
   void UpdateRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Translate rotated right imaging panel from fixed reference isocenter back to gantry
-  void UpdateRightImagingPanelRotatedToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+  void UpdateRightImagingPanelRotatedToGantryTransform();
   /// Translate the right imaging panel forward based on imagingPanelMovement from UI slider
   void UpdateRightImagingPanelTranslationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 

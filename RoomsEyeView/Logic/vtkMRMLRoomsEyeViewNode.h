@@ -58,6 +58,12 @@ public:
   vtkMRMLLinearTransformNode* GetGantryToFixedReferenceTransformNode();
   void SetAndObserveGantryToFixedReferenceTransformNode(vtkMRMLLinearTransformNode* node);
 
+  vtkMRMLLinearTransformNode* GetCollimatorToFixedReferenceIsocenterTransformNode();
+  void SetAndObserveCollimatorToFixedReferenceIsocenterTransformNode(vtkMRMLLinearTransformNode* node);
+
+  vtkMRMLLinearTransformNode* GetFixedReferenceIsocenterToCollimatorRotatedTransformNode();
+  void SetAndObserveFixedReferenceIsocenterToCollimatorRotatedTransformNode(vtkMRMLLinearTransformNode* node);
+
   vtkMRMLLinearTransformNode* GetCollimatorToGantryTransformNode();
   void SetAndObserveCollimatorToGantryTransformNode(vtkMRMLLinearTransformNode* node);
 

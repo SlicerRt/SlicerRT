@@ -341,7 +341,9 @@ void qSlicerRoomsEyeViewModuleWidget::collimatorRotationSliderValueChanged()
   paramNode->DisableModifiedEventOn();
   paramNode->SetCollimatorRotationAngle(d->CollimatorRotationSlider->value());
   paramNode->DisableModifiedEventOff();
-
+  
+  d->logic()->UpdateCollimatorToFixedReferenceIsocenterTransform(paramNode);
+  d->logic()->UpdateFixedReferenceIsocenterToCollimatorRotatedTransform(paramNode);
   d->logic()->UpdateCollimatorToGantryTransform(paramNode);
 
   this->checkForCollisions();
