@@ -1760,11 +1760,12 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
       }
 
       // Export each segment in segmentation
-      vtkSegmentation::SegmentMap segmentMap = segmentationNode->GetSegmentation()->GetSegments();
-      for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+      std::vector< std::string > segmentIDs;
+      segmentationNode->GetSegmentation()->GetSegmentIDs(segmentIDs);
+      for (std::vector< std::string >::const_iterator segmentIdIt = segmentIDs.begin(); segmentIdIt != segmentIDs.end(); ++segmentIdIt)
       {
-        std::string segmentID = segmentIt->first;
-        vtkSegment* segment = segmentIt->second;
+        std::string segmentID = *segmentIdIt;
+        vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(*segmentIdIt);
 
         // Get binary labelmap representation
         vtkOrientedImageData* binaryLabelmap = vtkOrientedImageData::SafeDownCast(
@@ -1862,11 +1863,12 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
       slicePlane->SetNormal(normal);
 
       // Export each segment in segmentation
-      vtkSegmentation::SegmentMap segmentMap = segmentationNode->GetSegmentation()->GetSegments();
-      for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+      std::vector< std::string > segmentIDs;
+      segmentationNode->GetSegmentation()->GetSegmentIDs(segmentIDs);
+      for (std::vector< std::string >::const_iterator segmentIdIt = segmentIDs.begin(); segmentIdIt != segmentIDs.end(); ++segmentIdIt)
       {
-        std::string segmentID = segmentIt->first;
-        vtkSegment* segment = segmentIt->second;
+        std::string segmentID = *segmentIdIt;
+        vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(*segmentIdIt);
 
         // Get closed surface representation
         vtkPolyData* closedSurfacePolyData = vtkPolyData::SafeDownCast(

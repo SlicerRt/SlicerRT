@@ -568,17 +568,17 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(vtkMRMLRTPlanNode* plan
   vtkSmartPointer<vtkMRMLSliceCompositeNode> compositeSliceNode = sliceLogic->GetSliceCompositeNode();
   compositeSliceNode->SetBackgroundVolumeID(drrImageNode->GetID());
 
-  //TODO: convert to segmentations
-  // Get list of segments from the segmentation node
-  vtkSmartPointer<vtkSegmentation> selectedSegmentation = planNode->GetTargetSegmentationNode()->GetSegmentation();
-  vtkSegmentation::SegmentMap segmentMap = selectedSegmentation->GetSegments();
-
   // Compute DVH and get result nodes
   vtkSmartPointer<vtkImageData> mergedImageData = vtkSmartPointer<vtkImageData>::New();
   unsigned int numberOfContours = 0;
-  
-  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+
+  vtkSmartPointer<vtkSegmentation> selectedSegmentation = planNode->GetTargetSegmentationNode()->GetSegmentation();
+  std::vector< std::string > segmentIDs;
+  selectedSegmentation->GetSegmentIDs(segmentIDs);
+  for (std::vector< std::string >::const_iterator segmentIdIt = segmentIDs.begin(); segmentIdIt != segmentIDs.end(); ++segmentIdIt)
   {
+    vtkSegment* segment = selectedSegmentation->GetSegment(*segmentIdIt);
+
     numberOfContours++;
     // Create the translucent contour object in BEV 
     // Create the renderer, render window 
@@ -589,7 +589,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(vtkMRMLRTPlanNode* plan
 
     // Now we'll look at it. //TODO: This comment is meaningless
     vtkSmartPointer<vtkPolyDataMapper> contourPolyDataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    vtkSmartPointer<vtkPolyData> polydata = vtkPolyData::SafeDownCast(segmentIt->second->GetRepresentation(vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName()));
+    vtkSmartPointer<vtkPolyData> polydata = vtkPolyData::SafeDownCast(segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName()));
     contourPolyDataMapper->SetInputData(polydata);
     //contourPolyDataMapper->SetScalarRange(0,255);
     vtkSmartPointer<vtkActor> contourPolyDataActor = vtkSmartPointer<vtkActor>::New();

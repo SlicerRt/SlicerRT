@@ -200,11 +200,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   parameterNode->GetSelectedSegmentIDs(segmentIDs);
   if (segmentIDs.empty())
   {
-    vtkSegmentation::SegmentMap segmentMap = selectedSegmentation->GetSegments();
-    for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
-    {
-      segmentIDs.push_back(segmentIt->first);
-    }
+    selectedSegmentation->GetSegmentIDs(segmentIDs);
   }
 
   // Temporarily duplicate selected segments to contain binary labelmap of a different geometry (tied to dose volume)
@@ -261,10 +257,13 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     doseVolumeNode->GetSpacing(doseSpacing);
 
     // Calculate oversampling factors for all segments (need to calculate as it is not stored per segment)
-    vtkSegmentation::SegmentMap segmentMap = segmentationCopy->GetSegments();
-    for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt)
+    std::vector< std::string > segmentIDsCopy;
+    segmentationCopy->GetSegmentIDs(segmentIDsCopy);
+    for (std::vector< std::string >::const_iterator segmentIdIt = segmentIDsCopy.begin(); segmentIdIt != segmentIDsCopy.end(); ++segmentIdIt)
     {
-      vtkSegment* currentSegment = segmentIt->second;
+      std::string segmentID = *segmentIdIt;
+      vtkSegment* currentSegment = segmentationCopy->GetSegment(*segmentIdIt);
+
       vtkOrientedImageData* currentLabelmap = vtkOrientedImageData::SafeDownCast(
         currentSegment->GetRepresentation(representationName) );
       if (!currentLabelmap)
@@ -280,7 +279,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
       // Round oversampling to two decimals
       // Note: We need to round to some degree, because e.g. pow(64,1/3) is not exactly 4. It may be debated whether to round to integer or to a certain number of decimals
       double oversamplingFactor = vtkMath::Round( pow( voxelSizeRatio, 1.0/3.0 ) * 100.0 ) / 100.0;
-      parameterNode->AddAutomaticOversamplingFactor(segmentIt->first, oversamplingFactor);
+      parameterNode->AddAutomaticOversamplingFactor(segmentID, oversamplingFactor);
     }
   }
 
@@ -324,13 +323,15 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   }
 
   // Compute DVH for each selected segment
-  vtkSegmentation::SegmentMap segmentMap = segmentationCopy->GetSegments();
   int counter = 1; // Start at one so that progress can reach 100%
   int numberOfSelectedSegments = segmentationCopy->GetNumberOfSegments();
-  for (vtkSegmentation::SegmentMap::iterator segmentIt = segmentMap.begin(); segmentIt != segmentMap.end(); ++segmentIt, ++counter)
+  for (std::vector< std::string >::const_iterator segmentIdIt = segmentIDs.begin(); segmentIdIt != segmentIDs.end(); ++segmentIdIt, ++counter)
   {
+    std::string segmentID = *segmentIdIt;
+    vtkSegment* segment = segmentationCopy->GetSegment(*segmentIdIt);
+  
     // Get segment labelmap
-    vtkOrientedImageData* segmentLabelmap = vtkOrientedImageData::SafeDownCast( segmentIt->second->GetRepresentation(
+    vtkOrientedImageData* segmentLabelmap = vtkOrientedImageData::SafeDownCast( segment->GetRepresentation(
       representationName ) );
     if (!segmentLabelmap)
     {
@@ -393,7 +394,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     segmentLabelmap->vtkImageData::DeepCopy(padder->GetOutput());
 
     // Calculate DVH for current segment
-    std::string errorMessage = this->ComputeDvh(parameterNode, segmentLabelmap, oversampledDoseVolume, segmentIt->first, maxDose);
+    std::string errorMessage = this->ComputeDvh(parameterNode, segmentLabelmap, oversampledDoseVolume, segmentID, maxDose);
     if (!errorMessage.empty())
     {
       vtkErrorMacro("ComputeDvh: " << errorMessage);
