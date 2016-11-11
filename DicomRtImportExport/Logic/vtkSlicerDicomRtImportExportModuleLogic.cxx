@@ -938,8 +938,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
     vtkDebugWithObjectMacro(this->External, "LoadRtStructureSet: Maximum number of points in a segment = " << maximumNumberOfPoints << ", Total number of points in segmentation = " << totalNumberOfPoints);
     if (maximumNumberOfPoints < 800000 && totalNumberOfPoints < 3000000)
     {
-      //segmentationDisplayNode->SetPreferredDisplayRepresentationName3D(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
-      //segmentationDisplayNode->SetPreferredDisplayRepresentationName2D(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+      segmentationDisplayNode->SetPreferredDisplayRepresentationName3D(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
+      segmentationDisplayNode->SetPreferredDisplayRepresentationName2D(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName());
       segmentationDisplayNode->CalculateAutoOpacitiesForSegments();
     }
     else
@@ -1460,6 +1460,12 @@ vtkSlicerDicomRtImportExportModuleLogic::~vtkSlicerDicomRtImportExportModuleLogi
   this->SetIsodoseLogic(NULL);
   this->SetPlanarImageLogic(NULL);
   this->SetBeamsLogic(NULL);
+
+  if (this->Internal)
+  {
+    delete this->Internal;
+    this->Internal = NULL;
+  }
 }
 
 //----------------------------------------------------------------------------
