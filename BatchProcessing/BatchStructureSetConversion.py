@@ -5,12 +5,12 @@ from slicer.ScriptedLoadableModule import *
 import argparse
 import sys
 import logging
+from DICOMLib import DICOMUtils
 
-#
+#------------------------------------------------------------------------------
 # BatchStructureSetConversion
 #   Convert structures in structure set to labelmaps and save them to disk
 #
-
 class BatchStructureSetConversion(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
@@ -37,19 +37,17 @@ class BatchStructureSetConversion(ScriptedLoadableModule):
     tester = BatchStructureSetConversionTest()
     tester.runTest()
 
-#
+#------------------------------------------------------------------------------
 # BatchStructureSetConversionWidget
 #
-
 class BatchStructureSetConversionWidget(ScriptedLoadableModuleWidget):
   def setup(self):
     self.developerMode = True
     ScriptedLoadableModuleWidget.setup(self)
 
-#
+#------------------------------------------------------------------------------
 # BatchStructureSetConversionLogic
 #
-
 class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual 
   computation done by your module.  The interface 
@@ -94,19 +92,8 @@ class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
 
   def LoadFirstPatientIntoSlicer(self):
     # Choose first patient from the patient list
-    detailsPopup = slicer.modules.dicom.widgetRepresentation().self().detailsPopup
     patient = slicer.dicomDatabase.patients()[0]
-    studies = slicer.dicomDatabase.studiesForPatient(patient)
-    series = [slicer.dicomDatabase.seriesForStudy(study) for study in studies]
-    seriesUIDs = [uid for uidList in series for uid in uidList]
-    detailsPopup.offerLoadables(seriesUIDs, 'SeriesUIDList')
-    detailsPopup.examineForLoading()
-
-    loadables = detailsPopup.loadableTable.loadables
-
-    # Load into Slicer
-    detailsPopup = slicer.modules.dicom.widgetRepresentation().self().detailsPopup
-    detailsPopup.loadCheckedLoadables()
+    DICOMUtils.loadPatientByUID(patient)
 
   def ConvertStructureSetToLabelmap(self):
     import vtkSegmentationCorePython as vtkSegmentationCore
@@ -167,6 +154,9 @@ class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
       if not success:
         logging.error('Failed to save labelmap: ' + filePath)
 
+#------------------------------------------------------------------------------
+# BatchStructureSetConversionTest
+#
 class BatchStructureSetConversionTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.

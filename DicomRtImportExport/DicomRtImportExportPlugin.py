@@ -1,6 +1,7 @@
 import os
 import vtk, qt, ctk, slicer
 from DICOMLib import DICOMPlugin
+import logging
 
 #
 # This is the plugin to handle translation of DICOM RT objects
@@ -25,8 +26,7 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
     """ Returns a list of qSlicerDICOMLoadable
     instances corresponding to ways of interpreting the 
     fileLists parameter.
-    """    
- 
+    """
     # Create loadables for each file list
     loadables = []
     for fileList in fileLists: # Each file list corresponds to one series, so do loadables
@@ -34,7 +34,7 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
       # (VTK class cannot have Qt object as argument, otherwise it is not python wrapped)
       vtkFileList = vtk.vtkStringArray()
       for file in fileList:
-        vtkFileList.InsertNextValue(file)
+        vtkFileList.InsertNextValue(slicer.util.toVTKString(file))
 
       # Examine files
       loadablesCollection = vtk.vtkCollection()
@@ -58,7 +58,7 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
     using the DicomRtImportExport module
     """
     if len(loadable.files) > 1:
-      print('ERROR: RT objects must be contained by a single file!')
+      logging.error('RT objects must be contained by a single file!')
     vtkLoadable = slicer.vtkSlicerDICOMLoadable()
     loadable.copyToVtkLoadable(vtkLoadable)
     success = slicer.modules.dicomrtimportexport.logic().LoadDicomRT(vtkLoadable)
@@ -110,7 +110,6 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
     return []
 
   def export(self,exportables):
-    
     # Convert Qt loadables to VTK ones for the RT export logic
     exportablesCollection = vtk.vtkCollection()
     for exportable in exportables:

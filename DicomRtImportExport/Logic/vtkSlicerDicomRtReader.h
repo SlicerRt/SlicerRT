@@ -30,24 +30,11 @@
 #ifndef __vtkSlicerDicomRtReader_h
 #define __vtkSlicerDicomRtReader_h
 
-// VTK includes
-#include "vtkObject.h"
-#include <vtkSmartPointer.h>
-#include <vtkType.h>
-
-// STD includes
-#include <vector>
-#include <map>
-
 #include "vtkSlicerDicomRtImportExportModuleLogicExport.h"
 
-class DRTContourImageSequence;
-class DRTContourSequence;
-class DRTROIContourSequence;
-class DRTRTReferencedSeriesSequence;
-class DRTStructureSetIOD;
-class DcmDataset;
-class OFString;
+// VTK includes
+#include <vtkObject.h>
+
 class vtkPolyData;
 
 // Due to some reason the Python wrapping of this class fails, therefore
@@ -261,81 +248,6 @@ public:
   vtkGetMacro(LoadRTImageSuccessful, bool);
 
 protected:
-  /// Structure storing a ROI of an RT structure set
-  class RoiEntry
-  {
-  public:
-    RoiEntry();
-    virtual ~RoiEntry();
-    RoiEntry(const RoiEntry& src);
-    RoiEntry &operator=(const RoiEntry &src);
-
-    void SetPolyData(vtkPolyData* roiPolyData);
-
-    unsigned int Number;
-    std::string Name;
-    std::string Description;
-    double DisplayColor[3];
-    vtkPolyData* PolyData;
-    std::string ReferencedSeriesUID;
-    std::string ReferencedFrameOfReferenceUID;
-    std::map<int,std::string> ContourIndexToSOPInstanceUIDMap;
-  };
-
-  /// Structure storing an RT structure set
-  class BeamEntry
-  {
-  public:
-    BeamEntry()
-    {
-      Number=-1;
-      IsocenterPositionRas[0]=0.0;
-      IsocenterPositionRas[1]=0.0;
-      IsocenterPositionRas[2]=0.0;
-      SourceAxisDistance=0.0;
-      GantryAngle=0.0;
-      PatientSupportAngle=0.0;
-      BeamLimitingDeviceAngle=0.0;
-      // TODO: good default values for the jaw positions?
-      LeafJawPositions[0][0]=0.0;
-      LeafJawPositions[0][1]=0.0;
-      LeafJawPositions[1][0]=0.0;
-      LeafJawPositions[1][1]=0.0;
-    }
-    unsigned int Number;
-    std::string Name;
-    std::string Type;
-    std::string Description;
-    double IsocenterPositionRas[3];
-
-    // TODO: 
-    // In case of VMAT the following parameters can change by each control point
-    //   (this is not supported yet!)
-    // In case of IMRT, these are fixed (for Slicer visualization, in reality there is
-    //   a second control point that defines the CumulativeMetersetWeight to know when
-    //   to end irradiation.
-    double SourceAxisDistance;
-    double GantryAngle;
-    double PatientSupportAngle;
-    double BeamLimitingDeviceAngle;
-    /// Jaw positions: X and Y positions with isocenter as origin (e.g. {{-50,50}{-50,50}} )
-    double LeafJawPositions[2][2];
-  };
-
-protected:
-  /// Load RT Structure Set
-  void LoadRTStructureSet(DcmDataset*);
-
-  /// Load RT Plan 
-  void LoadRTPlan(DcmDataset*);
-
-  /// Load RT Dose
-  void LoadRTDose(DcmDataset*);
-
-  /// Load RT Image
-  void LoadRTImage(DcmDataset* dataset);
-
-protected:
   /// Set pixel spacing for dose volume
   vtkSetVector2Macro(PixelSpacing, double);
 
@@ -372,21 +284,6 @@ protected:
   vtkSetStringMacro(DatabaseFile);
 
 protected:
-  /// Find and return a beam entry according to its beam number
-  BeamEntry* FindBeamByNumber(unsigned int beamNumber);
-
-  /// Find and return a ROI entry according to its ROI number
-  RoiEntry* FindRoiByNumber(unsigned int roiNumber);
-
-  /// Get frame of reference for an SOP instance
-  DRTRTReferencedSeriesSequence* GetReferencedSeriesSequence(DRTStructureSetIOD &rtStructureSetObject);
-
-  /// Get contour image sequence object in the referenced frame of reference sequence for a structure set
-  DRTContourImageSequence* GetReferencedFrameOfReferenceContourImageSequence(DRTStructureSetIOD &rtStructureSetObject);
-
-  /// Get referenced series instance UID for the structure set (0020,000E)
-  OFString GetReferencedSeriesInstanceUID(DRTStructureSetIOD rtStructureSetObject);
-
 //xBTX //TODO #210: Re-enable
   template<class T> void GetAndStoreHierarchyInformation(T* dcmtkIodObject);
 //xETX
@@ -395,14 +292,8 @@ protected:
   /// Input file name
   char* FileName;
 
-  /// List of loaded contour ROIs from structure set
-  std::vector<RoiEntry> RoiSequenceVector;
-
   /// Referenced SOP instance UID list for the loaded structure set (serialized, separated by spaces)
   char* RTStructureSetReferencedSOPInstanceUIDs;
-
-  /// List of loaded contour ROIs from structure set
-  std::vector<BeamEntry> BeamSequenceVector;
 
   /// Pixel spacing - for RTDOSE. First element for X spacing, second for Y spacing.
   double PixelSpacing[2];
@@ -528,6 +419,10 @@ protected:
 private:
   vtkSlicerDicomRtReader(const vtkSlicerDicomRtReader&); // Not implemented
   void operator=(const vtkSlicerDicomRtReader&);         // Not implemented
+
+  class vtkInternal;
+  vtkInternal* Internal;
+  friend class vtkInternal; // For access from the callback function
 };
 
 #include "vtkSlicerDicomRtReader.txx"

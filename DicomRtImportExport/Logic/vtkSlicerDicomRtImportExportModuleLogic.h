@@ -41,13 +41,9 @@ class vtkSlicerIsodoseModuleLogic;
 class vtkSlicerPlanarImageModuleLogic;
 class vtkSlicerBeamsModuleLogic;
 class vtkMRMLScalarVolumeNode;
-class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLSegmentationNode;
 class vtkSlicerDICOMLoadable;
-class vtkSlicerDICOMExportable;
 class vtkStringArray;
-class vtkPolyData;
-class vtkSlicerDicomRtReader;
 class vtkCollection;
 
 /// \ingroup SlicerRt_QtModules_DicomRtImport
@@ -90,34 +86,6 @@ public:
   vtkBooleanMacro(BeamModelsInSeparateBranch, bool);
 
 protected:
-  /// Load RT Structure Set and related objects into the MRML scene
-  /// \return Success flag
-  bool LoadRtStructureSet(vtkSlicerDicomRtReader* rtReader, vtkSlicerDICOMLoadable* loadable);
-
-  /// Add an ROI point to the scene
-  vtkMRMLMarkupsFiducialNode* AddRoiPoint(double* roiPosition, std::string baseName, double* roiColor);
-
-  /// Load RT Dose and related objects into the MRML scene
-  /// \return Success flag
-  bool LoadRtDose(vtkSlicerDicomRtReader* rtReader, vtkSlicerDICOMLoadable* loadable);
-
-  /// Load RT Plan and related objects into the MRML scene
-  /// \return Success flag
-  bool LoadRtPlan(vtkSlicerDicomRtReader* rtReader, vtkSlicerDICOMLoadable* loadable);
-
-  /// Load RT Image and related objects into the MRML scene
-  /// \return Success flag
-  bool LoadRtImage(vtkSlicerDicomRtReader* rtReader, vtkSlicerDICOMLoadable* loadable);
-
-  /// Insert currently loaded series in the proper place in subject hierarchy
-  void InsertSeriesInSubjectHierarchy(vtkSlicerDicomRtReader* rtReader);
-
-  /// Compute and set geometry of an RT image
-  /// \param node Either the volume node of the loaded RT image, or the isocenter fiducial node (corresponding to an RT image). This function is called both when
-  ///    loading an RT image and when loading a beam. Sets up the RT image geometry only if both information (the image itself and the isocenter data) are available
-  void SetupRtImageGeometry(vtkMRMLNode* node);
-
-protected:
   vtkSlicerDicomRtImportExportModuleLogic();
   virtual ~vtkSlicerDicomRtImportExportModuleLogic();
 
@@ -130,6 +98,10 @@ protected:
 private:
   vtkSlicerDicomRtImportExportModuleLogic(const vtkSlicerDicomRtImportExportModuleLogic&); // Not implemented
   void operator=(const vtkSlicerDicomRtImportExportModuleLogic&);              // Not implemented
+
+  class vtkInternal;
+  vtkInternal* Internal;
+  friend class vtkInternal; // For access from the callback function
 
 private:
   /// Isodose logic instance
