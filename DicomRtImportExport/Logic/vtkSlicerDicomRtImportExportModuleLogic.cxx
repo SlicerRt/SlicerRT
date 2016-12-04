@@ -924,7 +924,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
       // Add segment for current structure
       vtkSmartPointer<vtkSegment> segment = vtkSmartPointer<vtkSegment>::New();
       segment->SetName(roiLabel);
-      segment->SetDefaultColor(roiColor[0], roiColor[1], roiColor[2]);
+      segment->SetColor(roiColor[0], roiColor[1], roiColor[2]);
       segment->AddRepresentation(vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName(), roiPolyData);
       segmentationNode->GetSegmentation()->AddSegment(segment);
     }
@@ -1956,21 +1956,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
 
         // Get segment properties
         std::string segmentName = segment->GetName();
-
-        double segmentColor[3] = {0.5,0.5,0.5};
-        segment->GetDefaultColor(segmentColor);
-        vtkMRMLSegmentationDisplayNode* segmentationDisplayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
-          segmentationNode->GetDisplayNode() );
-        if (segmentationDisplayNode)
-        {
-          vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-          if (segmentationDisplayNode->GetSegmentDisplayProperties(segmentID, properties))
-          {
-            segmentColor[0] = properties.Color[0];
-            segmentColor[1] = properties.Color[1];
-            segmentColor[2] = properties.Color[2];
-          }
-        }
+        double* segmentColor = segment->GetColor();
 
         rtWriter->AddStructure(plmStructure->itk_uchar(), segmentName.c_str(), segmentColor);
       } // For each segment
@@ -2076,21 +2062,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
 
         // Get segment properties
         std::string segmentName = segment->GetName();
-
-        double segmentColor[3] = {0.5,0.5,0.5};
-        segment->GetDefaultColor(segmentColor);
-        vtkMRMLSegmentationDisplayNode* segmentationDisplayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(
-          segmentationNode->GetDisplayNode() );
-        if (segmentationDisplayNode)
-        {
-          vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-          if (segmentationDisplayNode->GetSegmentDisplayProperties(segmentID, properties))
-          {
-            segmentColor[0] = properties.Color[0];
-            segmentColor[1] = properties.Color[1];
-            segmentColor[2] = properties.Color[2];
-          }
-        }
+        double* segmentColor = segment->GetColor();
 
         // Add contours to writer
         rtWriter->AddStructure(segmentName.c_str(), segmentColor, sliceNumbers, sliceUIDs, sliceContours);

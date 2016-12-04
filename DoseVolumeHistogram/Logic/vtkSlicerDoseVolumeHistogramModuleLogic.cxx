@@ -769,22 +769,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
     return;
   }
 
-  // Get segment color from display node
-  double segmentColor[3] = {0.0,0.0,0.0};
-  vtkMRMLSegmentationDisplayNode* displayNode = vtkMRMLSegmentationDisplayNode::SafeDownCast(segmentationNode->GetDisplayNode());
-  vtkMRMLSegmentationDisplayNode::SegmentDisplayProperties properties;
-  if (displayNode && displayNode->GetSegmentDisplayProperties(segmentId, properties))
-  {
-    segmentColor[0] = properties.Color[0];
-    segmentColor[1] = properties.Color[1];
-    segmentColor[2] = properties.Color[2];
-  }
-  else
-  {
-    // If no display node is found, use the default color from the segment
-    segment->GetDefaultColor(segmentColor);
-  }
-
   // Set chart general properties
   std::string doseAxisName;
   std::string chartTitle;
@@ -884,6 +868,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
   // Set plot color and line style
   std::ostringstream colorAttrValueStream;
   colorAttrValueStream.setf(ios::hex, ios::basefield);
+  double* segmentColor = segment->GetColor();
   colorAttrValueStream << "#" << std::setw(2) << std::setfill('0') << (int)(segmentColor[0]*255.0+0.5)
     << std::setw(2) << std::setfill('0') << (int)(segmentColor[1]*255.0+0.5)
     << std::setw(2) << std::setfill('0') << (int)(segmentColor[2]*255.0+0.5);
