@@ -30,6 +30,7 @@
 #include <vtkSegmentationConverter.h>
 #include <vtkOrientedImageData.h>
 #include <vtkSegmentationConverterFactory.h>
+#include <vtkPolyDataToFractionalLabelMapFilter.h>
 
 // SlicerRtCommon includes
 #include "SlicerRtCommon.h"

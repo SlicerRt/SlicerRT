@@ -25,7 +25,6 @@
 // SlicerRT includes
 #include "SlicerRtCommon.h"
 #include "vtkFractionalImageAccumulate.h"
-#include "vtkClosedSurfaceToFractionalLabelmapConversionRule.h"
 
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
@@ -68,6 +67,7 @@
 #include <vtkCallbackCommand.h>
 #include <vtkDelimitedTextWriter.h>
 #include <vtkWeakPointer.h>
+#include <vtkFieldData.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -340,10 +340,21 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
       return errorMessage;
     }
 
+    double minimumValue = 0.0;
+    double maximumValue = 1.0;
+    vtkDoubleArray* scalarRange = vtkDoubleArray::SafeDownCast(
+      segmentLabelmap->GetFieldData()->GetAbstractArray(vtkSegmentationConverter::GetScalarRangeFieldName()));
+    if (scalarRange && scalarRange->GetNumberOfValues() == 2)
+    {
+      minimumValue = scalarRange->GetValue(0);
+      maximumValue = scalarRange->GetValue(1);
+    }
+
     // Apply parent transformation nodes if necessary
     if (segmentationNode->GetParentTransformNode())
     {
-      if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, segmentLabelmap))
+      double backgroundValue[4] = {minimumValue, minimumValue, minimumValue, 0.0};
+      if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, segmentLabelmap, this->UseFractionalLabelmap, backgroundValue))
       {
         std::string errorMessage("Failed to apply parent transformation to segment!");
         vtkErrorMacro("ComputeDvh: " << errorMessage);
@@ -351,12 +362,13 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
       }
       resamplingRequired = true;
     }
-    // Resample binary labelmap if necessary (if it was master, and could not be re-converted using the oversampled geometry, or if there was a parent transform)
+    // Resample labelmap if necessary (if it was master, and could not be re-converted using the oversampled geometry, or if there was a parent transform)
     if (resamplingRequired)
     {
-      // Resample dose volume using linear interpolation
+
+      // Resample segmentation labelmap volume
       if ( !vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
-        segmentLabelmap, fixedOversampledDoseVolume, segmentLabelmap ) )
+        segmentLabelmap, fixedOversampledDoseVolume, segmentLabelmap, this->UseFractionalLabelmap, false, NULL, minimumValue ) )
       {
         std::string errorMessage("Failed to resample segment binary labelmap");
         vtkErrorMacro("ComputeDvh: " << errorMessage);
@@ -387,6 +399,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     // Make sure the segment labelmap is the same dimension as the dose volume
     vtkSmartPointer<vtkImageConstantPad> padder = vtkSmartPointer<vtkImageConstantPad>::New();
     padder->SetInputData(segmentLabelmap);
+    padder->SetConstant(minimumValue);
     int extent[6] = {0,-1,0,-1,0,-1};
     oversampledDoseVolume->GetExtent(extent);
     padder->SetOutputWholeExtent(extent);
@@ -459,12 +472,24 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   stencil->SetInputData(segmentLabelmap);
   // Foreground voxels are all those with an intensity >0.
   // Unfortunately, vtkImageToImageStencil only have options for < and >= comparison.
-  // So, we have yo choose >=epsilon (epsilon is a very small positive number).
+  // So, we have to choose >=epsilon (epsilon is a very small positive number).
   // How small the number is has a significance when the segmentLabelmap is a floating-point image,
   // which is a rare scenario, but may still happen.
+  double minimumValue = 0.0;
+  double maximumValue = 1.0;
+  segmentLabelmap->GetFieldData();
+  vtkDoubleArray* scalarRange = vtkDoubleArray::SafeDownCast(
+    segmentLabelmap->GetFieldData()->GetAbstractArray( vtkSegmentationConverter::GetScalarRangeFieldName() )
+    );
+  if (scalarRange && scalarRange->GetNumberOfValues() == 2)
+  {
+    minimumValue = scalarRange->GetValue(0);
+    maximumValue = scalarRange->GetValue(1);
+  }
+
   if (this->UseFractionalLabelmap)
   {
-    stencil->ThresholdByUpper(FRACTIONAL_MIN+1e-10);
+    stencil->ThresholdByUpper(minimumValue+1e-10);
   }
   else
   {
@@ -491,6 +516,8 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     structureStat = vtkSmartPointer<vtkFractionalImageAccumulate>::New();
     vtkFractionalImageAccumulate::SafeDownCast(structureStat)->UseFractionalLabelmapOn();
     vtkFractionalImageAccumulate::SafeDownCast(structureStat)->SetFractionalLabelmap(segmentLabelmap);
+    vtkFractionalImageAccumulate::SafeDownCast(structureStat)->SetMinimumFractionalValue(minimumValue);
+    vtkFractionalImageAccumulate::SafeDownCast(structureStat)->SetMaximumFractionalValue(maximumValue);
   }
   else
   {

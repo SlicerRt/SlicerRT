@@ -1508,10 +1508,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::RegisterNodes()
     vtkSmartPointer<vtkPlanarContourToRibbonModelConversionRule>::New() );
   vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
     vtkSmartPointer<vtkPlanarContourToClosedSurfaceConversionRule>::New() );
-  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
-    vtkSmartPointer<vtkClosedSurfaceToFractionalLabelmapConversionRule>::New() );
-  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
-    vtkSmartPointer<vtkFractionalLabelmapToClosedSurfaceConversionRule>::New() );
+
 }
 
 //---------------------------------------------------------------------------

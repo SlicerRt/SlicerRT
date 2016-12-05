@@ -16,10 +16,6 @@ set(${KIT}_SRCS
   vtkPlanarContourToRibbonModelConversionRule.h
   vtkRibbonModelToBinaryLabelmapConversionRule.cxx
   vtkRibbonModelToBinaryLabelmapConversionRule.h
-  vtkClosedSurfaceToFractionalLabelmapConversionRule.cxx
-  vtkClosedSurfaceToFractionalLabelmapConversionRule.h
-  vtkFractionalLabelmapToClosedSurfaceConversionRule.cxx
-  vtkFractionalLabelmapToClosedSurfaceConversionRule.h
   )
 
 set(${KIT}_TARGET_LIBRARIES

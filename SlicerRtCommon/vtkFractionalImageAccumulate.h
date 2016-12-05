@@ -34,13 +34,17 @@ public:
   vtkTypeMacro(vtkFractionalImageAccumulate, vtkImageAccumulate);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+    vtkSetMacro(MinimumFractionalValue, double);
+    vtkSetMacro(MaximumFractionalValue, double);
+    vtkGetMacro(MinimumFractionalValue, double);
+    vtkGetMacro(MaximumFractionalValue, double);
     vtkSetMacro(FractionalLabelmap, vtkImageData*);
     vtkGetMacro(FractionalLabelmap, vtkImageData*);
     vtkGetMacro(FractionalVoxelCount, double);
     vtkSetMacro(UseFractionalLabelmap, bool);
     vtkGetMacro(UseFractionalLabelmap, bool);
     vtkBooleanMacro(UseFractionalLabelmap, bool);
-
+    
 protected:
   vtkFractionalImageAccumulate();
   ~vtkFractionalImageAccumulate();
@@ -53,14 +57,17 @@ int RequestInformation (
   vtkInformationVector** vtkNotUsed(inputVector),
   vtkInformationVector* outputVector);
 
+protected:
+
+  double MinimumFractionalValue;
+  double MaximumFractionalValue;
   vtkImageData* FractionalLabelmap;
+  double FractionalVoxelCount;
+  bool UseFractionalLabelmap;
 
 private:
   vtkFractionalImageAccumulate(const vtkFractionalImageAccumulate&);  // Not implemented.
   void operator=(const vtkFractionalImageAccumulate&);  // Not implemented.
-
-  double FractionalVoxelCount;
-  bool UseFractionalLabelmap;
 
 };
 

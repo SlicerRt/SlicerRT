@@ -27,6 +27,7 @@
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
 #include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtkFieldData.h>
 
 // SlicerRtCommon includes
 #include "SlicerRtCommon.h"
@@ -36,6 +37,8 @@ vtkStandardNewMacro(vtkFractionalImageAccumulate);
 //----------------------------------------------------------------------------
 vtkFractionalImageAccumulate::vtkFractionalImageAccumulate()
 {
+  this->MinimumFractionalValue = 0;
+  this->MaximumFractionalValue = 1.0;
 }
 
 //----------------------------------------------------------------------------
@@ -62,11 +65,42 @@ int vtkFractionalImageAccumulate::RequestInformation (
 }
 
 //----------------------------------------------------------------------------
-// This templated function executes the filter for any type of data.
-template <class T>
+template<class BaseImageScalarType>
 int vtkFractionalImageAccumulateExecute(vtkFractionalImageAccumulate *self,
-                              vtkImageData *inData, T *,
-                              vtkImageData *outData, double *outPtr,
+                              vtkImageData *inData,
+                              vtkImageData *outData,
+                              double min[3], double max[3],
+                              double mean[3],
+                              double standardDeviation[3],
+                              vtkIdType *voxelCount,
+                              double *fractionalVoxelCount,
+                              int* updateExtent)
+{
+    switch (self->GetFractionalLabelmap()->GetScalarType())
+    {
+    vtkTemplateMacro((vtkFractionalImageAccumulateExecute2<BaseImageScalarType, VTK_TT>( self,
+                                                inData,
+                                                outData,
+                                                min, max,
+                                                mean,
+                                                standardDeviation,
+                                                voxelCount,
+                                                fractionalVoxelCount,
+                                                updateExtent )));
+    default:
+      //vtkErrorMacro(<< "Execute: Unknown ScalarType");
+      return 0;
+    }
+
+    return 1;
+}
+
+//----------------------------------------------------------------------------
+// This templated function executes the filter for any type of data.
+template <class BaseImageScalarType, class FractionalImageScalarType>
+int vtkFractionalImageAccumulateExecute2(vtkFractionalImageAccumulate *self,
+                              vtkImageData *inData,
+                              vtkImageData *outData,
                               double min[3], double max[3],
                               double mean[3],
                               double standardDeviation[3],
@@ -84,6 +118,11 @@ int vtkFractionalImageAccumulateExecute(vtkFractionalImageAccumulate *self,
   standardDeviation[0] = standardDeviation[1] = standardDeviation[2] = 0.0;
   *voxelCount = 0;
   *fractionalVoxelCount = 0;
+  double *outPtr = static_cast<double *>(outData->GetScalarPointer());
+  if (!outPtr)
+    {
+      return 0;
+    }
 
   // input's number of components is used as output dimensionality
   int numC = inData->GetNumberOfScalarComponents();
@@ -116,18 +155,19 @@ int vtkFractionalImageAccumulateExecute(vtkFractionalImageAccumulate *self,
   bool reverseStencil = (self->GetReverseStencil() != 0);
   bool ignoreZero = (self->GetIgnoreZero() != 0);
 
-  vtkImageStencilIterator<T> inIter(inData, stencil, updateExtent, self);
+  vtkImageStencilIterator<BaseImageScalarType> inIter(inData, stencil, updateExtent, self);
 
-vtkImageData* fractionalLabelmap = self->GetFractionalLabelmap();
-vtkImageStencilIterator<FRACTIONAL_DATA_TYPE> fractionalIter(fractionalLabelmap, stencil, updateExtent, self);
+  vtkImageData* fractionalLabelmap = self->GetFractionalLabelmap();
+  vtkImageStencilIterator<FractionalImageScalarType> fractionalIter(fractionalLabelmap, stencil, updateExtent, self);
+
   while (!inIter.IsAtEnd())
     {
     if (inIter.IsInStencil() ^ reverseStencil)
       {
-      T *inPtr = inIter.BeginSpan();
-      T *spanEndPtr = inIter.EndSpan();
+      BaseImageScalarType *inPtr = inIter.BeginSpan();
+      BaseImageScalarType *spanEndPtr = inIter.EndSpan();
 
-      FRACTIONAL_DATA_TYPE* fractionalPtr = (FRACTIONAL_DATA_TYPE*)fractionalIter.BeginSpan();
+      FractionalImageScalarType* fractionalPtr = (FractionalImageScalarType*)fractionalIter.BeginSpan();
 
       while (inPtr != spanEndPtr)
         {
@@ -140,15 +180,11 @@ vtkImageStencilIterator<FRACTIONAL_DATA_TYPE> fractionalIter(fractionalLabelmap,
           {
 
           double v = static_cast<double>(*inPtr++);
-          double f;
+          double f = 1.0;
 
           if (self->GetUseFractionalLabelmap())
           {
-            f = ( static_cast<FRACTIONAL_DATA_TYPE>(*fractionalPtr++) - (double)FRACTIONAL_MIN ) / (double)(FRACTIONAL_MAX - FRACTIONAL_MIN);
-          }
-          else
-          {
-            f = static_cast<FRACTIONAL_DATA_TYPE>(*fractionalPtr++);
+            f = ( (*fractionalPtr++) - self->GetMinimumFractionalValue() ) / (self->GetMaximumFractionalValue() - self->GetMinimumFractionalValue());
           }
 
           if (!ignoreZero || v != 0)
@@ -275,11 +311,9 @@ int vtkFractionalImageAccumulate::RequestData(
 
   switch (inData->GetScalarType())
     {
-    vtkTemplateMacro(vtkFractionalImageAccumulateExecute( this,
+    vtkTemplateMacro(vtkFractionalImageAccumulateExecute<VTK_TT>( this,
                                                 inData,
-                                                static_cast<VTK_TT *>(inPtr),
                                                 outData,
-                                                static_cast<double *>(outPtr),
                                                 this->Min, this->Max,
                                                 this->Mean,
                                                 this->StandardDeviation,
