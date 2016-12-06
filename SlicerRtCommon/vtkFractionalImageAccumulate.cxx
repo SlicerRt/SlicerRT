@@ -78,7 +78,9 @@ int vtkFractionalImageAccumulateExecute(vtkFractionalImageAccumulate *self,
 {
     switch (self->GetFractionalLabelmap()->GetScalarType())
     {
-    vtkTemplateMacro((vtkFractionalImageAccumulateExecute2<BaseImageScalarType, VTK_TT>( self,
+    vtkTemplateMacro( vtkFractionalImageAccumulateExecute2( self,
+                                                (BaseImageScalarType*) NULL,
+                                                (VTK_TT*) NULL,
                                                 inData,
                                                 outData,
                                                 min, max,
@@ -86,7 +88,7 @@ int vtkFractionalImageAccumulateExecute(vtkFractionalImageAccumulate *self,
                                                 standardDeviation,
                                                 voxelCount,
                                                 fractionalVoxelCount,
-                                                updateExtent )));
+                                                updateExtent ) );
     default:
       //vtkErrorMacro(<< "Execute: Unknown ScalarType");
       return 0;
@@ -99,6 +101,8 @@ int vtkFractionalImageAccumulateExecute(vtkFractionalImageAccumulate *self,
 // This templated function executes the filter for any type of data.
 template <class BaseImageScalarType, class FractionalImageScalarType>
 int vtkFractionalImageAccumulateExecute2(vtkFractionalImageAccumulate *self,
+                              BaseImageScalarType* vtkNotUsed(baseTypePtr),
+                              FractionalImageScalarType* vtkNotUsed(fractionalTypePtr),
                               vtkImageData *inData,
                               vtkImageData *outData,
                               double min[3], double max[3],
@@ -269,8 +273,6 @@ int vtkFractionalImageAccumulate::RequestData(
   vtkInformationVector** inputVector,
   vtkInformationVector* outputVector)
 {
-  void *inPtr;
-  void *outPtr;
 
   // get the input
   vtkInformation* in1Info = inputVector[0]->GetInformationObject(0);
@@ -290,10 +292,6 @@ int vtkFractionalImageAccumulate::RequestData(
   outData->SetExtent(outInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT()));
   outData->AllocateScalars(outInfo);
 
-  vtkDataArray *inArray = this->GetInputArrayToProcess(0,inputVector);
-  inPtr = inData->GetArrayPointerForExtent(inArray, uExt);
-  outPtr = outData->GetScalarPointer();
-
   // Components turned into x, y and z
   if (inData->GetNumberOfScalarComponents() > 3)
     {
@@ -301,7 +299,7 @@ int vtkFractionalImageAccumulate::RequestData(
     return 1;
     }
 
-  // this filter expects that output is type int.
+  // this filter expects that output is type double.
   if (outData->GetScalarType() != VTK_DOUBLE)
     {
     vtkErrorMacro(<< "Execute: out ScalarType " << outData->GetScalarType()
