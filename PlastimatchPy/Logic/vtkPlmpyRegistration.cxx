@@ -153,18 +153,18 @@ void vtkPlmpyRegistration::RunRegistration()
 //---------------------------------------------------------------------------
 void vtkPlmpyRegistration::StartRegistration()
 {
-  this->RegistrationData->fixed_image = 
+  this->RegistrationData->set_fixed_image (
     PlmCommon::ConvertVolumeNodeToPlmImage(
-      this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
-  this->RegistrationData->moving_image = 
+      this->GetMRMLScene()->GetNodeByID(this->FixedImageID)));
+  this->RegistrationData->set_moving_image (
     PlmCommon::ConvertVolumeNodeToPlmImage(
-      this->GetMRMLScene()->GetNodeByID(this->MovingImageID));
+      this->GetMRMLScene()->GetNodeByID(this->MovingImageID)));
 
   /* A little debugging information */
   printf ("Fixed image\n");
-  this->RegistrationData->fixed_image->print ();
+  this->RegistrationData->get_fixed_image()->print ();
   printf ("Moving image\n");
-  this->RegistrationData->moving_image->print ();
+  this->RegistrationData->get_moving_image()->print ();
   fflush (stdout);
 
   // Set landmarks 
@@ -186,8 +186,8 @@ void vtkPlmpyRegistration::StartRegistration()
   //Registration registration;
   printf ("Setting fixed & moving images\n");
   fflush (stdout);
-  this->registration.set_fixed_image(this->RegistrationData->fixed_image);
-  this->registration.set_moving_image(this->RegistrationData->moving_image);
+  this->registration.set_fixed_image(this->RegistrationData->get_fixed_image());
+  this->registration.set_moving_image(this->RegistrationData->get_moving_image());
   printf ("Setting command string\n****\n");
   fflush (stdout);
   printf ("%s\n", this->RegistrationParameters);
@@ -212,8 +212,8 @@ void vtkPlmpyRegistration::ReturnDataToSlicer()
   Plm_image::Pointer warpedImage = Plm_image::New();
   this->ApplyWarp(
     warpedImage, this->MovingImageToFixedImageVectorField, 
-    outputXform, this->RegistrationData->fixed_image, 
-    this->RegistrationData->moving_image, -1200, 0, 1);
+    outputXform, this->RegistrationData->get_fixed_image(), 
+    this->RegistrationData->get_moving_image(), -1200, 0, 1);
 
   this->SetWarpedImageInVolumeNode(warpedImage);
 
@@ -425,11 +425,11 @@ void vtkPlmpyRegistration::ApplyInitialLinearTransformation()
   Plm_image::Pointer prealignedImage = Plm_image::New();
   this->ApplyWarp(prealignedImage, NULL, 
     plmInitializationXform, 
-    this->RegistrationData->fixed_image, 
-    this->RegistrationData->moving_image, -1200, 0, 1);
+    this->RegistrationData->get_fixed_image(), 
+    this->RegistrationData->get_moving_image(), -1200, 0, 1);
 
   // Update moving image
-  this->RegistrationData->moving_image = prealignedImage;
+  this->RegistrationData->set_moving_image (prealignedImage);
 }
 
 //---------------------------------------------------------------------------
