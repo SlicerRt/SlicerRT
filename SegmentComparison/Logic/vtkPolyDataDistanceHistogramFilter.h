@@ -67,6 +67,9 @@ public:
   
   /// Get 95th percentile of the absolute of the minimum distances \sa GetOutputDistances from the compare mesh to the reference mesh.
   double GetPercent95HausdorffDistance();
+
+  // Get the Nth percentile of the absolute of the minimum distances \sa GetOutputDistances from the compare mesh to the reference mesh.
+  double GetNthPercentileHausdorffDistance(double n);
   
   /// Set whether the filter should sample on the vertices of the input vtkPolyData objects.
   vtkSetMacro(SamplePolyDataVertices, int);

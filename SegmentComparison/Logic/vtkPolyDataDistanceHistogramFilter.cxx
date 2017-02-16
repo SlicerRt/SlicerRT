@@ -1,18 +1,19 @@
 #include "vtkPolyDataDistanceHistogramFilter.h"
 
 // vtk includes
-#include <vtkObjectFactory.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
-#include <vtkInformationVector.h>
-#include <vtkInformation.h>
 #include <vtkDataObject.h>
-#include <vtkSmartPointer.h>
-#include <vtkPolyDataPointSampler.h>
-#include <vtkImplicitPolyDataDistance.h>
-#include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
+#include <vtkImageData.h>
+#include <vtkImplicitPolyDataDistance.h>
+#include <vtkInformation.h>
+#include <vtkInformationVector.h>
 #include <vtkIntArray.h>
+#include <vtkMath.h>
+#include <vtkObjectFactory.h>
+#include <vtkPolyDataPointSampler.h>
+#include <vtkSmartPointer.h>
 #include <vtkSortDataArray.h>
+#include <vtkStreamingDemandDrivenPipeline.h>
 
 vtkStandardNewMacro(vtkPolyDataDistanceHistogramFilter);
 
@@ -147,15 +148,39 @@ double vtkPolyDataDistanceHistogramFilter::GetPercent95HausdorffDistance()
     return 0.0;
   }
 
+  return this->GetNthPercentileHausdorffDistance( 95.0 );
+}
+
+//----------------------------------------------------------------------------
+double vtkPolyDataDistanceHistogramFilter::GetNthPercentileHausdorffDistance(double n)
+{
+  if (!this->OutputDistances)
+  {
+    vtkErrorMacro("GetPercentNthHausdorffDistance: Output distances has not been created! Need to call Update after setting the inputs.");
+    return 0.0;
+  }
+
+  if (n < 0)
+  {
+    vtkErrorMacro("GetPercentNthHausdorffDistance: N " << n << " must be equal to or greater than 0. Returning 0.0.");
+    return 0.0;
+  }
+
+  if (n > 100)
+  {
+    vtkErrorMacro("GetPercentNthHausdorffDistance: N " << n << " must be equal to or less than 100. Returning 0.0.");
+    return 0.0;
+  }
+
   vtkSmartPointer<vtkDoubleArray> sortedDistances = vtkSmartPointer<vtkDoubleArray>::New();
   sortedDistances->DeepCopy(this->OutputDistances);
 
   vtkSmartPointer<vtkSortDataArray> sortDataArray = vtkSmartPointer<vtkSortDataArray>::New();
   sortDataArray->Sort(sortedDistances);
 
-  double percentile95thDistance = sortedDistances->GetValue(
-    (int)(0.95 * (double)(sortedDistances->GetNumberOfValues()) + 0.5) );
-  return percentile95thDistance;
+  int nthPercentileIndex = vtkMath::Round( (n/ 100) * (sortedDistances->GetNumberOfValues() - 1) );
+  double percentileNthDistance = sortedDistances->GetValue( nthPercentileIndex );
+  return percentileNthDistance;
 }
 
 //----------------------------------------------------------------------------
