@@ -99,17 +99,22 @@ qSlicerSubjectHierarchyIsodosePlugin::~qSlicerSubjectHierarchyIsodosePlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyIsodosePlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
+double qSlicerSubjectHierarchyIsodosePlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
 {
-  if (!node)
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
+    return 0.0;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return 0.0;
   }
 
-  vtkMRMLNode* associatedNode = node->GetAssociatedNode();
-
   // Isodose lines
+  vtkMRMLNode* associatedNode = shNode->GetItemDataNode(itemID);
   if (associatedNode && SlicerRtCommon::IsIsodoseModelNode(associatedNode))
   {
     return 1.0;
@@ -125,22 +130,22 @@ const QString qSlicerSubjectHierarchyIsodosePlugin::roleForPlugin()const
 }
 
 //---------------------------------------------------------------------------
-QIcon qSlicerSubjectHierarchyIsodosePlugin::icon(vtkMRMLSubjectHierarchyNode* node)
+QIcon qSlicerSubjectHierarchyIsodosePlugin::icon(vtkIdType itemID)
 {
-  if (!node)
+  Q_D(qSlicerSubjectHierarchyIsodosePlugin);
+
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return QIcon();
   }
 
-  Q_D(qSlicerSubjectHierarchyIsodosePlugin);
-
-  if (this->canOwnSubjectHierarchyNode(node))
+  if (this->canOwnSubjectHierarchyItem(itemID))
   {
     return d->IsodoseLinesIcon;
   }
 
-  // Node unknown by plugin
+  // Item unknown by plugin
   return QIcon();
 }
 
@@ -152,9 +157,9 @@ QIcon qSlicerSubjectHierarchyIsodosePlugin::visibilityIcon(int visible)
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyIsodosePlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+void qSlicerSubjectHierarchyIsodosePlugin::editProperties(vtkIdType itemID)
 {
-  Q_UNUSED(node);
+  Q_UNUSED(itemID);
 
   // Switch to isodose module with parameter set node already selected
   qSlicerAbstractModuleWidget* moduleWidget = qSlicerSubjectHierarchyAbstractPlugin::switchToModule("Isodose");

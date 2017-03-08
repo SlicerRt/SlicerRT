@@ -340,6 +340,13 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->mrmlScene());
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+  }
+
   vtkMRMLRTPlanNode* rtPlanNode = vtkMRMLRTPlanNode::SafeDownCast(node);
 
   // Make sure the plan node is selected (in case the function was not called by the selector combobox signal)
@@ -355,36 +362,38 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
   if (rtPlanNode)
   {
     // Set input segmentation and reference volume if specified by DICOM
-    vtkMRMLSubjectHierarchyNode* planShNode = rtPlanNode->GetPlanSubjectHierarchyNode();
-    vtkMRMLSubjectHierarchyNode* referencedSegmentationShNode = NULL;
-    if (planShNode)
+    vtkIdType planShItemID = shNode->GetItemByDataNode(rtPlanNode);
+    vtkIdType referencedSegmentationShItemID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
+    if (planShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-      std::vector<vtkMRMLSubjectHierarchyNode*> referencedShNodesFromPlan = planShNode->GetSubjectHierarchyNodesReferencedByDICOM();
-      for (std::vector<vtkMRMLSubjectHierarchyNode*>::iterator refIt=referencedShNodesFromPlan.begin(); refIt!=referencedShNodesFromPlan.end(); ++refIt)
+      std::vector<vtkIdType> referencedShItemsFromPlan = shNode->GetItemsReferencedFromItemByDICOM(planShItemID);
+      for (std::vector<vtkIdType>::iterator refIt=referencedShItemsFromPlan.begin(); refIt!=referencedShItemsFromPlan.end(); ++refIt)
       {
-        vtkMRMLSubjectHierarchyNode* referencedShNode = (*refIt);
-        if ( referencedShNode->GetAssociatedNode()
-          && referencedShNode->GetAssociatedNode()->IsA("vtkMRMLSegmentationNode") )
+        vtkIdType referencedShItemID = (*refIt);
+        vtkMRMLSegmentationNode* referencedSegmentationNode = vtkMRMLSegmentationNode::SafeDownCast(
+          shNode->GetItemDataNode(referencedShItemID) );
+        if (referencedSegmentationNode)
         {
           // Referenced structure set segmentation node found
-          referencedSegmentationShNode = referencedShNode;
-          rtPlanNode->SetAndObserveSegmentationNode( vtkMRMLSegmentationNode::SafeDownCast(referencedShNode->GetAssociatedNode()) );
+          referencedSegmentationShItemID = referencedShItemID;
+          rtPlanNode->SetAndObserveSegmentationNode(referencedSegmentationNode);
           break;
         }
       }
 
       // Look for the reference anatomical volume too if referenced structure set was found
-      if (referencedSegmentationShNode)
+      if (referencedSegmentationShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
       {
-        std::vector<vtkMRMLSubjectHierarchyNode*> referencedShNodesFromStructureSet = referencedSegmentationShNode->GetSubjectHierarchyNodesReferencedByDICOM();
-        for (std::vector<vtkMRMLSubjectHierarchyNode*>::iterator refIt=referencedShNodesFromStructureSet.begin(); refIt!=referencedShNodesFromStructureSet.end(); ++refIt)
+        std::vector<vtkIdType> referencedShItemsFromStructureSet = shNode->GetItemsReferencedFromItemByDICOM(referencedSegmentationShItemID);
+        for (std::vector<vtkIdType>::iterator refIt=referencedShItemsFromStructureSet.begin(); refIt!=referencedShItemsFromStructureSet.end(); ++refIt)
         {
-          vtkMRMLSubjectHierarchyNode* referencedShNode = (*refIt);
-          if ( referencedShNode->GetAssociatedNode()
-            && referencedShNode->GetAssociatedNode()->IsA("vtkMRMLScalarVolumeNode") )
+          vtkIdType referencedShItemID = (*refIt);
+          vtkMRMLScalarVolumeNode* referencedVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
+            shNode->GetItemDataNode(referencedShItemID) );
+          if (referencedVolumeNode)
           {
             // Referenced volume found, set it as referenced anatomical volume
-            rtPlanNode->SetAndObserveReferenceVolumeNode( vtkMRMLScalarVolumeNode::SafeDownCast(referencedShNode->GetAssociatedNode()) );
+            rtPlanNode->SetAndObserveReferenceVolumeNode(referencedVolumeNode);
             break;
           }
         }
@@ -392,7 +401,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
     }
     else
     {
-      qCritical() << Q_FUNC_INFO << ": Invalid subject hierarchy node for plan " << rtPlanNode->GetName();
+      qCritical() << Q_FUNC_INFO << ": Invalid subject hierarchy item for plan " << rtPlanNode->GetName();
       return;
     }
 

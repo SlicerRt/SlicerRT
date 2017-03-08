@@ -455,13 +455,13 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtDose(vtkSlicerD
   volumeNode->SetScene(this->External->GetMRMLScene());
   std::string volumeNodeName = scene->GenerateUniqueName(seriesName);
   volumeNode->SetName(volumeNodeName.c_str());
-  scene->AddNode(volumeNode);
 
   // Set new spacing
   double* initialSpacing = volumeNode->GetSpacing();
   double* correctSpacing = rtReader->GetPixelSpacing();
   volumeNode->SetSpacing(correctSpacing[0], correctSpacing[1], initialSpacing[2]);
   volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+  scene->AddNode(volumeNode);
 
   // Apply dose grid scaling
   if (!rtReader->GetDoseGridScaling())
@@ -494,7 +494,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtDose(vtkSlicerD
   vtkMRMLColorTableNode* defaultDoseColorTable = vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(scene);
   if (!defaultIsodoseColorTable || !defaultDoseColorTable)
   {
-    vtkErrorWithObjectMacro(this->External, "LoadRtDose: Failed to get default color tables!");
+    vtkErrorWithObjectMacro(this->External, "LoadRtDose: Failed to get default color tables");
     return false;
   }
 
@@ -519,52 +519,56 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtDose(vtkSlicerD
   volumeDisplayNode->SetApplyThreshold(1);
 
   // Setup subject hierarchy entry
-  vtkMRMLSubjectHierarchyNode* subjectHierarchySeriesNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    scene, NULL, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), seriesName, volumeNode );
-  subjectHierarchySeriesNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(),
-    rtReader->GetSeriesInstanceUid());
-  subjectHierarchySeriesNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName().c_str(),
-    rtReader->GetRTDoseReferencedRTPlanSOPInstanceUID());
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->External->GetMRMLScene());
+  if (!shNode)
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadRtDose: Failed to access subject hierarchy node");
+    return false;
+  }
+  vtkIdType seriesItemID = shNode->CreateItem(shNode->GetSceneItemID(), volumeNode);
+  shNode->SetItemUID(seriesItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetSeriesInstanceUid());
+  shNode->SetItemAttribute(seriesItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(),
+    rtReader->GetRTDoseReferencedRTPlanSOPInstanceUID() );
 
   // Insert series in subject hierarchy
   this->InsertSeriesInSubjectHierarchy(rtReader);
 
-  // Set dose unit attributes to subject hierarchy study node
-  vtkMRMLSubjectHierarchyNode* studyHierarchyNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(subjectHierarchySeriesNode->GetParentNode());
-  if (studyHierarchyNode)
+  // Set dose unit attributes to subject hierarchy study item
+  vtkIdType studyItemID = shNode->GetItemParent(seriesItemID);
+  if (studyItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    const char* existingDoseUnitName = studyHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
+    std::string existingDoseUnitName = shNode->GetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME);
     if (!rtReader->GetDoseUnits())
     {
       vtkErrorWithObjectMacro(this->External, "LoadRtDose: Empty dose unit name found for dose volume " << volumeNode->GetName());
     }
-    else if (existingDoseUnitName && STRCASECMP(existingDoseUnitName, rtReader->GetDoseUnits()))
+    else if (!existingDoseUnitName.empty() && existingDoseUnitName.compare(rtReader->GetDoseUnits()))
     {
-      vtkErrorWithObjectMacro(this->External, "LoadRtDose: Dose unit name already exists (" << existingDoseUnitName << ") for study and differs from current one (" << rtReader->GetDoseUnits() << ")!");
+      vtkErrorWithObjectMacro(this->External, "LoadRtDose: Dose unit name already exists (" << existingDoseUnitName << ") for study and differs from current one (" << rtReader->GetDoseUnits() << ")");
     }
     else
     {
-      studyHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), rtReader->GetDoseUnits());
+      shNode->SetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, rtReader->GetDoseUnits());
     }
 
-    const char* existingDoseUnitValueChars = studyHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());
+    std::string existingDoseUnitValueStr = shNode->GetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME);
     if (!rtReader->GetDoseGridScaling())
     {
       vtkErrorWithObjectMacro(this->External, "LoadRtDose: Empty dose unit value found for dose volume " << volumeNode->GetName());
     }
-    else if (existingDoseUnitValueChars)
+    else if (!existingDoseUnitValueStr.empty())
     {
-      double existingDoseUnitValue = vtkVariant(existingDoseUnitValueChars).ToDouble();
+      double existingDoseUnitValue = vtkVariant(existingDoseUnitValueStr).ToDouble();
       double doseGridScaling = vtkVariant(rtReader->GetDoseGridScaling()).ToDouble();
       double currentDoseUnitValue = vtkVariant(rtReader->GetDoseGridScaling()).ToDouble();
       if (fabs(existingDoseUnitValue - currentDoseUnitValue) > EPSILON)
       {
-        vtkErrorWithObjectMacro(this->External, "LoadRtDose: Dose unit value already exists (" << existingDoseUnitValue << ") for study and differs from current one (" << currentDoseUnitValue << ")!");
+        vtkErrorWithObjectMacro(this->External, "LoadRtDose: Dose unit value already exists (" << existingDoseUnitValue << ") for study and differs from current one (" << currentDoseUnitValue << ")");
       }
     }
     else
     {
-      studyHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), rtReader->GetDoseGridScaling());
+      shNode->SetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME, rtReader->GetDoseGridScaling());
     }
   }
   else
@@ -593,14 +597,16 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
     vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Invalid MRML scene");
     return false;
   }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->External->GetMRMLScene());
+  if (!shNode)
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Failed to access subject hierarchy node");
+    return false;
+  }
 
-  vtkSmartPointer<vtkMRMLSubjectHierarchyNode> beamModelSubjectHierarchyRootNode;
   vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyRootNode;
 
   const char* seriesName = loadable->GetName();
-  std::string shSeriesNodeName(seriesName);
-  shSeriesNodeName.append(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyNodeNamePostfix());
-  shSeriesNodeName = scene->GenerateUniqueName(shSeriesNodeName);
 
   scene->StartState(vtkMRMLScene::BatchProcessState);
 
@@ -610,34 +616,31 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
   scene->AddNode(planNode);
 
   // Set up plan subject hierarchy node
-  vtkMRMLSubjectHierarchyNode* planShNode = planNode->GetPlanSubjectHierarchyNode();
-  if (!planShNode)
+  vtkIdType planShItemID = planNode->GetPlanSubjectHierarchyItemID();
+  if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Created RTPlanNode, but it doesn't have a subject hierarchy node.");
+    vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Created RT plan node, but it doesn't have a subject hierarchy item");
     return false;
   }
-  if (planShNode)
-  {
-    // Attach attributes to plan SH node
-    planShNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(),
-      rtReader->GetSeriesInstanceUid());
-    planShNode->SetName(shSeriesNodeName.c_str());
 
-    const char* referencedStructureSetSopInstanceUid = rtReader->GetRTPlanReferencedStructureSetSOPInstanceUID();
-    const char* referencedDoseSopInstanceUids = rtReader->GetRTPlanReferencedDoseSOPInstanceUIDs();
-    std::string referencedSopInstanceUids = "";
-    if (referencedStructureSetSopInstanceUid)
-    {
-      referencedSopInstanceUids = std::string(referencedStructureSetSopInstanceUid);
-    }
-    if (referencedDoseSopInstanceUids)
-    {
-      referencedSopInstanceUids = referencedSopInstanceUids +
-        (referencedStructureSetSopInstanceUid?" ":"") + std::string(referencedDoseSopInstanceUids);
-    }
-    planShNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName().c_str(),
-      referencedSopInstanceUids.c_str() );
+  // Attach attributes to plan subject hierarchy item
+  shNode->SetItemUID(planShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetSeriesInstanceUid());
+  shNode->SetItemName(planShItemID, seriesName);
+
+  const char* referencedStructureSetSopInstanceUid = rtReader->GetRTPlanReferencedStructureSetSOPInstanceUID();
+  const char* referencedDoseSopInstanceUids = rtReader->GetRTPlanReferencedDoseSOPInstanceUIDs();
+  std::string referencedSopInstanceUids = "";
+  if (referencedStructureSetSopInstanceUid)
+  {
+    referencedSopInstanceUids = std::string(referencedStructureSetSopInstanceUid);
   }
+  if (referencedDoseSopInstanceUids)
+  {
+    referencedSopInstanceUids = referencedSopInstanceUids +
+      (referencedStructureSetSopInstanceUid?" ":"") + std::string(referencedDoseSopInstanceUids);
+  }
+  shNode->SetItemAttribute(planShItemID,
+    vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(), referencedSopInstanceUids );
 
   // Load beams in plan
   int numberOfBeams = rtReader->GetNumberOfBeams();
@@ -698,12 +701,13 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
     planNode->AddBeam(beamNode);
 
     // Create beam model hierarchy root node if has not been created yet
-    if (beamModelHierarchyRootNode.GetPointer()==NULL)
+    if (beamModelHierarchyRootNode.GetPointer() == NULL)
     {
       beamModelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
       std::string beamModelHierarchyRootNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
       beamModelHierarchyRootNodeName = scene->GenerateUniqueName(beamModelHierarchyRootNodeName);
       beamModelHierarchyRootNode->SetName(beamModelHierarchyRootNodeName.c_str());
+      beamModelHierarchyRootNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
       scene->AddNode(beamModelHierarchyRootNode);
 
       // Create display node for the hierarchy node
@@ -737,24 +741,23 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
   // Insert plan isocenter series in subject hierarchy
   this->InsertSeriesInSubjectHierarchy(rtReader);
 
-  // Put plan SH node underneath study
-  vtkMRMLSubjectHierarchyNode* studyNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-    scene, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetStudyInstanceUid());
-  if (!studyNode)
+  // Put plan SH item underneath study
+  vtkIdType studyItemID = shNode->GetItemByUID(
+    vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetStudyInstanceUid());
+  if (studyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    vtkWarningWithObjectMacro(this->External, "LoadRtPlan: No Study SH node found.");
+    vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Failed to find study subject hierarchy item");
     return false;
   }
-  if (studyNode && planShNode)
+  if (planShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    planShNode->SetParentNodeID(studyNode->GetID());
+    shNode->SetItemParent(planShItemID, studyItemID);
   }
   // Put plan markups under study within SH
-  vtkMRMLSubjectHierarchyNode* planMarkupsSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(
-    planNode->GetPoisMarkupsFiducialNode(), scene );
-  if (planMarkupsSHNode && studyNode)
+  vtkIdType planMarkupsShItemID = shNode->GetItemByDataNode(planNode->GetPoisMarkupsFiducialNode());
+  if (planMarkupsShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    planMarkupsSHNode->SetParentNodeID(studyNode->GetID());
+    shNode->SetItemParent(planMarkupsShItemID, studyItemID);
   }
 
   // Compute and set geometry of possible RT image that references the loaded beams.
@@ -784,9 +787,15 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
     vtkErrorWithObjectMacro(this->External, "LoadRtStructureSet: Invalid MRML scene");
     return false;
   }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->External->GetMRMLScene());
+  if (!shNode)
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadRtStructureSet: Failed to access subject hierarchy node");
+    return false;
+  }
 
-  vtkMRMLSubjectHierarchyNode* fiducialsSeriesSubjectHierarchyNode = NULL;
-  vtkMRMLSubjectHierarchyNode* segmentationSubjectHierarchyNode = NULL;
+  vtkIdType fiducialSeriesShItemID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
+  vtkIdType segmentationShItemID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
   vtkSmartPointer<vtkMRMLSegmentationNode> segmentationNode;
   vtkSmartPointer<vtkMRMLSegmentationDisplayNode> segmentationDisplayNode;
 
@@ -840,7 +849,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
     }
     else if (roiReferencedSeriesUid && STRCASECMP(structureSetReferencedSeriesUid.c_str(), roiReferencedSeriesUid))
     {
-      vtkWarningWithObjectMacro(this->External, "LoadRtStructureSet: ROIs in structure set '" << seriesName << "' have different referenced series UIDs!");
+      vtkWarningWithObjectMacro(this->External, "LoadRtStructureSet: ROIs in structure set '" << seriesName << "' have different referenced series UIDs");
     }
 
     //
@@ -848,28 +857,26 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
     //
     if (roiPolyData->GetNumberOfPoints() == 1)
     {
-      // Create subject hierarchy node for the series, if it has not been created yet.
+      // Set up subject hierarchy item for the series, if it has not been done yet.
       // Only create it for fiducials, as all structures are stored in a single segmentation node
-      if (fiducialsSeriesSubjectHierarchyNode == NULL)
+      if (fiducialSeriesShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
       {
-        std::string fiducialsSeriesNodeName(seriesName);
-        fiducialsSeriesNodeName.append(SlicerRtCommon::DICOMRTIMPORT_FIDUCIALS_HIERARCHY_NODE_NAME_POSTFIX);
-        fiducialsSeriesNodeName = scene->GenerateUniqueName(fiducialsSeriesNodeName);
-        fiducialsSeriesSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-          scene, NULL, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(),
-          fiducialsSeriesNodeName.c_str());
-        fiducialsSeriesSubjectHierarchyNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetSeriesInstanceUid());
+        std::string fiducialsSeriesName(seriesName);
+        fiducialsSeriesName.append(SlicerRtCommon::DICOMRTIMPORT_FIDUCIALS_HIERARCHY_NODE_NAME_POSTFIX);
+        fiducialsSeriesName = scene->GenerateUniqueName(fiducialsSeriesName);
+        fiducialSeriesShItemID = shNode->CreateItem(
+          shNode->GetSceneItemID(), fiducialsSeriesName, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries() );
+        shNode->SetItemUID(fiducialSeriesShItemID,
+          vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetSeriesInstanceUid() );
       }
 
       // Creates fiducial MRML node and display node
       vtkMRMLDisplayableNode* fiducialNode = this->AddRoiPoint(roiPolyData->GetPoint(0), roiLabel, roiColor);
 
-      // Create subject hierarchy entry for the ROI
-      vtkSmartPointer<vtkMRMLSubjectHierarchyNode> fiducialSubjectHierarchyNode = vtkSmartPointer<vtkMRMLSubjectHierarchyNode>::New();
-      vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-        scene, fiducialsSeriesSubjectHierarchyNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(),
-        roiLabel, fiducialNode);
-      fiducialSubjectHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str(), roiReferencedSeriesUid);
+      // Setup subject hierarchy entry for the ROI
+      vtkIdType fiducialShItemID = shNode->CreateItem(
+        fiducialSeriesShItemID, fiducialNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries() );
+      shNode->SetItemAttribute(fiducialShItemID, SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME, roiReferencedSeriesUid);
     }
     //
     // Contour ROI (segmentation)
@@ -889,30 +896,28 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
 
         // Get image geometry from previously loaded volume if found
         // Segmentation node checks added nodes and sets the geometry parameter in case the referenced volume is loaded later
-        vtkMRMLSubjectHierarchyNode* referencedVolumeShNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-          scene, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), roiReferencedSeriesUid);
-        if (referencedVolumeShNode)
+        vtkIdType referencedVolumeShItemID = shNode->GetItemByUID(
+          vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), roiReferencedSeriesUid );
+        if (referencedVolumeShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
         {
           vtkMRMLScalarVolumeNode* referencedVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-            referencedVolumeShNode->GetAssociatedNode() );
+            shNode->GetItemDataNode(referencedVolumeShItemID) );
           if (referencedVolumeNode)
           {
             segmentationNode->SetReferenceImageGeometryParameterFromVolumeNode(referencedVolumeNode);
           }
           else
           {
-            vtkErrorWithObjectMacro(this->External, "LoadRtStructureSet: Referenced volume series node does not contain a volume!");
+            vtkErrorWithObjectMacro(this->External, "LoadRtStructureSet: Referenced volume series item does not contain a volume");
           }
         }
 
         // Set up subject hierarchy node for segmentation
-        segmentationSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-          scene, NULL, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(),
-          seriesName, segmentationNode);
-        segmentationSubjectHierarchyNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetSeriesInstanceUid());
-        segmentationSubjectHierarchyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str(), structureSetReferencedSeriesUid.c_str());
-        segmentationSubjectHierarchyNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName().c_str(),
-          referencedSopInstanceUids);
+        segmentationShItemID = shNode->CreateItem(shNode->GetSceneItemID(), segmentationNode);
+        shNode->SetItemUID(segmentationShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetSeriesInstanceUid());
+        shNode->SetItemAttribute(segmentationShItemID, SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME, structureSetReferencedSeriesUid);
+        shNode->SetItemAttribute(segmentationShItemID,
+          vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(), referencedSopInstanceUids );
 
         // Setup segmentation display and storage
         segmentationDisplayNode = vtkSmartPointer<vtkMRMLSegmentationDisplayNode>::New();
@@ -970,6 +975,12 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtImage(vtkSlicer
     vtkErrorWithObjectMacro(this->External, "LoadRtImage: Invalid MRML scene");
     return false;
   }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->External->GetMRMLScene());
+  if (!shNode)
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadRtImage: Failed to access subject hierarchy node");
+    return false;
+  }
 
   const char* fileName = loadable->GetFiles()->GetValue(0);
   const char* seriesName = loadable->GetName();
@@ -1009,53 +1020,44 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtImage(vtkSlicer
   }
   volumeNode->SetAndObserveDisplayNodeID(volumeDisplayNode->GetID());
 
-  // Set up subject hierarchy node
-  vtkMRMLSubjectHierarchyNode* subjectHierarchySeriesNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    scene, NULL, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), seriesName, volumeNode );
-  subjectHierarchySeriesNode->AddUID( vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(),
-    rtReader->GetSeriesInstanceUid() );
+  // Set up subject hierarchy item
+  vtkIdType seriesShItemID = shNode->CreateItem(shNode->GetSceneItemID(), volumeNode);
+  shNode->SetItemUID(seriesShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetSeriesInstanceUid());
 
   // Set RT image specific attributes
-  subjectHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
-  subjectHierarchySeriesNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName().c_str(),
+  shNode->SetItemAttribute(seriesShItemID, SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME, "1");
+  shNode->SetItemAttribute(seriesShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(),
     rtReader->GetRTImageReferencedRTPlanSOPInstanceUID());
 
   std::stringstream radiationMachineSadStream;
   radiationMachineSadStream << rtReader->GetRadiationMachineSAD();
-  subjectHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME.c_str(),
-    radiationMachineSadStream.str().c_str());
+  shNode->SetItemAttribute(seriesShItemID, SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME, radiationMachineSadStream.str());
 
   std::stringstream gantryAngleStream;
   gantryAngleStream << rtReader->GetGantryAngle();
-  subjectHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME.c_str(),
-    gantryAngleStream.str().c_str());
+  shNode->SetItemAttribute(seriesShItemID, SlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME, gantryAngleStream.str());
 
   std::stringstream couchAngleStream;
   couchAngleStream << rtReader->GetPatientSupportAngle();
-  subjectHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME.c_str(),
-    couchAngleStream.str().c_str());
+  shNode->SetItemAttribute(seriesShItemID, SlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME, couchAngleStream.str());
 
   std::stringstream collimatorAngleStream;
   collimatorAngleStream << rtReader->GetBeamLimitingDeviceAngle();
-  subjectHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_COLLIMATOR_ANGLE_ATTRIBUTE_NAME.c_str(),
-    collimatorAngleStream.str().c_str());
+  shNode->SetItemAttribute(seriesShItemID, SlicerRtCommon::DICOMRTIMPORT_COLLIMATOR_ANGLE_ATTRIBUTE_NAME, collimatorAngleStream.str());
 
   std::stringstream referencedBeamNumberStream;
   referencedBeamNumberStream << rtReader->GetReferencedBeamNumber();
-  subjectHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str(),
-    referencedBeamNumberStream.str().c_str());
+  shNode->SetItemAttribute(seriesShItemID, SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME, referencedBeamNumberStream.str());
 
   std::stringstream rtImageSidStream;
   rtImageSidStream << rtReader->GetRTImageSID();
-  subjectHierarchySeriesNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME.c_str(),
-    rtImageSidStream.str().c_str());
+  shNode->SetItemAttribute(seriesShItemID, SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME, rtImageSidStream.str());
 
   std::stringstream rtImagePositionStream;
   double rtImagePosition[2] = {0.0, 0.0};
   rtReader->GetRTImagePosition(rtImagePosition);
   rtImagePositionStream << rtImagePosition[0] << " " << rtImagePosition[1];
-  subjectHierarchySeriesNode->SetAttribute( SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME.c_str(),
-    rtImagePositionStream.str().c_str() );
+  shNode->SetItemAttribute(seriesShItemID,  SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME, rtImagePositionStream.str());
 
   // Insert series in subject hierarchy
   this->InsertSeriesInSubjectHierarchy(rtReader);
@@ -1089,83 +1091,98 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::InsertSeriesInSubjectHierarchy( vtkSlicerDicomRtReader* rtReader )
+void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::InsertSeriesInSubjectHierarchy(vtkSlicerDicomRtReader* rtReader)
 {
-  // Get the higher level parent nodes by their IDs (to fill their attributes later if they do not exist yet)
-  vtkMRMLSubjectHierarchyNode* patientNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-    this->External->GetMRMLScene(), vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetPatientId() );
-  vtkMRMLSubjectHierarchyNode* studyNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-    this->External->GetMRMLScene(), vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetStudyInstanceUid() );
+  // Get the higher level parent items by their IDs (to fill their attributes later if they do not exist yet)
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->External->GetMRMLScene());
+  if (!shNode)
+  {
+    vtkErrorWithObjectMacro(this->External, "InsertSeriesInSubjectHierarchy: Failed to access subject hierarchy node");
+    return;
+  }
+
+  vtkIdType patientItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetPatientId());
+  vtkIdType studyItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetStudyInstanceUid());
 
   // Insert series in hierarchy
-  vtkMRMLSubjectHierarchyNode* seriesNode = vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
-    this->External->GetMRMLScene(), rtReader->GetPatientId(), rtReader->GetStudyInstanceUid(), rtReader->GetSeriesInstanceUid() );
+  vtkIdType seriesItemID = vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
+    shNode, rtReader->GetPatientId(), rtReader->GetStudyInstanceUid(), rtReader->GetSeriesInstanceUid() );
 
   // Fill patient and study attributes if they have been just created
-  if (patientNode == NULL)
+  if (patientItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    patientNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-      this->External->GetMRMLScene(), vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetPatientId() );
-    if (patientNode)
+    patientItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetPatientId());
+    if (patientItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
       // Add attributes for DICOM tags
-      patientNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMPatientNameAttributeName().c_str(), rtReader->GetPatientName() );
-      patientNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMPatientIDAttributeName().c_str(), rtReader->GetPatientId() );
-      patientNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMPatientSexAttributeName().c_str(), rtReader->GetPatientSex() );
-      patientNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMPatientBirthDateAttributeName().c_str(), rtReader->GetPatientBirthDate() );
-      patientNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMPatientCommentsAttributeName().c_str(), rtReader->GetPatientComments() );
+      shNode->SetItemAttribute(patientItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientNameAttributeName(), rtReader->GetPatientName() );
+      shNode->SetItemAttribute(patientItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientIDAttributeName(), rtReader->GetPatientId() );
+      shNode->SetItemAttribute(patientItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientSexAttributeName(), rtReader->GetPatientSex() );
+      shNode->SetItemAttribute(patientItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientBirthDateAttributeName(), rtReader->GetPatientBirthDate() );
+      shNode->SetItemAttribute(patientItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientCommentsAttributeName(), rtReader->GetPatientComments() );
 
-      // Set node name
-      std::string patientNodeName = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientName())
+      // Set item name
+      std::string patientitemName = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientName())
         ? std::string(rtReader->GetPatientName()) : SlicerRtCommon::DICOMRTIMPORT_NO_NAME );
-      patientNode->SetName( patientNodeName.c_str() );
+      shNode->SetItemName(patientItemID, patientitemName);
     }
     else
     {
-      vtkErrorWithObjectMacro(this->External, "InsertSeriesInSubjectHierarchy: Patient node has not been created for series with Instance UID "
+      vtkErrorWithObjectMacro(this->External, "InsertSeriesInSubjectHierarchy: Patient item has not been created for series with Instance UID "
         << (rtReader->GetSeriesInstanceUid() ? rtReader->GetSeriesInstanceUid() : "Missing UID") );
     }
   }
 
-  if (studyNode == NULL)
+  if (studyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    studyNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-      this->External->GetMRMLScene(), vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetStudyInstanceUid() );
-    if (studyNode)
+    studyItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetStudyInstanceUid());
+    if (studyItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
       // Add attributes for DICOM tags
-      studyNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMStudyInstanceUIDTagName().c_str(), rtReader->GetStudyInstanceUid() );
-      studyNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMStudyIDTagName().c_str(), rtReader->GetStudyId() );
-      studyNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMStudyDescriptionAttributeName().c_str(), rtReader->GetStudyDescription() );
-      studyNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMStudyDateAttributeName().c_str(), rtReader->GetStudyDate() );
-      studyNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMStudyTimeAttributeName().c_str(), rtReader->GetStudyTime() );
+      shNode->SetItemAttribute(studyItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyInstanceUIDTagName(), rtReader->GetStudyInstanceUid() );
+      shNode->SetItemAttribute(studyItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyIDTagName(), rtReader->GetStudyId() );
+      shNode->SetItemAttribute(studyItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyDescriptionAttributeName(), rtReader->GetStudyDescription() );
+      shNode->SetItemAttribute(studyItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyDateAttributeName(), rtReader->GetStudyDate() );
+      shNode->SetItemAttribute(studyItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyTimeAttributeName(), rtReader->GetStudyTime() );
 
-      // Set node name
+      // Set item name
       std::string studyDescription = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDescription())
         ? std::string(rtReader->GetStudyDescription())
         : SlicerRtCommon::DICOMRTIMPORT_NO_STUDY_DESCRIPTION );
       std::string studyDate =  ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDate())
         ? + " (" + std::string(rtReader->GetStudyDate()) + ")"
         : "" );
-      std::string studyNodeName = studyDescription + studyDate;
-      studyNode->SetName( studyNodeName.c_str() );
+      std::string studyItemName = studyDescription + studyDate;
+      shNode->SetItemName(studyItemID, studyItemName);
     }
     else
     {
-      vtkErrorWithObjectMacro(this->External, "InsertSeriesInSubjectHierarchy: Study node has not been created for series with Instance UID "
+      vtkErrorWithObjectMacro(this->External, "InsertSeriesInSubjectHierarchy: Study item has not been created for series with Instance UID "
         << (rtReader->GetSeriesInstanceUid() ? rtReader->GetSeriesInstanceUid() : "Missing UID") );
     }
   }
 
-  if (seriesNode)
+  if (seriesItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    // Add attributes for DICOM tags to the series hierarchy node
-    seriesNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesModalityAttributeName().c_str(), rtReader->GetSeriesModality() );
-    seriesNode->SetAttribute( vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesNumberAttributeName().c_str(), rtReader->GetSeriesNumber() );
+    // Add attributes for DICOM tags to the series hierarchy item
+    shNode->SetItemAttribute(seriesItemID,
+     vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesModalityAttributeName(), rtReader->GetSeriesModality() );
+    shNode->SetItemAttribute(seriesItemID,
+      vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesNumberAttributeName(), rtReader->GetSeriesNumber() );
 
     // Set SOP instance UID (RT objects are in one file so have one SOP instance UID per series)
     // TODO: This is not correct for RTIMAGE, which may have several instances of DRRs within the same series
-    seriesNode->AddUID(vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName(), rtReader->GetSOPInstanceUID());
+    shNode->SetItemUID(seriesItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName(), rtReader->GetSOPInstanceUID());
   }
   else
   {
@@ -1180,52 +1197,58 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::SetupRtImageGeometry(
 {
   vtkMRMLScalarVolumeNode* rtImageVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(node);
-  vtkMRMLSubjectHierarchyNode* rtImageSubjectHierarchyNode = NULL;
-  vtkMRMLSubjectHierarchyNode* beamSHNode = NULL;
+  vtkIdType rtImageShItemID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
+  vtkIdType beamShItemID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
+
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->External->GetMRMLScene());
+  if (!shNode)
+  {
+    vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Failed to access subject hierarchy node");
+    return;
+  }
 
   // If the function is called from the LoadRtImage function with an RT image volume: find corresponding RT beam
   if (rtImageVolumeNode)
   {
-    // Get subject hierarchy node for RT image
-    rtImageSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(rtImageVolumeNode);
-    if (!rtImageSubjectHierarchyNode)
+    // Get subject hierarchy item for RT image
+    rtImageShItemID = shNode->GetItemByDataNode(rtImageVolumeNode);
+    if (rtImageShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-      vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Failed to retrieve valid subject hierarchy node for RT image '" << rtImageVolumeNode->GetName() << "'!");
+      vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Failed to retrieve valid subject hierarchy item for RT image '" << rtImageVolumeNode->GetName() << "'");
       return;
     }
 
     // Find referenced RT plan node
-    const char* referencedPlanSopInstanceUid = rtImageSubjectHierarchyNode->GetAttribute(
-      vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName().c_str() );
-    if (!referencedPlanSopInstanceUid)
+    std::string referencedPlanSopInstanceUid = shNode->GetItemAttribute(
+      rtImageShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName() );
+    if (referencedPlanSopInstanceUid.empty())
     {
-      vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Unable to find referenced plan SOP instance UID for RT image '" << rtImageVolumeNode->GetName() << "'!");
+      vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Unable to find referenced plan SOP instance UID for RT image '" << rtImageVolumeNode->GetName() << "'");
       return;
     }
-    vtkMRMLSubjectHierarchyNode* rtPlanSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-      this->External->GetMRMLScene(), vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName(), referencedPlanSopInstanceUid );
-    if (!rtPlanSubjectHierarchyNode)
+    vtkIdType planShItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName(), referencedPlanSopInstanceUid.c_str());
+    if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
       vtkDebugWithObjectMacro(this->External, "SetupRtImageGeometry: Cannot set up geometry of RT image '" << rtImageVolumeNode->GetName()
         << "' without the referenced RT plan. Will be set up upon loading the related plan");
       return;
     }
-    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(rtPlanSubjectHierarchyNode->GetAssociatedNode());
+    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(shNode->GetItemDataNode(planShItemID));
 
     // Get referenced beam number
-    const char* referencedBeamNumberChars = rtImageSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str());
-    if (!referencedBeamNumberChars)
+    std::string referencedBeamNumberStr = shNode->GetItemAttribute(rtImageShItemID, SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME);
+    if (referencedBeamNumberStr.empty())
     {
-      vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: No referenced beam number specified in RT image '" << rtImageVolumeNode->GetName() << "'!");
+      vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: No referenced beam number specified in RT image '" << rtImageVolumeNode->GetName() << "'");
       return;
     }
-    int referencedBeamNumber = vtkVariant(referencedBeamNumberChars).ToInt();
+    int referencedBeamNumber = vtkVariant(referencedBeamNumberStr).ToInt();
 
     // Get beam according to referenced beam number
     beamNode = planNode->GetBeamByNumber(referencedBeamNumber);
     if (!beamNode)
     {
-      vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Failed to retrieve beam node for RT image '" << rtImageVolumeNode->GetName() << "' in RT plan '" << rtPlanSubjectHierarchyNode->GetName() << "'!");
+      vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Failed to retrieve beam node for RT image '" << rtImageVolumeNode->GetName() << "' in RT plan '" << shNode->GetItemName(planShItemID) << "'");
       return;
     }
   }
@@ -1236,58 +1259,59 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::SetupRtImageGeometry(
     vtkMRMLRTPlanNode *planNode = beamNode->GetParentPlanNode();
     if (!planNode)
     {
-      vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Failed to retrieve valid plan node for beam '" << beamNode->GetName() << "'!");
+      vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Failed to retrieve valid plan node for beam '" << beamNode->GetName() << "'");
       return;
     }
-    vtkMRMLSubjectHierarchyNode *planShNode = planNode->GetPlanSubjectHierarchyNode();
-    if (!planShNode)
+    vtkIdType planShItemID = planNode->GetPlanSubjectHierarchyItemID();
+    if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-      vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Failed to retrieve valid plan subject hierarchy node for beam '" << beamNode->GetName() << "'!");
+      vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Failed to retrieve valid plan subject hierarchy item for beam '" << beamNode->GetName() << "'");
       return;
     }
-    std::string rtPlanSopInstanceUid = planShNode->GetUID(vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName());
+    std::string rtPlanSopInstanceUid = shNode->GetItemUID(planShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName());
     if (rtPlanSopInstanceUid.empty())
     {
-      vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Failed to get RT Plan DICOM UID for beam '" << beamNode->GetName() << "'!");
+      vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Failed to get RT Plan DICOM UID for beam '" << beamNode->GetName() << "'");
       return;
     }
 
     // Get isocenter beam number
     int beamNumber = beamNode->GetBeamNumber();
     // Get number of beams in the plan (if there is only one, then the beam number may nor be correctly referenced, so we cannot find it that way
-    bool oneBeamInPlan = (planShNode->GetNumberOfChildrenNodes() == 1);
+    bool oneBeamInPlan = (shNode->GetNumberOfItemChildren(planShItemID) == 1);
 
     // Find corresponding RT image according to beam (isocenter) UID
-    vtkSmartPointer<vtkCollection> hierarchyNodes = vtkSmartPointer<vtkCollection>::Take(this->External->GetMRMLScene()->GetNodesByClass("vtkMRMLSubjectHierarchyNode"));
-    vtkObject* nextObject = NULL;
-    for (hierarchyNodes->InitTraversal(); (nextObject = hierarchyNodes->GetNextItemAsObject()); )
+    std::vector<vtkIdType> itemIDs;
+    shNode->GetItemChildren(shNode->GetSceneItemID(), itemIDs, true);
+    for (std::vector<vtkIdType>::iterator itemIt=itemIDs.begin(); itemIt!=itemIDs.end(); ++itemIt)
     {
-      vtkMRMLSubjectHierarchyNode* currentShNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(nextObject);
-      bool currentShNodeReferencesPlan = false;
-      if (currentShNode && currentShNode->GetAssociatedNode() && currentShNode->GetAssociatedNode()->IsA("vtkMRMLScalarVolumeNode")
-        && currentShNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
+      vtkIdType currentShItemID = (*itemIt);
+      bool currentShItemReferencesPlan = false;
+      vtkMRMLNode* associatedNode = shNode->GetItemDataNode(currentShItemID);
+      if (associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode")
+        && !shNode->GetItemAttribute(currentShItemID, SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME).empty() )
       {
-        // If current node is the subject hierarchy node of an RT image, then determine it references the RT plan by DICOM
-        std::vector<vtkMRMLSubjectHierarchyNode*> referencedShNodes = currentShNode->GetSubjectHierarchyNodesReferencedByDICOM();
-        for (std::vector<vtkMRMLSubjectHierarchyNode*>::iterator refIt=referencedShNodes.begin(); refIt!=referencedShNodes.end(); ++refIt)
+        // If current item is the subject hierarchy item of an RT image, then determine it references the RT plan by DICOM
+        std::vector<vtkIdType> referencedShItemIDs = shNode->GetItemsReferencedFromItemByDICOM(currentShItemID);
+        for (std::vector<vtkIdType>::iterator refIt=referencedShItemIDs.begin(); refIt!=referencedShItemIDs.end(); ++refIt)
         {
-          if ((*refIt) == planShNode)
+          if ((*refIt) == planShItemID)
           {
-            currentShNodeReferencesPlan = true;
+            currentShItemReferencesPlan = true;
             break;
           }
         }
 
-        // If RT image node references plan node, then it is the corresponding RT image if beam numbers match
-        if (currentShNodeReferencesPlan)
+        // If RT image item references plan, then it is the corresponding RT image if beam numbers match
+        if (currentShItemReferencesPlan)
         {
           // Get RT image referenced beam number
-          int referencedBeamNumber = vtkVariant(currentShNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME.c_str())).ToInt();
+          int referencedBeamNumber = vtkVariant(shNode->GetItemAttribute(currentShItemID, SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME)).ToInt();
           // If the referenced beam number matches the isocenter beam number, or if there is one beam in the plan, then we found the RT image
           if (referencedBeamNumber == beamNumber || oneBeamInPlan)
           {
-            rtImageVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(currentShNode->GetAssociatedNode());
-            rtImageSubjectHierarchyNode = currentShNode;
+            rtImageVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(shNode->GetItemDataNode(currentShItemID));
+            rtImageShItemID = currentShItemID;
             break;
           }
         }
@@ -1316,7 +1340,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::SetupRtImageGeometry(
   }
   else
   {
-    vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Input node is neither a volume node nor an plan POIs markups fiducial node!");
+    vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Input node is neither a volume node nor an plan POIs markups fiducial node");
     return;
   }
 
@@ -1324,18 +1348,18 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::SetupRtImageGeometry(
 
   // Get source to RT image plane distance (along beam axis)
   double rtImageSid = 0.0;
-  const char* rtImageSidChars = rtImageSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME.c_str());
-  if (rtImageSidChars != NULL)
+  std::string rtImageSidStr = shNode->GetItemAttribute(rtImageShItemID, SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME);
+  if (!rtImageSidStr.empty())
   {
-    rtImageSid = vtkVariant(rtImageSidChars).ToDouble();
+    rtImageSid = vtkVariant(rtImageSidStr).ToDouble();
   }
   // Get RT image position (the x and y coordinates (in mm) of the upper left hand corner of the image, in the IEC X-RAY IMAGE RECEPTOR coordinate system)
   double rtImagePosition[2] = {0.0, 0.0};
-  const char* rtImagePositionChars = rtImageSubjectHierarchyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME.c_str());
-  if (rtImagePositionChars != NULL)
+  std::string rtImagePositionStr = shNode->GetItemAttribute(rtImageShItemID, SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME);
+  if (!rtImagePositionStr.empty())
   {
     std::stringstream ss;
-    ss << rtImagePositionChars;
+    ss << rtImagePositionStr;
     ss >> rtImagePosition[0] >> rtImagePosition[1];
   }
 
@@ -1487,7 +1511,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::OnMRMLSceneEndClose()
 {
   if (!this->GetMRMLScene())
   {
-    vtkErrorMacro("OnMRMLSceneEndClose: Invalid MRML scene!");
+    vtkErrorMacro("OnMRMLSceneEndClose: Invalid MRML scene");
     return;
   }
 }
@@ -1497,7 +1521,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::RegisterNodes()
 {
   if (!this->GetMRMLScene())
   {
-    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene");
     return;
   }
 
@@ -1601,7 +1625,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadDicomRT(vtkSlicerDICOMLoadable
 
   if (!loadable || loadable->GetFiles()->GetNumberOfValues() < 1 || loadable->GetConfidence() == 0.0)
   {
-    vtkErrorMacro("LoadDicomRT: Unable to load DICOM-RT data due to invalid loadable information!");
+    vtkErrorMacro("LoadDicomRT: Unable to load DICOM-RT data due to invalid loadable information");
     return loadSuccessful;
   }
 
@@ -1654,6 +1678,13 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     vtkErrorMacro("ExportDicomRTStudy: " + error);
     return error;
   }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
+  if (!shNode)
+  {
+    error = "Failed to access subject hierarchy node";
+    vtkErrorMacro("ExportDicomRTStudy: " + error);
+    return error;
+  }
 
   if (exportables->GetNumberOfItems() < 1)
   {
@@ -1687,28 +1718,23 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   // These are the ones available in hierarchy
   std::string studyInstanceUid = "";
   std::string studyID = "";
-  vtkMRMLSubjectHierarchyNode* firstSHNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(mrmlScene->GetNodeByID(firstExportable->GetNodeID()));
-  if (firstSHNode)
+  vtkIdType firstShItemID = firstExportable->GetSubjectHierarchyItemID();
+  if (firstShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    vtkMRMLSubjectHierarchyNode* studySHNode = firstSHNode->GetAncestorAtLevel(
-      vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy() );
-    if (studySHNode)
+    vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(firstShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+    if (studyItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-      studyInstanceUid = studySHNode->GetUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName());
-      const char* studyIDChars = studySHNode->GetAttribute(vtkMRMLSubjectHierarchyConstants::GetDICOMStudyIDTagName().c_str());
-      if (studyIDChars)
-      {
-        studyID = std::string(studyIDChars);
-      }
+      studyInstanceUid = shNode->GetItemUID(studyItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName());
+      studyID = shNode->GetItemAttribute(studyItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMStudyIDTagName());
     }
     else
     {
-      vtkWarningMacro("ExportDicomRTStudy: Failed to get ancestor study from exportable with node ID " + std::string(firstExportable->GetNodeID()));
+      vtkWarningMacro("ExportDicomRTStudy: Failed to get ancestor study from exportable with subject hierarchy item ID " + firstExportable->GetSubjectHierarchyItemID());
     }
   }
   else
   {
-    vtkWarningMacro("ExportDicomRTStudy: Failed to get SH node from exportable with node ID " + std::string(firstExportable->GetNodeID()));
+    vtkWarningMacro("ExportDicomRTStudy: Failed to get SH item from exportable with item ID " + firstExportable->GetSubjectHierarchyItemID());
   }
 
   const char* outputPath = firstExportable->GetDirectory();
@@ -1722,15 +1748,14 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   {
     vtkSlicerDICOMExportable* exportable = vtkSlicerDICOMExportable::SafeDownCast(
       exportables->GetItemAsObject(index) );
-    vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(
-      mrmlScene->GetNodeByID(exportable->GetNodeID()) );
-    if (!shNode)
+    vtkIdType shItemID = exportable->GetSubjectHierarchyItemID();
+    if (shItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-      vtkWarningMacro("ExportDicomRTStudy: Failed to get node from exportable with node ID " + std::string(exportable->GetNodeID()));
+      vtkWarningMacro("ExportDicomRTStudy: Failed to get item from exportable with item ID " + exportable->GetSubjectHierarchyItemID());
       // There might be enough exportables for a successful export, all roles are checked later
       continue;
     }
-    vtkMRMLNode* associatedNode = shNode->GetAssociatedNode();
+    vtkMRMLNode* associatedNode = shNode->GetItemDataNode(shItemID);
 
     // GCS FIX TODO: The below logic seems to allow only a single dose,
     // single image, and single segmentation per study.
@@ -1778,13 +1803,13 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
       imageSeriesNumber = exportable->GetTag("SeriesNumber");
 
       // Get slice instance UIDs
-      std::string sliceInstanceUIDList = shNode->GetUID(vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName());
+      std::string sliceInstanceUIDList = shNode->GetItemUID(shItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName());
       vtkMRMLSubjectHierarchyNode::DeserializeUIDList(sliceInstanceUIDList, imageSliceUIDs);
     }
     // Report warning if a node cannot be assigned a role
     else
     {
-      vtkWarningMacro("ExportDicomRTStudy: Unable to assign supported RT role to exported node " + shNode->GetNameWithoutPostfix());
+      vtkWarningMacro("ExportDicomRTStudy: Unable to assign supported RT role to exported item " + shNode->GetItemName(shItemID));
     }
   }
 
@@ -1925,7 +1950,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
         {
           if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, binaryLabelmapCopy))
           {
-            std::string errorMessage("Failed to apply parent transformation to exported segment!");
+            std::string errorMessage("Failed to apply parent transformation to exported segment");
             vtkErrorMacro("ExportDicomRTStudy: " << errorMessage);
             return errorMessage;
           }
@@ -2073,7 +2098,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     }
     else
     {
-      error = "Structure set contains unsupported master representation!";
+      error = "Structure set contains unsupported master representation";
       vtkErrorMacro("ExportDicomRTStudy: " + error);
       return error;
     }
@@ -2094,25 +2119,29 @@ vtkMRMLScalarVolumeNode* vtkSlicerDicomRtImportExportModuleLogic::GetReferencedV
   {
     return NULL;
   }
-
-  // Get referenced series UID for segmentation
-  vtkMRMLSubjectHierarchyNode* segmentationSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(segmentationNode);
-  const char* referencedSeriesUid = segmentationSubjectHierarchyNode->GetAttribute(
-    SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME.c_str() );
-  if (!referencedSeriesUid)
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(segmentationNode->GetScene());
+  if (!shNode)
   {
-    vtkWarningWithObjectMacro(segmentationSubjectHierarchyNode, "No referenced series UID found for segmentation '" << segmentationSubjectHierarchyNode->GetName() << "'");
+    vtkErrorWithObjectMacro(segmentationNode, "GetReferencedVolumeByDicomForSegmentation: Failed to access subject hierarchy node");
     return NULL;
   }
 
-  // Get referenced volume subject hierarchy node by found UID
-  vtkMRMLSubjectHierarchyNode* referencedSeriesNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNodeByUID(
-    segmentationNode->GetScene(), vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), referencedSeriesUid);
-  if (!referencedSeriesNode)
+  // Get referenced series UID for segmentation
+  vtkIdType segmentationShItemID = shNode->GetItemByDataNode(segmentationNode);
+  std::string referencedSeriesUid = shNode->GetItemAttribute(segmentationShItemID, SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME);
+  if (referencedSeriesUid.empty())
+  {
+    vtkErrorWithObjectMacro(segmentationNode, "No referenced series UID found for segmentation '" << segmentationNode->GetName() << "'");
+    return NULL;
+  }
+
+  // Get referenced volume subject hierarchy item by found UID
+  vtkIdType referencedSeriesShItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), referencedSeriesUid.c_str());
+  if (referencedSeriesShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
     return NULL;
   }
 
   // Get and return referenced volume
-  return vtkMRMLScalarVolumeNode::SafeDownCast(referencedSeriesNode->GetAssociatedNode());
+  return vtkMRMLScalarVolumeNode::SafeDownCast(shNode->GetItemDataNode(referencedSeriesShItemID));
 }

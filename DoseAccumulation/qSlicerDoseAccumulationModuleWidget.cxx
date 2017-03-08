@@ -348,6 +348,12 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
   {
     return;
   }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->mrmlScene());
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+  }
 
   // Get dose volumes from scene (or all volumes if requested)
   vtkSmartPointer<vtkCollection> volumeNodes = vtkSmartPointer<vtkCollection>::New();
@@ -385,14 +391,13 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
     }
 
     // Get dose unit name
-    const char* doseUnitName = NULL;
-    vtkMRMLSubjectHierarchyNode* volumeSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(volumeNode);
-    if (volumeSubjectHierarchyNode)
+    std::string doseUnitName("");
+    vtkIdType volumeShItemID = shNode->GetItemByDataNode(volumeNode);
+    if (volumeShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-      doseUnitName = volumeSubjectHierarchyNode->GetAttributeFromAncestor(
-        SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+      shNode->GetAttributeFromItemAncestor(volumeShItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
     }
-    std::string doseUnitStr = ( doseUnitName ? doseUnitName : "N/A" );
+    std::string doseUnitStr = ( !doseUnitName.empty() ? doseUnitName : "N/A" );
 
     // Create checkbox
     QCheckBox* checkbox = new QCheckBox(d->tableWidget_Volumes);

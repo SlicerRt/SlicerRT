@@ -25,13 +25,12 @@
 
 // SlicerRt includes
 #include "SlicerRtCommon.h"
-#include "vtkMRMLSubjectHierarchyNode.h"
-#include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLSubjectHierarchyNode.h>
 #include <vtkMRMLScene.h>
 
 // VTK includes
@@ -101,13 +100,12 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
-  vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic =
-    vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
-  subjectHierarchyLogic->SetMRMLScene(mrmlScene);
-
   // Load test scene into temporary scene
   mrmlScene->SetURL(testSceneFileName);
   mrmlScene->Import();
+  // Trigger resolving subject hierarchies after import (merging the imported one with the pseudo-singleton one).
+  // Normally this is done by the plugin logic, but it is a Qt class, so we need to trigger it manually from a VTK-only environment.
+  vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(mrmlScene);
 
   // Save it to the temporary directory
   vtksys::SystemTools::RemoveFile(temporarySceneFileName);

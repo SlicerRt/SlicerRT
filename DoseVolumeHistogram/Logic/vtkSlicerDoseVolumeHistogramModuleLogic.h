@@ -57,9 +57,7 @@ class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT vtkSlicerDoseVolumeHistogramMo
 public:
   // DoseVolumeHistogram constants
   static const std::string DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME;
-  static const std::string DVH_DOSE_VOLUME_NODE_REFERENCE_ROLE;
   static const std::string DVH_CREATED_DVH_NODE_REFERENCE_ROLE;
-  static const std::string DVH_SEGMENTATION_NODE_REFERENCE_ROLE;
 
   static const std::string DVH_DOSE_VOLUME_OVERSAMPLING_FACTOR_ATTRIBUTE_NAME;
   static const std::string DVH_SEGMENT_ID_ATTRIBUTE_NAME;

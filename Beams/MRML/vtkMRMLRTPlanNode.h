@@ -37,7 +37,6 @@ class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
-class vtkMRMLSubjectHierarchyNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTPlanNode : public vtkMRMLNode
@@ -88,8 +87,8 @@ public:
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData);
 
 public:
-  /// Get Subject Hierarchy node associated with this node. Create if missing
-  vtkMRMLSubjectHierarchyNode* GetPlanSubjectHierarchyNode();
+  /// Get subject hierarchy item associated with this node. Create if missing
+  vtkIdType GetPlanSubjectHierarchyItemID();
 
   /// Get target segment as a labelmap oriented image data
   vtkSmartPointer<vtkOrientedImageData> GetTargetOrientedImageData();

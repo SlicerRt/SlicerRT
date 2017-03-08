@@ -93,9 +93,9 @@ qSlicerSubjectHierarchyRTPlanPlugin::~qSlicerSubjectHierarchyRTPlanPlugin()
 }
 
 //----------------------------------------------------------------------------
-double qSlicerSubjectHierarchyRTPlanPlugin::canAddNodeToSubjectHierarchy(vtkMRMLNode* node, vtkMRMLSubjectHierarchyNode* parent/*=NULL*/)const
+double qSlicerSubjectHierarchyRTPlanPlugin::canAddNodeToSubjectHierarchy(vtkMRMLNode* node, vtkIdType parentItemID/*=vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID*/)const
 {
-  Q_UNUSED(parent);
+  Q_UNUSED(parentItemID);
   if (!node)
   {
     qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
@@ -109,31 +109,36 @@ double qSlicerSubjectHierarchyRTPlanPlugin::canAddNodeToSubjectHierarchy(vtkMRML
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyRTPlanPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
+double qSlicerSubjectHierarchyRTPlanPlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
 {
-  if (!node)
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
+    return 0.0;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return 0.0;
   }
 
-  vtkMRMLNode* associatedNode = node->GetAssociatedNode();
-
   // RT plan
+  vtkMRMLNode* associatedNode = shNode->GetItemDataNode(itemID);
   if ( associatedNode && associatedNode->IsA("vtkMRMLRTPlanNode") )
   {
     return 1.0;
   }
 
   // Isocenter for RT Plan
-  QString parentHierarchyNodeName("");
-  if (node->GetParentNode())
+  QString parentItemName("");
+  if (shNode->GetItemParent(itemID) != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    parentHierarchyNodeName = QString(node->GetParentNode()->GetName());
+    parentItemName = QString(shNode->GetItemName(shNode->GetItemParent(itemID)).c_str());
   }
-  if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries())
+  if ( shNode->IsItemLevel(itemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries())
     && associatedNode && associatedNode->IsA("vtkMRMLMarkupsFiducialNode")
-    && parentHierarchyNodeName.contains(SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX.c_str()) )
+    && parentItemName.contains(SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX.c_str()) )
   {
     return 1.0;
   }
@@ -148,17 +153,17 @@ const QString qSlicerSubjectHierarchyRTPlanPlugin::roleForPlugin()const
 }
 
 //---------------------------------------------------------------------------
-QIcon qSlicerSubjectHierarchyRTPlanPlugin::icon(vtkMRMLSubjectHierarchyNode* node)
+QIcon qSlicerSubjectHierarchyRTPlanPlugin::icon(vtkIdType itemID)
 {
-  if (!node)
+  Q_D(qSlicerSubjectHierarchyRTPlanPlugin);
+
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return QIcon();
   }
 
-  Q_D(qSlicerSubjectHierarchyRTPlanPlugin);
-
-  if (this->canOwnSubjectHierarchyNode(node))
+  if (this->canOwnSubjectHierarchyItem(itemID))
   {
     return d->PlanIcon;
   }

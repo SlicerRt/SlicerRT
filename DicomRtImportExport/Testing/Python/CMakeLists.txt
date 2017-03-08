@@ -32,6 +32,7 @@ foreach(script_name ${KIT_UNITTEST_SCRIPTS})
     )
 endforeach()
 
+#TODO: Enable after https://app.assembla.com/spaces/slicerrt/tickets/838-failing-slicerrt-tests-cause-dependent-extensions-not-to-build/details is fixed
 # slicer_add_python_unittest(
 #   SCRIPT DicomRtImportTest.py
 #   SLICER_ARGS --disable-cli-modules

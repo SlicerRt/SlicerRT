@@ -33,18 +33,18 @@ class DicomRtImportTest(unittest.TestCase):
     self.dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
     self.assertIsNotNone( self.dicomWidget )
 
-    self.TestSection_0RetrieveInputData()
-    self.TestSection_1OpenTempDatabase()
-    self.TestSection_2ImportStudy()
-    self.TestSection_3SelectLoadables()
-    self.TestSection_4LoadIntoSlicer()
-    self.TestSection_5SaveScene()
-    self.TestSection_6ClearDatabase()
+    self.TestSection_RetrieveInputData()
+    self.TestSection_OpenTempDatabase()
+    self.TestSection_ImportStudy()
+    self.TestSection_SelectLoadables()
+    self.TestSection_LoadIntoSlicer()
+    self.TestSection_SaveScene()
+    self.TestSection_ClearDatabase()
 
     logging.info("Test finished")
 
   #------------------------------------------------------------------------------
-  def TestSection_0RetrieveInputData(self):
+  def TestSection_RetrieveInputData(self):
     import urllib
 
     dicomRtImportTestDir = slicer.app.temporaryPath + '/DicomRtImportTest'
@@ -68,11 +68,11 @@ class DicomRtImportTest(unittest.TestCase):
       if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
         logging.info('Requesting download %s from %s...\n' % (name, url))
         urllib.urlretrieve(url, filePath)
-    # slicer.util.delayDisplay("Finished with download test data",self.delayMs)
+
     logging.info("Finished with download test data")
 
   #------------------------------------------------------------------------------
-  def TestSection_1OpenTempDatabase(self):
+  def TestSection_OpenTempDatabase(self):
     # Open test database and empty it
     if not os.access(self.dicomDatabaseDir, os.F_OK):
       os.mkdir(self.dicomDatabaseDir)
@@ -91,7 +91,7 @@ class DicomRtImportTest(unittest.TestCase):
     self.assertTrue( initialized )
 
   #------------------------------------------------------------------------------
-  def TestSection_2ImportStudy(self):
+  def TestSection_ImportStudy(self):
     # slicer.util.delayDisplay("Import study",self.delayMs)
     logging.info("Import study")
 
@@ -106,7 +106,7 @@ class DicomRtImportTest(unittest.TestCase):
     self.assertIsNotNone( slicer.dicomDatabase.patients()[0] )
 
   #------------------------------------------------------------------------------
-  def TestSection_3SelectLoadables(self):
+  def TestSection_SelectLoadables(self):
     # slicer.util.delayDisplay("Select loadables",self.delayMs)
     logging.info("Select loadables")
 
@@ -138,7 +138,7 @@ class DicomRtImportTest(unittest.TestCase):
     self.assertEqual( loadablesForRt, 4 )
 
   #------------------------------------------------------------------------------
-  def TestSection_4LoadIntoSlicer(self):
+  def TestSection_LoadIntoSlicer(self):
     # slicer.util.delayDisplay("Load into Slicer",self.delayMs)
     logging.info("Load into Slicer")
 
@@ -149,18 +149,16 @@ class DicomRtImportTest(unittest.TestCase):
     self.assertEqual( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ), 2 )
     # Model hierarchies: Beam models (parent + individual beams)
     self.assertEqual( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ), 6 )
-    # Subject hierarchy nodes: Patient, Study, Dose, RT beams, RT image, structure set segmentation and segment virtual nodes.
-    # Plus SH nodes automatically created for and displayed model and beam transforms
-    # If subject hierarchy auto creation is off, then 2 less nodes are created (the RT image plane model and texture volume)
-    autoCreateSh = slicer.modules.subjecthierarchy.widgetRepresentation().pluginLogic().autoCreateSubjectHierarchy
-    self.assertEqual( len( slicer.util.getNodes('vtkMRMLSubjectHierarchyNode*') ), 18 + 6*autoCreateSh )
     # Segmentation: The loaded structures
     self.assertEqual( len( slicer.util.getNodes('vtkMRMLSegmentationNode*') ), 1 )
     # Markups: the RT plan POI
     self.assertEqual( len( slicer.util.getNodes('vtkMRMLMarkupsFiducialNode*') ), 1 )
+    # Subject hierarchy items
+    shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
+    self.assertEqual( shNode.GetNumberOfItems(), 24 )
 
   #------------------------------------------------------------------------------
-  def TestSection_5SaveScene(self):
+  def TestSection_SaveScene(self):
     # slicer.util.delayDisplay("Save scene",self.delayMs)
     logging.info("Save scene")
 
@@ -178,7 +176,7 @@ class DicomRtImportTest(unittest.TestCase):
     self.assertTrue( readable )
 
   #------------------------------------------------------------------------------
-  def TestSection_6ClearDatabase(self):
+  def TestSection_ClearDatabase(self):
     # slicer.util.delayDisplay("Clear database",self.delayMs)
     logging.info("Clear database")
 

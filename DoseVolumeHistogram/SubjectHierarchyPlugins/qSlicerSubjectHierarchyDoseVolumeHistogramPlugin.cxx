@@ -112,17 +112,22 @@ qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::~qSlicerSubjectHierarchyDoseVo
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
+double qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
 {
-  if (!node)
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
+    return 0.0;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return 0.0;
   }
 
-  vtkMRMLNode* associatedNode = node->GetAssociatedNode();
-
   // DVH
+  vtkMRMLNode* associatedNode = shNode->GetItemDataNode(itemID);
   if ( associatedNode && associatedNode->IsA("vtkMRMLDoubleArrayNode")
     && associatedNode->GetAttribute(vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
   {
@@ -139,22 +144,22 @@ const QString qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::roleForPlugin()c
 }
 
 //---------------------------------------------------------------------------
-QIcon qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::icon(vtkMRMLSubjectHierarchyNode* node)
+QIcon qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::icon(vtkIdType itemID)
 {
-  if (!node)
+  Q_D(qSlicerSubjectHierarchyDoseVolumeHistogramPlugin);
+
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return QIcon();
   }
 
-  Q_D(qSlicerSubjectHierarchyDoseVolumeHistogramPlugin);
-
-  if (this->canOwnSubjectHierarchyNode(node))
+  if (this->canOwnSubjectHierarchyItem(itemID))
   {
     return d->DvhIcon;
   }
 
-  // Node unknown by plugin
+  // Item unknown by plugin
   return QIcon();
 }
 
@@ -174,40 +179,46 @@ QIcon qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::visibilityIcon(int visib
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible)
+void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setDisplayVisibility(vtkIdType itemID, int visible)
 {
-  if (!node)
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": NULL node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
+    return;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return;
   }
 
-  if (this->canOwnSubjectHierarchyNode(node))
+  if (this->canOwnSubjectHierarchyItem(itemID))
   {
-    // Get chart for DVH array node
-    vtkMRMLSubjectHierarchyNode* chartSubjectHierarchyNode = this->getChartForDvhArray(node);
-    if (!chartSubjectHierarchyNode)
+    // Get chart for DVH array item
+    vtkIdType chartShItemID = this->getChartShItemForDvhArray(itemID);
+    if (chartShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-      qCritical() << Q_FUNC_INFO << ": Unable to get chart node for DVH array node!";
+      qCritical() << Q_FUNC_INFO << ": Unable to get chart item for DVH array item";
       return;
     }
-    vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast(chartSubjectHierarchyNode->GetAssociatedNode());
+    vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast(shNode->GetItemDataNode(chartShItemID));
 
     // Get chart visibility
-    int chartVisible = qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->getDisplayVisibility(chartSubjectHierarchyNode);
+    int chartVisible = qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->getDisplayVisibility(chartShItemID);
 
     // Get DVH logic for DVH visibility setting
     qSlicerAbstractCoreModule* dvhModule = qSlicerApplication::application()->moduleManager()->module("DoseVolumeHistogram");
     vtkSlicerDoseVolumeHistogramModuleLogic* dvhLogic = vtkSlicerDoseVolumeHistogramModuleLogic::SafeDownCast(dvhModule->logic());
 
     // Show/hide the DVH plot
-    vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node->GetAssociatedNode());
+    vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(shNode->GetItemDataNode(itemID));
     if (visible)
     {
       if (!chartVisible)
       {
         // Show the chart itself
-        qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->setDisplayVisibility(chartSubjectHierarchyNode, visible);
+        qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->setDisplayVisibility(chartShItemID, visible);
       }
 
       dvhLogic->AddDvhToChart(chartNode, dvhArrayNode);
@@ -218,54 +229,67 @@ void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setDisplayVisibility(vtkM
     }
 
     // Trigger icon update
-    node->Modified();
+    shNode->ItemModified(itemID);
   }
   // Default
   else
   {
-    qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setDisplayVisibility(node, visible);
+    qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setDisplayVisibility(itemID, visible);
   }
 }
 
 //---------------------------------------------------------------------------
-int qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const
+int qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getDisplayVisibility(vtkIdType itemID)const
 {
-  if (!node)
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": NULL node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
+    return -1;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return -1;
   }
 
-  if (this->canOwnSubjectHierarchyNode(node))
+  if (this->canOwnSubjectHierarchyItem(itemID))
   {
-    // Get chart for DVH array node
-    vtkMRMLSubjectHierarchyNode* chartSubjectHierarchyNode = this->getChartForDvhArray(node);
-    if (!chartSubjectHierarchyNode)
+    // Get chart for DVH array item
+    vtkIdType chartShItemID = this->getChartShItemForDvhArray(itemID);
+    if (chartShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-      qCritical() << Q_FUNC_INFO << ": Unable to get chart node for DVH array node!";
+      qCritical() << Q_FUNC_INFO << ": Unable to get chart item for DVH array item";
       return -1;
     }
-    vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast(chartSubjectHierarchyNode->GetAssociatedNode());
+    vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast(shNode->GetItemDataNode(chartShItemID));
 
     // Get chart visibility
-    int chartVisible = qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->getDisplayVisibility(chartSubjectHierarchyNode);
+    int chartVisible = qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Charts")->getDisplayVisibility(chartShItemID);
 
     // Get DVH logic for DVH visibility
     qSlicerAbstractCoreModule* dvhModule = qSlicerApplication::application()->moduleManager()->module("DoseVolumeHistogram");
     vtkSlicerDoseVolumeHistogramModuleLogic* dvhLogic = vtkSlicerDoseVolumeHistogramModuleLogic::SafeDownCast(dvhModule->logic());
 
     // Only return true if the chart is visible and the DVH array is added in the chart
-    vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(node->GetAssociatedNode());
+    vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(shNode->GetItemDataNode(itemID));
     return (chartVisible && dvhLogic->IsDvhAddedToChart(chartNode, dvhArrayNode));
   }
 
   // Default
-  return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->getDisplayVisibility(node);
+  return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->getDisplayVisibility(itemID);
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::editProperties(vtkIdType itemID)
 {
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+  }
+
   qSlicerAbstractModuleWidget* moduleWidget = qSlicerSubjectHierarchyAbstractPlugin::switchToModule("DoseVolumeHistogram");
   if (moduleWidget)
   {
@@ -273,9 +297,15 @@ void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::editProperties(vtkMRMLSub
     qMRMLNodeComboBox* nodeSelector = moduleWidget->findChild<qMRMLNodeComboBox*>("MRMLNodeComboBox_ParameterSet");
 
     // Get DVH parameter set node containing the current DVH array
-    vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->getDvhParameterSetNodeForDvhArray(node->GetAssociatedNode());
+    vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(shNode->GetItemDataNode(itemID));
+    if (!dvhArrayNode)
+    {
+      qCritical() << Q_FUNC_INFO << ": Unable to get DVH array node";
+      return;
+    }
 
-    // Choose current data node
+    // Choose parameter set node
+    vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->getDvhParameterSetNodeForDvhArray(dvhArrayNode);
     if (nodeSelector)
     {
       nodeSelector->setCurrentNode(parameterSetNode);
@@ -286,10 +316,10 @@ void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::editProperties(vtkMRMLSub
 //---------------------------------------------------------------------------
 vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getDvhParameterSetNodeForDvhArray(vtkMRMLNode* dvhArrayNode)const
 {
-  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->mrmlScene();
   if (!scene)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid MRML scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid MRML scene";
     return NULL;
   }
 
@@ -311,37 +341,39 @@ vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDoseVolumeHistogramPlugin
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode* qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getChartForDvhArray(vtkMRMLSubjectHierarchyNode* dvhArraySubjectHierarchyNode)const
+vtkIdType qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getChartShItemForDvhArray(vtkIdType dvhArrayShItemID)const
 {
-  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->scene();
+  vtkMRMLScene* scene = qSlicerSubjectHierarchyPluginHandler::instance()->mrmlScene();
   if (!scene)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid MRML scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid MRML scene";
+    return NULL;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return NULL;
   }
 
   // Get parameter set node for DVH, then chart from the parameter set node
   vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
-    dvhArraySubjectHierarchyNode->GetAssociatedNode() );
+    shNode->GetItemDataNode(dvhArrayShItemID) );
+  if (!dvhArrayNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Unable to get DVH array node";
+    return NULL;
+  }
+
   vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->getDvhParameterSetNodeForDvhArray(dvhArrayNode);
   vtkMRMLChartNode* chartNode = parameterSetNode->GetChartNode();
   if (!chartNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Chart node must exist for DVH parameter set node!";
+    qCritical() << Q_FUNC_INFO << ": Chart node must exist for DVH parameter set node";
     return NULL;
   }
 
-  // Add chart to subject hierarchy if not added already
-  vtkMRMLSubjectHierarchyNode* chartSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(chartNode);
-  if (!chartSubjectHierarchyNode)
-  {
-    vtkMRMLSubjectHierarchyNode* seriesNode =
-      dvhArraySubjectHierarchyNode->vtkMRMLSubjectHierarchyNode::GetAncestorAtLevel(
-      vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries() );
-    chartSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-      scene, seriesNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(),
-      chartNode->GetName(), chartNode);
-  }
-
-  return chartSubjectHierarchyNode;
+  // Get chart subject hierarchy item (at the same time make sure the chart is in the proper branch)
+  vtkIdType seriesItemID = shNode->GetItemAncestorAtLevel(dvhArrayShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries());
+  return shNode->CreateItem(seriesItemID, chartNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
 }

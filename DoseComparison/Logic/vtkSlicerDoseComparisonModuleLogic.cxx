@@ -321,22 +321,24 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
     vtkWarningMacro("ComputeGammaDoseDifference: Display node is not available for gamma volume node. The default color table will be used.");
   }
 
-  // Determine if the input dose volumes are in subject hierarchy. Only perform related tasks if they are.
-  bool areInputsInSubjectHierarchy =
-    ( vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(parameterNode->GetReferenceDoseVolumeNode())
-    && vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(parameterNode->GetCompareDoseVolumeNode()) );
-  if (areInputsInSubjectHierarchy)
+  // Get common ancestor of the two input dose volumes in subject hierarchy
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
+  if (!shNode)
   {
-    // Get common ancestor of the two input dose volumes
-    vtkMRMLSubjectHierarchyNode* commonAncestor = vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch(
-      parameterNode->GetReferenceDoseVolumeNode(), parameterNode->GetCompareDoseVolumeNode(),
-      vtkMRMLSubjectHierarchyConstants::GetDICOMLevelPatient() );
-
-    // Add gamma volume to subject hierarchy
-    vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-      this->GetMRMLScene(), commonAncestor, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(),
-      gammaVolumeNode->GetName(), gammaVolumeNode);
+    std::string errorMessage("");
+    vtkErrorMacro("ComputeGammaDoseDifference: Failed to access subject hierarchy node" << errorMessage);
+    return errorMessage;
   }
+  vtkIdType commonAncestorItemID = vtkSlicerSubjectHierarchyModuleLogic::AreNodesInSameBranch(
+    parameterNode->GetReferenceDoseVolumeNode(), parameterNode->GetCompareDoseVolumeNode(),
+    vtkMRMLSubjectHierarchyConstants::GetDICOMLevelPatient() );
+  if (commonAncestorItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    commonAncestorItemID = shNode->GetSceneItemID();
+  }
+
+  // Setup gamma volume subject hierarchy item
+  shNode->CreateItem(commonAncestorItemID, gammaVolumeNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
 
   // Add connection attribute to input dose volume nodes
   gammaVolumeNode->AddNodeReferenceID( vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_REFERENCE_DOSE_VOLUME_REFERENCE_ROLE.c_str(), 

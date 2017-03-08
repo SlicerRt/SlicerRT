@@ -90,18 +90,39 @@ qSlicerSubjectHierarchyRTBeamPlugin::~qSlicerSubjectHierarchyRTBeamPlugin()
 {
 }
 
-//---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyRTBeamPlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
+//----------------------------------------------------------------------------
+double qSlicerSubjectHierarchyRTBeamPlugin::canAddNodeToSubjectHierarchy(
+  vtkMRMLNode* node, vtkIdType parentItemID/*=vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID*/)const
 {
+  Q_UNUSED(parentItemID);
   if (!node)
-  {
+    {
     qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
+    return 0.0;
+    }
+  else if (node->IsA("vtkMRMLRTBeamNode"))
+    {
+    return 1.0; // Only this plugin can handle this node
+    }
+  return 0.0;
+}
+//---------------------------------------------------------------------------
+double qSlicerSubjectHierarchyRTBeamPlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
+{
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
+    return 0.0;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return 0.0;
   }
 
-  vtkMRMLNode* associatedNode = node->GetAssociatedNode();
-
   // RT beam
+  vtkMRMLNode* associatedNode = shNode->GetItemDataNode(itemID);
   if ( associatedNode && associatedNode->IsA("vtkMRMLRTBeamNode") )
   {
     return 1.0;
@@ -117,17 +138,17 @@ const QString qSlicerSubjectHierarchyRTBeamPlugin::roleForPlugin()const
 }
 
 //---------------------------------------------------------------------------
-QIcon qSlicerSubjectHierarchyRTBeamPlugin::icon(vtkMRMLSubjectHierarchyNode* node)
+QIcon qSlicerSubjectHierarchyRTBeamPlugin::icon(vtkIdType itemID)
 {
-  if (!node)
+  Q_D(qSlicerSubjectHierarchyRTBeamPlugin);
+
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return QIcon();
   }
 
-  Q_D(qSlicerSubjectHierarchyRTBeamPlugin);
-
-  if (this->canOwnSubjectHierarchyNode(node))
+  if (this->canOwnSubjectHierarchyItem(itemID))
   {
     return d->BeamIcon;
   }

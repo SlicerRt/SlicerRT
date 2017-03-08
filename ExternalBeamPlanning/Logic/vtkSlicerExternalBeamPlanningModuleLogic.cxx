@@ -300,14 +300,26 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtk
     vtkErrorMacro("CloneBeamInPlan: Invalid copied beam node");
     return NULL;
   }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
+  if (!shNode)
+  {
+    vtkErrorMacro("CloneBeamInPlan: Failed to access subject hierarchy node");
+    return NULL;
+  }
 
   // Determine name of beam clone
   std::string newBeamName = (planNode ? planNode->GenerateNewBeamName() : (copiedBeamNode->GetParentPlanNode() ? copiedBeamNode->GetParentPlanNode()->GenerateNewBeamName() : "") );
 
   // Clone beam node via subject hierarchy
-  vtkMRMLSubjectHierarchyNode* beamShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(copiedBeamNode);
-  vtkMRMLSubjectHierarchyNode* beamCloneShNode = vtkSlicerSubjectHierarchyModuleLogic::CloneSubjectHierarchyNode( beamShNode, (newBeamName.empty() ? NULL : newBeamName.c_str()) );
-  vtkMRMLRTBeamNode* beamCloneNode = vtkMRMLRTBeamNode::SafeDownCast(beamCloneShNode->GetAssociatedNode());
+  vtkIdType beamShItemID = shNode->GetItemByDataNode(copiedBeamNode);
+  vtkIdType beamCloneShItemID = vtkSlicerSubjectHierarchyModuleLogic::CloneSubjectHierarchyItem(
+    shNode, beamShItemID, (newBeamName.empty() ? NULL : newBeamName.c_str()) );
+  vtkMRMLRTBeamNode* beamCloneNode = vtkMRMLRTBeamNode::SafeDownCast(shNode->GetItemDataNode(beamCloneShItemID));
+  if (!beamCloneNode)
+  {
+    vtkErrorMacro("CloneBeamInPlan: Failed to copy beam node " << copiedBeamNode->GetName());
+    return NULL;
+  }
 
   // Add beam clone to given plan if specified and different than default
   if (planNode && planNode != beamCloneNode->GetParentPlanNode())

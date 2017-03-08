@@ -239,7 +239,7 @@ void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
 
   if (!this->Scene)
   {
-    vtkErrorMacro("ProcessMRMLEvents: Invalid MRML scene!");
+    vtkErrorMacro("ProcessMRMLEvents: Invalid MRML scene");
     return;
   }
   if (this->Scene->IsBatchProcessing())
@@ -357,15 +357,19 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
   this->SetAndObservePoisMarkupsFiducialNode(markupsNode);
 
   // If plan belongs to a study, set the markups node as belonging to the same study
-  vtkMRMLSubjectHierarchyNode* planSHNode = this->GetPlanSubjectHierarchyNode();
-  if (!planSHNode)
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetScene());
+  if (!shNode)
   {
-    vtkErrorMacro("CreateMarkupsFiducialNode: Subject hierarchy node should always exist for RTPlan");
+    vtkErrorMacro("CreateMarkupsFiducialNode: Failed to access subject hierarchy node");
     return markupsNode.GetPointer();
   }
-  vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    this->GetScene(), planSHNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), 
-    markupsName.c_str(), markupsNode );
+  vtkIdType planShItemID = this->GetPlanSubjectHierarchyItemID();
+  if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    vtkErrorMacro("CreateMarkupsFiducialNode: Subject hierarchy item should always exist for RTPlan");
+    return markupsNode.GetPointer();
+  }
+  shNode->CreateItem(planShItemID, markupsNode);
 
   return markupsNode.GetPointer();
 }
@@ -416,19 +420,26 @@ void vtkMRMLRTPlanNode::GetBeams(vtkCollection *beams)
 {
   if (!beams)
   {
-    vtkErrorMacro("GetRTBeamNodes: Invalid input beam collection!");
+    vtkErrorMacro("GetBeams: Invalid input beam collection");
     return;
   }
   beams->RemoveAllItems();
 
-  vtkMRMLSubjectHierarchyNode* rtPlanShNode = this->GetPlanSubjectHierarchyNode();
-  if (!rtPlanShNode)
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetScene());
+  if (!shNode)
   {
-    vtkErrorMacro("GetRTBeamNodes: Failed to acctess RT plan subject hierarchy node, although it should always be available!");
+    vtkErrorMacro("GetBeams: Failed to access subject hierarchy node");
     return;
   }
 
-  rtPlanShNode->GetAssociatedChildrenNodes(beams, "vtkMRMLRTBeamNode");
+  vtkIdType planShItemID = this->GetPlanSubjectHierarchyItemID();
+  if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    vtkErrorMacro("GetBeams: Failed to access RT plan subject hierarchy item, although it should always be available");
+    return;
+  }
+
+  shNode->GetDataNodesInBranch(planShItemID, beams, "vtkMRMLRTBeamNode");
 }
 
 //---------------------------------------------------------------------------
@@ -471,15 +482,21 @@ int vtkMRMLRTPlanNode::GetNumberOfBeams()
 //---------------------------------------------------------------------------
 vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetBeamByName(const std::string& beamName)
 {
-  vtkMRMLSubjectHierarchyNode* rtPlanShNode = this->GetPlanSubjectHierarchyNode();
-  if (!rtPlanShNode)
+  vtkIdType planShItemID = this->GetPlanSubjectHierarchyItemID();
+  if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    vtkErrorMacro("GetRTBeamNodes: Failed to acctess RT plan subject hierarchy node, although it should always be available!");
+    vtkErrorMacro("GetBeamByName: Failed to access RT plan subject hierarchy item, although it should always be available");
+    return NULL;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetScene());
+  if (!shNode)
+  {
+    vtkErrorMacro("GetBeamByName: Failed to access subject hierarchy node");
     return NULL;
   }
 
   vtkSmartPointer<vtkCollection> beamCollection = vtkSmartPointer<vtkCollection>::New();
-  rtPlanShNode->GetAssociatedChildrenNodes(beamCollection, "vtkMRMLRTBeamNode");
+  shNode->GetDataNodesInBranch(planShItemID, beamCollection, "vtkMRMLRTBeamNode");
 
   beamCollection->InitTraversal();
   for (int i=0; i<beamCollection->GetNumberOfItems(); ++i)
@@ -497,15 +514,21 @@ vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetBeamByName(const std::string& beamName)
 //---------------------------------------------------------------------------
 vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetBeamByNumber(int beamNumber)
 {
-  vtkMRMLSubjectHierarchyNode* rtPlanShNode = this->GetPlanSubjectHierarchyNode();
-  if (!rtPlanShNode)
+  vtkIdType planShItemID = this->GetPlanSubjectHierarchyItemID();
+  if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    vtkErrorMacro("GetRTBeamNodeByNumber: Failed to acctess RT plan subject hierarchy node, although it should always be available!");
+    vtkErrorMacro("GetBeamByName: Failed to access RT plan subject hierarchy item, although it should always be available");
+    return NULL;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetScene());
+  if (!shNode)
+  {
+    vtkErrorMacro("GetBeamByName: Failed to access subject hierarchy node");
     return NULL;
   }
   
   vtkSmartPointer<vtkCollection> beamCollection = vtkSmartPointer<vtkCollection>::New();
-  rtPlanShNode->GetAssociatedChildrenNodes(beamCollection, "vtkMRMLRTBeamNode");
+  shNode->GetDataNodesInBranch(planShItemID, beamCollection, "vtkMRMLRTBeamNode");
 
   beamCollection->InitTraversal();
   for (int i=0; i<beamCollection->GetNumberOfItems(); ++i)
@@ -532,7 +555,7 @@ void vtkMRMLRTPlanNode::AddBeam(vtkMRMLRTBeamNode* beamNode)
 {
   if (!this->GetScene())
   {
-    vtkErrorMacro("AddBeam: Invalid MRML scene!");
+    vtkErrorMacro("AddBeam: Invalid MRML scene");
     return;
   }
   if (!beamNode)
@@ -540,15 +563,25 @@ void vtkMRMLRTPlanNode::AddBeam(vtkMRMLRTBeamNode* beamNode)
     return;
   }
 
-  // Get subject hierarchy node for the RT Plan
-  vtkMRMLSubjectHierarchyNode* planShNode = this->GetPlanSubjectHierarchyNode();
+  // Get subject hierarchy item for the RT Plan
+  vtkIdType planShItemID = this->GetPlanSubjectHierarchyItemID();
+  if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    vtkErrorMacro("AddBeam: Failed to access RT plan subject hierarchy item, although it should always be available");
+    return;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(beamNode->GetScene());
+  if (!shNode)
+  {
+    vtkErrorMacro("AddBeam: Failed to access subject hierarchy node");
+    return;
+  }
 
   // Set the beam number
   beamNode->SetBeamNumber(this->NextBeamNumber++);
 
-  // Put the beam node in the subject hierarchy
-  vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-    this->GetScene(), planShNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), beamNode->GetName(), beamNode );
+  // Add beam node in the right subject hierarchy branch
+  shNode->CreateItem(planShItemID, beamNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
 
   // Calculate transform from beam parameters and isocenter from plan
   beamNode->UpdateTransform();
@@ -564,17 +597,17 @@ void vtkMRMLRTPlanNode::AddBeam(vtkMRMLRTBeamNode* beamNode)
 //---------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::RemoveBeam(vtkMRMLRTBeamNode* beamNode)
 {
+  if (!this->GetScene())
+  {
+    vtkErrorMacro("RemoveBeam: Invalid MRML scene");
+    return;
+  }
+
   // Fire beam added event (do it first so that operations can be performed with beam while exists)
   this->InvokeEvent(vtkMRMLRTPlanNode::BeamRemoved, (void*)beamNode->GetID());
 
-  vtkMRMLScene *scene = this->GetScene();
-  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(beamNode);
-  if (!shNode)
-  {
-    vtkWarningMacro("RemoveRTBeamNodes tried to remove a beam without a SubjectHierarchyNode\n");
-    return;
-  }
-  scene->RemoveNode(shNode);
+  // Remove beam node from the scene. The subject hierarchy item will automatically be removed
+  this->GetScene()->RemoveNode(beamNode);
 
   this->Modified();
 }
@@ -597,23 +630,28 @@ void vtkMRMLRTPlanNode::RemoveAllBeams()
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLSubjectHierarchyNode* vtkMRMLRTPlanNode::GetPlanSubjectHierarchyNode()
+vtkIdType vtkMRMLRTPlanNode::GetPlanSubjectHierarchyItemID()
 {
-  vtkMRMLSubjectHierarchyNode* planSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this, this->GetScene());
-
-  // If none found, create new subject hierarchy node for the RT Plan
-  if (!planSHNode && this->GetScene())
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetScene());
+  if (!shNode)
   {
-    planSHNode = vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-      this->GetScene(), NULL,
-      vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), this->Name, this );
-  }
-  if (planSHNode == NULL)
-  {
-    vtkErrorMacro("vtkMRMLRTPlanNode::GetSHNode: Could not create subject hierarchy node.");
+    vtkErrorMacro("GetPlanSubjectHierarchyItemID: Failed to access subject hierarchy node");
+    return vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
   }
 
-  return planSHNode;
+  vtkIdType planShItemID = shNode->GetItemByDataNode(this);
+
+  // If none found, create new subject hierarchy item for the RT Plan
+  if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && this->GetScene())
+  {
+    planShItemID = shNode->CreateItem(shNode->GetSceneItemID(), this);
+  }
+  if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    vtkErrorMacro("GetPlanSubjectHierarchyItemID: Could not create subject hierarchy item");
+  }
+
+  return planShItemID;
 }
 
 //----------------------------------------------------------------------------
@@ -730,7 +768,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetTargetOrientedImageD
   // Apply parent transformation nodes if necessary
   if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, targetOrientedImageData))
   {
-    std::string errorMessage("Failed to apply parent transformation to target segment!");
+    std::string errorMessage("Failed to apply parent transformation to target segment");
     vtkErrorMacro("GetTargetOrientedImageData: " << errorMessage);
     return targetOrientedImageData;
   }

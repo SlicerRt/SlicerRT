@@ -547,8 +547,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   // Get DVH array node for the inputs (dose volume, segmentation, segment).
   // If found, then it gets overwritten by the new computation, otherwise
   std::string structureDvhNodeRef = parameterNode->AssembleDvhNodeReference(segmentID);
-  vtkMRMLDoubleArrayNode* arrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
-    metricsTableNode->GetNodeReference(structureDvhNodeRef.c_str()) );
+  vtkMRMLDoubleArrayNode* arrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(metricsTableNode->GetNodeReference(structureDvhNodeRef.c_str()));
   int tableRow = -1;
   if (!arrayNode)
   {
@@ -719,37 +718,30 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     doubleArray->SetComponent(0,0,0);
   }
 
-  // Add DVH to subject hierarchy
-  vtkMRMLSubjectHierarchyNode* doseShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(doseVolumeNode);
-  vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode( this->GetMRMLScene(), doseShNode,
-    vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), arrayNode->GetName(), arrayNode);
+  // Setup DVH subject hierarchy item
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
+  if (!shNode)
+  {
+    std::string errorMessage("Failed to access subject hierarchy node");
+    vtkErrorMacro("ComputeDvh: " << errorMessage);
+    return errorMessage;
+  }
+  vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
+  vtkIdType dvhShItemID = shNode->CreateItem(doseShItemID, arrayNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
 
   // Add metrics table and chart to under the study of the dose in subject hierarchy
-  vtkMRMLSubjectHierarchyNode* studyNode = doseShNode->GetAncestorAtLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
-  if (studyNode)
+  vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(doseShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+  if (studyItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    vtkMRMLSubjectHierarchyNode* metricsTableShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(metricsTableNode);
-    if (metricsTableShNode)
-    {
-      metricsTableShNode->SetParentNodeID(studyNode->GetID());
-    }
+    shNode->CreateItem(studyItemID, metricsTableNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
+
     vtkMRMLChartNode* chartNode = parameterNode->GetChartNode();
-    if (chartNode)
-    {
-      vtkMRMLSubjectHierarchyNode* chartShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(chartNode);
-      if (chartShNode)
-      {
-        chartShNode->SetParentNodeID(studyNode->GetID());
-      }
-    }
+    shNode->CreateItem(studyItemID, chartNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
   }
 
-  // Add connection attribute to input segmentation node
-  vtkMRMLSubjectHierarchyNode* segmentSubjectHierarchyNode = segmentationNode->GetSegmentSubjectHierarchyNode(segmentID);
-  if (segmentSubjectHierarchyNode)
-  {
-    segmentSubjectHierarchyNode->AddNodeReferenceID(DVH_CREATED_DVH_NODE_REFERENCE_ROLE.c_str(), arrayNode->GetID());
-  }
+  // Add connection attribute to input segmentation and dose volume nodes
+  segmentationNode->AddNodeReferenceID(DVH_CREATED_DVH_NODE_REFERENCE_ROLE.c_str(), arrayNode->GetID());
+  doseVolumeNode->AddNodeReferenceID(DVH_CREATED_DVH_NODE_REFERENCE_ROLE.c_str(), arrayNode->GetID());
 
   // Log measured time
   double checkpointEnd = timer->GetUniversalTime();
@@ -768,6 +760,12 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
   if (!this->GetMRMLScene() || !chartNode || !dvhArrayNode)
   {
     vtkErrorMacro("AddDvhToChart: Invalid MRML scene, chart node, or DVH node!");
+    return;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
+  if (!shNode)
+  {
+    vtkErrorMacro("AddDvhToChart: Failed to access subject hierarchy node");
     return;
   }
 
@@ -802,12 +800,12 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
   const char* doseIdentifier = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
   if (doseIdentifier)
   {
-    vtkMRMLSubjectHierarchyNode* doseSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(doseVolumeNode);
-    if (doseSubjectHierarchyNode)
+    vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
+    if (doseShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-      const char* doseUnitName = doseSubjectHierarchyNode->GetAttributeFromAncestor(
-        SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
-      doseAxisName=std::string("Dose [") + (doseUnitName?doseUnitName:"?") + "]";
+      std::string doseUnitName = shNode->GetAttributeFromItemAncestor(
+        doseShItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+      doseAxisName=std::string("Dose [") + (doseUnitName.empty()?"?":doseUnitName) + "]";
     }
     else
     {
@@ -1222,14 +1220,21 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDMetrics(vtkMRMLDoseVolumeH
     vtkErrorMacro("ComputeDMetrics: Unable to find dose volume node!");
     return false;
   }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
+  if (!shNode)
+  {
+    vtkErrorMacro("ComputeDMetrics: Failed to access subject hierarchy node");
+    return false;
+  }
+
   // Get dose unit name
   std::string doseUnitPostfix = "";
-  vtkMRMLSubjectHierarchyNode* doseVolumeSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(doseVolumeNode);
-  if (doseVolumeSubjectHierarchyNode)
+  vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
+  if (doseShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
     doseUnitPostfix = " (" +
-      std::string( doseVolumeSubjectHierarchyNode->GetAttributeFromAncestor(
-        SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy()) )
+      shNode->GetAttributeFromItemAncestor(
+        doseShItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy())
       + ")";
   }
 
@@ -1427,15 +1432,22 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(vtkMRMLDoseVolumeHi
     vtkErrorMacro("ExportDvhToCsv: Unable to access DVH metrics table node");
 		return false;
   }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
+  if (!shNode)
+  {
+    vtkErrorMacro("ExportDvhToCsv: Failed to access subject hierarchy node");
+    return false;
+  }
+
   vtkTable* metricsTable = metricsTableNode->GetTable();
 
   // Get dose unit name
-  const char* doseUnitName = NULL;
-  vtkMRMLSubjectHierarchyNode* doseVolumeSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(doseVolumeNode);
-  if (doseVolumeSubjectHierarchyNode)
+  std::string doseUnitName("");
+  vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
+  if (doseShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    doseUnitName = doseVolumeSubjectHierarchyNode->GetAttributeFromAncestor(
-      SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+    doseUnitName = shNode->GetAttributeFromItemAncestor(
+      doseShItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
   }
 
   // Get all DVH array nodes from the parameter set node
@@ -1746,18 +1758,24 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::AssembleDoseMetricName(vtkM
     vtkErrorMacro("AssembleDoseMetricName: Invalid MRML scene or dose volume node!");
     return "";
   }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
+  if (!shNode)
+  {
+    vtkErrorMacro("AssembleDoseMetricName: Failed to access subject hierarchy node");
+    return "";
+  }
 
   // Get dose unit name
-  const char* doseUnitName = NULL;
-  vtkMRMLSubjectHierarchyNode* doseVolumeSubjectHierarchyNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(doseVolumeNode);
-  if (doseVolumeSubjectHierarchyNode)
+  std::string doseUnitName("");
+  vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
+  if (doseShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    doseUnitName = doseVolumeSubjectHierarchyNode->GetAttributeFromAncestor(
-      SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+    doseUnitName = shNode->GetAttributeFromItemAncestor(
+      doseShItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
   }
 
   // Assemble metric name
-  std::string valueType = ( doseUnitName
+  std::string valueType = ( !doseUnitName.empty()
     ? (DVH_METRIC_DOSE_POSTFIX + " (" + doseUnitName + ")")
     : (DVH_METRIC_INTENSITY_POSTFIX) );
   std::ostringstream metricNameStream;

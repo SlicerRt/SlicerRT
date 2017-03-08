@@ -331,21 +331,14 @@ void vtkMRMLRTBeamNode::SetAndObserveContourBEVVolumeNode(vtkMRMLScalarVolumeNod
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode* vtkMRMLRTBeamNode::GetParentPlanNode()
 {
-  vtkMRMLSubjectHierarchyNode* beamShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(this);
-  if (!beamShNode)
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetScene());
+  if (!shNode)
   {
-    vtkErrorMacro("GetRTPlanNode: Subject hierarchy must be enabled for this operation!");
+    vtkErrorMacro("GetParentPlanNode: Failed to access subject hierarchy node");
     return NULL;
   }
 
-  if (!beamShNode->GetParentNode())
-  {
-    vtkErrorMacro("GetRTPlanNode: Beam node " << this->Name << " does not have a subject hierarchy parent, so cannot access RT plan!");
-    return NULL;
-  }
-
-  vtkMRMLSubjectHierarchyNode* planShNode = vtkMRMLSubjectHierarchyNode::SafeDownCast(beamShNode->GetParentNode());
-  return vtkMRMLRTPlanNode::SafeDownCast(planShNode->GetAssociatedNode());
+  return vtkMRMLRTPlanNode::SafeDownCast(shNode->GetParentDataNode(this));
 }
 
 //----------------------------------------------------------------------------

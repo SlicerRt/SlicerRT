@@ -98,20 +98,25 @@ qSlicerSubjectHierarchyRtImagePlugin::~qSlicerSubjectHierarchyRtImagePlugin()
 }
 
 //---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
+double qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
 {
-  if (!node)
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
+    return 0.0;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return 0.0;
   }
 
-  vtkMRMLNode* associatedNode = node->GetAssociatedNode();
-
   // RT Image
-  if ( node->IsLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries())
+  vtkMRMLNode* associatedNode = shNode->GetItemDataNode(itemID);
+  if ( shNode->IsItemLevel(itemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries())
     && associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode")
-    && node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME.c_str()) )
+    && !shNode->GetItemAttribute(itemID, SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME).empty() )
   {
     return 1.0; // Only this plugin can handle this node
   }
@@ -126,17 +131,17 @@ const QString qSlicerSubjectHierarchyRtImagePlugin::roleForPlugin()const
 }
 
 //---------------------------------------------------------------------------
-QIcon qSlicerSubjectHierarchyRtImagePlugin::icon(vtkMRMLSubjectHierarchyNode* node)
+QIcon qSlicerSubjectHierarchyRtImagePlugin::icon(vtkIdType itemID)
 {
-  if (!node)
+  Q_D(qSlicerSubjectHierarchyRtImagePlugin);
+
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return QIcon();
   }
 
-  Q_D(qSlicerSubjectHierarchyRtImagePlugin);
-
-  if (this->canOwnSubjectHierarchyNode(node))
+  if (this->canOwnSubjectHierarchyItem(itemID))
   {
     return d->PlanarImageIcon;
   }
@@ -162,59 +167,71 @@ QIcon qSlicerSubjectHierarchyRtImagePlugin::visibilityIcon(int visible)
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyRtImagePlugin::setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible)
+void qSlicerSubjectHierarchyRtImagePlugin::setDisplayVisibility(vtkIdType itemID, int visible)
 {
-  if (!node)
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": NULL node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
+    return;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return;
   }
 
   vtkMRMLScalarVolumeNode* associatedVolumeNode =
-    vtkMRMLScalarVolumeNode::SafeDownCast(node->GetAssociatedNode());
+    vtkMRMLScalarVolumeNode::SafeDownCast(shNode->GetItemDataNode(itemID) );
   if (associatedVolumeNode)
   {
     // RT Image: show/hide is available. Not propagated to possible children
-    if (this->canOwnSubjectHierarchyNode(node))
+    if (this->canOwnSubjectHierarchyItem(itemID))
     {
       vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
         associatedVolumeNode->GetNodeReference(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
       if (!modelNode)
       {
-        qCritical() << Q_FUNC_INFO << ": No displayed model found for planar image '" << associatedVolumeNode->GetName() << "'!";
+        qCritical() << Q_FUNC_INFO << ": No displayed model found for planar image '" << associatedVolumeNode->GetName() << "'";
         return;
       }
       modelNode->SetDisplayVisibility(visible);
-      node->Modified(); // Triggers icon refresh in subject hierarchy tree
+      shNode->ItemModified(itemID); // Triggers icon refresh in subject hierarchy tree
     }
     // Default
     else
     {
-      qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setDisplayVisibility(node, visible);
+      qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setDisplayVisibility(itemID, visible);
     }
   }
   // Default
   else
   {
-    qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setDisplayVisibility(node, visible);
+    qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setDisplayVisibility(itemID, visible);
   }
 }
 
 //---------------------------------------------------------------------------
-int qSlicerSubjectHierarchyRtImagePlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const
+int qSlicerSubjectHierarchyRtImagePlugin::getDisplayVisibility(vtkIdType itemID)const
 {
-  if (!node)
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": NULL node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
+    return -1;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return -1;
   }
 
   vtkMRMLScalarVolumeNode* associatedVolumeNode =
-    vtkMRMLScalarVolumeNode::SafeDownCast(node->GetAssociatedNode());
+    vtkMRMLScalarVolumeNode::SafeDownCast(shNode->GetItemDataNode(itemID) );
   if (associatedVolumeNode)
   {
     // RT Image: show/hide is available. Not propagated to possible children
-    if (this->canOwnSubjectHierarchyNode(node))
+    if (this->canOwnSubjectHierarchyItem(itemID))
     {
       vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
         associatedVolumeNode->GetNodeReference(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
@@ -228,12 +245,12 @@ int qSlicerSubjectHierarchyRtImagePlugin::getDisplayVisibility(vtkMRMLSubjectHie
   }
 
   // Default
-  return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->getDisplayVisibility(node);
+  return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->getDisplayVisibility(itemID);
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyRtImagePlugin::editProperties(vtkMRMLSubjectHierarchyNode* node)
+void qSlicerSubjectHierarchyRtImagePlugin::editProperties(vtkIdType itemID)
 {
-  Q_UNUSED(node);
+  Q_UNUSED(itemID);
   //TODO: Switch to external beam planning module when it supports RT images
 }

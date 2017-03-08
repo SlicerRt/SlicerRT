@@ -41,11 +41,8 @@
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLChartNode.h>
+#include <vtkMRMLSubjectHierarchyNode.h>
 #include <vtkMRMLScene.h>
-
-// SubjectHierarchy includes
-#include "vtkSlicerSubjectHierarchyModuleLogic.h"
-#include "vtkMRMLSubjectHierarchyNode.h"
 
 // VTK includes
 #include <vtkDoubleArray.h>
@@ -336,14 +333,13 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   // Create Segmentations logic
   vtkSmartPointer<vtkSlicerSegmentationsModuleLogic> segmentationsLogic = vtkSmartPointer<vtkSlicerSegmentationsModuleLogic>::New();
   segmentationsLogic->SetMRMLScene(mrmlScene);
-  // Create Subject hierarchy logic. Needed so that the SH node type is registered. This can be removed
-  // once the subject hierarchy node is moved to MRML/Core, and is registered in vtkMRMLScene constructor.
-  vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic> subjectHierarchyLogic = vtkSmartPointer<vtkSlicerSubjectHierarchyModuleLogic>::New();
-  subjectHierarchyLogic->SetMRMLScene(mrmlScene);
 
   // Load test scene into temporary scene
   mrmlScene->SetURL(testSceneFileName);
   mrmlScene->Import();
+  // Trigger resolving subject hierarchies after import (merging the imported one with the pseudo-singleton one).
+  // Normally this is done by the plugin logic, but it is a Qt class, so we need to trigger it manually from a VTK-only environment.
+  vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(mrmlScene);
 
   // Save it to the temporary directory
   vtksys::SystemTools::RemoveFile(temporarySceneFileName);

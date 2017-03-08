@@ -109,18 +109,40 @@ qSlicerSubjectHierarchyRtDoseVolumePlugin::~qSlicerSubjectHierarchyRtDoseVolumeP
 {
 }
 
-//---------------------------------------------------------------------------
-double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const
+//----------------------------------------------------------------------------
+double qSlicerSubjectHierarchyRtDoseVolumePlugin::canAddNodeToSubjectHierarchy(
+  vtkMRMLNode* node, vtkIdType parentItemID/*=vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID*/)const
 {
+  Q_UNUSED(parentItemID);
   if (!node)
-  {
+    {
     qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
+    return 0.0;
+    }
+  else if (SlicerRtCommon::IsDoseVolumeNode(node))
+    {
+    return 1.0; // Only this plugin can handle this node
+    }
+  return 0.0;
+}
+
+//---------------------------------------------------------------------------
+double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
+{
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
+    return 0.0;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return 0.0;
   }
 
-  vtkMRMLNode* associatedNode = node->GetAssociatedNode();
-
   // RT Dose
+  vtkMRMLNode* associatedNode = shNode->GetItemDataNode(itemID);
   if ( associatedNode && SlicerRtCommon::IsDoseVolumeNode(associatedNode) )
   {
     return 1.0; // Only this plugin can handle this node
@@ -136,23 +158,23 @@ const QString qSlicerSubjectHierarchyRtDoseVolumePlugin::roleForPlugin()const
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerSubjectHierarchyRtDoseVolumePlugin::tooltip(vtkMRMLSubjectHierarchyNode* node)const
+QString qSlicerSubjectHierarchyRtDoseVolumePlugin::tooltip(vtkIdType itemID)const
 {
-  return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->tooltip(node);
+  return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->tooltip(itemID);
 }
 
 //---------------------------------------------------------------------------
-QIcon qSlicerSubjectHierarchyRtDoseVolumePlugin::icon(vtkMRMLSubjectHierarchyNode* node)
+QIcon qSlicerSubjectHierarchyRtDoseVolumePlugin::icon(vtkIdType itemID)
 {
-  if (!node)
+  Q_D(qSlicerSubjectHierarchyRtDoseVolumePlugin);
+
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": NULL node given!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return QIcon();
   }
 
-  Q_D(qSlicerSubjectHierarchyRtDoseVolumePlugin);
-
-  if (this->canOwnSubjectHierarchyNode(node))
+  if (this->canOwnSubjectHierarchyItem(itemID))
   {
     return d->DoseVolumeIcon;
   }
@@ -168,45 +190,56 @@ QIcon qSlicerSubjectHierarchyRtDoseVolumePlugin::visibilityIcon(int visible)
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyRtDoseVolumePlugin::setDisplayVisibility(vtkMRMLSubjectHierarchyNode* node, int visible)
+void qSlicerSubjectHierarchyRtDoseVolumePlugin::setDisplayVisibility(vtkIdType itemID, int visible)
 {
-  if (!node)
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    qCritical() << Q_FUNC_INFO << ": NULL node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
+    return;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return;
   }
 
-  if (this->canOwnSubjectHierarchyNode(node))
+  if (this->canOwnSubjectHierarchyItem(itemID))
   {
-    qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->setDisplayVisibility(node, visible);
+    qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->setDisplayVisibility(itemID, visible);
   }
   // Default
   else
   {
-    qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setDisplayVisibility(node, visible);
+    qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->setDisplayVisibility(itemID, visible);
   }
 }
 
 //---------------------------------------------------------------------------
-int qSlicerSubjectHierarchyRtDoseVolumePlugin::getDisplayVisibility(vtkMRMLSubjectHierarchyNode* node)const
+int qSlicerSubjectHierarchyRtDoseVolumePlugin::getDisplayVisibility(vtkIdType itemID)const
 {
-  if (!node)
   {
-    qCritical() << Q_FUNC_INFO << ": NULL node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid input item";
+    return -1;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return -1;
   }
 
-  if (this->canOwnSubjectHierarchyNode(node))
+  if (this->canOwnSubjectHierarchyItem(itemID))
   {
-    return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->getDisplayVisibility(node);
+    return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->getDisplayVisibility(itemID);
   }
 
   // Default
-  return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->getDisplayVisibility(node);
+  return qSlicerSubjectHierarchyPluginHandler::instance()->defaultPlugin()->getDisplayVisibility(itemID);
 }
 
 //---------------------------------------------------------------------------
-QList<QAction*> qSlicerSubjectHierarchyRtDoseVolumePlugin::nodeContextMenuActions()const
+QList<QAction*> qSlicerSubjectHierarchyRtDoseVolumePlugin::itemContextMenuActions()const
 {
   Q_D(const qSlicerSubjectHierarchyRtDoseVolumePlugin);
 
@@ -216,21 +249,28 @@ QList<QAction*> qSlicerSubjectHierarchyRtDoseVolumePlugin::nodeContextMenuAction
 }
 
 //---------------------------------------------------------------------------
-void qSlicerSubjectHierarchyRtDoseVolumePlugin::showContextMenuActionsForNode(vtkMRMLSubjectHierarchyNode* node)
+void qSlicerSubjectHierarchyRtDoseVolumePlugin::showContextMenuActionsForItem(vtkIdType itemID)
 {
   Q_D(qSlicerSubjectHierarchyRtDoseVolumePlugin);
   this->hideAllContextMenuActions();
 
-  if (!node)
+  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
     // There are no scene actions in this plugin
     return;
   }
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+  }
 
   // Volume but not RT dose or labelmap
-  if ( qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->canOwnSubjectHierarchyNode(node)
-    && (node->GetAssociatedNode() && !node->GetAssociatedNode()->IsA("vtkMRMLLabelMapVolumeNode"))
-    && m_Name.compare(node->GetOwnerPluginName()) )
+  vtkMRMLNode* associatedNode = shNode->GetItemDataNode(itemID);
+  if ( qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Volumes")->canOwnSubjectHierarchyItem(itemID)
+    && !associatedNode->IsA("vtkMRMLLabelMapVolumeNode")
+    && m_Name.compare(shNode->GetItemOwnerPluginName(itemID).c_str()) )
   {
     d->ConvertToRtDoseVolumeAction->setVisible(true);
   }
@@ -239,37 +279,43 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::showContextMenuActionsForNode(vt
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume()
 {
-  vtkMRMLSubjectHierarchyNode* currentNode = qSlicerSubjectHierarchyPluginHandler::instance()->currentNode();
-  if (!currentNode)
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid current node!";
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+  }
+  vtkIdType currentItemID = qSlicerSubjectHierarchyPluginHandler::instance()->currentItem();
+  if (currentItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid current item!";
     return;
   }
 
   // Get associated volume node
   vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
-    currentNode->GetAssociatedNode() );
+    shNode->GetItemDataNode(currentItemID) );
   if (!volumeNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Data node associated to current node '" << currentNode->GetNameWithoutPostfix().c_str() << "' is not a volume!";
+    qCritical() << Q_FUNC_INFO << ": Data node associated to current item '" << shNode->GetItemName(currentItemID).c_str() << "' is not a volume!";
     return;
   }
 
-  // Get study node
-  vtkMRMLSubjectHierarchyNode* studyNode = currentNode->GetAncestorAtLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
-  if (!studyNode)
+  // Get study item
+  vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(currentItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+  if (studyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
     QString message("The volume must be under a study in order to be converted to dose. Please drag&drop the volume under a study. If there is no study, it can be created under a subject. Consult the help window for more details.");
-    qCritical() << Q_FUNC_INFO << ": Failed to find study node among the ancestors of current node '" << currentNode->GetNameWithoutPostfix().c_str() << "'! " << message;
+    qCritical() << Q_FUNC_INFO << ": Failed to find study item among the ancestors of current item '" << shNode->GetItemName(currentItemID).c_str() << "'! " << message;
     QMessageBox::warning(NULL, tr("Failed to convert volume to dose"), message);
     return;
   }
-  const char* doseUnitNameInStudy = studyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str());
-  const char* doseUnitValueInStudy = studyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str());
+  std::string doseUnitNameInStudy = shNode->GetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME);
+  std::string doseUnitValueInStudy = shNode->GetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME);
 
   // Show dialogs asking about dose unit name and value
   bool ok;
-  QString defaultDoseUnitName = (doseUnitNameInStudy ? QString(doseUnitNameInStudy) : "Gy");
+  QString defaultDoseUnitName(!doseUnitNameInStudy.empty() ? doseUnitNameInStudy.c_str() : "Gy");
   QString doseUnitName = QInputDialog::getText(NULL, tr("RT dose volume properties (1/2)"),
     tr("Dose unit name:"), QLineEdit::Normal, defaultDoseUnitName, &ok);
   if (!ok || doseUnitName.isEmpty())
@@ -277,7 +323,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
     qWarning() << Q_FUNC_INFO << ": Failed to get valid dose unit name from dialog. Check study node attributes.";
   }
 
-  double defaultDoseUnitValue = (doseUnitValueInStudy ? QString(doseUnitValueInStudy).toDouble() : 1.0);
+  double defaultDoseUnitValue = (!doseUnitValueInStudy.empty() ? QString(doseUnitValueInStudy.c_str()).toDouble() : 1.0);
   double doseUnitValue = QInputDialog::getDouble(NULL, tr("RT dose volume properties (2/2)"),
     tr("Dose unit value (scaling):\n\nNote: Setting the scaling will NOT apply it to the volume voxels"), defaultDoseUnitValue, EPSILON*EPSILON, 1000.0, 16, &ok);
   if (!ok)
@@ -287,7 +333,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
 
   // Set RT dose volume properties to study node
   bool setDoseUnitName = true;
-  if (doseUnitNameInStudy && doseUnitName.compare(doseUnitNameInStudy))
+  if (doseUnitName.compare(doseUnitNameInStudy.c_str()))
   {
     QMessageBox::StandardButton answer =
       QMessageBox::question(NULL, tr("Dose unit name changed"),
@@ -301,12 +347,11 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   }
   if (setDoseUnitName)
   {
-    studyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), doseUnitName.toLatin1().constData());
+    shNode->SetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), doseUnitName.toLatin1().constData());
   }
 
   bool setDoseUnitValue = true;
-  if ( doseUnitValueInStudy
-    && fabs(doseUnitValue - QString(doseUnitValueInStudy).toDouble()) > EPSILON*EPSILON )
+  if ( fabs(doseUnitValue - defaultDoseUnitValue) > EPSILON*EPSILON )
   {
     QMessageBox::StandardButton answer =
       QMessageBox::question(NULL, tr("Dose unit name changed"),
@@ -321,10 +366,10 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   if (setDoseUnitValue)
   {
     QString doseUnitValueString = QString::number(doseUnitValue);
-    studyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), doseUnitValueString.toLatin1().constData());
+    shNode->SetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), doseUnitValueString.toLatin1().constData());
   }
 
   // Set RT dose identifier attribute to data node
   volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
-  currentNode->Modified();
+  shNode->ItemModified(currentItemID);
 }

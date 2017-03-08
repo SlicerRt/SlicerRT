@@ -46,8 +46,7 @@ public:
   static const char* DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME;
   static const std::string ISODOSE_MODEL_NODE_NAME_PREFIX;
   static const std::string ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX;
-  static const std::string ISODOSE_ROOT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
-  static const std::string ISODOSE_ROOT_SUBJECT_HIERARCHY_NODE_NAME_POSTFIX;
+  static const std::string ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX;
 
 public:
   static vtkSlicerIsodoseModuleLogic *New();

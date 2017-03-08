@@ -40,11 +40,6 @@
 // SlicerRT includes
 #include "vtkSlicerBeamsModuleLogic.h"
 
-// SubjectHierarchy Plugins includes
-#include <qSlicerSubjectHierarchyPluginHandler.h>
-#include "qSlicerSubjectHierarchyRTPlanPlugin.h"
-#include "qSlicerSubjectHierarchyRTBeamPlugin.h"
-
 // PythonQt includes
 #include "PythonQt.h"
 

@@ -42,27 +42,27 @@ public:
   virtual ~qSlicerSubjectHierarchyIsodosePlugin();
 
 public:
-  /// Determines if the actual plugin can handle a subject hierarchy node. The plugin with
-  /// the highest confidence number will "own" the node in the subject hierarchy (set icon, tooltip,
+  /// Determines if the actual plugin can handle a subject hierarchy item. The plugin with
+  /// the highest confidence number will "own" the item in the subject hierarchy (set icon, tooltip,
   /// set context menu etc.)
-  /// \param node Note to handle in the subject hierarchy tree
+  /// \param item Item to handle in the subject hierarchy tree
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
-  ///   node, and 1 means that the plugin is the only one that can handle the node (by node type or identifier attribute)
-  virtual double canOwnSubjectHierarchyNode(vtkMRMLSubjectHierarchyNode* node)const;
+  ///   item, and 1 means that the plugin is the only one that can handle the item (by node type or identifier attribute)
+  virtual double canOwnSubjectHierarchyItem(vtkIdType itemID)const;
 
-  /// Get role that the plugin assigns to the subject hierarchy node.
+  /// Get role that the plugin assigns to the subject hierarchy item.
   ///   Each plugin should provide only one role.
   Q_INVOKABLE virtual const QString roleForPlugin()const;
 
-  /// Get icon of an owned subject hierarchy node
-  /// \return Icon to set, NULL if nothing to set
-  virtual QIcon icon(vtkMRMLSubjectHierarchyNode* node);
+  /// Get icon of an owned subject hierarchy item
+  /// \return Icon to set, empty icon if nothing to set
+  virtual QIcon icon(vtkIdType itemID);
 
   /// Get visibility icon for a visibility state
-  virtual QIcon visibilityIcon(int visible);
+  Q_INVOKABLE virtual QIcon visibilityIcon(int visible);
 
-  /// Open module belonging to node and set inputs in opened module
-  virtual void editProperties(vtkMRMLSubjectHierarchyNode* node);
+  /// Open module belonging to item and set inputs in opened module
+  Q_INVOKABLE virtual void editProperties(vtkIdType itemID);
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyIsodosePluginPrivate> d_ptr;

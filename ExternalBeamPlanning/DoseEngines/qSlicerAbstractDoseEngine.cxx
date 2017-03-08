@@ -109,7 +109,7 @@ QString qSlicerAbstractDoseEngine::name() const
 {
   if (m_Name.isEmpty())
   {
-    qCritical() << Q_FUNC_INFO << ": Empty dose engine name!";
+    qCritical() << Q_FUNC_INFO << ": Empty dose engine name";
   }
   return this->m_Name;
 }
@@ -118,7 +118,7 @@ QString qSlicerAbstractDoseEngine::name() const
 void qSlicerAbstractDoseEngine::setName(QString name)
 {
   Q_UNUSED(name);
-  qCritical() << Q_FUNC_INFO << ": Cannot set dose engine name by method, only in constructor!";
+  qCritical() << Q_FUNC_INFO << ": Cannot set dose engine name by method, only in constructor";
 }
 
 //----------------------------------------------------------------------------
@@ -146,22 +146,29 @@ QString qSlicerAbstractDoseEngine::calculateDose(vtkMRMLRTBeamNode* beamNode)
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
-  vtkMRMLSubjectHierarchyNode* referenceVolumeShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(referenceVolumeNode);
-  if (referenceVolumeShNode)
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(beamNode->GetScene());
+  if (!shNode)
   {
-    vtkMRMLSubjectHierarchyNode* planShNode = parentPlanNode->GetPlanSubjectHierarchyNode();
-    if (planShNode)
+    QString errorMessage("Failed to access subject hierarchy node");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+    return errorMessage;
+  }
+  vtkIdType referenceVolumeShItemID = shNode->GetItemByDataNode(referenceVolumeNode);
+  if (referenceVolumeShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    vtkIdType planShItemID = parentPlanNode->GetPlanSubjectHierarchyItemID();
+    if (planShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-      planShNode->SetParentNodeID(referenceVolumeShNode->GetParentNodeID());
+      shNode->SetItemParent(planShItemID, shNode->GetItemParent(referenceVolumeShItemID));
     }
     else
     {
-      qCritical() << Q_FUNC_INFO << ": Failed to access RT plan subject hierarchy node, although it should always be available!";
+      qCritical() << Q_FUNC_INFO << ": Failed to access RT plan subject hierarchy item, although it should always be available";
     }
   }
   else
   {
-    qCritical() << Q_FUNC_INFO << ": Failed to access reference volume subject hierarchy node!";
+    qCritical() << Q_FUNC_INFO << ": Failed to access reference volume subject hierarchy item";
   }
 
   // Remove past intermediate results for beam before calculating dose again
@@ -193,9 +200,15 @@ void qSlicerAbstractDoseEngine::addIntermediateResult(vtkMRMLNode* result, vtkMR
     qCritical() << Q_FUNC_INFO << ": Invalid intermediate result";
     return;
   }
-  if (!beamNode)
+  if (!beamNode || !beamNode->GetScene())
   {
     qCritical() << Q_FUNC_INFO << ": Invalid beam node";
+    return;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(beamNode->GetScene());
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
     return;
   }
 
@@ -203,12 +216,10 @@ void qSlicerAbstractDoseEngine::addIntermediateResult(vtkMRMLNode* result, vtkMR
   beamNode->AddNodeReferenceID(INTERMEDIATE_RESULT_REFERENCE_ROLE, result->GetID());
 
   // Add result under beam in subject hierarchy
-  vtkMRMLSubjectHierarchyNode* beamShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(beamNode);
-  if (beamShNode)
+  vtkIdType beamShItemID = shNode->GetItemByDataNode(beamNode);
+  if (beamShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-      beamNode->GetScene(), beamShNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), 
-      result->GetName(), result );
+    shNode->CreateItem(beamShItemID, result, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
   }
 }
 
@@ -225,11 +236,21 @@ void qSlicerAbstractDoseEngine::addResultDose(vtkMRMLScalarVolumeNode* resultDos
     qCritical() << Q_FUNC_INFO << ": Invalid beam node";
     return;
   }
+  vtkMRMLScene* scene = beamNode->GetScene();
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid MRML scene";
+    return;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+  }
 
   // Remove already existing referenced dose volume if any
   if (replace)
   {
-    vtkMRMLScene* scene = beamNode->GetScene();
     std::vector<const char*> referencedDoseNodeIds;
     beamNode->GetNodeReferenceIDs(RESULT_DOSE_REFERENCE_ROLE, referencedDoseNodeIds);
     for (std::vector<const char*>::iterator refIt=referencedDoseNodeIds.begin(); refIt != referencedDoseNodeIds.end(); ++refIt)
@@ -246,23 +267,21 @@ void qSlicerAbstractDoseEngine::addResultDose(vtkMRMLScalarVolumeNode* resultDos
   resultDose->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
   // Subject hierarchy related operations
-  vtkMRMLSubjectHierarchyNode* beamShNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(beamNode);
-  if (beamShNode)
+  vtkIdType beamShItemID = shNode->GetItemByDataNode(beamNode);
+  if (beamShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
     // Add result under beam in subject hierarchy
-    vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-      beamNode->GetScene(), beamShNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries(), 
-      resultDose->GetName(), resultDose );
+    shNode->CreateItem(beamShItemID, resultDose, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
 
     // Set dose unit value to Gy if dose engine did not set it already (potentially to other unit)
-    vtkMRMLSubjectHierarchyNode* studyNode = beamShNode->GetAncestorAtLevel(vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
-    if (!studyNode)
+    vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(beamShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+    if (studyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-      qWarning() << Q_FUNC_INFO << ": Unable to find study node that contains the plan! Creating a study node and adding the reference dose and the plan under it is necessary in order for dose evaluation steps to work properly";
+      qWarning() << Q_FUNC_INFO << ": Unable to find study item that contains the plan! Creating a study item and adding the reference dose and the plan under it is necessary in order for dose evaluation steps to work properly";
     }
-    else if (!studyNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str()))
+    else if (shNode->GetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME).empty())
     {
-      studyNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), "Gy");
+      shNode->SetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, "Gy");
     }
   }
 
@@ -281,7 +300,7 @@ void qSlicerAbstractDoseEngine::addResultDose(vtkMRMLScalarVolumeNode* resultDos
     else
     {
       doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
-      qCritical() << Q_FUNC_INFO << ": Failed to get default dose color table!";
+      qCritical() << Q_FUNC_INFO << ": Failed to get default dose color table";
     }
 
     vtkMRMLRTPlanNode* planNode = beamNode->GetParentPlanNode();
@@ -361,7 +380,7 @@ void qSlicerAbstractDoseEngine::addBeamParameterSpinBox(
   qMRMLBeamParametersTabWidget* beamParametersTabWidget = this->beamParametersTabWidgetFromBeamsModule();
   if (!beamParametersTabWidget)
   {
-    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module!";
+    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module";
     return;
   }
 
@@ -386,7 +405,7 @@ void qSlicerAbstractDoseEngine::addBeamParameterSlider(
   qMRMLBeamParametersTabWidget* beamParametersTabWidget = this->beamParametersTabWidgetFromBeamsModule();
   if (!beamParametersTabWidget)
   {
-    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module!";
+    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module";
     return;
   }
 
@@ -410,7 +429,7 @@ void qSlicerAbstractDoseEngine::addBeamParameterComboBox(
   qMRMLBeamParametersTabWidget* beamParametersTabWidget = this->beamParametersTabWidgetFromBeamsModule();
   if (!beamParametersTabWidget)
   {
-    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module!";
+    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module";
     return;
   }
 
@@ -434,7 +453,7 @@ void qSlicerAbstractDoseEngine::addBeamParameterCheckBox(
   qMRMLBeamParametersTabWidget* beamParametersTabWidget = this->beamParametersTabWidgetFromBeamsModule();
   if (!beamParametersTabWidget)
   {
-    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module!";
+    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module";
     return;
   }
 
@@ -460,7 +479,7 @@ void qSlicerAbstractDoseEngine::setBeamParametersVisible(bool visible)
   qMRMLBeamParametersTabWidget* beamParametersTabWidget = this->beamParametersTabWidgetFromBeamsModule();
   if (!beamParametersTabWidget)
   {
-    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module!";
+    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module";
     return;
   }
 
@@ -487,7 +506,7 @@ void qSlicerAbstractDoseEngine::addBeamParameterAttributesToBeamNode(vtkMRMLRTBe
 
   if (!beamNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid beam node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid beam node";
     return;
   }
 
@@ -541,7 +560,7 @@ int qSlicerAbstractDoseEngine::integerParameter(vtkMRMLRTBeamNode* beamNode, QSt
   int parameterInt = parameterStr.toInt(&ok);
   if (!ok)
   {
-    qCritical() << Q_FUNC_INFO << ": Parameter named " << parameterName << " cannot be converted to integer!";
+    qCritical() << Q_FUNC_INFO << ": Parameter named " << parameterName << " cannot be converted to integer";
     return 0;
   }
 
@@ -561,7 +580,7 @@ double qSlicerAbstractDoseEngine::doubleParameter(vtkMRMLRTBeamNode* beamNode, Q
   double parameterDouble = parameterStr.toDouble(&ok);
   if (!ok)
   {
-    qCritical() << Q_FUNC_INFO << ": Parameter named " << parameterName << " cannot be converted to floating point number!";
+    qCritical() << Q_FUNC_INFO << ": Parameter named " << parameterName << " cannot be converted to floating point number";
     return 0.0;
   }
 
@@ -595,7 +614,7 @@ void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QStrin
 {
   if (!beamNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid beam node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid beam node";
     return;
   }
 
@@ -669,6 +688,6 @@ qMRMLBeamParametersTabWidget* qSlicerAbstractDoseEngine::beamParametersTabWidget
 void qSlicerAbstractDoseEngine::setDoseEngineTypeToBeam(vtkMRMLRTBeamNode* beamNode)
 {
   //TODO: Needed?
-  qCritical() << Q_FUNC_INFO << ": Not implemented!";
+  qCritical() << Q_FUNC_INFO << ": Not implemented";
 }
 */

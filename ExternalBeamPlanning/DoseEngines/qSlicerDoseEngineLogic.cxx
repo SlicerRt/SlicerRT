@@ -281,6 +281,13 @@ QString qSlicerDoseEngineLogic::createAccumulatedDose(vtkMRMLRTPlanNode* planNod
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(planNode->GetScene());
+  if (!shNode)
+  {
+    QString errorMessage("Failed to access subject hierarchy node");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+    return errorMessage;
+  }
 
   // Get selected dose engine
   qSlicerAbstractDoseEngine* selectedEngine =
@@ -337,16 +344,13 @@ QString qSlicerDoseEngineLogic::createAccumulatedDose(vtkMRMLRTPlanNode* planNod
   }
 
   // Add total dose volume to subject hierarchy under the study of the reference volume
-  vtkMRMLSubjectHierarchyNode* referenceVolumeSHNode = vtkMRMLSubjectHierarchyNode::GetAssociatedSubjectHierarchyNode(referenceVolumeNode);
-  if (referenceVolumeSHNode)
+  vtkIdType referenceVolumeShItemID = shNode->GetItemByDataNode(referenceVolumeNode);
+  if (referenceVolumeShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    vtkMRMLSubjectHierarchyNode* studySHNode = referenceVolumeSHNode->GetAncestorAtLevel(
-      vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
-    if (studySHNode)
+    vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(referenceVolumeShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+    if (studyItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
-      vtkMRMLSubjectHierarchyNode::CreateSubjectHierarchyNode(
-        planNode->GetScene(), studySHNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries(), 
-        NULL, totalDoseVolumeNode );
+      shNode->CreateItem(studyItemID, totalDoseVolumeNode);
     }
   }
 
