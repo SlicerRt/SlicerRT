@@ -237,6 +237,7 @@ void qSlicerAbstractDoseEngine::addResultDose(vtkMRMLScalarVolumeNode* resultDos
     return;
   }
   vtkMRMLScene* scene = beamNode->GetScene();
+  if (!scene)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid MRML scene";
     return;

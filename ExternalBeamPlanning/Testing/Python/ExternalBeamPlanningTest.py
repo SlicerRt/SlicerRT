@@ -54,9 +54,10 @@ class ExternalBeamPlanningTest(unittest.TestCase):
 
     self.dataZipFilePath = self.segmentationsModuleTestDir + '/TinyPatient_Seg.zip'
 
-   # Define variables
+    # Define variables
     self.expectedNumOfFilesInDataDir = 2
     self.expectedNumOfFilesInDataSegDir = 2
+    self.plastimatchProtonDoseEngineName = 'Plastimatch proton'
 
   #------------------------------------------------------------------------------
   def TestSection_01_RetrieveInputData(self):
@@ -110,6 +111,9 @@ class ExternalBeamPlanningTest(unittest.TestCase):
   #------------------------------------------------------------------------------
   def TestSection_1_RunPlastimatchProtonDoseEngine(self):
     logging.info('Test section 1: Run Plastimatch proton dose engine')
+    shn = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
+    print('\n\nZZZZ\n')
+    print(shn)
 
     engineLogic = slicer.qSlicerDoseEngineLogic()
     engineLogic.setMRMLScene(slicer.mrmlScene)
@@ -135,7 +139,7 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     planNode.SetAndObserveOutputTotalDoseVolumeNode(totalDoseVolumeNode);
     planNode.SetTargetSegmentID("Tumor_Contour");
     planNode.SetIsocenterToTargetCenter();
-    planNode.SetDoseEngineName("Plastimatch proton")
+    planNode.SetDoseEngineName(self.plastimatchProtonDoseEngineName)
 
     # Add first beam
     firstBeamNode = engineLogic.createBeamInPlan(planNode)
@@ -147,7 +151,7 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     #TODO: For some reason the instance() function cannot be called as a class function although it's static
     engineHandler = slicer.qSlicerDoseEnginePluginHandler()
     engineHandlerSingleton = engineHandler.instance()
-    plastimatchProtonEngine = engineHandlerSingleton.doseEngineByName('Plastimatch proton')
+    plastimatchProtonEngine = engineHandlerSingleton.doseEngineByName(self.plastimatchProtonDoseEngineName)
     plastimatchProtonEngine.setParameter(firstBeamNode, 'EnergyResolution', 4.0)
     plastimatchProtonEngine.setParameter(firstBeamNode, 'RangeCompensatorSmearingRadius', 0.0)
     plastimatchProtonEngine.setParameter(firstBeamNode, 'ProximalMargin', 0.0)
@@ -178,6 +182,9 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     self.assertTrue(self.isEqualWithTolerance(doseMean, 0.0251127))
     self.assertTrue(self.isEqualWithTolerance(doseStdDev, 0.144932))
     self.assertTrue(self.isEqualWithTolerance(doseVoxelCount, 1000))
+
+    print('\n\nZZZZ\n')
+    print(shn)
 
   #------------------------------------------------------------------------------
   def isEqualWithTolerance(self, a, b):

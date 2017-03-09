@@ -140,12 +140,11 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
   if (caller->IsA("vtkMRMLRTBeamNode"))
   {
     vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(caller);
-    vtkSlicerIECTransformLogic* IECTransformLogic = vtkSlicerIECTransformLogic::New();
-
-    if(event == vtkMRMLRTBeamNode::BeamTransformModified)
+    if (event == vtkMRMLRTBeamNode::BeamTransformModified)
     {
-      IECTransformLogic->SetAndObserveBeamNode(beamNode, event);
-      
+      //TODO: !!! This is not actually an observation, it is a one-time update !!!
+      vtkSmartPointer<vtkSlicerIECTransformLogic> transformLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
+      transformLogic->SetAndObserveBeamNode(beamNode, event);
     }
     else if (event == vtkMRMLRTBeamNode::BeamGeometryModified)
     {
