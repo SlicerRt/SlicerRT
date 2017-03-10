@@ -64,7 +64,7 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
     success = slicer.modules.dicomrtimportexport.logic().LoadDicomRT(vtkLoadable)
     return success
 
-  def examineForExport(self,node):
+  def examineForExport(self,subjectHierarchyItemID):
     """Return a list of DICOMExportable instances that describe the
     available techniques that this plugin offers to convert MRML
     data into DICOM data
@@ -72,20 +72,23 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
     import vtkSlicerRtCommonPython as vtkSlicerRtCommon
     exportable = None
 
+    shn = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
+    dataNode = shn.GetItemDataNode(subjectHierarchyItemID)
+
     # RT dose volume
-    if node.GetAssociatedNode() and vtkSlicerRtCommon.SlicerRtCommon.IsDoseVolumeNode(node.GetAssociatedNode()):
+    if dataNode and vtkSlicerRtCommon.SlicerRtCommon.IsDoseVolumeNode(dataNode):
       exportable = slicer.qSlicerDICOMExportable()
       exportable.confidence = 1.0
       # Define type-specific required tags and default values
       exportable.setTag('Modality', 'RTDOSE')
     # RT structure set
-    elif node.GetAssociatedNode() and node.GetAssociatedNode().IsA('vtkMRMLSegmentationNode'):
+    elif dataNode and dataNode.IsA('vtkMRMLSegmentationNode'):
       exportable = slicer.qSlicerDICOMExportable()
       exportable.confidence = 1.0
       # Define type-specific required tags and default values
       exportable.setTag('Modality', 'RTSTRUCT')
     # Potential anatomical image for an RT study
-    elif node.GetAssociatedNode() and node.GetAssociatedNode().IsA('vtkMRMLScalarVolumeNode'):
+    elif dataNode and dataNode.IsA('vtkMRMLScalarVolumeNode'):
       exportable = slicer.qSlicerDICOMExportable()
       exportable.confidence = 0.3 # Might be some other kind of scalar volume, but also anatomical volume in an RT study
       # Define type-specific required tags and default values
@@ -95,11 +98,11 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
       exportable.setTag('SeriesUID', 'XXXXXXX')
 
     # Node is exportable as RT series
-    if exportable != None:
+    if exportable is not None:
       # Set common properties for RT exportable
       exportable.name = self.loadType
       exportable.tooltip = "Create DICOM files from RT study"
-      exportable.nodeID = node.GetID()
+      exportable.subjectHierarchyItemID = subjectHierarchyItemID
       exportable.pluginClass = self.__module__
       # Define common required tags and default values
       exportable.setTag('SeriesDescription', 'No series description')
