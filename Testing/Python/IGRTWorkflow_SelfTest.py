@@ -100,8 +100,6 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     self.expectedNumOfFilesInDicomDataDir = 142
     self.tempDir = IGRTWorkflow_SelfTestDir + '/Temp'
 
-    self.invalidItemID = slicer.vtkMRMLSubjectHierarchyNode.GetInvalidItemID()
-
     self.day1CTName = '2: ENT IMRT'
     self.day1DoseName = '5: RTDOSE: BRAI1'
     self.day1StructureSetName = '3: RTSTRUCT: ENT'
@@ -302,11 +300,11 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       # Get patient item
       day1CT = slicer.util.getNode(self.day1CTName)
       ct1ShItemID = shNode.GetItemByDataNode(day1CT)
-      self.assertNotEqual( ctVolumeShItemID, self.invalidItemID )
+      self.assertIsNotNone( ct1ShItemID )
       study1ItemID = shNode.GetItemParent(ct1ShItemID)
-      self.assertNotEqual( study1ItemID, self.invalidItemID )
+      self.assertIsNotNone( study1ItemID )
       patientItemID = shNode.GetItemParent(study1ItemID)
-      self.assertNotEqual( patientItemID, self.invalidItemID )
+      self.assertIsNotNone( patientItemID )
       
       # Add new study for the day 2 data
       study2ItemID = shNode.CreateItem(patientItemID, 'Day2', slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelStudy())
@@ -401,7 +399,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
       self.assertIsNotNone( shNode )
       planShItemID = shNode.GetItemByName(self.day1PlanName)
-      self.assertNotEqual( planShItemID, self.invalidItemID )
+      self.assertIsNotNone( planShItemID )
       shNode.SetDisplayVisibilityForBranch(planShItemID, 0)
 
       slicer.util.selectModule('Isodose')
@@ -423,7 +421,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.TestUtility_ShowVolumes(day1CT)
 
       day1IsodoseShItemID = shNode.GetItemByName(self.day1IsodosesName)
-      self.assertNotEqual( day1IsodoseShItemID, self.invalidItemID )
+      self.assertIsNotNone( day1IsodoseShItemID )
       shNode.SetDisplayVisibilityForBranch(day1IsodoseShItemID, 1)
 
       self.delayDisplay('Show day 1 isodose lines',self.delayMs)
@@ -462,7 +460,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.TestUtility_ShowVolumes(day2CT)
 
       day2IsodoseShItemID = shNode.GetItemByName(self.day2IsodosesName)
-      self.assertNotEqual( day2IsodoseShItemID, self.invalidItemID )
+      self.assertIsNotNone( day2IsodoseShItemID )
       shNode.SetDisplayVisibilityForBranch(day2IsodoseShItemID, 1)
       
     except Exception, e:
