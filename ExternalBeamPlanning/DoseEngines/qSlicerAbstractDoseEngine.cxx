@@ -154,10 +154,10 @@ QString qSlicerAbstractDoseEngine::calculateDose(vtkMRMLRTBeamNode* beamNode)
     return errorMessage;
   }
   vtkIdType referenceVolumeShItemID = shNode->GetItemByDataNode(referenceVolumeNode);
-  if (referenceVolumeShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (referenceVolumeShItemID)
   {
     vtkIdType planShItemID = parentPlanNode->GetPlanSubjectHierarchyItemID();
-    if (planShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    if (planShItemID)
     {
       shNode->SetItemParent(planShItemID, shNode->GetItemParent(referenceVolumeShItemID));
     }
@@ -217,7 +217,7 @@ void qSlicerAbstractDoseEngine::addIntermediateResult(vtkMRMLNode* result, vtkMR
 
   // Add result under beam in subject hierarchy
   vtkIdType beamShItemID = shNode->GetItemByDataNode(beamNode);
-  if (beamShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (beamShItemID)
   {
     shNode->CreateItem(beamShItemID, result, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
   }
@@ -269,14 +269,14 @@ void qSlicerAbstractDoseEngine::addResultDose(vtkMRMLScalarVolumeNode* resultDos
 
   // Subject hierarchy related operations
   vtkIdType beamShItemID = shNode->GetItemByDataNode(beamNode);
-  if (beamShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (beamShItemID)
   {
     // Add result under beam in subject hierarchy
     shNode->CreateItem(beamShItemID, resultDose, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
 
     // Set dose unit value to Gy if dose engine did not set it already (potentially to other unit)
     vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(beamShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
-    if (studyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    if (!studyItemID)
     {
       qWarning() << Q_FUNC_INFO << ": Unable to find study item that contains the plan! Creating a study item and adding the reference dose and the plan under it is necessary in order for dose evaluation steps to work properly";
     }

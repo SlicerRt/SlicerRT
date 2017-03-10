@@ -111,7 +111,7 @@ double qSlicerSubjectHierarchyRTPlanPlugin::canAddNodeToSubjectHierarchy(vtkMRML
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyRTPlanPlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
 {
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return 0.0;
@@ -132,7 +132,7 @@ double qSlicerSubjectHierarchyRTPlanPlugin::canOwnSubjectHierarchyItem(vtkIdType
 
   // Isocenter for RT Plan
   QString parentItemName("");
-  if (shNode->GetItemParent(itemID) != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (shNode->GetItemParent(itemID))
   {
     parentItemName = QString(shNode->GetItemName(shNode->GetItemParent(itemID)).c_str());
   }
@@ -157,7 +157,7 @@ QIcon qSlicerSubjectHierarchyRTPlanPlugin::icon(vtkIdType itemID)
 {
   Q_D(qSlicerSubjectHierarchyRTPlanPlugin);
 
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return QIcon();

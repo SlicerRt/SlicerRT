@@ -100,7 +100,7 @@ qSlicerSubjectHierarchyRtImagePlugin::~qSlicerSubjectHierarchyRtImagePlugin()
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
 {
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return 0.0;
@@ -135,7 +135,7 @@ QIcon qSlicerSubjectHierarchyRtImagePlugin::icon(vtkIdType itemID)
 {
   Q_D(qSlicerSubjectHierarchyRtImagePlugin);
 
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return QIcon();
@@ -169,7 +169,7 @@ QIcon qSlicerSubjectHierarchyRtImagePlugin::visibilityIcon(int visible)
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyRtImagePlugin::setDisplayVisibility(vtkIdType itemID, int visible)
 {
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return;
@@ -214,7 +214,7 @@ void qSlicerSubjectHierarchyRtImagePlugin::setDisplayVisibility(vtkIdType itemID
 //---------------------------------------------------------------------------
 int qSlicerSubjectHierarchyRtImagePlugin::getDisplayVisibility(vtkIdType itemID)const
 {
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return -1;

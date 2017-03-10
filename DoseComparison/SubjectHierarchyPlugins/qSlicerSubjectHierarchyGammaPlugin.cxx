@@ -96,7 +96,7 @@ qSlicerSubjectHierarchyGammaPlugin::~qSlicerSubjectHierarchyGammaPlugin()
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyGammaPlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
 {
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return 0.0;
@@ -130,7 +130,7 @@ QIcon qSlicerSubjectHierarchyGammaPlugin::icon(vtkIdType itemID)
 {
   Q_D(qSlicerSubjectHierarchyGammaPlugin);
 
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return QIcon();
@@ -154,7 +154,7 @@ QIcon qSlicerSubjectHierarchyGammaPlugin::visibilityIcon(int visible)
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyGammaPlugin::setDisplayVisibility(vtkIdType itemID, int visible)
 {
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return;
@@ -180,7 +180,7 @@ void qSlicerSubjectHierarchyGammaPlugin::setDisplayVisibility(vtkIdType itemID, 
 //---------------------------------------------------------------------------
 int qSlicerSubjectHierarchyGammaPlugin::getDisplayVisibility(vtkIdType itemID)const
 {
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return -1;

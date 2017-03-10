@@ -114,7 +114,7 @@ qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::~qSlicerSubjectHierarchyDoseVo
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
 {
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return 0.0;
@@ -148,7 +148,7 @@ QIcon qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::icon(vtkIdType itemID)
 {
   Q_D(qSlicerSubjectHierarchyDoseVolumeHistogramPlugin);
 
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return QIcon();
@@ -181,7 +181,7 @@ QIcon qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::visibilityIcon(int visib
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setDisplayVisibility(vtkIdType itemID, int visible)
 {
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return;
@@ -197,7 +197,7 @@ void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setDisplayVisibility(vtkI
   {
     // Get chart for DVH array item
     vtkIdType chartShItemID = this->getChartShItemForDvhArray(itemID);
-    if (chartShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    if (!chartShItemID)
     {
       qCritical() << Q_FUNC_INFO << ": Unable to get chart item for DVH array item";
       return;
@@ -241,7 +241,7 @@ void qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::setDisplayVisibility(vtkI
 //---------------------------------------------------------------------------
 int qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getDisplayVisibility(vtkIdType itemID)const
 {
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return -1;
@@ -257,7 +257,7 @@ int qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getDisplayVisibility(vtkId
   {
     // Get chart for DVH array item
     vtkIdType chartShItemID = this->getChartShItemForDvhArray(itemID);
-    if (chartShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    if (!chartShItemID)
     {
       qCritical() << Q_FUNC_INFO << ": Unable to get chart item for DVH array item";
       return -1;

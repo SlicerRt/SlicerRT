@@ -364,7 +364,7 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
     return markupsNode.GetPointer();
   }
   vtkIdType planShItemID = this->GetPlanSubjectHierarchyItemID();
-  if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!planShItemID)
   {
     vtkErrorMacro("CreateMarkupsFiducialNode: Subject hierarchy item should always exist for RTPlan");
     return markupsNode.GetPointer();

@@ -364,7 +364,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
     // Set input segmentation and reference volume if specified by DICOM
     vtkIdType planShItemID = shNode->GetItemByDataNode(rtPlanNode);
     vtkIdType referencedSegmentationShItemID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
-    if (planShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    if (planShItemID)
     {
       std::vector<vtkIdType> referencedShItemsFromPlan = shNode->GetItemsReferencedFromItemByDICOM(planShItemID);
       for (std::vector<vtkIdType>::iterator refIt=referencedShItemsFromPlan.begin(); refIt!=referencedShItemsFromPlan.end(); ++refIt)
@@ -382,7 +382,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
       }
 
       // Look for the reference anatomical volume too if referenced structure set was found
-      if (referencedSegmentationShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+      if (referencedSegmentationShItemID)
       {
         std::vector<vtkIdType> referencedShItemsFromStructureSet = shNode->GetItemsReferencedFromItemByDICOM(referencedSegmentationShItemID);
         for (std::vector<vtkIdType>::iterator refIt=referencedShItemsFromStructureSet.begin(); refIt!=referencedShItemsFromStructureSet.end(); ++refIt)

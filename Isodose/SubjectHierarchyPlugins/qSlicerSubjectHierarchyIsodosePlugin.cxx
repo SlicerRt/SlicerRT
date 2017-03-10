@@ -101,7 +101,7 @@ qSlicerSubjectHierarchyIsodosePlugin::~qSlicerSubjectHierarchyIsodosePlugin()
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyIsodosePlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
 {
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return 0.0;
@@ -134,7 +134,7 @@ QIcon qSlicerSubjectHierarchyIsodosePlugin::icon(vtkIdType itemID)
 {
   Q_D(qSlicerSubjectHierarchyIsodosePlugin);
 
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return QIcon();

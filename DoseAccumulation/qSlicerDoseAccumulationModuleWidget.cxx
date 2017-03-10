@@ -393,7 +393,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
     // Get dose unit name
     std::string doseUnitName("");
     vtkIdType volumeShItemID = shNode->GetItemByDataNode(volumeNode);
-    if (volumeShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    if (volumeShItemID)
     {
       shNode->GetAttributeFromItemAncestor(volumeShItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
     }

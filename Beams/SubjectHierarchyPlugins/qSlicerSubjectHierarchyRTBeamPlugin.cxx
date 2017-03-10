@@ -109,7 +109,7 @@ double qSlicerSubjectHierarchyRTBeamPlugin::canAddNodeToSubjectHierarchy(
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyRTBeamPlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
 {
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return 0.0;
@@ -142,7 +142,7 @@ QIcon qSlicerSubjectHierarchyRTBeamPlugin::icon(vtkIdType itemID)
 {
   Q_D(qSlicerSubjectHierarchyRTBeamPlugin);
 
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return QIcon();

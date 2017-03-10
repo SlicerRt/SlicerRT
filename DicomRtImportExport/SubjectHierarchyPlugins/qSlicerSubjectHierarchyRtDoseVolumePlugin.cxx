@@ -129,7 +129,7 @@ double qSlicerSubjectHierarchyRtDoseVolumePlugin::canAddNodeToSubjectHierarchy(
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
 {
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return 0.0;
@@ -168,7 +168,7 @@ QIcon qSlicerSubjectHierarchyRtDoseVolumePlugin::icon(vtkIdType itemID)
 {
   Q_D(qSlicerSubjectHierarchyRtDoseVolumePlugin);
 
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return QIcon();
@@ -192,7 +192,7 @@ QIcon qSlicerSubjectHierarchyRtDoseVolumePlugin::visibilityIcon(int visible)
 //---------------------------------------------------------------------------
 void qSlicerSubjectHierarchyRtDoseVolumePlugin::setDisplayVisibility(vtkIdType itemID, int visible)
 {
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return;
@@ -254,7 +254,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::showContextMenuActionsForItem(vt
   Q_D(qSlicerSubjectHierarchyRtDoseVolumePlugin);
   this->hideAllContextMenuActions();
 
-  if (itemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!itemID)
   {
     // There are no scene actions in this plugin
     return;
@@ -286,7 +286,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
     return;
   }
   vtkIdType currentItemID = qSlicerSubjectHierarchyPluginHandler::instance()->currentItem();
-  if (currentItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!currentItemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid current item!";
     return;
@@ -303,7 +303,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
 
   // Get study item
   vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(currentItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
-  if (studyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!studyItemID)
   {
     QString message("The volume must be under a study in order to be converted to dose. Please drag&drop the volume under a study. If there is no study, it can be created under a subject. Consult the help window for more details.");
     qCritical() << Q_FUNC_INFO << ": Failed to find study item among the ancestors of current item '" << shNode->GetItemName(currentItemID).c_str() << "'! " << message;

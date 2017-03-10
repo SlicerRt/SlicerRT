@@ -345,10 +345,10 @@ QString qSlicerDoseEngineLogic::createAccumulatedDose(vtkMRMLRTPlanNode* planNod
 
   // Add total dose volume to subject hierarchy under the study of the reference volume
   vtkIdType referenceVolumeShItemID = shNode->GetItemByDataNode(referenceVolumeNode);
-  if (referenceVolumeShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (referenceVolumeShItemID)
   {
     vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(referenceVolumeShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
-    if (studyItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    if (studyItemID)
     {
       shNode->CreateItem(studyItemID, totalDoseVolumeNode);
     }
