@@ -835,3 +835,20 @@ void qSlicerDoseVolumeHistogramModuleWidget::switchToOneUpQuantitativeLayout()
 {
   qSlicerApplication::application()->layoutManager()->setLayout(vtkMRMLLayoutNode::SlicerLayoutOneUpQuantitativeView);
 }
+
+//-----------------------------------------------------------
+bool qSlicerDoseVolumeHistogramModuleWidget::setEditedNode(
+  vtkMRMLNode* node, QString role /* = QString()*/, QString context /* = QString() */)
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+  Q_UNUSED(role);
+  Q_UNUSED(context);
+
+  if (!SlicerRtCommon::IsDoseVolumeNode(node))
+    {
+    return false;
+    }
+
+  d->MRMLNodeComboBox_DoseVolume->setCurrentNode(node);
+  return true;
+}

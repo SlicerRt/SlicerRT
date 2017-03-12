@@ -92,6 +92,10 @@ public:
 protected slots:
   /// Convert currently selected volume node to RT dose volume. Set dose unit name and value in a pop-up dialog
   void convertCurrentNodeToRtDoseVolume();
+  /// Create isodose surfaces for current item
+  void createIsodoseForCurrentItem();
+  /// Calculate DVH for current item
+  void calculateDvhForCurrentItem();
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyRtDoseVolumePluginPrivate> d_ptr;

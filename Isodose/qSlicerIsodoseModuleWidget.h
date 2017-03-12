@@ -45,6 +45,14 @@ public:
 
   virtual void enter();
 
+  /// Allows other modules to select input and output nodes in the module's GUI.
+  /// There may be multiple node selectors in a module widget, you can select between them
+  /// using the role argument.
+  /// Context can be specified to make a selection within that node (for example, a markup list
+  /// node may contain multiple markups; context can be used to select a specific item).
+  /// Returns true if the selection was successful.
+  virtual bool setEditedNode(vtkMRMLNode* node, QString role = QString(), QString context = QString());
+
 public slots:
   /// Set the current MRML scene to the widget
   virtual void setMRMLScene(vtkMRMLScene*);

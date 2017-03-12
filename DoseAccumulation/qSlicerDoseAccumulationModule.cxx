@@ -23,7 +23,6 @@
 
 // Slicer includes
 #include <qSlicerCoreApplication.h>
-#include <qSlicerModuleManager.h>
 
 // DoseAccumulation Logic includes
 #include <vtkSlicerDoseAccumulationModuleLogic.h>

@@ -779,3 +779,20 @@ void qSlicerIsodoseModuleWidget::updateButtonsState()
                    && paramNode->GetColorTableNode()->GetNumberOfColors() > 0;
   d->pushButton_Apply->setEnabled(applyEnabled);
 }
+
+//-----------------------------------------------------------
+bool qSlicerIsodoseModuleWidget::setEditedNode(
+  vtkMRMLNode* node, QString role /* = QString()*/, QString context /* = QString() */)
+{
+  Q_D(qSlicerIsodoseModuleWidget);
+  Q_UNUSED(role);
+  Q_UNUSED(context);
+
+  if (!SlicerRtCommon::IsDoseVolumeNode(node))
+    {
+    return false;
+    }
+
+  d->MRMLNodeComboBox_DoseVolume->setCurrentNode(node);
+  return true;
+}

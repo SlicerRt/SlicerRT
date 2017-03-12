@@ -21,7 +21,6 @@
 // SlicerRt includes
 #include "SlicerRtCommon.h"
 
-// RTHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyRtDoseVolumePlugin.h"
 
 // SubjectHierarchy MRML includes
@@ -50,6 +49,12 @@
 #include <QInputDialog>
 #include <QMessageBox>
 
+// SlicerQt includes
+#include "qSlicerApplication.h"
+#include "qSlicerAbstractModule.h"
+#include "qSlicerModuleManager.h"
+#include "qSlicerAbstractModuleWidget.h"
+
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RtHierarchy
 class qSlicerSubjectHierarchyRtDoseVolumePluginPrivate: public QObject
@@ -65,6 +70,8 @@ public:
   QIcon DoseVolumeIcon;
 
   QAction* ConvertToRtDoseVolumeAction;
+  QAction* CreateIsodoseAction;
+  QAction* CalculateDvhAction;
 };
 
 //-----------------------------------------------------------------------------
@@ -77,6 +84,8 @@ qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::qSlicerSubjectHierarchyRtDoseV
   this->DoseVolumeIcon = QIcon(":Icons/DoseVolume.png");
 
   this->ConvertToRtDoseVolumeAction = NULL;
+  this->CreateIsodoseAction = NULL;
+  this->CalculateDvhAction = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -102,6 +111,10 @@ void qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::init()
 
   this->ConvertToRtDoseVolumeAction = new QAction("Convert to RT dose volume...",q);
   QObject::connect(this->ConvertToRtDoseVolumeAction, SIGNAL(triggered()), q, SLOT(convertCurrentNodeToRtDoseVolume()));
+  this->CreateIsodoseAction = new QAction("Create isodose surfaces...",q);
+  QObject::connect(this->CreateIsodoseAction, SIGNAL(triggered()), q, SLOT(createIsodoseForCurrentItem()));
+  this->CalculateDvhAction = new QAction("Calculate DVH...",q);
+  QObject::connect(this->CalculateDvhAction, SIGNAL(triggered()), q, SLOT(calculateDvhForCurrentItem()));
 }
 
 //-----------------------------------------------------------------------------
@@ -116,7 +129,7 @@ double qSlicerSubjectHierarchyRtDoseVolumePlugin::canAddNodeToSubjectHierarchy(
   Q_UNUSED(parentItemID);
   if (!node)
     {
-    qCritical() << Q_FUNC_INFO << ": Input node is NULL!";
+    qCritical() << Q_FUNC_INFO << ": Input node is NULL";
     return 0.0;
     }
   else if (SlicerRtCommon::IsDoseVolumeNode(node))
@@ -218,6 +231,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::setDisplayVisibility(vtkIdType i
 //---------------------------------------------------------------------------
 int qSlicerSubjectHierarchyRtDoseVolumePlugin::getDisplayVisibility(vtkIdType itemID)const
 {
+  if (!itemID)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid input item";
     return -1;
@@ -244,7 +258,7 @@ QList<QAction*> qSlicerSubjectHierarchyRtDoseVolumePlugin::itemContextMenuAction
   Q_D(const qSlicerSubjectHierarchyRtDoseVolumePlugin);
 
   QList<QAction*> actions;
-  actions << d->ConvertToRtDoseVolumeAction;
+  actions << d->ConvertToRtDoseVolumeAction << d->CreateIsodoseAction << d->CalculateDvhAction;
   return actions;
 }
 
@@ -274,6 +288,12 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::showContextMenuActionsForItem(vt
   {
     d->ConvertToRtDoseVolumeAction->setVisible(true);
   }
+  // Dose volume
+  else if (this->canOwnSubjectHierarchyItem(itemID))
+  {
+    d->CreateIsodoseAction->setVisible(true);
+    d->CalculateDvhAction->setVisible(true);
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -288,7 +308,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   vtkIdType currentItemID = qSlicerSubjectHierarchyPluginHandler::instance()->currentItem();
   if (!currentItemID)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid current item!";
+    qCritical() << Q_FUNC_INFO << ": Invalid current item";
     return;
   }
 
@@ -297,7 +317,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
     shNode->GetItemDataNode(currentItemID) );
   if (!volumeNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Data node associated to current item '" << shNode->GetItemName(currentItemID).c_str() << "' is not a volume!";
+    qCritical() << Q_FUNC_INFO << ": Data node associated to current item '" << shNode->GetItemName(currentItemID).c_str() << "' is not a volume";
     return;
   }
 
@@ -372,4 +392,98 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   // Set RT dose identifier attribute to data node
   volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
   shNode->ItemModified(currentItemID);
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyRtDoseVolumePlugin::createIsodoseForCurrentItem()
+{
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+  }
+  vtkIdType currentItemID = qSlicerSubjectHierarchyPluginHandler::instance()->currentItem();
+  if (!currentItemID)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid current item";
+    return;
+  }
+
+  // Get associated volume node
+  vtkMRMLNode* node = shNode->GetItemDataNode(currentItemID);
+  if (!SlicerRtCommon::IsDoseVolumeNode(node))
+  {
+    qCritical() << Q_FUNC_INFO << ": Data node associated to current item '" << shNode->GetItemName(currentItemID).c_str() << "' is not a dose volume";
+    return;
+  }
+
+  // Get Isodose module
+  qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module("Isodose");
+  qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
+  if (!moduleWithAction)
+    {
+    qCritical() << Q_FUNC_INFO << ": Failed to get Isodose module";
+    return;
+    }
+  // Select dose volume node in Isodose module
+  qSlicerAbstractModuleRepresentation* widget = moduleWithAction->widgetRepresentation();
+  if (!widget)
+    {
+    qCritical() << Q_FUNC_INFO << ": Failed to get Isodose module widget";
+    return;
+    }
+  if (!widget->setEditedNode(node))
+    {
+    qCritical() << Q_FUNC_INFO << ": Failed to select node " << node->GetName() << " in Isodose module widget";
+    }
+  // Activate module widget
+  moduleWithAction->action()->trigger();
+}
+
+//---------------------------------------------------------------------------
+void qSlicerSubjectHierarchyRtDoseVolumePlugin::calculateDvhForCurrentItem()
+{
+  vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+  }
+  vtkIdType currentItemID = qSlicerSubjectHierarchyPluginHandler::instance()->currentItem();
+  if (!currentItemID)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid current item";
+    return;
+  }
+
+  // Get associated volume node
+  vtkMRMLNode* node = shNode->GetItemDataNode(currentItemID);
+  if (!SlicerRtCommon::IsDoseVolumeNode(node))
+  {
+    qCritical() << Q_FUNC_INFO << ": Data node associated to current item '" << shNode->GetItemName(currentItemID).c_str() << "' is not a dose volume";
+    return;
+  }
+
+  // Get Dose Volume Histogram module
+  qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module("DoseVolumeHistogram");
+  qSlicerAbstractModule* moduleWithAction = qobject_cast<qSlicerAbstractModule*>(module);
+  if (!moduleWithAction)
+    {
+    qCritical() << Q_FUNC_INFO << ": Failed to get Dose Volume Histogram module";
+    return;
+    }
+  // Select dose volume node in Dose Volume Histogram module
+  qSlicerAbstractModuleRepresentation* widget = moduleWithAction->widgetRepresentation();
+  if (!widget)
+    {
+    qCritical() << Q_FUNC_INFO << ": Failed to get Dose Volume Histogram module widget";
+    return;
+    }
+  if (!widget->setEditedNode(node))
+    {
+    qCritical() << Q_FUNC_INFO << ": Failed to select node " << node->GetName() << " in Dose Volume Histogram module widget";
+    }
+  // Activate module widget
+  moduleWithAction->action()->trigger();
 }
