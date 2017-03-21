@@ -353,7 +353,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
 
   // Set RT dose volume properties to study node
   bool setDoseUnitName = true;
-  if (doseUnitName.compare(doseUnitNameInStudy.c_str()))
+  if (!doseUnitNameInStudy.empty() && doseUnitName.compare(doseUnitNameInStudy.c_str()))
   {
     QMessageBox::StandardButton answer =
       QMessageBox::question(NULL, tr("Dose unit name changed"),
@@ -369,9 +369,8 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   {
     shNode->SetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), doseUnitName.toLatin1().constData());
   }
-
   bool setDoseUnitValue = true;
-  if ( fabs(doseUnitValue - defaultDoseUnitValue) > EPSILON*EPSILON )
+  if (!doseUnitNameInStudy.empty() && fabs(doseUnitValue - defaultDoseUnitValue) > EPSILON*EPSILON )
   {
     QMessageBox::StandardButton answer =
       QMessageBox::question(NULL, tr("Dose unit name changed"),
@@ -391,6 +390,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
 
   // Set RT dose identifier attribute to data node
   volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+  shNode->RequestOwnerPluginSearch(currentItemID);
   shNode->ItemModified(currentItemID);
 }
 
