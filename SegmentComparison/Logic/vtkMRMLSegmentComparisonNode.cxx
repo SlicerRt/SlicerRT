@@ -87,20 +87,18 @@ void vtkMRMLSegmentComparisonNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  vtkIndent indent(nIndent);
+  of << " ReferenceSegmentID=\"" << (this->ReferenceSegmentID ? this->ReferenceSegmentID : "NULL") << "\"";
+  of << " CompareSegmentID=\"" << (this->CompareSegmentID ? this->CompareSegmentID : "NULL") << "\"";
 
-  of << indent << " ReferenceSegmentID=\"" << (this->ReferenceSegmentID ? this->ReferenceSegmentID : "NULL") << "\"";
-  of << indent << " CompareSegmentID=\"" << (this->CompareSegmentID ? this->CompareSegmentID : "NULL") << "\"";
-
-  of << indent << " DiceCoefficient=\"" << this->DiceCoefficient << "\"";
-  of << indent << " TruePositivesPercent=\"" << this->TruePositivesPercent << "\"";
-  of << indent << " TrueNegativesPercent=\"" << this->TrueNegativesPercent << "\"";
-  of << indent << " FalsePositivesPercent=\"" << this->FalsePositivesPercent << "\"";
-  of << indent << " FalseNegativesPercent=\"" << this->FalseNegativesPercent << "\"";
+  of << " DiceCoefficient=\"" << this->DiceCoefficient << "\"";
+  of << " TruePositivesPercent=\"" << this->TruePositivesPercent << "\"";
+  of << " TrueNegativesPercent=\"" << this->TrueNegativesPercent << "\"";
+  of << " FalsePositivesPercent=\"" << this->FalsePositivesPercent << "\"";
+  of << " FalseNegativesPercent=\"" << this->FalseNegativesPercent << "\"";
 
   {
     std::stringstream ss;
-    of << indent << " ReferenceCenter=\"";
+    of << " ReferenceCenter=\"";
     for (int i=0; i<3; ++i)
     {
       ss << this->ReferenceCenter[i];
@@ -110,7 +108,7 @@ void vtkMRMLSegmentComparisonNode::WriteXML(ostream& of, int nIndent)
   }
   {
     std::stringstream ss;
-    of << indent << " CompareCenter=\"";
+    of << " CompareCenter=\"";
     for (int i=0; i<3; ++i)
     {
       ss << this->CompareCenter[i];
@@ -119,19 +117,19 @@ void vtkMRMLSegmentComparisonNode::WriteXML(ostream& of, int nIndent)
     of << "\"";
   }
 
-  of << indent << " ReferenceVolumeCc=\"" << this->ReferenceVolumeCc << "\"";
-  of << indent << " CompareVolumeCc=\"" << this->CompareVolumeCc << "\"";
+  of << " ReferenceVolumeCc=\"" << this->ReferenceVolumeCc << "\"";
+  of << " CompareVolumeCc=\"" << this->CompareVolumeCc << "\"";
 
-  of << indent << " DiceResultsValid=\"" << (this->DiceResultsValid ? "true" : "false") << "\"";
+  of << " DiceResultsValid=\"" << (this->DiceResultsValid ? "true" : "false") << "\"";
 
-  of << indent << " MaximumHausdorffDistanceForVolumeMm=\"" << this->MaximumHausdorffDistanceForVolumeMm << "\"";
-  of << indent << " MaximumHausdorffDistanceForBoundaryMm=\"" << this->MaximumHausdorffDistanceForBoundaryMm << "\"";
-  of << indent << " AverageHausdorffDistanceForVolumeMm=\"" << this->AverageHausdorffDistanceForVolumeMm << "\"";
-  of << indent << " AverageHausdorffDistanceForBoundaryMm=\"" << this->AverageHausdorffDistanceForBoundaryMm << "\"";
-  of << indent << " Percent95HausdorffDistanceForVolumeMm=\"" << this->Percent95HausdorffDistanceForVolumeMm << "\"";
-  of << indent << " Percent95HausdorffDistanceForBoundaryMm=\"" << this->Percent95HausdorffDistanceForBoundaryMm << "\"";
+  of << " MaximumHausdorffDistanceForVolumeMm=\"" << this->MaximumHausdorffDistanceForVolumeMm << "\"";
+  of << " MaximumHausdorffDistanceForBoundaryMm=\"" << this->MaximumHausdorffDistanceForBoundaryMm << "\"";
+  of << " AverageHausdorffDistanceForVolumeMm=\"" << this->AverageHausdorffDistanceForVolumeMm << "\"";
+  of << " AverageHausdorffDistanceForBoundaryMm=\"" << this->AverageHausdorffDistanceForBoundaryMm << "\"";
+  of << " Percent95HausdorffDistanceForVolumeMm=\"" << this->Percent95HausdorffDistanceForVolumeMm << "\"";
+  of << " Percent95HausdorffDistanceForBoundaryMm=\"" << this->Percent95HausdorffDistanceForBoundaryMm << "\"";
 
-  of << indent << " HausdorffResultsValid=\"" << (this->HausdorffResultsValid ? "true" : "false") << "\"";
+  of << " HausdorffResultsValid=\"" << (this->HausdorffResultsValid ? "true" : "false") << "\"";
 }
 
 //----------------------------------------------------------------------------

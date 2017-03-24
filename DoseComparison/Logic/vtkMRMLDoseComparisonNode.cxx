@@ -74,21 +74,19 @@ void vtkMRMLDoseComparisonNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  vtkIndent indent(nIndent);
-
-  of << indent << " MaskSegmentID=\"" << (this->MaskSegmentID ? this->MaskSegmentID : "NULL") << "\"";
-  of << indent << " DtaDistanceToleranceMm=\"" << this->DtaDistanceToleranceMm << "\"";
-  of << indent << " DoseDifferenceTolerancePercent=\"" << this->DoseDifferenceTolerancePercent << "\"";
-  of << indent << " ReferenceDoseGy=\"" << this->ReferenceDoseGy << "\"";
-  of << indent << " AnalysisThresholdPercent=\"" << this->AnalysisThresholdPercent << "\"";
-  of << indent << " MaximumGamma=\"" << this->MaximumGamma << "\"";
-  of << indent << " UseMaximumDose=\"" << (this->UseMaximumDose ? "true" : "false") << "\"";
-  of << indent << " UseLinearInterpolation=\"" << (this->UseLinearInterpolation ? "true" : "false") << "\"";
-  of << indent << " LocalDoseDifference=\"" << (this->LocalDoseDifference ? "true" : "false") << "\"";
-  of << indent << " DoseThresholdOnReferenceOnly=\"" << (this->DoseThresholdOnReferenceOnly ? "true" : "false") << "\"";
-  of << indent << " PassFractionPercent=\"" << this->PassFractionPercent << "\"";
-  of << indent << " ResultsValid=\"" << (this->ResultsValid ? "true" : "false") << "\"";
-  of << indent << " ReportString=\"" << (this->ReportString ? this->ReportString : "") << "\"";
+  of << " MaskSegmentID=\"" << (this->MaskSegmentID ? this->MaskSegmentID : "NULL") << "\"";
+  of << " DtaDistanceToleranceMm=\"" << this->DtaDistanceToleranceMm << "\"";
+  of << " DoseDifferenceTolerancePercent=\"" << this->DoseDifferenceTolerancePercent << "\"";
+  of << " ReferenceDoseGy=\"" << this->ReferenceDoseGy << "\"";
+  of << " AnalysisThresholdPercent=\"" << this->AnalysisThresholdPercent << "\"";
+  of << " MaximumGamma=\"" << this->MaximumGamma << "\"";
+  of << " UseMaximumDose=\"" << (this->UseMaximumDose ? "true" : "false") << "\"";
+  of << " UseLinearInterpolation=\"" << (this->UseLinearInterpolation ? "true" : "false") << "\"";
+  of << " LocalDoseDifference=\"" << (this->LocalDoseDifference ? "true" : "false") << "\"";
+  of << " DoseThresholdOnReferenceOnly=\"" << (this->DoseThresholdOnReferenceOnly ? "true" : "false") << "\"";
+  of << " PassFractionPercent=\"" << this->PassFractionPercent << "\"";
+  of << " ResultsValid=\"" << (this->ResultsValid ? "true" : "false") << "\"";
+  of << " ReportString=\"" << (this->ReportString ? this->ReportString : "") << "\"";
 }
 
 //----------------------------------------------------------------------------

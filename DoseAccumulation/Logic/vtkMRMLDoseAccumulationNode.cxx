@@ -61,12 +61,10 @@ void vtkMRMLDoseAccumulationNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  vtkIndent indent(nIndent);
-
-  of << indent << " ShowDoseVolumesOnly=\"" << (this->ShowDoseVolumesOnly ? "true" : "false") << "\"";
+  of << " ShowDoseVolumesOnly=\"" << (this->ShowDoseVolumesOnly ? "true" : "false") << "\"";
 
   {
-    of << indent << " VolumeNodeIdsToWeightsMap=\"";
+    of << " VolumeNodeIdsToWeightsMap=\"";
     for (std::map<std::string,double>::iterator it = this->VolumeNodeIdsToWeightsMap.begin(); it != this->VolumeNodeIdsToWeightsMap.end(); ++it)
       {
       of << it->first << ":" << it->second << "|";

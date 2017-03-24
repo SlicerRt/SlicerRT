@@ -86,21 +86,19 @@ void vtkMRMLRTBeamNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  vtkIndent indent(nIndent);
+  of << " BeamNumber=\"" << this->BeamNumber << "\"";
+  of << " BeamDescription=\"" << (this->BeamDescription ? BeamDescription : "") << "\"";
+  of << " BeamWeight=\"" << this->BeamWeight << "\"";
 
-  of << indent << " BeamNumber=\"" << this->BeamNumber << "\"";
-  of << indent << " BeamDescription=\"" << (this->BeamDescription ? BeamDescription : "") << "\"";
-  of << indent << " BeamWeight=\"" << this->BeamWeight << "\"";
+  of << " X1Jaw=\"" << this->X1Jaw << "\"";
+  of << " X2Jaw=\"" << this->X2Jaw << "\"";
+  of << " Y1Jaw=\"" << this->Y1Jaw << "\"";
+  of << " Y2Jaw=\"" << this->Y2Jaw << "\"";
+  of << " SAD=\"" << this->SAD << "\"";
 
-  of << indent << " X1Jaw=\"" << this->X1Jaw << "\"";
-  of << indent << " X2Jaw=\"" << this->X2Jaw << "\"";
-  of << indent << " Y1Jaw=\"" << this->Y1Jaw << "\"";
-  of << indent << " Y2Jaw=\"" << this->Y2Jaw << "\"";
-  of << indent << " SAD=\"" << this->SAD << "\"";
-
-  of << indent << " GantryAngle=\"" << this->GantryAngle << "\"";
-  of << indent << " CollimatorAngle=\"" << this->CollimatorAngle << "\"";
-  of << indent << " CouchAngle=\"" << this->CouchAngle << "\"";
+  of << " GantryAngle=\"" << this->GantryAngle << "\"";
+  of << " CollimatorAngle=\"" << this->CollimatorAngle << "\"";
+  of << " CouchAngle=\"" << this->CouchAngle << "\"";
 }
 
 //----------------------------------------------------------------------------

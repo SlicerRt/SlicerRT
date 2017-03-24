@@ -69,15 +69,13 @@ void vtkMRMLSegmentMorphologyNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  vtkIndent indent(nIndent);
+  of << " SegmentAID=\"" << (this->SegmentAID ? this->SegmentAID : "NULL") << "\"";
+  of << " SegmentBID=\"" << (this->SegmentBID ? this->SegmentBID : "NULL") << "\"";
 
-  of << indent << " SegmentAID=\"" << (this->SegmentAID ? this->SegmentAID : "NULL") << "\"";
-  of << indent << " SegmentBID=\"" << (this->SegmentBID ? this->SegmentBID : "NULL") << "\"";
-
-  of << indent << " Operation=\"" << (this->Operation) << "\"";
-  of << indent << " XSize=\"" << (this->XSize) << "\"";
-  of << indent << " YSize=\"" << (this->YSize) << "\"";
-  of << indent << " ZSize=\"" << (this->ZSize) << "\"";
+  of << " Operation=\"" << (this->Operation) << "\"";
+  of << " XSize=\"" << (this->XSize) << "\"";
+  of << " YSize=\"" << (this->YSize) << "\"";
+  of << " ZSize=\"" << (this->ZSize) << "\"";
 }
 
 //----------------------------------------------------------------------------

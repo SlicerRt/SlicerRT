@@ -88,16 +88,14 @@ void vtkMRMLRoomsEyeViewNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  vtkIndent indent(nIndent);
-
-  of << indent << " GantryRotationAngle=\"" << this->GantryRotationAngle << "\"";
-  of << indent << " CollimatorRotationAngle=\"" << this->CollimatorRotationAngle << "\"";
-  of << indent << " ImagingPanelMovement=\"" << this->ImagingPanelMovement << "\"";
-  of << indent << " PatientSupportRotationAngle=\"" << this->PatientSupportRotationAngle << "\"";
-  of << indent << " VerticalTableTopDisplacement=\"" << this->VerticalTableTopDisplacement << "\"";
-  of << indent << " LongitudinalTableTopDisplacement=\"" << this->LongitudinalTableTopDisplacement << "\"";
-  of << indent << " LateralTableTopDisplacement=\"" << this->LateralTableTopDisplacement << "\"";
-  of << indent << " PatientBodySegmentID=\"" << (this->PatientBodySegmentID ? this->PatientBodySegmentID : "NULL") << "\"";
+  of << " GantryRotationAngle=\"" << this->GantryRotationAngle << "\"";
+  of << " CollimatorRotationAngle=\"" << this->CollimatorRotationAngle << "\"";
+  of << " ImagingPanelMovement=\"" << this->ImagingPanelMovement << "\"";
+  of << " PatientSupportRotationAngle=\"" << this->PatientSupportRotationAngle << "\"";
+  of << " VerticalTableTopDisplacement=\"" << this->VerticalTableTopDisplacement << "\"";
+  of << " LongitudinalTableTopDisplacement=\"" << this->LongitudinalTableTopDisplacement << "\"";
+  of << " LateralTableTopDisplacement=\"" << this->LateralTableTopDisplacement << "\"";
+  of << " PatientBodySegmentID=\"" << (this->PatientBodySegmentID ? this->PatientBodySegmentID : "NULL") << "\"";
 }
 
 //----------------------------------------------------------------------------

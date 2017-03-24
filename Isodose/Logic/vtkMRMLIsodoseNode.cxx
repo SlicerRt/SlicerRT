@@ -64,11 +64,9 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  vtkIndent indent(nIndent);
-
-  of << indent << " ShowIsodoseLines=\"" << (this->ShowIsodoseLines ? "true" : "false") << "\"";
-  of << indent << " ShowIsodoseSurfaces=\"" << (this->ShowIsodoseSurfaces ? "true" : "false") << "\"";
-  of << indent << " ShowScalarBar=\"" << (this->ShowScalarBar ? "true" : "false") << "\"";
+  of << " ShowIsodoseLines=\"" << (this->ShowIsodoseLines ? "true" : "false") << "\"";
+  of << " ShowIsodoseSurfaces=\"" << (this->ShowIsodoseSurfaces ? "true" : "false") << "\"";
+  of << " ShowScalarBar=\"" << (this->ShowScalarBar ? "true" : "false") << "\"";
 }
 
 //----------------------------------------------------------------------------

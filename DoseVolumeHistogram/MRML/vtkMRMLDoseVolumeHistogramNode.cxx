@@ -83,27 +83,25 @@ void vtkMRMLDoseVolumeHistogramNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  vtkIndent indent(nIndent);
-
-  of << indent << " SelectedSegmentIDs=\"";
+  of << " SelectedSegmentIDs=\"";
   for (std::vector<std::string>::iterator it = this->SelectedSegmentIDs.begin(); it != this->SelectedSegmentIDs.end(); ++it)
     {
     of << (*it) << "|";
     }
   of << "\"";
 
-  of << indent << " ShowHideAll=\"" << this->ShowHideAll << "\"";
+  of << " ShowHideAll=\"" << this->ShowHideAll << "\"";
 
-  of << indent << " VDoseValues=\"" << (this->VDoseValues ? this->VDoseValues : "") << "\"";
-  of << indent << " ShowVMetricsCc=\"" << (this->ShowVMetricsCc ? "true" : "false") << "\"";
-  of << indent << " ShowVMetricsPercent=\"" << (this->ShowVMetricsPercent ? "true" : "false") << "\"";
+  of << " VDoseValues=\"" << (this->VDoseValues ? this->VDoseValues : "") << "\"";
+  of << " ShowVMetricsCc=\"" << (this->ShowVMetricsCc ? "true" : "false") << "\"";
+  of << " ShowVMetricsPercent=\"" << (this->ShowVMetricsPercent ? "true" : "false") << "\"";
 
-  of << indent << " DVolumeValuesCc=\"" << (this->DVolumeValuesCc ? this->DVolumeValuesCc : "") << "\"";
-  of << indent << " DVolumeValuesPercent=\"" << (this->DVolumeValuesPercent ? this->DVolumeValuesPercent : "") << "\"";
-  of << indent << " ShowDMetrics=\"" << (this->ShowDMetrics ? "true" : "false") << "\"";
+  of << " DVolumeValuesCc=\"" << (this->DVolumeValuesCc ? this->DVolumeValuesCc : "") << "\"";
+  of << " DVolumeValuesPercent=\"" << (this->DVolumeValuesPercent ? this->DVolumeValuesPercent : "") << "\"";
+  of << " ShowDMetrics=\"" << (this->ShowDMetrics ? "true" : "false") << "\"";
 
-  of << indent << " ShowDoseVolumesOnly=\"" << (this->ShowDoseVolumesOnly ? "true" : "false") << "\"";
-  of << indent << " AutomaticOversampling=\"" << (this->AutomaticOversampling ? "true" : "false") << "\"";
+  of << " ShowDoseVolumesOnly=\"" << (this->ShowDoseVolumesOnly ? "true" : "false") << "\"";
+  of << " AutomaticOversampling=\"" << (this->AutomaticOversampling ? "true" : "false") << "\"";
 }
 
 //----------------------------------------------------------------------------

@@ -90,22 +90,20 @@ void vtkMRMLRTPlanNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  vtkIndent indent(nIndent);
-
   if (this->TargetSegmentID != NULL) 
   {
-    of << indent << " TargetSegmentID=\"" << this->TargetSegmentID << "\"";
+    of << " TargetSegmentID=\"" << this->TargetSegmentID << "\"";
   }
   if (this->DoseEngineName != NULL) 
   {
-    of << indent << " DoseEngineName=\"" << this->DoseEngineName << "\"";
+    of << " DoseEngineName=\"" << this->DoseEngineName << "\"";
   }
 
-  of << indent << " NextBeamNumber=\"" << (this->NextBeamNumber) << "\"";
+  of << " NextBeamNumber=\"" << (this->NextBeamNumber) << "\"";
 
-  of << indent << " RxDose=\"" << (this->RxDose) << "\"";
+  of << " RxDose=\"" << (this->RxDose) << "\"";
 
-  of << indent << " IsocenterSpecification=\"" << (int)(this->IsocenterSpecification) << "\"";
+  of << " IsocenterSpecification=\"" << (int)(this->IsocenterSpecification) << "\"";
 }
 
 //----------------------------------------------------------------------------
