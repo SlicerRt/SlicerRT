@@ -398,7 +398,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       # Hide beams
       shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
       self.assertIsNotNone( shNode )
-      planShItemID = shNode.GetItemByName(self.day1PlanName)
+      planShItemID = shNode.GetItemByDataNode(slicer.util.getNode(self.day1PlanName))
       self.assertIsNotNone( planShItemID )
       shNode.SetDisplayVisibilityForBranch(planShItemID, 0)
 
@@ -420,7 +420,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       day1CT = slicer.util.getNode(self.day1CTName)
       self.TestUtility_ShowVolumes(day1CT)
 
-      day1IsodoseShItemID = shNode.GetItemByName(self.day1IsodosesName)
+      day1IsodoseShItemID = shNode.GetItemByDataNode(slicer.util.getNode(self.day1IsodosesName))
       self.assertIsNotNone( day1IsodoseShItemID )
       shNode.SetDisplayVisibilityForBranch(day1IsodoseShItemID, 1)
 
@@ -453,13 +453,15 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.assertEqual( slicer.mrmlScene.GetNodesByClass('vtkMRMLModelNode').GetNumberOfItems(), numOfModelNodesBeforeLoad + 6 )
 
       # Show day 2 isodose
-      day1IsodoseShItemID = shNode.GetItemByName(self.day1IsodosesName)
+      shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
+      self.assertIsNotNone( shNode )
+      day1IsodoseShItemID = shNode.GetItemByDataNode(slicer.util.getNode(self.day1IsodosesName))
       shNode.SetDisplayVisibilityForBranch(day1IsodoseShItemID, 0)
 
       day2CT = slicer.util.getNode(self.day2CTName)
       self.TestUtility_ShowVolumes(day2CT)
 
-      day2IsodoseShItemID = shNode.GetItemByName(self.day2IsodosesName)
+      day2IsodoseShItemID = shNode.GetItemByDataNode(slicer.util.getNode(self.day2IsodosesName))
       self.assertIsNotNone( day2IsodoseShItemID )
       shNode.SetDisplayVisibilityForBranch(day2IsodoseShItemID, 1)
       
@@ -477,7 +479,9 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       brainsFit = slicer.modules.brainsfit
 
       # Hide isodose
-      day2IsodoseShItemID = shNode.GetItemByName(self.day2IsodosesName)
+      shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
+      self.assertIsNotNone( shNode )
+      day2IsodoseShItemID = shNode.GetItemByDataNode(slicer.util.getNode(self.day2IsodosesName))
       shNode.SetDisplayVisibilityForBranch(day2IsodoseShItemID, 0)
 
       # Register Day 2 CT to Day 1 CT using rigid registration
@@ -549,7 +553,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
       self.assertIsNotNone( shNode )
 
-      day2DoseShItemID = shNode.GetItemByName(self.day2DoseName)
+      day2DoseShItemID = shNode.GetItemByDataNode(slicer.util.getNode(self.day2DoseName))
       day2DoseCloneShItemID = slicer.vtkSlicerSubjectHierarchyModuleLogic.CloneSubjectHierarchyItem(shNode, day2DoseShItemID, self.day2DoseRigidName)
       transformDay2ToDay1Rigid = slicer.util.getNode(self.transformDay2ToDay1RigidName)
       slicer.vtkSlicerSubjectHierarchyModuleLogic.TransformBranch(shNode, day2DoseCloneShItemID, transformDay2ToDay1Rigid)

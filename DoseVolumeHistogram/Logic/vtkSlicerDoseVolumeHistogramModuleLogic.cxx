@@ -1077,7 +1077,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeVMetrics(vtkMRMLDoseVolumeH
   }
 
   // Get V metric dose values from input string
-  std::string doseValuesStr(parameterNode->GetVDoseValues());
+  std::string doseValuesStr(parameterNode->GetVDoseValues()?parameterNode->GetVDoseValues():"");
   std::vector<double> doseValues;
   this->GetNumbersFromMetricString(doseValuesStr, doseValues);
 
@@ -1267,12 +1267,12 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDMetrics(vtkMRMLDoseVolumeH
   std::vector<double> volumeValuesPercent;
   if (parameterNode->GetDVolumeValuesCc())
   {
-    std::string volumeValuesCcStr(parameterNode->GetDVolumeValuesCc());
+    std::string volumeValuesCcStr(parameterNode->GetDVolumeValuesCc()?parameterNode->GetDVolumeValuesCc():"");
     this->GetNumbersFromMetricString(volumeValuesCcStr, volumeValuesCc);
   }
   if (parameterNode->GetDVolumeValuesPercent())
   {
-    std::string volumeValuesPercentStr(parameterNode->GetDVolumeValuesPercent());
+    std::string volumeValuesPercentStr(parameterNode->GetDVolumeValuesPercent()?parameterNode->GetDVolumeValuesPercent():"");
     this->GetNumbersFromMetricString(volumeValuesPercentStr, volumeValuesPercent);
   }
 

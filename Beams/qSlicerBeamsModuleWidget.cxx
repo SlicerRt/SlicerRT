@@ -318,5 +318,5 @@ double qSlicerBeamsModuleWidget::nodeEditable(vtkMRMLNode* node)
     return 0.6;
   }
 
-  return 0.5;
-} 
+  return 0.0;
+}
