@@ -266,18 +266,18 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
     int algorithm = this->integerParameter(beamNode, "Algorithm");
     switch(algorithm)
     {
-      case 1: // Cartesian geometry dose summation
-        rt_beam->set_flavor('f');
-        break;
-      case 2: // Divergent geometry dose summation
-        rt_beam->set_flavor('g');
-        break;
-      case 3: // Hong geometry dose summation
-        rt_beam->set_flavor('h');
-        break;
-      default: // Ray tracer
-        rt_beam->set_flavor('a');
-        break;
+    case 1: // Cartesian geometry dose summation
+      rt_beam->set_flavor('f');
+      break;
+    case 2: // Divergent geometry dose summation
+      rt_beam->set_flavor('g');
+      break;
+    case 3: // Hong geometry dose summation
+      rt_beam->set_flavor('h');
+      break;
+    default: // Ray tracer
+      rt_beam->set_flavor('a');
+      break;
     }
     std::cout << "Algorithm Flavor = " << rt_beam->get_flavor() << std::endl;
 
@@ -482,16 +482,24 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
     if (rt_beam->get_beam_line_type() != "passive")
     {
       // Active
-      rt_beam->get_mebs()->compute_particle_number_matrix_from_target_active_slicerRt(rt_beam->rpl_vol, targetPlmVolume, rt_beam->get_smearing());
+      rt_beam->get_mebs()->compute_particle_number_matrix_from_target_active (
+        rt_beam->rpl_vol, targetPlmVolume, rt_beam->get_smearing());
     }
     else
     {
       // Passive
-      rt_beam->rpl_vol->compute_beam_modifiers_passive_scattering_slicerRt (targetPlmVolume, rt_beam->get_smearing(), rt_beam->get_mebs()->get_proximal_margin(), rt_beam->get_mebs()->get_distal_margin());
-      rt_beam->get_mebs()->set_prescription_depths(rt_beam->rpl_vol->get_min_wed(), rt_beam->rpl_vol->get_max_wed());
+      rt_beam->rpl_vol->compute_beam_modifiers_passive_scattering (
+        targetPlmVolume->get_vol(), rt_beam->get_smearing(),
+        rt_beam->get_mebs()->get_proximal_margin(),
+        rt_beam->get_mebs()->get_distal_margin());
+      rt_beam->get_mebs()->set_prescription_depths (
+        rt_beam->rpl_vol->get_min_wed(), rt_beam->rpl_vol->get_max_wed());
       rt_beam->rpl_vol->apply_beam_modifiers();
       rt_beam->get_mebs()->optimize_sobp();
-      int ap_dim[2] = {rt_beam->rpl_vol->get_aperture()->get_dim()[0], rt_beam->rpl_vol->get_aperture()->get_dim()[1]};
+      int ap_dim[2] = {
+        rt_beam->rpl_vol->get_aperture()->get_dim()[0],
+        rt_beam->rpl_vol->get_aperture()->get_dim()[1]
+      };
       rt_beam->get_mebs()->generate_part_num_from_weight(ap_dim);
     }
 
