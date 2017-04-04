@@ -307,7 +307,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.assertIsNotNone( patientItemID )
       
       # Add new study for the day 2 data
-      study2ItemID = shNode.CreateItem(patientItemID, 'Day2', slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMLevelStudy())
+      study2ItemID = shNode.CreateStudyItem(patientItemID, 'Day2')
       shNode.SetItemUID(study2ItemID, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMUIDName(), 'Day2Study_UID')
       
       # Add dose unit attributes to the new study item

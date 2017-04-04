@@ -136,8 +136,7 @@ double qSlicerSubjectHierarchyRTPlanPlugin::canOwnSubjectHierarchyItem(vtkIdType
   {
     parentItemName = QString(shNode->GetItemName(shNode->GetItemParent(itemID)).c_str());
   }
-  if ( shNode->IsItemLevel(itemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries())
-    && associatedNode && associatedNode->IsA("vtkMRMLMarkupsFiducialNode")
+  if ( associatedNode && associatedNode->IsA("vtkMRMLMarkupsFiducialNode")
     && parentItemName.contains(SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX.c_str()) )
   {
     return 1.0;

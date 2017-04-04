@@ -482,8 +482,8 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   // Remove previous isodoses
   shNode->RemoveItemChildren(doseShItemID, true, false);
   // Setup subject hierarchy item for the isodose surfaces
-  vtkIdType rootHierarchyShItemID = shNode->CreateItem(
-    doseShItemID, rootModelHierarchyNode, vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder() );
+  vtkIdType rootHierarchyShItemID = shNode->CreateItem(doseShItemID, rootModelHierarchyNode);
+  shNode->SetItemLevel(rootHierarchyShItemID, vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder());
 
   // Get color table
   vtkMRMLColorTableNode* colorTableNode = parameterNode->GetColorTableNode();
@@ -620,7 +620,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
 
       // Put the new node in the proper subject hierarchy branch
       std::string isodoseShItemName = strIsoLevel + doseUnitName;
-      shNode->CreateItem(rootHierarchyShItemID, isodoseModelNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
+      shNode->CreateItem(rootHierarchyShItemID, isodoseModelNode);
     }
 
     // Report progress

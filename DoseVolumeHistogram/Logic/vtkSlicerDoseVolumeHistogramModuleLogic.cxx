@@ -727,16 +727,16 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     return errorMessage;
   }
   vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
-  vtkIdType dvhShItemID = shNode->CreateItem(doseShItemID, arrayNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
+  vtkIdType dvhShItemID = shNode->CreateItem(doseShItemID, arrayNode);
 
   // Add metrics table and chart to under the study of the dose in subject hierarchy
   vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(doseShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
   if (studyItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    shNode->CreateItem(studyItemID, metricsTableNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
+    shNode->CreateItem(studyItemID, metricsTableNode);
 
     vtkMRMLChartNode* chartNode = parameterNode->GetChartNode();
-    shNode->CreateItem(studyItemID, chartNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
+    shNode->CreateItem(studyItemID, chartNode);
   }
 
   // Add connection attribute to input segmentation and dose volume nodes

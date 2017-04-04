@@ -374,6 +374,6 @@ vtkIdType qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getChartShItemForDvh
   }
 
   // Get chart subject hierarchy item (at the same time make sure the chart is in the proper branch)
-  vtkIdType seriesItemID = shNode->GetItemAncestorAtLevel(dvhArrayShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries());
-  return shNode->CreateItem(seriesItemID, chartNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
+  vtkIdType seriesItemID = shNode->GetItemParent(dvhArrayShItemID);
+  return shNode->CreateItem(seriesItemID, chartNode);
 }

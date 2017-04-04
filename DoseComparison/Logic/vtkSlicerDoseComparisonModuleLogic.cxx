@@ -338,7 +338,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
   }
 
   // Setup gamma volume subject hierarchy item
-  shNode->CreateItem(commonAncestorItemID, gammaVolumeNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
+  shNode->CreateItem(commonAncestorItemID, gammaVolumeNode);
 
   // Add connection attribute to input dose volume nodes
   gammaVolumeNode->AddNodeReferenceID( vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_REFERENCE_DOSE_VOLUME_REFERENCE_ROLE.c_str(), 

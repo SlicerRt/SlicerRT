@@ -864,8 +864,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
         std::string fiducialsSeriesName(seriesName);
         fiducialsSeriesName.append(SlicerRtCommon::DICOMRTIMPORT_FIDUCIALS_HIERARCHY_NODE_NAME_POSTFIX);
         fiducialsSeriesName = scene->GenerateUniqueName(fiducialsSeriesName);
-        fiducialSeriesShItemID = shNode->CreateItem(
-          shNode->GetSceneItemID(), fiducialsSeriesName, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSeries() );
+        fiducialSeriesShItemID = shNode->CreateFolderItem(shNode->GetSceneItemID(), fiducialsSeriesName);
         shNode->SetItemUID(fiducialSeriesShItemID,
           vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetSeriesInstanceUid() );
       }
@@ -874,8 +873,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
       vtkMRMLDisplayableNode* fiducialNode = this->AddRoiPoint(roiPolyData->GetPoint(0), roiLabel, roiColor);
 
       // Setup subject hierarchy entry for the ROI
-      vtkIdType fiducialShItemID = shNode->CreateItem(
-        fiducialSeriesShItemID, fiducialNode, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries() );
+      vtkIdType fiducialShItemID = shNode->CreateItem(fiducialSeriesShItemID, fiducialNode);
       shNode->SetItemAttribute(fiducialShItemID, SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME, roiReferencedSeriesUid);
     }
     //

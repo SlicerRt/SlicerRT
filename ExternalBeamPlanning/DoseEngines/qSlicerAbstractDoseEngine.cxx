@@ -219,7 +219,7 @@ void qSlicerAbstractDoseEngine::addIntermediateResult(vtkMRMLNode* result, vtkMR
   vtkIdType beamShItemID = shNode->GetItemByDataNode(beamNode);
   if (beamShItemID)
   {
-    shNode->CreateItem(beamShItemID, result, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
+    shNode->CreateItem(beamShItemID, result);
   }
 }
 
@@ -272,7 +272,7 @@ void qSlicerAbstractDoseEngine::addResultDose(vtkMRMLScalarVolumeNode* resultDos
   if (beamShItemID)
   {
     // Add result under beam in subject hierarchy
-    shNode->CreateItem(beamShItemID, resultDose, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelSubseries());
+    shNode->CreateItem(beamShItemID, resultDose);
 
     // Set dose unit value to Gy if dose engine did not set it already (potentially to other unit)
     vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(beamShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
