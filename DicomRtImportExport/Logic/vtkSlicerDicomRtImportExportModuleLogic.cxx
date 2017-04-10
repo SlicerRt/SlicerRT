@@ -2050,7 +2050,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
         // Create planar contours from closed surface based on each of the anatomical image slices
         int imageExtent[6] = {0,-1,0,-1,0,-1};
         imageOrientedImageData->GetExtent(imageExtent);
-        for (int slice=imageExtent[0]; slice<imageExtent[1]; ++slice)
+        for (int slice=imageExtent[4]; slice<imageExtent[5]; ++slice)
         {
           // Calculate slice origin
           double origin[3] = { imageToWorldMatrix->GetElement(0,3) + slice*normal[0],
