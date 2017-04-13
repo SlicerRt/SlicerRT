@@ -81,6 +81,9 @@ qSlicerSubjectHierarchyGammaPluginPrivate::~qSlicerSubjectHierarchyGammaPluginPr
 }
 
 //-----------------------------------------------------------------------------
+// qSlicerSubjectHierarchyGammaPlugin methods
+
+//-----------------------------------------------------------------------------
 qSlicerSubjectHierarchyGammaPlugin::qSlicerSubjectHierarchyGammaPlugin(QObject* parent)
  : Superclass(parent)
  , d_ptr( new qSlicerSubjectHierarchyGammaPluginPrivate(*this) )

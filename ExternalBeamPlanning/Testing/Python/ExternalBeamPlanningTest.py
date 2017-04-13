@@ -23,6 +23,7 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     """Run as few or as many tests as needed here.
     """
     self.setUp()
+    print('\n\nZZZZ\n')
 
     self.test_ExternalBeamPlanningTest_FullTest1()
 

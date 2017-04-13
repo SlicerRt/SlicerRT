@@ -99,6 +99,9 @@ qSlicerSubjectHierarchyDoseVolumeHistogramPluginPrivate::~qSlicerSubjectHierarch
 }
 
 //-----------------------------------------------------------------------------
+// qSlicerSubjectHierarchyDoseVolumeHistogramPluginPrivate methods
+
+//-----------------------------------------------------------------------------
 qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::qSlicerSubjectHierarchyDoseVolumeHistogramPlugin(QObject* parent)
  : Superclass(parent)
  , d_ptr( new qSlicerSubjectHierarchyDoseVolumeHistogramPluginPrivate(*this) )

@@ -88,22 +88,6 @@ qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::qSlicerSubjectHierarchyRtDoseV
   this->CalculateDvhAction = NULL;
 }
 
-//-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::~qSlicerSubjectHierarchyRtDoseVolumePluginPrivate()
-{
-}
-
-//-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyRtDoseVolumePlugin::qSlicerSubjectHierarchyRtDoseVolumePlugin(QObject* parent)
- : Superclass(parent)
- , d_ptr( new qSlicerSubjectHierarchyRtDoseVolumePluginPrivate(*this) )
-{
-  this->m_Name = QString("RtDoseVolume");
-
-  Q_D(qSlicerSubjectHierarchyRtDoseVolumePlugin);
-  d->init();
-}
-
 //------------------------------------------------------------------------------
 void qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::init()
 {
@@ -115,6 +99,25 @@ void qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::init()
   QObject::connect(this->CreateIsodoseAction, SIGNAL(triggered()), q, SLOT(createIsodoseForCurrentItem()));
   this->CalculateDvhAction = new QAction("Calculate DVH...",q);
   QObject::connect(this->CalculateDvhAction, SIGNAL(triggered()), q, SLOT(calculateDvhForCurrentItem()));
+}
+
+//-----------------------------------------------------------------------------
+qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::~qSlicerSubjectHierarchyRtDoseVolumePluginPrivate()
+{
+}
+
+//-----------------------------------------------------------------------------
+// qSlicerSubjectHierarchyRtDoseVolumePlugin methods
+
+//-----------------------------------------------------------------------------
+qSlicerSubjectHierarchyRtDoseVolumePlugin::qSlicerSubjectHierarchyRtDoseVolumePlugin(QObject* parent)
+ : Superclass(parent)
+ , d_ptr( new qSlicerSubjectHierarchyRtDoseVolumePluginPrivate(*this) )
+{
+  this->m_Name = QString("RtDoseVolume");
+
+  Q_D(qSlicerSubjectHierarchyRtDoseVolumePlugin);
+  d->init();
 }
 
 //-----------------------------------------------------------------------------

@@ -78,6 +78,9 @@ qSlicerSubjectHierarchyRTBeamPluginPrivate::~qSlicerSubjectHierarchyRTBeamPlugin
 }
 
 //-----------------------------------------------------------------------------
+// qSlicerSubjectHierarchyRTBeamPlugin methods
+
+//-----------------------------------------------------------------------------
 qSlicerSubjectHierarchyRTBeamPlugin::qSlicerSubjectHierarchyRTBeamPlugin(QObject* parent)
  : Superclass(parent)
  , d_ptr( new qSlicerSubjectHierarchyRTBeamPluginPrivate(*this) )

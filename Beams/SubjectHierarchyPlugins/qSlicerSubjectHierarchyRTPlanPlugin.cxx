@@ -80,6 +80,9 @@ qSlicerSubjectHierarchyRTPlanPluginPrivate::~qSlicerSubjectHierarchyRTPlanPlugin
 }
 
 //-----------------------------------------------------------------------------
+// qSlicerSubjectHierarchyRTPlanPlugin methods
+
+//-----------------------------------------------------------------------------
 qSlicerSubjectHierarchyRTPlanPlugin::qSlicerSubjectHierarchyRTPlanPlugin(QObject* parent)
  : Superclass(parent)
  , d_ptr( new qSlicerSubjectHierarchyRTPlanPluginPrivate(*this) )

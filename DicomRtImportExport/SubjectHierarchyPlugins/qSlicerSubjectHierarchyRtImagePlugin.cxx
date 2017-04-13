@@ -85,6 +85,9 @@ qSlicerSubjectHierarchyRtImagePluginPrivate::~qSlicerSubjectHierarchyRtImagePlug
 }
 
 //-----------------------------------------------------------------------------
+// qSlicerSubjectHierarchyRtImagePlugin methods
+
+//-----------------------------------------------------------------------------
 qSlicerSubjectHierarchyRtImagePlugin::qSlicerSubjectHierarchyRtImagePlugin(QObject* parent)
  : Superclass(parent)
  , d_ptr( new qSlicerSubjectHierarchyRtImagePluginPrivate(*this) )

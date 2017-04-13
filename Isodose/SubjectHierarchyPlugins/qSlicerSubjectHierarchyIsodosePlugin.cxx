@@ -86,6 +86,9 @@ qSlicerSubjectHierarchyIsodosePluginPrivate::~qSlicerSubjectHierarchyIsodosePlug
 }
 
 //-----------------------------------------------------------------------------
+// qSlicerSubjectHierarchyIsodosePlugin methods
+
+//-----------------------------------------------------------------------------
 qSlicerSubjectHierarchyIsodosePlugin::qSlicerSubjectHierarchyIsodosePlugin(QObject* parent)
  : Superclass(parent)
  , d_ptr( new qSlicerSubjectHierarchyIsodosePluginPrivate(*this) )
