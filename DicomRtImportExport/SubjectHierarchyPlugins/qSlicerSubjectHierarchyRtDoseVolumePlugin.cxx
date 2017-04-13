@@ -266,7 +266,6 @@ QList<QAction*> qSlicerSubjectHierarchyRtDoseVolumePlugin::itemContextMenuAction
 void qSlicerSubjectHierarchyRtDoseVolumePlugin::showContextMenuActionsForItem(vtkIdType itemID)
 {
   Q_D(qSlicerSubjectHierarchyRtDoseVolumePlugin);
-  this->hideAllContextMenuActions();
 
   if (!itemID)
   {
