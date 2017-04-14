@@ -526,9 +526,23 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtDose(vtkSlicerD
     return false;
   }
   vtkIdType seriesItemID = shNode->CreateItem(shNode->GetSceneItemID(), volumeNode);
-  shNode->SetItemUID(seriesItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetSeriesInstanceUid());
-  shNode->SetItemAttribute(seriesItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(),
-    rtReader->GetRTDoseReferencedRTPlanSOPInstanceUID() );
+  if (rtReader->GetSeriesInstanceUid())
+  {
+    shNode->SetItemUID(seriesItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetSeriesInstanceUid());
+  }
+  else
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadRtDose: series instance UID not found for dose volume " << volumeNode->GetName());
+  }
+  if (rtReader->GetRTDoseReferencedRTPlanSOPInstanceUID())
+  {
+    shNode->SetItemAttribute(seriesItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(),
+      rtReader->GetRTDoseReferencedRTPlanSOPInstanceUID());
+  }
+  else
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadRtDose: RTDoseReferencedRTPlanSOPInstanceUID not found for dose volume " << volumeNode->GetName());
+  }
 
   // Insert series in subject hierarchy
   this->InsertSeriesInSubjectHierarchy(rtReader);
