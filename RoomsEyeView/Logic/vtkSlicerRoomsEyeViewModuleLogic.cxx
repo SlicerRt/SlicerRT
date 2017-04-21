@@ -416,7 +416,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadLinacModels()
   //TODO: Only the Varian TrueBeam STx models are supported right now.
   //      Allow loading multiple types of machines
   std::string treatmentMachineModelsDirectory = moduleShareDirectory + "/" + "VarianTrueBeamSTx";
-  std::string additionalDevicesDirectory = moduleShareDirectory + "/" + "AdditionalTreatmentDevices";
+  std::string additionalDevicesDirectory = moduleShareDirectory + "/" + "AdditionalTreatmentModels";
   // Load supported treatment machine models
   vtkSmartPointer<vtkSlicerModelsLogic> modelsLogic = vtkSmartPointer<vtkSlicerModelsLogic>::New();
   modelsLogic->SetMRMLScene(this->GetMRMLScene());
@@ -437,9 +437,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadLinacModels()
   modelsLogic->AddModel(tableTopModelFilePath.c_str());
 
   // TODO: Uncomment once Additional Devices STL models are created
-  std::string applicatorHolderModelFilePath = treatmentMachineModelsDirectory + "/" + APPLICATORHOLDER_MODEL_NAME + ".stl";
+  std::string applicatorHolderModelFilePath = additionalDevicesDirectory + "/" + APPLICATORHOLDER_MODEL_NAME + ".stl";
   modelsLogic->AddModel(applicatorHolderModelFilePath.c_str());
-  std::string electronApplicatorModelFilePath = treatmentMachineModelsDirectory + "/" + ELECTRONAPPLICATOR_MODEL_NAME + ".stl";
+  std::string electronApplicatorModelFilePath = additionalDevicesDirectory + "/" + ELECTRONAPPLICATOR_MODEL_NAME + ".stl";
   modelsLogic->AddModel(electronApplicatorModelFilePath.c_str());
 
 }
