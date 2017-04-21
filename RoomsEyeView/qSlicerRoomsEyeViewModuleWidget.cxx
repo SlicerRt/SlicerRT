@@ -24,7 +24,7 @@
 
 #include "vtkSlicerRoomsEyeViewModuleLogic.h"
 #include "vtkMRMLRoomsEyeViewNode.h"
-#include <vtkSlicerIECTransformLogic.h>
+#include "vtkSlicerIECTransformLogic.h"
 
 // Slicer includes
 #include <qSlicerApplication.h>
@@ -33,6 +33,8 @@
 #include <qSlicerDataDialog.h>
 #include <qSlicerSaveDataDialog.h>
 #include <qMRMLSliceWidget.h>
+#include <qMRMLThreeDWidget.h>
+#include <qMRMLThreeDView.h>
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -48,18 +50,12 @@
 
 // Qt includes
 #include <QDebug>
-#include <qMRMLThreeDWidget.h>
-#include <qMRMLThreeDView.h>
 
 // CTK includes
 #include <ctkSliderWidget.h>
 
+// VTK includes
 #include <vtkCamera.h>
-#include <vtkGeneralTransform.h>
-#include <vtkLinearTransform.h>
-#include <vtkTransform.h>
-#include <vtkAlgorithmOutput.h>
-#include <vtkAppendFilter.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
@@ -169,7 +165,6 @@ void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
   vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(node);
   //vtkMRMLModelNode* additionalModelNode = vtkMRMLModelNode::SafeDownCast(node);
 
-
   // Make sure the parameter set node is selected (in case the function was not called by the selector combobox signal)
   d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);
   //d->MRMLNodeComboBox_AddtionalTreatmentModels_->setCurrentNode(additionalModelNode);
@@ -177,7 +172,6 @@ void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
   // Each time the node is modified, the UI widgets are updated
   qvtkReconnect(paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
   
-
   // Set selected MRML nodes in comboboxes in the parameter set if it was NULL there
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
   if (paramNode)
@@ -297,6 +291,7 @@ void qSlicerRoomsEyeViewModuleWidget::loadModelButtonClicked()
   vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
   viewNode->SetOrientationMarkerHumanModelNodeID(this->mrmlScene()->GetFirstNodeByName("EBRTOrientationMarkerModel")->GetID());**/
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::loadAdditionalDevicesButtonClicked()
 {
@@ -312,6 +307,7 @@ void qSlicerRoomsEyeViewModuleWidget::loadAdditionalDevicesButtonClicked()
   vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
   viewNode->SetOrientationMarkerHumanModelNodeID(this->mrmlScene()->GetFirstNodeByName("EBRTOrientationMarkerModel")->GetID());**/
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::additionalCollimatorDevicesChecked(){
   
@@ -389,7 +385,6 @@ void qSlicerRoomsEyeViewModuleWidget::gantryRotationSliderValueChanged()
 
   this->checkForCollisions();
   d->logic()->UpdateTreatmentOrientationMarker();
- 
 }
 
 //-----------------------------------------------------------------------------
@@ -519,6 +514,7 @@ void qSlicerRoomsEyeViewModuleWidget::lateralTableTopDisplacementSliderValueChan
   this->checkForCollisions();
   d->logic()->UpdateTreatmentOrientationMarker();
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::additionalModelLateralDisplacementSliderValueChanged()
 {
@@ -539,6 +535,7 @@ void qSlicerRoomsEyeViewModuleWidget::additionalModelLateralDisplacementSliderVa
   this->checkForCollisions();
   d->logic()->UpdateTreatmentOrientationMarker();
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::additionalModelLongitudinalDisplacementSliderValueChanged()
 {
@@ -604,6 +601,7 @@ void qSlicerRoomsEyeViewModuleWidget::checkForCollisions()
     d->CollisionsDetected->setStyleSheet("color: green");
   }
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::beamsEyeViewButtonClicked()
 {
@@ -615,10 +613,9 @@ void qSlicerRoomsEyeViewModuleWidget::beamsEyeViewButtonClicked()
   qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
   vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
   vtkCamera* beamsEyeCamera = vtkSmartPointer<vtkCamera>::New();
+  //TODO: This should be a member of the logic
   vtkSlicerIECTransformLogic* IECTransformLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
-
   
-
   vtkCollection* cameras = this->mrmlScene()->GetNodesByClass("vtkMRMLCameraNode");
   vtkMRMLCameraNode* cameraNode;
   for (int i = 0; i < cameras->GetNumberOfItems(); i++){
@@ -632,11 +629,9 @@ void qSlicerRoomsEyeViewModuleWidget::beamsEyeViewButtonClicked()
   double sourcePosition[3];
   double isocenter[3];
 
-
-  if (beamNode->CalculateSourcePosition(sourcePosition)){
-
+  if (beamNode->CalculateSourcePosition(sourcePosition))
+  {
     vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(this->mrmlScene()->GetFirstNodeByName("CollimatorModel"));
-
     vtkPolyData* collimatorModelPolyData = collimatorModel->GetPolyData();
 
     double collimatorCenterOfRotation[3];
@@ -661,7 +656,6 @@ void qSlicerRoomsEyeViewModuleWidget::beamsEyeViewButtonClicked()
     }
   }
   
-
   cameraNode->GetCamera()->Elevation(-(d->GantryRotationSlider->value()));
 
   //TODO: Oblique slice updating real-time based on beam geometry

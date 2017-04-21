@@ -24,13 +24,10 @@
 
 #include "vtkSlicerBeamsModuleLogicExport.h"
 
-#include "vtkSlicerModuleLogic.h"
-
 // VTK includes
 #include <vtkObject.h>
 #include <vtkTransform.h>
 #include <vtkGeneralTransform.h>
-
 
 class vtkMRMLRTBeamNode;
 
@@ -75,7 +72,7 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Set and observe beam node. If a geometry-related parameter changes in the beam node, the transforms are updated
-  void SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNode, unsigned long event);
+  void SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNode);
 
   /// Get transform from one coordinate frame to another
   /// \return Success flag (false on any error)

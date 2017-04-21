@@ -22,47 +22,41 @@
 #include "vtkSlicerRoomsEyeViewModuleLogic.h"
 #include "vtkMRMLRoomsEyeViewNode.h"
 
+// SlicerRT includes
+#include "vtkMRMLRTBeamNode.h"
+
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLDisplayNode.h>
-#include "vtkMRMLModelNode.h"
-#include <vtkMRMLRTBeamNode.h>
+#include <vtkMRMLModelNode.h>
 #include <vtkMRMLViewNode.h>
-//#include <vtkSlicerIECTransformLogic.h>
 
 // Slicer includes
+#include <vtkSlicerModelsLogic.h>
 #include <vtkSlicerSegmentationsModuleLogic.h>
+
+// vtkSegmentationCore includes
 #include <vtkSegmentationConverter.h>
-#include <qSlicerCoreIOManager.h>
-#include <qSlicerCoreApplication.h>
+
+// SlicerQt includes
+//TODO: These should not be included here, move these to the widget
 #include <qSlicerApplication.h>
 #include <qSlicerLayoutManager.h>
+#include <qSlicerFileDialog.h>
+#include <qSlicerDataDialog.h>
+#include <qSlicerIOManager.h>
 #include <qMRMLSliceWidget.h>
 #include <qMRMLThreeDWidget.h>
 #include <qMRMLThreeDView.h>
 
 // VTK includes
-#include <vtkNew.h>
 #include <vtkSmartPointer.h>
 #include <vtkObjectFactory.h>
-#include <vtkSlicerModelsLogic.h>
-#include <vtkSlicerTransformLogic.h>
 #include <vtkTransform.h>
-#include <vtkCenterOfMass.h>
-#include <vtkAlgorithmOutput.h>
 #include <vtkAppendPolyData.h>
-#include <vtkDebugLeaks.h>
 #include <vtkPolyDataReader.h>
-#include <vtkPolyDataWriter.h>
-#include <vtkXMLPolyDataReader.h>
-#include <vtkXMLPolyDataWriter.h>
-#include <vtkVersion.h>
 #include <vtksys/SystemTools.hxx>
-#include <vtkSlicerTransformLogic.h>
-#include <qSlicerFileDialog.h>
-#include <qSlicerDataDialog.h>
-#include <qSlicerIOManager.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkGeneralTransform.h>
 #include <vtkTransformFilter.h>
@@ -436,12 +430,11 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadLinacModels()
   std::string tableTopModelFilePath = treatmentMachineModelsDirectory + "/" + TABLETOP_MODEL_NAME + ".stl";
   modelsLogic->AddModel(tableTopModelFilePath.c_str());
 
-  // TODO: Uncomment once Additional Devices STL models are created
+  //TODO: Move these to LoadAdditionalDevices, as these are not linac models
   std::string applicatorHolderModelFilePath = additionalDevicesDirectory + "/" + APPLICATORHOLDER_MODEL_NAME + ".stl";
   modelsLogic->AddModel(applicatorHolderModelFilePath.c_str());
   std::string electronApplicatorModelFilePath = additionalDevicesDirectory + "/" + ELECTRONAPPLICATOR_MODEL_NAME + ".stl";
   modelsLogic->AddModel(electronApplicatorModelFilePath.c_str());
-
 }
 
 //----------------------------------------------------------------------------
@@ -453,6 +446,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadAdditionalDevices()
     return;
   }
 
+  //TODO: This should not be in the logic, move to widget
   qSlicerIOManager* ioManager = qSlicerApplication::application()->ioManager();
   vtkCollection* loadedModelsCollection = vtkCollection::New();
   ioManager->openDialog("ModelFile", qSlicerDataDialog::Read, qSlicerIO::IOProperties(), loadedModelsCollection);
@@ -462,9 +456,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadAdditionalDevices()
   vtkMRMLLinearTransformNode* collimatorModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME));
   loadedModelNode->SetAndObserveTransformNodeID(collimatorModelTransforms->GetID());
-
-
-
 }
 
 
@@ -643,13 +634,11 @@ void vtkSlicerRoomsEyeViewModuleLogic::InitializeIEC()
   this->AdditionalModelsPatientSupportCollisionDetection->SetMatrix(0, this->CollimatorToWorldTransformMatrix);
   this->AdditionalModelsPatientSupportCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
   this->AdditionalModelsPatientSupportCollisionDetection->Update();
-
-
 }
+
 //-----------------------------------------------------------------------------
 void vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMarker()
 {
-
   vtkSmartPointer<vtkAppendPolyData> deviceAppending = vtkSmartPointer<vtkAppendPolyData>::New();
   //vtkSmartPointer<vtkSlicerTransformLogic> transformLogic = vtkSmartPointer<vtkSlicerTransformLogic>::New();
   //vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyData = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
@@ -761,8 +750,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMarker()
   qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
   qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
   vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
-  viewNode->SetOrientationMarkerHumanModelNodeID(outputModel->GetID());
-  
+  viewNode->SetOrientationMarkerHumanModelNodeID(outputModel->GetID());  
 }
 
 //----------------------------------------------------------------------------
@@ -839,6 +827,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToFixedReferenceIsocenter
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
 }
+
 //----------------------------------------------------------------------------
 void vtkSlicerRoomsEyeViewModuleLogic::UpdateFixedReferenceIsocenterToCollimatorRotatedTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
@@ -864,6 +853,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateFixedReferenceIsocenterToCollimator
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
 }
+
 //----------------------------------------------------------------------------
 void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
@@ -939,7 +929,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateGantryToFixedReferenceTransform(vtk
 //-----------------------------------------------------------------------------
 void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform()
 {
-
   vtkMRMLModelNode* leftImagingPanelModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELLEFT_MODEL_NAME));
   if (!leftImagingPanelModel)
   {
@@ -967,7 +956,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelToLeftImagingPanelF
   }
   leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform->Translate(leftImagingPanelCenterOfMass);
   leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform->Modified();
-
 }
 
 //-----------------------------------------------------------------------------
@@ -1002,7 +990,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelFixedReferenceIsoce
 //-----------------------------------------------------------------------------
 void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelRotatedToGantryTransform()
 {
-
   vtkMRMLModelNode* leftImagingPanelModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELLEFT_MODEL_NAME));
   if (!leftImagingPanelModel)
   {
@@ -1018,7 +1005,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelRotatedToGantryTran
   leftImagingPanelCenterOfMass[0] = leftImagingPanelModelBounds[1];
   leftImagingPanelCenterOfMass[1] = (leftImagingPanelModelBounds[2] + leftImagingPanelModelBounds[3]) / 2;
   leftImagingPanelCenterOfMass[2] = (leftImagingPanelModelBounds[4] + leftImagingPanelModelBounds[5]) / 2;
-
   
   vtkMRMLLinearTransformNode* leftImagingPanelRotatedToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME) );
@@ -1028,7 +1014,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelRotatedToGantryTran
   leftImagingPanelRotatedToGantryTransform->Identity();
   leftImagingPanelRotatedToGantryTransform->Translate(leftImagingPanelCenterOfMass);
   leftImagingPanelRotatedToGantryTransform->Modified();
-
 }
 
 //-----------------------------------------------------------------------------
@@ -1051,7 +1036,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelTranslationTransfor
   double translationArray[3] = { 0, -(panelMovement), 0 };
   leftImagingPanelTranslationTransform->Translate(translationArray);
   leftImagingPanelTranslationTransform->Modified();
-
 }
 
 //-----------------------------------------------------------------------------
@@ -1123,7 +1107,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelRotatedToGantryTra
     vtkErrorMacro("rightImagingPanelModel: Invalid MRML model node!");
   }
 
-
   vtkPolyData* rightImagingPanelModelPolyData = rightImagingPanelModel->GetPolyData();
 
   double rightImagingPanelCenterOfMass[3];
@@ -1133,8 +1116,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelRotatedToGantryTra
   rightImagingPanelCenterOfMass[0] = rightImagingPanelModelBounds[0];
   rightImagingPanelCenterOfMass[1] = (rightImagingPanelModelBounds[2] + rightImagingPanelModelBounds[3]) / 2;
   rightImagingPanelCenterOfMass[2] = (rightImagingPanelModelBounds[4] + rightImagingPanelModelBounds[5]) / 2;
-
-
   
   vtkMRMLLinearTransformNode* rightImagingPanelRotatedToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME) );
@@ -1167,7 +1148,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelTranslationTransfo
   double translationArray[3] = { 0, -(panelMovement), 0 };
   rightImagingPanelTranslationTransform->Translate(translationArray);
   rightImagingPanelTranslationTransform->Modified();
-
 }
 
 //-----------------------------------------------------------------------------
@@ -1402,8 +1382,10 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateAdditionalCollimatorDevicesToCollim
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
 }
+
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateAdditionalDevicesVisibility(vtkMRMLRoomsEyeViewNode* parameterNode){
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateAdditionalDevicesVisibility(vtkMRMLRoomsEyeViewNode* parameterNode)
+{
   if (!parameterNode)
   {
     vtkErrorMacro("UpdateAdditionalDevicesVisibility: Invalid parameter set node!");
@@ -1421,23 +1403,25 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateAdditionalDevicesVisibility(vtkMRML
     return;
   }
 
-  if (parameterNode->GetElectronApplicatorVisibility()){
-   
+  if (parameterNode->GetElectronApplicatorVisibility())
+  { 
     electronApplicatorModel->GetDisplayNode()->VisibilityOn();
   }
-  else{
+  else
+  {
     electronApplicatorModel->GetDisplayNode()->VisibilityOff();
   }
 
-  if (parameterNode->GetApplicatorHolderVisibility()){
-
+  if (parameterNode->GetApplicatorHolderVisibility())
+  {
     applicatorHolderModel->GetDisplayNode()->VisibilityOn();
   }
-  else{
+  else
+  {
     applicatorHolderModel->GetDisplayNode()->VisibilityOff();
   }
-  return;
 }
+
 //-----------------------------------------------------------------------------
 std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
@@ -1480,7 +1464,6 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
   {
     statusString = statusString + "Collision between additional devices and patient support\n";
   }
-
 
   // Get patient body poly data
   vtkSmartPointer<vtkPolyData> patientBodyPolyData = vtkSmartPointer<vtkPolyData>::New();

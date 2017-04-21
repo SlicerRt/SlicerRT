@@ -74,10 +74,8 @@ void vtkSlicerIECTransformLogic::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
 }
 
-
-
 //-----------------------------------------------------------------------------
-void vtkSlicerIECTransformLogic::SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNode, unsigned long event)
+void vtkSlicerIECTransformLogic::SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNode)
 {
   //TODO: Observe beam node's geometry modified event (vtkMRMLRTBeamNode::BeamGeometryModified)
   // and its parent plan's POI markups fiducial's point modified event (vtkMRMLMarkupsNode::PointModifiedEvent)
@@ -116,7 +114,7 @@ void vtkSlicerIECTransformLogic::SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNo
     }  
   }
 
-  UpdateTransformsFromBeamGeometry(beamNode);
+  this->UpdateTransformsFromBeamGeometry(beamNode);
 
   //TODO: Implement observe beam geometry modified event and parent plan's POI markups fiducial's point modified event , unsure of how to get second modified event.
   //if (event == vtkMRMLRTBeamNode::BeamGeometryModified){
@@ -131,8 +129,6 @@ void vtkSlicerIECTransformLogic::SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNo
 //-----------------------------------------------------------------------------
 bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame, vtkMRMLRTBeamNode* beamNode, vtkGeneralTransform* outputTransform)
 {
-  
-
   if (!outputTransform)
   {
     vtkErrorMacro("GetTransformBetween: Invalid output transform node!");
@@ -193,6 +189,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   vtkMRMLLinearTransformNode* patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_NAME));
 
+  //TODO: Replace this huge list of static if/else code with dynamic code
   if (fromFrame == Gantry && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(gantryToFixedReferenceTransformNode, NULL, outputTransform);
@@ -777,29 +774,25 @@ void vtkSlicerIECTransformLogic::UpdateTransformsFromBeamGeometry(vtkMRMLRTBeamN
 {
   vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME));
-   GantryToFixedReferenceTransform = vtkTransform::SafeDownCast(
-    gantryToFixedReferenceTransformNode->GetTransformToParent());
+  this->GantryToFixedReferenceTransform = vtkTransform::SafeDownCast(gantryToFixedReferenceTransformNode->GetTransformToParent());
 
   vtkMRMLLinearTransformNode* fixedReferenceIsocenterToCollimatorRotatedTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME));
-   FixedReferenceIsocenterToCollimatorRotatedTransform = vtkTransform::SafeDownCast(
-    fixedReferenceIsocenterToCollimatorRotatedTransformNode->GetTransformToParent());
+  this->FixedReferenceIsocenterToCollimatorRotatedTransform = vtkTransform::SafeDownCast(fixedReferenceIsocenterToCollimatorRotatedTransformNode->GetTransformToParent());
 
    vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
      beamNode->GetScene()->GetFirstNodeByName(PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME));
-   PatientSupportToFixedReferenceTransform = vtkTransform::SafeDownCast(
-     patientSupportToFixedReferenceTransformNode->GetTransformToParent());
+   this->PatientSupportToFixedReferenceTransform = vtkTransform::SafeDownCast(patientSupportToFixedReferenceTransformNode->GetTransformToParent());
   
-   GantryToFixedReferenceTransform->Identity();
-   GantryToFixedReferenceTransform->RotateY(beamNode->GetGantryAngle());
-   GantryToFixedReferenceTransform->Modified();
+   this->GantryToFixedReferenceTransform->Identity();
+   this->GantryToFixedReferenceTransform->RotateY(beamNode->GetGantryAngle());
+   this->GantryToFixedReferenceTransform->Modified();
 
-   FixedReferenceIsocenterToCollimatorRotatedTransform->Identity();
-   FixedReferenceIsocenterToCollimatorRotatedTransform->RotateZ(beamNode->GetCollimatorAngle());
-   FixedReferenceIsocenterToCollimatorRotatedTransform->Modified();
+   this->FixedReferenceIsocenterToCollimatorRotatedTransform->Identity();
+   this->FixedReferenceIsocenterToCollimatorRotatedTransform->RotateZ(beamNode->GetCollimatorAngle());
+   this->FixedReferenceIsocenterToCollimatorRotatedTransform->Modified();
 
-   PatientSupportToFixedReferenceTransform->Identity();
-   PatientSupportToFixedReferenceTransform->RotateZ(beamNode->GetCouchAngle());
-   PatientSupportToFixedReferenceTransform->Modified();
-  
+   this->PatientSupportToFixedReferenceTransform->Identity();
+   this->PatientSupportToFixedReferenceTransform->RotateZ(beamNode->GetCouchAngle());
+   this->PatientSupportToFixedReferenceTransform->Modified();
 }
