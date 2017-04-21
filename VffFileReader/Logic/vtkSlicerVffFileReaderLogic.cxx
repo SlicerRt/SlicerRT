@@ -453,18 +453,40 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     if (parameterList["title"].empty() == false)
     {
       title = parameterList["title"];
+
       // Parse out the name of the file from the file path given as the parameter title
-      std::string titleStringToParse = title;
-      unsigned long locationToSplitString = titleStringToParse.find_last_of("/\\");
-      if (locationToSplitString != std::string::npos)
+      std::string fileNameFromTitle = title;
+      int lastSlashPos = fileNameFromTitle.find_last_of("/\\");
+      if (lastSlashPos != std::string::npos)
       {
-        titleStringToParse = titleStringToParse.substr(locationToSplitString+1);
-        titleStringToParse = this->TrimSpacesFromEndsOfString(titleStringToParse);
-        name = titleStringToParse;
+        fileNameFromTitle = fileNameFromTitle.substr(lastSlashPos+1);
+        fileNameFromTitle = this->TrimSpacesFromEndsOfString(fileNameFromTitle);
       }
-      else 
+      // Strip the extension from the end of the string
+      int lastPeriodPos = fileNameFromTitle.find_last_of(".");
+      if (lastPeriodPos != std::string::npos && fileNameFromTitle.substr(lastPeriodPos) == ".vff")
       {
-        name = titleStringToParse;
+        fileNameFromTitle = fileNameFromTitle.substr(0, lastPeriodPos);
+      }
+
+      // Do the same to the input file name
+      std::string fileNameStr = filename;
+      lastSlashPos = fileNameStr.find_last_of("/\\");
+      if (lastSlashPos != std::string::npos)
+      {
+        fileNameStr = fileNameStr.substr(lastSlashPos+1);
+      }
+      lastPeriodPos = fileNameStr.find_last_of(".");
+      if (lastPeriodPos != std::string::npos && fileNameStr.substr(lastPeriodPos) == ".vff")
+      {
+        fileNameStr = fileNameStr.substr(0, lastPeriodPos);
+      }
+
+      // Volume node name will be original file name and the title in parenthesis if different from file name
+      name = fileNameStr;
+      if (fileNameFromTitle != fileNameStr)
+      {
+        name += " (" + fileNameFromTitle + ")";
       }
     }
     else
