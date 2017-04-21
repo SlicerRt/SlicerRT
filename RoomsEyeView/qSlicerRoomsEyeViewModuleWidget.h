@@ -55,6 +55,7 @@ public slots:
 
 protected slots:
 	void loadModelButtonClicked();
+  void additionalCollimatorDevicesChecked();
   void collimatorRotationSliderValueChanged();
   void gantryRotationSliderValueChanged();
   void imagingPanelMovementSliderValueChanged();
@@ -62,6 +63,12 @@ protected slots:
   void verticalTableTopDisplacementSliderValueChanged();
   void longitudinalTableTopDisplacementSliderValueChanged();
   void lateralTableTopDisplacementSliderValueChanged();
+  void additionalModelLateralDisplacementSliderValueChanged();
+  void additionalModelLongitudinalDisplacementSliderValueChanged();
+  void additionalModelVerticalDisplacementSliderValueChanged();
+  void loadAdditionalDevicesButtonClicked();
+
+  void beamsEyeViewButtonClicked();
   
   void patientBodySegmentationNodeChanged(vtkMRMLNode*);
   void patientBodySegmentChanged(QString);

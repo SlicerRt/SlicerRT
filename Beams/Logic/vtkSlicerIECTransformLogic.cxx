@@ -74,6 +74,8 @@ void vtkSlicerIECTransformLogic::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
 }
 
+
+
 //-----------------------------------------------------------------------------
 void vtkSlicerIECTransformLogic::SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNode, unsigned long event)
 {
@@ -94,16 +96,27 @@ void vtkSlicerIECTransformLogic::SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNo
   vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetNodeByID(beamNode->GetTransformNodeID()));
   if (transformNode){
-    if (GetTransformBetween(FixedReferenceIsocenterToCollimatorRotated, FixedReference, beamNode, beamGeneralTransform)){
+    if (GetTransformBetween(CollimatorRotated, FixedReference, beamNode, beamGeneralTransform)){
+      double isocenterPosition[3] = { 0.0, 0.0, 0.0 };
+      if (!beamNode->GetPlanIsocenterPosition(isocenterPosition))
+      {
+        vtkErrorMacro("UpdateTransform: Failed to get isocenter position");
+        return;
+      }
+      vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
+      transform2->Identity();
+      transform2->Translate(isocenterPosition[0], isocenterPosition[1], isocenterPosition[2]);
+
+      beamGeneralTransform->PostMultiply();
+      beamGeneralTransform->Concatenate(transform2->GetMatrix());
       transformNode->SetAndObserveTransformToParent(beamGeneralTransform);
       // Update the name of the transform node too
       // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
       std::string transformName = std::string(beamNode->GetName()) + "_Transform";
-      transformNode->SetName(transformName.c_str());
     }  
   }
 
-  this->UpdateTransformsFromBeamGeometry(beamNode);
+  UpdateTransformsFromBeamGeometry(beamNode);
 
   //TODO: Implement observe beam geometry modified event and parent plan's POI markups fiducial's point modified event , unsure of how to get second modified event.
   //if (event == vtkMRMLRTBeamNode::BeamGeometryModified){
@@ -118,533 +131,643 @@ void vtkSlicerIECTransformLogic::SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNo
 //-----------------------------------------------------------------------------
 bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame, vtkMRMLRTBeamNode* beamNode, vtkGeneralTransform* outputTransform)
 {
+  
+
   if (!outputTransform)
   {
     vtkErrorMacro("GetTransformBetween: Invalid output transform node!");
     return false;
   }
 
-  // TODO: Quite expensive to get all of these nodes independently from the input arguments
   vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* collimatorToFixedReferenceIsocenterTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* fixedReferenceIsocenterToCollimatorRotatedTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* leftImagingPanelRotatedToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* leftImagingPanelTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(LEFTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* rightImagingPanelRotatedToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* rightImagingPanelTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(RIGHTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* patientSupportScaledByTableTopVerticalMovementTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* patientSupportPositiveVerticalTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(TABLETOP_TO_TABLETOPECCENENTRICROTATION_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME));
+
   vtkMRMLLinearTransformNode* patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_NAME));
 
-  //TODO: Explore the possibility of simply replacing the frame enums with the node pointers and not use this huge list of if's
-  if (fromFrame == GantryToFixedReference && toFrame == FixedReference)
+  if (fromFrame == Gantry && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(gantryToFixedReferenceTransformNode, NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == FixedReferenceIsocenterToCollimatorRotated && toFrame == FixedReference)
+
+  else if (fromFrame == CollimatorRotated && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceIsocenterToCollimatorRotatedTransformNode, NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == FixedReferenceIsocenterToCollimatorRotated && toFrame == GantryToFixedReference)
+
+  else if (fromFrame == CollimatorRotated && toFrame == Gantry)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceIsocenterToCollimatorRotatedTransformNode, gantryToFixedReferenceTransformNode, outputTransform);
     return true;
   }
+  
   // Left Imaging Panel
-  else if (fromFrame == LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter && toFrame == FixedReference)
+  else if (fromFrame == LeftImagingPanel && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode, NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter && toFrame == GantryToFixedReference )
+
+  else if (fromFrame == LeftImagingPanel && toFrame == Gantry )
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode, gantryToFixedReferenceTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter && toFrame == LeftImagingPanelTranslation)
+
+  else if (fromFrame == LeftImagingPanel && toFrame == LeftImagingPanelTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode, leftImagingPanelTranslationTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter && toFrame == LeftImagingPanelRotatedToGantry)
+
+  else if (fromFrame == LeftImagingPanel && toFrame == LeftImagingPanelRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode, leftImagingPanelRotatedToGantryTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter && toFrame == LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated)
+
+  else if (fromFrame == LeftImagingPanel && toFrame == LeftImagingPanelIsocenter)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode, 
       leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated && toFrame == FixedReference)
+
+  else if (fromFrame == LeftImagingPanelIsocenter && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode, NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated && toFrame == GantryToFixedReference)
+
+  else if (fromFrame == LeftImagingPanelIsocenter && toFrame == Gantry)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode, gantryToFixedReferenceTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated && toFrame == LeftImagingPanelTranslation)
+
+  else if (fromFrame == LeftImagingPanelIsocenter && toFrame == LeftImagingPanelTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode, leftImagingPanelTranslationTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated && toFrame == LeftImagingPanelRotatedToGantry)
+
+  else if (fromFrame == LeftImagingPanelIsocenter && toFrame == LeftImagingPanelRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode, leftImagingPanelRotatedToGantryTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelRotatedToGantry && toFrame == FixedReference)
+
+  else if (fromFrame == LeftImagingPanelRotated && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelRotatedToGantryTransformNode, NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelRotatedToGantry && toFrame == GantryToFixedReference)
+
+  else if (fromFrame == LeftImagingPanelRotated && toFrame == Gantry)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelRotatedToGantryTransformNode, gantryToFixedReferenceTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelRotatedToGantry && toFrame == LeftImagingPanelTranslation)
+
+  else if (fromFrame == LeftImagingPanelRotated && toFrame == LeftImagingPanelTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelRotatedToGantryTransformNode, leftImagingPanelTranslationTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelTranslation && toFrame == FixedReference)
+
+  else if (fromFrame == LeftImagingPanelTranslated && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelTranslationTransformNode, NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelTranslation && toFrame == GantryToFixedReference)
+
+  else if (fromFrame == LeftImagingPanelTranslated && toFrame == Gantry)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelTranslationTransformNode, gantryToFixedReferenceTransformNode, outputTransform);
     return true;
   }
+
   // Right Imaging Panel:
-  else if (fromFrame == RightImagingPanelToRightImagingPanelFixedReferenceIsocenter && toFrame == FixedReference)
+  else if (fromFrame == RightImagingPanel && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode, NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelToRightImagingPanelFixedReferenceIsocenter && toFrame == GantryToFixedReference )
+
+  else if (fromFrame == RightImagingPanel && toFrame == Gantry )
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode, gantryToFixedReferenceTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelToRightImagingPanelFixedReferenceIsocenter && toFrame == RightImagingPanelTranslation)
+
+  else if (fromFrame == RightImagingPanel && toFrame == RightImagingPanelTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode, rightImagingPanelTranslationTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelToRightImagingPanelFixedReferenceIsocenter && toFrame == RightImagingPanelRotatedToGantry)
+
+  else if (fromFrame == RightImagingPanel && toFrame == RightImagingPanelRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode, rightImagingPanelRotatedToGantryTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelToRightImagingPanelFixedReferenceIsocenter && toFrame == RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated)
+
+  else if (fromFrame == RightImagingPanel && toFrame == RightImagingPanelIsocenter)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode, 
       rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated && toFrame == FixedReference)
+
+  else if (fromFrame == RightImagingPanelIsocenter && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode, NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated && toFrame == GantryToFixedReference)
+
+  else if (fromFrame == RightImagingPanelIsocenter && toFrame == Gantry)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode, gantryToFixedReferenceTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated && toFrame == RightImagingPanelTranslation)
+
+  else if (fromFrame == RightImagingPanelIsocenter && toFrame == RightImagingPanelTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode, rightImagingPanelTranslationTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated && toFrame == RightImagingPanelRotatedToGantry)
+
+  else if (fromFrame == RightImagingPanelIsocenter && toFrame == RightImagingPanelRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode, rightImagingPanelRotatedToGantryTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelRotatedToGantry && toFrame == FixedReference)
+
+  else if (fromFrame == RightImagingPanelRotated && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelRotatedToGantryTransformNode, NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelRotatedToGantry && toFrame == GantryToFixedReference)
+
+  else if (fromFrame == RightImagingPanelRotated && toFrame == Gantry)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelRotatedToGantryTransformNode, gantryToFixedReferenceTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelRotatedToGantry && toFrame == RightImagingPanelTranslation)
+
+  else if (fromFrame == RightImagingPanelRotated && toFrame == RightImagingPanelTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelRotatedToGantryTransformNode, rightImagingPanelTranslationTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelTranslation && toFrame == FixedReference)
+
+  else if (fromFrame == RightImagingPanelTranslated && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelTranslationTransformNode, NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelTranslation && toFrame == GantryToFixedReference)
+
+  else if (fromFrame == RightImagingPanelTranslated && toFrame == Gantry)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelTranslationTransformNode, gantryToFixedReferenceTransformNode, outputTransform);
     return true;
   }
+
   // Patient Support
-  else if (fromFrame == PatientSupportToFixedReference && toFrame == FixedReference)
+  else if (fromFrame == PatientSupport && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportToFixedReferenceTransformNode, NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == PatientSupportPositiveVerticalTranslation && toFrame == FixedReference)
+
+  else if (fromFrame == PatientSupportPositiveVerticalTranslated && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportPositiveVerticalTranslationTransformNode, NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == PatientSupportPositiveVerticalTranslation && toFrame == PatientSupportToFixedReference)
+
+  else if (fromFrame == PatientSupportPositiveVerticalTranslated && toFrame == PatientSupport)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportPositiveVerticalTranslationTransformNode, patientSupportToFixedReferenceTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == PatientSupportPositiveVerticalTranslation && toFrame == PatientSupportScaledTranslatedToTableTopVerticalTranslation)
+
+  else if (fromFrame == PatientSupportPositiveVerticalTranslated && toFrame == PatientSupportScaledTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportPositiveVerticalTranslationTransformNode, patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode, outputTransform);
     return true;
+   
   }
-  else if (fromFrame == PatientSupportPositiveVerticalTranslation && toFrame == PatientSupportScaledByTableTopVerticalMovement)
+
+  else if (fromFrame == PatientSupportPositiveVerticalTranslated && toFrame == PatientSupportScaled)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportPositiveVerticalTranslationTransformNode, 
       patientSupportScaledByTableTopVerticalMovementTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == PatientSupportScaledByTableTopVerticalMovement && toFrame == FixedReference)
+
+  else if (fromFrame == PatientSupportScaled && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportScaledByTableTopVerticalMovementTransformNode,
       NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == PatientSupportScaledByTableTopVerticalMovement && toFrame == PatientSupportToFixedReference)
+
+  else if (fromFrame == PatientSupportScaled && toFrame == PatientSupport)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportScaledByTableTopVerticalMovementTransformNode,
       patientSupportToFixedReferenceTransformNode, outputTransform);
      return true;
   }
-  else if (fromFrame == PatientSupportScaledByTableTopVerticalMovement && toFrame == PatientSupportScaledTranslatedToTableTopVerticalTranslation)
+
+  else if (fromFrame == PatientSupportScaled && toFrame == PatientSupportScaledTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportScaledByTableTopVerticalMovementTransformNode,
       patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == PatientSupportScaledTranslatedToTableTopVerticalTranslation && toFrame == FixedReference)
+
+  else if (fromFrame == PatientSupportScaledTranslated && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode,NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == PatientSupportScaledTranslatedToTableTopVerticalTranslation && toFrame == PatientSupportToFixedReference)
+
+  else if (fromFrame == PatientSupportScaledTranslated && toFrame == PatientSupport)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode, patientSupportToFixedReferenceTransformNode, outputTransform);
     return true;
   }
+
   // Table Top
-  else if (fromFrame == TableTopToTableEccentricRotation && toFrame == FixedReference)
+  else if (fromFrame == TableTop && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(tableTopToTableTopEccentricRotationTransformNode, NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == TableTopEccentricRotationToPatientSupport && toFrame == FixedReference)
+
+  else if (fromFrame == TableTopEccentricRotated && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(tableTopEccentricRotationToPatientSupportTransformNode, NULL, outputTransform);
     return true;
   }
-  else if (fromFrame == TableTopToTableEccentricRotation && toFrame == PatientSupportToFixedReference)
+
+  else if (fromFrame == TableTop && toFrame == PatientSupport)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(tableTopToTableTopEccentricRotationTransformNode, patientSupportToFixedReferenceTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == TableTopEccentricRotationToPatientSupport && toFrame == PatientSupportToFixedReference)
+
+  else if (fromFrame == TableTopEccentricRotated && toFrame == PatientSupport)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(tableTopEccentricRotationToPatientSupportTransformNode, patientSupportToFixedReferenceTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == TableTopToTableEccentricRotation && toFrame == TableTopEccentricRotationToPatientSupport)
+
+  else if (fromFrame == TableTop && toFrame == TableTopEccentricRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(tableTopToTableTopEccentricRotationTransformNode, tableTopEccentricRotationToPatientSupportTransformNode, outputTransform);
     return true;
   }
 
   // Inverse
-  if (fromFrame == FixedReference && toFrame == GantryToFixedReference)
+  if (fromFrame == FixedReference && toFrame == Gantry)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, gantryToFixedReferenceTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == FixedReference  && toFrame == FixedReferenceIsocenterToCollimatorRotated)
+
+  else if (fromFrame == FixedReference  && toFrame == CollimatorRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, fixedReferenceIsocenterToCollimatorRotatedTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == GantryToFixedReference  && toFrame == FixedReferenceIsocenterToCollimatorRotated)
+
+  else if (fromFrame == Gantry  && toFrame == CollimatorRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(gantryToFixedReferenceTransformNode, fixedReferenceIsocenterToCollimatorRotatedTransformNode, outputTransform);
     return true;
   }
+
   // Left Imaging Panel
-  else if (fromFrame == FixedReference && toFrame == LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter)
+  else if (fromFrame == FixedReference && toFrame == LeftImagingPanel)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == GantryToFixedReference && toFrame == LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter)
+
+  else if (fromFrame == Gantry && toFrame == LeftImagingPanel)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(gantryToFixedReferenceTransformNode, leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelTranslation  && toFrame == LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter)
+
+  else if (fromFrame == LeftImagingPanelTranslated  && toFrame == LeftImagingPanel)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelTranslationTransformNode, leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelRotatedToGantry  && toFrame == LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter)
+
+  else if (fromFrame == LeftImagingPanelRotated  && toFrame == LeftImagingPanel)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelRotatedToGantryTransformNode, leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated && toFrame == LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenter)
+
+  else if (fromFrame == LeftImagingPanelIsocenter && toFrame == LeftImagingPanel)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode, 
       leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == FixedReference && toFrame == LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated)
+
+  else if (fromFrame == FixedReference && toFrame == LeftImagingPanelIsocenter)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == GantryToFixedReference  && toFrame == LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated)
+
+  else if (fromFrame == Gantry  && toFrame == LeftImagingPanelIsocenter)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(gantryToFixedReferenceTransformNode, leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelTranslation && toFrame == LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated)
+
+  else if (fromFrame == LeftImagingPanelTranslated && toFrame == LeftImagingPanelIsocenter)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelTranslationTransformNode, leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelRotatedToGantry  && toFrame == LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotated)
+
+  else if (fromFrame == LeftImagingPanelRotated  && toFrame == LeftImagingPanelIsocenter)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelRotatedToGantryTransformNode, leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == FixedReference  && toFrame == LeftImagingPanelRotatedToGantry)
+
+  else if (fromFrame == FixedReference  && toFrame == LeftImagingPanelRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, leftImagingPanelRotatedToGantryTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == GantryToFixedReference && toFrame == LeftImagingPanelRotatedToGantry)
+
+  else if (fromFrame == Gantry && toFrame == LeftImagingPanelRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(gantryToFixedReferenceTransformNode, leftImagingPanelRotatedToGantryTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == LeftImagingPanelTranslation && toFrame == LeftImagingPanelRotatedToGantry)
+
+  else if (fromFrame == LeftImagingPanelTranslated && toFrame == LeftImagingPanelRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelTranslationTransformNode, leftImagingPanelRotatedToGantryTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == FixedReference && toFrame == LeftImagingPanelTranslation)
+
+  else if (fromFrame == FixedReference && toFrame == LeftImagingPanelTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, leftImagingPanelTranslationTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == GantryToFixedReference && toFrame == LeftImagingPanelTranslation)
+
+  else if (fromFrame == Gantry && toFrame == LeftImagingPanelTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(gantryToFixedReferenceTransformNode, leftImagingPanelTranslationTransformNode, outputTransform);
     return true;
   }
+
   // Right Imaging Panel:
-  else if (fromFrame == FixedReference && toFrame == RightImagingPanelToRightImagingPanelFixedReferenceIsocenter)
+  else if (fromFrame == FixedReference && toFrame == RightImagingPanel)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == GantryToFixedReference && toFrame ==  RightImagingPanelToRightImagingPanelFixedReferenceIsocenter)
+
+  else if (fromFrame == Gantry && toFrame ==  RightImagingPanel)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(gantryToFixedReferenceTransformNode, rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelTranslation && toFrame == RightImagingPanelToRightImagingPanelFixedReferenceIsocenter)
+
+  else if (fromFrame == RightImagingPanelTranslated && toFrame == RightImagingPanel)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelTranslationTransformNode, rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelRotatedToGantry && toFrame == RightImagingPanelToRightImagingPanelFixedReferenceIsocenter)
+
+  else if (fromFrame == RightImagingPanelRotated && toFrame == RightImagingPanel)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelRotatedToGantryTransformNode, 
       rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated && toFrame == RightImagingPanelToRightImagingPanelFixedReferenceIsocenter)
+
+  else if (fromFrame == RightImagingPanelIsocenter && toFrame == RightImagingPanel)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode, 
       rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == FixedReference && toFrame == RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated)
+
+  else if (fromFrame == FixedReference && toFrame == RightImagingPanelIsocenter)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == GantryToFixedReference && toFrame == RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated)
+
+  else if (fromFrame == Gantry && toFrame == RightImagingPanelIsocenter)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(gantryToFixedReferenceTransformNode, rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelTranslation && toFrame == RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated)
+
+  else if (fromFrame == RightImagingPanelTranslated && toFrame == RightImagingPanelIsocenter)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelTranslationTransformNode, rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelRotatedToGantry && toFrame == RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotated)
+
+  else if (fromFrame == RightImagingPanelRotated && toFrame == RightImagingPanelIsocenter)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelRotatedToGantryTransformNode, rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == FixedReference && toFrame == RightImagingPanelRotatedToGantry)
+
+  else if (fromFrame == FixedReference && toFrame == RightImagingPanelRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, rightImagingPanelRotatedToGantryTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == GantryToFixedReference && toFrame == RightImagingPanelRotatedToGantry)
+
+  else if (fromFrame == Gantry && toFrame == RightImagingPanelRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(gantryToFixedReferenceTransformNode, rightImagingPanelRotatedToGantryTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == RightImagingPanelTranslation && toFrame == RightImagingPanelRotatedToGantry)
+
+  else if (fromFrame == RightImagingPanelTranslated && toFrame == RightImagingPanelRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelTranslationTransformNode, rightImagingPanelRotatedToGantryTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == FixedReference && toFrame == RightImagingPanelTranslation)
+
+  else if (fromFrame == FixedReference && toFrame == RightImagingPanelTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, rightImagingPanelTranslationTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == GantryToFixedReference && toFrame == RightImagingPanelTranslation)
+
+  else if (fromFrame == Gantry && toFrame == RightImagingPanelTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(gantryToFixedReferenceTransformNode, rightImagingPanelTranslationTransformNode, outputTransform);
     return true;
   }
+
   // Patient Support
-  else if (fromFrame == FixedReference && toFrame == PatientSupportToFixedReference)
+  else if (fromFrame == FixedReference && toFrame == PatientSupport)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, patientSupportToFixedReferenceTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == FixedReference && toFrame == PatientSupportPositiveVerticalTranslation)
+
+  else if (fromFrame == FixedReference && toFrame == PatientSupportPositiveVerticalTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, patientSupportPositiveVerticalTranslationTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == PatientSupportToFixedReference && toFrame == PatientSupportPositiveVerticalTranslation)
+
+  else if (fromFrame == PatientSupport && toFrame == PatientSupportPositiveVerticalTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportToFixedReferenceTransformNode, patientSupportPositiveVerticalTranslationTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == PatientSupportScaledTranslatedToTableTopVerticalTranslation && toFrame == PatientSupportPositiveVerticalTranslation)
+
+  else if (fromFrame == PatientSupportScaledTranslated && toFrame == PatientSupportPositiveVerticalTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode, patientSupportPositiveVerticalTranslationTransformNode, outputTransform);
     return true;
+
   }
-  else if (fromFrame == PatientSupportScaledByTableTopVerticalMovement && toFrame == PatientSupportPositiveVerticalTranslation)
+
+  else if (fromFrame == PatientSupportScaled && toFrame == PatientSupportPositiveVerticalTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportScaledByTableTopVerticalMovementTransformNode, 
       patientSupportPositiveVerticalTranslationTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == FixedReference && toFrame == PatientSupportScaledByTableTopVerticalMovement)
+
+  else if (fromFrame == FixedReference && toFrame == PatientSupportScaled)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, patientSupportScaledByTableTopVerticalMovementTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == PatientSupportToFixedReference  && toFrame == PatientSupportScaledByTableTopVerticalMovement)
+
+  else if (fromFrame == PatientSupport  && toFrame == PatientSupportScaled)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportToFixedReferenceTransformNode,
       patientSupportScaledByTableTopVerticalMovementTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == PatientSupportScaledTranslatedToTableTopVerticalTranslation && toFrame == PatientSupportScaledByTableTopVerticalMovement)
+
+  else if (fromFrame == PatientSupportScaledTranslated && toFrame == PatientSupportScaled)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode,
       patientSupportScaledByTableTopVerticalMovementTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == FixedReference && toFrame == PatientSupportScaledTranslatedToTableTopVerticalTranslation)
+
+  else if (fromFrame == FixedReference && toFrame == PatientSupportScaledTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == PatientSupportToFixedReference && toFrame == PatientSupportScaledTranslatedToTableTopVerticalTranslation)
+
+  else if (fromFrame == PatientSupport && toFrame == PatientSupportScaledTranslated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportToFixedReferenceTransformNode, patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode, outputTransform);
     return true;
   }
+
   // Table Top
-  else if (fromFrame == FixedReference && toFrame == TableTopToTableEccentricRotation)
+  else if (fromFrame == FixedReference && toFrame == TableTop)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, tableTopToTableTopEccentricRotationTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == FixedReference && toFrame == TableTopEccentricRotationToPatientSupport)
+
+  else if (fromFrame == FixedReference && toFrame == TableTopEccentricRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, tableTopEccentricRotationToPatientSupportTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == PatientSupportToFixedReference && toFrame == TableTopToTableEccentricRotation)
+
+  else if (fromFrame == PatientSupport && toFrame == TableTop)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(tableTopToTableTopEccentricRotationTransformNode, patientSupportToFixedReferenceTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == PatientSupportToFixedReference && toFrame == TableTopEccentricRotationToPatientSupport)
+
+  else if (fromFrame == PatientSupport && toFrame == TableTopEccentricRotated)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportToFixedReferenceTransformNode, tableTopEccentricRotationToPatientSupportTransformNode, outputTransform);
     return true;
   }
-  else if (fromFrame == TableTopEccentricRotationToPatientSupport && toFrame == TableTopToTableEccentricRotation)
+
+  else if (fromFrame == TableTopEccentricRotated && toFrame == TableTop)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(tableTopEccentricRotationToPatientSupportTransformNode, tableTopToTableTopEccentricRotationTransformNode, outputTransform);
     return true;
   }
+
 
   return false;
 }
@@ -678,4 +801,5 @@ void vtkSlicerIECTransformLogic::UpdateTransformsFromBeamGeometry(vtkMRMLRTBeamN
    PatientSupportToFixedReferenceTransform->Identity();
    PatientSupportToFixedReferenceTransform->RotateZ(beamNode->GetCouchAngle());
    PatientSupportToFixedReferenceTransform->Modified();
+  
 }

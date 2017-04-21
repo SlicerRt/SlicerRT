@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>412</width>
-    <height>559</height>
+    <width>626</width>
+    <height>881</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,123 +23,9 @@
    <property name="spacing">
     <number>4</number>
    </property>
-   <item row="0" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Parameter set:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
-       <property name="nodeTypes">
-        <stringlist>
-         <string>vtkMRMLRoomsEyeViewNode</string>
-        </stringlist>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
    <item row="3" column="0">
     <widget class="qMRMLWidget" name="MRMLWidget">
      <layout class="QGridLayout" name="gridLayout">
-      <property name="margin">
-       <number>4</number>
-      </property>
-      <property name="spacing">
-       <number>4</number>
-      </property>
-      <item row="3" column="0">
-       <widget class="ctkCollapsibleButton" name="ImagingPanelMovementCollapsibleButton">
-        <property name="text">
-         <string>Imaging Panel Movement</string>
-        </property>
-        <property name="contentsFrameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_5">
-         <item row="0" column="0">
-          <widget class="ctkSliderWidget" name="ImagingPanelMovementSlider">
-           <property name="minimum">
-            <double>-68.500000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>500.000000000000000</double>
-           </property>
-           <property name="value">
-            <double>-68.500000000000000</double>
-           </property>
-           <property name="tickPosition">
-            <enum>QSlider::TicksAbove</enum>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="ctkCollapsibleButton" name="CollimatorRotation">
-        <property name="text">
-         <string>Collimator Rotation</string>
-        </property>
-        <property name="contentsFrameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_6">
-         <item row="0" column="0">
-          <widget class="ctkSliderWidget" name="CollimatorRotationSlider">
-           <property name="minimum">
-            <double>0.000000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>359.000000000000000</double>
-           </property>
-           <property name="value">
-            <double>0.000000000000000</double>
-           </property>
-           <property name="tickPosition">
-            <enum>QSlider::TicksAbove</enum>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QPushButton" name="loadModelButton">
-        <property name="text">
-         <string>Load Model</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="ctkCollapsibleButton" name="GantryRotationCollapsibleButton">
-        <property name="text">
-         <string>Gantry Rotation</string>
-        </property>
-        <property name="contentsFrameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_4">
-         <item row="0" column="0">
-          <widget class="ctkSliderWidget" name="GantryRotationSlider">
-           <property name="minimum">
-            <double>0.000000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>359.000000000000000</double>
-           </property>
-           <property name="tickPosition">
-            <enum>QSlider::TicksAbove</enum>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
       <item row="0" column="0">
        <widget class="ctkCollapsibleButton" name="CollisionDetectionCollapsibleButton">
         <property name="text">
@@ -191,6 +77,34 @@
         </layout>
        </widget>
       </item>
+      <item row="4" column="0">
+       <widget class="ctkCollapsibleButton" name="CollimatorRotation">
+        <property name="text">
+         <string>Collimator Rotation</string>
+        </property>
+        <property name="contentsFrameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_6">
+         <item row="0" column="0">
+          <widget class="ctkSliderWidget" name="CollimatorRotationSlider">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>359.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="tickPosition">
+            <enum>QSlider::TicksAbove</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
       <item row="5" column="0">
        <widget class="ctkCollapsibleButton" name="TableTopMovementCollapsibleButton">
         <property name="text">
@@ -200,6 +114,29 @@
          <enum>QFrame::StyledPanel</enum>
         </property>
         <layout class="QGridLayout" name="gridLayout_7">
+         <item row="3" column="1">
+          <widget class="ctkSliderWidget" name="LateralTableTopDisplacementSlider">
+           <property name="minimum">
+            <double>-230.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>230.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="tickPosition">
+            <enum>QSlider::TicksAbove</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="LateralTableTopDisplacementLabel">
+           <property name="text">
+            <string>Lateral Table Top Displacement:</string>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="0">
           <widget class="QLabel" name="PatientSupportRotationLabel">
            <property name="text">
@@ -223,33 +160,17 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="VerticalTableTopDisplacementLabel">
-           <property name="text">
-            <string>Vertical Table Top Displacement:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="ctkSliderWidget" name="VerticalTableTopDisplacementSlider">
-           <property name="minimum">
-            <double>-500.000000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>299.000000000000000</double>
-           </property>
-           <property name="value">
-            <double>0.000000000000000</double>
-           </property>
-           <property name="tickPosition">
-            <enum>QSlider::TicksAbove</enum>
-           </property>
-          </widget>
-         </item>
          <item row="2" column="0">
           <widget class="QLabel" name="LongitudinalTableTopDisplacementLabel">
            <property name="text">
             <string>Longitudinal Table Top Displacement:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="VerticalTableTopDisplacementLabel">
+           <property name="text">
+            <string>Vertical Table Top Displacement:</string>
            </property>
           </widget>
          </item>
@@ -269,20 +190,13 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="LateralTableTopDisplacementLabel">
-           <property name="text">
-            <string>Lateral Table Top Displacement:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="ctkSliderWidget" name="LateralTableTopDisplacementSlider">
+         <item row="1" column="1">
+          <widget class="ctkSliderWidget" name="VerticalTableTopDisplacementSlider">
            <property name="minimum">
-            <double>-230.000000000000000</double>
+            <double>-500.000000000000000</double>
            </property>
            <property name="maximum">
-            <double>230.000000000000000</double>
+            <double>299.000000000000000</double>
            </property>
            <property name="value">
             <double>0.000000000000000</double>
@@ -295,21 +209,207 @@
         </layout>
        </widget>
       </item>
+      <item row="3" column="0">
+       <widget class="ctkCollapsibleButton" name="ImagingPanelMovementCollapsibleButton">
+        <property name="text">
+         <string>Imaging Panel Movement</string>
+        </property>
+        <property name="contentsFrameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_5">
+         <item row="0" column="0">
+          <widget class="ctkSliderWidget" name="ImagingPanelMovementSlider">
+           <property name="minimum">
+            <double>-68.500000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>500.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>-68.500000000000000</double>
+           </property>
+           <property name="tickPosition">
+            <enum>QSlider::TicksAbove</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="ctkCollapsibleButton" name="GantryRotationCollapsibleButton">
+        <property name="text">
+         <string>Gantry Rotation</string>
+        </property>
+        <property name="contentsFrameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="0">
+          <widget class="ctkSliderWidget" name="GantryRotationSlider">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>359.000000000000000</double>
+           </property>
+           <property name="tickPosition">
+            <enum>QSlider::TicksAbove</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QPushButton" name="loadModelButton">
+        <property name="text">
+         <string>Load Model</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QPushButton" name="beamsEyeViewButton">
+        <property name="text">
+         <string>Beam's Eye View</string>
+        </property>
+       </widget>
+      </item>
       <item row="6" column="0">
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
+       <widget class="ctkCollapsibleButton" name="AdditionalTreatmentModelsCollapsibleButton">
+        <property name="text">
+         <string>Additional Device Models</string>
         </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
+        <property name="contentsFrameShape">
+         <enum>QFrame::StyledPanel</enum>
         </property>
-       </spacer>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="1" column="0">
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QCheckBox" name="brainLabSRSCheckBox">
+             <property name="text">
+              <string>BrainLab SRS Frame</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="applicatorHolderCheckBox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Applicator Holder</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="electronApplicatorCheckBox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Electron Applicator</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="2" column="0">
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="QLabel" name="AdditionalModelsVerticalTranslationLabel">
+               <property name="text">
+                <string>Vertical Translation</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="AdditionalModelsLongitudinalTranslationLabel">
+               <property name="text">
+                <string>Longitudinal Translation</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="AdditionalModelsLateralTranslationLabel">
+               <property name="text">
+                <string>Lateral Translation</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="ctkSliderWidget" name="VerticalTranslationSliderWidget"/>
+             </item>
+             <item>
+              <widget class="ctkSliderWidget" name="LongitudinalTranslationSliderWidget"/>
+             </item>
+             <item>
+              <widget class="ctkSliderWidget" name="LateralTranslationSliderWidget"/>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+         <item row="0" column="0">
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <widget class="QPushButton" name="loadAdditionalDevicesButton">
+             <property name="text">
+              <string>Load Additional Devices</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
       </item>
      </layout>
     </widget>
+   </item>
+   <item row="0" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Parameter set:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
+       <property name="nodeTypes">
+        <stringlist>
+         <string>vtkMRMLRoomsEyeViewNode</string>
+        </stringlist>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="4" column="0">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Expanding</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>

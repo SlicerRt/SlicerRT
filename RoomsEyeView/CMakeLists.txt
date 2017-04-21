@@ -22,6 +22,8 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
   ${qSlicerSegmentationsModuleWidgets_INCLUDE_DIRS}
+  ${vtkSlicerBeamsModuleMRML_INCLUDE_DIRS}
+  ${qSlicerBeamsModuleWidgets_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS
@@ -44,6 +46,8 @@ set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleLogic
   vtkSlicerSegmentationsModuleMRML
   qSlicerSegmentationsModuleWidgets
+  vtkSlicerBeamsModuleMRML
+  qSlicerBeamsModuleWidgets
   )
 
 set(MODULE_RESOURCES

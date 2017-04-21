@@ -32,8 +32,10 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include <vtkSlicerModuleLogic.h>
 
 #include "vtkCollisionDetectionFilter.h"
+#include <vtkMRMLModelNode.h>
 
 class vtkMRMLRoomsEyeViewNode;
+class vtkMRMLRTBeamNode;
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
 class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic :
@@ -56,6 +58,8 @@ public:
   void UpdateFixedReferenceIsocenterToCollimatorRotatedTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Update CollimatorToGantry transform by translating collimator model back to the gantry
   void UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+
+  void UpdateAdditionalCollimatorDevicesToCollimatorTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);
 
   /// Update GantryToFixedReference transform based on gantry angle from UI slider
   void UpdateGantryToFixedReferenceTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
@@ -95,10 +99,17 @@ public:
   void UpdateTableTopEccentricRotationToPatientSupportTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Translate the table top vertically along the z axes  based on change to Vertical Table Top Displacement UI slider
   void UpdateVerticalDisplacementTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);
-
+ 
+  void UpdateAdditionalDevicesVisibility(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Check for collisions between pieces of linac model using vtkCollisionDetectionFilter
   /// \return string indicating whether collision occurred
   std::string CheckForCollisions(vtkMRMLRoomsEyeViewNode* parameterNode);
+
+  void LoadAdditionalDevices();
+
+  void UpdateTreatmentOrientationMarker();
+
+  //bool CalculateNewSourcePosition(vtkMRMLRTBeamNode* beamNode, double oldSourcePosition[3], double newSourcePosition[3]);
 
 protected:
   /// Get patient body closed surface poly data from segmentation node and segment selection in the parameter node
@@ -114,6 +125,11 @@ protected:
 
   vtkCollisionDetectionFilter* CollimatorPatientCollisionDetection;
   vtkCollisionDetectionFilter* CollimatorTableTopCollisionDetection;
+
+  vtkCollisionDetectionFilter* AdditionalModelsTableTopCollisionDetection;
+  vtkCollisionDetectionFilter* AdditionalModelsPatientSupportCollisionDetection;
+
+
 
 protected:
   vtkSlicerRoomsEyeViewModuleLogic();
