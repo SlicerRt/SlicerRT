@@ -211,12 +211,8 @@ void qSlicerBeamsModuleWidget::setBeamNode(vtkMRMLNode* node)
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
     return;
   }
+
   vtkMRMLRTBeamNode* rtBeamNode = vtkMRMLRTBeamNode::SafeDownCast(node);
-  if (!rtBeamNode)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
-    return;
-  }
 
   // Each time the node is modified, the qt widgets are updated
   qvtkReconnect(rtBeamNode, vtkCommand::ModifiedEvent, this, SLOT(onBeamNodeModified()));
@@ -288,7 +284,6 @@ void qSlicerBeamsModuleWidget::beamWeightChanged(double value)
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
   if (beamNode == NULL)
   {
-    qCritical() << Q_FUNC_INFO << ": No current beam node.";
     return;
   }
 

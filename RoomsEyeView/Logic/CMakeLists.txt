@@ -8,7 +8,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleMRML_INCLUDE_DIRS}
-  ${vtkSlicerBeamsModuleLogic_INLUDE_DIRS}
+  ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS

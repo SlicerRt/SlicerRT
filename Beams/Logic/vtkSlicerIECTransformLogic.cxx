@@ -35,25 +35,29 @@
 #include <vtkGeneralTransform.h>
 
 //----------------------------------------------------------------------------
-static const char* GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME = "GantryToFixedReferenceTransform";
-static const char* COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME = "CollimatorToFixedReferenceIsocenterTransform";
-static const char* FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME = "FixedReferenceIsocenterToCollimatorRotatedTransform";
-static const char* COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME = "CollimatorToGantryTransform";
-static const char* LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME = "LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform";
-static const char* LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME = "LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform";
-static const char* LEFTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME = "LeftImagingPanelTranslationTransform";
-static const char* LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME = "LeftImagingPanelRotatedToGantryTransform";
-static const char* RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME = "RightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform";
-static const char* RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME = "RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform";
-static const char* RIGHTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME = "RightImagingPanelTranslationTransform";
-static const char* RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME = "RightImagingPanelRotatedToGantryTransform";
-static const char* PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME = "PatientSupportToFixedReferenceTransform";
-static const char* PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_NAME = "PatientSupportScaledByTableTopVerticalMovementTransform";
-static const char* PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME = "PatientSupportPositiveVerticalTranslationTransform";
-static const char* PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_NAME = "PatientSupportScaledTranslatedToTableTopVerticalTranslationTransform";
-static const char* TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME = "TableTopEccentricRotationToPatientSupportTransform";
-static const char* TABLETOP_TO_TABLETOPECCENENTRICROTATION_TRANSFORM_NODE_NAME = "TableTopToTableTopEccentricRotationTransform";
-
+const char* vtkSlicerIECTransformLogic::GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME = "GantryToFixedReferenceTransform";
+const char* vtkSlicerIECTransformLogic::COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME = "CollimatorToFixedReferenceIsocenterTransform";
+//TODO: 1. Rename as there is no CollimatorRotated coordinate system? (But there is a Collimator)
+//TODO: 2. If CollimatorRotated and Collimator are the same then why are there two transforms that are the inverse of each other under each other?
+//TODO: 3. The reason CollimatorRotated is very suspiciously identical to Collimator is that the transform chain is the following:
+//         CollimatorToGantryTransform -> FixedReferenceIsocenterToCollimatorRotatedTransform -> CollimatorToFixedReferenceIsocenterTransform,
+//         and here the coordinate frame names do not match. The first coordinate system of the first transform should be the same as the second of the second in order for this to be valid!
+const char* vtkSlicerIECTransformLogic::FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME = "FixedReferenceIsocenterToCollimatorRotatedTransform";
+const char* vtkSlicerIECTransformLogic::COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME = "CollimatorToGantryTransform";
+const char* vtkSlicerIECTransformLogic::LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME = "LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform";
+const char* vtkSlicerIECTransformLogic::LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME = "LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform";
+const char* vtkSlicerIECTransformLogic::LEFTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME = "LeftImagingPanelTranslationTransform";
+const char* vtkSlicerIECTransformLogic::LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME = "LeftImagingPanelRotatedToGantryTransform";
+const char* vtkSlicerIECTransformLogic::RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME = "RightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform";
+const char* vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME = "RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform";
+const char* vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME = "RightImagingPanelTranslationTransform";
+const char* vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME = "RightImagingPanelRotatedToGantryTransform";
+const char* vtkSlicerIECTransformLogic::PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME = "PatientSupportToFixedReferenceTransform";
+const char* vtkSlicerIECTransformLogic::PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_NAME = "PatientSupportScaledByTableTopVerticalMovementTransform";
+const char* vtkSlicerIECTransformLogic::PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME = "PatientSupportPositiveVerticalTranslationTransform";
+const char* vtkSlicerIECTransformLogic::PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_NAME = "PatientSupportScaledTranslatedToTableTopVerticalTranslationTransform";
+const char* vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME = "TableTopEccentricRotationToPatientSupportTransform";
+const char* vtkSlicerIECTransformLogic::TABLETOP_TO_TABLETOPECCENENTRICROTATION_TRANSFORM_NODE_NAME = "TableTopToTableTopEccentricRotationTransform";
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerIECTransformLogic);
@@ -93,20 +97,24 @@ void vtkSlicerIECTransformLogic::SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNo
     // Set transform to transform node
   vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetNodeByID(beamNode->GetTransformNodeID()));
-  if (transformNode){
-    if (GetTransformBetween(CollimatorRotated, FixedReference, beamNode, beamGeneralTransform)){
+  if (transformNode)
+  {
+    if (this->GetTransformBetween(Collimator, FixedReference, beamNode, beamGeneralTransform))
+    {
       double isocenterPosition[3] = { 0.0, 0.0, 0.0 };
       if (!beamNode->GetPlanIsocenterPosition(isocenterPosition))
       {
         vtkErrorMacro("UpdateTransform: Failed to get isocenter position");
         return;
       }
-      vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
-      transform2->Identity();
-      transform2->Translate(isocenterPosition[0], isocenterPosition[1], isocenterPosition[2]);
+
+      vtkSmartPointer<vtkTransform> fixedReferenceToRasTransform = vtkSmartPointer<vtkTransform>::New();
+      fixedReferenceToRasTransform->Identity();
+      fixedReferenceToRasTransform->Translate(isocenterPosition[0], isocenterPosition[1], isocenterPosition[2]);
+      fixedReferenceToRasTransform->RotateX(-90); // The "S" direction in RAS is the "A" direction in FixedReference 
 
       beamGeneralTransform->PostMultiply();
-      beamGeneralTransform->Concatenate(transform2->GetMatrix());
+      beamGeneralTransform->Concatenate(fixedReferenceToRasTransform);
       transformNode->SetAndObserveTransformToParent(beamGeneralTransform);
       // Update the name of the transform node too
       // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
@@ -196,13 +204,15 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
     return true;
   }
 
-  else if (fromFrame == CollimatorRotated && toFrame == FixedReference)
+  else if (fromFrame == Collimator && toFrame == FixedReference)
   {
+    //TODO: This is where it becomes clear that there is a problem with this transform.
+    //      This query should go through Collimator -> Gantry -> FixedReference using CollimatorToGantryTransform and GantryToFixedReferenceTransform
     vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceIsocenterToCollimatorRotatedTransformNode, NULL, outputTransform);
     return true;
   }
 
-  else if (fromFrame == CollimatorRotated && toFrame == Gantry)
+  else if (fromFrame == Collimator && toFrame == Gantry)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceIsocenterToCollimatorRotatedTransformNode, gantryToFixedReferenceTransformNode, outputTransform);
     return true;
@@ -484,13 +494,13 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
     return true;
   }
 
-  else if (fromFrame == FixedReference  && toFrame == CollimatorRotated)
+  else if (fromFrame == FixedReference  && toFrame == Collimator)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, fixedReferenceIsocenterToCollimatorRotatedTransformNode, outputTransform);
     return true;
   }
 
-  else if (fromFrame == Gantry  && toFrame == CollimatorRotated)
+  else if (fromFrame == Gantry  && toFrame == Collimator)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(gantryToFixedReferenceTransformNode, fixedReferenceIsocenterToCollimatorRotatedTransformNode, outputTransform);
     return true;

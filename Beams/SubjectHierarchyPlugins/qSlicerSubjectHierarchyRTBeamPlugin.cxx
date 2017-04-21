@@ -105,11 +105,13 @@ double qSlicerSubjectHierarchyRTBeamPlugin::canAddNodeToSubjectHierarchy(
     }
   else if (node->IsA("vtkMRMLRTBeamNode"))
     {
-    return 1.0; // Only this plugin can handle this node
+    return 1.0; // Only this plugin can handle this node
+
     }
   return 0.0;
 }
-//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyRTBeamPlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
 {
   if (!itemID)
