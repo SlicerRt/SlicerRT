@@ -642,7 +642,7 @@ void qMRMLBeamParametersTabWidget::gantryAngleChanged(double value)
     return;
   }
 
-  // Do not disable modifier events as geometry need to be updated
+  // Do not disable modifier events as transforms need to be updated
   d->BeamNode->SetGantryAngle(value);
 }
 
@@ -657,7 +657,7 @@ void qMRMLBeamParametersTabWidget::collimatorAngleChanged(double value)
     return;
   }
 
-  // Do not disable modifier events as geometry need to be updated
+  // Do not disable modifier events as transforms need to be updated
   d->BeamNode->SetCollimatorAngle(value);
 }
 
@@ -672,8 +672,7 @@ void qMRMLBeamParametersTabWidget::couchAngleChanged(double value)
     return;
   }
 
-  // Do not disable modifier events as geometry need to be updated
-  //TODO: Does not seem to be doing anything (IEC logic needs to be used!)
+  // Do not disable modifier events as transforms need to be updated
   d->BeamNode->SetCouchAngle(value);
 }
 
@@ -688,7 +687,7 @@ void qMRMLBeamParametersTabWidget::sourceDistanceChanged(double value)
     return;
   }
 
-  // Do not disable modifier events as geometry need to be updated
+  // Do not disable modifier events as geometry needs to be updated
   d->BeamNode->SetSAD(value);
 }
 

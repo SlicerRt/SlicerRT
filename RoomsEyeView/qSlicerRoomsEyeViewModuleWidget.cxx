@@ -280,8 +280,8 @@ void qSlicerRoomsEyeViewModuleWidget::loadModelButtonClicked()
   d->logic()->LoadLinacModels();
 
   //TODO: Move this a more central place after integrating REV into EBP
-  // Initialize logic
-  d->logic()->InitializeIEC();
+  // Setup treatment machine model display and transforms
+  d->logic()->SetupTreatmentMachineModels();
 
   //TODO: Add function UpdateTreatmentOrientationMarker that merges the treatment machine components into a model that can be set as orientation marker,
   //TODO: Add new option 'Treatment room' to orientation marker choices and merged model with actual colors (surface scalars?)

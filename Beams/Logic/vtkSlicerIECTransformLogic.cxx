@@ -35,7 +35,10 @@
 #include <vtkGeneralTransform.h>
 
 //----------------------------------------------------------------------------
+const char* vtkSlicerIECTransformLogic::FIXEDREFERENCE_TO_RAS_TRANSFORM_NODE_NAME = "FixedReferenceToRasTransform";
 const char* vtkSlicerIECTransformLogic::GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME = "GantryToFixedReferenceTransform";
+const char* vtkSlicerIECTransformLogic::COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME = "CollimatorToGantryTransform";
+
 const char* vtkSlicerIECTransformLogic::COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME = "CollimatorToFixedReferenceIsocenterTransform";
 //TODO: 1. Rename as there is no CollimatorRotated coordinate system? (But there is a Collimator)
 //TODO: 2. If CollimatorRotated and Collimator are the same then why are there two transforms that are the inverse of each other under each other?
@@ -43,15 +46,17 @@ const char* vtkSlicerIECTransformLogic::COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TR
 //         CollimatorToGantryTransform -> FixedReferenceIsocenterToCollimatorRotatedTransform -> CollimatorToFixedReferenceIsocenterTransform,
 //         and here the coordinate frame names do not match. The first coordinate system of the first transform should be the same as the second of the second in order for this to be valid!
 const char* vtkSlicerIECTransformLogic::FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME = "FixedReferenceIsocenterToCollimatorRotatedTransform";
-const char* vtkSlicerIECTransformLogic::COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME = "CollimatorToGantryTransform";
+
 const char* vtkSlicerIECTransformLogic::LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME = "LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform";
 const char* vtkSlicerIECTransformLogic::LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME = "LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform";
 const char* vtkSlicerIECTransformLogic::LEFTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME = "LeftImagingPanelTranslationTransform";
 const char* vtkSlicerIECTransformLogic::LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME = "LeftImagingPanelRotatedToGantryTransform";
+
 const char* vtkSlicerIECTransformLogic::RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME = "RightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform";
 const char* vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME = "RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform";
 const char* vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME = "RightImagingPanelTranslationTransform";
 const char* vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME = "RightImagingPanelRotatedToGantryTransform";
+
 const char* vtkSlicerIECTransformLogic::PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME = "PatientSupportToFixedReferenceTransform";
 const char* vtkSlicerIECTransformLogic::PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_NAME = "PatientSupportScaledByTableTopVerticalMovementTransform";
 const char* vtkSlicerIECTransformLogic::PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME = "PatientSupportPositiveVerticalTranslationTransform";
@@ -79,7 +84,7 @@ void vtkSlicerIECTransformLogic::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerIECTransformLogic::SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNode)
+void vtkSlicerIECTransformLogic::UpdateTransformForBeam(vtkMRMLRTBeamNode* beamNode)
 {
   //TODO: Observe beam node's geometry modified event (vtkMRMLRTBeamNode::BeamGeometryModified)
   // and its parent plan's POI markups fiducial's point modified event (vtkMRMLMarkupsNode::PointModifiedEvent)
@@ -94,44 +99,73 @@ void vtkSlicerIECTransformLogic::SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNo
 
   vtkGeneralTransform* beamGeneralTransform = vtkGeneralTransform::New();
 
-    // Set transform to transform node
-  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+  // Update transform for beam
+  vtkMRMLLinearTransformNode* beamTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetNodeByID(beamNode->GetTransformNodeID()));
-  if (transformNode)
+  if (beamTransformNode)
   {
-    if (this->GetTransformBetween(Collimator, FixedReference, beamNode, beamGeneralTransform))
+    //TODO: Get transform between Collimator and PatientSupport, once the GetTransformBetween has been generalized
+    if (this->GetTransformBetween(Collimator, RAS, beamNode, beamGeneralTransform))
     {
-      double isocenterPosition[3] = { 0.0, 0.0, 0.0 };
-      if (!beamNode->GetPlanIsocenterPosition(isocenterPosition))
-      {
-        vtkErrorMacro("UpdateTransform: Failed to get isocenter position");
-        return;
-      }
+      beamTransformNode->SetAndObserveTransformToParent(beamGeneralTransform);
 
-      vtkSmartPointer<vtkTransform> fixedReferenceToRasTransform = vtkSmartPointer<vtkTransform>::New();
-      fixedReferenceToRasTransform->Identity();
-      fixedReferenceToRasTransform->Translate(isocenterPosition[0], isocenterPosition[1], isocenterPosition[2]);
-      fixedReferenceToRasTransform->RotateX(-90); // The "S" direction in RAS is the "A" direction in FixedReference 
-
-      beamGeneralTransform->PostMultiply();
-      beamGeneralTransform->Concatenate(fixedReferenceToRasTransform);
-      transformNode->SetAndObserveTransformToParent(beamGeneralTransform);
       // Update the name of the transform node too
       // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
       std::string transformName = std::string(beamNode->GetName()) + "_Transform";
     }  
   }
 
-  this->UpdateTransformsFromBeamGeometry(beamNode);
+  this->UpdateTransformsFromBeam(beamNode);
+}
 
-  //TODO: Implement observe beam geometry modified event and parent plan's POI markups fiducial's point modified event , unsure of how to get second modified event.
-  //if (event == vtkMRMLRTBeamNode::BeamGeometryModified){
-   
-  //}
-  //else{
-    //vtkErrorMacro("Not yet implemented!");
-  //}
-   //TODO:
+//-----------------------------------------------------------------------------
+void vtkSlicerIECTransformLogic::UpdateTransformsFromBeam(vtkMRMLRTBeamNode* beamNode)
+{
+  if (!beamNode)
+    {
+    vtkErrorMacro("UpdateTransformsFromBeam: Invalid beam node");
+    return;
+    }
+
+  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    beamNode->GetScene()->GetFirstNodeByName(GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME));
+  vtkTransform* gantryToFixedReferenceTransform = vtkTransform::SafeDownCast(gantryToFixedReferenceTransformNode->GetTransformToParent());
+  gantryToFixedReferenceTransform->Identity();
+  gantryToFixedReferenceTransform->RotateY(beamNode->GetGantryAngle());
+  gantryToFixedReferenceTransform->Modified();
+
+  //TODO: This should be CollimatorToGantry!
+  vtkMRMLLinearTransformNode* fixedReferenceIsocenterToCollimatorRotatedTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    beamNode->GetScene()->GetFirstNodeByName(FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME));
+  vtkTransform* fixedReferenceIsocenterToCollimatorRotatedTransform = vtkTransform::SafeDownCast(fixedReferenceIsocenterToCollimatorRotatedTransformNode->GetTransformToParent());
+  fixedReferenceIsocenterToCollimatorRotatedTransform->Identity();
+  fixedReferenceIsocenterToCollimatorRotatedTransform->RotateZ(beamNode->GetCollimatorAngle());
+  fixedReferenceIsocenterToCollimatorRotatedTransform->Modified();
+
+  vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    beamNode->GetScene()->GetFirstNodeByName(PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME));
+  vtkTransform* patientSupportToFixedReferenceTransform = vtkTransform::SafeDownCast(patientSupportToFixedReferenceTransformNode->GetTransformToParent());
+  patientSupportToFixedReferenceTransform->Identity();
+  patientSupportToFixedReferenceTransform->RotateZ(beamNode->GetCouchAngle());
+  patientSupportToFixedReferenceTransform->Modified();
+
+  vtkMRMLLinearTransformNode* fixedReferenceToRasTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    beamNode->GetScene()->GetFirstNodeByName(FIXEDREFERENCE_TO_RAS_TRANSFORM_NODE_NAME));
+  vtkTransform* fixedReferenceToRasTransform = vtkTransform::SafeDownCast(fixedReferenceToRasTransformNode->GetTransformToParent());
+  fixedReferenceToRasTransform->Identity();
+  // Apply isocenter translation
+  double isocenterPosition[3] = { 0.0, 0.0, 0.0 };
+  if (beamNode->GetPlanIsocenterPosition(isocenterPosition))
+  {
+    fixedReferenceToRasTransform->Translate(isocenterPosition[0], isocenterPosition[1], isocenterPosition[2]);
+  }
+  else
+  {
+    vtkErrorMacro("UpdateTransformsFromBeam: Failed to get isocenter position for beam " << beamNode->GetName());
+  }
+  // The "S" direction in RAS is the "A" direction in FixedReference 
+  fixedReferenceToRasTransform->RotateX(-90);
+  fixedReferenceToRasTransform->Modified();
 }
 
 //-----------------------------------------------------------------------------
@@ -142,6 +176,9 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
     vtkErrorMacro("GetTransformBetween: Invalid output transform node!");
     return false;
   }
+
+  vtkMRMLLinearTransformNode* fixedReferenceToRasTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    beamNode->GetScene()->GetFirstNodeByName(FIXEDREFERENCE_TO_RAS_TRANSFORM_NODE_NAME));
 
   vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetFirstNodeByName(GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME));
@@ -200,7 +237,15 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   //TODO: Replace this huge list of static if/else code with dynamic code
   if (fromFrame == Gantry && toFrame == FixedReference)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(gantryToFixedReferenceTransformNode, NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(gantryToFixedReferenceTransformNode, fixedReferenceToRasTransformNode, outputTransform);
+    return true;
+  }
+
+  else if (fromFrame == Collimator && toFrame == RAS)
+  {
+    //TODO: This is where it becomes clear that there is a problem with this transform.
+    //      This query should go through Collimator -> Gantry -> FixedReference using CollimatorToGantryTransform and GantryToFixedReferenceTransform
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceIsocenterToCollimatorRotatedTransformNode, NULL, outputTransform);
     return true;
   }
 
@@ -208,7 +253,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   {
     //TODO: This is where it becomes clear that there is a problem with this transform.
     //      This query should go through Collimator -> Gantry -> FixedReference using CollimatorToGantryTransform and GantryToFixedReferenceTransform
-    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceIsocenterToCollimatorRotatedTransformNode, NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceIsocenterToCollimatorRotatedTransformNode, fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
@@ -221,7 +266,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   // Left Imaging Panel
   else if (fromFrame == LeftImagingPanel && toFrame == FixedReference)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode, NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode, fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
@@ -252,7 +297,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == LeftImagingPanelIsocenter && toFrame == FixedReference)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode, NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode, fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
@@ -276,7 +321,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == LeftImagingPanelRotated && toFrame == FixedReference)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelRotatedToGantryTransformNode, NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelRotatedToGantryTransformNode, fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
@@ -294,7 +339,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == LeftImagingPanelTranslated && toFrame == FixedReference)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelTranslationTransformNode, NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(leftImagingPanelTranslationTransformNode, fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
@@ -307,7 +352,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   // Right Imaging Panel:
   else if (fromFrame == RightImagingPanel && toFrame == FixedReference)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode, NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode, fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
@@ -338,7 +383,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == RightImagingPanelIsocenter && toFrame == FixedReference)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode, NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode, fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
@@ -362,7 +407,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == RightImagingPanelRotated && toFrame == FixedReference)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelRotatedToGantryTransformNode, NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelRotatedToGantryTransformNode, fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
@@ -380,7 +425,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == RightImagingPanelTranslated && toFrame == FixedReference)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelTranslationTransformNode, NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(rightImagingPanelTranslationTransformNode, fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
@@ -393,13 +438,13 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   // Patient Support
   else if (fromFrame == PatientSupport && toFrame == FixedReference)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportToFixedReferenceTransformNode, NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportToFixedReferenceTransformNode, fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
   else if (fromFrame == PatientSupportPositiveVerticalTranslated && toFrame == FixedReference)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportPositiveVerticalTranslationTransformNode, NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportPositiveVerticalTranslationTransformNode, fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
@@ -426,7 +471,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   else if (fromFrame == PatientSupportScaled && toFrame == FixedReference)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportScaledByTableTopVerticalMovementTransformNode,
-      NULL, outputTransform);
+      fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
@@ -446,7 +491,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == PatientSupportScaledTranslated && toFrame == FixedReference)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode,NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode, fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
@@ -459,13 +504,13 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   // Table Top
   else if (fromFrame == TableTop && toFrame == FixedReference)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(tableTopToTableTopEccentricRotationTransformNode, NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(tableTopToTableTopEccentricRotationTransformNode, fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
   else if (fromFrame == TableTopEccentricRotated && toFrame == FixedReference)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(tableTopEccentricRotationToPatientSupportTransformNode, NULL, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(tableTopEccentricRotationToPatientSupportTransformNode, fixedReferenceToRasTransformNode, outputTransform);
     return true;
   }
 
@@ -490,13 +535,13 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   // Inverse
   if (fromFrame == FixedReference && toFrame == Gantry)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, gantryToFixedReferenceTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, gantryToFixedReferenceTransformNode, outputTransform);
     return true;
   }
 
   else if (fromFrame == FixedReference  && toFrame == Collimator)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, fixedReferenceIsocenterToCollimatorRotatedTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, fixedReferenceIsocenterToCollimatorRotatedTransformNode, outputTransform);
     return true;
   }
 
@@ -509,7 +554,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   // Left Imaging Panel
   else if (fromFrame == FixedReference && toFrame == LeftImagingPanel)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode, outputTransform);
     return true;
   }
 
@@ -540,7 +585,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == FixedReference && toFrame == LeftImagingPanelIsocenter)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode, outputTransform);
     return true;
   }
 
@@ -564,7 +609,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == FixedReference  && toFrame == LeftImagingPanelRotated)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, leftImagingPanelRotatedToGantryTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, leftImagingPanelRotatedToGantryTransformNode, outputTransform);
     return true;
   }
 
@@ -582,7 +627,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == FixedReference && toFrame == LeftImagingPanelTranslated)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, leftImagingPanelTranslationTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, leftImagingPanelTranslationTransformNode, outputTransform);
     return true;
   }
 
@@ -595,7 +640,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   // Right Imaging Panel:
   else if (fromFrame == FixedReference && toFrame == RightImagingPanel)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode, outputTransform);
     return true;
   }
 
@@ -627,7 +672,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == FixedReference && toFrame == RightImagingPanelIsocenter)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode, outputTransform);
     return true;
   }
 
@@ -651,7 +696,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == FixedReference && toFrame == RightImagingPanelRotated)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, rightImagingPanelRotatedToGantryTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, rightImagingPanelRotatedToGantryTransformNode, outputTransform);
     return true;
   }
 
@@ -669,7 +714,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == FixedReference && toFrame == RightImagingPanelTranslated)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, rightImagingPanelTranslationTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, rightImagingPanelTranslationTransformNode, outputTransform);
     return true;
   }
 
@@ -682,13 +727,13 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   // Patient Support
   else if (fromFrame == FixedReference && toFrame == PatientSupport)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, patientSupportToFixedReferenceTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, patientSupportToFixedReferenceTransformNode, outputTransform);
     return true;
   }
 
   else if (fromFrame == FixedReference && toFrame == PatientSupportPositiveVerticalTranslated)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, patientSupportPositiveVerticalTranslationTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, patientSupportPositiveVerticalTranslationTransformNode, outputTransform);
     return true;
   }
 
@@ -714,7 +759,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == FixedReference && toFrame == PatientSupportScaled)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, patientSupportScaledByTableTopVerticalMovementTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, patientSupportScaledByTableTopVerticalMovementTransformNode, outputTransform);
     return true;
   }
 
@@ -734,7 +779,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   else if (fromFrame == FixedReference && toFrame == PatientSupportScaledTranslated)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode, outputTransform);
     return true;
   }
 
@@ -747,13 +792,13 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   // Table Top
   else if (fromFrame == FixedReference && toFrame == TableTop)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, tableTopToTableTopEccentricRotationTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, tableTopToTableTopEccentricRotationTransformNode, outputTransform);
     return true;
   }
 
   else if (fromFrame == FixedReference && toFrame == TableTopEccentricRotated)
   {
-    vtkMRMLTransformNode::GetTransformBetweenNodes(NULL, tableTopEccentricRotationToPatientSupportTransformNode, outputTransform);
+    vtkMRMLTransformNode::GetTransformBetweenNodes(fixedReferenceToRasTransformNode, tableTopEccentricRotationToPatientSupportTransformNode, outputTransform);
     return true;
   }
 
@@ -775,34 +820,5 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
     return true;
   }
 
-
   return false;
-}
-
-//-----------------------------------------------------------------------------
-void vtkSlicerIECTransformLogic::UpdateTransformsFromBeamGeometry(vtkMRMLRTBeamNode* beamNode)
-{
-  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    beamNode->GetScene()->GetFirstNodeByName(GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME));
-  this->GantryToFixedReferenceTransform = vtkTransform::SafeDownCast(gantryToFixedReferenceTransformNode->GetTransformToParent());
-
-  vtkMRMLLinearTransformNode* fixedReferenceIsocenterToCollimatorRotatedTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    beamNode->GetScene()->GetFirstNodeByName(FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME));
-  this->FixedReferenceIsocenterToCollimatorRotatedTransform = vtkTransform::SafeDownCast(fixedReferenceIsocenterToCollimatorRotatedTransformNode->GetTransformToParent());
-
-   vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-     beamNode->GetScene()->GetFirstNodeByName(PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME));
-   this->PatientSupportToFixedReferenceTransform = vtkTransform::SafeDownCast(patientSupportToFixedReferenceTransformNode->GetTransformToParent());
-  
-   this->GantryToFixedReferenceTransform->Identity();
-   this->GantryToFixedReferenceTransform->RotateY(beamNode->GetGantryAngle());
-   this->GantryToFixedReferenceTransform->Modified();
-
-   this->FixedReferenceIsocenterToCollimatorRotatedTransform->Identity();
-   this->FixedReferenceIsocenterToCollimatorRotatedTransform->RotateZ(beamNode->GetCollimatorAngle());
-   this->FixedReferenceIsocenterToCollimatorRotatedTransform->Modified();
-
-   this->PatientSupportToFixedReferenceTransform->Identity();
-   this->PatientSupportToFixedReferenceTransform->RotateZ(beamNode->GetCouchAngle());
-   this->PatientSupportToFixedReferenceTransform->Modified();
 }

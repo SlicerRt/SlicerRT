@@ -31,8 +31,8 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 // Slicer includes
 #include <vtkSlicerModuleLogic.h>
 
+// SlicerRT includes
 #include "vtkCollisionDetectionFilter.h"
-#include <vtkMRMLModelNode.h>
 
 class vtkMRMLRoomsEyeViewNode;
 class vtkMRMLRTBeamNode;
@@ -49,8 +49,10 @@ public:
 public:
   /// Load pre-defined components of the treatment machine into the scene
   void LoadLinacModels();
-  /// Set up the IEC transform hierarchy
-  void InitializeIEC();
+  /// Create or get transforms taking part in the IEC logic, and build the transform hierarchy
+  void BuildIECTransformHierarchy();
+  /// Set up the IEC transforms on the treatment machine models
+  void SetupTreatmentMachineModels();
 
   /// Update CollimatorToFixedReference Isocenter transform by translating collimator model to isocenter
   void UpdateCollimatorToFixedReferenceIsocenterTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
@@ -109,6 +111,7 @@ public:
 
   void UpdateTreatmentOrientationMarker();
 
+  //TODO:
   //bool CalculateNewSourcePosition(vtkMRMLRTBeamNode* beamNode, double oldSourcePosition[3], double newSourcePosition[3]);
 
 protected:

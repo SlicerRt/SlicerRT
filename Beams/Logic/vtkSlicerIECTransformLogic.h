@@ -47,7 +47,8 @@ class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkSlicerIECTransformLogic : public vtkObjec
 public:
   enum CoordinateSystemIdentifier
   {
-    FixedReference = 0,
+    RAS = 0,
+    FixedReference,
     Gantry,
     Collimator,
     LeftImagingPanelTranslated,
@@ -67,18 +68,23 @@ public:
   };
 
   // Transform node names
+  static const char* FIXEDREFERENCE_TO_RAS_TRANSFORM_NODE_NAME;
   static const char* GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME;
+  static const char* COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME;
+
   static const char* COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME;
   static const char* FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME;
-  static const char* COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME;
+
   static const char* LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME;
   static const char* LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME;
   static const char* LEFTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME;
   static const char* LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME;
+
   static const char* RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME;
   static const char* RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME;
   static const char* RIGHTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME;
   static const char* RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME;
+
   static const char* PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME;
   static const char* PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_NAME;
   static const char* PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME;
@@ -92,71 +98,15 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Set and observe beam node. If a geometry-related parameter changes in the beam node, the transforms are updated
-  void SetAndObserveBeamNode(vtkMRMLRTBeamNode* beamNode);
+  void UpdateTransformForBeam(vtkMRMLRTBeamNode* beamNode);
 
   /// Get transform from one coordinate frame to another
   /// \return Success flag (false on any error)
   bool GetTransformBetween(CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame, vtkMRMLRTBeamNode* beamNode, vtkGeneralTransform* outputTransform);
-
-public:
-  vtkGetObjectMacro(GantryToFixedReferenceTransform, vtkTransform);
-  vtkGetObjectMacro(FixedReferenceIsocenterToCollimatorRotatedTransform, vtkTransform);
-  vtkGetObjectMacro(LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform, vtkTransform);
-  vtkGetObjectMacro(LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform, vtkTransform);
-  vtkGetObjectMacro(LeftImagingPanelRotatedToGantryTransform, vtkTransform);
-  vtkGetObjectMacro(LeftImagingPanelTranslationTransform, vtkTransform);
-  vtkGetObjectMacro(RightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform, vtkTransform);
-  vtkGetObjectMacro(RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform, vtkTransform);
-  vtkGetObjectMacro(RightImagingPanelRotatedToGantryTransform, vtkTransform);
-  vtkGetObjectMacro(RightImagingPanelTranslationTransform, vtkTransform);
-  vtkGetObjectMacro(PatientSupportToFixedReferenceTransform, vtkTransform);
-  vtkGetObjectMacro(PatientSupportScaledTranslatedToTableTopVerticalTranslationTransform, vtkTransform);
-  vtkGetObjectMacro(PatientSupportScaledByTableTopVerticalMovementTransform, vtkTransform);
-  vtkGetObjectMacro(PatientSupportPositiveVerticalTranslationTransform, vtkTransform);
-  vtkGetObjectMacro(TableTopEccentricRotationToPatientSupportTransform, vtkTransform);
-  vtkGetObjectMacro(TableTopToTableTopEccentricRotationTransform, vtkTransform);
   
 protected:
   /// Update transforms according to beam node
-  void UpdateTransformsFromBeamGeometry(vtkMRMLRTBeamNode* beamNode);
-
-protected:
-  vtkSetObjectMacro(GantryToFixedReferenceTransform, vtkTransform);
-  vtkSetObjectMacro(FixedReferenceIsocenterToCollimatorRotatedTransform, vtkTransform);
-  vtkSetObjectMacro(LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform, vtkTransform);
-  vtkSetObjectMacro(LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform, vtkTransform);
-  vtkSetObjectMacro(LeftImagingPanelRotatedToGantryTransform, vtkTransform);
-  vtkSetObjectMacro(LeftImagingPanelTranslationTransform, vtkTransform);
-  vtkSetObjectMacro(RightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform, vtkTransform);
-  vtkSetObjectMacro(RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform, vtkTransform);
-  vtkSetObjectMacro(RightImagingPanelRotatedToGantryTransform, vtkTransform);
-  vtkSetObjectMacro(RightImagingPanelTranslationTransform, vtkTransform);
-  vtkSetObjectMacro(PatientSupportToFixedReferenceTransform, vtkTransform);
-  vtkSetObjectMacro(PatientSupportScaledTranslatedToTableTopVerticalTranslationTransform, vtkTransform);
-  vtkSetObjectMacro(PatientSupportScaledByTableTopVerticalMovementTransform, vtkTransform);
-  vtkSetObjectMacro(PatientSupportPositiveVerticalTranslationTransform, vtkTransform);
-  vtkSetObjectMacro(TableTopEccentricRotationToPatientSupportTransform, vtkTransform);
-  vtkSetObjectMacro(TableTopToTableTopEccentricRotationTransform, vtkTransform);
-
-protected:
-  // TODO: Determine if these are still necessary?
-  /// Gantry to fixed reference transform
-  vtkTransform* GantryToFixedReferenceTransform;
-  vtkTransform* FixedReferenceIsocenterToCollimatorRotatedTransform;
-  vtkTransform* LeftImagingPanelTranslationTransform;
-  vtkTransform* LeftImagingPanelRotatedToGantryTransform;
-  vtkTransform* LeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform;
-  vtkTransform* LeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform;
-  vtkTransform* RightImagingPanelTranslationTransform;
-  vtkTransform* RightImagingPanelRotatedToGantryTransform;
-  vtkTransform* RightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform;
-  vtkTransform* RightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform;
-  vtkTransform* PatientSupportToFixedReferenceTransform;
-  vtkTransform* PatientSupportScaledTranslatedToTableTopVerticalTranslationTransform;
-  vtkTransform* PatientSupportScaledByTableTopVerticalMovementTransform;
-  vtkTransform* PatientSupportPositiveVerticalTranslationTransform;
-  vtkTransform* TableTopEccentricRotationToPatientSupportTransform;
-  vtkTransform* TableTopToTableTopEccentricRotationTransform;
+  void UpdateTransformsFromBeam(vtkMRMLRTBeamNode* beamNode);
 
 protected:
   vtkSlicerIECTransformLogic();
