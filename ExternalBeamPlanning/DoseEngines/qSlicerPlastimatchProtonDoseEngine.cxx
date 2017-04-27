@@ -276,7 +276,7 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
       rt_beam->set_flavor('h');
       break;
     default: // Ray tracer
-      rt_beam->set_flavor('a');
+      rt_beam->set_flavor('b');
       break;
     }
     std::cout << "Algorithm Flavor = " << rt_beam->get_flavor() << std::endl;
@@ -419,15 +419,6 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
     rt_beam->get_mebs()->set_spread(energySpread);
     std::cout << "Energy spread = " << rt_beam->get_mebs()->get_spread() << std::endl;
 
-    // Distal and proximal margins are updated when the SOBP is created
-    // All the rt_beam parameters are updated to initiate the dose calculation
-    if (!rt_plan.prepare_beam_for_calc(rt_beam))
-    {
-      QString errorMessage("Sorry, rt_plan.prepare_beam_for_calc() failed");
-      qCritical() << Q_FUNC_INFO << ": " << errorMessage;
-      return errorMessage;
-    }
-
     // A little warm fuzzy for the developers
     rt_plan.print_verif ();
     std::cout << "Working..." << std::endl;
@@ -440,70 +431,9 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
     return errorMessage;
   }
 
-  // Get aperture image, create volume node, and add as intermediate result
-  Plm_image::Pointer& ap = rt_beam->rpl_vol->get_aperture()->get_aperture_image();
-  itk::Image<unsigned char, 3>::Pointer apertureVolumeItk = ap->itk_uchar();
-
-  vtkSmartPointer<vtkImageData> apertureImageData = vtkSmartPointer<vtkImageData>::New();
-  SlicerRtCommon::ConvertItkImageToVtkImageData<unsigned char>(apertureVolumeItk, apertureImageData, VTK_UNSIGNED_CHAR);
-
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> apertureVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  apertureVolumeNode->SetAndObserveImageData(apertureImageData);
-  apertureVolumeNode->SetSpacing(apertureVolumeItk->GetSpacing()[0], apertureVolumeItk->GetSpacing()[1], apertureVolumeItk->GetSpacing()[2]);
-  apertureVolumeNode->SetOrigin(apertureVolumeItk->GetOrigin()[0], apertureVolumeItk->GetOrigin()[1], apertureVolumeItk->GetOrigin()[2]);
-
-  std::string apertureNodeName = std::string(beamNode->GetName()) + "_Aperture";
-  apertureVolumeNode->SetName(apertureNodeName.c_str());
-  scene->AddNode(apertureVolumeNode);
-  
-  this->addIntermediateResult(apertureVolumeNode, beamNode);
-
-  // Get range compensator image, create volume node, and add as intermediate result
-  Plm_image::Pointer& rc = rt_beam->rpl_vol->get_aperture()->get_range_compensator_image();
-  itk::Image<float, 3>::Pointer rcVolumeItk = rc->itk_float();
-
-  vtkSmartPointer<vtkImageData> rangeCompensatorImageData = vtkSmartPointer<vtkImageData>::New();
-  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(rcVolumeItk, rangeCompensatorImageData, VTK_FLOAT);
-
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> rangeCompensatorVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-  rangeCompensatorVolumeNode->SetAndObserveImageData(rangeCompensatorImageData);
-  rangeCompensatorVolumeNode->SetSpacing(rcVolumeItk->GetSpacing()[0], rcVolumeItk->GetSpacing()[1], rcVolumeItk->GetSpacing()[2]);
-  rangeCompensatorVolumeNode->SetOrigin(rcVolumeItk->GetOrigin()[0], rcVolumeItk->GetOrigin()[1], rcVolumeItk->GetOrigin()[2]);
-
-  std::string rangeCompensatorNodeName = std::string(beamNode->GetName()) + "_RangeCompensator";
-  rangeCompensatorVolumeNode->SetName(rangeCompensatorNodeName.c_str());
-  scene->AddNode(rangeCompensatorVolumeNode);
-  
-  this->addIntermediateResult(rangeCompensatorVolumeNode, beamNode);
-
   // Compute the dose
   try
   {
-    if (rt_beam->get_beam_line_type() != "passive")
-    {
-      // Active
-      rt_beam->get_mebs()->compute_particle_number_matrix_from_target_active (
-        rt_beam->rpl_vol, targetPlmVolume, rt_beam->get_smearing());
-    }
-    else
-    {
-      // Passive
-      rt_beam->rpl_vol->compute_beam_modifiers_passive_scattering (
-        targetPlmVolume->get_vol(), rt_beam->get_smearing(),
-        rt_beam->get_mebs()->get_proximal_margin(),
-        rt_beam->get_mebs()->get_distal_margin());
-      rt_beam->get_mebs()->set_prescription_depths (
-        rt_beam->rpl_vol->get_min_wed(), rt_beam->rpl_vol->get_max_wed());
-      rt_beam->rpl_vol->apply_beam_modifiers();
-      rt_beam->get_mebs()->optimize_sobp();
-      int ap_dim[2] = {
-        rt_beam->rpl_vol->get_aperture()->get_dim()[0],
-        rt_beam->rpl_vol->get_aperture()->get_dim()[1]
-      };
-      rt_beam->get_mebs()->generate_part_num_from_weight(ap_dim);
-    }
-
-    // We can compute the dose
     rt_plan.compute_dose(rt_beam);
   }
   catch (std::exception& ex)
@@ -526,6 +456,42 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
 
   std::string protonDoseNodeName = std::string(beamNode->GetName()) + "_ProtonDose";
   resultDoseVolumeNode->SetName(protonDoseNodeName.c_str());
+
+  // Get aperture image, create volume node, and add as intermediate result
+  Plm_image::Pointer& ap = rt_beam->get_aperture_image();
+  itk::Image<unsigned char, 3>::Pointer apertureVolumeItk = ap->itk_uchar();
+
+  vtkSmartPointer<vtkImageData> apertureImageData = vtkSmartPointer<vtkImageData>::New();
+  SlicerRtCommon::ConvertItkImageToVtkImageData<unsigned char>(apertureVolumeItk, apertureImageData, VTK_UNSIGNED_CHAR);
+
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> apertureVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  apertureVolumeNode->SetAndObserveImageData(apertureImageData);
+  apertureVolumeNode->SetSpacing(apertureVolumeItk->GetSpacing()[0], apertureVolumeItk->GetSpacing()[1], apertureVolumeItk->GetSpacing()[2]);
+  apertureVolumeNode->SetOrigin(apertureVolumeItk->GetOrigin()[0], apertureVolumeItk->GetOrigin()[1], apertureVolumeItk->GetOrigin()[2]);
+
+  std::string apertureNodeName = std::string(beamNode->GetName()) + "_Aperture";
+  apertureVolumeNode->SetName(apertureNodeName.c_str());
+  scene->AddNode(apertureVolumeNode);
+  
+  this->addIntermediateResult(apertureVolumeNode, beamNode);
+
+  // Get range compensator image, create volume node, and add as intermediate result
+  Plm_image::Pointer& rc = rt_beam->get_range_compensator_image();
+  itk::Image<float, 3>::Pointer rcVolumeItk = rc->itk_float();
+
+  vtkSmartPointer<vtkImageData> rangeCompensatorImageData = vtkSmartPointer<vtkImageData>::New();
+  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(rcVolumeItk, rangeCompensatorImageData, VTK_FLOAT);
+
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> rangeCompensatorVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  rangeCompensatorVolumeNode->SetAndObserveImageData(rangeCompensatorImageData);
+  rangeCompensatorVolumeNode->SetSpacing(rcVolumeItk->GetSpacing()[0], rcVolumeItk->GetSpacing()[1], rcVolumeItk->GetSpacing()[2]);
+  rangeCompensatorVolumeNode->SetOrigin(rcVolumeItk->GetOrigin()[0], rcVolumeItk->GetOrigin()[1], rcVolumeItk->GetOrigin()[2]);
+
+  std::string rangeCompensatorNodeName = std::string(beamNode->GetName()) + "_RangeCompensator";
+  rangeCompensatorVolumeNode->SetName(rangeCompensatorNodeName.c_str());
+  scene->AddNode(rangeCompensatorVolumeNode);
+  
+  this->addIntermediateResult(rangeCompensatorVolumeNode, beamNode);
 
   return QString();
 }
