@@ -131,7 +131,7 @@ void vtkSlicerIECTransformLogic::UpdateTransformsFromBeam(vtkMRMLRTBeamNode* bea
     beamNode->GetScene()->GetFirstNodeByName(GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME));
   vtkTransform* gantryToFixedReferenceTransform = vtkTransform::SafeDownCast(gantryToFixedReferenceTransformNode->GetTransformToParent());
   gantryToFixedReferenceTransform->Identity();
-  gantryToFixedReferenceTransform->RotateY(beamNode->GetGantryAngle());
+  gantryToFixedReferenceTransform->RotateY(beamNode->GetGantryAngle() * (-1.0));
   gantryToFixedReferenceTransform->Modified();
 
   //TODO: This should be CollimatorToGantry!
