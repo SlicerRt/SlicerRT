@@ -478,6 +478,19 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
   }
 
   // Display all pieces of the treatment room and sets each piece a color to provide realistic representation
+  vtkMRMLModelNode* linacBodyModel = vtkMRMLModelNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(LINACBODY_MODEL_NAME) );
+  if (!linacBodyModel)
+  {
+    vtkErrorMacro("SetupTreatmentMachineModels: Unable to access linac body model");
+    return;
+  }
+  vtkMRMLLinearTransformNode* linacBodyModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::FIXEDREFERENCE_TO_RAS_TRANSFORM_NODE_NAME) );
+  linacBodyModel->SetAndObserveTransformNodeID(linacBodyModelTransforms->GetID());
+  linacBodyModel->CreateDefaultDisplayNodes();
+  linacBodyModel->GetDisplayNode()->SetColor(0.9, 0.9, 0.9);
+
   vtkMRMLModelNode* gantryModel = vtkMRMLModelNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(GANTRY_MODEL_NAME) );
   if (!gantryModel)
@@ -485,9 +498,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access gantry model");
     return;
   }
-  vtkMRMLLinearTransformNode* gantryModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+  vtkMRMLLinearTransformNode* gantryModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME) );
-  gantryModel->SetAndObserveTransformNodeID(gantryModelTransforms->GetID());
+  gantryModel->SetAndObserveTransformNodeID(gantryModelTransformNode->GetID());
   gantryModel->CreateDefaultDisplayNodes();
   gantryModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
 
@@ -498,9 +511,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access collimator model");
     return;
   }
-  vtkMRMLLinearTransformNode* collimatorModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+  vtkMRMLLinearTransformNode* collimatorModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME) );
-  collimatorModel->SetAndObserveTransformNodeID(collimatorModelTransforms->GetID());
+  collimatorModel->SetAndObserveTransformNodeID(collimatorModelTransformNode->GetID());
   collimatorModel->CreateDefaultDisplayNodes();
   collimatorModel->GetDisplayNode()->SetColor(0.7, 0.7, 0.95);
 
@@ -512,9 +525,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access applicator holder model");
     return;
   }
-  vtkMRMLLinearTransformNode* applicatorHolderModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+  vtkMRMLLinearTransformNode* applicatorHolderModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(ADDITIONALCOLLIMATORDEVICES_TO_COLLIMATOR_TRANSFORM_NODE_NAME));
-  applicatorHolderModel->SetAndObserveTransformNodeID(applicatorHolderModelTransforms->GetID());
+  applicatorHolderModel->SetAndObserveTransformNodeID(applicatorHolderModelTransformNode->GetID());
   applicatorHolderModel->CreateDefaultDisplayNodes();
   applicatorHolderModel->GetDisplayNode()->VisibilityOff();
 
@@ -525,9 +538,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access electron applicator model");
     return;
   }
-  vtkMRMLLinearTransformNode* electronApplicatorModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+  vtkMRMLLinearTransformNode* electronApplicatorModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(ADDITIONALCOLLIMATORDEVICES_TO_COLLIMATOR_TRANSFORM_NODE_NAME));
-  electronApplicatorModel->SetAndObserveTransformNodeID(electronApplicatorModelTransforms->GetID());
+  electronApplicatorModel->SetAndObserveTransformNodeID(electronApplicatorModelTransformNode->GetID());
   electronApplicatorModel->CreateDefaultDisplayNodes();
   electronApplicatorModel->GetDisplayNode()->VisibilityOff();
 
@@ -538,9 +551,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access left imaging panel model");
     return;
   }
-  vtkMRMLLinearTransformNode* leftImagingPanelModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+  vtkMRMLLinearTransformNode* leftImagingPanelModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME));
-  leftImagingPanelModel->SetAndObserveTransformNodeID(leftImagingPanelModelTransforms->GetID());
+  leftImagingPanelModel->SetAndObserveTransformNodeID(leftImagingPanelModelTransformNode->GetID());
   leftImagingPanelModel->CreateDefaultDisplayNodes();
   leftImagingPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
 
@@ -551,9 +564,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access right imaging panel model");
     return;
   }
-  vtkMRMLLinearTransformNode* rightImagingPanelModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+  vtkMRMLLinearTransformNode* rightImagingPanelModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME) );
-  rightImagingPanelModel->SetAndObserveTransformNodeID(rightImagingPanelModelTransforms->GetID());
+  rightImagingPanelModel->SetAndObserveTransformNodeID(rightImagingPanelModelTransformNode->GetID());
   rightImagingPanelModel->CreateDefaultDisplayNodes();
   rightImagingPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
 
@@ -564,11 +577,11 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access patient support model");
     return;
   }
-  vtkMRMLLinearTransformNode* patientSupportModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+  vtkMRMLLinearTransformNode* patientSupportModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME) );
   vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransform = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME) );
-  patientSupportModel->SetAndObserveTransformNodeID(patientSupportModelTransforms->GetID());
+  patientSupportModel->SetAndObserveTransformNodeID(patientSupportModelTransformNode->GetID());
   patientSupportModel->CreateDefaultDisplayNodes();
   patientSupportModel->GetDisplayNode()->SetColor(0.85, 0.85, 0.85);
 
@@ -579,9 +592,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access table top model");
     return;
   }
-  vtkMRMLLinearTransformNode* tableTopModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
+  vtkMRMLLinearTransformNode* tableTopModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME) );
-  tableTopModel->SetAndObserveTransformNodeID(tableTopModelTransforms->GetID());
+  tableTopModel->SetAndObserveTransformNodeID(tableTopModelTransformNode->GetID());
   tableTopModel->CreateDefaultDisplayNodes();
   tableTopModel->GetDisplayNode()->SetColor(0, 0, 0);
 
@@ -589,14 +602,14 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
   this->GantryTableTopCollisionDetection->SetInput(0, gantryModel->GetPolyData());
   this->GantryTableTopCollisionDetection->SetInput(1, tableTopModel->GetPolyData());
   this->GantryTableTopCollisionDetection->SetTransform(0,
-    vtkLinearTransform::SafeDownCast(gantryModelTransforms->GetTransformToParent()) );
+    vtkLinearTransform::SafeDownCast(gantryModelTransformNode->GetTransformToParent()) );
   this->GantryTableTopCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
   this->GantryTableTopCollisionDetection->Update();
 
   this->GantryPatientSupportCollisionDetection->SetInput(0, gantryModel->GetPolyData());
   this->GantryPatientSupportCollisionDetection->SetInput(1, patientSupportModel->GetPolyData());
   this->GantryPatientSupportCollisionDetection->SetTransform(0,
-    vtkLinearTransform::SafeDownCast(gantryModelTransforms->GetTransformToParent()) );
+    vtkLinearTransform::SafeDownCast(gantryModelTransformNode->GetTransformToParent()) );
   this->GantryPatientSupportCollisionDetection->SetTransform(1,
     vtkLinearTransform::SafeDownCast(patientSupportToFixedReferenceTransform->GetTransformToParent()) );
   this->GantryPatientSupportCollisionDetection->Update();
@@ -614,7 +627,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
 
   this->GantryPatientCollisionDetection->SetInput(0, gantryModel->GetPolyData());
   this->GantryPatientCollisionDetection->SetTransform(0,
-    vtkLinearTransform::SafeDownCast(gantryModelTransforms->GetTransformToParent()) );
+    vtkLinearTransform::SafeDownCast(gantryModelTransformNode->GetTransformToParent()) );
   this->GantryPatientCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
   this->GantryPatientCollisionDetection->Update();
 
