@@ -109,14 +109,14 @@ void qSlicerPlastimatchProtonDoseEngine::defineBeamParameters()
     1.0, 10000.0, 1500.0, 100.0, 2 );
 
   QStringList algorithmOptions;
-  algorithmOptions << "Ray tracer" << "Cartesian geometry dose summation" << "Divergent geometry dose summation" << "Hong geometry dose summation";
+  algorithmOptions << "Ray tracer" << "Pencil beam";
   this->addBeamParameterComboBox(
     "Beam model", "Algorithm", "Dose calculation algorithm:", "",
     algorithmOptions, 0 );
 
   this->addBeamParameterSpinBox(
     "Beam model", "PencilBeamResolution", "Pencil beam spacing at isocenter (mm):", "",
-    0.1, 99.99, 1.0, 1.0, 2 );
+    0.1, 99.99, 2.0, 1.0, 2 );
   this->addBeamParameterSpinBox(
     "Beam model", "RangeCompensatorSmearingRadius", "Smearing radius (mm):", "",
     0.0, 99.99, 5.0, 1.0, 2 );
@@ -125,16 +125,16 @@ void qSlicerPlastimatchProtonDoseEngine::defineBeamParameters()
     0.0, 50.0, 0.0, 1.0, 2 );
   this->addBeamParameterSpinBox(
     "Beam model", "EnergyResolution", "Energy resolution (MeV):", "",
-    1.0, 5.0, 2.0, 1.0, 2 );
+    1.0, 5.0, 5.0, 1.0, 2 );
   this->addBeamParameterSpinBox(
     "Beam model", "EnergySpread", "Energy spread (MeV):", "",
     0.0, 99.99, 1.0, 1.0, 2 );
   this->addBeamParameterSpinBox(
     "Beam model", "StepLength", "Step length:", "",
-    0.0, 99.99, 1.0, 1.0, 2 );
+    0.0, 99.99, 2.0, 1.0, 2 );
 
   this->addBeamParameterCheckBox(
-    "Beam model", "LateralSpreadHomoApprox", "Lateral scattering WED approximation:", "", false);
+    "Beam model", "KanematsuGottschalk", "Kanematsu-Gottschalk patient scattering:", "", false);
   this->addBeamParameterCheckBox(
     "Beam model", "RangeCompensatorHighland", "Highland model for range compensator:", "", false);
 }
@@ -266,14 +266,8 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
     int algorithm = this->integerParameter(beamNode, "Algorithm");
     switch(algorithm)
     {
-    case 1: // Cartesian geometry dose summation
-      rt_beam->set_flavor('f');
-      break;
-    case 2: // Divergent geometry dose summation
-      rt_beam->set_flavor('g');
-      break;
-    case 3: // Hong geometry dose summation
-      rt_beam->set_flavor('h');
+    case 1: // Pencil beam
+      rt_beam->set_flavor('d');
       break;
     default: // Ray tracer
       rt_beam->set_flavor('b');
@@ -281,17 +275,16 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
     }
     std::cout << "Algorithm Flavor = " << rt_beam->get_flavor() << std::endl;
 
-    std::cout << "Setting homo approximation -> ";
-    bool lateralSpreadHomoApprox = this->booleanParameter(beamNode, "LateralSpreadHomoApprox");
-    if (lateralSpreadHomoApprox)
-    {
-      rt_beam->set_homo_approx('y');
-      std::cout << "Homo approximation set to true" << std::endl;
-    }
-    else
+    bool kgScattering = this->booleanParameter(beamNode, "KanematsuGottschalk");
+    if (kgScattering)
     {
       rt_beam->set_homo_approx('n');
       std::cout << "Homo approximation set to false" << std::endl;
+    }
+    else
+    {
+      rt_beam->set_homo_approx('y');
+      std::cout << "Homo approximation set to true" << std::endl;
     }
 
     std::cout << "Setting beam weight -> ";
@@ -343,9 +336,10 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
       beamNode->GetY1Jaw() * apertureOffset / beamNode->GetSAD() };
 
     double pencilBeamResolution = this->doubleParameter(beamNode, "PencilBeamResolution");
+    // Convert from spacing at isocenter to spacing at aperture
     double apertureSpacing[2] = {
-      1.0 / pencilBeamResolution * apertureOffset / beamNode->GetSAD(),
-      1.0 / pencilBeamResolution * apertureOffset / beamNode->GetSAD() };
+      pencilBeamResolution * apertureOffset / beamNode->GetSAD(),
+      pencilBeamResolution * apertureOffset / beamNode->GetSAD() };
 
     int apertureDimensions[2] = {
       (int)((beamNode->GetX2Jaw() - beamNode->GetX1Jaw()) / pencilBeamResolution + 1 ),
