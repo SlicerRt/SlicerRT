@@ -24,7 +24,6 @@
 
 #include "vtkSlicerRoomsEyeViewModuleLogic.h"
 #include "vtkMRMLRoomsEyeViewNode.h"
-#include "vtkSlicerIECTransformLogic.h"
 
 // Slicer includes
 #include <qSlicerApplication.h>
@@ -613,8 +612,6 @@ void qSlicerRoomsEyeViewModuleWidget::beamsEyeViewButtonClicked()
   qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
   vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
   vtkCamera* beamsEyeCamera = vtkSmartPointer<vtkCamera>::New();
-  //TODO: This should be a member of the logic
-  vtkSlicerIECTransformLogic* IECTransformLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
   
   vtkCollection* cameras = this->mrmlScene()->GetNodesByClass("vtkMRMLCameraNode");
   vtkMRMLCameraNode* cameraNode;

@@ -102,6 +102,10 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamTransformModified);
     vtkObserveMRMLNodeEventsMacro(node, events);
+
+    // Make sure geometry and transforms are up-to-date
+    node->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
+    node->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
   }
 }
 
@@ -111,12 +115,18 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneEndImport()
   // Observe beam events of all beam nodes
   this->GetMRMLScene()->InitTraversal();
   vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLRTBeamNode");
-  while (node != NULL)
+  while (node)
   {
+    // Observe beam events
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamTransformModified);
     vtkObserveMRMLNodeEventsMacro(node, events);
+
+    // Make sure geometry and transforms are up-to-date
+    node->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
+    node->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
+
     node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLRTBeamNode");
   }
 }

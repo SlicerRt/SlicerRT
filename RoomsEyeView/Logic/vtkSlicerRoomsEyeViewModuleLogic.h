@@ -49,8 +49,8 @@ public:
 public:
   /// Load pre-defined components of the treatment machine into the scene
   void LoadLinacModels();
-  /// Create or get transforms taking part in the IEC logic, and build the transform hierarchy
-  void BuildIECTransformHierarchy();
+  /// Create or get transforms taking part in the IEC logic and additional devices, and build the transform hierarchy
+  void BuildRoomsEyeViewTransformHierarchy();
   /// Set up the IEC transforms on the treatment machine models
   void SetupTreatmentMachineModels();
 

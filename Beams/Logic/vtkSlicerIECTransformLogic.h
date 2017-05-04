@@ -29,6 +29,7 @@
 #include <vtkTransform.h>
 #include <vtkGeneralTransform.h>
 
+class vtkMRMLScene;
 class vtkMRMLRTBeamNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
@@ -100,9 +101,12 @@ public:
   /// Set and observe beam node. If a geometry-related parameter changes in the beam node, the transforms are updated
   void UpdateTransformForBeam(vtkMRMLRTBeamNode* beamNode);
 
+  /// Create or get transforms taking part in the IEC logic, and build the transform hierarchy
+  void BuildIECTransformHierarchy(vtkMRMLScene* scene);
+
   /// Get transform from one coordinate frame to another
   /// \return Success flag (false on any error)
-  bool GetTransformBetween(CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame, vtkMRMLRTBeamNode* beamNode, vtkGeneralTransform* outputTransform);
+  bool GetTransformBetween(CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame, vtkMRMLScene* scene, vtkGeneralTransform* outputTransform);
   
 protected:
   /// Update transforms according to beam node
