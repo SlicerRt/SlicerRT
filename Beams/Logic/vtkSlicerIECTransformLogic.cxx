@@ -91,15 +91,10 @@ void vtkSlicerIECTransformLogic::UpdateTransformForBeam(vtkMRMLRTBeamNode* beamN
   // so that UpdateTransformsFromBeamGeometry is called. It may be needed to change the signature of the
   // update function. It may be also needed to store a reference to the beam node (see defined nodes in SlicerRT)
 
-  vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
-  if (!parentPlanNode)
-  {
-    vtkErrorMacro("Failed to access parent plan node");
-  }
-
   vtkSmartPointer<vtkGeneralTransform> beamGeneralTransform = vtkSmartPointer<vtkGeneralTransform>::New();
 
   // Update transform for beam
+  //TODO: Get transform directly without getting the ID first (GetParentTransformNode)
   vtkMRMLLinearTransformNode* beamTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
     beamNode->GetScene()->GetNodeByID(beamNode->GetTransformNodeID()));
   if (beamTransformNode)

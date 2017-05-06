@@ -649,7 +649,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToFixedReferenceIsocenter
   vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_MODEL_NAME));
   if (!collimatorModel)
   {
-    vtkErrorMacro("collimatorModel: Invalid model node");
+    vtkErrorMacro("UpdateCollimatorToFixedReferenceIsocenterTransform: Invalid collimator model node");
     return;
   }
 
@@ -726,7 +726,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRML
   vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_MODEL_NAME));
   if (!collimatorModel)
   {
-    vtkErrorMacro("collimatorModel: Invalid model node");
+    vtkErrorMacro("UpdateCollimatorToGantryTransform: Invalid collimator model node");
     return;
   }
 
@@ -759,13 +759,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateGantryToFixedReferenceTransform(vtk
   if (!parameterNode)
   {
     vtkErrorMacro("UpdateGantryToFixedReferenceTransform: Invalid parameter set node");
-    return;
-  }
-
-  vtkMRMLModelNode* gantryModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(GANTRY_MODEL_NAME));
-  if (!gantryModel)
-  {
-    vtkErrorMacro("collimatorModel: Invalid model node");
     return;
   }
 
@@ -1253,13 +1246,13 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateAdditionalDevicesVisibility(vtkMRML
   vtkMRMLModelNode* applicatorHolderModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(APPLICATORHOLDER_MODEL_NAME));
   if (!applicatorHolderModel)
   {
-    vtkErrorMacro("applicatorHolderModel: Invalid model node");
+    vtkErrorMacro("UpdateAdditionalDevicesVisibility: Invalid applicator holder model node");
     return;
   }
   vtkMRMLModelNode* electronApplicatorModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(ELECTRONAPPLICATOR_MODEL_NAME));
   if (!electronApplicatorModel)
   {
-    vtkErrorMacro("electronApplicatorModel: Invalid model node");
+    vtkErrorMacro("UpdateAdditionalDevicesVisibility: Invalid electron applicator model node");
     return;
   }
 
