@@ -26,9 +26,8 @@
 
 // VTK includes
 #include <vtkObject.h>
-#include <vtkTransform.h>
-#include <vtkGeneralTransform.h>
 
+class vtkGeneralTransform;
 class vtkMRMLScene;
 class vtkMRMLRTBeamNode;
 
@@ -106,7 +105,9 @@ public:
 
   /// Get transform from one coordinate frame to another
   /// \return Success flag (false on any error)
-  bool GetTransformBetween(CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame, vtkMRMLScene* scene, vtkGeneralTransform* outputTransform);
+  bool GetTransformBetween(
+    CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame,
+    vtkMRMLScene* scene, vtkGeneralTransform* outputTransform );
   
 protected:
   /// Update transforms according to beam node

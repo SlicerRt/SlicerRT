@@ -581,14 +581,8 @@ void vtkMRMLRTPlanNode::AddBeam(vtkMRMLRTBeamNode* beamNode)
   // Add beam node in the right subject hierarchy branch
   shNode->CreateItem(planShItemID, beamNode);
 
-  // Calculate transform from beam parameters and isocenter from plan
-  beamNode->UpdateTransform();
-  // Make sure display is set up
-  beamNode->UpdateGeometry();
-
-  // Fire beam added event
+  // Invoke beam added event (logic will create beam geometry and transform node)
   this->InvokeEvent(vtkMRMLRTPlanNode::BeamAdded, (void*)beamNode->GetID());
-
   this->Modified();
 }
 

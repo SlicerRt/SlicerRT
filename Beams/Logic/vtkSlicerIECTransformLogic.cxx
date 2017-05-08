@@ -33,6 +33,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkGeneralTransform.h>
+#include <vtkTransform.h>
 
 //----------------------------------------------------------------------------
 const char* vtkSlicerIECTransformLogic::FIXEDREFERENCE_TO_RAS_TRANSFORM_NODE_NAME = "FixedReferenceToRasTransform";
@@ -99,23 +100,28 @@ void vtkSlicerIECTransformLogic::UpdateTransformForBeam(vtkMRMLRTBeamNode* beamN
     beamNode->GetScene()->GetNodeByID(beamNode->GetTransformNodeID()));
   if (beamTransformNode)
   {
-    //TODO: Get transform between Collimator and PatientSupport, once the GetTransformBetween has been generalized
+    // Update transforms in IEC logic from beam node parameters
+    this->UpdateTransformsFromBeam(beamNode);
+
     if (this->GetTransformBetween(Collimator, RAS, beamNode->GetScene(), beamGeneralTransform))
     {
-      // Make hard copy of the transform so that it doesn't change when other beam transforms change
-      vtkSmartPointer<vtkGeneralTransform> beamGeneralTransformCopy = vtkSmartPointer<vtkGeneralTransform>::New();
-      beamGeneralTransformCopy->DeepCopy(beamGeneralTransform);
+      // Convert general transform to linear
+      // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
+      vtkSmartPointer<vtkTransform> beamLinearTransform = vtkSmartPointer<vtkTransform>::New();
+      if (!vtkMRMLTransformNode::IsGeneralTransformLinear(beamGeneralTransform, beamLinearTransform))
+      {
+        vtkErrorMacro("UpdateTransformForBeam: Unable to set transform with non-linear components to beam " << beamNode->GetName());
+        return;
+      }
 
       // Set transform to beam node
-      beamTransformNode->SetAndObserveTransformToParent(beamGeneralTransformCopy);
+      beamTransformNode->SetAndObserveTransformToParent(beamLinearTransform);
 
       // Update the name of the transform node too
       // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
-      std::string transformName = std::string(beamNode->GetName()) + "_Transform";
+      std::string transformName = std::string(beamNode->GetName()) + vtkMRMLRTBeamNode::BEAM_TRANSFORM_NODE_NAME_POSTFIX;
     }  
   }
-
-  this->UpdateTransformsFromBeam(beamNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -489,7 +495,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   }
   if (!scene)
   {
-    vtkErrorMacro("UpdateTransformsFromBeam: Invalid MRML scene");
+    vtkErrorMacro("GetTransformBetween: Invalid MRML scene");
     return false;
   }
 

@@ -40,6 +40,7 @@ class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLMode
 {
 public:
   static const char* NEW_BEAM_NODE_NAME_PREFIX;
+  static const char* BEAM_TRANSFORM_NODE_NAME_POSTFIX;
 
   enum
   {

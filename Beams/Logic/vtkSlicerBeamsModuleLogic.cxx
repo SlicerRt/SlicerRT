@@ -63,7 +63,7 @@ void vtkSlicerBeamsModuleLogic::RegisterNodes()
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
   {
-    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene");
     return;
   }
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLRTPlanNode>::New());
@@ -85,7 +85,7 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
   if (!node || !this->GetMRMLScene())
   {
-    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node!");
+    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node");
     return;
   }
 
@@ -102,10 +102,12 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamTransformModified);
     vtkObserveMRMLNodeEventsMacro(node, events);
-
-    // Make sure geometry and transforms are up-to-date
-    node->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
-    node->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
+  }
+  else if (node->IsA("vtkMRMLRTPlanNode"))
+  {
+    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+    events->InsertNextValue(vtkMRMLRTPlanNode::BeamAdded);
+    vtkObserveMRMLNodeEventsMacro(node, events);
   }
 }
 
@@ -139,7 +141,7 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
   vtkMRMLScene* mrmlScene = this->GetMRMLScene();
   if (!mrmlScene)
   {
-    vtkErrorMacro("ProcessMRMLNodesEvents: Invalid MRML scene!");
+    vtkErrorMacro("ProcessMRMLNodesEvents: Invalid MRML scene");
     return;
   }
   if (mrmlScene->IsBatchProcessing())
@@ -152,13 +154,48 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
     vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(caller);
     if (event == vtkMRMLRTBeamNode::BeamTransformModified)
     {
-      //TODO: Use one IEC logic?
-      vtkSmartPointer<vtkSlicerIECTransformLogic> transformLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
-      transformLogic->UpdateTransformForBeam(beamNode);
+      // Make sure transform node exists
+      beamNode->CreateDefaultTransformNode();
+
+      // Calculate transform from beam parameters and isocenter from plan
+      //TODO: Use one IEC logic in a private scene for all beam transform updates?
+      vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
+      iecLogic->UpdateTransformForBeam(beamNode);
     }
     else if (event == vtkMRMLRTBeamNode::BeamGeometryModified)
     {
       // Update beam model
+      beamNode->UpdateGeometry();
+    }
+  }
+  else if (caller->IsA("vtkMRMLRTPlanNode"))
+  {
+    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(caller);
+
+    if (event == vtkMRMLRTPlanNode::BeamAdded)
+    {
+      // Get added beam node
+      char* beamNodeID = reinterpret_cast<char*>(callData);
+      if (!beamNodeID)
+      {
+        vtkErrorMacro("ProcessMRMLNodesEvents: No beam node ID for beam added event in plan " << planNode->GetName());
+        return;
+      }
+      vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(mrmlScene->GetNodeByID(beamNodeID));
+      if (!beamNode)
+      {
+        vtkErrorMacro("ProcessMRMLNodesEvents: Failed to get added beam node by ID " << beamNodeID);
+        return;
+      }
+
+      // Make sure transform node exists
+      beamNode->CreateDefaultTransformNode();
+      // Calculate transform from beam parameters and isocenter from plan
+      //TODO: Use one IEC logic in a private scene for all beam transform updates?
+      vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
+      iecLogic->UpdateTransformForBeam(beamNode);
+
+      // Make sure display is set up
       beamNode->UpdateGeometry();
     }
   }

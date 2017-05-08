@@ -46,6 +46,7 @@
 
 //------------------------------------------------------------------------------
 const char* vtkMRMLRTBeamNode::NEW_BEAM_NODE_NAME_PREFIX = "NewBeam_";
+const char* vtkMRMLRTBeamNode::BEAM_TRANSFORM_NODE_NAME_POSTFIX = "_BeamTransform";
 
 //------------------------------------------------------------------------------
 static const char* MLCPOSITION_REFERENCE_ROLE = "MLCPositionRef";
@@ -278,7 +279,7 @@ void vtkMRMLRTBeamNode::CreateNewBeamTransformNode()
 {
   // Create transform node for beam
   vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
-  std::string transformName = std::string(this->GetName()) + "_Transform";
+  std::string transformName = std::string(this->GetName()) + BEAM_TRANSFORM_NODE_NAME_POSTFIX;
   transformNode->SetName(transformName.c_str());
   this->GetScene()->AddNode(transformNode);
 
@@ -446,7 +447,7 @@ void vtkMRMLRTBeamNode::SetSAD(double sad)
 // TODO: Remove function after IEC Logic has been deemed to be viable
 void vtkMRMLRTBeamNode::UpdateTransform()
 {
-  vtkErrorMacro("This function should not be called, IEC logic needs to be used every time. Make sure transform is set up properly (see bottom of function)");
+  vtkErrorMacro("UpdateTransform: This function should not be called, IEC logic needs to be used every time. Make sure transform is set up properly (see bottom of function)");
 
   if (!this->GetScene())
   {
@@ -490,7 +491,7 @@ void vtkMRMLRTBeamNode::UpdateTransform()
 
     // Update the name of the transform node too
     // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
-    std::string transformName = std::string(this->Name) + "_Transform";
+    std::string transformName = std::string(this->Name) + BEAM_TRANSFORM_NODE_NAME_POSTFIX;
     transformNode->SetName(transformName.c_str());
   }
 }
