@@ -42,6 +42,17 @@ class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
+  static const char* COLLIMATOR_MODEL_NAME;
+  static const char* GANTRY_MODEL_NAME;
+  static const char* IMAGINGPANELLEFT_MODEL_NAME;
+  static const char* IMAGINGPANELRIGHT_MODEL_NAME;
+  static const char* LINACBODY_MODEL_NAME;
+  static const char* PATIENTSUPPORT_MODEL_NAME;
+  static const char* TABLETOP_MODEL_NAME;
+  static const char* APPLICATORHOLDER_MODEL_NAME;
+  static const char* ELECTRONAPPLICATOR_MODEL_NAME;
+
+public:
   static vtkSlicerRoomsEyeViewModuleLogic *New();
   vtkTypeMacro(vtkSlicerRoomsEyeViewModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);

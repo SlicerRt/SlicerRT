@@ -92,36 +92,46 @@ void vtkSlicerIECTransformLogic::UpdateTransformForBeam(vtkMRMLRTBeamNode* beamN
   // so that UpdateTransformsFromBeamGeometry is called. It may be needed to change the signature of the
   // update function. It may be also needed to store a reference to the beam node (see defined nodes in SlicerRT)
 
-  vtkSmartPointer<vtkGeneralTransform> beamGeneralTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  if (!beamNode)
+  {
+    vtkErrorMacro("UpdateTransformForBeam: Invalid beam node");
+    return;
+  }
+
+  // Make sure transform node exists
+  beamNode->CreateDefaultTransformNode();
 
   // Update transform for beam
-  //TODO: Get transform directly without getting the ID first (GetParentTransformNode)
   vtkMRMLLinearTransformNode* beamTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    beamNode->GetScene()->GetNodeByID(beamNode->GetTransformNodeID()));
-  if (beamTransformNode)
+    beamNode->GetParentTransformNode() );
+  if (!beamTransformNode)
   {
-    // Update transforms in IEC logic from beam node parameters
-    this->UpdateTransformsFromBeam(beamNode);
-
-    if (this->GetTransformBetween(Collimator, RAS, beamNode->GetScene(), beamGeneralTransform))
-    {
-      // Convert general transform to linear
-      // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
-      vtkSmartPointer<vtkTransform> beamLinearTransform = vtkSmartPointer<vtkTransform>::New();
-      if (!vtkMRMLTransformNode::IsGeneralTransformLinear(beamGeneralTransform, beamLinearTransform))
-      {
-        vtkErrorMacro("UpdateTransformForBeam: Unable to set transform with non-linear components to beam " << beamNode->GetName());
-        return;
-      }
-
-      // Set transform to beam node
-      beamTransformNode->SetAndObserveTransformToParent(beamLinearTransform);
-
-      // Update the name of the transform node too
-      // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
-      std::string transformName = std::string(beamNode->GetName()) + vtkMRMLRTBeamNode::BEAM_TRANSFORM_NODE_NAME_POSTFIX;
-    }  
+    vtkErrorMacro("UpdateTransformForBeam: Failed to access transform node of beam " << beamNode->GetName());
+    return;
   }
+
+  // Update transforms in IEC logic from beam node parameters
+  this->UpdateTransformsFromBeam(beamNode);
+
+  vtkSmartPointer<vtkGeneralTransform> beamGeneralTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  if (this->GetTransformBetween(Collimator, RAS, beamNode->GetScene(), beamGeneralTransform))
+  {
+    // Convert general transform to linear
+    // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
+    vtkSmartPointer<vtkTransform> beamLinearTransform = vtkSmartPointer<vtkTransform>::New();
+    if (!vtkMRMLTransformNode::IsGeneralTransformLinear(beamGeneralTransform, beamLinearTransform))
+    {
+      vtkErrorMacro("UpdateTransformForBeam: Unable to set transform with non-linear components to beam " << beamNode->GetName());
+      return;
+    }
+
+    // Set transform to beam node
+    beamTransformNode->SetAndObserveTransformToParent(beamLinearTransform);
+
+    // Update the name of the transform node too
+    // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
+    std::string transformName = std::string(beamNode->GetName()) + vtkMRMLRTBeamNode::BEAM_TRANSFORM_NODE_NAME_POSTFIX;
+  }  
 }
 
 //-----------------------------------------------------------------------------

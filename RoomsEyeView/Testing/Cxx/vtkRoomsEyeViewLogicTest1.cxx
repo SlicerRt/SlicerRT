@@ -18,6 +18,10 @@
 
 ==============================================================================*/
 
+// Room's eye view includes
+#include "vtkMRMLRoomsEyeViewNode.h"
+#include "vtkSlicerRoomsEyeViewModuleLogic.h"
+
 // Beams includes
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
@@ -27,11 +31,13 @@
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLModelNode.h>
 
 // VTK includes
 #include <vtkNew.h>
 #include <vtkTransform.h>
 #include <vtkMatrix4x4.h>
+#include <vtkPolyData.h>
 
 
 //----------------------------------------------------------------------------
@@ -51,18 +57,58 @@ bool AreEqualWithTolerance(double a, double b);
 bool IsEqual(vtkMatrix4x4* lhs, vtkMatrix4x4* rhs);
 
 //----------------------------------------------------------------------------
-int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
+int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
 {
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
 
-  // Create and set up logic classes
-  vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
-  iecLogic->BuildIECTransformHierarchy(mrmlScene);
-  vtkSmartPointer<vtkSlicerBeamsModuleLogic> beamsLogic = vtkSmartPointer<vtkSlicerBeamsModuleLogic>::New();
-  beamsLogic->SetMRMLScene(mrmlScene);
+  // Create and set up logic
+  vtkSmartPointer<vtkSlicerRoomsEyeViewModuleLogic> revLogic = vtkSmartPointer<vtkSlicerRoomsEyeViewModuleLogic>::New();
+  revLogic->SetMRMLScene(mrmlScene);
+  revLogic->BuildRoomsEyeViewTransformHierarchy();
 
-  int expectedNumberOfLinearTransformNodes = 19;
+  // Create mock linac component models
+  vtkSmartPointer<vtkMRMLModelNode> collimatorModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+  collimatorModelNode->SetName(vtkSlicerRoomsEyeViewModuleLogic::COLLIMATOR_MODEL_NAME);
+  mrmlScene->AddNode(collimatorModelNode);
+  vtkSmartPointer<vtkPolyData> collimatorPolyData = vtkSmartPointer<vtkPolyData>::New();
+  collimatorModelNode->SetAndObservePolyData(collimatorPolyData);
+  vtkSmartPointer<vtkMRMLModelNode> gantryModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+  gantryModelNode->SetName(vtkSlicerRoomsEyeViewModuleLogic::GANTRY_MODEL_NAME);
+  mrmlScene->AddNode(gantryModelNode);
+  vtkSmartPointer<vtkPolyData> gantryPolyData = vtkSmartPointer<vtkPolyData>::New();
+  gantryModelNode->SetAndObservePolyData(gantryPolyData);
+  vtkSmartPointer<vtkMRMLModelNode> imagingPanelLeftModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+  imagingPanelLeftModelNode->SetName(vtkSlicerRoomsEyeViewModuleLogic::IMAGINGPANELLEFT_MODEL_NAME);
+  mrmlScene->AddNode(imagingPanelLeftModelNode);
+  vtkSmartPointer<vtkPolyData> imagingPanelLeftPolyData = vtkSmartPointer<vtkPolyData>::New();
+  imagingPanelLeftModelNode->SetAndObservePolyData(imagingPanelLeftPolyData);
+  vtkSmartPointer<vtkMRMLModelNode> imagingPanelRightModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+  imagingPanelRightModelNode->SetName(vtkSlicerRoomsEyeViewModuleLogic::IMAGINGPANELRIGHT_MODEL_NAME);
+  mrmlScene->AddNode(imagingPanelRightModelNode);
+  vtkSmartPointer<vtkPolyData> imagingPanelRightPolyData = vtkSmartPointer<vtkPolyData>::New();
+  imagingPanelRightModelNode->SetAndObservePolyData(imagingPanelRightPolyData);
+  vtkSmartPointer<vtkMRMLModelNode> linacBodyModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+  linacBodyModelNode->SetName(vtkSlicerRoomsEyeViewModuleLogic::LINACBODY_MODEL_NAME);
+  mrmlScene->AddNode(linacBodyModelNode);
+  vtkSmartPointer<vtkPolyData> linacBodyPolyData = vtkSmartPointer<vtkPolyData>::New();
+  linacBodyModelNode->SetAndObservePolyData(linacBodyPolyData);
+  vtkSmartPointer<vtkMRMLModelNode> patientSupportModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+  patientSupportModelNode->SetName(vtkSlicerRoomsEyeViewModuleLogic::PATIENTSUPPORT_MODEL_NAME);
+  mrmlScene->AddNode(patientSupportModelNode);
+  vtkSmartPointer<vtkPolyData> patientSupportPolyData = vtkSmartPointer<vtkPolyData>::New();
+  patientSupportModelNode->SetAndObservePolyData(patientSupportPolyData);
+  vtkSmartPointer<vtkMRMLModelNode> tableTopModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+  tableTopModelNode->SetName(vtkSlicerRoomsEyeViewModuleLogic::TABLETOP_MODEL_NAME);
+  mrmlScene->AddNode(tableTopModelNode);
+  vtkSmartPointer<vtkPolyData> tableTopPolyData = vtkSmartPointer<vtkPolyData>::New();
+  tableTopModelNode->SetAndObservePolyData(tableTopPolyData);
+
+  // Create REV parameter node
+  vtkSmartPointer<vtkMRMLRoomsEyeViewNode> paramNode = vtkSmartPointer<vtkMRMLRoomsEyeViewNode>::New();
+  mrmlScene->AddNode(paramNode);
+
+  int expectedNumberOfLinearTransformNodes = 20;
   int numberOfLinearTransformNodes = mrmlScene->GetNumberOfNodesByClass("vtkMRMLLinearTransformNode");
   if (numberOfLinearTransformNodes != expectedNumberOfLinearTransformNodes)
   {
@@ -84,48 +130,37 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   }
   std::cout << std::endl;
 
-  // Create beam node
+  // Create plan and beam node so that the IEC logic can create the FixedReference to RAS transform for the isocenter test cases
   vtkSmartPointer<vtkMRMLRTBeamNode> beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
   mrmlScene->AddNode(beamNode);
-  // Create parent plan node and add beam to it (setup subject hierarchy)
   vtkSmartPointer<vtkMRMLRTPlanNode> planNode = vtkSmartPointer<vtkMRMLRTPlanNode>::New();
   mrmlScene->AddNode(planNode);
+  // Create beams logic that is responsible for handling beam added event
+  vtkSmartPointer<vtkSlicerBeamsModuleLogic> beamsLogic = vtkSmartPointer<vtkSlicerBeamsModuleLogic>::New();
+  beamsLogic->SetMRMLScene(mrmlScene);
   planNode->AddBeam(beamNode);
-
-  if (!beamNode->GetParentTransformNode())
-  {
-    std::cerr << __LINE__ << ": Beam node does not have beam transform node" << std::endl;
-    return EXIT_FAILURE;
-  }
-  const char* beamTransformNodeName = beamNode->GetParentTransformNode()->GetName();
+  // Temporary IEC logic creates the transform
+  vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
 
   //
   // Test effect of parameter changes on the transform hierarchy
 
   // Isocenter position, origin
   int numOfNonIdentityTransforms = 0;
-  int expectedNumOfNonIdentityTransforms = 1;
+  int expectedNumOfNonIdentityTransforms = 0;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
     return EXIT_FAILURE;
     }
 
+  iecLogic->UpdateTransformForBeam(beamNode);
   double expectedFixedReferenceToRasTransform_Origin_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 0, 1, 0,   0, -1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       vtkSlicerIECTransformLogic::FIXEDREFERENCE_TO_RAS_TRANSFORM_NODE_NAME, expectedFixedReferenceToRasTransform_Origin_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": FixedReferenceToRasTransform transform does not match baseline for origin" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  double expectedBeamTransform_IsocenterOrigin_MatrixElements[16] =
-    {  1, 0, 0, 0,   0, 0, 1, 0,   0, -1, 0, 0,   0, 0, 0, 1  };
-  if ( !IsTransformMatrixEqualTo(mrmlScene,
-      beamTransformNodeName, expectedBeamTransform_IsocenterOrigin_MatrixElements ) )
-    {
-    std::cerr << __LINE__ << ": Beam transform does not match baseline for isocenter at origin" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -143,18 +178,9 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
     return EXIT_FAILURE;
     }
 
-  double expectedBeamTransform_IsocenterTranslated_MatrixElements[16] =
-    {  1, 0, 0, 1000,   0, 0, 1, 200,   0, -1, 0, 0,   0, 0, 0, 1  };
-  if ( !IsTransformMatrixEqualTo(mrmlScene,
-      beamTransformNodeName, expectedBeamTransform_IsocenterTranslated_MatrixElements ) )
-    {
-    std::cerr << __LINE__ << ": Beam transform does not match baseline for translated isocenter" << std::endl;
-    return EXIT_FAILURE;
-    }
-
   // Gantry angle, 1 degree
-  beamNode->SetGantryAngle(1.0);
-  iecLogic->UpdateTransformForBeam(beamNode);
+  paramNode->SetGantryRotationAngle(1.0);
+  revLogic->UpdateGantryToFixedReferenceTransform(paramNode);
   expectedNumOfNonIdentityTransforms = 2;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
@@ -171,18 +197,9 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
     return EXIT_FAILURE;
     }
 
-  double expectedBeamTransform_Gantry1_MatrixElements[16] =
-    {  0.999848, 0, -0.0174524, 1000,   0.0174524, 0, 0.999848, 200,   0, -1, 0, 0,   0, 0, 0, 1  };
-  if ( !IsTransformMatrixEqualTo(mrmlScene,
-      beamTransformNodeName, expectedBeamTransform_Gantry1_MatrixElements ) )
-    {
-    std::cerr << __LINE__ << ": Beam transform does not match baseline for gantry 1 degree angle" << std::endl;
-    return EXIT_FAILURE;
-    }
-
   // Gantry angle, 90 degrees
-  beamNode->SetGantryAngle(90.0);
-  iecLogic->UpdateTransformForBeam(beamNode);
+  paramNode->SetGantryRotationAngle(90.0);
+  revLogic->UpdateGantryToFixedReferenceTransform(paramNode);
   double expectedGantryToFixedReference_90_MatrixElements[16] =
     {  0, 0, -1, 0,   0, 1, 0, 0,   1, 0, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
@@ -192,19 +209,12 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
     return EXIT_FAILURE;
     }
 
-  double expectedBeamTransform_Gantry90_MatrixElements[16] =
-    {  0, 0, -1, 1000,   1, 0, 0, 200,   0, -1, 0, 0,   0, 0, 0, 1  };
-  if ( !IsTransformMatrixEqualTo(mrmlScene,
-      beamTransformNodeName, expectedBeamTransform_Gantry90_MatrixElements ) )
-    {
-    std::cerr << __LINE__ << ": Beam transform does not match baseline for gantry 90 degree angle" << std::endl;
-    return EXIT_FAILURE;
-    }
-
   // Collimator angle, 1 degree
-  //TODO: Different transform after consolidation
-  beamNode->SetCollimatorAngle(1.0);
-  iecLogic->UpdateTransformForBeam(beamNode);
+  //TODO: Different transform after consolidation (and for many other transforms as well)
+  paramNode->SetCollimatorRotationAngle(1.0);
+  revLogic->UpdateCollimatorToFixedReferenceIsocenterTransform(paramNode); //TODO:
+  revLogic->UpdateFixedReferenceIsocenterToCollimatorRotatedTransform(paramNode); //TODO:
+  revLogic->UpdateCollimatorToGantryTransform(paramNode);
   expectedNumOfNonIdentityTransforms = 3;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
@@ -221,18 +231,11 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
     return EXIT_FAILURE;
     }
 
-  double expectedBeamTransform_Collimator1_MatrixElements[16] =
-    {  0, 0, -1, 1000,   0.999848, -0.0174524, 0, 200,   -0.0174524, -0.999848, 0, 0,   0, 0, 0, 1  };
-  if ( !IsTransformMatrixEqualTo(mrmlScene,
-      beamTransformNodeName, expectedBeamTransform_Collimator1_MatrixElements ) )
-    {
-    std::cerr << __LINE__ << ": Beam transform does not match baseline for collimator 1 degree angle" << std::endl;
-    return EXIT_FAILURE;
-    }
-
   // Collimator angle, 90 degrees
-  beamNode->SetCollimatorAngle(90.0);
-  iecLogic->UpdateTransformForBeam(beamNode);
+  paramNode->SetCollimatorRotationAngle(90.0);
+  revLogic->UpdateCollimatorToFixedReferenceIsocenterTransform(paramNode); //TODO:
+  revLogic->UpdateFixedReferenceIsocenterToCollimatorRotatedTransform(paramNode); //TODO:
+  revLogic->UpdateCollimatorToGantryTransform(paramNode);
   double expectedFixedReferenceIsocenterToCollimatorRotatedTransform_90_MatrixElements[16] =
     {  0, -1, 0, 0,   1, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
@@ -242,20 +245,11 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
     return EXIT_FAILURE;
     }
 
-  double expectedBeamTransform_Collimator90_MatrixElements[16] =
-    {  0, 0, -1, 1000,   0, -1, 0, 200,   -1, 0, 0, 0,   0, 0, 0, 1  };
-  if ( !IsTransformMatrixEqualTo(mrmlScene,
-      beamTransformNodeName, expectedBeamTransform_Collimator90_MatrixElements ) )
-    {
-    std::cerr << __LINE__ << ": Beam transform does not match baseline for collimator 90 degree angle" << std::endl;
-    return EXIT_FAILURE;
-    }
-
   //TODO: Test code to print all non-identity transforms (useful to add more test cases)
   //std::cout << "ZZZ after collimator angle 90:" << std::endl;
   //PrintLinearTransformNodeMatrices(mrmlScene, false, true);
 
-  std::cout << "IEC logic test passed" << std::endl;
+  std::cout << "Room's eye view logic test passed" << std::endl;
   return EXIT_SUCCESS;
 }
 

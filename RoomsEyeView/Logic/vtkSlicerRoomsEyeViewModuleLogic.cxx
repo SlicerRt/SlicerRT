@@ -64,15 +64,15 @@
 
 //----------------------------------------------------------------------------
 // Treatment machine component names
-static const char* COLLIMATOR_MODEL_NAME = "CollimatorModel";
-static const char* GANTRY_MODEL_NAME = "GantryModel";
-static const char* IMAGINGPANELLEFT_MODEL_NAME = "ImagingPanelLeftModel";
-static const char* IMAGINGPANELRIGHT_MODEL_NAME = "ImagingPanelRightModel";
-static const char* LINACBODY_MODEL_NAME = "LinacBodyModel";
-static const char* PATIENTSUPPORT_MODEL_NAME = "PatientSupportModel";
-static const char* TABLETOP_MODEL_NAME = "TableTopModel";
-static const char* APPLICATORHOLDER_MODEL_NAME = "ApplicatorHolderModel";
-static const char* ELECTRONAPPLICATOR_MODEL_NAME = "ElectronApplicatorModel";
+const char* vtkSlicerRoomsEyeViewModuleLogic::COLLIMATOR_MODEL_NAME = "CollimatorModel";
+const char* vtkSlicerRoomsEyeViewModuleLogic::GANTRY_MODEL_NAME = "GantryModel";
+const char* vtkSlicerRoomsEyeViewModuleLogic::IMAGINGPANELLEFT_MODEL_NAME = "ImagingPanelLeftModel";
+const char* vtkSlicerRoomsEyeViewModuleLogic::IMAGINGPANELRIGHT_MODEL_NAME = "ImagingPanelRightModel";
+const char* vtkSlicerRoomsEyeViewModuleLogic::LINACBODY_MODEL_NAME = "LinacBodyModel";
+const char* vtkSlicerRoomsEyeViewModuleLogic::PATIENTSUPPORT_MODEL_NAME = "PatientSupportModel";
+const char* vtkSlicerRoomsEyeViewModuleLogic::TABLETOP_MODEL_NAME = "TableTopModel";
+const char* vtkSlicerRoomsEyeViewModuleLogic::APPLICATORHOLDER_MODEL_NAME = "ApplicatorHolderModel";
+const char* vtkSlicerRoomsEyeViewModuleLogic::ELECTRONAPPLICATOR_MODEL_NAME = "ElectronApplicatorModel";
 
 // Transform names
 static const char* ADDITIONALCOLLIMATORDEVICES_TO_COLLIMATOR_TRANSFORM_NODE_NAME = "AdditionalCollimatorDevicesToCollimatorTransform";
@@ -768,7 +768,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateGantryToFixedReferenceTransform(vtk
     gantryToFixedReferenceTransformNode->GetTransformToParent() );
   
   gantryToFixedReferenceTransform->Identity();
-  gantryToFixedReferenceTransform->RotateY(parameterNode->GetGantryRotationAngle());
+  gantryToFixedReferenceTransform->RotateY(parameterNode->GetGantryRotationAngle() * (-1.0));
   gantryToFixedReferenceTransform->Modified();
 
   vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(

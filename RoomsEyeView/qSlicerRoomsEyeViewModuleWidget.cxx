@@ -240,6 +240,7 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
 
 
   connect(d->loadModelButton, SIGNAL(clicked()), this, SLOT(loadModelButtonClicked()));
+  //TODO: Rename function to onSomethingChanged, and have them use the passed argument
   connect(d->applicatorHolderCheckBox, SIGNAL(stateChanged(int)), this, SLOT(additionalCollimatorDevicesChecked()));
   connect(d->electronApplicatorCheckBox, SIGNAL(stateChanged(int)), this, SLOT(additionalCollimatorDevicesChecked()));
   connect(d->CollimatorRotationSlider, SIGNAL(valueChanged(double)), this, SLOT(collimatorRotationSliderValueChanged()));
