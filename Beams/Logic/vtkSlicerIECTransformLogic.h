@@ -24,12 +24,16 @@
 
 #include "vtkSlicerBeamsModuleLogicExport.h"
 
-// VTK includes
-#include <vtkObject.h>
+// Slicer includes
+#include <vtkMRMLAbstractLogic.h>
+
+// STD includes
+#include <map>
+#include <vector>
 
 class vtkGeneralTransform;
-class vtkMRMLScene;
 class vtkMRMLRTBeamNode;
+class vtkMRMLLinearTransformNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
 /// \brief Logic representing the IEC standard coordinate systems and transforms.
@@ -42,7 +46,7 @@ class vtkMRMLRTBeamNode;
 /// Image describing these coordinate frames:
 /// http://perk.cs.queensu.ca/sites/perkd7.cs.queensu.ca/files/Project/IEC_Transformations.PNG
 ///
-class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkSlicerIECTransformLogic : public vtkObject
+class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkSlicerIECTransformLogic : public vtkMRMLAbstractLogic
 {
 public:
   enum CoordinateSystemIdentifier
@@ -65,53 +69,50 @@ public:
     PatientSupportPositiveVerticalTranslated,
     TableTopEccentricRotated,
     TableTop,
+    //TODO: These coordinate frames need to be removed (only exist because of collimator rotation, which needs to be done on the vtkTransform level, not on node level)
+    FixedReferenceIsocenter,
+    CollimatorRotated,
+    //TODO: Same as with collimator?
+    LeftImagingPanelFixedReferenceIsocenter,
+    RightImagingPanelFixedReferenceIsocenter,
   };
-
-  // Transform node names
-  static const char* FIXEDREFERENCE_TO_RAS_TRANSFORM_NODE_NAME;
-  static const char* GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME;
-  static const char* COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME;
-
-  static const char* COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME;
-  static const char* FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME;
-
-  static const char* LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME;
-  static const char* LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME;
-  static const char* LEFTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME;
-  static const char* LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME;
-
-  static const char* RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME;
-  static const char* RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME;
-  static const char* RIGHTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME;
-  static const char* RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME;
-
-  static const char* PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME;
-  static const char* PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_NAME;
-  static const char* PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME;
-  static const char* PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_NAME;
-  static const char* TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME;
-  static const char* TABLETOP_TO_TABLETOPECCENENTRICROTATION_TRANSFORM_NODE_NAME;
 
 public:
   static vtkSlicerIECTransformLogic *New();
-  vtkTypeMacro(vtkSlicerIECTransformLogic, vtkObject);
+  vtkTypeMacro(vtkSlicerIECTransformLogic, vtkMRMLAbstractLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  /// Set and observe beam node. If a geometry-related parameter changes in the beam node, the transforms are updated
-  void UpdateTransformForBeam(vtkMRMLRTBeamNode* beamNode);
-
   /// Create or get transforms taking part in the IEC logic, and build the transform hierarchy
-  void BuildIECTransformHierarchy(vtkMRMLScene* scene);
+  void BuildIECTransformHierarchy();
+
+  /// Get transform node between two coordinate systems is exists
+  /// \return Transform node if there is a direct transform between the specified coordinate frames, NULL otherwise
+  ///   Note: If IEC does not specify a transform between the given coordinate frames, then there will be no node with the returned name.
+  vtkMRMLLinearTransformNode* GetTransformNodeBetween(
+    CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame );
 
   /// Get transform from one coordinate frame to another
   /// \return Success flag (false on any error)
-  bool GetTransformBetween(
-    CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame,
-    vtkMRMLScene* scene, vtkGeneralTransform* outputTransform );
-  
+  bool GetTransformBetween(CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame, vtkGeneralTransform* outputTransform);
+
+  /// Update parent transform node of a given beam from the IEC transform hierarchy and the beam parameters
+  void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode);
+
 protected:
-  /// Update transforms according to beam node
-  void UpdateTransformsFromBeam(vtkMRMLRTBeamNode* beamNode);
+  /// Update IEC transforms according to beam node
+  void UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* beamNode);
+
+  /// Get name of transform node between two coordinate systems
+  /// \return Transform node name between the specified coordinate frames.
+  ///   Note: If IEC does not specify a transform between the given coordinate frames, then there will be no node with the returned name.
+  std::string GetTransformNodeNameBetween(CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame);
+
+protected:
+  /// Map from \sa CoordinateSystemIdentifier to coordinate system name. Used for getting transforms
+  std::map<CoordinateSystemIdentifier, std::string> CoordinateSystemsMap;
+
+  /// List of IEC transforms
+  std::vector< std::pair<CoordinateSystemIdentifier, CoordinateSystemIdentifier> > IecTransforms;
 
 protected:
   vtkSlicerIECTransformLogic();

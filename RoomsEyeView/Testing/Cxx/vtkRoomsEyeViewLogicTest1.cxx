@@ -52,7 +52,7 @@ int GetNumberOfNonIdentityIECTransforms(vtkMRMLScene* mrmlScene);
 void PrintLinearTransformNodeMatrices( vtkMRMLScene* mrmlScene,
   bool includeIdentity=true, bool includeBeamTransforms=true );
 
-bool IsTransformMatrixEqualTo(vtkMRMLScene* mrmlScene, const char* transformNodeName, double baselineElements[16]);
+bool IsTransformMatrixEqualTo(vtkMRMLScene* mrmlScene, vtkMRMLLinearTransformNode* transformNode, double baselineElements[16]);
 bool AreEqualWithTolerance(double a, double b);
 bool IsEqual(vtkMatrix4x4* lhs, vtkMatrix4x4* rhs);
 
@@ -139,8 +139,6 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   vtkSmartPointer<vtkSlicerBeamsModuleLogic> beamsLogic = vtkSmartPointer<vtkSlicerBeamsModuleLogic>::New();
   beamsLogic->SetMRMLScene(mrmlScene);
   planNode->AddBeam(beamNode);
-  // Temporary IEC logic creates the transform
-  vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
 
   //
   // Test effect of parameter changes on the transform hierarchy
@@ -154,11 +152,12 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
     return EXIT_FAILURE;
     }
 
-  iecLogic->UpdateTransformForBeam(beamNode);
+  revLogic->GetIECLogic()->UpdateBeamTransform(beamNode);
   double expectedFixedReferenceToRasTransform_Origin_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 0, 1, 0,   0, -1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::FIXEDREFERENCE_TO_RAS_TRANSFORM_NODE_NAME, expectedFixedReferenceToRasTransform_Origin_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS),
+      expectedFixedReferenceToRasTransform_Origin_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": FixedReferenceToRasTransform transform does not match baseline for origin" << std::endl;
     return EXIT_FAILURE;
@@ -167,12 +166,13 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   // Isocenter position, translated
   double isocenter[3] = {1000.0, 200.0, 0.0};
   planNode->SetIsocenterPosition(isocenter);
-  iecLogic->UpdateTransformForBeam(beamNode);
+  revLogic->GetIECLogic()->UpdateBeamTransform(beamNode);
 
   double expectedFixedReferenceToRasTransform_Translated_MatrixElements[16] =
     {  1, 0, 0, 1000,   0, 0, 1, 200,   0, -1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::FIXEDREFERENCE_TO_RAS_TRANSFORM_NODE_NAME, expectedFixedReferenceToRasTransform_Translated_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS),
+      expectedFixedReferenceToRasTransform_Translated_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": FixedReferenceToRasTransform transform does not match baseline for translated isocenter" << std::endl;
     return EXIT_FAILURE;
@@ -191,7 +191,8 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedGantryToFixedReferenceTransform_1_MatrixElements[16] =
     {  0.999848, 0, -0.0174524, 0,   0, 1, 0, 0,   0.0174524, 0, 0.999848, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME, expectedGantryToFixedReferenceTransform_1_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference),
+      expectedGantryToFixedReferenceTransform_1_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": GantryToFixedReferenceTransform does not match baseline for 1 degree angle" << std::endl;
     return EXIT_FAILURE;
@@ -203,7 +204,8 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedGantryToFixedReference_90_MatrixElements[16] =
     {  0, 0, -1, 0,   0, 1, 0, 0,   1, 0, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME, expectedGantryToFixedReference_90_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference),
+      expectedGantryToFixedReference_90_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": GantryToFixedReferenceTransform does not match baseline for 90 degrees angle" << std::endl;
     return EXIT_FAILURE;
@@ -225,7 +227,8 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedFixedReferenceIsocenterToCollimatorRotatedTransform_1_MatrixElements[16] =
     {  0.999848, -0.0174524, 0, 0,   0.0174524, 0.999848, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME, expectedFixedReferenceIsocenterToCollimatorRotatedTransform_1_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReferenceIsocenter, vtkSlicerIECTransformLogic::CollimatorRotated),
+      expectedFixedReferenceIsocenterToCollimatorRotatedTransform_1_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": FixedReferenceIsocenterToCollimatorRotatedTransform does not match baseline" << std::endl;
     return EXIT_FAILURE;
@@ -239,7 +242,8 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedFixedReferenceIsocenterToCollimatorRotatedTransform_90_MatrixElements[16] =
     {  0, -1, 0, 0,   1, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME, expectedFixedReferenceIsocenterToCollimatorRotatedTransform_90_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReferenceIsocenter, vtkSlicerIECTransformLogic::CollimatorRotated),
+      expectedFixedReferenceIsocenterToCollimatorRotatedTransform_90_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": FixedReferenceIsocenterToCollimatorRotatedTransform does not match baseline" << std::endl;
     return EXIT_FAILURE;
@@ -267,17 +271,23 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedRightImagingPanelRotatedToGantryTransform_n50_MatrixElements[16] =
     {  1, 0, 0, 1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME, expectedLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform_n50_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::LeftImagingPanelFixedReferenceIsocenter),
+      expectedLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform_n50_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME, expectedLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform_n50_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanelFixedReferenceIsocenter, vtkSlicerIECTransformLogic::LeftImagingPanelRotated),
+      expectedLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform_n50_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME, expectedLeftImagingPanelRotatedToGantryTransform_n50_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanelRotated, vtkSlicerIECTransformLogic::Gantry),
+      expectedLeftImagingPanelRotatedToGantryTransform_n50_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME, expectedRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform_n50_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::RightImagingPanelFixedReferenceIsocenter),
+      expectedRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform_n50_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME, expectedRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform_n50_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanelFixedReferenceIsocenter, vtkSlicerIECTransformLogic::RightImagingPanelRotated),
+      expectedRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform_n50_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME, expectedRightImagingPanelRotatedToGantryTransform_n50_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanelRotated, vtkSlicerIECTransformLogic::Gantry),
+      expectedRightImagingPanelRotatedToGantryTransform_n50_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Imaging panel transforms do not match baselines for position -50" << std::endl;
     return EXIT_FAILURE;
@@ -309,21 +319,29 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedRightImagingPanelTranslationTransform_500_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 1, 0, -500,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME, expectedLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform_500_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::LeftImagingPanelFixedReferenceIsocenter),
+      expectedLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform_500_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME, expectedLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform_500_MatrixElements )
+        revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanelFixedReferenceIsocenter, vtkSlicerIECTransformLogic::LeftImagingPanelRotated),
+        expectedLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform_500_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME, expectedLeftImagingPanelRotatedToGantryTransform_500_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanelRotated, vtkSlicerIECTransformLogic::Gantry),
+      expectedLeftImagingPanelRotatedToGantryTransform_500_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::LEFTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME, expectedLeftImagingPanelTranslationTransform_500_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::LeftImagingPanelTranslated),
+      expectedLeftImagingPanelTranslationTransform_500_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME, expectedRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform_500_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::RightImagingPanelFixedReferenceIsocenter),
+      expectedRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform_500_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME, expectedRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform_500_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanelFixedReferenceIsocenter, vtkSlicerIECTransformLogic::RightImagingPanelRotated),
+      expectedRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform_500_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME, expectedRightImagingPanelRotatedToGantryTransform_500_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanelRotated, vtkSlicerIECTransformLogic::Gantry),
+      expectedRightImagingPanelRotatedToGantryTransform_500_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME, expectedRightImagingPanelTranslationTransform_500_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::RightImagingPanelTranslated),
+      expectedRightImagingPanelTranslationTransform_500_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Imaging panel transforms do not match baselines for position -50" << std::endl;
     return EXIT_FAILURE;
@@ -348,13 +366,17 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedTableTopEccentricRotationToPatientSupportTransform_n500_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 1, -500,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_NAME, expectedPatientSupportScaledByTableTopVerticalMovementTransform_n500_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportScaled, vtkSlicerIECTransformLogic::PatientSupportScaledTranslated),
+      expectedPatientSupportScaledByTableTopVerticalMovementTransform_n500_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME, expectedPatientSupportPositiveVerticalTranslationTransform_n500_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportPositiveVerticalTranslated, vtkSlicerIECTransformLogic::PatientSupportScaled),
+      expectedPatientSupportPositiveVerticalTranslationTransform_n500_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_NAME, expectedPatientSupportScaledTranslatedToTableTopVerticalTranslationTransform_n500_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportScaledTranslated, vtkSlicerIECTransformLogic::PatientSupport),
+      expectedPatientSupportScaledTranslatedToTableTopVerticalTranslationTransform_n500_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME, expectedTableTopEccentricRotationToPatientSupportTransform_n500_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotated, vtkSlicerIECTransformLogic::PatientSupport),
+      expectedTableTopEccentricRotationToPatientSupportTransform_n500_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Patient support transforms do not match baselines for vertical position -500" << std::endl;
     return EXIT_FAILURE;
@@ -372,13 +394,17 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedTableTopEccentricRotationToPatientSupportTransform_300_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 1, 300,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_NAME, expectedPatientSupportScaledByTableTopVerticalMovementTransform_300_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportScaled, vtkSlicerIECTransformLogic::PatientSupportScaledTranslated),
+      expectedPatientSupportScaledByTableTopVerticalMovementTransform_300_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME, expectedPatientSupportPositiveVerticalTranslationTransform_300_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportPositiveVerticalTranslated, vtkSlicerIECTransformLogic::PatientSupportScaled),
+      expectedPatientSupportPositiveVerticalTranslationTransform_300_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_NAME, expectedPatientSupportScaledTranslatedToTableTopVerticalTranslationTransform_300_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportScaledTranslated, vtkSlicerIECTransformLogic::PatientSupport),
+      expectedPatientSupportScaledTranslatedToTableTopVerticalTranslationTransform_300_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME, expectedTableTopEccentricRotationToPatientSupportTransform_300_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotated, vtkSlicerIECTransformLogic::PatientSupport),
+      expectedTableTopEccentricRotationToPatientSupportTransform_300_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Patient support transforms do not match baselines for vertical position 300" << std::endl;
     return EXIT_FAILURE;
@@ -397,7 +423,8 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedTableTopEccentricRotationToPatientSupportTransform_10_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 1, 0, 10,   0, 0, 1, 300,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME, expectedTableTopEccentricRotationToPatientSupportTransform_10_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotated, vtkSlicerIECTransformLogic::PatientSupport),
+      expectedTableTopEccentricRotationToPatientSupportTransform_10_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Patient support transforms do not match baselines for longitudinal position 10" << std::endl;
     return EXIT_FAILURE;
@@ -409,7 +436,8 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedTableTopEccentricRotationToPatientSupportTransform_1000_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 1, 0, 1000,   0, 0, 1, 300,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME, expectedTableTopEccentricRotationToPatientSupportTransform_1000_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotated, vtkSlicerIECTransformLogic::PatientSupport),
+      expectedTableTopEccentricRotationToPatientSupportTransform_1000_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Patient support transforms do not match baselines for longitudinal position 1000" << std::endl;
     return EXIT_FAILURE;
@@ -428,7 +456,8 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedTableTopEccentricRotationToPatientSupport_n230_MatrixElements[16] =
     {  1, 0, 0, -230,   0, 1, 0, 1000,   0, 0, 1, 300,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME, expectedTableTopEccentricRotationToPatientSupport_n230_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotated, vtkSlicerIECTransformLogic::PatientSupport),
+      expectedTableTopEccentricRotationToPatientSupport_n230_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Patient support transforms do not match baselines for lateral position 10" << std::endl;
     return EXIT_FAILURE;
@@ -440,7 +469,8 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedTableTopEccentricRotationToPatientSupport_230_MatrixElements[16] =
     {  1, 0, 0, 230,   0, 1, 0, 1000,   0, 0, 1, 300,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME, expectedTableTopEccentricRotationToPatientSupport_230_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotated, vtkSlicerIECTransformLogic::PatientSupport),
+      expectedTableTopEccentricRotationToPatientSupport_230_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Patient support transforms do not match baselines for lateral position 10" << std::endl;
     return EXIT_FAILURE;
@@ -556,25 +586,18 @@ bool GetLinearTransformNodes(
 }
 
 //---------------------------------------------------------------------------
-bool IsTransformMatrixEqualTo(vtkMRMLScene* mrmlScene, const char* transformNodeName, double baselineElements[16])
+bool IsTransformMatrixEqualTo(vtkMRMLScene* mrmlScene, vtkMRMLLinearTransformNode* transformNode, double baselineElements[16])
 {
-  if (!mrmlScene || !transformNodeName)
+  if (!mrmlScene || !transformNode)
   {
     return false;
   }
 
-  // Get transform node and verify that it's linear
-  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    mrmlScene->GetFirstNodeByName(transformNodeName) );
-  if (!transformNode)
-  {
-    std::cerr << __LINE__ << ": Failed to get transform node by name: " << transformNodeName << std::endl;
-    return false;
-  }
+  // Verify that transform in transform node is linear
   vtkSmartPointer<vtkTransform> linearTransform = vtkSmartPointer<vtkTransform>::New();
   if (!vtkMRMLTransformNode::IsGeneralTransformLinear(transformNode->GetTransformToParent(), linearTransform))
   {
-    std::cerr << __LINE__ << ": Non-linear transform found in transform node: " << transformNodeName << std::endl;
+    std::cerr << __LINE__ << ": Non-linear transform found in transform node: " << transformNode->GetName() << std::endl;
     return false;
   }
 

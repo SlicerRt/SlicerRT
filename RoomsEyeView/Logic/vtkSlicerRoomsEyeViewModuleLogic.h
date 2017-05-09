@@ -31,11 +31,11 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 // Slicer includes
 #include <vtkSlicerModuleLogic.h>
 
-// SlicerRT includes
-#include "vtkCollisionDetectionFilter.h"
-
+class vtkCollisionDetectionFilter;
+class vtkSlicerIECTransformLogic;
 class vtkMRMLRoomsEyeViewNode;
-class vtkMRMLRTBeamNode;
+class vtkPolyData;
+class vtkMatrix4x4; //TODO: Remove once the members are removed
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
 class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic :
@@ -58,6 +58,9 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
+  /// Return IEC logic that has been created for room's eye view
+  vtkSlicerIECTransformLogic* GetIECLogic();
+
   /// Load pre-defined components of the treatment machine into the scene
   void LoadLinacModels();
   /// Create or get transforms taking part in the IEC logic and additional devices, and build the transform hierarchy
@@ -72,6 +75,7 @@ public:
   /// Update CollimatorToGantry transform by translating collimator model back to the gantry
   void UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 
+  ///TODO:
   void UpdateAdditionalCollimatorDevicesToCollimatorTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);
 
   /// Update GantryToFixedReference transform based on gantry angle from UI slider
@@ -113,23 +117,26 @@ public:
   /// Translate the table top vertically along the z axes  based on change to Vertical Table Top Displacement UI slider
   void UpdateVerticalDisplacementTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);
  
+  ///TODO:
   void UpdateAdditionalDevicesVisibility(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Check for collisions between pieces of linac model using vtkCollisionDetectionFilter
   /// \return string indicating whether collision occurred
   std::string CheckForCollisions(vtkMRMLRoomsEyeViewNode* parameterNode);
 
+  ///TODO:
   void LoadAdditionalDevices();
 
+  ///TODO:
   void UpdateTreatmentOrientationMarker();
-
-  //TODO:
-  //bool CalculateNewSourcePosition(vtkMRMLRTBeamNode* beamNode, double oldSourcePosition[3], double newSourcePosition[3]);
 
 protected:
   /// Get patient body closed surface poly data from segmentation node and segment selection in the parameter node
   bool GetPatientBodyPolyData(vtkMRMLRoomsEyeViewNode* parameterNode, vtkPolyData* patientBodyPolyData);
 
 protected:
+  vtkSlicerIECTransformLogic* IECLogic;
+
+  //TODO: Remove these two members
   vtkMatrix4x4* CollimatorToWorldTransformMatrix;
   vtkMatrix4x4* TableTopToWorldTransformMatrix;
 
@@ -142,8 +149,6 @@ protected:
 
   vtkCollisionDetectionFilter* AdditionalModelsTableTopCollisionDetection;
   vtkCollisionDetectionFilter* AdditionalModelsPatientSupportCollisionDetection;
-
-
 
 protected:
   vtkSlicerRoomsEyeViewModuleLogic();

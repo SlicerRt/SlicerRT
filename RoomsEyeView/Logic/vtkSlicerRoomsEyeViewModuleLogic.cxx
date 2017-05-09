@@ -25,6 +25,7 @@
 
 // SlicerRT includes
 #include "vtkMRMLRTBeamNode.h"
+#include "vtkCollisionDetectionFilter.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -75,6 +76,7 @@ const char* vtkSlicerRoomsEyeViewModuleLogic::APPLICATORHOLDER_MODEL_NAME = "App
 const char* vtkSlicerRoomsEyeViewModuleLogic::ELECTRONAPPLICATOR_MODEL_NAME = "ElectronApplicatorModel";
 
 // Transform names
+//TODO: Add this dynamically to the IEC transform map
 static const char* ADDITIONALCOLLIMATORDEVICES_TO_COLLIMATOR_TRANSFORM_NODE_NAME = "AdditionalCollimatorDevicesToCollimatorTransform";
 
 //----------------------------------------------------------------------------
@@ -92,6 +94,8 @@ vtkSlicerRoomsEyeViewModuleLogic::vtkSlicerRoomsEyeViewModuleLogic()
   , AdditionalModelsTableTopCollisionDetection(NULL)
   , AdditionalModelsPatientSupportCollisionDetection(NULL)
 {
+  this->IECLogic = vtkSlicerIECTransformLogic::New();
+
   this->CollimatorToWorldTransformMatrix = vtkMatrix4x4::New();
   this->TableTopToWorldTransformMatrix = vtkMatrix4x4::New();
 
@@ -107,6 +111,12 @@ vtkSlicerRoomsEyeViewModuleLogic::vtkSlicerRoomsEyeViewModuleLogic()
 //----------------------------------------------------------------------------
 vtkSlicerRoomsEyeViewModuleLogic::~vtkSlicerRoomsEyeViewModuleLogic()
 {
+  if (this->IECLogic)
+  {
+    this->IECLogic->Delete();
+    this->IECLogic = NULL;
+  }
+
   if (this->CollimatorToWorldTransformMatrix)
   {
     this->CollimatorToWorldTransformMatrix->Delete();
@@ -165,6 +175,14 @@ void vtkSlicerRoomsEyeViewModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 void vtkSlicerRoomsEyeViewModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
 {
   this->Superclass::SetMRMLSceneInternal(newScene);
+
+  this->IECLogic->SetMRMLScene(newScene);
+}
+
+//---------------------------------------------------------------------------
+vtkSlicerIECTransformLogic* vtkSlicerRoomsEyeViewModuleLogic::GetIECLogic()
+{
+  return this->IECLogic;
 }
 
 //---------------------------------------------------------------------------
@@ -178,9 +196,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
   }
 
   // Build IEC hierarchy
-  //TODO: This to be a member of the logic?
-  vtkSlicerIECTransformLogic* iecTransformLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
-  iecTransformLogic->BuildIECTransformHierarchy(scene);
+  //TODO: Add the REV transform to the IEC transform map and use it for the GetTransform... functions
+  this->IECLogic->BuildIECTransformHierarchy();
  
   // Create transform nodes if they do not exist
   vtkSmartPointer<vtkMRMLLinearTransformNode> additionalCollimatorDevicesToCollimatorTransformNode;
@@ -198,37 +215,25 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
   }
 
   // Get IEC transform nodes that are used below
-  vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorToFixedReferenceIsocenterTransformNode;
-  if (scene->GetFirstNodeByName(vtkSlicerIECTransformLogic::COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME))
-  {
-    collimatorToFixedReferenceIsocenterTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-      scene->GetFirstNodeByName(vtkSlicerIECTransformLogic::COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME));
-  }
-  else
+  vtkMRMLLinearTransformNode* collimatorToFixedReferenceIsocenterTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::FixedReferenceIsocenter);
+  if (!collimatorToFixedReferenceIsocenterTransformNode)
   {
     vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access collimatorToFixedReferenceIsocenterTransformNode");
     return;
   }
-  vtkSmartPointer<vtkMRMLLinearTransformNode> collimatorToGantryTransformNode;
-  if (scene->GetFirstNodeByName(vtkSlicerIECTransformLogic::COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME))
-  {
-    collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-      scene->GetFirstNodeByName(vtkSlicerIECTransformLogic::COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME));
-  }
-  else
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
+  if (!collimatorToGantryTransformNode)
   {
     vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access collimatorToGantryTransformNode");
     return;
   }
-  vtkSmartPointer<vtkMRMLLinearTransformNode> tableTopEccentricRotationToPatientSupportTransformNode;
-  if (scene->GetFirstNodeByName(vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME))
+  vtkMRMLLinearTransformNode* tableTopEccentricRotatedToPatientSupportTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotated, vtkSlicerIECTransformLogic::PatientSupport);
+  if (!tableTopEccentricRotatedToPatientSupportTransformNode)
   {
-    tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-      scene->GetFirstNodeByName(vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME));
-  }
-  else
-  {
-    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access tableTopEccentricRotationToPatientSupportTransformNode");
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access tableTopEccentricRotatedToPatientSupportTransformNode");
     return;
   }
 
@@ -238,7 +243,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
   // Get member transform matrices from transform nodes
   //TODO: This does not look right, need to review (we should not need these members)
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
-  tableTopEccentricRotationToPatientSupportTransformNode->GetMatrixTransformToWorld(this->TableTopToWorldTransformMatrix);
+  tableTopEccentricRotatedToPatientSupportTransformNode->GetMatrixTransformToWorld(this->TableTopToWorldTransformMatrix);
 }
 
 //----------------------------------------------------------------------------
@@ -301,8 +306,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadAdditionalDevices()
   
   vtkMRMLModelNode* loadedModelNode = vtkMRMLModelNode::New();
   loadedModelNode = vtkMRMLModelNode::SafeDownCast(loadedModelsCollection->GetNextItemAsObject());
-  vtkMRMLLinearTransformNode* collimatorModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME));
+  vtkMRMLLinearTransformNode* collimatorModelTransforms = this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::FixedReferenceIsocenter);
   loadedModelNode->SetAndObserveTransformNodeID(collimatorModelTransforms->GetID());
 }
 
@@ -323,8 +327,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access linac body model");
     return;
   }
-  vtkMRMLLinearTransformNode* linacBodyModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::FIXEDREFERENCE_TO_RAS_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* linacBodyModelTransforms =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS);
   linacBodyModel->SetAndObserveTransformNodeID(linacBodyModelTransforms->GetID());
   linacBodyModel->CreateDefaultDisplayNodes();
   linacBodyModel->GetDisplayNode()->SetColor(0.9, 0.9, 0.9);
@@ -336,8 +340,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access gantry model");
     return;
   }
-  vtkMRMLLinearTransformNode* gantryModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* gantryModelTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
   gantryModel->SetAndObserveTransformNodeID(gantryModelTransformNode->GetID());
   gantryModel->CreateDefaultDisplayNodes();
   gantryModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
@@ -349,8 +353,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access collimator model");
     return;
   }
-  vtkMRMLLinearTransformNode* collimatorModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* collimatorModelTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::FixedReferenceIsocenter);
   collimatorModel->SetAndObserveTransformNodeID(collimatorModelTransformNode->GetID());
   collimatorModel->CreateDefaultDisplayNodes();
   collimatorModel->GetDisplayNode()->SetColor(0.7, 0.7, 0.95);
@@ -389,8 +393,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access left imaging panel model");
     return;
   }
-  vtkMRMLLinearTransformNode* leftImagingPanelModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME));
+  vtkMRMLLinearTransformNode* leftImagingPanelModelTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::LeftImagingPanelFixedReferenceIsocenter);
   leftImagingPanelModel->SetAndObserveTransformNodeID(leftImagingPanelModelTransformNode->GetID());
   leftImagingPanelModel->CreateDefaultDisplayNodes();
   leftImagingPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
@@ -402,8 +406,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access right imaging panel model");
     return;
   }
-  vtkMRMLLinearTransformNode* rightImagingPanelModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* rightImagingPanelModelTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::RightImagingPanelFixedReferenceIsocenter);
   rightImagingPanelModel->SetAndObserveTransformNodeID(rightImagingPanelModelTransformNode->GetID());
   rightImagingPanelModel->CreateDefaultDisplayNodes();
   rightImagingPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
@@ -415,10 +419,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access patient support model");
     return;
   }
-  vtkMRMLLinearTransformNode* patientSupportModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME) );
-  vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransform = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* patientSupportModelTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportPositiveVerticalTranslated, vtkSlicerIECTransformLogic::PatientSupportScaled);
+  vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransform = this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::FixedReference);
   patientSupportModel->SetAndObserveTransformNodeID(patientSupportModelTransformNode->GetID());
   patientSupportModel->CreateDefaultDisplayNodes();
   patientSupportModel->GetDisplayNode()->SetColor(0.85, 0.85, 0.85);
@@ -430,8 +433,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     vtkErrorMacro("SetupTreatmentMachineModels: Unable to access table top model");
     return;
   }
-  vtkMRMLLinearTransformNode* tableTopModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* tableTopModelTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotated, vtkSlicerIECTransformLogic::PatientSupport);
   tableTopModel->SetAndObserveTransformNodeID(tableTopModelTransformNode->GetID());
   tableTopModel->CreateDefaultDisplayNodes();
   tableTopModel->GetDisplayNode()->SetColor(0, 0, 0);
@@ -511,18 +514,18 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMarker()
   vtkMRMLModelNode* tableTopModel = vtkMRMLModelNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(TABLETOP_MODEL_NAME));
 
-  vtkMRMLLinearTransformNode* gantryModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME));
-  vtkMRMLLinearTransformNode* collimatorModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME));
-  vtkMRMLLinearTransformNode* leftImagingPanelModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME));
-  vtkMRMLLinearTransformNode* rightImagingPanelModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME));
-  vtkMRMLLinearTransformNode* patientSupportModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME));
-  vtkMRMLLinearTransformNode* tableTopModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME));
+  vtkMRMLLinearTransformNode* gantryModelTransforms = 
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
+  vtkMRMLLinearTransformNode* collimatorModelTransforms =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::FixedReferenceIsocenter);
+  vtkMRMLLinearTransformNode* leftImagingPanelModelTransforms =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::LeftImagingPanelFixedReferenceIsocenter);
+  vtkMRMLLinearTransformNode* rightImagingPanelModelTransforms =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::RightImagingPanelFixedReferenceIsocenter);
+  vtkMRMLLinearTransformNode* patientSupportModelTransforms =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportPositiveVerticalTranslated, vtkSlicerIECTransformLogic::PatientSupportScaled);
+  vtkMRMLLinearTransformNode* tableTopModelTransforms =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotated, vtkSlicerIECTransformLogic::PatientSupport);
 
   vtkSmartPointer<vtkPolyData> gantryModelPolyData = vtkSmartPointer<vtkPolyData>::New();
   gantryModelPolyData->DeepCopy(gantryModel->GetPolyData());
@@ -655,10 +658,10 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToFixedReferenceIsocenter
 
   vtkPolyData* collimatorModelPolyData = collimatorModel->GetPolyData();
 
-  vtkMRMLLinearTransformNode* collimatorToFixedReferenceIsocenterTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME));
+  vtkMRMLLinearTransformNode* collimatorToFixedReferenceIsocenterTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::FixedReferenceIsocenter);
   vtkTransform* collimatorToFixedReferenceIsocenterTransform = vtkTransform::SafeDownCast(
-    collimatorToFixedReferenceIsocenterTransformNode->GetTransformToParent());
+    collimatorToFixedReferenceIsocenterTransformNode->GetTransformToParent() );
 
   double collimatorCenterOfRotation[3];
   double collimatorModelBounds[6] = { 0, 0, 0, 0, 0, 0 };
@@ -680,10 +683,10 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToFixedReferenceIsocenter
 
   //TODO: This is another indication that the fixedReferenceIsocenterToCollimatorTransformNode is probably wrong to exist,
   //      as the transform chain even here goes through where it is supposed to in the first place: Collimator -> Gantry -> FixedReference using CollimatorToGantryTransform and GantryToFixedReferenceTransform
-  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME));
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
   vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
-    collimatorToGantryTransformNode->GetTransformToParent());
+    collimatorToGantryTransformNode->GetTransformToParent() );
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
 }
@@ -697,19 +700,19 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateFixedReferenceIsocenterToCollimator
     return;
   }
 
-  vtkMRMLLinearTransformNode* fixedReferenceIsocenterToCollimatorRotatedTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME));
+  vtkMRMLLinearTransformNode* fixedReferenceIsocenterToCollimatorRotatedTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReferenceIsocenter, vtkSlicerIECTransformLogic::CollimatorRotated);
   vtkTransform* fixedReferenceIsocenterToCollimatorRotatedTransform = vtkTransform::SafeDownCast(
-    fixedReferenceIsocenterToCollimatorRotatedTransformNode->GetTransformToParent());
+    fixedReferenceIsocenterToCollimatorRotatedTransformNode->GetTransformToParent() );
 
   fixedReferenceIsocenterToCollimatorRotatedTransform->Identity();
   fixedReferenceIsocenterToCollimatorRotatedTransform->RotateZ(parameterNode->GetCollimatorRotationAngle());
   fixedReferenceIsocenterToCollimatorRotatedTransform->Modified();
 
-  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME));
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
   vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
-    collimatorToGantryTransformNode->GetTransformToParent());
+    collimatorToGantryTransformNode->GetTransformToParent() );
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
 }
@@ -732,8 +735,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRML
 
   vtkPolyData* collimatorModelPolyData = collimatorModel->GetPolyData();
 
-  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
   vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
     collimatorToGantryTransformNode->GetTransformToParent() );
 
@@ -762,8 +765,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateGantryToFixedReferenceTransform(vtk
     return;
   }
 
-  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
   vtkTransform* gantryToFixedReferenceTransform = vtkTransform::SafeDownCast(
     gantryToFixedReferenceTransformNode->GetTransformToParent() );
   
@@ -771,8 +774,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateGantryToFixedReferenceTransform(vtk
   gantryToFixedReferenceTransform->RotateY(parameterNode->GetGantryRotationAngle() * (-1.0));
   gantryToFixedReferenceTransform->Modified();
 
-  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
   vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
     collimatorToGantryTransformNode->GetTransformToParent() );
 
@@ -798,8 +801,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelToLeftImagingPanelF
   leftImagingPanelCenterOfMass[1] = (leftImagingPanelModelBounds[2] + leftImagingPanelModelBounds[3]) / 2;
   leftImagingPanelCenterOfMass[2] = (leftImagingPanelModelBounds[4] + leftImagingPanelModelBounds[5]) / 2;
 
-  vtkMRMLLinearTransformNode* leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::LeftImagingPanelFixedReferenceIsocenter);
   vtkTransform* leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform = vtkTransform::SafeDownCast(
     leftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode->GetTransformToParent() );
 
@@ -822,8 +825,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelFixedReferenceIsoce
 
   double panelMovement = parameterNode->GetImagingPanelMovement();
 
-  vtkMRMLLinearTransformNode* leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanelFixedReferenceIsocenter, vtkSlicerIECTransformLogic::LeftImagingPanelRotated);
   vtkTransform* leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform = vtkTransform::SafeDownCast(
     leftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode->GetTransformToParent() );
 
@@ -859,8 +862,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelRotatedToGantryTran
   leftImagingPanelCenterOfMass[1] = (leftImagingPanelModelBounds[2] + leftImagingPanelModelBounds[3]) / 2;
   leftImagingPanelCenterOfMass[2] = (leftImagingPanelModelBounds[4] + leftImagingPanelModelBounds[5]) / 2;
   
-  vtkMRMLLinearTransformNode* leftImagingPanelRotatedToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* leftImagingPanelRotatedToGantryTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanelRotated, vtkSlicerIECTransformLogic::Gantry);
   vtkTransform* leftImagingPanelRotatedToGantryTransform = vtkTransform::SafeDownCast(
     leftImagingPanelRotatedToGantryTransformNode->GetTransformToParent() );
 
@@ -880,8 +883,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelTranslationTransfor
 
   double panelMovement = parameterNode->GetImagingPanelMovement();
 
-  vtkMRMLLinearTransformNode* leftImagingPanelTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::LEFTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* leftImagingPanelTranslationTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::LeftImagingPanelTranslated);
   vtkTransform* leftImagingPanelTranslationTransform = vtkTransform::SafeDownCast(
     leftImagingPanelTranslationTransformNode->GetTransformToParent() );
 
@@ -910,8 +913,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelToRightImagingPane
   rightImagingPanelCenterOfMass[1] = (rightImagingPanelModelBounds[2] + rightImagingPanelModelBounds[3]) / 2;
   rightImagingPanelCenterOfMass[2] = (rightImagingPanelModelBounds[4] + rightImagingPanelModelBounds[5]) / 2;
 
-  vtkMRMLLinearTransformNode* rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::RightImagingPanelFixedReferenceIsocenter);
   vtkTransform* rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform = vtkTransform::SafeDownCast(
     rightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode->GetTransformToParent() );
 
@@ -934,8 +937,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelFixedReferenceIsoc
 
   double panelMovement = parameterNode->GetImagingPanelMovement();
 
-  vtkMRMLLinearTransformNode* rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanelFixedReferenceIsocenter, vtkSlicerIECTransformLogic::RightImagingPanelRotated);
   vtkTransform* rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform = vtkTransform::SafeDownCast(
     rightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode->GetTransformToParent() );
 
@@ -970,8 +973,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelRotatedToGantryTra
   rightImagingPanelCenterOfMass[1] = (rightImagingPanelModelBounds[2] + rightImagingPanelModelBounds[3]) / 2;
   rightImagingPanelCenterOfMass[2] = (rightImagingPanelModelBounds[4] + rightImagingPanelModelBounds[5]) / 2;
   
-  vtkMRMLLinearTransformNode* rightImagingPanelRotatedToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* rightImagingPanelRotatedToGantryTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanelRotated, vtkSlicerIECTransformLogic::Gantry);
   vtkTransform* rightImagingPanelRotatedToGantryTransform = vtkTransform::SafeDownCast(
     rightImagingPanelRotatedToGantryTransformNode->GetTransformToParent() );
 
@@ -992,8 +995,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelTranslationTransfo
 
   double panelMovement = parameterNode->GetImagingPanelMovement();
 
-  vtkMRMLLinearTransformNode* rightImagingPanelTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* rightImagingPanelTranslationTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::RightImagingPanelTranslated);
   vtkTransform* rightImagingPanelTranslationTransform = vtkTransform::SafeDownCast(
     rightImagingPanelTranslationTransformNode->GetTransformToParent() );
 
@@ -1038,8 +1041,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToFixedReferenceTrans
 
   double rotationAngle = parameterNode->GetPatientSupportRotationAngle();
 
-  vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::FixedReference);
   vtkTransform* patientSupportToFixedReferenceTransform = vtkTransform::SafeDownCast(
     patientSupportToFixedReferenceTransformNode->GetTransformToParent() );
 
@@ -1047,8 +1050,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToFixedReferenceTrans
   patientSupportToFixedReferenceTransform->RotateZ(rotationAngle);
   patientSupportToFixedReferenceTransform->Modified();
 
-  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotated, vtkSlicerIECTransformLogic::PatientSupport);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(
     tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent() );
 
@@ -1064,8 +1067,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateTableTopEccentricRotationToPatientS
     return;
   }
 
-  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotated, vtkSlicerIECTransformLogic::PatientSupport);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(
     tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent() );
 
@@ -1094,8 +1097,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportScaledTranslatedToTab
   patientSupportModelPolyData->GetBounds(patientSupportModelBounds);
 
   //TODO: This method does not use any input
-  vtkMRMLLinearTransformNode* patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportScaledTranslated, vtkSlicerIECTransformLogic::PatientSupport);
   vtkTransform* patientSupportScaledTranslatedToTableTopVerticalTranslationTransform = vtkTransform::SafeDownCast(
     patientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode->GetTransformToParent() );
 
@@ -1104,8 +1107,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportScaledTranslatedToTab
   patientSupportScaledTranslatedToTableTopVerticalTranslationTransform->Translate(translationArray);
   patientSupportScaledTranslatedToTableTopVerticalTranslationTransform->Modified();
 
-  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotated, vtkSlicerIECTransformLogic::PatientSupport);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(
     tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent() );
 
@@ -1136,8 +1139,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportScaledByTableTopVerti
 
   double tableTopDisplacement = parameterNode->GetVerticalTableTopDisplacement();
 
-  vtkMRMLLinearTransformNode* patientSupportScaledByTableTopVerticalMovementTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* patientSupportScaledByTableTopVerticalMovementTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportScaled, vtkSlicerIECTransformLogic::PatientSupportScaledTranslated);
   vtkTransform* patientSupportScaledByTableTopVerticalMovementTransform = vtkTransform::SafeDownCast(
     patientSupportScaledByTableTopVerticalMovementTransformNode->GetTransformToParent() );
 
@@ -1145,8 +1148,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportScaledByTableTopVerti
   patientSupportScaledByTableTopVerticalMovementTransform->Scale(1, 1, ((abs(patientSupportModelBounds[5]) + tableTopDisplacement*0.525) / abs(patientSupportModelBounds[5])));
   patientSupportScaledByTableTopVerticalMovementTransform->Modified();
 
-  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotated, vtkSlicerIECTransformLogic::PatientSupport);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(
     tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent() );
 
@@ -1175,8 +1178,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportPositiveVerticalTrans
   patientSupportModelPolyData->GetBounds(patientSupportModelBounds);
 
   //TODO: This method does not use any input
-  vtkMRMLLinearTransformNode* patientSupportPositiveVerticalTranslationTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* patientSupportPositiveVerticalTranslationTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportPositiveVerticalTranslated, vtkSlicerIECTransformLogic::PatientSupportScaled);
   vtkTransform* patientSupportPositiveVerticalTranslationTransform = vtkTransform::SafeDownCast(
     patientSupportPositiveVerticalTranslationTransformNode->GetTransformToParent() );
 
@@ -1185,8 +1188,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportPositiveVerticalTrans
   patientSupportPositiveVerticalTranslationTransform->Translate(translationArray);
   patientSupportPositiveVerticalTranslationTransform->Modified();
 
-  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME) );
+  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotated, vtkSlicerIECTransformLogic::PatientSupport);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(
     tableTopEccentricRotationToPatientSupportTransformNode->GetTransformToParent() );
 
@@ -1228,10 +1231,10 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateAdditionalCollimatorDevicesToCollim
   additionalCollimatorDeviceToCollimatorTransform->Translate(translationArray);
   additionalCollimatorDeviceToCollimatorTransform->Modified();
 
-  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(vtkSlicerIECTransformLogic::COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_NAME));
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
   vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
-    collimatorToGantryTransformNode->GetTransformToParent());
+    collimatorToGantryTransformNode->GetTransformToParent() );
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
 }
@@ -1281,7 +1284,11 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
   if (!parameterNode)
   {
     vtkErrorMacro("CheckForCollisions: Invalid parameter set node");
-    return "Invalid parameters!";
+    return "Invalid parameters";
+  }
+  if (!parameterNode->GetCollisionDetectionEnabled())
+  {
+    return "";
   }
 
   std::string statusString = "";

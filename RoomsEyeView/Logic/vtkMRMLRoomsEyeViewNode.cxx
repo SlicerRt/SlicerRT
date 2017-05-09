@@ -66,18 +66,19 @@ vtkMRMLNodeNewMacro(vtkMRMLRoomsEyeViewNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLRoomsEyeViewNode::vtkMRMLRoomsEyeViewNode()
+  : CollisionDetectionEnabled(true)
+  , GantryRotationAngle(0.0)
+  , CollimatorRotationAngle(0.0)
+  , ImagingPanelMovement(-68.50)
+  , PatientSupportRotationAngle(0.0)
+  , VerticalTableTopDisplacement(0.0)
+  , LongitudinalTableTopDisplacement(0.0)
+  , LateralTableTopDisplacement(0.0)
+  , AdditionalModelVerticalDisplacement(0.0)
+  , AdditionalModelLateralDisplacement(0.0)
+  , AdditionalModelLongitudinalDisplacement(0.0)
+  , PatientBodySegmentID(NULL)
 {
-  this->GantryRotationAngle = 0.0; //TODO:
-  this->CollimatorRotationAngle = 0.0;
-  this->ImagingPanelMovement = -68.50;
-  this->PatientSupportRotationAngle = 0.0;
-  this->VerticalTableTopDisplacement = 0.0;
-  this->LongitudinalTableTopDisplacement = 0.0;
-  this->LateralTableTopDisplacement = 0.0;
-  this->AdditionalModelVerticalDisplacement = 0.0;
-  this->AdditionalModelLateralDisplacement = 0.0;
-  this->AdditionalModelLongitudinalDisplacement = 0.0;
-  this->PatientBodySegmentID = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -92,19 +93,18 @@ void vtkMRMLRoomsEyeViewNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  vtkIndent indent(nIndent);
-
-  of << indent << " GantryRotationAngle=\"" << this->GantryRotationAngle << "\"";
-  of << indent << " CollimatorRotationAngle=\"" << this->CollimatorRotationAngle << "\"";
-  of << indent << " ImagingPanelMovement=\"" << this->ImagingPanelMovement << "\"";
-  of << indent << " PatientSupportRotationAngle=\"" << this->PatientSupportRotationAngle << "\"";
-  of << indent << " VerticalTableTopDisplacement=\"" << this->VerticalTableTopDisplacement << "\"";
-  of << indent << " LongitudinalTableTopDisplacement=\"" << this->LongitudinalTableTopDisplacement << "\"";
-  of << indent << " LateralTableTopDisplacement=\"" << this->LateralTableTopDisplacement << "\"";
-  of << indent << " AdditionalModelVerticalDisplacement=\"" << this->AdditionalModelVerticalDisplacement << "\"";
-  of << indent << " AdditionalModelLongitudinalDisplacement=\"" << this->AdditionalModelLongitudinalDisplacement << "\"";
-  of << indent << " AdditionalModelLateralDisplacement=\"" << this->AdditionalModelLateralDisplacement << "\"";
-  of << indent << " PatientBodySegmentID=\"" << (this->PatientBodySegmentID ? this->PatientBodySegmentID : "NULL") << "\"";
+  of << " CollisionDetectionEnabled=\"" << (this->CollisionDetectionEnabled ? "true" : "false") << "\"";
+  of << " GantryRotationAngle=\"" << this->GantryRotationAngle << "\"";
+  of << " CollimatorRotationAngle=\"" << this->CollimatorRotationAngle << "\"";
+  of << " ImagingPanelMovement=\"" << this->ImagingPanelMovement << "\"";
+  of << " PatientSupportRotationAngle=\"" << this->PatientSupportRotationAngle << "\"";
+  of << " VerticalTableTopDisplacement=\"" << this->VerticalTableTopDisplacement << "\"";
+  of << " LongitudinalTableTopDisplacement=\"" << this->LongitudinalTableTopDisplacement << "\"";
+  of << " LateralTableTopDisplacement=\"" << this->LateralTableTopDisplacement << "\"";
+  of << " AdditionalModelVerticalDisplacement=\"" << this->AdditionalModelVerticalDisplacement << "\"";
+  of << " AdditionalModelLongitudinalDisplacement=\"" << this->AdditionalModelLongitudinalDisplacement << "\"";
+  of << " AdditionalModelLateralDisplacement=\"" << this->AdditionalModelLateralDisplacement << "\"";
+  of << " PatientBodySegmentID=\"" << (this->PatientBodySegmentID ? this->PatientBodySegmentID : "") << "\"";
 }
 
 //----------------------------------------------------------------------------
@@ -121,7 +121,11 @@ void vtkMRMLRoomsEyeViewNode::ReadXMLAttributes(const char** atts)
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "GantryRotationAngle")) 
+    if (!strcmp(attName, "CollisionDetectionEnabled")) 
+    {
+      this->CollisionDetectionEnabled = (strcmp(attValue,"true") ? false : true);
+    }
+    else if (!strcmp(attName, "GantryRotationAngle"))
     {
       this->GantryRotationAngle = vtkVariant(attValue).ToDouble();
     }
@@ -180,6 +184,7 @@ void vtkMRMLRoomsEyeViewNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLRoomsEyeViewNode *node = (vtkMRMLRoomsEyeViewNode *) anode;
 
+  this->CollisionDetectionEnabled = node->CollisionDetectionEnabled;
   this->GantryRotationAngle = node->GantryRotationAngle;
   this->CollimatorRotationAngle = node->CollimatorRotationAngle;
   this->ImagingPanelMovement = node->ImagingPanelMovement;
@@ -201,6 +206,7 @@ void vtkMRMLRoomsEyeViewNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
+  os << indent << "CollisionDetectionEnabled:   " << (this->CollisionDetectionEnabled ? "true" : "false") << "\n";
   os << indent << "GantryRotationAngle:   " << this->GantryRotationAngle << "\n";
   os << indent << "CollimatorRotationAngle:   " << this->CollimatorRotationAngle << "\n";
   os << indent << "ImagingPanelMovement:    " << this->ImagingPanelMovement << "\n";

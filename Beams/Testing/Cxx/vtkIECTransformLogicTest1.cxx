@@ -46,7 +46,7 @@ int GetNumberOfNonIdentityIECTransforms(vtkMRMLScene* mrmlScene);
 void PrintLinearTransformNodeMatrices( vtkMRMLScene* mrmlScene,
   bool includeIdentity=true, bool includeBeamTransforms=true );
 
-bool IsTransformMatrixEqualTo(vtkMRMLScene* mrmlScene, const char* transformNodeName, double baselineElements[16]);
+bool IsTransformMatrixEqualTo(vtkMRMLScene* mrmlScene, vtkMRMLLinearTransformNode* transformNode, double baselineElements[16]);
 bool AreEqualWithTolerance(double a, double b);
 bool IsEqual(vtkMatrix4x4* lhs, vtkMatrix4x4* rhs);
 
@@ -58,7 +58,8 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
 
   // Create and set up logic classes
   vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
-  iecLogic->BuildIECTransformHierarchy(mrmlScene);
+  iecLogic->SetMRMLScene(mrmlScene);
+  iecLogic->BuildIECTransformHierarchy();
   vtkSmartPointer<vtkSlicerBeamsModuleLogic> beamsLogic = vtkSmartPointer<vtkSlicerBeamsModuleLogic>::New();
   beamsLogic->SetMRMLScene(mrmlScene);
 
@@ -92,12 +93,12 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   mrmlScene->AddNode(planNode);
   planNode->AddBeam(beamNode);
 
-  if (!beamNode->GetParentTransformNode())
+  vtkMRMLLinearTransformNode* beamTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(beamNode->GetParentTransformNode());
+  if (!beamTransformNode)
   {
-    std::cerr << __LINE__ << ": Beam node does not have beam transform node" << std::endl;
+    std::cerr << __LINE__ << ": Beam node does not have a valid beam transform node" << std::endl;
     return EXIT_FAILURE;
   }
-  const char* beamTransformNodeName = beamNode->GetParentTransformNode()->GetName();
 
   //
   // Test effect of parameter changes on the transform hierarchy
@@ -114,7 +115,8 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedFixedReferenceToRasTransform_Origin_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 0, 1, 0,   0, -1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::FIXEDREFERENCE_TO_RAS_TRANSFORM_NODE_NAME, expectedFixedReferenceToRasTransform_Origin_MatrixElements ) )
+      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS),
+      expectedFixedReferenceToRasTransform_Origin_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": FixedReferenceToRasTransform transform does not match baseline for origin" << std::endl;
     return EXIT_FAILURE;
@@ -123,7 +125,7 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedBeamTransform_IsocenterOrigin_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 0, 1, 0,   0, -1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      beamTransformNodeName, expectedBeamTransform_IsocenterOrigin_MatrixElements ) )
+      beamTransformNode, expectedBeamTransform_IsocenterOrigin_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Beam transform does not match baseline for isocenter at origin" << std::endl;
     return EXIT_FAILURE;
@@ -132,12 +134,13 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   // Isocenter position, translated
   double isocenter[3] = {1000.0, 200.0, 0.0};
   planNode->SetIsocenterPosition(isocenter);
-  iecLogic->UpdateTransformForBeam(beamNode);
+  iecLogic->UpdateBeamTransform(beamNode);
 
   double expectedFixedReferenceToRasTransform_Translated_MatrixElements[16] =
     {  1, 0, 0, 1000,   0, 0, 1, 200,   0, -1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::FIXEDREFERENCE_TO_RAS_TRANSFORM_NODE_NAME, expectedFixedReferenceToRasTransform_Translated_MatrixElements ) )
+      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS),
+      expectedFixedReferenceToRasTransform_Translated_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": FixedReferenceToRasTransform transform does not match baseline for translated isocenter" << std::endl;
     return EXIT_FAILURE;
@@ -146,7 +149,7 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedBeamTransform_IsocenterTranslated_MatrixElements[16] =
     {  1, 0, 0, 1000,   0, 0, 1, 200,   0, -1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      beamTransformNodeName, expectedBeamTransform_IsocenterTranslated_MatrixElements ) )
+      beamTransformNode, expectedBeamTransform_IsocenterTranslated_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Beam transform does not match baseline for translated isocenter" << std::endl;
     return EXIT_FAILURE;
@@ -154,7 +157,7 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
 
   // Gantry angle, 1 degree
   beamNode->SetGantryAngle(1.0);
-  iecLogic->UpdateTransformForBeam(beamNode);
+  iecLogic->UpdateBeamTransform(beamNode);
   expectedNumOfNonIdentityTransforms = 2;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
@@ -165,7 +168,8 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedGantryToFixedReferenceTransform_1_MatrixElements[16] =
     {  0.999848, 0, -0.0174524, 0,   0, 1, 0, 0,   0.0174524, 0, 0.999848, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME, expectedGantryToFixedReferenceTransform_1_MatrixElements ) )
+      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference),
+      expectedGantryToFixedReferenceTransform_1_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": GantryToFixedReferenceTransform does not match baseline for 1 degree angle" << std::endl;
     return EXIT_FAILURE;
@@ -174,7 +178,7 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedBeamTransform_Gantry1_MatrixElements[16] =
     {  0.999848, 0, -0.0174524, 1000,   0.0174524, 0, 0.999848, 200,   0, -1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      beamTransformNodeName, expectedBeamTransform_Gantry1_MatrixElements ) )
+      beamTransformNode, expectedBeamTransform_Gantry1_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Beam transform does not match baseline for gantry 1 degree angle" << std::endl;
     return EXIT_FAILURE;
@@ -182,11 +186,12 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
 
   // Gantry angle, 90 degrees
   beamNode->SetGantryAngle(90.0);
-  iecLogic->UpdateTransformForBeam(beamNode);
+  iecLogic->UpdateBeamTransform(beamNode);
   double expectedGantryToFixedReference_90_MatrixElements[16] =
     {  0, 0, -1, 0,   0, 1, 0, 0,   1, 0, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME, expectedGantryToFixedReference_90_MatrixElements ) )
+      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference),
+      expectedGantryToFixedReference_90_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": GantryToFixedReferenceTransform does not match baseline for 90 degrees angle" << std::endl;
     return EXIT_FAILURE;
@@ -195,7 +200,7 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedBeamTransform_Gantry90_MatrixElements[16] =
     {  0, 0, -1, 1000,   1, 0, 0, 200,   0, -1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      beamTransformNodeName, expectedBeamTransform_Gantry90_MatrixElements ) )
+      beamTransformNode, expectedBeamTransform_Gantry90_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Beam transform does not match baseline for gantry 90 degree angle" << std::endl;
     return EXIT_FAILURE;
@@ -204,7 +209,7 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   // Collimator angle, 1 degree
   //TODO: Different transform after consolidation
   beamNode->SetCollimatorAngle(1.0);
-  iecLogic->UpdateTransformForBeam(beamNode);
+  iecLogic->UpdateBeamTransform(beamNode);
   expectedNumOfNonIdentityTransforms = 3;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
@@ -215,7 +220,8 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedFixedReferenceIsocenterToCollimatorRotatedTransform_1_MatrixElements[16] =
     {  0.999848, -0.0174524, 0, 0,   0.0174524, 0.999848, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME, expectedFixedReferenceIsocenterToCollimatorRotatedTransform_1_MatrixElements ) )
+      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReferenceIsocenter, vtkSlicerIECTransformLogic::CollimatorRotated),
+      expectedFixedReferenceIsocenterToCollimatorRotatedTransform_1_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": FixedReferenceIsocenterToCollimatorRotatedTransform does not match baseline" << std::endl;
     return EXIT_FAILURE;
@@ -224,7 +230,7 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedBeamTransform_Collimator1_MatrixElements[16] =
     {  0, 0, -1, 1000,   0.999848, -0.0174524, 0, 200,   -0.0174524, -0.999848, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      beamTransformNodeName, expectedBeamTransform_Collimator1_MatrixElements ) )
+      beamTransformNode, expectedBeamTransform_Collimator1_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Beam transform does not match baseline for collimator 1 degree angle" << std::endl;
     return EXIT_FAILURE;
@@ -232,11 +238,12 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
 
   // Collimator angle, 90 degrees
   beamNode->SetCollimatorAngle(90.0);
-  iecLogic->UpdateTransformForBeam(beamNode);
+  iecLogic->UpdateBeamTransform(beamNode);
   double expectedFixedReferenceIsocenterToCollimatorRotatedTransform_90_MatrixElements[16] =
     {  0, -1, 0, 0,   1, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME, expectedFixedReferenceIsocenterToCollimatorRotatedTransform_90_MatrixElements ) )
+      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReferenceIsocenter, vtkSlicerIECTransformLogic::CollimatorRotated),
+      expectedFixedReferenceIsocenterToCollimatorRotatedTransform_90_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": FixedReferenceIsocenterToCollimatorRotatedTransform does not match baseline" << std::endl;
     return EXIT_FAILURE;
@@ -245,7 +252,7 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   double expectedBeamTransform_Collimator90_MatrixElements[16] =
     {  0, 0, -1, 1000,   0, -1, 0, 200,   -1, 0, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      beamTransformNodeName, expectedBeamTransform_Collimator90_MatrixElements ) )
+      beamTransformNode, expectedBeamTransform_Collimator90_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Beam transform does not match baseline for collimator 90 degree angle" << std::endl;
     return EXIT_FAILURE;
@@ -361,25 +368,18 @@ bool GetLinearTransformNodes(
 }
 
 //---------------------------------------------------------------------------
-bool IsTransformMatrixEqualTo(vtkMRMLScene* mrmlScene, const char* transformNodeName, double baselineElements[16])
+bool IsTransformMatrixEqualTo(vtkMRMLScene* mrmlScene, vtkMRMLLinearTransformNode* transformNode, double baselineElements[16])
 {
-  if (!mrmlScene || !transformNodeName)
+  if (!mrmlScene || !transformNode)
   {
     return false;
   }
 
-  // Get transform node and verify that it's linear
-  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
-    mrmlScene->GetFirstNodeByName(transformNodeName) );
-  if (!transformNode)
-  {
-    std::cerr << __LINE__ << ": Failed to get transform node by name: " << transformNodeName << std::endl;
-    return false;
-  }
+  // Verify that transform in transform node is linear
   vtkSmartPointer<vtkTransform> linearTransform = vtkSmartPointer<vtkTransform>::New();
   if (!vtkMRMLTransformNode::IsGeneralTransformLinear(transformNode->GetTransformToParent(), linearTransform))
   {
-    std::cerr << __LINE__ << ": Non-linear transform found in transform node: " << transformNodeName << std::endl;
+    std::cerr << __LINE__ << ": Non-linear transform found in transform node: " << transformNode->GetName() << std::endl;
     return false;
   }
 

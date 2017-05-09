@@ -55,6 +55,7 @@
 
 // VTK includes
 #include <vtkCamera.h>
+#include <vtkPolyData.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RoomsEyeView

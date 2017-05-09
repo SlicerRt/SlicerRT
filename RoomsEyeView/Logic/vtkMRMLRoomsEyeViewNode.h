@@ -124,32 +124,44 @@ public:
   /// Set patient body segment ID
   vtkSetStringMacro(PatientBodySegmentID);
 
-  //void SetAndObserveRightImagingPanel
-  /// Get TODO:
+  vtkGetMacro(CollisionDetectionEnabled, bool);
+  vtkSetMacro(CollisionDetectionEnabled, bool);
+  vtkBooleanMacro(CollisionDetectionEnabled, bool);
+
   vtkGetMacro(GantryRotationAngle, double);
-  vtkGetMacro(CollimatorRotationAngle, double);
-  vtkGetMacro(ImagingPanelMovement, double);
-  vtkGetMacro(PatientSupportRotationAngle, double);
-  vtkGetMacro(VerticalTableTopDisplacement, double);
-  vtkGetMacro(LongitudinalTableTopDisplacement, double);
-  vtkGetMacro(LateralTableTopDisplacement, double);
-  vtkGetMacro(AdditionalModelLongitudinalDisplacement, double);
-  vtkGetMacro(AdditionalModelVerticalDisplacement, double);
-  vtkGetMacro(AdditionalModelLateralDisplacement, double);
-  vtkGetMacro(ApplicatorHolderVisibility, int);
-  vtkGetMacro(ElectronApplicatorVisibility, int);
-  /// Set TODO:
   vtkSetMacro(GantryRotationAngle, double);
+
+  vtkGetMacro(CollimatorRotationAngle, double);
   vtkSetMacro(CollimatorRotationAngle, double);
+
+  vtkGetMacro(ImagingPanelMovement, double);
   vtkSetMacro(ImagingPanelMovement, double);
+
+  vtkGetMacro(PatientSupportRotationAngle, double);
   vtkSetMacro(PatientSupportRotationAngle, double);
+
+  vtkGetMacro(VerticalTableTopDisplacement, double);
   vtkSetMacro(VerticalTableTopDisplacement, double);
+
+  vtkGetMacro(LongitudinalTableTopDisplacement, double);
   vtkSetMacro(LongitudinalTableTopDisplacement, double);
+
+  vtkGetMacro(LateralTableTopDisplacement, double);
   vtkSetMacro(LateralTableTopDisplacement, double);
+
+  vtkGetMacro(AdditionalModelLongitudinalDisplacement, double);
   vtkSetMacro(AdditionalModelLongitudinalDisplacement, double);
+
+  vtkGetMacro(AdditionalModelVerticalDisplacement, double);
   vtkSetMacro(AdditionalModelVerticalDisplacement, double);
+
+  vtkGetMacro(AdditionalModelLateralDisplacement, double);
   vtkSetMacro(AdditionalModelLateralDisplacement, double);
+
+  vtkGetMacro(ApplicatorHolderVisibility, int);
   vtkSetMacro(ApplicatorHolderVisibility, int);
+
+  vtkGetMacro(ElectronApplicatorVisibility, int);
   vtkSetMacro(ElectronApplicatorVisibility, int);
 
 protected:
@@ -161,6 +173,8 @@ protected:
 protected:
   /// Patient body segment ID in selected segmentation node
   char* PatientBodySegmentID;
+
+  bool CollisionDetectionEnabled;
 
   /// TODO:
   double GantryRotationAngle;
