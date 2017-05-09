@@ -162,10 +162,10 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
     return EXIT_FAILURE;
     }
 
-  double expectedGantryToFixedReference_1_MatrixElements[16] =
+  double expectedGantryToFixedReferenceTransform_1_MatrixElements[16] =
     {  0.999848, 0, -0.0174524, 0,   0, 1, 0, 0,   0.0174524, 0, 0.999848, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME, expectedGantryToFixedReference_1_MatrixElements ) )
+      vtkSlicerIECTransformLogic::GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME, expectedGantryToFixedReferenceTransform_1_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": GantryToFixedReferenceTransform does not match baseline for 1 degree angle" << std::endl;
     return EXIT_FAILURE;

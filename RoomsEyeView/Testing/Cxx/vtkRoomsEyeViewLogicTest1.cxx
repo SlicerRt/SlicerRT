@@ -188,10 +188,10 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
     return EXIT_FAILURE;
     }
 
-  double expectedGantryToFixedReference_1_MatrixElements[16] =
+  double expectedGantryToFixedReferenceTransform_1_MatrixElements[16] =
     {  0.999848, 0, -0.0174524, 0,   0, 1, 0, 0,   0.0174524, 0, 0.999848, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      vtkSlicerIECTransformLogic::GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME, expectedGantryToFixedReference_1_MatrixElements ) )
+      vtkSlicerIECTransformLogic::GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_NAME, expectedGantryToFixedReferenceTransform_1_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": GantryToFixedReferenceTransform does not match baseline for 1 degree angle" << std::endl;
     return EXIT_FAILURE;
@@ -242,6 +242,207 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
       vtkSlicerIECTransformLogic::FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_TRANSFORM_NODE_NAME, expectedFixedReferenceIsocenterToCollimatorRotatedTransform_90_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": FixedReferenceIsocenterToCollimatorRotatedTransform does not match baseline" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Imaging panel, position -50 (slightly extended)
+  paramNode->SetImagingPanelMovement(-50.0);
+  revLogic->UpdateImagingPanelMovementTransforms(paramNode);
+  expectedNumOfNonIdentityTransforms = 9;
+  if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
+    {
+    std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
+    return EXIT_FAILURE;
+    }
+  double expectedLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform_n50_MatrixElements[16] =
+    {  1, 0, 0, 1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform_n50_MatrixElements[16] =
+    {  0.948324, -0.317305, 0, 0,   0.317305, 0.948324, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedLeftImagingPanelRotatedToGantryTransform_n50_MatrixElements[16] =
+    {  1, 0, 0, -1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform_n50_MatrixElements[16] =
+    {  1, 0, 0, -1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform_n50_MatrixElements[16] =
+    {  0.948324, 0.317305, 0, 0,   -0.317305, 0.948324, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedRightImagingPanelRotatedToGantryTransform_n50_MatrixElements[16] =
+    {  1, 0, 0, 1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
+  if ( !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME, expectedLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform_n50_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME, expectedLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform_n50_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME, expectedLeftImagingPanelRotatedToGantryTransform_n50_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME, expectedRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform_n50_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME, expectedRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform_n50_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME, expectedRightImagingPanelRotatedToGantryTransform_n50_MatrixElements ) )
+    {
+    std::cerr << __LINE__ << ": Imaging panel transforms do not match baselines for position -50" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Imaging panel, position 500 (fully extended)
+  paramNode->SetImagingPanelMovement(500.0);
+  revLogic->UpdateImagingPanelMovementTransforms(paramNode);
+  expectedNumOfNonIdentityTransforms = 11;
+  if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
+    {
+    std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
+    return EXIT_FAILURE;
+    }
+  double expectedLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform_500_MatrixElements[16] =
+    {  1, 0, 0, 1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform_500_MatrixElements[16] =
+    {  0.366501, -0.930418, 0, 0,   0.930418, 0.366501, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedLeftImagingPanelRotatedToGantryTransform_500_MatrixElements[16] =
+    {  1, 0, 0, -1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedLeftImagingPanelTranslationTransform_500_MatrixElements[16] =
+    {  1, 0, 0, 0,   0, 1, 0, -500,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform_500_MatrixElements[16] =
+    {  1, 0, 0, -1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform_500_MatrixElements[16] =
+    {  0.366501, 0.930418, 0, 0,   -0.930418, 0.366501, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedRightImagingPanelRotatedToGantryTransform_500_MatrixElements[16] =
+    {  1, 0, 0, 1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedRightImagingPanelTranslationTransform_500_MatrixElements[16] =
+    {  1, 0, 0, 0,   0, 1, 0, -500,   0, 0, 1, 0,   0, 0, 0, 1  };
+  if ( !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME, expectedLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform_500_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME, expectedLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform_500_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME, expectedLeftImagingPanelRotatedToGantryTransform_500_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::LEFTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME, expectedLeftImagingPanelTranslationTransform_500_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_NAME, expectedRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform_500_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_NAME, expectedRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform_500_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_NAME, expectedRightImagingPanelRotatedToGantryTransform_500_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::RIGHTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_NAME, expectedRightImagingPanelTranslationTransform_500_MatrixElements ) )
+    {
+    std::cerr << __LINE__ << ": Imaging panel transforms do not match baselines for position -50" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Table top vertical displacement, position -500 (lowest)
+  paramNode->SetVerticalTableTopDisplacement(-500.0);
+  revLogic->UpdateVerticalDisplacementTransforms(paramNode);
+  expectedNumOfNonIdentityTransforms = 15;
+  if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
+    {
+    std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  double expectedPatientSupportScaledByTableTopVerticalMovementTransform_n500_MatrixElements[16] =
+    {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, -261.5, 0,   0, 0, 0, 1  };
+  double expectedPatientSupportPositiveVerticalTranslationTransform_n500_MatrixElements[16] =
+    {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 1, -1,   0, 0, 0, 1  };
+  double expectedPatientSupportScaledTranslatedToTableTopVerticalTranslationTransform_n500_MatrixElements[16] =
+    {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 1, 1,   0, 0, 0, 1  };
+  double expectedTableTopEccentricRotationToPatientSupportTransform_n500_MatrixElements[16] =
+    {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 1, -500,   0, 0, 0, 1  };
+  if ( !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_NAME, expectedPatientSupportScaledByTableTopVerticalMovementTransform_n500_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME, expectedPatientSupportPositiveVerticalTranslationTransform_n500_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_NAME, expectedPatientSupportScaledTranslatedToTableTopVerticalTranslationTransform_n500_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME, expectedTableTopEccentricRotationToPatientSupportTransform_n500_MatrixElements ) )
+    {
+    std::cerr << __LINE__ << ": Patient support transforms do not match baselines for vertical position -500" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Table top vertical displacement, position 300 (highest)
+  paramNode->SetVerticalTableTopDisplacement(300.0);
+  revLogic->UpdateVerticalDisplacementTransforms(paramNode);
+  double expectedPatientSupportScaledByTableTopVerticalMovementTransform_300_MatrixElements[16] =
+    {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 158.5, 0,   0, 0, 0, 1  };
+  double expectedPatientSupportPositiveVerticalTranslationTransform_300_MatrixElements[16] =
+    {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 1, -1,   0, 0, 0, 1  };
+  double expectedPatientSupportScaledTranslatedToTableTopVerticalTranslationTransform_300_MatrixElements[16] =
+    {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 1, 1,   0, 0, 0, 1  };
+  double expectedTableTopEccentricRotationToPatientSupportTransform_300_MatrixElements[16] =
+    {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 1, 300,   0, 0, 0, 1  };
+  if ( !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_NAME, expectedPatientSupportScaledByTableTopVerticalMovementTransform_300_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_NAME, expectedPatientSupportPositiveVerticalTranslationTransform_300_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_NAME, expectedPatientSupportScaledTranslatedToTableTopVerticalTranslationTransform_300_MatrixElements )
+    || !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME, expectedTableTopEccentricRotationToPatientSupportTransform_300_MatrixElements ) )
+    {
+    std::cerr << __LINE__ << ": Patient support transforms do not match baselines for vertical position 300" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Table top longitudinal displacement, position 10 (slight movement)
+  paramNode->SetLongitudinalTableTopDisplacement(10.0);
+  revLogic->UpdateTableTopEccentricRotationToPatientSupportTransform(paramNode);
+  expectedNumOfNonIdentityTransforms = 15;
+  if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
+    {
+    std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  double expectedTableTopEccentricRotationToPatientSupportTransform_10_MatrixElements[16] =
+    {  1, 0, 0, 0,   0, 1, 0, 10,   0, 0, 1, 300,   0, 0, 0, 1  };
+  if ( !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME, expectedTableTopEccentricRotationToPatientSupportTransform_10_MatrixElements ) )
+    {
+    std::cerr << __LINE__ << ": Patient support transforms do not match baselines for longitudinal position 10" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Table top longitudinal displacement, position 1000 (extreme)
+  paramNode->SetLongitudinalTableTopDisplacement(1000.0);
+  revLogic->UpdateTableTopEccentricRotationToPatientSupportTransform(paramNode);
+  double expectedTableTopEccentricRotationToPatientSupportTransform_1000_MatrixElements[16] =
+    {  1, 0, 0, 0,   0, 1, 0, 1000,   0, 0, 1, 300,   0, 0, 0, 1  };
+  if ( !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME, expectedTableTopEccentricRotationToPatientSupportTransform_1000_MatrixElements ) )
+    {
+    std::cerr << __LINE__ << ": Patient support transforms do not match baselines for longitudinal position 1000" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Table top lateral displacement, position -230 (lowest)
+  paramNode->SetLateralTableTopDisplacement(-230.0);
+  revLogic->UpdateTableTopEccentricRotationToPatientSupportTransform(paramNode);
+  expectedNumOfNonIdentityTransforms = 15;
+  if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
+    {
+    std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
+    //return EXIT_FAILURE;
+    }
+
+  double expectedTableTopEccentricRotationToPatientSupport_n230_MatrixElements[16] =
+    {  1, 0, 0, -230,   0, 1, 0, 1000,   0, 0, 1, 300,   0, 0, 0, 1  };
+  if ( !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME, expectedTableTopEccentricRotationToPatientSupport_n230_MatrixElements ) )
+    {
+    std::cerr << __LINE__ << ": Patient support transforms do not match baselines for lateral position 10" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Table top lateral displacement, position 230 (highest)
+  paramNode->SetLateralTableTopDisplacement(230.0);
+  revLogic->UpdateTableTopEccentricRotationToPatientSupportTransform(paramNode);
+  double expectedTableTopEccentricRotationToPatientSupport_230_MatrixElements[16] =
+    {  1, 0, 0, 230,   0, 1, 0, 1000,   0, 0, 1, 300,   0, 0, 0, 1  };
+  if ( !IsTransformMatrixEqualTo(mrmlScene,
+      vtkSlicerIECTransformLogic::TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_NAME, expectedTableTopEccentricRotationToPatientSupport_230_MatrixElements ) )
+    {
+    std::cerr << __LINE__ << ": Patient support transforms do not match baselines for lateral position 10" << std::endl;
     return EXIT_FAILURE;
     }
 
