@@ -57,7 +57,7 @@ bool AreEqualWithTolerance(double a, double b);
 bool IsEqual(vtkMatrix4x4* lhs, vtkMatrix4x4* rhs);
 
 //----------------------------------------------------------------------------
-int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
+int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
 {
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
@@ -108,7 +108,7 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   vtkSmartPointer<vtkMRMLRoomsEyeViewNode> paramNode = vtkSmartPointer<vtkMRMLRoomsEyeViewNode>::New();
   mrmlScene->AddNode(paramNode);
 
-  int expectedNumberOfLinearTransformNodes = 20;
+  int expectedNumberOfLinearTransformNodes = 18;
   int numberOfLinearTransformNodes = mrmlScene->GetNumberOfNodesByClass("vtkMRMLLinearTransformNode");
   if (numberOfLinearTransformNodes != expectedNumberOfLinearTransformNodes)
   {
@@ -214,8 +214,6 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   // Collimator angle, 1 degree
   //TODO: Different transform after consolidation (and for many other transforms as well)
   paramNode->SetCollimatorRotationAngle(1.0);
-  revLogic->UpdateCollimatorToFixedReferenceIsocenterTransform(paramNode); //TODO:
-  revLogic->UpdateFixedReferenceIsocenterToCollimatorRotatedTransform(paramNode); //TODO:
   revLogic->UpdateCollimatorToGantryTransform(paramNode);
   expectedNumOfNonIdentityTransforms = 3;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
@@ -224,28 +222,26 @@ int vtkRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
     return EXIT_FAILURE;
     }
 
-  double expectedFixedReferenceIsocenterToCollimatorRotatedTransform_1_MatrixElements[16] =
+  double expectedCollimatorToGantryTransform_1_MatrixElements[16] =
     {  0.999848, -0.0174524, 0, 0,   0.0174524, 0.999848, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReferenceIsocenter, vtkSlicerIECTransformLogic::CollimatorRotated),
-      expectedFixedReferenceIsocenterToCollimatorRotatedTransform_1_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry),
+      expectedCollimatorToGantryTransform_1_MatrixElements ) )
     {
-    std::cerr << __LINE__ << ": FixedReferenceIsocenterToCollimatorRotatedTransform does not match baseline" << std::endl;
+    std::cerr << __LINE__ << ": CollimatorToGantry does not match baseline" << std::endl;
     return EXIT_FAILURE;
     }
 
   // Collimator angle, 90 degrees
   paramNode->SetCollimatorRotationAngle(90.0);
-  revLogic->UpdateCollimatorToFixedReferenceIsocenterTransform(paramNode); //TODO:
-  revLogic->UpdateFixedReferenceIsocenterToCollimatorRotatedTransform(paramNode); //TODO:
   revLogic->UpdateCollimatorToGantryTransform(paramNode);
-  double expectedFixedReferenceIsocenterToCollimatorRotatedTransform_90_MatrixElements[16] =
+  double expectedCollimatorToGantryTransform_90_MatrixElements[16] =
     {  0, -1, 0, 0,   1, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReferenceIsocenter, vtkSlicerIECTransformLogic::CollimatorRotated),
-      expectedFixedReferenceIsocenterToCollimatorRotatedTransform_90_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry),
+      expectedCollimatorToGantryTransform_90_MatrixElements ) )
     {
-    std::cerr << __LINE__ << ": FixedReferenceIsocenterToCollimatorRotatedTransform does not match baseline" << std::endl;
+    std::cerr << __LINE__ << ": CollimatorToGantry does not match baseline" << std::endl;
     return EXIT_FAILURE;
     }
 

@@ -60,10 +60,7 @@ vtkSlicerIECTransformLogic::vtkSlicerIECTransformLogic()
   this->CoordinateSystemsMap[PatientSupportPositiveVerticalTranslated] = "PatientSupportPositiveVerticalTranslated";
   this->CoordinateSystemsMap[TableTopEccentricRotated] = "TableTopEccentricRotated";
   this->CoordinateSystemsMap[TableTop] = "TableTop";
-  //TODO: These coordinate frames need to be removed (only exist because of collimator rotation, which needs to be done on the vtkTransform level, not on node level)
-  this->CoordinateSystemsMap[FixedReferenceIsocenter] = "FixedReferenceIsocenter";
-  this->CoordinateSystemsMap[CollimatorRotated] = "CollimatorRotated";
-  //TODO: Same as with collimator rotation?
+  //TODO: These coordinate frames need to be removed
   this->CoordinateSystemsMap[LeftImagingPanelFixedReferenceIsocenter] = "LeftImagingPanelFixedReferenceIsocenter";
   this->CoordinateSystemsMap[RightImagingPanelFixedReferenceIsocenter] = "RightImagingPanelFixedReferenceIsocenter";
 
@@ -71,10 +68,7 @@ vtkSlicerIECTransformLogic::vtkSlicerIECTransformLogic()
   this->IecTransforms.push_back(std::make_pair(FixedReference, RAS));
   this->IecTransforms.push_back(std::make_pair(Gantry, FixedReference));
   this->IecTransforms.push_back(std::make_pair(Collimator, Gantry));
-  //TODO: These transforms need to be removed (only exist because of collimator rotation, which needs to be done on the vtkTransform level, not on node level)
-  this->IecTransforms.push_back(std::make_pair(FixedReferenceIsocenter, CollimatorRotated)); //TODO:
-  this->IecTransforms.push_back(std::make_pair(Collimator, FixedReferenceIsocenter)); //TODO:
-  //TODO: Left imaging panel transforms
+  //TODO: These transforms need to be removed
   this->IecTransforms.push_back(std::make_pair(Gantry, LeftImagingPanelTranslated)); //TODO:
   this->IecTransforms.push_back(std::make_pair(LeftImagingPanelRotated, Gantry)); //TODO:
   this->IecTransforms.push_back(std::make_pair(LeftImagingPanelFixedReferenceIsocenter, LeftImagingPanelRotated)); //TODO:
@@ -174,6 +168,7 @@ void vtkSlicerIECTransformLogic::UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* 
   // Make sure the transform hierarchy is set up
   this->BuildIECTransformHierarchy();
 
+  //TODO: Code duplication (RevLogic::Update...)
   vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode =
     this->GetTransformNodeBetween(Gantry, FixedReference);
   vtkTransform* gantryToFixedReferenceTransform = vtkTransform::SafeDownCast(gantryToFixedReferenceTransformNode->GetTransformToParent());
@@ -181,13 +176,12 @@ void vtkSlicerIECTransformLogic::UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* 
   gantryToFixedReferenceTransform->RotateY(beamNode->GetGantryAngle() * (-1.0));
   gantryToFixedReferenceTransform->Modified();
 
-  //TODO: This should be CollimatorToGantry!
-  vtkMRMLLinearTransformNode* fixedReferenceIsocenterToCollimatorRotatedTransformNode =
-    this->GetTransformNodeBetween(FixedReferenceIsocenter, CollimatorRotated);
-  vtkTransform* fixedReferenceIsocenterToCollimatorRotatedTransform = vtkTransform::SafeDownCast(fixedReferenceIsocenterToCollimatorRotatedTransformNode->GetTransformToParent());
-  fixedReferenceIsocenterToCollimatorRotatedTransform->Identity();
-  fixedReferenceIsocenterToCollimatorRotatedTransform->RotateZ(beamNode->GetCollimatorAngle());
-  fixedReferenceIsocenterToCollimatorRotatedTransform->Modified();
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
+    this->GetTransformNodeBetween(Collimator, Gantry);
+  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
+  collimatorToGantryTransform->Identity();
+  collimatorToGantryTransform->RotateZ(beamNode->GetCollimatorAngle());
+  collimatorToGantryTransform->Modified();
 
   vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransformNode =
     this->GetTransformNodeBetween(PatientSupport, FixedReference);
@@ -239,10 +233,6 @@ void vtkSlicerIECTransformLogic::BuildIECTransformHierarchy()
   }
 
   // Organize transforms into hierarchy based on IEC Standard 61217
-  this->GetTransformNodeBetween(Collimator, FixedReferenceIsocenter)->SetAndObserveTransformNodeID(
-    this->GetTransformNodeBetween(FixedReferenceIsocenter, CollimatorRotated)->GetID() );
-  this->GetTransformNodeBetween(FixedReferenceIsocenter, CollimatorRotated)->SetAndObserveTransformNodeID(
-    this->GetTransformNodeBetween(Collimator, Gantry)->GetID() );
   this->GetTransformNodeBetween(Collimator, Gantry)->SetAndObserveTransformNodeID(
     this->GetTransformNodeBetween(Gantry, FixedReference)->GetID() );
 
@@ -286,7 +276,7 @@ void vtkSlicerIECTransformLogic::BuildIECTransformHierarchy()
 std::string vtkSlicerIECTransformLogic::GetTransformNodeNameBetween(
   CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame)
 {
-  return this->CoordinateSystemsMap[fromFrame] + "To" + this->CoordinateSystemsMap[toFrame] + "Node";
+  return this->CoordinateSystemsMap[fromFrame] + "To" + this->CoordinateSystemsMap[toFrame] + "Transform";
 }
 
 //-----------------------------------------------------------------------------
@@ -321,12 +311,8 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
 
   if (fromFrame == Collimator && toFrame == RAS)
   {
-    //TODO: This is where it becomes clear that there is a problem with this transform.
-    //      This query should go through Collimator -> Gantry -> FixedReference using CollimatorToGantryTransform and GantryToFixedReferenceTransform
     vtkMRMLTransformNode::GetTransformBetweenNodes(
-      this->GetTransformNodeBetween(FixedReferenceIsocenter, CollimatorRotated),
-      NULL,
-      outputTransform );
+      this->GetTransformNodeBetween(Collimator, Gantry), NULL, outputTransform );
     return true;
   }
 

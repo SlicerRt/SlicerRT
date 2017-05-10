@@ -51,6 +51,7 @@ public:
   static const char* TABLETOP_MODEL_NAME;
   static const char* APPLICATORHOLDER_MODEL_NAME;
   static const char* ELECTRONAPPLICATOR_MODEL_NAME;
+  static const char* ORIENTATION_MARKER_MODEL_NODE_NAME;
 
 public:
   static vtkSlicerRoomsEyeViewModuleLogic *New();
@@ -68,11 +69,7 @@ public:
   /// Set up the IEC transforms on the treatment machine models
   void SetupTreatmentMachineModels();
 
-  /// Update CollimatorToFixedReference Isocenter transform by translating collimator model to isocenter
-  void UpdateCollimatorToFixedReferenceIsocenterTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
-  /// Update FixedReferenceIsocenterToCollimatorRotated transform based on collimator angle from UI slider
-  void UpdateFixedReferenceIsocenterToCollimatorRotatedTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
-  /// Update CollimatorToGantry transform by translating collimator model back to the gantry
+  /// Update CollimatorToGantry transform based on collimator angle from UI slider
   void UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 
   ///TODO:

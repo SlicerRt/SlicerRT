@@ -1,7 +1,7 @@
 set(KIT qSlicer${MODULE_NAME}Module)
 
 set(KIT_TEST_SRCS
-  vtkIECTransformLogicTest1.cxx
+  vtkSlicerIECTransformLogicTest1.cxx
   )
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
@@ -14,4 +14,4 @@ slicerMacroConfigureModuleCxxTestDriver(
   WITH_VTK_ERROR_OUTPUT_CHECK
   )
 
-simple_test(vtkIECTransformLogicTest1)
+simple_test(vtkSlicerIECTransformLogicTest1)

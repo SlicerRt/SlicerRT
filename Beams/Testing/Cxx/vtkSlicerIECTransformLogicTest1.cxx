@@ -51,7 +51,7 @@ bool AreEqualWithTolerance(double a, double b);
 bool IsEqual(vtkMatrix4x4* lhs, vtkMatrix4x4* rhs);
 
 //----------------------------------------------------------------------------
-int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
+int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
 {
   // Create scene
   vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
@@ -63,7 +63,7 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   vtkSmartPointer<vtkSlicerBeamsModuleLogic> beamsLogic = vtkSmartPointer<vtkSlicerBeamsModuleLogic>::New();
   beamsLogic->SetMRMLScene(mrmlScene);
 
-  int expectedNumberOfLinearTransformNodes = 19;
+  int expectedNumberOfLinearTransformNodes = 17;
   int numberOfLinearTransformNodes = mrmlScene->GetNumberOfNodesByClass("vtkMRMLLinearTransformNode");
   if (numberOfLinearTransformNodes != expectedNumberOfLinearTransformNodes)
   {
@@ -217,13 +217,13 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
     return EXIT_FAILURE;
     }
 
-  double expectedFixedReferenceIsocenterToCollimatorRotatedTransform_1_MatrixElements[16] =
+  double expectedCollimatorToGantryTransform_1_MatrixElements[16] =
     {  0.999848, -0.0174524, 0, 0,   0.0174524, 0.999848, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReferenceIsocenter, vtkSlicerIECTransformLogic::CollimatorRotated),
-      expectedFixedReferenceIsocenterToCollimatorRotatedTransform_1_MatrixElements ) )
+      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry),
+      expectedCollimatorToGantryTransform_1_MatrixElements ) )
     {
-    std::cerr << __LINE__ << ": FixedReferenceIsocenterToCollimatorRotatedTransform does not match baseline" << std::endl;
+    std::cerr << __LINE__ << ": CollimatorToGantry does not match baseline" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -239,13 +239,13 @@ int vtkIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
   // Collimator angle, 90 degrees
   beamNode->SetCollimatorAngle(90.0);
   iecLogic->UpdateBeamTransform(beamNode);
-  double expectedFixedReferenceIsocenterToCollimatorRotatedTransform_90_MatrixElements[16] =
+  double expectedCollimatorToGantryTransform_90_MatrixElements[16] =
     {  0, -1, 0, 0,   1, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReferenceIsocenter, vtkSlicerIECTransformLogic::CollimatorRotated),
-      expectedFixedReferenceIsocenterToCollimatorRotatedTransform_90_MatrixElements ) )
+      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry),
+      expectedCollimatorToGantryTransform_90_MatrixElements ) )
     {
-    std::cerr << __LINE__ << ": FixedReferenceIsocenterToCollimatorRotatedTransform does not match baseline" << std::endl;
+    std::cerr << __LINE__ << ": CollimatorToGantry does not match baseline" << std::endl;
     return EXIT_FAILURE;
     }
 

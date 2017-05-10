@@ -69,10 +69,7 @@ public:
     PatientSupportPositiveVerticalTranslated,
     TableTopEccentricRotated,
     TableTop,
-    //TODO: These coordinate frames need to be removed (only exist because of collimator rotation, which needs to be done on the vtkTransform level, not on node level)
-    FixedReferenceIsocenter,
-    CollimatorRotated,
-    //TODO: Same as with collimator?
+    //TODO: These coordinate frames need to be removed
     LeftImagingPanelFixedReferenceIsocenter,
     RightImagingPanelFixedReferenceIsocenter,
   };

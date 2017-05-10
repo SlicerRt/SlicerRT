@@ -75,6 +75,8 @@ const char* vtkSlicerRoomsEyeViewModuleLogic::TABLETOP_MODEL_NAME = "TableTopMod
 const char* vtkSlicerRoomsEyeViewModuleLogic::APPLICATORHOLDER_MODEL_NAME = "ApplicatorHolderModel";
 const char* vtkSlicerRoomsEyeViewModuleLogic::ELECTRONAPPLICATOR_MODEL_NAME = "ElectronApplicatorModel";
 
+const char* vtkSlicerRoomsEyeViewModuleLogic::ORIENTATION_MARKER_MODEL_NODE_NAME = "RoomsEyeViewOrientationMarkerModel";
+
 // Transform names
 //TODO: Add this dynamically to the IEC transform map
 static const char* ADDITIONALCOLLIMATORDEVICES_TO_COLLIMATOR_TRANSFORM_NODE_NAME = "AdditionalCollimatorDevicesToCollimatorTransform";
@@ -215,13 +217,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
   }
 
   // Get IEC transform nodes that are used below
-  vtkMRMLLinearTransformNode* collimatorToFixedReferenceIsocenterTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::FixedReferenceIsocenter);
-  if (!collimatorToFixedReferenceIsocenterTransformNode)
-  {
-    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access collimatorToFixedReferenceIsocenterTransformNode");
-    return;
-  }
   vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
   if (!collimatorToGantryTransformNode)
@@ -238,7 +233,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
   }
 
   // Organize transforms into hierarchy
-  additionalCollimatorDevicesToCollimatorTransformNode->SetAndObserveTransformNodeID(collimatorToFixedReferenceIsocenterTransformNode->GetID());
+  additionalCollimatorDevicesToCollimatorTransformNode->SetAndObserveTransformNodeID(collimatorToGantryTransformNode->GetID());
 
   // Get member transform matrices from transform nodes
   //TODO: This does not look right, need to review (we should not need these members)
@@ -306,7 +301,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadAdditionalDevices()
   
   vtkMRMLModelNode* loadedModelNode = vtkMRMLModelNode::New();
   loadedModelNode = vtkMRMLModelNode::SafeDownCast(loadedModelsCollection->GetNextItemAsObject());
-  vtkMRMLLinearTransformNode* collimatorModelTransforms = this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::FixedReferenceIsocenter);
+  vtkMRMLLinearTransformNode* collimatorModelTransforms = this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
   loadedModelNode->SetAndObserveTransformNodeID(collimatorModelTransforms->GetID());
 }
 
@@ -354,7 +349,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     return;
   }
   vtkMRMLLinearTransformNode* collimatorModelTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::FixedReferenceIsocenter);
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
   collimatorModel->SetAndObserveTransformNodeID(collimatorModelTransformNode->GetID());
   collimatorModel->CreateDefaultDisplayNodes();
   collimatorModel->GetDisplayNode()->SetColor(0.7, 0.7, 0.95);
@@ -477,25 +472,28 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
   this->CollimatorPatientCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
   this->CollimatorPatientCollisionDetection->Update();
 
-  vtkSmartPointer<vtkAppendPolyData> additionalDeviceAppending = vtkSmartPointer<vtkAppendPolyData>::New();
-  vtkPolyData* inputs[] = { applicatorHolderModel->GetPolyData(), electronApplicatorModel->GetPolyData() };
-  vtkSmartPointer<vtkPolyData> output = vtkSmartPointer<vtkPolyData>::New();
-  vtkSmartPointer<vtkMRMLModelNode> outputModel = vtkSmartPointer<vtkMRMLModelNode>::New();
-  additionalDeviceAppending->ExecuteAppend(output, inputs, 2);
-  this->GetMRMLScene()->AddNode(outputModel);
-  outputModel->SetAndObservePolyData(output);
+  //TODO: Additional device collision detection is broken, because the transforms of the additional devices are not
+  // taken into account, so the appended model will contain randomly placed devices
+  //TODO: Add additional models to patient collision detection
+  //vtkSmartPointer<vtkAppendPolyData> additionalDeviceAppending = vtkSmartPointer<vtkAppendPolyData>::New();
+  //vtkPolyData* inputs[] = { applicatorHolderModel->GetPolyData(), electronApplicatorModel->GetPolyData() };
+  //vtkSmartPointer<vtkPolyData> output = vtkSmartPointer<vtkPolyData>::New();
+  //vtkSmartPointer<vtkMRMLModelNode> outputModel = vtkSmartPointer<vtkMRMLModelNode>::New();
+  //additionalDeviceAppending->ExecuteAppend(output, inputs, 2);
+  //this->GetMRMLScene()->AddNode(outputModel);
+  //outputModel->SetAndObservePolyData(output);
  
-  this->AdditionalModelsTableTopCollisionDetection->SetInput(0, outputModel->GetPolyData());
-  this->AdditionalModelsTableTopCollisionDetection->SetInput(1, tableTopModel->GetPolyData());
-  this->AdditionalModelsTableTopCollisionDetection->SetMatrix(0, this->CollimatorToWorldTransformMatrix);
-  this->AdditionalModelsTableTopCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
-  this->AdditionalModelsTableTopCollisionDetection->Update();
+  //this->AdditionalModelsTableTopCollisionDetection->SetInput(0, outputModel->GetPolyData());
+  //this->AdditionalModelsTableTopCollisionDetection->SetInput(1, tableTopModel->GetPolyData());
+  //this->AdditionalModelsTableTopCollisionDetection->SetMatrix(0, this->CollimatorToWorldTransformMatrix);
+  //this->AdditionalModelsTableTopCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
+  //this->AdditionalModelsTableTopCollisionDetection->Update();
 
-  this->AdditionalModelsPatientSupportCollisionDetection->SetInput(0, outputModel->GetPolyData());
-  this->AdditionalModelsPatientSupportCollisionDetection->SetInput(1, patientSupportModel->GetPolyData());
-  this->AdditionalModelsPatientSupportCollisionDetection->SetMatrix(0, this->CollimatorToWorldTransformMatrix);
-  this->AdditionalModelsPatientSupportCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
-  this->AdditionalModelsPatientSupportCollisionDetection->Update();
+  //this->AdditionalModelsPatientSupportCollisionDetection->SetInput(0, outputModel->GetPolyData());
+  //this->AdditionalModelsPatientSupportCollisionDetection->SetInput(1, patientSupportModel->GetPolyData());
+  //this->AdditionalModelsPatientSupportCollisionDetection->SetMatrix(0, this->CollimatorToWorldTransformMatrix);
+  //this->AdditionalModelsPatientSupportCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
+  //this->AdditionalModelsPatientSupportCollisionDetection->Update();
 }
 
 //-----------------------------------------------------------------------------
@@ -517,7 +515,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMarker()
   vtkMRMLLinearTransformNode* gantryModelTransforms = 
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
   vtkMRMLLinearTransformNode* collimatorModelTransforms =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::FixedReferenceIsocenter);
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
   vtkMRMLLinearTransformNode* leftImagingPanelModelTransforms =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::LeftImagingPanelFixedReferenceIsocenter);
   vtkMRMLLinearTransformNode* rightImagingPanelModelTransforms =
@@ -601,16 +599,24 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMarker()
 
   vtkPolyData* inputs[] = { gantryModelPolyData, collimatorModelPolyData, leftImagingPanelModelPolyData, rightImagingPanelModelPolyData, patientSupportModelPolyData, tableTopModelPolyData};
   vtkSmartPointer<vtkPolyData> output = vtkSmartPointer<vtkPolyData>::New();
-  vtkSmartPointer<vtkMRMLModelNode> outputModel = vtkSmartPointer<vtkMRMLModelNode>::New();
   append->ExecuteAppend(output,inputs,6);
-  this->GetMRMLScene()->AddNode(outputModel);
-  outputModel->SetAndObservePolyData(output);
+
+  // Get or create orientation marker model node
+  vtkSmartPointer<vtkMRMLModelNode> orientationMarkerModel =
+    vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(ORIENTATION_MARKER_MODEL_NODE_NAME));
+  if (!orientationMarkerModel)
+  {
+    orientationMarkerModel = vtkSmartPointer<vtkMRMLModelNode>::New();
+    orientationMarkerModel->SetName(ORIENTATION_MARKER_MODEL_NODE_NAME);
+    this->GetMRMLScene()->AddNode(orientationMarkerModel);
+  }
+  orientationMarkerModel->SetAndObservePolyData(output);
 
   qSlicerApplication* slicerApplication = qSlicerApplication::application();
   qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
   qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
   vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
-  viewNode->SetOrientationMarkerHumanModelNodeID(outputModel->GetID());  
+  viewNode->SetOrientationMarkerHumanModelNodeID(orientationMarkerModel->GetID());  
 }
 
 //----------------------------------------------------------------------------
@@ -640,59 +646,9 @@ bool vtkSlicerRoomsEyeViewModuleLogic::GetPatientBodyPolyData(vtkMRMLRoomsEyeVie
     vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName(),
     patientBodyPolyData );
 }
-//----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToFixedReferenceIsocenterTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
-{
-  if (!parameterNode)
-  {
-    vtkErrorMacro("UpdateCollimatorToFixedReferenceIsocenterTransform: Invalid parameter set node");
-    return;
-  }
-
-  vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_MODEL_NAME));
-  if (!collimatorModel)
-  {
-    vtkErrorMacro("UpdateCollimatorToFixedReferenceIsocenterTransform: Invalid collimator model node");
-    return;
-  }
-
-  vtkPolyData* collimatorModelPolyData = collimatorModel->GetPolyData();
-
-  vtkMRMLLinearTransformNode* collimatorToFixedReferenceIsocenterTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::FixedReferenceIsocenter);
-  vtkTransform* collimatorToFixedReferenceIsocenterTransform = vtkTransform::SafeDownCast(
-    collimatorToFixedReferenceIsocenterTransformNode->GetTransformToParent() );
-
-  double collimatorCenterOfRotation[3];
-  double collimatorModelBounds[6] = { 0, 0, 0, 0, 0, 0 };
-
-  collimatorModelPolyData->GetBounds(collimatorModelBounds);
-  collimatorCenterOfRotation[0] = (collimatorModelBounds[0] + collimatorModelBounds[1]) / 2;
-  collimatorCenterOfRotation[1] = (collimatorModelBounds[2] + collimatorModelBounds[3]) / 2;
-  collimatorCenterOfRotation[2] = (collimatorModelBounds[4] + collimatorModelBounds[5]) / 2;
-
-  collimatorToFixedReferenceIsocenterTransform->Identity();
-  for (int i = 0; i < 3; i++)
-  {
-    collimatorCenterOfRotation[i] *= -1;
-  }
- 
-  collimatorToFixedReferenceIsocenterTransform->Identity();
-  collimatorToFixedReferenceIsocenterTransform->Translate(collimatorCenterOfRotation);
-  collimatorToFixedReferenceIsocenterTransform->Modified();
-
-  //TODO: This is another indication that the fixedReferenceIsocenterToCollimatorTransformNode is probably wrong to exist,
-  //      as the transform chain even here goes through where it is supposed to in the first place: Collimator -> Gantry -> FixedReference using CollimatorToGantryTransform and GantryToFixedReferenceTransform
-  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
-  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
-    collimatorToGantryTransformNode->GetTransformToParent() );
-
-  collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
-}
 
 //----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateFixedReferenceIsocenterToCollimatorRotatedTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
   if (!parameterNode)
   {
@@ -700,57 +656,13 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateFixedReferenceIsocenterToCollimator
     return;
   }
 
-  vtkMRMLLinearTransformNode* fixedReferenceIsocenterToCollimatorRotatedTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReferenceIsocenter, vtkSlicerIECTransformLogic::CollimatorRotated);
-  vtkTransform* fixedReferenceIsocenterToCollimatorRotatedTransform = vtkTransform::SafeDownCast(
-    fixedReferenceIsocenterToCollimatorRotatedTransformNode->GetTransformToParent() );
-
-  fixedReferenceIsocenterToCollimatorRotatedTransform->Identity();
-  fixedReferenceIsocenterToCollimatorRotatedTransform->RotateZ(parameterNode->GetCollimatorRotationAngle());
-  fixedReferenceIsocenterToCollimatorRotatedTransform->Modified();
-
   vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
   vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
     collimatorToGantryTransformNode->GetTransformToParent() );
 
-  collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
-{
-  if (!parameterNode)
-  {
-    vtkErrorMacro("UpdateCollimatorToGantryTransform: Invalid parameter set node");
-    return;
-  }
-
-  vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_MODEL_NAME));
-  if (!collimatorModel)
-  {
-    vtkErrorMacro("UpdateCollimatorToGantryTransform: Invalid collimator model node");
-    return;
-  }
-
-  vtkPolyData* collimatorModelPolyData = collimatorModel->GetPolyData();
-
-  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
-  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
-    collimatorToGantryTransformNode->GetTransformToParent() );
-
-  double collimatorCenterOfRotation[3];
-  double collimatorModelBounds[6] = { 0, 0, 0, 0, 0, 0 };
-
-  collimatorModelPolyData->GetBounds(collimatorModelBounds);
-  collimatorCenterOfRotation[0] = (collimatorModelBounds[0] + collimatorModelBounds[1]) / 2;
-  collimatorCenterOfRotation[1] = (collimatorModelBounds[2] + collimatorModelBounds[3]) / 2;
-  collimatorCenterOfRotation[2] = (collimatorModelBounds[4] + collimatorModelBounds[5]) / 2;
-
-  // Translates collimator to actual center of rotation and then rotates based on rotationAngle
   collimatorToGantryTransform->Identity();
-  collimatorToGantryTransform->Translate(collimatorCenterOfRotation);
+  collimatorToGantryTransform->RotateZ(parameterNode->GetCollimatorRotationAngle());
   collimatorToGantryTransform->Modified();
 
   collimatorToGantryTransformNode->GetMatrixTransformToWorld(this->CollimatorToWorldTransformMatrix);
