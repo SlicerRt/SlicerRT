@@ -55,13 +55,7 @@ public:
     FixedReference,
     Gantry,
     Collimator,
-    LeftImagingPanelTranslated,
-    LeftImagingPanelRotated,
-    LeftImagingPanelIsocenter,
     LeftImagingPanel,
-    RightImagingPanelTranslated,
-    RightImagingPanelRotated,
-    RightImagingPanelIsocenter,
     RightImagingPanel,
     PatientSupport,
     PatientSupportScaledTranslated,
@@ -69,9 +63,6 @@ public:
     PatientSupportPositiveVerticalTranslated,
     TableTopEccentricRotated,
     TableTop,
-    //TODO: These coordinate frames need to be removed
-    LeftImagingPanelFixedReferenceIsocenter,
-    RightImagingPanelFixedReferenceIsocenter,
   };
 
 public:

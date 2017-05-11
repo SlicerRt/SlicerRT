@@ -108,7 +108,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   vtkSmartPointer<vtkMRMLRoomsEyeViewNode> paramNode = vtkSmartPointer<vtkMRMLRoomsEyeViewNode>::New();
   mrmlScene->AddNode(paramNode);
 
-  int expectedNumberOfLinearTransformNodes = 18;
+  int expectedNumberOfLinearTransformNodes = 12;
   int numberOfLinearTransformNodes = mrmlScene->GetNumberOfNodesByClass("vtkMRMLLinearTransformNode");
   if (numberOfLinearTransformNodes != expectedNumberOfLinearTransformNodes)
   {
@@ -248,42 +248,22 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Imaging panel, position -50 (slightly extended)
   paramNode->SetImagingPanelMovement(-50.0);
   revLogic->UpdateImagingPanelMovementTransforms(paramNode);
-  expectedNumOfNonIdentityTransforms = 9;
+  expectedNumOfNonIdentityTransforms = 5;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
     return EXIT_FAILURE;
     }
-  double expectedLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform_n50_MatrixElements[16] =
-    {  1, 0, 0, 1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
-  double expectedLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform_n50_MatrixElements[16] =
-    {  0.948324, -0.317305, 0, 0,   0.317305, 0.948324, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
-  double expectedLeftImagingPanelRotatedToGantryTransform_n50_MatrixElements[16] =
-    {  1, 0, 0, -1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
-  double expectedRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform_n50_MatrixElements[16] =
-    {  1, 0, 0, -1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
-  double expectedRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform_n50_MatrixElements[16] =
-    {  0.948324, 0.317305, 0, 0,   -0.317305, 0.948324, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
-  double expectedRightImagingPanelRotatedToGantryTransform_n50_MatrixElements[16] =
-    {  1, 0, 0, 1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedLeftImagingPanelToGantryTransform_n50_MatrixElements[16] =
+    {  0.948324, -0.317305, 0, -0.0516763,   0.317305, 0.948324, 0, 0.317305,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedRightImagingPanelToGantryTransform_n50_MatrixElements[16] =
+    {  0.948324, 0.317305, 0, 0.0516763,   -0.317305, 0.948324, 0, 0.317305,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::LeftImagingPanelFixedReferenceIsocenter),
-      expectedLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform_n50_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry),
+      expectedLeftImagingPanelToGantryTransform_n50_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanelFixedReferenceIsocenter, vtkSlicerIECTransformLogic::LeftImagingPanelRotated),
-      expectedLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform_n50_MatrixElements )
-    || !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanelRotated, vtkSlicerIECTransformLogic::Gantry),
-      expectedLeftImagingPanelRotatedToGantryTransform_n50_MatrixElements )
-    || !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::RightImagingPanelFixedReferenceIsocenter),
-      expectedRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform_n50_MatrixElements )
-    || !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanelFixedReferenceIsocenter, vtkSlicerIECTransformLogic::RightImagingPanelRotated),
-      expectedRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform_n50_MatrixElements )
-    || !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanelRotated, vtkSlicerIECTransformLogic::Gantry),
-      expectedRightImagingPanelRotatedToGantryTransform_n50_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry),
+      expectedRightImagingPanelToGantryTransform_n50_MatrixElements ) )
     {
     std::cerr << __LINE__ << ": Imaging panel transforms do not match baselines for position -50" << std::endl;
     return EXIT_FAILURE;
@@ -292,61 +272,31 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Imaging panel, position 500 (fully extended)
   paramNode->SetImagingPanelMovement(500.0);
   revLogic->UpdateImagingPanelMovementTransforms(paramNode);
-  expectedNumOfNonIdentityTransforms = 11;
+  expectedNumOfNonIdentityTransforms = 5;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
     return EXIT_FAILURE;
     }
-  double expectedLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform_500_MatrixElements[16] =
-    {  1, 0, 0, 1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
-  double expectedLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform_500_MatrixElements[16] =
-    {  0.366501, -0.930418, 0, 0,   0.930418, 0.366501, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
-  double expectedLeftImagingPanelRotatedToGantryTransform_500_MatrixElements[16] =
-    {  1, 0, 0, -1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
-  double expectedLeftImagingPanelTranslationTransform_500_MatrixElements[16] =
-    {  1, 0, 0, 0,   0, 1, 0, -500,   0, 0, 1, 0,   0, 0, 0, 1  };
-  double expectedRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform_500_MatrixElements[16] =
-    {  1, 0, 0, -1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
-  double expectedRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform_500_MatrixElements[16] =
-    {  0.366501, 0.930418, 0, 0,   -0.930418, 0.366501, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
-  double expectedRightImagingPanelRotatedToGantryTransform_500_MatrixElements[16] =
-    {  1, 0, 0, 1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
-  double expectedRightImagingPanelTranslationTransform_500_MatrixElements[16] =
-    {  1, 0, 0, 0,   0, 1, 0, -500,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedLeftImagingPanelToGantryTransform_500_MatrixElements[16] =
+    {  0.366501, -0.930418, 0, -0.633499,   0.930418, 0.366501, 0, -499.0695,   0, 0, 1, 0,   0, 0, 0, 1  };
+  double expectedRightImagingPanelToGantryTransform_500_MatrixElements[16] =
+    {  0.366501, 0.930418, 0, 0.633499,   -0.930418, 0.366501, 0, -499.0695,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::LeftImagingPanelFixedReferenceIsocenter),
-      expectedLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform_500_MatrixElements )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry),
+      expectedLeftImagingPanelToGantryTransform_500_MatrixElements )
     || !IsTransformMatrixEqualTo(mrmlScene,
-        revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanelFixedReferenceIsocenter, vtkSlicerIECTransformLogic::LeftImagingPanelRotated),
-        expectedLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform_500_MatrixElements )
-    || !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanelRotated, vtkSlicerIECTransformLogic::Gantry),
-      expectedLeftImagingPanelRotatedToGantryTransform_500_MatrixElements )
-    || !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::LeftImagingPanelTranslated),
-      expectedLeftImagingPanelTranslationTransform_500_MatrixElements )
-    || !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::RightImagingPanelFixedReferenceIsocenter),
-      expectedRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform_500_MatrixElements )
-    || !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanelFixedReferenceIsocenter, vtkSlicerIECTransformLogic::RightImagingPanelRotated),
-      expectedRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform_500_MatrixElements )
-    || !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanelRotated, vtkSlicerIECTransformLogic::Gantry),
-      expectedRightImagingPanelRotatedToGantryTransform_500_MatrixElements )
-    || !IsTransformMatrixEqualTo(mrmlScene,
-      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::RightImagingPanelTranslated),
-      expectedRightImagingPanelTranslationTransform_500_MatrixElements ) )
+      revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry),
+      expectedRightImagingPanelToGantryTransform_500_MatrixElements ) )
     {
-    std::cerr << __LINE__ << ": Imaging panel transforms do not match baselines for position -50" << std::endl;
+    std::cerr << __LINE__ << ": Imaging panel transforms do not match baselines for position 500" << std::endl;
     return EXIT_FAILURE;
     }
 
   // Table top vertical displacement, position -500 (lowest)
   paramNode->SetVerticalTableTopDisplacement(-500.0);
   revLogic->UpdateVerticalDisplacementTransforms(paramNode);
-  expectedNumOfNonIdentityTransforms = 15;
+  expectedNumOfNonIdentityTransforms = 9;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
@@ -409,7 +359,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Table top longitudinal displacement, position 10 (slight movement)
   paramNode->SetLongitudinalTableTopDisplacement(10.0);
   revLogic->UpdateTableTopEccentricRotationToPatientSupportTransform(paramNode);
-  expectedNumOfNonIdentityTransforms = 15;
+  expectedNumOfNonIdentityTransforms = 9;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
@@ -442,7 +392,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Table top lateral displacement, position -230 (lowest)
   paramNode->SetLateralTableTopDisplacement(-230.0);
   revLogic->UpdateTableTopEccentricRotationToPatientSupportTransform(paramNode);
-  expectedNumOfNonIdentityTransforms = 15;
+  expectedNumOfNonIdentityTransforms = 9;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
@@ -525,7 +475,7 @@ void PrintLinearTransformNodeMatrices(vtkMRMLScene* mrmlScene,
       std::cout << "  ";
       for (int j = 0; j < 4; j++)
       {
-        std::cout << matrix->GetElement(i,j) << ((i==3&&j==3)?"  ":", ");
+        std::cout /*<< std::setprecision(8)*/ << matrix->GetElement(i,j) << ((i==3&&j==3)?"  ":", ");
       }
     }
     std::cout << "}" << std::endl;

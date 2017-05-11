@@ -69,32 +69,16 @@ public:
   /// Set up the IEC transforms on the treatment machine models
   void SetupTreatmentMachineModels();
 
-  /// Update CollimatorToGantry transform based on collimator angle from UI slider
-  void UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
-
-  ///TODO:
-  void UpdateAdditionalCollimatorDevicesToCollimatorTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);
-
   /// Update GantryToFixedReference transform based on gantry angle from UI slider
   void UpdateGantryToFixedReferenceTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 
-  /// Translate center of left imaging panel to isocenter of fixed reference coordinate system
-  void UpdateLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransform();
-  /// Rotate left imaging panel based on imagingPanelMovement from UI slider
-  void UpdateLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
-  /// Translate rotated left imaging panel from fixed reference isocenter back to gantry
-  void UpdateLeftImagingPanelRotatedToGantryTransform();
-  /// Translate the left imaging panel forward based on imagingPanelMovement from UI slider
-  void UpdateLeftImagingPanelTranslationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+  /// Update CollimatorToGantry transform based on collimator angle from UI slider
+  void UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 
-  /// Translate center of right imaging panel to isocenter of fixed reference coordinate system
-  void UpdateRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransform();
-  /// Rotate rights imaging panel based on imagingPanelMovement from UI slider
-  void UpdateRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
-  /// Translate rotated right imaging panel from fixed reference isocenter back to gantry
-  void UpdateRightImagingPanelRotatedToGantryTransform();
-  /// Translate the right imaging panel forward based on imagingPanelMovement from UI slider
-  void UpdateRightImagingPanelTranslationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+  /// Update left imaging panel to gantry transform
+  void UpdateLeftImagingPanelToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+  /// Update right imaging panel to gantry transform
+  void UpdateRightImagingPanelToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 
   /// Initiate imagingPanel transform functions based on imagingPanelMovement from UI slider
   void UpdateImagingPanelMovementTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);
@@ -114,6 +98,9 @@ public:
   /// Translate the table top vertically along the z axes  based on change to Vertical Table Top Displacement UI slider
   void UpdateVerticalDisplacementTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);
  
+  ///TODO:
+  void UpdateAdditionalCollimatorDevicesToCollimatorTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);
+
   ///TODO:
   void UpdateAdditionalDevicesVisibility(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Check for collisions between pieces of linac model using vtkCollisionDetectionFilter

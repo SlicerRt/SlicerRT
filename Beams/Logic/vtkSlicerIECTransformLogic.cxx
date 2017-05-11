@@ -46,13 +46,7 @@ vtkSlicerIECTransformLogic::vtkSlicerIECTransformLogic()
   this->CoordinateSystemsMap[FixedReference] = "FixedReference";
   this->CoordinateSystemsMap[Gantry] = "Gantry";
   this->CoordinateSystemsMap[Collimator] = "Collimator";
-  this->CoordinateSystemsMap[LeftImagingPanelTranslated] = "LeftImagingPanelTranslated";
-  this->CoordinateSystemsMap[LeftImagingPanelRotated] = "LeftImagingPanelRotated";
-  this->CoordinateSystemsMap[LeftImagingPanelIsocenter] = "LeftImagingPanelIsocenter"; //TODO: Needed? (may be the same as with the collimator that this translation is only needed to rotate around center)
   this->CoordinateSystemsMap[LeftImagingPanel] = "LeftImagingPanel";
-  this->CoordinateSystemsMap[RightImagingPanelTranslated] = "RightImagingPanelTranslated";
-  this->CoordinateSystemsMap[RightImagingPanelRotated] = "RightImagingPanelRotated";
-  this->CoordinateSystemsMap[RightImagingPanelIsocenter] = "RightImagingPanelIsocenter"; //TODO: Needed? (may be the same as with the collimator that this translation is only needed to rotate around center)
   this->CoordinateSystemsMap[RightImagingPanel] = "RightImagingPanel";
   this->CoordinateSystemsMap[PatientSupport] = "PatientSupport";
   this->CoordinateSystemsMap[PatientSupportScaledTranslated] = "PatientSupportScaledTranslated";
@@ -60,24 +54,13 @@ vtkSlicerIECTransformLogic::vtkSlicerIECTransformLogic()
   this->CoordinateSystemsMap[PatientSupportPositiveVerticalTranslated] = "PatientSupportPositiveVerticalTranslated";
   this->CoordinateSystemsMap[TableTopEccentricRotated] = "TableTopEccentricRotated";
   this->CoordinateSystemsMap[TableTop] = "TableTop";
-  //TODO: These coordinate frames need to be removed
-  this->CoordinateSystemsMap[LeftImagingPanelFixedReferenceIsocenter] = "LeftImagingPanelFixedReferenceIsocenter";
-  this->CoordinateSystemsMap[RightImagingPanelFixedReferenceIsocenter] = "RightImagingPanelFixedReferenceIsocenter";
 
   this->IecTransforms.clear();
   this->IecTransforms.push_back(std::make_pair(FixedReference, RAS));
   this->IecTransforms.push_back(std::make_pair(Gantry, FixedReference));
   this->IecTransforms.push_back(std::make_pair(Collimator, Gantry));
-  //TODO: These transforms need to be removed
-  this->IecTransforms.push_back(std::make_pair(Gantry, LeftImagingPanelTranslated)); //TODO:
-  this->IecTransforms.push_back(std::make_pair(LeftImagingPanelRotated, Gantry)); //TODO:
-  this->IecTransforms.push_back(std::make_pair(LeftImagingPanelFixedReferenceIsocenter, LeftImagingPanelRotated)); //TODO:
-  this->IecTransforms.push_back(std::make_pair(LeftImagingPanel, LeftImagingPanelFixedReferenceIsocenter)); //TODO:
-  //TODO: Right imaging panel transforms
-  this->IecTransforms.push_back(std::make_pair(Gantry, RightImagingPanelTranslated)); //TODO:
-  this->IecTransforms.push_back(std::make_pair(RightImagingPanelRotated, Gantry)); //TODO:
-  this->IecTransforms.push_back(std::make_pair(RightImagingPanelFixedReferenceIsocenter, RightImagingPanelRotated)); //TODO:
-  this->IecTransforms.push_back(std::make_pair(RightImagingPanel, RightImagingPanelFixedReferenceIsocenter)); //TODO:
+  this->IecTransforms.push_back(std::make_pair(LeftImagingPanel, Gantry));
+  this->IecTransforms.push_back(std::make_pair(RightImagingPanel, Gantry));
   // Patient support related transforms
   this->IecTransforms.push_back(std::make_pair(PatientSupport, FixedReference));
   this->IecTransforms.push_back(std::make_pair(PatientSupportScaledTranslated, PatientSupport)); //TODO:
@@ -236,22 +219,9 @@ void vtkSlicerIECTransformLogic::BuildIECTransformHierarchy()
   this->GetTransformNodeBetween(Collimator, Gantry)->SetAndObserveTransformNodeID(
     this->GetTransformNodeBetween(Gantry, FixedReference)->GetID() );
 
-  this->GetTransformNodeBetween(LeftImagingPanel, LeftImagingPanelFixedReferenceIsocenter)->SetAndObserveTransformNodeID(
-    this->GetTransformNodeBetween(LeftImagingPanelFixedReferenceIsocenter, LeftImagingPanelRotated)->GetID() );
-  this->GetTransformNodeBetween(LeftImagingPanelFixedReferenceIsocenter, LeftImagingPanelRotated)->SetAndObserveTransformNodeID(
-    this->GetTransformNodeBetween(LeftImagingPanelRotated, Gantry)->GetID() );
-  this->GetTransformNodeBetween(LeftImagingPanelRotated, Gantry)->SetAndObserveTransformNodeID(
-    this->GetTransformNodeBetween(Gantry, LeftImagingPanelTranslated)->GetID() );
-  this->GetTransformNodeBetween(Gantry, LeftImagingPanelTranslated)->SetAndObserveTransformNodeID(
+  this->GetTransformNodeBetween(LeftImagingPanel, Gantry)->SetAndObserveTransformNodeID(
     this->GetTransformNodeBetween(Gantry, FixedReference)->GetID() );
-
-  this->GetTransformNodeBetween(RightImagingPanel, RightImagingPanelFixedReferenceIsocenter)->SetAndObserveTransformNodeID(
-    this->GetTransformNodeBetween(RightImagingPanelFixedReferenceIsocenter, RightImagingPanelRotated)->GetID() );
-  this->GetTransformNodeBetween(RightImagingPanelFixedReferenceIsocenter, RightImagingPanelRotated)->SetAndObserveTransformNodeID(
-    this->GetTransformNodeBetween(RightImagingPanelRotated, Gantry)->GetID() );
-  this->GetTransformNodeBetween(RightImagingPanelRotated, Gantry)->SetAndObserveTransformNodeID(
-    this->GetTransformNodeBetween(Gantry, RightImagingPanelTranslated)->GetID() );
-  this->GetTransformNodeBetween(Gantry, RightImagingPanelTranslated)->SetAndObserveTransformNodeID(
+  this->GetTransformNodeBetween(RightImagingPanel, Gantry)->SetAndObserveTransformNodeID(
     this->GetTransformNodeBetween(Gantry, FixedReference)->GetID() );
 
   this->GetTransformNodeBetween(PatientSupportPositiveVerticalTranslated, PatientSupportScaled)->SetAndObserveTransformNodeID(
