@@ -278,19 +278,19 @@ void qSlicerRoomsEyeViewModuleWidget::loadModelButtonClicked()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
+  // Load and setup models
   d->logic()->LoadLinacModels();
 
-  //TODO: Move this a more central place after integrating REV into EBP
-  // Setup treatment machine model display and transforms
-  d->logic()->SetupTreatmentMachineModels();
-
-  //TODO: Add function UpdateTreatmentOrientationMarker that merges the treatment machine components into a model that can be set as orientation marker,
-  //TODO: Add new option 'Treatment room' to orientation marker choices and merged model with actual colors (surface scalars?)
-  /**qSlicerApplication* slicerApplication = qSlicerApplication::application();
+  // Reset camera
+  qSlicerApplication* slicerApplication = qSlicerApplication::application();
   qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
   qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
-  vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
-  viewNode->SetOrientationMarkerHumanModelNodeID(this->mrmlScene()->GetFirstNodeByName("EBRTOrientationMarkerModel")->GetID());**/
+  threeDView->resetCamera();
+
+  // Set orientation marker
+  //TODO: Add new option 'Treatment room' to orientation marker choices and merged model with actual colors (surface scalars?)
+  //vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
+  //viewNode->SetOrientationMarkerHumanModelNodeID(this->mrmlScene()->GetFirstNodeByName("EBRTOrientationMarkerModel")->GetID());
 }
 
 //-----------------------------------------------------------------------------
@@ -445,7 +445,7 @@ void qSlicerRoomsEyeViewModuleWidget::patientSupportRotationSliderValueChanged()
   paramNode->SetPatientSupportRotationAngle(d->PatientSupportRotationSlider->value());
   paramNode->DisableModifiedEventOff();
 
-  d->logic()->UpdatePatientSupportToFixedReferenceTransform(paramNode);
+  d->logic()->UpdatePatientSupportRotationToFixedReferenceTransform(paramNode);
 
   this->checkForCollisions();
   d->logic()->UpdateTreatmentOrientationMarker();
@@ -466,7 +466,8 @@ void qSlicerRoomsEyeViewModuleWidget::verticalTableTopDisplacementSliderValueCha
   paramNode->SetVerticalTableTopDisplacement(d->VerticalTableTopDisplacementSlider->value());
   paramNode->DisableModifiedEventOff();
 
-  d->logic()->UpdateVerticalDisplacementTransforms(paramNode);
+  d->logic()->UpdatePatientSupportToPatientSupportRotationTransform(paramNode);
+  d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
 
   this->checkForCollisions();
   d->logic()->UpdateTreatmentOrientationMarker();
@@ -487,7 +488,7 @@ void qSlicerRoomsEyeViewModuleWidget::longitudinalTableTopDisplacementSliderValu
   paramNode->SetLongitudinalTableTopDisplacement(d->LongitudinalTableTopDisplacementSlider->value());
   paramNode->DisableModifiedEventOff();
 
-  d->logic()->UpdateTableTopEccentricRotationToPatientSupportTransform(paramNode);
+  d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
 
   this->checkForCollisions();
   d->logic()->UpdateTreatmentOrientationMarker();
@@ -508,7 +509,7 @@ void qSlicerRoomsEyeViewModuleWidget::lateralTableTopDisplacementSliderValueChan
   paramNode->SetLateralTableTopDisplacement(d->LateralTableTopDisplacementSlider->value());
   paramNode->DisableModifiedEventOff();
 
-  d->logic()->UpdateTableTopEccentricRotationToPatientSupportTransform(paramNode);
+  d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
 
   this->checkForCollisions();
   d->logic()->UpdateTreatmentOrientationMarker();

@@ -162,6 +162,7 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
       vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
       iecLogic->SetMRMLScene(mrmlScene);
       iecLogic->UpdateBeamTransform(beamNode);
+      iecLogic->UpdateIECTransformsFromBeam(beamNode);
     }
     else if (event == vtkMRMLRTBeamNode::BeamGeometryModified)
     {
@@ -196,6 +197,7 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
       vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
       iecLogic->SetMRMLScene(mrmlScene);
       iecLogic->UpdateBeamTransform(beamNode);
+      iecLogic->UpdateIECTransformsFromBeam(beamNode);
 
       // Make sure display is set up
       beamNode->UpdateGeometry();

@@ -72,31 +72,27 @@ public:
   /// Update GantryToFixedReference transform based on gantry angle from UI slider
   void UpdateGantryToFixedReferenceTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 
-  /// Update CollimatorToGantry transform based on collimator angle from UI slider
+  /// Update CollimatorToGantry transform based on collimator angle parameter
   void UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 
-  /// Update left imaging panel to gantry transform
+  /// Update left imaging panel to gantry transform based on imaging panel movement parameter
   void UpdateLeftImagingPanelToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
-  /// Update right imaging panel to gantry transform
+  /// Update right imaging panel to gantry transform based on imaging panel movement parameter
   void UpdateRightImagingPanelToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 
-  /// Initiate imagingPanel transform functions based on imagingPanelMovement from UI slider
+  /// Update both left and right imaging panel transforms based on imaging panel movement parameter
   void UpdateImagingPanelMovementTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);
 
-  /// Rotate patient support (couch) with respect to fixed reference coordinate system based on rotation angle from UI slider
-  void UpdatePatientSupportToFixedReferenceTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+  /// Update PatientSupportRotrationToFixedReference transform based on patient support rotation parameter
+  void UpdatePatientSupportRotationToFixedReferenceTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+  ///  Update PatientSupportToPatientSupportRotation transform based on patient support vertical translation parameter
+  void UpdatePatientSupportToPatientSupportRotationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 
-  /// Translate scaled patient support back to position with respect to the vertically translated table top
-  void UpdatePatientSupportScaledTranslatedToTableTopVerticalTranslationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
-  /// Scale the patient support based on the vertical displacement of the table top from the starting position of 0
-  void UpdatePatientSupportScaledByTableTopVerticalMovementTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
-  /// Translate the patient support positively so that base of the support is located at 0, preventing the base from getting scaled
-  void UpdatePatientSupportPositiveVerticalTranslationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
-
-  /// Call functions that translates the table top along the x,y, and z axes based on changes to table top displacement UI sliders
-  void UpdateTableTopEccentricRotationToPatientSupportTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
-  /// Translate the table top vertically along the z axes  based on change to Vertical Table Top Displacement UI slider
-  void UpdateVerticalDisplacementTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);
+  /// Update TableTopEccentricRotationToPatientSupportRotation based on table top eccentric rotation parameter
+  /// NOTE: This rotation is currently not supported (only rotate table top on the patient support)
+  void UpdateTableTopEccentricRotationToPatientSupportRotationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+  /// Update TableTopToTableTopEccentricRotation based on all three table top translations
+  void UpdateTableTopToTableTopEccentricRotationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
  
   ///TODO:
   void UpdateAdditionalCollimatorDevicesToCollimatorTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);

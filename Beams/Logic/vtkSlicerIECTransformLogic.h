@@ -57,12 +57,11 @@ public:
     Collimator,
     LeftImagingPanel,
     RightImagingPanel,
+    PatientSupportRotation, // Not part of the standard, but useful for visualization
     PatientSupport,
-    PatientSupportScaledTranslated,
-    PatientSupportScaled,
-    PatientSupportPositiveVerticalTranslated,
-    TableTopEccentricRotated,
+    TableTopEccentricRotation,
     TableTop,
+    LastIECCoordinateFrame // Last index used for adding more coordinate systems externally
   };
 
 public:
@@ -85,11 +84,10 @@ public:
 
   /// Update parent transform node of a given beam from the IEC transform hierarchy and the beam parameters
   void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode);
-
-protected:
   /// Update IEC transforms according to beam node
   void UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* beamNode);
 
+protected:
   /// Get name of transform node between two coordinate systems
   /// \return Transform node name between the specified coordinate frames.
   ///   Note: If IEC does not specify a transform between the given coordinate frames, then there will be no node with the returned name.
