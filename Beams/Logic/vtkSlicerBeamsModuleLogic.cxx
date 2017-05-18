@@ -89,12 +89,6 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     return;
   }
 
-  // if the scene is still updating, jump out
-  if (this->GetMRMLScene()->IsBatchProcessing())
-  {
-    return;
-  }
-
   if (node->IsA("vtkMRMLRTBeamNode"))
   {
     // Observe beam events

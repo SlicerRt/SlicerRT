@@ -95,7 +95,7 @@ protected slots:
   void clearDoseClicked();
 
   // Update functions
-  void onRTPlanNodeModified();
+  void onPlanNodeModified();
   void onLogicModified();
   void onProgressUpdated(double progress);
 
