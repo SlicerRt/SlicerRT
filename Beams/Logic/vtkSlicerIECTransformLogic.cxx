@@ -230,7 +230,9 @@ void vtkSlicerIECTransformLogic::UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* 
     vtkErrorMacro("UpdateIECTransformsFromBeam: Failed to get isocenter position for beam " << beamNode->GetName());
   }
   // The "S" direction in RAS is the "A" direction in FixedReference 
-  fixedReferenceToRasTransform->RotateX(-90);
+  fixedReferenceToRasTransform->RotateX(-90.0);
+  // The "S" direction to be toward the gantry (head first position) by default
+  fixedReferenceToRasTransform->RotateZ(180.0);
   fixedReferenceToRasTransform->Modified();
 }
 
