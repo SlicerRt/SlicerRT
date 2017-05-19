@@ -107,10 +107,14 @@ void qSlicerRoomsEyeViewModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect(d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()));
 
   // Find parameters node or create it if there is none in the scene
-  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
+  if (scene)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLRoomsEyeViewNode");
-    if (node)
+    if (d->MRMLNodeComboBox_ParameterSet->currentNode())
+    {
+      this->setParameterNode(d->MRMLNodeComboBox_ParameterSet->currentNode());
+    }
+    else if (node)
     {
       this->setParameterNode(node);
     }

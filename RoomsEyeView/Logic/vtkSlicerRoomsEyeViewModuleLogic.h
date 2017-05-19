@@ -94,6 +94,14 @@ public:
   /// Update TableTopToTableTopEccentricRotation based on all three table top translations
   void UpdateTableTopToTableTopEccentricRotationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
  
+  /// Update orientation marker based on the current transforms
+  void UpdateTreatmentOrientationMarker();
+
+// Additional device related methods
+public:
+  ///TODO:
+  void LoadAdditionalDevices();
+
   ///TODO:
   void UpdateAdditionalCollimatorDevicesToCollimatorTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);
 
@@ -103,11 +111,15 @@ public:
   /// \return string indicating whether collision occurred
   std::string CheckForCollisions(vtkMRMLRoomsEyeViewNode* parameterNode);
 
-  ///TODO:
-  void LoadAdditionalDevices();
-
-  ///TODO:
-  void UpdateTreatmentOrientationMarker();
+// Set/get methods
+public:
+  vtkGetObjectMacro(GantryPatientCollisionDetection, vtkCollisionDetectionFilter);
+  vtkGetObjectMacro(GantryTableTopCollisionDetection, vtkCollisionDetectionFilter);
+  vtkGetObjectMacro(GantryPatientSupportCollisionDetection, vtkCollisionDetectionFilter);
+  vtkGetObjectMacro(CollimatorPatientCollisionDetection, vtkCollisionDetectionFilter);
+  vtkGetObjectMacro(CollimatorTableTopCollisionDetection, vtkCollisionDetectionFilter);
+  vtkGetObjectMacro(AdditionalModelsTableTopCollisionDetection, vtkCollisionDetectionFilter);
+  vtkGetObjectMacro(AdditionalModelsPatientSupportCollisionDetection, vtkCollisionDetectionFilter);
 
 protected:
   /// Get patient body closed surface poly data from segmentation node and segment selection in the parameter node
@@ -115,10 +127,6 @@ protected:
 
 protected:
   vtkSlicerIECTransformLogic* IECLogic;
-
-  //TODO: Remove these two members
-  vtkMatrix4x4* CollimatorToWorldTransformMatrix;
-  vtkMatrix4x4* TableTopToWorldTransformMatrix;
 
   vtkCollisionDetectionFilter* GantryPatientCollisionDetection;
   vtkCollisionDetectionFilter* GantryTableTopCollisionDetection;
@@ -133,6 +141,9 @@ protected:
 protected:
   vtkSlicerRoomsEyeViewModuleLogic();
   virtual ~vtkSlicerRoomsEyeViewModuleLogic();
+
+  /// Register MRML Node classes to scene. Gets called automatically when the MRMLScene is attached to this logic class.
+  virtual void RegisterNodes();
 
   virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
 
