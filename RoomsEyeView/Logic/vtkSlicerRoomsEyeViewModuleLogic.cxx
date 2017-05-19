@@ -43,17 +43,6 @@
 // vtkSegmentationCore includes
 #include <vtkSegmentationConverter.h>
 
-// SlicerQt includes
-//TODO: These should not be included here, move these to the widget
-#include <qSlicerApplication.h>
-#include <qSlicerLayoutManager.h>
-#include <qSlicerFileDialog.h>
-#include <qSlicerDataDialog.h>
-#include <qSlicerIOManager.h>
-#include <qMRMLSliceWidget.h>
-#include <qMRMLThreeDWidget.h>
-#include <qMRMLThreeDView.h>
-
 // VTK includes
 #include <vtkSmartPointer.h>
 #include <vtkObjectFactory.h>
@@ -180,12 +169,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newSce
 }
 
 //---------------------------------------------------------------------------
-vtkSlicerIECTransformLogic* vtkSlicerRoomsEyeViewModuleLogic::GetIECLogic()
-{
-  return this->IECLogic;
-}
-
-//---------------------------------------------------------------------------
 void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
 {
   vtkMRMLScene* scene = this->GetMRMLScene();
@@ -228,23 +211,21 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::LoadLinacModels()
+void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels()
 {
   if (!this->GetMRMLScene())
   {
-    vtkErrorMacro("LoadLinacModels: Invalid scene");
+    vtkErrorMacro("LoadTreatmentMachineModels: Invalid scene");
     return;
   }
-
-  std::string moduleShareDirectory = this->GetModuleShareDirectory();
 
   // Make sure the transform hierarchy is in place
   this->BuildRoomsEyeViewTransformHierarchy();
 
   //TODO: Only the Varian TrueBeam STx models are supported right now.
   //      Allow loading multiple types of machines
+  std::string moduleShareDirectory = this->GetModuleShareDirectory();
   std::string treatmentMachineModelsDirectory = moduleShareDirectory + "/" + "VarianTrueBeamSTx";
-  std::string additionalDevicesDirectory = moduleShareDirectory + "/" + "AdditionalTreatmentModels";
 
   // Create a models logic for convenient loading of components
   vtkSmartPointer<vtkSlicerModelsLogic> modelsLogic = vtkSmartPointer<vtkSlicerModelsLogic>::New();
@@ -260,7 +241,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadLinacModels()
   rootModelHierarchyNode->SetAndObserveDisplayNodeID( rootModelHierarchyDisplayNode->GetID() );
 
   //
-  // Load supported treatment machine models
+  // Load treatment machine models
   std::string collimatorModelFilePath = treatmentMachineModelsDirectory + "/" + COLLIMATOR_MODEL_NAME + ".stl";
   vtkMRMLModelNode* collimatorModelNode = modelsLogic->AddModel(collimatorModelFilePath.c_str());
   vtkSmartPointer<vtkMRMLModelHierarchyNode> collimatorModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
@@ -320,39 +301,12 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadLinacModels()
   if ( !collimatorModelNode || !gantryModelNode || !imagingPanelLeftModelNode || !imagingPanelRightModelNode
     || !patientSupportModelNode || !tableTopModelNode )
   {
-    vtkErrorMacro("LoadLinacModels: Failed to load every treatment machine component");
+    vtkErrorMacro("LoadTreatmentMachineModels: Failed to load every treatment machine component");
     return;
   }
-
-  //TODO: Move these to LoadAdditionalDevices, as these are not linac models
-  std::string applicatorHolderModelFilePath = additionalDevicesDirectory + "/" + APPLICATORHOLDER_MODEL_NAME + ".stl";
-  modelsLogic->AddModel(applicatorHolderModelFilePath.c_str());
-  std::string electronApplicatorModelFilePath = additionalDevicesDirectory + "/" + ELECTRONAPPLICATOR_MODEL_NAME + ".stl";
-  modelsLogic->AddModel(electronApplicatorModelFilePath.c_str());
 
   // Setup treatment machine model display and transforms
   this->SetupTreatmentMachineModels();
-}
-
-//----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::LoadAdditionalDevices()
-{
-  if (!this->GetMRMLScene())
-  {
-    vtkErrorMacro("LoadLinacModels: Invalid scene");
-    return;
-  }
-
-  //TODO: This should not be in the logic, move to widget
-  qSlicerIOManager* ioManager = qSlicerApplication::application()->ioManager();
-  vtkSmartPointer<vtkCollection> loadedModelsCollection = vtkSmartPointer<vtkCollection>::New();
-  ioManager->openDialog("ModelFile", qSlicerDataDialog::Read, qSlicerIO::IOProperties(), loadedModelsCollection);
-  
-  vtkMRMLModelNode* loadedModelNode = vtkMRMLModelNode::New();
-  loadedModelNode = vtkMRMLModelNode::SafeDownCast(loadedModelsCollection->GetNextItemAsObject());
-  vtkMRMLLinearTransformNode* collimatorModelTransforms = this->IECLogic->GetTransformNodeBetween(
-    vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry );
-  loadedModelNode->SetAndObserveTransformNodeID(collimatorModelTransforms->GetID());
 }
 
 //----------------------------------------------------------------------------
@@ -480,16 +434,70 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
   identityTransform->Identity();
   this->GantryPatientCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(identityTransform));
   this->CollimatorPatientCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(identityTransform));
+}
 
+//----------------------------------------------------------------------------
+void vtkSlicerRoomsEyeViewModuleLogic::LoadBasicCollimatorMountedDevices()
+{
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("LoadBasicCollimatorMountedDevices: Invalid scene");
+    return;
+  }
+
+  std::string moduleShareDirectory = this->GetModuleShareDirectory();
+  std::string additionalDevicesDirectory = moduleShareDirectory + "/" + "AdditionalTreatmentModels";
+
+  // Create a models logic for convenient loading of components
+  vtkSmartPointer<vtkSlicerModelsLogic> modelsLogic = vtkSmartPointer<vtkSlicerModelsLogic>::New();
+  modelsLogic->SetMRMLScene(this->GetMRMLScene());
+
+  // Create model hierarchy so that the treatment machine can be shown/hidden easily
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> rootModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  this->GetMRMLScene()->AddNode(rootModelHierarchyNode);
+  rootModelHierarchyNode->SetName("Additional treatment machine devices");
+
+  vtkSmartPointer<vtkMRMLModelDisplayNode> rootModelHierarchyDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  this->GetMRMLScene()->AddNode(rootModelHierarchyDisplayNode);
+  rootModelHierarchyNode->SetAndObserveDisplayNodeID( rootModelHierarchyDisplayNode->GetID() );
 
   //
-  // Additional devices
-  //TODO: Separate to a function and call it from LoadAdditionalDevices
+  // Load basic additional device models
+  std::string applicatorHolderModelFilePath = additionalDevicesDirectory + "/" + APPLICATORHOLDER_MODEL_NAME + ".stl";
+  vtkMRMLModelNode* applicatorHolderModelNode = modelsLogic->AddModel(applicatorHolderModelFilePath.c_str());
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> applicatorHolderModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  this->GetMRMLScene()->AddNode(applicatorHolderModelHierarchyNode);
+  applicatorHolderModelHierarchyNode->SetModelNodeID(applicatorHolderModelNode->GetID());
+  applicatorHolderModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+  applicatorHolderModelHierarchyNode->HideFromEditorsOn();
+
+  std::string electronApplicatorModelFilePath = additionalDevicesDirectory + "/" + ELECTRONAPPLICATOR_MODEL_NAME + ".stl";
+  vtkMRMLModelNode* electronApplicatorModelNode = modelsLogic->AddModel(electronApplicatorModelFilePath.c_str());
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> electronApplicatorModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  this->GetMRMLScene()->AddNode(electronApplicatorModelHierarchyNode);
+  electronApplicatorModelHierarchyNode->SetModelNodeID(electronApplicatorModelNode->GetID());
+  electronApplicatorModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+  electronApplicatorModelHierarchyNode->HideFromEditorsOn();
+
+  // Setup basic additional device model display and transforms
+  this->SetupBasicCollimatorMountedDeviceModels();
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerRoomsEyeViewModuleLogic::SetupBasicCollimatorMountedDeviceModels()
+{
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("SetupBasicCollimatorMountedDeviceModels: Invalid scene");
+    return;
+  }
+
+  //TODO: Separate to a function and call it from LoadBasicCollimatorMountedDevices
   vtkMRMLModelNode* applicatorHolderModel = vtkMRMLModelNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(APPLICATORHOLDER_MODEL_NAME));
   if (!applicatorHolderModel)
   {
-    vtkErrorMacro("SetupTreatmentMachineModels: Unable to access applicator holder model");
+    vtkErrorMacro("SetupBasicCollimatorMountedDeviceModels: Unable to access applicator holder model");
     return;
   }
   vtkMRMLLinearTransformNode* applicatorHolderModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( //TODO:
@@ -502,7 +510,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
     this->GetMRMLScene()->GetFirstNodeByName(ELECTRONAPPLICATOR_MODEL_NAME));
   if (!electronApplicatorModel)
   {
-    vtkErrorMacro("SetupTreatmentMachineModels: Unable to access electron applicator model");
+    vtkErrorMacro("SetupBasicCollimatorMountedDeviceModels: Unable to access electron applicator model");
     return;
   }
   vtkMRMLLinearTransformNode* electronApplicatorModelTransformNode = vtkMRMLLinearTransformNode::SafeDownCast( //TODO:
@@ -536,7 +544,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMarker()
+vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMarker()
 {
   vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
 
@@ -651,11 +659,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMarker()
   }
   orientationMarkerModel->SetAndObservePolyData(orientationMarkerPolyData);
 
-  qSlicerApplication* slicerApplication = qSlicerApplication::application();
-  qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
-  qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
-  vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
-  viewNode->SetOrientationMarkerHumanModelNodeID(orientationMarkerModel->GetID());  
+  return orientationMarkerModel.GetPointer();
 }
 
 //----------------------------------------------------------------------------

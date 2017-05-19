@@ -54,24 +54,29 @@ public slots:
   void updateWidgetFromMRML();
 
 protected slots:
-	void loadModelButtonClicked();
-  void additionalCollimatorDevicesChecked();
-  void collimatorRotationSliderValueChanged();
-  void gantryRotationSliderValueChanged();
-  void imagingPanelMovementSliderValueChanged();
-  void patientSupportRotationSliderValueChanged();
-  void verticalTableTopDisplacementSliderValueChanged();
-  void longitudinalTableTopDisplacementSliderValueChanged();
-  void lateralTableTopDisplacementSliderValueChanged();
-  void additionalModelLateralDisplacementSliderValueChanged();
-  void additionalModelLongitudinalDisplacementSliderValueChanged();
-  void additionalModelVerticalDisplacementSliderValueChanged();
-  void loadAdditionalDevicesButtonClicked();
+	void onLoadTreatmentMachineModelsButtonClicked();
 
-  void beamsEyeViewButtonClicked();
+  void onCollimatorRotationSliderValueChanged(double);
+  void onGantryRotationSliderValueChanged(double);
+  void onImagingPanelMovementSliderValueChanged(double);
+  void onPatientSupportRotationSliderValueChanged(double);
+  void onVerticalTableTopDisplacementSliderValueChanged(double);
+  void onLongitudinalTableTopDisplacementSliderValueChanged(double);
+  void onLateralTableTopDisplacementSliderValueChanged(double);
+
+  void onLoadBasicCollimatorMountedDeviceButtonClicked();
+  void onLoadCustomCollimatorMountedDeviceButtonClicked();
+  void onAdditionalCollimatorMountedDevicesChecked(int);
+  void onAdditionalModelLateralDisplacementSliderValueChanged(double);
+  void onAdditionalModelLongitudinalDisplacementSliderValueChanged(double);
+  void onAdditionalModelVerticalDisplacementSliderValueChanged(double);
+
+  void onBeamsEyeViewButtonClicked();
   
-  void patientBodySegmentationNodeChanged(vtkMRMLNode*);
-  void patientBodySegmentChanged(QString);
+  void onPatientBodySegmentationNodeChanged(vtkMRMLNode*);
+  void onPatientBodySegmentChanged(QString);
+
+  void updateTreatmentOrientationMarker();
 
   void onLogicModified();
   

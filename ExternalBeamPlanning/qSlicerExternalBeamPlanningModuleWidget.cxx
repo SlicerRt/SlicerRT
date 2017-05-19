@@ -528,8 +528,9 @@ void qSlicerExternalBeamPlanningModuleWidget::poisMarkupsNodeChanged(vtkMRMLNode
   planNode->GetBeams(beams);
   for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
   {
+    // Calculate transform from beam parameters and isocenter from plan
     vtkMRMLRTBeamNode* beamNode = (*beamIt);
-    beamNode->UpdateTransform();
+    beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
   }
 }
 

@@ -87,9 +87,6 @@ public:
   /// Always creates a new transform node.
   virtual void CreateNewBeamTransformNode();
 
-  /// Update beam transform based on beam and plan parameters
-  void UpdateTransform();
-
   /// Update beam poly data based on beam geometry parameters (jaws, MLC)
   void UpdateGeometry();
 

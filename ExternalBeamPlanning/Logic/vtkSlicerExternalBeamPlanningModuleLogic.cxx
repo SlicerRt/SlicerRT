@@ -25,9 +25,7 @@
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkSlicerBeamsModuleLogic.h"
-
-// CLI invocation
-#include <vtkSlicerCLIModuleLogic.h>
+#include "vtkSlicerIECTransformLogic.h"
 
 // MRML includes
 //#include <vtkMRMLMarkupsFiducialNode.h> //TODO: Includes commented out due to obsolete methods, see below
@@ -41,6 +39,7 @@
 #include <vtkMRMLSubjectHierarchyNode.h>
 
 // Slicer includes
+#include <vtkSlicerCLIModuleLogic.h>
 #include <vtkSlicerSubjectHierarchyModuleLogic.h>
 
 // VTK includes
@@ -271,8 +270,9 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ProcessMRMLNodesEvents(vtkObject*
       planNode->GetBeams(beams);
       for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
       {
+        // Calculate transform from beam parameters and isocenter from plan
         vtkMRMLRTBeamNode* beamNode = (*beamIt);
-        beamNode->UpdateTransform();
+        beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
       }
     }
   }

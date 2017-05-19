@@ -34,8 +34,8 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 class vtkCollisionDetectionFilter;
 class vtkSlicerIECTransformLogic;
 class vtkMRMLRoomsEyeViewNode;
+class vtkMRMLModelNode;
 class vtkPolyData;
-class vtkMatrix4x4; //TODO: Remove once the members are removed
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
 class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic :
@@ -59,15 +59,12 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
-  /// Return IEC logic that has been created for room's eye view
-  vtkSlicerIECTransformLogic* GetIECLogic();
-
   /// Load pre-defined components of the treatment machine into the scene
-  void LoadLinacModels();
+  void LoadTreatmentMachineModels();
+  /// Set up the IEC transforms and model properties on the treatment machine models
+  void SetupTreatmentMachineModels();
   /// Create or get transforms taking part in the IEC logic and additional devices, and build the transform hierarchy
   void BuildRoomsEyeViewTransformHierarchy();
-  /// Set up the IEC transforms on the treatment machine models
-  void SetupTreatmentMachineModels();
 
   /// Update GantryToFixedReference transform based on gantry angle from UI slider
   void UpdateGantryToFixedReferenceTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
@@ -95,24 +92,29 @@ public:
   void UpdateTableTopToTableTopEccentricRotationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
  
   /// Update orientation marker based on the current transforms
-  void UpdateTreatmentOrientationMarker();
+  vtkMRMLModelNode* UpdateTreatmentOrientationMarker();
+
+  /// Check for collisions between pieces of linac model using vtkCollisionDetectionFilter
+  /// \return string indicating whether collision occurred
+  std::string CheckForCollisions(vtkMRMLRoomsEyeViewNode* parameterNode);
 
 // Additional device related methods
 public:
-  ///TODO:
-  void LoadAdditionalDevices();
+  /// Load basic additional devices (deployed with SlicerRT)
+  void LoadBasicCollimatorMountedDevices();
+  /// Set up the IEC transforms and model properties on the basic additional device models
+  void SetupBasicCollimatorMountedDeviceModels();
 
   ///TODO:
   void UpdateAdditionalCollimatorDevicesToCollimatorTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);
 
   ///TODO:
   void UpdateAdditionalDevicesVisibility(vtkMRMLRoomsEyeViewNode* parameterNode);
-  /// Check for collisions between pieces of linac model using vtkCollisionDetectionFilter
-  /// \return string indicating whether collision occurred
-  std::string CheckForCollisions(vtkMRMLRoomsEyeViewNode* parameterNode);
 
 // Set/get methods
 public:
+  vtkGetObjectMacro(IECLogic, vtkSlicerIECTransformLogic);
+
   vtkGetObjectMacro(GantryPatientCollisionDetection, vtkCollisionDetectionFilter);
   vtkGetObjectMacro(GantryTableTopCollisionDetection, vtkCollisionDetectionFilter);
   vtkGetObjectMacro(GantryPatientSupportCollisionDetection, vtkCollisionDetectionFilter);
