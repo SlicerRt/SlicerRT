@@ -113,7 +113,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
     }
 
   double expectedFixedReferenceToRasTransform_Origin_MatrixElements[16] =
-    {  1, 0, 0, 0,   0, 0, 1, 0,   0, -1, 0, 0,   0, 0, 0, 1  };
+    {  -1, 0, 0, 0,   0, 0, 1, 0,   0, 1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS),
       expectedFixedReferenceToRasTransform_Origin_MatrixElements ) )
@@ -123,7 +123,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
     }
 
   double expectedBeamTransform_IsocenterOrigin_MatrixElements[16] =
-    {  1, 0, 0, 0,   0, 0, 1, 0,   0, -1, 0, 0,   0, 0, 0, 1  };
+    {  -1, 0, 0, 0,   0, 0, 1, 0,   0, 1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       beamTransformNode, expectedBeamTransform_IsocenterOrigin_MatrixElements ) )
     {
@@ -137,7 +137,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   iecLogic->UpdateBeamTransform(beamNode);
 
   double expectedFixedReferenceToRasTransform_Translated_MatrixElements[16] =
-    {  1, 0, 0, 1000,   0, 0, 1, 200,   0, -1, 0, 0,   0, 0, 0, 1  };
+    {  -1, 0, 0, 1000,   0, 0, 1, 200,   0, 1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS),
       expectedFixedReferenceToRasTransform_Translated_MatrixElements ) )
@@ -147,7 +147,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
     }
 
   double expectedBeamTransform_IsocenterTranslated_MatrixElements[16] =
-    {  1, 0, 0, 1000,   0, 0, 1, 200,   0, -1, 0, 0,   0, 0, 0, 1  };
+    {  -1, 0, 0, 1000,   0, 0, 1, 200,   0, 1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       beamTransformNode, expectedBeamTransform_IsocenterTranslated_MatrixElements ) )
     {
@@ -176,7 +176,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
     }
 
   double expectedBeamTransform_Gantry1_MatrixElements[16] =
-    {  0.999848, 0, -0.0174524, 1000,   0.0174524, 0, 0.999848, 200,   0, -1, 0, 0,   0, 0, 0, 1  };
+    {  -0.999848, 0, 0.0174524, 1000,   0.0174524, 0, 0.999848, 200,   0, 1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       beamTransformNode, expectedBeamTransform_Gantry1_MatrixElements ) )
     {
@@ -198,7 +198,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
     }
 
   double expectedBeamTransform_Gantry90_MatrixElements[16] =
-    {  0, 0, -1, 1000,   1, 0, 0, 200,   0, -1, 0, 0,   0, 0, 0, 1  };
+    {  0, 0, 1, 1000,   1, 0, 0, 200,   0, 1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       beamTransformNode, expectedBeamTransform_Gantry90_MatrixElements ) )
     {
@@ -228,7 +228,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
     }
 
   double expectedBeamTransform_Collimator1_MatrixElements[16] =
-    {  0, 0, -1, 1000,   0.999848, -0.0174524, 0, 200,   -0.0174524, -0.999848, 0, 0,   0, 0, 0, 1  };
+    {  0, 0, 1, 1000,   0.999848, -0.0174524, 0, 200,   0.0174524, 0.999848, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       beamTransformNode, expectedBeamTransform_Collimator1_MatrixElements ) )
     {
@@ -250,7 +250,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
     }
 
   double expectedBeamTransform_Collimator90_MatrixElements[16] =
-    {  0, 0, -1, 1000,   0, -1, 0, 200,   -1, 0, 0, 0,   0, 0, 0, 1  };
+    {  0, 0, 1, 1000,   0, -1, 0, 200,   1, 0, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       beamTransformNode, expectedBeamTransform_Collimator90_MatrixElements ) )
     {
