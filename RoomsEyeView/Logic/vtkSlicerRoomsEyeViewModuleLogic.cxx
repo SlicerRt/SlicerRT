@@ -33,6 +33,8 @@
 #include <vtkMRMLDisplayNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLViewNode.h>
+#include <vtkMRMLModelHierarchyNode.h>
+#include <vtkMRMLModelDisplayNode.h>
 
 // Slicer includes
 #include <vtkSlicerModelsLogic.h>
@@ -243,24 +245,84 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadLinacModels()
   //      Allow loading multiple types of machines
   std::string treatmentMachineModelsDirectory = moduleShareDirectory + "/" + "VarianTrueBeamSTx";
   std::string additionalDevicesDirectory = moduleShareDirectory + "/" + "AdditionalTreatmentModels";
-  // Load supported treatment machine models
+
+  // Create a models logic for convenient loading of components
   vtkSmartPointer<vtkSlicerModelsLogic> modelsLogic = vtkSmartPointer<vtkSlicerModelsLogic>::New();
   modelsLogic->SetMRMLScene(this->GetMRMLScene());
 
+  // Create model hierarchy so that the treatment machine can be shown/hidden easily
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> rootModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  this->GetMRMLScene()->AddNode(rootModelHierarchyNode);
+  rootModelHierarchyNode->SetName("Varian TrueBeam STx linac components"); //TODO: Change when multiple models are supported
+
+  vtkSmartPointer<vtkMRMLModelDisplayNode> rootModelHierarchyDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  this->GetMRMLScene()->AddNode(rootModelHierarchyDisplayNode);
+  rootModelHierarchyNode->SetAndObserveDisplayNodeID( rootModelHierarchyDisplayNode->GetID() );
+
+  //
+  // Load supported treatment machine models
   std::string collimatorModelFilePath = treatmentMachineModelsDirectory + "/" + COLLIMATOR_MODEL_NAME + ".stl";
-  modelsLogic->AddModel(collimatorModelFilePath.c_str());
+  vtkMRMLModelNode* collimatorModelNode = modelsLogic->AddModel(collimatorModelFilePath.c_str());
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> collimatorModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  this->GetMRMLScene()->AddNode(collimatorModelHierarchyNode);
+  collimatorModelHierarchyNode->SetModelNodeID(collimatorModelNode->GetID());
+  collimatorModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+  collimatorModelHierarchyNode->HideFromEditorsOn();
+
   std::string gantryModelFilePath = treatmentMachineModelsDirectory + "/" + GANTRY_MODEL_NAME + ".stl";
-  modelsLogic->AddModel(gantryModelFilePath.c_str());
+  vtkMRMLModelNode* gantryModelNode = modelsLogic->AddModel(gantryModelFilePath.c_str());
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> gantryModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  this->GetMRMLScene()->AddNode(gantryModelHierarchyNode);
+  gantryModelHierarchyNode->SetModelNodeID(gantryModelNode->GetID());
+  gantryModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+  gantryModelHierarchyNode->HideFromEditorsOn();
+
   std::string imagingPanelLeftModelFilePath = treatmentMachineModelsDirectory + "/" + IMAGINGPANELLEFT_MODEL_NAME + ".stl";
-  modelsLogic->AddModel(imagingPanelLeftModelFilePath.c_str());
+  vtkMRMLModelNode* imagingPanelLeftModelNode = modelsLogic->AddModel(imagingPanelLeftModelFilePath.c_str());
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> imagingPanelLeftModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  this->GetMRMLScene()->AddNode(imagingPanelLeftModelHierarchyNode);
+  imagingPanelLeftModelHierarchyNode->SetModelNodeID(imagingPanelLeftModelNode->GetID());
+  imagingPanelLeftModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+  imagingPanelLeftModelHierarchyNode->HideFromEditorsOn();
+
   std::string imagingPanelRightModelFilePath = treatmentMachineModelsDirectory + "/" + IMAGINGPANELRIGHT_MODEL_NAME + ".stl";
-  modelsLogic->AddModel(imagingPanelRightModelFilePath.c_str());
+  vtkMRMLModelNode* imagingPanelRightModelNode = modelsLogic->AddModel(imagingPanelRightModelFilePath.c_str());
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> imagingPanelRightModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  this->GetMRMLScene()->AddNode(imagingPanelRightModelHierarchyNode);
+  imagingPanelRightModelHierarchyNode->SetModelNodeID(imagingPanelRightModelNode->GetID());
+  imagingPanelRightModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+  imagingPanelRightModelHierarchyNode->HideFromEditorsOn();
+
   std::string linacBodyModelFilePath = treatmentMachineModelsDirectory + "/" + LINACBODY_MODEL_NAME + ".stl";
-  modelsLogic->AddModel(linacBodyModelFilePath.c_str());
+  vtkMRMLModelNode* linacBodyModelNode = modelsLogic->AddModel(linacBodyModelFilePath.c_str());
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> linacBodyModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  this->GetMRMLScene()->AddNode(linacBodyModelHierarchyNode);
+  linacBodyModelHierarchyNode->SetModelNodeID(linacBodyModelNode->GetID());
+  linacBodyModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+  linacBodyModelHierarchyNode->HideFromEditorsOn();
+
   std::string patientSupportModelFilePath = treatmentMachineModelsDirectory + "/" + PATIENTSUPPORT_MODEL_NAME + ".stl";
-  modelsLogic->AddModel(patientSupportModelFilePath.c_str());
+  vtkMRMLModelNode* patientSupportModelNode = modelsLogic->AddModel(patientSupportModelFilePath.c_str());
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> patientSupportModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  this->GetMRMLScene()->AddNode(patientSupportModelHierarchyNode);
+  patientSupportModelHierarchyNode->SetModelNodeID(patientSupportModelNode->GetID());
+  patientSupportModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+  patientSupportModelHierarchyNode->HideFromEditorsOn();
+
   std::string tableTopModelFilePath = treatmentMachineModelsDirectory + "/" + TABLETOP_MODEL_NAME + ".stl";
-  modelsLogic->AddModel(tableTopModelFilePath.c_str());
+  vtkMRMLModelNode* tableTopModelNode = modelsLogic->AddModel(tableTopModelFilePath.c_str());
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> tableTopModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  this->GetMRMLScene()->AddNode(tableTopModelHierarchyNode);
+  tableTopModelHierarchyNode->SetModelNodeID(tableTopModelNode->GetID());
+  tableTopModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+  tableTopModelHierarchyNode->HideFromEditorsOn();
+
+  if ( !collimatorModelNode || !gantryModelNode || !imagingPanelLeftModelNode || !imagingPanelRightModelNode
+    || !patientSupportModelNode || !tableTopModelNode )
+  {
+    vtkErrorMacro("LoadLinacModels: Failed to load every treatment machine component");
+    return;
+  }
 
   //TODO: Move these to LoadAdditionalDevices, as these are not linac models
   std::string applicatorHolderModelFilePath = additionalDevicesDirectory + "/" + APPLICATORHOLDER_MODEL_NAME + ".stl";

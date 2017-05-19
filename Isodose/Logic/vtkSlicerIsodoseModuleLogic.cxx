@@ -481,9 +481,9 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
 
   // Remove previous isodoses
   shNode->RemoveItemChildren(doseShItemID, true, false);
-  // Setup subject hierarchy item for the isodose surfaces
+
+  // Add isodose surfaces under dose in SH
   vtkIdType rootHierarchyShItemID = shNode->CreateItem(doseShItemID, rootModelHierarchyNode);
-  shNode->SetItemLevel(rootHierarchyShItemID, vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyLevelFolder());
 
   // Get color table
   vtkMRMLColorTableNode* colorTableNode = parameterNode->GetColorTableNode();
@@ -608,19 +608,16 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
       isodoseModelNode->SetAndObservePolyData(transformPolyData->GetOutput());
       isodoseModelNode->SetSelectable(1);
       isodoseModelNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+      shNode->RequestOwnerPluginSearch(isodoseModelNode); // The attribute above distinguishes isodoses from regular models
 
       // Put the new node in the model hierarchy
       vtkSmartPointer<vtkMRMLModelHierarchyNode> isodoseModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
       this->GetMRMLScene()->AddNode(isodoseModelHierarchyNode);
       std::string modelHierarchyNodeName = std::string(isodoseModelNodeName) + SlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
       isodoseModelHierarchyNode->SetName(modelHierarchyNodeName.c_str());
-      isodoseModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
       isodoseModelHierarchyNode->SetModelNodeID(isodoseModelNode->GetID());
+      isodoseModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
       isodoseModelHierarchyNode->HideFromEditorsOn();
-
-      // Put the new node in the proper subject hierarchy branch
-      std::string isodoseShItemName = strIsoLevel + doseUnitName;
-      shNode->CreateItem(rootHierarchyShItemID, isodoseModelNode);
     }
 
     // Report progress
