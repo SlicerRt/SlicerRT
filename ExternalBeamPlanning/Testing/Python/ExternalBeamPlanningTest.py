@@ -168,7 +168,7 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     startTime = time.time()
     
     errorMessage = engineLogic.calculateDose(planNode)
-    self.assertNotEqual(errorMessage, "")
+    self.assertEqual(errorMessage, "")
     
     calculationTime = time.time() - startTime
     logging.info('Dose computation time: ' + str(calculationTime) + ' s')
