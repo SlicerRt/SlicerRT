@@ -23,7 +23,6 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     """Run as few or as many tests as needed here.
     """
     self.setUp()
-    print('\n\nZZZZ\n')
 
     self.test_ExternalBeamPlanningTest_FullTest1()
 
@@ -105,16 +104,22 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     segLoadSuccess = slicer.util.loadNodeFromFile(self.dataDir + '/TinyPatient_Structures.seg.vtm', "SegmentationFile", {})
     self.assertTrue( segLoadSuccess )
 
-    # Change master representation to closed surface (so that conversion is possible when adding segment)
-    self.inputSegmentationNode = slicer.util.getNode('vtkMRMLSegmentationNode1')
-    self.assertIsNotNone(self.inputSegmentationNode)
+    # Add data under a patient and study
+    shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
+    patientItemID = shNode.CreateSubjectItem(shNode.GetSceneItemID(), "TinyPatient")
+    studyItemID = shNode.CreateStudyItem(patientItemID, "TestStudy")
+
+    ctVolumeNode = slicer.util.getNode('TinyPatient_CT')
+    self.assertIsNotNone(ctVolumeNode)
+    shNode.CreateItem(studyItemID, ctVolumeNode)
+
+    segmentationNode = slicer.util.getNode('TinyPatient_Structures')
+    self.assertIsNotNone(segmentationNode)
+    shNode.CreateItem(studyItemID, segmentationNode)
 
   #------------------------------------------------------------------------------
   def TestSection_1_RunPlastimatchProtonDoseEngine(self):
     logging.info('Test section 1: Run Plastimatch proton dose engine')
-    shn = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
-    print('\n\nZZZZ\n')
-    print(shn)
 
     engineLogic = slicer.qSlicerDoseEngineLogic()
     engineLogic.setMRMLScene(slicer.mrmlScene)
@@ -179,13 +184,10 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     doseVoxelCount = imageAccumulate.GetVoxelCount()
     logging.info("Dose volume properties:\n  Max=" + str(doseMax) + ", Mean=" + str(doseMean) + ", StdDev=" + str(doseStdDev) + ", NumberOfVoxels=" + str(doseVoxelCount))
 
-    self.assertTrue(self.isEqualWithTolerance(doseMax, 1.05797))
-    self.assertTrue(self.isEqualWithTolerance(doseMean, 0.0251127))
-    self.assertTrue(self.isEqualWithTolerance(doseStdDev, 0.144932))
+    self.assertTrue(self.isEqualWithTolerance(doseMax, 1.02192))
+    self.assertTrue(self.isEqualWithTolerance(doseMean, 0.02490))
+    self.assertTrue(self.isEqualWithTolerance(doseStdDev, 0.14659))
     self.assertTrue(self.isEqualWithTolerance(doseVoxelCount, 1000))
-
-    print('\n\nZZZZ\n')
-    print(shn)
 
   #------------------------------------------------------------------------------
   def isEqualWithTolerance(self, a, b):
