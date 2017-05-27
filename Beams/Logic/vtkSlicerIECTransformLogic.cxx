@@ -77,7 +77,28 @@ void vtkSlicerIECTransformLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 
-  //TODO: Implement
+  // Transforms
+  os << indent << "Transforms:" << std::endl;
+  std::vector< std::pair<CoordinateSystemIdentifier, CoordinateSystemIdentifier> >::iterator transformIt;
+  vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  for (transformIt=this->IecTransforms.begin(); transformIt!=this->IecTransforms.end(); ++transformIt)
+  {
+    std::string transformNodeName = this->GetTransformNodeNameBetween(transformIt->first, transformIt->second);
+    vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+      this->GetMRMLScene()->GetFirstNodeByName(transformNodeName.c_str()) );
+
+    os << indent.GetNextIndent() << transformNodeName << std::endl;
+    transformNode->GetMatrixTransformToParent(matrix);
+    for (int i = 0; i < 4; i++)
+    {
+      os << indent.GetNextIndent() << indent.GetNextIndent();
+      for (int j = 0; j < 4; j++)
+      {
+        os << matrix->GetElement(i,j) << " ";
+      }
+      os << std::endl;
+    }
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -99,6 +120,8 @@ void vtkSlicerIECTransformLogic::BuildIECTransformHierarchy()
       vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
       transformNode->SetName(transformNodeName.c_str());
       transformNode->SetHideFromEditors(1);
+      std::string singletonTag = std::string("IEC_") + transformNodeName;
+      transformNode->SetSingletonTag(singletonTag.c_str());
       this->GetMRMLScene()->AddNode(transformNode);
     }
   }

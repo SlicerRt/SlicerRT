@@ -79,6 +79,7 @@ vtkMRMLRoomsEyeViewNode::vtkMRMLRoomsEyeViewNode()
   , AdditionalModelLongitudinalDisplacement(0.0)
   , PatientBodySegmentID(NULL)
 {
+  this->SetSingletonTag("IEC");
 }
 
 //----------------------------------------------------------------------------

@@ -68,7 +68,7 @@ class qSlicerRoomsEyeViewModuleWidgetPrivate : public Ui_qSlicerRoomsEyeViewModu
 protected:
   qSlicerRoomsEyeViewModuleWidget* const q_ptr;
 public:
-  qSlicerRoomsEyeViewModuleWidgetPrivate(qSlicerRoomsEyeViewModuleWidget& object) : q_ptr(&object) { };
+  qSlicerRoomsEyeViewModuleWidgetPrivate(qSlicerRoomsEyeViewModuleWidget& object);
   ~qSlicerRoomsEyeViewModuleWidgetPrivate() { };
   vtkSmartPointer<vtkSlicerRoomsEyeViewModuleLogic> logic() const;
 
@@ -79,6 +79,11 @@ public:
 // qSlicerBeamsModuleWidgetPrivate methods
 
 //-----------------------------------------------------------------------------
+qSlicerRoomsEyeViewModuleWidgetPrivate::qSlicerRoomsEyeViewModuleWidgetPrivate(qSlicerRoomsEyeViewModuleWidget& object)
+  : q_ptr(&object)
+  , ModuleWindowInitialized(false)
+{
+}
 
 //-----------------------------------------------------------------------------
 vtkSmartPointer<vtkSlicerRoomsEyeViewModuleLogic> qSlicerRoomsEyeViewModuleWidgetPrivate::logic() const
@@ -86,6 +91,7 @@ vtkSmartPointer<vtkSlicerRoomsEyeViewModuleLogic> qSlicerRoomsEyeViewModuleWidge
   Q_Q(const qSlicerRoomsEyeViewModuleWidget);
   return vtkSlicerRoomsEyeViewModuleLogic::SafeDownCast(q->logic());
 }
+
 
 //-----------------------------------------------------------------------------
 // qSlicerRoomsEyeViewModuleWidget methods
@@ -108,6 +114,7 @@ void qSlicerRoomsEyeViewModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   Q_D(qSlicerRoomsEyeViewModuleWidget);
   this->Superclass::setMRMLScene(scene);
   qvtkReconnect(d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()));
+  qvtkReconnect(d->logic(), scene, vtkMRMLScene::EndCloseEvent, this, SLOT(onSceneClosedEvent()));
 
   // Find parameters node or create it if there is none in the scene
   if (scene)
@@ -137,6 +144,12 @@ void qSlicerRoomsEyeViewModuleWidget::onSceneImportedEvent()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerRoomsEyeViewModuleWidget::onSceneClosedEvent()
+{
+  this->onEnter();
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::enter()
 {
   this->onEnter();
@@ -161,6 +174,9 @@ void qSlicerRoomsEyeViewModuleWidget::onEnter()
     return;
   }
 
+  // Select or create parameter node
+  this->setMRMLScene(this->mrmlScene());
+
   d->ModuleWindowInitialized = true;
 }
 
@@ -170,7 +186,6 @@ void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
   vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(node);
-  //vtkMRMLModelNode* additionalModelNode = vtkMRMLModelNode::SafeDownCast(node);
 
   // Make sure the parameter set node is selected (in case the function was not called by the selector combobox signal)
   d->MRMLNodeComboBox_ParameterSet->setCurrentNode(paramNode);

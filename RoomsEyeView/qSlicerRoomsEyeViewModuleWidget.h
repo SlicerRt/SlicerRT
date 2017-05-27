@@ -49,6 +49,7 @@ public slots:
 	virtual void setMRMLScene(vtkMRMLScene*);
   void setParameterNode(vtkMRMLNode*);
 	void onSceneImportedEvent();
+	void onSceneClosedEvent();
 
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();

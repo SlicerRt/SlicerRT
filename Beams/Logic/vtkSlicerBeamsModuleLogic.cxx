@@ -108,11 +108,20 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 //---------------------------------------------------------------------------
 void vtkSlicerBeamsModuleLogic::OnMRMLSceneEndImport()
 {
-  // Observe beam events of all beam nodes
-  this->GetMRMLScene()->InitTraversal();
-  vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLRTBeamNode");
-  while (node)
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  if (!scene)
   {
+    vtkErrorMacro("OnMRMLSceneEndImport: Invalid MRML scene");
+    return;
+  }
+
+  // Observe beam events of all beam nodes
+  std::vector<vtkMRMLNode*> beamNodes;
+  scene->GetNodesByClass("vtkMRMLRTBeamNode", beamNodes);
+  for (std::vector<vtkMRMLNode*>::iterator beamIt=beamNodes.begin(); beamIt!=beamNodes.end(); ++beamIt)
+  {
+    vtkMRMLNode* node = (*beamIt);
+
     // Observe beam events
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
@@ -122,8 +131,6 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneEndImport()
     // Make sure geometry and transforms are up-to-date
     node->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
     node->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
-
-    node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLRTBeamNode");
   }
 }
 
