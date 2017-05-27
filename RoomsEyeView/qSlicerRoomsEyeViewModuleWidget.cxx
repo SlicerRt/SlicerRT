@@ -456,7 +456,15 @@ void qSlicerRoomsEyeViewModuleWidget::onCollimatorRotationSliderValueChanged(dou
   paramNode->SetCollimatorRotationAngle(value);
   paramNode->DisableModifiedEventOff();
   
+  // Update IEC transform
   d->logic()->UpdateCollimatorToGantryTransform(paramNode);
+
+  // Update beam parameter
+  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(paramNode->GetBeamNode());
+  if (beamNode)
+  {
+    beamNode->SetCollimatorAngle(value);
+  }
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -477,7 +485,15 @@ void qSlicerRoomsEyeViewModuleWidget::onGantryRotationSliderValueChanged(double 
   paramNode->SetGantryRotationAngle(value);
   paramNode->DisableModifiedEventOff();
 
+  // Update IEC transform
   d->logic()->UpdateGantryToFixedReferenceTransform(paramNode);
+
+  // Update beam parameter
+  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(paramNode->GetBeamNode());
+  if (beamNode)
+  {
+    beamNode->SetGantryAngle(value);
+  }
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -519,7 +535,15 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientSupportRotationSliderValueChanged
   paramNode->SetPatientSupportRotationAngle(value);
   paramNode->DisableModifiedEventOff();
 
+  // Update IEC transform
   d->logic()->UpdatePatientSupportRotationToFixedReferenceTransform(paramNode);
+
+  // Update beam parameter
+  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(paramNode->GetBeamNode());
+  if (beamNode)
+  {
+    beamNode->SetCouchAngle(value);
+  }
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -708,20 +732,22 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
 
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
+  // Get 3D view node
   qSlicerApplication* slicerApplication = qSlicerApplication::application();
   qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
   qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
   vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
-  vtkCamera* beamsEyeCamera = vtkSmartPointer<vtkCamera>::New();
+  //vtkCamera* beamsEyeCamera = vtkSmartPointer<vtkCamera>::New();
   
+  // Get camera node for view
   vtkCollection* cameras = this->mrmlScene()->GetNodesByClass("vtkMRMLCameraNode");
-  vtkMRMLCameraNode* cameraNode;
+  vtkMRMLCameraNode* cameraNode = NULL;
   for (int i = 0; i < cameras->GetNumberOfItems(); i++)
   {
     cameraNode = vtkMRMLCameraNode::SafeDownCast(cameras->GetItemAsObject(i));
     if (cameraNode->GetActiveTag() == viewNode->GetID())
     {
-        break;
+      break;
     }
   }
 
@@ -798,17 +824,23 @@ void qSlicerRoomsEyeViewModuleWidget::updateTreatmentOrientationMarker()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  vtkMRMLModelNode* orientationMarkerModel = d->logic()->UpdateTreatmentOrientationMarker();
-  if (!orientationMarkerModel)
-  {
-    qCritical() << Q_FUNC_INFO << ": Failed to create orientation marker model";
-    return;
-  }
-
-  // Make sure the orientation marker has the right model node
+  // Get 3D view node
   qSlicerApplication* slicerApplication = qSlicerApplication::application();
   qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
   qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
   vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
-  viewNode->SetOrientationMarkerHumanModelNodeID(orientationMarkerModel->GetID());  
+
+  // Update orientation marker if shown
+  if (viewNode->GetOrientationMarkerType() == vtkMRMLViewNode::OrientationMarkerTypeHuman)
+  {  
+    vtkMRMLModelNode* orientationMarkerModel = d->logic()->UpdateTreatmentOrientationMarker();
+    if (!orientationMarkerModel)
+    {
+      qCritical() << Q_FUNC_INFO << ": Failed to create orientation marker model";
+      return;
+    }
+
+    // Make sure the orientation marker has the right model node
+    viewNode->SetOrientationMarkerHumanModelNodeID(orientationMarkerModel->GetID());  
+  }
 }
