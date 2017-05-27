@@ -27,6 +27,8 @@
 
 // Beams includes
 #include "vtkSlicerIECTransformLogic.h"
+#include "vtkMRMLRTBeamNode.h"
+#include "vtkMRMLRTPlanNode.h"
 
 // Slicer includes
 #include <qSlicerApplication.h>
@@ -45,10 +47,10 @@
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLSegmentationNode.h>
 #include <vtkMRMLCameraNode.h>
-#include <vtkMRMLRTBeamNode.h>
 #include <vtkMRMLViewNode.h>
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLTransformNode.h>
+#include <vtkMRMLSubjectHierarchyNode.h>
 
 // Qt includes
 #include <QDebug>
@@ -197,13 +199,17 @@ void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
   if (paramNode)
   {
+    if (!paramNode->GetBeamNode())
+    {
+      paramNode->SetAndObserveBeamNode(vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_Beam->currentNode()));
+    }
     if (!paramNode->GetPatientBodySegmentationNode())
     {
-      paramNode->SetAndObservePatientBodySegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(d->SegmentSelectorWidget->currentNode()));
+      paramNode->SetAndObservePatientBodySegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(d->SegmentSelectorWidget_PatientBody->currentNode()));
     }
-    if (!paramNode->GetPatientBodySegmentID() && !d->SegmentSelectorWidget->currentSegmentID().isEmpty())
+    if (!paramNode->GetPatientBodySegmentID() && !d->SegmentSelectorWidget_PatientBody->currentSegmentID().isEmpty())
     {
-      paramNode->SetPatientBodySegmentID(d->SegmentSelectorWidget->currentSegmentID().toLatin1().constData());
+      paramNode->SetPatientBodySegmentID(d->SegmentSelectorWidget_PatientBody->currentSegmentID().toLatin1().constData());
     }
 
     paramNode->SetApplicatorHolderVisibility(0);
@@ -222,13 +228,17 @@ void qSlicerRoomsEyeViewModuleWidget::updateWidgetFromMRML()
 
   if (paramNode && this->mrmlScene())
   {
+    if (paramNode->GetBeamNode())
+    {
+      d->MRMLNodeComboBox_Beam->setCurrentNode(paramNode->GetBeamNode());
+    }
     if (paramNode->GetPatientBodySegmentationNode())
     {
-      d->SegmentSelectorWidget->setCurrentNode(paramNode->GetPatientBodySegmentationNode());
+      d->SegmentSelectorWidget_PatientBody->setCurrentNode(paramNode->GetPatientBodySegmentationNode());
     }
     if (paramNode->GetPatientBodySegmentID())
     {
-      d->SegmentSelectorWidget->setCurrentSegmentID(paramNode->GetPatientBodySegmentID());
+      d->SegmentSelectorWidget_PatientBody->setCurrentSegmentID(paramNode->GetPatientBodySegmentID());
     }
 
     d->GantryRotationSlider->setValue(paramNode->GetGantryRotationAngle());
@@ -286,8 +296,9 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
   
   connect(d->BeamsEyeViewButton, SIGNAL(clicked()), this, SLOT(onBeamsEyeViewButtonClicked()));
 
-  connect(d->SegmentSelectorWidget, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onPatientBodySegmentationNodeChanged(vtkMRMLNode*)));
-  connect(d->SegmentSelectorWidget, SIGNAL(currentSegmentChanged(QString)), this, SLOT(onPatientBodySegmentChanged(QString)));
+  connect(d->MRMLNodeComboBox_Beam, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onBeamNodeChanged(vtkMRMLNode*)));
+  connect(d->SegmentSelectorWidget_PatientBody, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onPatientBodySegmentationNodeChanged(vtkMRMLNode*)));
+  connect(d->SegmentSelectorWidget_PatientBody, SIGNAL(currentSegmentChanged(QString)), this, SLOT(onPatientBodySegmentChanged(QString)));
 
   // Handle scene change event if occurs
   qvtkConnect(d->logic(), vtkCommand::ModifiedEvent, this, SLOT(onLogicModified()));
@@ -300,6 +311,57 @@ void qSlicerRoomsEyeViewModuleWidget::onLogicModified()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerRoomsEyeViewModuleWidget::onBeamNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerRoomsEyeViewModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
+    return;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->mrmlScene());
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy";
+    return;
+  }
+
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
+  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(node);
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObserveBeamNode(beamNode);
+  paramNode->DisableModifiedEventOff();
+
+  // Trigger update of transforms based on selected beam
+  beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
+
+  // Show only selected beam, hide others
+  std::vector<vtkMRMLNode*> beamNodes;
+  this->mrmlScene()->GetNodesByClass("vtkMRMLRTBeamNode", beamNodes);
+  for (std::vector<vtkMRMLNode*>::iterator beamIt=beamNodes.begin(); beamIt!=beamNodes.end(); ++beamIt)
+  {
+    vtkMRMLRTBeamNode* currentBeamNode = vtkMRMLRTBeamNode::SafeDownCast(*beamIt);
+    shNode->SetDisplayVisibilityForBranch(
+      shNode->GetItemByDataNode(currentBeamNode), (currentBeamNode==beamNode ? 1 : 0) );
+  }
+
+  // Select patient segmentation
+  vtkMRMLRTPlanNode* planNode = beamNode->GetParentPlanNode();
+  if (!planNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access parent plan of beam " << beamNode->GetName();
+    return;
+  }
+  d->SegmentSelectorWidget_PatientBody->setCurrentNode(planNode->GetSegmentationNode());
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::onPatientBodySegmentationNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
@@ -307,6 +369,12 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientBodySegmentationNodeChanged(vtkMR
   if (!this->mrmlScene())
   {
     qCritical() << Q_FUNC_INFO << ": Invalid scene";
+    return;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->mrmlScene());
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy";
     return;
   }
 
@@ -319,6 +387,16 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientBodySegmentationNodeChanged(vtkMR
   paramNode->DisableModifiedEventOn();
   paramNode->SetAndObservePatientBodySegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
+
+  // Show only selected patient segmentation
+  std::vector<vtkMRMLNode*> segmentationNodes;
+  this->mrmlScene()->GetNodesByClass("vtkMRMLSegmentationNode", segmentationNodes);
+  for (std::vector<vtkMRMLNode*>::iterator segIt=segmentationNodes.begin(); segIt!=segmentationNodes.end(); ++segIt)
+  {
+    vtkMRMLSegmentationNode* currentSegmentationNode = vtkMRMLSegmentationNode::SafeDownCast(*segIt);
+    shNode->SetDisplayVisibilityForBranch(
+      shNode->GetItemByDataNode(currentSegmentationNode), (currentSegmentationNode==node ? 1 : 0) );
+  }
 }
 
 //-----------------------------------------------------------------------------

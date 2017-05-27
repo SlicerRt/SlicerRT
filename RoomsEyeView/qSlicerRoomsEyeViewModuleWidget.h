@@ -74,6 +74,7 @@ protected slots:
 
   void onBeamsEyeViewButtonClicked();
   
+  void onBeamNodeChanged(vtkMRMLNode*);
   void onPatientBodySegmentationNodeChanged(vtkMRMLNode*);
   void onPatientBodySegmentChanged(QString);
 

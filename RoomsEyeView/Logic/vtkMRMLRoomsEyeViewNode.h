@@ -29,6 +29,7 @@
 
 class vtkMRMLLinearTransformNode;
 class vtkMRMLSegmentationNode;
+class vtkMRMLRTBeamNode;
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
 class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkMRMLRoomsEyeViewNode : public vtkMRMLNode
@@ -54,7 +55,6 @@ public:
   virtual const char* GetNodeTagName() {return "RoomsEyeView";};
 
 public:
-  /// TODO:
   vtkMRMLLinearTransformNode* GetGantryToFixedReferenceTransformNode();
   void SetAndObserveGantryToFixedReferenceTransformNode(vtkMRMLLinearTransformNode* node);
 
@@ -111,9 +111,12 @@ public:
 
   vtkMRMLLinearTransformNode* GetPatientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode();
   void SetAndObserveTableTopEccentricRotationToPatientSupportTransformNode(vtkMRMLLinearTransformNode* node);
-
-  
  
+  /// Get beam node
+  vtkMRMLRTBeamNode* GetBeamNode();
+  /// Set and observe beam node
+  void SetAndObserveBeamNode(vtkMRMLRTBeamNode* node);
+
   /// Get patient body segmentation node
   vtkMRMLSegmentationNode* GetPatientBodySegmentationNode();
   /// Set and observe patient body segmentation node
