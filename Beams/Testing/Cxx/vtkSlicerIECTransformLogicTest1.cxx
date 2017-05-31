@@ -348,20 +348,18 @@ bool GetLinearTransformNodes(
   identityMatrix->Identity();
 
   // Collect transform nodes that fulfill the conditions
-  mrmlScene->InitTraversal();
+  std::vector<vtkMRMLNode*> nodes;
+  mrmlScene->GetNodesByClass("vtkMRMLLinearTransformNode", nodes);
   vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkMRMLNode* node = mrmlScene->GetNextNodeByClass("vtkMRMLLinearTransformNode");
-  while (node)
+  for (std::vector<vtkMRMLNode*>::iterator nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
   {
-    vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+    vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(*nodeIt);
     transformNode->GetMatrixTransformToParent(matrix);
     if ( (includeIdentity || !IsEqual(matrix, identityMatrix))
       && (includeBeamTransforms || !IsBeamTransformNode(transformNode)) )
     {
       transformNodes.push_back(transformNode);
     }
-
-    node = mrmlScene->GetNextNodeByClass("vtkMRMLLinearTransformNode");
   }
 
   return true;

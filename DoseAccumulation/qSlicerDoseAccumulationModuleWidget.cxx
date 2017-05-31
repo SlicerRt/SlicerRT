@@ -356,35 +356,36 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
   }
 
   // Get dose volumes from scene (or all volumes if requested)
-  vtkSmartPointer<vtkCollection> volumeNodes = vtkSmartPointer<vtkCollection>::New();
-  this->mrmlScene()->InitTraversal();
-  vtkMRMLNode *node = this->mrmlScene()->GetNextNodeByClass("vtkMRMLScalarVolumeNode");
-  while (node)
+  std::vector<vtkMRMLNode*> shownVolumeNodes;
+  std::vector<vtkMRMLNode*> volumeNodes;
+  this->mrmlScene()->GetNodesByClass("vtkMRMLScalarVolumeNode", volumeNodes);
+  for (std::vector<vtkMRMLNode*>::iterator nodeIt=volumeNodes.begin(); nodeIt!=volumeNodes.end(); ++nodeIt)
   {
+    vtkMRMLNode* node = (*nodeIt);
     if (SlicerRtCommon::IsDoseVolumeNode(node) || !paramNode->GetShowDoseVolumesOnly())
     {
-      volumeNodes->AddItem(node);
+      shownVolumeNodes.push_back(node);
     }
-    node = this->mrmlScene()->GetNextNodeByClass("vtkMRMLScalarVolumeNode");
   }
 
   // If number of nodes is the same in the table and the list of nodes, then we don't need refreshing the table
   // (this function is called after each node event, so it cannot occur that a node has been removed and another added)
-  if ( d->CheckboxToVolumeIdMap.size() == volumeNodes->GetNumberOfItems()
-    || volumeNodes->GetNumberOfItems() == 0 )
+  if ( d->CheckboxToVolumeIdMap.size() == shownVolumeNodes.size()
+    || shownVolumeNodes.size() == 0 )
   {
     return;
   }
 
-  d->tableWidget_Volumes->setRowCount(volumeNodes->GetNumberOfItems());
+  d->tableWidget_Volumes->setRowCount(shownVolumeNodes.size());
 
   std::map<std::string,double>* oldVolumeNodeIdsToWeightsMap = paramNode->GetVolumeNodeIdsToWeightsMap();
   std::map<std::string,double> newVolumeNodeIdsToWeightsMap;
 
   // Fill the table
-  for (int i=0; i<volumeNodes->GetNumberOfItems(); ++i)
+  int row=0;
+  for (std::vector<vtkMRMLNode*>::iterator nodeIt=shownVolumeNodes.begin(); nodeIt!=shownVolumeNodes.end(); ++nodeIt, ++row)
   {
-    vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast( volumeNodes->GetItemAsObject(i) );
+    vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(*nodeIt);
     if (!volumeNode)
     {
       continue;
@@ -424,9 +425,9 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
       weight = (*oldVolumeNodeIdsToWeightsMap)[volumeNode->GetID()];
     }
 
-    d->tableWidget_Volumes->setCellWidget(i, 0, checkbox);
-    d->tableWidget_Volumes->setItem(i, 1, new QTableWidgetItem( QString(volumeNode->GetName()) ) );    
-    d->tableWidget_Volumes->setItem(i, 2, new QTableWidgetItem( QString::number(weight,'f',2) ) );
+    d->tableWidget_Volumes->setCellWidget(row, 0, checkbox);
+    d->tableWidget_Volumes->setItem(row, 1, new QTableWidgetItem( QString(volumeNode->GetName()) ) );    
+    d->tableWidget_Volumes->setItem(row, 2, new QTableWidgetItem( QString::number(weight,'f',2) ) );
 
     newVolumeNodeIdsToWeightsMap[volumeNode->GetID()] = weight;
   }

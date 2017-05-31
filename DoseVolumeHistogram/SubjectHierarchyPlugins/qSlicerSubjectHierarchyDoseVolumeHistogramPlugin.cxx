@@ -329,11 +329,10 @@ vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDoseVolumeHistogramPlugin
   vtkMRMLTableNode* metricsTableNode = vtkMRMLTableNode::SafeDownCast(
     dvhArrayNode->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::DVH_METRICS_TABLE_REFERENCE_ROLE) );
 
-  vtkSmartPointer<vtkCollection> dvhNodes = vtkSmartPointer<vtkCollection>::Take( scene->GetNodesByClass("vtkMRMLDoseVolumeHistogramNode") );
-  vtkObject* nextObject = NULL;
-  for (dvhNodes->InitTraversal(); (nextObject = dvhNodes->GetNextItemAsObject()); )
-  {
-    vtkMRMLDoseVolumeHistogramNode* dvhNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(nextObject);
+  std::vector<vtkMRMLNode*> nodes;
+  scene->GetNodesByClass("vtkMRMLDoseVolumeHistogramNode", nodes);
+  for (std::vector<vtkMRMLNode*>::iterator nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
+  {    vtkMRMLDoseVolumeHistogramNode* dvhNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(*nodeIt);
     if (dvhNode && dvhNode->GetMetricsTableNode() == metricsTableNode)
     {
       return dvhNode;

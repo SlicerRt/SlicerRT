@@ -750,13 +750,11 @@ void qSlicerExternalBeamPlanningModuleWidget::centerViewToIsocenterClicked()
   }
 
   // Navigate slice views to position
-  this->mrmlScene()->InitTraversal();
-  vtkMRMLNode *currentNode = this->mrmlScene()->GetNextNodeByClass("vtkMRMLSliceNode");
-  while (currentNode)
-  {
-    vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(currentNode);
+  std::vector<vtkMRMLNode*> nodes;
+  this->mrmlScene()->GetNodesByClass("vtkMRMLSliceNode", nodes);
+  for (std::vector<vtkMRMLNode*>::iterator nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
+  {    vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(*nodeIt);
     sliceNode->JumpSlice(isocenter[0], isocenter[1], isocenter[2]);
-    currentNode = this->mrmlScene()->GetNextNodeByClass("vtkMRMLSliceNode");
   }
 }
 

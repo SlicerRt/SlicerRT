@@ -126,7 +126,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::RegisterNodes()
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
   {
-    vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
+    vtkErrorMacro("RegisterNodes: Invalid MRML scene");
     return;
   }
 
@@ -148,7 +148,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateFromMRMLScene()
 {
   if (!this->GetMRMLScene())
   {
-    vtkErrorMacro("UpdateFromMRMLScene: Invalid MRML scene!");
+    vtkErrorMacro("UpdateFromMRMLScene: Invalid MRML scene");
     return;
   }
 
@@ -160,7 +160,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode*
 {
   if (!node || !this->GetMRMLScene())
   {
-    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node!");
+    vtkErrorMacro("OnMRMLSceneNodeAdded: Invalid MRML scene or input node");
     return;
   }
 
@@ -191,28 +191,30 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode*
 //---------------------------------------------------------------------------
 void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneEndImport()
 {
-  // Observe plan events of all plan nodes
-  this->GetMRMLScene()->InitTraversal();
-  vtkMRMLNode *node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLRTPlanNode");
-  while (node != NULL)
+  if (!this->GetMRMLScene())
   {
-    // Observe plan events
+    vtkErrorMacro("OnMRMLSceneEndImport: Invalid MRML scene");
+    return;
+  }
+
+  // Observe plan events of all plan nodes
+  std::vector<vtkMRMLNode*> nodes;
+  this->GetMRMLScene()->GetNodesByClass("vtkMRMLRTPlanNode", nodes);
+  for (std::vector<vtkMRMLNode*>::iterator nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
+  {    // Observe plan events
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLRTPlanNode::IsocenterModifiedEvent);
-    vtkObserveMRMLNodeEventsMacro(node, events);
-    node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLRTPlanNode");
+    vtkObserveMRMLNodeEventsMacro((*nodeIt), events);
   }
 
   // Observe beam events of all beam nodes
-  this->GetMRMLScene()->InitTraversal();
-  node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLRTBeamNode");
-  while (node != NULL)
-  {
-    // Observe beam events
+  nodes.clear();
+  this->GetMRMLScene()->GetNodesByClass("vtkMRMLRTBeamNode", nodes);
+  for (std::vector<vtkMRMLNode*>::iterator nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
+  {    // Observe beam events
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLRTBeamNode::CloningRequested);
-    vtkObserveMRMLNodeEventsMacro(node, events);
-    node = this->GetMRMLScene()->GetNextNodeByClass("vtkMRMLRTBeamNode");
+    vtkObserveMRMLNodeEventsMacro((*nodeIt), events);
   }
 }
 
@@ -221,7 +223,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNod
 {
   if (!node || !this->GetMRMLScene())
   {
-    vtkErrorMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene or input node!");
+    vtkErrorMacro("OnMRMLSceneNodeRemoved: Invalid MRML scene or input node");
     return;
   }
 
@@ -251,7 +253,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ProcessMRMLNodesEvents(vtkObject*
   vtkMRMLScene* mrmlScene = this->GetMRMLScene();
   if (!mrmlScene)
   {
-    vtkErrorMacro("ProcessMRMLNodesEvents: Invalid MRML scene!");
+    vtkErrorMacro("ProcessMRMLNodesEvents: Invalid MRML scene");
     return;
   }
   if (mrmlScene->IsBatchProcessing())
@@ -292,7 +294,7 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtk
 {
   if (!this->GetMRMLScene())
   {
-    vtkErrorMacro("CloneBeamInPlan: Invalid MRML scene!");
+    vtkErrorMacro("CloneBeamInPlan: Invalid MRML scene");
     return NULL;
   }
   if (!copiedBeamNode)
@@ -340,7 +342,7 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtk
 void vtkSlicerExternalBeamPlanningModuleLogic::ComputeWED()
 {
   //TODO: Needs implementation
-  vtkErrorMacro("ComputeWED: Not implemented!");
+  vtkErrorMacro("ComputeWED: Not implemented");
 }
 
 //----------------------------------------------------------------------------
@@ -371,13 +373,13 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(vtkMRM
   // Make sure inputs are initialized
   if (!referenceVolumeNode || !beamNode)
   {
-    vtkErrorMacro("ComputeDoseByMatlab: Inputs are not initialized!");
+    vtkErrorMacro("ComputeDoseByMatlab: Inputs are not initialized");
     return;
   }
 
   if (this->Internal->MatlabDoseCalculationModuleLogic == 0)
   {
-    vtkErrorMacro("ComputeDoseByMatlab: ERROR: logic is not set!");
+    vtkErrorMacro("ComputeDoseByMatlab: ERROR: logic is not set");
     return;
   }
 
@@ -401,7 +403,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(vtkMRMLRTPlanNode* plan
 {
   if ( !this->GetMRMLScene() || !planNode )
   {
-    vtkErrorMacro("RemoveBeam: Invalid MRML scene or RT plan node!");
+    vtkErrorMacro("RemoveBeam: Invalid MRML scene or RT plan node");
     return;
   }
 
@@ -409,7 +411,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(vtkMRMLRTPlanNode* plan
   vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();
   if (!referenceVolumeNode)
   {
-    vtkErrorMacro("UpdateDRR: Failed to access reference volume node!");
+    vtkErrorMacro("UpdateDRR: Failed to access reference volume node");
     return;
   }
 
@@ -425,7 +427,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(vtkMRMLRTPlanNode* plan
   // vtkMRMLDoubleArrayNode* MLCPositionDoubleArrayNode = beamNode->GetMLCPositionDoubleArrayNode();
   if (!isocenterMarkupsNode) // || !MLCPositionDoubleArrayNode)
   {
-    vtkErrorMacro("UpdateDRR: Inputs are not initialized!");
+    vtkErrorMacro("UpdateDRR: Inputs are not initialized");
     return;
   }
 
@@ -545,7 +547,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(vtkMRMLRTPlanNode* plan
   vtkSmartPointer<vtkMRMLSliceLogic> sliceLogic = this->GetApplicationLogic()->GetSliceLogicByLayoutName("Slice4");
   if (!sliceLogic)
   {
-    vtkErrorMacro("UpdateDRR: Invalid sliceLogic for DRR viewer!");
+    vtkErrorMacro("UpdateDRR: Invalid sliceLogic for DRR viewer");
     return;
   }
 

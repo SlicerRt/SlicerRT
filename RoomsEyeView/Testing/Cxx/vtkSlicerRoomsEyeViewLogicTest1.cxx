@@ -154,7 +154,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   revLogic->GetIECLogic()->UpdateBeamTransform(beamNode);
   double expectedFixedReferenceToRasTransform_Origin_MatrixElements[16] =
-    {  1, 0, 0, 0,   0, 0, 1, 0,   0, -1, 0, 0,   0, 0, 0, 1  };
+    {  -1, 0, 0, 0,   0, 0, 1, 0,   0, 1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS),
       expectedFixedReferenceToRasTransform_Origin_MatrixElements ) )
@@ -169,7 +169,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   revLogic->GetIECLogic()->UpdateBeamTransform(beamNode);
 
   double expectedFixedReferenceToRasTransform_Translated_MatrixElements[16] =
-    {  1, 0, 0, 1000,   0, 0, 1, 200,   0, -1, 0, 0,   0, 0, 0, 1  };
+    {  -1, 0, 0, 1000,   0, 0, 1, 200,   0, 1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS),
       expectedFixedReferenceToRasTransform_Translated_MatrixElements ) )
@@ -539,20 +539,17 @@ bool GetLinearTransformNodes(
   identityMatrix->Identity();
 
   // Collect transform nodes that fulfill the conditions
-  mrmlScene->InitTraversal();
+  std::vector<vtkMRMLNode*> nodes;
+  mrmlScene->GetNodesByClass("vtkMRMLLinearTransformNode", nodes);
   vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkMRMLNode* node = mrmlScene->GetNextNodeByClass("vtkMRMLLinearTransformNode");
-  while (node)
-  {
-    vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+  for (std::vector<vtkMRMLNode*>::iterator nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
+  {    vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(*nodeIt);
     transformNode->GetMatrixTransformToParent(matrix);
     if ( (includeIdentity || !IsEqual(matrix, identityMatrix))
       && (includeBeamTransforms || !IsBeamTransformNode(transformNode)) )
     {
       transformNodes.push_back(transformNode);
     }
-
-    node = mrmlScene->GetNextNodeByClass("vtkMRMLLinearTransformNode");
   }
 
   return true;
