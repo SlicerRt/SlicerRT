@@ -773,7 +773,11 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixKeyholes(vtkPolyData* inp
   inputROIPoints->DeleteCells();
   for (int currentLineIndex = 0; currentLineIndex < newLines.size(); ++currentLineIndex)
     {
-    outputLines->InsertNextCell(newLines[currentLineIndex]);
+    // Only add the lines if they have more than 2 points
+    if (newLines[currentLineIndex]->GetNumberOfPoints() > 1)
+      {
+      outputLines->InsertNextCell(newLines[currentLineIndex]);
+      }
     }
   inputROIPoints->SetLines(outputLines);
   inputROIPoints->BuildCells();
@@ -1528,6 +1532,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateLine(vtkLine* inp
       outputPolys->InsertCellPoint(inputLine->GetPointId(polygonIds->GetId(currentPolygonIndex)));
       }
     }
+
 }
 
 //----------------------------------------------------------------------------
