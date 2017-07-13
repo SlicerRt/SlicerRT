@@ -128,6 +128,7 @@ protected:
   void ReverseLine(vtkLine* originalLine, vtkLine* newLine);
 
   /// Determine the number of contours that share the same Z-coordinates.
+  /// WARNING: This function requires that the normal vector of all contours is aligned with the Z-axis.
   /// \param inputROIPoints Polydata containing all of the points and contours
   /// \param originalLineIndex The index of the line that is part of the plane being checked
   /// \param spacing The spacing between lines
@@ -165,8 +166,7 @@ protected:
   void EndCapping(vtkPolyData* inputROIPoints, vtkCellArray* outputPolygons, std::vector< bool > lineTriganulatedToAbove, std::vector< bool > lineTriganulatedToBelow);
 
   /// Calculate the spacing between the lines in the polydata
-  /// This function assumes that the spacing between the lines is always equal and only
-  /// calculates the difference between the first two
+  /// WARNING: This function requires that the normal vector of all contours is aligned with the Z-axis.
   /// \param inputROIPoints Polydata containing all of the points and contours
   /// \return The size of the spacing between the contours
   double GetSpacingBetweenLines(vtkPolyData* inputROIPoints);
