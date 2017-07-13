@@ -32,16 +32,20 @@
 #include <vtkMath.h>
 #include <vtkIdList.h>
 #include <vtkImageData.h>
-
 #include <vtkStripper.h>
 #include <vtkPolygon.h>
-#include <vtkCleanPolyData.h>
 #include <vtkPolyDataToImageStencil.h>
 #include <vtkImageStencil.h>
 #include <vtkImageDilateErode3D.h>
 #include <vtkImageAccumulate.h>
 #include <vtkMarchingSquares.h>
 #include <vtkPriorityQueue.h>
+#include <vtkMatrix4x4.h>
+#include <vtkTextureMapToPlane.h>
+#include <vtkExtractCells.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkUnstructuredGrid.h>
 
 // STD includes
 #include <algorithm>
@@ -124,11 +128,17 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
 
   // Copy the contours so that we can make modifications without affecting the original
   vtkSmartPointer<vtkPolyData> inputContoursCopy = vtkSmartPointer<vtkPolyData>::New();
-  inputContoursCopy->DeepCopy(planarContoursPolyData);
+  
+  vtkSmartPointer<vtkMatrix4x4> contourToRASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  this->CalculateContourTransform(planarContoursPolyData, contourToRASMatrix);
 
-  vtkSmartPointer<vtkPoints> outputPoints = inputContoursCopy->GetPoints();
-  vtkSmartPointer<vtkCellArray> outputLines = inputContoursCopy->GetLines();
-  vtkSmartPointer<vtkCellArray> outputPolygons = vtkSmartPointer<vtkCellArray>::New(); // Triangles should be added to this
+  vtkSmartPointer<vtkTransform> transformRASToContours = vtkSmartPointer<vtkTransform>::New();
+  transformRASToContours->SetMatrix(contourToRASMatrix);
+  vtkNew<vtkTransformPolyDataFilter> transformRASToContoursFilter;
+  transformRASToContoursFilter->SetInputData(planarContoursPolyData);
+  transformRASToContoursFilter->SetTransform(transformRASToContours);
+  transformRASToContoursFilter->Update();
+  inputContoursCopy->DeepCopy(transformRASToContoursFilter->GetOutput());
 
   // Make sure the contours are in the right order.
   this->SortContours(inputContoursCopy);
@@ -139,8 +149,14 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
   // set all lines to be counter-clockwise
   this->SetLinesCounterClockwise(inputContoursCopy);
 
+  vtkSmartPointer<vtkPoints> outputPoints = inputContoursCopy->GetPoints();
+  vtkSmartPointer<vtkCellArray> outputLines = inputContoursCopy->GetLines();
+  vtkSmartPointer<vtkCellArray> outputPolygons = vtkSmartPointer<vtkCellArray>::New(); // Triangles should be added to this
+
   // Total number of lines in the contours
   int numberOfLines = inputContoursCopy->GetNumberOfLines();
+
+  double spacing = this->GetSpacingBetweenLines(inputContoursCopy);
 
   std::vector<vtkSmartPointer<vtkPointLocator> > pointLocators(numberOfLines);
   std::vector<vtkSmartPointer<vtkIdList> > linePointIdLists(numberOfLines);
@@ -167,13 +183,13 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
 
   // Get two consecutive planes.
   vtkIdType firstLineOnPlane1Index = 0; // pointer to first line on plane 1.
-  int numberOfLinesInPlane1 = this->GetNumberOfLinesOnPlane(inputContoursCopy, 0);
+  int numberOfLinesInPlane1 = this->GetNumberOfLinesOnPlane(inputContoursCopy, 0, spacing);
 
   // Loop through all of the contours in the polydata
   while (firstLineOnPlane1Index + numberOfLinesInPlane1 < numberOfLines)
     {
     vtkIdType firstLineOnPlane2Index = firstLineOnPlane1Index + numberOfLinesInPlane1; // pointer to first line on plane 2
-    int numberOfLinesInPlane2 = this->GetNumberOfLinesOnPlane(inputContoursCopy, firstLineOnPlane2Index); // number of lines on plane 2
+    int numberOfLinesInPlane2 = this->GetNumberOfLinesOnPlane(inputContoursCopy, firstLineOnPlane2Index, spacing); // number of lines on plane 2
 
     // initialize overlaps lists. - list of list
     // Each internal list represents a line from the plane and will store the pointers to the overlap lines
@@ -287,6 +303,16 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
   closedSurfacePolyData->SetPoints(outputPoints);
   //closedSurfacePolyData->SetLines(outputLines); // Do not include lines in poly data for nicer visualization
   closedSurfacePolyData->SetPolys(outputPolygons);
+
+  vtkSmartPointer<vtkTransform> transformContoursToRAS = vtkSmartPointer<vtkTransform>::New();
+  transformContoursToRAS->SetMatrix(contourToRASMatrix);
+  transformContoursToRAS->Inverse();
+
+  vtkNew<vtkTransformPolyDataFilter> transformPolyDataToRASFilter;
+  transformPolyDataToRASFilter->SetInputData(closedSurfacePolyData);
+  transformPolyDataToRASFilter->SetTransform(transformContoursToRAS);
+  transformPolyDataToRASFilter->Update();
+  closedSurfacePolyData->DeepCopy(transformPolyDataToRASFilter->GetOutput());
 
   return true;
 }
@@ -896,7 +922,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::ReverseLine(vtkLine* origina
 }
 
 //----------------------------------------------------------------------------
-int vtkPlanarContourToClosedSurfaceConversionRule::GetNumberOfLinesOnPlane(vtkPolyData* inputROIPoints, vtkIdType originalLineIndex)
+int vtkPlanarContourToClosedSurfaceConversionRule::GetNumberOfLinesOnPlane(vtkPolyData* inputROIPoints, vtkIdType originalLineIndex, double spacing)
 {
   if (!inputROIPoints)
     {
@@ -906,12 +932,21 @@ int vtkPlanarContourToClosedSurfaceConversionRule::GetNumberOfLinesOnPlane(vtkPo
 
   int numberOfLines = inputROIPoints->GetNumberOfLines();
 
-  double lineZ = inputROIPoints->GetCell(originalLineIndex)->GetBounds()[4]; // z-value
-
+  double contourPlaneThreshold = 0.1*spacing;
+  double lineZ = (inputROIPoints->GetCell(originalLineIndex)->GetBounds()[4] + inputROIPoints->GetCell(originalLineIndex)->GetBounds()[5])/2.0; // z-value
   vtkIdType currentLineId = originalLineIndex+1;
-  while (currentLineId < numberOfLines && inputROIPoints->GetCell(currentLineId)->GetBounds()[4] == lineZ)
+
+  while (currentLineId < numberOfLines)
     {
-    currentLineId ++;
+    double currentLineZDifference = std::abs(0.5*(inputROIPoints->GetCell(currentLineId)->GetBounds()[4] + inputROIPoints->GetCell(currentLineId)->GetBounds()[5]) - lineZ);
+    if (currentLineZDifference < contourPlaneThreshold)
+      {
+      currentLineId++;
+      }
+    else
+      {
+      break;
+      }
     }
   return currentLineId-originalLineIndex;
 }
@@ -1209,7 +1244,7 @@ double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtk
     double distance = std::abs( (line1Bounds[4]+line1Bounds[5])/2 - (line2Bounds[4]+line2Bounds[5])/2 );
 
     // If the distance between the lines is not zero, add it to the list
-    if (distance > 0)
+    if (distance > 0.01)
       {
       distances.push_back( distance );
       distanceSum += distance;
@@ -1243,10 +1278,10 @@ double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtk
   // If the number of lines is zero, return the uncorrected mean.
   if (numberOfLines == 0)
     {
-    vtkErrorMacro("GetSpacingBetweenLines: Contour spacing is not consistent.");
+    vtkWarningMacro("GetSpacingBetweenLines: Contour spacing is not consistent.");
     return distanceMean;
     }
-
+  
   // Recalculate the mean distance between the lines.
   distanceMean = distanceSum/numberOfLines;
 
@@ -1810,4 +1845,80 @@ double vtkPlanarContourToClosedSurfaceConversionRule::ComputeError(vtkPoints* po
     // Return the distance from the current point to the line defined by the previous and next point
     return vtkLine::DistanceToLine( currentPoint, nextPoint, previousPoint);
     }
+}
+
+//----------------------------------------------------------------------------
+void vtkPlanarContourToClosedSurfaceConversionRule::CalculateContourTransform(vtkPolyData* inputPolyData, vtkMatrix4x4* contourToRAS)
+{
+  double zVector[3] = { 0, 0, 1 };
+  double meshNormal[3] = { 0, 0, 0 };
+
+  // Calculate the normal vector for the surface mesh by iterating through all of the contours
+  // Ignores small contours (less than 6 points) since the plane fitting is sometimes unreliable
+  this->CalculateContourNormal(inputPolyData, meshNormal, 6);
+  if (vtkMath::Norm(meshNormal) == 0.0)
+    {
+    // If the normal vector that was returned was zero (no contours with less than 6 points)
+    // Run the calculation again with no restriction on the number of points used
+    this->CalculateContourNormal(inputPolyData, meshNormal, 0);
+    }
+
+  double theta = std::acos(vtkMath::Dot(meshNormal, zVector)) * 180.0 / vtkMath::Pi();
+  double axis[3] = { 0, 0, 0 };
+  vtkMath::Cross(meshNormal, zVector, axis);
+
+  vtkNew<vtkTransform> transform;
+  transform->RotateWXYZ(theta, axis);  
+  contourToRAS->DeepCopy(transform->GetMatrix());
+}
+
+//----------------------------------------------------------------------------
+void vtkPlanarContourToClosedSurfaceConversionRule::CalculateContourNormal(vtkPolyData* inputPolyData, double outputNormal[3], int minimumContourSize)
+{
+
+  int numberOfLines = inputPolyData->GetNumberOfLines();
+  vtkSmartPointer<vtkIdList> currentContour = vtkSmartPointer<vtkIdList>::New();
+
+  double meshNormalSum[3] = { 0, 0, 0 };
+
+  int numberOfSmallContours = 0;
+  int currentContourIndex = 0;
+  inputPolyData->GetLines()->InitTraversal();
+  while (inputPolyData->GetLines()->GetNextCell(currentContour))
+  {
+    double contourNormal[3] = { 0, 0, 0 };
+
+    vtkNew<vtkExtractCells> extract;
+    extract->SetInputData(inputPolyData);
+    extract->AddCellRange(currentContourIndex, currentContourIndex);
+    extract->Update();
+
+    if (extract->GetOutput()->GetNumberOfPoints() > minimumContourSize)
+    {
+      vtkNew<vtkTextureMapToPlane> textureMapToPlane;
+      textureMapToPlane->SetInputConnection(extract->GetOutputPort());
+      textureMapToPlane->Update();
+      textureMapToPlane->GetNormal(contourNormal);
+      vtkMath::Add(contourNormal, meshNormalSum, meshNormalSum);
+    }
+    else
+    {
+      ++numberOfSmallContours;
+    }
+    ++currentContourIndex;
+  }
+
+  // All contours had less than the minimum number of points.
+  // Return before divide by 0 error
+  if (numberOfSmallContours >= inputPolyData->GetNumberOfLines() || vtkMath::Norm(meshNormalSum) == 0.0)
+  {
+    return;
+  }
+
+  for (int i = 0; i < 3; ++i)
+  {
+    outputNormal[i] = meshNormalSum[i] / (inputPolyData->GetNumberOfLines() - numberOfSmallContours);
+  }
+  vtkMath::Normalize(outputNormal);
+
 }

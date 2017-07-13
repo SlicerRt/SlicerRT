@@ -130,7 +130,8 @@ protected:
   /// Determine the number of contours that share the same Z-coordinates.
   /// \param inputROIPoints Polydata containing all of the points and contours
   /// \param originalLineIndex The index of the line that is part of the plane being checked
-  int GetNumberOfLinesOnPlane(vtkPolyData* inputROIPoints, vtkIdType originalLineIndex);
+  /// \param spacing The spacing between lines
+  int GetNumberOfLinesOnPlane(vtkPolyData* inputROIPoints, vtkIdType originalLineIndex, double spacing);
 
   /// Determine if two contours overlap in the XY axis.
   /// \param The first line
@@ -231,6 +232,17 @@ protected:
   /// \param inputLine The polydata containing the original lines
   /// \param outputLine The output polydata with the "fixed" lines
   void FixLines(vtkPolyData* inputLines, vtkPolyData* outputLines);
+
+  /// Find the transform to align the contour normals with the Z-axis
+  ///\param inputPolyData Polydata containing all of the points and contours
+  ///\param contourToRAS Output transform
+  void CalculateContourTransform(vtkPolyData* inputPolyData, vtkMatrix4x4* contourToRAS);
+
+  /// Find the normal of all of the contours in the polydata
+  ///\param inputPolyData Polydata containing all of the points and contours
+  ///\param outputNormal Output normal
+  ///\param minimumContourSize The minimum number of points in contours to be considered
+  void CalculateContourNormal(vtkPolyData* inputPolyData, double outputNormal[3], int minimumContourSize);
 
 protected:
 
