@@ -267,10 +267,10 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
     switch(algorithm)
     {
     case 1: // Pencil beam
-      rt_beam->set_flavor('d');
+      rt_beam->set_flavor("d");
       break;
     default: // Ray tracer
-      rt_beam->set_flavor('b');
+      rt_beam->set_flavor("b");
       break;
     }
     std::cout << "Algorithm Flavor = " << rt_beam->get_flavor() << std::endl;
@@ -341,9 +341,9 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
       pencilBeamResolution * apertureOffset / beamNode->GetSAD(),
       pencilBeamResolution * apertureOffset / beamNode->GetSAD() };
 
-    int apertureDimensions[2] = {
-      (int)((beamNode->GetX2Jaw() - beamNode->GetX1Jaw()) / pencilBeamResolution + 1 ),
-      (int)((beamNode->GetY2Jaw() - beamNode->GetY1Jaw()) / pencilBeamResolution + 1 ) };
+    plm_long apertureDimensions[2] = {
+      (plm_long)((beamNode->GetX2Jaw() - beamNode->GetX1Jaw()) / pencilBeamResolution + 1 ),
+      (plm_long)((beamNode->GetY2Jaw() - beamNode->GetY1Jaw()) / pencilBeamResolution + 1 ) };
 
     std::cout << "Setting aperture distance -> ";
     rt_beam->get_aperture()->set_distance(apertureOffset);
