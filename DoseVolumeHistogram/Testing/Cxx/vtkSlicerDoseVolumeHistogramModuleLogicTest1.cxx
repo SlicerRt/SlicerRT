@@ -348,8 +348,16 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->Commit();
 
   // Get dose volume
-  vtkSmartPointer<vtkCollection> doseVolumeNodes = vtkSmartPointer<vtkCollection>::Take(
-    mrmlScene->GetNodesByName("Dose") );
+  vtkSmartPointer<vtkCollection> doseVolumeNodes = vtkSmartPointer<vtkCollection>::New();
+  std::vector<vtkMRMLNode*> volumeNodes;
+  mrmlScene->GetNodesByClass("vtkMRMLScalarVolumeNode", volumeNodes);
+  for (std::vector<vtkMRMLNode*>::iterator volumeNodeIt=volumeNodes.begin(); volumeNodeIt!=volumeNodes.end(); ++volumeNodeIt)
+  {
+    if (SlicerRtCommon::IsDoseVolumeNode(*volumeNodeIt))
+    {
+      doseVolumeNodes->AddItem(*volumeNodeIt);
+    }
+  }
   if (doseVolumeNodes->GetNumberOfItems() != 1)
   {
     mrmlScene->Commit();
@@ -527,6 +535,8 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
                         double maxDose, double volumeDifferenceCriterion, double doseToAgreementCriterion,
                         double &agreementAcceptancePercentage)
 {
+  std::cout << "Comparing DVHs" << std::endl << "  Current: " << dvhCsvFileName << std::endl << "  Baseline: " << baselineCsvFileName << std::endl;
+
   if (!vtksys::SystemTools::FileExists(baselineCsvFileName.c_str()))
   {
     std::cerr << "Loading baseline CSV DVH table from file '" << baselineCsvFileName << "' failed - the file does not exist!" << std::endl;

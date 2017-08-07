@@ -121,7 +121,6 @@ vtkSlicerDoseVolumeHistogramModuleLogic::vtkSlicerDoseVolumeHistogramModuleLogic
   this->DefaultDoseVolumeOversamplingFactor = 2.0;
 
   this->LogSpeedMeasurements = false;
-  this->UseFractionalLabelmap = false;
 }
 
 //----------------------------------------------------------------------------
@@ -218,13 +217,14 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   std::string doseGeometryString = vtkSegmentationConverter::SerializeImageGeometry(doseIjkToRasMatrix, doseVolumeNode->GetImageData());
   segmentationCopy->SetConversionParameter( vtkSegmentationConverter::GetReferenceImageGeometryParameterName(),
     doseGeometryString );
-  std::stringstream fixedOversamplingValuStream;
-  fixedOversamplingValuStream << this->DefaultDoseVolumeOversamplingFactor;
+  std::stringstream fixedOversamplingValueStream;
+  fixedOversamplingValueStream << this->DefaultDoseVolumeOversamplingFactor;
   segmentationCopy->SetConversionParameter( vtkClosedSurfaceToBinaryLabelmapConversionRule::GetOversamplingFactorParameterName(),
-    parameterNode->GetAutomaticOversampling() ? "A" : fixedOversamplingValuStream.str().c_str() );
+    parameterNode->GetAutomaticOversampling() ? "A" : fixedOversamplingValueStream.str().c_str() );
 
   char* representationName = "";
-  if (this->UseFractionalLabelmap)
+  bool useFractionalLabelmap = parameterNode->GetUseFractionalLabelmap();
+  if (useFractionalLabelmap)
   {
     representationName = (char*)vtkSegmentationConverter::GetSegmentationFractionalLabelmapRepresentationName();
   }
@@ -354,7 +354,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     if (segmentationNode->GetParentTransformNode())
     {
       double backgroundValue[4] = {minimumValue, minimumValue, minimumValue, 0.0};
-      if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, segmentLabelmap, this->UseFractionalLabelmap, backgroundValue))
+      if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, segmentLabelmap, useFractionalLabelmap, backgroundValue))
       {
         std::string errorMessage("Failed to apply parent transformation to segment");
         vtkErrorMacro("ComputeDvh: " << errorMessage);
@@ -368,7 +368,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
 
       // Resample segmentation labelmap volume
       if ( !vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
-        segmentLabelmap, fixedOversampledDoseVolume, segmentLabelmap, this->UseFractionalLabelmap, false, NULL, minimumValue ) )
+        segmentLabelmap, fixedOversampledDoseVolume, segmentLabelmap, useFractionalLabelmap, false, NULL, minimumValue ) )
       {
         std::string errorMessage("Failed to resample segment binary labelmap");
         vtkErrorMacro("ComputeDvh: " << errorMessage);
@@ -487,9 +487,10 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     maximumValue = scalarRange->GetValue(1);
   }
 
-  if (this->UseFractionalLabelmap)
+  bool useFractionalLabelmap = parameterNode->GetUseFractionalLabelmap();
+  if (useFractionalLabelmap)
   {
-    stencil->ThresholdByUpper(minimumValue+1e-10);
+    stencil->ThresholdByUpper(minimumValue + 1e-10);
   }
   else
   {
@@ -511,7 +512,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
 
   // Compute statistics
   vtkSmartPointer<vtkImageAccumulate> structureStat;
-  if (this->UseFractionalLabelmap)
+  if (useFractionalLabelmap)
   {
     structureStat = vtkSmartPointer<vtkFractionalImageAccumulate>::New();
     vtkFractionalImageAccumulate::SafeDownCast(structureStat)->UseFractionalLabelmapOn();
@@ -602,7 +603,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   metricsTable->SetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnDoseVolume, vtkVariant(doseVolumeNode->GetName()));
   // Volume (cc) - save as attribute too (the DVH contains percentages that often need to be converted to volume)
   double volumeCc = 0;
-  if (this->UseFractionalLabelmap)
+  if (useFractionalLabelmap)
   {
     volumeCc = vtkFractionalImageAccumulate::SafeDownCast(structureStat)->GetFractionalVoxelCount() * cubicMMPerVoxel * ccPerCubicMM;
   }
@@ -686,7 +687,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
 
   vtkImageData* statArray = structureStat->GetOutput();
   double totalVoxels = 0;
-  if (this->UseFractionalLabelmap)
+  if (useFractionalLabelmap)
   {
     totalVoxels = vtkFractionalImageAccumulate::SafeDownCast(structureStat)->GetFractionalVoxelCount();
   }
@@ -699,7 +700,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   {
     double voxelsInBin = statArray->GetScalarComponentAsDouble(sampleIndex,0,0,0);
     doubleArray->SetComponent( outputArrayIndex, 0, startValue + sampleIndex * stepSize );
-    if (this->UseFractionalLabelmap)
+    if (useFractionalLabelmap)
     {
       doubleArray->SetComponent( outputArrayIndex, 1, std::max(0.0, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0) );
     }
@@ -1613,7 +1614,13 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
           // Get the structure's name
           std::string field = lineStr.substr(0, commaPosition);
           size_t middlePosition = field.find(DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE);
-          structureNames.push_back(field.substr(0, middlePosition - DVH_ARRAY_NODE_NAME_POSTFIX.size()));
+          std::string structureName = field.substr(0, middlePosition);
+          if ( structureName.size() > DVH_ARRAY_NODE_NAME_POSTFIX.size()
+            && structureName.substr(structureName.size() - DVH_ARRAY_NODE_NAME_POSTFIX.size()) == DVH_ARRAY_NODE_NAME_POSTFIX)
+            {
+            structureName = structureName.substr(0, structureName.size() - DVH_ARRAY_NODE_NAME_POSTFIX.size());
+            }
+          structureNames.push_back(structureName);
 
           // Get the structure's total volume and add it to the vector
           double volumeCCs = 0;

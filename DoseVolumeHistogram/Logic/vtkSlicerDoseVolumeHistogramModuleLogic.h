@@ -131,10 +131,6 @@ public:
   vtkSetMacro(LogSpeedMeasurements, bool);
   vtkBooleanMacro(LogSpeedMeasurements, bool);
 
-  vtkGetMacro(UseFractionalLabelmap, bool);
-  vtkSetMacro(UseFractionalLabelmap, bool);
-  vtkBooleanMacro(UseFractionalLabelmap, bool);
-
 protected:
   /// Compute DVH for the given structure segment with the stenciled dose volume
   /// (the labelmap representation of a segment but with dose values instead of the labels)
@@ -198,9 +194,6 @@ protected:
 
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;
-
-  /// Flag telling whether or not to use fractional labelmaps
-  bool UseFractionalLabelmap;
 };
 
 #endif

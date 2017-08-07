@@ -63,6 +63,7 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
   this->ShowDoseVolumesOnly = true;
   this->AutomaticOversampling = false;
   this->AutomaticOversamplingFactors.clear();
+  this->UseFractionalLabelmap = false;
 
   this->HideFromEditors = false;
 }

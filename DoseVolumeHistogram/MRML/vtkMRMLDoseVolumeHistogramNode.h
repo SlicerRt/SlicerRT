@@ -192,6 +192,13 @@ public:
   /// Set automatic oversampling flag
   vtkBooleanMacro(AutomaticOversampling, bool);
 
+  /// Get fractional labelmap flag
+  vtkGetMacro(UseFractionalLabelmap, bool);
+  /// Set fractional labelmap flag
+  vtkSetMacro(UseFractionalLabelmap, bool);
+  /// Get fractional labelmap flag
+  vtkBooleanMacro(UseFractionalLabelmap, bool);
+
 protected:
   /// Set and observe DVH metrics table node
   /// Metrics table node is unique and mandatory for each DVH node, so it is created within the node.
@@ -244,6 +251,9 @@ protected:
   /// If oversampling is automatic then they need to be stored for reporting purposes.
   /// This property is not saved to the scene, as these are temporary values.
   std::map<std::string, double> AutomaticOversamplingFactors;
+
+  /// Flag telling whether or not to use fractional labelmaps
+  bool UseFractionalLabelmap;
 };
 
 #endif
