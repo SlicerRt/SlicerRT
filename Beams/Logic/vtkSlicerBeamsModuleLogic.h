@@ -43,6 +43,9 @@ public:
   vtkTypeMacro(vtkSlicerBeamsModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  /// Update parent transform of a given beam using its parameters and the IEC logic
+  void UpdateTransformForBeam(vtkMRMLRTBeamNode* beamNode);
+
 protected:
   vtkSlicerBeamsModuleLogic();
   virtual ~vtkSlicerBeamsModuleLogic();

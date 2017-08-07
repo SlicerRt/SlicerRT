@@ -714,6 +714,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
     scene->AddNode(beamNode);
     // Add beam to plan
     planNode->AddBeam(beamNode);
+    // Update beam transforms
+    this->External->BeamsLogic->UpdateTransformForBeam(beamNode);
 
     // Create beam model hierarchy root node if has not been created yet
     if (beamModelHierarchyRootNode.GetPointer() == NULL)

@@ -96,6 +96,9 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamTransformModified);
     vtkObserveMRMLNodeEventsMacro(node, events);
+
+    // Trigger updating transforms
+    node->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
   }
   else if (node->IsA("vtkMRMLRTPlanNode"))
   {
@@ -134,6 +137,27 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneEndImport()
   }
 }
 
+//---------------------------------------------------------------------------
+void vtkSlicerBeamsModuleLogic::UpdateTransformForBeam(vtkMRMLRTBeamNode* beamNode)
+{
+  if (!beamNode)
+  {
+    vtkErrorMacro("UpdateTransformForBeam: Invalid beam node");
+    return;
+  }
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  if (!scene)
+  {
+    vtkErrorMacro("UpdateTransformForBeam: Invalid MRML scene");
+    return;
+  }
+
+  //TODO: Use one IEC logic in a private scene for all beam transform updates?
+  vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
+  iecLogic->SetMRMLScene(scene);
+  iecLogic->UpdateBeamTransform(beamNode);
+}
+
 //----------------------------------------------------------------------------
 void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData)
 {
@@ -159,11 +183,7 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
       beamNode->CreateDefaultTransformNode();
 
       // Calculate transform from beam parameters and isocenter from plan
-      //TODO: Use one IEC logic in a private scene for all beam transform updates?
-      vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
-      iecLogic->SetMRMLScene(mrmlScene);
-      iecLogic->UpdateBeamTransform(beamNode);
-      iecLogic->UpdateIECTransformsFromBeam(beamNode);
+      this->UpdateTransformForBeam(beamNode);
     }
     else if (event == vtkMRMLRTBeamNode::BeamGeometryModified)
     {
@@ -194,11 +214,7 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
       // Make sure transform node exists
       beamNode->CreateDefaultTransformNode();
       // Calculate transform from beam parameters and isocenter from plan
-      //TODO: Use one IEC logic in a private scene for all beam transform updates?
-      vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
-      iecLogic->SetMRMLScene(mrmlScene);
-      iecLogic->UpdateBeamTransform(beamNode);
-      iecLogic->UpdateIECTransformsFromBeam(beamNode);
+      this->UpdateTransformForBeam(beamNode);
 
       // Make sure display is set up
       beamNode->UpdateGeometry();
