@@ -33,11 +33,12 @@
 #include "vtkClosedSurfaceToFractionalLabelmapConversionRule.h"
 #include "vtkFractionalLabelmapToClosedSurfaceConversionRule.h"
 
-// Qt includes
-#include <QSettings>
-
 // CTK includes
 #include <ctkDICOMDatabase.h>
+
+// Qt includes
+#include <QSettings>
+#include "qSlicerApplication.h"
 
 // SubjectHierarchy includes
 #include "vtkMRMLSubjectHierarchyConstants.h"
@@ -1139,9 +1140,20 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::InsertSeriesInSubject
         vtkMRMLSubjectHierarchyConstants::GetDICOMPatientCommentsAttributeName(), rtReader->GetPatientComments() );
 
       // Set item name
-      std::string patientitemName = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientName())
+      std::string patientItemName = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientName())
         ? std::string(rtReader->GetPatientName()) : SlicerRtCommon::DICOMRTIMPORT_NO_NAME );
-      shNode->SetItemName(patientItemID, patientitemName);
+      QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
+      bool displayPatientID = settings->value("SubjectHierarchy/DisplayPatientIDInSubjectHierarchyItemName").toBool();
+      if ( displayPatientID && !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientId()) )
+      {
+        patientItemName += " (" + std::string(rtReader->GetPatientId()) + ")";
+      }
+      bool displayPatientBirthDate = settings->value("SubjectHierarchy/DisplayPatientBirthDateInSubjectHierarchyItemName").toBool();
+      if ( displayPatientBirthDate && !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientBirthDate()) )
+      {
+        patientItemName += " (" + std::string(rtReader->GetPatientBirthDate()) + ")";
+      }
+      shNode->SetItemName(patientItemID, patientItemName);
     }
     else
     {
@@ -1168,13 +1180,20 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::InsertSeriesInSubject
         vtkMRMLSubjectHierarchyConstants::GetDICOMStudyTimeAttributeName(), rtReader->GetStudyTime() );
 
       // Set item name
-      std::string studyDescription = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDescription())
+      std::string studyItemName = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDescription())
         ? std::string(rtReader->GetStudyDescription())
         : SlicerRtCommon::DICOMRTIMPORT_NO_STUDY_DESCRIPTION );
-      std::string studyDate =  ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDate())
-        ? + " (" + std::string(rtReader->GetStudyDate()) + ")"
-        : "" );
-      std::string studyItemName = studyDescription + studyDate;
+      QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
+      bool displayStudyID = settings->value("SubjectHierarchy/DisplayStudyIDInSubjectHierarchyItemName").toBool();
+      if ( displayStudyID && !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyId()) )
+      {
+        studyItemName += " (" + std::string(rtReader->GetStudyId()) + ")";
+      }
+      bool displayStudyDate = settings->value("SubjectHierarchy/DisplayStudyDateInSubjectHierarchyItemName").toBool();
+      if ( displayStudyDate && !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDate()) )
+      {
+        studyItemName += " (" + std::string(rtReader->GetStudyDate()) + ")";
+      }
       shNode->SetItemName(studyItemID, studyItemName);
     }
     else
