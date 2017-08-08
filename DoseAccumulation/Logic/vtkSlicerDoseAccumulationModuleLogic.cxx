@@ -143,7 +143,8 @@ void vtkSlicerDoseAccumulationModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* n
     std::vector<vtkMRMLNode*> nodes;
     this->GetMRMLScene()->GetNodesByClass("vtkMRMLDoseAccumulationNode", nodes);
     for (std::vector<vtkMRMLNode*>::iterator nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
-    {      vtkMRMLDoseAccumulationNode* doseAccumulationNode = vtkMRMLDoseAccumulationNode::SafeDownCast(*nodeIt);
+    {
+      vtkMRMLDoseAccumulationNode* doseAccumulationNode = vtkMRMLDoseAccumulationNode::SafeDownCast(*nodeIt);
       doseAccumulationNode->RemoveSelectedInputVolumeNode(volumeNode);
       doseAccumulationNode->GetVolumeNodeIdsToWeightsMap()->erase(volumeNode->GetID());
     }
