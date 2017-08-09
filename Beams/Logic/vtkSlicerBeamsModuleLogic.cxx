@@ -96,28 +96,12 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamTransformModified);
     vtkObserveMRMLNodeEventsMacro(node, events);
-
-    // Trigger updating transforms
-    vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(node);
-    if (beamNode->GetParentPlanNode()) // Isocenter position is stored in the parent plan
-    {
-      beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
-    }
   }
   else if (node->IsA("vtkMRMLRTPlanNode"))
   {
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLRTPlanNode::BeamAdded);
     vtkObserveMRMLNodeEventsMacro(node, events);
-
-    // Update child beam transforms
-    std::vector<vtkMRMLRTBeamNode*> beams;
-    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(node);
-    planNode->GetBeams(beams);
-    for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
-    {
-      (*beamIt)->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
-    }
   }
 }
 
@@ -194,7 +178,6 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
     {
       // Make sure transform node exists
       beamNode->CreateDefaultTransformNode();
-
       // Calculate transform from beam parameters and isocenter from plan
       this->UpdateTransformForBeam(beamNode);
     }
