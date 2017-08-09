@@ -439,7 +439,9 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     try:
       scene = slicer.mrmlScene
       slicer.util.selectModule('Isodose')
-      numOfModelNodesBeforeLoad = slicer.mrmlScene.GetNodesByClass('vtkMRMLModelNode').GetNumberOfItems()
+      modelNodeCollection = slicer.mrmlScene.GetNodesByClass('vtkMRMLModelNode')
+      modelNodeCollection.UnRegister(None)
+      numOfModelNodesBeforeLoad = modelNodeCollection.GetNumberOfItems()
 
       isodoseWidget = slicer.modules.isodose.widgetRepresentation()
       doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]
@@ -450,7 +452,9 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       doseVolumeMrmlNodeCombobox.setCurrentNodeID(day2Dose.GetID())
       applyButton.click()
 
-      self.assertEqual( slicer.mrmlScene.GetNodesByClass('vtkMRMLModelNode').GetNumberOfItems(), numOfModelNodesBeforeLoad + 6 )
+      modelNodeCollection = slicer.mrmlScene.GetNodesByClass('vtkMRMLModelNode')
+      modelNodeCollection.UnRegister(None)
+      self.assertEqual( modelNodeCollection.GetNumberOfItems(), numOfModelNodesBeforeLoad + 6 )
 
       # Show day 2 isodose
       shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)

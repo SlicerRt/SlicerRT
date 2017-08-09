@@ -120,8 +120,6 @@ class DicomRtImportTest(unittest.TestCase):
 
     loadables = self.dicomWidget.detailsPopup.loadableTable.loadables
 
-    self.assertEqual( len(loadables), 12 )
-
     # Make sure the loadables are good (RT is assigned to 4 out of 8 and they are selected)
     loadablesByPlugin = self.dicomWidget.detailsPopup.loadablesByPlugin
     rtFound = False
