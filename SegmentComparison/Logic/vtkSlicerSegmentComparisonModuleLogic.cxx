@@ -449,7 +449,7 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeHausdorffDistances(vtk
   Hausdorff_distance hausdorff;
   hausdorff.set_reference_image(plmRefSegmentLabelmap->itk_uchar());
   hausdorff.set_compare_image(plmCmpSegmentLabelmap->itk_uchar());
-
+  hausdorff.set_volume_boundary_behavior(ZERO_PADDING);
   hausdorff.run();
 
   double maximumHausdorffDistanceForBoundaryMm = hausdorff.get_boundary_hausdorff();
