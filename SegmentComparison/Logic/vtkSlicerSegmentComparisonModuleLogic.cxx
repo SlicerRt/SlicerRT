@@ -455,7 +455,7 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeHausdorffDistances(vtk
   double maximumHausdorffDistanceForBoundaryMm = hausdorff.get_boundary_hausdorff();
   double averageHausdorffDistanceForBoundaryMm = hausdorff.get_avg_average_boundary_hausdorff();
   double percent95HausdorffDistanceForBoundaryMm = hausdorff.get_percent_boundary_hausdorff();
-  parameterNode->SetMaximumHausdorffDistanceForVolumeMm(hausdorff.get_boundary_hausdorff());
+  parameterNode->SetMaximumHausdorffDistanceForVolumeMm(hausdorff.get_hausdorff());
   parameterNode->SetMaximumHausdorffDistanceForBoundaryMm(maximumHausdorffDistanceForBoundaryMm);
   parameterNode->SetAverageHausdorffDistanceForVolumeMm(hausdorff.get_avg_average_hausdorff());
   parameterNode->SetAverageHausdorffDistanceForBoundaryMm(averageHausdorffDistanceForBoundaryMm);
