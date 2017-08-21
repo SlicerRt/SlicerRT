@@ -48,7 +48,7 @@ TEST_WITH_DATA(
   EclipseProstate_Expanded_5_5_5_Rectum.seg.nrrd
   ${TEMP}/TestScene_SegmentComparison_EclipseProstate.mrml
   0
-  5.8768
+  8.34375
   5.17621
   6.07853
   0.542084
