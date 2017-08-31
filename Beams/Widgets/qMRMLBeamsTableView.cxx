@@ -155,7 +155,7 @@ qMRMLBeamsTableView::qMRMLBeamsTableView(QWidget* _parent)
 {
   Q_D(qMRMLBeamsTableView);
   d->init();
-  this->populateBeamTable();
+  this->updateBeamTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -171,7 +171,7 @@ void qMRMLBeamsTableView::setPlanNode(vtkMRMLNode* node)
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(node);
 
   // Connect plan modified events to population of the table
-  qvtkReconnect( d->PlanNode, planNode, vtkCommand::ModifiedEvent, this, SLOT( populateBeamTable() ) );
+  qvtkReconnect( d->PlanNode, planNode, vtkCommand::ModifiedEvent, this, SLOT( updateBeamTable() ) );
 
   if (planNode)
   {
@@ -185,12 +185,12 @@ void qMRMLBeamsTableView::setPlanNode(vtkMRMLNode* node)
     for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
     {
       vtkMRMLRTBeamNode* beamNode = (*beamIt);
-      qvtkConnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( populateBeamTable() ) );
+      qvtkConnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( updateBeamTable() ) );
     }
   }
 
   d->PlanNode = planNode;
-  this->populateBeamTable();
+  this->updateBeamTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -202,7 +202,7 @@ vtkMRMLNode* qMRMLBeamsTableView::planNode()
 }
 
 //-----------------------------------------------------------------------------
-void qMRMLBeamsTableView::populateBeamTable()
+void qMRMLBeamsTableView::updateBeamTable()
 {
   Q_D(qMRMLBeamsTableView);
 
@@ -467,7 +467,7 @@ void qMRMLBeamsTableView::onBeamAdded(vtkObject* caller, void* callData)
   if (d->PlanNode)
   {
     vtkMRMLNode* beamNode = d->PlanNode->GetScene()->GetNodeByID(beamNodeId);
-    qvtkConnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( populateBeamTable() ) );
+    qvtkConnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( updateBeamTable() ) );
   }
 }
 
@@ -485,6 +485,6 @@ void qMRMLBeamsTableView::onBeamRemoved(vtkObject* caller, void* callData)
   if (d->PlanNode)
   {
     vtkMRMLNode* beamNode = d->PlanNode->GetScene()->GetNodeByID(beamNodeId);
-    qvtkDisconnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( populateBeamTable() ) );
+    qvtkDisconnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( updateBeamTable() ) );
   }
 }

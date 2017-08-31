@@ -494,12 +494,12 @@ void qSlicerDoseAccumulationModuleWidget::applyClicked()
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  const char* errorMessage = d->logic()->AccumulateDoseVolumes(paramNode);
+  std::string errorMessage = d->logic()->AccumulateDoseVolumes(paramNode);
 
-  d->label_Error->setVisible( errorMessage );
-  if (errorMessage)
+  d->label_Error->setVisible( !errorMessage.empty() );
+  if (!errorMessage.empty())
   {
-    d->label_Error->setText( QString(errorMessage) );
+    d->label_Error->setText( QString(errorMessage.c_str()) );
   }
 
   this->refreshVolumesTable();

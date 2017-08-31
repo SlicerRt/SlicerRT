@@ -169,11 +169,11 @@ void vtkSlicerDoseAccumulationModuleLogic::OnMRMLSceneEndClose()
 }
 
 //---------------------------------------------------------------------------
-const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(vtkMRMLDoseAccumulationNode* parameterNode)
+std::string vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(vtkMRMLDoseAccumulationNode* parameterNode)
 {
   if (!parameterNode)
   {
-    const char* errorMessage = "No parameter set currentNode";
+    std::string errorMessage("No parameter set currentNode");
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
     return errorMessage;
   }
@@ -182,7 +182,7 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(vtkMRMLD
   int numberOfInputDoseVolumes = parameterNode->GetNumberOfSelectedInputVolumeNodes();
   if (numberOfInputDoseVolumes == 0)
   {
-    const char* errorMessage = "No dose volume selected";
+    std::string errorMessage("No dose volume selected");
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
     return errorMessage;
   }
@@ -192,13 +192,13 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(vtkMRMLD
   vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = parameterNode->GetReferenceDoseVolumeNode();
   if (referenceDoseVolumeNode == NULL)
   {
-    const char* errorMessage = "Reference volume not specified";
+    std::string errorMessage("Reference volume not specified");
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
     return errorMessage;
   }
   if (outputAccumulatedDoseVolumeNode == NULL)
   {
-    const char* errorMessage = "Output volume not specified";
+    std::string errorMessage("Output volume not specified");
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
     return errorMessage;
   }
@@ -290,21 +290,21 @@ const char* vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(vtkMRMLD
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
   if (!shNode)
   {
-    const char* errorMessage = "Failed to access subject hierarchy node";
+    std::string errorMessage("Failed to access subject hierarchy node");
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
     return errorMessage;
   }
   vtkIdType referenceDoseVolumeShItemID = shNode->GetItemByDataNode(referenceDoseVolumeNode);
   if (referenceDoseVolumeShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    const char* errorMessage = "No subject hierarchy currentNode found for reference dose";
+    std::string errorMessage("No subject hierarchy currentNode found for reference dose");
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
     return errorMessage;
   }
   vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(referenceDoseVolumeShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
   if (studyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    const char* errorMessage = "No study currentNode found for reference dose";
+    std::string errorMessage("No study currentNode found for reference dose");
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
     return errorMessage;
   }

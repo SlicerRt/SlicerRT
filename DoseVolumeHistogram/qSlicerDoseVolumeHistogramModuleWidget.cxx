@@ -259,6 +259,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
   {
     d->MRMLTableView->setMRMLTableNode(paramNode->GetMetricsTableNode());
   }
+
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
@@ -268,7 +270,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
-  d->SegmentsTableView->setSelectionMode(QAbstractItemView::SingleSelection);
+  d->SegmentsTableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
   d->SegmentsTableView->setHeaderVisible(false);
   d->SegmentsTableView->setVisibilityColumnVisible(false);
   d->SegmentsTableView->setColorColumnVisible(false);

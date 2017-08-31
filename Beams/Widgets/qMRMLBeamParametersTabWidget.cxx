@@ -33,6 +33,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 // Qt includes
 #include <QDebug>
+#include <QLineEdit>
 
 //----------------------------------------------------------------------------
 const char* qMRMLBeamParametersTabWidget::BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY = "BeamParameterNodeAttribute";
@@ -408,6 +409,32 @@ void qMRMLBeamParametersTabWidget::addBeamParameterCheckBox(
 }
 
 //-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::addBeamParameterLineEdit(
+  QString tabName, QString parameterName, QString parameterLabel,
+  QString tooltip, QString defaultValue )
+{
+  // Get tab to which the spin box needs to be added
+  QWidget* tabWidget = this->beamParametersTab(tabName);
+  if (!tabWidget)
+  {
+    qCritical() << Q_FUNC_INFO << ": Unable to access widget for beam parameters tab named " << tabName;
+    return;
+  }
+  QFormLayout* tabLayout = qobject_cast<QFormLayout*>(tabWidget->layout());
+  if (!tabLayout)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid layout in beam parameters tab named " << tabName;
+    return;
+  }
+
+  QLineEdit* lineEdit = new QLineEdit(defaultValue, tabWidget);
+  lineEdit->setToolTip(tooltip);
+  lineEdit->setProperty(BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY, parameterName);
+  connect( lineEdit, SIGNAL(textChanged(QString)), this, SLOT(stringBeamParameterChanged(QString)) );
+  tabLayout->addRow(parameterLabel, lineEdit);
+}
+
+//-----------------------------------------------------------------------------
 void qMRMLBeamParametersTabWidget::doubleBeamParameterChanged(double newValue)
 {
   Q_D(qMRMLBeamParametersTabWidget);
@@ -471,6 +498,27 @@ void qMRMLBeamParametersTabWidget::booleanBeamParameterChanged(int newValue)
 
   // Enable/disable dependent parameters
   this->updateDependentParameterWidgetsForCheckbox( qobject_cast<QCheckBox*>(this->sender()) );
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::stringBeamParameterChanged(QString newValue)
+{
+  Q_D(qMRMLBeamParametersTabWidget);
+  if (!d->BeamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid beam node, cannot set parameter!";
+    return;
+  }
+
+  // Get attribute name that belongs to the widget in which the value was changed
+  QString attributeName = this->sender()->property(BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY).toString();
+
+  // Set parameter as attribute in beam node
+  d->BeamNode->DisableModifiedEventOn();
+  d->BeamNode->SetAttribute(
+    attributeName.toLatin1().constData(),
+    newValue.toLatin1().constData() );
+  d->BeamNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------

@@ -180,9 +180,8 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   doseAccumulationLogic->SetMRMLScene(mrmlScene);
 
   // Compute DoseAccumulation
-  const char* errorMessage = doseAccumulationLogic->AccumulateDoseVolumes(paramNode);
-
-  if (errorMessage)
+  std::string errorMessage = doseAccumulationLogic->AccumulateDoseVolumes(paramNode);
+  if (!errorMessage.empty())
   {
     std::cerr << "ERROR: " << errorMessage << std::endl;
     return EXIT_FAILURE;

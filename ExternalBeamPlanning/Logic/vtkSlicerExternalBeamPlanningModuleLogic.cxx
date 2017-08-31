@@ -201,7 +201,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneEndImport()
   std::vector<vtkMRMLNode*> nodes;
   this->GetMRMLScene()->GetNodesByClass("vtkMRMLRTPlanNode", nodes);
   for (std::vector<vtkMRMLNode*>::iterator nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
-  {    // Observe plan events
+  {
+    // Observe plan events
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLRTPlanNode::IsocenterModifiedEvent);
     vtkObserveMRMLNodeEventsMacro((*nodeIt), events);
@@ -211,7 +212,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneEndImport()
   nodes.clear();
   this->GetMRMLScene()->GetNodesByClass("vtkMRMLRTBeamNode", nodes);
   for (std::vector<vtkMRMLNode*>::iterator nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
-  {    // Observe beam events
+  {
+    // Observe beam events
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLRTBeamNode::CloningRequested);
     vtkObserveMRMLNodeEventsMacro((*nodeIt), events);
@@ -335,7 +337,11 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtk
 
 
 //---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//
 // Obsolete methods
+//
+//---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------

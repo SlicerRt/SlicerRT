@@ -52,7 +52,7 @@ public:
 
   /// Accumulates dose volumes with the given IDs and corresponding weights
   /// \return Error message on failure, NULL otherwise
-  const char* AccumulateDoseVolumes(vtkMRMLDoseAccumulationNode* parameterNode);
+  std::string AccumulateDoseVolumes(vtkMRMLDoseAccumulationNode* parameterNode);
 
 protected:
   vtkSlicerDoseAccumulationModuleLogic();

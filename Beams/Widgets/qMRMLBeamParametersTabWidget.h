@@ -36,6 +36,7 @@
 class vtkMRMLNode;
 class qMRMLBeamParametersTabWidgetPrivate;
 class QCheckBox;
+class QLineEdit;
 
 /// \ingroup SlicerRt_QtModules_Beams_Widgets
 class Q_SLICER_MODULE_BEAMS_WIDGETS_EXPORT qMRMLBeamParametersTabWidget : public QTabWidget
@@ -69,7 +70,16 @@ public:
   QWidget* beamParametersTab(QString tabName);
 
   /// Add floating point parameter to the given tab of the beam parameters widget
-  /// \param TODO
+  /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
+  /// \param parameterName Name of the beam parameter. This is prefixed with the dose engine name
+  ///   and added to the beam node as attribute
+  /// \param parameterLabel Text to be shown in the beam parameters widget in the left column
+  /// \param tooltip Tooltip describing the beam parameter that pop up on the parameter widget
+  /// \param minimumValue Minimum parameter value
+  /// \param maximumValue Maximum parameter value
+  /// \param defaultValue Default parameter value
+  /// \param stepSize Size of a step in the parameter widget
+  /// \param precision Number of decimals to be shown in the widget
   /// \param slider If true then a slider is created, otherwise (by default) a spin box with text edit
   void addBeamParameterFloatingPointNumber(
     QString tabName, QString parameterName, QString parameterLabel,
@@ -77,18 +87,41 @@ public:
     double defaultValue, double stepSize, int precision, bool slider=false );
 
   /// Add new multiple choice beam parameter to beam parameters widget as a combo box
-  /// \param TODO
+  /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
+  /// \param parameterName Name of the beam parameter. This is prefixed with the dose engine name
+  ///   and added to the beam node as attribute
+  /// \param parameterLabel Text to be shown in the beam parameters widget in the left column
+  /// \param tooltip Tooltip describing the beam parameter that pop up on the parameter widget
+  /// \param options List of options in the combobox. Their order defines the index for \sa defaultIndex
+  ///   and the integer parameter accessed with \sa integerParameter for calculation
+  /// \param defaultIndex Default selection in the combobox
   void addBeamParameterComboBox(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, QStringList options, int defaultIndex );
 
   /// Add new boolean type beam parameter to beam parameters widget as a check box
-  /// \param TODO
+  /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
+  /// \param parameterName Name of the beam parameter. This is prefixed with the dose engine name
+  ///   and added to the beam node as attribute
+  /// \param parameterLabel Text to be shown in the beam parameters widget in the left column
+  /// \param tooltip Tooltip describing the beam parameter that pop up on the parameter widget
+  /// \param defaultValue Default parameter value (on/off)
   /// \param dependentParameterNames Names of parameters (full names including engine prefix) that
-  ///   need to be enabled/disabled based on the checked state of the created checkbox
+  ///   are to be enabled/disabled based on the checked state of the created checkbox
   void addBeamParameterCheckBox(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, bool defaultValue, QStringList dependentParameterNames=QStringList() );
+
+  /// Add new string type beam parameter to beam parameters widget as a line edit
+  /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
+  /// \param parameterName Name of the beam parameter. This is prefixed with the dose engine name
+  ///   and added to the beam node as attribute
+  /// \param parameterLabel Text to be shown in the beam parameters widget in the left column
+  /// \param tooltip Tooltip describing the beam parameter that pop up on the parameter widget
+  /// \param defaultValue Default parameter value
+  void addBeamParameterLineEdit(
+    QString tabName, QString parameterName, QString parameterLabel,
+    QString tooltip, QString defaultValue );
 
   /// Show/hide beam parameter with specified name.
   /// Removes tab if becomes empty after hiding parameter, and re-adds tab if needed after showing parameter
@@ -111,7 +144,8 @@ public slots:
   /// (converts the input integer to boolean)
   void booleanBeamParameterChanged(int);
 
-signals:
+  /// Handle string parameter changes in engine-specific beam parameter widgets
+  void stringBeamParameterChanged(QString);
 
 protected slots:
   /// Update from beam node state

@@ -272,7 +272,7 @@ vtkMRMLLinearTransformNode* vtkSlicerIECTransformLogic::GetTransformNodeBetween(
 {
   if (!this->GetMRMLScene())
   {
-    vtkErrorMacro("UpdateIECTransformsFromBeam: Invalid MRML scene");
+    vtkErrorMacro("GetTransformNodeBetween: Invalid MRML scene");
     return NULL;
   }
 

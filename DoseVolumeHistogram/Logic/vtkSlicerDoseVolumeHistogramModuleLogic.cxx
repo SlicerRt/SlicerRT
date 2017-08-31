@@ -900,6 +900,17 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
     << std::setw(2) << std::setfill('0') << (int)(segmentColor[2]*255.0+0.5);
   chartNode->SetProperty(structurePlotName.c_str(), "color", colorAttrValueStream.str().c_str());
   chartNode->SetProperty(structurePlotName.c_str(), "linePattern", lineStyle.c_str());
+
+  // Switch to quantitative layout if it has not been set before
+  vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByClass("vtkMRMLLayoutNode") );
+  if ( layoutNode
+    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutConventionalQuantitativeView
+    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutFourUpQuantitativeView
+    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutOneUpQuantitativeView )
+  {
+    layoutNode->SetViewArrangement( vtkMRMLLayoutNode::SlicerLayoutFourUpQuantitativeView );
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -953,15 +964,6 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::IsDvhAddedToChart(vtkMRMLChartNode
 //---------------------------------------------------------------------------
 vtkMRMLChartViewNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetChartViewNode()
 {
-  vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByClass("vtkMRMLLayoutNode") );
-  if (!layoutNode)
-  {
-    vtkErrorMacro("GetChartViewNode: Unable to get layout node");
-    return NULL;
-  }
-  layoutNode->SetViewArrangement( vtkMRMLLayoutNode::SlicerLayoutConventionalQuantitativeView );
-
   vtkMRMLChartViewNode* chartViewNode = vtkMRMLChartViewNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByClass("vtkMRMLChartViewNode") );
   if (!chartViewNode)

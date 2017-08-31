@@ -181,9 +181,9 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   // Create transform node for beam
   this->CreateNewBeamTransformNode();
 
-  // Add beam in the same plan
+  // Add beam in the same plan if beam nodes are in the same scene
   vtkMRMLRTPlanNode* planNode = node->GetParentPlanNode();
-  if (planNode)
+  if (planNode && node->GetScene() == this->Scene)
   {
     planNode->AddBeam(this);
   }

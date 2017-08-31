@@ -90,8 +90,8 @@ protected slots:
   /// Handle clone button click. Creates clone of the beam for which the button was clicked
   void onCloneButtonClicked();
 
-  /// Populate beam table according to the plan node
-  void populateBeamTable();
+  /// Update beam table according to the plan node
+  void updateBeamTable();
 
   /// To prevent accidentally moving out of the widget when pressing up/down arrows
   virtual bool eventFilter(QObject* target, QEvent* event);
