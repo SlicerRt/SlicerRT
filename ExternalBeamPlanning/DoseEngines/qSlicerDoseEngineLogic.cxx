@@ -337,10 +337,10 @@ QString qSlicerDoseEngineLogic::createAccumulatedDose(vtkMRMLRTPlanNode* planNod
   // Accumulate dose
   vtkSmartPointer<vtkSlicerDoseAccumulationModuleLogic> doseAccumulationLogic = vtkSmartPointer<vtkSlicerDoseAccumulationModuleLogic>::New();
   doseAccumulationLogic->SetMRMLScene(planNode->GetScene());
-  const char* errorMessage = doseAccumulationLogic->AccumulateDoseVolumes(doseAccumulationNode);
-  if (errorMessage)
+  std::string errorMessage = doseAccumulationLogic->AccumulateDoseVolumes(doseAccumulationNode);
+  if (!errorMessage.empty())
   {
-    return QString(errorMessage);
+    return QString(errorMessage.c_str());
   }
 
   // Add total dose volume to subject hierarchy under the study of the reference volume
