@@ -751,17 +751,17 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
     }
   }
 
-  //TODO: !!! Hard-coded node ID !!!
+  //TODO: !!! Hard-coded node name !!!
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(this->mrmlScene()->GetFirstNodeByName("NewBeam_7"));
-  double sourcePosition[3];
-  double isocenter[3];
+  double sourcePosition[3] = {0.0, 0.0, 0.0};
+  double isocenter[3] = {0.0, 0.0, 0.0};
 
-  if (beamNode && beamNode->CalculateSourcePosition(sourcePosition))
+  if (beamNode && beamNode->GetSourcePosition(sourcePosition))
   {
     vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(this->mrmlScene()->GetFirstNodeByName("CollimatorModel"));
     vtkPolyData* collimatorModelPolyData = collimatorModel->GetPolyData();
 
-    double collimatorCenterOfRotation[3];
+    double collimatorCenterOfRotation[3] = {0.0, 0.0, 0.0};
     double collimatorModelBounds[6] = { 0, 0, 0, 0, 0, 0 };
 
     collimatorModelPolyData->GetBounds(collimatorModelBounds);
@@ -770,13 +770,6 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
     collimatorCenterOfRotation[2] = collimatorModelBounds[4];
     double newSourcePosition[3] = {0, 0, 0};
 
-    //TODO: Determine a way to properly transform source position
-    // Currently just using the beam source position does not work to create a proper BEV because the function CalculateSourcePosition in vtkMRMLRTBeamNode
-    // does not account beam transformations. It currently takes the isocenter, SAD, gantry angle, and transforms the point in the RA plane. The beam ends up being
-    // transformed and oriented vertically that requires the source position to be transformed in the RS plane. Upon trying to alter the CalculateSourcePosition to do this,
-    // the transformation was unsuccessful. This will need to be investigated. This for the interim I have elected to use the center of the collimator's bottom face as the position
-    // of the camera.
-    //d->logic()->CalculateNewSourcePosition(beamNode,sourcePosition, newSourcePosition);
     cameraNode->GetCamera()->SetPosition(collimatorCenterOfRotation);
     if (beamNode->GetPlanIsocenterPosition(isocenter))
     {

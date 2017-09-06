@@ -323,5 +323,5 @@ std::string vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(vtkMRMLD
   outputAccumulatedDoseVolumeDisplayNode->SetLowerThreshold(0.5 * doseUnitScaling);
   outputAccumulatedDoseVolumeDisplayNode->SetApplyThreshold(1);
 
-  return NULL;
+  return "";
 }

@@ -829,17 +829,22 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
   chartNode->SetProperty("default", "yAxisPad", "0");
 
   // Get number of arrays showing plot for the same structure (for plot name and line style)
-  vtkStringArray* arrayIds = chartNode->GetArrays();
   int numberOfStructuresWithSameName = 0;
-  for (int arrayIndex = 0; arrayIndex < arrayIds->GetNumberOfValues(); ++arrayIndex)
+  std::vector<vtkMRMLNode*> arrayNodes;
+  this->GetMRMLScene()->GetNodesByClass("vtkMRMLDoubleArrayNode", arrayNodes);
+  for (std::vector<vtkMRMLNode*>::iterator arrayNodeIt = arrayNodes.begin(); arrayNodeIt != arrayNodes.end(); ++arrayNodeIt)
   {
-    vtkMRMLDoubleArrayNode* currentArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
-      this->GetMRMLScene()->GetNodeByID(arrayIds->GetValue(arrayIndex).c_str()) );
+    vtkMRMLNode* currentArrayNode = (*arrayNodeIt);
+    if (currentArrayNode == dvhArrayNode)
+    {
+      // Current array reached, stop counting
+      break;
+    }
 
     std::string currentSegmentName("");
     const char* currentSegmentId = currentArrayNode->GetAttribute(DVH_SEGMENT_ID_ATTRIBUTE_NAME.c_str());
     vtkMRMLSegmentationNode* currentSegmentationNode = vtkMRMLSegmentationNode::SafeDownCast(currentArrayNode->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::SEGMENTATION_REFERENCE_ROLE));
-    if (currentSegmentationNode && currentSegmentId)
+    if (currentSegmentId && currentSegmentationNode == segmentationNode)
     {
       vtkSegment* currentSegment = currentSegmentationNode->GetSegmentation()->GetSegment(currentSegmentId);
       if (currentSegment)
@@ -861,7 +866,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
   // Assemble plot name and determine style
   std::stringstream structurePlotNameStream;
   std::string lineStyle("");
-  structurePlotNameStream << segmentName << " (" << arrayIds->GetNumberOfValues() + 1 << ")";
+  structurePlotNameStream << segmentName << " (" << chartNode->GetArrays()->GetNumberOfValues() + 1 << ")";
   if (numberOfStructuresWithSameName % 4 == 1)
   {
     lineStyle = "dashed";

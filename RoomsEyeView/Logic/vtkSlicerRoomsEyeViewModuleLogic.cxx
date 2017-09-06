@@ -1289,14 +1289,3 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
 
   return statusString;
 }
-
-/** This function was added to help with the issue of the vtkMRMLRTBeamNode::CalculateSourcePosition function not accounting for beam transformations, but has been unsuccessful thus far
-bool vtkSlicerRoomsEyeViewModuleLogic::CalculateNewSourcePosition(vtkMRMLRTBeamNode* beamNode, double oldSourcePosition[3], double newSourcePosition[3]){
-  vtkMatrix4x4* sourcePositionTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkTransform* sourcePositionTransform = vtkSmartPointer<vtkTransform>::New();
-  vtkMRMLLinearTransformNode* sourcePositionTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName("NewBeam_7_Transform"));
-  sourcePositionTransform = vtkTransform::SafeDownCast(sourcePositionTransformNode->GetTransformFromParent());
-  sourcePositionTransform->TransformPoint(oldSourcePosition, newSourcePosition);
-
-  return true;
-}**/

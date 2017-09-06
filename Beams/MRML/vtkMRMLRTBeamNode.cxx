@@ -361,20 +361,10 @@ bool vtkMRMLRTBeamNode::GetPlanIsocenterPosition(double isocenter[3])
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLRTBeamNode::CalculateSourcePosition(double source[3])
+bool vtkMRMLRTBeamNode::GetSourcePosition(double source[3])
 {
-  double isocenter[3] = {0.0,0.0,0.0};
-  if (!this->GetPlanIsocenterPosition(isocenter))
-  {
-    vtkErrorMacro("CalculateSourcePosition: Failed to get plan isocenter position");
-    return false;
-  }
-
-  double gantryAngleRadian = this->GantryAngle * M_PI / 180.0;
-
-  source[0] = isocenter[0] + this->SAD * sin(gantryAngleRadian);
-  source[1] = isocenter[1] - this->SAD * cos(gantryAngleRadian);
-  source[2] = isocenter[2];
+  double sourcePosition_Beam[3] = {0.0, 0.0, this->SAD};
+  this->TransformPointToWorld(sourcePosition_Beam, source);
 
   return true;
 }

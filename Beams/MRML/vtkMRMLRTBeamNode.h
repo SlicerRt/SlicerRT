@@ -120,7 +120,7 @@ public:
 
   /// Calculate source position using gantry angle, SAD, and isocenter
   /// \return Success flag
-  bool CalculateSourcePosition(double source[3]);
+  bool GetSourcePosition(double source[3]);
 
 // Beam parameters
 public:
