@@ -167,6 +167,17 @@ public:
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, bool defaultValue, QStringList dependentParameterNames=QStringList() );
 
+  /// Add new string type beam parameter to beam parameters widget as a line edit
+  /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
+  /// \param parameterName Name of the beam parameter. This is prefixed with the dose engine name
+  ///   and added to the beam node as attribute
+  /// \param parameterLabel Text to be shown in the beam parameters widget in the left column
+  /// \param tooltip Tooltip describing the beam parameter that pop up on the parameter widget
+  /// \param defaultValue Default parameter value
+  Q_INVOKABLE void addBeamParameterLineEdit(
+    QString tabName, QString parameterName, QString parameterLabel,
+    QString tooltip, QString defaultValue );
+
 // Beam parameter get/set functions
 public:
   /// Get beam parameter from beam node

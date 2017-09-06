@@ -207,7 +207,7 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
 
   // Calculate sourcePosition position
   double sourcePosition[3] = {0.0, 0.0, 0.0};
-  if (!beamNode->CalculateSourcePosition(sourcePosition))
+  if (!beamNode->GetSourcePosition(sourcePosition))
   {
     QString errorMessage("Failed to calculate source position");
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;

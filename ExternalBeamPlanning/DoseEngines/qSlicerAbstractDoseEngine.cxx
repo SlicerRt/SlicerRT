@@ -472,6 +472,30 @@ void qSlicerAbstractDoseEngine::addBeamParameterCheckBox(
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::addBeamParameterLineEdit(
+  QString tabName, QString parameterName, QString parameterLabel,
+  QString tooltip, QString defaultValue )
+{
+  Q_D(qSlicerAbstractDoseEngine);
+
+  // Add parameter to container
+  d->BeamParameters[parameterName] = QVariant(defaultValue);
+
+  // Get beam parameters tab widget from beams module widget
+  qMRMLBeamParametersTabWidget* beamParametersTabWidget = this->beamParametersTabWidgetFromBeamsModule();
+  if (!beamParametersTabWidget)
+  {
+    qCritical() << Q_FUNC_INFO << ": Beam parameters tab widget cannot be accessed through Beams module";
+    return;
+  }
+
+  // Add beam parameter to tab widget
+  beamParametersTabWidget->addBeamParameterLineEdit(
+    tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
+    tooltip, defaultValue );
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::setBeamParametersVisible(bool visible)
 {
   Q_D(qSlicerAbstractDoseEngine);
