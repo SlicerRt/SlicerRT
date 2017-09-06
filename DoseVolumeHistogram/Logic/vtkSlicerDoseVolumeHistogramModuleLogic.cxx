@@ -772,7 +772,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
 
   const char* segmentId = dvhArrayNode->GetAttribute(DVH_SEGMENT_ID_ATTRIBUTE_NAME.c_str());
 
-  // Get selected chart and dose volume nodes
+  // Get selected segmentation and dose volume nodes
   vtkMRMLScalarVolumeNode* doseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(dvhArrayNode->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::DOSE_VOLUME_REFERENCE_ROLE));
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(dvhArrayNode->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::SEGMENTATION_REFERENCE_ROLE));
   if (!doseVolumeNode || !segmentationNode)
@@ -787,6 +787,19 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
     return;
   }
   std::string segmentName(segment->GetName());
+
+  // Switch to quantitative layout if it has not been set before.
+  // This step is necessary to take before accessing the chart view node, as switching makes sure there is one
+  vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByClass("vtkMRMLLayoutNode") );
+  if ( layoutNode
+    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutConventionalQuantitativeView
+    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutFourUpQuantitativeView
+    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutOneUpQuantitativeView )
+  {
+    layoutNode->SetViewArrangement( vtkMRMLLayoutNode::SlicerLayoutFourUpQuantitativeView );
+  }
+
   // Get chart view node
   vtkMRMLChartViewNode* chartViewNode = this->GetChartViewNode();
   if (chartViewNode == NULL)
@@ -905,17 +918,6 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
     << std::setw(2) << std::setfill('0') << (int)(segmentColor[2]*255.0+0.5);
   chartNode->SetProperty(structurePlotName.c_str(), "color", colorAttrValueStream.str().c_str());
   chartNode->SetProperty(structurePlotName.c_str(), "linePattern", lineStyle.c_str());
-
-  // Switch to quantitative layout if it has not been set before
-  vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByClass("vtkMRMLLayoutNode") );
-  if ( layoutNode
-    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutConventionalQuantitativeView
-    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutFourUpQuantitativeView
-    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutOneUpQuantitativeView )
-  {
-    layoutNode->SetViewArrangement( vtkMRMLLayoutNode::SlicerLayoutFourUpQuantitativeView );
-  }
 }
 
 //---------------------------------------------------------------------------
