@@ -184,9 +184,9 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     doseVoxelCount = imageAccumulate.GetVoxelCount()
     logging.info("Dose volume properties:\n  Max=" + str(doseMax) + ", Mean=" + str(doseMean) + ", StdDev=" + str(doseStdDev) + ", NumberOfVoxels=" + str(doseVoxelCount))
 
-    self.assertTrue(self.isEqualWithTolerance(doseMax, 1.02192))
-    self.assertTrue(self.isEqualWithTolerance(doseMean, 0.02490))
-    self.assertTrue(self.isEqualWithTolerance(doseStdDev, 0.14659))
+    self.assertTrue(self.isEqualWithTolerance(doseMax, 1.09556))
+    self.assertTrue(self.isEqualWithTolerance(doseMean, 0.01670))
+    self.assertTrue(self.isEqualWithTolerance(doseStdDev, 0.12670))
     self.assertTrue(self.isEqualWithTolerance(doseVoxelCount, 1000))
 
   #------------------------------------------------------------------------------
