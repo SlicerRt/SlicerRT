@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 2.8.7)
-
 #-----------------------------------------------------------------------------
 set(MODULE_NAME SegmentMorphology)
 set(MODULE_TITLE "Segment Morphology")

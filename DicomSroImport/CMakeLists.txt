@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 2.8.9)
-
 #-----------------------------------------------------------------------------
 set(MODULE_NAME "DicomSroImport")
 set(MODULE_TITLE "DICOM Spatial Registration Object Import")
