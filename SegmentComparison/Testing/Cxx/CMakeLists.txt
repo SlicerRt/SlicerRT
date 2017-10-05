@@ -2,6 +2,7 @@ set(KIT qSlicer${MODULE_NAME}Module)
 
 set(KIT_TEST_SRCS
   vtkSlicerSegmentComparisonModuleLogicTest1.cxx
+  vtkPolyDataDistanceHistogramFilterTest.cxx
   )
 
 slicerMacroConfigureModuleCxxTestDriver(
@@ -98,3 +99,7 @@ TEST_WITH_DATA(
   5.72977
 )
 set_tests_properties(vtkSlicerSegmentComparisonModuleLogicTest_EclipseProstate_Transformed PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
+
+#-----------------------------------------------------------------------------
+
+simple_test(vtkPolyDataDistanceHistogramFilterTest)
