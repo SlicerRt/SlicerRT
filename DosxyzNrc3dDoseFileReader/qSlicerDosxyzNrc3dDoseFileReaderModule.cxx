@@ -12,10 +12,9 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Jennifer Andrea, PerkLab, Queen's University
+  This file was originally developed by Anna Ilina, PerkLab, Queen's University
   and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Natural Sciences and Engineering Research Council
-  of Canada.
+  Ontario.
 
 ==============================================================================*/
 
@@ -27,55 +26,55 @@
 #include <qSlicerIOManager.h>
 #include <qSlicerNodeWriter.h>
 
-// VffFileReader Logic includes
-#include <vtkSlicerVffFileReaderLogic.h>
+// DosxyzNrc3dDoseFileReader Logic includes
+#include <vtkSlicerDosxyzNrc3dDoseFileReaderLogic.h>
 
-// VffFileReader QTModule includes
-#include "qSlicerVffFileReaderPlugin.h"
-#include "qSlicerVffFileReaderModule.h"
-#include "qSlicerVffFileReaderPluginWidget.h"
+// DosxyzNrc3dDoseFileReader QTModule includes
+#include "qSlicerDosxyzNrc3dDoseFileReaderPlugin.h"
+#include "qSlicerDosxyzNrc3dDoseFileReaderModule.h"
+#include "qSlicerDosxyzNrc3dDoseFileReaderPluginWidget.h"
 
-
-//-----------------------------------------------------------------------------
-Q_EXPORT_PLUGIN2(qSlicerVffFileReaderModule, qSlicerVffFileReaderModule);
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_QtModules_VffFileReader
-class qSlicerVffFileReaderModulePrivate
+Q_EXPORT_PLUGIN2(qSlicerDosxyzNrc3dDoseFileReaderModule, qSlicerDosxyzNrc3dDoseFileReaderModule);
+
+//-----------------------------------------------------------------------------
+/// \ingroup SlicerRt_QtModules_DosxyzNrc3dDoseFileReader
+class qSlicerDosxyzNrc3dDoseFileReaderModulePrivate
 {
 public:
-  qSlicerVffFileReaderModulePrivate();
+  qSlicerDosxyzNrc3dDoseFileReaderModulePrivate();
 };
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderModulePrivate::qSlicerVffFileReaderModulePrivate()
+qSlicerDosxyzNrc3dDoseFileReaderModulePrivate::qSlicerDosxyzNrc3dDoseFileReaderModulePrivate()
 {
 }
 
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderModule::qSlicerVffFileReaderModule(QObject* _parent)
+qSlicerDosxyzNrc3dDoseFileReaderModule::qSlicerDosxyzNrc3dDoseFileReaderModule(QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerVffFileReaderModulePrivate)
+  , d_ptr(new qSlicerDosxyzNrc3dDoseFileReaderModulePrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderModule::~qSlicerVffFileReaderModule()
+qSlicerDosxyzNrc3dDoseFileReaderModule::~qSlicerDosxyzNrc3dDoseFileReaderModule()
 {
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerVffFileReaderModule::helpText()const
+QString qSlicerDosxyzNrc3dDoseFileReaderModule::helpText()const
 {
   QString help = QString(
-    "The VffFileReader module enables importing and loading VFF files into Slicer.<br>"
-    "The VffFileReader module is hidden and therefore does not require an application.<br>");
+    "The DosxyzNrc3dDoseFileReader module enables importing and loading DosxyzNrc3dDose files into Slicer.<br>"
+    "The DosxyzNrc3dDoseFileReader module is hidden and therefore does not require an application.<br>");
   return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerVffFileReaderModule::acknowledgementText()const
+QString qSlicerDosxyzNrc3dDoseFileReaderModule::acknowledgementText()const
 {
   QString acknowledgement = QString(
     "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).");
@@ -83,7 +82,7 @@ QString qSlicerVffFileReaderModule::acknowledgementText()const
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerVffFileReaderModule::contributors()const
+QStringList qSlicerDosxyzNrc3dDoseFileReaderModule::contributors()const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Jennifer Andrea (Queen's)") << QString("Csaba Pinter (Queen's)");
@@ -91,37 +90,37 @@ QStringList qSlicerVffFileReaderModule::contributors()const
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerVffFileReaderModule::categories()const
+QStringList qSlicerDosxyzNrc3dDoseFileReaderModule::categories()const
 {
   return QStringList() << "";
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerVffFileReaderModule::setup()
+void qSlicerDosxyzNrc3dDoseFileReaderModule::setup()
 {
   this->Superclass::setup();
   
-  vtkSlicerVffFileReaderLogic* vffFileReaderLogic =  
-    vtkSlicerVffFileReaderLogic::SafeDownCast(this->logic());
+  vtkSlicerDosxyzNrc3dDoseFileReaderLogic* DosxyzNrc3dDoseFileReaderLogic =  
+    vtkSlicerDosxyzNrc3dDoseFileReaderLogic::SafeDownCast(this->logic());
 
   // Adds the module to the IO Manager
   qSlicerCoreIOManager* ioManager =
     qSlicerCoreApplication::application()->coreIOManager();
-  ioManager->registerIO(new qSlicerVffFileReaderPlugin(vffFileReaderLogic,this));
+  ioManager->registerIO(new qSlicerDosxyzNrc3dDoseFileReaderPlugin(DosxyzNrc3dDoseFileReaderLogic,this));
   ioManager->registerIO(new qSlicerNodeWriter(
-    "Vff", QString("VffFile"),
+    "DosxyzNrc3dDose", QString("DosxyzNrc3dDoseFile"),
     QStringList() << "vtkMRMLScalarVolumeNode", true, this));
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation* qSlicerVffFileReaderModule::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation* qSlicerDosxyzNrc3dDoseFileReaderModule::createWidgetRepresentation()
 {
-  return new qSlicerVffFileReaderPluginWidget;
+  return new qSlicerDosxyzNrc3dDoseFileReaderPluginWidget;
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLAbstractLogic* qSlicerVffFileReaderModule::createLogic()
+vtkMRMLAbstractLogic* qSlicerDosxyzNrc3dDoseFileReaderModule::createLogic()
 {
-  return vtkSlicerVffFileReaderLogic::New();
+  return vtkSlicerDosxyzNrc3dDoseFileReaderLogic::New();
 }
 

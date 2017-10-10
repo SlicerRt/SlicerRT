@@ -12,15 +12,14 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Jennifer Andrea, PerkLab, Queen's University
+  This file was originally developed by Anna Ilina, PerkLab, Queen's University
   and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Natural Sciences and Engineering Research Council
-  of Canada.
+  Ontario.
 
 ==========================================================================*/
 
-// VffFileReader includes
-#include "vtkSlicerVffFileReaderLogic.h"
+// DosxyzNrc3dDoseFileReader includes
+#include "vtkSlicerDosxyzNrc3dDoseFileReaderLogic.h"
 
 // VTK includes
 #include <vtkImageData.h>
@@ -46,20 +45,20 @@
 #include <functional>
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerVffFileReaderLogic);
+vtkStandardNewMacro(vtkSlicerDosxyzNrc3dDoseFileReaderLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerVffFileReaderLogic::vtkSlicerVffFileReaderLogic()
+vtkSlicerDosxyzNrc3dDoseFileReaderLogic::vtkSlicerDosxyzNrc3dDoseFileReaderLogic()
 {
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerVffFileReaderLogic::~vtkSlicerVffFileReaderLogic()
+vtkSlicerDosxyzNrc3dDoseFileReaderLogic::~vtkSlicerDosxyzNrc3dDoseFileReaderLogic()
 {
 }
 
 //----------------------------------------------------------------------------
-std::string vtkSlicerVffFileReaderLogic::TrimSpacesFromEndsOfString(std::string &stringToTrim)
+std::string vtkSlicerDosxyzNrc3dDoseFileReaderLogic::TrimSpacesFromEndsOfString(std::string &stringToTrim)
 {
   // Trim spaces from the beginning of the string
   stringToTrim.erase(stringToTrim.begin(), std::find_if(stringToTrim.begin(), stringToTrim.end(), std::not1(std::ptr_fun<int, int>(std::isspace)))); 
@@ -71,7 +70,7 @@ std::string vtkSlicerVffFileReaderLogic::TrimSpacesFromEndsOfString(std::string 
 }
 
 //----------------------------------------------------------------------------
-bool vtkSlicerVffFileReaderLogic::ReadVffFileHeader(ifstream &readFileStream, std::map<std::string, std::string> &parameterList)
+bool vtkSlicerDosxyzNrc3dDoseFileReaderLogic::ReadDosxyzNrc3dDoseFileHeader(ifstream &readFileStream, std::map<std::string, std::string> &parameterList)
 {
   std::string currentStringFromFile = "";
   while(readFileStream.good())
@@ -101,7 +100,7 @@ bool vtkSlicerVffFileReaderLogic::ReadVffFileHeader(ifstream &readFileStream, st
           parameterValue = this->TrimSpacesFromEndsOfString(parameterValue);
           if (parameterValue.size() <= 0)
           {
-            vtkWarningMacro("ReadVffFileHeader: Nothing follows the equal sign in header item: '" << parameterType << "'");
+            vtkWarningMacro("ReadDosxyzNrc3dDoseFileHeader: Nothing follows the equal sign in header item: '" << parameterType << "'");
           }
           else
           {
@@ -110,7 +109,7 @@ bool vtkSlicerVffFileReaderLogic::ReadVffFileHeader(ifstream &readFileStream, st
         }
         else
         {
-          vtkWarningMacro("ReadVffFileHeader: No equal sign in header item '" << parameterType << "'");
+          vtkWarningMacro("ReadDosxyzNrc3dDoseFileHeader: No equal sign in header item '" << parameterType << "'");
         }
       }
       currentStringFromFile = "";
@@ -127,7 +126,7 @@ bool vtkSlicerVffFileReaderLogic::ReadVffFileHeader(ifstream &readFileStream, st
 
 //----------------------------------------------------------------------------
 template <class Num> 
-std::vector<Num> vtkSlicerVffFileReaderLogic::ParseNumberOfNumbersFromString(std::string stringToParse, unsigned int numberOfNumbers)
+std::vector<Num> vtkSlicerDosxyzNrc3dDoseFileReaderLogic::ParseNumberOfNumbersFromString(std::string stringToParse, unsigned int numberOfNumbers)
 {
   std::vector<Num> vectorOfNumberOfNumbers (numberOfNumbers, 0);
   if (numberOfNumbers == 0)
@@ -190,13 +189,13 @@ std::vector<Num> vtkSlicerVffFileReaderLogic::ParseNumberOfNumbersFromString(std
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerVffFileReaderLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageIntensityScaleAndOffsetFromFile)
+void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char *filename, bool useImageIntensityScaleAndOffsetFromFile)
 {
   ifstream readFileStream;
   readFileStream.open(filename, std::ios::binary);
@@ -225,17 +224,17 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     bool parameterMissing = false;
     bool parameterInvalidValue = false;
 
-    bool headerParseSuccess = this->ReadVffFileHeader(readFileStream, parameterList);
+    bool headerParseSuccess = this->ReadDosxyzNrc3dDoseFileHeader(readFileStream, parameterList);
     if (headerParseSuccess == false)
     {
-      vtkErrorMacro("LoadVffFile: The header did not parse correctly.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The header did not parse correctly.");
     }
 
     // For each of the known parameters, interprets the string associated with the parameter into the correct format and sets the corresponding variable, as well as checking the correctness of the value
     std::vector<int> numberFromParsedStringRank = this->ParseNumberOfNumbersFromString<int>(parameterList["rank"], 1);
     if (numberFromParsedStringRank.empty()) 
     {
-      vtkErrorMacro("LoadVffFile: An integer was not entered for the rank. The value entered for the rank must be 3.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: An integer was not entered for the rank. The value entered for the rank must be 3.");
       parameterMissing = true;
     }
     else 
@@ -243,14 +242,14 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       rank = numberFromParsedStringRank[0];
       if (rank != 3)
       {
-        vtkErrorMacro("LoadVffFile: The value entered for the rank must be 3.");
+        vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The value entered for the rank must be 3.");
         parameterInvalidValue = true;
       }
     }
 
     if (parameterList["type"].empty())
     {
-      vtkErrorMacro("LoadVffFile: A string was not entered for the type. The value must be separated from the parameter with an '='. The value entered for the type must be raster.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: A string was not entered for the type. The value must be separated from the parameter with an '='. The value entered for the type must be raster.");
       parameterMissing = true;
     }
     else
@@ -258,14 +257,14 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       type = parameterList["type"];
       if (type.compare("raster") != 0)
       {
-        vtkErrorMacro("LoadVffFile: The value entered for the type must be raster.");
+        vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The value entered for the type must be raster.");
         parameterInvalidValue = true;
       }
     }
 
     if (parameterList["format"].empty())
     {
-      vtkErrorMacro("LoadVffFile: A string was not entered for the format. The value must be separated from the parameter with an '='. The value entered for the format must be slice.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: A string was not entered for the format. The value must be separated from the parameter with an '='. The value entered for the format must be slice.");
       parameterMissing = true;
     }
     else
@@ -273,7 +272,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       format = parameterList["format"];
       if (format.compare("slice") != 0)
       {
-        vtkErrorMacro("LoadVffFile: The value entered for the format must be slice.");
+        vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The value entered for the format must be slice.");
         parameterInvalidValue = true;
       }
     }
@@ -281,7 +280,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     std::vector<int> numberFromParsedStringBits = this->ParseNumberOfNumbersFromString<int>(parameterList["bits"], 1);
     if (numberFromParsedStringBits.empty()) 
     {
-      vtkErrorMacro("LoadVffFile: An integer was not entered for the bits. The value must be divisible by 8.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: An integer was not entered for the bits. The value must be divisible by 8.");
       parameterMissing = true;
     }
     else
@@ -289,7 +288,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       bits = numberFromParsedStringBits[0];
       if (bits % 8 != 0)
       {
-        vtkErrorMacro("LoadVffFile: The value entered for the bits must be divisible by 8.");
+        vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The value entered for the bits must be divisible by 8.");
         parameterInvalidValue = true;
       }
     }
@@ -297,7 +296,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     std::vector<int> numberFromParsedStringBands = this->ParseNumberOfNumbersFromString<int>(parameterList["bands"], 1);
     if (numberFromParsedStringBands.empty()) 
     {
-      vtkErrorMacro("LoadVffFile: An integer was not entered for the bands. The value entered for the bands must be 1.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: An integer was not entered for the bands. The value entered for the bands must be 1.");
       parameterMissing = true;
     }
     else
@@ -305,7 +304,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       bands = numberFromParsedStringBands[0];
       if (bands != 1)
       {
-        vtkErrorMacro("LoadVffFile: The value entered for the bands must be 1.");
+        vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The value entered for the bands must be 1.");
         parameterInvalidValue  = true;
       }
     }
@@ -313,7 +312,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     std::vector<int> numbersFromParsedStringSize = this->ParseNumberOfNumbersFromString<int>(parameterList["size"], 3);
     if (numbersFromParsedStringSize.empty())
     {
-      vtkErrorMacro("LoadVffFile: 3 integers were not entered for the size.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: 3 integers were not entered for the size.");
       parameterMissing = true;
     }
     else
@@ -323,7 +322,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       size[2] = numbersFromParsedStringSize[2];
       if (size[0] <= 0 || size[1] <=0 || size[2] <= 0)
       {
-        vtkErrorMacro("LoadVffFile: The values for the size must each be greater than 0.");
+        vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The values for the size must each be greater than 0.");
         parameterInvalidValue = true;
       }
     }
@@ -331,7 +330,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     std::vector<double> numbersFromParsedStringSpacing = this->ParseNumberOfNumbersFromString<double>(parameterList["spacing"], 3);
     if (numbersFromParsedStringSpacing.empty())
     {
-      vtkErrorMacro("LoadVffFile: 3 doubles were not entered for the spacing.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: 3 doubles were not entered for the spacing.");
       parameterMissing = true;
     }
     else
@@ -341,7 +340,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       spacing[2] = numbersFromParsedStringSpacing[2];
       if (spacing[0] < 0 || spacing[1] <0 || spacing[2] < 0)
       {
-        vtkErrorMacro("LoadVffFile: The values for the spacing must each be greater than or equal to 0.");
+        vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The values for the spacing must each be greater than or equal to 0.");
         parameterInvalidValue = true;
       }
     }
@@ -349,7 +348,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     std::vector<double> numbersFromParsedStringOrigin = this->ParseNumberOfNumbersFromString<double>(parameterList["origin"], 3);
     if (numbersFromParsedStringOrigin.empty())
     {
-      vtkErrorMacro("LoadVffFile: 3 doubles were not entered for the origin.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: 3 doubles were not entered for the origin.");
       parameterMissing = true;
     }
     else
@@ -359,7 +358,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       origin[2] = numbersFromParsedStringOrigin[2];
       if (origin[0] < 0 || origin[1] <0 || origin[2] < 0)
       {
-        vtkErrorMacro("LoadVffFile: The values for the origin must each be greater than or equal to 0.");
+        vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The values for the origin must each be greater than or equal to 0.");
         parameterInvalidValue = true;
       }
     }          
@@ -367,7 +366,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     std::vector<int> numberFromParsedStringRawsize = this->ParseNumberOfNumbersFromString<int>(parameterList["rawsize"], 1);
     if (numberFromParsedStringRawsize.empty()) 
     {
-      vtkErrorMacro("LoadVffFile: An integer was not entered for the rawsize.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: An integer was not entered for the rawsize.");
       parameterMissing = true;
     }
     else 
@@ -375,7 +374,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       rawsize = numberFromParsedStringRawsize[0];
       if (rawsize <= 0)
       {
-        vtkErrorMacro("LoadVffFile: The value entered for the rawsize must be greater than or equal to 0.");
+        vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The value entered for the rawsize must be greater than or equal to 0.");
         parameterInvalidValue = true;
       }
     }
@@ -383,7 +382,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     std::vector<double> numberFromParsedStringDataScale = this->ParseNumberOfNumbersFromString<double>(parameterList["data_scale"], 1);
     if (numberFromParsedStringDataScale.empty())
     {
-      vtkErrorMacro("LoadVffFile: A double was not entered for the data_scale.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: A double was not entered for the data_scale.");
       parameterMissing = true;
     }
     else
@@ -394,7 +393,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     std::vector<double> numberFromParsedStringDataOffset = this->ParseNumberOfNumbersFromString<double>(parameterList["data_offset"], 1);
     if (numberFromParsedStringDataOffset.empty())
     {
-      vtkErrorMacro("LoadVffFile: A double was not entered for the data_offset. The value entered must be 0.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: A double was not entered for the data_offset. The value entered must be 0.");
       parameterMissing = true;
     }
     else
@@ -404,7 +403,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
 
     if (parameterList["handlescatter"].empty())
     {
-      vtkErrorMacro("LoadVffFile: A string was not entered for Handle Scatter. The value must be separated from the parameter with an '='. The value entered for Handle Scatter must be factor.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: A string was not entered for Handle Scatter. The value must be separated from the parameter with an '='. The value entered for Handle Scatter must be factor.");
       parameterMissing = true;
     }
     else
@@ -412,7 +411,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       handleScatter = parameterList["handlescatter"]; 
       if (handleScatter.compare("factor") != 0)
       {
-        vtkErrorMacro("LoadVffFile: The value entered for Handle Scatter must be factor.");
+        vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The value entered for Handle Scatter must be factor.");
         parameterInvalidValue = true;
       }
     }
@@ -420,7 +419,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     std::vector<double> numberFromParsedStringReferenceScatterFactor = this->ParseNumberOfNumbersFromString<double>(parameterList["referencescatterfactor"], 1);
     if (numberFromParsedStringReferenceScatterFactor.empty())
     {
-      vtkErrorMacro("LoadVffFile: A double was not entered for the Reference Scatter Factor. The value entered must be 1.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: A double was not entered for the Reference Scatter Factor. The value entered must be 1.");
       parameterMissing = true;
     }
     else
@@ -431,7 +430,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     std::vector<double> numberFromParsedStringDataScatterFactor = this->ParseNumberOfNumbersFromString<double>(parameterList["datascatterfactor"], 1);
     if (numberFromParsedStringDataScatterFactor.empty())
     {
-      vtkErrorMacro("LoadVffFile: A double was not entered for the Data Scatter Factor. The value entered must be 1.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: A double was not entered for the Data Scatter Factor. The value entered must be 1.");
       parameterMissing = true;
     }
     else 
@@ -441,13 +440,13 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
 
     if (parameterList["filter"].empty())
     {
-      vtkWarningMacro("LoadVffFile: Empty filter value! The value must be separated from the parameter with an '='");
+      vtkWarningMacro("LoadDosxyzNrc3dDoseFile: Empty filter value! The value must be separated from the parameter with an '='");
       //parameterMissing = true;
     }
     else
     {
       filter = parameterList["filter"];
-      vtkDebugMacro("LoadVffFile: Used filter for optical CT file is:\n" << filter);
+      vtkDebugMacro("LoadDosxyzNrc3dDoseFile: Used filter for optical CT file is:\n" << filter);
     }
 
     if (parameterList["title"].empty() == false)
@@ -464,7 +463,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       }
       // Strip the extension from the end of the string
       int lastPeriodPos = fileNameFromTitle.find_last_of(".");
-      if (lastPeriodPos != std::string::npos && fileNameFromTitle.substr(lastPeriodPos) == ".vff")
+      if (lastPeriodPos != std::string::npos && fileNameFromTitle.substr(lastPeriodPos) == ".DosxyzNrc3dDose")
       {
         fileNameFromTitle = fileNameFromTitle.substr(0, lastPeriodPos);
       }
@@ -477,7 +476,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
         fileNameStr = fileNameStr.substr(lastSlashPos+1);
       }
       lastPeriodPos = fileNameStr.find_last_of(".");
-      if (lastPeriodPos != std::string::npos && fileNameStr.substr(lastPeriodPos) == ".vff")
+      if (lastPeriodPos != std::string::npos && fileNameStr.substr(lastPeriodPos) == ".DosxyzNrc3dDose")
       {
         fileNameStr = fileNameStr.substr(0, lastPeriodPos);
       }
@@ -492,12 +491,12 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     else
     {
       parameterMissing = true;
-      vtkErrorMacro("LoadVffFile: A string was not entered for the title.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: A string was not entered for the title.");
     }
 
     if (parameterList["date"].size() <= 0)
     {
-      vtkErrorMacro("LoadVffFile: A string was not entered for the date. The value must be separated from the parameter with an '='.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: A string was not entered for the date. The value must be separated from the parameter with an '='.");
     }
     else
     {
@@ -515,41 +514,41 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
 
       if (rawsize != sizeOfImageData)
       {
-        vtkWarningMacro("LoadVffFile: The specified size from the parameters does not match the specified raw size.");
+        vtkWarningMacro("LoadDosxyzNrc3dDoseFile: The specified size from the parameters does not match the specified raw size.");
       }
 
-      vtkSmartPointer<vtkMRMLScalarVolumeNode> vffVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-      vffVolumeNode->SetScene(this->GetMRMLScene());
-      vffVolumeNode->SetName(name.c_str());
-      vffVolumeNode->SetSpacing(spacing[0], spacing[1], spacing[2]);
-      vffVolumeNode->SetOrigin(origin[0], origin[1], origin[2]);
+      vtkSmartPointer<vtkMRMLScalarVolumeNode> DosxyzNrc3dDoseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+      DosxyzNrc3dDoseVolumeNode->SetScene(this->GetMRMLScene());
+      DosxyzNrc3dDoseVolumeNode->SetName(name.c_str());
+      DosxyzNrc3dDoseVolumeNode->SetSpacing(spacing[0], spacing[1], spacing[2]);
+      DosxyzNrc3dDoseVolumeNode->SetOrigin(origin[0], origin[1], origin[2]);
       vtkSmartPointer<vtkMatrix4x4> lpsToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
       lpsToRasMatrix->SetElement(0,0,-1);
       lpsToRasMatrix->SetElement(1,1,-1);
-      vtkSmartPointer<vtkMatrix4x4> vffIjkToLpsMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      vffVolumeNode->GetIJKToRASMatrix(vffIjkToLpsMatrix);
-      vtkSmartPointer<vtkMatrix4x4> vffIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-      vtkMatrix4x4::Multiply4x4(vffIjkToLpsMatrix, lpsToRasMatrix, vffIjkToRasMatrix);
-      vffVolumeNode->SetIJKToRASMatrix(vffIjkToRasMatrix);
-      vffVolumeNode->SetSlicerDataType(type.c_str());
-      this->GetMRMLScene()->AddNode(vffVolumeNode);
+      vtkSmartPointer<vtkMatrix4x4> DosxyzNrc3dDoseIjkToLpsMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      DosxyzNrc3dDoseVolumeNode->GetIJKToRASMatrix(DosxyzNrc3dDoseIjkToLpsMatrix);
+      vtkSmartPointer<vtkMatrix4x4> DosxyzNrc3dDoseIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+      vtkMatrix4x4::Multiply4x4(DosxyzNrc3dDoseIjkToLpsMatrix, lpsToRasMatrix, DosxyzNrc3dDoseIjkToRasMatrix);
+      DosxyzNrc3dDoseVolumeNode->SetIJKToRASMatrix(DosxyzNrc3dDoseIjkToRasMatrix);
+      DosxyzNrc3dDoseVolumeNode->SetSlicerDataType(type.c_str());
+      this->GetMRMLScene()->AddNode(DosxyzNrc3dDoseVolumeNode);
 
       // Checks if the date parameter (not required) was set
       if (isDateCurrentlySet == true)
       {
-        vffVolumeNode->SetAttribute("Date", date.c_str());
+        DosxyzNrc3dDoseVolumeNode->SetAttribute("Date", date.c_str());
       }
 
-      vtkSmartPointer<vtkImageData> floatVffVolumeData = vtkSmartPointer<vtkImageData>::New();
-      floatVffVolumeData->SetExtent(0, size[0]-1, 0, size[1]-1, 0, size[2]-1);
-      floatVffVolumeData->SetSpacing(1, 1, 1);
-      floatVffVolumeData->SetOrigin(0, 0, 0);
-      floatVffVolumeData->AllocateScalars(VTK_FLOAT, bands);
+      vtkSmartPointer<vtkImageData> floatDosxyzNrc3dDoseVolumeData = vtkSmartPointer<vtkImageData>::New();
+      floatDosxyzNrc3dDoseVolumeData->SetExtent(0, size[0]-1, 0, size[1]-1, 0, size[2]-1);
+      floatDosxyzNrc3dDoseVolumeData->SetSpacing(1, 1, 1);
+      floatDosxyzNrc3dDoseVolumeData->SetOrigin(0, 0, 0);
+      floatDosxyzNrc3dDoseVolumeData->AllocateScalars(VTK_FLOAT, bands);
 
       // Reads the line feed that comes directly before the image data from the file
       readFileStream.get();
 
-      float* floatPtr = (float*)floatVffVolumeData->GetScalarPointer();
+      float* floatPtr = (float*)floatDosxyzNrc3dDoseVolumeData->GetScalarPointer();
       std::stringstream ss;
 
       // The size of the image data read is specified in the header by the parameter size
@@ -581,12 +580,12 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
               }
               else
               {
-                vtkErrorMacro("LoadVffFile: The end of the file was reached earlier than specified.");
+                vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The end of the file was reached earlier than specified.");
               }
             }
             else
             {
-              vtkErrorMacro("LoadVffFile: The end of the file was reached earlier than specified.");
+              vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The end of the file was reached earlier than specified.");
             }
           }
         }
@@ -594,7 +593,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       
       if (readFileStream.get() && !readFileStream.eof())
       {
-        vtkWarningMacro("LoadVffFile: The end of the file was not reached.");
+        vtkWarningMacro("LoadDosxyzNrc3dDoseFile: The end of the file was not reached.");
       }
       
       
@@ -603,22 +602,22 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
         vtkSmartPointer<vtkImageShiftScale> imageIntensityShiftScale = vtkSmartPointer<vtkImageShiftScale>::New();
         imageIntensityShiftScale->SetScale(data_scale);
         imageIntensityShiftScale->SetShift(data_offset);
-  	    imageIntensityShiftScale->SetInputData(floatVffVolumeData);
+  	    imageIntensityShiftScale->SetInputData(floatDosxyzNrc3dDoseVolumeData);
         imageIntensityShiftScale->Update();
-        floatVffVolumeData = imageIntensityShiftScale->GetOutput();
+        floatDosxyzNrc3dDoseVolumeData = imageIntensityShiftScale->GetOutput();
       }
 
-      vffVolumeNode->SetAndObserveImageData(floatVffVolumeData);
+      DosxyzNrc3dDoseVolumeNode->SetAndObserveImageData(floatDosxyzNrc3dDoseVolumeData);
 
-      vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> vffVolumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
-      this->GetMRMLScene()->AddNode(vffVolumeDisplayNode);
-      vffVolumeNode->SetAndObserveDisplayNodeID(vffVolumeDisplayNode->GetID());
+      vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> DosxyzNrc3dDoseVolumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
+      this->GetMRMLScene()->AddNode(DosxyzNrc3dDoseVolumeDisplayNode);
+      DosxyzNrc3dDoseVolumeNode->SetAndObserveDisplayNodeID(DosxyzNrc3dDoseVolumeDisplayNode->GetID());
 
       if (this->GetApplicationLogic()!=NULL)
       {
         if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
         {
-          this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(vffVolumeNode->GetID());
+          this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(DosxyzNrc3dDoseVolumeNode->GetID());
           this->GetApplicationLogic()->PropagateVolumeSelection();
           this->GetApplicationLogic()->FitSliceToAll();
         }
@@ -626,18 +625,18 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
 
       if (bands == 1)
       {
-        vffVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey");
+        DosxyzNrc3dDoseVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey");
       }
-      vffVolumeNode->SetAndObserveDisplayNodeID(vffVolumeDisplayNode->GetID());
+      DosxyzNrc3dDoseVolumeNode->SetAndObserveDisplayNodeID(DosxyzNrc3dDoseVolumeDisplayNode->GetID());
     }
     else
     {
-      vtkErrorMacro("LoadVffFile: Incorrect parameters or required parameters that were not set, vff file failed to load. The required parameters are: rank, type, format, bits, bands, size, spacing, origin, rawsize, data scale, data offset, and title.");
+      vtkErrorMacro("LoadDosxyzNrc3dDoseFile: Incorrect parameters or required parameters that were not set, DosxyzNrc3dDose file failed to load. The required parameters are: rank, type, format, bits, bands, size, spacing, origin, rawsize, data scale, data offset, and title.");
     }   
   }
   else
   {
-    vtkErrorMacro("LoadVffFile: The specified file could not be opened.");
+    vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The specified file could not be opened.");
   }
     
   readFileStream.close();

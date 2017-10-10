@@ -12,41 +12,40 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Jennifer Andrea, PerkLab, Queen's University
+  This file was originally developed by Anna Ilina, PerkLab, Queen's University
   and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Natural Sciences and Engineering Research Council
-  of Canada.
+  Ontario.
 
 ==============================================================================*/
 
-#ifndef __qSlicerVffFileReaderPluginWidget_h
-#define __qSlicerVffFileReaderPluginWidget_h
+#ifndef __qSlicerDosxyzNrc3dDoseFileReaderPluginWidget_h
+#define __qSlicerDosxyzNrc3dDoseFileReaderPluginWidget_h
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-// VffFileReader includes
-#include "qSlicerVffFileReaderModuleExport.h"
+// DosxyzNrc3dDoseFileReader includes
+#include "qSlicerDosxyzNrc3dDoseFileReaderModuleExport.h"
 
-class qSlicerVffFileReaderPluginWidgetPrivate;
+class qSlicerDosxyzNrc3dDoseFileReaderPluginWidgetPrivate;
 
-/// \ingroup SlicerRt_QtModules_VffFileReader
-class Q_SLICER_VFFFILEREADER_EXPORT qSlicerVffFileReaderPluginWidget :
+/// \ingroup SlicerRt_QtModules_DosxyzNrc3dDoseFileReader
+class Q_SLICER_DosxyzNrc3dDoseFILEREADER_EXPORT qSlicerDosxyzNrc3dDoseFileReaderPluginWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerVffFileReaderPluginWidget(QWidget *parent=0);
-  virtual ~qSlicerVffFileReaderPluginWidget();
+  qSlicerDosxyzNrc3dDoseFileReaderPluginWidget(QWidget *parent=0);
+  virtual ~qSlicerDosxyzNrc3dDoseFileReaderPluginWidget();
 
 protected:
-  QScopedPointer<qSlicerVffFileReaderPluginWidgetPrivate> d_ptr;
+  QScopedPointer<qSlicerDosxyzNrc3dDoseFileReaderPluginWidgetPrivate> d_ptr;
   virtual void setup();
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerVffFileReaderPluginWidget);
-  Q_DISABLE_COPY(qSlicerVffFileReaderPluginWidget);
+  Q_DECLARE_PRIVATE(qSlicerDosxyzNrc3dDoseFileReaderPluginWidget);
+  Q_DISABLE_COPY(qSlicerDosxyzNrc3dDoseFileReaderPluginWidget);
 };
 
 #endif

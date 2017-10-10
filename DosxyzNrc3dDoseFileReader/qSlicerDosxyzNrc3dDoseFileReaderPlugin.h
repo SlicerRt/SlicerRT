@@ -12,37 +12,36 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Jennifer Andrea, PerkLab, Queen's University
+  This file was originally developed by Anna Ilina, PerkLab, Queen's University
   and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Natural Sciences and Engineering Research Council
-  of Canada.
+  Ontario.
 
 ==============================================================================*/
 
-#ifndef __qSlicerVffFileReaderPlugin
-#define __qSlicerVffFileReaderPlugin
+#ifndef __qSlicerDosxyzNrc3dDoseFileReaderPlugin
+#define __qSlicerDosxyzNrc3dDoseFileReaderPlugin
 
 // SlicerQt includes
 #include "qSlicerFileReader.h"
 
-class qSlicerVffFileReaderPluginPrivate;
-class vtkSlicerVffFileReaderLogic;
+class qSlicerDosxyzNrc3dDoseFileReaderPluginPrivate;
+class vtkSlicerDosxyzNrc3dDoseFileReaderLogic;
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_QtModules_VffFileReader
-class qSlicerVffFileReaderPlugin
+/// \ingroup SlicerRt_QtModules_DosxyzNrc3dDoseFileReader
+class qSlicerDosxyzNrc3dDoseFileReaderPlugin
   : public qSlicerFileReader
 {
   Q_OBJECT
 
 public:
   typedef qSlicerFileReader Superclass;
-  qSlicerVffFileReaderPlugin(QObject* parent = 0);
-  qSlicerVffFileReaderPlugin(vtkSlicerVffFileReaderLogic* logic, QObject* parent = 0);
-  virtual ~qSlicerVffFileReaderPlugin();
+  qSlicerDosxyzNrc3dDoseFileReaderPlugin(QObject* parent = 0);
+  qSlicerDosxyzNrc3dDoseFileReaderPlugin(vtkSlicerDosxyzNrc3dDoseFileReaderLogic* logic, QObject* parent = 0);
+  virtual ~qSlicerDosxyzNrc3dDoseFileReaderPlugin();
 
-  vtkSlicerVffFileReaderLogic* logic()const;
-  void setLogic(vtkSlicerVffFileReaderLogic* logic);
+  vtkSlicerDosxyzNrc3dDoseFileReaderLogic* logic()const;
+  void setLogic(vtkSlicerDosxyzNrc3dDoseFileReaderLogic* logic);
 
   virtual QString description()const;
   virtual IOFileType fileType()const;
@@ -51,11 +50,11 @@ public:
   virtual bool load(const IOProperties& properties);
 
 protected:
-  QScopedPointer<qSlicerVffFileReaderPluginPrivate> d_ptr;
+  QScopedPointer<qSlicerDosxyzNrc3dDoseFileReaderPluginPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerVffFileReaderPlugin);
-  Q_DISABLE_COPY(qSlicerVffFileReaderPlugin);
+  Q_DECLARE_PRIVATE(qSlicerDosxyzNrc3dDoseFileReaderPlugin);
+  Q_DISABLE_COPY(qSlicerDosxyzNrc3dDoseFileReaderPlugin);
 };
 
 #endif

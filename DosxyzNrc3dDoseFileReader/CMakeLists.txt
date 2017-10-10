@@ -6,8 +6,8 @@ if(POLICY CMP0022)
 endif()
 
 #-----------------------------------------------------------------------------
-set(MODULE_NAME VffFileReader)
-set(MODULE_TITLE "Vff File Reader")
+set(MODULE_NAME DosxyzNrc3dDoseFileReader)
+set(MODULE_TITLE "DosxyzNrc3dDose File Reader")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 

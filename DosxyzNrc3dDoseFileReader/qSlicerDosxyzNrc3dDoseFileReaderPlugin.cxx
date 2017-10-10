@@ -12,100 +12,99 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Jennifer Andrea, PerkLab, Queen's University
+  This file was originally developed by Anna Ilina, PerkLab, Queen's University
   and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Natural Sciences and Engineering Research Council
-  of Canada.
+  Ontario.
 
 ==============================================================================*/
 
 // SlicerQt includes
-#include "qSlicerVffFileReaderPlugin.h"
-#include "qSlicerVffFileReaderOptionsWidget.h"
+#include "qSlicerDosxyzNrc3dDoseFileReaderPlugin.h"
+#include "qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget.h"
 
 // Logic includes
-#include "vtkSlicerVffFileReaderLogic.h"
+#include "vtkSlicerDosxyzNrc3dDoseFileReaderLogic.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_QtModules_VffFileReader
-class qSlicerVffFileReaderPluginPrivate
+/// \ingroup SlicerRt_QtModules_DosxyzNrc3dDoseFileReader
+class qSlicerDosxyzNrc3dDoseFileReaderPluginPrivate
 {
   public:
-  vtkSmartPointer<vtkSlicerVffFileReaderLogic> Logic;
+  vtkSmartPointer<vtkSlicerDosxyzNrc3dDoseFileReaderLogic> Logic;
 };
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderPlugin::qSlicerVffFileReaderPlugin(QObject* _parent)
+qSlicerDosxyzNrc3dDoseFileReaderPlugin::qSlicerDosxyzNrc3dDoseFileReaderPlugin(QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerVffFileReaderPluginPrivate)
+  , d_ptr(new qSlicerDosxyzNrc3dDoseFileReaderPluginPrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderPlugin::qSlicerVffFileReaderPlugin(vtkSlicerVffFileReaderLogic* logic, QObject* _parent)
+qSlicerDosxyzNrc3dDoseFileReaderPlugin::qSlicerDosxyzNrc3dDoseFileReaderPlugin(vtkSlicerDosxyzNrc3dDoseFileReaderLogic* logic, QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerVffFileReaderPluginPrivate)
+  , d_ptr(new qSlicerDosxyzNrc3dDoseFileReaderPluginPrivate)
 {
   this->setLogic(logic);
 }
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderPlugin::~qSlicerVffFileReaderPlugin()
+qSlicerDosxyzNrc3dDoseFileReaderPlugin::~qSlicerDosxyzNrc3dDoseFileReaderPlugin()
 {
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerVffFileReaderPlugin::setLogic(vtkSlicerVffFileReaderLogic* logic)
+void qSlicerDosxyzNrc3dDoseFileReaderPlugin::setLogic(vtkSlicerDosxyzNrc3dDoseFileReaderLogic* logic)
 {
-  Q_D(qSlicerVffFileReaderPlugin);
+  Q_D(qSlicerDosxyzNrc3dDoseFileReaderPlugin);
   d->Logic = logic;
 }
 
 //-----------------------------------------------------------------------------
-vtkSlicerVffFileReaderLogic* qSlicerVffFileReaderPlugin::logic()const
+vtkSlicerDosxyzNrc3dDoseFileReaderLogic* qSlicerDosxyzNrc3dDoseFileReaderPlugin::logic()const
 {
-  Q_D(const qSlicerVffFileReaderPlugin);
+  Q_D(const qSlicerDosxyzNrc3dDoseFileReaderPlugin);
   return d->Logic.GetPointer();
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerVffFileReaderPlugin::description()const
+QString qSlicerDosxyzNrc3dDoseFileReaderPlugin::description()const
 {
-  return "Vff";
+  return "DosxyzNrc3dDose";
 }
 
 //-----------------------------------------------------------------------------
-qSlicerIO::IOFileType qSlicerVffFileReaderPlugin::fileType()const
+qSlicerIO::IOFileType qSlicerDosxyzNrc3dDoseFileReaderPlugin::fileType()const
 {
-  return QString("VffFile");
+  return QString("DosxyzNrc3dDoseFile");
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerVffFileReaderPlugin::extensions()const
+QStringList qSlicerDosxyzNrc3dDoseFileReaderPlugin::extensions()const
 {
-  return QStringList() << "Vff (*.vff)";
+  return QStringList() << "DosxyzNrc3dDose (*.DosxyzNrc3dDose)";
 }
 
 //-----------------------------------------------------------------------------
-qSlicerIOOptions* qSlicerVffFileReaderPlugin::options()const
+qSlicerIOOptions* qSlicerDosxyzNrc3dDoseFileReaderPlugin::options()const
 {
-  return new qSlicerVffFileReaderOptionsWidget;
+  return new qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget;
 }
 
 //-----------------------------------------------------------------------------
-bool qSlicerVffFileReaderPlugin::load(const IOProperties& properties) 
+bool qSlicerDosxyzNrc3dDoseFileReaderPlugin::load(const IOProperties& properties) 
 {
-  Q_D(qSlicerVffFileReaderPlugin);
+  Q_D(qSlicerDosxyzNrc3dDoseFileReaderPlugin);
   
   Q_ASSERT(properties.contains("fileName"));
   QString fileName = properties["fileName"].toString();
   Q_ASSERT(d->Logic);
 
   bool useImageIntensityScaleAndOffsetFromFile = properties["imageIntensityScaleAndOffset"].toBool();
-  d->Logic->LoadVffFile(fileName.toLatin1().data(), useImageIntensityScaleAndOffsetFromFile);
+  d->Logic->LoadDosxyzNrc3dDoseFile(fileName.toLatin1().data(), useImageIntensityScaleAndOffsetFromFile);
 
   this->setLoadedNodes(QStringList());
 

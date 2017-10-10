@@ -12,47 +12,46 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Jennifer Andrea, PerkLab, Queen's University
+  This file was originally developed by Anna Ilina, PerkLab, Queen's University
   and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Natural Sciences and Engineering Research Council
-  of Canada.
+  Ontario.
 
 ==============================================================================*/
 
-/// VffFileReader includes
-#include "qSlicerVffFileReaderPluginWidget.h"
-#include "ui_qSlicerVffFileReaderPluginWidget.h"
-#include "vtkSlicerVffFileReaderLogic.h"
+/// DosxyzNrc3dDoseFileReader includes
+#include "qSlicerDosxyzNrc3dDoseFileReaderPluginWidget.h"
+#include "ui_qSlicerDosxyzNrc3dDoseFileReaderPluginWidget.h"
+#include "vtkSlicerDosxyzNrc3dDoseFileReaderLogic.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_QtModules_VffFileReader
-class qSlicerVffFileReaderPluginWidgetPrivate: public Ui_qSlicerVffFileReaderPluginWidget
+/// \ingroup SlicerRt_QtModules_DosxyzNrc3dDoseFileReader
+class qSlicerDosxyzNrc3dDoseFileReaderPluginWidgetPrivate: public Ui_qSlicerDosxyzNrc3dDoseFileReaderPluginWidget
 {
 public:
-  qSlicerVffFileReaderPluginWidgetPrivate();
+  qSlicerDosxyzNrc3dDoseFileReaderPluginWidgetPrivate();
 };
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderPluginWidgetPrivate::qSlicerVffFileReaderPluginWidgetPrivate()
+qSlicerDosxyzNrc3dDoseFileReaderPluginWidgetPrivate::qSlicerDosxyzNrc3dDoseFileReaderPluginWidgetPrivate()
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderPluginWidget::qSlicerVffFileReaderPluginWidget(QWidget* parentWidget)
+qSlicerDosxyzNrc3dDoseFileReaderPluginWidget::qSlicerDosxyzNrc3dDoseFileReaderPluginWidget(QWidget* parentWidget)
   : Superclass( parentWidget )
-  , d_ptr( new qSlicerVffFileReaderPluginWidgetPrivate )
+  , d_ptr( new qSlicerDosxyzNrc3dDoseFileReaderPluginWidgetPrivate )
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderPluginWidget::~qSlicerVffFileReaderPluginWidget()
+qSlicerDosxyzNrc3dDoseFileReaderPluginWidget::~qSlicerDosxyzNrc3dDoseFileReaderPluginWidget()
 {
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerVffFileReaderPluginWidget::setup()
+void qSlicerDosxyzNrc3dDoseFileReaderPluginWidget::setup()
 {
-  Q_D(qSlicerVffFileReaderPluginWidget);
+  Q_D(qSlicerDosxyzNrc3dDoseFileReaderPluginWidget);
   d->setupUi(this);
   this->Superclass::setup();
 }

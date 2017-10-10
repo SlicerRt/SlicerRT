@@ -12,26 +12,25 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Jennifer Andrea, PerkLab, Queen's University
+  This file was originally developed by Anna Ilina, PerkLab, Queen's University
   and was supported through the Applied Cancer Research Unit program of Cancer Care
-  Ontario with funds provided by the Natural Sciences and Engineering Research Council
-  of Canada.
+  Ontario.
 
 ==============================================================================*/
 
-#ifndef __qSlicerVffFileReaderModule_h
-#define __qSlicerVffFileReaderModule_h
+#ifndef __qSlicerDosxyzNrc3dDoseFileReaderModule_h
+#define __qSlicerDosxyzNrc3dDoseFileReaderModule_h
 
 // SlicerQt includes
 #include "qSlicerLoadableModule.h"
 
-// VffFileReader includes
-#include "qSlicerVffFileReaderModuleExport.h"
+// DosxyzNrc3dDoseFileReader includes
+#include "qSlicerDosxyzNrc3dDoseFileReaderModuleExport.h"
 
-class qSlicerVffFileReaderModulePrivate;
+class qSlicerDosxyzNrc3dDoseFileReaderModulePrivate;
 
-/// \ingroup SlicerRt_QtModules_VffFileReader
-class Q_SLICER_VFFFILEREADER_EXPORT qSlicerVffFileReaderModule:
+/// \ingroup SlicerRt_QtModules_DosxyzNrc3dDoseFileReader
+class Q_SLICER_DosxyzNrc3dDoseFILEREADER_EXPORT qSlicerDosxyzNrc3dDoseFileReaderModule:
   public qSlicerLoadableModule
 {
   Q_OBJECT
@@ -40,8 +39,8 @@ class Q_SLICER_VFFFILEREADER_EXPORT qSlicerVffFileReaderModule:
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  qSlicerVffFileReaderModule(QObject *parent=0);
-  virtual ~qSlicerVffFileReaderModule();
+  qSlicerDosxyzNrc3dDoseFileReaderModule(QObject *parent=0);
+  virtual ~qSlicerDosxyzNrc3dDoseFileReaderModule();
 
   virtual QString helpText()const;
   virtual QString acknowledgementText()const;
@@ -63,11 +62,11 @@ protected:
   virtual vtkMRMLAbstractLogic* createLogic();
 
 protected:
-  QScopedPointer<qSlicerVffFileReaderModulePrivate> d_ptr;
+  QScopedPointer<qSlicerDosxyzNrc3dDoseFileReaderModulePrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerVffFileReaderModule);
-  Q_DISABLE_COPY(qSlicerVffFileReaderModule);
+  Q_DECLARE_PRIVATE(qSlicerDosxyzNrc3dDoseFileReaderModule);
+  Q_DISABLE_COPY(qSlicerDosxyzNrc3dDoseFileReaderModule);
 };
 
 #endif
