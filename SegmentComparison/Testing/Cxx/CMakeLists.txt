@@ -101,5 +101,36 @@ TEST_WITH_DATA(
 set_tests_properties(vtkSlicerSegmentComparisonModuleLogicTest_EclipseProstate_Transformed PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
+set(POLY_DATA_DISTANCES_RAW_OUTPUT_FILE "${TEMP}/PolyDataDistancesRawOutput.csv")
+set(POLY_DATA_DISTANCES_HISTOGRAM_OUTPUT_FILE "${TEMP}/PolyDataDistancesHistogramOutput.csv")
 
-simple_test(vtkPolyDataDistanceHistogramFilterTest)
+add_test(
+  NAME vtkPolyDataDistanceHistogramFilterExecutionTest
+  COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${KIT}CxxTests> vtkPolyDataDistanceHistogramFilterTest ${ARGN}
+  -RawDistancesPath ${POLY_DATA_DISTANCES_RAW_OUTPUT_FILE}
+  -HistogramPath ${POLY_DATA_DISTANCES_HISTOGRAM_OUTPUT_FILE}
+)
+
+#-----------------------------------------------------------------------------
+set(POLY_DATA_DISTANCES_RAW_GROUNDTRUTH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/PolyDataDistancesRawGroundTruth.csv")
+
+ADD_TEST(
+  vtkPolyDataDistancesRawOutputComparisonTest
+  ${CMAKE_COMMAND} -E compare_files
+  ${POLY_DATA_DISTANCES_RAW_OUTPUT_FILE}
+  ${POLY_DATA_DISTANCES_RAW_GROUNDTRUTH_FILE}
+)
+set_tests_properties(vtkPolyDataDistancesRawOutputComparisonTest PROPERTIES DEPENDS vtkPolyDataDistanceHistogramFilterExecutionTest REQUIRED_FILES ${POLY_DATA_DISTANCES_RAW_OUTPUT_FILE})
+
+#-----------------------------------------------------------------------------
+set(POLY_DATA_DISTANCES_HISTOGRAM_GROUNDTRUTH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/PolyDataDistancesHistogramGroundTruth.csv")
+
+ADD_TEST(
+  vtkPolyDataDistancesHistogramOutputComparisonTest
+  ${CMAKE_COMMAND} -E compare_files 
+  ${POLY_DATA_DISTANCES_HISTOGRAM_OUTPUT_FILE}
+  ${POLY_DATA_DISTANCES_HISTOGRAM_GROUNDTRUTH_FILE}
+)
+
+set_tests_properties(vtkPolyDataDistancesHistogramOutputComparisonTest PROPERTIES DEPENDS vtkPolyDataDistanceHistogramFilterExecutionTest REQUIRED_FILES ${POLY_DATA_DISTANCES_HISTOGRAM_OUTPUT_FILE})
+

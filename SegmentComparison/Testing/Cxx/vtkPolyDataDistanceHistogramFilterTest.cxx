@@ -1,18 +1,67 @@
 // module includes
 #include "vtkPolyDataDistanceHistogramFilter.h"
 
-// vtk includes
-#include <vtkMRMLScene.h>
-#include <vtkTable.h>
-#include <vtkSphereSource.h>
+// slicer includes
+#include "vtkMRMLScene.h"
+#include "qSlicerCoreApplication.h"
 
+// SlicerRT includes
+#include "SlicerRtCommon.h"
+
+// vtk includes
+#include <vtkDelimitedTextWriter.h>
+#include <vtkDoubleArray.h>
+#include <vtkSphereSource.h>
+#include <vtkTable.h>
+#include <vtkVariantArray.h>
 
 //-----------------------------------------------------------------------------
-int vtkPolyDataDistanceHistogramFilterTest( int vtkNotUsed( argc ), char* vtkNotUsed( argv )[] )
+int vtkPolyDataDistanceHistogramFilterTest( int argc, char* argv[] )
 {
   std::ostream& outputStream = std::cout;
   std::ostream& errorStream = std::cerr;
-  
+
+  int argIndex = 1;
+  const char *rawDistancesFilename = NULL;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-RawDistancesPath") == 0)
+    {
+      rawDistancesFilename = argv[argIndex+1];
+      outputStream << "Raw distances file name: " << rawDistancesFilename << std::endl;
+      argIndex += 2;
+    }
+    else
+    {
+      rawDistancesFilename = "";
+    }
+  }
+  else
+  {
+    std::cerr << "Missing arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  const char *histogramFilename = NULL;
+  if (argc > argIndex+1)
+  {
+    if (STRCASECMP(argv[argIndex], "-HistogramPath") == 0)
+    {
+      histogramFilename = argv[argIndex+1];
+      outputStream << "Histogram file name: " << histogramFilename << std::endl;
+      argIndex += 2;
+    }
+    else
+    {
+      histogramFilename = "";
+    }
+  }
+  else
+  {
+    std::cerr << "Missing arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+
   vtkSmartPointer< vtkSphereSource > sphereSource1 = vtkSmartPointer< vtkSphereSource >::New();
   sphereSource1->SetRadius( 1.0 );
   double center1[ 3 ] = { 0, 0, 0 };
@@ -31,40 +80,42 @@ int vtkPolyDataDistanceHistogramFilterTest( int vtkNotUsed( argc ), char* vtkNot
   polyDataDistanceHistogramFilter->SetSamplePolyDataVertices( 1 );
   polyDataDistanceHistogramFilter->SetSamplePolyDataEdges( 1 );
   polyDataDistanceHistogramFilter->SetSamplePolyDataFaces( 1 );
-  polyDataDistanceHistogramFilter->SetSamplingDistance( 0.01 );
+  polyDataDistanceHistogramFilter->SetSamplingDistance( 0.025 );
   polyDataDistanceHistogramFilter->SetHistogramMinimum( -0.5 );
   polyDataDistanceHistogramFilter->SetHistogramMaximum( 0.5 );
   polyDataDistanceHistogramFilter->SetHistogramSpacing( 0.05 );
   polyDataDistanceHistogramFilter->Update();
 
-  // "ground truth" may be a bit misleading. These values were collected
-  // by running this code through the Python interactor on Oct 5 2017.
-  const int numGroundTruthFrequencies = 20;
-  int groundTruthFrequencies[ numGroundTruthFrequencies ] = { 94, 330, 136, 240, 180, 172, 640, 392, 576, 58534, 97079, 3660, 2258, 2840, 2024, 1882, 1736, 971, 1214, 702 };
-  vtkTable* histogramTable = polyDataDistanceHistogramFilter->GetOutputHistogram();
-
-  if ( histogramTable == NULL )
+  // Export distances to text file for comparison against python
+  vtkDoubleArray* rawDistancesDoubleArray = polyDataDistanceHistogramFilter->GetOutputDistances();
+  if ( rawDistancesDoubleArray == NULL )
   {
-    errorStream << "Histogram is null!" << std::endl;
+    errorStream << "Distances are null. Aborting test." << std::endl;
     return EXIT_FAILURE;
   }
 
-  bool mismatchFound = false;
-  for ( int i = 1; i < numGroundTruthFrequencies; i++ )
-  {
-    int computedFrequecy = histogramTable->GetValue( i, 1 ).ToInt();
-    outputStream << "Comparing " << computedFrequecy << " and " << groundTruthFrequencies[ i ] << std::endl;
-    if ( computedFrequecy != groundTruthFrequencies[ i ] )
-    {
-      mismatchFound = true;
-    }
-  }
+  vtkSmartPointer< vtkTable > rawDistancesInTable = vtkSmartPointer< vtkTable >::New();
+  rawDistancesInTable->AddColumn( rawDistancesDoubleArray );
 
-  if ( mismatchFound )
+  outputStream << "Start setting up raw distance writer, destination: " << rawDistancesFilename << std::endl;
+  vtkSmartPointer< vtkDelimitedTextWriter > rawDistancesWriter = vtkSmartPointer< vtkDelimitedTextWriter >::New();
+  rawDistancesWriter->SetInputData( rawDistancesInTable );
+  rawDistancesWriter->SetFileName( rawDistancesFilename );
+  rawDistancesWriter->Write();
+
+  // Export histogram
+  vtkTable* histogramInTable = polyDataDistanceHistogramFilter->GetOutputHistogram();
+  if ( histogramInTable == NULL )
   {
-    errorStream << "Mismatch found!" << std::endl;
+    errorStream << "Histogram is null." << std::endl;
     return EXIT_FAILURE;
   }
+
+  outputStream << "Start setting up histogram writer, destination: " << histogramFilename << std::endl;
+  vtkSmartPointer< vtkDelimitedTextWriter > histogramWriter = vtkSmartPointer< vtkDelimitedTextWriter >::New();
+  histogramWriter->SetInputData( histogramInTable );
+  histogramWriter->SetFileName( histogramFilename );
+  histogramWriter->Write();
 
   return EXIT_SUCCESS;
 }
