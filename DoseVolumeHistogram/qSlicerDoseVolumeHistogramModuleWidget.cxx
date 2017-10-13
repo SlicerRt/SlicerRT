@@ -533,7 +533,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
 	bool comma = selectedFilter.compare("TSV tab separated values ( *.tsv )");
 
   // Export
-  if (! d->logic()->ExportDvhToCsv(paramNode, fileName.toAscii().data(), comma) )
+  if (! d->logic()->ExportDvhToCsv(paramNode, fileName.toLatin1().data(), comma) )
   {
     qCritical() << Q_FUNC_INFO << ": Error occurred while exporting DVH to file " << fileName;
   }
@@ -561,7 +561,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
 	bool comma = selectedFilter.compare("TSV tab separated values ( *.tsv )");
 
   // Export
-  if (! d->logic()->ExportDvhMetricsToCsv(paramNode, fileName.toAscii().data(), comma) )
+  if (! d->logic()->ExportDvhMetricsToCsv(paramNode, fileName.toLatin1().data(), comma) )
   {
     qCritical() << Q_FUNC_INFO << ": Error occurred while exporting DVH to file " << fileName;
   }

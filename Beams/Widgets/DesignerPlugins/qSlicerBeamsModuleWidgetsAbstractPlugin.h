@@ -27,7 +27,11 @@
 class Q_SLICER_MODULE_BEAMS_WIDGETS_PLUGINS_EXPORT qSlicerBeamsModuleWidgetsAbstractPlugin
     : public QDesignerCustomWidgetInterface
 {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
+  Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QDesignerCustomWidgetInterface")
+#endif
   Q_INTERFACES(QDesignerCustomWidgetInterface);
+
 public:
 
   qSlicerBeamsModuleWidgetsAbstractPlugin();

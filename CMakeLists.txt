@@ -47,9 +47,6 @@ message(STATUS "SLICERRT_ENABLE_EXPERIMENTAL_MODULES: " ${SLICERRT_ENABLE_EXPERI
 #-----------------------------------------------------------------------------
 add_subdirectory(SlicerRtCommon)
 add_subdirectory(PlmCommon)
-IF (WIN32)
-  add_subdirectory(LeakFinder)
-ENDIF()
 
 add_subdirectory(Beams)
 add_subdirectory(Isodose)

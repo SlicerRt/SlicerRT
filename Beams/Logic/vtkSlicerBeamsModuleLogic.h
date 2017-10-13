@@ -41,7 +41,7 @@ class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkSlicerBeamsModuleLogic :
 public:
   static vtkSlicerBeamsModuleLogic *New();
   vtkTypeMacro(vtkSlicerBeamsModuleLogic,vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Update parent transform of a given beam using its parameters and the IEC logic
   void UpdateTransformForBeam(vtkMRMLRTBeamNode* beamNode);
@@ -51,15 +51,15 @@ protected:
   virtual ~vtkSlicerBeamsModuleLogic();
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
+  virtual void RegisterNodes() VTK_OVERRIDE;
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) VTK_OVERRIDE;
 
   virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
   virtual void OnMRMLSceneEndImport();
 
   /// Handles events registered in the observer manager
-  virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData);
+  virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData) VTK_OVERRIDE;
 
 private:
   vtkSlicerBeamsModuleLogic(const vtkSlicerBeamsModuleLogic&); // Not implemented

@@ -48,7 +48,7 @@ class VTK_SLICER_PLASTIMATCHPY_MODULE_LOGIC_EXPORT vtkPlmpyDicomSroExport :
 public:
   static vtkPlmpyDicomSroExport *New();
   vtkTypeMacro(vtkPlmpyDicomSroExport, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
 public:
   vtkSetStringMacro(FixedImageID);
@@ -61,7 +61,7 @@ public:
   vtkGetStringMacro(OutputDirectory);
 
   void set_mrml_scene_hack(vtkMRMLScene * newScene);
-  void DoExport ();
+  void DoExport();
 
 protected:
   char* FixedImageID;
@@ -73,12 +73,12 @@ protected:
   vtkPlmpyDicomSroExport();
   virtual ~vtkPlmpyDicomSroExport();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) VTK_OVERRIDE;
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
+  virtual void RegisterNodes() VTK_OVERRIDE;
 
-  virtual void UpdateFromMRMLScene();
+  virtual void UpdateFromMRMLScene() VTK_OVERRIDE;
 
 private:
   vtkPlmpyDicomSroExport(const vtkPlmpyDicomSroExport&);

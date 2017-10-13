@@ -19,9 +19,6 @@
 
 ==============================================================================*/
 
-// Qt includes
-#include <QtPlugin>
-
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyIsodosePlugin.h"
@@ -34,7 +31,10 @@
 #include "qSlicerIsodoseModuleWidget.h"
 
 //-----------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtPlugin>
 Q_EXPORT_PLUGIN2(qSlicerIsodoseModule, qSlicerIsodoseModule);
+#endif
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_Isodose

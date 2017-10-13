@@ -40,21 +40,24 @@ class VTK_SLICER_DICOMRTIMPORTEXPORT_CONVERSIONRULES_EXPORT vtkRibbonModelToBina
 public:
   static vtkRibbonModelToBinaryLabelmapConversionRule* New();
   vtkTypeMacro(vtkRibbonModelToBinaryLabelmapConversionRule, vtkSegmentationConverterRule);
-  virtual vtkSegmentationConverterRule* CreateRuleInstance();
+  virtual vtkSegmentationConverterRule* CreateRuleInstance() VTK_OVERRIDE;
 
   /// Human-readable name of the converter rule
-  virtual const char* GetName(){ return "Ribbon model to binary labelmap"; };
+  virtual const char* GetName() VTK_OVERRIDE { return "Ribbon model to binary labelmap"; };
   
   /// Human-readable name of the source representation
-  virtual const char* GetSourceRepresentationName() { return SlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME; };
+  virtual const char* GetSourceRepresentationName() VTK_OVERRIDE { return SlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME; };
   
   /// Human-readable name of the target representation
-  virtual const char* GetTargetRepresentationName() { return vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(); };
+  virtual const char* GetTargetRepresentationName() VTK_OVERRIDE { return vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(); };
 
 protected:
   vtkRibbonModelToBinaryLabelmapConversionRule();
   ~vtkRibbonModelToBinaryLabelmapConversionRule();
-  void operator=(const vtkRibbonModelToBinaryLabelmapConversionRule&);
+
+private:
+  vtkRibbonModelToBinaryLabelmapConversionRule(const vtkRibbonModelToBinaryLabelmapConversionRule&); // Not implemented
+  void operator=(const vtkRibbonModelToBinaryLabelmapConversionRule&); // Not implemented
 };
 
 #endif // __vtkRibbonModelToBinaryLabelmapConversionRule_h

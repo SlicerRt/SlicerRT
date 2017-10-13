@@ -42,7 +42,7 @@ public:
 
   static vtkPolyDataToLabelmapFilter *New();
   vtkTypeMacro(vtkPolyDataToLabelmapFilter, vtkObject );
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   virtual void SetReferenceImage(vtkImageData* reference);
   virtual vtkImageData* GetOutput();
@@ -72,7 +72,6 @@ protected:
 
   /// Helper function to copy values from the arry into the vector
   void CopyArraysToVectors( std::vector<int> &extentVector, int extents[6], std::vector<double> &originVector, double origin[3] );
-
 
 protected:
   vtkPolyData* InputPolyData;

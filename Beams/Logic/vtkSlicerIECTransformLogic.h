@@ -25,7 +25,7 @@
 #include "vtkSlicerBeamsModuleLogicExport.h"
 
 // Slicer includes
-#include <vtkMRMLAbstractLogic.h>
+#include "vtkMRMLAbstractLogic.h"
 
 // STD includes
 #include <map>
@@ -67,7 +67,7 @@ public:
 public:
   static vtkSlicerIECTransformLogic *New();
   vtkTypeMacro(vtkSlicerIECTransformLogic, vtkMRMLAbstractLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Create or get transforms taking part in the IEC logic, and build the transform hierarchy
   void BuildIECTransformHierarchy();
@@ -103,6 +103,10 @@ protected:
 protected:
   vtkSlicerIECTransformLogic();
   virtual ~vtkSlicerIECTransformLogic();
+
+private:
+  vtkSlicerIECTransformLogic(const vtkSlicerIECTransformLogic&); // Not implemented
+  void operator=(const vtkSlicerIECTransformLogic&);             // Not implemented
 };
 
 #endif

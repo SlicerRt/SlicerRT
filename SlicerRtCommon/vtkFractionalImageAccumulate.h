@@ -28,22 +28,21 @@
 
 class VTK_SLICERRTCOMMON_EXPORT vtkFractionalImageAccumulate: public vtkImageAccumulate
 {
-
 public:
   static vtkFractionalImageAccumulate* New();
   vtkTypeMacro(vtkFractionalImageAccumulate, vtkImageAccumulate);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-    vtkSetMacro(MinimumFractionalValue, double);
-    vtkSetMacro(MaximumFractionalValue, double);
-    vtkGetMacro(MinimumFractionalValue, double);
-    vtkGetMacro(MaximumFractionalValue, double);
-    vtkSetMacro(FractionalLabelmap, vtkImageData*);
-    vtkGetMacro(FractionalLabelmap, vtkImageData*);
-    vtkGetMacro(FractionalVoxelCount, double);
-    vtkSetMacro(UseFractionalLabelmap, bool);
-    vtkGetMacro(UseFractionalLabelmap, bool);
-    vtkBooleanMacro(UseFractionalLabelmap, bool);
+  vtkSetMacro(MinimumFractionalValue, double);
+  vtkSetMacro(MaximumFractionalValue, double);
+  vtkGetMacro(MinimumFractionalValue, double);
+  vtkGetMacro(MaximumFractionalValue, double);
+  vtkSetMacro(FractionalLabelmap, vtkImageData*);
+  vtkGetMacro(FractionalLabelmap, vtkImageData*);
+  vtkGetMacro(FractionalVoxelCount, double);
+  vtkSetMacro(UseFractionalLabelmap, bool);
+  vtkGetMacro(UseFractionalLabelmap, bool);
+  vtkBooleanMacro(UseFractionalLabelmap, bool);
     
 protected:
   vtkFractionalImageAccumulate();
@@ -52,13 +51,12 @@ protected:
   virtual int RequestData(vtkInformation* request,
                           vtkInformationVector** inputVector,
                           vtkInformationVector* outputVector);
-int RequestInformation (
-  vtkInformation* vtkNotUsed(request),
-  vtkInformationVector** vtkNotUsed(inputVector),
-  vtkInformationVector* outputVector);
+  int RequestInformation (
+    vtkInformation* vtkNotUsed(request),
+    vtkInformationVector** vtkNotUsed(inputVector),
+    vtkInformationVector* outputVector);
 
 protected:
-
   double MinimumFractionalValue;
   double MaximumFractionalValue;
   vtkImageData* FractionalLabelmap;
@@ -68,7 +66,6 @@ protected:
 private:
   vtkFractionalImageAccumulate(const vtkFractionalImageAccumulate&);  // Not implemented.
   void operator=(const vtkFractionalImageAccumulate&);  // Not implemented.
-
 };
 
 #endif // __vtkFractionalImageAccumulate_h

@@ -47,7 +47,7 @@ class VTK_SLICER_PLANARIMAGE_LOGIC_EXPORT vtkSlicerPlanarImageModuleLogic : publ
 public:
   static vtkSlicerPlanarImageModuleLogic *New();
   vtkTypeMacro(vtkSlicerPlanarImageModuleLogic,vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
 public:
   /// Show planar image as a rectangular model with the input volume as the texture
@@ -65,15 +65,15 @@ protected:
   vtkSlicerPlanarImageModuleLogic();
   virtual ~vtkSlicerPlanarImageModuleLogic();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
-  virtual void RegisterNodes();
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) VTK_OVERRIDE;
+  virtual void RegisterNodes() VTK_OVERRIDE;
 
   /// Update texture and if display properties change in an observed planar image volume node,
   /// and geometry if transform is changed
-  virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData);
+  virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData) VTK_OVERRIDE;
   /// Removes texture pipeline and displayed model if planar image volume node is about to be removed,
   /// and creates texture pipeline after scene is imported
-  virtual void ProcessMRMLSceneEvents(vtkObject* caller, unsigned long event, void* callData);
+  virtual void ProcessMRMLSceneEvents(vtkObject* caller, unsigned long event, void* callData) VTK_OVERRIDE;
 
 protected:
   /// Mappers that apply window/level from the volume nodes to the texture images

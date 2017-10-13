@@ -291,9 +291,14 @@ void qSlicerSegmentComparisonModuleWidget::setup()
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setParameterNode(vtkMRMLNode*)) );
 
   // Setup table views
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
   d->MRMLTableView_Dice->verticalHeader()->setResizeMode(QHeaderView::Fixed); // Set default row height
-  d->MRMLTableView_Dice->verticalHeader()->setDefaultSectionSize(22);
   d->MRMLTableView_Hausdorff->verticalHeader()->setResizeMode(QHeaderView::Fixed); // Set default row height
+#else
+  d->MRMLTableView_Dice->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed); // Set default row height
+  d->MRMLTableView_Hausdorff->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed); // Set default row height
+#endif
+  d->MRMLTableView_Dice->verticalHeader()->setDefaultSectionSize(22);
   d->MRMLTableView_Hausdorff->verticalHeader()->setDefaultSectionSize(22);
 
   // Handle scene change event if occurs

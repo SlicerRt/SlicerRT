@@ -35,6 +35,9 @@ class Q_SLICER_VFFFILEREADER_EXPORT qSlicerVffFileReaderModule:
   public qSlicerLoadableModule
 {
   Q_OBJECT
+#ifdef Slicer_HAVE_QT5
+  Q_PLUGIN_METADATA(IID "org.slicer.modules.loadable.qSlicerLoadableModule/1.0");
+#endif
   Q_INTERFACES(qSlicerLoadableModule);
 
 public:

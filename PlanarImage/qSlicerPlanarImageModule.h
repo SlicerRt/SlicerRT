@@ -33,6 +33,9 @@ class Q_SLICER_QTMODULES_PLANARIMAGE_EXPORT qSlicerPlanarImageModule :
   public qSlicerLoadableModule
 {
   Q_OBJECT
+#ifdef Slicer_HAVE_QT5
+  Q_PLUGIN_METADATA(IID "org.slicer.modules.loadable.qSlicerLoadableModule/1.0");
+#endif
   Q_INTERFACES(qSlicerLoadableModule);
 
 public:
@@ -45,7 +48,7 @@ public:
   /// Help to use the module
   virtual QString helpText()const;
 
-  /// Return acknowledgements
+  /// Return acknowledgments
   virtual QString acknowledgementText()const;
 
   /// Return the authors of the module

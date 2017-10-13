@@ -18,9 +18,6 @@
 
 ==========================================================================*/
 
-// Qt includes
-#include <QtPlugin>
-
 // PlastimatchPy Logic includes
 //#include "vtkSlicerPlastimatchPyModuleLogic.h"
 
@@ -29,7 +26,10 @@
 #include "qSlicerPlastimatchPyModuleWidget.h"
 
 //-----------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtPlugin>
 Q_EXPORT_PLUGIN2(qSlicerPlastimatchPyModule, qSlicerPlastimatchPyModule);
+#endif
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_PlastimatchPy

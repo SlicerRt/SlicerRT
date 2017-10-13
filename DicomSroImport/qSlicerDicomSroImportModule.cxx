@@ -21,7 +21,6 @@
 
 // Qt includes
 #include <QDebug> 
-#include <QtPlugin>
 
 // Slicer includes
 #include <qSlicerCoreApplication.h>
@@ -35,7 +34,10 @@
 #include "qSlicerDicomSroImportModuleWidget.h"
 
 //-----------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtPlugin>
 Q_EXPORT_PLUGIN2(qSlicerDicomSroImportModule, qSlicerDicomSroImportModule);
+#endif
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_DicomSroImport

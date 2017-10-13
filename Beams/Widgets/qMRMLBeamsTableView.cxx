@@ -88,7 +88,11 @@ void qMRMLBeamsTableViewPrivate::init()
     QStringList() << "#" << "Name" << "Gantry" << "Weight" << "" );
   this->BeamsTable->setColumnCount(this->ColumnLabels.size());
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
   this->BeamsTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+#else
+  this->BeamsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+#endif
   this->BeamsTable->horizontalHeader()->setStretchLastSection(1);
 
   // Select rows

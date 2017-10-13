@@ -18,9 +18,6 @@
 
 ==============================================================================*/
 
-// Qt includes
-#include <QtPlugin>
-
 // Slicer includes
 #include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
@@ -33,7 +30,10 @@
 #include "qSlicerPlanarImageModuleWidget.h"
 
 //-----------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtPlugin>
 Q_EXPORT_PLUGIN2(qSlicerPlanarImageModule, qSlicerPlanarImageModule);
+#endif
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_PlanarImage

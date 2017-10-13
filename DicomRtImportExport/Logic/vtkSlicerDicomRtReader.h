@@ -52,7 +52,7 @@ public:
 public:
   static vtkSlicerDicomRtReader *New();
   vtkTypeMacro(vtkSlicerDicomRtReader, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Do reading
   void Update();

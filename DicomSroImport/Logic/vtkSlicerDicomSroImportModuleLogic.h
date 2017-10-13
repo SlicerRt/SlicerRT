@@ -46,7 +46,7 @@ class VTK_SLICER_DICOMSROIMPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomSroImportModul
 public:
   static vtkSlicerDicomSroImportModuleLogic *New();
   vtkTypeMacro(vtkSlicerDicomSroImportModuleLogic, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Examine a list of file lists and determine what objects can be loaded from them
   void Examine(vtkDICOMImportInfo *importInfo);
@@ -56,11 +56,8 @@ public:
   bool LoadDicomSro(vtkDICOMImportInfo *loadInfo);
 
 protected:
-  vtkSlicerDicomSroImportModuleLogic();
-  virtual ~vtkSlicerDicomSroImportModuleLogic();
-
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
+  virtual void RegisterNodes() VTK_OVERRIDE;
 
   /// Load Dicom spatial registration objects into the MRML scene
   /// \return Success flag
@@ -74,7 +71,9 @@ protected:
   /// \return Success flag
   bool LoadDeformableSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo* loadInfo);
 
-private:
+protected:
+  vtkSlicerDicomSroImportModuleLogic();
+  virtual ~vtkSlicerDicomSroImportModuleLogic();
   vtkSlicerDicomSroImportModuleLogic(const vtkSlicerDicomSroImportModuleLogic&); // Not implemented
   void operator=(const vtkSlicerDicomSroImportModuleLogic&);              // Not implemented
 };

@@ -55,7 +55,7 @@ public:
   /// Constructor
   static vtkPlmpyVectorFieldAnalysis* New();
   vtkTypeMacro(vtkPlmpyVectorFieldAnalysis, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   /// Compute Jacobian
   void RunJacobian();
@@ -87,7 +87,7 @@ protected:
   vtkPlmpyVectorFieldAnalysis();
   virtual ~vtkPlmpyVectorFieldAnalysis();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene);
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) VTK_OVERRIDE;
 
 protected:
   /// ID of the fixed image

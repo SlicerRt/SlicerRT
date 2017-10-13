@@ -59,7 +59,7 @@ class VTK_SLICERRTCOMMON_EXPORT vtkCollisionDetectionFilter : public vtkPolyData
 {
 public:
   vtkTypeMacro(vtkCollisionDetectionFilter, vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
 //BTX
   enum CollisionModes
@@ -148,7 +148,7 @@ public:
   //Description:
   // Get the number of contacting cell pairs
   int GetNumberOfContacts() 
-    {return this->GetOutput(0)->GetFieldData()->GetArray("ContactCells")->GetNumberOfTuples();}
+    { return this->GetOutput(0)->GetFieldData()->GetArray("ContactCells")->GetNumberOfTuples(); }
   
   //Description:
   // Get the number of box tests
