@@ -33,7 +33,7 @@
 class qSlicerDosxyzNrc3dDoseFileReaderOptionsWidgetPrivate;
 
 /// \ingroup SlicerRt_QtModules_DosxyzNrc3dDoseFileReader
-class Q_SLICER_DosxyzNrc3dDoseFILEREADER_EXPORT qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget :
+class Q_SLICER_DOSXYZNRC3DDOSEFILEREADER_EXPORT qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget :
   public qSlicerIOOptionsWidget
 {
   Q_OBJECT

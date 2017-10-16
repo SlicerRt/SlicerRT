@@ -21,6 +21,8 @@
 #ifndef __vtkSlicerDosxyzNrc3dDoseFileReaderLogic_h
 #define __vtkSlicerDosxyzNrc3dDoseFileReaderLogic_h
 
+#define MAX_TOLERANCE_SPACING 0.001
+
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
@@ -36,7 +38,7 @@ class vtkMRMLVolumeHeaderlessStorageNode;
 class vtkStringArray;
 
 /// \ingroup SlicerRt_QtModules_DosxyzNrc3dDoseFileReader
-class VTK_SLICER_DosxyzNrc3dDoseFILEREADER_LOGIC_EXPORT vtkSlicerDosxyzNrc3dDoseFileReaderLogic :
+class VTK_SLICER_DOSXYZNRC3DDOSEFILEREADER_LOGIC_EXPORT vtkSlicerDosxyzNrc3dDoseFileReaderLogic :
   public vtkSlicerModuleLogic
 {
 public:
@@ -47,21 +49,24 @@ public:
   /// Load DosxyzNrc3dDose volume from file
   /// \param filename Path and filename of the DosxyzNrc3dDose file
   /// \param useImageIntensityScaleAndOffsetFromFile Boolean flag which is set to false by default, but is set to true to use the intensity scale and offset provided in the file to load the image
-  void LoadDosxyzNrc3dDoseFile(char* filename, bool useImageIntensityScaleAndOffsetFromFile = false); //, bool useDataOffset);
+  void LoadDosxyzNrc3dDoseFile(char* filename);
+
+  /// Determine if two numbers are equal within a small tolerance (0.001)
+  static bool AreEqualWithTolerance(double a, double b);
 
 protected:
   /// A helper function which removes all spaces from the beginning and end of a string, and returns the modified string.
   /// \param stringToTrim String which is to be modified
   /// \return String that has had leading and trailing spaces removed
-  std::string TrimSpacesFromEndsOfString(std::string &stringToTrim);
+  // std::string TrimSpacesFromEndsOfString(std::string &stringToTrim);
 
   /// A helper function which extracts a user-specified number of numbers from a string, which can be of any numerical type, and returns them as a vector.
   /// \param stringToParse String from which the numbers are to be extracted
   /// \param numberOfNumbers Integer specifying the number of numbers to be extracted from the string and returned in the vector
   /// \return Vector containing the extracted numbers
-  template <class Num> std::vector<Num> ParseNumberOfNumbersFromString(std::string stringToParse, unsigned int numberOfNumbers);
+  // template <class Num> std::vector<Num> ParseNumberOfNumbersFromString(std::string stringToParse, unsigned int numberOfNumbers);
 
-  bool ReadDosxyzNrc3dDoseFileHeader(ifstream &readFileStream, std::map<std::string, std::string> &parameterList);
+  // bool ReadDosxyzNrc3dDoseFileHeader(ifstream &readFileStream, std::map<std::string, std::string> &parameterList);
 
 protected:
   vtkSlicerDosxyzNrc3dDoseFileReaderLogic();
