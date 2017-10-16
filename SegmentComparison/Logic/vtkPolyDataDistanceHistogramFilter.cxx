@@ -254,17 +254,22 @@ void vtkPolyDataDistanceHistogramFilter::Update()
   vtkPolyData* inputPolyDataCompare = this->GetInputComparePolyData();
 
   vtkSmartPointer<vtkDoubleArray> distances = vtkSmartPointer<vtkDoubleArray>::New(); // hold the distances in this array until we copy to the output
+  distances->SetName("Distances");
   this->ComputeDistances(inputPolyDataReference, inputPolyDataCompare, distances);
   
   // copy the distances into a dummy image
   vtkSmartPointer<vtkImageData> dummyImage = vtkSmartPointer<vtkImageData>::New();
-  int N = distances->GetNumberOfTuples();
-  dummyImage->SetDimensions(N,1,1);
+  int numberOfDoubleValues = distances->GetNumberOfTuples();
+  dummyImage->SetDimensions(numberOfDoubleValues,1,1);
   dummyImage->AllocateScalars(VTK_DOUBLE,1);
-  vtkDataArray* dummyDataArray;
-  double* sourcePtr = static_cast<double*>(distances->GetVoidPointer(0));
-  double* targetPtr = static_cast<double*>(dummyImage->GetScalarPointer());
-  memcpy(targetPtr,sourcePtr,N);
+  double* distancesPointer = static_cast<double*>(distances->GetVoidPointer(0));
+  double* dummyImagePtr = static_cast<double*>(dummyImage->GetScalarPointer());
+  for (long i=0; i < numberOfDoubleValues; ++i)
+  {
+    (*dummyImagePtr) = (*distancesPointer);
+    ++distancesPointer;
+    ++dummyImagePtr;
+  }
 
   // set up the image accumulator for building the histogram
   vtkSmartPointer<vtkImageAccumulate> imageAccumulator = vtkSmartPointer<vtkImageAccumulate>::New();
@@ -273,15 +278,15 @@ void vtkPolyDataDistanceHistogramFilter::Update()
   imageAccumulator->SetComponentOrigin(histogramBinMinimumArray);
   double histogramBinSpacingArray[3] = {this->HistogramSpacing, 1.0, 1.0}; // the first component contains the spacing, other values are unused
   imageAccumulator->SetComponentSpacing(histogramBinSpacingArray);
-  int histogramBinExtent = (this->HistogramMaximum - this->HistogramMinimum) / this->HistogramSpacing;
-  int histogramBinExtentArray[6] = {0, histogramBinExtent, 0, 1, 0, 1}; // the first and second values contain the extent, others are unused
+  int histogramBinExtent = vtkMath::Ceil((this->HistogramMaximum - this->HistogramMinimum) / this->HistogramSpacing);
+  int histogramBinExtentArray[6] = {0, histogramBinExtent, 0, 0, 0, 0}; // the first and second values contain the extent, others are unused
   imageAccumulator->SetComponentExtent(histogramBinExtentArray);
   imageAccumulator->Update();
 
   // create the bin array
   vtkSmartPointer<vtkDoubleArray> bins = vtkSmartPointer<vtkDoubleArray>::New();
   bins->SetName("Bins");
-  for (int i = 0; i < histogramBinExtent; i++)
+  for (int i = 0; i <= histogramBinExtent; i++)
   {
     double newBinValue = this->HistogramMinimum + (i * this->HistogramSpacing);
     bins->InsertNextTuple1(newBinValue);
@@ -291,9 +296,9 @@ void vtkPolyDataDistanceHistogramFilter::Update()
   vtkImageData* frequencyImage = imageAccumulator->GetOutput();
   vtkSmartPointer<vtkIntArray> frequencies = vtkSmartPointer<vtkIntArray>::New();
   frequencies->SetName("Frequencies");
-  for (int i = 0; i < histogramBinExtent; i++)
+  for (int i = 0; i <= histogramBinExtent; i++)
   {
-    int newFrequencyValue = (int)(frequencyImage->GetScalarComponentAsDouble(i,0,0,0) + 0.5);
+    int newFrequencyValue = (int)(frequencyImage->GetScalarComponentAsDouble(i,0,0,0));
     frequencies->InsertNextTuple1(newFrequencyValue);
   }
 
