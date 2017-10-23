@@ -181,8 +181,6 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
   // read in block 5 (dose array values)
   vtkSmartPointer<vtkImageData> floatDosxyzNrc3dDoseVolumeData = vtkSmartPointer<vtkImageData>::New();
   floatDosxyzNrc3dDoseVolumeData->SetExtent(0, size[0] - 1, 0, size[1] - 1, 0, size[2] - 1);
-  floatDosxyzNrc3dDoseVolumeData->SetSpacing(spacingX, spacingZ, spacingY); 
-  floatDosxyzNrc3dDoseVolumeData->SetOrigin(voxelBoundariesX[0], voxelBoundariesY[0], voxelBoundariesZ[0]);
   floatDosxyzNrc3dDoseVolumeData->AllocateScalars(VTK_FLOAT, 1); 
 
   float* floatPtr = (float*)floatDosxyzNrc3dDoseVolumeData->GetScalarPointer();
