@@ -68,7 +68,7 @@ qSlicerDosxyzNrc3dDoseFileReaderModule::~qSlicerDosxyzNrc3dDoseFileReaderModule(
 QString qSlicerDosxyzNrc3dDoseFileReaderModule::helpText()const
 {
   QString help = QString(
-    "The DosxyzNrc3dDoseFileReader module enables importing and loading DosxyzNrc3dDose files into Slicer.<br>"
+    "The DosxyzNrc3dDoseFileReader module enables importing and loading .3ddose files into Slicer.<br>"
     "The DosxyzNrc3dDoseFileReader module is hidden and therefore does not require an application.<br>");
   return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
@@ -85,7 +85,7 @@ QString qSlicerDosxyzNrc3dDoseFileReaderModule::acknowledgementText()const
 QStringList qSlicerDosxyzNrc3dDoseFileReaderModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Jennifer Andrea (Queen's)") << QString("Csaba Pinter (Queen's)");
+  moduleContributors << QString("Anna Ilina (Queen's)") << QString("Csaba Pinter (Queen's)");
   return moduleContributors;
 }
 

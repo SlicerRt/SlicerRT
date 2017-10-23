@@ -85,7 +85,7 @@ qSlicerIO::IOFileType qSlicerDosxyzNrc3dDoseFileReaderPlugin::fileType()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerDosxyzNrc3dDoseFileReaderPlugin::extensions()const
 {
-  return QStringList() << "DosxyzNrc3dDose (*.DosxyzNrc3dDose)";
+  return QStringList() << "DosxyzNrc3dDose (*.3ddose)";
 }
 
 //-----------------------------------------------------------------------------
