@@ -58,50 +58,47 @@ vtkSlicerDosxyzNrc3dDoseFileReaderLogic::~vtkSlicerDosxyzNrc3dDoseFileReaderLogi
 {
 }
 
-
-
+//----------------------------------------------------------------------------
 bool vtkSlicerDosxyzNrc3dDoseFileReaderLogic::AreEqualWithTolerance(double a, double b)
 {
   return fabs(a - b) < MAX_TOLERANCE_SPACING;
 }
-
-
 
 //----------------------------------------------------------------------------
 void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
-//
-
 
 //----------------------------------------------------------------------------
-void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* filename)
+void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* filename, float intensityScalingFactor/*=1.0*/)
 {
+  ifstream readFileStream(filename); 
+  if (!readFileStream)
+  {
+    vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The specified file could not be opened.");
+    return;
+  }
 
-  ifstream readFileStream(filename); //todo test that this doesn't crash when filename is null
-
-  if (!readFileStream){
-	  vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The specified file could not be opened.");
-	  return;
+  if (intensityScalingFactor == 0)
+  {
+    vtkWarningMacro("LoadDosxyzNrc3dDoseFile: Invalid scaling factor of 0 found, setting default value of 1");
+    intensityScalingFactor = 1.0;
   }
 
   int size[3] = { 0, 0, 0 };
   double spacing[3] = { 0, 0, 0 };
   double origin[3] = { 0, 0, 0 };
-  std::string title = "";
 
   // read in block 1 (number of voxels in x, y, z directions)
   readFileStream >> size[0] >> size[1] >> size[2];
   int numTotalVoxels = size[0] * size[1] * size[2];
 
-
   if (size[0] <= 0 || size[1] <= 0 || size[2] <= 0)
   {
-	vtkErrorMacro("LoadDosxyzNrc3dDoseFile: Number of voxels in X, Y, or Z direction must be greater than zero." << "numVoxelsX " << size[0] << ", numVoxelsY " << size[1] << ", numVoxelsZ " << size[2]);
+    vtkErrorMacro("LoadDosxyzNrc3dDoseFile: Number of voxels in X, Y, or Z direction must be greater than zero." << "numVoxelsX " << size[0] << ", numVoxelsY " << size[1] << ", numVoxelsZ " << size[2]);
     return;
   }
- 
 
   std::vector<double> voxelBoundariesX(size[0] + 1); 
   std::vector<double> voxelBoundariesY(size[1] + 1);
@@ -114,12 +111,11 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
   double initialVoxelSpacing = 0;
   double currentVoxelSpacing = 0;
 
-
   // read in block 2 (voxel boundaries, cm, in x direction)
   while (!readFileStream.eof() && counter < size[0] + 1)
   {
     readFileStream >> voxelBoundariesX[counter];
-	voxelBoundariesX[counter] = voxelBoundariesX[counter] * 10.0; // convert from cm to mm
+    voxelBoundariesX[counter] = voxelBoundariesX[counter] * 10.0; // convert from cm to mm
     if (counter == 1)
     {
       initialVoxelSpacing = fabs(voxelBoundariesX[counter] - voxelBoundariesX[counter - 1]);
@@ -128,20 +124,20 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
     else if (counter > 1)
     {
       currentVoxelSpacing = abs(voxelBoundariesX[counter] - voxelBoundariesX[counter - 1]);
-      if (AreEqualWithTolerance(initialVoxelSpacing, currentVoxelSpacing) == false){
-        vtkWarningMacro("LoadDosxyzNrc3dDoseFile: Voxels have uneven spacing in X direction.") 
+      if (AreEqualWithTolerance(initialVoxelSpacing, currentVoxelSpacing) == false)
+      {
+        vtkWarningMacro("LoadDosxyzNrc3dDoseFile: Voxels have uneven spacing in X direction.");
       }
     }
     counter += 1;
   }
-
 
   // read in block 3 (voxel boundaries, cm, in y direction)
   counter = 0;
   while (!readFileStream.eof() && counter < size[1] + 1)
   {
     readFileStream >> voxelBoundariesY[counter];
-	voxelBoundariesY[counter] = voxelBoundariesY[counter] * 10.0; // convert from cm to mm
+    voxelBoundariesY[counter] = voxelBoundariesY[counter] * 10.0; // convert from cm to mm
     if (counter == 1)
     {
       initialVoxelSpacing = fabs(voxelBoundariesY[counter] - voxelBoundariesY[counter - 1]);
@@ -150,8 +146,9 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
     else if (counter > 1)
     {
       currentVoxelSpacing = abs(voxelBoundariesY[counter] - voxelBoundariesY[counter - 1]);
-      if (AreEqualWithTolerance(initialVoxelSpacing, currentVoxelSpacing) == false){
-        vtkWarningMacro("LoadDosxyzNrc3dDoseFile: Voxels have uneven spacing in Y direction.")
+      if (AreEqualWithTolerance(initialVoxelSpacing, currentVoxelSpacing) == false)
+      {
+        vtkWarningMacro("LoadDosxyzNrc3dDoseFile: Voxels have uneven spacing in Y direction.");
       }
     }
     counter += 1;
@@ -162,7 +159,7 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
   while (!readFileStream.eof() && counter < size[2] + 1)
   {
     readFileStream >> voxelBoundariesZ[counter];
-	voxelBoundariesZ[counter] = voxelBoundariesZ[counter] * 10.0; // convert from cm to mm
+    voxelBoundariesZ[counter] = voxelBoundariesZ[counter] * 10.0; // convert from cm to mm
     if (counter == 1)
     {
       initialVoxelSpacing = fabs(voxelBoundariesZ[counter] - voxelBoundariesZ[counter - 1]);
@@ -171,8 +168,9 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
     else if (counter > 1)
     {
       currentVoxelSpacing = abs(voxelBoundariesZ[counter] - voxelBoundariesZ[counter - 1]);
-      if (AreEqualWithTolerance(initialVoxelSpacing, currentVoxelSpacing) == false){
-        vtkWarningMacro("LoadDosxyzNrc3dDoseFile: Voxels have uneven spacing in Z direction.")
+      if (AreEqualWithTolerance(initialVoxelSpacing, currentVoxelSpacing) == false)
+      {
+        vtkWarningMacro("LoadDosxyzNrc3dDoseFile: Voxels have uneven spacing in Z direction.");
       }
     }
     counter += 1;
@@ -196,12 +194,12 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
           vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The end of file was reached earlier than specified.");
         }
         readFileStream >> currentValue;
+        currentValue = currentValue * intensityScalingFactor;
         (*floatPtr) = currentValue;
         ++floatPtr;
       }
     }
   }
-
 
   // create volume node for dose values
   vtkSmartPointer<vtkMRMLScalarVolumeNode> dosxyzNrc3dDoseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
@@ -230,12 +228,7 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
   dosxyzNrc3dDoseVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeGrey");
   dosxyzNrc3dDoseVolumeNode->SetAndObserveDisplayNodeID(dosxyzNrc3dDoseVolumeDisplayNode->GetID());
 
-
-  //todo: read in block 6 (error values array; relative errors)
-  //todo: read error values in another volume node
-  //todo: do I also need voxelCenters?
+  //todo: read in block 6 (relative errors) of .3ddose file in another volume node
 
   readFileStream.close();
 }
-
-

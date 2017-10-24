@@ -20,6 +20,7 @@
 
 /// Qt includes
 #include <QFileInfo>
+#include <QDebug>
 
 // CTK includes
 #include <ctkFlowLayout.h>
@@ -48,11 +49,13 @@ qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget::qSlicerDosxyzNrc3dDoseFileReaderO
 
   ctkFlowLayout::replaceLayout(this);
 
-  connect(d->UseImageIntensityScaleAndOffsetCheckBox, SIGNAL(toggled(bool)),
-          this, SLOT(updateProperties()));
+  connect(d->ScalingFactorLineEdit, SIGNAL(textChanged(QString)), this, SLOT(updateProperties()));
 
-  // Image intensity scale and offset turned off by default
-  d->UseImageIntensityScaleAndOffsetCheckBox->setChecked(false);
+  // Image instensity scaling factor is 1.0 by default
+  float defaultScalingFactorValue = 1.0;
+  QString defaultScalingFactorString = QString::number(defaultScalingFactorValue);
+  d->ScalingFactorLineEdit->setText(defaultScalingFactorString);
+
 }
 
 //-----------------------------------------------------------------------------
@@ -65,5 +68,13 @@ void qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget::updateProperties()
 {
   Q_D(qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget);
 
-  d->Properties["imageIntensityScaleAndOffset"] = d->UseImageIntensityScaleAndOffsetCheckBox->isChecked();
+  bool ok = false;
+  float scalingFactor = d->ScalingFactorLineEdit->text().toFloat(&ok);
+  if (ok == false)
+  {
+	qCritical() << Q_FUNC_INFO << ": Unable to parse scaling factor parameter " << d->ScalingFactorLineEdit->text() << ". Using default value 1.0";
+	scalingFactor = 1.0;
+  }
+
+  d->Properties["scalingFactor"] = scalingFactor;
 }

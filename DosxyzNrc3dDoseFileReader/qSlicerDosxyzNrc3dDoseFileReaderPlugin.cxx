@@ -103,8 +103,8 @@ bool qSlicerDosxyzNrc3dDoseFileReaderPlugin::load(const IOProperties& properties
   QString fileName = properties["fileName"].toString();
   Q_ASSERT(d->Logic);
 
-  bool useImageIntensityScaleAndOffsetFromFile = properties["imageIntensityScaleAndOffset"].toBool();
-  d->Logic->LoadDosxyzNrc3dDoseFile(fileName.toLatin1().data());
+  float intensityScalingFactor = properties["scalingFactor"].toFloat();
+  d->Logic->LoadDosxyzNrc3dDoseFile(fileName.toLatin1().data(), intensityScalingFactor);
 
   this->setLoadedNodes(QStringList());
 

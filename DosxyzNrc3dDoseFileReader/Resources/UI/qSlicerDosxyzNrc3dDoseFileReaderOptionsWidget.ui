@@ -11,16 +11,29 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Volume Options</string>
+   <string>DosxyzNrc3dDoseFileReader Options</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="margin">
     <number>0</number>
    </property>
    <item>
-    <widget class="QCheckBox" name="UseImageIntensityScaleAndOffsetCheckBox">
+    <widget class="QLabel" name="ScalingFactorLabel">
+     <property name="toolTip">
+      <string>Scaling factor applied on the dose values</string>
+     </property>
      <property name="text">
-      <string>Use Image Intensity Scale and Image Intensity Offset</string>
+      <string>Scaling factor:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="ScalingFactorLineEdit">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="text">
+      <string>1.0</string>
      </property>
     </widget>
    </item>

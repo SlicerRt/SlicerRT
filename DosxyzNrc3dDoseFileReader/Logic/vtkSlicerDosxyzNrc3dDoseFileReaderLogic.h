@@ -48,7 +48,7 @@ public:
 
   /// Load DosxyzNrc3dDose volume from file
   /// \param filename Path and filename of the DosxyzNrc3dDose file
-  void LoadDosxyzNrc3dDoseFile(char* filename);
+  void LoadDosxyzNrc3dDoseFile(char* filename, float intensityScalingFactor=1.0);
 
   /// Determine if two numbers are equal within a small tolerance (0.001)
   static bool AreEqualWithTolerance(double a, double b);
