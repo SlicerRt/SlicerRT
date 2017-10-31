@@ -1435,7 +1435,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(vtkMRMLDoseVolumeHi
   if (!metricsTableNode)
   {
     vtkErrorMacro("ExportDvhToCsv: Unable to access DVH metrics table node");
-		return false;
+    return false;
   }
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
   if (!shNode)
@@ -1462,11 +1462,11 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(vtkMRMLDoseVolumeHi
   // Open output file
   std::ofstream outfile;
   outfile.open(fileName, std::ios_base::out | std::ios_base::trunc);
-	if (!outfile)
-	{
+  if (!outfile)
+  {
     vtkErrorMacro("ExportDvhToCsv: Output file '" << fileName << "' cannot be opened");
-		return false;
-	}
+    return false;
+  }
 
   // Determine the maximum number of values
   int maxNumberOfValues = -1;
@@ -1492,10 +1492,10 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(vtkMRMLDoseVolumeHi
     outfile << structureName << DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE
       << std::fixed << std::setprecision(3) << volume << DVH_CSV_HEADER_VOLUME_FIELD_END << (comma ? "," : "\t");
   }
-	outfile << std::endl;
+  outfile << std::endl;
 
   // Write values
-	for (int row=0; row<maxNumberOfValues; ++row)
+  for (int row=0; row<maxNumberOfValues; ++row)
   {
     for (std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhIt=dvhArrayNodes.begin(); dvhIt!=dvhArrayNodes.end(); ++dvhIt)
     {
@@ -1503,8 +1503,8 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(vtkMRMLDoseVolumeHi
 
       if (row < dvhArrayNode->GetArray()->GetNumberOfTuples())
       {
-    	  std::ostringstream doseStringStream;
-			  doseStringStream << std::fixed << std::setprecision(6) <<
+        std::ostringstream doseStringStream;
+        doseStringStream << std::fixed << std::setprecision(6) <<
           dvhArrayNode->GetArray()->GetComponent(row, 0);
         std::string dose = doseStringStream.str();
         if (!comma)
@@ -1521,8 +1521,8 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(vtkMRMLDoseVolumeHi
 
       if (row < dvhArrayNode->GetArray()->GetNumberOfTuples())
       {
-    	  std::ostringstream valueStringStream;
-			  valueStringStream << std::fixed << std::setprecision(6) <<
+        std::ostringstream valueStringStream;
+        valueStringStream << std::fixed << std::setprecision(6) <<
           dvhArrayNode->GetArray()->GetComponent(row, 1);
         std::string value = valueStringStream.str();
         if (!comma)
@@ -1537,10 +1537,10 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(vtkMRMLDoseVolumeHi
       }
       outfile << (comma ? "," : "\t");
     }
-		outfile << std::endl;
+    outfile << std::endl;
   }
 
-	outfile.close();
+  outfile.close();
 
   return true;
 }
@@ -1566,8 +1566,8 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhMetricsToCsv(vtkMRMLDoseV
   writer->SetInputData(metricsTableCopy);
   writer->SetUseStringDelimiter(false);
 
-	if (!comma)
-	{
+  if (!comma)
+  {
     writer->SetFieldDelimiter("\t");
   }
   else

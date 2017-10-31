@@ -326,7 +326,7 @@ class PlmMismatchErrorLogic(ScriptedLoadableModuleLogic):
       d1 = math.sqrt(d2)
       d3 = (d1 - average)*(d1 - average)
       d3sum += d3
-      counter += 1 	    
+      counter += 1    
  
     variance = d3sum/counter 
     stdev = math.sqrt(variance)

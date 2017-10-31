@@ -603,7 +603,7 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
         vtkSmartPointer<vtkImageShiftScale> imageIntensityShiftScale = vtkSmartPointer<vtkImageShiftScale>::New();
         imageIntensityShiftScale->SetScale(data_scale);
         imageIntensityShiftScale->SetShift(data_offset);
-  	    imageIntensityShiftScale->SetInputData(floatVffVolumeData);
+        imageIntensityShiftScale->SetInputData(floatVffVolumeData);
         imageIntensityShiftScale->Update();
         floatVffVolumeData = imageIntensityShiftScale->GetOutput();
       }

@@ -97,7 +97,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     #
     self.showDoseVolumeOnlyCheckbox = qt.QCheckBox("Show dose volume only")
     self.showDoseVolumeOnlyCheckbox.setChecked(2)
-    inputFormLayout.addWidget(self.showDoseVolumeOnlyCheckbox)	
+    inputFormLayout.addWidget(self.showDoseVolumeOnlyCheckbox)
 
     #
     # Volume difference criterion spin box

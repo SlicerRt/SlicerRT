@@ -168,7 +168,6 @@ class PlmVectorFieldAnalysisWidget(ScriptedLoadableModuleWidget):
 
   def onJacobianApply(self):
     # placeholder for the actual calculation..
-    #	
     self.LogicInputWLIO.vfImageNode = self.vfMRMLSelector.currentNode()
     self.LogicInputWLIO.fixedImageNode = self.fixedImage.currentNode()
 

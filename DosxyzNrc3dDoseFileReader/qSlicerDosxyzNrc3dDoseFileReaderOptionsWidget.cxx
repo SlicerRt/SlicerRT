@@ -37,7 +37,6 @@ class qSlicerDosxyzNrc3dDoseFileReaderOptionsWidgetPrivate
   : public qSlicerIOOptionsPrivate
   , public Ui_qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget
 {
-public:
 };
 
 //-----------------------------------------------------------------------------
@@ -51,11 +50,10 @@ qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget::qSlicerDosxyzNrc3dDoseFileReaderO
 
   connect(d->ScalingFactorLineEdit, SIGNAL(textChanged(QString)), this, SLOT(updateProperties()));
 
-  // Image instensity scaling factor is 1.0 by default
+  // Image intensity scaling factor is 1.0 by default
   float defaultScalingFactorValue = 1.0;
   QString defaultScalingFactorString = QString::number(defaultScalingFactorValue);
   d->ScalingFactorLineEdit->setText(defaultScalingFactorString);
-
 }
 
 //-----------------------------------------------------------------------------
@@ -70,10 +68,10 @@ void qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget::updateProperties()
 
   bool ok = false;
   float scalingFactor = d->ScalingFactorLineEdit->text().toFloat(&ok);
-  if (ok == false)
+  if (!ok)
   {
-	qCritical() << Q_FUNC_INFO << ": Unable to parse scaling factor parameter " << d->ScalingFactorLineEdit->text() << ". Using default value 1.0";
-	scalingFactor = 1.0;
+    qCritical() << Q_FUNC_INFO << ": Unable to parse scaling factor parameter " << d->ScalingFactorLineEdit->text() << ". Using default value 1.0";
+    scalingFactor = 1.0;
   }
 
   d->Properties["scalingFactor"] = scalingFactor;

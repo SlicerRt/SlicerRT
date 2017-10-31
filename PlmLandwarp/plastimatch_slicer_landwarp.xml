@@ -72,7 +72,7 @@
       <longflag>rbftype</longflag>
         <element>tps</element>
         <element>gauss</element>
-      	<element>wendland</element>
+        <element>wendland</element>
       <default>gauss</default>
       <description>Radial basis function to use</description>
     </string-enumeration>

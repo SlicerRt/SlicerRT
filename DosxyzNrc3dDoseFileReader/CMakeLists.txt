@@ -1,10 +1,3 @@
-# Fixing policy warning message, see https://www.assembla.com/spaces/slicerrt/tickets/484
-# Not sure why this file gives this warning message, as it is the same as all the other modules,
-# and INTERFACE_LINK_LIBRARIES is not used anywhere
-if(POLICY CMP0022)
-  cmake_policy(SET CMP0022 OLD)
-endif()
-
 #-----------------------------------------------------------------------------
 set(MODULE_NAME DosxyzNrc3dDoseFileReader)
 set(MODULE_TITLE "DosxyzNrc3dDose File Reader")

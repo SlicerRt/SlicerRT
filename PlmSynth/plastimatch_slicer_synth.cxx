@@ -70,7 +70,7 @@ main (int argc, char * argv [])
   } else if (plmslc_pattern == "Sphere") {
     sm_parms.pattern = PATTERN_SPHERE;
   } 
-	
+
   sm_parms.foreground = plmslc_foreground;
   sm_parms.background = plmslc_background;
 

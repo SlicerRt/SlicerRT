@@ -48,7 +48,7 @@ main (int argc, char * argv [])
 
     parms.img_in = plm_image_load_native ( plmslc_threshbox_img_in.c_str() );
     strcpy( parms.max_coord_fn_out, plmslc_max_coord_out.c_str() );
-	
+
     do_threshbox( &parms );
     
 //    FloatImageType::Pointer img = parms.img_out->itk_float();
@@ -74,9 +74,9 @@ main (int argc, char * argv [])
     strcpy( parms.max_coord_fn_in1, plmslc_max_coord1.c_str() );
     strcpy( parms.max_coord_fn_in2, plmslc_max_coord2.c_str() );
 
-//	parms.max_coord_fn_in1 = plmslc_max_coord1.c_str() ;
-//	parms.max_coord_fn_in2 = plmslc_max_coord2.c_str() ;
-	
+    // parms.max_coord_fn_in1 = plmslc_max_coord1.c_str() ;
+    // parms.max_coord_fn_in2 = plmslc_max_coord2.c_str() ;
+
     do_overlap_fraction( &parms );    
   }
 

@@ -43,7 +43,7 @@ main (int argc, char * argv [])
 
   std::ostringstream command_string;
   Warp_parms parms;
-	
+
   command_string <<
     "[GLOBAL]\n"
     "fixed=" << plmslc_fixed_volume << "\n"
@@ -188,7 +188,7 @@ main (int argc, char * argv [])
     "[STAGE]\n"
     "metric=" 
                  << metric << "\n"
-    "xform=bspline\n"	
+    "xform=bspline\n"
     "optim=lbfgsb\n"
     "impl=plastimatch\n"
     "threading=" 
@@ -212,7 +212,7 @@ main (int argc, char * argv [])
     command_string << 
       "img_out=" << plmslc_output_warped_1 << "\n";
   }
-		
+
 
   if (enable_stage_2) {
     command_string << 
@@ -266,12 +266,12 @@ main (int argc, char * argv [])
   //}
     
 
-//  if (!plmslc_interactive_registration) 
+  // if (!plmslc_interactive_registration) 
   reg.do_registration ();
-//		else { 
-//		prepare config for interactive registration
-//		do_interactive_registration();
-// 		}
+  // else { 
+  //   prepare config for interactive registration
+  //   do_interactive_registration();
+  // }
 
   return EXIT_SUCCESS;
 }

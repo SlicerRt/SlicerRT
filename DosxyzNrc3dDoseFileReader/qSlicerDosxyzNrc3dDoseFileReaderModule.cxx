@@ -123,4 +123,3 @@ vtkMRMLAbstractLogic* qSlicerDosxyzNrc3dDoseFileReaderModule::createLogic()
 {
   return vtkSlicerDosxyzNrc3dDoseFileReaderLogic::New();
 }
-

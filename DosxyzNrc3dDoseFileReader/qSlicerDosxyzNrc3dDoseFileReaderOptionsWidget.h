@@ -42,13 +42,11 @@ public:
   qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget(QWidget *parent=0);
   virtual ~qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget();
 
-
 protected slots:
   void updateProperties();
 
 private:
   Q_DECLARE_PRIVATE_D(qGetPtrHelper(qSlicerIOOptions::d_ptr), qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget);
-  //Q_DECLARE_PRIVATE(qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget);
   Q_DISABLE_COPY(qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget);
 };
 

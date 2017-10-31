@@ -525,12 +525,12 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
   // User selects file and format
   QString selectedFilter;
 
-	QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH values to file" ) ), tr(""), QString( tr( "CSV comma separated values ( *.csv );;TSV tab separated values ( *.tsv )" ) ), &selectedFilter );
-	if (fileName.isNull())
-	{
-		return;
-	}
-	bool comma = selectedFilter.compare("TSV tab separated values ( *.tsv )");
+  QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH values to file" ) ), tr(""), QString( tr( "CSV comma separated values ( *.csv );;TSV tab separated values ( *.tsv )" ) ), &selectedFilter );
+  if (fileName.isNull())
+  {
+    return;
+  }
+  bool comma = selectedFilter.compare("TSV tab separated values ( *.tsv )");
 
   // Export
   if (! d->logic()->ExportDvhToCsv(paramNode, fileName.toLatin1().data(), comma) )
@@ -553,12 +553,12 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
   // User selects file and format
   QString selectedFilter;
 
-	QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH metrics to file" ) ), tr(""), QString( tr( "CSV comma separated values ( *.csv );;TSV tab separated values ( *.tsv )" ) ), &selectedFilter );
-	if (fileName.isNull())
-	{
-		return;
-	}
-	bool comma = selectedFilter.compare("TSV tab separated values ( *.tsv )");
+  QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH metrics to file" ) ), tr(""), QString( tr( "CSV comma separated values ( *.csv );;TSV tab separated values ( *.tsv )" ) ), &selectedFilter );
+  if (fileName.isNull())
+  {
+    return;
+  }
+  bool comma = selectedFilter.compare("TSV tab separated values ( *.tsv )");
 
   // Export
   if (! d->logic()->ExportDvhMetricsToCsv(paramNode, fileName.toLatin1().data(), comma) )

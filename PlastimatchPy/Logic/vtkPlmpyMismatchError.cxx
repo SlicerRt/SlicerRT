@@ -96,7 +96,7 @@ void vtkPlmMismatchError::RunMismatchError()
      this->StdevString = (char *)malloc(32);
      
      this->SeparationString = (char *)malloc(32);
-	 
+ 
      sprintf(this->AverageString, "%f", avg);
      sprintf(this->VarianceString, "%f", var);
      sprintf(this->StdevString, "%f", sqrt(var));

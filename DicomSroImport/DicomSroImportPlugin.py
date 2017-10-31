@@ -30,15 +30,15 @@ class DicomSroImportPluginClass(DICOMPlugin):
     examineInfo = slicer.vtkDICOMImportInfo()
     for files in fileLists:
       fileListIndex = examineInfo.InsertNextFileList() 
-      fileList = examineInfo.GetFileList(fileListIndex) # vtk.vtkStringArray()  	  
+      fileList = examineInfo.GetFileList(fileListIndex) # vtk.vtkStringArray()  
       for f in files:
-        fileList.InsertNextValue(f)	
+        fileList.InsertNextValue(f)
 
     # Examine files
     logic = slicer.vtkSlicerDicomSroImportModuleLogic()
     #logic = slicer.modules.DicomSroimport.logic()
     print "reg inside examine"
-    logic.Examine(examineInfo)	
+    logic.Examine(examineInfo)
     
     # Import loadables from DicomExamineInfo
     loadables = []

@@ -58,8 +58,8 @@ protected:
   virtual ~vtkSlicerDosxyzNrc3dDoseFileReaderLogic();
 
 private:
-  vtkSlicerDosxyzNrc3dDoseFileReaderLogic(const vtkSlicerDosxyzNrc3dDoseFileReaderLogic&);	// Not implemented
-  void operator=(const vtkSlicerDosxyzNrc3dDoseFileReaderLogic&);							// Not implemented
+  vtkSlicerDosxyzNrc3dDoseFileReaderLogic(const vtkSlicerDosxyzNrc3dDoseFileReaderLogic&);  // Not implemented
+  void operator=(const vtkSlicerDosxyzNrc3dDoseFileReaderLogic&);  // Not implemented
 };
 
 #endif
