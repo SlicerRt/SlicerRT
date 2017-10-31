@@ -23,12 +23,10 @@
 #include "vtkSlicerDoseComparisonModuleLogic.h"
 #include "vtkMRMLDoseComparisonNode.h"
 
-// SlicerRt includes
+// SlicerRT includes
 #include "SlicerRtCommon.h"
 
 // MRML includes
-#include <vtkMRMLCoreTestingMacros.h>
-#include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLSubjectHierarchyNode.h>
 #include <vtkMRMLScene.h>
@@ -36,7 +34,6 @@
 // VTK includes
 #include <vtkNew.h>
 #include <vtkImageData.h>
-#include <vtkImageAccumulate.h>
 #include <vtkMatrix4x4.h>
 #include <vtkImageMathematics.h>
 

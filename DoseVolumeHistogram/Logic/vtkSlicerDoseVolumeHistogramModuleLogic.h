@@ -30,9 +30,6 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
-// VTK includes
-#include "vtkImageAccumulate.h"
-
 #include "vtkSlicerDoseVolumeHistogramModuleLogicExport.h"
 
 class vtkOrientedImageData;

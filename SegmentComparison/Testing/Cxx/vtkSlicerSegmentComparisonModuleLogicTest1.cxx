@@ -31,13 +31,9 @@
 #include "vtkPlanarContourToClosedSurfaceConversionRule.h"
 
 // SegmentationCore includes
-#include "vtkOrientedImageData.h"
-#include "vtkOrientedImageDataResample.h"
 #include "vtkSegmentationConverterFactory.h"
 
 // MRML includes
-#include <vtkMRMLCoreTestingMacros.h>
-#include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLScene.h>
@@ -45,8 +41,6 @@
 // VTK includes
 #include <vtkNew.h>
 #include <vtkImageData.h>
-#include <vtkImageAccumulate.h>
-#include <vtkImageMathematics.h>
 
 // ITK includes
 #include "itkFactoryRegistration.h"

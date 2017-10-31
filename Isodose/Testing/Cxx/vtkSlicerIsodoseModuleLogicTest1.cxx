@@ -23,15 +23,12 @@
 #include "vtkSlicerIsodoseModuleLogic.h"
 #include "vtkMRMLIsodoseNode.h"
 
-// SlicerRt includes
+// SlicerRT includes
 #include "SlicerRtCommon.h"
 
 // MRML includes
-#include <vtkMRMLCoreTestingMacros.h>
 #include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLModelNode.h>
-#include <vtkMRMLModelDisplayNode.h>
-#include <vtkMRMLVolumeArchetypeStorageNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLSubjectHierarchyNode.h>
@@ -43,8 +40,6 @@
 #include <vtkPolyData.h>
 #include <vtkNew.h>
 #include <vtkImageData.h>
-#include <vtkImageAccumulate.h>
-#include <vtkLookupTable.h>
 #include <vtkCollection.h>
 #include <vtkMassProperties.h>
 

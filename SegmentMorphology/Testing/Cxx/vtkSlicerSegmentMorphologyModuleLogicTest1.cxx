@@ -23,12 +23,11 @@
 #include "vtkSlicerSegmentMorphologyModuleLogic.h"
 #include "vtkMRMLSegmentMorphologyNode.h"
 
-// SlicerRt includes
+// SlicerRT includes
 #include "SlicerRtCommon.h"
 #include "vtkPlanarContourToClosedSurfaceConversionRule.h"
 
 // MRML includes
-#include <vtkMRMLCoreTestingMacros.h>
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLScene.h>
 
@@ -42,10 +41,7 @@
 #include "vtkSegmentationConverterFactory.h"
 
 // VTK includes
-#include <vtkImageAccumulate.h>
 #include <vtkImageData.h>
-#include <vtkImageMathematics.h>
-#include <vtkNew.h>
 #include <vtkTransform.h>
 
 // ITK includes
