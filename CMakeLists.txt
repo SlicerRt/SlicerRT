@@ -25,6 +25,7 @@ find_package(Slicer COMPONENTS ConfigurePrerequisites REQUIRED)
 project(SlicerRT)
 find_package(Slicer REQUIRED)
 include(${Slicer_USE_FILE})
+include(${Slicer_EXTENSION_GENERATE_CONFIG})
 
 #-----------------------------------------------------------------------------
 option(${EXTENSION_NAME}_SUPERBUILD "Build ${EXTENSION_NAME} and the projects it depends on via SuperBuild.cmake." ON)
