@@ -18,9 +18,6 @@
 
 ==============================================================================*/
 
-// Qt includes
-#include <QtPlugin>
-
 // SlicerQt includes
 #include <qSlicerCoreApplication.h>
 #include <qSlicerIOManager.h>
@@ -34,9 +31,11 @@
 #include "qSlicerDosxyzNrc3dDoseFileReaderModule.h"
 #include "qSlicerDosxyzNrc3dDoseFileReaderPluginWidget.h"
 
-
 //-----------------------------------------------------------------------------
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QtPlugin>
 Q_EXPORT_PLUGIN2(qSlicerDosxyzNrc3dDoseFileReaderModule, qSlicerDosxyzNrc3dDoseFileReaderModule);
+#endif
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_DosxyzNrc3dDoseFileReader
