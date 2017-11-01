@@ -1,4 +1,5 @@
 import os
+import logging
 import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
@@ -15,9 +16,10 @@ class DvhComparison(ScriptedLoadableModule):
     self.parent.categories = ["Radiotherapy"]
     self.parent.dependencies = ["DoseVolumeHistogram"]
     self.parent.contributors = ["Kyle Sunderland (Queen's University), Csaba Pinter (Queen's University)"]
-    self.parent.helpText = """This module compares two Dose Volume Histograms from corresponding Double Array Nodes."""
+    self.parent.helpText = """This module compares two Dose Volume Histograms from corresponding Double Array nodes."""
     self.parent.acknowledgementText = """ """
-
+    iconPath = os.path.join(os.path.dirname(self.parent.path), 'Resources/Icons', self.moduleName+'.png')
+    parent.icon = qt.QIcon(iconPath)
     
 #
 # ------------------------------------------------------------------------------
