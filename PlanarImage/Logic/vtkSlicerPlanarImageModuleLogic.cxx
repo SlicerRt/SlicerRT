@@ -182,7 +182,8 @@ void vtkSlicerPlanarImageModuleLogic::ProcessMRMLSceneEvents(vtkObject *caller, 
     std::vector<vtkMRMLNode*> nodes;
     this->GetMRMLScene()->GetNodesByClass("vtkMRMLScalarVolumeNode", nodes);
     for (std::vector<vtkMRMLNode*>::iterator nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
-    {      vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(*nodeIt);
+    {
+      vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(*nodeIt);
       vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(
         volumeNode->GetNodeReference(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
       std::map<vtkMRMLScalarVolumeNode*, vtkImageMapToWindowLevelColors*>::iterator mapperIt =

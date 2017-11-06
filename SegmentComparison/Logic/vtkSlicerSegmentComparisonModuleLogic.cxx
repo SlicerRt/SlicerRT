@@ -280,14 +280,20 @@ void vtkSlicerSegmentComparisonModuleLogic::OnMRMLSceneEndClose()
 //---------------------------------------------------------------------------
 std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics(vtkMRMLSegmentComparisonNode* parameterNode)
 {
+  parameterNode->DiceResultsValidOff();
+
   if (!parameterNode || !this->GetMRMLScene())
   {
     std::string errorMessage("Invalid MRML scene or parameter set node");
     vtkErrorMacro("ComputeDiceStatistics: " << errorMessage);
     return errorMessage;
   }
-
-  parameterNode->DiceResultsValidOff();
+  if (!parameterNode->GetReferenceSegmentationNode() || !parameterNode->GetCompareSegmentationNode())
+  {
+    std::string errorMessage("Invalid input segment selection");
+    vtkErrorMacro("ComputeDiceStatistics: " << errorMessage);
+    return errorMessage;
+  }
 
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
@@ -418,14 +424,20 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics(vtkMRML
 //---------------------------------------------------------------------------
 std::string vtkSlicerSegmentComparisonModuleLogic::ComputeHausdorffDistances(vtkMRMLSegmentComparisonNode* parameterNode)
 {
+  parameterNode->HausdorffResultsValidOff();
+
   if (!parameterNode || !this->GetMRMLScene())
   {
     std::string errorMessage("Invalid MRML scene or parameter set node");
     vtkErrorMacro("ComputeHausdorffDistances: " << errorMessage);
     return errorMessage;
   }
-
-  parameterNode->HausdorffResultsValidOff();
+  if (!parameterNode->GetReferenceSegmentationNode() || !parameterNode->GetCompareSegmentationNode())
+  {
+    std::string errorMessage("Invalid input segment selection");
+    vtkErrorMacro("ComputeHausdorffDistances: " << errorMessage);
+    return errorMessage;
+  }
 
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();

@@ -26,6 +26,7 @@ project(SlicerRT)
 find_package(Slicer REQUIRED)
 include(${Slicer_USE_FILE})
 include(${Slicer_EXTENSION_GENERATE_CONFIG})
+mark_as_superbuild(Slicer_DIR)
 
 #-----------------------------------------------------------------------------
 option(${EXTENSION_NAME}_SUPERBUILD "Build ${EXTENSION_NAME} and the projects it depends on via SuperBuild.cmake." ON)
@@ -88,5 +89,5 @@ endif()
 
 #-----------------------------------------------------------------------------
 set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${CMAKE_BINARY_DIR};${EXTENSION_NAME};ALL;/")
-#set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${<EP>_DIR};<EP>;RuntimeLibraries;/")
+#set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${Foo_DIR};Foo;RuntimeLibraries;/")
 INCLUDE(${Slicer_EXTENSION_CPACK})

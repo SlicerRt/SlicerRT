@@ -25,6 +25,7 @@
 #include "SlicerRtCommon.h"
 
 // MRML includes
+#include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLModelNode.h>
 
@@ -60,6 +61,12 @@ vtkMRMLScalarVolumeNode* vtkMRMLPlanarImageNode::GetRtImageVolumeNode()
 //----------------------------------------------------------------------------
 void vtkMRMLPlanarImageNode::SetAndObserveRtImageVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(PLANARIMAGE_RT_IMAGE_VOLUME_REFERENCE_ROLE.c_str(), (node ? node->GetID() : NULL));
 }
 
@@ -73,5 +80,11 @@ vtkMRMLModelNode* vtkMRMLPlanarImageNode::GetDisplayedModelNode()
 //----------------------------------------------------------------------------
 void vtkMRMLPlanarImageNode::SetAndObserveDisplayedModelNode(vtkMRMLModelNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str(), (node ? node->GetID() : NULL));
 }

@@ -342,6 +342,12 @@ vtkMRMLSegmentationNode* vtkMRMLSegmentComparisonNode::GetReferenceSegmentationN
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentComparisonNode::SetAndObserveReferenceSegmentationNode(vtkMRMLSegmentationNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(REFERENCE_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
@@ -354,6 +360,12 @@ vtkMRMLSegmentationNode* vtkMRMLSegmentComparisonNode::GetCompareSegmentationNod
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentComparisonNode::SetAndObserveCompareSegmentationNode(vtkMRMLSegmentationNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(COMPARE_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
@@ -366,6 +378,12 @@ vtkMRMLScalarVolumeNode* vtkMRMLSegmentComparisonNode::GetRasterizationReference
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentComparisonNode::SetAndObserveRasterizationReferenceVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(RASTERIZATION_REFERENCE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
@@ -378,6 +396,12 @@ vtkMRMLTableNode* vtkMRMLSegmentComparisonNode::GetDiceTableNode()
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentComparisonNode::SetAndObserveDiceTableNode(vtkMRMLTableNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(DICE_TABLE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
@@ -390,5 +414,11 @@ vtkMRMLTableNode* vtkMRMLSegmentComparisonNode::GetHausdorffTableNode()
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentComparisonNode::SetAndObserveHausdorffTableNode(vtkMRMLTableNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(HAUSDORFF_TABLE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }

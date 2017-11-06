@@ -163,6 +163,12 @@ vtkMRMLSegmentationNode* vtkMRMLSegmentMorphologyNode::GetSegmentationANode()
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentMorphologyNode::SetAndObserveSegmentationANode(vtkMRMLSegmentationNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(SEGMENTATION_A_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
@@ -175,6 +181,12 @@ vtkMRMLSegmentationNode* vtkMRMLSegmentMorphologyNode::GetSegmentationBNode()
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentMorphologyNode::SetAndObserveSegmentationBNode(vtkMRMLSegmentationNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(SEGMENTATION_B_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
@@ -187,6 +199,12 @@ vtkMRMLSegmentationNode* vtkMRMLSegmentMorphologyNode::GetOutputSegmentationNode
 //----------------------------------------------------------------------------
 void vtkMRMLSegmentMorphologyNode::SetAndObserveOutputSegmentationNode(vtkMRMLSegmentationNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(OUTPUT_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 

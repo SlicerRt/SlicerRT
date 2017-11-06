@@ -237,6 +237,12 @@ vtkMRMLScalarVolumeNode* vtkMRMLDoseVolumeHistogramNode::GetDoseVolumeNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
@@ -249,6 +255,12 @@ vtkMRMLSegmentationNode* vtkMRMLDoseVolumeHistogramNode::GetSegmentationNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveSegmentationNode(vtkMRMLSegmentationNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
@@ -278,6 +290,12 @@ vtkMRMLTableNode* vtkMRMLDoseVolumeHistogramNode::GetMetricsTableNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveMetricsTableNode(vtkMRMLTableNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(DVH_METRICS_TABLE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
@@ -306,6 +324,12 @@ vtkMRMLChartNode* vtkMRMLDoseVolumeHistogramNode::GetChartNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseVolumeHistogramNode::SetAndObserveChartNode(vtkMRMLChartNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(CHART_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 

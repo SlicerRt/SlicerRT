@@ -213,6 +213,12 @@ vtkMRMLScalarVolumeNode* vtkMRMLDoseComparisonNode::GetReferenceDoseVolumeNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseComparisonNode::SetAndObserveReferenceDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(REFERENCE_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
@@ -225,6 +231,12 @@ vtkMRMLScalarVolumeNode* vtkMRMLDoseComparisonNode::GetCompareDoseVolumeNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseComparisonNode::SetAndObserveCompareDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(COMPARE_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
@@ -237,6 +249,12 @@ vtkMRMLSegmentationNode* vtkMRMLDoseComparisonNode::GetMaskSegmentationNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseComparisonNode::SetAndObserveMaskSegmentationNode(vtkMRMLSegmentationNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(MASK_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
 
@@ -249,5 +267,11 @@ vtkMRMLScalarVolumeNode* vtkMRMLDoseComparisonNode::GetGammaVolumeNode()
 //----------------------------------------------------------------------------
 void vtkMRMLDoseComparisonNode::SetAndObserveGammaVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
   this->SetNodeReferenceID(GAMMA_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
