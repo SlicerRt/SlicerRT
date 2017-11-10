@@ -184,9 +184,9 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
 
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLIsodoseNode> paramNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
+  mrmlScene->AddNode(paramNode);
   paramNode->SetAndObserveDoseVolumeNode(doseScalarVolumeNode);
   paramNode->SetAndObserveColorTableNode(isodoseColorNode);
-  mrmlScene->AddNode(paramNode);
 
   // Compute isodose
   isodoseLogic->CreateIsodoseSurfaces(paramNode);

@@ -389,10 +389,10 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
 
   // Create and set up parameter set MRML node
   vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode> paramNode = vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New();
+  mrmlScene->AddNode(paramNode);
   paramNode->SetAndObserveDoseVolumeNode(doseScalarVolumeNode);
   paramNode->SetAndObserveSegmentationNode(segmentationNode);
   paramNode->SetAutomaticOversampling(automaticOversamplingCalculation);
-  mrmlScene->AddNode(paramNode);
 
   // Setup chart node
   vtkMRMLChartNode* chartNode = paramNode->GetChartNode();
