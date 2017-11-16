@@ -2,6 +2,7 @@ import os
 import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
+from DICOMLib import DICOMUtils
 import logging
 
 #
@@ -49,7 +50,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
   #------------------------------------------------------------------------------
   def test_IGRTWorkflow_SelfTest_FullTest(self):
     try:
-      #slicer.namic_selftest_instance = self #TODO: For debugging
+      #slicer.igrt_selftest_instance = self #TODO: For debugging
 
       # Check for modules
       self.assertIsNotNone( slicer.modules.dicomrtimportexport )
@@ -62,13 +63,10 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.assertIsNotNone( slicer.modules.dosevolumehistogram )
 
       self.TestSection_00_SetupPathsAndNames()
-      self.TestSection_01A_OpenTempDatabase()
-      self.TestSection_01B_DownloadDay1Data()
-      self.TestSection_01C_ImportDay1Study()
-      self.TestSection_01D_SelectLoadablesAndLoad()
-      self.TestSection_01E_LoadDay2Data()
-      self.TestSection_01F_AddDay2DataToSubjectHierarchy()
-      self.TestSection_01G_SetDisplayOptions()
+      self.TestSection_01_LoadDicomData()
+      self.TestSection_02A_LoadDay2Data()
+      self.TestSection_02B_AddDay2DataToSubjectHierarchy()
+      self.TestSection_02C_SetDisplayOptions()
       self.TestSection_03A_ComputeIsodoseForDay1()
       self.TestSection_03B_ComputeIsodoseForDay2()
       self.TestSection_04_RegisterDay2CTToDay1CT()
@@ -76,7 +74,6 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.TestSection_06_ComputeGamma()
       self.TestSection_07_AccumulateDose()
       self.TestSection_08_ComputeDvh()
-      self.TestUtility_ClearDatabase()
 
     except Exception, e:
       pass
@@ -96,6 +93,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       os.mkdir(self.day2DataDir)
 
     self.dicomDatabaseDir = IGRTWorkflow_SelfTestDir + '/CtkDicomDatabase'
+    self.dicomZipFileUrl = 'http://slicer.kitware.com/midas3/download/item/101019/EclipseEntPhantomRtData.zip'
     self.dicomZipFilePath = IGRTWorkflow_SelfTestDir + '/EclipseEntDicomRt.zip'
     self.expectedNumOfFilesInDicomDataDir = 142
     self.tempDir = IGRTWorkflow_SelfTestDir + '/Temp'
@@ -124,138 +122,31 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     self.setupPathsAndNamesDone = True
 
   #------------------------------------------------------------------------------
-  def TestSection_01A_OpenTempDatabase(self):
-    # Open test database and empty it
+  def TestSection_01_LoadDicomData(self):
     try:
-      if not os.access(self.dicomDatabaseDir, os.F_OK):
-        os.mkdir(self.dicomDatabaseDir)
+      # Open test database and empty it
+      with DICOMUtils.TemporaryDICOMDatabase(self.dicomDatabaseDir) as db:
+        self.assertTrue( db.isOpen )
+        self.assertEqual( slicer.dicomDatabase, db)
 
-      if slicer.dicomDatabase:
-        self.originalDatabaseDirectory = os.path.split(slicer.dicomDatabase.databaseFilename)[0]
-      else:
-        self.originalDatabaseDirectory = None
-        settings = qt.QSettings()
-        settings.setValue('DatabaseDirectory', self.dicomDatabaseDir)
-
-      dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
-      dicomWidget.onDatabaseDirectoryChanged(self.dicomDatabaseDir)
-      self.assertTrue( slicer.dicomDatabase.isOpen )
-      slicer.dicomDatabase.initializeDatabase()
+        # Download, unzip, import, and load data. Verify selected plugins and loaded nodes.
+        selectedPlugins = { 'Scalar Volume':2, 'RT':3 }
+        loadedNodes = { 'vtkMRMLScalarVolumeNode':2, \
+                        'vtkMRMLSegmentationNode':1, \
+                        'vtkMRMLModelHierarchyNode':7 }
+        with DICOMUtils.LoadDICOMFilesToDatabase( \
+            self.dicomZipFileUrl, self.dicomZipFilePath, \
+            self.dicomDataDir, self.expectedNumOfFilesInDicomDataDir, \
+            {}, loadedNodes) as success:
+          self.assertTrue(success)
 
     except Exception, e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
-      raise Exception("Exception occurred, handled, thrown further to workflow level")
 
   #------------------------------------------------------------------------------
-  def TestSection_01B_DownloadDay1Data(self):
-    try:
-      import urllib
-      downloads = (
-          ('http://slicer.kitware.com/midas3/download/item/101019/EclipseEntPhantomRtData.zip', self.dicomZipFilePath),
-          )
-
-      downloaded = 0
-      for url,filePath in downloads:
-        if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
-          if downloaded == 0:
-            self.delayDisplay('Downloading Day 1 input data to folder\n' + self.dicomZipFilePath + '.\n\n  It may take a few minutes...',self.delayMs)
-          logging.info('Requesting download from %s...' % (url))
-          urllib.urlretrieve(url, filePath)
-          downloaded += 1
-        else:
-          self.delayDisplay('Day 1 input data has been found in folder ' + self.dicomZipFilePath, self.delayMs)
-      if downloaded > 0:
-        self.delayDisplay('Downloading Day 1 input data finished',self.delayMs)
-
-      numOfFilesInDicomDataDir = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
-      if (numOfFilesInDicomDataDir != self.expectedNumOfFilesInDicomDataDir):
-        slicer.app.applicationLogic().Unzip(self.dicomZipFilePath, self.dicomDataDir)
-        self.delayDisplay("Unzipping done",self.delayMs)
-
-      numOfFilesInDicomDataDirTest = len([name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
-      self.assertEqual( numOfFilesInDicomDataDirTest, self.expectedNumOfFilesInDicomDataDir )
-
-    except Exception, e:
-      import traceback
-      traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
-      raise Exception("Exception occurred, handled, thrown further to workflow level")
-
-  #------------------------------------------------------------------------------
-  def TestSection_01C_ImportDay1Study(self):
-    self.delayDisplay("Import Day 1 study",self.delayMs)
-
-    try:
-      slicer.util.selectModule('DICOM')
-
-      # Import study to database
-      dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
-      indexer = ctk.ctkDICOMIndexer()
-      self.assertIsNotNone( indexer )
-
-      indexer.addDirectory( slicer.dicomDatabase, self.dicomDataDir )
-
-      self.assertEqual( len(slicer.dicomDatabase.patients()), 1 )
-      self.assertIsNotNone( slicer.dicomDatabase.patients()[0] )
-
-    except Exception, e:
-      import traceback
-      traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
-      raise Exception("Exception occurred, handled, thrown further to workflow level")
-
-  #------------------------------------------------------------------------------
-  def TestSection_01D_SelectLoadablesAndLoad(self):
-    self.delayDisplay("Select loadables and load data",self.delayMs)
-
-    try:
-      numOfScalarVolumeNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') )
-      numOfModelHierarchyNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') )
-      numOfSegmentationNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLSegmentationNode*') )
-
-      # Choose first patient from the patient list
-      dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
-      self.delayDisplay("Wait for DICOM browser to initialize",self.delayMs)
-      patient = slicer.dicomDatabase.patients()[0]
-      studies = slicer.dicomDatabase.studiesForPatient(patient)
-      series = [slicer.dicomDatabase.seriesForStudy(study) for study in studies]
-      seriesUIDs = [uid for uidList in series for uid in uidList]
-      dicomWidget.detailsPopup.offerLoadables(seriesUIDs, 'SeriesUIDList')
-      dicomWidget.detailsPopup.examineForLoading()
-
-      # Make sure the loadables are good (RT is assigned to 3 out of 4 and they are selected)
-      loadablesByPlugin = dicomWidget.detailsPopup.loadablesByPlugin
-      rtFound = False
-      loadablesForRt = 0
-      for plugin in loadablesByPlugin:
-        if plugin.loadType == 'RT':
-          rtFound = True
-        else:
-          continue
-        for loadable in loadablesByPlugin[plugin]:
-          loadablesForRt += 1
-          self.assertTrue( loadable.selected )
-
-      self.assertTrue( rtFound )
-      self.assertEqual( loadablesForRt, 3 )
-
-      dicomWidget.detailsPopup.loadCheckedLoadables()
-
-      # Verify that the correct number of objects were loaded
-      self.assertEqual( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ), numOfScalarVolumeNodesBeforeLoad + 2 )
-      self.assertEqual( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ), numOfModelHierarchyNodesBeforeLoad + 7 )
-      self.assertEqual( len( slicer.util.getNodes('vtkMRMLSegmentationNode*') ), numOfSegmentationNodesBeforeLoad + 1 )
-
-    except Exception, e:
-      import traceback
-      traceback.print_exc()
-      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
-      raise Exception("Exception occurred, handled, thrown further to workflow level")
-
-  #------------------------------------------------------------------------------
-  def TestSection_01E_LoadDay2Data(self):
+  def TestSection_02A_LoadDay2Data(self):
     try:
       import urllib
       downloads = (
@@ -292,7 +183,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       raise Exception("Exception occurred, handled, thrown further to workflow level")
 
   #------------------------------------------------------------------------------
-  def TestSection_01F_AddDay2DataToSubjectHierarchy(self):
+  def TestSection_02B_AddDay2DataToSubjectHierarchy(self):
     try:
       shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
       self.assertIsNotNone( shNode )
@@ -336,7 +227,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       raise Exception("Exception occurred, handled, thrown further to workflow level")
 
   #------------------------------------------------------------------------------
-  def TestSection_01G_SetDisplayOptions(self):
+  def TestSection_02C_SetDisplayOptions(self):
     self.delayDisplay('Setting display options for loaded data',self.delayMs)
 
     try:
@@ -976,9 +867,9 @@ class IGRTWorkflow_SelfTestWidget(ScriptedLoadableModuleWidget):
     tester.TestSection_01B_DownloadDay1Data()
     tester.TestSection_01C_ImportDay1Study()
     tester.TestSection_01D_SelectLoadablesAndLoad()
-    tester.TestSection_01E_LoadDay2Data()
-    tester.TestSection_01F_AddDay2DataToSubjectHierarchy()
-    tester.TestSection_01G_SetDisplayOptions()
+    tester.TestSection_02A_LoadDay2Data()
+    tester.TestSection_02B_AddDay2DataToSubjectHierarchy()
+    tester.TestSection_02C_SetDisplayOptions()
 
   #------------------------------------------------------------------------------
   def onGenerateIsodose(self,moduleName="IGRTWorkflow_SelfTest"):
