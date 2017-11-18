@@ -21,8 +21,14 @@
 #ifndef __qSlicerBeamsModuleWidgetsPlugin_h
 #define __qSlicerBeamsModuleWidgetsPlugin_h
 
+#include "vtkSlicerConfigure.h" // For Slicer_HAVE_QT5
+
 // Qt includes
+#ifdef Slicer_HAVE_QT5
+#include <QtUiPlugin/QDesignerCustomWidgetCollectionInterface>
+#else
 #include <QDesignerCustomWidgetCollectionInterface>
+#endif
 
 // Beams includes
 #include "qMRMLBeamParametersTabWidgetPlugin.h"
