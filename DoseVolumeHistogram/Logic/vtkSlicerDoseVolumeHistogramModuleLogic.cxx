@@ -222,7 +222,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   segmentationCopy->SetConversionParameter( vtkClosedSurfaceToBinaryLabelmapConversionRule::GetOversamplingFactorParameterName(),
     parameterNode->GetAutomaticOversampling() ? "A" : fixedOversamplingValueStream.str().c_str() );
 
-  char* representationName = "";
+  char* representationName = 0;
   bool useFractionalLabelmap = parameterNode->GetUseFractionalLabelmap();
   if (useFractionalLabelmap)
   {
