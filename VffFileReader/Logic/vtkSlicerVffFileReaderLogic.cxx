@@ -446,14 +446,14 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
 
       // Parse out the name of the file from the file path given as the parameter title
       std::string fileNameFromTitle = title;
-      int lastSlashPos = fileNameFromTitle.find_last_of("/\\");
+      size_t lastSlashPos = fileNameFromTitle.find_last_of("/\\");
       if (lastSlashPos != std::string::npos)
       {
         fileNameFromTitle = fileNameFromTitle.substr(lastSlashPos+1);
         fileNameFromTitle = this->TrimSpacesFromEndsOfString(fileNameFromTitle);
       }
       // Strip the extension from the end of the string
-      int lastPeriodPos = fileNameFromTitle.find_last_of(".");
+      size_t lastPeriodPos = fileNameFromTitle.find_last_of(".");
       if (lastPeriodPos != std::string::npos && fileNameFromTitle.substr(lastPeriodPos) == ".vff")
       {
         fileNameFromTitle = fileNameFromTitle.substr(0, lastPeriodPos);

@@ -157,7 +157,7 @@ void vtkSlicerDicomRtWriter::AddStructure(const char *name, double *color,
   }
   Rtss_roi* roi = segmentation->add_rtss_roi(name, colorString.c_str());
 
-  for (int contourIndex=0; contourIndex<sliceContours.size(); ++contourIndex)
+  for (size_t contourIndex=0; contourIndex<sliceContours.size(); ++contourIndex)
   {
     int sliceNumber = sliceNumbers[contourIndex];
     std::string sliceUID = sliceUIDs[contourIndex];
