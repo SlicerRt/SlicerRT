@@ -1905,7 +1905,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnVisibilityChanged(vtkObject* cal
     }
   }
 
-  if (rows.size() != parameterNode->GetMetricsTableNode()->GetNumberOfRows())
+  if (rows.size() != static_cast<size_t>(parameterNode->GetMetricsTableNode()->GetNumberOfRows()))
   {
     vtkErrorWithObjectMacro(self,"OnVisibilityChanged: Mismatch between referenced DVH arrays and metrics table");
   }
