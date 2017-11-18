@@ -94,8 +94,8 @@ qSlicerAbstractDoseEnginePrivate::qSlicerAbstractDoseEnginePrivate(qSlicerAbstra
 //----------------------------------------------------------------------------
 qSlicerAbstractDoseEngine::qSlicerAbstractDoseEngine(QObject* parent)
   : Superclass(parent)
-  , d_ptr( new qSlicerAbstractDoseEnginePrivate(*this) )
   , m_Name(QString())
+  , d_ptr( new qSlicerAbstractDoseEnginePrivate(*this) )
 {
 }
 
