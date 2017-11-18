@@ -167,7 +167,6 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
     }
 
     // Go through the layout rows to determine which parameter belongs to the current engine
-    bool tabVisible = false;
     for (int currentRow=0; currentRow<currentLayout->rowCount(); ++currentRow)
     {
       QWidget* currentParameterFieldWidget = currentLayout->itemAt(currentRow, QFormLayout::FieldRole)->widget();
@@ -614,6 +613,7 @@ void qMRMLBeamParametersTabWidget::mlcPositionDoubleArrayNodeChanged(vtkMRMLNode
   Q_D(qMRMLBeamParametersTabWidget);
 
   // GCS FIX TODO *** Come back to this later ***
+  Q_UNUSED(node);
 #if defined (commentout)
   vtkMRMLExternalBeamPlanningNode* paramNode = d->logic()->GetExternalBeamPlanningNode();
   if (!paramNode || !node)
@@ -750,6 +750,7 @@ void qMRMLBeamParametersTabWidget::beamEyesViewClicked(bool checked)
     return;
   }
 
+  Q_UNUSED(checked);
   //TODO:
   //if (checked)
   //{

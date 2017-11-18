@@ -214,8 +214,6 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     double data_scale = 0;
     double data_offset = 0;
     std::string handleScatter;
-    double referenceScatterFactor = 0;
-    double dataScatterFactor = 0;
     std::string filter = "";
     std::string title = "";
     std::string name = "";
@@ -423,20 +421,12 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       vtkErrorMacro("LoadVffFile: A double was not entered for the Reference Scatter Factor. The value entered must be 1.");
       parameterMissing = true;
     }
-    else
-    {
-      referenceScatterFactor = numberFromParsedStringReferenceScatterFactor[0];
-    }
 
     std::vector<double> numberFromParsedStringDataScatterFactor = this->ParseNumberOfNumbersFromString<double>(parameterList["datascatterfactor"], 1);
     if (numberFromParsedStringDataScatterFactor.empty())
     {
       vtkErrorMacro("LoadVffFile: A double was not entered for the Data Scatter Factor. The value entered must be 1.");
       parameterMissing = true;
-    }
-    else 
-    {
-      dataScatterFactor = numberFromParsedStringDataScatterFactor[0];
     }
 
     if (parameterList["filter"].empty())

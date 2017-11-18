@@ -80,8 +80,6 @@ QString qSlicerMockDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamN
     return errorMessage;
   }
 
-  vtkMRMLScene* scene = beamNode->GetScene();
-
   vtkSmartPointer<vtkClosedSurfaceToBinaryLabelmapConversionRule> converter = 
     vtkSmartPointer<vtkClosedSurfaceToBinaryLabelmapConversionRule>::New();
   converter->SetUseOutputImageDataGeometry(true);

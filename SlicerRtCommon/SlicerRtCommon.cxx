@@ -88,22 +88,6 @@ const std::string SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_PO
 const char* SlicerRtCommon::DEFAULT_DOSE_COLOR_TABLE_NAME = "Dose_ColorTable";
 
 //----------------------------------------------------------------------------
-// Helper functions
-//----------------------------------------------------------------------------
-namespace
-{
-  bool AreCollinear(const vtkVector3<double>& a, const vtkVector3<double>& b)
-  {
-    if (AreEqualWithTolerance(a.GetX(), b.GetX()) && AreEqualWithTolerance(b.GetY(), b.GetY()) && AreEqualWithTolerance(a.GetZ(), b.GetZ()))
-    {
-      return true;
-    }
-
-    return SlicerRtCommon::AreEqualWithTolerance(1.0L, std::abs(a.Dot(b)));
-  }
-}
-
-//----------------------------------------------------------------------------
 // Utility functions
 //----------------------------------------------------------------------------
 

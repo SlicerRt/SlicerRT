@@ -461,6 +461,7 @@ bool qMRMLBeamsTableView::eventFilter(QObject* target, QEvent* event)
 void qMRMLBeamsTableView::onBeamAdded(vtkObject* caller, void* callData)
 {
   Q_D(qMRMLBeamsTableView);
+  Q_UNUSED(caller);
 
   char* beamNodeId = reinterpret_cast<char*>(callData);
   if (!beamNodeId)
@@ -479,6 +480,7 @@ void qMRMLBeamsTableView::onBeamAdded(vtkObject* caller, void* callData)
 void qMRMLBeamsTableView::onBeamRemoved(vtkObject* caller, void* callData)
 {
   Q_D(qMRMLBeamsTableView);
+  Q_UNUSED(caller);
 
   char* beamNodeId = reinterpret_cast<char*>(callData);
   if (!beamNodeId)
