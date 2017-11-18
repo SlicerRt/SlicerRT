@@ -1339,8 +1339,8 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CreateEndCapContour(vtkPolyD
   bounds[2] -= (this->ImagePadding[0]/2) * spacing[1];
   bounds[3] += (this->ImagePadding[0]/2) * spacing[1];
 
-  int dimensions[3] = { std::ceil((bounds[1]-bounds[0])/spacing[0]),
-                        std::ceil((bounds[3]-bounds[2])/spacing[1]),
+  int dimensions[3] = { static_cast<int>(std::ceil((bounds[1]-bounds[0])/spacing[0])),
+                        static_cast<int>(std::ceil((bounds[3]-bounds[2])/spacing[1])),
                         1 };
   double origin[3] = {bounds[0], bounds[2], bounds[4]};
   int extent[6] = {0, dimensions[0]-1, 0, dimensions[1]-1, 0, 0};
