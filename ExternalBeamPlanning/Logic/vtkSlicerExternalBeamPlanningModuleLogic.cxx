@@ -373,6 +373,7 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(vtkMRM
     return errorMessage;
   }
 
+  (void)(beamNode); // unused
 #if defined (commentout)
   vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();
   vtkMRMLScalarVolumeNode* outputDoseVolume = planNode->GetOutputTotalDoseVolumeNode();
@@ -413,6 +414,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(vtkMRMLRTPlanNode* plan
     return;
   }
 
+  (void)(beamName); // unused
 #if defined (commentout)
   vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();
   if (!referenceVolumeNode)

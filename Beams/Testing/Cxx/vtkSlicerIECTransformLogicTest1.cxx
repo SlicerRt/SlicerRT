@@ -293,7 +293,6 @@ void PrintLinearTransformNodeMatrices(vtkMRMLScene* mrmlScene,
     << (includeIdentity?"true":"false") << ", include beam transforms:" << (includeBeamTransforms?"true":"false") << std::endl;
 
   // Print linear transform node matrices for nodes that fulfill the conditions
-  int numberOfNonIdentityTransforms = 0;
   std::vector<vtkMRMLLinearTransformNode*>::iterator trIt;
   vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
   for (trIt=transformNodes.begin(); trIt!=transformNodes.end(); ++trIt)

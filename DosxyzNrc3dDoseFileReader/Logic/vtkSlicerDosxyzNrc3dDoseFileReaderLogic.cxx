@@ -87,12 +87,9 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
   }
 
   int size[3] = { 0, 0, 0 };
-  double spacing[3] = { 0, 0, 0 };
-  double origin[3] = { 0, 0, 0 };
 
   // read in block 1 (number of voxels in x, y, z directions)
   readFileStream >> size[0] >> size[1] >> size[2];
-  int numTotalVoxels = size[0] * size[1] * size[2];
 
   if (size[0] <= 0 || size[1] <= 0 || size[2] <= 0)
   {

@@ -76,7 +76,9 @@ vtkPlanarContourToClosedSurfaceConversionRule::~vtkPlanarContourToClosedSurfaceC
 }
 
 //----------------------------------------------------------------------------
-unsigned int vtkPlanarContourToClosedSurfaceConversionRule::GetConversionCost(vtkDataObject* sourceRepresentation/*=NULL*/, vtkDataObject* targetRepresentation/*=NULL*/)
+unsigned int vtkPlanarContourToClosedSurfaceConversionRule::GetConversionCost(
+  vtkDataObject* vtkNotUsed(sourceRepresentation)/*=NULL*/,
+  vtkDataObject* vtkNotUsed(targetRepresentation)/*=NULL*/)
 {
   // Rough input-independent guess (ms)
   return 700;
@@ -237,8 +239,6 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
       {
       vtkSmartPointer<vtkLine> line1 = vtkSmartPointer<vtkLine>::New();
       line1->DeepCopy(inputContoursCopy->GetCell(line1Index));
-
-      bool intersects = false;
 
       std::vector<vtkSmartPointer<vtkPointLocator> > overlap1PointLocators(plane1Overlaps[line1Index-firstLineOnPlane1Index].size());
       std::vector<vtkSmartPointer<vtkIdList> > overlap1PointIds(plane1Overlaps[line1Index-firstLineOnPlane1Index].size());
@@ -505,8 +505,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContours(vtkPolyD
 
     double line2Point[3] = {0,0,0}; // current point on line 2
     inputROIPoints->GetPoint(pointsInLine2->GetId(currentPointIdLine2), line2Point);
-
-    double distanceBetweenPoints = vtkMath::Distance2BetweenPoints(line1Point, line2Point);
 
     if (backtrackTable[line1PointIndex][line2PointIndex] == left)
       {
@@ -1875,8 +1873,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CalculateContourTransform(vt
 //----------------------------------------------------------------------------
 void vtkPlanarContourToClosedSurfaceConversionRule::CalculateContourNormal(vtkPolyData* inputPolyData, double outputNormal[3], int minimumContourSize)
 {
-
-  int numberOfLines = inputPolyData->GetNumberOfLines();
   vtkSmartPointer<vtkIdList> currentContour = vtkSmartPointer<vtkIdList>::New();
 
   double meshNormalSum[3] = { 0, 0, 0 };

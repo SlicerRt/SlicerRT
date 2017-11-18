@@ -140,7 +140,7 @@ void vtkSlicerPlanarImageModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, 
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlanarImageModuleLogic::ProcessMRMLSceneEvents(vtkObject *caller, unsigned long event, void *callData)
+void vtkSlicerPlanarImageModuleLogic::ProcessMRMLSceneEvents(vtkObject * vtkNotUsed(caller), unsigned long event, void *callData)
 {
   if (!this->GetMRMLScene())
   {
