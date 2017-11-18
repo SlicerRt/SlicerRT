@@ -21,7 +21,13 @@
 #ifndef __qSlicerBeamsModuleWidgetsAbstractPlugin_h
 #define __qSlicerBeamsModuleWidgetsAbstractPlugin_h
 
+#include <QtGlobal>
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
 #include <QDesignerCustomWidgetInterface>
+#else
+#include <QtUiPlugin/QDesignerCustomWidgetInterface>
+#endif
+
 #include "qSlicerBeamsModuleWidgetsPluginsExport.h"
 
 class Q_SLICER_MODULE_BEAMS_WIDGETS_PLUGINS_EXPORT qSlicerBeamsModuleWidgetsAbstractPlugin
