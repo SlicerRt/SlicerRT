@@ -25,7 +25,6 @@ find_package(Slicer COMPONENTS ConfigurePrerequisites REQUIRED)
 project(SlicerRT)
 find_package(Slicer REQUIRED)
 include(${Slicer_USE_FILE})
-include(${Slicer_EXTENSION_GENERATE_CONFIG})
 mark_as_superbuild(Slicer_DIR)
 
 #-----------------------------------------------------------------------------
@@ -90,4 +89,5 @@ endif()
 #-----------------------------------------------------------------------------
 set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${CMAKE_BINARY_DIR};${EXTENSION_NAME};ALL;/")
 #set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${Foo_DIR};Foo;RuntimeLibraries;/")
+include(${Slicer_EXTENSION_GENERATE_CONFIG})
 INCLUDE(${Slicer_EXTENSION_CPACK})
