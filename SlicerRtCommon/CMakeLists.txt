@@ -57,6 +57,8 @@ IF (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT WIN32)
   SET_TARGET_PROPERTIES(${lib_name} PROPERTIES COMPILE_FLAGS "-fPIC")
 ENDIF()
 
+set_property(GLOBAL APPEND PROPERTY Slicer_TARGETS ${lib_name})
+
 # --------------------------------------------------------------------------
 # Install library
 # --------------------------------------------------------------------------
