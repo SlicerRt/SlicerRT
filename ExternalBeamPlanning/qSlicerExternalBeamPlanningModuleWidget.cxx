@@ -1086,6 +1086,8 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
 bool qSlicerExternalBeamPlanningModuleWidget::setEditedNode(vtkMRMLNode* node, QString role/*=QString()*/, QString context/*=QString()*/)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  Q_UNUSED(role);
+  Q_UNUSED(context);
   if (vtkMRMLRTPlanNode::SafeDownCast(node))
   {
     d->MRMLNodeComboBox_RtPlan->setCurrentNode(node);

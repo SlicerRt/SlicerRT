@@ -482,9 +482,6 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   // Remove previous isodoses
   shNode->RemoveItemChildren(doseShItemID, true, false);
 
-  // Add isodose surfaces under dose in SH
-  vtkIdType rootHierarchyShItemID = shNode->CreateItem(doseShItemID, rootModelHierarchyNode);
-
   // Get color table
   vtkMRMLColorTableNode* colorTableNode = parameterNode->GetColorTableNode();
 

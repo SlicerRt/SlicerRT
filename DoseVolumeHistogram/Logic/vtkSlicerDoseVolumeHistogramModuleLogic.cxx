@@ -222,7 +222,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   segmentationCopy->SetConversionParameter( vtkClosedSurfaceToBinaryLabelmapConversionRule::GetOversamplingFactorParameterName(),
     parameterNode->GetAutomaticOversampling() ? "A" : fixedOversamplingValueStream.str().c_str() );
 
-  char* representationName = "";
+  char* representationName = 0;
   bool useFractionalLabelmap = parameterNode->GetUseFractionalLabelmap();
   if (useFractionalLabelmap)
   {
@@ -341,13 +341,11 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     }
 
     double minimumValue = 0.0;
-    double maximumValue = 1.0;
     vtkDoubleArray* scalarRange = vtkDoubleArray::SafeDownCast(
       segmentLabelmap->GetFieldData()->GetAbstractArray(vtkSegmentationConverter::GetScalarRangeFieldName()));
     if (scalarRange && scalarRange->GetNumberOfValues() == 2)
     {
       minimumValue = scalarRange->GetValue(0);
-      maximumValue = scalarRange->GetValue(1);
     }
 
     // Apply parent transformation nodes if necessary
@@ -728,7 +726,6 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     return errorMessage;
   }
   vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
-  vtkIdType dvhShItemID = shNode->CreateItem(doseShItemID, arrayNode);
 
   // Add metrics table and chart to under the study of the dose in subject hierarchy
   vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(doseShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
@@ -1908,7 +1905,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnVisibilityChanged(vtkObject* cal
     }
   }
 
-  if (rows.size() != parameterNode->GetMetricsTableNode()->GetNumberOfRows())
+  if (rows.size() != static_cast<size_t>(parameterNode->GetMetricsTableNode()->GetNumberOfRows()))
   {
     vtkErrorWithObjectMacro(self,"OnVisibilityChanged: Mismatch between referenced DVH arrays and metrics table");
   }

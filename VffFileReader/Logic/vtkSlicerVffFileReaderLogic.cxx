@@ -214,8 +214,6 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
     double data_scale = 0;
     double data_offset = 0;
     std::string handleScatter;
-    double referenceScatterFactor = 0;
-    double dataScatterFactor = 0;
     std::string filter = "";
     std::string title = "";
     std::string name = "";
@@ -423,20 +421,12 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       vtkErrorMacro("LoadVffFile: A double was not entered for the Reference Scatter Factor. The value entered must be 1.");
       parameterMissing = true;
     }
-    else
-    {
-      referenceScatterFactor = numberFromParsedStringReferenceScatterFactor[0];
-    }
 
     std::vector<double> numberFromParsedStringDataScatterFactor = this->ParseNumberOfNumbersFromString<double>(parameterList["datascatterfactor"], 1);
     if (numberFromParsedStringDataScatterFactor.empty())
     {
       vtkErrorMacro("LoadVffFile: A double was not entered for the Data Scatter Factor. The value entered must be 1.");
       parameterMissing = true;
-    }
-    else 
-    {
-      dataScatterFactor = numberFromParsedStringDataScatterFactor[0];
     }
 
     if (parameterList["filter"].empty())
@@ -456,14 +446,14 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
 
       // Parse out the name of the file from the file path given as the parameter title
       std::string fileNameFromTitle = title;
-      int lastSlashPos = fileNameFromTitle.find_last_of("/\\");
+      size_t lastSlashPos = fileNameFromTitle.find_last_of("/\\");
       if (lastSlashPos != std::string::npos)
       {
         fileNameFromTitle = fileNameFromTitle.substr(lastSlashPos+1);
         fileNameFromTitle = this->TrimSpacesFromEndsOfString(fileNameFromTitle);
       }
       // Strip the extension from the end of the string
-      int lastPeriodPos = fileNameFromTitle.find_last_of(".");
+      size_t lastPeriodPos = fileNameFromTitle.find_last_of(".");
       if (lastPeriodPos != std::string::npos && fileNameFromTitle.substr(lastPeriodPos) == ".vff")
       {
         fileNameFromTitle = fileNameFromTitle.substr(0, lastPeriodPos);

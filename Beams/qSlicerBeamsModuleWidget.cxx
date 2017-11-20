@@ -162,9 +162,6 @@ void qSlicerBeamsModuleWidget::updateButtonsState()
   Q_D(qSlicerBeamsModuleWidget);
 
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  bool applyEnabled = beamNode
-                   && beamNode->GetParentPlanNode();
-
   d->pushButton_SwitchToParentPlan->setText(beamNode ? "Switch to parent plan" : "Go to External Beam Planning");
 }
 
@@ -296,6 +293,8 @@ void qSlicerBeamsModuleWidget::beamWeightChanged(double value)
 bool qSlicerBeamsModuleWidget::setEditedNode(vtkMRMLNode* node, QString role/*=QString()*/, QString context/*=QString()*/)
 {
   Q_D(qSlicerBeamsModuleWidget);
+  Q_UNUSED(role);
+  Q_UNUSED(context);
   if (vtkMRMLRTBeamNode::SafeDownCast(node))
   {
     d->MRMLNodeComboBox_RtBeam->setCurrentNode(node);

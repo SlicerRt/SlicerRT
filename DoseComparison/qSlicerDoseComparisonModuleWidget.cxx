@@ -742,6 +742,9 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
 void qSlicerDoseComparisonModuleWidget::onProgressUpdated(vtkObject* caller, void* callData, unsigned long eid, void* clientData)
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
+  Q_UNUSED(caller);
+  Q_UNUSED(eid);
+  Q_UNUSED(clientData);
 
   if (!d->GammaProgressDialog)
   {

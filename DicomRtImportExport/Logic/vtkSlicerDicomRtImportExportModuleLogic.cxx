@@ -246,7 +246,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::ExamineRtDoseDataset(
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::ExamineRtPlanDataset(DcmDataset* dataset, OFString &name, std::vector<OFString> &referencedSOPInstanceUIDs)
+void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::ExamineRtPlanDataset(DcmDataset* dataset, OFString &name, std::vector<OFString> & vtkNotUsed(referencedSOPInstanceUIDs))
 {
   if (!dataset)
     {
@@ -574,7 +574,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtDose(vtkSlicerD
     else if (!existingDoseUnitValueStr.empty())
     {
       double existingDoseUnitValue = vtkVariant(existingDoseUnitValueStr).ToDouble();
-      double doseGridScaling = vtkVariant(rtReader->GetDoseGridScaling()).ToDouble();
       double currentDoseUnitValue = vtkVariant(rtReader->GetDoseGridScaling()).ToDouble();
       if (fabs(existingDoseUnitValue - currentDoseUnitValue) > EPSILON)
       {
@@ -1231,7 +1230,6 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::SetupRtImageGeometry(
   vtkMRMLScalarVolumeNode* rtImageVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(node);
   vtkIdType rtImageShItemID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
-  vtkIdType beamShItemID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
 
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->External->GetMRMLScene());
   if (!shNode)
@@ -2104,7 +2102,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
           // Get instance UID of corresponding slice
           int sliceNumber = slice-imageExtent[0];
           sliceNumbers.push_back(sliceNumber);
-          std::string sliceInstanceUID = (imageSliceUIDs.size() > sliceNumber ? imageSliceUIDs[sliceNumber] : "");
+          std::string sliceInstanceUID = (imageSliceUIDs.size() > static_cast<size_t>(sliceNumber) ? imageSliceUIDs[sliceNumber] : "");
           sliceUIDs.push_back(sliceInstanceUID);
 
           // Save slice contour

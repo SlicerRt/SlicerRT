@@ -76,7 +76,9 @@ vtkPlanarContourToClosedSurfaceConversionRule::~vtkPlanarContourToClosedSurfaceC
 }
 
 //----------------------------------------------------------------------------
-unsigned int vtkPlanarContourToClosedSurfaceConversionRule::GetConversionCost(vtkDataObject* sourceRepresentation/*=NULL*/, vtkDataObject* targetRepresentation/*=NULL*/)
+unsigned int vtkPlanarContourToClosedSurfaceConversionRule::GetConversionCost(
+  vtkDataObject* vtkNotUsed(sourceRepresentation)/*=NULL*/,
+  vtkDataObject* vtkNotUsed(targetRepresentation)/*=NULL*/)
 {
   // Rough input-independent guess (ms)
   return 700;
@@ -238,23 +240,21 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
       vtkSmartPointer<vtkLine> line1 = vtkSmartPointer<vtkLine>::New();
       line1->DeepCopy(inputContoursCopy->GetCell(line1Index));
 
-      bool intersects = false;
-
       std::vector<vtkSmartPointer<vtkPointLocator> > overlap1PointLocators(plane1Overlaps[line1Index-firstLineOnPlane1Index].size());
       std::vector<vtkSmartPointer<vtkIdList> > overlap1PointIds(plane1Overlaps[line1Index-firstLineOnPlane1Index].size());
 
       // Loop through all of the lines in the second plane that overlap with the current line in the first plane
-      for (int overlapIndex = 0; overlapIndex < plane1Overlaps[line1Index-firstLineOnPlane1Index].size(); ++overlapIndex) // lines on plane 2 that overlap with line 1
+      for (size_t overlapIndex = 0; overlapIndex < plane1Overlaps[line1Index-firstLineOnPlane1Index].size(); ++overlapIndex) // lines on plane 2 that overlap with line 1
         {
-        int j = plane1Overlaps[line1Index-firstLineOnPlane1Index][overlapIndex];
+        vtkIdType j = plane1Overlaps[line1Index-firstLineOnPlane1Index][overlapIndex];
         overlap1PointLocators[overlapIndex] = (pointLocators[j]);
         overlap1PointIds[overlapIndex] = (linePointIdLists[j]);
         }
 
       // Loop through all of the lines in the second plane that overlap with the current line in the first plane
-      for (int overlapIndex = 0; overlapIndex < plane1Overlaps[line1Index-firstLineOnPlane1Index].size(); ++overlapIndex) // lines on plane 2 that overlap with line 1
+      for (size_t overlapIndex = 0; overlapIndex < plane1Overlaps[line1Index-firstLineOnPlane1Index].size(); ++overlapIndex) // lines on plane 2 that overlap with line 1
         {
-        int line2Index = plane1Overlaps[line1Index-firstLineOnPlane1Index][overlapIndex];
+        vtkIdType line2Index = plane1Overlaps[line1Index-firstLineOnPlane1Index][overlapIndex];
 
         vtkSmartPointer<vtkLine> line2 = vtkSmartPointer<vtkLine>::New();
         line2->DeepCopy(inputContoursCopy->GetCell(line2Index));
@@ -262,7 +262,7 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
         std::vector<vtkSmartPointer<vtkPointLocator> > overlap2PointLocators(plane2Overlaps[line2Index-firstLineOnPlane2Index].size());
         std::vector<vtkSmartPointer<vtkIdList> > overlap2PointIds(plane2Overlaps[line2Index-firstLineOnPlane2Index].size());
 
-        for (int i=0; i<plane2Overlaps[line2Index-firstLineOnPlane2Index].size(); ++i)
+        for (size_t i=0; i<plane2Overlaps[line2Index-firstLineOnPlane2Index].size(); ++i)
           {
           int j = plane2Overlaps[line2Index-firstLineOnPlane2Index][i];
           overlap2PointLocators[i] = (pointLocators[j]);
@@ -506,8 +506,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContours(vtkPolyD
     double line2Point[3] = {0,0,0}; // current point on line 2
     inputROIPoints->GetPoint(pointsInLine2->GetId(currentPointIdLine2), line2Point);
 
-    double distanceBetweenPoints = vtkMath::Distance2BetweenPoints(line1Point, line2Point);
-
     if (backtrackTable[line1PointIndex][line2PointIndex] == left)
       {
       vtkIdType previousPointIndexLine2 = this->GetPreviousLocation(currentPointIdLine2, numberOfPointsInLine2, line2Closed);
@@ -715,7 +713,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixKeyholes(vtkPolyData* inp
       }
     else
       {
-      int currentLayer = 0;
+      size_t currentLayer = 0;
       bool pointInChannel = false;
 
       std::vector<vtkSmartPointer<vtkIdList> > rawLinePointIds;
@@ -776,13 +774,13 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixKeyholes(vtkPolyData* inp
         }
 
       // Add the remaining line to the finished list.
-      for (int remainingLineId=0; remainingLineId < rawLinePointIds.size(); ++remainingLineId)
+      for (size_t remainingLineId=0; remainingLineId < rawLinePointIds.size(); ++remainingLineId)
         {
         finishedLinePointIds.push_back(rawLinePointIds[remainingLineId]);
         }
 
       // Loop through the completed lines and make sure that they are closed
-      for (int finishedLineId = 0; finishedLineId < finishedLinePointIds.size(); ++finishedLineId)
+      for (size_t finishedLineId = 0; finishedLineId < finishedLinePointIds.size(); ++finishedLineId)
         {
         if ( finishedLinePointIds[finishedLineId]->GetNumberOfIds() > 0
           && finishedLinePointIds[finishedLineId]->GetId(0) != finishedLinePointIds[finishedLineId]->GetId(finishedLinePointIds[finishedLineId]->GetNumberOfIds()-1) )
@@ -797,7 +795,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixKeyholes(vtkPolyData* inp
   vtkSmartPointer<vtkCellArray> outputLines = vtkSmartPointer<vtkCellArray>::New();
   outputLines->Initialize();
   inputROIPoints->DeleteCells();
-  for (int currentLineIndex = 0; currentLineIndex < newLines.size(); ++currentLineIndex)
+  for (size_t currentLineIndex = 0; currentLineIndex < newLines.size(); ++currentLineIndex)
     {
     // Only add the lines if they have more than 2 points
     if (newLines[currentLineIndex]->GetNumberOfPoints() > 1)
@@ -849,7 +847,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SetLinesCounterClockwise(vtk
   vtkSmartPointer<vtkCellArray> outputLines = vtkSmartPointer<vtkCellArray>::New();
   outputLines->Initialize();
   inputROIPoints->DeleteCells();
-  for (int currentLineIndex = 0; currentLineIndex < newLines.size(); ++currentLineIndex)
+  for (size_t currentLineIndex = 0; currentLineIndex < newLines.size(); ++currentLineIndex)
     {
     outputLines->InsertNextCell(newLines[currentLineIndex]);
     }
@@ -1061,7 +1059,7 @@ int vtkPlanarContourToClosedSurfaceConversionRule::GetClosestBranch(vtkPolyData*
   vtkIdType closestLineId = overlappingLineIds[0];
 
   // Loop through all of the lines that overlap with the line the original point is on
-  for (int currentOverlapIndex = 0; currentOverlapIndex < overlappingLineIds.size(); ++currentOverlapIndex)
+  for (size_t currentOverlapIndex = 0; currentOverlapIndex < overlappingLineIds.size(); ++currentOverlapIndex)
     {
 
     vtkIdType closestPointId = pointLocators[currentOverlapIndex]->FindClosestPoint(originalPoint);
@@ -1341,8 +1339,8 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CreateEndCapContour(vtkPolyD
   bounds[2] -= (this->ImagePadding[0]/2) * spacing[1];
   bounds[3] += (this->ImagePadding[0]/2) * spacing[1];
 
-  int dimensions[3] = { std::ceil((bounds[1]-bounds[0])/spacing[0]),
-                        std::ceil((bounds[3]-bounds[2])/spacing[1]),
+  int dimensions[3] = { static_cast<int>(std::ceil((bounds[1]-bounds[0])/spacing[0])),
+                        static_cast<int>(std::ceil((bounds[3]-bounds[2])/spacing[1])),
                         1 };
   double origin[3] = {bounds[0], bounds[2], bounds[4]};
   int extent[6] = {0, dimensions[0]-1, 0, dimensions[1]-1, 0, 0};
@@ -1875,8 +1873,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CalculateContourTransform(vt
 //----------------------------------------------------------------------------
 void vtkPlanarContourToClosedSurfaceConversionRule::CalculateContourNormal(vtkPolyData* inputPolyData, double outputNormal[3], int minimumContourSize)
 {
-
-  int numberOfLines = inputPolyData->GetNumberOfLines();
   vtkSmartPointer<vtkIdList> currentContour = vtkSmartPointer<vtkIdList>::New();
 
   double meshNormalSum[3] = { 0, 0, 0 };
