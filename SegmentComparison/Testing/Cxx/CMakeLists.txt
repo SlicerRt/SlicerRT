@@ -112,20 +112,38 @@ add_test(
 )
 
 #-----------------------------------------------------------------------------
-set(POLY_DATA_DISTANCES_RAW_GROUNDTRUTH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/PolyDataDistancesRawGroundTruth.csv")
+if(UNIX)
+  set(POLY_DATA_DISTANCES_RAW_GROUNDTRUTH_TARBALL "${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/PolyDataDistancesRawGroundTruth.tgz")
+elseif(WIN32)
+  set(POLY_DATA_DISTANCES_RAW_GROUNDTRUTH_TARBALL "${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/PolyDataDistancesRawGroundTruthWindows.tgz")
+endif()
 
-ADD_TEST(
-  vtkPolyDataDistancesRawOutputComparisonTest
-  ${CMAKE_COMMAND} -E compare_files
+add_test(
+  NAME vtkPolyDataDistancesRawOutputUnpackTest
+  COMMAND ${CMAKE_COMMAND} -E tar xvfz ${POLY_DATA_DISTANCES_RAW_GROUNDTRUTH_TARBALL}
+  WORKING_DIRECTORY ${TEMP}
+)
+set_tests_properties(vtkPolyDataDistancesRawOutputUnpackTest PROPERTIES DEPENDS vtkPolyDataDistanceHistogramFilterExecutionTest REQUIRED_FILES ${POLY_DATA_DISTANCES_RAW_OUTPUT_FILE})
+
+#-----------------------------------------------------------------------------
+set(POLY_DATA_DISTANCES_RAW_GROUNDTRUTH_FILE "${TEMP}/PolyDataDistancesRawGroundTruth.csv")
+
+add_test(
+  NAME vtkPolyDataDistancesRawOutputComparisonTest
+  COMMAND ${CMAKE_COMMAND} -E compare_files
   ${POLY_DATA_DISTANCES_RAW_OUTPUT_FILE}
   ${POLY_DATA_DISTANCES_RAW_GROUNDTRUTH_FILE}
 )
-set_tests_properties(vtkPolyDataDistancesRawOutputComparisonTest PROPERTIES DEPENDS vtkPolyDataDistanceHistogramFilterExecutionTest REQUIRED_FILES ${POLY_DATA_DISTANCES_RAW_OUTPUT_FILE})
+set_tests_properties(vtkPolyDataDistancesRawOutputComparisonTest PROPERTIES DEPENDS vtkPolyDataDistancesRawOutputUnpackTest REQUIRED_FILES ${POLY_DATA_DISTANCES_RAW_OUTPUT_FILE})
 
 #-----------------------------------------------------------------------------
-set(POLY_DATA_DISTANCES_HISTOGRAM_GROUNDTRUTH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/PolyDataDistancesHistogramGroundTruth.csv")
+if(UNIX)
+  set(POLY_DATA_DISTANCES_HISTOGRAM_GROUNDTRUTH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/PolyDataDistancesHistogramGroundTruth.csv")
+elseif(WIN32)
+  set(POLY_DATA_DISTANCES_HISTOGRAM_GROUNDTRUTH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/PolyDataDistancesHistogramGroundTruthWindows.csv")
+endif()
 
-ADD_TEST(
+add_test(
   vtkPolyDataDistancesHistogramOutputComparisonTest
   ${CMAKE_COMMAND} -E compare_files 
   ${POLY_DATA_DISTANCES_HISTOGRAM_OUTPUT_FILE}
@@ -133,4 +151,3 @@ ADD_TEST(
 )
 
 set_tests_properties(vtkPolyDataDistancesHistogramOutputComparisonTest PROPERTIES DEPENDS vtkPolyDataDistanceHistogramFilterExecutionTest REQUIRED_FILES ${POLY_DATA_DISTANCES_HISTOGRAM_OUTPUT_FILE})
-
