@@ -137,10 +137,12 @@ add_test(
 set_tests_properties(vtkPolyDataDistancesRawOutputComparisonTest PROPERTIES DEPENDS vtkPolyDataDistancesRawOutputUnpackTest REQUIRED_FILES ${POLY_DATA_DISTANCES_RAW_OUTPUT_FILE})
 
 #-----------------------------------------------------------------------------
+set(POLY_DATA_DISTANCES_HISTOGRAM_GROUNDTRUTH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/PolyDataDistancesHistogramGroundTruthFixedLineEnding.csv")
+# Make sure the ground truth file has line endings consistent with the OS default
 if(UNIX)
-  set(POLY_DATA_DISTANCES_HISTOGRAM_GROUNDTRUTH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/PolyDataDistancesHistogramGroundTruth.csv")
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/PolyDataDistancesHistogramGroundTruth.csv" "${POLY_DATA_DISTANCES_HISTOGRAM_GROUNDTRUTH_FILE}" NEWLINE_STYLE UNIX)
 elseif(WIN32)
-  set(POLY_DATA_DISTANCES_HISTOGRAM_GROUNDTRUTH_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/PolyDataDistancesHistogramGroundTruthWindows.csv")
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/PolyDataDistancesHistogramGroundTruth.csv" "${POLY_DATA_DISTANCES_HISTOGRAM_GROUNDTRUTH_FILE}" NEWLINE_STYLE CRLF)
 endif()
 
 add_test(

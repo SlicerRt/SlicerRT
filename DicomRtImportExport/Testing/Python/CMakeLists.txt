@@ -11,6 +11,7 @@ set(KIT_UNITTEST_SCRIPTS)
 SlicerMacroConfigureGenericPythonModuleTests("${MODULE_NAME}" KIT_UNITTEST_SCRIPTS)
 
 #-----------------------------------------------------------------------------
+# Make sure the generic tests have access to the other modules
 if(CMAKE_CONFIGURATION_TYPES)
   set(MODULE_BUILD_DIR "")
   foreach(config ${CMAKE_CONFIGURATION_TYPES})
