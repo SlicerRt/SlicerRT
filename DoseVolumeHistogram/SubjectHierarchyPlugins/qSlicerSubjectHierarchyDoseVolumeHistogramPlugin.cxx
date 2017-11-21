@@ -349,13 +349,13 @@ vtkIdType qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getChartShItemForDvh
   if (!scene)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid MRML scene";
-    return NULL;
+    return 0;
   }
   vtkMRMLSubjectHierarchyNode* shNode = qSlicerSubjectHierarchyPluginHandler::instance()->subjectHierarchyNode();
   if (!shNode)
   {
     qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
-    return NULL;
+    return 0;
   }
 
   // Get parameter set node for DVH, then chart from the parameter set node
@@ -364,7 +364,7 @@ vtkIdType qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getChartShItemForDvh
   if (!dvhArrayNode)
   {
     qCritical() << Q_FUNC_INFO << ": Unable to get DVH array node";
-    return NULL;
+    return 0;
   }
 
   vtkMRMLDoseVolumeHistogramNode* parameterSetNode = this->getDvhParameterSetNodeForDvhArray(dvhArrayNode);
@@ -372,7 +372,7 @@ vtkIdType qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::getChartShItemForDvh
   if (!chartNode)
   {
     qCritical() << Q_FUNC_INFO << ": Chart node must exist for DVH parameter set node";
-    return NULL;
+    return 0;
   }
 
   // Get chart subject hierarchy item (at the same time make sure the chart is in the proper branch)
