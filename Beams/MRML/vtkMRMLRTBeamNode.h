@@ -71,13 +71,13 @@ public:
   virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
 
   /// Make sure display node and transform node are present and valid
-  virtual void SetScene(vtkMRMLScene* scene);
+  virtual void SetScene(vtkMRMLScene* scene) VTK_OVERRIDE;
 
   /// Get unique node XML tag name (like Volume, Model) 
   virtual const char* GetNodeTagName() VTK_OVERRIDE { return "RTBeam"; };
 
   /// Create and observe default display node
-  virtual void CreateDefaultDisplayNodes();
+  virtual void CreateDefaultDisplayNodes() VTK_OVERRIDE;
 
   /// Create transform node that places the beam poly data in the right position based on geometry.
   /// Only creates it if missing
