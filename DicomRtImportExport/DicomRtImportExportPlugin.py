@@ -76,7 +76,10 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
     dataNode = shn.GetItemDataNode(subjectHierarchyItemID)
 
     # RT dose volume
-    if dataNode and vtkSlicerRtCommon.SlicerRtCommon.IsDoseVolumeNode(dataNode):
+    #if dataNode and vtkSlicerRtCommon.SlicerRtCommon.IsDoseVolumeNode(dataNode):
+    #TODO: Workaround until VTK8 can wrap SlicerRtCommon class https://issues.slicer.org/view.php?id=4462
+    if dataNode and dataNode.IsA('vtkMRMLScalarVolumeNode') \
+        and dataNode.GetAttribute('DicomRtImport.DoseVolume') is not None:
       exportable = slicer.qSlicerDICOMExportable()
       exportable.confidence = 1.0
       # Define type-specific required tags and default values
