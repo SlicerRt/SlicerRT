@@ -61,358 +61,271 @@ class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
     """
 
     def __init__(self):
-        ScriptedLoadableModuleLogic.__init__(self)
+      ScriptedLoadableModuleLogic.__init__(self)
 
-        self.dataDir = slicer.app.temporaryPath + '/BatchStructureSetConversion'
-        if not os.access(self.dataDir, os.F_OK):
-            os.mkdir(self.dataDir)
-
-        self.originalDatabaseDirectory = None
-        self.dicomDatabaseDir = self.dataDir + '/CtkDicomDatabase'
-        self.dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
-
-    def LoadDatabase(self, path):
-        # Open an existing database
-        try:
-            if not os.access(path, os.F_OK):
-                logging.error("Database cannot be found! %s" % path)
-            self.originalDatabaseDirectory = os.path.split(path)[0]
-            self.dicomWidget.onDatabaseDirectoryChanged(path)
-        except Exception, e:
-            import traceback
-            traceback.print_exc()
-            logging.error('Failed to open DICOM database', path)
-    def OpenDatabase(self):
-        # Open temporary database and empty it
-        try:
-            if not os.access(self.dicomDatabaseDir, os.F_OK):
-                os.mkdir(self.dicomDatabaseDir)
-            if slicer.dicomDatabase:
-                self.originalDatabaseDirectory = os.path.split(slicer.dicomDatabase.databaseFilename)[0]
-            else:
-                settings = qt.QSettings()
-                settings.setValue('DatabaseDirectory', self.dicomDatabaseDir)
-            self.dicomWidget.onDatabaseDirectoryChanged(self.dicomDatabaseDir)
-            slicer.dicomDatabase.initializeDatabase()
-        except Exception, e:
-            import traceback
-            traceback.print_exc()
-            logging.error('Failed to open temporary DICOM database')
-
-    def ImportStudy(self, dicomDataDir):
-        indexer = ctk.ctkDICOMIndexer()
-
-        # Import study to database
-        indexer.addDirectory(slicer.dicomDatabase, dicomDataDir)
-        indexer.waitForImportFinished()
+      self.dataDir = slicer.app.temporaryPath + '/BatchStructureSetConversion'
+      if not os.access(self.dataDir, os.F_OK):
+        os.mkdir(self.dataDir)
 
     def LoadFirstPatientIntoSlicer(self):
-        # Choose first patient from the patient list
-        patient = slicer.dicomDatabase.patients()[0]
-        DICOMUtils.loadPatientByUID(patient)
+      # Choose first patient from the patient list
+      patient = slicer.dicomDatabase.patients()[0]
+      DICOMUtils.loadPatientByUID(patient)
 
     def ConvertStructureSetToLabelmap(self):
-        import vtkSegmentationCorePython as vtkSegmentationCore
+      import vtkSegmentationCorePython as vtkSegmentationCore
 
-        labelmapsToSave = []
+      labelmapsToSave = []
 
-        # Get all segmentation nodes from the scene
-        segmentationNodes = slicer.util.getNodes('vtkMRMLSegmentationNode*')
+      # Get all segmentation nodes from the scene
+      segmentationNodes = slicer.util.getNodes('vtkMRMLSegmentationNode*')
 
-        for segmentationNode in segmentationNodes.values():
-            logging.info('  Converting structure set ' + segmentationNode.GetName())
-            # Set referenced volume as rasterization reference
-            referenceVolume = slicer.vtkSlicerDicomRtImportExportModuleLogic.GetReferencedVolumeByDicomForSegmentation(
-                segmentationNode)
-            if referenceVolume == None:
-                logging.error('No reference volume found for segmentation ' + segmentationNode.GetName())
-                continue
+      for segmentationNode in segmentationNodes.values():
+        logging.info('  Converting structure set ' + segmentationNode.GetName())
+        # Set referenced volume as rasterization reference
+        referenceVolume = slicer.vtkSlicerDicomRtImportExportModuleLogic.GetReferencedVolumeByDicomForSegmentation(
+          segmentationNode)
+        if referenceVolume == None:
+          logging.error('No reference volume found for segmentation ' + segmentationNode.GetName())
+          continue
 
-            # Perform conversion
-            binaryLabelmapRepresentationName = vtkSegmentationCore.vtkSegmentationConverter.GetSegmentationBinaryLabelmapRepresentationName()
-            segmentation = segmentationNode.GetSegmentation()
-            segmentation.CreateRepresentation(binaryLabelmapRepresentationName)
+        # Perform conversion
+        binaryLabelmapRepresentationName = vtkSegmentationCore.vtkSegmentationConverter.GetSegmentationBinaryLabelmapRepresentationName()
+        segmentation = segmentationNode.GetSegmentation()
+        segmentation.CreateRepresentation(binaryLabelmapRepresentationName)
 
-            # Create labelmap volume nodes from binary labelmaps
-            segmentIDs = vtk.vtkStringArray()
-            segmentation.GetSegmentIDs(segmentIDs)
-            for segmentIndex in xrange(0, segmentIDs.GetNumberOfValues()):
-                segmentID = segmentIDs.GetValue(segmentIndex)
-                segment = segmentation.GetSegment(segmentID)
-                binaryLabelmap = segment.GetRepresentation(
-                    vtkSegmentationCore.vtkSegmentationConverter.GetSegmentationBinaryLabelmapRepresentationName())
-                if not binaryLabelmap:
-                    logging.error(
-                        'Failed to retrieve binary labelmap from segment ' + segmentID + ' in segmentation ' + segmentationNode.GetName())
-                    continue
-                labelmapNode = slicer.vtkMRMLLabelMapVolumeNode()
-                slicer.mrmlScene.AddNode(labelmapNode)
-                labelmapName = segmentationNode.GetName() + "_" + segmentID
-                labelmapNode.SetName(labelmapName)
-                if not slicer.vtkSlicerSegmentationsModuleLogic.CreateLabelmapVolumeFromOrientedImageData(
-                        binaryLabelmap, labelmapNode):
-                    logging.error(
-                        'Failed to create labelmap from segment ' + segmentID + ' in segmentation ' + segmentationNode.GetName())
-                    continue
+        # Create labelmap volume nodes from binary labelmaps
+        segmentIDs = vtk.vtkStringArray()
+        segmentation.GetSegmentIDs(segmentIDs)
+        for segmentIndex in xrange(0, segmentIDs.GetNumberOfValues()):
+          segmentID = segmentIDs.GetValue(segmentIndex)
+          segment = segmentation.GetSegment(segmentID)
+          binaryLabelmap = segment.GetRepresentation(
+            vtkSegmentationCore.vtkSegmentationConverter.GetSegmentationBinaryLabelmapRepresentationName())
+          if not binaryLabelmap:
+            logging.error(
+              'Failed to retrieve binary labelmap from segment ' + segmentID + ' in segmentation ' + segmentationNode.GetName())
+            continue
+          labelmapNode = slicer.vtkMRMLLabelMapVolumeNode()
+          slicer.mrmlScene.AddNode(labelmapNode)
+          labelmapName = segmentationNode.GetName() + "_" + segmentID
+          labelmapNode.SetName(labelmapName)
+          if not slicer.vtkSlicerSegmentationsModuleLogic.CreateLabelmapVolumeFromOrientedImageData(
+              binaryLabelmap, labelmapNode):
+            logging.error('Failed to create labelmap from segment ' + segmentID + ' in segmentation ' + segmentationNode.GetName())
+            continue
 
-                # Append volume to list
-                labelmapsToSave.append(labelmapNode)
+          # Append volume to list
+          labelmapsToSave.append(labelmapNode)
 
-        return labelmapsToSave
+      return labelmapsToSave
 
     def SaveLabelmaps(self, labelmapsToSave, outputDir):
-        for labelmapNode in labelmapsToSave:
-            # Clean up file name and set path
-            fileName = labelmapNode.GetName() + '.nrrd'
-            charsRoRemove = ['!', '?', ':', ';']
-            fileName = fileName.translate(None, ''.join(charsRoRemove))
-            fileName = fileName.replace(' ', '_')
-            filePath = outputDir + '/' + fileName
-            logging.info('  Saving structure ' + labelmapNode.GetName() + '\n    to file ' + fileName)
+      for labelmapNode in labelmapsToSave:
+        # Clean up file name and set path
+        fileName = labelmapNode.GetName() + '.nrrd'
+        charsRoRemove = ['!', '?', ':', ';']
+        fileName = fileName.translate(None, ''.join(charsRoRemove))
+        fileName = fileName.replace(' ', '_')
+        filePath = outputDir + '/' + fileName
+        logging.info('  Saving structure ' + labelmapNode.GetName() + '\n    to file ' + fileName)
 
-            # Save to file
-            success = slicer.util.saveNode(labelmapNode, filePath)
-            if not success:
-                logging.error('Failed to save labelmap: ' + filePath)
+        # Save to file
+        success = slicer.util.saveNode(labelmapNode, filePath)
+        if not success:
+          logging.error('Failed to save labelmap: ' + filePath)
 
     def SaveImages(self, outputDir, node_key = 'vtkMRMLScalarVolumeNode*'):
-        # Save all of the ScalarVolumes (or whatever is in node_key) to NRRD files
-        sv_nodes = slicer.util.getNodes(node_key)
-        logging.info("Save image volumes nodes to directory %s: %s" % (outputDir, ','.join(sv_nodes.keys())))
-        for imageNode in sv_nodes.values():
-            # Clean up file name and set path
-            fileName = imageNode.GetName() + '.nrrd'
-            charsRoRemove = ['!', '?', ':', ';']
-            fileName = fileName.translate(None, ''.join(charsRoRemove))
-            fileName = fileName.replace(' ', '_')
-            filePath = outputDir + '/' + fileName
-            logging.info('  Saving image ' + imageNode.GetName() + '\n    to file ' + fileName)
+      # Save all of the ScalarVolumes (or whatever is in node_key) to NRRD files
+      sv_nodes = slicer.util.getNodes(node_key)
+      logging.info("Save image volumes nodes to directory %s: %s" % (outputDir, ','.join(sv_nodes.keys())))
+      for imageNode in sv_nodes.values():
+        # Clean up file name and set path
+        fileName = imageNode.GetName() + '.nrrd'
+        charsRoRemove = ['!', '?', ':', ';']
+        fileName = fileName.translate(None, ''.join(charsRoRemove))
+        fileName = fileName.replace(' ', '_')
+        filePath = outputDir + '/' + fileName
+        logging.info('  Saving image ' + imageNode.GetName() + '\n    to file ' + fileName)
 
-            # Save to file
-            success = slicer.util.saveNode(imageNode, filePath)
-            if not success:
-                logging.error('Failed to save image volume: ' + filePath)
+        # Save to file
+        success = slicer.util.saveNode(imageNode, filePath)
+        if not success:
+          logging.error('Failed to save image volume: ' + filePath)
 
 
 # ------------------------------------------------------------------------------
 # BatchStructureSetConversionTest
 #
 class BatchStructureSetConversionTest(ScriptedLoadableModuleTest):
+  """
+  This is the test case for your scripted module.
+  """
+
+  def setUp(self):
+    """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
-    This is the test case for your scripted module.
+    slicer.mrmlScene.Clear(0)
+
+    self.delayMs = 700
+
+    # TODO: Comment out - sample code for debugging by writing to file
+    # logFile = open('d:/pyTestLog.txt', 'a')
+    # logFile.write(repr(slicer.modules.BatchStructureSetConversion) + '\n')
+    # logFile.close()
+
+  def runTest(self):
+    """Run as few or as many tests as needed here.
     """
+    self.setUp()
 
-    def setUp(self):
-        """ Do whatever is needed to reset the state - typically a scene clear will be enough.
-        """
-        slicer.mrmlScene.Clear(0)
+    self.test_BatchStructureSetConversion_FullTest1()
 
-        self.delayMs = 700
+  def test_BatchStructureSetConversion_FullTest1(self):
+    # Create logic
+    self.logic = BatchStructureSetConversionLogic()
 
-        # TODO: Comment out - sample code for debugging by writing to file
-        # logFile = open('d:/pyTestLog.txt', 'a')
-        # logFile.write(repr(slicer.modules.BatchStructureSetConversion) + '\n')
-        # logFile.close()
+    # Check for modules
+    self.assertTrue(slicer.modules.dicomrtimportexport)
+    self.assertTrue(slicer.modules.segmentations)
 
-    def runTest(self):
-        """Run as few or as many tests as needed here.
-        """
-        self.setUp()
+    self.TestSection_0_SetupPathsAndNames()
+    # Open test database and empty it
+    with DICOMUtils.TemporaryDICOMDatabase(self.dicomDatabaseDir) as self.db:
+      self.TestSection_1_LoadDicomData()
+      self.TestSection_2_ConvertStructureSetToLabelmap()
+      self.TestSection_3_SaveLabelmaps()
+    logging.info('Test finished')
 
-        self.test_BatchStructureSetConversion_FullTest1()
+  def TestSection_0_SetupPathsAndNames(self):
+    if not os.access(self.logic.dataDir, os.F_OK):
+      os.mkdir(self.logic.dataDir)
+    self.dicomDataDir = self.logic.dataDir + '/TinyRtStudy'
+    if not os.access(self.dicomDataDir, os.F_OK):
+      os.mkdir(self.dicomDataDir)
 
-    def test_BatchStructureSetConversion_FullTest1(self):
-        # Create logic
-        self.logic = BatchStructureSetConversionLogic()
+    # Define variables
+    self.dataDir = slicer.app.temporaryPath + '/BatchStructureSetConversion'
+    if not os.access(self.dataDir, os.F_OK):
+        os.mkdir(self.dataDir)
+    self.dicomDatabaseDir = self.dataDir + '/CtkDicomDatabase'
+    self.dicomZipFileUrl = 'http://slicer.kitware.com/midas3/download/folder/2822/TinyRtStudy.zip'
+    self.dicomZipFilePath = self.logic.dataDir + '/TinyRtStudy.zip'
+    self.expectedNumOfFilesInDicomDataDir = 12
+    self.db = None
+    self.outputDir = self.logic.dataDir + '/Output'
 
-        # Check for modules
-        self.assertTrue(slicer.modules.dicomrtimportexport)
-        self.assertTrue(slicer.modules.segmentations)
+  def TestSection_1_LoadDicomData(self):
+    try:
+      self.assertTrue( self.db.isOpen )
+      self.assertEqual( slicer.dicomDatabase, self.db)
 
-        self.TestSection_0SetupPathsAndNames()
-        self.TestSection_1RetrieveInputData()
-        self.TestSection_2OpenDatabase()
-        self.TestSection_3ImportStudy()
-        self.TestSection_4LoadFirstPatientIntoSlicer()
-        self.TestSection_5ConvertStructureSetToLabelmap()
-        self.TestSection_6SaveLabelmaps()
-        self.TestSection_0Clear()
+      # Download, unzip, import, and load data. Verify selected plugins and loaded nodes.
+      selectedPlugins = { 'Scalar Volume':1, 'RT':2 }
+      loadedNodes = { 'vtkMRMLScalarVolumeNode':2, \
+                      'vtkMRMLSegmentationNode':1 }
+      with DICOMUtils.LoadDICOMFilesToDatabase( \
+          self.dicomZipFileUrl, self.dicomZipFilePath, \
+          self.dicomDataDir, self.expectedNumOfFilesInDicomDataDir, \
+          {}, loadedNodes) as success:
+        self.assertTrue(success)
 
-    def TestSection_0SetupPathsAndNames(self):
-        if not os.access(self.logic.dataDir, os.F_OK):
-            os.mkdir(self.logic.dataDir)
-        self.dicomDataDir = self.logic.dataDir + '/TinyRtStudy'
-        if not os.access(self.dicomDataDir, os.F_OK):
-            os.mkdir(self.dicomDataDir)
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
 
-        # Define variables
-        self.dicomZipFilePath = self.logic.dataDir + '/TinyRtStudy.zip'
-        self.expectedNumOfFilesInDicomDataDir = 12
-        self.outputDir = self.logic.dataDir + '/Output'
+  def TestSection_2_ConvertStructureSetToLabelmap(self):
+    self.delayDisplay("Convert loaded structure set to labelmap", self.delayMs)
+    qt.QApplication.setOverrideCursor(qt.QCursor(qt.Qt.BusyCursor))
+    try:
+      self.labelmapsToSave = self.logic.ConvertStructureSetToLabelmap()
+      self.assertTrue(len(self.labelmapsToSave) > 0)
+    except Exception, e:
+      import traceback
+      traceback.print_exc()
+      self.delayDisplay('Test caused exception!\n' + str(e), self.delayMs * 2)
+    qt.QApplication.restoreOverrideCursor()
 
-    def TestSection_1RetrieveInputData(self):
-        try:
-            import urllib
-            downloads = (
-                ('http://slicer.kitware.com/midas3/download/folder/2822/TinyRtStudy.zip', self.dicomZipFilePath),
-            )
+  def TestSection_3_SaveLabelmaps(self):
+    self.delayDisplay("Save labelmaps to directory\n  %s" % (self.outputDir), self.delayMs)
 
-            downloaded = 0
-            for url, filePath in downloads:
-                if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
-                    if downloaded == 0:
-                        logging.info(
-                            'Downloading input data to folder\n' + self.dicomZipFilePath + '.\n\n  It may take a few minutes...')
-                    logging.info('Requesting download from %s...' % (url))
-                    urllib.urlretrieve(url, filePath)
-                    downloaded += 1
-                else:
-                    self.delayDisplay('Input data has been found in folder ' + self.dicomZipFilePath, self.delayMs)
-            if downloaded > 0:
-                self.delayDisplay('Downloading input data finished', self.delayMs)
+    self.assertTrue(len(self.labelmapsToSave) > 0)
+    qt.QApplication.setOverrideCursor(qt.QCursor(qt.Qt.BusyCursor))
 
-            numOfFilesInDicomDataDir = len(
-                [name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
-            if (numOfFilesInDicomDataDir != self.expectedNumOfFilesInDicomDataDir):
-                slicer.app.applicationLogic().Unzip(self.dicomZipFilePath, self.logic.dataDir)
-                self.delayDisplay("Unzipping done", self.delayMs)
+    self.logic.SaveLabelmaps(self.labelmapsToSave, self.outputDir)
 
-            numOfFilesInDicomDataDirTest = len(
-                [name for name in os.listdir(self.dicomDataDir) if os.path.isfile(self.dicomDataDir + '/' + name)])
-            self.assertEqual(numOfFilesInDicomDataDirTest, self.expectedNumOfFilesInDicomDataDir)
-
-        except Exception, e:
-            import traceback
-            traceback.print_exc()
-            logging.error('Test caused exception!\n' + str(e), self.delayMs * 2)
-
-    def TestSection_2OpenDatabase(self):
-        self.delayDisplay("Open database", self.delayMs)
-        self.logic.OpenDatabase()
-
-        self.assertTrue(slicer.dicomDatabase.isOpen)
-
-    def TestSection_3ImportStudy(self):
-        self.delayDisplay("Import study", self.delayMs)
-        self.logic.ImportStudy(self.dicomDataDir)
-
-        self.assertTrue(len(slicer.dicomDatabase.patients()) > 0)
-        self.assertTrue(slicer.dicomDatabase.patients()[0])
-
-    def TestSection_4LoadFirstPatientIntoSlicer(self):
-        self.delayDisplay("Load first patient into Slicer", self.delayMs)
-        self.logic.LoadFirstPatientIntoSlicer()
-
-    def TestSection_5ConvertStructureSetToLabelmap(self):
-        self.delayDisplay("Convert loaded structure set to labelmap", self.delayMs)
-        qt.QApplication.setOverrideCursor(qt.QCursor(qt.Qt.BusyCursor))
-        try:
-            self.labelmapsToSave = self.logic.ConvertStructureSetToLabelmap()
-            self.assertTrue(len(self.labelmapsToSave) > 0)
-        except Exception, e:
-            import traceback
-            traceback.print_exc()
-            self.delayDisplay('Test caused exception!\n' + str(e), self.delayMs * 2)
-        qt.QApplication.restoreOverrideCursor()
-
-    def TestSection_6SaveLabelmaps(self):
-        self.delayDisplay("Save labelmaps to directory\n  %s" % (self.outputDir), self.delayMs)
-
-        self.assertTrue(len(self.labelmapsToSave) > 0)
-        qt.QApplication.setOverrideCursor(qt.QCursor(qt.Qt.BusyCursor))
-
-        self.logic.SaveLabelmaps(self.labelmapsToSave, self.outputDir)
-
-        self.delayDisplay('  Labelmaps saved to  %s' % (self.outputDir), self.delayMs)
-        qt.QApplication.restoreOverrideCursor()
-
-    def TestSection_0Clear(self):
-        self.delayDisplay("Clear database and scene", self.delayMs)
-
-        slicer.dicomDatabase.initializeDatabase()
-
-        slicer.dicomDatabase.closeDatabase()
-        self.assertFalse(slicer.dicomDatabase.isOpen)
-
-        slicer.mrmlScene.Clear(0)
-
-        if self.logic.originalDatabaseDirectory:
-            self.logic.dicomWidget.onDatabaseDirectoryChanged(self.logic.originalDatabaseDirectory)
-
-        logging.info('Test finished')
+    self.delayDisplay('  Labelmaps saved to  %s' % (self.outputDir), self.delayMs)
+    qt.QApplication.restoreOverrideCursor()
 
 
 def main(argv):
-    try:
-        # Parse command-line arguments
-        parser = argparse.ArgumentParser(description="Batch Structure Set Conversion")
-        parser.add_argument("-i", "--input-folder", dest="input_folder", metavar="PATH",
-                            default="-", required=True, help="Folder of input DICOM study (or database path to use existing)")
-        parser.add_argument("-x", "--exist-db", dest="exist_db",
-                            default=False, required=False, action='store_true',
-                            help="Process an existing database")
-        parser.add_argument("-m", "--export-images", dest="export_images",
-                            default=False, required=False, action='store_true',
-                            help="Export image data with labelmaps")
-        parser.add_argument("-o", "--output-folder", dest="output_folder", metavar="PATH",
-                            default=".", help="Folder for output labelmaps")
+  try:
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="Batch Structure Set Conversion")
+    parser.add_argument("-i", "--input-folder", dest="input_folder", metavar="PATH",
+                        default="-", required=True, help="Folder of input DICOM study (or database path to use existing)")
+    parser.add_argument("-x", "--exist-db", dest="exist_db",
+                        default=False, required=False, action='store_true',
+                        help="Process an existing database")
+    parser.add_argument("-m", "--export-images", dest="export_images",
+                        default=False, required=False, action='store_true',
+                        help="Export image data with labelmaps")
+    parser.add_argument("-o", "--output-folder", dest="output_folder", metavar="PATH",
+                        default=".", help="Folder for output labelmaps")
 
-        args = parser.parse_args(argv)
+    args = parser.parse_args(argv)
 
-        # Check required arguments
-        if args.input_folder == "-":
-            logging.warning('Please specify input DICOM study folder!')
-        if args.output_folder == ".":
-            logging.info(
-                'Current directory is selected as output folder (default). To change it, please specify --output-folder')
+    # Check required arguments
+    if args.input_folder == "-":
+      logging.warning('Please specify input DICOM study folder!')
+    if args.output_folder == ".":
+      logging.info('Current directory is selected as output folder (default). To change it, please specify --output-folder')
 
-        # Convert to python path style
-        input_folder = args.input_folder.replace('\\', '/')
-        output_folder = args.output_folder.replace('\\', '/')
-        exist_db = args.exist_db
-        export_images = args.export_images
+    # Convert to python path style
+    input_folder = args.input_folder.replace('\\', '/')
+    output_folder = args.output_folder.replace('\\', '/')
+    exist_db = args.exist_db
+    export_images = args.export_images
 
-        # Perform batch conversion
-        logic = BatchStructureSetConversionLogic()
-        def save_rtslices(output_dir):
-            # package the saving code into a subfunction
-            logging.info("Convert loaded structure set to labelmap volumes")
-            labelmaps = logic.ConvertStructureSetToLabelmap()
+    # Perform batch conversion
+    logic = BatchStructureSetConversionLogic()
+    def save_rtslices(output_dir):
+      # package the saving code into a subfunction
+      logging.info("Convert loaded structure set to labelmap volumes")
+      labelmaps = logic.ConvertStructureSetToLabelmap()
 
-            logging.info("Save labelmaps to directory " + output_dir)
-            logic.SaveLabelmaps(labelmaps, output_dir)
-            if export_images:
-                logic.SaveImages(output_dir)
-            logging.info("DONE")
+      logging.info("Save labelmaps to directory " + output_dir)
+      logic.SaveLabelmaps(labelmaps, output_dir)
+      if export_images:
+        logic.SaveImages(output_dir)
+      logging.info("DONE")
 
-        if exist_db:
-            logging.info('BatchStructureSet Running in Existing Database Mode')
-            logic.LoadDatabase(input_folder)
-            all_patients = slicer.dicomDatabase.patients()
-            logging.info('Must Process Patients %s' % len(all_patients))
-            for patient in all_patients:
-                slicer.mrmlScene.Clear(0) # clear the scene
-                DICOMUtils.loadPatientByUID(patient)
-                output_dir = os.path.join(output_folder,patient)
-                if not os.access(output_dir, os.F_OK):
-                    os.mkdir(output_dir)
-                save_rtslices(output_dir)
+    if exist_db:
+      logging.info('BatchStructureSet running in existing database mode')
+      DICOMUtils.openDatabase(input_folder)
+      all_patients = slicer.dicomDatabase.patients()
+      logging.info('Must Process Patients %s' % len(all_patients))
+      for patient in all_patients:
+        slicer.mrmlScene.Clear(0) # clear the scene
+        DICOMUtils.loadPatientByUID(patient)
+        output_dir = os.path.join(output_folder,patient)
+        if not os.access(output_dir, os.F_OK):
+          os.mkdir(output_dir)
+        save_rtslices(output_dir)
+    else:
+      logging.info("Import DICOM data from " + input_folder)
+      DICOMUtils.openTemporaryDatabase()
+      DICOMUtils.importDicom(input_folder)
 
-        else:
-            logging.info("Import DICOM data from " + input_folder)
-            logic.OpenDatabase()
-            logic.ImportStudy(input_folder)
+      logging.info("Load first patient into Slicer")
+      logic.LoadFirstPatientIntoSlicer()
+      save_rtslices(output_folder)
 
-            logging.info("Load first patient into Slicer")
-            logic.LoadFirstPatientIntoSlicer()
-            save_rtslices(output_folder)
-
-
-
-    except Exception, e:
-        print(e)
-    sys.exit(0)
+  except Exception, e:
+      print(e)
+  sys.exit(0)
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+  main(sys.argv[1:])
