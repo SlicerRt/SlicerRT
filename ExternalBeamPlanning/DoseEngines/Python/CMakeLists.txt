@@ -8,6 +8,7 @@ configure_file(
 set(DoseEngines_PYTHON_SCRIPTS
   AbstractScriptedDoseEngine
   MockPythonDoseEngine
+  OrthovoltageDoseEngineUtil
   )
 
 set(DoseEngines_PYTHON_RESOURCES
