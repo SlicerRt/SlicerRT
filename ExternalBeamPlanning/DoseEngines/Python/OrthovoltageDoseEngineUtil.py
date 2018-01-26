@@ -1,6 +1,4 @@
-import sys
-from os import listdir
-from os.path import isfile, join
+import os
 import vtk, qt, ctk, slicer
 import logging
 
@@ -25,15 +23,15 @@ comment = """
 #-----------------------------------------------------------------------------
 def generateSlicenamesTextfile(dicomCtFilesFolder, slicenamesFilename, 
     outputFolder):
-    fileNames = [f for f in listdir(dicomCtFilesFolder) if \
-    isfile(join(dicomCtFilesFolder, f))]
+    fileNames = [f for f in os.listdir(dicomCtFilesFolder) if \
+    os.path.isfile(os.path.join(dicomCtFilesFolder, f))]
     fileNames.reverse()
 
-    outFile = open(join(outputFolder, slicenamesFilename), "wb")
+    outFile = open(os.path.join(outputFolder, slicenamesFilename), "wb")
     counter = 1
     numDicomFiles = len(fileNames)
     for sliceName in fileNames:
-        outFile.write(join(dicomCtFilesFolder, sliceName))
+        outFile.write(os.path.join(dicomCtFilesFolder, sliceName))
         if counter != numDicomFiles:
             outFile.write("\n")
         counter += 1
@@ -43,13 +41,13 @@ def generateSlicenamesTextfile(dicomCtFilesFolder, slicenamesFilename,
 #-----------------------------------------------------------------------------
 def generateCtcreateInputFile(slicenamesFilename, imageROI, voxelThickness, 
     outputFolder):
-    outFile = open(join(outputFolder, "ctcreate.inp"), "wb")
+    outFile = open(os.path.join(outputFolder, "ctcreate.inp"), "wb")
 
     #CT Record 1 ctformat
     outFile.write("DICOM\n")
 
     #CT Record 2 CTFilename
-    outFile.write(join(outputFolder, slicenamesFilename) + "\n")
+    outFile.write(os.path.join(outputFolder, slicenamesFilename) + "\n")
 
     #CT Record 3 lower and upper boundaries (cm) to be considered for 
     #the dosxyznrc phantom
@@ -70,37 +68,36 @@ def generateCtcreateInputFile(slicenamesFilename, imageROI, voxelThickness,
     outFile.write("ICRUTISSUE521ICRU\n")
     outFile.write("101, 0.302, 1.101\n")
     outFile.write("ICRPBONE521ICRU\n")
-    outFile.write("1976, 1.101, 2.088\n")
+    outFile.write("1976, 1.101, 2.088")
 
     outFile.close()
     return
 
 #-----------------------------------------------------------------------------
-def generateCtcreateInput(volumeNode, dicomCtFilesFolder, imageROIMm, 
-    voxelThicknessMm, outputFolder):
+def generateCtcreateInput(volumeNode, dicomCtFilesFolder, outputFolder, imageROIMm=None, 
+    voxelThicknessMm=None):
     slicenamesFilename = "slicenames.txt"
 
-    # In slicer, get imageROIMm by either:
-    #    v = getNode("volume") #vtkMRMLScalarVolumeNode
-    #    imageROIMm = [0] * 6
-    #    v.GetBounds(imageROIMm)
-    # OR
-    #    r = getNode("R") #vtkMRMLAnnotationROINode
-    #    imageROIMm = [0] * 6 
-    #    v.GetBounds(imageROIMm)
+    if imageROIMm is None and volumeNode is None:
+        logging.error('No information provided for desired image ROI in ctcreate \
+            phantom. Please provide a volume node, or imageROIMm parameter.')
+        return False
+    # if no ROI list provided, get ROI from volume node
+    elif imageROIMm is None:
+        imageROIMm = [0] * 6
+        volumeNode.GetBounds(imageROIMm)
 
-    # In slicer, get voxelThickness by:
-    #    v = getNode("volume") #vtkMRMLScalarVolumeNode
-    #    voxelThickness = v.GetSpacing()
-
-
-    #TODO: check if imageROIMm and voxelSpacing are proper input within 
-    #file dimensions: otherwise set to dimensions of volume
+    if voxelThicknessMm is None and volumeNode is None:
+        logging.error('No information provided for desired voxel thickness in ctcreate \
+            phantom. Please provide a volume node, or volumeThicknessMm parameter.')
+        return False
+    # if no voxel thickness list provided, get voxel thickness from volume node
+    elif voxelThicknessMm is None: 
+        voxelThicknessMm = volumeNode.GetSpacing()
 
     # convert ROI and voxelThickness from mm to cm
     imageROICm = [dimension/10 for dimension in imageROIMm]
     voxelThicknessCm = [dimension/10 for dimension in voxelThicknessMm]
-
 
     generateSlicenamesTextfile(dicomCtFilesFolder, slicenamesFilename, 
         outputFolder)
@@ -110,7 +107,13 @@ def generateCtcreateInput(volumeNode, dicomCtFilesFolder, imageROIMm,
 
 
 #-----------------------------------------------------------------------------
-def callCtcreate():
-    #TODO implement this function
-    print ("Call ctcreate with input data. Function not implemented yet.")
-    pass
+def callCtcreate(outputFolder, ctcreateInputFilename="ctcreate.inp"):
+    #if egsphant file exists, remove it
+    outputCtcreatePhantomPath = os.path.join(outputFolder, "slicenames.txt.egsphant")
+    if os.path.exists(outputCtcreatePhantomPath):
+        logging.warning("Ctcreate phantom already exists in specifying directory. Overwriting it.")
+        os.remove(outputCtcreatePhantomPath)
+
+    # user must have ctcreate installed and in path
+    os.system("ctcreate " + os.path.join(outputFolder, ctcreateInputFilename))
+    return
