@@ -30,8 +30,13 @@ def generateSlicenamesTextfile(dicomCtFilesFolder, slicenamesFilename,
     fileNames.reverse()
 
     outFile = open(join(outputFolder, slicenamesFilename), "wb")
+    counter = 1
+    numDicomFiles = len(fileNames)
     for sliceName in fileNames:
-        outFile.write(join(dicomCtFilesFolder, sliceName) + "\n")
+        outFile.write(join(dicomCtFilesFolder, sliceName))
+        if counter != numDicomFiles:
+            outFile.write("\n")
+        counter += 1
     outFile.close()
     return
 
