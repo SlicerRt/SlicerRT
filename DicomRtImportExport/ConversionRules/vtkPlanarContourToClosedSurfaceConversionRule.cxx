@@ -67,7 +67,8 @@ vtkPlanarContourToClosedSurfaceConversionRule::vtkPlanarContourToClosedSurfaceCo
   this->ImagePadding[1] = 4;
   this->ImagePadding[2] = 0;
 
-  //this->ConversionParameters[GetXYParameterName()] = std::make_pair("value", "description");
+  this->ConversionParameters[this->GetDefaultSliceThicknessParameterName()] = std::make_pair("0.0",
+    "Default thickness for contours if slice spacing cannot be calculated.");
 }
 
 //----------------------------------------------------------------------------
@@ -130,7 +131,7 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
 
   // Copy the contours so that we can make modifications without affecting the original
   vtkSmartPointer<vtkPolyData> inputContoursCopy = vtkSmartPointer<vtkPolyData>::New();
-  
+
   vtkSmartPointer<vtkMatrix4x4> contourToRASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   this->CalculateContourTransform(planarContoursPolyData, contourToRASMatrix);
 
@@ -1204,15 +1205,17 @@ void vtkPlanarContourToClosedSurfaceConversionRule::EndCapping(vtkPolyData* inpu
 //----------------------------------------------------------------------------
 double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtkPolyData* inputROIPoints)
 {
+  double defaultSliceThickness = vtkVariant(this->ConversionParameters[this->GetDefaultSliceThicknessParameterName()].first).ToDouble();
+
   if (!inputROIPoints)
     {
     vtkErrorMacro("GetSpacingBetweenLines: Invalid vtkPolyData!");
-    return 0.0;
+    return defaultSliceThickness;
     }
   if (inputROIPoints->GetNumberOfCells() < 2)
     {
     vtkErrorMacro("GetSpacingBetweenLines: Input polydata has less than two cells! Unable to calculate spacing.");
-    return 0.0;
+    return defaultSliceThickness;
     }
 
   // Vector containing the distance between lines on adjacent contour slices.
@@ -1252,7 +1255,7 @@ double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtk
 
   if (distances.size() == 0)
     {
-    return 0.0;
+    return defaultSliceThickness;
     }
 
   // Calculate the mean distance between the lines.
@@ -1279,7 +1282,7 @@ double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtk
     vtkWarningMacro("GetSpacingBetweenLines: Contour spacing is not consistent.");
     return distanceMean;
     }
-  
+
   // Recalculate the mean distance between the lines.
   distanceMean = distanceSum/numberOfLines;
 
@@ -1866,7 +1869,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CalculateContourTransform(vt
   vtkMath::Cross(meshNormal, zVector, axis);
 
   vtkNew<vtkTransform> transform;
-  transform->RotateWXYZ(theta, axis);  
+  transform->RotateWXYZ(theta, axis);
   contourToRAS->DeepCopy(transform->GetMatrix());
 }
 

@@ -908,6 +908,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
         // Set master representation to planar contour
         segmentationNode->GetSegmentation()->SetMasterRepresentationName(vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName());
 
+        double referencedVolumeSpacing[3] = { 0.0, 0.0, 0.0 };
+
         // Get image geometry from previously loaded volume if found
         // Segmentation node checks added nodes and sets the geometry parameter in case the referenced volume is loaded later
         vtkIdType referencedVolumeShItemID = shNode->GetItemByUID(
@@ -919,6 +921,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
           if (referencedVolumeNode)
           {
             segmentationNode->SetReferenceImageGeometryParameterFromVolumeNode(referencedVolumeNode);
+            referencedVolumeNode->GetSpacing(referencedVolumeSpacing);
           }
           else
           {
@@ -938,6 +941,10 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
         scene->AddNode(segmentationDisplayNode);
         segmentationNode->SetAndObserveDisplayNodeID(segmentationDisplayNode->GetID());
         segmentationDisplayNode->SetBackfaceCulling(0);
+
+        // Setup default slice thickness for planar contour to closed surface conversion
+        double defaultSliceThickness = referencedVolumeSpacing[2];
+        segmentationNode->GetSegmentation()->SetConversionParameter(vtkPlanarContourToClosedSurfaceConversionRule::GetDefaultSliceThicknessParameterName(), std::to_string(defaultSliceThickness));
       }
 
       // Add segment for current structure

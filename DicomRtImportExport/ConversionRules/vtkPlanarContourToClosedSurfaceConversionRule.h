@@ -53,6 +53,8 @@ public:
   vtkTypeMacro(vtkPlanarContourToClosedSurfaceConversionRule, vtkSegmentationConverterRule );
   virtual vtkSegmentationConverterRule* CreateRuleInstance() VTK_OVERRIDE;
 
+  static const std::string GetDefaultSliceThicknessParameterName() { return "Default slice thickness"; };
+
   /// Constructs representation object from representation name for the supported representation classes
   /// (typically source and target representation VTK classes, subclasses of vtkDataObject)
   /// Note: Need to take ownership of the created object! For example using vtkSmartPointer<vtkDataObject>::Take
