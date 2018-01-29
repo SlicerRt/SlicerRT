@@ -144,7 +144,7 @@ bool vtkPlanarContourToRibbonModelConversionRule::Convert(vtkDataObject* sourceR
     vtkErrorMacro("Convert: Target representation is not a poly data!");
     return false;
   }
-  if (planarContourPolyData->GetNumberOfPoints() < 2 || planarContourPolyData->GetNumberOfCells() < 2)
+  if (planarContourPolyData->GetNumberOfPoints() < 3 || planarContourPolyData->GetNumberOfCells() < 1)
   {
     vtkErrorMacro("Convert: Cannot create ribbon model from planar contour with number of points: " << planarContourPolyData->GetNumberOfPoints() << " and number of cells: " << planarContourPolyData->GetNumberOfCells());
     return false;
