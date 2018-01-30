@@ -944,7 +944,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
 
         // Setup default slice thickness for planar contour to closed surface conversion
         double defaultSliceThickness = referencedVolumeSpacing[2];
-        segmentationNode->GetSegmentation()->SetConversionParameter(vtkPlanarContourToClosedSurfaceConversionRule::GetDefaultSliceThicknessParameterName(), std::to_string(defaultSliceThickness));
+        std::stringstream defaultSliceThicknessStream;
+        defaultSliceThicknessStream << defaultSliceThickness;
+        segmentationNode->GetSegmentation()->SetConversionParameter(vtkPlanarContourToClosedSurfaceConversionRule::GetDefaultSliceThicknessParameterName(), defaultSliceThicknessStream.str());
       }
 
       // Add segment for current structure
