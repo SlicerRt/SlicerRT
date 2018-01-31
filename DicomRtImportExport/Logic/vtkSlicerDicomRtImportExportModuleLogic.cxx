@@ -112,6 +112,9 @@
 // ITK includes
 #include <itkImage.h>
 
+// GDCM includes
+#include <gdcmIPPSorter.h>
+
 // DICOMLib includes
 #include "vtkSlicerDICOMLoadable.h"
 #include "vtkSlicerDICOMExportable.h"
@@ -167,6 +170,11 @@ public:
   /// \param node Either the volume node of the loaded RT image, or the isocenter fiducial node (corresponding to an RT image). This function is called both when
   ///    loading an RT image and when loading a beam. Sets up the RT image geometry only if both information (the image itself and the isocenter data) are available
   void SetupRtImageGeometry(vtkMRMLNode* node);
+
+  /// Compute image slice spacing using GDCM::IPPSorter
+  /// IPPSorter uses Image Position (Patient) and Image Orientation (Patient) to calculate slice spacing
+  /// \param roiReferencedSeriesUid Uid of the input series for which slice spacing is to be calculated.
+  double CalculateSliceSpacing(vtkSlicerDicomRtReader* rtReader, const char* roiReferencedSeriesUid);
 
 public:
   vtkSlicerDicomRtImportExportModuleLogic* External;
@@ -944,6 +952,14 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
 
         // Setup default slice thickness for planar contour to closed surface conversion
         double defaultSliceThickness = referencedVolumeSpacing[2];
+
+        // If thickness is still 0.0, the image was not loaded.
+        // Instead, find the image spacing from the referenced series in the dicom database.
+        if (defaultSliceThickness == 0.0)
+        {
+          defaultSliceThickness = this->CalculateSliceSpacing(rtReader, roiReferencedSeriesUid);
+        }
+
         std::stringstream defaultSliceThicknessStream;
         defaultSliceThicknessStream << defaultSliceThickness;
         segmentationNode->GetSegmentation()->SetConversionParameter(vtkPlanarContourToClosedSurfaceConversionRule::GetDefaultSliceThicknessParameterName(), defaultSliceThicknessStream.str());
@@ -1500,6 +1516,41 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::SetupRtImageGeometry(
 
   // Hide the displayed planar image model by default
   displayedModelNode->SetDisplayVisibility(0);
+}
+
+//---------------------------------------------------------------------------
+double vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CalculateSliceSpacing(vtkSlicerDicomRtReader* rtReader, const char* roiReferencedSeriesUid)
+{
+  double sliceSpacing = 0.0;
+
+  ctkDICOMDatabase* dicomDatabase = new ctkDICOMDatabase();
+  dicomDatabase->openDatabase(rtReader->GetDatabaseFile(), vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
+
+  // IPPSorter takes a std::vector<std::string>. Need to convert from QStringList.
+  QStringList filesForSeriesQString = dicomDatabase->filesForSeries(roiReferencedSeriesUid);
+  std::vector<std::string> filesForSeries;
+  for (QStringList::iterator fileNameQStringIt = filesForSeriesQString.begin(); fileNameQStringIt != filesForSeriesQString.end(); fileNameQStringIt++)
+  {
+    filesForSeries.push_back((*fileNameQStringIt).toStdString());
+  }
+
+  // From gdcmIPPSorter.h:
+  // "ALL slices are taken into account, if one slice is
+  /// missing then ZSpacing will be set to 0 since the spacing
+  /// will not be found to be regular along the Series"
+  gdcm::IPPSorter imageSorter = gdcm::IPPSorter();
+  imageSorter.SetComputeZSpacing(true);
+  //imageSorter.SetZSpacingTolerance(0.000001); // 1e-6 is the default value for Z-spacing tolerance 
+  //imageSorter.SetDirectionCosinesTolerance(0); // 0 is the default value for direction cosine tolerance
+  imageSorter.Sort(filesForSeries);
+  sliceSpacing = imageSorter.GetZSpacing();
+
+  dicomDatabase->closeDatabase();
+  delete dicomDatabase;
+  QSqlDatabase::removeDatabase(vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
+  QSqlDatabase::removeDatabase(QString(vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_CONNECTION_NAME.c_str()) + "TagCache");
+
+  return sliceSpacing;
 }
 
 
