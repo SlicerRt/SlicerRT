@@ -2,6 +2,7 @@ import os
 import vtk, qt, ctk, slicer
 import logging
 import numpy as np
+from DICOMLib import DICOMUtils
 
 #########################################################
 #
@@ -15,87 +16,30 @@ comment = """
   acts as input to DOSXYZnrc for dosimetry planning.
 
 """
-#
-#########################################################
-
-def getSortedImageFilesForSeries(seriesUID):
-  """ Sort DICOM image files in increasing slice order (IS direction) corresponding to a series
-  """
-  filePaths = slicer.dicomDatabase.filesForSeries(seriesUID)
-  if len(filePaths) == 0:
-    logging.error('Failed to find files in DICOM database for UID ' + str(seriesUID))
-    return [],[]
-  
-  # Define DICOM tags used in this function
-  tags = {}
-  tags['position'] = "0020,0032"
-  tags['orientation'] = "0020,0037"
-  tags['numberOfFrames'] = "0028,0008"
-
-  if slicer.dicomDatabase.fileValue(filePaths[0], tags['numberOfFrames']) != "":
-    logging.warning("Multi-frame image. If slice orientation or spacing is non-uniform then the image \
-      may be displayed incorrectly. Use with caution.")
-
-  # Make sure first file contains valid geometry
-  ref = {}
-  for tag in [tags['position'], tags['orientation']]:
-    value = slicer.dicomDatabase.fileValue(filePaths[0], tag)
-    if not value or value == "":
-      logging.error("Reference image does not contain geometry information in series " + str(seriesUID))
-      return [],[]
-    ref[tag] = value
-
-  # Determine out-of-plane direction for first slice
-  sliceAxes = [float(zz) for zz in ref[tags['orientation']].split('\\')]
-  x = np.array(sliceAxes[:3])
-  y = np.array(sliceAxes[3:])
-  scanAxis = np.cross(x,y)
-  scanOrigin = np.array([float(zz) for zz in ref[tags['position']].split('\\')])
-
-  # For each file in series, calculate the distance along the scan axis, sort files by this
-  sortList = []
-  missingGeometry = False
-  for file in filePaths:
-    positionStr = slicer.dicomDatabase.fileValue(file,tags['position'])
-    orientationStr = slicer.dicomDatabase.fileValue(file,tags['orientation'])
-    if not positionStr or positionStr == "" or not orientationStr or orientationStr == "":
-      missingGeometry = True
-      break
-    position = np.array([float(zz) for zz in positionStr.split('\\')])
-    vec = position - scanOrigin
-    dist = vec.dot(scanAxis)
-    sortList.append((file, dist))
-
-  if missingGeometry:
-    logging.error("One or more images is missing geometry information in series " + str(seriesUID))
-    return [],[]
-
-  # Sort files names by distance from reference slice
-  sortedFiles = sorted(sortList, key=lambda x: x[1])
-  sortedFilesList = []
-  distancesList = []
-  for file,dist in sortedFiles:
-    sortedFilesList.append(file)
-    distancesList.append(dist)
-    
-  return sortedFilesList, distancesList
 
 #-----------------------------------------------------------------------------
 def generateSlicenamesTextfile(ctDicomSeriesUID, slicenamesFilename, 
   outputFolder):
   """ Generate slicenames.txt file, with list of ct dicom slices, in increasing slice order (IS direction)
   """
-  fileNames, _ = getSortedImageFilesForSeries(ctDicomSeriesUID)
+  filePaths = slicer.dicomDatabase.filesForSeries(ctDicomSeriesUID)
+  if len(filePaths) == 0:
+    logging.error('Failed to find files in DICOM database for UID ' + str(ctDicomSeriesUID))
+    return False
+
+  unsortedFileList = slicer.dicomDatabase.filesForSeries(ctDicomSeriesUID)
+  sortedFileList, distances, warnings = DICOMUtils.getSortedImageFiles(unsortedFileList)
 
   outFile = open(os.path.join(outputFolder, slicenamesFilename), "wb")
   counter = 1
-  numDicomFiles = len(fileNames)
-  for sliceFileName in fileNames:
+  numDicomFiles = len(sortedFileList)
+  for sliceFileName in   sortedFileList:
     outFile.write(sliceFileName)
     if counter != numDicomFiles:
       outFile.write("\n")
     counter += 1
   outFile.close()
+  return True
 
 #-----------------------------------------------------------------------------
 def generateCtcreateInputFile(slicenamesFilename, imageROI, voxelThickness, 
