@@ -10,6 +10,7 @@ set(SLICERRT_VERSION_PATCH "0")
 set(SLICERRT_VERSION ${SLICERRT_VERSION_MAJOR}.${SLICERRT_VERSION_MINOR}.${SLICERRT_VERSION_PATCH})
 
 #-----------------------------------------------------------------------------
+# Extension meta-information
 set(EXTENSION_HOMEPAGE "http://slicerrt.org")
 set(EXTENSION_CATEGORY "Radiotherapy")
 set(EXTENSION_CONTRIBUTORS "Csaba Pinter (PerkLab, Queen's University), Andras Lasso (PerkLab, Queen's University), Greg Sharp (Massachusetts General Hospital), Kevin Wang (Radiation Medicine Program, Princess Margaret Hospital, University Health Network Toronto)")
@@ -20,7 +21,10 @@ set(EXTENSION_STATUS "Beta")
 set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 set(EXTENSION_BUILD_SUBDIRECTORY inner-build)
 
+set(SUPERBUILD_TOPLEVEL_PROJECT inner)
+
 #-----------------------------------------------------------------------------
+# Extension dependencies
 find_package(Slicer COMPONENTS ConfigurePrerequisites REQUIRED)
 project(SlicerRT)
 find_package(Slicer REQUIRED)
@@ -28,15 +32,17 @@ include(${Slicer_USE_FILE})
 mark_as_superbuild(Slicer_DIR)
 
 #-----------------------------------------------------------------------------
-option(${EXTENSION_NAME}_SUPERBUILD "Build ${EXTENSION_NAME} and the projects it depends on via SuperBuild.cmake." ON)
+option(SLICERRT_ENABLE_EXPERIMENTAL_MODULES "Enable the building of work-in-progress, experimental modules." OFF)
+mark_as_superbuild(SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
+
+#-----------------------------------------------------------------------------
+# SuperBuild setup
+option(${EXTENSION_NAME}_SUPERBUILD "Build ${EXTENSION_NAME} and the projects it depends on." ON)
 mark_as_advanced(${EXTENSION_NAME}_SUPERBUILD)
 if(${EXTENSION_NAME}_SUPERBUILD)
   include("${CMAKE_CURRENT_SOURCE_DIR}/SuperBuild.cmake")
   return()
 endif()
-
-#-----------------------------------------------------------------------------
-OPTION(SLICERRT_ENABLE_EXPERIMENTAL_MODULES "Enable the building of work-in-progress, experimental modules." OFF)
 
 #-----------------------------------------------------------------------------
 # Plastimatch_DIR is only used now by experimental modules. Print the
