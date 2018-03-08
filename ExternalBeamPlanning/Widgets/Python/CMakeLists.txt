@@ -9,6 +9,7 @@ set(DoseEngines_PYTHON_SCRIPTS
   AbstractScriptedDoseEngine
   MockPythonDoseEngine
   OrthovoltageDoseEngineUtil
+  OrthovoltageDoseEngine
   )
 
 set(DoseEngines_PYTHON_RESOURCES
