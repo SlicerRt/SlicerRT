@@ -1759,7 +1759,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::DecimateLines(vtkPolyData* i
     // Make sure the contour is closed
     if (outputLineIds->GetNumberOfIds() > 1)
       {
-      if (outputLineIds->GetId(0) != outputLineIds->GetId(outputLineIds->GetNumberOfIds()))
+      if (outputLineIds->GetId(0) != outputLineIds->GetId(outputLineIds->GetNumberOfIds() - 1))
         {
         outputLineIds->InsertNextId(outputLineIds->GetId(0));
         }
