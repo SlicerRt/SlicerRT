@@ -21,9 +21,9 @@
 // PlastimatchPy Logic includes
 #include "vtkPlmpyRegistration.h"
 
-// SlicerRtCommon
+// SlicerRT includes
+#include "vtkSlicerRtCommon.h"
 #include "PlmCommon.h"
-#include "SlicerRtCommon.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -474,7 +474,7 @@ void vtkPlmpyRegistration::SetWarpedImageInVolumeNode(Plm_image::Pointer& warped
   itk::Image<float, 3>::Pointer outputImageItk = warpedPlastimatchImage->itk_float();    
 
   vtkSmartPointer<vtkImageData> outputImageVtk = vtkSmartPointer<vtkImageData>::New();
-  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(outputImageItk, outputImageVtk, VTK_FLOAT);
+  vtkSlicerRtCommon::ConvertItkImageToVtkImageData<float>(outputImageItk, outputImageVtk, VTK_FLOAT);
   
   // Read fixed image to get the geometrical information
   vtkMRMLScalarVolumeNode* fixedVolumeNode 

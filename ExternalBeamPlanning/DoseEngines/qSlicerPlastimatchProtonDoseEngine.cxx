@@ -44,7 +44,7 @@
 #include "vtkOrientedImageData.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 #include "PlmCommon.h"
 
 // VTK includes
@@ -442,7 +442,7 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
 
   // Create dose image data to set to the volume node
   vtkSmartPointer<vtkImageData> protonDoseImageData = vtkSmartPointer<vtkImageData>::New();
-  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(doseVolumeItk, protonDoseImageData, VTK_FLOAT);
+  vtkSlicerRtCommon::ConvertItkImageToVtkImageData<float>(doseVolumeItk, protonDoseImageData, VTK_FLOAT);
 
   // Set image data to result dose volume node
   resultDoseVolumeNode->SetAndObserveImageData(protonDoseImageData);
@@ -456,7 +456,7 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
   itk::Image<unsigned char, 3>::Pointer apertureVolumeItk = ap->itk_uchar();
 
   vtkSmartPointer<vtkImageData> apertureImageData = vtkSmartPointer<vtkImageData>::New();
-  SlicerRtCommon::ConvertItkImageToVtkImageData<unsigned char>(apertureVolumeItk, apertureImageData, VTK_UNSIGNED_CHAR);
+  vtkSlicerRtCommon::ConvertItkImageToVtkImageData<unsigned char>(apertureVolumeItk, apertureImageData, VTK_UNSIGNED_CHAR);
 
   vtkSmartPointer<vtkMRMLScalarVolumeNode> apertureVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   apertureVolumeNode->SetAndObserveImageData(apertureImageData);
@@ -474,7 +474,7 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
   itk::Image<float, 3>::Pointer rcVolumeItk = rc->itk_float();
 
   vtkSmartPointer<vtkImageData> rangeCompensatorImageData = vtkSmartPointer<vtkImageData>::New();
-  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(rcVolumeItk, rangeCompensatorImageData, VTK_FLOAT);
+  vtkSlicerRtCommon::ConvertItkImageToVtkImageData<float>(rcVolumeItk, rangeCompensatorImageData, VTK_FLOAT);
 
   vtkSmartPointer<vtkMRMLScalarVolumeNode> rangeCompensatorVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   rangeCompensatorVolumeNode->SetAndObserveImageData(rangeCompensatorImageData);

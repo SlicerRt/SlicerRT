@@ -23,21 +23,18 @@
 #include "qSlicerExternalBeamPlanningModuleWidget.h"
 #include "ui_qSlicerExternalBeamPlanningModule.h"
 
-// SlicerRtCommon includes
-#include "SlicerRtCommon.h"
-
-// QSlicer includes
+// Slicer includes
 #include <qSlicerApplication.h>
 #include <qSlicerLayoutManager.h> 
 #include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
 #include <qSlicerAbstractCoreModule.h>
 
-// CLI logic includes
-//#include <vtkSlicerCLIModuleLogic.h>
-
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
+
+// SlicerRT includes
+#include "vtkSlicerRtCommon.h"
 
 // Beams includes
 #include "vtkMRMLRTBeamNode.h"

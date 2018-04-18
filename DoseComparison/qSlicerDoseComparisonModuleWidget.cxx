@@ -30,7 +30,7 @@
 #include "qSlicerApplication.h"
 
 // SlicerRtCommon includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
@@ -698,7 +698,7 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
   // Initialize progress bar
-  qvtkConnect( d->logic(), SlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
+  qvtkConnect( d->logic(), vtkSlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
   d->GammaProgressDialog = new QProgressDialog((QWidget*)qSlicerApplication::application()->mainWindow());
   d->GammaProgressDialog->setModal(true);
   d->GammaProgressDialog->setMinimumDuration(150);
@@ -718,7 +718,7 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
       QString("%1 %").arg(paramNode->GetPassFractionPercent(),0,'f',2) );
   }
 
-  qvtkDisconnect( d->logic(), SlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
+  qvtkDisconnect( d->logic(), vtkSlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
   delete d->GammaProgressDialog;
   QApplication::restoreOverrideCursor();
 }
@@ -754,11 +754,11 @@ void qSlicerDoseComparisonModuleWidget::checkDoseVolumeAttributes()
   vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = paramNode->GetReferenceDoseVolumeNode();
   vtkMRMLScalarVolumeNode* compareDoseVolumeNode = paramNode->GetCompareDoseVolumeNode();
 
-  if (referenceDoseVolumeNode && !SlicerRtCommon::IsDoseVolumeNode(referenceDoseVolumeNode))
+  if (referenceDoseVolumeNode && !vtkSlicerRtCommon::IsDoseVolumeNode(referenceDoseVolumeNode))
   {
     d->label_Warning->setText(tr(" Selected reference volume is not a dose"));
   }
-  else if (compareDoseVolumeNode && !SlicerRtCommon::IsDoseVolumeNode(compareDoseVolumeNode))
+  else if (compareDoseVolumeNode && !vtkSlicerRtCommon::IsDoseVolumeNode(compareDoseVolumeNode))
   {
     d->label_Warning->setText(tr(" Selected compare volume is not a dose"));
   }

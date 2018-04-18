@@ -24,7 +24,7 @@
 #include "vtkMRMLSegmentMorphologyNode.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 #include "vtkPlanarContourToClosedSurfaceConversionRule.h"
 
 // MRML includes

@@ -27,7 +27,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include "qMRMLBeamParametersTabWidget.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 #include "vtkSlicerIsodoseModuleLogic.h"
 
 // MRML includes
@@ -265,7 +265,7 @@ void qSlicerAbstractDoseEngine::addResultDose(vtkMRMLScalarVolumeNode* resultDos
   beamNode->AddNodeReferenceID(RESULT_DOSE_REFERENCE_ROLE, resultDose->GetID());
 
   // Set dose volume attribute so that it is identified as dose
-  resultDose->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+  resultDose->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
   // Subject hierarchy related operations
   vtkIdType beamShItemID = shNode->GetItemByDataNode(beamNode);
@@ -280,9 +280,9 @@ void qSlicerAbstractDoseEngine::addResultDose(vtkMRMLScalarVolumeNode* resultDos
     {
       qWarning() << Q_FUNC_INFO << ": Unable to find study item that contains the plan! Creating a study item and adding the reference dose and the plan under it is necessary in order for dose evaluation steps to work properly";
     }
-    else if (shNode->GetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME).empty())
+    else if (shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME).empty())
     {
-      shNode->SetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, "Gy");
+      shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, "Gy");
     }
   }
 

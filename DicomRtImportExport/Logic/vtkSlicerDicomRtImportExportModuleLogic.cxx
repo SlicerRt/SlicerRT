@@ -46,7 +46,7 @@
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 #include "PlmCommon.h"
 #include "vtkMRMLIsodoseNode.h"
 #include "vtkMRMLPlanarImageNode.h"
@@ -469,7 +469,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtDose(vtkSlicerD
   double* initialSpacing = volumeNode->GetSpacing();
   double* correctSpacing = rtReader->GetPixelSpacing();
   volumeNode->SetSpacing(correctSpacing[0], correctSpacing[1], initialSpacing[2]);
-  volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+  volumeNode->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
   scene->AddNode(volumeNode);
 
   // Apply dose grid scaling
@@ -560,7 +560,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtDose(vtkSlicerD
   vtkIdType studyItemID = shNode->GetItemParent(seriesItemID);
   if (studyItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    std::string existingDoseUnitName = shNode->GetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME);
+    std::string existingDoseUnitName = shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME);
     if (!rtReader->GetDoseUnits())
     {
       vtkErrorWithObjectMacro(this->External, "LoadRtDose: Empty dose unit name found for dose volume " << volumeNode->GetName());
@@ -571,10 +571,10 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtDose(vtkSlicerD
     }
     else
     {
-      shNode->SetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, rtReader->GetDoseUnits());
+      shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, rtReader->GetDoseUnits());
     }
 
-    std::string existingDoseUnitValueStr = shNode->GetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME);
+    std::string existingDoseUnitValueStr = shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME);
     if (!rtReader->GetDoseGridScaling())
     {
       vtkErrorWithObjectMacro(this->External, "LoadRtDose: Empty dose unit value found for dose volume " << volumeNode->GetName());
@@ -590,7 +590,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtDose(vtkSlicerD
     }
     else
     {
-      shNode->SetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME, rtReader->GetDoseGridScaling());
+      shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME, rtReader->GetDoseGridScaling());
     }
   }
   else
@@ -709,9 +709,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
         return false;
       }
       //TODO: Multiple isocenters per plan is not yet supported. Will be part of the beams group nodes developed later
-      if ( !SlicerRtCommon::AreEqualWithTolerance(planIsocenter[0], isocenter[0])
-        || !SlicerRtCommon::AreEqualWithTolerance(planIsocenter[1], isocenter[1])
-        || !SlicerRtCommon::AreEqualWithTolerance(planIsocenter[2], isocenter[2]) )
+      if ( !vtkSlicerRtCommon::AreEqualWithTolerance(planIsocenter[0], isocenter[0])
+        || !vtkSlicerRtCommon::AreEqualWithTolerance(planIsocenter[1], isocenter[1])
+        || !vtkSlicerRtCommon::AreEqualWithTolerance(planIsocenter[2], isocenter[2]) )
       {
         vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Different isocenters for each beam are not yet supported! The first isocenter will be used for the whole plan " << planNode->GetName() << ": (" << planIsocenter[0] << ", " << planIsocenter[1] << ", " << planIsocenter[2] << ")");
       }
@@ -728,7 +728,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
     if (beamModelHierarchyRootNode.GetPointer() == NULL)
     {
       beamModelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-      std::string beamModelHierarchyRootNodeName = seriesName + SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
+      std::string beamModelHierarchyRootNodeName = seriesName + vtkSlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
       beamModelHierarchyRootNodeName = scene->GenerateUniqueName(beamModelHierarchyRootNodeName);
       beamModelHierarchyRootNode->SetName(beamModelHierarchyRootNodeName.c_str());
       beamModelHierarchyRootNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
@@ -745,7 +745,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
 
     // Put beam model in the model hierarchy
     vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-    std::string beamModelHierarchyNodeName = std::string(beamNode->GetName()) + SlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
+    std::string beamModelHierarchyNodeName = std::string(beamNode->GetName()) + vtkSlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
     beamModelHierarchyNode->SetName(beamModelHierarchyNodeName.c_str());
     scene->AddNode(beamModelHierarchyNode);
     beamModelHierarchyNode->SetAssociatedNodeID(beamNode->GetID());
@@ -886,7 +886,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
       if (fiducialSeriesShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
       {
         std::string fiducialsSeriesName(seriesName);
-        fiducialsSeriesName.append(SlicerRtCommon::DICOMRTIMPORT_FIDUCIALS_HIERARCHY_NODE_NAME_POSTFIX);
+        fiducialsSeriesName.append(vtkSlicerRtCommon::DICOMRTIMPORT_FIDUCIALS_HIERARCHY_NODE_NAME_POSTFIX);
         fiducialsSeriesName = scene->GenerateUniqueName(fiducialsSeriesName);
         fiducialSeriesShItemID = shNode->CreateFolderItem(shNode->GetSceneItemID(), fiducialsSeriesName);
         shNode->SetItemUID(fiducialSeriesShItemID,
@@ -898,7 +898,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
 
       // Setup subject hierarchy entry for the ROI
       vtkIdType fiducialShItemID = shNode->CreateItem(fiducialSeriesShItemID, fiducialNode);
-      shNode->SetItemAttribute(fiducialShItemID, SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME, roiReferencedSeriesUid);
+      shNode->SetItemAttribute(fiducialShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME, roiReferencedSeriesUid);
     }
     //
     // Contour ROI (segmentation)
@@ -940,7 +940,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
         // Set up subject hierarchy node for segmentation
         segmentationShItemID = shNode->CreateItem(shNode->GetSceneItemID(), segmentationNode);
         shNode->SetItemUID(segmentationShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetSeriesInstanceUid());
-        shNode->SetItemAttribute(segmentationShItemID, SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME, structureSetReferencedSeriesUid);
+        shNode->SetItemAttribute(segmentationShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME, structureSetReferencedSeriesUid);
         shNode->SetItemAttribute(segmentationShItemID,
           vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(), referencedSopInstanceUids );
 
@@ -1064,39 +1064,39 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtImage(vtkSlicer
   shNode->SetItemUID(seriesShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetSeriesInstanceUid());
 
   // Set RT image specific attributes
-  shNode->SetItemAttribute(seriesShItemID, SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME, "1");
+  shNode->SetItemAttribute(seriesShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME, "1");
   shNode->SetItemAttribute(seriesShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(),
     rtReader->GetRTImageReferencedRTPlanSOPInstanceUID());
 
   std::stringstream radiationMachineSadStream;
   radiationMachineSadStream << rtReader->GetRadiationMachineSAD();
-  shNode->SetItemAttribute(seriesShItemID, SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME, radiationMachineSadStream.str());
+  shNode->SetItemAttribute(seriesShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME, radiationMachineSadStream.str());
 
   std::stringstream gantryAngleStream;
   gantryAngleStream << rtReader->GetGantryAngle();
-  shNode->SetItemAttribute(seriesShItemID, SlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME, gantryAngleStream.str());
+  shNode->SetItemAttribute(seriesShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME, gantryAngleStream.str());
 
   std::stringstream couchAngleStream;
   couchAngleStream << rtReader->GetPatientSupportAngle();
-  shNode->SetItemAttribute(seriesShItemID, SlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME, couchAngleStream.str());
+  shNode->SetItemAttribute(seriesShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME, couchAngleStream.str());
 
   std::stringstream collimatorAngleStream;
   collimatorAngleStream << rtReader->GetBeamLimitingDeviceAngle();
-  shNode->SetItemAttribute(seriesShItemID, SlicerRtCommon::DICOMRTIMPORT_COLLIMATOR_ANGLE_ATTRIBUTE_NAME, collimatorAngleStream.str());
+  shNode->SetItemAttribute(seriesShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_COLLIMATOR_ANGLE_ATTRIBUTE_NAME, collimatorAngleStream.str());
 
   std::stringstream referencedBeamNumberStream;
   referencedBeamNumberStream << rtReader->GetReferencedBeamNumber();
-  shNode->SetItemAttribute(seriesShItemID, SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME, referencedBeamNumberStream.str());
+  shNode->SetItemAttribute(seriesShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME, referencedBeamNumberStream.str());
 
   std::stringstream rtImageSidStream;
   rtImageSidStream << rtReader->GetRTImageSID();
-  shNode->SetItemAttribute(seriesShItemID, SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME, rtImageSidStream.str());
+  shNode->SetItemAttribute(seriesShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME, rtImageSidStream.str());
 
   std::stringstream rtImagePositionStream;
   double rtImagePosition[2] = {0.0, 0.0};
   rtReader->GetRTImagePosition(rtImagePosition);
   rtImagePositionStream << rtImagePosition[0] << " " << rtImagePosition[1];
-  shNode->SetItemAttribute(seriesShItemID,  SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME, rtImagePositionStream.str());
+  shNode->SetItemAttribute(seriesShItemID,  vtkSlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME, rtImagePositionStream.str());
 
   // Insert series in subject hierarchy
   this->InsertSeriesInSubjectHierarchy(rtReader);
@@ -1166,16 +1166,16 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::InsertSeriesInSubject
         vtkMRMLSubjectHierarchyConstants::GetDICOMPatientCommentsAttributeName(), rtReader->GetPatientComments() );
 
       // Set item name
-      std::string patientItemName = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientName())
-        ? std::string(rtReader->GetPatientName()) : SlicerRtCommon::DICOMRTIMPORT_NO_NAME );
+      std::string patientItemName = ( !vtkSlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientName())
+        ? std::string(rtReader->GetPatientName()) : vtkSlicerRtCommon::DICOMRTIMPORT_NO_NAME );
       QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
       bool displayPatientID = settings->value("SubjectHierarchy/DisplayPatientIDInSubjectHierarchyItemName").toBool();
-      if ( displayPatientID && !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientId()) )
+      if ( displayPatientID && !vtkSlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientId()) )
       {
         patientItemName += " (" + std::string(rtReader->GetPatientId()) + ")";
       }
       bool displayPatientBirthDate = settings->value("SubjectHierarchy/DisplayPatientBirthDateInSubjectHierarchyItemName").toBool();
-      if ( displayPatientBirthDate && !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientBirthDate()) )
+      if ( displayPatientBirthDate && !vtkSlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientBirthDate()) )
       {
         patientItemName += " (" + std::string(rtReader->GetPatientBirthDate()) + ")";
       }
@@ -1206,17 +1206,17 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::InsertSeriesInSubject
         vtkMRMLSubjectHierarchyConstants::GetDICOMStudyTimeAttributeName(), rtReader->GetStudyTime() );
 
       // Set item name
-      std::string studyItemName = ( !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDescription())
+      std::string studyItemName = ( !vtkSlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDescription())
         ? std::string(rtReader->GetStudyDescription())
-        : SlicerRtCommon::DICOMRTIMPORT_NO_STUDY_DESCRIPTION );
+        : vtkSlicerRtCommon::DICOMRTIMPORT_NO_STUDY_DESCRIPTION );
       QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
       bool displayStudyID = settings->value("SubjectHierarchy/DisplayStudyIDInSubjectHierarchyItemName").toBool();
-      if ( displayStudyID && !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyId()) )
+      if ( displayStudyID && !vtkSlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyId()) )
       {
         studyItemName += " (" + std::string(rtReader->GetStudyId()) + ")";
       }
       bool displayStudyDate = settings->value("SubjectHierarchy/DisplayStudyDateInSubjectHierarchyItemName").toBool();
-      if ( displayStudyDate && !SlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDate()) )
+      if ( displayStudyDate && !vtkSlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDate()) )
       {
         studyItemName += " (" + std::string(rtReader->GetStudyDate()) + ")";
       }
@@ -1292,7 +1292,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::SetupRtImageGeometry(
     vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(shNode->GetItemDataNode(planShItemID));
 
     // Get referenced beam number
-    std::string referencedBeamNumberStr = shNode->GetItemAttribute(rtImageShItemID, SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME);
+    std::string referencedBeamNumberStr = shNode->GetItemAttribute(rtImageShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME);
     if (referencedBeamNumberStr.empty())
     {
       vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: No referenced beam number specified in RT image '" << rtImageVolumeNode->GetName() << "'");
@@ -1345,7 +1345,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::SetupRtImageGeometry(
       bool currentShItemReferencesPlan = false;
       vtkMRMLNode* associatedNode = shNode->GetItemDataNode(currentShItemID);
       if (associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode")
-        && !shNode->GetItemAttribute(currentShItemID, SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME).empty() )
+        && !shNode->GetItemAttribute(currentShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME).empty() )
       {
         // If current item is the subject hierarchy item of an RT image, then determine it references the RT plan by DICOM
         std::vector<vtkIdType> referencedShItemIDs = shNode->GetItemsReferencedFromItemByDICOM(currentShItemID);
@@ -1362,7 +1362,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::SetupRtImageGeometry(
         if (currentShItemReferencesPlan)
         {
           // Get RT image referenced beam number
-          int referencedBeamNumber = vtkVariant(shNode->GetItemAttribute(currentShItemID, SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME)).ToInt();
+          int referencedBeamNumber = vtkVariant(shNode->GetItemAttribute(currentShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME)).ToInt();
           // If the referenced beam number matches the isocenter beam number, or if there is one beam in the plan, then we found the RT image
           if (referencedBeamNumber == beamNumber || oneBeamInPlan)
           {
@@ -1404,14 +1404,14 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::SetupRtImageGeometry(
 
   // Get source to RT image plane distance (along beam axis)
   double rtImageSid = 0.0;
-  std::string rtImageSidStr = shNode->GetItemAttribute(rtImageShItemID, SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME);
+  std::string rtImageSidStr = shNode->GetItemAttribute(rtImageShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME);
   if (!rtImageSidStr.empty())
   {
     rtImageSid = vtkVariant(rtImageSidStr).ToDouble();
   }
   // Get RT image position (the x and y coordinates (in mm) of the upper left hand corner of the image, in the IEC X-RAY IMAGE RECEPTOR coordinate system)
   double rtImagePosition[2] = {0.0, 0.0};
-  std::string rtImagePositionStr = shNode->GetItemAttribute(rtImageShItemID, SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME);
+  std::string rtImagePositionStr = shNode->GetItemAttribute(rtImageShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME);
   if (!rtImagePositionStr.empty())
   {
     std::stringstream ss;
@@ -1853,7 +1853,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     // However, there is no check to enforce this.
 
     // Check if dose volume and set it if found
-    if (associatedNode && SlicerRtCommon::IsDoseVolumeNode(associatedNode))
+    if (associatedNode && vtkSlicerRtCommon::IsDoseVolumeNode(associatedNode))
     {
       doseNode = vtkMRMLScalarVolumeNode::SafeDownCast(associatedNode);
 
@@ -1936,7 +1936,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
 
   // Convert input image (CT/MR/etc) to the format Plastimatch can use
   vtkSmartPointer<vtkOrientedImageData> imageOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
-  if (!SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(imageNode, imageOrientedImageData))
+  if (!vtkSlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(imageNode, imageOrientedImageData))
   {
     error = "Failed to convert anatomical image " + std::string(imageNode->GetName()) + " to oriented image data";
     vtkErrorMacro("ExportDicomRTStudy: " + error);
@@ -1969,7 +1969,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   if (doseNode)
   {
     vtkSmartPointer<vtkOrientedImageData> doseOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
-    if (!SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(doseNode, doseOrientedImageData))
+    if (!vtkSlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(doseNode, doseOrientedImageData))
     {
       error = "Failed to convert dose volume " + std::string(doseNode->GetName()) + " to oriented image data";
       vtkErrorMacro("ExportDicomRTStudy: " + error);
@@ -2219,7 +2219,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerDicomRtImportExportModuleLogic::GetReferencedV
 
   // Get referenced series UID for segmentation
   vtkIdType segmentationShItemID = shNode->GetItemByDataNode(segmentationNode);
-  std::string referencedSeriesUid = shNode->GetItemAttribute(segmentationShItemID, SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME);
+  std::string referencedSeriesUid = shNode->GetItemAttribute(segmentationShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME);
   if (referencedSeriesUid.empty())
   {
     vtkErrorWithObjectMacro(segmentationNode, "No referenced series UID found for segmentation '" << segmentationNode->GetName() << "'");

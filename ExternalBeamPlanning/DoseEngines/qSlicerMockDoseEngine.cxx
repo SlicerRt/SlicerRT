@@ -30,8 +30,8 @@
 #include "vtkSlicerSegmentationsModuleLogic.h"
 #include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
 
-// SlicerRT includes
-#include "SlicerRtCommon.h"
+// MRML includes
+#include "vtkMRMLScalarVolumeNode.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>

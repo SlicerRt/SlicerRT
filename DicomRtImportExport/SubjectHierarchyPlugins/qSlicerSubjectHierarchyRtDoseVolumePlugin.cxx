@@ -19,7 +19,7 @@
 ==============================================================================*/
 
 // SlicerRt includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 #include "qSlicerSubjectHierarchyRtDoseVolumePlugin.h"
 
@@ -135,7 +135,7 @@ double qSlicerSubjectHierarchyRtDoseVolumePlugin::canAddNodeToSubjectHierarchy(
     qCritical() << Q_FUNC_INFO << ": Input node is NULL";
     return 0.0;
     }
-  else if (SlicerRtCommon::IsDoseVolumeNode(node))
+  else if (vtkSlicerRtCommon::IsDoseVolumeNode(node))
     {
     return 1.0; // Only this plugin can handle this node
     }
@@ -159,7 +159,7 @@ double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyItem(vtk
 
   // RT Dose
   vtkMRMLNode* associatedNode = shNode->GetItemDataNode(itemID);
-  if ( associatedNode && SlicerRtCommon::IsDoseVolumeNode(associatedNode) )
+  if ( associatedNode && vtkSlicerRtCommon::IsDoseVolumeNode(associatedNode) )
   {
     return 1.0; // Only this plugin can handle this node
   }
@@ -332,8 +332,8 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
     QMessageBox::warning(NULL, tr("Failed to convert volume to dose"), message);
     return;
   }
-  std::string doseUnitNameInStudy = shNode->GetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME);
-  std::string doseUnitValueInStudy = shNode->GetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME);
+  std::string doseUnitNameInStudy = shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME);
+  std::string doseUnitValueInStudy = shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME);
 
   // Show dialogs asking about dose unit name and value
   bool ok;
@@ -369,7 +369,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   }
   if (setDoseUnitName)
   {
-    shNode->SetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), doseUnitName.toLatin1().constData());
+    shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), doseUnitName.toLatin1().constData());
   }
   bool setDoseUnitValue = true;
   if (!doseUnitNameInStudy.empty() && fabs(doseUnitValue - defaultDoseUnitValue) > EPSILON*EPSILON )
@@ -387,11 +387,11 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   if (setDoseUnitValue)
   {
     QString doseUnitValueString = QString::number(doseUnitValue);
-    shNode->SetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), doseUnitValueString.toLatin1().constData());
+    shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), doseUnitValueString.toLatin1().constData());
   }
 
   // Set RT dose identifier attribute to data node
-  volumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+  volumeNode->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
   shNode->RequestOwnerPluginSearch(currentItemID);
   shNode->ItemModified(currentItemID);
 }
@@ -414,7 +414,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::createIsodoseForCurrentItem()
 
   // Get associated volume node
   vtkMRMLNode* node = shNode->GetItemDataNode(currentItemID);
-  if (!SlicerRtCommon::IsDoseVolumeNode(node))
+  if (!vtkSlicerRtCommon::IsDoseVolumeNode(node))
   {
     qCritical() << Q_FUNC_INFO << ": Data node associated to current item '" << shNode->GetItemName(currentItemID).c_str() << "' is not a dose volume";
     return;
@@ -461,7 +461,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::calculateDvhForCurrentItem()
 
   // Get associated volume node
   vtkMRMLNode* node = shNode->GetItemDataNode(currentItemID);
-  if (!SlicerRtCommon::IsDoseVolumeNode(node))
+  if (!vtkSlicerRtCommon::IsDoseVolumeNode(node))
   {
     qCritical() << Q_FUNC_INFO << ": Data node associated to current item '" << shNode->GetItemName(currentItemID).c_str() << "' is not a dose volume";
     return;

@@ -30,7 +30,7 @@
 #include "qSlicerLayoutManager.h"
 
 // SlicerRtCommon includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 // qMRMLWidget includes
 #include "qMRMLThreeDView.h"
@@ -384,7 +384,7 @@ void qSlicerIsodoseModuleWidget::setup()
   this->Superclass::setup();
 
   // Show only dose volumes in the dose volume combobox by default
-  d->MRMLNodeComboBox_DoseVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+  d->MRMLNodeComboBox_DoseVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
 
   // Make connections
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setParameterNode(vtkMRMLNode*) ) );
@@ -492,7 +492,7 @@ void qSlicerIsodoseModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* node)
   paramNode->SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
 
-  if (paramNode->GetDoseVolumeNode() && SlicerRtCommon::IsDoseVolumeNode(paramNode->GetDoseVolumeNode()))
+  if (paramNode->GetDoseVolumeNode() && vtkSlicerRtCommon::IsDoseVolumeNode(paramNode->GetDoseVolumeNode()))
   {
     d->label_NotDoseVolumeWarning->setText("");
   }
@@ -563,11 +563,11 @@ void qSlicerIsodoseModuleWidget::showDoseVolumesOnlyCheckboxChanged(int aState)
 
   if (aState)
   {
-    d->MRMLNodeComboBox_DoseVolume->addAttribute("vtkMRMLScalarVolumeNode", SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+    d->MRMLNodeComboBox_DoseVolume->addAttribute("vtkMRMLScalarVolumeNode", vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
   }
   else
   {
-    d->MRMLNodeComboBox_DoseVolume->removeAttribute("vtkMRMLScalarVolumeNode", SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+    d->MRMLNodeComboBox_DoseVolume->removeAttribute("vtkMRMLScalarVolumeNode", vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
   }
 }
 
@@ -788,7 +788,7 @@ bool qSlicerIsodoseModuleWidget::setEditedNode(
   Q_UNUSED(role);
   Q_UNUSED(context);
 
-  if (!SlicerRtCommon::IsDoseVolumeNode(node))
+  if (!vtkSlicerRtCommon::IsDoseVolumeNode(node))
     {
     return false;
     }

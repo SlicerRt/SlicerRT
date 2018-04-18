@@ -24,7 +24,7 @@
 #include "vtkMRMLDoseComparisonNode.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>

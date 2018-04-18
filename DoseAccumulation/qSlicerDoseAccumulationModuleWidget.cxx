@@ -23,7 +23,7 @@
 #include "vtkMRMLDoseAccumulationNode.h"
 
 // SlicerRt includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 // Qt includes
 #include <QCheckBox>
@@ -280,7 +280,7 @@ void qSlicerDoseAccumulationModuleWidget::referenceDoseVolumeNodeChanged(vtkMRML
 
   this->updateButtonsState();
 
-  d->label_Warning->setVisible(!paramNode->GetReferenceDoseVolumeNode() || !SlicerRtCommon::IsDoseVolumeNode(paramNode->GetReferenceDoseVolumeNode()));
+  d->label_Warning->setVisible(!paramNode->GetReferenceDoseVolumeNode() || !vtkSlicerRtCommon::IsDoseVolumeNode(paramNode->GetReferenceDoseVolumeNode()));
   d->label_Warning->setText(QString("Volume is not a dose volume!"));
 }
 
@@ -362,7 +362,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
   for (std::vector<vtkMRMLNode*>::iterator nodeIt=volumeNodes.begin(); nodeIt!=volumeNodes.end(); ++nodeIt)
   {
     vtkMRMLNode* node = (*nodeIt);
-    if (SlicerRtCommon::IsDoseVolumeNode(node) || !paramNode->GetShowDoseVolumesOnly())
+    if (vtkSlicerRtCommon::IsDoseVolumeNode(node) || !paramNode->GetShowDoseVolumesOnly())
     {
       shownVolumeNodes.push_back(node);
     }
@@ -396,7 +396,7 @@ void qSlicerDoseAccumulationModuleWidget::refreshVolumesTable()
     vtkIdType volumeShItemID = shNode->GetItemByDataNode(volumeNode);
     if (volumeShItemID)
     {
-      shNode->GetAttributeFromItemAncestor(volumeShItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+      shNode->GetAttributeFromItemAncestor(volumeShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
     }
     std::string doseUnitStr = ( !doseUnitName.empty() ? doseUnitName : "N/A" );
 

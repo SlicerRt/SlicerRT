@@ -23,7 +23,7 @@
 #include "vtkMRMLDoseComparisonNode.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 #include "PlmCommon.h"
 
 // Plastimatch includes
@@ -185,7 +185,7 @@ void vtkSlicerDoseComparisonModuleLogic::GammaProgressUpdated(float progress)
 {
   double progressDouble = (double)progress;
   this->Progress = progressDouble;
-  this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progressDouble);
+  this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progressDouble);
 }
 
 //---------------------------------------------------------------------------
@@ -289,7 +289,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
     return errorMessage;
   }
 
-  SlicerRtCommon::ConvertItkImageToVolumeNode<float>(gammaVolumeItk, gammaVolumeNode, VTK_FLOAT);
+  vtkSlicerRtCommon::ConvertItkImageToVolumeNode<float>(gammaVolumeItk, gammaVolumeNode, VTK_FLOAT);
   gammaVolumeNode->SetAttribute(vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME, "1");
 
   // Set default colormap to red
@@ -380,7 +380,7 @@ void vtkSlicerDoseComparisonModuleLogic::CreateDefaultGammaColorTable()
   gammaColorTable->SetName(nodeName.c_str());
   gammaColorTable->SetTypeToUser();
   gammaColorTable->SetSingletonTag(nodeName.c_str());
-  gammaColorTable->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+  gammaColorTable->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
   gammaColorTable->HideFromEditorsOn();
   gammaColorTable->SetNumberOfColors(256);
   gammaColorTable->GetLookupTable()->SetNumberOfTableValues(256);
@@ -410,7 +410,7 @@ void vtkSlicerDoseComparisonModuleLogic::LoadDefaultGammaColorTable()
       vtksys::SystemTools::GetFilenameWithoutExtension(vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME).c_str() );
     colorTableNode = vtkMRMLColorTableNode::SafeDownCast(loadedColorNode);
     colorTableNode->SetSingletonTag(colorTableNode->GetName());
-    colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+    colorTableNode->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
     colorTableNode->HideFromEditorsOn();
     colorTableNode->SaveWithSceneOff();
   }
@@ -428,7 +428,7 @@ void vtkSlicerDoseComparisonModuleLogic::LoadDefaultGammaColorTable()
 
   if (colorTableNode)
   {
-    colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+    colorTableNode->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
     this->SetDefaultGammaColorTableNodeId(colorTableNode->GetID());
   }
   else

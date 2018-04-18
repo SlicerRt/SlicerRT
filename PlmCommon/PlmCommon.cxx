@@ -33,7 +33,7 @@
 #include "vtkOrientedImageData.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 //----------------------------------------------------------------------------
 // Utility functions
@@ -43,7 +43,7 @@ static typename itk::Image<T,3>::Pointer
 convert_to_itk (vtkMRMLScalarVolumeNode* inVolumeNode, bool applyWorldTransform)
 {
   typename itk::Image<T,3>::Pointer image = itk::Image<T,3>::New ();
-  if (!SlicerRtCommon::ConvertVolumeNodeToItkImage<T>(inVolumeNode, image, applyWorldTransform, true))
+  if (!vtkSlicerRtCommon::ConvertVolumeNodeToItkImage<T>(inVolumeNode, image, applyWorldTransform, true))
   {
     vtkGenericWarningMacro("PlmCommon::convert_to_itk(vtkMRMLScalarVolumeNode): Failed to convert volume node to PlmImage!");
   }
@@ -56,7 +56,7 @@ static typename itk::Image<T,3>::Pointer
 convert_to_itk (vtkOrientedImageData* inImageData)
 {
   typename itk::Image<T,3>::Pointer image = itk::Image<T,3>::New ();
-  if (!SlicerRtCommon::ConvertVtkOrientedImageDataToItkImage<T>(inImageData, image, true))
+  if (!vtkSlicerRtCommon::ConvertVtkOrientedImageDataToItkImage<T>(inImageData, image, true))
   {
     vtkGenericWarningMacro("PlmCommon::convert_to_itk(vtkOrientedImageData): Failed to convert oriented image data to PlmImage!");
   }

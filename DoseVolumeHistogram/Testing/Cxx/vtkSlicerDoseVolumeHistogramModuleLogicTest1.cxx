@@ -24,7 +24,7 @@
 #include "vtkMRMLDoseVolumeHistogramNode.h"
 
 // SlicerRt includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 #include "vtkPlanarContourToClosedSurfaceConversionRule.h"
 
 // Segmentations includes
@@ -353,7 +353,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->GetNodesByClass("vtkMRMLScalarVolumeNode", volumeNodes);
   for (std::vector<vtkMRMLNode*>::iterator volumeNodeIt=volumeNodes.begin(); volumeNodeIt!=volumeNodes.end(); ++volumeNodeIt)
   {
-    if (SlicerRtCommon::IsDoseVolumeNode(*volumeNodeIt))
+    if (vtkSlicerRtCommon::IsDoseVolumeNode(*volumeNodeIt))
     {
       doseVolumeNodes->AddItem(*volumeNodeIt);
     }

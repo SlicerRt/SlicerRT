@@ -18,7 +18,7 @@
 
 ==============================================================================*/
 
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 // MRML includes
 #include <vtkMRMLColorTableNode.h>
@@ -51,48 +51,48 @@
 // (the python scripts use the raw strings, those need to be updated when these are changed!)
 
 // SlicerRT constants
-const char* SlicerRtCommon::SLICERRT_EXTENSION_NAME = "SlicerRT";
-const std::string SlicerRtCommon::STORAGE_NODE_POSTFIX = "_Storage";
-const std::string SlicerRtCommon::DISPLAY_NODE_SUFFIX = "_Display";
+const char* vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME = "SlicerRT";
+const std::string vtkSlicerRtCommon::STORAGE_NODE_POSTFIX = "_Storage";
+const std::string vtkSlicerRtCommon::DISPLAY_NODE_SUFFIX = "_Display";
 
 // Segmentation constants
-const char* SlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME = "Ribbon model";
+const char* vtkSlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME = "Ribbon model";
 
-const double SlicerRtCommon::COLOR_VALUE_INVALID[4] = {0.5, 0.5, 0.5, 1.0};
+const double vtkSlicerRtCommon::COLOR_VALUE_INVALID[4] = {0.5, 0.5, 0.5, 1.0};
 
 // DicomRtImport constants
-const std::string SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX = "DicomRtImport.";
-const std::string SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "DoseVolume"; // Identifier
-const std::string SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "DoseUnitName";
-const std::string SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "DoseUnitValue";
-const std::string SlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "SourceAxisDistance";
-const std::string SlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "GantryAngle";
-const std::string SlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "CouchAngle";
-const std::string SlicerRtCommon::DICOMRTIMPORT_COLLIMATOR_ANGLE_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "CollimatorAngle";
-const std::string SlicerRtCommon::DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "JawPositions";
-const std::string SlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "BeamNumber";
-const std::string SlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "RoiReferencedSeriesUid"; // DICOM connection
-const std::string SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "RtImage"; // Identifier
-const std::string SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "RtImageSid";
-const std::string SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "RtImagePosition";
-const std::string SlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME = SlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "IsodoseModel"; // Identifier
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX = "DicomRtImport.";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME = vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "DoseVolume"; // Identifier
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME = vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "DoseUnitName";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME = vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "DoseUnitValue";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_SOURCE_AXIS_DISTANCE_ATTRIBUTE_NAME = vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "SourceAxisDistance";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_GANTRY_ANGLE_ATTRIBUTE_NAME = vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "GantryAngle";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_COUCH_ANGLE_ATTRIBUTE_NAME = vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "CouchAngle";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_COLLIMATOR_ANGLE_ATTRIBUTE_NAME = vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "CollimatorAngle";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_BEAM_JAW_POSITIONS_ATTRIBUTE_NAME = vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "JawPositions";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_BEAM_NUMBER_ATTRIBUTE_NAME = vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "BeamNumber";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME = vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "RoiReferencedSeriesUid"; // DICOM connection
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME = vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "RtImage"; // Identifier
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_RTIMAGE_SID_ATTRIBUTE_NAME = vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "RtImageSid";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME = vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "RtImagePosition";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME = vtkSlicerRtCommon::DICOMRTIMPORT_ATTRIBUTE_PREFIX + "IsodoseModel"; // Identifier
 
-const std::string SlicerRtCommon::DICOMRTIMPORT_FIDUCIALS_HIERARCHY_NODE_NAME_POSTFIX = "_Fiducials";
-const std::string SlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX = "_ModelHierarchy";
-const std::string SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX = "_Isocenters";
-const std::string SlicerRtCommon::DICOMRTIMPORT_NO_NAME = "No name";
-const std::string SlicerRtCommon::DICOMRTIMPORT_NO_STUDY_DESCRIPTION = "No study description";
-const std::string SlicerRtCommon::DICOMRTIMPORT_SOURCE_HIERARCHY_NODE_NAME_POSTFIX = "_Sources";
-const std::string SlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX = "_Beams";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_FIDUCIALS_HIERARCHY_NODE_NAME_POSTFIX = "_Fiducials";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX = "_ModelHierarchy";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX = "_Isocenters";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_NO_NAME = "No name";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_NO_STUDY_DESCRIPTION = "No study description";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_SOURCE_HIERARCHY_NODE_NAME_POSTFIX = "_Sources";
+const std::string vtkSlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX = "_Beams";
 
-const char* SlicerRtCommon::DEFAULT_DOSE_COLOR_TABLE_NAME = "Dose_ColorTable";
+const char* vtkSlicerRtCommon::DEFAULT_DOSE_COLOR_TABLE_NAME = "Dose_ColorTable";
 
 //----------------------------------------------------------------------------
 // Utility functions
 //----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
-bool SlicerRtCommon::IsStringNullOrEmpty(const char* aString)
+bool vtkSlicerRtCommon::IsStringNullOrEmpty(const char* aString)
 {
   if (aString == NULL)
   {
@@ -106,7 +106,7 @@ bool SlicerRtCommon::IsStringNullOrEmpty(const char* aString)
 }
 
 //---------------------------------------------------------------------------
-bool SlicerRtCommon::IsDoseVolumeNode(vtkMRMLNode* node)
+bool vtkSlicerRtCommon::IsDoseVolumeNode(vtkMRMLNode* node)
 {
   if (!node)
   {
@@ -115,7 +115,7 @@ bool SlicerRtCommon::IsDoseVolumeNode(vtkMRMLNode* node)
 
   if (node->IsA("vtkMRMLScalarVolumeNode"))
   {
-    const char* doseVolumeIdentifier = node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+    const char* doseVolumeIdentifier = node->GetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
     if (doseVolumeIdentifier != NULL)
     {
       return true;
@@ -126,7 +126,7 @@ bool SlicerRtCommon::IsDoseVolumeNode(vtkMRMLNode* node)
 }
 
 //---------------------------------------------------------------------------
-bool SlicerRtCommon::IsIsodoseModelNode(vtkMRMLNode* node)
+bool vtkSlicerRtCommon::IsIsodoseModelNode(vtkMRMLNode* node)
 {
   if (!node)
   {
@@ -135,7 +135,7 @@ bool SlicerRtCommon::IsIsodoseModelNode(vtkMRMLNode* node)
 
   if (node->IsA("vtkMRMLModelNode"))
   {
-    const char* isodoseModelIdentifier = node->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+    const char* isodoseModelIdentifier = node->GetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str());
     if (isodoseModelIdentifier != NULL)
     {
       return true;
@@ -146,17 +146,17 @@ bool SlicerRtCommon::IsIsodoseModelNode(vtkMRMLNode* node)
 }
 
 //---------------------------------------------------------------------------
-void SlicerRtCommon::StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDiscreteColorTable, vtkMRMLColorTableNode* outputColorTable, unsigned int numberOfColors/*=256*/)
+void vtkSlicerRtCommon::StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDiscreteColorTable, vtkMRMLColorTableNode* outputColorTable, unsigned int numberOfColors/*=256*/)
 {
   if (!inputDiscreteColorTable || !outputColorTable)
   {
-    vtkGenericWarningMacro("SlicerRtCommon::StretchDiscreteColorTable: Invalid input arguments!");
+    vtkGenericWarningMacro("vtkSlicerRtCommon::StretchDiscreteColorTable: Invalid input arguments!");
     return;
   }
 
   if (inputDiscreteColorTable->GetNumberOfColors() >= (int)numberOfColors)
   {
-    vtkErrorWithObjectMacro(inputDiscreteColorTable, "SlicerRtCommon::StretchDiscreteColorTable: Input discrete color table should have less colors than the specified number of colors (" << inputDiscreteColorTable->GetNumberOfColors() << " < " << numberOfColors << ")");
+    vtkErrorWithObjectMacro(inputDiscreteColorTable, "vtkSlicerRtCommon::StretchDiscreteColorTable: Input discrete color table should have less colors than the specified number of colors (" << inputDiscreteColorTable->GetNumberOfColors() << " < " << numberOfColors << ")");
     return;
   }
 
@@ -186,11 +186,11 @@ void SlicerRtCommon::StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDiscr
 }
 
 //---------------------------------------------------------------------------
-bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtkMRMLScalarVolumeNode* volume2)
+bool vtkSlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtkMRMLScalarVolumeNode* volume2)
 {
   if (!volume1 || !volume2)
   {
-    vtkGenericWarningMacro("SlicerRtCommon::DoVolumeLatticesMatch: Invalid (NULL) argument!");
+    vtkGenericWarningMacro("vtkSlicerRtCommon::DoVolumeLatticesMatch: Invalid (NULL) argument!");
     return false;
   }
 
@@ -199,14 +199,14 @@ bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtk
   vtkImageData* imageData2 = volume2->GetImageData();
   if (!imageData1 || !imageData2)
   {
-    vtkErrorWithObjectMacro(volume1, "SlicerRtCommon::DoVolumeLatticesMatch: At least one of the input volume nodes does not have a valid image data!");
+    vtkErrorWithObjectMacro(volume1, "vtkSlicerRtCommon::DoVolumeLatticesMatch: At least one of the input volume nodes does not have a valid image data!");
     return false;
   }
 
   // Check parent transforms (they have to be in the same branch)
   if (volume1->GetParentTransformNode() != volume2->GetParentTransformNode())
   {
-    vtkDebugWithObjectMacro(volume1, "SlicerRtCommon::DoVolumeLatticesMatch: Parent transform nodes are not the same for the two input volumes");
+    vtkDebugWithObjectMacro(volume1, "vtkSlicerRtCommon::DoVolumeLatticesMatch: Parent transform nodes are not the same for the two input volumes");
     return false;
   }
 
@@ -221,7 +221,7 @@ bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtk
     {
       if ( fabs(ijkToRasMatrix1->GetElement(row, col) - ijkToRasMatrix2->GetElement(row, col)) > EPSILON )
       {
-        vtkDebugWithObjectMacro(volume1, "SlicerRtCommon::DoVolumeLatticesMatch: IJK to RAS matrices differ");
+        vtkDebugWithObjectMacro(volume1, "vtkSlicerRtCommon::DoVolumeLatticesMatch: IJK to RAS matrices differ");
         return false;
       }
     }
@@ -236,7 +236,7 @@ bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtk
     || dimensions1[1] != dimensions2[1]
     || dimensions1[2] != dimensions2[2] )
   {
-    vtkDebugWithObjectMacro(volume1, "SlicerRtCommon::DoVolumeLatticesMatch: VTK image data dimensions differ!!");
+    vtkDebugWithObjectMacro(volume1, "vtkSlicerRtCommon::DoVolumeLatticesMatch: VTK image data dimensions differ!!");
     return false;
   }
 
@@ -248,7 +248,7 @@ bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtk
     || extent1[2] != extent2[2] || extent1[3] != extent2[3]
     || extent1[4] != extent2[4] || extent1[5] != extent2[5] )
   {
-    vtkDebugWithObjectMacro(volume1, "SlicerRtCommon::DoVolumeLatticesMatch: VTK image data extents differ!!");
+    vtkDebugWithObjectMacro(volume1, "vtkSlicerRtCommon::DoVolumeLatticesMatch: VTK image data extents differ!!");
     return false;
   }
 
@@ -257,13 +257,13 @@ bool SlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, vtk
 }
 
 //---------------------------------------------------------------------------
-bool SlicerRtCommon::AreEqualWithTolerance(double a, double b)
+bool vtkSlicerRtCommon::AreEqualWithTolerance(double a, double b)
 {
   return fabs(a - b) < EPSILON;
 }
 
 //---------------------------------------------------------------------------
-bool SlicerRtCommon::AreExtentsEqual(int extentA[6], int extentB[6])
+bool vtkSlicerRtCommon::AreExtentsEqual(int extentA[6], int extentB[6])
 {
   return 
     extentA[0] == extentB [0] &&
@@ -275,7 +275,7 @@ bool SlicerRtCommon::AreExtentsEqual(int extentA[6], int extentB[6])
 }
 
 //---------------------------------------------------------------------------
-void SlicerRtCommon::GenerateRandomColor(vtkMRMLColorTableNode* colorNode, double* newColor)
+void vtkSlicerRtCommon::GenerateRandomColor(vtkMRMLColorTableNode* colorNode, double* newColor)
 {
   const int MAX_TRIES = 50;
 
@@ -308,17 +308,17 @@ void SlicerRtCommon::GenerateRandomColor(vtkMRMLColorTableNode* colorNode, doubl
 }
 
 //---------------------------------------------------------------------------
-void SlicerRtCommon::WriteImageDataToFile(vtkMRMLScene* scene, vtkImageData* imageData, const char* fileName, double dirs[3][3], double spacing[3], double origin[3], bool overwrite)
+void vtkSlicerRtCommon::WriteImageDataToFile(vtkMRMLScene* scene, vtkImageData* imageData, const char* fileName, double dirs[3][3], double spacing[3], double origin[3], bool overwrite)
 {
   if (scene == NULL)
   {
-    vtkGenericWarningMacro("SlicerRtCommon::WriteImageDataToFile: Invalid scene");
+    vtkGenericWarningMacro("vtkSlicerRtCommon::WriteImageDataToFile: Invalid scene");
     return;
   }
 
   if (fileName == NULL || strcmp(fileName, "") == 0)
   {
-    vtkGenericWarningMacro("SlicerRtCommon::WriteImageDataToFile: Invalid filename");
+    vtkGenericWarningMacro("vtkSlicerRtCommon::WriteImageDataToFile: Invalid filename");
     return;
   }
 
@@ -345,7 +345,7 @@ void SlicerRtCommon::WriteImageDataToFile(vtkMRMLScene* scene, vtkImageData* ima
   volumeNode->SetAndObserveStorageNodeID(storageNode->GetID());
   if (storageNode->WriteData(volumeNode) == 0)
   {
-    vtkGenericWarningMacro("SlicerRtCommon::WriteImageDataToFile: Unable to write image data to file");
+    vtkGenericWarningMacro("vtkSlicerRtCommon::WriteImageDataToFile: Unable to write image data to file");
   }
 
   scene->RemoveNode(storageNode);
@@ -355,11 +355,11 @@ void SlicerRtCommon::WriteImageDataToFile(vtkMRMLScene* scene, vtkImageData* ima
 }
 
 //---------------------------------------------------------------------------
-bool SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(vtkMRMLScalarVolumeNode* inVolumeNode, vtkOrientedImageData* outImageData, bool applyRasToWorldConversion/*=true*/)
+bool vtkSlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(vtkMRMLScalarVolumeNode* inVolumeNode, vtkOrientedImageData* outImageData, bool applyRasToWorldConversion/*=true*/)
 {
   if (!inVolumeNode || !inVolumeNode->GetImageData())
   {
-    vtkGenericWarningMacro("SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData: Invalid volume node!");
+    vtkGenericWarningMacro("vtkSlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData: Invalid volume node!");
     return false;
   }
   if (!outImageData)

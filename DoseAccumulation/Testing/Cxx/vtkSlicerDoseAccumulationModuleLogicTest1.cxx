@@ -23,8 +23,8 @@
 #include "vtkSlicerDoseAccumulationModuleLogic.h"
 #include "vtkMRMLDoseAccumulationNode.h"
 
-// SlicerRt includes
-#include "SlicerRtCommon.h"
+// SlicerRT includes
+#include "vtkSlicerRtCommon.h"
 
 // Subject hierarchy includes
 #include "vtkMRMLSubjectHierarchyConstants.h"

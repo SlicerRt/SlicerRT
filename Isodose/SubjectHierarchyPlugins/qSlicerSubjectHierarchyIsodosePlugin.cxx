@@ -19,7 +19,7 @@
 ==============================================================================*/
 
 // SlicerRt includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 // Isodose includes
 #include "qSlicerSubjectHierarchyIsodosePlugin.h"
@@ -118,7 +118,7 @@ double qSlicerSubjectHierarchyIsodosePlugin::canOwnSubjectHierarchyItem(vtkIdTyp
 
   // Isodose lines
   vtkMRMLNode* associatedNode = shNode->GetItemDataNode(itemID);
-  if (associatedNode && SlicerRtCommon::IsIsodoseModelNode(associatedNode))
+  if (associatedNode && vtkSlicerRtCommon::IsIsodoseModelNode(associatedNode))
   {
     return 1.0;
   }

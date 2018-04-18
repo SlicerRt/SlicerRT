@@ -24,7 +24,9 @@
 #define __vtkFractionalImageAccumulate_h
 
 #include "vtkSlicerRtCommonWin32Header.h"
+
 #include <vtkImageAccumulate.h>
+#include <vtkImageData.h>
 
 class VTK_SLICERRTCOMMON_EXPORT vtkFractionalImageAccumulate: public vtkImageAccumulate
 {
@@ -46,7 +48,7 @@ public:
     
 protected:
   vtkFractionalImageAccumulate();
-  ~vtkFractionalImageAccumulate();
+  virtual ~vtkFractionalImageAccumulate();
 
   virtual int RequestData(vtkInformation* request,
                           vtkInformationVector** inputVector,

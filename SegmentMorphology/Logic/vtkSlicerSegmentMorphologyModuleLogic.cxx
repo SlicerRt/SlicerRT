@@ -23,14 +23,14 @@
 #include "vtkSlicerSegmentMorphologyModuleLogic.h"
 #include "vtkMRMLSegmentMorphologyNode.h"
 
+// SlicerRT includes
+#include "vtkSlicerRtCommon.h"
+
 // Segmentation includes
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkSlicerSegmentationsModuleLogic.h"
 #include "vtkOrientedImageData.h"
 #include "vtkOrientedImageDataResample.h"
-
-// SlicerRT includes
-#include "SlicerRtCommon.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>

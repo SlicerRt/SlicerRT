@@ -18,9 +18,6 @@
 
 ==============================================================================*/
 
-// SlicerRt includes
-#include "SlicerRtCommon.h"
-
 // RTHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin.h"
 
@@ -332,7 +329,8 @@ vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDoseVolumeHistogramPlugin
   std::vector<vtkMRMLNode*> nodes;
   scene->GetNodesByClass("vtkMRMLDoseVolumeHistogramNode", nodes);
   for (std::vector<vtkMRMLNode*>::iterator nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
-  {    vtkMRMLDoseVolumeHistogramNode* dvhNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(*nodeIt);
+  {
+    vtkMRMLDoseVolumeHistogramNode* dvhNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(*nodeIt);
     if (dvhNode && dvhNode->GetMetricsTableNode() == metricsTableNode)
     {
       return dvhNode;

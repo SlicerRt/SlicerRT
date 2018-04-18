@@ -60,7 +60,9 @@ class vtkMatrix4x4;
 #include "vtkSlicerRtCommonWin32Header.h"
 
 /// \ingroup SlicerRt_SlicerRtCommon
-class VTK_SLICERRTCOMMON_EXPORT SlicerRtCommon
+/// Common utility functions for SlicerRT.
+/// Note: The vtk prefix ensures python wrapping of the class that broke in VTK8.
+class VTK_SLICERRTCOMMON_EXPORT vtkSlicerRtCommon
 {
   //----------------------------------------------------------------------------
   // Events
@@ -206,6 +208,6 @@ public:
 //ETX
 };
 
-#include "SlicerRtCommon.txx"
+#include "vtkSlicerRtCommon.txx"
 
 #endif

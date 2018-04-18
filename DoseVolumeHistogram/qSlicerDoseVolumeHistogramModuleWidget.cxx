@@ -26,7 +26,7 @@
 #include <QMainWindow>
 
 // SlicerRt includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
@@ -287,7 +287,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   d->pushButton_SwitchToOneUpQuantitativeLayout->setEnabled(false);
 
   // Show only dose volumes in the dose volume combobox by default
-  d->MRMLNodeComboBox_DoseVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+  d->MRMLNodeComboBox_DoseVolume->addAttribute( QString("vtkMRMLScalarVolumeNode"), vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
 
   // Make connections
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( setParameterNode(vtkMRMLNode*) ) );
@@ -374,7 +374,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* 
 
   this->updateButtonsState();
 
-  d->label_NotDoseVolumeWarning->setVisible(!paramNode->GetDoseVolumeNode() || !SlicerRtCommon::IsDoseVolumeNode(paramNode->GetDoseVolumeNode()));
+  d->label_NotDoseVolumeWarning->setVisible(!paramNode->GetDoseVolumeNode() || !vtkSlicerRtCommon::IsDoseVolumeNode(paramNode->GetDoseVolumeNode()));
 }
 
 //-----------------------------------------------------------------------------
@@ -470,7 +470,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
   // Initialize progress bar
-  qvtkConnect( d->logic(), SlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
+  qvtkConnect( d->logic(), vtkSlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
   d->ConvertProgressDialog = new QProgressDialog(qSlicerApplication::application()->mainWindow());
   d->ConvertProgressDialog->setModal(true);
   d->ConvertProgressDialog->setMinimumDuration(150);
@@ -486,7 +486,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
     d->label_Error->setText( QString(errorMessage.c_str()) );
   }
 
-  qvtkDisconnect( d->logic(), SlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
+  qvtkDisconnect( d->logic(), vtkSlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
   delete d->ConvertProgressDialog;
 
   d->MRMLTableView->setFirstRowLocked(true);
@@ -770,11 +770,11 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDoseVolumesOnlyCheckboxChanged(
 
   if (aState)
   {
-    d->MRMLNodeComboBox_DoseVolume->addAttribute("vtkMRMLScalarVolumeNode", SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+    d->MRMLNodeComboBox_DoseVolume->addAttribute("vtkMRMLScalarVolumeNode", vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
   }
   else
   {
-    d->MRMLNodeComboBox_DoseVolume->removeAttribute("vtkMRMLScalarVolumeNode", SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+    d->MRMLNodeComboBox_DoseVolume->removeAttribute("vtkMRMLScalarVolumeNode", vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
   }
 
   d->MRMLTableView->resizeColumnsToContents();
@@ -846,7 +846,7 @@ bool qSlicerDoseVolumeHistogramModuleWidget::setEditedNode(
   Q_UNUSED(role);
   Q_UNUSED(context);
 
-  if (!SlicerRtCommon::IsDoseVolumeNode(node))
+  if (!vtkSlicerRtCommon::IsDoseVolumeNode(node))
     {
     return false;
     }

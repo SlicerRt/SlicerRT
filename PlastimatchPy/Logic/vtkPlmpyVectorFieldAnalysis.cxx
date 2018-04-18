@@ -35,7 +35,7 @@
 #include "vtkMRMLTransformNode.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 // Plastimatch includes
 #include "bspline_interpolate.h"
@@ -99,7 +99,7 @@ void vtkPlmpyVectorFieldAnalysis::RunJacobian()
     cout << "ERRROR: NULL input VF";
   } 
 
-  // vtk to itk transform derived from SlicerRtCommon.txx
+  // vtk to itk transform derived from vtkSlicerRtCommon.txx
   vtkMRMLVectorVolumeNode* VFImage = vtkMRMLVectorVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->VFImageID));
 
   DeformationFieldType::Pointer vol = itk::Image<itk::Vector<float,3> ,3>::New();
@@ -235,7 +235,7 @@ void vtkPlmpyVectorFieldAnalysis::SetImageIntoVolumeNode(Plm_image::Pointer& pla
   itk::Image<float, 3>::Pointer outputImageItk = plastimatchImage->itk_float();    
 
   vtkSmartPointer<vtkImageData> outputImageVtk = vtkSmartPointer<vtkImageData>::New();
-  SlicerRtCommon::ConvertItkImageToVtkImageData<float>(outputImageItk, outputImageVtk, VTK_FLOAT);
+  vtkSlicerRtCommon::ConvertItkImageToVtkImageData<float>(outputImageItk, outputImageVtk, VTK_FLOAT);
   
   // Read fixed image to get the geometrical information
   vtkMRMLScalarVolumeNode* fixedVolumeNode 

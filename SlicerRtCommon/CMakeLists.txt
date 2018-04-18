@@ -14,9 +14,9 @@ configure_file(
 # --------------------------------------------------------------------------
 
 SET (SlicerRtCommon_SRCS
-  SlicerRtCommon.cxx
-  SlicerRtCommon.h
-  SlicerRtCommon.txx
+  vtkSlicerRtCommon.cxx
+  vtkSlicerRtCommon.h
+  vtkSlicerRtCommon.txx
   vtkLabelmapToModelFilter.cxx
   vtkLabelmapToModelFilter.h
   vtkPolyDataToLabelmapFilter.cxx

@@ -19,7 +19,7 @@
 ==============================================================================*/
 
 // SlicerRt includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 #include "vtkMRMLPlanarImageNode.h"
 
 // RTHierarchy Plugins includes
@@ -118,7 +118,7 @@ double qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyItem(vtkIdTyp
   // RT Image
   vtkMRMLNode* associatedNode = shNode->GetItemDataNode(itemID);
   if ( associatedNode && associatedNode->IsA("vtkMRMLScalarVolumeNode")
-    && !shNode->GetItemAttribute(itemID, SlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME).empty() )
+    && !shNode->GetItemAttribute(itemID, vtkSlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME).empty() )
   {
     return 1.0; // Only this plugin can handle this node
   }

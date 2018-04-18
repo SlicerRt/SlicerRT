@@ -19,7 +19,7 @@
 ==============================================================================*/
 
 // SlicerRt includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 // ExternalBeamPlanning includes
 #include "qSlicerSubjectHierarchyRTPlanPlugin.h"
@@ -140,7 +140,7 @@ double qSlicerSubjectHierarchyRTPlanPlugin::canOwnSubjectHierarchyItem(vtkIdType
     parentItemName = QString(shNode->GetItemName(shNode->GetItemParent(itemID)).c_str());
   }
   if ( associatedNode && associatedNode->IsA("vtkMRMLMarkupsFiducialNode")
-    && parentItemName.contains(SlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX.c_str()) )
+    && parentItemName.contains(vtkSlicerRtCommon::DICOMRTIMPORT_ISOCENTER_HIERARCHY_NODE_NAME_POSTFIX.c_str()) )
   {
     return 1.0;
   }

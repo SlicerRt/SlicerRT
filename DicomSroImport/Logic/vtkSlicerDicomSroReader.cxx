@@ -19,9 +19,11 @@
 
 ==============================================================================*/
 
-
 // Module includes
 #include "vtkSlicerDicomSroReader.h"
+
+// SlicerRT includes
+#include "vtkSlicerRtCommon.h"
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -30,9 +32,6 @@
 #include <vtkImageData.h>
 #include <vtkPointData.h>
 #include <vtkVersion.h>
-
-// SlicerRT includes
-#include "SlicerRtCommon.h"
 
 // DCMTK includes
 #include <dcmtk/config/osconfig.h>    /* make sure OS specific configuration is included first */

@@ -32,9 +32,6 @@
 #include <vtkSegmentationConverterFactory.h>
 #include <vtkPolyDataToFractionalLabelmapFilter.h>
 
-// SlicerRtCommon includes
-#include "SlicerRtCommon.h"
-
 // DicomRTImportExport includes
 #include "vtkClosedSurfaceToFractionalLabelmapConversionRule.h"
 

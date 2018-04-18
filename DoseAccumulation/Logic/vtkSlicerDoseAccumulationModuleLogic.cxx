@@ -29,7 +29,7 @@
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 #include "vtkSlicerIsodoseModuleLogic.h"
 
 // MRML includes
@@ -274,7 +274,7 @@ std::string vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(vtkMRMLD
   outputAccumulatedDoseVolumeNode->CopyOrientation(referenceDoseVolumeNode);
   outputAccumulatedDoseVolumeNode->SetAndObserveImageData(accumulatedImageData);
   outputAccumulatedDoseVolumeNode->SetAndObserveDisplayNodeID( outputAccumulatedDoseVolumeDisplayNode->GetID() );
-  outputAccumulatedDoseVolumeNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+  outputAccumulatedDoseVolumeNode->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
   // Select as active volume
   if (this->GetApplicationLogic())
@@ -314,7 +314,7 @@ std::string vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(vtkMRMLD
 
   // Set threshold values so that the background is black
   double doseUnitScaling = 1.0;
-  std::string doseUnitScalingStr = shNode->GetItemAttribute(studyItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME);
+  std::string doseUnitScalingStr = shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME);
   if (!doseUnitScalingStr.empty())
   {
     doseUnitScaling = vtkVariant(doseUnitScalingStr).ToDouble();

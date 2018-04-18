@@ -1,14 +1,14 @@
-// module includes
+// Module includes
 #include "vtkPolyDataDistanceHistogramFilter.h"
 
-// slicer includes
+// SlicerRT includes
+#include "vtkSlicerRtCommon.h"
+
+// Slicer includes
 #include "vtkMRMLScene.h"
 #include "qSlicerCoreApplication.h"
 
-// SlicerRT includes
-#include "SlicerRtCommon.h"
-
-// vtk includes
+// VTK includes
 #include <vtkDelimitedTextWriter.h>
 #include <vtkDoubleArray.h>
 #include <vtkSphereSource.h>

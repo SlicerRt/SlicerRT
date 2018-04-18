@@ -52,11 +52,11 @@ namespace
 }
 
 //----------------------------------------------------------------------------
-template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToWorldConversion/*=true*/, bool applyRasToLpsConversion/*=true*/)
+template<typename T> bool vtkSlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLScalarVolumeNode* inVolumeNode, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToWorldConversion/*=true*/, bool applyRasToLpsConversion/*=true*/)
 {
   if (inVolumeNode == NULL)
   {
-    std::cerr << "SlicerRtCommon::ConvertVolumeNodeToItkImage: Failed to convert volume node to itk image - input MRML volume node is NULL!" << std::endl;
+    std::cerr << "vtkSlicerRtCommon::ConvertVolumeNodeToItkImage: Failed to convert volume node to itk image - input MRML volume node is NULL!" << std::endl;
     return false; 
   }
   vtkImageData* inVolume = inVolumeNode->GetImageData();
@@ -78,22 +78,22 @@ template<typename T> bool SlicerRtCommon::ConvertVolumeNodeToItkImage(vtkMRMLSca
   
   // Convert volume to oriented image data
   vtkSmartPointer<vtkOrientedImageData> orientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
-  if (!SlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(inVolumeNode, orientedImageData, applyRasToWorldConversion))
+  if (!vtkSlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(inVolumeNode, orientedImageData, applyRasToWorldConversion))
   {
     vtkErrorWithObjectMacro(inVolumeNode, "ConvertVolumeNodeToItkImage: Failed to convert volume node to oriented image data!");
     return false; 
   }
   
   // Convert vtkOrientedImageData to itkImage
-  return SlicerRtCommon::ConvertVtkOrientedImageDataToItkImage<T>(orientedImageData, outItkImage, applyRasToLpsConversion);
+  return vtkSlicerRtCommon::ConvertVtkOrientedImageDataToItkImage<T>(orientedImageData, outItkImage, applyRasToLpsConversion);
 }
 
 //----------------------------------------------------------------------------
-template<typename T> bool SlicerRtCommon::ConvertVtkOrientedImageDataToItkImage(vtkOrientedImageData* inImageData, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToLpsConversion/*=true*/)
+template<typename T> bool vtkSlicerRtCommon::ConvertVtkOrientedImageDataToItkImage(vtkOrientedImageData* inImageData, typename itk::Image<T, 3>::Pointer outItkImage, bool applyRasToLpsConversion/*=true*/)
 {
   if (inImageData == NULL)
   {
-    std::cerr << "SlicerRtCommon::ConvertVtkOrientedImageDataToItkImage: Failed to convert oriented image data to itk image - input MRML image data is NULL!" << std::endl;
+    std::cerr << "vtkSlicerRtCommon::ConvertVtkOrientedImageDataToItkImage: Failed to convert oriented image data to itk image - input MRML image data is NULL!" << std::endl;
     return false; 
   }
   if (outItkImage.IsNull())
@@ -211,11 +211,11 @@ template<typename T> bool SlicerRtCommon::ConvertVtkOrientedImageDataToItkImage(
 }
 
 //----------------------------------------------------------------------------
-template<typename T> bool SlicerRtCommon::ConvertItkImageToVtkImageData(typename itk::Image<T, 3>::Pointer inItkImage, vtkImageData* outVtkImageData, int vtkType)
+template<typename T> bool vtkSlicerRtCommon::ConvertItkImageToVtkImageData(typename itk::Image<T, 3>::Pointer inItkImage, vtkImageData* outVtkImageData, int vtkType)
 {
   if ( outVtkImageData == NULL )
   {
-    std::cerr << "SlicerRtCommon::ConvertItkImageToVtkImageData: Output VTK image data is NULL!" << std::endl;
+    std::cerr << "vtkSlicerRtCommon::ConvertItkImageToVtkImageData: Output VTK image data is NULL!" << std::endl;
     return false; 
   }
 
@@ -245,11 +245,11 @@ template<typename T> bool SlicerRtCommon::ConvertItkImageToVtkImageData(typename
 }
 
 //----------------------------------------------------------------------------
-template<typename T> bool SlicerRtCommon::ConvertItkImageToVolumeNode(typename itk::Image<T, 3>::Pointer inItkImage, vtkMRMLScalarVolumeNode* outVolumeNode, int vtkType, bool applyLpsToRasConversion/*=true*/)
+template<typename T> bool vtkSlicerRtCommon::ConvertItkImageToVolumeNode(typename itk::Image<T, 3>::Pointer inItkImage, vtkMRMLScalarVolumeNode* outVolumeNode, int vtkType, bool applyLpsToRasConversion/*=true*/)
 {
   if (outVolumeNode == NULL)
   {
-    std::cerr << "SlicerRtCommon::ConvertItkImageToVolumeNode: Failed to convert itk image to volume node - output MRML volume node is NULL!" << std::endl;
+    std::cerr << "vtkSlicerRtCommon::ConvertItkImageToVolumeNode: Failed to convert itk image to volume node - output MRML volume node is NULL!" << std::endl;
     return false; 
   }
   if (inItkImage.IsNull())
@@ -285,7 +285,7 @@ template<typename T> bool SlicerRtCommon::ConvertItkImageToVolumeNode(typename i
   }
   
   // Convert ITK image to the VTK image data member of the output volume node
-  if (!SlicerRtCommon::ConvertItkImageToVtkImageData<T>(inItkImage, outImageData, vtkType))
+  if (!vtkSlicerRtCommon::ConvertItkImageToVtkImageData<T>(inItkImage, outImageData, vtkType))
   {
     vtkErrorWithObjectMacro(outVolumeNode, "ConvertItkImageToVolumeNode: Failed to convert ITK image to VTK image data");
     return false; 

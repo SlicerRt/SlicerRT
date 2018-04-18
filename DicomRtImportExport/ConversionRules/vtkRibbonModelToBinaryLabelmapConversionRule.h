@@ -26,7 +26,7 @@
 #include "vtkSegmentationConverter.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 #include "vtkSlicerDicomRtImportExportConversionRulesExport.h"
 
@@ -46,7 +46,7 @@ public:
   virtual const char* GetName() VTK_OVERRIDE { return "Ribbon model to binary labelmap"; };
   
   /// Human-readable name of the source representation
-  virtual const char* GetSourceRepresentationName() VTK_OVERRIDE { return SlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME; };
+  virtual const char* GetSourceRepresentationName() VTK_OVERRIDE { return vtkSlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME; };
   
   /// Human-readable name of the target representation
   virtual const char* GetTargetRepresentationName() VTK_OVERRIDE { return vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(); };

@@ -27,11 +27,11 @@
 #include "vtkSlicerSegmentationsModuleLogic.h"
 
 // SegmentationCore includes
+#include "vtkOrientedImageData.h"
 #include "vtkOrientedImageDataResample.h"
 
 // SlicerRT includes
 #include "PlmCommon.h"
-#include "SlicerRtCommon.h"
 
 // Plastimatch includes
 #include "dice_statistics.h"

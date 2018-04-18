@@ -26,8 +26,8 @@
 #include "vtkMRMLSegmentationNode.h"
 #include "vtkSlicerSegmentationsModuleLogic.h"
 
-// SlicerRt includes
-#include "SlicerRtCommon.h"
+// SlicerRT includes
+#include "vtkSlicerRtCommon.h"
 #include "vtkPlanarContourToClosedSurfaceConversionRule.h"
 
 // SegmentationCore includes

@@ -23,14 +23,13 @@
 #include "vtkFractionalImageAccumulate.h"
 
 // VTK includes
+#include <vtkObjectFactory.h>
 #include <vtkImageStencilIterator.h>
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
 #include <vtkStreamingDemandDrivenPipeline.h>
 #include <vtkFieldData.h>
-
-// SlicerRtCommon includes
-#include "SlicerRtCommon.h"
+#include <vtkMath.h>
 
 vtkStandardNewMacro(vtkFractionalImageAccumulate);
 

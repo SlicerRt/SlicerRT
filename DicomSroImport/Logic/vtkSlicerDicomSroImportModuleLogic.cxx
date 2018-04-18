@@ -29,7 +29,7 @@
 #include "vtkSlicerVolumesLogic.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 // DCMTK includes
 #include <dcmtk/dcmdata/dcfilefo.h>

@@ -29,7 +29,7 @@
 #include "vtkSlicerSubjectHierarchyModuleLogic.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -253,7 +253,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateDefaultIsodoseColorTab
   colorTableNode->SetName(colorTableNodeName.c_str());
   colorTableNode->SetTypeToUser();
   colorTableNode->SetSingletonTag(colorTableNodeName.c_str());
-  colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+  colorTableNode->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
 
   colorTableNode->NamesInitialisedOn();
   colorTableNode->SetNumberOfColors(6);
@@ -299,7 +299,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::LoadDefaultIsodoseColorTable
 
     colorTableNode->SaveWithSceneOff();
     colorTableNode->SetSingletonTag(colorTableNode->GetName());
-    colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+    colorTableNode->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
   }
   else
   {
@@ -331,7 +331,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(
 
   // Check if default color table node already exists
   vtkSmartPointer<vtkCollection> defaultDoseColorTableNodes = vtkSmartPointer<vtkCollection>::Take(
-    scene->GetNodesByName(SlicerRtCommon::DEFAULT_DOSE_COLOR_TABLE_NAME) );
+    scene->GetNodesByName(vtkSlicerRtCommon::DEFAULT_DOSE_COLOR_TABLE_NAME) );
   if (defaultDoseColorTableNodes->GetNumberOfItems() > 0)
   {
     if (defaultDoseColorTableNodes->GetNumberOfItems() != 1)
@@ -352,15 +352,15 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(
   }
 
   vtkSmartPointer<vtkMRMLColorTableNode> defaultDoseColorTable = vtkSmartPointer<vtkMRMLColorTableNode>::New();
-  defaultDoseColorTable->SetName(SlicerRtCommon::DEFAULT_DOSE_COLOR_TABLE_NAME);
+  defaultDoseColorTable->SetName(vtkSlicerRtCommon::DEFAULT_DOSE_COLOR_TABLE_NAME);
   defaultDoseColorTable->SetTypeToUser();
-  defaultDoseColorTable->SetSingletonTag(SlicerRtCommon::DEFAULT_DOSE_COLOR_TABLE_NAME);
-  defaultDoseColorTable->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+  defaultDoseColorTable->SetSingletonTag(vtkSlicerRtCommon::DEFAULT_DOSE_COLOR_TABLE_NAME);
+  defaultDoseColorTable->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
   defaultDoseColorTable->SetNumberOfColors(256);
   defaultDoseColorTable->SaveWithSceneOff();
 
   // Create dose color table by stretching the isodose color table
-  SlicerRtCommon::StretchDiscreteColorTable(defaultIsodoseColorTable, defaultDoseColorTable);
+  vtkSlicerRtCommon::StretchDiscreteColorTable(defaultIsodoseColorTable, defaultDoseColorTable);
 
   scene->AddNode(defaultDoseColorTable);
   return defaultDoseColorTable;
@@ -394,11 +394,12 @@ void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(vtkMRMLIsodoseNode* p
   colorTableNode->GetLookupTable()->SetTableRange(0, newNumberOfColors-1);
   for (int colorIndex=6; colorIndex<newNumberOfColors; ++colorIndex)
   {
-    colorTableNode->SetColor(colorIndex, SlicerRtCommon::COLOR_VALUE_INVALID[0], SlicerRtCommon::COLOR_VALUE_INVALID[1], SlicerRtCommon::COLOR_VALUE_INVALID[2], 0.2);
+    colorTableNode->SetColor(colorIndex,
+      vtkSlicerRtCommon::COLOR_VALUE_INVALID[0], vtkSlicerRtCommon::COLOR_VALUE_INVALID[1], vtkSlicerRtCommon::COLOR_VALUE_INVALID[2], 0.2);
   }
 
   // Something messes up the category, it needs to be set back to SlicerRT
-  colorTableNode->SetAttribute("Category", SlicerRtCommon::SLICERRT_EXTENSION_NAME);
+  colorTableNode->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
 }
 
 //---------------------------------------------------------------------------
@@ -525,7 +526,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   // Report progress
   ++currentStep;
   double progress = (double)(currentStep) / (double)stepCount;
-  this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
+  this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progress);
 
   // Create isodose surfaces
   for (int i = 0; i < colorTableNode->GetNumberOfColors(); i++)
@@ -595,7 +596,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
 
       // Get dose unit name
       std::string doseUnitName = shNode->GetAttributeFromItemAncestor(
-        doseShItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+        doseShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
 
       vtkSmartPointer<vtkMRMLModelNode> isodoseModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
       isodoseModelNode = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->AddNode(isodoseModelNode));
@@ -604,13 +605,13 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
       isodoseModelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
       isodoseModelNode->SetAndObservePolyData(transformPolyData->GetOutput());
       isodoseModelNode->SetSelectable(1);
-      isodoseModelNode->SetAttribute(SlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+      isodoseModelNode->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
       shNode->RequestOwnerPluginSearch(isodoseModelNode); // The attribute above distinguishes isodoses from regular models
 
       // Put the new node in the model hierarchy
       vtkSmartPointer<vtkMRMLModelHierarchyNode> isodoseModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
       this->GetMRMLScene()->AddNode(isodoseModelHierarchyNode);
-      std::string modelHierarchyNodeName = std::string(isodoseModelNodeName) + SlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
+      std::string modelHierarchyNodeName = std::string(isodoseModelNodeName) + vtkSlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
       isodoseModelHierarchyNode->SetName(modelHierarchyNodeName.c_str());
       isodoseModelHierarchyNode->SetModelNodeID(isodoseModelNode->GetID());
       isodoseModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
@@ -620,7 +621,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     // Report progress
     ++currentStep;
     progress = (double)(currentStep) / (double)stepCount;
-    this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
+    this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progress);
   }
 
   this->GetMRMLScene()->EndState(vtkMRMLScene::BatchProcessState); 

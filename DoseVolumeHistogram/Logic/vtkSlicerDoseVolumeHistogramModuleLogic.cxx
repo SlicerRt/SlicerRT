@@ -23,7 +23,7 @@
 #include "vtkSlicerDoseVolumeHistogramModuleLogic.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 #include "vtkFractionalImageAccumulate.h"
 
 // Segmentations includes
@@ -414,7 +414,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
 
     // Update progress bar
     double progress = (double)counter / (double)numberOfSelectedSegments;
-    this->InvokeEvent(SlicerRtCommon::ProgressUpdated, (void*)&progress);
+    this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progress);
   } // For each segment
 
   // Fire only one modified event when the computation is done
@@ -628,7 +628,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   double stepSize;
   double rangeMin = structureStat->GetMin()[0];
   double rangeMax = structureStat->GetMax()[0];
-  if (SlicerRtCommon::IsDoseVolumeNode(doseVolumeNode))
+  if (vtkSlicerRtCommon::IsDoseVolumeNode(doseVolumeNode))
   {
     if (rangeMin<0)
     {
@@ -712,7 +712,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   }
 
   // Set the start of the first bin to 0 if the volume contains dose and the start value was negative
-  if (SlicerRtCommon::IsDoseVolumeNode(doseVolumeNode) && !insertPointAtOrigin)
+  if (vtkSlicerRtCommon::IsDoseVolumeNode(doseVolumeNode) && !insertPointAtOrigin)
   {
     doubleArray->SetComponent(0,0,0);
   }
@@ -808,14 +808,14 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
   // Set chart general properties
   std::string doseAxisName;
   std::string chartTitle;
-  const char* doseIdentifier = doseVolumeNode->GetAttribute(SlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
+  const char* doseIdentifier = doseVolumeNode->GetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
   if (doseIdentifier)
   {
     vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
     if (doseShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
       std::string doseUnitName = shNode->GetAttributeFromItemAncestor(
-        doseShItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+        doseShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
       doseAxisName=std::string("Dose [") + (doseUnitName.empty()?"?":doseUnitName) + "]";
     }
     else
@@ -1236,7 +1236,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDMetrics(vtkMRMLDoseVolumeH
   {
     doseUnitPostfix = " (" +
       shNode->GetAttributeFromItemAncestor(
-        doseShItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy())
+        doseShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy())
       + ")";
   }
 
@@ -1449,7 +1449,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(vtkMRMLDoseVolumeHi
   if (doseShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
     doseUnitName = shNode->GetAttributeFromItemAncestor(
-      doseShItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+      doseShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
   }
 
   // Get all DVH array nodes from the parameter set node
@@ -1779,7 +1779,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::AssembleDoseMetricName(vtkM
   if (doseShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
     doseUnitName = shNode->GetAttributeFromItemAncestor(
-      doseShItemID, SlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+      doseShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
   }
 
   // Assemble metric name

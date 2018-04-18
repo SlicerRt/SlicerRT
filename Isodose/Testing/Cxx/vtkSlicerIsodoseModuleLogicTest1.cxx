@@ -24,7 +24,7 @@
 #include "vtkMRMLIsodoseNode.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 // MRML includes
 #include <vtkMRMLModelHierarchyNode.h>

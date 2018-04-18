@@ -23,7 +23,7 @@
 #include "vtkMRMLPlanarImageNode.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 // MRML includes
 #include <vtkMRMLModelNode.h>
@@ -40,6 +40,7 @@
 #include <vtkTransform.h>
 #include <vtkPlaneSource.h>
 #include <vtkImageMapToWindowLevelColors.h>
+#include <vtkImageData.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerPlanarImageModuleLogic);

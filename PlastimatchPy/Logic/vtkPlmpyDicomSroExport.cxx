@@ -22,17 +22,18 @@
 
 // SlicerRT includes
 #include "PlmCommon.h"
-#include "SlicerRtCommon.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 
 // VTK includes
 #include <vtkNew.h>
-#include "vtkObjectFactory.h"
-#include "vtkImageData.h"
-#include "vtkPoints.h"
+#include <vtkObjectFactory.h>
+#include <vtkImageData.h>
+#include <vtkPoints.h>
+#include <vtkMatrix4x4.h>
 
 // ITK includes
 #include <itkImage.h>

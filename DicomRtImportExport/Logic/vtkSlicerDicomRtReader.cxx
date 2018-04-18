@@ -25,7 +25,7 @@
 #include "vtkSlicerDicomRtReader.h"
 
 // SlicerRt includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 // VTK includes
 #include <vtkCellArray.h>
@@ -1336,7 +1336,7 @@ const char* vtkSlicerDicomRtReader::GetRoiName(unsigned int internalIndex)
     vtkErrorMacro("GetRoiName: Cannot get ROI with internal index: " << internalIndex);
     return NULL;
   }
-  return (this->Internal->RoiSequenceVector[internalIndex].Name.empty() ? SlicerRtCommon::DICOMRTIMPORT_NO_NAME : this->Internal->RoiSequenceVector[internalIndex].Name).c_str();
+  return (this->Internal->RoiSequenceVector[internalIndex].Name.empty() ? vtkSlicerRtCommon::DICOMRTIMPORT_NO_NAME : this->Internal->RoiSequenceVector[internalIndex].Name).c_str();
 }
 
 //----------------------------------------------------------------------------
@@ -1392,7 +1392,7 @@ const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int beamNumber)
   {
     return NULL;
   }
-  return (beam->Name.empty() ? SlicerRtCommon::DICOMRTIMPORT_NO_NAME : beam->Name).c_str();
+  return (beam->Name.empty() ? vtkSlicerRtCommon::DICOMRTIMPORT_NO_NAME : beam->Name).c_str();
 }
 
 //----------------------------------------------------------------------------

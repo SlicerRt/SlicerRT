@@ -26,7 +26,7 @@
 #include "vtkSegmentationConverter.h"
 
 // SlicerRT includes
-#include "SlicerRtCommon.h"
+#include "vtkSlicerRtCommon.h"
 
 #include "vtkSlicerDicomRtImportExportConversionRulesExport.h"
 
@@ -70,7 +70,7 @@ public:
   virtual const char* GetSourceRepresentationName() VTK_OVERRIDE { return vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName(); };
   
   /// Human-readable name of the target representation
-  virtual const char* GetTargetRepresentationName() VTK_OVERRIDE { return SlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME; };
+  virtual const char* GetTargetRepresentationName() VTK_OVERRIDE { return vtkSlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME; };
 
 protected:
   /// Compute plane for a given contour
