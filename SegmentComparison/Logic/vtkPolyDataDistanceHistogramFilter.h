@@ -65,6 +65,9 @@ public:
   /// Get average of the absolute of the minimum distances \sa GetOutputDistances from the compare mesh to the reference mesh.
   /// (this corresponds to the 'average Hausdorff distance' in plastimatch: http://plastimatch.org/doxygen/classHausdorff__distance.html )
   double GetAverageHausdorffDistance();
+
+  /// Get standard deviation of the absolute of the minimum distances \sa GetOutputDistances from the compare mesh to the reference mesh.
+  double GetStandardDeviationHausdorffDistance();
   
   /// Get 95th percentile of the absolute of the minimum distances \sa GetOutputDistances from the compare mesh to the reference mesh.
   /// (this corresponds to the 'percent Hausdorff distance' in plastimatch: http://plastimatch.org/doxygen/classHausdorff__distance.html )

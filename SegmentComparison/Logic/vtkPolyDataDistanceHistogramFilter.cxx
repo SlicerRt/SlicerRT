@@ -131,12 +131,38 @@ double vtkPolyDataDistanceHistogramFilter::GetAverageHausdorffDistance()
   }
 
   double sum = 0.0;
-  for (int i=0; i<this->OutputDistances->GetNumberOfValues(); ++i)
+  int numberOfDistances = this->OutputDistances->GetNumberOfValues();
+  for (int distanceIndex=0; distanceIndex<numberOfDistances; ++distanceIndex)
   {
-    sum += this->OutputDistances->GetValue(i);
+    sum += this->OutputDistances->GetValue(distanceIndex);
   }
 
-  return sum / (double)this->OutputDistances->GetNumberOfValues();
+  return sum / (double)numberOfDistances;
+}
+  
+//----------------------------------------------------------------------------
+double vtkPolyDataDistanceHistogramFilter::GetStandardDeviationHausdorffDistance()
+{
+  if (!this->OutputDistances)
+  {
+    vtkErrorMacro("GetStandardDeviationHausdorffDistance: Output distances has not been created! Need to call Update after setting the inputs.");
+    return 0.0;
+  }
+
+  double averageDistance = this->GetAverageHausdorffDistance();
+  double sumOfSquaredDifferencesFromAverage = 0.0;
+  int numberOfDistances = this->OutputDistances->GetNumberOfValues();
+  for (int distanceIndex=0; distanceIndex<numberOfDistances; ++distanceIndex)
+  {
+    double distance = this->OutputDistances->GetValue(distanceIndex);
+    double differenceFromAverage = averageDistance - distance;
+    double squaredDifferenceFromAverage = pow(differenceFromAverage, 2);
+    sumOfSquaredDifferencesFromAverage += squaredDifferenceFromAverage;
+  }
+
+  double averageDifferenceFromAverage = sumOfSquaredDifferencesFromAverage / (double)numberOfDistances;
+  double stdev = sqrt(averageDifferenceFromAverage);
+  return stdev;
 }
   
 //----------------------------------------------------------------------------
