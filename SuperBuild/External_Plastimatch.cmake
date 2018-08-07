@@ -26,7 +26,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "2dc46c00a77b41e6a12afdfadb568797d7b77ab4"
+    "2fda2d11e7d4b4b76ab36851ad37dac8f61b0388"
     QUIET
     )
 
@@ -71,7 +71,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       # Options
       -DBUILD_SHARED_LIBS:BOOL=OFF
       -DBUILD_TESTING:BOOL=OFF
-      -DPLM_CONFIG_DISABLE_CUDA:BOOL=ON  # CUDA build is disabled until ticket #226 can be resolved.
+      -DPLM_CONFIG_ENABLE_CUDA:BOOL=OFF  # CUDA build is disabled until ticket #226 can be resolved.
       -DPLM_CONFIG_LIBRARY_BUILD:BOOL=ON
       -DPLM_CONFIG_INSTALL_LIBRARIES:BOOL=ON
       -DPLMLIB_CONFIG_ENABLE_REGISTER:BOOL=TRUE
