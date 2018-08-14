@@ -202,6 +202,16 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     selectedSegmentation->GetSegmentIDs(segmentIDs);
   }
 
+  // Create oriented image data from dose volume
+  vtkSmartPointer<vtkOrientedImageData> doseImageData = vtkSmartPointer<vtkOrientedImageData>::Take(
+    vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(doseVolumeNode) );
+  if (!doseImageData.GetPointer())
+  {
+    std::string errorMessage("Failed to get image data from dose volume");
+    vtkErrorMacro("ComputeDvh: " << errorMessage);
+    return errorMessage;
+  }
+
   // Temporarily duplicate selected segments to contain binary labelmap of a different geometry (tied to dose volume)
   vtkSmartPointer<vtkSegmentation> segmentationCopy = vtkSmartPointer<vtkSegmentation>::New();
   segmentationCopy->SetMasterRepresentationName(selectedSegmentation->GetMasterRepresentationName());
@@ -212,9 +222,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   }
 
   // Use dose volume geometry as reference, with oversampling of fixed 2 or automatic (as selected)
-  vtkSmartPointer<vtkMatrix4x4> doseIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  doseVolumeNode->GetIJKToRASMatrix(doseIjkToRasMatrix);
-  std::string doseGeometryString = vtkSegmentationConverter::SerializeImageGeometry(doseIjkToRasMatrix, doseVolumeNode->GetImageData());
+  std::string doseGeometryString = vtkSegmentationConverter::SerializeImageGeometry(doseImageData);
   segmentationCopy->SetConversionParameter( vtkSegmentationConverter::GetReferenceImageGeometryParameterName(),
     doseGeometryString );
   std::stringstream fixedOversamplingValueStream;
@@ -283,26 +291,6 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     }
   }
 
-  // Create oriented image data from dose volume
-  vtkSmartPointer<vtkOrientedImageData> doseImageData = vtkSmartPointer<vtkOrientedImageData>::Take(
-    vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(doseVolumeNode) );
-  if (!doseImageData.GetPointer())
-  {
-    std::string errorMessage("Failed to get image data from dose volume");
-    vtkErrorMacro("ComputeDvh: " << errorMessage);
-    return errorMessage;
-  }
-  // Apply parent transform on dose volume if necessary
-  if (doseVolumeNode->GetParentTransformNode())
-  {
-    if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(doseVolumeNode, doseImageData))
-    {
-      std::string errorMessage("Failed to apply parent transformation to dose");
-      vtkErrorMacro("ComputeDvh: " << errorMessage);
-      return errorMessage;
-    }
-  }
-
   // Use the same resampled dose volume if oversampling is fixed
   vtkSmartPointer<vtkOrientedImageData> fixedOversampledDoseVolume;
   if (!parameterNode->GetAutomaticOversampling())
@@ -322,7 +310,9 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     }
   }
 
+  //
   // Compute DVH for each selected segment
+  //
   int counter = 1; // Start at one so that progress can reach 100%
   int numberOfSelectedSegments = segmentationCopy->GetNumberOfSegments();
   for (std::vector< std::string >::const_iterator segmentIdIt = segmentIDs.begin(); segmentIdIt != segmentIDs.end(); ++segmentIdIt, ++counter)
@@ -363,7 +353,6 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     // Resample labelmap if necessary (if it was master, and could not be re-converted using the oversampled geometry, or if there was a parent transform)
     if (resamplingRequired)
     {
-
       // Resample segmentation labelmap volume
       if ( !vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
         segmentLabelmap, fixedOversampledDoseVolume, segmentLabelmap, useFractionalLabelmap, false, NULL, minimumValue ) )
