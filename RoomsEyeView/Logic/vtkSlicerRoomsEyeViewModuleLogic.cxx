@@ -224,13 +224,20 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels()
 
   // Make sure the transform hierarchy is in place
   this->BuildRoomsEyeViewTransformHierarchy();
-
+// Voy a intentarlo creando un vector que contenga las dos máquinas.
+  /*
   //TODO: Only the Varian TrueBeam STx models are supported right now.
   //      Allow loading multiple types of machines
   std::string treatmentMachineType = "VarianTrueBeamSTx";
-
+*/
+  std::vector<str> MachinesVector;
+  MachinesVector[1]="VarianTrueBeamSTx";
+  MachinesVector[2]="SiemensArtiste";
   std::string moduleShareDirectory = this->GetModuleShareDirectory();
   std::string treatmentMachineModelsDirectory = moduleShareDirectory + "/" + treatmentMachineType;
+  
+  // pero aquí ya está metiendo treatmentMachineType, que es la variable en la que está metido el nombre, tendría que elegir
+  // antes lo que quiero del vector.
 
   // Create a models logic for convenient loading of components
   vtkSmartPointer<vtkSlicerModelsLogic> modelsLogic = vtkSmartPointer<vtkSlicerModelsLogic>::New();
