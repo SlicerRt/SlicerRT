@@ -237,7 +237,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels()
   std::string treatmentMachineModelsDirectory = moduleShareDirectory + "/" + treatmentMachineType;
   
   // pero aquí ya está metiendo treatmentMachineType, que es la variable en la que está metido el nombre, tendría que elegir
-  // antes lo que quiero del vector.
+  // antes lo que quiero del vector. Voy a hacer dos versiones: uno cambiando simplemente el nombre y otro con esto del vector
 
   // Create a models logic for convenient loading of components
   vtkSmartPointer<vtkSlicerModelsLogic> modelsLogic = vtkSmartPointer<vtkSlicerModelsLogic>::New();
