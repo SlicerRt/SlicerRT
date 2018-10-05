@@ -17,7 +17,7 @@ class MockPythonDoseEngine(AbstractScriptedDoseEngine):
     0.0, 99.99, 10.0, 1.0, 2 )
 
   def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):
-    import qSlicerExternalBeamPlanningDoseEnginesPythonQt as engines
+    import qSlicerExternalBeamPlanningModuleWidgetsPythonQt as engines
     mockEngine = engines.qSlicerMockDoseEngine()
 
     # Set parameter for C++ mock engine so that it is used with this beam node

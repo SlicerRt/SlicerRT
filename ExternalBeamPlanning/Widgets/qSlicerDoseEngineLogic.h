@@ -21,7 +21,7 @@
 #ifndef __qSlicerDoseEngineLogic_h
 #define __qSlicerDoseEngineLogic_h
 
-#include "qSlicerExternalBeamPlanningDoseEnginesExport.h"
+#include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
 // SlicerQt includes
 #include "qSlicerObject.h"
@@ -36,12 +36,12 @@
 class vtkMRMLScene;
 class vtkMRMLRTPlanNode;
 class vtkMRMLRTBeamNode;
-class qSlicerDoseEngineLogicPrivate; 
+class qSlicerDoseEngineLogicPrivate;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 /// \brief Abstract dose calculation algorithm that can be used in the
 ///        External Beam Planning SlicerRT module as a base class for specific dose engine plugins
-class Q_SLICER_EXTERNALBEAMPLANNING_DOSE_ENGINES_EXPORT qSlicerDoseEngineLogic :
+class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerDoseEngineLogic :
   public QObject, public virtual qSlicerObject
 {
   Q_OBJECT
@@ -62,7 +62,7 @@ public:
   Q_INVOKABLE QString calculateDose(vtkMRMLRTPlanNode* planNode);
 
   /// Accumulate per-beam dose volumes for each beam under given plan. The accumulated
-  /// total dose is 
+  /// total dose is
   Q_INVOKABLE QString createAccumulatedDose(vtkMRMLRTPlanNode* planNode);
 
   /// Remove MRML nodes created by dose calculation for the current RT plan,
@@ -90,7 +90,7 @@ protected slots:
   void onDoseEngineChangedInPlan(vtkObject* nodeObject);
 
 protected:
-  QScopedPointer<qSlicerDoseEngineLogic> d_ptr; 
+  QScopedPointer<qSlicerDoseEngineLogic> d_ptr;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDoseEngineLogic);

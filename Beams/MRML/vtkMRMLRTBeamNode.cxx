@@ -41,9 +41,6 @@
 #include <vtkDoubleArray.h>
 #include <vtkCellArray.h>
 
-// SlicerRt includes
-#include "PlmCommon.h"
-
 //------------------------------------------------------------------------------
 const char* vtkMRMLRTBeamNode::NEW_BEAM_NODE_NAME_PREFIX = "NewBeam_";
 const char* vtkMRMLRTBeamNode::BEAM_TRANSFORM_NODE_NAME_POSTFIX = "_BeamTransform";

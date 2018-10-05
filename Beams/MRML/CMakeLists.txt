@@ -6,9 +6,8 @@ set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_MRML_EXPORT"
 
 set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
-  ${PlmCommon_INCLUDE_DIRS}
-  ${PLASTIMATCH_INCLUDE_DIRS}
   ${Slicer_Base_INCLUDE_DIRS}
+  ${MRMLCore_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
   )
 
@@ -22,13 +21,18 @@ set(${KIT}_SRCS
   vtkMRMLRTBeamNode.h
   )
 
-SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS} ${Slicer_Base_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
- 
+SET (${KIT}_INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
+  ${Slicer_Base_INCLUDE_DIRS}
+  ${MRMLCore_INCLUDE_DIRS}
+  CACHE INTERNAL "" FORCE)
+
 # --------------------------------------------------------------------------
 # Build the library
 
 set(${KIT}_TARGET_LIBRARIES
-  vtkPlmCommon
   vtkSlicerRtCommon
   vtkSegmentationCore
   vtkSlicerSegmentationsModuleMRML

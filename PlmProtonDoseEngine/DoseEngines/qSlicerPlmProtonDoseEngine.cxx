@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -21,7 +21,7 @@
 
 
 // Dose engines includes
-#include "qSlicerPlastimatchProtonDoseEngine.h"
+#include "qSlicerPlmProtonDoseEngine.h"
 
 // Beams includes
 #include "vtkMRMLRTPlanNode.h"
@@ -56,19 +56,19 @@
 #include <QStringList>
 
 //----------------------------------------------------------------------------
-qSlicerPlastimatchProtonDoseEngine::qSlicerPlastimatchProtonDoseEngine(QObject* parent)
+qSlicerPlmProtonDoseEngine::qSlicerPlmProtonDoseEngine(QObject* parent)
   : qSlicerAbstractDoseEngine(parent)
 {
   this->m_Name = QString("Plastimatch proton");
 }
 
 //----------------------------------------------------------------------------
-qSlicerPlastimatchProtonDoseEngine::~qSlicerPlastimatchProtonDoseEngine()
+qSlicerPlmProtonDoseEngine::~qSlicerPlmProtonDoseEngine()
 {
 }
 
 //---------------------------------------------------------------------------
-void qSlicerPlastimatchProtonDoseEngine::defineBeamParameters()
+void qSlicerPlmProtonDoseEngine::defineBeamParameters()
 {
   //TODO: Tooltips for each parameter
 
@@ -140,7 +140,7 @@ void qSlicerPlastimatchProtonDoseEngine::defineBeamParameters()
 }
 
 //---------------------------------------------------------------------------
-QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode)
+QString qSlicerPlmProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode)
 {
   vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
   if (!parentPlanNode)
@@ -248,7 +248,7 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
     rt_plan.set_normalization_dose(parentPlanNode->GetRxDose());
     std::cout << "Dose prescription = " << rt_plan.get_normalization_dose() << std::endl;
 
-    // Not needed for dose calculation: 
+    // Not needed for dose calculation:
     // Parameter Set, Plan Contour, Dose Volume, Dose Grid
 
     // Set beam parameters
@@ -370,12 +370,12 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
     int beamLineTypeActive = this->integerParameter(beamNode, "BeamLineTypeActive");
     if (beamLineTypeActive == 0)
     {
-      rt_beam->set_beam_line_type("active");      
+      rt_beam->set_beam_line_type("active");
       std::cout << "beam line type set to active" << std::endl;
     }
     else
     {
-      rt_beam->set_beam_line_type("passive");      
+      rt_beam->set_beam_line_type("passive");
       std::cout << "beam line type set to passive" << std::endl;
     }
 
@@ -466,7 +466,7 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
   std::string apertureNodeName = std::string(beamNode->GetName()) + "_Aperture";
   apertureVolumeNode->SetName(apertureNodeName.c_str());
   scene->AddNode(apertureVolumeNode);
-  
+
   this->addIntermediateResult(apertureVolumeNode, beamNode);
 
   // Get range compensator image, create volume node, and add as intermediate result
@@ -484,7 +484,7 @@ QString qSlicerPlastimatchProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBe
   std::string rangeCompensatorNodeName = std::string(beamNode->GetName()) + "_RangeCompensator";
   rangeCompensatorVolumeNode->SetName(rangeCompensatorNodeName.c_str());
   scene->AddNode(rangeCompensatorVolumeNode);
-  
+
   this->addIntermediateResult(rangeCompensatorVolumeNode, beamNode);
 
   return QString();

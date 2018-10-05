@@ -704,7 +704,15 @@ qMRMLBeamParametersTabWidget* qSlicerAbstractDoseEngine::beamParametersTabWidget
   // Get tab widget from beams module widget
   //TODO: Kind of a hack, a direct way of accessing it would be nicer, for example through a MRML node
   qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module("Beams");
+  if (!module)
+  {
+    return NULL;
+  }
   qSlicerAbstractModuleWidget* moduleWidget = dynamic_cast<qSlicerAbstractModuleWidget*>(module->widgetRepresentation());
+  if (!moduleWidget)
+  {
+    return NULL;
+  }
   return moduleWidget->findChild<qMRMLBeamParametersTabWidget*>("BeamParametersTabWidget");
 }
 

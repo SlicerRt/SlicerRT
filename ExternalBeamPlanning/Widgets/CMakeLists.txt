@@ -1,11 +1,10 @@
-project(qSlicer${MODULE_NAME}DoseEngines)
+project(qSlicer${MODULE_NAME}ModuleWidgets)
 
 set(KIT ${PROJECT_NAME})
 
-set(${KIT}_EXPORT_DIRECTIVE "Q_SLICER_${MODULE_NAME_UPPER}_DOSE_ENGINES_EXPORT")
+set(${KIT}_EXPORT_DIRECTIVE "Q_SLICER_MODULE_${MODULE_NAME_UPPER}_WIDGETS_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
-  ${PlmCommon_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
@@ -23,8 +22,6 @@ set(${KIT}_SRCS
   qSlicerDoseEngineLogic.h
   qSlicerMockDoseEngine.cxx
   qSlicerMockDoseEngine.h
-  qSlicerPlastimatchProtonDoseEngine.cxx
-  qSlicerPlastimatchProtonDoseEngine.h
   qSlicerScriptedDoseEngine.cxx
   qSlicerScriptedDoseEngine.h
   )
@@ -44,7 +41,6 @@ set(${KIT}_MOC_SRCS
   qSlicerDoseEnginePluginHandler.h
   qSlicerDoseEngineLogic.h
   qSlicerMockDoseEngine.h
-  qSlicerPlastimatchProtonDoseEngine.h
   qSlicerScriptedDoseEngine.h
 )
 
@@ -53,7 +49,6 @@ set(${KIT}_RESOURCES
   )
 
 set(${KIT}_TARGET_LIBRARIES
-  vtkPlmCommon
   vtkSlicerRtCommon
   vtkSlicerBeamsModuleMRML
   vtkSlicerBeamsModuleLogic
@@ -64,13 +59,19 @@ set(${KIT}_TARGET_LIBRARIES
   qSlicerBeamsModuleWidgets
   )
 
-set(${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS} ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS} ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS} ${vtkSlicerDoseAccumulationModuleLogic_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
+set(${KIT}_INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerDoseAccumulationModuleLogic_INCLUDE_DIRS}
+  CACHE INTERNAL "" FORCE)
 
 #-----------------------------------------------------------------------------
-SlicerMacroBuildModuleQtLibrary(
+SlicerMacroBuildModuleWidgets(
   NAME ${KIT}
   EXPORT_DIRECTIVE ${${KIT}_EXPORT_DIRECTIVE}
-  FOLDER "Module-${MODULE_NAME}"
   INCLUDE_DIRECTORIES ${${KIT}_INCLUDE_DIRECTORIES}
   SRCS ${${KIT}_SRCS}
   MOC_SRCS ${${KIT}_MOC_SRCS}

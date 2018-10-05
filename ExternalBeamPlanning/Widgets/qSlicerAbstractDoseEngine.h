@@ -21,7 +21,7 @@
 #ifndef __qSlicerAbstractDoseEngine_h
 #define __qSlicerAbstractDoseEngine_h
 
-#include "qSlicerExternalBeamPlanningDoseEnginesExport.h"
+#include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
 // Qt includes
 #include <QObject>
@@ -36,7 +36,7 @@ class qMRMLBeamParametersTabWidget;
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 /// \brief Abstract dose calculation algorithm that can be used in the
 ///        External Beam Planning SlicerRT module as a base class for specific dose engine plugins
-class Q_SLICER_EXTERNALBEAMPLANNING_DOSE_ENGINES_EXPORT qSlicerAbstractDoseEngine : public QObject
+class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerAbstractDoseEngine : public QObject
 {
   Q_OBJECT
 
@@ -80,7 +80,7 @@ protected:
   /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic
   /// to any dose engine before and after calculation.
   /// This is the method that needs to be implemented in each engine.
-  /// 
+  ///
   /// \param beamNode Beam for which the dose is calculated. Each beam has a parent plan from which the
   ///   plan-specific parameters are got
   /// \param resultDoseVolumeNode Output volume node for the result dose. It is created by \sa CalculateDose

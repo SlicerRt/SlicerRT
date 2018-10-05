@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Radiation Medicine Program,
+  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -31,9 +31,8 @@
 #include "qSlicerExternalBeamPlanningModuleWidget.h"
 #include "vtkSlicerExternalBeamPlanningModuleLogic.h"
 
-// DoseEngines includes
+// Widgets includes
 #include "qSlicerDoseEnginePluginHandler.h"
-#include "qSlicerPlastimatchProtonDoseEngine.h"
 #include "qSlicerMockDoseEngine.h"
 
 // SlicerRT includes
@@ -82,7 +81,7 @@ qSlicerExternalBeamPlanningModule::~qSlicerExternalBeamPlanningModule()
 //-----------------------------------------------------------------------------
 QString qSlicerExternalBeamPlanningModule::helpText()const
 {
-  QString help = 
+  QString help =
     "The External Beam Planning module facilitates basic EBRT planning. "
     "For more information see <a href=\"%1/Documentation/%2.%3/Modules/ExternalBeamPlanning\">%1/Documentation/%2.%3/Modules/ExternalBeamPlanning</a><br>";
   return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
@@ -143,7 +142,6 @@ void qSlicerExternalBeamPlanningModule::setup()
   }
 
   // Register dose engines
-  qSlicerDoseEnginePluginHandler::instance()->registerDoseEngine(new qSlicerPlastimatchProtonDoseEngine());
   qSlicerDoseEnginePluginHandler::instance()->registerDoseEngine(new qSlicerMockDoseEngine());
 
   // Python engines
@@ -152,7 +150,7 @@ void qSlicerExternalBeamPlanningModule::setup()
   PythonQtObjectPtr context = PythonQt::self()->getMainModule();
   context.evalScript( QString(
     "from DoseEngines import * \n"
-    "import qSlicerExternalBeamPlanningDoseEnginesPythonQt as engines \n"
+    "import qSlicerExternalBeamPlanningModuleWidgetsPythonQt as engines \n"
     "import traceback \n"
     "import logging \n"
     "try: \n"

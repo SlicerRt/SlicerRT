@@ -4,7 +4,7 @@ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
 
-class ExternalBeamPlanningTest(unittest.TestCase):
+class PlmProtonDoseEngineTest(unittest.TestCase):
   def setUp(self):
     """ Do whatever is needed to reset the state - typically a scene clear will be enough.
     """
@@ -24,10 +24,10 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     """
     self.setUp()
 
-    self.test_ExternalBeamPlanningTest_FullTest1()
+    self.test_PlmProtonDoseEngineTest_FullTest1()
 
   #------------------------------------------------------------------------------
-  def test_ExternalBeamPlanningTest_FullTest1(self):
+  def test_PlmProtonDoseEngineTest_FullTest1(self):
     # Check for modules
     self.assertIsNotNone( slicer.modules.segmentations )
     self.assertIsNotNone( slicer.modules.beams )
@@ -43,7 +43,7 @@ class ExternalBeamPlanningTest(unittest.TestCase):
   #------------------------------------------------------------------------------
   def TestSection_00_SetupPathsAndNames(self):
     # Set up paths used for this test
-    self.segmentationsModuleTestDir = slicer.app.temporaryPath + '/ExternalBeamPlanningTest'
+    self.segmentationsModuleTestDir = slicer.app.temporaryPath + '/PlmProtonDoseEngineTest'
     if not os.access(self.segmentationsModuleTestDir, os.F_OK):
       os.mkdir(self.segmentationsModuleTestDir)
 
@@ -129,17 +129,17 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     segmentationNode = slicer.util.getNode('TinyPatient_Structures')
     self.assertIsNotNone(ctVolumeNode)
     self.assertIsNotNone(segmentationNode)
-    
+
     # Create node for output dose
     totalDoseVolumeNode = slicer.vtkMRMLScalarVolumeNode()
     totalDoseVolumeNode.SetName('TotalDose')
     slicer.mrmlScene.AddNode(totalDoseVolumeNode)
-    
+
     # Setup plan
     planNode = slicer.vtkMRMLRTPlanNode()
     planNode.SetName('TestProtonPlan')
     slicer.mrmlScene.AddNode(planNode)
-    
+
     planNode.SetAndObserveReferenceVolumeNode(ctVolumeNode);
     planNode.SetAndObserveSegmentationNode(segmentationNode);
     planNode.SetAndObserveOutputTotalDoseVolumeNode(totalDoseVolumeNode);
@@ -162,17 +162,17 @@ class ExternalBeamPlanningTest(unittest.TestCase):
     plastimatchProtonEngine.setParameter(firstBeamNode, 'RangeCompensatorSmearingRadius', 0.0)
     plastimatchProtonEngine.setParameter(firstBeamNode, 'ProximalMargin', 0.0)
     plastimatchProtonEngine.setParameter(firstBeamNode, 'DistalMargin', 0.0)
-    
+
     # Calculate dose
     import time
     startTime = time.time()
-    
+
     errorMessage = engineLogic.calculateDose(planNode)
     self.assertEqual(errorMessage, "")
-    
+
     calculationTime = time.time() - startTime
     logging.info('Dose computation time: ' + str(calculationTime) + ' s')
-    
+
     # Check computed output
     imageAccumulate = vtk.vtkImageAccumulate()
     imageAccumulate.SetInputConnection(totalDoseVolumeNode.GetImageDataConnection())

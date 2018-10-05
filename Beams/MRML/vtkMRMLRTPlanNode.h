@@ -117,7 +117,7 @@ public:
 
   /// Get center of gravity of target segment, return true if successful
   /// or false if no target segment has been specified
-  bool ComputeTargetVolumeCenter(double* center);
+  bool ComputeTargetVolumeCenter(double center[3]);
 
 // Set/get functions
 public:

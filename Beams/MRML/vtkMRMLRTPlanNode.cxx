@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -22,12 +22,6 @@
 // Beams includes
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
-
-// SlicerRt includes
-#include "PlmCommon.h"
-
-// Plastimatch includes
-#include "image_center.h"
 
 // MRML includes
 #include <vtkMRMLModelNode.h>
@@ -41,6 +35,7 @@
 // VTK includes
 #include <vtkCollection.h>
 #include <vtkDataArray.h>
+#include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
@@ -90,11 +85,11 @@ void vtkMRMLRTPlanNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  if (this->TargetSegmentID != NULL) 
+  if (this->TargetSegmentID != NULL)
   {
     of << " TargetSegmentID=\"" << this->TargetSegmentID << "\"";
   }
-  if (this->DoseEngineName != NULL) 
+  if (this->DoseEngineName != NULL)
   {
     of << " DoseEngineName=\"" << this->DoseEngineName << "\"";
   }
@@ -115,28 +110,28 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
   const char* attName = NULL;
   const char* attValue = NULL;
 
-  while (*atts != NULL) 
+  while (*atts != NULL)
   {
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "NextBeamNumber")) 
+    if (!strcmp(attName, "NextBeamNumber"))
     {
       this->NextBeamNumber = vtkVariant(attValue).ToDouble();
     }
-    else if (!strcmp(attName, "TargetSegmentID")) 
+    else if (!strcmp(attName, "TargetSegmentID"))
     {
       this->SetTargetSegmentID(attValue);
     }
-    else if (!strcmp(attName, "DoseEngineName")) 
+    else if (!strcmp(attName, "DoseEngineName"))
     {
       this->SetDoseEngineName(attValue);
     }
-    else if (!strcmp(attName, "RxDose")) 
+    else if (!strcmp(attName, "RxDose"))
     {
       this->RxDose = vtkVariant(attValue).ToDouble();
     }
-    else if (!strcmp(attName, "IsocenterSpecification")) 
+    else if (!strcmp(attName, "IsocenterSpecification"))
     {
       this->IsocenterSpecification = (IsocenterSpecificationType)(vtkVariant(attValue).ToInt());
     }
@@ -355,7 +350,7 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
 {
   // Create name
   std::string markupsName = std::string(this->GetName()) + "_POI";
-  
+
   // Create markups node (subject hierarchy node is created automatically)
   vtkSmartPointer<vtkMRMLMarkupsFiducialNode> markupsNode = vtkSmartPointer<vtkMRMLMarkupsFiducialNode>::New();
   markupsNode->SetName(markupsName.c_str());
@@ -548,7 +543,7 @@ vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetBeamByNumber(int beamNumber)
     vtkErrorMacro("GetBeamByName: Failed to access subject hierarchy node");
     return NULL;
   }
-  
+
   vtkSmartPointer<vtkCollection> beamCollection = vtkSmartPointer<vtkCollection>::New();
   shNode->GetDataNodesInBranch(planShItemID, beamCollection, "vtkMRMLRTBeamNode");
 
@@ -755,7 +750,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetTargetOrientedImageD
     return targetOrientedImageData;
   }
   vtkSegment* segment = segmentation->GetSegment(this->TargetSegmentID);
-  if (!segment) 
+  if (!segment)
   {
     vtkErrorMacro("GetTargetOrientedImageData: Failed to get segment");
     return targetOrientedImageData;
@@ -792,8 +787,10 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetTargetOrientedImageD
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double* center)
+bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double center[3])
 {
+  center[0] = center[1] = center[2] = 0.0;
+
   if (!this->Scene)
   {
     vtkErrorMacro("ComputeTargetVolumeCenter: Invalid MRML scene");
@@ -807,26 +804,47 @@ bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double* center)
     return false;
   }
 
-  // Convert inputs to plm image
-  Plm_image::Pointer targetPlmVolume 
-    = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(targetLabelmap);
-  if (!targetPlmVolume)
-  {
-    std::string errorMessage("Failed to convert reference segment labelmap into Plm_image");
-    vtkErrorMacro("ComputeTargetVolumeCenter: " << errorMessage);
-    return false;
-  }
-
   // Compute image center
-  Image_center imageCenter;
-  imageCenter.set_image(targetPlmVolume);
-  imageCenter.run();
-  itk::Vector<double,3> centerOfMass = imageCenter.get_image_center_of_mass();
+  int extent[6] = {0,-1,0,-1,0,-1};
+  targetLabelmap->GetExtent(extent);
+  unsigned long numOfNonZeroVoxels = 0;
+  unsigned long sumX = 0;
+  unsigned long sumY = 0;
+  unsigned long sumZ = 0;
+  for (int z=extent[4]; z<extent[5]; ++z)
+  {
+    for (int y=extent[2]; y<extent[3]; ++y)
+    {
+      for (int x=extent[0]; x<extent[1]; ++x)
+      {
+        unsigned char value = targetLabelmap->GetScalarComponentAsDouble(x, y, z, 0);
+        if (value)
+        {
+          numOfNonZeroVoxels++;
+          sumX += x;
+          sumY += y;
+          sumZ += z;
+        }
+      }
+    }
+  }
+  double centerIjk[4] = {0.0};
+  if (numOfNonZeroVoxels > 0)
+  {
+    centerIjk[0] = (double)sumX / (double)numOfNonZeroVoxels;
+    centerIjk[1] = (double)sumY / (double)numOfNonZeroVoxels;
+    centerIjk[2] = (double)sumZ / (double)numOfNonZeroVoxels;
+    centerIjk[3] = 1.0;
 
-  // Copy to output argument, and convert LPS -> RAS
-  center[0] = -centerOfMass[0];
-  center[1] = -centerOfMass[1];
-  center[2] =  centerOfMass[2];
+    vtkNew<vtkMatrix4x4> imageToWorldMatrix;
+    targetLabelmap->GetImageToWorldMatrix(imageToWorldMatrix);
+    double centerRas[4] = {0.0};
+    imageToWorldMatrix->MultiplyPoint(centerIjk, centerRas);
+
+    center[0] = centerRas[0];
+    center[1] = centerRas[1];
+    center[2] = centerRas[2];
+  }
 
   return true;
 }

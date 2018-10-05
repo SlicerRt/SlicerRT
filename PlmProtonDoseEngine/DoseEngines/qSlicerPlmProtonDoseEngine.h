@@ -12,33 +12,33 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
 ==============================================================================*/
 
-#ifndef __qSlicerPlastimatchProtonDoseEngine_h
-#define __qSlicerPlastimatchProtonDoseEngine_h
+#ifndef __qSlicerPlmProtonDoseEngine_h
+#define __qSlicerPlmProtonDoseEngine_h
 
-#include "qSlicerExternalBeamPlanningDoseEnginesExport.h"
+#include "qSlicerPlmProtonDoseEngineDoseEnginesExport.h"
 
 // ExternalBeamPlanning includes
 #include "qSlicerAbstractDoseEngine.h"
 
-/// \ingroup SlicerRt_ExternalBeamPlanning
+/// \ingroup SlicerRt_PlmProtonDoseEngine
 /// \brief Plastimatch proton dose calculation algorithm
-class Q_SLICER_EXTERNALBEAMPLANNING_DOSE_ENGINES_EXPORT qSlicerPlastimatchProtonDoseEngine : public qSlicerAbstractDoseEngine
+class Q_SLICER_PLMPROTONDOSEENGINE_DOSE_ENGINES_EXPORT qSlicerPlmProtonDoseEngine : public qSlicerAbstractDoseEngine
 {
   Q_OBJECT
 
 public:
   typedef qSlicerAbstractDoseEngine Superclass;
   /// Constructor
-  explicit qSlicerPlastimatchProtonDoseEngine(QObject* parent=NULL);
+  explicit qSlicerPlmProtonDoseEngine(QObject* parent=NULL);
   /// Destructor
-  virtual ~qSlicerPlastimatchProtonDoseEngine();
+  virtual ~qSlicerPlmProtonDoseEngine();
 
 protected:
   /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic
@@ -52,7 +52,7 @@ protected:
   void defineBeamParameters();
 
 private:
-  Q_DISABLE_COPY(qSlicerPlastimatchProtonDoseEngine);
+  Q_DISABLE_COPY(qSlicerPlmProtonDoseEngine);
 };
 
 #endif

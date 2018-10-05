@@ -21,7 +21,7 @@
 #ifndef __qSlicerDoseEnginePluginHandler_h
 #define __qSlicerDoseEnginePluginHandler_h
 
-#include "qSlicerExternalBeamPlanningDoseEnginesExport.h"
+#include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
 // Qt includes
 #include <QObject>
@@ -32,7 +32,7 @@ class qSlicerAbstractDoseEngine;
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 /// \class qSlicerDoseEnginePluginHandler
 /// \brief Singleton class managing dose engine plugins for external beam planning
-class Q_SLICER_EXTERNALBEAMPLANNING_DOSE_ENGINES_EXPORT qSlicerDoseEnginePluginHandler : public QObject
+class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerDoseEnginePluginHandler : public QObject
 {
   Q_OBJECT
 

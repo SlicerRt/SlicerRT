@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
 set(MODULE_TEST_PYTHON_SCRIPTS
-  ExternalBeamPlanningTest.py
+  PlmProtonDoseEngineTest.py
   )
 
 set(MODULE_TEST_PYTHON_RESOURCES
@@ -33,11 +33,11 @@ foreach(script_name ${KIT_UNITTEST_SCRIPTS})
 endforeach()
 
 slicer_add_python_unittest(
-  SCRIPT ExternalBeamPlanningTest.py
+  SCRIPT PlmProtonDoseEngineTest.py
   SLICER_ARGS --disable-cli-modules
               --no-main-window
               --additional-module-paths
                 ${MODULE_BUILD_DIR}
-                ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR} 
+                ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR}
   TESTNAME_PREFIX nomainwindow_
   )

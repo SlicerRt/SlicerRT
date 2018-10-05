@@ -21,7 +21,7 @@
 #ifndef __qSlicerMockDoseEngine_h
 #define __qSlicerMockDoseEngine_h
 
-#include "qSlicerExternalBeamPlanningDoseEnginesExport.h"
+#include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
 // ExternalBeamPlanning includes
 #include "qSlicerAbstractDoseEngine.h"
@@ -30,7 +30,7 @@
 /// \class qSlicerMockDoseEngine
 /// \brief Mock dose calculation algorithm. Simply fills the beam apertures with prescription dose adding some noise.
 ///        Used for testing.
-class Q_SLICER_EXTERNALBEAMPLANNING_DOSE_ENGINES_EXPORT qSlicerMockDoseEngine : public qSlicerAbstractDoseEngine
+class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerMockDoseEngine : public qSlicerAbstractDoseEngine
 {
   Q_OBJECT
 

@@ -12,7 +12,7 @@ class AbstractScriptedDoseEngine():
       1. Instantiation and registration
         Instantiate dose engine adaptor class from
         module (e.g. from setup function), and set python source:
-        > import qSlicerExternalBeamPlanningDoseEnginesPythonQt as engines
+        > import qSlicerExternalBeamPlanningModuleWidgetsPythonQt as engines
         > scriptedEngine = engines.qSlicerScriptedDoseEngine(None)
         > scriptedEngine.setPythonSource(MyEffect.filePath)
         > scriptedEffect.self().register()
@@ -39,8 +39,8 @@ class AbstractScriptedDoseEngine():
     self.scriptedEngine = scriptedEngine
 
   def register(self):
-    import qSlicerExternalBeamPlanningDoseEnginesPythonQt
+    import qSlicerExternalBeamPlanningModuleWidgetsPythonQt
     #TODO: For some reason the instance() function cannot be called as a class function although it's static
-    handler = qSlicerExternalBeamPlanningDoseEnginesPythonQt.qSlicerDoseEnginePluginHandler()
+    handler = qSlicerExternalBeamPlanningModuleWidgetsPythonQt.qSlicerDoseEnginePluginHandler()
     engineHandlerSingleton = handler.instance()
     engineHandlerSingleton.registerDoseEngine(self.scriptedEngine)
