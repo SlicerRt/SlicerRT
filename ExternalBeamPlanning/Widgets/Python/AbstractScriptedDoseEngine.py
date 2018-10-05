@@ -14,8 +14,8 @@ class AbstractScriptedDoseEngine():
         module (e.g. from setup function), and set python source:
         > import qSlicerExternalBeamPlanningModuleWidgetsPythonQt as engines
         > scriptedEngine = engines.qSlicerScriptedDoseEngine(None)
-        > scriptedEngine.setPythonSource(MyEffect.filePath)
-        > scriptedEffect.self().register()
+        > scriptedEngine.setPythonSource(MyEngine.filePath)
+        > scriptedEngine.self().register()
         If engine name is added to slicer.modules.doseenginenames
         list then the above instantiation and registration steps are not necessary,
         as the ExternalBeamPlanning module do all these.
@@ -29,9 +29,9 @@ class AbstractScriptedDoseEngine():
 
       2.b. Always call API functions (the ones that are defined in the adaptor
         class qSlicerScriptedDoseEngine) using the adaptor accessor:
-        > self.scriptedEffect.addResultDose()
+        > self.scriptedEngine.addResultDose()
 
-      An example for a generic effect is the MockPythonDoseEngine
+      An example for a generic engine is the MockPythonDoseEngine
 
   """
 
