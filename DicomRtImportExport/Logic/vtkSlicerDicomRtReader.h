@@ -14,14 +14,14 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Radiation Medicine Program, 
-  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Radiation Medicine Program,
+  University Health Network and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
 ==============================================================================*/
 
-// .NAME vtkSlicerDicomRtReader - 
+// .NAME vtkSlicerDicomRtReader -
 // .SECTION Description
 // This class manages the Reader associated with reading, saving,
 // and changing propertied of the volumes
@@ -36,11 +36,6 @@
 #include <vtkObject.h>
 
 class vtkPolyData;
-
-// Due to some reason the Python wrapping of this class fails, therefore
-// put everything between BTX/ETX to exclude from wrapping.
-// TODO #210: investigate why the wrapping fails
-//BTX
 
 /// \ingroup SlicerRt_QtModules_DicomRtImport
 class VTK_SLICER_DICOMRTIMPORTEXPORT_LOGIC_EXPORT vtkSlicerDicomRtReader : public vtkObject
@@ -114,12 +109,12 @@ public:
   vtkSetStringMacro(RTStructureSetReferencedSOPInstanceUIDs);
 
   /// Get pixel spacing for dose volume
-  vtkGetVector2Macro(PixelSpacing, double); 
+  vtkGetVector2Macro(PixelSpacing, double);
 
   /// Get dose units
-  vtkGetStringMacro(DoseUnits); 
+  vtkGetStringMacro(DoseUnits);
   /// Set dose units
-  vtkSetStringMacro(DoseUnits); 
+  vtkSetStringMacro(DoseUnits);
 
   /// Get dose grid scaling
   vtkGetStringMacro(DoseGridScaling);
@@ -266,7 +261,7 @@ protected:
   /// Set study ID
   vtkSetStringMacro(StudyId);
   /// Set study description
-  vtkSetStringMacro(StudyDescription); 
+  vtkSetStringMacro(StudyDescription);
   /// Set study date
   vtkSetStringMacro(StudyDate);
   /// Set study time
@@ -274,7 +269,7 @@ protected:
   /// Set series instance UID
   vtkSetStringMacro(SeriesInstanceUid);
   /// Set series description
-  vtkSetStringMacro(SeriesDescription); 
+  vtkSetStringMacro(SeriesDescription);
   /// Set series modality
   vtkSetStringMacro(SeriesModality);
   /// Set series number
@@ -426,7 +421,5 @@ private:
 };
 
 #include "vtkSlicerDicomRtReader.txx"
-
-//ETX
 
 #endif

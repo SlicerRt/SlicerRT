@@ -12,18 +12,18 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
 ==============================================================================*/
 
 
-// .NAME vtkSlicerDicomSroReader - 
+// .NAME vtkSlicerDicomSroReader -
 // .SECTION Description
 // This class manages the Reader associated with reading Dicom Spatial Registration Object
-// The reader load DICOM SRO in LPS and convert it to RAS cooridnate system mainly due to 
+// The reader load DICOM SRO in LPS and convert it to RAS cooridnate system mainly due to
 // it is used for Slicer.
 
 #ifndef __vtkSlicerDicomSroReader_h
@@ -37,11 +37,6 @@
 class DcmDataset;
 class vtkMatrix4x4;
 class vtkImageData;
-
-// Due to some reason the Python wrapping of this class fails, therefore
-// put everything between BTX/ETX to exclude from wrapping.
-// TODO #210: investigate why the wrapping fails
-//BTX
 
 /// \ingroup SlicerRt_DicomSroImport
 class VTK_SLICER_DICOMSROIMPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomSroReader : public vtkObject
@@ -146,7 +141,7 @@ protected:
   vtkSetStringMacro(StudyInstanceUid);
 
   /// Set study description
-  vtkSetStringMacro(StudyDescription); 
+  vtkSetStringMacro(StudyDescription);
 
   /// Set study date
   vtkSetStringMacro(StudyDate);
@@ -158,7 +153,7 @@ protected:
   vtkSetStringMacro(SeriesInstanceUid);
 
   /// Set series description
-  vtkSetStringMacro(SeriesDescription); 
+  vtkSetStringMacro(SeriesDescription);
 
   /// Set series modality
   vtkSetStringMacro(SeriesModality);
@@ -235,7 +230,5 @@ private:
   vtkSlicerDicomSroReader(const vtkSlicerDicomSroReader&); // Not implemented
   void operator=(const vtkSlicerDicomSroReader&);         // Not implemented
 };
-
-//ETX
 
 #endif

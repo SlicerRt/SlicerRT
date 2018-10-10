@@ -167,7 +167,6 @@ public:
   */
   static bool ConvertVolumeNodeToVtkOrientedImageData(vtkMRMLScalarVolumeNode* inVolumeNode, vtkOrientedImageData* outImageData, bool applyRasToWorldConversion=true);
 
-//BTX
   /*!
     Convert volume MRML node to ITK image
     \param inVolumeNode Input volume node
@@ -205,7 +204,6 @@ public:
     \return Success
   */
   template<typename T> static bool ConvertItkImageToVolumeNode(typename itk::Image<T, 3>::Pointer inItkImage, vtkMRMLScalarVolumeNode* outVolumeNode, int vtkType, bool applyLpsToRasConversion=true);
-//ETX
 };
 
 #include "vtkSlicerRtCommon.txx"
