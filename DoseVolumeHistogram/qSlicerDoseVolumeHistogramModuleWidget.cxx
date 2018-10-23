@@ -253,6 +253,8 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
   d->lineEdit_DVolumePercent->setText(paramNode->GetDVolumeValuesPercent());
   d->checkBox_ShowDMetrics->setChecked(paramNode->GetShowDMetrics());
   d->checkBox_AutomaticOversampling->setChecked(paramNode->GetAutomaticOversampling());
+  d->checkBox_ShowDoseVolumesOnly->setChecked(paramNode->GetShowDoseVolumesOnly());
+  d->checkBox_DoseSurfaceHistogram->setChecked(paramNode->GetDoseSurfaceHistogram());
 
   // Set metrics table to table view
   if (d->MRMLTableView->mrmlTableNode() != paramNode->GetMetricsTableNode())
@@ -299,6 +301,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
 
   connect( d->pushButton_ComputeDVH, SIGNAL( clicked() ), this, SLOT( computeDvhClicked() ) );
   connect( d->checkBox_ShowDoseVolumesOnly, SIGNAL( stateChanged(int) ), this, SLOT( showDoseVolumesOnlyCheckboxChanged(int) ) );
+  connect( d->checkBox_DoseSurfaceHistogram, SIGNAL(stateChanged(int) ), this, SLOT(doseSurfaceHistogramCheckboxChanged(int) ) );
   connect( d->pushButton_ExportDvhToCsv, SIGNAL( clicked() ), this, SLOT( exportDvhToCsvClicked() ) );
   connect( d->pushButton_ExportMetricsToCsv, SIGNAL( clicked() ), this, SLOT( exportMetricsToCsv() ) );
   connect( d->lineEdit_VDose, SIGNAL( textEdited(QString) ), this, SLOT( lineEditVDoseEdited(QString) ) );
@@ -779,6 +782,28 @@ void qSlicerDoseVolumeHistogramModuleWidget::showDoseVolumesOnlyCheckboxChanged(
 
   d->MRMLTableView->resizeColumnsToContents();
   d->MRMLTableView->setColumnWidth(vtkMRMLDoseVolumeHistogramNode::MetricColumnVisible, 36);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::doseSurfaceHistogramCheckboxChanged(int aState)
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetDoseSurfaceHistogram(aState);
+  paramNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------

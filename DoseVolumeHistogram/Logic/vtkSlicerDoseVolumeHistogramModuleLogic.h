@@ -60,6 +60,8 @@ public:
   static const std::string DVH_SEGMENT_ID_ATTRIBUTE_NAME;
   static const std::string DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME;
   static const std::string DVH_TABLE_ROW_ATTRIBUTE_NAME;
+  static const std::string DVH_SURFACE_ATTRIBUTE_NAME;
+  static const std::string DVH_SURFACE_INSIDE_ATTRIBUTE_NAME;
 
   static const std::string DVH_METRIC_STRUCTURE;
   static const std::string DVH_METRIC_TOTAL_VOLUME_CC;

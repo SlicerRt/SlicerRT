@@ -52,6 +52,8 @@
 
 // VTK includes
 #include <vtkImageAccumulate.h>
+#include <vtkImageDilateErode3D.h>
+#include <vtkImageMathematics.h>
 #include <vtkImageStencilData.h>
 #include <vtkImageToImageStencil.h>
 #include <vtkNew.h>
@@ -83,6 +85,8 @@ const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DOSE_VOLUME_OVERS
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_SEGMENT_ID_ATTRIBUTE_NAME = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "SegmentID";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "StructurePlotName";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_TABLE_ROW_ATTRIBUTE_NAME = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "TableRow";
+const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_SURFACE_ATTRIBUTE_NAME = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "Surface";
+const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_SURFACE_INSIDE_ATTRIBUTE_NAME = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "SurfaceInside";
 
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_STRUCTURE = "Structure";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_TOTAL_VOLUME_CC = "Volume (cc)";
@@ -454,6 +458,46 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   double checkpointStart = timer->GetUniversalTime();
   UNUSED_VARIABLE(checkpointStart); // Although it is used later, a warning is logged so needs to be suppressed
 
+  // If the user has enabled the flag to calculate the dose surface histogram, then extract the surface from the labelmap
+  if (parameterNode->GetDoseSurfaceHistogram())
+  {
+    if (parameterNode->GetUseFractionalLabelmap())
+    {
+      std::string errorMessage("Dose surface histogram is not currently supported for fractional labelmaps");
+      vtkErrorMacro("ComputeDvh: " << errorMessage);
+      return errorMessage;
+    }
+
+    double dilateValue = 0.0;
+    double erodeValue = 1.0;
+    if (!parameterNode->GetUseInsideDoseSurface())
+    {
+      dilateValue = 1.0;
+      erodeValue = 0.0;
+    }
+
+    vtkNew<vtkImageDilateErode3D> dilateErodeFilter;
+    dilateErodeFilter->SetInputData(segmentLabelmap);
+    dilateErodeFilter->SetErodeValue(erodeValue);
+    dilateErodeFilter->SetDilateValue(dilateValue);
+    dilateErodeFilter->SetKernelSize(3, 3, 3);
+
+    vtkNew<vtkImageMathematics> imageMathematics;
+    imageMathematics->SetOperationToSubtract();
+    if (parameterNode->GetUseInsideDoseSurface())
+    {
+      imageMathematics->SetInput1Data(segmentLabelmap);
+      imageMathematics->SetInputConnection(1, dilateErodeFilter->GetOutputPort());
+    }
+    else
+    {
+      imageMathematics->SetInputConnection(0, dilateErodeFilter->GetOutputPort());
+      imageMathematics->SetInput2Data(segmentLabelmap);
+    }
+    imageMathematics->Update();
+    segmentLabelmap->vtkImageData::DeepCopy(imageMathematics->GetOutput());
+  }
+
   // Create stencil for structure
   vtkNew<vtkImageToImageStencil> stencil;
   stencil->SetInputData(segmentLabelmap);
@@ -551,6 +595,13 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     arrayNode->SetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str(), ss.str().c_str());
     arrayNode->Delete(); // Release ownership to scene only
     metricsTable->InsertNextBlankRow();
+
+    // Dose surface histogram attributes
+    if (parameterNode->GetDoseSurfaceHistogram())
+    {
+      arrayNode->SetAttribute(DVH_SURFACE_ATTRIBUTE_NAME.c_str(), "1");
+      arrayNode->SetAttribute(DVH_SURFACE_INSIDE_ATTRIBUTE_NAME.c_str(), parameterNode->GetUseInsideDoseSurface() ? "1" : "0");
+    }
 
     // Set node references
     metricsTableNode->SetNodeReferenceID(structureDvhNodeRef.c_str(), arrayNode->GetID());
@@ -805,14 +856,23 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
     {
       std::string doseUnitName = shNode->GetAttributeFromItemAncestor(
         doseShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
-      doseAxisName=std::string("Dose [") + (doseUnitName.empty()?"?":doseUnitName) + "]";
+      doseAxisName = std::string("Dose [") + (doseUnitName.empty() ? "?" : doseUnitName) + "]";
     }
     else
     {
       vtkErrorMacro("AddDvhToChart: Invalid subject hierarchy node for dose volume");
-      doseAxisName=std::string("Dose");
+      doseAxisName = std::string("Dose");
     }
-    chartTitle="Dose Volume Histogram";
+
+    const char* doseSurfaceHistogramIdentifier = dvhArrayNode->GetAttribute(DVH_SURFACE_ATTRIBUTE_NAME.c_str());
+    if (doseSurfaceHistogramIdentifier)
+    {
+      chartTitle = "Dose Surface Histogram";
+    }
+    else
+    {
+      chartTitle = "Dose Volume Histogram";
+    }
   }
   else
   {

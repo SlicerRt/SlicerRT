@@ -87,6 +87,7 @@ protected slots:
   void lineEditDVolumePercentEdited(QString aText);
   void showDMetricsCheckedStateChanged(int aState);
   void showDoseVolumesOnlyCheckboxChanged(int aState);
+  void doseSurfaceHistogramCheckboxChanged(int aState);
 
   void showAllClicked();
   void hideAllClicked();

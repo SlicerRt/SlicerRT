@@ -199,6 +199,20 @@ public:
   /// Get fractional labelmap flag
   vtkBooleanMacro(UseFractionalLabelmap, bool);
 
+  /// Get dose surface histogram flag
+  vtkGetMacro(DoseSurfaceHistogram, bool);
+  /// Set dose surface histogram flag
+  vtkSetMacro(DoseSurfaceHistogram, bool);
+  /// Get dose surface histogram flag
+  vtkBooleanMacro(DoseSurfaceHistogram, bool);
+
+  /// Get if the surface histogram should be calculated using internal/external voxels
+  vtkGetMacro(UseInsideDoseSurface, bool);
+  /// Set if the surface histogram should be calculated using internal/external voxels
+  vtkSetMacro(UseInsideDoseSurface, bool);
+  /// Get if the surface histogram should be calculated using internal/external voxels
+  vtkBooleanMacro(UseInsideDoseSurface, bool);
+
 protected:
   /// Set and observe DVH metrics table node
   /// Metrics table node is unique and mandatory for each DVH node, so it is created within the node.
@@ -254,6 +268,12 @@ protected:
 
   /// Flag telling whether or not to use fractional labelmaps
   bool UseFractionalLabelmap;
+
+  /// State of dose surface histogram checkbox
+  bool DoseSurfaceHistogram;
+
+  /// Whether to calculate the dose volume histogram from voxels inside/outside the structure
+  bool UseInsideDoseSurface;
 };
 
 #endif
