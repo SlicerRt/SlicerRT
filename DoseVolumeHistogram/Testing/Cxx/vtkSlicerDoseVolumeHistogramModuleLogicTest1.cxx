@@ -305,6 +305,38 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     std::cerr << "Invalid arguments!" << std::endl;
     return EXIT_FAILURE;
   }
+  // DoseSurfaceHistogram
+  bool doseSurfaceHistogram = false;
+  if (argc > argIndex + 1)
+  {
+    if (STRCASECMP(argv[argIndex], "-DoseSurfaceHistogram") == 0)
+    {
+      doseSurfaceHistogram = (vtkVariant(argv[argIndex + 1]).ToInt() > 0 ? true : false);
+      std::cout << "Dose surface histogram: " << (doseSurfaceHistogram ? "true" : "false") << std::endl;
+      argIndex += 2;
+    }
+  }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
+  // UseInsideSurface
+  bool useInsideSurface = false;
+  if (argc > argIndex + 1)
+  {
+    if (STRCASECMP(argv[argIndex], "-UseInsideSurface") == 0)
+    {
+      useInsideSurface = (vtkVariant(argv[argIndex + 1]).ToInt() > 0 ? true : false);
+      std::cout << "Dose surface histogram -- Inside surface: " << (useInsideSurface ? "true" : "false") << std::endl;
+      argIndex += 2;
+    }
+  }
+  else
+  {
+    std::cerr << "Invalid arguments!" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   // Constraint the criteria to be greater than zero
   if (volumeDifferenceCriterion == 0.0)
@@ -393,6 +425,8 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   paramNode->SetAndObserveDoseVolumeNode(doseScalarVolumeNode);
   paramNode->SetAndObserveSegmentationNode(segmentationNode);
   paramNode->SetAutomaticOversampling(automaticOversamplingCalculation);
+  paramNode->SetDoseSurfaceHistogram(doseSurfaceHistogram);
+  paramNode->SetUseInsideDoseSurface(useInsideSurface);
 
   // Setup chart node
   vtkMRMLChartNode* chartNode = paramNode->GetChartNode();

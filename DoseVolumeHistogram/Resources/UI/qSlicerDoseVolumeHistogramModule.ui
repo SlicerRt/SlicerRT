@@ -470,6 +470,16 @@
              </widget>
             </item>
             <item>
+             <widget class="QCheckBox" name="checkBox_DoseSurfaceHistogram">
+              <property name="text">
+               <string>Dose surface histogram</string>
+              </property>
+              <property name="toolTip">
+               <string>Calculate dose surface histogram. Open contours are not currently supported.</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QLabel" name="label_NotDoseVolumeWarning">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -600,7 +610,7 @@
             <property name="minimumSize">
              <size>
               <width>128</width>
-              <height>0</height>
+              <height>25</height>
              </size>
             </property>
             <property name="font">
