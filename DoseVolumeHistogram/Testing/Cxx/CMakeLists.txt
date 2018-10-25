@@ -244,7 +244,7 @@ set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_Ecli
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
-  vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_Base_DoseSurfaceHistogram_Inside
+  vtkSlicerDoseVolumeHistogramModuleLogicTest_DoseSurfaceHistogram_EclipseEnt_Base_Inside
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/EclipseEnt_Dvh_Scene.mrml
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/EclipseEnt_DvhTable_DoseSurfaceHistogram_Inside_SlicerRT.csv
@@ -262,11 +262,11 @@ TEST_WITH_DATA(
   1
   1
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_Base_DoseSurfaceHistogram_Inside PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
+set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_DoseSurfaceHistogram_EclipseEnt_Base_Inside PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
-  vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_Base_DoseSurfaceHistogram_Outside
+  vtkSlicerDoseVolumeHistogramModuleLogicTest_DoseSurfaceHistogram_EclipseEnt_Base_Outside
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/EclipseEnt_Dvh_Scene.mrml
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/EclipseEnt_DvhTable_DoseSurfaceHistogram_Outside_SlicerRT.csv
@@ -284,11 +284,11 @@ TEST_WITH_DATA(
   1
   0
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseEnt_Base_DoseSurfaceHistogram_Outside PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
+set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_DoseSurfaceHistogram_EclipseEnt_Base_Outside PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
-  vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_Base_DoseSurfaceHistogram_Inside
+  vtkSlicerDoseVolumeHistogramModuleLogicTest_DoseSurfaceHistogram_EclipseProstate_Base_Inside
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/EclipseProstate_Dvh_Scene.mrml
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/EclipseProstate_DvhTable_DoseSurfaceHistogram_Inside_SlicerRT.csv
@@ -306,11 +306,11 @@ TEST_WITH_DATA(
   1
   1
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_Base_DoseSurfaceHistogram_Inside PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
+set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_DoseSurfaceHistogram_EclipseProstate_Base_Inside PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
 #-----------------------------------------------------------------------------
 TEST_WITH_DATA(
-  vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_Base_DoseSurfaceHistogram_Outside
+  vtkSlicerDoseVolumeHistogramModuleLogicTest_DoseSurfaceHistogram_EclipseProstate_Base_Outside
   vtkSlicerDoseVolumeHistogramModuleLogicTest1
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/Scenes/EclipseProstate_Dvh_Scene.mrml
   ${CMAKE_CURRENT_SOURCE_DIR}/../../../Testing/Data/EclipseProstate_DvhTable_DoseSurfaceHistogram_Outside_SlicerRT.csv
@@ -328,5 +328,5 @@ TEST_WITH_DATA(
   1
   0
 )
-set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_EclipseProstate_Base_DoseSurfaceHistogram_Outside PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
+set_tests_properties(vtkSlicerDoseVolumeHistogramModuleLogicTest_DoseSurfaceHistogram_EclipseProstate_Base_Outside PROPERTIES FAIL_REGULAR_EXPRESSION "Error;ERROR;Warning;WARNING" )
 
