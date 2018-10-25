@@ -41,35 +41,35 @@
 #include "vtkMRMLSubjectHierarchyConstants.h"
 
 // MRML includes
-#include <vtkMRMLChartNode.h>
-#include <vtkMRMLChartViewNode.h>
-#include <vtkMRMLDoubleArrayNode.h>
-#include <vtkMRMLTableNode.h>
 #include <vtkMRMLLayoutNode.h>
+#include <vtkMRMLPlotSeriesNode.h>
+#include <vtkMRMLPlotChartNode.h>
+#include <vtkMRMLPlotViewNode.h>
+#include <vtkMRMLTableNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkEventBroker.h>
 
 // VTK includes
+#include <vtkBitArray.h>
+#include <vtkCallbackCommand.h>
+#include <vtkDelimitedTextWriter.h>
+#include <vtkDoubleArray.h>
+#include <vtkFieldData.h>
 #include <vtkImageAccumulate.h>
+#include <vtkImageConstantPad.h>
 #include <vtkImageDilateErode3D.h>
 #include <vtkImageMathematics.h>
 #include <vtkImageStencilData.h>
 #include <vtkImageToImageStencil.h>
+#include <vtkMath.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkDoubleArray.h>
 #include <vtkStringArray.h>
-#include <vtkBitArray.h>
-#include <vtkImageConstantPad.h>
-#include <vtkMath.h>
 #include <vtkTable.h>
 #include <vtkTimerLog.h>
-#include <vtkCallbackCommand.h>
-#include <vtkDelimitedTextWriter.h>
 #include <vtkWeakPointer.h>
-#include <vtkFieldData.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -80,10 +80,10 @@
 //----------------------------------------------------------------------------
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "DVH"; // Identifier
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CREATED_DVH_NODE_REFERENCE_ROLE = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "createdDvhArrayRef"; // Reference
+const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_PLOTSERIES_REFERENCE_ROLE = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "dvhPlotSeries"; // Reference
 
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DOSE_VOLUME_OVERSAMPLING_FACTOR_ATTRIBUTE_NAME = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "DoseVolumeOversamplingFactor";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_SEGMENT_ID_ATTRIBUTE_NAME = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "SegmentID";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "StructurePlotName";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_TABLE_ROW_ATTRIBUTE_NAME = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "TableRow";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_SURFACE_ATTRIBUTE_NAME = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "Surface";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_SURFACE_INSIDE_ATTRIBUTE_NAME = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "SurfaceInside";
@@ -95,7 +95,7 @@ const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_MIN_PREFIX
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_MAX_PREFIX = "Max ";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_DOSE_POSTFIX = "dose";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_INTENSITY_POSTFIX = "intensity";
-const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_ARRAY_NODE_NAME_POSTFIX = "_DvhArray";
+const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_TABLE_NODE_NAME_POSTFIX = "_DvhTable";
 
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE = " Value (% of ";
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CSV_HEADER_VOLUME_FIELD_END = " cc)";
@@ -323,7 +323,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   {
     std::string segmentID = *segmentIdIt;
     vtkSegment* segment = segmentationCopy->GetSegment(*segmentIdIt);
-  
+
     // Get segment labelmap
     vtkOrientedImageData* segmentLabelmap = vtkOrientedImageData::SafeDownCast( segment->GetRepresentation(
       representationName ) );
@@ -453,6 +453,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     return errorMessage;
   }
   std::string segmentName = parameterNode->GetSegmentationNode()->GetSegmentation()->GetSegment(segmentID)->GetName();
+  bool isDoseVolume = vtkSlicerRtCommon::IsDoseVolumeNode(doseVolumeNode);
 
   vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
   double checkpointStart = timer->GetUniversalTime();
@@ -501,8 +502,8 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   // Create stencil for structure
   vtkNew<vtkImageToImageStencil> stencil;
   stencil->SetInputData(segmentLabelmap);
-  // Foreground voxels are all those with an intensity >0.
-  // Unfortunately, vtkImageToImageStencil only have options for < and >= comparison.
+  // Foreground voxels are all those with an intensity > 0.
+  // Unfortunately vtkImageToImageStencil only have options for < and >= comparison.
   // So, we have to choose >=epsilon (epsilon is a very small positive number).
   // How small the number is has a significance when the segmentLabelmap is a floating-point image,
   // which is a rare scenario, but may still happen.
@@ -576,42 +577,49 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     this->InitializeMetricsTable(parameterNode);
   }
 
-  // Get DVH array node for the inputs (dose volume, segmentation, segment).
+  // Get DVH table node for the inputs (dose volume, segmentation, segment).
   // If found, then it gets overwritten by the new computation, otherwise
   std::string structureDvhNodeRef = parameterNode->AssembleDvhNodeReference(segmentID);
-  vtkMRMLDoubleArrayNode* arrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(metricsTableNode->GetNodeReference(structureDvhNodeRef.c_str()));
+  vtkMRMLTableNode* tableNode = vtkMRMLTableNode::SafeDownCast(metricsTableNode->GetNodeReference(structureDvhNodeRef.c_str()));
   int tableRow = -1;
-  if (!arrayNode)
+  if (!tableNode)
   {
-    arrayNode = vtkMRMLDoubleArrayNode::New();
-    std::string dvhArrayNodeName = segmentID + DVH_ARRAY_NODE_NAME_POSTFIX;
-    dvhArrayNodeName = this->GetMRMLScene()->GenerateUniqueName(dvhArrayNodeName);
-    arrayNode->SetName(dvhArrayNodeName.c_str());
-    arrayNode->SetAttribute(DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
-    this->GetMRMLScene()->AddNode(arrayNode);
+    // Create DVH table node
+    tableNode = vtkMRMLTableNode::New();
+    std::string dvhTableNodeName = segmentID + DVH_TABLE_NODE_NAME_POSTFIX;
+    dvhTableNodeName = this->GetMRMLScene()->GenerateUniqueName(dvhTableNodeName);
+    tableNode->SetName(dvhTableNodeName.c_str());
+    tableNode->SetAttribute(DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+    vtkNew<vtkTable> table;
+    tableNode->SetAndObserveTable(table);
+    this->GetMRMLScene()->AddNode(tableNode);
+
+    //TODO: Add schema?
+
+    // Add new row in metrics table
     tableRow = metricsTable->GetNumberOfRows();
     std::stringstream ss;
     ss << tableRow;
-    arrayNode->SetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str(), ss.str().c_str());
-    arrayNode->Delete(); // Release ownership to scene only
+    tableNode->SetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str(), ss.str().c_str());
+    tableNode->Delete(); // Release ownership to scene only
     metricsTable->InsertNextBlankRow();
 
     // Dose surface histogram attributes
     if (parameterNode->GetDoseSurfaceHistogram())
     {
-      arrayNode->SetAttribute(DVH_SURFACE_ATTRIBUTE_NAME.c_str(), "1");
-      arrayNode->SetAttribute(DVH_SURFACE_INSIDE_ATTRIBUTE_NAME.c_str(), parameterNode->GetUseInsideDoseSurface() ? "1" : "0");
+      tableNode->SetAttribute(DVH_SURFACE_ATTRIBUTE_NAME.c_str(), "1");
+      tableNode->SetAttribute(DVH_SURFACE_INSIDE_ATTRIBUTE_NAME.c_str(), parameterNode->GetUseInsideDoseSurface() ? "1" : "0");
     }
 
     // Set node references
-    metricsTableNode->SetNodeReferenceID(structureDvhNodeRef.c_str(), arrayNode->GetID());
-    arrayNode->SetNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::DOSE_VOLUME_REFERENCE_ROLE, doseVolumeNode->GetID());
-    arrayNode->SetNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::SEGMENTATION_REFERENCE_ROLE, segmentationNode->GetID());
-    arrayNode->SetNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::DVH_METRICS_TABLE_REFERENCE_ROLE, metricsTableNode->GetID());
+    metricsTableNode->SetNodeReferenceID(structureDvhNodeRef.c_str(), tableNode->GetID());
+    tableNode->SetNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::DOSE_VOLUME_REFERENCE_ROLE, doseVolumeNode->GetID());
+    tableNode->SetNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::SEGMENTATION_REFERENCE_ROLE, segmentationNode->GetID());
+    tableNode->SetNodeReferenceID(vtkMRMLDoseVolumeHistogramNode::DVH_METRICS_TABLE_REFERENCE_ROLE, metricsTableNode->GetID());
   }
-  else if (arrayNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str()))
+  else if (tableNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str()))
   {
-    tableRow = vtkVariant(arrayNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str())).ToInt();
+    tableRow = vtkVariant(tableNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str())).ToInt();
   }
   else
   {
@@ -620,13 +628,13 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     return errorMessage;
   }
 
-  // Set array node attributes:
+  // Set table node attributes:
   // Structure name and segment color for visualization in the chart view
-  arrayNode->SetAttribute(DVH_SEGMENT_ID_ATTRIBUTE_NAME.c_str(), segmentID.c_str());
+  tableNode->SetAttribute(DVH_SEGMENT_ID_ATTRIBUTE_NAME.c_str(), segmentID.c_str());
   // Oversampling factor
   std::ostringstream oversamplingAttrValueStream;
   oversamplingAttrValueStream << (parameterNode->GetAutomaticOversampling() ? (-1.0) : this->DefaultDoseVolumeOversamplingFactor);
-  arrayNode->SetAttribute(DVH_DOSE_VOLUME_OVERSAMPLING_FACTOR_ATTRIBUTE_NAME.c_str(), oversamplingAttrValueStream.str().c_str());
+  tableNode->SetAttribute(DVH_DOSE_VOLUME_OVERSAMPLING_FACTOR_ATTRIBUTE_NAME.c_str(), oversamplingAttrValueStream.str().c_str());
 
   // Get spacing and voxel volume
   double* segmentLabelmapSpacing = segmentLabelmap->GetSpacing();
@@ -654,7 +662,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   std::ostringstream attributeValueStream;
   attributeNameStream << vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX << vtkSlicerDoseVolumeHistogramModuleLogic::DVH_METRIC_TOTAL_VOLUME_CC;
   attributeValueStream << volumeCc;
-  arrayNode->SetAttribute(attributeNameStream.str().c_str(), attributeValueStream.str().c_str());
+  tableNode->SetAttribute(attributeNameStream.str().c_str(), attributeValueStream.str().c_str());
   // Mean dose
   metricsTable->SetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnMeanDose, vtkVariant(structureStat->GetMean()[0]));
   // Min dose
@@ -664,11 +672,11 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
 
   // Create DVH plot values
   int numSamples = 0;
-  double startValue;
-  double stepSize;
+  double startValue = 0.0;
+  double stepSize = 0.0;
   double rangeMin = structureStat->GetMin()[0];
   double rangeMax = structureStat->GetMax()[0];
-  if (vtkSlicerRtCommon::IsDoseVolumeNode(doseVolumeNode))
+  if (isDoseVolume)
   {
     if (rangeMin<0)
     {
@@ -696,12 +704,13 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   double voxelBelowDose = structureStat->GetOutput()->GetScalarComponentAsDouble(0,0,0,0);
 
   // We put a fixed point at (0.0, 100%), but only if there are only positive values in the histogram
-  // Negative values can occur when the user requests histogram for an image, such as s CT volume (in this case Intensity Volume Histogram is computed),
-  // or the startValue became negative for the dose volume because the range minimum was smaller than the original start value.
-  bool insertPointAtOrigin=true;
-  if (startValue<0)
+  // Negative values can occur when the user requests histogram for an image, such as s CT volume (in
+  // this case Intensity Volume Histogram is computed), or the startValue became negative for the dose
+  // volume because the range minimum was smaller than the original start value.
+  bool insertPointAtOrigin = true;
+  if (startValue < 0.0)
   {
-    insertPointAtOrigin=false;
+    insertPointAtOrigin = false;
   }
 
   structureStat->SetComponentExtent(0,numSamples-1,0,0,0,0);
@@ -709,18 +718,28 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   structureStat->SetComponentSpacing(stepSize,1,1);
   structureStat->Update();
 
-  vtkDoubleArray* doubleArray = arrayNode->GetArray();
-  doubleArray->SetNumberOfTuples(numSamples + (insertPointAtOrigin?1:0));
+  // Allocate table
+  vtkTable* table = tableNode->GetTable();
+  int numberOfRows = numSamples + (insertPointAtOrigin?1:0);
+  vtkNew<vtkDoubleArray> columnDose;
+  columnDose->SetName(isDoseVolume ? "Dose" : "Intensity");
+  columnDose->SetNumberOfTuples(numberOfRows);
+  table->AddColumn(columnDose);
+  vtkNew<vtkDoubleArray> columnVolume;
+  columnVolume->SetName("Volume");
+  columnVolume->SetNumberOfTuples(numberOfRows);
+  table->AddColumn(columnVolume);
+  table->SetNumberOfRows(numberOfRows);
 
-  int outputArrayIndex=0;
+  int rowIndex = 0;
 
   if (insertPointAtOrigin)
   {
     // Add first fixed point at (0.0, 100%)
-    doubleArray->SetComponent(outputArrayIndex, 0, 0.0);
-    doubleArray->SetComponent(outputArrayIndex, 1, 100.0);
-    doubleArray->SetComponent(outputArrayIndex, 2, 0);
-    ++outputArrayIndex;
+    table->SetValue(rowIndex, 0, 0.0);
+    table->SetValue(rowIndex, 1, 100.0);
+    table->SetValue(rowIndex, 2, 0);
+    ++rowIndex;
   }
 
   vtkImageData* statArray = structureStat->GetOutput();
@@ -737,27 +756,27 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   for (int sampleIndex=0; sampleIndex<numSamples; ++sampleIndex)
   {
     double voxelsInBin = statArray->GetScalarComponentAsDouble(sampleIndex,0,0,0);
-    doubleArray->SetComponent( outputArrayIndex, 0, startValue + sampleIndex * stepSize );
+    table->SetValue(rowIndex, 0, startValue + sampleIndex * stepSize);
     if (useFractionalLabelmap)
     {
-      doubleArray->SetComponent( outputArrayIndex, 1, std::max(0.0, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0) );
+      table->SetValue(rowIndex, 1, std::max(0.0, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0));
     }
     else
     {
-      doubleArray->SetComponent( outputArrayIndex, 1, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0 );
+      table->SetValue(rowIndex, 1, (1.0-(double)voxelBelowDose/(double)totalVoxels)*100.0);
     }
-    doubleArray->SetComponent( outputArrayIndex, 2, 0 );
-    ++outputArrayIndex;
+    table->SetValue(rowIndex, 2, 0);
+    ++rowIndex;
     voxelBelowDose += voxelsInBin;
   }
 
   // Set the start of the first bin to 0 if the volume contains dose and the start value was negative
-  if (vtkSlicerRtCommon::IsDoseVolumeNode(doseVolumeNode) && !insertPointAtOrigin)
+  if (isDoseVolume && !insertPointAtOrigin)
   {
-    doubleArray->SetComponent(0,0,0);
+    table->SetValue(0, 0, 0.0);
   }
 
-  // Setup DVH subject hierarchy item
+  // Setup DVH subject hierarchy items
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
   if (!shNode)
   {
@@ -771,15 +790,16 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(doseShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
   if (studyItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    shNode->CreateItem(studyItemID, metricsTableNode);
+    vtkIdType metricsShItemID = shNode->CreateItem(studyItemID, metricsTableNode);
+    shNode->CreateItem(metricsShItemID, tableNode);
 
-    vtkMRMLChartNode* chartNode = parameterNode->GetChartNode();
+    vtkMRMLPlotChartNode* chartNode = parameterNode->GetChartNode();
     shNode->CreateItem(studyItemID, chartNode);
   }
 
   // Add connection attribute to input segmentation and dose volume nodes
-  segmentationNode->AddNodeReferenceID(DVH_CREATED_DVH_NODE_REFERENCE_ROLE.c_str(), arrayNode->GetID());
-  doseVolumeNode->AddNodeReferenceID(DVH_CREATED_DVH_NODE_REFERENCE_ROLE.c_str(), arrayNode->GetID());
+  segmentationNode->AddNodeReferenceID(DVH_CREATED_DVH_NODE_REFERENCE_ROLE.c_str(), tableNode->GetID());
+  doseVolumeNode->AddNodeReferenceID(DVH_CREATED_DVH_NODE_REFERENCE_ROLE.c_str(), tableNode->GetID());
 
   // Log measured time
   double checkpointEnd = timer->GetUniversalTime();
@@ -789,65 +809,99 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     vtkDebugMacro("ComputeDvh: DVH computation time for structure '" << segmentID << "': " << checkpointEnd-checkpointStart << " s");
   }
 
-  return "";
+  return ""; // No error
+} // end ComputeDvh
+
+//---------------------------------------------------------------------------
+vtkMRMLPlotViewNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetPlotViewNode()
+{
+  vtkMRMLPlotViewNode* plotViewNode = vtkMRMLPlotViewNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByClass("vtkMRMLPlotViewNode") );
+  if (!plotViewNode)
+  {
+    vtkErrorMacro("GetPlotViewNode: Unable to get chart view node");
+    return NULL;
+  }
+
+  return plotViewNode;
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* chartNode, vtkMRMLDoubleArrayNode* dvhArrayNode)
+vtkMRMLPlotSeriesNode* vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLPlotChartNode* chartNode, vtkMRMLTableNode* tableNode)
 {
-  if (!this->GetMRMLScene() || !chartNode || !dvhArrayNode)
+  if (!this->GetMRMLScene() || !chartNode || !tableNode)
   {
     vtkErrorMacro("AddDvhToChart: Invalid MRML scene, chart node, or DVH node");
-    return;
+    return NULL;
   }
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
   if (!shNode)
   {
     vtkErrorMacro("AddDvhToChart: Failed to access subject hierarchy node");
-    return;
+    return NULL;
   }
 
-  const char* segmentId = dvhArrayNode->GetAttribute(DVH_SEGMENT_ID_ATTRIBUTE_NAME.c_str());
+  const char* segmentId = tableNode->GetAttribute(DVH_SEGMENT_ID_ATTRIBUTE_NAME.c_str());
 
   // Get selected segmentation and dose volume nodes
-  vtkMRMLScalarVolumeNode* doseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(dvhArrayNode->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::DOSE_VOLUME_REFERENCE_ROLE));
-  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(dvhArrayNode->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::SEGMENTATION_REFERENCE_ROLE));
+  vtkMRMLScalarVolumeNode* doseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(tableNode->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::DOSE_VOLUME_REFERENCE_ROLE));
+  vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(tableNode->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::SEGMENTATION_REFERENCE_ROLE));
   if (!doseVolumeNode || !segmentationNode)
   {
     vtkErrorMacro("AddDvhToChart: Unable to find all referenced nodes");
-    return;
+    return NULL;
   }
   vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(segmentId);
   if (!segment)
   {
     vtkErrorMacro("AddDvhToChart: Unable to get segment");
-    return;
+    return NULL;
   }
   std::string segmentName(segment->GetName());
 
-  // Switch to quantitative layout if it has not been set before.
-  // This step is necessary to take before accessing the chart view node, as switching makes sure there is one
+  // Switch to plot layout if it has not been set before.
+  // This step is necessary to take before accessing the plot view node, as switching makes sure there is one
   vtkMRMLLayoutNode* layoutNode = vtkMRMLLayoutNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByClass("vtkMRMLLayoutNode") );
   if ( layoutNode
-    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutConventionalQuantitativeView
-    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutFourUpQuantitativeView
-    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutOneUpQuantitativeView )
+    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutConventionalPlotView
+    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutFourUpPlotView
+    && layoutNode->GetViewArrangement() != vtkMRMLLayoutNode::SlicerLayoutOneUpPlotView )
   {
-    layoutNode->SetViewArrangement( vtkMRMLLayoutNode::SlicerLayoutFourUpQuantitativeView );
+    layoutNode->SetViewArrangement( vtkMRMLLayoutNode::SlicerLayoutFourUpPlotView );
   }
 
-  // Get chart view node
-  vtkMRMLChartViewNode* chartViewNode = this->GetChartViewNode();
-  if (chartViewNode == NULL)
+  // Get plot view node
+  vtkMRMLPlotViewNode* plotViewNode = this->GetPlotViewNode();
+  if (plotViewNode == NULL)
   {
-    vtkErrorMacro("AddDvhToChart: Unable to get chart view node");
-    return;
+    vtkErrorMacro("AddDvhToChart: Unable to get plot view node");
+    return NULL;
+  }
+
+  // Create plot series node for the DVH table if needed
+  vtkMRMLPlotSeriesNode* plotSeriesNode = this->GetPlotSeriesNodeForTable(chartNode, tableNode);
+  if (!plotSeriesNode)
+  {
+    plotSeriesNode = vtkMRMLPlotSeriesNode::New();
+    plotSeriesNode->SetAttribute(DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+    plotSeriesNode->SetName(segmentName.c_str()); // Legend can only show the name of the plot series node
+    this->GetMRMLScene()->AddNode(plotSeriesNode);
+    plotSeriesNode->SetAndObserveTableNodeID(tableNode->GetID());
+    plotSeriesNode->Delete(); // Release ownership to scene only
+
+    // Set persistent reference indicating correspondence
+    // (plot series in chart indicates visibility so need a separate reference for correspondence)
+    chartNode->AddAndObserveNodeReferenceID(DVH_PLOTSERIES_REFERENCE_ROLE.c_str(), plotSeriesNode->GetID());
+
+    // Setup plot series subject hierarchy item
+    vtkIdType chartShItemID = shNode->GetItemByDataNode(chartNode);
+    shNode->CreateItem(chartShItemID, plotSeriesNode);
   }
 
   // Set chart general properties
-  std::string doseAxisName;
-  std::string chartTitle;
+  std::string doseAxisName("");
+  std::string chartTitle("");
   const char* doseIdentifier = doseVolumeNode->GetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
   if (doseIdentifier)
   {
@@ -864,7 +918,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
       doseAxisName = std::string("Dose");
     }
 
-    const char* doseSurfaceHistogramIdentifier = dvhArrayNode->GetAttribute(DVH_SURFACE_ATTRIBUTE_NAME.c_str());
+    const char* doseSurfaceHistogramIdentifier = tableNode->GetAttribute(DVH_SURFACE_ATTRIBUTE_NAME.c_str());
     if (doseSurfaceHistogramIdentifier)
     {
       chartTitle = "Dose Surface Histogram";
@@ -880,29 +934,36 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
     chartTitle="Intensity Volume Histogram";
   }
 
-  chartNode->SetProperty("default", "title", chartTitle.c_str());
-  chartNode->SetProperty("default", "xAxisLabel", doseAxisName.c_str());
-  chartNode->SetProperty("default", "yAxisLabel", "Fractional volume [%]");
-  chartNode->SetProperty("default", "type", "Line");
-  chartNode->SetProperty("default", "xAxisPad", "0");
-  chartNode->SetProperty("default", "yAxisPad", "0");
+  chartNode->SetTitle(chartTitle.c_str());
+  chartNode->SetXAxisTitle(doseAxisName.c_str());
+  plotSeriesNode->SetXColumnName(doseIdentifier ? "Dose" : "Intensity");
+  chartNode->SetYAxisTitle("Fractional volume [%]");
+  plotSeriesNode->SetYColumnName("Volume");
+  plotSeriesNode->SetPlotType(vtkMRMLPlotSeriesNode::PlotTypeLine);
+  plotSeriesNode->SetMarkerStyle(vtkMRMLPlotSeriesNode::MarkerStyleNone);
 
-  // Get number of arrays showing plot for the same structure (for plot name and line style)
-  int numberOfStructuresWithSameName = 0;
-  std::vector<vtkMRMLNode*> arrayNodes;
-  this->GetMRMLScene()->GetNodesByClass("vtkMRMLDoubleArrayNode", arrayNodes);
-  for (std::vector<vtkMRMLNode*>::iterator arrayNodeIt = arrayNodes.begin(); arrayNodeIt != arrayNodes.end(); ++arrayNodeIt)
+  // Get number of tables showing plot for the same structure (for plot name and line style)
+  int indexOfTableNodeForSameStructure = 0;
+  std::vector<vtkMRMLNode*> tableNodes;
+  this->GetMRMLScene()->GetNodesByClass("vtkMRMLTableNode", tableNodes);
+  for (std::vector<vtkMRMLNode*>::iterator tableNodeIt = tableNodes.begin(); tableNodeIt != tableNodes.end(); ++tableNodeIt)
   {
-    vtkMRMLNode* currentArrayNode = (*arrayNodeIt);
-    if (currentArrayNode == dvhArrayNode)
+    vtkMRMLNode* currentTableNode = (*tableNodeIt);
+    if (currentTableNode == tableNode)
     {
-      // Current array reached, stop counting
+      // Current table reached, stop counting
+      // (because we are interested in the ordinality of the displayed table node in the scene)
       break;
     }
 
     std::string currentSegmentName("");
-    const char* currentSegmentId = currentArrayNode->GetAttribute(DVH_SEGMENT_ID_ATTRIBUTE_NAME.c_str());
-    vtkMRMLSegmentationNode* currentSegmentationNode = vtkMRMLSegmentationNode::SafeDownCast(currentArrayNode->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::SEGMENTATION_REFERENCE_ROLE));
+    const char* currentSegmentId = currentTableNode->GetAttribute(DVH_SEGMENT_ID_ATTRIBUTE_NAME.c_str());
+    vtkMRMLSegmentationNode* currentSegmentationNode = vtkMRMLSegmentationNode::SafeDownCast(currentTableNode->GetNodeReference(vtkMRMLDoseVolumeHistogramNode::SEGMENTATION_REFERENCE_ROLE));
+    if (!currentSegmentId)
+    {
+      // Not a DVH table node
+      continue;
+    }
     if (currentSegmentId && currentSegmentationNode == segmentationNode)
     {
       vtkSegment* currentSegment = currentSegmentationNode->GetSegmentation()->GetSegment(currentSegmentId);
@@ -913,119 +974,118 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vtkMRMLChartNode* ch
     }
     if (currentSegmentName.empty())
     {
-      vtkErrorMacro("AddDvhToChart: Failed to get segment name for DVH array " << currentArrayNode->GetName());
+      vtkErrorMacro("AddDvhToChart: Failed to get segment name for DVH array " << currentTableNode->GetName());
       continue;
     }
     if (!currentSegmentName.compare(segmentName))
     {
-      ++numberOfStructuresWithSameName;
+      ++indexOfTableNodeForSameStructure;
     }
   }
 
-  // Assemble plot name and determine style
-  std::stringstream structurePlotNameStream;
-  std::string lineStyle("");
-  structurePlotNameStream << segmentName << " (" << chartNode->GetArrays()->GetNumberOfValues() + 1 << ")";
-  if (numberOfStructuresWithSameName % 4 == 1)
+  // Set plot style
+  switch (indexOfTableNodeForSameStructure % 5)
   {
-    lineStyle = "dashed";
-    structurePlotNameStream << " [- -]";
-  }
-  else if (numberOfStructuresWithSameName % 4 == 2)
-  {
-    lineStyle = "dotted";
-    structurePlotNameStream << " [...]";
-  }
-  else if (numberOfStructuresWithSameName % 4 == 3)
-  {
-    lineStyle = "dashed-dotted";
-    structurePlotNameStream << " [-.-]";
-  }
-  else
-  {
-    lineStyle = "solid";
+  case 0:
+    plotSeriesNode->SetLineStyle(vtkMRMLPlotSeriesNode::LineStyleSolid);
+    break;
+  case 1:
+    plotSeriesNode->SetLineStyle(vtkMRMLPlotSeriesNode::LineStyleDash);
+    break;
+  case 2:
+    plotSeriesNode->SetLineStyle(vtkMRMLPlotSeriesNode::LineStyleDot);
+    break;
+  case 3:
+    plotSeriesNode->SetLineStyle(vtkMRMLPlotSeriesNode::LineStyleDashDot);
+    break;
+  case 4:
+    plotSeriesNode->SetLineStyle(vtkMRMLPlotSeriesNode::LineStyleDashDotDot);
+    break;
   }
 
-  std::string structurePlotName = structurePlotNameStream.str();
-  dvhArrayNode->SetAttribute(DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME.c_str(), structurePlotName.c_str());
+  // Set plot color
+  double* segmentColor = segment->GetColor();
+  plotSeriesNode->SetColor(segmentColor[0], segmentColor[1], segmentColor[2]);
 
   // Add chart to chart view
-  chartViewNode->SetChartNodeID(chartNode->GetID());
+  plotViewNode->SetPlotChartNodeID(chartNode->GetID());
 
-  // Add array to chart
-  chartNode->AddArray(structurePlotName.c_str(), dvhArrayNode->GetID());
+  // Add series to chart
+  chartNode->AddAndObservePlotSeriesNodeID(plotSeriesNode->GetID());
 
-  // Set plot color and line style
-  std::ostringstream colorAttrValueStream;
-  colorAttrValueStream.setf(ios::hex, ios::basefield);
-  double* segmentColor = segment->GetColor();
-  colorAttrValueStream << "#" << std::setw(2) << std::setfill('0') << (int)(segmentColor[0]*255.0+0.5)
-    << std::setw(2) << std::setfill('0') << (int)(segmentColor[1]*255.0+0.5)
-    << std::setw(2) << std::setfill('0') << (int)(segmentColor[2]*255.0+0.5);
-  chartNode->SetProperty(structurePlotName.c_str(), "color", colorAttrValueStream.str().c_str());
-  chartNode->SetProperty(structurePlotName.c_str(), "linePattern", lineStyle.c_str());
+  return plotSeriesNode;
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDoseVolumeHistogramModuleLogic::RemoveDvhFromChart(vtkMRMLChartNode* chartNode, vtkMRMLDoubleArrayNode* dvhArrayNode)
+void vtkSlicerDoseVolumeHistogramModuleLogic::RemoveDvhFromChart(vtkMRMLPlotChartNode* chartNode, vtkMRMLTableNode* tableNode)
 {
-  if (!this->GetMRMLScene() || !chartNode || !dvhArrayNode)
+  if (!this->GetMRMLScene() || !chartNode || !tableNode)
   {
     vtkErrorMacro("RemoveDvhFromChart: Invalid MRML scene, chart node, or DVH node");
     return;
   }
 
-  vtkMRMLChartViewNode* chartViewNode = GetChartViewNode();
-  if (chartViewNode == NULL)
+  vtkMRMLPlotViewNode* plotViewNode = this->GetPlotViewNode();
+  if (plotViewNode == NULL)
   {
-    vtkErrorMacro("RemoveDvhFromChart: Unable to get chart view node");
+    vtkErrorMacro("RemoveDvhFromChart: Unable to get plot view node");
     return;
   }
 
-  vtkStringArray* arrayIds = chartNode->GetArrays();
-  for (int arrayIndex = 0; arrayIndex < arrayIds->GetNumberOfValues(); ++arrayIndex)
+  vtkMRMLPlotSeriesNode* plotSeriesNode = this->GetPlotSeriesNodeForTable(chartNode, tableNode);
+  if (!plotSeriesNode)
   {
-    if (!STRCASECMP(arrayIds->GetValue(arrayIndex).c_str(), dvhArrayNode->GetID()))
-    {
-      chartNode->RemoveArray(chartNode->GetArrayNames()->GetValue(arrayIndex).c_str());
-      return;
-    }
+    vtkErrorMacro("RemoveDvhFromChart: Unable to get plot series node for table");
+    return;
   }
+  chartNode->RemovePlotSeriesNodeID(plotSeriesNode->GetID());
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerDoseVolumeHistogramModuleLogic::IsDvhAddedToChart(vtkMRMLChartNode* chartNode, vtkMRMLDoubleArrayNode* dvhArrayNode)
+vtkMRMLPlotSeriesNode* vtkSlicerDoseVolumeHistogramModuleLogic::IsDvhAddedToChart(vtkMRMLPlotChartNode* chartNode, vtkMRMLTableNode* tableNode)
 {
-  if (!this->GetMRMLScene() || !chartNode || !dvhArrayNode)
+  if (!this->GetMRMLScene() || !chartNode || !tableNode)
   {
     vtkErrorMacro("IsDvhAddedToChart: Invalid MRML scene, chart node, or DVH node");
     return false;
   }
 
-  vtkStringArray* arrayIds = chartNode->GetArrays();
-  for (int arrayIndex = 0; arrayIndex < arrayIds->GetNumberOfValues(); ++arrayIndex)
+  // Find plot series node currently shown in chart for a DVH table
+  for (int i=0; i<chartNode->GetNumberOfPlotSeriesNodes(); ++i)
   {
-    if (!STRCASECMP(arrayIds->GetValue(arrayIndex).c_str(), dvhArrayNode->GetID()))
+    vtkMRMLPlotSeriesNode* currentSeriesNode = chartNode->GetNthPlotSeriesNode(i);
+    if (currentSeriesNode->GetTableNode() == tableNode)
     {
-      return true;
+      return currentSeriesNode;
     }
   }
 
-  return false;
+  return NULL;
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLChartViewNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetChartViewNode()
+vtkMRMLPlotSeriesNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetPlotSeriesNodeForTable(vtkMRMLPlotChartNode* chartNode, vtkMRMLTableNode* tableNode)
 {
-  vtkMRMLChartViewNode* chartViewNode = vtkMRMLChartViewNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByClass("vtkMRMLChartViewNode") );
-  if (!chartViewNode)
+  if (!chartNode || !tableNode)
   {
-    vtkErrorMacro("GetChartViewNode: Unable to get chart view node");
+    vtkErrorMacro("GetPlotSeriesNodeForTable: Invalid chart node or table node");
     return NULL;
   }
 
-  return chartViewNode;
+  // Find plot series node created for chart for a DVH table. Finds also if not currently visible
+  std::vector<vtkMRMLNode*> referencedPlotSeriesNodes;
+  chartNode->GetNodeReferences(DVH_PLOTSERIES_REFERENCE_ROLE.c_str(), referencedPlotSeriesNodes);
+  for ( std::vector<vtkMRMLNode*>::iterator seriesIt = referencedPlotSeriesNodes.begin();
+    seriesIt != referencedPlotSeriesNodes.end(); ++seriesIt )
+  {
+    vtkMRMLPlotSeriesNode* currentSeriesNode = vtkMRMLPlotSeriesNode::SafeDownCast(*seriesIt);
+    if (currentSeriesNode->GetTableNode() == tableNode)
+    {
+      return currentSeriesNode;
+    }
+  }
+
+  return NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -1167,9 +1227,8 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeVMetrics(vtkMRMLDoseVolumeH
     }
 
     // Get DVH node
-    vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
-      metricsTableNode->GetNodeReference(roleIt->c_str()) );
-    if (!dvhArrayNode)
+    vtkMRMLTableNode* dvhTableNode = vtkMRMLTableNode::SafeDownCast(metricsTableNode->GetNodeReference(roleIt->c_str()));
+    if (!dvhTableNode)
     {
       vtkErrorMacro("ComputeVMetrics: Metrics table node reference '" << (*roleIt) << "' does not contain DVH node");
       continue;
@@ -1178,11 +1237,11 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeVMetrics(vtkMRMLDoseVolumeH
     // Get corresponding table row
     int tableRow = -1;
     std::stringstream ss;
-    ss << dvhArrayNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str());
+    ss << dvhTableNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str());
     ss >> tableRow;
     if (ss.fail())
     {
-      vtkErrorMacro("ComputeVMetrics: Failed to get metrics table row from DVH node " << dvhArrayNode->GetName());
+      vtkErrorMacro("ComputeVMetrics: Failed to get metrics table row from DVH node " << dvhTableNode->GetName());
       continue;
     }
 
@@ -1195,21 +1254,23 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeVMetrics(vtkMRMLDoseVolumeH
     }
 
     // Compute volume for all V's
-    vtkDoubleArray* doubleArray = dvhArrayNode->GetArray();
+    vtkTable* table = dvhTableNode->GetTable();
     vtkNew<vtkPiecewiseFunction> interpolator;
     interpolator->ClampingOn();
 
     // Starting from second point, because BuildFunctionFromTable needs uniform distance between X coordinates
     //  and the first point may be 0 (with different distance to neighbors than the second)
-    double* dvhArrayDouble = new double[doubleArray->GetNumberOfTuples()-1];
-    for (int i=1; i<doubleArray->GetNumberOfTuples(); ++i)
+    double* dvhArrayDouble = new double[table->GetNumberOfRows()-1];
+    for (int i=1; i<table->GetNumberOfRows(); ++i)
     {
-      dvhArrayDouble[i-1] = doubleArray->GetComponent(i, 1);
+      dvhArrayDouble[i-1] = table->GetValue(i, 1).ToDouble();
     }
-    interpolator->BuildFunctionFromTable(doubleArray->GetComponent(1, 0), doubleArray->GetComponent(doubleArray->GetNumberOfTuples()-1, 0), doubleArray->GetNumberOfTuples()-1, dvhArrayDouble);
+    interpolator->BuildFunctionFromTable(
+      table->GetValue(1, 0).ToDouble(), table->GetValue(table->GetNumberOfRows()-1, 0).ToDouble(), table->GetNumberOfRows()-1,
+      dvhArrayDouble );
 
     // Add first point
-    interpolator->AddPoint(doubleArray->GetComponent(0, 0), doubleArray->GetComponent(0, 1));
+    interpolator->AddPoint(table->GetValue(0, 0).ToDouble(), table->GetValue(0, 1).ToDouble());
 
     // Calculate metrics and set table entries
     int tableColumn = numberOfColumnsBefore;
@@ -1225,6 +1286,7 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeVMetrics(vtkMRMLDoseVolumeH
         metricsTable->SetValue( tableRow, tableColumn++, vtkVariant(volumePercentEstimated) );
       }
     }
+    delete[] dvhArrayDouble;
   } // For all DVHs
 
   metricsTableNode->Modified();
@@ -1359,9 +1421,8 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDMetrics(vtkMRMLDoseVolumeH
     }
 
     // Get DVH node
-    vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
-      metricsTableNode->GetNodeReference(roleIt->c_str()) );
-    if (!dvhArrayNode)
+    vtkMRMLTableNode* dvhTableNode = vtkMRMLTableNode::SafeDownCast(metricsTableNode->GetNodeReference(roleIt->c_str()));
+    if (!dvhTableNode)
     {
       vtkErrorMacro("ComputeDMetrics: Metrics table node reference '" << (*roleIt) << "' does not contain DVH node");
       continue;
@@ -1370,11 +1431,11 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDMetrics(vtkMRMLDoseVolumeH
     // Get corresponding table row
     int tableRow = -1;
     std::stringstream ss;
-    ss << dvhArrayNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str());
+    ss << dvhTableNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str());
     ss >> tableRow;
     if (ss.fail())
     {
-      vtkErrorMacro("ComputeDMetrics: Failed to get metrics table row from DVH node " << dvhArrayNode->GetName());
+      vtkErrorMacro("ComputeDMetrics: Failed to get metrics table row from DVH node " << dvhTableNode->GetName());
       continue;
     }
 
@@ -1390,13 +1451,13 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDMetrics(vtkMRMLDoseVolumeH
     int tableColumn = numberOfColumnsBefore;
     for (std::vector<double>::iterator ccIt=volumeValuesCc.begin(); ccIt!=volumeValuesCc.end(); ++ccIt)
     {
-      double d = ComputeDMetric(dvhArrayNode, (*ccIt), structureVolume, false);
-      metricsTable->SetValue( tableRow, tableColumn++, vtkVariant(d) );
+      double d = ComputeDMetric(dvhTableNode, (*ccIt), structureVolume, false);
+      metricsTable->SetValue(tableRow, tableColumn++, vtkVariant(d));
     }
     for (std::vector<double>::iterator percentIt=volumeValuesPercent.begin(); percentIt!=volumeValuesPercent.end(); ++percentIt)
     {
-      double d = ComputeDMetric(dvhArrayNode, (*percentIt), structureVolume, true);
-      metricsTable->SetValue( tableRow, tableColumn++, vtkVariant(d) );
+      double d = ComputeDMetric(dvhTableNode, (*percentIt), structureVolume, true);
+      metricsTable->SetValue(tableRow, tableColumn++, vtkVariant(d));
     }
   } // For all DVHs
 
@@ -1405,9 +1466,9 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDMetrics(vtkMRMLDoseVolumeH
 }
 
 //---------------------------------------------------------------------------
-double vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDMetric(vtkMRMLDoubleArrayNode* dvhArrayNode, double volume, double structureVolume, bool isPercent)
+double vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDMetric(vtkMRMLTableNode* tableNode, double volume, double structureVolume, bool isPercent)
 {
-  if (!dvhArrayNode)
+  if (!tableNode)
   {
     vtkErrorMacro("ComputeDMetric: Invalid DVH array node");
     return 0.0;
@@ -1418,7 +1479,7 @@ double vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDMetric(vtkMRMLDoubleArra
     return 0.0;
   }
 
-  vtkDoubleArray* doubleArray = dvhArrayNode->GetArray();
+  vtkTable* table = tableNode->GetTable();
   double volumeSize = 0.0;
   double doseForVolume = 0.0;
 
@@ -1432,26 +1493,26 @@ double vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDMetric(vtkMRMLDoubleArra
   }
 
   // Check if the given volume is above the highest (first) in the array then assign no dose
-  if (volumeSize >= doubleArray->GetComponent(0, 1) / 100.0 * structureVolume)
+  if (volumeSize >= table->GetValue(0, 1).ToDouble() / 100.0 * structureVolume)
   {
     doseForVolume = 0.0;
   }
   // If volume is below the lowest (last) in the array then assign maximum dose
-  else if (volumeSize < doubleArray->GetComponent(doubleArray->GetNumberOfTuples()-1, 1) / 100.0 * structureVolume)
+  else if (volumeSize < table->GetValue(table->GetNumberOfRows()-1, 1).ToDouble() / 100.0 * structureVolume)
   {
-    doseForVolume = doubleArray->GetComponent(doubleArray->GetNumberOfTuples()-1, 0);
+    doseForVolume = table->GetValue(table->GetNumberOfRows()-1, 0).ToDouble();
   }
   else
   {
-    for (int i=0; i<doubleArray->GetNumberOfTuples()-1; ++i)
+    for (int i=0; i<table->GetNumberOfRows()-1; ++i)
     {
-      double volumePrevious = doubleArray->GetComponent(i, 1) / 100.0 * structureVolume;
-      double volumeNext = doubleArray->GetComponent(i+1, 1) / 100.0 * structureVolume;
+      double volumePrevious = table->GetValue(i, 1).ToDouble() / 100.0 * structureVolume;
+      double volumeNext = table->GetValue(i+1, 1).ToDouble() / 100.0 * structureVolume;
       if (volumePrevious > volumeSize && volumeSize >= volumeNext)
       {
         // Compute the dose using linear interpolation
-        double dosePrevious = doubleArray->GetComponent(i, 0);
-        double doseNext = doubleArray->GetComponent(i+1, 0);
+        double dosePrevious = table->GetValue(i, 0).ToDouble();
+        double doseNext = table->GetValue(i+1, 0).ToDouble();
         double doseEstimated = dosePrevious + (doseNext-dosePrevious)*(volumeSize-volumePrevious)/(volumeNext-volumePrevious);
         doseForVolume = doseEstimated;
 
@@ -1502,8 +1563,8 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(vtkMRMLDoseVolumeHi
   }
 
   // Get all DVH array nodes from the parameter set node
-  std::vector<vtkMRMLDoubleArrayNode*> dvhArrayNodes;
-  parameterNode->GetDvhArrayNodes(dvhArrayNodes);
+  std::vector<vtkMRMLTableNode*> dvhTableNodes;
+  parameterNode->GetDvhTableNodes(dvhTableNodes);
 
   // Open output file
   std::ofstream outfile;
@@ -1516,20 +1577,20 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(vtkMRMLDoseVolumeHi
 
   // Determine the maximum number of values
   int maxNumberOfValues = -1;
-  for (std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhIt=dvhArrayNodes.begin(); dvhIt!=dvhArrayNodes.end(); ++dvhIt)
+  for (std::vector<vtkMRMLTableNode*>::iterator dvhIt=dvhTableNodes.begin(); dvhIt!=dvhTableNodes.end(); ++dvhIt)
   {
-    vtkMRMLDoubleArrayNode* dvhArrayNode = (*dvhIt);
-    if (dvhArrayNode->GetArray()->GetNumberOfTuples() > maxNumberOfValues)
+    vtkMRMLTableNode* dvhTableNode = (*dvhIt);
+    if (dvhTableNode->GetNumberOfRows() > maxNumberOfValues)
     {
-      maxNumberOfValues = dvhArrayNode->GetArray()->GetNumberOfTuples();
+      maxNumberOfValues = dvhTableNode->GetNumberOfRows();
     }
   }
 
   // Write header
-  for (std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhIt=dvhArrayNodes.begin(); dvhIt!=dvhArrayNodes.end(); ++dvhIt)
+  for (std::vector<vtkMRMLTableNode*>::iterator dvhIt=dvhTableNodes.begin(); dvhIt!=dvhTableNodes.end(); ++dvhIt)
   {
-    vtkMRMLDoubleArrayNode* dvhArrayNode = (*dvhIt);
-    int tableRow = vtkVariant(dvhArrayNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str())).ToInt();
+    vtkMRMLTableNode* dvhTableNode = (*dvhIt);
+    int tableRow = vtkVariant(dvhTableNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str())).ToInt();
 
     double volume = metricsTable->GetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnVolumeCc).ToDouble();
     std::string structureName = metricsTable->GetValue(tableRow, vtkMRMLDoseVolumeHistogramNode::MetricColumnStructure).ToString();
@@ -1543,15 +1604,15 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(vtkMRMLDoseVolumeHi
   // Write values
   for (int row=0; row<maxNumberOfValues; ++row)
   {
-    for (std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhIt=dvhArrayNodes.begin(); dvhIt!=dvhArrayNodes.end(); ++dvhIt)
+    for (std::vector<vtkMRMLTableNode*>::iterator dvhIt=dvhTableNodes.begin(); dvhIt!=dvhTableNodes.end(); ++dvhIt)
     {
-      vtkMRMLDoubleArrayNode* dvhArrayNode = (*dvhIt);
+      vtkMRMLTableNode* dvhTableNode = (*dvhIt);
 
-      if (row < dvhArrayNode->GetArray()->GetNumberOfTuples())
+      if (row < dvhTableNode->GetNumberOfRows())
       {
         std::ostringstream doseStringStream;
         doseStringStream << std::fixed << std::setprecision(6) <<
-          dvhArrayNode->GetArray()->GetComponent(row, 0);
+          dvhTableNode->GetTable()->GetValue(row, 0).ToDouble();
         std::string dose = doseStringStream.str();
         if (!comma)
         {
@@ -1565,11 +1626,11 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhToCsv(vtkMRMLDoseVolumeHi
       }
       outfile << (comma ? "," : "\t");
 
-      if (row < dvhArrayNode->GetArray()->GetNumberOfTuples())
+      if (row < dvhTableNode->GetNumberOfRows())
       {
         std::ostringstream valueStringStream;
         valueStringStream << std::fixed << std::setprecision(6) <<
-          dvhArrayNode->GetArray()->GetComponent(row, 1);
+          dvhTableNode->GetTable()->GetValue(row, 1).ToDouble();
         std::string value = valueStringStream.str();
         if (!comma)
         {
@@ -1635,14 +1696,15 @@ bool vtkSlicerDoseVolumeHistogramModuleLogic::ExportDvhMetricsToCsv(vtkMRMLDoseV
 }
 
 //-----------------------------------------------------------------------------
-vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode(std::string csvFilename)
+vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToTableNode(std::string csvFilename)
 {
   std::string csvSeparatorCharacter = ",";
 
-  std::vector< vtkSmartPointer< vtkDoubleArray > > currentDvh;
+  vtkNew<vtkCollection> dvhTables;
 
   // Vectors containing the names and total volumes of structures
   std::vector<std::string> structureNames;
+  std::vector<std::string> readLines;
   std::vector<double> structureVolumeCCs;
 
   // Load current DVH from CSV
@@ -1664,16 +1726,16 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
     {
       while (commaPosition != std::string::npos)
       {
-        if (fieldCount%2==1)
+        if (fieldCount % 2 == 1)
         {
           // Get the structure's name
           std::string field = lineStr.substr(0, commaPosition);
           size_t middlePosition = field.find(DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE);
           std::string structureName = field.substr(0, middlePosition);
-          if ( structureName.size() > DVH_ARRAY_NODE_NAME_POSTFIX.size()
-            && structureName.substr(structureName.size() - DVH_ARRAY_NODE_NAME_POSTFIX.size()) == DVH_ARRAY_NODE_NAME_POSTFIX)
+          if ( structureName.size() > DVH_TABLE_NODE_NAME_POSTFIX.size()
+            && structureName.substr(structureName.size() - DVH_TABLE_NODE_NAME_POSTFIX.size()) == DVH_TABLE_NODE_NAME_POSTFIX)
             {
-            structureName = structureName.substr(0, structureName.size() - DVH_ARRAY_NODE_NAME_POSTFIX.size());
+            structureName = structureName.substr(0, structureName.size() - DVH_TABLE_NODE_NAME_POSTFIX.size());
             }
           structureNames.push_back(structureName);
 
@@ -1705,7 +1767,7 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
         size_t middlePosition = lineStr.find(DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE);
         if (middlePosition != std::string::npos)
         {
-          structureNames.push_back(lineStr.substr(0, middlePosition - DVH_ARRAY_NODE_NAME_POSTFIX.size()));
+          structureNames.push_back(lineStr.substr(0, middlePosition - DVH_TABLE_NODE_NAME_POSTFIX.size()));
 
           // Get the structure's total volume and add it to the vector
           double volumeCCs = 0;
@@ -1725,68 +1787,83 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
         }
       }
 
-      // Add a vtkDoubleArray for each structure into the vector
-      for (int structureIndex=0; structureIndex < fieldCount/2; ++structureIndex)
-      {
-        vtkSmartPointer<vtkDoubleArray> tempArray = vtkSmartPointer<vtkDoubleArray>::New();
-        tempArray->SetNumberOfComponents(3);
-        currentDvh.push_back(tempArray);
-      }
       firstLine = false;
       continue;
-    }
+    } // If firstLine then determine number of fields
+
+    // Store current line
+    readLines.push_back(lineStr);
+    lineNumber++;
+  } // Read all lines
+
+  // Close file stream
+  dvhStream.close();
+
+  // Add a table for each structure into the vector
+  for (int structureIndex=0; structureIndex<structureNames.size(); ++structureIndex)
+  {
+    vtkNew<vtkTable> structureDvhTable;
+    vtkNew<vtkDoubleArray> columnDose;
+    columnDose->SetName("Dose");
+    columnDose->SetNumberOfTuples(lineNumber);
+    structureDvhTable->AddColumn(columnDose);
+    vtkNew<vtkDoubleArray> columnVolume;
+    columnVolume->SetName("Volume");
+    columnVolume->SetNumberOfTuples(lineNumber);
+    structureDvhTable->AddColumn(columnVolume);
+    structureDvhTable->SetNumberOfRows(lineNumber);
+    dvhTables->AddItem(structureDvhTable);
+  }
+
+  // Parse lines into the tables
+  lineNumber = 0;
+  for (std::vector<std::string>::iterator lineIt=readLines.begin(); lineIt!=readLines.end(); ++lineIt, ++lineNumber)
+  {
+    std::string lineStr = (*lineIt);
+    size_t commaPosition = lineStr.find(csvSeparatorCharacter);
 
     // Read all tuples from the current line
-    int structureNumber = 0;
-    while (commaPosition != std::string::npos)
+    int structureIndex = 0;
+    while (commaPosition != std::string::npos && structureIndex < structureNames.size())
     {
-      // Tuple to be inserted into the vtkDoubleArray object
-      double *tupleToInsert = new double[3];
-      for(int j=0; j<3; ++j)
-        tupleToInsert[j] = 0;
-
       // Get the current bin's dose from the string
-      double doseGy = 0;
+      double doseGy = 0.0;
       {
-        doseGy = vtkVariant(lineStr.substr(0, commaPosition)).ToDouble();
+        vtkStdString doseStr(lineStr.substr(0, commaPosition));
+        doseGy = vtkVariant(doseStr).ToDouble();
       }
-      tupleToInsert[0] = doseGy;
 
       // Get the current bin's volume from the string
-      double volumePercent = 0;
+      double volumePercent = 0.0;
       {
         lineStr = lineStr.substr(commaPosition+1);
         commaPosition = lineStr.find(csvSeparatorCharacter);
-        volumePercent = vtkVariant(lineStr.substr(0, commaPosition)).ToDouble();
+        vtkStdString volumePercentStr(lineStr.substr(0, commaPosition));
+        volumePercent = vtkVariant(volumePercentStr).ToDouble();
       }
-      tupleToInsert[1] = volumePercent;
 
+      vtkTable* currentStructureDvhTable = vtkTable::SafeDownCast(dvhTables->GetItemAsObject(structureIndex));
       if ((doseGy != 0.0 || volumePercent != 0.0) && (commaPosition > 0))
       {
-        // Add the current bin into the vtkDoubleArray for the current structure
-        currentDvh.at(structureNumber)->InsertTuple(lineNumber, tupleToInsert);
+        // Add the current bin into the table for the current structure
+        currentStructureDvhTable->SetValue(lineNumber, 0, doseGy);
+        currentStructureDvhTable->SetValue(lineNumber, 1, volumePercent);
       }
-
-      // Destroy the tuple
-      delete tupleToInsert;
-      tupleToInsert = NULL;
 
       // Move to the next structure's bin in the string
       lineStr = lineStr.substr(commaPosition+1);
       commaPosition = lineStr.find(csvSeparatorCharacter);
-      structureNumber++;
-    }
-    lineNumber++;
+      structureIndex++;
+    } // For each tuple in current line
   }
 
-  dvhStream.close();
-
-  vtkCollection* doubleArrayNodes = vtkCollection::New();
-  for (unsigned int structureIndex=0; structureIndex < currentDvh.size(); structureIndex++)
+  vtkCollection* tableNodes = vtkCollection::New();
+  for (unsigned int structureIndex=0; structureIndex<dvhTables->GetNumberOfItems(); structureIndex++)
   {
-    // Create the vtkMRMLDoubleArrayNodes which will be passed to the logic function.
-    vtkNew<vtkMRMLDoubleArrayNode> currentNode;
-    currentNode->SetArray(currentDvh.at(structureIndex));
+    // Create the table nodes which will be passed to the logic function.
+    vtkNew<vtkMRMLTableNode> currentNode;
+    vtkTable* currentStructureDvhTable = vtkTable::SafeDownCast(dvhTables->GetItemAsObject(structureIndex));
+    currentNode->SetAndObserveTable(currentStructureDvhTable);
 
     // Set the total volume attribute in the vtkMRMLDoubleArrayNode attributes
     std::ostringstream attributeNameStream;
@@ -1797,14 +1874,14 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToDoubleArrayNode
 
     // Set the structure's name attribute and variables
     currentNode->SetAttribute(DVH_SEGMENT_ID_ATTRIBUTE_NAME.c_str(), structureNames.at(structureIndex).c_str());
-    std::string nameAttribute = structureNames.at(structureIndex) + DVH_ARRAY_NODE_NAME_POSTFIX;
+    std::string nameAttribute = structureNames.at(structureIndex) + DVH_TABLE_NODE_NAME_POSTFIX;
     currentNode->SetName(nameAttribute.c_str());
 
     // add the new node to the vector
-    doubleArrayNodes->AddItem(currentNode.GetPointer());
+    tableNodes->AddItem(currentNode);
   }
 
-  return doubleArrayNodes;
+  return tableNodes;
 }
 
 //---------------------------------------------------------------------------
@@ -1920,42 +1997,42 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::OnVisibilityChanged(vtkObject* cal
 
   // Go through DVHs and change chart visibility for DVH for which the visibility value was modified
   std::set<int> rows;
-  std::vector<vtkMRMLDoubleArrayNode*> dvhArrayNodes;
-  parameterNode->GetDvhArrayNodes(dvhArrayNodes);
-  for (std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhIt=dvhArrayNodes.begin(); dvhIt!=dvhArrayNodes.end(); ++dvhIt)
+  std::vector<vtkMRMLTableNode*> dvhTableNodes;
+  parameterNode->GetDvhTableNodes(dvhTableNodes);
+  for (std::vector<vtkMRMLTableNode*>::iterator dvhIt=dvhTableNodes.begin(); dvhIt!=dvhTableNodes.end(); ++dvhIt)
   {
-    vtkMRMLDoubleArrayNode* dvhArrayNode = (*dvhIt);
+    vtkMRMLTableNode* dvhtableNode = (*dvhIt);
 
     // Get corresponding table row
     int tableRow = -1;
     std::stringstream ss;
-    ss << dvhArrayNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str());
+    ss << dvhtableNode->GetAttribute(DVH_TABLE_ROW_ATTRIBUTE_NAME.c_str());
     ss >> tableRow;
     if (ss.fail())
     {
-      vtkErrorWithObjectMacro(self,"OnVisibilityChanged: Failed to get metrics table row from DVH node " << dvhArrayNode->GetName());
+      vtkErrorWithObjectMacro(self,"OnVisibilityChanged: Failed to get metrics table row from DVH node " << dvhtableNode->GetName());
       continue;
     }
     rows.insert(tableRow); // Safety check
 
     // Change chart visibility if necessary
-    bool visibleInChart = self->IsDvhAddedToChart(parameterNode->GetChartNode(), dvhArrayNode);
+    bool visibleInChart = self->IsDvhAddedToChart(parameterNode->GetChartNode(), dvhtableNode);
     bool visibilityInTable = (bool)visArray->GetValue(tableRow);
     if (visibleInChart != visibilityInTable)
     {
       if (visibilityInTable)
       {
-        self->AddDvhToChart(parameterNode->GetChartNode(), dvhArrayNode);
+        self->AddDvhToChart(parameterNode->GetChartNode(), dvhtableNode);
       }
       else
       {
-        self->RemoveDvhFromChart(parameterNode->GetChartNode(), dvhArrayNode);
+        self->RemoveDvhFromChart(parameterNode->GetChartNode(), dvhtableNode);
       }
     }
   }
 
   if (rows.size() != static_cast<size_t>(parameterNode->GetMetricsTableNode()->GetNumberOfRows()))
   {
-    vtkErrorWithObjectMacro(self,"OnVisibilityChanged: Mismatch between referenced DVH arrays and metrics table");
+    vtkErrorWithObjectMacro(self, "OnVisibilityChanged: Mismatch between referenced DVH arrays and metrics table");
   }
 }

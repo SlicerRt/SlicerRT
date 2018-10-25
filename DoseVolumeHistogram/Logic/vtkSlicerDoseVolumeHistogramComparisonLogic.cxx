@@ -27,12 +27,12 @@
 #include "vtkMRMLDoseVolumeHistogramNode.h"
 
 // VTK includes
-#include <vtkNew.h>
-#include <vtkObjectFactory.h>
-#include <vtkDoubleArray.h>
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
+#include <vtkNew.h>
+#include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
+#include <vtkTable.h>
 #include <vtkVersion.h>
 
 //----------------------------------------------------------------------------
@@ -49,26 +49,26 @@ vtkSlicerDoseVolumeHistogramComparisonLogic::~vtkSlicerDoseVolumeHistogramCompar
 }
 
 //-----------------------------------------------------------------------------
-double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(vtkMRMLDoubleArrayNode* dvh1DoubleArrayNode, vtkMRMLDoubleArrayNode* dvh2DoubleArrayNode,
+double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(vtkMRMLTableNode* dvh1TableNode, vtkMRMLTableNode* dvh2TableNode,
                                                                      vtkMRMLScalarVolumeNode* doseVolumeNode, 
                                                                      double volumeDifferenceCriterion, double doseToAgreementCriterion, double doseMax/*=0.0*/ )
 {
-  if (!dvh1DoubleArrayNode || !dvh2DoubleArrayNode)
+  if (!dvh1TableNode || !dvh2TableNode)
   {
     vtkGenericWarningMacro("vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables: Invalid input DVH nodes!");
     return 0.0;
   }
 
-  vtkDoubleArray *dvh1Array = dvh1DoubleArrayNode->GetArray();
-  unsigned int dvh1Size = dvh1Array->GetNumberOfTuples();
+  vtkTable* dvh1Table = dvh1TableNode->GetTable();
+  unsigned int dvh1Size = dvh1Table->GetNumberOfRows();
 
-  vtkDoubleArray *dvh2Array = dvh2DoubleArrayNode->GetArray();
-  unsigned int dvh2Size = dvh2Array->GetNumberOfTuples();
+  vtkTable* dvh2Table = dvh2TableNode->GetTable();
+  unsigned int dvh2Size = dvh2Table->GetNumberOfRows();
 
-  vtkDoubleArray *baselineDoubleArray = NULL;
+  vtkTable* baselineDoubleArray = NULL;
   unsigned int baselineSize = 0;
 
-  vtkDoubleArray *currentDoubleArray = NULL;
+  vtkTable* currentDoubleArray = NULL;
   //unsigned int currentSize = 0; //This variable might be used for sanity checks later
 
   // Determine total volume from the attribute of the current double array node
@@ -79,23 +79,23 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(vtkMRMLDoub
   // The vtkDoubleArray with the smallest number of tuples is the baseline
   if (dvh1Size < dvh2Size)
   {
-    baselineDoubleArray = dvh1Array;
+    baselineDoubleArray = dvh1Table;
     baselineSize = dvh1Size;
 
-    currentDoubleArray = dvh2Array;
+    currentDoubleArray = dvh2Table;
     //currentSize = dvh2Size;
   
-    totalVolumeChar = dvh2DoubleArrayNode->GetAttribute(attributeNameStream.str().c_str());
+    totalVolumeChar = dvh2TableNode->GetAttribute(attributeNameStream.str().c_str());
   }
   else
   {
-    baselineDoubleArray = dvh2Array;
+    baselineDoubleArray = dvh2Table;
     baselineSize = dvh2Size;
 
-    currentDoubleArray = dvh1Array;
+    currentDoubleArray = dvh1Table;
     //currentSize = dvh1Size;
 
-    totalVolumeChar = dvh1DoubleArrayNode->GetAttribute(attributeNameStream.str().c_str());
+    totalVolumeChar = dvh1TableNode->GetAttribute(attributeNameStream.str().c_str());
   }
 
   // Read the total volume from the current node attribute
@@ -107,13 +107,13 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(vtkMRMLDoub
   
   if (totalVolumeCCs == 0)
   {
-    vtkErrorWithObjectMacro(dvh1DoubleArrayNode, "vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables: Invalid volume for structure!");
+    vtkErrorWithObjectMacro(dvh1TableNode, "vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables: Invalid volume for structure!");
   }
 
   // Determine maximum dose
   if (doseVolumeNode)
   {
-    vtkDebugWithObjectMacro(dvh1DoubleArrayNode, "vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables: Calculating maximum dose from the given dose volume");
+    vtkDebugWithObjectMacro(dvh1TableNode, "vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables: Calculating maximum dose from the given dose volume");
     vtkNew<vtkImageAccumulate> doseStat;
     doseStat->SetInputData(doseVolumeNode->GetImageData());
     doseStat->Update();
@@ -132,7 +132,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(vtkMRMLDoub
 
     if (agreement == -1.0)
     {
-      vtkErrorWithObjectMacro(dvh1DoubleArrayNode, "vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables: Invalid agreement, skipped!");
+      vtkErrorWithObjectMacro(dvh1TableNode, "vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables: Invalid agreement, skipped!");
       continue;
     }
     if (agreement <= 1.0)
@@ -147,7 +147,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(vtkMRMLDoub
 }
 
 //-----------------------------------------------------------------------------
-double vtkSlicerDoseVolumeHistogramComparisonLogic::GetAgreementForDvhPlotPoint( vtkDoubleArray *referenceDvhPlot, vtkDoubleArray *compareDvhPlot,
+double vtkSlicerDoseVolumeHistogramComparisonLogic::GetAgreementForDvhPlotPoint( vtkTable* referenceDvhPlot, vtkTable* compareDvhPlot,
                                                                                  unsigned int compareIndex, double totalVolumeCCs, double doseMax,
                                                                                  double volumeDifferenceCriterion, double doseToAgreementCriterion )
 {
@@ -160,7 +160,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::GetAgreementForDvhPlotPoint(
   //   doseToAgreementCriterion is the dose-to-agreement criterion (% of the maximum dose, maxDose)
   // A value of gamma(i) < 1 indicates agreement for the DVH bin compareIndex
 
-  unsigned int compareSize = compareDvhPlot->GetNumberOfTuples();
+  unsigned int compareSize = compareDvhPlot->GetNumberOfRows();
   if (compareIndex >= compareSize)
   {
     vtkGenericWarningMacro("Invalid bin index for compare plot! (" << compareIndex << ">=" << compareSize << ")");
@@ -170,23 +170,21 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::GetAgreementForDvhPlotPoint(
   double gamma = VTK_DOUBLE_MAX;
 
   // Get the dose and volume values from the current bin in the 'compare' double array.
-  double *comparePlotTuple = compareDvhPlot->GetTuple(compareIndex);
-  double di = comparePlotTuple[0];
-  double vi = comparePlotTuple[1];
+  double di = compareDvhPlot->GetValue(compareIndex, 0).ToDouble();
+  double vi = compareDvhPlot->GetValue(compareIndex, 1).ToDouble();
 
-  for (int referenceIndex = 0; referenceIndex != referenceDvhPlot->GetNumberOfTuples(); ++referenceIndex)
+  for (int referenceIndex = 0; referenceIndex != referenceDvhPlot->GetNumberOfRows(); ++referenceIndex)
   {
     // Get the dose and volume values from the current bin in the 'reference' double array.
-    double *referencePlotTuple = referenceDvhPlot->GetTuple(referenceIndex);
-    double dr = referencePlotTuple[0];
-    double vr = referencePlotTuple[1];
+    double dr = referenceDvhPlot->GetValue(referenceIndex, 0).ToDouble();
+    double vr = referenceDvhPlot->GetValue(referenceIndex, 1).ToDouble();
 
     double currentGamma = sqrt(   pow( ( 100.0*(vr-vi) ) / ( volumeDifferenceCriterion * totalVolumeCCs ),2)
                                 + pow( ( 100.0*(dr-di) ) / ( doseToAgreementCriterion * doseMax ),2) );
 
     if (currentGamma < gamma)
     {
-      gamma = currentGamma;
+      gamma = currentGamma;     
     }
   }
 

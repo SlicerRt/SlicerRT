@@ -26,8 +26,10 @@
 
 // VTK includes
 #include "vtkObject.h"
-#include <vtkMRMLDoubleArrayNode.h>
+
+// MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLTableNode.h>
 
 class VTK_SLICER_DOSEVOLUMEHISTOGRAM_LOGIC_EXPORT  vtkSlicerDoseVolumeHistogramComparisonLogic : public vtkObject
 {
@@ -39,7 +41,7 @@ public:
 public:
   // Returns the percent of agreeing bins for two DVH arrays.
   // Maximum dose is calculated from the dose volume node if valid, otherwise doseMax is used.
-  static double CompareDvhTables( vtkMRMLDoubleArrayNode* dvh1DoubleArrayNode, vtkMRMLDoubleArrayNode* dvh2DoubleArrayNode, vtkMRMLScalarVolumeNode* doseVolumeNode, 
+  static double CompareDvhTables( vtkMRMLTableNode* dvh1TableNode, vtkMRMLTableNode* dvh2TableNode, vtkMRMLScalarVolumeNode* doseVolumeNode, 
                                   double volumeDifferenceCriterion, double doseToAgreementCriterion, double doseMax=0.0 );
 
 protected:
@@ -51,7 +53,7 @@ protected:
   //   volumeDifferenceCriterion is the volume-difference criterion (% of the total structure volume, totalVolume)
   //   doseToAgreementCriterion is the dose-to-agreement criterion (% of the maximum dose, maxDose)
   // A return value of < 1 indicates agreement for the Dvh bin
-  static double GetAgreementForDvhPlotPoint( vtkDoubleArray *referenceDvhPlot, vtkDoubleArray *compareDvhPlot,
+  static double GetAgreementForDvhPlotPoint( vtkTable* referenceDvhPlot, vtkTable* compareDvhPlot,
                                              unsigned int compareIndex, double totalVolumeCCs, double doseMax,
                                              double volumeDifferenceCriterion, double doseToAgreementCriterion );
 

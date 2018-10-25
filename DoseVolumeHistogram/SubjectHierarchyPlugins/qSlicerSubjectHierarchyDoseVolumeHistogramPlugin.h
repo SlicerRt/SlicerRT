@@ -73,11 +73,8 @@ public:
   Q_INVOKABLE virtual int getDisplayVisibility(vtkIdType itemID)const;
 
 protected:
-  /// Utility function for getting DVH parameter set node for DVH double array node
-  vtkMRMLDoseVolumeHistogramNode* getDvhParameterSetNodeForDvhArray(vtkMRMLNode* dvhArrayNode)const;
-
-  /// Utility function for getting chart subject hierarchy item for DVH array subject hierarchy item
-  vtkIdType getChartShItemForDvhArray(vtkIdType dvhArrayShItemID)const;
+  /// Utility function for getting DVH parameter set node for DVH table node
+  vtkMRMLDoseVolumeHistogramNode* getDvhParameterSetNodeForDvhTable(vtkMRMLNode* dvhTableNode)const;
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyDoseVolumeHistogramPluginPrivate> d_ptr;

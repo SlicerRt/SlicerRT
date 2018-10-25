@@ -854,13 +854,13 @@ void qSlicerDoseVolumeHistogramModuleWidget::setVisibleAll(bool on)
 //-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::switchToFourUpQuantitativeLayout()
 {
-  qSlicerApplication::application()->layoutManager()->setLayout(vtkMRMLLayoutNode::SlicerLayoutFourUpQuantitativeView);
+  qSlicerApplication::application()->layoutManager()->setLayout(vtkMRMLLayoutNode::SlicerLayoutFourUpPlotView);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerDoseVolumeHistogramModuleWidget::switchToOneUpQuantitativeLayout()
 {
-  qSlicerApplication::application()->layoutManager()->setLayout(vtkMRMLLayoutNode::SlicerLayoutOneUpQuantitativeView);
+  qSlicerApplication::application()->layoutManager()->setLayout(vtkMRMLLayoutNode::SlicerLayoutOneUpPlotView);
 }
 
 //-----------------------------------------------------------

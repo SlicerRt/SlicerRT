@@ -34,11 +34,13 @@
 
 class vtkOrientedImageData;
 class vtkCallbackCommand;
-class vtkMRMLDoubleArrayNode;
-class vtkMRMLScalarVolumeNode;
-class vtkMRMLChartNode;
-class vtkMRMLChartViewNode;
+
 class vtkMRMLDoseVolumeHistogramNode;
+class vtkMRMLPlotChartNode;
+class vtkMRMLPlotSeriesNode;
+class vtkMRMLPlotViewNode;
+class vtkMRMLScalarVolumeNode;
+class vtkMRMLTableNode;
 
 /// \ingroup SlicerRt_QtModules_DoseVolumeHistogram
 /// \brief The DoseVolumeHistogram module computes dose volume histogram (DVH) and metrics from a dose map and segmentation.
@@ -55,10 +57,10 @@ public:
   // DoseVolumeHistogram constants
   static const std::string DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME;
   static const std::string DVH_CREATED_DVH_NODE_REFERENCE_ROLE;
+  static const std::string DVH_PLOTSERIES_REFERENCE_ROLE;
 
   static const std::string DVH_DOSE_VOLUME_OVERSAMPLING_FACTOR_ATTRIBUTE_NAME;
   static const std::string DVH_SEGMENT_ID_ATTRIBUTE_NAME;
-  static const std::string DVH_STRUCTURE_PLOT_NAME_ATTRIBUTE_NAME;
   static const std::string DVH_TABLE_ROW_ATTRIBUTE_NAME;
   static const std::string DVH_SURFACE_ATTRIBUTE_NAME;
   static const std::string DVH_SURFACE_INSIDE_ATTRIBUTE_NAME;
@@ -70,7 +72,7 @@ public:
   static const std::string DVH_METRIC_MAX_PREFIX;
   static const std::string DVH_METRIC_DOSE_POSTFIX;
   static const std::string DVH_METRIC_INTENSITY_POSTFIX;
-  static const std::string DVH_ARRAY_NODE_NAME_POSTFIX;
+  static const std::string DVH_TABLE_NODE_NAME_POSTFIX;
   static const std::string DVH_CSV_HEADER_VOLUME_FIELD_MIDDLE;
   static const std::string DVH_CSV_HEADER_VOLUME_FIELD_END;
 
@@ -88,14 +90,20 @@ public:
   /// Compute D metrics for existing DVHs using the given dose values and add them in the metrics table
   bool ComputeDMetrics(vtkMRMLDoseVolumeHistogramNode* parameterNode);
 
-  /// Add dose volume histogram of a structure (ROI) to the selected chart given its double array node
-  void AddDvhToChart(vtkMRMLChartNode* chartNode, vtkMRMLDoubleArrayNode* dvhArrayNode);
+  /// Add dose volume histogram of a structure (ROI) to the selected plot given its table node
+  /// \return Plot series node corresponding to the given table in the given chart
+  vtkMRMLPlotSeriesNode* AddDvhToChart(vtkMRMLPlotChartNode* chartNode, vtkMRMLTableNode* tableNode);
 
   /// Remove dose volume histogram of a structure from the selected chart
-  void RemoveDvhFromChart(vtkMRMLChartNode* chartNode, vtkMRMLDoubleArrayNode* dvhArrayNode);
+  void RemoveDvhFromChart(vtkMRMLPlotChartNode* chartNode, vtkMRMLTableNode* tableNode);
 
-  /// Determine if a DVH array is added to the selected chart
-  bool IsDvhAddedToChart(vtkMRMLChartNode* chartNode, vtkMRMLDoubleArrayNode* dvhArrayNode);
+  /// Determine if a DVH table is added to the given chart
+  /// \return Plot series node belonging to table in chart if visible, NULL otherwise
+  vtkMRMLPlotSeriesNode* IsDvhAddedToChart(vtkMRMLPlotChartNode* chartNode, vtkMRMLTableNode* tableNode);
+
+  /// Get plot series node from chart for given table
+  /// \return Plot series node belonging to table in chart if created, NULL otherwise
+  vtkMRMLPlotSeriesNode* GetPlotSeriesNodeForTable(vtkMRMLPlotChartNode* chartNode, vtkMRMLTableNode* tableNode);
 
   /// Export DVH values
   /// \param comma Flag determining if the CSV file to be saved is deliminated using commas or tabs (regional considerations)
@@ -105,9 +113,9 @@ public:
   /// Export DVH metrics
   bool ExportDvhMetricsToCsv(vtkMRMLDoseVolumeHistogramNode* parameterNode, const char* fileName, bool comma=true);
 
-  /// Read DVH double arrays from a CSV file
-  /// \return a vtkCollection containing vtkMRMLDoubleArrayNodes. Each node represents one structure DVH and contains the vtkDoubleArray as well as the name and total volume attributes for the structure.
-  vtkCollection* ReadCsvToDoubleArrayNode(std::string csvFilename);
+  /// Read DVH tables from a CSV file
+  /// \return a vtkCollection containing vtkMRMLTableNode. Each node represents one structure DVH and contains the vtkTable as well as the name and total volume attributes for the structure.
+  vtkCollection* ReadCsvToTableNode(std::string csvFilename);
 
   /// Assemble dose metric name, e.g. "Mean dose (Gy)". If selected volume is not a dose, it will contain "intensity" instead of "dose"
   /// \param doseMetricAttributeNamePrefix Prefix of the desired dose metric attribute name, e.g. "Mean "
@@ -139,10 +147,13 @@ protected:
   /// \param segmentID ID of segment the DVH is calculated on
   /// \param maxDoseGy Maximum dose determining the number of DVH bins (passed as argument so that it is only calculated once in \sa ComputeDvh() )
   /// \return Error message, empty string if no error
-  std::string ComputeDvh(vtkMRMLDoseVolumeHistogramNode* parameterNode, vtkOrientedImageData* segmentLabelmap, vtkOrientedImageData* oversampledDoseVolume, std::string segmentID, double maxDoseGy);
+  std::string ComputeDvh(
+    vtkMRMLDoseVolumeHistogramNode* parameterNode,
+    vtkOrientedImageData* segmentLabelmap, vtkOrientedImageData* oversampledDoseVolume,
+    std::string segmentID, double maxDoseGy );
 
-  /// Return the chart view node object from the layout
-  vtkMRMLChartViewNode* GetChartViewNode();
+  /// Return the plot view node object from the layout
+  vtkMRMLPlotViewNode* GetPlotViewNode();
 
   /// Set up metrics table by creating the default columns
   void InitializeMetricsTable(vtkMRMLDoseVolumeHistogramNode* parameterNode);
@@ -157,7 +168,7 @@ protected:
   void GetNumbersFromMetricString(std::string metricStr, std::vector<double> &metricNumbers);
 
   /// Calculate one D metric. Called from \sa ComputeDMetrics
-  double ComputeDMetric(vtkMRMLDoubleArrayNode* dvhArrayNode, double volume, double structureVolume, bool isPercent);
+  double ComputeDMetric(vtkMRMLTableNode* tableNode, double volume, double structureVolume, bool isPercent);
 
   /// Callback function observing the visibility column of the metrics table
   static void OnVisibilityChanged(vtkObject* caller, unsigned long eid, void* clientData, void* callData);

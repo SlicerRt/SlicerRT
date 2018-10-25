@@ -14,7 +14,16 @@
    <string>DVH</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_4">
-   <property name="margin">
+   <property name="leftMargin">
+    <number>4</number>
+   </property>
+   <property name="topMargin">
+    <number>4</number>
+   </property>
+   <property name="rightMargin">
+    <number>4</number>
+   </property>
+   <property name="bottomMargin">
     <number>4</number>
    </property>
    <property name="spacing">
@@ -471,11 +480,11 @@
             </item>
             <item>
              <widget class="QCheckBox" name="checkBox_DoseSurfaceHistogram">
-              <property name="text">
-               <string>Dose surface histogram</string>
-              </property>
               <property name="toolTip">
                <string>Calculate dose surface histogram. Open contours are not currently supported.</string>
+              </property>
+              <property name="text">
+               <string>Dose surface histogram</string>
               </property>
              </widget>
             </item>
@@ -678,7 +687,16 @@
            <bool>true</bool>
           </property>
           <layout class="QGridLayout" name="gridLayout_8">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>2</number>
+           </property>
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="rightMargin">
+            <number>2</number>
+           </property>
+           <property name="bottomMargin">
             <number>2</number>
            </property>
            <property name="spacing">
@@ -707,7 +725,16 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <property name="margin">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
        <number>0</number>
       </property>
       <item>
@@ -881,11 +908,7 @@
           </layout>
          </item>
          <item row="2" column="0">
-          <widget class="qMRMLTableView" name="MRMLTableView">
-           <property name="firstRowLocked">
-            <bool>false</bool>
-           </property>
-          </widget>
+          <widget class="qMRMLTableView" name="MRMLTableView"/>
          </item>
         </layout>
        </widget>

@@ -8,7 +8,7 @@ from slicer.ScriptedLoadableModule import *
 # ------------------------------------------------------------------------------
 # DvhComparison
 # ------------------------------------------------------------------------------
-# 
+#
 class DvhComparison(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
@@ -16,11 +16,11 @@ class DvhComparison(ScriptedLoadableModule):
     self.parent.categories = ["Radiotherapy"]
     self.parent.dependencies = ["DoseVolumeHistogram"]
     self.parent.contributors = ["Kyle Sunderland (Queen's University), Csaba Pinter (Queen's University)"]
-    self.parent.helpText = """This module compares two Dose Volume Histograms from corresponding Double Array nodes."""
+    self.parent.helpText = """This module compares two Dose Volume Histograms from corresponding Table nodes."""
     self.parent.acknowledgementText = """ """
     iconPath = os.path.join(os.path.dirname(self.parent.path), 'Resources/Icons', self.moduleName+'.png')
     parent.icon = qt.QIcon(iconPath)
-    
+
 #
 # ------------------------------------------------------------------------------
 # qDvhComparisonWidget
@@ -29,7 +29,7 @@ class DvhComparison(ScriptedLoadableModule):
 class DvhComparisonWidget(ScriptedLoadableModuleWidget):
   def __init__(self, parent):
     ScriptedLoadableModuleWidget.__init__(self, parent)
-    
+
     self.volumeDifferenceCriterionAttrName = 'DvhComparison.VolumeDifferenceCriterion'
     self.doseToAgreementCriterionAttrName = 'DvhComparison.DoseToAgreementCriterion'
     self.doseVolumeOnlyCheckedAttrName = 'DvhComparison.DoseVolumeOnlyChecked'
@@ -70,7 +70,8 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     # Input first DVH selector
     #
     self.dvh1Selector = slicer.qMRMLNodeComboBox()
-    self.dvh1Selector.nodeTypes = ["vtkMRMLDoubleArrayNode"]
+    self.dvh1Selector.nodeTypes = ["vtkMRMLTableNode"]
+    self.dvh1Selector.addAttribute("vtkMRMLTableNode", "DoseVolumeHistogram.DVH")
     self.dvh1Selector.removeEnabled = False
     self.dvh1Selector.setMRMLScene( slicer.mrmlScene )
     inputFormLayout.addRow("DVH 1: ", self.dvh1Selector)
@@ -79,7 +80,8 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     # Input second DVH selector
     #
     self.dvh2Selector = slicer.qMRMLNodeComboBox()
-    self.dvh2Selector.nodeTypes = ["vtkMRMLDoubleArrayNode"]
+    self.dvh2Selector.nodeTypes = ["vtkMRMLTableNode"]
+    self.dvh1Selector.addAttribute("vtkMRMLTableNode", "DoseVolumeHistogram.DVH")
     self.dvh2Selector.removeEnabled = False
     self.dvh2Selector.setMRMLScene( slicer.mrmlScene )
     inputFormLayout.addRow("DVH 2: ", self.dvh2Selector)
@@ -174,11 +176,11 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     self.parameterSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.updateWidgetFromMRML)
 
     self.showDoseVolumeOnlyCheckbox.connect('stateChanged(int)', self.showDoseVolumesOnlyCheckboxChanged)
-    
+
     self.dvh1Selector.connect("currentNodeChanged(vtkMRMLNode*)", self.dvh1SelectorChanged)
     self.dvh2Selector.connect("currentNodeChanged(vtkMRMLNode*)", self.dvh2SelectorChanged)
     self.doseVolumeSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.doseVolumeSelectorChanged)
-    
+
     self.volumeDifferenceSpinbox.connect("valueChanged(double)", self.volumeDifferenceSpinboxChanged)
     self.doseToAgreementSpinbox.connect("valueChanged(double)", self.doseToAgreementSpinboxChanged)
 
@@ -216,13 +218,13 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     paramNode = self.parameterSelector.currentNode()
 
     if paramNode is not None:
-      # DVH Array 1
+      # DVH Table 1
       dvh1Node = paramNode.GetNodeReferenceID(self.dvh1NodeReference)
       self.dvh1Selector.blockSignals(True)
       self.dvh1Selector.setCurrentNodeID(dvh1Node)
       self.dvh1Selector.blockSignals(False)
 
-      # DVH Array 2
+      # DVH Table 2
       dvh2Node = paramNode.GetNodeReferenceID(self.dvh2NodeReference)
       self.dvh2Selector.blockSignals(True)
       self.dvh2Selector.setCurrentNodeID(dvh2Node)
@@ -288,7 +290,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
 
     # Set table to show in visualize section. It will be the metrics table for DVH 1
     dvh1MetricsTable = dvh1Node.GetNodeReference('dvhMetricsTableRef')
-    self.dvhTable.setMRMLTableNode(dvh1MetricsTable)    
+    self.dvhTable.setMRMLTableNode(dvh1MetricsTable)
     self.dvhTable.setFirstRowLocked(True)
     self.dvhTable.resizeColumnsToContents()
     self.dvhTable.setColumnWidth(slicer.vtkMRMLDoseVolumeHistogramNode.MetricColumnVisible, 36)

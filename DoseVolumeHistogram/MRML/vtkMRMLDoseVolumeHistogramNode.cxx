@@ -25,10 +25,9 @@
 #include "vtkMRMLSegmentationNode.h"
 
 // MRML includes
+#include <vtkMRMLPlotChartNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLChartNode.h>
-#include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLTableNode.h>
 
 // VTK includes
@@ -271,7 +270,7 @@ vtkMRMLTableNode* vtkMRMLDoseVolumeHistogramNode::GetMetricsTableNode()
 {
   if (!this->Scene)
   {
-    vtkErrorMacro("GetMetricsTableNode: Invalid MRML scene!");
+    vtkErrorMacro("GetMetricsTableNode: Invalid MRML scene");
     return NULL;
   }
   vtkMRMLTableNode* metricsTableNode = vtkMRMLTableNode::SafeDownCast( this->GetNodeReference(DVH_METRICS_TABLE_REFERENCE_ROLE) );
@@ -302,20 +301,24 @@ void vtkMRMLDoseVolumeHistogramNode::SetAndObserveMetricsTableNode(vtkMRMLTableN
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLChartNode* vtkMRMLDoseVolumeHistogramNode::GetChartNode()
+vtkMRMLPlotChartNode* vtkMRMLDoseVolumeHistogramNode::GetChartNode()
 {
   if (!this->Scene)
   {
-    vtkErrorMacro("GetChartNode: Invalid MRML scene!");
+    vtkErrorMacro("GetChartNode: Invalid MRML scene");
     return NULL;
   }
-  vtkMRMLChartNode* chartNode = vtkMRMLChartNode::SafeDownCast( this->GetNodeReference(CHART_REFERENCE_ROLE) );
+  vtkMRMLPlotChartNode* chartNode = vtkMRMLPlotChartNode::SafeDownCast( this->GetNodeReference(CHART_REFERENCE_ROLE) );
   // Chart node is unique and mandatory for each DVH node
   if (!chartNode)
   {
-    chartNode = vtkMRMLChartNode::New();
+    chartNode = vtkMRMLPlotChartNode::New();
     std::string chartNodeName = this->Scene->GenerateUniqueName("DvhChart");
     chartNode->SetName(chartNodeName.c_str());
+    chartNode->SetTitleFontSize(16); // Default: 20
+    chartNode->SetLegendFontSize(12); // Default: 20
+    chartNode->SetAxisTitleFontSize(12); // Default: 16
+    chartNode->SetAxisLabelFontSize(10); // Default: 12
     this->Scene->AddNode(chartNode);
     this->SetAndObserveChartNode(chartNode);
     chartNode->Delete(); // Release ownership to scene only
@@ -324,7 +327,7 @@ vtkMRMLChartNode* vtkMRMLDoseVolumeHistogramNode::GetChartNode()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseVolumeHistogramNode::SetAndObserveChartNode(vtkMRMLChartNode* node)
+void vtkMRMLDoseVolumeHistogramNode::SetAndObserveChartNode(vtkMRMLPlotChartNode* node)
 {
   if (node && this->Scene != node->GetScene())
     {
@@ -340,7 +343,7 @@ std::string vtkMRMLDoseVolumeHistogramNode::AssembleDvhNodeReference(std::string
 {
   if (!this->GetSegmentationNode() || !this->GetDoseVolumeNode() || segmentID.empty())
   {
-    vtkErrorMacro("AssembleDvhNodeReference: Invalid input selection!");
+    vtkErrorMacro("AssembleDvhNodeReference: Invalid input selection");
     return "";
   }
   
@@ -354,9 +357,9 @@ std::string vtkMRMLDoseVolumeHistogramNode::AssembleDvhNodeReference(std::string
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLDoseVolumeHistogramNode::GetDvhArrayNodes(std::vector<vtkMRMLDoubleArrayNode*> &dvhArrayNodes)
+void vtkMRMLDoseVolumeHistogramNode::GetDvhTableNodes(std::vector<vtkMRMLTableNode*> &dvhTableNodes)
 {
-  dvhArrayNodes.clear();
+  dvhTableNodes.clear();
 
   vtkMRMLTableNode* metricsTableNode = this->GetMetricsTableNode();
   std::vector<std::string> roles;
@@ -371,14 +374,13 @@ void vtkMRMLDoseVolumeHistogramNode::GetDvhArrayNodes(std::vector<vtkMRMLDoubleA
     }
 
     // Get DVH node
-    vtkMRMLDoubleArrayNode* dvhArrayNode = vtkMRMLDoubleArrayNode::SafeDownCast(
-      metricsTableNode->GetNodeReference(roleIt->c_str()) );
-    if (!dvhArrayNode)
+    vtkMRMLTableNode* dvhTableNode = vtkMRMLTableNode::SafeDownCast(metricsTableNode->GetNodeReference(roleIt->c_str()));
+    if (!dvhTableNode)
     {
-      vtkErrorMacro("GetDvhArrayNodes: Metrics table node reference '" << (*roleIt) << "' does not contain DVH node!");
+      vtkErrorMacro("GetDvhTableNodes: Metrics table node reference '" << (*roleIt) << "' does not contain DVH node");
       continue;
     }
 
-    dvhArrayNodes.push_back(dvhArrayNode);
+    dvhTableNodes.push_back(dvhTableNode);
   }
 }

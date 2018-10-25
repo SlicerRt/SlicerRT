@@ -37,20 +37,21 @@
 
 // MRML includes
 #include <vtkMRMLCoreTestingMacros.h>
-#include <vtkMRMLDoubleArrayNode.h>
-#include <vtkMRMLVolumeArchetypeStorageNode.h>
+#include <vtkMRMLPlotChartNode.h>
+#include <vtkMRMLPlotSeriesNode.h>
+#include <vtkMRMLPlotViewNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLChartNode.h>
-#include <vtkMRMLSubjectHierarchyNode.h>
 #include <vtkMRMLScene.h>
+#include <vtkMRMLSubjectHierarchyNode.h>
+#include <vtkMRMLTableNode.h>
+#include <vtkMRMLVolumeArchetypeStorageNode.h>
 
 // VTK includes
-#include <vtkDoubleArray.h>
-#include <vtkPolyData.h>
-#include <vtkNew.h>
 #include <vtkImageData.h>
 #include <vtkImageAccumulate.h>
 #include <vtkLookupTable.h>
+#include <vtkNew.h>
+#include <vtkTable.h>
 #include <vtkTimerLog.h>
 
 // ITK includes
@@ -90,7 +91,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // BaselineDvhTableCsvFile
@@ -110,7 +111,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // BaselineDvhMetricCsvFile
@@ -130,7 +131,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // TemporarySceneFile
@@ -150,7 +151,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // TemporaryDvhTableCsvFile
@@ -170,7 +171,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // TemporaryDvhMetricCsvFile
@@ -190,7 +191,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // AutomaticOversamplingCalculation
@@ -206,7 +207,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // VolumeDifferenceCriterion
@@ -222,7 +223,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // DoseToAgreementCriterion
@@ -238,7 +239,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // AgreementAcceptancePercentageThreshold
@@ -254,7 +255,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // MetricDifferenceThreshold
@@ -270,7 +271,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // DvhStartValue
@@ -286,7 +287,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // DvhStepSize
@@ -302,7 +303,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // DoseSurfaceHistogram
@@ -318,7 +319,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // UseInsideSurface
@@ -334,7 +335,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -393,7 +394,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   if (doseVolumeNodes->GetNumberOfItems() != 1)
   {
     mrmlScene->Commit();
-    std::cerr << "ERROR: Failed to get dose volume!" << std::endl;
+    std::cerr << "ERROR: Failed to get dose volume" << std::endl;
     return EXIT_FAILURE;
   }
   vtkMRMLScalarVolumeNode* doseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
@@ -404,7 +405,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   if (segmentationNodes->GetNumberOfItems() != 1)
   {
     mrmlScene->Commit();
-    std::cerr << "ERROR: Failed to get segmentation!" << std::endl;
+    std::cerr << "ERROR: Failed to get segmentation" << std::endl;
     return EXIT_FAILURE;
   }
   vtkMRMLSegmentationNode* segmentationNode = vtkMRMLSegmentationNode::SafeDownCast(segmentationNodes->GetItemAsObject(0));
@@ -429,17 +430,13 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   paramNode->SetUseInsideDoseSurface(useInsideSurface);
 
   // Setup chart node
-  vtkMRMLChartNode* chartNode = paramNode->GetChartNode();
+  vtkMRMLPlotChartNode* chartNode = paramNode->GetChartNode();
   if (!chartNode)
   {
     mrmlScene->Commit();
-    std::cerr << "ERROR: Chart node must exist for DVH parameter set node!" << std::endl;
+    std::cerr << "ERROR: Chart node must exist for DVH parameter set node" << std::endl;
     return EXIT_FAILURE;
   }
-  chartNode->SetProperty("default", "title", "Dose Volume Histogram");
-  chartNode->SetProperty("default", "xAxisLabel", "Dose [Gy]");
-  chartNode->SetProperty("default", "yAxisLabel", "Fractional volume [%]");
-  chartNode->SetProperty("default", "type", "Line");
 
   // Set start value and step size if specified
   if (dvhStartValue != 0.0 && dvhStepSize != 0.0)
@@ -477,20 +474,27 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   UNUSED_VARIABLE(checkpointEnd); // Although it is used just below, a warning is logged so needs to be suppressed
   std::cout << "DVH computation time (including rasterization): " << checkpointEnd-checkpointStart << " s" << std::endl;
 
-  std::vector<vtkMRMLDoubleArrayNode*> dvhNodes;
-  paramNode->GetDvhArrayNodes(dvhNodes);
+  std::vector<vtkMRMLTableNode*> dvhNodes;
+  paramNode->GetDvhTableNodes(dvhNodes);
 
-  // Add DVH arrays to chart node
-  std::vector<vtkMRMLDoubleArrayNode*>::iterator dvhIt;
+  // Add DVH tables to chart node
+  vtkNew<vtkMRMLPlotViewNode> plotViewNode;
+  mrmlScene->AddNode(plotViewNode);
+  std::vector<vtkMRMLTableNode*>::iterator dvhIt;
   for (dvhIt = dvhNodes.begin(); dvhIt != dvhNodes.end(); ++dvhIt)
   {
     if (!(*dvhIt))
     {
-      std::cerr << "ERROR: Invalid DVH node!" << std::endl;
+      std::cerr << "ERROR: Invalid DVH node" << std::endl;
       return EXIT_FAILURE;
     }
 
-    chartNode->AddArray( (*dvhIt)->GetName(), (*dvhIt)->GetID() );
+    vtkMRMLPlotSeriesNode* plotSeriesNode = dvhLogic->AddDvhToChart(chartNode, (*dvhIt));
+    if (!plotSeriesNode)
+    {
+      std::cerr << "ERROR: Unable to add DVH to chart" << std::endl;
+      return EXIT_FAILURE;
+    }
   }
 
   mrmlScene->Commit();
@@ -522,7 +526,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     if (CompareCsvDvhTables(temporaryDvhTableCsvFileName, baselineDvhTableCsvFileName, maxDose,
       volumeDifferenceCriterion, doseToAgreementCriterion, agreementAcceptancePercentage) > 0)
     {
-      std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
+      std::cerr << "Failed to compare DVH table to baseline" << std::endl;
       returnWithSuccess = false;
     }
   }
@@ -546,7 +550,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   {
     if (CompareCsvDvhMetrics(temporaryDvhMetricCsvFileName, baselineDvhMetricCsvFileName, metricDifferenceThreshold) > 0)
     {
-      std::cerr << "Failed to compare DVH table to baseline!" << std::endl;
+      std::cerr << "Failed to compare DVH table to baseline" << std::endl;
       returnWithSuccess = false;
     }
     else
@@ -573,7 +577,7 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
 
   if (!vtksys::SystemTools::FileExists(baselineCsvFileName.c_str()))
   {
-    std::cerr << "Loading baseline CSV DVH table from file '" << baselineCsvFileName << "' failed - the file does not exist!" << std::endl;
+    std::cerr << "Loading baseline CSV DVH table from file '" << baselineCsvFileName << "' failed - the file does not exist" << std::endl;
     return 1;
   }
   
@@ -583,9 +587,9 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
   // Collections of vtkDoubleArrays, with each vtkDoubleArray representing a structure and containing
   // an array of tuples which represent the dose and volume for the bins in that structure.
   vtkSmartPointer<vtkCollection> currentDvh = 
-    vtkSmartPointer<vtkCollection>::Take( csvReadLogic->ReadCsvToDoubleArrayNode(dvhCsvFileName) );
+    vtkSmartPointer<vtkCollection>::Take( csvReadLogic->ReadCsvToTableNode(dvhCsvFileName) );
   vtkSmartPointer<vtkCollection> baselineDvh = 
-    vtkSmartPointer<vtkCollection>::Take( csvReadLogic->ReadCsvToDoubleArrayNode(baselineCsvFileName) );
+    vtkSmartPointer<vtkCollection>::Take( csvReadLogic->ReadCsvToTableNode(baselineCsvFileName) );
  
   // Compare the current DVH to the baseline and determine mean and maximum difference
   agreementAcceptancePercentage = 0.0;
@@ -596,20 +600,20 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
 
   if (currentDvh->GetNumberOfItems() != baselineDvh->GetNumberOfItems())
   {
-    std::cerr << "ERROR: Number of structures in the current and the baseline DVH tables do not match (" << currentDvh->GetNumberOfItems() << "<>" << baselineDvh->GetNumberOfItems() << ")!" << std::endl;
+    std::cerr << "ERROR: Number of structures in the current and the baseline DVH tables do not match (" << currentDvh->GetNumberOfItems() << "<>" << baselineDvh->GetNumberOfItems() << ")" << std::endl;
     return 1;
   }
 
   for (int structureIndex=0; structureIndex < currentDvh->GetNumberOfItems(); structureIndex++)
   {
-    vtkMRMLDoubleArrayNode* currentStructure = vtkMRMLDoubleArrayNode::SafeDownCast(currentDvh->GetItemAsObject(structureIndex));
-    vtkMRMLDoubleArrayNode* baselineStructure = vtkMRMLDoubleArrayNode::SafeDownCast(baselineDvh->GetItemAsObject(structureIndex));
+    vtkMRMLTableNode* currentStructure = vtkMRMLTableNode::SafeDownCast(currentDvh->GetItemAsObject(structureIndex));
+    vtkMRMLTableNode* baselineStructure = vtkMRMLTableNode::SafeDownCast(baselineDvh->GetItemAsObject(structureIndex));
       
     // Calculate the agreement percentage for the current structure.
     double acceptedBinsRatio = vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(
       currentStructure, baselineStructure, NULL, volumeDifferenceCriterion, doseToAgreementCriterion, maxDose );
 
-    int numberOfBinsPerStructure = baselineStructure->GetArray()->GetNumberOfTuples();
+    int numberOfBinsPerStructure = baselineStructure->GetTable()->GetNumberOfRows();
     totalNumberOfBins += numberOfBinsPerStructure;
 
     // Calculate the number of accepted bins in the structure based on the percent of accepted bins.
@@ -687,7 +691,7 @@ int CompareCsvDvhMetrics(std::string dvhMetricsCsvFileName, std::string baseline
 {
   if (!vtksys::SystemTools::FileExists(baselineDvhMetricCsvFileName.c_str()))
   {
-    std::cerr << "Loading baseline CSV DVH table from file '" << baselineDvhMetricCsvFileName << "' failed - the file does not exist!" << std::endl;
+    std::cerr << "Loading baseline CSV DVH table from file '" << baselineDvhMetricCsvFileName << "' failed - the file does not exist" << std::endl;
     return 1;
   }
 
@@ -771,7 +775,7 @@ int CompareCsvDvhMetrics(std::string dvhMetricsCsvFileName, std::string baseline
 
     if ( (currentCommaPosition != std::string::npos) != (baselineCommaPosition != std::string::npos) )
     {
-      std::cerr << "Number of fields differ in the current and the baseline metric tables!" << std::endl;
+      std::cerr << "Number of fields differ in the current and the baseline metric tables" << std::endl;
       return 1;
     }
   }
