@@ -809,6 +809,19 @@
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="pushButton_ShowHideLegend">
+             <property name="text">
+              <string>Hide legend</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
             <spacer name="horizontalSpacer_2">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>

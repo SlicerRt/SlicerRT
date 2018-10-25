@@ -91,6 +91,7 @@ protected slots:
 
   void showAllClicked();
   void hideAllClicked();
+  void showHideLegendClicked(bool checked);
   void switchToFourUpQuantitativeLayout();
   void switchToOneUpQuantitativeLayout();
 

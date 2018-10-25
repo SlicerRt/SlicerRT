@@ -44,12 +44,12 @@
 #include "vtkMRMLDoseVolumeHistogramNode.h"
 
 // MRML includes
-#include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLChartNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
-#include <vtkMRMLTableNode.h>
 #include <vtkMRMLLayoutNode.h>
+#include <vtkMRMLPlotChartNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScene.h>
+#include <vtkMRMLTableNode.h>
 
 // VTK includes
 #include <vtkStringArray.h>
@@ -255,6 +255,9 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
   d->checkBox_AutomaticOversampling->setChecked(paramNode->GetAutomaticOversampling());
   d->checkBox_ShowDoseVolumesOnly->setChecked(paramNode->GetShowDoseVolumesOnly());
   d->checkBox_DoseSurfaceHistogram->setChecked(paramNode->GetDoseSurfaceHistogram());
+  d->pushButton_ShowHideLegend->setChecked(paramNode->GetChartNode()->GetLegendVisibility());
+  d->pushButton_ShowHideLegend->setText(
+    paramNode->GetChartNode()->GetLegendVisibility() ? "Hide legend" : "Show legend" );
 
   // Set metrics table to table view
   if (d->MRMLTableView->mrmlTableNode() != paramNode->GetMetricsTableNode())
@@ -285,6 +288,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
 
   d->pushButton_ShowAll->setEnabled(false);
   d->pushButton_HideAll->setEnabled(false);
+  d->pushButton_ShowHideLegend->setEnabled(false);
   d->pushButton_SwitchToFourUpQuantitativeLayout->setEnabled(false);
   d->pushButton_SwitchToOneUpQuantitativeLayout->setEnabled(false);
 
@@ -312,6 +316,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setup()
   connect( d->checkBox_ShowDMetrics, SIGNAL( stateChanged(int) ), this, SLOT( showDMetricsCheckedStateChanged(int) ) );
   connect( d->pushButton_ShowAll, SIGNAL( clicked() ), this, SLOT( showAllClicked() ) );
   connect( d->pushButton_HideAll, SIGNAL( clicked() ), this, SLOT( hideAllClicked() ) );
+  connect( d->pushButton_ShowHideLegend, SIGNAL( toggled(bool) ), this, SLOT( showHideLegendClicked(bool) ) );
   connect( d->pushButton_SwitchToFourUpQuantitativeLayout, SIGNAL( clicked() ), this, SLOT( switchToFourUpQuantitativeLayout() ) );
   connect( d->pushButton_SwitchToOneUpQuantitativeLayout, SIGNAL( clicked() ), this, SLOT( switchToOneUpQuantitativeLayout() ) );
 
@@ -334,6 +339,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateButtonsState()
   bool dvhComputed = paramNode && paramNode->GetMetricsTableNode()->GetNumberOfRows();
   d->pushButton_ShowAll->setEnabled(dvhComputed);
   d->pushButton_HideAll->setEnabled(dvhComputed);
+  d->pushButton_ShowHideLegend->setEnabled(dvhComputed);
   d->pushButton_SwitchToFourUpQuantitativeLayout->setEnabled(dvhComputed);
   d->pushButton_SwitchToOneUpQuantitativeLayout->setEnabled(dvhComputed);
 
@@ -878,4 +884,25 @@ bool qSlicerDoseVolumeHistogramModuleWidget::setEditedNode(
 
   d->MRMLNodeComboBox_DoseVolume->setCurrentNode(node);
   return true;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDoseVolumeHistogramModuleWidget::showHideLegendClicked(bool checked)
+{
+  Q_D(qSlicerDoseVolumeHistogramModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    return;
+  }
+
+  vtkMRMLDoseVolumeHistogramNode* paramNode = vtkMRMLDoseVolumeHistogramNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode)
+  {
+    return;
+  }
+
+  paramNode->GetChartNode()->SetLegendVisibility(checked);
+  d->pushButton_ShowHideLegend->setText(checked ? "Hide legend" : "Show legend");
 }

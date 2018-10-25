@@ -477,6 +477,9 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
       erodeValue = 0.0;
     }
 
+    // Current implementation uses the segment labelmap and gets its inner or outer shell to calculate the DSH.
+    // However, the limitation of this is that it does not support open contours. It would be more comprehensive
+    // to use the original planar contour and probe filter to get the surface dose points.
     vtkNew<vtkImageDilateErode3D> dilateErodeFilter;
     dilateErodeFilter->SetInputData(segmentLabelmap);
     dilateErodeFilter->SetErodeValue(erodeValue);
