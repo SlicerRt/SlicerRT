@@ -249,7 +249,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels()
   std::vector<str> nodeNames;
   nodeNames[1]="Varian TrueBeam STx linac components";
   nodeNames[2]="Siemens Artiste linac components";
-  std::string rootModelHierarcheNodeName = "";
+  std::string rootModelHierarchyNodeName = "";
   
   vtkSmartPointer<vtkMRMLModelHierarchyNode> rootModelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(
     scene->GetSingletonNode(rootModelHierarchyNodeName.c_str(), "vtkMRMLModelHierarchyNode") );
