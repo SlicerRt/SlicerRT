@@ -232,7 +232,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels()
   std::string treatmentMachineType = "VarianTrueBeamSTx";
 */
   std::string treatmentMachineType = "";
-  std::vector<str> MachinesVector;
+  std::vector<str> machinesVector;
   MachinesVector[1]="VarianTrueBeamSTx";
   MachinesVector[2]="SiemensArtiste";
   std::string moduleShareDirectory = this->GetModuleShareDirectory();
@@ -244,7 +244,13 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels()
   modelsLogic->SetMRMLScene(scene);
 
   // Create model hierarchy so that the treatment machine can be shown/hidden easily
-  std::string rootModelHierarchyNodeName = "Varian TrueBeam STx linac components"; //TODO: Change when multiple models are supported
+  //std::string rootModelHierarchyNodeName = "Varian TrueBeam STx linac components"; //TODO: Change when multiple models are supported
+  // Same as before: I make a vector with both options and we can redefine "rootModelHierarchyNodeName" with the selection.
+  std::vector<str> nodeNames;
+  nodeNames[1]="Varian TrueBeam STx linac components";
+  nodeNames[2]="Siemens Artiste linac components";
+  std::string rootModelHierarcheNodeName = "";
+  
   vtkSmartPointer<vtkMRMLModelHierarchyNode> rootModelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(
     scene->GetSingletonNode(rootModelHierarchyNodeName.c_str(), "vtkMRMLModelHierarchyNode") );
   if (!rootModelHierarchyNode)
