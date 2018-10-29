@@ -16,3 +16,4 @@ SlicerMacroConfigureTreatmentMachineComponentModels(
   NAME ${MACHINE_NAME}
   MODELS ${MACHINE_MODELS}
 )
+
