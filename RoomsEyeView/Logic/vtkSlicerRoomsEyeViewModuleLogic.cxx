@@ -1302,4 +1302,3 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
 
   return statusString;
 }
-
