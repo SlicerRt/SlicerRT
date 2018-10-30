@@ -37,6 +37,8 @@ class vtkMRMLColorTableNode;
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkMRMLIsodoseNode : public vtkMRMLNode
 {
 public:
+  static const char* COLOR_TABLE_REFERENCE_ROLE;
+
   static vtkMRMLIsodoseNode *New();
   vtkTypeMacro(vtkMRMLIsodoseNode, vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
@@ -62,9 +64,9 @@ public:
   /// Set and observe dose volume node
   void SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Get color table node
+  /// Get color table node (associated to dose volume node)
   vtkMRMLColorTableNode* GetColorTableNode();
-  /// Set and observe color table node
+  /// Set and observe color table node (associated to dose volume node)
   void SetAndObserveColorTableNode(vtkMRMLColorTableNode* node);
 
   /// Get/Set show Gy for D metrics checkbox state

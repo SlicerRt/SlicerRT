@@ -23,10 +23,10 @@
 #include "vtkMRMLIsodoseNode.h"
 
 // MRML includes
-#include <vtkMRMLScene.h>
-#include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLModelHierarchyNode.h>
+#include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLScene.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -37,7 +37,7 @@
 
 //------------------------------------------------------------------------------
 static const char* DOSE_VOLUME_REFERENCE_ROLE = "doseVolumeRef";
-static const char* COLOR_TABLE_REFERENCE_ROLE = "colorTableRef";
+const char* vtkMRMLIsodoseNode::COLOR_TABLE_REFERENCE_ROLE = "colorTableRef";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLIsodoseNode);
@@ -64,41 +64,28 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  of << " ShowIsodoseLines=\"" << (this->ShowIsodoseLines ? "true" : "false") << "\"";
-  of << " ShowIsodoseSurfaces=\"" << (this->ShowIsodoseSurfaces ? "true" : "false") << "\"";
-  of << " ShowScalarBar=\"" << (this->ShowScalarBar ? "true" : "false") << "\"";
+  vtkMRMLWriteXMLBeginMacro(of);
+  vtkMRMLWriteXMLBooleanMacro(ShowIsodoseLines, ShowIsodoseLines);
+  vtkMRMLWriteXMLBooleanMacro(ShowIsodoseSurfaces, ShowIsodoseSurfaces);
+  vtkMRMLWriteXMLBooleanMacro(ShowScalarBar, ShowScalarBar);
+  vtkMRMLWriteXMLBooleanMacro(ShowDoseVolumesOnly, ShowDoseVolumesOnly);
+  vtkMRMLWriteXMLEndMacro(); 
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
 {
+  int disabledModify = this->StartModify();
   vtkMRMLNode::ReadXMLAttributes(atts);
 
-  // Read all MRML node attributes from two arrays of names and values
-  const char* attName = NULL;
-  const char* attValue = NULL;
+  vtkMRMLReadXMLBeginMacro(atts);
+  vtkMRMLReadXMLBooleanMacro(ShowIsodoseLines, ShowIsodoseLines);
+  vtkMRMLReadXMLBooleanMacro(ShowIsodoseSurfaces, ShowIsodoseSurfaces);
+  vtkMRMLReadXMLBooleanMacro(ShowScalarBar, ShowScalarBar);
+  vtkMRMLReadXMLBooleanMacro(ShowDoseVolumesOnly, ShowDoseVolumesOnly);
+  vtkMRMLReadXMLEndMacro();
 
-  while (*atts != NULL) 
-    {
-    attName = *(atts++);
-    attValue = *(atts++);
-
-    if (!strcmp(attName, "ShowIsodoseLines")) 
-      {
-      this->ShowIsodoseLines = 
-        (strcmp(attValue,"true") ? false : true);
-      }
-    else if (!strcmp(attName, "ShowIsodoseSurfaces")) 
-      {
-      this->ShowIsodoseSurfaces = 
-        (strcmp(attValue,"true") ? false : true);
-      }
-    else if (!strcmp(attName, "ShowScalarBar")) 
-      {
-      this->ShowScalarBar = 
-        (strcmp(attValue,"true") ? false : true);
-      }
-    }
+  this->EndModify(disabledModify);
 }
 
 //----------------------------------------------------------------------------
@@ -106,27 +93,31 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLIsodoseNode::Copy(vtkMRMLNode *anode)
 {
+  int disabledModify = this->StartModify();
+
   Superclass::Copy(anode);
-  this->DisableModifiedEventOn();
 
-  vtkMRMLIsodoseNode *node = (vtkMRMLIsodoseNode *) anode;
+  vtkMRMLCopyBeginMacro(anode);
+  vtkMRMLCopyBooleanMacro(ShowIsodoseLines);
+  vtkMRMLCopyBooleanMacro(ShowIsodoseSurfaces);
+  vtkMRMLCopyBooleanMacro(ShowScalarBar);
+  vtkMRMLCopyBooleanMacro(ShowDoseVolumesOnly);
+  vtkMRMLCopyEndMacro();
 
-  this->ShowIsodoseLines = node->ShowIsodoseLines;
-  this->ShowIsodoseSurfaces = node->ShowIsodoseSurfaces;
-  this->ShowScalarBar = node->ShowScalarBar;
-
-  this->DisableModifiedEventOff();
-  this->InvokePendingModifiedEvent();
+  this->EndModify(disabledModify);
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLIsodoseNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-  Superclass::PrintSelf(os,indent);
+  Superclass::PrintSelf(os, indent);
 
-  os << indent << "ShowIsodoseLines:   " << (this->ShowIsodoseLines ? "true" : "false") << "\n";
-  os << indent << "ShowIsodoseSurfaces:   " << (this->ShowIsodoseSurfaces ? "true" : "false") << "\n";
-  os << indent << "ShowScalarBar:   " << (this->ShowScalarBar ? "true" : "false") << "\n";
+  vtkMRMLPrintBeginMacro(os, indent);
+  vtkMRMLPrintBooleanMacro(ShowIsodoseLines);
+  vtkMRMLPrintBooleanMacro(ShowIsodoseSurfaces);
+  vtkMRMLPrintBooleanMacro(ShowScalarBar);
+  vtkMRMLPrintBooleanMacro(ShowDoseVolumesOnly);
+  vtkMRMLPrintEndMacro();
 }
 
 //----------------------------------------------------------------------------
@@ -150,7 +141,14 @@ void vtkMRMLIsodoseNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* no
 //----------------------------------------------------------------------------
 vtkMRMLColorTableNode* vtkMRMLIsodoseNode::GetColorTableNode()
 {
-  return vtkMRMLColorTableNode::SafeDownCast( this->GetNodeReference(COLOR_TABLE_REFERENCE_ROLE) );
+  vtkMRMLScalarVolumeNode* doseVolumeNode = this->GetDoseVolumeNode();
+  if (!doseVolumeNode)
+  {
+    vtkWarningMacro("GetColorTableNode: No dose volume node found. Isodose color table node is associated to dose volume nodes.");
+    return NULL;
+  }
+
+  return vtkMRMLColorTableNode::SafeDownCast( doseVolumeNode->GetNodeReference(COLOR_TABLE_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
@@ -162,5 +160,12 @@ void vtkMRMLIsodoseNode::SetAndObserveColorTableNode(vtkMRMLColorTableNode* node
     return;
     }
 
-  this->SetNodeReferenceID(COLOR_TABLE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  vtkMRMLScalarVolumeNode* doseVolumeNode = this->GetDoseVolumeNode();
+  if (!doseVolumeNode)
+  {
+    vtkErrorMacro("SetAndObserveColorTableNode: No dose volume node found. Isodose color table node is associated to dose volume nodes.");
+    return;
+  }
+
+  doseVolumeNode->SetNodeReferenceID(COLOR_TABLE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
 }
