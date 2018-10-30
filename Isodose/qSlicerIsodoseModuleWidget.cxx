@@ -73,8 +73,6 @@ public:
 
   vtkSlicerIsodoseModuleLogic* logic() const;
 
-  void updateScalarBarsFromSelectedColorTable();
-
   vtkScalarBarWidget* ScalarBarWidget;
   vtkScalarBarWidget* ScalarBarWidget2DRed;
   vtkScalarBarWidget* ScalarBarWidget2DYellow;
@@ -186,47 +184,6 @@ vtkSlicerIsodoseModuleLogic* qSlicerIsodoseModuleWidgetPrivate::logic() const
   Q_Q(const qSlicerIsodoseModuleWidget);
   return vtkSlicerIsodoseModuleLogic::SafeDownCast(q->logic());
 } 
-
-//-----------------------------------------------------------------------------
-void qSlicerIsodoseModuleWidgetPrivate::updateScalarBarsFromSelectedColorTable()
-{
-  Q_Q(qSlicerIsodoseModuleWidget);
-
-  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(this->MRMLNodeComboBox_ParameterSet->currentNode());
-  if (!q->mrmlScene() || !paramNode)
-  {
-    return;
-  }
-
-  vtkMRMLColorTableNode* selectedColorNode = paramNode->GetColorTableNode();
-  if (!selectedColorNode)
-  {
-    qDebug() << Q_FUNC_INFO << ": No color table node is selected";
-    return;
-  }
-
-  int newNumberOfColors = selectedColorNode->GetNumberOfColors();
-
-  // Update all scalar bar actors
-  for (std::vector<vtkScalarBarWidget*>::iterator it = this->ScalarBarWidgets.begin();
-    it != this->ScalarBarWidgets.end(); ++it)
-  {
-    vtkSlicerRTScalarBarActor* actor = vtkSlicerRTScalarBarActor::SafeDownCast(
-      (*it)->GetScalarBarActor() );
-
-    // Update actor
-    actor->UseAnnotationAsLabelOn(); // Needed each time
-    actor->SetLookupTable(selectedColorNode->GetLookupTable());
-    actor->SetNumberOfLabels(newNumberOfColors);
-    actor->SetMaximumNumberOfColors(newNumberOfColors);
-    actor->GetLookupTable()->ResetAnnotations();
-    for (int colorIndex=0; colorIndex<newNumberOfColors; ++colorIndex)
-    {
-      actor->GetLookupTable()->SetAnnotation(colorIndex, vtkStdString(selectedColorNode->GetColorName(colorIndex)));
-    }
-    (*it)->Render();
-  }
-}
 
 //-----------------------------------------------------------------------------
 // qSlicerIsodoseModuleWidget methods
@@ -349,7 +306,7 @@ void qSlicerIsodoseModuleWidget::updateWidgetFromMRML()
       this->doseVolumeNodeChanged(d->MRMLNodeComboBox_DoseVolume->currentNode());
     }
 
-    d->updateScalarBarsFromSelectedColorTable();
+    this->updateScalarBarsFromSelectedColorTable();
 
     d->checkBox_Isoline->setChecked(paramNode->GetShowIsodoseLines());
     d->checkBox_Isosurface->setChecked(paramNode->GetShowIsodoseSurfaces());
@@ -418,7 +375,7 @@ void qSlicerIsodoseModuleWidget::setup()
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 
   // Select the default color node
-  d->updateScalarBarsFromSelectedColorTable();
+  this->updateScalarBarsFromSelectedColorTable();
 
   this->updateButtonsState();
 }
@@ -462,6 +419,14 @@ void qSlicerIsodoseModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* node)
     return;
   }
 
+  // Unobserve previous color node
+  vtkMRMLColorTableNode* previousColorNode = paramNode->GetColorTableNode();
+  if (previousColorNode)
+  {
+    qvtkDisconnect(previousColorNode, vtkCommand::ModifiedEvent,
+      this, SLOT(updateScalarBarsFromSelectedColorTable()));
+  }
+
   paramNode->DisableModifiedEventOn();
   paramNode->SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(node));
   paramNode->DisableModifiedEventOff();
@@ -485,6 +450,9 @@ void qSlicerIsodoseModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* node)
   if (selectedColorNode)
   {
     d->spinBox_NumberOfLevels->setValue(selectedColorNode->GetNumberOfColors());
+
+    qvtkConnect(selectedColorNode, vtkCommand::ModifiedEvent,
+      this, SLOT(updateScalarBarsFromSelectedColorTable()));
   }
   else
   {
@@ -492,7 +460,7 @@ void qSlicerIsodoseModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* node)
   }
   d->spinBox_NumberOfLevels->blockSignals(wasBlocked);
   // Update scalar bars
-  d->updateScalarBarsFromSelectedColorTable();
+  this->updateScalarBarsFromSelectedColorTable();
 
   this->updateButtonsState();
 }
@@ -532,7 +500,7 @@ void qSlicerIsodoseModuleWidget::setNumberOfLevels(int newNumber)
   d->ScalarBarActor2DGreen->SetMaximumNumberOfColors(numberOfColors);
   d->ScalarBarActor2DGreen->SetNumberOfLabels(numberOfColors);
 
-  d->updateScalarBarsFromSelectedColorTable();
+  this->updateScalarBarsFromSelectedColorTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -682,7 +650,7 @@ void qSlicerIsodoseModuleWidget::setScalarBarVisibility(bool visible)
     return;
   }
 
-  d->updateScalarBarsFromSelectedColorTable();
+  this->updateScalarBarsFromSelectedColorTable();
 
   d->ScalarBarWidget->SetEnabled(visible);
 }
@@ -722,7 +690,7 @@ void qSlicerIsodoseModuleWidget::setScalarBar2DVisibility(bool visible)
     return;
   }
 
-  d->updateScalarBarsFromSelectedColorTable();
+  this->updateScalarBarsFromSelectedColorTable();
 
   d->ScalarBarWidget2DRed->SetEnabled(visible);
   d->ScalarBarWidget2DYellow->SetEnabled(visible);
@@ -797,4 +765,45 @@ bool qSlicerIsodoseModuleWidget::setEditedNode(
 
   d->MRMLNodeComboBox_DoseVolume->setCurrentNode(node);
   return true;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerIsodoseModuleWidget::updateScalarBarsFromSelectedColorTable()
+{
+  Q_D(qSlicerIsodoseModuleWidget);
+
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!this->mrmlScene() || !paramNode)
+  {
+    return;
+  }
+
+  vtkMRMLColorTableNode* selectedColorNode = paramNode->GetColorTableNode();
+  if (!selectedColorNode)
+  {
+    qDebug() << Q_FUNC_INFO << ": No color table node is selected";
+    return;
+  }
+
+  int newNumberOfColors = selectedColorNode->GetNumberOfColors();
+
+  // Update all scalar bar actors
+  for (std::vector<vtkScalarBarWidget*>::iterator it = d->ScalarBarWidgets.begin();
+    it != d->ScalarBarWidgets.end(); ++it)
+  {
+    vtkSlicerRTScalarBarActor* actor = vtkSlicerRTScalarBarActor::SafeDownCast(
+      (*it)->GetScalarBarActor() );
+
+    // Update actor
+    actor->UseAnnotationAsLabelOn(); // Needed each time
+    actor->SetLookupTable(selectedColorNode->GetLookupTable());
+    actor->SetNumberOfLabels(newNumberOfColors);
+    actor->SetMaximumNumberOfColors(newNumberOfColors);
+    actor->GetLookupTable()->ResetAnnotations();
+    for (int colorIndex=0; colorIndex<newNumberOfColors; ++colorIndex)
+    {
+      actor->GetLookupTable()->SetAnnotation(colorIndex, vtkStdString(selectedColorNode->GetColorName(colorIndex)));
+    }
+    (*it)->Render();
+  }
 }

@@ -94,6 +94,9 @@ protected slots:
   /// Slot called on change in logic
   void onLogicModified();
 
+  /// Slot called on modify of the color table
+  void updateScalarBarsFromSelectedColorTable();
+
 protected:
   // Generates a new isodose level name
   QString generateNewIsodoseLevel() const;
