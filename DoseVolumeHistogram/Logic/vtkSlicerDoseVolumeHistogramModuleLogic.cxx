@@ -942,7 +942,7 @@ vtkMRMLPlotSeriesNode* vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vt
   plotSeriesNode->SetXColumnName(doseIdentifier ? "Dose" : "Intensity");
   chartNode->SetYAxisTitle("Fractional volume [%]");
   plotSeriesNode->SetYColumnName("Volume");
-  plotSeriesNode->SetPlotType(vtkMRMLPlotSeriesNode::PlotTypeLine);
+  plotSeriesNode->SetPlotType(vtkMRMLPlotSeriesNode::PlotTypeScatter);
   plotSeriesNode->SetMarkerStyle(vtkMRMLPlotSeriesNode::MarkerStyleNone);
 
   // Get number of tables showing plot for the same structure (for plot name and line style)
