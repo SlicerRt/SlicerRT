@@ -839,6 +839,7 @@ void qSlicerRoomsEyeViewModuleWidget::updateTreatmentOrientationMarker()
     }
 
     // Make sure the orientation marker has the right model node
-    viewNode->SetOrientationMarkerHumanModelNodeID(orientationMarkerModel->GetID());  
+    viewNode->SetOrientationMarkerHumanModelNodeID(orientationMarkerModel->GetID());
+    viewNode->Modified();
   }
 }

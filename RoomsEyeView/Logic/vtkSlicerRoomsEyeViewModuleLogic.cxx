@@ -818,14 +818,14 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
   vtkSmartPointer<vtkPolyData> patientSupportModelPolyData = vtkSmartPointer<vtkPolyData>::New();
   patientSupportModelPolyData->DeepCopy(patientSupportModel->GetPolyData());
 
-  vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::FixedReference);
+  vtkMRMLLinearTransformNode* patientSupportToPatientSupportRotationTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
   vtkSmartPointer<vtkTransformFilter> patientSupportTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
   patientSupportTransformFilter->SetInputData(patientSupportModelPolyData);
-  vtkSmartPointer<vtkGeneralTransform> patientSupportToFixedReferenceTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-  patientSupportToFixedReferenceTransformNode->GetTransformFromWorld(patientSupportToFixedReferenceTransform);
-  patientSupportToFixedReferenceTransform->Inverse();
-  patientSupportTransformFilter->SetTransform(patientSupportToFixedReferenceTransform);
+  vtkSmartPointer<vtkGeneralTransform> patientSupportToPatientSupportRotationTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  patientSupportToPatientSupportRotationTransformNode->GetTransformFromWorld(patientSupportToPatientSupportRotationTransform);
+  patientSupportToPatientSupportRotationTransform->Inverse();
+  patientSupportTransformFilter->SetTransform(patientSupportToPatientSupportRotationTransform);
   patientSupportTransformFilter->Update();
   patientSupportModelPolyData = vtkPolyData::SafeDownCast(patientSupportTransformFilter->GetOutput());
 
