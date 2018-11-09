@@ -52,6 +52,7 @@ vtkSlicerIECTransformLogic::vtkSlicerIECTransformLogic()
   this->CoordinateSystemsMap[PatientSupport] = "PatientSupport";
   this->CoordinateSystemsMap[TableTopEccentricRotation] = "TableTopEccentricRotation";
   this->CoordinateSystemsMap[TableTop] = "TableTop";
+  this->CoordinateSystemsMap[FlatPanel] = "FlatPanel";
 
   this->IecTransforms.clear();
   this->IecTransforms.push_back(std::make_pair(FixedReference, RAS));
@@ -63,6 +64,7 @@ vtkSlicerIECTransformLogic::vtkSlicerIECTransformLogic()
   this->IecTransforms.push_back(std::make_pair(PatientSupport, PatientSupportRotation)); // Scaling component of patient support transform
   this->IecTransforms.push_back(std::make_pair(TableTopEccentricRotation, PatientSupportRotation)); // NOTE: Currently not supported by REV
   this->IecTransforms.push_back(std::make_pair(TableTop, TableTopEccentricRotation));
+  this->IecTransforms.push_back(std::make_pair(FlatPanel, Gantry));
 }
 
 //-----------------------------------------------------------------------------
@@ -135,6 +137,8 @@ void vtkSlicerIECTransformLogic::BuildIECTransformHierarchy()
   this->GetTransformNodeBetween(LeftImagingPanel, Gantry)->SetAndObserveTransformNodeID(
     this->GetTransformNodeBetween(Gantry, FixedReference)->GetID() );
   this->GetTransformNodeBetween(RightImagingPanel, Gantry)->SetAndObserveTransformNodeID(
+    this->GetTransformNodeBetween(Gantry, FixedReference)->GetID() );
+  this->GetTransformNodeBetween(FlatPanel, Gantry)->SetAndObserveTransformNodeID(
     this->GetTransformNodeBetween(Gantry, FixedReference)->GetID() );
 
   this->GetTransformNodeBetween(PatientSupportRotation, FixedReference)->SetAndObserveTransformNodeID(

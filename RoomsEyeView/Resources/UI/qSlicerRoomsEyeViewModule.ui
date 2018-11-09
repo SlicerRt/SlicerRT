@@ -10,14 +10,23 @@
     <x>0</x>
     <y>0</y>
     <width>449</width>
-    <height>793</height>
+    <height>538</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Room's Eye View</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
-   <property name="margin">
+   <property name="leftMargin">
+    <number>4</number>
+   </property>
+   <property name="topMargin">
+    <number>4</number>
+   </property>
+   <property name="rightMargin">
+    <number>4</number>
+   </property>
+   <property name="bottomMargin">
     <number>4</number>
    </property>
    <property name="spacing">
@@ -27,13 +36,6 @@
     <widget class="QPushButton" name="BeamsEyeViewButton">
      <property name="text">
       <string>Beam's eye view</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0">
-    <widget class="QPushButton" name="LoadTreatmentMachineModelsButton">
-     <property name="text">
-      <string>Load treatment machine models</string>
      </property>
     </widget>
    </item>
@@ -58,11 +60,17 @@
      <property name="text">
       <string>Transforms</string>
      </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
      <layout class="QGridLayout" name="gridLayout_8">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
        <number>4</number>
       </property>
       <property name="spacing">
@@ -86,9 +94,6 @@
         <property name="value">
          <double>0.000000000000000</double>
         </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksAbove</enum>
-        </property>
        </widget>
       </item>
       <item row="0" column="1">
@@ -98,9 +103,6 @@
         </property>
         <property name="maximum">
          <double>359.000000000000000</double>
-        </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksAbove</enum>
         </property>
        </widget>
       </item>
@@ -129,9 +131,6 @@
         <property name="value">
          <double>0.000000000000000</double>
         </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksAbove</enum>
-        </property>
        </widget>
       </item>
       <item row="5" column="1">
@@ -145,9 +144,6 @@
         <property name="value">
          <double>0.000000000000000</double>
         </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksAbove</enum>
-        </property>
        </widget>
       </item>
       <item row="6" column="1">
@@ -160,9 +156,6 @@
         </property>
         <property name="value">
          <double>0.000000000000000</double>
-        </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksAbove</enum>
         </property>
        </widget>
       </item>
@@ -198,9 +191,6 @@
         <property name="value">
          <double>0.000000000000000</double>
         </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksAbove</enum>
-        </property>
        </widget>
       </item>
       <item row="1" column="0">
@@ -221,9 +211,6 @@
         <property name="value">
          <double>-68.500000000000000</double>
         </property>
-        <property name="tickPosition">
-         <enum>QSlider::TicksAbove</enum>
-        </property>
        </widget>
       </item>
      </layout>
@@ -237,11 +224,17 @@
      <property name="collapsed">
       <bool>true</bool>
      </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
      <layout class="QGridLayout" name="gridLayout_4">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
        <number>4</number>
       </property>
       <property name="spacing">
@@ -351,11 +344,17 @@
      <property name="text">
       <string>Collision detection</string>
      </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
        <number>4</number>
       </property>
       <property name="spacing">
@@ -430,6 +429,16 @@
         </stringlist>
        </property>
       </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QPushButton" name="LoadTreatmentMachineModelsButton">
+       <property name="text">
+        <string>Load treatment machine models</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QComboBox" name="TreatmentMachineComboBox"/>
      </item>
     </layout>
    </item>

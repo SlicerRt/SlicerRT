@@ -44,11 +44,14 @@ class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic :
 public:
   static const char* COLLIMATOR_MODEL_NAME;
   static const char* GANTRY_MODEL_NAME;
-  static const char* IMAGINGPANELLEFT_MODEL_NAME;
-  static const char* IMAGINGPANELRIGHT_MODEL_NAME;
-  static const char* LINACBODY_MODEL_NAME;
   static const char* PATIENTSUPPORT_MODEL_NAME;
   static const char* TABLETOP_MODEL_NAME;
+
+  static const char* LINACBODY_MODEL_NAME;
+  static const char* IMAGINGPANELLEFT_MODEL_NAME;
+  static const char* IMAGINGPANELRIGHT_MODEL_NAME;
+  static const char* FLATPANEL_MODEL_NAME;
+
   static const char* APPLICATORHOLDER_MODEL_NAME;
   static const char* ELECTRONAPPLICATOR_MODEL_NAME;
   static const char* ORIENTATION_MARKER_MODEL_NODE_NAME;
@@ -60,7 +63,8 @@ public:
 
 public:
   /// Load pre-defined components of the treatment machine into the scene
-  void LoadTreatmentMachineModels();
+  /// \param machineType Type of the treatment machine (must match folder name where the models can be found)
+  void LoadTreatmentMachineModels(std::string machineType);
   /// Set up the IEC transforms and model properties on the treatment machine models
   void SetupTreatmentMachineModels();
   /// Create or get transforms taking part in the IEC logic and additional devices, and build the transform hierarchy

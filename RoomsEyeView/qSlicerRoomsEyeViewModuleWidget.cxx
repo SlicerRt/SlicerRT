@@ -270,6 +270,10 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
   ioManager->registerDialog(new qSlicerDataDialog(this));
   ioManager->registerDialog(new qSlicerSaveDataDialog(this));
 
+  // Add treatment machine options
+  d->TreatmentMachineComboBox->addItem("Varian TrueBeam STx", "VarianTrueBeamSTx");
+  d->TreatmentMachineComboBox->addItem("Siemens Artiste", "SiemensArtiste");
+
   //
   // Make connections
   connect(d->LoadTreatmentMachineModelsButton, SIGNAL(clicked()), this, SLOT(onLoadTreatmentMachineModelsButtonClicked()));
@@ -427,7 +431,8 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineModelsButtonClicked(
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
   // Load and setup models
-  d->logic()->LoadTreatmentMachineModels();
+  std::string treatmentMachineType(d->TreatmentMachineComboBox->currentData().toString().toLatin1().constData());
+  d->logic()->LoadTreatmentMachineModels(treatmentMachineType);
 
   // Reset camera
   qSlicerApplication* slicerApplication = qSlicerApplication::application();

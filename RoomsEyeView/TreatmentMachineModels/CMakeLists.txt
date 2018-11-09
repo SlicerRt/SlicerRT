@@ -2,3 +2,4 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/SlicerMacroConfigureTreatmentMachineComponen
 
 add_subdirectory(VarianTrueBeamSTx)
 add_subdirectory(AdditionalTreatmentModels)
+add_subdirectory(SiemensArtiste)

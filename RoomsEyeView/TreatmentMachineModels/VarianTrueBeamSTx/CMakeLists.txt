@@ -5,13 +5,13 @@
 set(MACHINE_NAME VarianTrueBeamSTx)
 
 set(MACHINE_MODELS
-  CollimatorModel.stl
-  GantryModel.stl
-  ImagingPanelLeftModel.stl
-  ImagingPanelRightModel.stl
-  LinacBodyModel.stl
-  PatientSupportModel.stl
-  TableTopModel.stl
+  Collimator.stl
+  Gantry.stl
+  ImagingPanelLeft.stl
+  ImagingPanelRight.stl
+  LinacBody.stl
+  PatientSupport.stl
+  TableTop.stl
 )
 
 SlicerMacroConfigureTreatmentMachineComponentModels(

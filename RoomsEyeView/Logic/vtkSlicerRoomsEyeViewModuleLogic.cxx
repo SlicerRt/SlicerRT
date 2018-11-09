@@ -56,17 +56,20 @@
 
 //----------------------------------------------------------------------------
 // Treatment machine component names
-const char* vtkSlicerRoomsEyeViewModuleLogic::COLLIMATOR_MODEL_NAME = "CollimatorModel";
-const char* vtkSlicerRoomsEyeViewModuleLogic::GANTRY_MODEL_NAME = "GantryModel";
-const char* vtkSlicerRoomsEyeViewModuleLogic::IMAGINGPANELLEFT_MODEL_NAME = "ImagingPanelLeftModel";
-const char* vtkSlicerRoomsEyeViewModuleLogic::IMAGINGPANELRIGHT_MODEL_NAME = "ImagingPanelRightModel";
-const char* vtkSlicerRoomsEyeViewModuleLogic::LINACBODY_MODEL_NAME = "LinacBodyModel";
-const char* vtkSlicerRoomsEyeViewModuleLogic::PATIENTSUPPORT_MODEL_NAME = "PatientSupportModel";
-const char* vtkSlicerRoomsEyeViewModuleLogic::TABLETOP_MODEL_NAME = "TableTopModel";
-const char* vtkSlicerRoomsEyeViewModuleLogic::APPLICATORHOLDER_MODEL_NAME = "ApplicatorHolderModel";
-const char* vtkSlicerRoomsEyeViewModuleLogic::ELECTRONAPPLICATOR_MODEL_NAME = "ElectronApplicatorModel";
+const char* vtkSlicerRoomsEyeViewModuleLogic::COLLIMATOR_MODEL_NAME = "Collimator";
+const char* vtkSlicerRoomsEyeViewModuleLogic::GANTRY_MODEL_NAME = "Gantry";
+const char* vtkSlicerRoomsEyeViewModuleLogic::PATIENTSUPPORT_MODEL_NAME = "PatientSupport";
+const char* vtkSlicerRoomsEyeViewModuleLogic::TABLETOP_MODEL_NAME = "TableTop";
 
-const char* vtkSlicerRoomsEyeViewModuleLogic::ORIENTATION_MARKER_MODEL_NODE_NAME = "RoomsEyeViewOrientationMarkerModel";
+const char* vtkSlicerRoomsEyeViewModuleLogic::LINACBODY_MODEL_NAME = "LinacBody";
+const char* vtkSlicerRoomsEyeViewModuleLogic::IMAGINGPANELLEFT_MODEL_NAME = "ImagingPanelLeft";
+const char* vtkSlicerRoomsEyeViewModuleLogic::IMAGINGPANELRIGHT_MODEL_NAME = "ImagingPanelRight";
+const char* vtkSlicerRoomsEyeViewModuleLogic::FLATPANEL_MODEL_NAME = "FlatPanel";
+
+const char* vtkSlicerRoomsEyeViewModuleLogic::APPLICATORHOLDER_MODEL_NAME = "ApplicatorHolder";
+const char* vtkSlicerRoomsEyeViewModuleLogic::ELECTRONAPPLICATOR_MODEL_NAME = "ElectronApplicator";
+
+const char* vtkSlicerRoomsEyeViewModuleLogic::ORIENTATION_MARKER_MODEL_NODE_NAME = "RoomsEyeViewOrientationMarker";
 
 // Transform names
 //TODO: Add this dynamically to the IEC transform map
@@ -213,7 +216,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels()
+void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(std::string machineType)
 {
   vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
@@ -225,19 +228,15 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels()
   // Make sure the transform hierarchy is in place
   this->BuildRoomsEyeViewTransformHierarchy();
 
-  //TODO: Only the Varian TrueBeam STx models are supported right now.
-  //      Allow loading multiple types of machines
-  std::string treatmentMachineType = "VarianTrueBeamSTx";
-
   std::string moduleShareDirectory = this->GetModuleShareDirectory();
-  std::string treatmentMachineModelsDirectory = moduleShareDirectory + "/" + treatmentMachineType;
+  std::string treatmentMachineModelsDirectory = moduleShareDirectory + "/" + machineType;
 
   // Create a models logic for convenient loading of components
   vtkSmartPointer<vtkSlicerModelsLogic> modelsLogic = vtkSmartPointer<vtkSlicerModelsLogic>::New();
   modelsLogic->SetMRMLScene(scene);
 
   // Create model hierarchy so that the treatment machine can be shown/hidden easily
-  std::string rootModelHierarchyNodeName = "Varian TrueBeam STx linac components"; //TODO: Change when multiple models are supported
+  std::string rootModelHierarchyNodeName = machineType + std::string("_Components");
   vtkSmartPointer<vtkMRMLModelHierarchyNode> rootModelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast(
     scene->GetSingletonNode(rootModelHierarchyNodeName.c_str(), "vtkMRMLModelHierarchyNode") );
   if (!rootModelHierarchyNode)
@@ -256,7 +255,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels()
 
   //
   // Load treatment machine models
-  std::string collimatorModelSingletonTag = treatmentMachineType + "_" + COLLIMATOR_MODEL_NAME;
+
+  // Collimator - mandatory
+  std::string collimatorModelSingletonTag = machineType + "_" + COLLIMATOR_MODEL_NAME;
   vtkMRMLModelNode* collimatorModelNode = vtkMRMLModelNode::SafeDownCast(
     scene->GetSingletonNode(collimatorModelSingletonTag.c_str(), "vtkMRMLModelNode") );
   if (collimatorModelNode && !collimatorModelNode->GetPolyData())
@@ -268,16 +269,27 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels()
   if (!collimatorModelNode)
   {
     std::string collimatorModelFilePath = treatmentMachineModelsDirectory + "/" + COLLIMATOR_MODEL_NAME + ".stl";
-    collimatorModelNode = modelsLogic->AddModel(collimatorModelFilePath.c_str());
-    collimatorModelNode->SetSingletonTag(collimatorModelSingletonTag.c_str());
-    vtkSmartPointer<vtkMRMLModelHierarchyNode> collimatorModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-    scene->AddNode(collimatorModelHierarchyNode);
-    collimatorModelHierarchyNode->SetModelNodeID(collimatorModelNode->GetID());
-    collimatorModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
-    collimatorModelHierarchyNode->HideFromEditorsOn();
+    if (vtksys::SystemTools::FileExists(collimatorModelFilePath))
+    {
+      collimatorModelNode = modelsLogic->AddModel(collimatorModelFilePath.c_str());
+    }
+    if (collimatorModelNode)
+    {
+      collimatorModelNode->SetSingletonTag(collimatorModelSingletonTag.c_str());
+      vtkSmartPointer<vtkMRMLModelHierarchyNode> collimatorModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      scene->AddNode(collimatorModelHierarchyNode);
+      collimatorModelHierarchyNode->SetModelNodeID(collimatorModelNode->GetID());
+      collimatorModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+      collimatorModelHierarchyNode->HideFromEditorsOn();
+    }
+    else
+    {
+      vtkErrorMacro("LoadTreatmentMachineModels: Failed to load collimator model");
+    }
   }
 
-  std::string gantryModelSingletonTag = treatmentMachineType + "_" + GANTRY_MODEL_NAME;
+  // Gantry - mandatory
+  std::string gantryModelSingletonTag = machineType + "_" + GANTRY_MODEL_NAME;
   vtkMRMLModelNode* gantryModelNode = vtkMRMLModelNode::SafeDownCast(
     scene->GetSingletonNode(gantryModelSingletonTag.c_str(), "vtkMRMLModelNode") );
   if (gantryModelNode && !gantryModelNode->GetPolyData())
@@ -289,79 +301,27 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels()
   if (!gantryModelNode)
   {
     std::string gantryModelFilePath = treatmentMachineModelsDirectory + "/" + GANTRY_MODEL_NAME + ".stl";
-    gantryModelNode = modelsLogic->AddModel(gantryModelFilePath.c_str());
-    gantryModelNode->SetSingletonTag(gantryModelSingletonTag.c_str());
-    vtkSmartPointer<vtkMRMLModelHierarchyNode> gantryModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-    scene->AddNode(gantryModelHierarchyNode);
-    gantryModelHierarchyNode->SetModelNodeID(gantryModelNode->GetID());
-    gantryModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
-    gantryModelHierarchyNode->HideFromEditorsOn();
+    if (vtksys::SystemTools::FileExists(gantryModelFilePath))
+    {
+      gantryModelNode = modelsLogic->AddModel(gantryModelFilePath.c_str());
+    }
+    if (gantryModelNode)
+    {
+      gantryModelNode->SetSingletonTag(gantryModelSingletonTag.c_str());
+      vtkSmartPointer<vtkMRMLModelHierarchyNode> gantryModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      scene->AddNode(gantryModelHierarchyNode);
+      gantryModelHierarchyNode->SetModelNodeID(gantryModelNode->GetID());
+      gantryModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+      gantryModelHierarchyNode->HideFromEditorsOn();
+    }
+    else
+    {
+      vtkErrorMacro("LoadTreatmentMachineModels: Failed to load gantry model");
+    }
   }
 
-  std::string imagingPanelLeftModelSingletonTag = treatmentMachineType + "_" + IMAGINGPANELLEFT_MODEL_NAME;
-  vtkMRMLModelNode* imagingPanelLeftModelNode = vtkMRMLModelNode::SafeDownCast(
-    scene->GetSingletonNode(imagingPanelLeftModelSingletonTag.c_str(), "vtkMRMLModelNode") );
-  if (imagingPanelLeftModelNode && !imagingPanelLeftModelNode->GetPolyData())
-  {
-    // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
-    scene->RemoveNode(imagingPanelLeftModelNode);
-    imagingPanelLeftModelNode = NULL;
-  }
-  if (!imagingPanelLeftModelNode)
-  {
-    std::string imagingPanelLeftModelFilePath = treatmentMachineModelsDirectory + "/" + IMAGINGPANELLEFT_MODEL_NAME + ".stl";
-    imagingPanelLeftModelNode = modelsLogic->AddModel(imagingPanelLeftModelFilePath.c_str());
-    imagingPanelLeftModelNode->SetSingletonTag(imagingPanelLeftModelSingletonTag.c_str());
-    vtkSmartPointer<vtkMRMLModelHierarchyNode> imagingPanelLeftModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-    scene->AddNode(imagingPanelLeftModelHierarchyNode);
-    imagingPanelLeftModelHierarchyNode->SetModelNodeID(imagingPanelLeftModelNode->GetID());
-    imagingPanelLeftModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
-    imagingPanelLeftModelHierarchyNode->HideFromEditorsOn();
-  }
-
-  std::string imagingPanelRightModelSingletonTag = treatmentMachineType + "_" + IMAGINGPANELRIGHT_MODEL_NAME;
-  vtkMRMLModelNode* imagingPanelRightModelNode = vtkMRMLModelNode::SafeDownCast(
-    scene->GetSingletonNode(imagingPanelRightModelSingletonTag.c_str(), "vtkMRMLModelNode") );
-  if (imagingPanelRightModelNode && !imagingPanelRightModelNode->GetPolyData())
-  {
-    // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
-    scene->RemoveNode(imagingPanelRightModelNode);
-    imagingPanelRightModelNode = NULL;
-  }
-  if (!imagingPanelRightModelNode)
-  {
-    std::string imagingPanelRightModelFilePath = treatmentMachineModelsDirectory + "/" + IMAGINGPANELRIGHT_MODEL_NAME + ".stl";
-    imagingPanelRightModelNode = modelsLogic->AddModel(imagingPanelRightModelFilePath.c_str());
-    imagingPanelRightModelNode->SetSingletonTag(imagingPanelRightModelSingletonTag.c_str());
-    vtkSmartPointer<vtkMRMLModelHierarchyNode> imagingPanelRightModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-    scene->AddNode(imagingPanelRightModelHierarchyNode);
-    imagingPanelRightModelHierarchyNode->SetModelNodeID(imagingPanelRightModelNode->GetID());
-    imagingPanelRightModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
-    imagingPanelRightModelHierarchyNode->HideFromEditorsOn();
-  }
-
-  std::string linacBodyModelSingletonTag = treatmentMachineType + "_" + LINACBODY_MODEL_NAME;
-  vtkMRMLModelNode* linacBodyModelNode = vtkMRMLModelNode::SafeDownCast(
-    scene->GetSingletonNode(linacBodyModelSingletonTag.c_str(), "vtkMRMLModelNode") );
-  if (linacBodyModelNode && !linacBodyModelNode->GetPolyData())
-  {
-    // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
-    scene->RemoveNode(linacBodyModelNode);
-    linacBodyModelNode = NULL;
-  }
-  if (!linacBodyModelNode)
-  {
-    std::string linacBodyModelFilePath = treatmentMachineModelsDirectory + "/" + LINACBODY_MODEL_NAME + ".stl";
-    linacBodyModelNode = modelsLogic->AddModel(linacBodyModelFilePath.c_str());
-    linacBodyModelNode->SetSingletonTag(linacBodyModelSingletonTag.c_str());
-    vtkSmartPointer<vtkMRMLModelHierarchyNode> linacBodyModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-    scene->AddNode(linacBodyModelHierarchyNode);
-    linacBodyModelHierarchyNode->SetModelNodeID(linacBodyModelNode->GetID());
-    linacBodyModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
-    linacBodyModelHierarchyNode->HideFromEditorsOn();
-  }
-
-  std::string patientSupportModelSingletonTag = treatmentMachineType + "_" + PATIENTSUPPORT_MODEL_NAME;
+  // Patient support - mandatory
+  std::string patientSupportModelSingletonTag = machineType + "_" + PATIENTSUPPORT_MODEL_NAME;
   vtkMRMLModelNode* patientSupportModelNode = vtkMRMLModelNode::SafeDownCast(
     scene->GetSingletonNode(patientSupportModelSingletonTag.c_str(), "vtkMRMLModelNode") );
   if (patientSupportModelNode && !patientSupportModelNode->GetPolyData())
@@ -373,16 +333,27 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels()
   if (!patientSupportModelNode)
   {
     std::string patientSupportModelFilePath = treatmentMachineModelsDirectory + "/" + PATIENTSUPPORT_MODEL_NAME + ".stl";
-    patientSupportModelNode = modelsLogic->AddModel(patientSupportModelFilePath.c_str());
-    patientSupportModelNode->SetSingletonTag(patientSupportModelSingletonTag.c_str());
-    vtkSmartPointer<vtkMRMLModelHierarchyNode> patientSupportModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-    scene->AddNode(patientSupportModelHierarchyNode);
-    patientSupportModelHierarchyNode->SetModelNodeID(patientSupportModelNode->GetID());
-    patientSupportModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
-    patientSupportModelHierarchyNode->HideFromEditorsOn();
+    if (vtksys::SystemTools::FileExists(patientSupportModelFilePath))
+    {
+      patientSupportModelNode = modelsLogic->AddModel(patientSupportModelFilePath.c_str());
+    }
+    if (patientSupportModelNode)
+    {
+      patientSupportModelNode->SetSingletonTag(patientSupportModelSingletonTag.c_str());
+      vtkSmartPointer<vtkMRMLModelHierarchyNode> patientSupportModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      scene->AddNode(patientSupportModelHierarchyNode);
+      patientSupportModelHierarchyNode->SetModelNodeID(patientSupportModelNode->GetID());
+      patientSupportModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+      patientSupportModelHierarchyNode->HideFromEditorsOn();
+    }
+    else
+    {
+      vtkErrorMacro("LoadTreatmentMachineModels: Failed to load patient support model");
+    }
   }
 
-  std::string tableTopModelSingletonTag = treatmentMachineType + "_" + TABLETOP_MODEL_NAME;
+  // Table top - mandatory
+  std::string tableTopModelSingletonTag = machineType + "_" + TABLETOP_MODEL_NAME;
   vtkMRMLModelNode* tableTopModelNode = vtkMRMLModelNode::SafeDownCast(
     scene->GetSingletonNode(tableTopModelSingletonTag.c_str(), "vtkMRMLModelNode") );
   if (tableTopModelNode && !tableTopModelNode->GetPolyData())
@@ -394,24 +365,143 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels()
   if (!tableTopModelNode)
   {
     std::string tableTopModelFilePath = treatmentMachineModelsDirectory + "/" + TABLETOP_MODEL_NAME + ".stl";
-    tableTopModelNode = modelsLogic->AddModel(tableTopModelFilePath.c_str());
-    tableTopModelNode->SetSingletonTag(tableTopModelSingletonTag.c_str());
-    vtkSmartPointer<vtkMRMLModelHierarchyNode> tableTopModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-    scene->AddNode(tableTopModelHierarchyNode);
-    tableTopModelHierarchyNode->SetModelNodeID(tableTopModelNode->GetID());
-    tableTopModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
-    tableTopModelHierarchyNode->HideFromEditorsOn();
+    if (vtksys::SystemTools::FileExists(tableTopModelFilePath))
+    {
+      tableTopModelNode = modelsLogic->AddModel(tableTopModelFilePath.c_str());
+    }
+    if (tableTopModelNode)
+    {
+      tableTopModelNode->SetSingletonTag(tableTopModelSingletonTag.c_str());
+      vtkSmartPointer<vtkMRMLModelHierarchyNode> tableTopModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      scene->AddNode(tableTopModelHierarchyNode);
+      tableTopModelHierarchyNode->SetModelNodeID(tableTopModelNode->GetID());
+      tableTopModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+      tableTopModelHierarchyNode->HideFromEditorsOn();
+    }
+    else
+    {
+      vtkErrorMacro("LoadTreatmentMachineModels: Failed to load table top model");
+    }
+  }
+
+  // Linac body - optional
+  std::string linacBodyModelSingletonTag = machineType + "_" + LINACBODY_MODEL_NAME;
+  vtkMRMLModelNode* linacBodyModelNode = vtkMRMLModelNode::SafeDownCast(
+    scene->GetSingletonNode(linacBodyModelSingletonTag.c_str(), "vtkMRMLModelNode") );
+  if (linacBodyModelNode && !linacBodyModelNode->GetPolyData())
+  {
+    // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
+    scene->RemoveNode(linacBodyModelNode);
+    linacBodyModelNode = NULL;
+  }
+  if (!linacBodyModelNode)
+  {
+    std::string linacBodyModelFilePath = treatmentMachineModelsDirectory + "/" + LINACBODY_MODEL_NAME + ".stl";
+    if (vtksys::SystemTools::FileExists(linacBodyModelFilePath))
+    {
+      linacBodyModelNode = modelsLogic->AddModel(linacBodyModelFilePath.c_str());
+    }
+    if (linacBodyModelNode)
+    {
+      linacBodyModelNode->SetSingletonTag(linacBodyModelSingletonTag.c_str());
+      vtkSmartPointer<vtkMRMLModelHierarchyNode> linacBodyModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      scene->AddNode(linacBodyModelHierarchyNode);
+      linacBodyModelHierarchyNode->SetModelNodeID(linacBodyModelNode->GetID());
+      linacBodyModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+      linacBodyModelHierarchyNode->HideFromEditorsOn();
+    }
+  }
+
+  // Imaging panel left - optional
+  std::string imagingPanelLeftModelSingletonTag = machineType + "_" + IMAGINGPANELLEFT_MODEL_NAME;
+  vtkMRMLModelNode* imagingPanelLeftModelNode = vtkMRMLModelNode::SafeDownCast(
+    scene->GetSingletonNode(imagingPanelLeftModelSingletonTag.c_str(), "vtkMRMLModelNode") );
+  if (imagingPanelLeftModelNode && !imagingPanelLeftModelNode->GetPolyData())
+  {
+    // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
+    scene->RemoveNode(imagingPanelLeftModelNode);
+    imagingPanelLeftModelNode = NULL;
+  }
+  if (!imagingPanelLeftModelNode)
+  {
+    std::string imagingPanelLeftModelFilePath = treatmentMachineModelsDirectory + "/" + IMAGINGPANELLEFT_MODEL_NAME + ".stl";
+    if (vtksys::SystemTools::FileExists(imagingPanelLeftModelFilePath))
+    {
+      imagingPanelLeftModelNode = modelsLogic->AddModel(imagingPanelLeftModelFilePath.c_str());
+    }
+    if (imagingPanelLeftModelNode)
+    {
+      imagingPanelLeftModelNode->SetSingletonTag(imagingPanelLeftModelSingletonTag.c_str());
+      vtkSmartPointer<vtkMRMLModelHierarchyNode> imagingPanelLeftModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      scene->AddNode(imagingPanelLeftModelHierarchyNode);
+      imagingPanelLeftModelHierarchyNode->SetModelNodeID(imagingPanelLeftModelNode->GetID());
+      imagingPanelLeftModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+      imagingPanelLeftModelHierarchyNode->HideFromEditorsOn();
+    }
+  }
+
+  // Imaging panel right - optional
+  std::string imagingPanelRightModelSingletonTag = machineType + "_" + IMAGINGPANELRIGHT_MODEL_NAME;
+  vtkMRMLModelNode* imagingPanelRightModelNode = vtkMRMLModelNode::SafeDownCast(
+    scene->GetSingletonNode(imagingPanelRightModelSingletonTag.c_str(), "vtkMRMLModelNode") );
+  if (imagingPanelRightModelNode && !imagingPanelRightModelNode->GetPolyData())
+  {
+    // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
+    scene->RemoveNode(imagingPanelRightModelNode);
+    imagingPanelRightModelNode = NULL;
+  }
+  if (!imagingPanelRightModelNode)
+  {
+    std::string imagingPanelRightModelFilePath = treatmentMachineModelsDirectory + "/" + IMAGINGPANELRIGHT_MODEL_NAME + ".stl";
+    if (vtksys::SystemTools::FileExists(imagingPanelRightModelFilePath))
+    {
+      imagingPanelRightModelNode = modelsLogic->AddModel(imagingPanelRightModelFilePath.c_str());
+    }
+    if (imagingPanelRightModelNode)
+    {
+      imagingPanelRightModelNode->SetSingletonTag(imagingPanelRightModelSingletonTag.c_str());
+      vtkSmartPointer<vtkMRMLModelHierarchyNode> imagingPanelRightModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      scene->AddNode(imagingPanelRightModelHierarchyNode);
+      imagingPanelRightModelHierarchyNode->SetModelNodeID(imagingPanelRightModelNode->GetID());
+      imagingPanelRightModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+      imagingPanelRightModelHierarchyNode->HideFromEditorsOn();
+    }
+  }
+
+  // Flat panel - optional
+  std::string flatPanelModelSingletonTag = machineType + "_" + FLATPANEL_MODEL_NAME;
+  vtkMRMLModelNode* flatPanelModelNode = vtkMRMLModelNode::SafeDownCast(
+    scene->GetSingletonNode(flatPanelModelSingletonTag.c_str(), "vtkMRMLModelNode") );
+  if (flatPanelModelNode && !flatPanelModelNode->GetPolyData())
+  {
+    // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
+    scene->RemoveNode(flatPanelModelNode);
+    flatPanelModelNode = NULL;
+  }
+  if (!flatPanelModelNode)
+  {
+    std::string flatPanelModelFilePath = treatmentMachineModelsDirectory + "/" + FLATPANEL_MODEL_NAME + ".stl";
+    if (vtksys::SystemTools::FileExists(flatPanelModelFilePath))
+    {
+      flatPanelModelNode = modelsLogic->AddModel(flatPanelModelFilePath.c_str());
+    }
+    if (flatPanelModelNode)
+    {
+      flatPanelModelNode->SetSingletonTag(flatPanelModelSingletonTag.c_str());
+      vtkSmartPointer<vtkMRMLModelHierarchyNode> flatPanelModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      scene->AddNode(flatPanelModelHierarchyNode);
+      flatPanelModelHierarchyNode->SetModelNodeID(flatPanelModelNode->GetID());
+      flatPanelModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
+      flatPanelModelHierarchyNode->HideFromEditorsOn();
+    }
   }
 
   if ( !collimatorModelNode || !collimatorModelNode->GetPolyData()
     || !gantryModelNode || !gantryModelNode->GetPolyData()
-    || !imagingPanelLeftModelNode || !imagingPanelLeftModelNode->GetPolyData()
-    || !imagingPanelRightModelNode || !imagingPanelRightModelNode->GetPolyData()
-    || !linacBodyModelNode || !linacBodyModelNode->GetPolyData()
     || !patientSupportModelNode || !patientSupportModelNode->GetPolyData()
     || !tableTopModelNode || !tableTopModelNode->GetPolyData() )
   {
-    vtkErrorMacro("LoadTreatmentMachineModels: Failed to load every treatment machine component");
+    vtkErrorMacro("LoadTreatmentMachineModels: Failed to load every mandatory treatment machine component");
     return;
   }
 
@@ -431,19 +521,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
   //TODO: Store treatment machine component color and other properties in JSON
 
   // Display all pieces of the treatment room and sets each piece a color to provide realistic representation
-  vtkMRMLModelNode* linacBodyModel = vtkMRMLModelNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(LINACBODY_MODEL_NAME) );
-  if (!linacBodyModel)
-  {
-    vtkErrorMacro("SetupTreatmentMachineModels: Unable to access linac body model");
-    return;
-  }
-  vtkMRMLLinearTransformNode* fixedReferenceToRasTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS);
-  linacBodyModel->SetAndObserveTransformNodeID(fixedReferenceToRasTransformNode->GetID());
-  linacBodyModel->CreateDefaultDisplayNodes();
-  linacBodyModel->GetDisplayNode()->SetColor(0.9, 0.9, 0.9);
 
+  // Gantry - mandatory
   vtkMRMLModelNode* gantryModel = vtkMRMLModelNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(GANTRY_MODEL_NAME) );
   if (!gantryModel)
@@ -457,6 +536,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
   gantryModel->CreateDefaultDisplayNodes();
   gantryModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
 
+  // Collimator - mandatory
   vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_MODEL_NAME) );
   if (!collimatorModel)
@@ -470,32 +550,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
   collimatorModel->CreateDefaultDisplayNodes();
   collimatorModel->GetDisplayNode()->SetColor(0.7, 0.7, 0.95);
 
-  vtkMRMLModelNode* leftImagingPanelModel = vtkMRMLModelNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELLEFT_MODEL_NAME) );
-  if (!leftImagingPanelModel)
-  {
-    vtkErrorMacro("SetupTreatmentMachineModels: Unable to access left imaging panel model");
-    return;
-  }
-  vtkMRMLLinearTransformNode* leftImagingPanelToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
-  leftImagingPanelModel->SetAndObserveTransformNodeID(leftImagingPanelToGantryTransformNode->GetID());
-  leftImagingPanelModel->CreateDefaultDisplayNodes();
-  leftImagingPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
-
-  vtkMRMLModelNode* rightImagingPanelModel = vtkMRMLModelNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELRIGHT_MODEL_NAME) );
-  if (!rightImagingPanelModel)
-  {
-    vtkErrorMacro("SetupTreatmentMachineModels: Unable to access right imaging panel model");
-    return;
-  }
-  vtkMRMLLinearTransformNode* rightImagingPanelToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
-  rightImagingPanelModel->SetAndObserveTransformNodeID(rightImagingPanelToGantryTransformNode->GetID());
-  rightImagingPanelModel->CreateDefaultDisplayNodes();
-  rightImagingPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
-
+  // Patient support - mandatory
   vtkMRMLModelNode* patientSupportModel = vtkMRMLModelNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(PATIENTSUPPORT_MODEL_NAME) );
   if (!patientSupportModel)
@@ -509,6 +564,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
   patientSupportModel->CreateDefaultDisplayNodes();
   patientSupportModel->GetDisplayNode()->SetColor(0.85, 0.85, 0.85);
 
+  // Table top - mandatory
   vtkMRMLModelNode* tableTopModel = vtkMRMLModelNode::SafeDownCast(
     this->GetMRMLScene()->GetFirstNodeByName(TABLETOP_MODEL_NAME) );
   if (!tableTopModel)
@@ -521,6 +577,54 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
   tableTopModel->SetAndObserveTransformNodeID(tableTopToTableTopEccentricRotationTransformNode->GetID());
   tableTopModel->CreateDefaultDisplayNodes();
   tableTopModel->GetDisplayNode()->SetColor(0, 0, 0);
+
+  // Linac body - optional
+  vtkMRMLModelNode* linacBodyModel = vtkMRMLModelNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(LINACBODY_MODEL_NAME) );
+  if (linacBodyModel)
+  {
+    vtkMRMLLinearTransformNode* fixedReferenceToRasTransformNode =
+      this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS);
+    linacBodyModel->SetAndObserveTransformNodeID(fixedReferenceToRasTransformNode->GetID());
+    linacBodyModel->CreateDefaultDisplayNodes();
+    linacBodyModel->GetDisplayNode()->SetColor(0.9, 0.9, 0.9);
+  }
+
+  // Imaging panel left - optional
+  vtkMRMLModelNode* leftImagingPanelModel = vtkMRMLModelNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELLEFT_MODEL_NAME) );
+  if (leftImagingPanelModel)
+  {
+    vtkMRMLLinearTransformNode* leftImagingPanelToGantryTransformNode =
+      this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
+    leftImagingPanelModel->SetAndObserveTransformNodeID(leftImagingPanelToGantryTransformNode->GetID());
+    leftImagingPanelModel->CreateDefaultDisplayNodes();
+    leftImagingPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
+  }
+
+  // Imaging panel right - optional
+  vtkMRMLModelNode* rightImagingPanelModel = vtkMRMLModelNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELRIGHT_MODEL_NAME) );
+  if (rightImagingPanelModel)
+  {
+    vtkMRMLLinearTransformNode* rightImagingPanelToGantryTransformNode =
+      this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
+    rightImagingPanelModel->SetAndObserveTransformNodeID(rightImagingPanelToGantryTransformNode->GetID());
+    rightImagingPanelModel->CreateDefaultDisplayNodes();
+    rightImagingPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
+  }
+
+  // Flat panel - optional
+  vtkMRMLModelNode* flatPanelModel = vtkMRMLModelNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(FLATPANEL_MODEL_NAME) );
+  if (flatPanelModel)
+  {
+    vtkMRMLLinearTransformNode* flatPanelToGantryTransformNode =
+      this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FlatPanel, vtkSlicerIECTransformLogic::Gantry);
+    flatPanelModel->SetAndObserveTransformNodeID(flatPanelToGantryTransformNode->GetID());
+    flatPanelModel->CreateDefaultDisplayNodes();
+    flatPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
+  }
 
   //
   // Set up collision detection between components
@@ -664,49 +768,24 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
 
   vtkMRMLModelNode* gantryModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(GANTRY_MODEL_NAME));
   vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_MODEL_NAME));
-  vtkMRMLModelNode* leftImagingPanelModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELLEFT_MODEL_NAME));
-  vtkMRMLModelNode* rightImagingPanelModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELRIGHT_MODEL_NAME));
   vtkMRMLModelNode* patientSupportModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(PATIENTSUPPORT_MODEL_NAME));
   vtkMRMLModelNode* tableTopModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(TABLETOP_MODEL_NAME));
-  if ( !gantryModel->GetPolyData() || !collimatorModel->GetPolyData() || !leftImagingPanelModel->GetPolyData()
-    || !rightImagingPanelModel->GetPolyData() || !patientSupportModel->GetPolyData() || !tableTopModel->GetPolyData() )
+  if ( !gantryModel->GetPolyData() || !collimatorModel->GetPolyData() || !patientSupportModel->GetPolyData() || !tableTopModel->GetPolyData() )
   {
-    // Orientation marker cannot be assembled if poly data is missing from the model nodes.
+    // Orientation marker cannot be assembled if poly data is missing from the mandatory model nodes.
     // This is possible and can be completely valid, for example after closing the scene (because the model nodes are singletons)
     return NULL;
   }
 
-  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = 
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
-  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
-  vtkMRMLLinearTransformNode* leftImagingPanelToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
-  vtkMRMLLinearTransformNode* rightImagingPanelToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
-  vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::FixedReference);
-  vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
-
+  //
+  // Mandatory models
+  
+  // Gantry
   vtkSmartPointer<vtkPolyData> gantryModelPolyData = vtkSmartPointer<vtkPolyData>::New();
   gantryModelPolyData->DeepCopy(gantryModel->GetPolyData());
 
-  vtkSmartPointer<vtkPolyData> collimatorModelPolyData = vtkSmartPointer<vtkPolyData>::New();
-  collimatorModelPolyData->DeepCopy(collimatorModel->GetPolyData());
-
-  vtkSmartPointer<vtkPolyData> leftImagingPanelModelPolyData = vtkSmartPointer<vtkPolyData>::New();
-  leftImagingPanelModelPolyData->DeepCopy(leftImagingPanelModel->GetPolyData());
-
-  vtkSmartPointer<vtkPolyData> rightImagingPanelModelPolyData = vtkSmartPointer<vtkPolyData>::New();
-  rightImagingPanelModelPolyData->DeepCopy(rightImagingPanelModel->GetPolyData());
-
-  vtkSmartPointer<vtkPolyData> patientSupportModelPolyData = vtkSmartPointer<vtkPolyData>::New();
-  patientSupportModelPolyData->DeepCopy(patientSupportModel->GetPolyData());
-
-  vtkSmartPointer<vtkPolyData> tableTopModelPolyData = vtkSmartPointer<vtkPolyData>::New();
-  tableTopModelPolyData->DeepCopy(tableTopModel->GetPolyData());
-
+  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = 
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
   vtkSmartPointer<vtkTransformFilter> gantryTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
   gantryTransformFilter->SetInputData(gantryModelPolyData);
   vtkSmartPointer<vtkGeneralTransform> gantryToFixedReferenceTransform = vtkSmartPointer<vtkGeneralTransform>::New();
@@ -716,6 +795,14 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
   gantryTransformFilter->Update();
   gantryModelPolyData = vtkPolyData::SafeDownCast(gantryTransformFilter->GetOutput());
 
+  appendFilter->AddInputData(gantryModelPolyData);
+
+  // Collimator
+  vtkSmartPointer<vtkPolyData> collimatorModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+  collimatorModelPolyData->DeepCopy(collimatorModel->GetPolyData());
+
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
   vtkSmartPointer<vtkTransformFilter> collimatorTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
   collimatorTransformFilter->SetInputData(collimatorModelPolyData);
   vtkSmartPointer<vtkGeneralTransform> collimatorToGantryTransform = vtkSmartPointer<vtkGeneralTransform>::New();
@@ -725,24 +812,14 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
   collimatorTransformFilter->Update();
   collimatorModelPolyData = vtkPolyData::SafeDownCast(collimatorTransformFilter->GetOutput());
 
-  vtkSmartPointer<vtkTransformFilter> leftImagingPanelTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
-  leftImagingPanelTransformFilter->SetInputData(leftImagingPanelModelPolyData);
-  vtkSmartPointer<vtkGeneralTransform> leftImagingPanelToGantryTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-  leftImagingPanelToGantryTransformNode->GetTransformFromWorld(leftImagingPanelToGantryTransform);
-  leftImagingPanelToGantryTransform->Inverse();
-  leftImagingPanelTransformFilter->SetTransform(leftImagingPanelToGantryTransform);
-  leftImagingPanelTransformFilter->Update();
-  leftImagingPanelModelPolyData = vtkPolyData::SafeDownCast(leftImagingPanelTransformFilter->GetOutput());
+  appendFilter->AddInputData(collimatorModelPolyData);
 
-  vtkSmartPointer<vtkTransformFilter> rightImagingPanelTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
-  rightImagingPanelTransformFilter->SetInputData(rightImagingPanelModelPolyData);
-  vtkSmartPointer<vtkGeneralTransform> rightImagingPanelToGantryTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-  rightImagingPanelToGantryTransformNode->GetTransformFromWorld(rightImagingPanelToGantryTransform);
-  rightImagingPanelToGantryTransform->Inverse();
-  rightImagingPanelTransformFilter->SetTransform(rightImagingPanelToGantryTransform);
-  rightImagingPanelTransformFilter->Update();
-  rightImagingPanelModelPolyData = vtkPolyData::SafeDownCast(rightImagingPanelTransformFilter->GetOutput());
+  // Patient support
+  vtkSmartPointer<vtkPolyData> patientSupportModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+  patientSupportModelPolyData->DeepCopy(patientSupportModel->GetPolyData());
 
+  vtkMRMLLinearTransformNode* patientSupportToFixedReferenceTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::FixedReference);
   vtkSmartPointer<vtkTransformFilter> patientSupportTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
   patientSupportTransformFilter->SetInputData(patientSupportModelPolyData);
   vtkSmartPointer<vtkGeneralTransform> patientSupportToFixedReferenceTransform = vtkSmartPointer<vtkGeneralTransform>::New();
@@ -752,6 +829,14 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
   patientSupportTransformFilter->Update();
   patientSupportModelPolyData = vtkPolyData::SafeDownCast(patientSupportTransformFilter->GetOutput());
 
+  appendFilter->AddInputData(patientSupportModelPolyData);
+
+  // Table top
+  vtkSmartPointer<vtkPolyData> tableTopModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+  tableTopModelPolyData->DeepCopy(tableTopModel->GetPolyData());
+
+  vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
   vtkSmartPointer<vtkTransformFilter> tableTopTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
   tableTopTransformFilter->SetInputData(tableTopModelPolyData);
   vtkSmartPointer<vtkGeneralTransform> tableTopModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
@@ -761,9 +846,70 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
   tableTopTransformFilter->Update();
   tableTopModelPolyData = vtkPolyData::SafeDownCast(tableTopTransformFilter->GetOutput());
 
-  vtkPolyData* inputs[] = { gantryModelPolyData, collimatorModelPolyData, leftImagingPanelModelPolyData, rightImagingPanelModelPolyData, patientSupportModelPolyData, tableTopModelPolyData};
+  appendFilter->AddInputData(tableTopModelPolyData);
+
+  // Optional models
+  vtkMRMLModelNode* leftImagingPanelModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELLEFT_MODEL_NAME));
+  if (leftImagingPanelModel)
+  {
+    vtkSmartPointer<vtkPolyData> leftImagingPanelModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+    leftImagingPanelModelPolyData->DeepCopy(leftImagingPanelModel->GetPolyData());
+
+    vtkMRMLLinearTransformNode* leftImagingPanelToGantryTransformNode =
+      this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
+    vtkSmartPointer<vtkTransformFilter> leftImagingPanelTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+    leftImagingPanelTransformFilter->SetInputData(leftImagingPanelModelPolyData);
+    vtkSmartPointer<vtkGeneralTransform> leftImagingPanelToGantryTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+    leftImagingPanelToGantryTransformNode->GetTransformFromWorld(leftImagingPanelToGantryTransform);
+    leftImagingPanelToGantryTransform->Inverse();
+    leftImagingPanelTransformFilter->SetTransform(leftImagingPanelToGantryTransform);
+    leftImagingPanelTransformFilter->Update();
+    leftImagingPanelModelPolyData = vtkPolyData::SafeDownCast(leftImagingPanelTransformFilter->GetOutput());
+
+    appendFilter->AddInputData(leftImagingPanelModelPolyData);
+  }
+  vtkMRMLModelNode* rightImagingPanelModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELRIGHT_MODEL_NAME));
+  if (rightImagingPanelModel)
+  {
+    vtkSmartPointer<vtkPolyData> rightImagingPanelModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+    rightImagingPanelModelPolyData->DeepCopy(rightImagingPanelModel->GetPolyData());
+    
+    vtkMRMLLinearTransformNode* rightImagingPanelToGantryTransformNode =
+      this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
+    vtkSmartPointer<vtkTransformFilter> rightImagingPanelTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+    rightImagingPanelTransformFilter->SetInputData(rightImagingPanelModelPolyData);
+    vtkSmartPointer<vtkGeneralTransform> rightImagingPanelToGantryTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+    rightImagingPanelToGantryTransformNode->GetTransformFromWorld(rightImagingPanelToGantryTransform);
+    rightImagingPanelToGantryTransform->Inverse();
+    rightImagingPanelTransformFilter->SetTransform(rightImagingPanelToGantryTransform);
+    rightImagingPanelTransformFilter->Update();
+    rightImagingPanelModelPolyData = vtkPolyData::SafeDownCast(rightImagingPanelTransformFilter->GetOutput());
+
+    appendFilter->AddInputData(rightImagingPanelModelPolyData);
+  }
+  vtkMRMLModelNode* flatPanelModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(FLATPANEL_MODEL_NAME));
+  if (flatPanelModel)
+  {
+    vtkSmartPointer<vtkPolyData> flatPanelModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+    flatPanelModelPolyData->DeepCopy(flatPanelModel->GetPolyData());
+    
+    vtkMRMLLinearTransformNode* flatPanelToGantryTransformNode =
+      this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FlatPanel, vtkSlicerIECTransformLogic::Gantry);
+    vtkSmartPointer<vtkTransformFilter> flatPanelTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+    flatPanelTransformFilter->SetInputData(flatPanelModelPolyData);
+    vtkSmartPointer<vtkGeneralTransform> flatPanelToGantryTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+    flatPanelToGantryTransformNode->GetTransformFromWorld(flatPanelToGantryTransform);
+    flatPanelToGantryTransform->Inverse();
+    flatPanelTransformFilter->SetTransform(flatPanelToGantryTransform);
+    flatPanelTransformFilter->Update();
+    flatPanelModelPolyData = vtkPolyData::SafeDownCast(flatPanelTransformFilter->GetOutput());
+
+    appendFilter->AddInputData(flatPanelModelPolyData);
+  }
+
   vtkSmartPointer<vtkPolyData> orientationMarkerPolyData = vtkSmartPointer<vtkPolyData>::New();
-  appendFilter->ExecuteAppend(orientationMarkerPolyData,inputs,6);
+  appendFilter->Update();
+  orientationMarkerPolyData->DeepCopy(appendFilter->GetOutput());
 
   // Get or create orientation marker model node
   vtkSmartPointer<vtkMRMLModelNode> orientationMarkerModel =
@@ -861,7 +1007,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelToGantryTransform(v
   vtkMRMLModelNode* leftImagingPanelModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELLEFT_MODEL_NAME));
   if (!leftImagingPanelModel)
   {
-    vtkErrorMacro("UpdateLeftImagingPanelToGantryTransform: Invalid MRML model node");
+    vtkDebugMacro("UpdateLeftImagingPanelToGantryTransform: Optional imaging panel left model not found");
+    return;
   }
 
   // Translation to origin for in-place rotation
@@ -934,7 +1081,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelToGantryTransform(
   vtkMRMLModelNode* rightImagingPanelModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELRIGHT_MODEL_NAME));
   if (!rightImagingPanelModel)
   {
-    vtkErrorMacro("UpdateRightImagingPanelToGantryTransform: Invalid MRML model node");
+    vtkDebugMacro("UpdateRightImagingPanelToGantryTransform: Optional imaging panel right model not found");
+    return;
   }
   vtkPolyData* rightImagingPanelModelPolyData = rightImagingPanelModel->GetPolyData();
   double rightImagingPanelModelBounds[6] = { 0, 0, 0, 0, 0, 0 };

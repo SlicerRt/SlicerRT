@@ -5,8 +5,8 @@
 set(MACHINE_NAME AdditionalTreatmentModels)
 
 set(MACHINE_MODELS
-  ApplicatorHolderModel.stl
-  ElectronApplicatorModel.stl
+  ApplicatorHolder.stl
+  ElectronApplicator.stl
 )
 
 SlicerMacroConfigureTreatmentMachineComponentModels(

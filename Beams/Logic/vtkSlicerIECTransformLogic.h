@@ -61,6 +61,7 @@ public:
     PatientSupport,
     TableTopEccentricRotation,
     TableTop,
+    FlatPanel,
     LastIECCoordinateFrame // Last index used for adding more coordinate systems externally
   };
 
