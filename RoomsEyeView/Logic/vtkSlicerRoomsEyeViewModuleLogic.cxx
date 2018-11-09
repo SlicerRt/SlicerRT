@@ -232,7 +232,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(std::string ma
   std::string treatmentMachineModelsDirectory = moduleShareDirectory + "/" + machineType;
 
   // Create a models logic for convenient loading of components
-  vtkSmartPointer<vtkSlicerModelsLogic> modelsLogic = vtkSmartPointer<vtkSlicerModelsLogic>::New();
+  vtkNew<vtkSlicerModelsLogic> modelsLogic;
   modelsLogic->SetMRMLScene(scene);
 
   // Create model hierarchy so that the treatment machine can be shown/hidden easily
@@ -276,7 +276,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(std::string ma
     if (collimatorModelNode)
     {
       collimatorModelNode->SetSingletonTag(collimatorModelSingletonTag.c_str());
-      vtkSmartPointer<vtkMRMLModelHierarchyNode> collimatorModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      vtkNew<vtkMRMLModelHierarchyNode> collimatorModelHierarchyNode;
       scene->AddNode(collimatorModelHierarchyNode);
       collimatorModelHierarchyNode->SetModelNodeID(collimatorModelNode->GetID());
       collimatorModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
@@ -308,7 +308,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(std::string ma
     if (gantryModelNode)
     {
       gantryModelNode->SetSingletonTag(gantryModelSingletonTag.c_str());
-      vtkSmartPointer<vtkMRMLModelHierarchyNode> gantryModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      vtkNew<vtkMRMLModelHierarchyNode> gantryModelHierarchyNode;
       scene->AddNode(gantryModelHierarchyNode);
       gantryModelHierarchyNode->SetModelNodeID(gantryModelNode->GetID());
       gantryModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
@@ -340,7 +340,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(std::string ma
     if (patientSupportModelNode)
     {
       patientSupportModelNode->SetSingletonTag(patientSupportModelSingletonTag.c_str());
-      vtkSmartPointer<vtkMRMLModelHierarchyNode> patientSupportModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      vtkNew<vtkMRMLModelHierarchyNode> patientSupportModelHierarchyNode;
       scene->AddNode(patientSupportModelHierarchyNode);
       patientSupportModelHierarchyNode->SetModelNodeID(patientSupportModelNode->GetID());
       patientSupportModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
@@ -372,7 +372,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(std::string ma
     if (tableTopModelNode)
     {
       tableTopModelNode->SetSingletonTag(tableTopModelSingletonTag.c_str());
-      vtkSmartPointer<vtkMRMLModelHierarchyNode> tableTopModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      vtkNew<vtkMRMLModelHierarchyNode> tableTopModelHierarchyNode;
       scene->AddNode(tableTopModelHierarchyNode);
       tableTopModelHierarchyNode->SetModelNodeID(tableTopModelNode->GetID());
       tableTopModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
@@ -404,7 +404,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(std::string ma
     if (linacBodyModelNode)
     {
       linacBodyModelNode->SetSingletonTag(linacBodyModelSingletonTag.c_str());
-      vtkSmartPointer<vtkMRMLModelHierarchyNode> linacBodyModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      vtkNew<vtkMRMLModelHierarchyNode> linacBodyModelHierarchyNode;
       scene->AddNode(linacBodyModelHierarchyNode);
       linacBodyModelHierarchyNode->SetModelNodeID(linacBodyModelNode->GetID());
       linacBodyModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
@@ -432,7 +432,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(std::string ma
     if (imagingPanelLeftModelNode)
     {
       imagingPanelLeftModelNode->SetSingletonTag(imagingPanelLeftModelSingletonTag.c_str());
-      vtkSmartPointer<vtkMRMLModelHierarchyNode> imagingPanelLeftModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      vtkNew<vtkMRMLModelHierarchyNode> imagingPanelLeftModelHierarchyNode;
       scene->AddNode(imagingPanelLeftModelHierarchyNode);
       imagingPanelLeftModelHierarchyNode->SetModelNodeID(imagingPanelLeftModelNode->GetID());
       imagingPanelLeftModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
@@ -460,7 +460,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(std::string ma
     if (imagingPanelRightModelNode)
     {
       imagingPanelRightModelNode->SetSingletonTag(imagingPanelRightModelSingletonTag.c_str());
-      vtkSmartPointer<vtkMRMLModelHierarchyNode> imagingPanelRightModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      vtkNew<vtkMRMLModelHierarchyNode> imagingPanelRightModelHierarchyNode;
       scene->AddNode(imagingPanelRightModelHierarchyNode);
       imagingPanelRightModelHierarchyNode->SetModelNodeID(imagingPanelRightModelNode->GetID());
       imagingPanelRightModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
@@ -488,7 +488,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(std::string ma
     if (flatPanelModelNode)
     {
       flatPanelModelNode->SetSingletonTag(flatPanelModelSingletonTag.c_str());
-      vtkSmartPointer<vtkMRMLModelHierarchyNode> flatPanelModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      vtkNew<vtkMRMLModelHierarchyNode> flatPanelModelHierarchyNode;
       scene->AddNode(flatPanelModelHierarchyNode);
       flatPanelModelHierarchyNode->SetModelNodeID(flatPanelModelNode->GetID());
       flatPanelModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
@@ -646,7 +646,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
   this->GantryPatientCollisionDetection->SetInput(0, gantryModel->GetPolyData());
   this->CollimatorPatientCollisionDetection->SetInput(0, collimatorModel->GetPolyData());
   // Set identity transform for patient (parent transform is taken into account when getting poly data from segmentation)
-  vtkSmartPointer<vtkTransform> identityTransform = vtkSmartPointer<vtkTransform>::New();
+  vtkNew<vtkTransform> identityTransform;
   identityTransform->Identity();
   this->GantryPatientCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(identityTransform));
   this->CollimatorPatientCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(identityTransform));
@@ -665,15 +665,15 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadBasicCollimatorMountedDevices()
   std::string additionalDevicesDirectory = moduleShareDirectory + "/" + "AdditionalTreatmentModels";
 
   // Create a models logic for convenient loading of components
-  vtkSmartPointer<vtkSlicerModelsLogic> modelsLogic = vtkSmartPointer<vtkSlicerModelsLogic>::New();
+  vtkNew<vtkSlicerModelsLogic> modelsLogic;
   modelsLogic->SetMRMLScene(this->GetMRMLScene());
 
   // Create model hierarchy so that the treatment machine can be shown/hidden easily
-  vtkSmartPointer<vtkMRMLModelHierarchyNode> rootModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  vtkNew<vtkMRMLModelHierarchyNode> rootModelHierarchyNode;
   this->GetMRMLScene()->AddNode(rootModelHierarchyNode);
   rootModelHierarchyNode->SetName("Additional treatment machine devices");
 
-  vtkSmartPointer<vtkMRMLModelDisplayNode> rootModelHierarchyDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+  vtkNew<vtkMRMLModelDisplayNode> rootModelHierarchyDisplayNode;
   this->GetMRMLScene()->AddNode(rootModelHierarchyDisplayNode);
   rootModelHierarchyNode->SetAndObserveDisplayNodeID( rootModelHierarchyDisplayNode->GetID() );
 
@@ -681,7 +681,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadBasicCollimatorMountedDevices()
   // Load basic additional device models
   std::string applicatorHolderModelFilePath = additionalDevicesDirectory + "/" + APPLICATORHOLDER_MODEL_NAME + ".stl";
   vtkMRMLModelNode* applicatorHolderModelNode = modelsLogic->AddModel(applicatorHolderModelFilePath.c_str());
-  vtkSmartPointer<vtkMRMLModelHierarchyNode> applicatorHolderModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  vtkNew<vtkMRMLModelHierarchyNode> applicatorHolderModelHierarchyNode;
   this->GetMRMLScene()->AddNode(applicatorHolderModelHierarchyNode);
   applicatorHolderModelHierarchyNode->SetModelNodeID(applicatorHolderModelNode->GetID());
   applicatorHolderModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
@@ -690,7 +690,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadBasicCollimatorMountedDevices()
 
   std::string electronApplicatorModelFilePath = additionalDevicesDirectory + "/" + ELECTRONAPPLICATOR_MODEL_NAME + ".stl";
   vtkMRMLModelNode* electronApplicatorModelNode = modelsLogic->AddModel(electronApplicatorModelFilePath.c_str());
-  vtkSmartPointer<vtkMRMLModelHierarchyNode> electronApplicatorModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+  vtkNew<vtkMRMLModelHierarchyNode> electronApplicatorModelHierarchyNode;
   this->GetMRMLScene()->AddNode(electronApplicatorModelHierarchyNode);
   electronApplicatorModelHierarchyNode->SetModelNodeID(electronApplicatorModelNode->GetID());
   electronApplicatorModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
@@ -764,7 +764,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupBasicCollimatorMountedDeviceModels()
 //-----------------------------------------------------------------------------
 vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMarker()
 {
-  vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
+  vtkNew<vtkAppendPolyData> appendFilter;
 
   vtkMRMLModelNode* gantryModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(GANTRY_MODEL_NAME));
   vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(COLLIMATOR_MODEL_NAME));
@@ -781,133 +781,126 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
   // Mandatory models
   
   // Gantry
-  vtkSmartPointer<vtkPolyData> gantryModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+  vtkNew<vtkPolyData> gantryModelPolyData;
   gantryModelPolyData->DeepCopy(gantryModel->GetPolyData());
 
   vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = 
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
-  vtkSmartPointer<vtkTransformFilter> gantryTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+  vtkNew<vtkTransformFilter> gantryTransformFilter;
   gantryTransformFilter->SetInputData(gantryModelPolyData);
-  vtkSmartPointer<vtkGeneralTransform> gantryToFixedReferenceTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  vtkNew<vtkGeneralTransform> gantryToFixedReferenceTransform;
   gantryToFixedReferenceTransformNode->GetTransformFromWorld(gantryToFixedReferenceTransform);
   gantryToFixedReferenceTransform->Inverse();
   gantryTransformFilter->SetTransform(gantryToFixedReferenceTransform);
   gantryTransformFilter->Update();
-  gantryModelPolyData = vtkPolyData::SafeDownCast(gantryTransformFilter->GetOutput());
 
-  appendFilter->AddInputData(gantryModelPolyData);
+  appendFilter->AddInputData(vtkPolyData::SafeDownCast(gantryTransformFilter->GetOutput()));
 
   // Collimator
-  vtkSmartPointer<vtkPolyData> collimatorModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+  vtkNew<vtkPolyData> collimatorModelPolyData;
   collimatorModelPolyData->DeepCopy(collimatorModel->GetPolyData());
 
   vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
-  vtkSmartPointer<vtkTransformFilter> collimatorTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+  vtkNew<vtkTransformFilter> collimatorTransformFilter;
   collimatorTransformFilter->SetInputData(collimatorModelPolyData);
-  vtkSmartPointer<vtkGeneralTransform> collimatorToGantryTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  vtkNew<vtkGeneralTransform> collimatorToGantryTransform;
   collimatorToGantryTransformNode->GetTransformFromWorld(collimatorToGantryTransform);
   collimatorToGantryTransform->Inverse();
   collimatorTransformFilter->SetTransform(collimatorToGantryTransform);
   collimatorTransformFilter->Update();
-  collimatorModelPolyData = vtkPolyData::SafeDownCast(collimatorTransformFilter->GetOutput());
 
-  appendFilter->AddInputData(collimatorModelPolyData);
+  appendFilter->AddInputData(vtkPolyData::SafeDownCast(collimatorTransformFilter->GetOutput()));
 
   // Patient support
-  vtkSmartPointer<vtkPolyData> patientSupportModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+  vtkNew<vtkPolyData> patientSupportModelPolyData;
   patientSupportModelPolyData->DeepCopy(patientSupportModel->GetPolyData());
 
   vtkMRMLLinearTransformNode* patientSupportToPatientSupportRotationTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
-  vtkSmartPointer<vtkTransformFilter> patientSupportTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+  vtkNew<vtkTransformFilter> patientSupportTransformFilter;
   patientSupportTransformFilter->SetInputData(patientSupportModelPolyData);
-  vtkSmartPointer<vtkGeneralTransform> patientSupportToPatientSupportRotationTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  vtkNew<vtkGeneralTransform> patientSupportToPatientSupportRotationTransform;
   patientSupportToPatientSupportRotationTransformNode->GetTransformFromWorld(patientSupportToPatientSupportRotationTransform);
   patientSupportToPatientSupportRotationTransform->Inverse();
   patientSupportTransformFilter->SetTransform(patientSupportToPatientSupportRotationTransform);
   patientSupportTransformFilter->Update();
-  patientSupportModelPolyData = vtkPolyData::SafeDownCast(patientSupportTransformFilter->GetOutput());
 
-  appendFilter->AddInputData(patientSupportModelPolyData);
+  appendFilter->AddInputData(vtkPolyData::SafeDownCast(patientSupportTransformFilter->GetOutput()));
 
   // Table top
-  vtkSmartPointer<vtkPolyData> tableTopModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+  vtkNew<vtkPolyData> tableTopModelPolyData;
   tableTopModelPolyData->DeepCopy(tableTopModel->GetPolyData());
 
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
-  vtkSmartPointer<vtkTransformFilter> tableTopTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+  vtkNew<vtkTransformFilter> tableTopTransformFilter;
   tableTopTransformFilter->SetInputData(tableTopModelPolyData);
-  vtkSmartPointer<vtkGeneralTransform> tableTopModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  vtkNew<vtkGeneralTransform> tableTopModelTransform;
   tableTopToTableTopEccentricRotationTransformNode->GetTransformFromWorld(tableTopModelTransform);
   tableTopModelTransform->Inverse();
   tableTopTransformFilter->SetTransform(tableTopModelTransform);
   tableTopTransformFilter->Update();
-  tableTopModelPolyData = vtkPolyData::SafeDownCast(tableTopTransformFilter->GetOutput());
 
-  appendFilter->AddInputData(tableTopModelPolyData);
+  appendFilter->AddInputData(vtkPolyData::SafeDownCast(tableTopTransformFilter->GetOutput()));
 
   // Optional models
   vtkMRMLModelNode* leftImagingPanelModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELLEFT_MODEL_NAME));
   if (leftImagingPanelModel)
   {
-    vtkSmartPointer<vtkPolyData> leftImagingPanelModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+    vtkNew<vtkPolyData> leftImagingPanelModelPolyData;
     leftImagingPanelModelPolyData->DeepCopy(leftImagingPanelModel->GetPolyData());
 
     vtkMRMLLinearTransformNode* leftImagingPanelToGantryTransformNode =
       this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
-    vtkSmartPointer<vtkTransformFilter> leftImagingPanelTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+    vtkNew<vtkTransformFilter> leftImagingPanelTransformFilter;
     leftImagingPanelTransformFilter->SetInputData(leftImagingPanelModelPolyData);
-    vtkSmartPointer<vtkGeneralTransform> leftImagingPanelToGantryTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+    vtkNew<vtkGeneralTransform> leftImagingPanelToGantryTransform;
     leftImagingPanelToGantryTransformNode->GetTransformFromWorld(leftImagingPanelToGantryTransform);
     leftImagingPanelToGantryTransform->Inverse();
     leftImagingPanelTransformFilter->SetTransform(leftImagingPanelToGantryTransform);
     leftImagingPanelTransformFilter->Update();
-    leftImagingPanelModelPolyData = vtkPolyData::SafeDownCast(leftImagingPanelTransformFilter->GetOutput());
 
-    appendFilter->AddInputData(leftImagingPanelModelPolyData);
+    appendFilter->AddInputData(vtkPolyData::SafeDownCast(leftImagingPanelTransformFilter->GetOutput()));
   }
   vtkMRMLModelNode* rightImagingPanelModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(IMAGINGPANELRIGHT_MODEL_NAME));
   if (rightImagingPanelModel)
   {
-    vtkSmartPointer<vtkPolyData> rightImagingPanelModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+    vtkNew<vtkPolyData> rightImagingPanelModelPolyData;
     rightImagingPanelModelPolyData->DeepCopy(rightImagingPanelModel->GetPolyData());
     
     vtkMRMLLinearTransformNode* rightImagingPanelToGantryTransformNode =
       this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
-    vtkSmartPointer<vtkTransformFilter> rightImagingPanelTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+    vtkNew<vtkTransformFilter> rightImagingPanelTransformFilter;
     rightImagingPanelTransformFilter->SetInputData(rightImagingPanelModelPolyData);
-    vtkSmartPointer<vtkGeneralTransform> rightImagingPanelToGantryTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+    vtkNew<vtkGeneralTransform> rightImagingPanelToGantryTransform;
     rightImagingPanelToGantryTransformNode->GetTransformFromWorld(rightImagingPanelToGantryTransform);
     rightImagingPanelToGantryTransform->Inverse();
     rightImagingPanelTransformFilter->SetTransform(rightImagingPanelToGantryTransform);
     rightImagingPanelTransformFilter->Update();
-    rightImagingPanelModelPolyData = vtkPolyData::SafeDownCast(rightImagingPanelTransformFilter->GetOutput());
 
-    appendFilter->AddInputData(rightImagingPanelModelPolyData);
+    appendFilter->AddInputData(vtkPolyData::SafeDownCast(rightImagingPanelTransformFilter->GetOutput()));
   }
   vtkMRMLModelNode* flatPanelModel = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetFirstNodeByName(FLATPANEL_MODEL_NAME));
   if (flatPanelModel)
   {
-    vtkSmartPointer<vtkPolyData> flatPanelModelPolyData = vtkSmartPointer<vtkPolyData>::New();
+    vtkNew<vtkPolyData> flatPanelModelPolyData;
     flatPanelModelPolyData->DeepCopy(flatPanelModel->GetPolyData());
     
     vtkMRMLLinearTransformNode* flatPanelToGantryTransformNode =
       this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FlatPanel, vtkSlicerIECTransformLogic::Gantry);
-    vtkSmartPointer<vtkTransformFilter> flatPanelTransformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+    vtkNew<vtkTransformFilter> flatPanelTransformFilter;
     flatPanelTransformFilter->SetInputData(flatPanelModelPolyData);
-    vtkSmartPointer<vtkGeneralTransform> flatPanelToGantryTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+    vtkNew<vtkGeneralTransform> flatPanelToGantryTransform;
     flatPanelToGantryTransformNode->GetTransformFromWorld(flatPanelToGantryTransform);
     flatPanelToGantryTransform->Inverse();
     flatPanelTransformFilter->SetTransform(flatPanelToGantryTransform);
     flatPanelTransformFilter->Update();
-    flatPanelModelPolyData = vtkPolyData::SafeDownCast(flatPanelTransformFilter->GetOutput());
 
-    appendFilter->AddInputData(flatPanelModelPolyData);
+    appendFilter->AddInputData(vtkPolyData::SafeDownCast(flatPanelTransformFilter->GetOutput()));
   }
 
-  vtkSmartPointer<vtkPolyData> orientationMarkerPolyData = vtkSmartPointer<vtkPolyData>::New();
+  vtkNew<vtkPolyData> orientationMarkerPolyData;
   appendFilter->Update();
   orientationMarkerPolyData->DeepCopy(appendFilter->GetOutput());
 
@@ -964,12 +957,10 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRML
 
   vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
-  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
-    collimatorToGantryTransformNode->GetTransformToParent() );
 
-  collimatorToGantryTransform->Identity();
+  vtkNew<vtkTransform> collimatorToGantryTransform;
   collimatorToGantryTransform->RotateZ(parameterNode->GetCollimatorRotationAngle());
-  collimatorToGantryTransform->Modified();
+  collimatorToGantryTransformNode->SetAndObserveTransformToParent(collimatorToGantryTransform);
 }
 
 //----------------------------------------------------------------------------
@@ -983,17 +974,10 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateGantryToFixedReferenceTransform(vtk
 
   vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
-  vtkTransform* gantryToFixedReferenceTransform = vtkTransform::SafeDownCast(
-    gantryToFixedReferenceTransformNode->GetTransformToParent() );
   
-  gantryToFixedReferenceTransform->Identity();
+  vtkNew<vtkTransform> gantryToFixedReferenceTransform;
   gantryToFixedReferenceTransform->RotateY(parameterNode->GetGantryRotationAngle() * (-1.0));
-  gantryToFixedReferenceTransform->Modified();
-
-  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
-  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(
-    collimatorToGantryTransformNode->GetTransformToParent() );
+  gantryToFixedReferenceTransformNode->SetAndObserveTransformToParent(gantryToFixedReferenceTransform);
 }
 
 //-----------------------------------------------------------------------------
@@ -1028,12 +1012,11 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelToGantryTransform(v
     leftImagingPanelTranslationToOrigin[i] = (-1.0) * leftImagingPanelTranslationFromOrigin[i];
   }
 
-  vtkSmartPointer<vtkTransform> leftImagingPanelToRasTransform = vtkSmartPointer<vtkTransform>::New();
-  leftImagingPanelToRasTransform->Identity();
+  vtkNew<vtkTransform> leftImagingPanelToRasTransform;
   leftImagingPanelToRasTransform->Translate(leftImagingPanelTranslationToOrigin);
 
   // Rotation
-  vtkSmartPointer<vtkTransform> rasToRotatedRasTransform = vtkSmartPointer<vtkTransform>::New();
+  vtkNew<vtkTransform> rasToRotatedRasTransform;
   double panelMovement = parameterNode->GetImagingPanelMovement();
   if (panelMovement > 0)
   {
@@ -1045,11 +1028,11 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelToGantryTransform(v
   }
 
   // Translation back from origin after in-place rotation
-  vtkSmartPointer<vtkTransform> rotatedRasToRotatedLeftImagingPanelTransform = vtkSmartPointer<vtkTransform>::New();
+  vtkNew<vtkTransform> rotatedRasToRotatedLeftImagingPanelTransform;
   rotatedRasToRotatedLeftImagingPanelTransform->Translate(leftImagingPanelTranslationFromOrigin);
 
   // Translation
-  vtkSmartPointer<vtkTransform> rotatedLeftImagingPanelToGantryTransform = vtkSmartPointer<vtkTransform>::New();
+  vtkNew<vtkTransform> rotatedLeftImagingPanelToGantryTransform;
   if (panelMovement > 0)
   {
     double translationArray[3] = { 0, -(panelMovement), 0 };
@@ -1059,15 +1042,13 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelToGantryTransform(v
   // Assemble transform and update node
   vtkMRMLLinearTransformNode* leftImagingPanelToGantryTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
-  vtkTransform* leftImagingPanelToGantryTransform = vtkTransform::SafeDownCast(
-    leftImagingPanelToGantryTransformNode->GetTransformToParent() );
-  leftImagingPanelToGantryTransform->Identity();
+  vtkNew<vtkTransform> leftImagingPanelToGantryTransform;
   leftImagingPanelToGantryTransform->PostMultiply();
   leftImagingPanelToGantryTransform->Concatenate(leftImagingPanelToRasTransform);
   leftImagingPanelToGantryTransform->Concatenate(rasToRotatedRasTransform);
   leftImagingPanelToGantryTransform->Concatenate(rotatedRasToRotatedLeftImagingPanelTransform);
   leftImagingPanelToGantryTransform->Concatenate(rotatedLeftImagingPanelToGantryTransform);
-  leftImagingPanelToGantryTransform->Modified();
+  leftImagingPanelToGantryTransformNode->SetAndObserveTransformToParent(leftImagingPanelToGantryTransform);
 }
 
 //-----------------------------------------------------------------------------
@@ -1100,12 +1081,11 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelToGantryTransform(
     rightImagingPanelTranslationToOrigin[i] = (-1.0) * rightImagingPanelTranslationFromOrigin[i];
   }
 
-  vtkSmartPointer<vtkTransform> rightImagingPanelToRasTransform = vtkSmartPointer<vtkTransform>::New();
-  rightImagingPanelToRasTransform->Identity();
+  vtkNew<vtkTransform> rightImagingPanelToRasTransform;
   rightImagingPanelToRasTransform->Translate(rightImagingPanelTranslationToOrigin);
 
   // Rotation
-  vtkSmartPointer<vtkTransform> rasToRotatedRasTransform = vtkSmartPointer<vtkTransform>::New();
+  vtkNew<vtkTransform> rasToRotatedRasTransform;
   double panelMovement = parameterNode->GetImagingPanelMovement();
   if (panelMovement > 0)
   {
@@ -1117,11 +1097,11 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelToGantryTransform(
   }
   
   // Translation back from origin after in-place rotation
-  vtkSmartPointer<vtkTransform> rotatedRasToRotatedRightImagingPanelTransform = vtkSmartPointer<vtkTransform>::New();
+  vtkNew<vtkTransform> rotatedRasToRotatedRightImagingPanelTransform;
   rotatedRasToRotatedRightImagingPanelTransform->Translate(rightImagingPanelTranslationFromOrigin);
 
   // Translation
-  vtkSmartPointer<vtkTransform> rotatedRightImagingPanelToGantryTransform = vtkSmartPointer<vtkTransform>::New();
+  vtkNew<vtkTransform> rotatedRightImagingPanelToGantryTransform;
   if (panelMovement > 0)
   {
     double translationArray[3] = { 0, -(panelMovement), 0 };
@@ -1131,15 +1111,13 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelToGantryTransform(
   // Assemble transform and update node
   vtkMRMLLinearTransformNode* rightImagingPanelToGantryTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
-  vtkTransform* rightImagingPanelToGantryTransform = vtkTransform::SafeDownCast(
-    rightImagingPanelToGantryTransformNode->GetTransformToParent() );
-  rightImagingPanelToGantryTransform->Identity();
+  vtkNew<vtkTransform> rightImagingPanelToGantryTransform;
   rightImagingPanelToGantryTransform->PostMultiply();
   rightImagingPanelToGantryTransform->Concatenate(rightImagingPanelToRasTransform);
   rightImagingPanelToGantryTransform->Concatenate(rasToRotatedRasTransform);
   rightImagingPanelToGantryTransform->Concatenate(rotatedRasToRotatedRightImagingPanelTransform);
   rightImagingPanelToGantryTransform->Concatenate(rotatedRightImagingPanelToGantryTransform);
-  rightImagingPanelToGantryTransform->Modified();
+  rightImagingPanelToGantryTransformNode->SetAndObserveTransformToParent(rightImagingPanelToGantryTransform);
 }
 
 //-----------------------------------------------------------------------------
@@ -1166,13 +1144,11 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportRotationToFixedRefere
 
   vtkMRMLLinearTransformNode* patientSupportRotationToFixedReferenceTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference);
-  vtkTransform* patientSupportToRotatedPatientSupportTransform = vtkTransform::SafeDownCast(
-    patientSupportRotationToFixedReferenceTransformNode->GetTransformToParent() );
   
   double rotationAngle = parameterNode->GetPatientSupportRotationAngle();
-  patientSupportToRotatedPatientSupportTransform->Identity();
+  vtkNew<vtkTransform> patientSupportToRotatedPatientSupportTransform;
   patientSupportToRotatedPatientSupportTransform->RotateZ(rotationAngle);
-  patientSupportToRotatedPatientSupportTransform->Modified();
+  patientSupportRotationToFixedReferenceTransformNode->SetAndObserveTransformToParent(patientSupportToRotatedPatientSupportTransform);
 }
 
 //-----------------------------------------------------------------------------
@@ -1194,8 +1170,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToPatientSupportRotat
   patientSupportModelPolyData->GetBounds(patientSupportModelBounds);
 
   // Translation to origin for in-place vertical scaling
-  vtkSmartPointer<vtkTransform> patientSupportRotationToRasTransform = vtkSmartPointer<vtkTransform>::New();
-  patientSupportRotationToRasTransform->Identity();
+  vtkNew<vtkTransform> patientSupportRotationToRasTransform;
   double patientSupportTranslationToOrigin[3] = { 0, 0, (-1.0) * patientSupportModelBounds[4]}; //TODO: Subtract [1]?
   patientSupportRotationToRasTransform->Translate(patientSupportTranslationToOrigin);
 
@@ -1203,28 +1178,24 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToPatientSupportRotat
   double scaleFactor = fabs((patientSupportModelBounds[4] + patientSupportModelBounds[5]) / 2);
   double tableTopDisplacement = parameterNode->GetVerticalTableTopDisplacement();
 
-  vtkSmartPointer<vtkTransform> rasToScaledRasTransform = vtkSmartPointer<vtkTransform>::New();
-  rasToScaledRasTransform->Identity();
+  vtkNew<vtkTransform> rasToScaledRasTransform;
   //TODO: Magic number
   rasToScaledRasTransform->Scale(1, 1, ((fabs(patientSupportModelBounds[5]) + tableTopDisplacement*0.525) / fabs(patientSupportModelBounds[5]))); //TODO: Subtract [2]?
 
   // Translation back from origin after in-place scaling
-  vtkSmartPointer<vtkTransform> scaledRasToFixedReferenceTransform = vtkSmartPointer<vtkTransform>::New();
-  scaledRasToFixedReferenceTransform->Identity();
+  vtkNew<vtkTransform> scaledRasToFixedReferenceTransform;
   double patientSupportTranslationFromOrigin[3] = { 0, 0, patientSupportModelBounds[4] }; //TODO: Subtract [1]?
   scaledRasToFixedReferenceTransform->Translate(patientSupportTranslationFromOrigin);
 
   // Assemble transform and update node
   vtkMRMLLinearTransformNode* patientSupportToPatientSupportRotationTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
-  vtkTransform* patientSupportToFixedReferenceTransform = vtkTransform::SafeDownCast(
-    patientSupportToPatientSupportRotationTransformNode->GetTransformToParent() );
-  patientSupportToFixedReferenceTransform->Identity();
+  vtkNew<vtkTransform> patientSupportToFixedReferenceTransform;
   patientSupportToFixedReferenceTransform->PostMultiply();
   patientSupportToFixedReferenceTransform->Concatenate(patientSupportRotationToRasTransform);
   patientSupportToFixedReferenceTransform->Concatenate(rasToScaledRasTransform);
   patientSupportToFixedReferenceTransform->Concatenate(scaledRasToFixedReferenceTransform);
-  patientSupportToFixedReferenceTransform->Modified();
+  patientSupportToPatientSupportRotationTransformNode->SetAndObserveTransformToParent(patientSupportToFixedReferenceTransform);
 }
 
 //-----------------------------------------------------------------------------
@@ -1247,10 +1218,14 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateTableTopToTableTopEccentricRotation
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(
     tableTopToTableTopEccentricRotationTransformNode->GetTransformToParent() );
 
-  tableTopEccentricRotationToPatientSupportTransform->Identity();
   double translationArray[3] =
     { parameterNode->GetLateralTableTopDisplacement(), parameterNode->GetLongitudinalTableTopDisplacement(), parameterNode->GetVerticalTableTopDisplacement() };
-  tableTopEccentricRotationToPatientSupportTransform->Translate(translationArray);
+  
+  vtkNew<vtkMatrix4x4> tableTopEccentricRotationToPatientSupportMatrix;
+  tableTopEccentricRotationToPatientSupportMatrix->SetElement(0,3, translationArray[0]);
+  tableTopEccentricRotationToPatientSupportMatrix->SetElement(1,3, translationArray[1]);
+  tableTopEccentricRotationToPatientSupportMatrix->SetElement(2,3, translationArray[2]);
+  tableTopEccentricRotationToPatientSupportTransform->SetMatrix(tableTopEccentricRotationToPatientSupportMatrix);
   tableTopEccentricRotationToPatientSupportTransform->Modified();
 }
 
@@ -1271,8 +1246,11 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateAdditionalCollimatorDevicesToCollim
   double translationArray[3] = { parameterNode->GetAdditionalModelLateralDisplacement(), parameterNode->GetAdditionalModelLongitudinalDisplacement(),
     parameterNode->GetAdditionalModelVerticalDisplacement() };
 
-  additionalCollimatorDeviceToCollimatorTransform->Identity();
-  additionalCollimatorDeviceToCollimatorTransform->Translate(translationArray);
+  vtkNew<vtkMatrix4x4> additionalCollimatorDeviceToCollimatorMatrix;
+  additionalCollimatorDeviceToCollimatorMatrix->SetElement(0,3, translationArray[0]);
+  additionalCollimatorDeviceToCollimatorMatrix->SetElement(1,3, translationArray[1]);
+  additionalCollimatorDeviceToCollimatorMatrix->SetElement(2,3, translationArray[2]);
+  additionalCollimatorDeviceToCollimatorTransform->SetMatrix(additionalCollimatorDeviceToCollimatorMatrix);
   additionalCollimatorDeviceToCollimatorTransform->Modified();
 }
 
@@ -1349,21 +1327,21 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
   }
 
   // Get transforms to world, make sure they are linear
-  vtkSmartPointer<vtkGeneralTransform> gantryToRasGeneralTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  vtkNew<vtkGeneralTransform> gantryToRasGeneralTransform;
   gantryToFixedReferenceTransformNode->GetTransformToWorld(gantryToRasGeneralTransform);
-  vtkSmartPointer<vtkTransform> gantryToRasTransform = vtkSmartPointer<vtkTransform>::New();
+  vtkNew<vtkTransform> gantryToRasTransform;
 
-  vtkSmartPointer<vtkGeneralTransform> patientSupportToRasGeneralTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  vtkNew<vtkGeneralTransform> patientSupportToRasGeneralTransform;
   patientSupportToPatientSupportRotationTransformNode->GetTransformToWorld(patientSupportToRasGeneralTransform);
-  vtkSmartPointer<vtkTransform> patientSupportToRasTransform = vtkSmartPointer<vtkTransform>::New();
+  vtkNew<vtkTransform> patientSupportToRasTransform;
 
-  vtkSmartPointer<vtkGeneralTransform> collimatorToRasGeneralTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  vtkNew<vtkGeneralTransform> collimatorToRasGeneralTransform;
   collimatorToGantryTransformNode->GetTransformToWorld(collimatorToRasGeneralTransform);
-  vtkSmartPointer<vtkTransform> collimatorToRasTransform = vtkSmartPointer<vtkTransform>::New();
+  vtkNew<vtkTransform> collimatorToRasTransform ;
 
-  vtkSmartPointer<vtkGeneralTransform> tableTopToRasGeneralTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  vtkNew<vtkGeneralTransform> tableTopToRasGeneralTransform;
   tableTopToTableTopEccentricRotationTransformNode->GetTransformToWorld(tableTopToRasGeneralTransform);
-  vtkSmartPointer<vtkTransform> tableTopToRasTransform = vtkSmartPointer<vtkTransform>::New();
+  vtkNew<vtkTransform> tableTopToRasTransform;
 
   if ( !vtkMRMLTransformNode::IsGeneralTransformLinear(gantryToRasGeneralTransform, gantryToRasTransform)
     || !vtkMRMLTransformNode::IsGeneralTransformLinear(patientSupportToRasGeneralTransform, patientSupportToRasTransform)
@@ -1415,7 +1393,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
   //}
 
   // Get patient body poly data
-  vtkSmartPointer<vtkPolyData> patientBodyPolyData = vtkSmartPointer<vtkPolyData>::New();
+  vtkNew<vtkPolyData> patientBodyPolyData;
   if (this->GetPatientBodyPolyData(parameterNode, patientBodyPolyData))
   {
     this->GantryPatientCollisionDetection->SetInput(1, patientBodyPolyData);

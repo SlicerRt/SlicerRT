@@ -176,7 +176,7 @@
       <item row="5" column="0">
        <widget class="QLabel" name="LongitudinalTableTopDisplacementLabel">
         <property name="text">
-         <string>Table top (longitudinal:</string>
+         <string>Table top (longitudinal):</string>
         </property>
        </widget>
       </item>
