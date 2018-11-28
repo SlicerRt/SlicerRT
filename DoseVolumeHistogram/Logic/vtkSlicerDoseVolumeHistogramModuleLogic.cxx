@@ -1050,7 +1050,7 @@ vtkMRMLPlotSeriesNode* vtkSlicerDoseVolumeHistogramModuleLogic::IsDvhAddedToChar
   if (!this->GetMRMLScene() || !chartNode || !tableNode)
   {
     vtkErrorMacro("IsDvhAddedToChart: Invalid MRML scene, chart node, or DVH node");
-    return false;
+    return NULL;
   }
 
   // Find plot series node currently shown in chart for a DVH table
