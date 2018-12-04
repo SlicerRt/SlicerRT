@@ -71,7 +71,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // TemporarySceneFile
@@ -91,7 +91,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // BaselineIsodoseSurfaceFile
@@ -111,7 +111,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
   // VolumeDifferenceToleranceCc
@@ -127,7 +127,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   }
   else
   {
-    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Invalid arguments" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -162,7 +162,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   if (doseVolumeNodes->GetNumberOfItems() != 1)
   {
     mrmlScene->Commit();
-    std::cerr << "ERROR: Failed to get dose volume!" << std::endl;
+    std::cerr << "ERROR: Failed to get dose volume" << std::endl;
     return EXIT_FAILURE;
   }
   vtkMRMLScalarVolumeNode* doseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
@@ -177,7 +177,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   if (!isodoseColorNode)
   {
     mrmlScene->Commit();
-    std::cerr << "ERROR: Failed to create default isodose color table!" << std::endl;
+    std::cerr << "ERROR: Failed to create default isodose color table" << std::endl;
     return EXIT_FAILURE;
   }
   isodoseColorNode->SetNumberOfColors(1);
@@ -191,24 +191,30 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   // Compute isodose
   isodoseLogic->CreateIsodoseSurfaces(paramNode);
 
-  vtkMRMLModelHierarchyNode* modelHierarchyRootNode = isodoseLogic->GetRootModelHierarchyNode(paramNode);
-  if (modelHierarchyRootNode == NULL)
+  vtkIdType isodoseFolderitemID = isodoseLogic->GetIsodoseFolderItemID(paramNode);
+  if (!isodoseFolderitemID)
   {
     mrmlScene->Commit();
-    std::cerr << "Invalid model hierarchy node!" << std::endl;
+    std::cerr << "No isodose subject hierarchy folder created" << std::endl;
     return EXIT_FAILURE;
   }
   
   mrmlScene->Commit();
 
-  std::vector< vtkMRMLHierarchyNode* > childrenNodes;
-  childrenNodes = modelHierarchyRootNode->GetChildrenNodes();
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(childrenNodes[0]->GetAssociatedNode());
-  if (modelNode == NULL)
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(mrmlScene);
+  if (!shNode)
   {
-    std::cerr << "No model node in output model hierarchy node!" << std::endl;
+    std::cerr << "Failed to access subject hierarchy node";
     return EXIT_FAILURE;
   }
+  std::vector<vtkIdType> isodoseChildItemIDs;
+  shNode->GetItemChildren(isodoseFolderitemID, isodoseChildItemIDs, false);
+  if (isodoseChildItemIDs.size() == 0)
+  {
+    std::cerr << "No items in isodose folder" << std::endl;
+    return EXIT_FAILURE;
+  }
+  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(shNode->GetItemDataNode(isodoseChildItemIDs[0]));
 
   vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
   reader->SetFileName(baselineIsodoseSurfaceFileName);
@@ -225,7 +231,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
 
   if (fabs(propertiesBaseline->GetVolume() - propertiesCurrent->GetVolume()) > volumeDifferenceToleranceCc)
   {
-    std::cerr << "Volume difference Tolerance(Cc) exceeds threshold!" << std::endl;
+    std::cerr << "Volume difference Tolerance(Cc) exceeds threshold" << std::endl;
     return EXIT_FAILURE;
   }
 

@@ -60,11 +60,16 @@ public:
   /// Accumulates dose volumes with the given IDs and corresponding weights
   void CreateIsodoseSurfaces(vtkMRMLIsodoseNode* parameterNode);
 
-  /// Get dose volume node
-  vtkMRMLModelHierarchyNode* GetRootModelHierarchyNode(vtkMRMLIsodoseNode* parameterNode);
+  /// Get isodose folder for a dose volume
+  /// \param node Dose volume node or isodose parameter node referencing the dose volume
+  /// \return Subject hierarchy item ID of the folder containing the isodose surfaces. 0 if not found
+  vtkIdType GetIsodoseFolderItemID(vtkMRMLNode* node);
 
   /// Make sure a dose volume has a valid associated isodose color table node
   vtkMRMLColorTableNode* SetupColorTableNodeForDoseVolumeNode(vtkMRMLScalarVolumeNode* doseVolumeNode);
+
+  /// Update dose volume color table from isodose levels
+  void UpdateDoseColorTableFromIsodose(vtkMRMLIsodoseNode* parameterNode);
 
 public:
   /// Creates default isodose color table. Gets and returns if already exists

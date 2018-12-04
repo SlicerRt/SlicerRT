@@ -182,3 +182,15 @@ void qSlicerSubjectHierarchyIsodosePlugin::editProperties(vtkIdType itemID)
     }
   }
 }
+
+//-----------------------------------------------------------------------------
+void qSlicerSubjectHierarchyIsodosePlugin::setDisplayColor(vtkIdType itemID, QColor color, QMap<int, QVariant> terminologyMetaData)
+{
+  qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Models")->setDisplayColor(itemID, color, terminologyMetaData);
+}
+
+//-----------------------------------------------------------------------------
+QColor qSlicerSubjectHierarchyIsodosePlugin::getDisplayColor(vtkIdType itemID, QMap<int, QVariant> &terminologyMetaData)const
+{
+  return qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Models")->getDisplayColor(itemID, terminologyMetaData);
+}

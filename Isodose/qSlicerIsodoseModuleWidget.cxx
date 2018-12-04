@@ -558,24 +558,31 @@ void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
   {
     return;
   }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->mrmlScene());
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+  }
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetShowIsodoseLines(visible);
   paramNode->DisableModifiedEventOff();
 
-  vtkMRMLModelHierarchyNode* modelHierarchyNode = d->logic()->GetRootModelHierarchyNode(paramNode);
-  if(!modelHierarchyNode)
+  vtkIdType isdoseFolderItemID = d->logic()->GetIsodoseFolderItemID(paramNode);
+  if (!isdoseFolderItemID)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid isodose surface models parent hierarchy node";
+    qCritical() << Q_FUNC_INFO << ": Invalid isodose surface models folder";
     return;
   }
 
-  vtkSmartPointer<vtkCollection> childModelNodes = vtkSmartPointer<vtkCollection>::New();
-  modelHierarchyNode->GetChildrenModelNodes(childModelNodes);
-  childModelNodes->InitTraversal();
-  for (int i=0; i<childModelNodes->GetNumberOfItems(); ++i)
+  std::vector<vtkIdType> childItemIDs;
+  shNode->GetItemChildren(isdoseFolderItemID, childItemIDs, false);
+  std::vector<vtkIdType>::iterator childIt;
+  for (childIt=childItemIDs.begin(); childIt!=childItemIDs.end(); ++childIt)
   {
-    vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(childModelNodes->GetItemAsObject(i));
+    vtkIdType childItemID = (*childIt);
+    vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(shNode->GetItemDataNode(childItemID));
     modelNode->GetDisplayNode()->SetSliceIntersectionVisibility(visible);
   }
 }
@@ -596,23 +603,31 @@ void qSlicerIsodoseModuleWidget::setIsosurfaceVisibility(bool visible)
   {
     return;
   }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->mrmlScene());
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+  }
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetShowIsodoseSurfaces(visible);
   paramNode->DisableModifiedEventOff();
 
-  vtkMRMLModelHierarchyNode* modelHierarchyNode = d->logic()->GetRootModelHierarchyNode(paramNode);
-  if(!modelHierarchyNode)
+  vtkIdType isdoseFolderItemID = d->logic()->GetIsodoseFolderItemID(paramNode);
+  if (!isdoseFolderItemID)
   {
+    qCritical() << Q_FUNC_INFO << ": Invalid isodose surface models folder";
     return;
   }
 
-  vtkSmartPointer<vtkCollection> childModelNodes = vtkSmartPointer<vtkCollection>::New();
-  modelHierarchyNode->GetChildrenModelNodes(childModelNodes);
-  childModelNodes->InitTraversal();
-  for (int i=0; i<childModelNodes->GetNumberOfItems(); ++i)
+  std::vector<vtkIdType> childItemIDs;
+  shNode->GetItemChildren(isdoseFolderItemID, childItemIDs, false);
+  std::vector<vtkIdType>::iterator childIt;
+  for (childIt=childItemIDs.begin(); childIt!=childItemIDs.end(); ++childIt)
   {
-    vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(childModelNodes->GetItemAsObject(i));
+    vtkIdType childItemID = (*childIt);
+    vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(shNode->GetItemDataNode(childItemID));
     modelNode->GetDisplayNode()->SetVisibility(visible);
   }
 }
@@ -718,21 +733,6 @@ void qSlicerIsodoseModuleWidget::applyClicked()
 
   // Compute the isodose surface for the selected dose volume
   d->logic()->CreateIsodoseSurfaces(paramNode);
-
-  // Add new model hierarchy under dose
-  // (cannot be done in the logic because automatic tests do not have automatic SH creation so there
-  // will be no SH item for the root model hierarchy node)
-  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->mrmlScene());
-  vtkIdType doseShItemID = shNode->GetItemByDataNode(paramNode->GetDoseVolumeNode());
-  vtkMRMLModelHierarchyNode* rootModelHierarchyNode = d->logic()->GetRootModelHierarchyNode(paramNode);
-  if (!doseShItemID || !rootModelHierarchyNode)
-  {
-    qWarning() << Q_FUNC_INFO << ": No root model hierarchy node. Creating isodose surfaces may have failed";
-  }
-  else
-  {
-    shNode->SetItemParent(shNode->GetItemByDataNode(rootModelHierarchyNode), doseShItemID);
-  }
 
   QApplication::restoreOverrideCursor();
 }

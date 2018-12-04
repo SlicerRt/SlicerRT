@@ -64,6 +64,15 @@ public:
   /// Open module belonging to item and set inputs in opened module
   Q_INVOKABLE virtual void editProperties(vtkIdType itemID);
 
+  /// Set display color of an owned subject hierarchy item
+  /// \param color Display color to set
+  /// \param terminologyMetaData Map containing terminology meta data
+  virtual void setDisplayColor(vtkIdType itemID, QColor color, QMap<int, QVariant> terminologyMetaData);
+
+  /// Get display color of an owned subject hierarchy item
+  /// \param terminologyMetaData Output map containing terminology meta data
+  virtual QColor getDisplayColor(vtkIdType itemID, QMap<int, QVariant> &terminologyMetaData)const;
+
 protected:
   QScopedPointer<qSlicerSubjectHierarchyIsodosePluginPrivate> d_ptr;
 

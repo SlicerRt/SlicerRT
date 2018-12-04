@@ -34,12 +34,11 @@
 // MRML includes
 #include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLModelDisplayNode.h>
-#include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLTransformNode.h>
-#include <vtkMRMLVolumeDisplayNode.h>
+#include <vtkMRMLScalarVolumeDisplayNode.h>
 
 // MRMLLogic includes
 #include <vtkMRMLColorLogic.h>
@@ -69,9 +68,6 @@ const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_PREFIX = 
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX = "IsodoseParameterSet_";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX = "_IsodoseSurfaces";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX = "_IsodoseColorTable";
-
-static const char* ISODOSE_ROOT_MODEL_HIERARCHY_REFERENCE_ROLE = "isodoseRootModelHierarchyRef";
-static const char* ISODOSE_ROOT_MODEL_HIERARCHY_DISPLAY_REFERENCE_ROLE = "isodoseRootModelHierarchyDisplayRef";
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
@@ -198,22 +194,64 @@ void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLModelHierarchyNode* vtkSlicerIsodoseModuleLogic::GetRootModelHierarchyNode(vtkMRMLIsodoseNode* parameterNode)
+vtkIdType vtkSlicerIsodoseModuleLogic::GetIsodoseFolderItemID(vtkMRMLNode* node)
 {
-  if (!this->GetMRMLScene() || !parameterNode)
+  if (!this->GetMRMLScene())
   {
-    vtkErrorMacro("GetRootModelHierarchyNode: Invalid scene or parameter set node");
-    return NULL;
+    vtkErrorMacro("GetIsodoseFolderItemID: Invalid scene");
+    return 0;
   }
-
-  vtkMRMLScalarVolumeNode* doseVolumeNode = parameterNode->GetDoseVolumeNode();
+  vtkMRMLScalarVolumeNode* doseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
   if (!doseVolumeNode)
   {
-    vtkErrorMacro("GetRootModelHierarchyNode: Invalid dose volume");
-    return NULL;
+    // If input is not a volume then check if it's a parameter node and get the dose volume from that
+    vtkMRMLIsodoseNode* parameterNode = vtkMRMLIsodoseNode::SafeDownCast(node);
+    if (!parameterNode)
+    {
+      vtkErrorMacro("GetIsodoseFolderItemID: Input node must be a dose volume node or an isodose parameter node");
+      return 0;
+    }
+    doseVolumeNode = parameterNode->GetDoseVolumeNode();
+  }
+  if (!doseVolumeNode)
+  {
+    vtkErrorMacro("GetIsodoseFolderItemID: Failed to get dose volume");
+    return 0;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
+  if (!shNode)
+  {
+    vtkErrorMacro("GetIsodoseFolderItemID: Failed to access subject hierarchy node");
+    return 0;
   }
 
-  return vtkMRMLModelHierarchyNode::SafeDownCast( doseVolumeNode->GetNodeReference(ISODOSE_ROOT_MODEL_HIERARCHY_REFERENCE_ROLE) );
+  vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
+  if (!doseShItemID)
+  {
+    vtkErrorMacro("GetIsodoseFolderItemID: Failed to find subject hierarchy item for dose volume");
+    return 0;
+  }
+  if (shNode->GetNumberOfItemChildren(doseShItemID) == 0)
+  {
+    // No isodose folder yet
+    return 0;
+  }
+
+  std::vector<vtkIdType> doseChildItemIDs;
+  shNode->GetItemChildren(doseShItemID, doseChildItemIDs, false);
+  std::vector<vtkIdType>::iterator childIt;
+  for (childIt=doseChildItemIDs.begin(); childIt!=doseChildItemIDs.end(); ++childIt)
+  {
+    vtkIdType childItemID = (*childIt);
+    std::string childItemName = shNode->GetItemName(childItemID);
+    std::string childItemNamePostfix = childItemName.substr(childItemName.size() - ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX.size());
+    if (!childItemNamePostfix.compare(ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX))
+    {
+      return childItemID;
+    }
+  }
+
+  return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -473,49 +511,22 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
 
   // Get subject hierarchy item for the dose volume
   vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
-  if (doseShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  if (!doseShItemID)
   {
     vtkErrorMacro("CreateIsodoseSurfaces: Failed to get subject hierarchy item for dose volume '" << doseVolumeNode->GetName() << "'");
+    return;
   }
 
-  // Setup model hierarchy node for the loaded structure set
-  vtkMRMLModelHierarchyNode* rootModelHierarchyNode = vtkMRMLModelHierarchyNode::SafeDownCast( doseVolumeNode->GetNodeReference(ISODOSE_ROOT_MODEL_HIERARCHY_REFERENCE_ROLE) );
-  if (rootModelHierarchyNode) // Remove existing hierarchy
+  // Check existing isodose set and remove if exists
+  vtkIdType isodoseFolderItemID = this->GetIsodoseFolderItemID(doseVolumeNode);
+  if (isodoseFolderItemID)
   {
-    std::vector<vtkMRMLHierarchyNode*> children = rootModelHierarchyNode->GetChildrenNodes(); 
-    for (unsigned int i=0; i<children.size(); i++)
-    {
-      vtkMRMLHierarchyNode* child = children[i];
-      vtkMRMLModelNode* mnode = vtkMRMLModelNode::SafeDownCast(child->GetAssociatedNode());
-      scene->RemoveNode(mnode);
-      scene->RemoveNode(child);
-    }
-    scene->RemoveNode(rootModelHierarchyNode);
+    shNode->RemoveItem(isodoseFolderItemID, true, true);
   }
-  rootModelHierarchyNode = vtkMRMLModelHierarchyNode::New();
-  scene->AddNode(rootModelHierarchyNode);
-  rootModelHierarchyNode->Delete();
-  std::string modelHierarchyNodeName = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX;
-  rootModelHierarchyNode->SetName(modelHierarchyNodeName.c_str());
-  doseVolumeNode->SetNodeReferenceID(ISODOSE_ROOT_MODEL_HIERARCHY_REFERENCE_ROLE, rootModelHierarchyNode->GetID());
- 
-  // Create new display node for the model hierarchy node
-  vtkMRMLModelDisplayNode* rootModelHierarchyDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(
-    doseVolumeNode->GetNodeReference(ISODOSE_ROOT_MODEL_HIERARCHY_DISPLAY_REFERENCE_ROLE) );
-  if (rootModelHierarchyDisplayNode)
-  {
-    scene->RemoveNode(rootModelHierarchyDisplayNode);
-  }
-  rootModelHierarchyDisplayNode = vtkMRMLModelDisplayNode::New();
-  scene->AddNode(rootModelHierarchyDisplayNode);
-  rootModelHierarchyDisplayNode->Delete();
-  rootModelHierarchyDisplayNode->SetName(modelHierarchyNodeName.c_str());
-  rootModelHierarchyDisplayNode->SetVisibility(1);
-  rootModelHierarchyNode->SetAndObserveDisplayNodeID( rootModelHierarchyDisplayNode->GetID() );
-  doseVolumeNode->SetNodeReferenceID(ISODOSE_ROOT_MODEL_HIERARCHY_DISPLAY_REFERENCE_ROLE, rootModelHierarchyDisplayNode->GetID() );
 
-  // Remove previous isodoses
-  shNode->RemoveItemChildren(doseShItemID, true, false);
+  // Setup isodose subject hierarchy folder
+  std::string isodoseFolderName = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX;
+  isodoseFolderItemID = shNode->CreateFolderItem(doseShItemID, isodoseFolderName);
 
   // Get color table
   vtkMRMLColorTableNode* colorTableNode = parameterNode->GetColorTableNode();
@@ -638,30 +649,116 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
         doseShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
 
       vtkSmartPointer<vtkMRMLModelNode> isodoseModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
-      isodoseModelNode = vtkMRMLModelNode::SafeDownCast(scene->AddNode(isodoseModelNode));
       std::string isodoseModelNodeName = vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_PREFIX + strIsoLevel + doseUnitName;
       isodoseModelNode->SetName(isodoseModelNodeName.c_str());
+      isodoseModelNode->SetSelectable(1);
+      isodoseModelNode->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1"); // The attribute above distinguishes isodoses from regular models
+      scene->AddNode(isodoseModelNode);
       isodoseModelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
       isodoseModelNode->SetAndObservePolyData(transformPolyData->GetOutput());
-      isodoseModelNode->SetSelectable(1);
-      isodoseModelNode->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
-      shNode->RequestOwnerPluginSearch(isodoseModelNode); // The attribute above distinguishes isodoses from regular models
+      shNode->RequestOwnerPluginSearch(isodoseModelNode); //TODO: Why is this needed?
 
-      // Put the new node in the model hierarchy
-      vtkSmartPointer<vtkMRMLModelHierarchyNode> isodoseModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-      scene->AddNode(isodoseModelHierarchyNode);
-      std::string modelHierarchyNodeName = std::string(isodoseModelNodeName) + vtkSlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
-      isodoseModelHierarchyNode->SetName(modelHierarchyNodeName.c_str());
-      isodoseModelHierarchyNode->SetModelNodeID(isodoseModelNode->GetID());
-      isodoseModelHierarchyNode->SetParentNodeID(rootModelHierarchyNode->GetID());
-      isodoseModelHierarchyNode->HideFromEditorsOn();
+      // Put the new node in the isodose folder
+      vtkIdType isodoseModelItemID = shNode->GetItemByDataNode(isodoseModelNode);
+      if (isodoseModelItemID) // There is no automatic SH creation in automatic tests 
+      {
+        shNode->SetItemParent(isodoseModelItemID, isodoseFolderItemID);
+      }
     }
 
     // Report progress
     ++currentProgressStep;
     progress = (double)(currentProgressStep) / (double)progressStepCount;
     this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progress);
+  } // For all isodose levels
+
+  // Update dose color table based on isodose
+  this->UpdateDoseColorTableFromIsodose(parameterNode);
+
+  scene->EndState(vtkMRMLScene::BatchProcessState);
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerIsodoseModuleLogic::UpdateDoseColorTableFromIsodose(vtkMRMLIsodoseNode* parameterNode)
+{
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  if (!scene || !parameterNode)
+  {
+    vtkErrorMacro("UpdateDoseColorTableFromIsodose: Invalid scene or parameter set node");
+    return;
   }
 
-  scene->EndState(vtkMRMLScene::BatchProcessState); 
+  vtkMRMLScalarVolumeNode* doseVolumeNode = parameterNode->GetDoseVolumeNode();
+  if (!doseVolumeNode || !doseVolumeNode->GetImageData())
+  {
+    vtkErrorMacro("UpdateDoseColorTableFromIsodose: Invalid dose volume");
+    return;
+  }
+  vtkMRMLScalarVolumeDisplayNode* doseVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(
+    doseVolumeNode->GetDisplayNode() );
+  if (!doseVolumeDisplayNode)
+  {
+    vtkErrorMacro("UpdateDoseColorTableFromIsodose: Failed to get display node for dose volume" << doseVolumeNode->GetName());
+    return;
+  }
+
+  // Look for associated isodose color table
+  vtkMRMLColorTableNode* isodoseColorTableNode = vtkMRMLColorTableNode::SafeDownCast(
+    doseVolumeNode->GetNodeReference(vtkMRMLIsodoseNode::COLOR_TABLE_REFERENCE_ROLE) );
+  if (!isodoseColorTableNode)
+  {
+    vtkDebugMacro("UpdateDoseColorTableFromIsodose: No isodose color table for dose volume " << doseVolumeNode->GetName());
+    return;
+  }
+
+  // Get dose color table associated to isodose color table
+  vtkMRMLColorTableNode* doseColorTableNode = vtkMRMLColorTableNode::SafeDownCast(
+    isodoseColorTableNode->GetNodeReference(vtkMRMLIsodoseNode::COLOR_TABLE_REFERENCE_ROLE) );
+  if (!doseColorTableNode)
+  {
+    doseColorTableNode = vtkMRMLColorTableNode::New();
+    std::string colorTableNodeName(doseVolumeNode->GetName());
+    colorTableNodeName.append("_DoseColorTable");
+    doseColorTableNode->SetName(colorTableNodeName.c_str());
+    doseColorTableNode->SetTypeToUser();
+    //doseColorTableNode->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
+    doseColorTableNode->SetNumberOfColors(256);
+    scene->AddNode(doseColorTableNode);
+    doseColorTableNode->Delete(); // Release ownership to scene only
+
+    isodoseColorTableNode->SetNodeReferenceID(vtkMRMLIsodoseNode::COLOR_TABLE_REFERENCE_ROLE, doseColorTableNode->GetID());
+  }
+
+  // Create dose color table by stretching the isodose color table
+  vtkSlicerRtCommon::StretchDiscreteColorTable(isodoseColorTableNode, doseColorTableNode);
+  doseVolumeDisplayNode->SetAndObserveColorNodeID(doseColorTableNode->GetID());
+
+  // Set window/level to match the isodose levels
+  int minDoseInDefaultIsodoseLevels = vtkVariant(isodoseColorTableNode->GetColorName(0)).ToInt();
+  int maxDoseInDefaultIsodoseLevels = vtkVariant(isodoseColorTableNode->GetColorName(isodoseColorTableNode->GetNumberOfColors()-1)).ToInt();
+
+  doseVolumeDisplayNode->AutoWindowLevelOff();
+  doseVolumeDisplayNode->SetWindowLevelMinMax(minDoseInDefaultIsodoseLevels, maxDoseInDefaultIsodoseLevels);
+
+  // Get dose grid scaling
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
+  if (!shNode)
+  {
+    vtkErrorMacro("UpdateDoseColorTableFromIsodose: Failed to access subject hierarchy node");
+    return;
+  }
+  vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
+  if (!doseShItemID)
+  {
+    vtkErrorMacro("UpdateDoseColorTableFromIsodose: Failed to get subject hierarchy item for dose volume '" << doseVolumeNode->GetName() << "'");
+    return;
+  }
+  vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(doseShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+  std::string doseUnitValueInStudy = shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME);
+  double doseUnitValue = vtkVariant(doseUnitValueInStudy).ToDouble();
+
+  // Set display threshold
+  doseVolumeDisplayNode->AutoThresholdOff();
+  doseVolumeDisplayNode->SetLowerThreshold(0.5 * doseUnitValue);
+  doseVolumeDisplayNode->SetApplyThreshold(1);
 }
