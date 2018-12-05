@@ -27,21 +27,20 @@
 #include "vtkSlicerRtCommon.h"
 
 // MRML includes
-#include <vtkMRMLModelHierarchyNode.h>
+#include <vtkMRMLColorTableNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLColorTableNode.h>
-#include <vtkMRMLSubjectHierarchyNode.h>
 #include <vtkMRMLScene.h>
+#include <vtkMRMLSubjectHierarchyNode.h>
 
 // VTK includes
-#include <vtkDoubleArray.h>
-#include <vtkPolyDataReader.h>
-#include <vtkPolyData.h>
-#include <vtkNew.h>
-#include <vtkImageData.h>
 #include <vtkCollection.h>
+#include <vtkDoubleArray.h>
+#include <vtkImageData.h>
 #include <vtkMassProperties.h>
+#include <vtkNew.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataReader.h>
 
 // ITK includes
 #include "itkFactoryRegistration.h"
@@ -141,7 +140,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   itk::itkFactoryRegistration();
 
   // Create scene
-  vtkSmartPointer<vtkMRMLScene> mrmlScene = vtkSmartPointer<vtkMRMLScene>::New();
+  vtkNew<vtkMRMLScene> mrmlScene;
 
   // Load test scene into temporary scene
   mrmlScene->SetURL(testSceneFileName);
@@ -166,10 +165,10 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   vtkMRMLScalarVolumeNode* doseScalarVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(doseVolumeNodes->GetItemAsObject(0));
+  doseScalarVolumeNode->CreateDefaultDisplayNodes();
 
   // Create and set up logic
-  vtkSmartPointer<vtkSlicerIsodoseModuleLogic> isodoseLogic =
-    vtkSmartPointer<vtkSlicerIsodoseModuleLogic>::New();
+  vtkNew<vtkSlicerIsodoseModuleLogic> isodoseLogic;
   isodoseLogic->SetMRMLScene(mrmlScene);
 
   // Set the number of Isodose level to 1 by setting number of color to 1
@@ -183,7 +182,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   isodoseColorNode->SetNumberOfColors(1);
 
   // Create and set up parameter set MRML node
-  vtkSmartPointer<vtkMRMLIsodoseNode> paramNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
+  vtkNew<vtkMRMLIsodoseNode> paramNode;
   mrmlScene->AddNode(paramNode);
   paramNode->SetAndObserveDoseVolumeNode(doseScalarVolumeNode);
   paramNode->SetAndObserveColorTableNode(isodoseColorNode);
@@ -216,16 +215,16 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   }
   vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(shNode->GetItemDataNode(isodoseChildItemIDs[0]));
 
-  vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
+  vtkNew<vtkPolyDataReader> reader;
   reader->SetFileName(baselineIsodoseSurfaceFileName);
   reader->Update();
 
-  vtkSmartPointer<vtkPolyData> baselinePolyData = vtkSmartPointer<vtkPolyData>::New();
-  vtkSmartPointer<vtkMassProperties> propertiesBaseline = vtkSmartPointer<vtkMassProperties>::New();
+  vtkNew<vtkPolyData> baselinePolyData;
+  vtkNew<vtkMassProperties> propertiesBaseline;
   propertiesBaseline->SetInputData(reader->GetOutput());
   propertiesBaseline->Update();
 
-  vtkSmartPointer<vtkMassProperties> propertiesCurrent = vtkSmartPointer<vtkMassProperties>::New();
+  vtkNew<vtkMassProperties> propertiesCurrent;
   propertiesCurrent->SetInputData(modelNode->GetPolyData());
   propertiesCurrent->Update();
 
