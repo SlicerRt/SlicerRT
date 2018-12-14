@@ -25,9 +25,6 @@
 #include "vtkSlicerDicomSroReader.h"
 #include "vtkDICOMImportInfo.h"
 
-// Slicer Logic includes
-#include "vtkSlicerVolumesLogic.h"
-
 // SlicerRT includes
 #include "vtkSlicerRtCommon.h"
 
@@ -38,22 +35,21 @@
 #include <dcmtk/dcmdata/dcuid.h>
 #include <dcmtk/ofstd/ofcond.h>
 #include <dcmtk/ofstd/ofstring.h>
-#include <dcmtk/ofstd/ofstd.h>        /* for class OFStandard */
+#include <dcmtk/ofstd/ofstd.h> // for class OFStandard
 
 // MRML includes
+#include <vtkMRMLGridTransformNode.h>
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLVectorVolumeNode.h>
-#include <vtkMRMLGridTransformNode.h>
+#include <vtkMRMLScene.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
-#include <vtkStringArray.h>
-#include <vtkMatrix4x4.h>
 #include <vtkImageData.h>
+#include <vtkMatrix4x4.h>
+#include <vtkNew.h>
 #include <vtkObjectFactory.h>
-#include <vtkTransform.h>
 #include <vtkOrientedGridTransform.h>
+#include <vtkStringArray.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomSroImportModuleLogic);
@@ -174,7 +170,7 @@ void vtkSlicerDicomSroImportModuleLogic::Examine(vtkDICOMImportInfo *importInfo)
       }
 
       // The object is stored in a single file
-      vtkSmartPointer<vtkStringArray> loadableFileList=vtkSmartPointer<vtkStringArray>::New();
+      vtkNew<vtkStringArray> loadableFileList;
       loadableFileList->InsertNextValue(fileName);
      
       importInfo->InsertNextLoadable(loadableFileList, name.c_str(), tooltip.c_str(), warning.c_str(), selected, confidence);
@@ -193,9 +189,8 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadDicomSro(vtkDICOMImportInfo *loadIn
   }
 
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
-  //const char* seriesName = loadInfo->GetLoadableName(0);
 
-  vtkSmartPointer<vtkSlicerDicomSroReader> spatialRegistrationReader = vtkSmartPointer<vtkSlicerDicomSroReader>::New();
+  vtkNew<vtkSlicerDicomSroReader> spatialRegistrationReader;
   spatialRegistrationReader->SetFileName(firstFileNameStr.c_str());
   spatialRegistrationReader->Update();
 
@@ -226,11 +221,11 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadSpatialRegistration(vtkSlicerDicomS
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
   const char* seriesName = loadInfo->GetLoadableName(0);
 
-  vtkSmartPointer<vtkMatrix4x4> regMatrix = NULL;
+  vtkMatrix4x4* regMatrix = NULL;
   regMatrix = regReader->GetSpatialRegistrationMatrix();
 
   // Add transform node
-  vtkSmartPointer<vtkMRMLLinearTransformNode> spatialTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
+  vtkNew<vtkMRMLLinearTransformNode> spatialTransformNode;
   spatialTransformNode->SetScene(this->GetMRMLScene());
   spatialTransformNode->SetDisableModifiedEvent(1);
   std::string spatialTransformNodeName;
@@ -269,7 +264,7 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadDeformableSpatialRegistration(vtkSl
   postDeformationMatrix = regReader->GetPostDeformationRegistrationMatrix();
 
   // Add post deformation transform node
-  vtkSmartPointer<vtkMRMLLinearTransformNode> spatialPostTransformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
+  vtkNew<vtkMRMLLinearTransformNode> spatialPostTransformNode;
   spatialPostTransformNode->SetScene(this->GetMRMLScene());
   spatialPostTransformNode->SetDisableModifiedEvent(1);
   std::string spatialPostTransformNodeName;
@@ -286,7 +281,7 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadDeformableSpatialRegistration(vtkSl
   deformableRegistrationGrid = regReader->GetDeformableRegistrationGrid();
 
   // vtkOrientedGridTransform
-  vtkSmartPointer<vtkOrientedGridTransform> gridTransform = vtkSmartPointer<vtkOrientedGridTransform>::New();
+  vtkNew<vtkOrientedGridTransform> gridTransform;
   gridTransform->SetDisplacementGridData(deformableRegistrationGrid);
   gridTransform->SetDisplacementScale(1);
   gridTransform->SetDisplacementShift(0);
@@ -299,7 +294,7 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadDeformableSpatialRegistration(vtkSl
   gridTransform->SetGridDirectionMatrix(gridOrientationMatrix);
 
   // Add grid transform node
-  vtkSmartPointer<vtkMRMLGridTransformNode> deformableRegistrationGridTransformNode = vtkSmartPointer<vtkMRMLGridTransformNode>::New();
+  vtkNew<vtkMRMLGridTransformNode> deformableRegistrationGridTransformNode;
   deformableRegistrationGridTransformNode->SetScene(this->GetMRMLScene());
   deformableRegistrationGridTransformNode->SetDisableModifiedEvent(1);
   std::string deformableRegistrationGridTransformNodeName;

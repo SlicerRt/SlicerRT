@@ -135,22 +135,22 @@ void vtkSlicerDicomSroReader::Update()
         }
         else
         {
-          vtkDebugMacro("vtkSlicerDicomSroReader::Update: unsupported SOPClassUID (" << sopClass);
+          vtkWarningMacro("vtkSlicerDicomSroReader::Update: unsupported SOPClassUID (" << sopClass);
         }
       } 
       else 
       {
-        vtkDebugMacro("vtkSlicerDicomSroReader::Update: SOPClassUID (0008,0016) missing or empty in file");
+        vtkWarningMacro("vtkSlicerDicomSroReader::Update: SOPClassUID (0008,0016) missing or empty in file");
       }
     } 
     else 
     {
-      vtkDebugMacro("vtkSlicerDicomSroReader::Update: error reading file");
+      vtkErrorMacro("vtkSlicerDicomSroReader::Update: error reading file");
     }
   } 
   else 
   {
-    vtkDebugMacro("vtkSlicerDicomSroReader::Update: invalid filename: <empty string>");
+    vtkErrorMacro("vtkSlicerDicomSroReader::Update: invalid filename: <empty string>");
   }
 }
 
@@ -184,7 +184,7 @@ void vtkSlicerDicomSroReader::LoadSpatialRegistration(DcmDataset* dataset)
       
       if (currentRegistrationSequenceItem->isEmpty())
       {
-        vtkDebugMacro("LoadSpatialRegistration: Found an invalid sequence in dataset");
+        vtkWarningMacro("LoadSpatialRegistration: Found an invalid sequence in dataset");
         break;
       }
 
@@ -200,7 +200,7 @@ void vtkSlicerDicomSroReader::LoadSpatialRegistration(DcmDataset* dataset)
           
           if (currentmatrixRegistrationSequenceItem->isEmpty())
           {
-            vtkDebugMacro("LoadSpatialRegistration: Found an invalid sequence in dataset");
+            vtkWarningMacro("LoadSpatialRegistration: Found an invalid sequence in dataset");
             break;
           }
           DcmSequenceOfItems *matrixSequence = NULL;
@@ -215,7 +215,7 @@ void vtkSlicerDicomSroReader::LoadSpatialRegistration(DcmDataset* dataset)
               
               if (currentmatrixRegistrationSequenceItem->isEmpty())
               {
-                vtkDebugMacro("LoadSpatialRegistration: Found an invalid sequence in dataset");
+                vtkWarningMacro("LoadSpatialRegistration: Found an invalid sequence in dataset");
                 break;
               }
               OFString  matrixType;
@@ -283,13 +283,12 @@ void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* data
     unsigned long numOfDeformableRegistrationSequenceItems = registrationSequence->card();
     for(unsigned long i=0; i<numOfDeformableRegistrationSequenceItems; i++)
     {
-
       DcmItem *currentDeformableRegistrationSequenceItem = NULL;
       currentDeformableRegistrationSequenceItem  = registrationSequence->getItem(i);  
       
       if (currentDeformableRegistrationSequenceItem->isEmpty())
       {
-        vtkDebugMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
+        vtkWarningMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
         break;
       }
 
@@ -307,7 +306,7 @@ void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* data
           
           if (preDeformationMatrixRegistrationSequenceItem->isEmpty())
           {
-            vtkDebugMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
+            vtkWarningMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
             break;
           }
 
@@ -343,7 +342,7 @@ void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* data
           
           if (postDeformationMatrixRegistrationSequenceItem->isEmpty())
           {
-            vtkDebugMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
+            vtkWarningMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
             break;
           }
 
@@ -385,7 +384,7 @@ void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* data
           
           if (deformableRegistrationGridSequenceItem->isEmpty())
           {
-            vtkDebugMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
+            vtkWarningMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
             break;
           }
 
@@ -466,7 +465,7 @@ void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* data
           }
           else
           {
-            vtkDebugMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
+            vtkWarningMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
             break;
           }
 
@@ -484,7 +483,7 @@ void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* data
           }
           else
           {
-            vtkDebugMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
+            vtkWarningMacro("LoadDeformableSpatialRegistration: Found an invalid sequence in dataset");
             break;
           }
 

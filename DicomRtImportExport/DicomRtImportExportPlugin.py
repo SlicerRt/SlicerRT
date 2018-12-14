@@ -24,7 +24,7 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
 
   def examineForImport(self,fileLists):
     """ Returns a list of qSlicerDICOMLoadable
-    instances corresponding to ways of interpreting the 
+    instances corresponding to ways of interpreting the
     fileLists parameter.
     """
     # Create loadables for each file list
@@ -52,13 +52,13 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
           loadables.append(qtLoadable)
 
     return loadables
-  
+
   def load(self,loadable):
     """Load the selection as an RT object
     using the DicomRtImportExport module
     """
     if len(loadable.files) > 1:
-      logging.error('RT objects must be contained by a single file!')
+      logging.error('RT objects must be contained by a single file')
     vtkLoadable = slicer.vtkSlicerDICOMLoadable()
     loadable.copyToVtkLoadable(vtkLoadable)
     success = slicer.modules.dicomrtimportexport.logic().LoadDicomRT(vtkLoadable)
@@ -70,25 +70,27 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
     data into DICOM data
     """
     import vtkSlicerRtCommonPython as vtkSlicerRtCommon
-    exportable = None
 
     shn = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
     dataNode = shn.GetItemDataNode(subjectHierarchyItemID)
+    if dataNode is None:
+      return []
+    exportable = None
 
     # RT dose volume
-    if dataNode and vtkSlicerRtCommon.vtkSlicerRtCommon.IsDoseVolumeNode(dataNode):
+    if vtkSlicerRtCommon.vtkSlicerRtCommon.IsDoseVolumeNode(dataNode):
       exportable = slicer.qSlicerDICOMExportable()
       exportable.confidence = 1.0
       # Define type-specific required tags and default values
       exportable.setTag('Modality', 'RTDOSE')
     # RT structure set
-    elif dataNode and dataNode.IsA('vtkMRMLSegmentationNode'):
+    elif dataNode.IsA('vtkMRMLSegmentationNode'):
       exportable = slicer.qSlicerDICOMExportable()
       exportable.confidence = 1.0
       # Define type-specific required tags and default values
       exportable.setTag('Modality', 'RTSTRUCT')
     # Potential anatomical image for an RT study
-    elif dataNode and dataNode.IsA('vtkMRMLScalarVolumeNode'):
+    elif dataNode.IsA('vtkMRMLScalarVolumeNode'):
       exportable = slicer.qSlicerDICOMExportable()
       exportable.confidence = 0.3 # Might be some other kind of scalar volume, but also anatomical volume in an RT study
       # Define type-specific required tags and default values
@@ -121,7 +123,7 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
       exportablesCollection.AddItem(vtkExportable)
 
     # Export RT study
-    message = slicer.modules.dicomrtimportexport.logic().ExportDicomRTStudy(exportablesCollection)    
+    message = slicer.modules.dicomrtimportexport.logic().ExportDicomRTStudy(exportablesCollection)
     return message
 
 #
@@ -143,7 +145,7 @@ class DicomRtImportExportPlugin:
     No module interface here, only in the DICOM module
     """
     parent.acknowledgementText = """
-    This DICOM Plugin was developed by 
+    This DICOM Plugin was developed by
     Csaba Pinter, PerkLab, Queen's University, Kingston, ON, CA
     and was funded by OCAIRO, CCO/CINO
     """
@@ -160,7 +162,7 @@ class DicomRtImportExportPlugin:
     except AttributeError:
       slicer.modules.dicomPlugins = {}
 
-    slicer.modules.dicomPlugins['DicomRtImportExportPlugin'] = DicomRtImportExportPluginClass
+    slicer.modules.dicomPlugins['DICOMRTPlugin'] = DicomRtImportExportPluginClass
 
 #
 # DicomRtImportExportWidget
@@ -168,13 +170,13 @@ class DicomRtImportExportPlugin:
 class DicomRtImportExportWidget:
   def __init__(self, parent = None):
     self.parent = parent
-    
+
   def setup(self):
     # don't display anything for this widget - it will be hidden anyway
     pass
 
   def enter(self):
     pass
-    
+
   def exit(self):
     pass
