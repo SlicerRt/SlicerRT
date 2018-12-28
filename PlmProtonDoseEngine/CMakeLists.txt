@@ -6,6 +6,13 @@ set(MODULE_TITLE ${MODULE_NAME})
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 
 #-----------------------------------------------------------------------------
+find_package(Plastimatch QUIET PATHS ${Plastimatch_DIR} NO_DEFAULT_PATH)
+if(NOT Plastimatch_FOUND)
+  message("Plastimatch library is not found. DoseComparison module will not be built.")
+  return()
+endif() 
+
+#-----------------------------------------------------------------------------
 add_subdirectory(Logic)
 add_subdirectory(DoseEngines)
 

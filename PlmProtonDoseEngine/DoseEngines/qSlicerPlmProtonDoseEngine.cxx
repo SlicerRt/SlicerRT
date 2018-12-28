@@ -36,8 +36,8 @@
 #include "plm_image.h"
 #include "plm_image_header.h"
 #include "rpl_volume.h"
-#include "rt_beam.h"
-#include "rt_plan.h"
+#include "beam_calc.h"
+#include "plan_calc.h"
 #include "string_util.h"
 
 // Segmentations includes
@@ -222,8 +222,8 @@ QString qSlicerPlmProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* 
   itk::Image<short, 3>::Pointer referenceVolumeItk = referenceVolumePlm->itk_short();
 
   // Plastimatch RT plan and beam
-  Rt_plan rt_plan;
-  Rt_beam* rt_beam = NULL;
+  Plan_calc rt_plan;
+  Beam_calc* rt_beam = NULL;
 
   // Connection of the beam parameters to the rt_beam class used to calculate the dose in Plastimatch
   try
@@ -428,7 +428,7 @@ QString qSlicerPlmProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* 
   // Compute the dose
   try
   {
-    rt_plan.compute_dose(rt_beam);
+    rt_plan.compute_beam_dose(rt_beam);
   }
   catch (std::exception& ex)
   {

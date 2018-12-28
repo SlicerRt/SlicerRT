@@ -39,7 +39,10 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerSegmentationsModuleLogic
   qSlicerBeamsModuleWidgets
   qSlicerExternalBeamPlanningModuleWidgets
+  ${PLASTIMATCH_LIBRARIES}
   )
+
+message (STATUS ">>   ${PLASTIMATCH_LIBRARIES}  >> ${PLASTIMATCH_LDFLAGS}")
 
 set(${KIT}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
@@ -63,3 +66,8 @@ SlicerMacroBuildModuleQtLibrary(
   WRAP_PYTHONQT
   )
 
+# Set linker flags, needed for OpenMP
+if (NOT ${PLASTIMATCH_LDFLAGS} STREQUAL "")
+  set_target_properties (${KIT}
+    PROPERTIES LINK_FLAGS ${PLASTIMATCH_LDFLAGS})
+endif ()
