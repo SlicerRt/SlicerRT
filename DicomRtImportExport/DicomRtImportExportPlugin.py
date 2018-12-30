@@ -162,7 +162,7 @@ class DicomRtImportExportPlugin:
     except AttributeError:
       slicer.modules.dicomPlugins = {}
 
-    slicer.modules.dicomPlugins['DICOMRTPlugin'] = DicomRtImportExportPluginClass
+    slicer.modules.dicomPlugins['DicomRtImportExportPlugin'] = DicomRtImportExportPluginClass
 
 #
 # DicomRtImportExportWidget
