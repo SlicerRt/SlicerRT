@@ -98,7 +98,9 @@ vtkPlanarContourToRibbonModelConversionRule::~vtkPlanarContourToRibbonModelConve
 unsigned int vtkPlanarContourToRibbonModelConversionRule::GetConversionCost(vtkDataObject* vtkNotUsed(sourceRepresentation)/*=NULL*/, vtkDataObject* vtkNotUsed(targetRepresentation)/*=NULL*/)
 {
   // Rough input-independent guess (ms)
-  return 50;
+  // Increase to quasi infinity, so that this path is never chosen by default, but the user has to manually request it.
+  // This is due to the superiority of the triangulated and end-capped closed surface path.
+  return UINT_MAX / 2; // To prevent overflow
 }
 
 //----------------------------------------------------------------------------

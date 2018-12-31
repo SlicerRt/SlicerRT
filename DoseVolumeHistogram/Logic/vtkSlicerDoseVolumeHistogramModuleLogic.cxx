@@ -246,37 +246,8 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     representationName = (char*)vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName();
   }
 
-  // Reconvert segments to specified geometry if possible. Exclude ribbon models from conversions so that
-  // the highest possible quality segment labelmap is created
-  vtkSegmentationConverter::ConversionPathType selectedPath;
-  unsigned int minCost = UINT_MAX;
-  vtkSegmentationConverter::ConversionPathAndCostListType pathsCosts;
-  segmentationCopy->GetPossibleConversions(representationName, pathsCosts);
-  vtkSegmentationConverter::ConversionPathAndCostListType::iterator pathIt;
-  for (pathIt=pathsCosts.begin(); pathIt!=pathsCosts.end(); ++pathIt)
-  {
-    vtkSegmentationConverter::ConversionPathType path = pathIt->first;
-    unsigned int pathCost = pathIt->second;
-    vtkSegmentationConverter::ConversionPathType::iterator ruleIt;
-    for (ruleIt=path.begin(); ruleIt!=path.end(); ++ruleIt)
-    {
-      vtkSegmentationConverterRule* currentRule = (*ruleIt);
-      if (!strcmp(currentRule->GetTargetRepresentationName(), vtkSlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME))
-      {
-        pathCost = UINT_MAX; // Force skip paths containing ribbons
-        break;
-      }
-    }
-    if (pathCost < minCost)
-    {
-      selectedPath = path;
-      minCost = pathCost;
-    }
-  }
-  vtkSegmentationConverterRule::ConversionParameterListType conversionParameters;
-  segmentationCopy->GetConversionParametersForPath(conversionParameters, selectedPath);
   bool resamplingRequired = false;
-  if ( !segmentationCopy->CreateRepresentation(selectedPath, conversionParameters) )
+  if ( !segmentationCopy->CreateRepresentation(representationName, true) )
   {
     // If conversion failed and there is no binary labelmap in the segmentation, then cannot calculate DVH
     if (!segmentationCopy->ContainsRepresentation(representationName) )
