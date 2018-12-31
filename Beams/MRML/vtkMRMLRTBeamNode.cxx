@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -108,52 +108,52 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
   const char* attName = NULL;
   const char* attValue = NULL;
 
-  while (*atts != NULL) 
+  while (*atts != NULL)
   {
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "BeamNumber")) 
+    if (!strcmp(attName, "BeamNumber"))
     {
       this->BeamNumber = vtkVariant(attValue).ToInt();
     }
-    else if (!strcmp(attName, "BeamDescription")) 
+    else if (!strcmp(attName, "BeamDescription"))
     {
       this->SetBeamDescription(attValue);
     }
-    else if (!strcmp(attName, "BeamWeight")) 
+    else if (!strcmp(attName, "BeamWeight"))
     {
       this->BeamWeight = vtkVariant(attValue).ToDouble();
     }
-    else if (!strcmp(attName, "X1Jaw")) 
+    else if (!strcmp(attName, "X1Jaw"))
     {
       this->X1Jaw = vtkVariant(attValue).ToDouble();
     }
-    else if (!strcmp(attName, "X2Jaw")) 
+    else if (!strcmp(attName, "X2Jaw"))
     {
       this->X2Jaw = vtkVariant(attValue).ToDouble();
     }
-    else if (!strcmp(attName, "Y1Jaw")) 
+    else if (!strcmp(attName, "Y1Jaw"))
     {
       this->Y1Jaw = vtkVariant(attValue).ToDouble();
     }
-    else if (!strcmp(attName, "Y2Jaw")) 
+    else if (!strcmp(attName, "Y2Jaw"))
     {
       this->Y2Jaw = vtkVariant(attValue).ToDouble();
     }
-    else if (!strcmp(attName, "SAD")) 
+    else if (!strcmp(attName, "SAD"))
     {
       this->SAD = vtkVariant(attValue).ToDouble();
     }
-    else if (!strcmp(attName, "GantryAngle")) 
+    else if (!strcmp(attName, "GantryAngle"))
     {
       this->GantryAngle = vtkVariant(attValue).ToDouble();
     }
-    else if (!strcmp(attName, "CollimatorAngle")) 
+    else if (!strcmp(attName, "CollimatorAngle"))
     {
       this->CollimatorAngle = vtkVariant(attValue).ToDouble();
     }
-    else if (!strcmp(attName, "CouchAngle")) 
+    else if (!strcmp(attName, "CouchAngle"))
     {
       this->CouchAngle = vtkVariant(attValue).ToDouble();
     }
@@ -200,7 +200,7 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   this->SetGantryAngle(node->GetGantryAngle());
   this->SetCollimatorAngle(node->GetCollimatorAngle());
   this->SetCouchAngle(node->GetCouchAngle());
-  
+
   this->DisableModifiedEventOff();
   this->InvokePendingModifiedEvent();
 }
@@ -256,7 +256,7 @@ void vtkMRMLRTBeamNode::CreateDefaultDisplayNodes()
   displayNode->SetColor(0.0, 1.0, 0.2);
   displayNode->SetOpacity(0.3);
   displayNode->SetBackfaceCulling(0); // Disable backface culling to make the back side of the contour visible as well
-  displayNode->VisibilityOn(); 
+  displayNode->VisibilityOn();
   displayNode->SliceIntersectionVisibilityOn();
 }
 
@@ -474,38 +474,38 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
   if (mlcArrayNode)
   {
     // First we extract the shape of the MLC
-    int x1count = this->X1Jaw/10.0;
-    int x2count = this->X2Jaw/10.0;
-    int numLeavesVisible = x2count - x1count; // Calculate the number of leaves visible
+    int y2count = this->Y2Jaw/10.0;
+    int y1count = this->Y1Jaw/10.0;
+    int numLeavesVisible = y1count - y2count; // Calculate the number of leaves visible
     int numPointsEachSide = numLeavesVisible *2;
 
-    double y2LeafPosition[40];
-    double y1LeafPosition[40];
+    double x1LeafPosition[40];
+    double x2LeafPosition[40];
 
-    // Calculate Y2 first
-    for (int i = x2count; i >= x1count; i--)
+    // Calculate X1 first
+    for (int i = y1count; i >= y2count; i--)
     {
       double leafPosition = mlcArrayNode->GetArray()->GetComponent(-(i-20), 1);
-      if (leafPosition < this->Y2Jaw)
+      if (leafPosition < this->X1Jaw)
       {
-        y2LeafPosition[-(i-20)] = leafPosition;
+        x1LeafPosition[-(i-20)] = leafPosition;
       }
       else
       {
-        y2LeafPosition[-(i-20)] = this->Y2Jaw;
+        x1LeafPosition[-(i-20)] = this->X1Jaw;
       }
     }
-    // Calculate Y1 next
-    for (int i = x2count; i >= x1count; i--)
+    // Calculate X2 next
+    for (int i = y1count; i >= y2count; i--)
     {
       double leafPosition = mlcArrayNode->GetArray()->GetComponent(-(i-20), 0);
-      if (leafPosition < this->Y1Jaw)
+      if (leafPosition < this->X2Jaw)
       {
-        y1LeafPosition[-(i-20)] = leafPosition;
+        x2LeafPosition[-(i-20)] = leafPosition;
       }
       else
       {
-        y1LeafPosition[-(i-20)] = this->Y1Jaw;
+        x2LeafPosition[-(i-20)] = this->X2Jaw;
       }
     }
 
@@ -513,19 +513,19 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
     points->InsertPoint(0,0,0,this->SAD);
 
     int count = 1;
-    for (int i = x2count; i > x1count; i--)
+    for (int i = y1count; i > y2count; i--)
     {
-      points->InsertPoint(count,-y2LeafPosition[-(i-20)]*2, i*10*2, -this->SAD );
+      points->InsertPoint(count,-x1LeafPosition[-(i-20)]*2, i*10*2, -this->SAD );
       count ++;
-      points->InsertPoint(count,-y2LeafPosition[-(i-20)]*2, (i-1)*10*2, -this->SAD );
+      points->InsertPoint(count,-x1LeafPosition[-(i-20)]*2, (i-1)*10*2, -this->SAD );
       count ++;
     }
 
-    for (int i = x1count; i < x2count; i++)
+    for (int i = y2count; i < y1count; i++)
     {
-      points->InsertPoint(count,y1LeafPosition[-(i-20)]*2, i*10*2, -this->SAD );
+      points->InsertPoint(count,x2LeafPosition[-(i-20)]*2, i*10*2, -this->SAD );
       count ++;
-      points->InsertPoint(count,y1LeafPosition[-(i-20)]*2, (i+1)*10*2, -this->SAD );
+      points->InsertPoint(count,x2LeafPosition[-(i-20)]*2, (i+1)*10*2, -this->SAD );
       count ++;
     }
 
@@ -536,7 +536,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
       cellArray->InsertCellPoint(i);
       cellArray->InsertCellPoint(i+1);
     }
-    // Add connection between Y2 and Y1
+    // Add connection between X1 and X2
     cellArray->InsertNextCell(3);
     cellArray->InsertCellPoint(0);
     cellArray->InsertCellPoint(numPointsEachSide);
@@ -549,7 +549,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
       cellArray->InsertCellPoint(i+1);
     }
 
-    // Add connection between Y2 and Y1
+    // Add connection between X1 and X2
     cellArray->InsertNextCell(3);
     cellArray->InsertCellPoint(0);
     cellArray->InsertCellPoint(2*numPointsEachSide);
@@ -565,10 +565,10 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
   else
   {
     points->InsertPoint(0,0,0,this->SAD);
-    points->InsertPoint(1, -2*this->Y2Jaw, -2*this->X2Jaw, -this->SAD );
-    points->InsertPoint(2, -2*this->Y2Jaw, -2*this->X1Jaw, -this->SAD );
-    points->InsertPoint(3, -2*this->Y1Jaw, -2*this->X1Jaw, -this->SAD );
-    points->InsertPoint(4, -2*this->Y1Jaw, -2*this->X2Jaw, -this->SAD );
+    points->InsertPoint(1, -2*this->X1Jaw, -2*this->Y1Jaw, -this->SAD );
+    points->InsertPoint(2, -2*this->X1Jaw, -2*this->Y2Jaw, -this->SAD );
+    points->InsertPoint(3, -2*this->X2Jaw, -2*this->Y2Jaw, -this->SAD );
+    points->InsertPoint(4, -2*this->X2Jaw, -2*this->Y1Jaw, -this->SAD );
 
     cellArray->InsertNextCell(3);
     cellArray->InsertCellPoint(0);

@@ -154,7 +154,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 //-----------------------------------------------------------------------------
 void vtkSlicerRoomsEyeViewModuleLogic::RegisterNodes()
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("RegisterNodes: Invalid MRML scene");
@@ -184,7 +184,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
   // Build IEC hierarchy
   //TODO: Add the REV transform to the IEC transform map and use it for the GetTransform... functions
   this->IECLogic->BuildIECTransformHierarchy();
- 
+
   // Create transform nodes if they do not exist
   vtkSmartPointer<vtkMRMLLinearTransformNode> additionalCollimatorDevicesToCollimatorTransformNode;
   if (!scene->GetFirstNodeByName(ADDITIONALCOLLIMATORMOUNTEDDEVICES_TO_COLLIMATOR_TRANSFORM_NODE_NAME))
@@ -747,7 +747,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupBasicCollimatorMountedDeviceModels()
   //additionalDeviceAppending->ExecuteAppend(output, inputs, 2);
   //this->GetMRMLScene()->AddNode(outputModel);
   //outputModel->SetAndObservePolyData(output);
- 
+
   //this->AdditionalModelsTableTopCollisionDetection->SetInput(0, outputModel->GetPolyData());
   //this->AdditionalModelsTableTopCollisionDetection->SetInput(1, tableTopModel->GetPolyData());
   //this->AdditionalModelsTableTopCollisionDetection->SetMatrix(0, this->CollimatorToWorldTransformMatrix);
@@ -779,12 +779,12 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
 
   //
   // Mandatory models
-  
+
   // Gantry
   vtkNew<vtkPolyData> gantryModelPolyData;
   gantryModelPolyData->DeepCopy(gantryModel->GetPolyData());
 
-  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = 
+  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
   vtkNew<vtkTransformFilter> gantryTransformFilter;
   gantryTransformFilter->SetInputData(gantryModelPolyData);
@@ -868,7 +868,7 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
   {
     vtkNew<vtkPolyData> rightImagingPanelModelPolyData;
     rightImagingPanelModelPolyData->DeepCopy(rightImagingPanelModel->GetPolyData());
-    
+
     vtkMRMLLinearTransformNode* rightImagingPanelToGantryTransformNode =
       this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
     vtkNew<vtkTransformFilter> rightImagingPanelTransformFilter;
@@ -886,7 +886,7 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
   {
     vtkNew<vtkPolyData> flatPanelModelPolyData;
     flatPanelModelPolyData->DeepCopy(flatPanelModel->GetPolyData());
-    
+
     vtkMRMLLinearTransformNode* flatPanelToGantryTransformNode =
       this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FlatPanel, vtkSlicerIECTransformLogic::Gantry);
     vtkNew<vtkTransformFilter> flatPanelTransformFilter;
@@ -974,9 +974,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateGantryToFixedReferenceTransform(vtk
 
   vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
-  
+
   vtkNew<vtkTransform> gantryToFixedReferenceTransform;
-  gantryToFixedReferenceTransform->RotateY(parameterNode->GetGantryRotationAngle() * (-1.0));
+  gantryToFixedReferenceTransform->RotateY(parameterNode->GetGantryRotationAngle());
   gantryToFixedReferenceTransformNode->SetAndObserveTransformToParent(gantryToFixedReferenceTransform);
 }
 
@@ -1095,7 +1095,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelToGantryTransform(
   {
     rasToRotatedRasTransform->RotateZ(-(68.5 + panelMovement));
   }
-  
+
   // Translation back from origin after in-place rotation
   vtkNew<vtkTransform> rotatedRasToRotatedRightImagingPanelTransform;
   rotatedRasToRotatedRightImagingPanelTransform->Translate(rightImagingPanelTranslationFromOrigin);
@@ -1144,7 +1144,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportRotationToFixedRefere
 
   vtkMRMLLinearTransformNode* patientSupportRotationToFixedReferenceTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference);
-  
+
   double rotationAngle = parameterNode->GetPatientSupportRotationAngle();
   vtkNew<vtkTransform> patientSupportToRotatedPatientSupportTransform;
   patientSupportToRotatedPatientSupportTransform->RotateZ(rotationAngle);
@@ -1220,7 +1220,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateTableTopToTableTopEccentricRotation
 
   double translationArray[3] =
     { parameterNode->GetLateralTableTopDisplacement(), parameterNode->GetLongitudinalTableTopDisplacement(), parameterNode->GetVerticalTableTopDisplacement() };
-  
+
   vtkNew<vtkMatrix4x4> tableTopEccentricRotationToPatientSupportMatrix;
   tableTopEccentricRotationToPatientSupportMatrix->SetElement(0,3, translationArray[0]);
   tableTopEccentricRotationToPatientSupportMatrix->SetElement(1,3, translationArray[1]);
@@ -1242,7 +1242,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateAdditionalCollimatorDevicesToCollim
     this->GetMRMLScene()->GetFirstNodeByName(ADDITIONALCOLLIMATORMOUNTEDDEVICES_TO_COLLIMATOR_TRANSFORM_NODE_NAME) );
   vtkTransform* additionalCollimatorDeviceToCollimatorTransform = vtkTransform::SafeDownCast(
     additionalCollimatorDeviceToCollimatorTransformNode->GetTransformToParent());
-  
+
   double translationArray[3] = { parameterNode->GetAdditionalModelLateralDisplacement(), parameterNode->GetAdditionalModelLongitudinalDisplacement(),
     parameterNode->GetAdditionalModelVerticalDisplacement() };
 
@@ -1275,7 +1275,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateAdditionalDevicesVisibility(vtkMRML
   }
 
   if (parameterNode->GetElectronApplicatorVisibility())
-  { 
+  {
     electronApplicatorModel->GetDisplayNode()->VisibilityOn();
   }
   else

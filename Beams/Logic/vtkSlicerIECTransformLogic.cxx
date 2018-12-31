@@ -198,7 +198,7 @@ void vtkSlicerIECTransformLogic::UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode
     // Update the name of the transform node too
     // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
     std::string transformName = std::string(beamNode->GetName()) + vtkMRMLRTBeamNode::BEAM_TRANSFORM_NODE_NAME_POSTFIX;
-  }  
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -224,7 +224,7 @@ void vtkSlicerIECTransformLogic::UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* 
     this->GetTransformNodeBetween(Gantry, FixedReference);
   vtkTransform* gantryToFixedReferenceTransform = vtkTransform::SafeDownCast(gantryToFixedReferenceTransformNode->GetTransformToParent());
   gantryToFixedReferenceTransform->Identity();
-  gantryToFixedReferenceTransform->RotateY(beamNode->GetGantryAngle() * (-1.0));
+  gantryToFixedReferenceTransform->RotateY(beamNode->GetGantryAngle());
   gantryToFixedReferenceTransform->Modified();
 
   vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
@@ -256,7 +256,7 @@ void vtkSlicerIECTransformLogic::UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* 
   {
     vtkErrorMacro("UpdateIECTransformsFromBeam: Failed to get isocenter position for beam " << beamNode->GetName());
   }
-  // The "S" direction in RAS is the "A" direction in FixedReference 
+  // The "S" direction in RAS is the "A" direction in FixedReference
   fixedReferenceToRasTransform->RotateX(-90.0);
   // The "S" direction to be toward the gantry (head first position) by default
   fixedReferenceToRasTransform->RotateZ(180.0);
