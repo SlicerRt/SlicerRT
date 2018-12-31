@@ -31,6 +31,7 @@
 
 #include "vtkSlicerDoseVolumeHistogramModuleMRMLExport.h"
 
+class vtkStringArray;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLPlotChartNode;
 class vtkMRMLSegmentationNode;
@@ -135,6 +136,10 @@ public:
   {
     factors = this->AutomaticOversamplingFactors;
   }
+  /// Get automatic oversampling factor for segment (python compatibility)
+  double GetAutomaticOversamplingFactorForSegment(std::string segmentID);
+  /// Get segment IDs that are stored in the automatic oversampling factor map
+  void GetAutomaticOversamplingFactorSegmentIDs(vtkStringArray* segmentIDs);
 
   /// Assemble DVH node reference role for current input selection and specific segment
   std::string AssembleDvhNodeReference(std::string segmentID);

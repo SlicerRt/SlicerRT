@@ -134,6 +134,10 @@ public:
   vtkGetMacro(DefaultDoseVolumeOversamplingFactor, double);
   vtkSetMacro(DefaultDoseVolumeOversamplingFactor, double);
 
+  vtkGetMacro(UseLinearInterpolationForDoseVolume, bool);
+  vtkSetMacro(UseLinearInterpolationForDoseVolume, bool);
+  vtkBooleanMacro(UseLinearInterpolationForDoseVolume, bool);
+
   vtkGetMacro(LogSpeedMeasurements, bool);
   vtkSetMacro(LogSpeedMeasurements, bool);
   vtkBooleanMacro(LogSpeedMeasurements, bool);
@@ -201,6 +205,11 @@ protected:
   /// Forced oversampling factor for the dose volume.
   /// The structure labelmap is resampled temporarily to the same lattice as the oversampled dose volume if needed.
   double DefaultDoseVolumeOversamplingFactor;
+
+  /// Flag determining whether linear interpolation is used to oversample the dose volume.
+  /// Interpolation may cause skewed metrics near maximum and minimum, if the oversampled segment
+  /// does not reach the end of the dose voxel. False by default
+  bool UseLinearInterpolationForDoseVolume;
 
   /// Flag telling whether the speed measurements are logged on standard output
   bool LogSpeedMeasurements;

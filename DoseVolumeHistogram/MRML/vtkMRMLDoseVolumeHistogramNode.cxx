@@ -33,6 +33,7 @@
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
+#include <vtkStringArray.h>
 
 // STD includes
 #include <sstream>
@@ -382,5 +383,32 @@ void vtkMRMLDoseVolumeHistogramNode::GetDvhTableNodes(std::vector<vtkMRMLTableNo
     }
 
     dvhTableNodes.push_back(dvhTableNode);
+  }
+}
+
+//----------------------------------------------------------------------------
+double vtkMRMLDoseVolumeHistogramNode::GetAutomaticOversamplingFactorForSegment(std::string segmentID)
+{
+  std::map<std::string, double>::iterator factorIt = this->AutomaticOversamplingFactors.find(segmentID);
+  if (factorIt == this->AutomaticOversamplingFactors.end())
+  {
+    return -1.0;
+  }
+  return factorIt->second;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLDoseVolumeHistogramNode::GetAutomaticOversamplingFactorSegmentIDs(vtkStringArray* segmentIDs)
+{
+  if (!segmentIDs)
+  {
+    return;
+  }
+  segmentIDs->Initialize();
+  std::map<std::string, double>::iterator factorIt;
+  int index = 0;
+  for (factorIt = this->AutomaticOversamplingFactors.begin(); factorIt != this->AutomaticOversamplingFactors.end(); ++factorIt, ++index)
+  {
+    segmentIDs->InsertValue(index, factorIt->first.c_str());
   }
 }
