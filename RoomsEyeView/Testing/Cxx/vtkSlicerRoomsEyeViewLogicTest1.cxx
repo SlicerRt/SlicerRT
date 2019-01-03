@@ -189,7 +189,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
     }
 
   double expectedGantryToFixedReferenceTransform_1_MatrixElements[16] =
-    {  0.999848, 0, -0.0174524, 0,   0, 1, 0, 0,   0.0174524, 0, 0.999848, 0,   0, 0, 0, 1  };
+    {  0.999848, 0, 0.0174524, 0,   0, 1, 0, 0,   -0.0174524, 0, 0.999848, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference),
       expectedGantryToFixedReferenceTransform_1_MatrixElements ) )
@@ -202,7 +202,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   paramNode->SetGantryRotationAngle(90.0);
   revLogic->UpdateGantryToFixedReferenceTransform(paramNode);
   double expectedGantryToFixedReference_90_MatrixElements[16] =
-    {  0, 0, -1, 0,   0, 1, 0, 0,   1, 0, 0, 0,   0, 0, 0, 1  };
+    {  0, 0, 1, 0,   0, 1, 0, 0,   -1, 0, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference),
       expectedGantryToFixedReference_90_MatrixElements ) )
