@@ -474,8 +474,8 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
   if (mlcArrayNode)
   {
     // First we extract the shape of the MLC
-    int y2count = this->Y2Jaw/10.0;
-    int y1count = this->Y1Jaw/10.0;
+    int y2count = -(this->Y2Jaw/10.0);
+    int y1count = -(this->Y1Jaw/10.0);
     int numLeavesVisible = y1count - y2count; // Calculate the number of leaves visible
     int numPointsEachSide = numLeavesVisible *2;
 
@@ -485,27 +485,27 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
     // Calculate X1 first
     for (int i = y1count; i >= y2count; i--)
     {
-      double leafPosition = mlcArrayNode->GetArray()->GetComponent(-(i-20), 1);
+      double leafPosition = mlcArrayNode->GetArray()->GetComponent(i-20, 1);
       if (leafPosition < this->X1Jaw)
       {
-        x1LeafPosition[-(i-20)] = leafPosition;
+        x1LeafPosition[i-20] = leafPosition;
       }
       else
       {
-        x1LeafPosition[-(i-20)] = this->X1Jaw;
+        x1LeafPosition[i-20] = this->X1Jaw;
       }
     }
     // Calculate X2 next
     for (int i = y1count; i >= y2count; i--)
     {
-      double leafPosition = mlcArrayNode->GetArray()->GetComponent(-(i-20), 0);
+      double leafPosition = mlcArrayNode->GetArray()->GetComponent(i-20, 0);
       if (leafPosition < this->X2Jaw)
       {
-        x2LeafPosition[-(i-20)] = leafPosition;
+        x2LeafPosition[i-20] = leafPosition;
       }
       else
       {
-        x2LeafPosition[-(i-20)] = this->X2Jaw;
+        x2LeafPosition[i-20] = this->X2Jaw;
       }
     }
 
@@ -515,17 +515,17 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
     int count = 1;
     for (int i = y1count; i > y2count; i--)
     {
-      points->InsertPoint(count,-x1LeafPosition[-(i-20)]*2, i*10*2, -this->SAD );
+      points->InsertPoint(count,-x1LeafPosition[i-20]*2, i*10*2, -this->SAD );
       count ++;
-      points->InsertPoint(count,-x1LeafPosition[-(i-20)]*2, (i-1)*10*2, -this->SAD );
+      points->InsertPoint(count,-x1LeafPosition[i-20]*2, (i-1)*10*2, -this->SAD );
       count ++;
     }
 
     for (int i = y2count; i < y1count; i++)
     {
-      points->InsertPoint(count,x2LeafPosition[-(i-20)]*2, i*10*2, -this->SAD );
+      points->InsertPoint(count,x2LeafPosition[i-20]*2, i*10*2, -this->SAD );
       count ++;
-      points->InsertPoint(count,x2LeafPosition[-(i-20)]*2, (i+1)*10*2, -this->SAD );
+      points->InsertPoint(count,x2LeafPosition[i-20]*2, (i+1)*10*2, -this->SAD );
       count ++;
     }
 
@@ -565,10 +565,10 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
   else
   {
     points->InsertPoint(0,0,0,this->SAD);
-    points->InsertPoint(1, -2*this->X1Jaw, -2*this->Y1Jaw, -this->SAD );
-    points->InsertPoint(2, -2*this->X1Jaw, -2*this->Y2Jaw, -this->SAD );
-    points->InsertPoint(3, -2*this->X2Jaw, -2*this->Y2Jaw, -this->SAD );
-    points->InsertPoint(4, -2*this->X2Jaw, -2*this->Y1Jaw, -this->SAD );
+    points->InsertPoint(1, 2*this->X1Jaw, 2*this->Y1Jaw, -this->SAD );
+    points->InsertPoint(2, 2*this->X1Jaw, 2*this->Y2Jaw, -this->SAD );
+    points->InsertPoint(3, 2*this->X2Jaw, 2*this->Y2Jaw, -this->SAD );
+    points->InsertPoint(4, 2*this->X2Jaw, 2*this->Y1Jaw, -this->SAD );
 
     cellArray->InsertNextCell(3);
     cellArray->InsertCellPoint(0);
