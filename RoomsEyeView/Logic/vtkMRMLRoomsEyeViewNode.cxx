@@ -82,6 +82,7 @@ vtkMRMLRoomsEyeViewNode::vtkMRMLRoomsEyeViewNode()
   , AdditionalModelLateralDisplacement(0.0)
   , AdditionalModelLongitudinalDisplacement(0.0)
   , PatientBodySegmentID(NULL)
+  , TreatmentMachineType(NULL)
 {
   this->SetSingletonTag("IEC");
 }
@@ -90,6 +91,7 @@ vtkMRMLRoomsEyeViewNode::vtkMRMLRoomsEyeViewNode()
 vtkMRMLRoomsEyeViewNode::~vtkMRMLRoomsEyeViewNode()
 {
   this->SetPatientBodySegmentID(NULL);
+  this->SetTreatmentMachineType(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -98,83 +100,46 @@ void vtkMRMLRoomsEyeViewNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  of << " CollisionDetectionEnabled=\"" << (this->CollisionDetectionEnabled ? "true" : "false") << "\"";
-  of << " GantryRotationAngle=\"" << this->GantryRotationAngle << "\"";
-  of << " CollimatorRotationAngle=\"" << this->CollimatorRotationAngle << "\"";
-  of << " ImagingPanelMovement=\"" << this->ImagingPanelMovement << "\"";
-  of << " PatientSupportRotationAngle=\"" << this->PatientSupportRotationAngle << "\"";
-  of << " VerticalTableTopDisplacement=\"" << this->VerticalTableTopDisplacement << "\"";
-  of << " LongitudinalTableTopDisplacement=\"" << this->LongitudinalTableTopDisplacement << "\"";
-  of << " LateralTableTopDisplacement=\"" << this->LateralTableTopDisplacement << "\"";
-  of << " AdditionalModelVerticalDisplacement=\"" << this->AdditionalModelVerticalDisplacement << "\"";
-  of << " AdditionalModelLongitudinalDisplacement=\"" << this->AdditionalModelLongitudinalDisplacement << "\"";
-  of << " AdditionalModelLateralDisplacement=\"" << this->AdditionalModelLateralDisplacement << "\"";
-  of << " PatientBodySegmentID=\"" << (this->PatientBodySegmentID ? this->PatientBodySegmentID : "") << "\"";
+  vtkMRMLWriteXMLBeginMacro(of);
+  vtkMRMLWriteXMLBooleanMacro(CollisionDetectionEnabled, CollisionDetectionEnabled);
+  vtkMRMLWriteXMLFloatMacro(GantryRotationAngle, GantryRotationAngle);
+  vtkMRMLWriteXMLFloatMacro(CollimatorRotationAngle, CollimatorRotationAngle);
+  vtkMRMLWriteXMLFloatMacro(ImagingPanelMovement, ImagingPanelMovement);
+  vtkMRMLWriteXMLFloatMacro(PatientSupportRotationAngle, PatientSupportRotationAngle);
+  vtkMRMLWriteXMLFloatMacro(VerticalTableTopDisplacement, VerticalTableTopDisplacement);
+  vtkMRMLWriteXMLFloatMacro(LongitudinalTableTopDisplacement, LongitudinalTableTopDisplacement);
+  vtkMRMLWriteXMLFloatMacro(LateralTableTopDisplacement, LateralTableTopDisplacement);
+  vtkMRMLWriteXMLFloatMacro(AdditionalModelVerticalDisplacement, AdditionalModelVerticalDisplacement);
+  vtkMRMLWriteXMLFloatMacro(AdditionalModelLongitudinalDisplacement, AdditionalModelLongitudinalDisplacement);
+  vtkMRMLWriteXMLFloatMacro(AdditionalModelLateralDisplacement, AdditionalModelLateralDisplacement);
+  vtkMRMLWriteXMLStringMacro(PatientBodySegmentID, PatientBodySegmentID);
+  vtkMRMLWriteXMLStringMacro(TreatmentMachineType, TreatmentMachineType);
+  vtkMRMLWriteXMLEndMacro(); 
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRoomsEyeViewNode::ReadXMLAttributes(const char** atts)
 {
+  int disabledModify = this->StartModify();
   vtkMRMLNode::ReadXMLAttributes(atts);
 
-  // Read all MRML node attributes from two arrays of names and values
-  const char* attName = NULL;
-  const char* attValue = NULL;
+  vtkMRMLReadXMLBeginMacro(atts);
+  vtkMRMLReadXMLBooleanMacro(CollisionDetectionEnabled, CollisionDetectionEnabled);
+  vtkMRMLReadXMLFloatMacro(GantryRotationAngle, GantryRotationAngle);
+  vtkMRMLReadXMLFloatMacro(CollimatorRotationAngle, CollimatorRotationAngle);
+  vtkMRMLReadXMLFloatMacro(ImagingPanelMovement, ImagingPanelMovement);
+  vtkMRMLReadXMLFloatMacro(PatientSupportRotationAngle, PatientSupportRotationAngle);
+  vtkMRMLReadXMLFloatMacro(VerticalTableTopDisplacement, VerticalTableTopDisplacement);
+  vtkMRMLReadXMLFloatMacro(LongitudinalTableTopDisplacement, LongitudinalTableTopDisplacement);
+  vtkMRMLReadXMLFloatMacro(LateralTableTopDisplacement, LateralTableTopDisplacement);
+  vtkMRMLReadXMLFloatMacro(AdditionalModelVerticalDisplacement, AdditionalModelVerticalDisplacement);
+  vtkMRMLReadXMLFloatMacro(AdditionalModelLongitudinalDisplacement, AdditionalModelLongitudinalDisplacement);
+  vtkMRMLReadXMLFloatMacro(AdditionalModelLateralDisplacement, AdditionalModelLateralDisplacement);
+  vtkMRMLReadXMLStringMacro(PatientBodySegmentID, PatientBodySegmentID);
+  vtkMRMLReadXMLStringMacro(TreatmentMachineType, TreatmentMachineType);
+  vtkMRMLReadXMLEndMacro(); 
 
-  while (*atts != NULL) 
-  {
-    attName = *(atts++);
-    attValue = *(atts++);
-
-    if (!strcmp(attName, "CollisionDetectionEnabled")) 
-    {
-      this->CollisionDetectionEnabled = (strcmp(attValue,"true") ? false : true);
-    }
-    else if (!strcmp(attName, "GantryRotationAngle"))
-    {
-      this->GantryRotationAngle = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp(attName, "CollimatorRotationAngle"))
-    {
-      this->CollimatorRotationAngle = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp(attName, "ImagingPanelMovement"))
-    {
-      this->ImagingPanelMovement = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp(attName, "PatientSupportRotationAngle"))
-    {
-      this->PatientSupportRotationAngle = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp(attName, "VerticalTableTopDisplacement"))
-    {
-      this->VerticalTableTopDisplacement = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp(attName, "LongitudinalTableTopDisplacement"))
-    {
-      this->LongitudinalTableTopDisplacement = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp(attName, "LateralTableTopDisplacement"))
-    {
-      this->LateralTableTopDisplacement = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp(attName, "AdditionalModelVerticalDisplacement"))
-    {
-      this->VerticalTableTopDisplacement = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp(attName, "AdditionalModelLongitudinalDisplacement"))
-    {
-      this->LongitudinalTableTopDisplacement = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp(attName, "AdditionalModelLateralDisplacement"))
-    {
-      this->LateralTableTopDisplacement = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp(attName, "PatientBodySegmentID")) 
-    {
-      this->SetPatientBodySegmentID(vtkVariant(attValue).ToString());
-    }
-}
+  this->EndModify(disabledModify);
 
   // Note: ReportString is not read from XML, it is a strictly temporary value
 }
@@ -184,26 +149,27 @@ void vtkMRMLRoomsEyeViewNode::ReadXMLAttributes(const char** atts)
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLRoomsEyeViewNode::Copy(vtkMRMLNode *anode)
 {
+  int disabledModify = this->StartModify();
+
   Superclass::Copy(anode);
-  this->DisableModifiedEventOn();
 
-  vtkMRMLRoomsEyeViewNode *node = (vtkMRMLRoomsEyeViewNode *) anode;
+  vtkMRMLCopyBeginMacro(anode);
+  vtkMRMLCopyBooleanMacro(CollisionDetectionEnabled, CollisionDetectionEnabled);
+  vtkMRMLCopyFloatMacro(GantryRotationAngle, GantryRotationAngle);
+  vtkMRMLCopyFloatMacro(CollimatorRotationAngle, CollimatorRotationAngle);
+  vtkMRMLCopyFloatMacro(ImagingPanelMovement, ImagingPanelMovement);
+  vtkMRMLCopyFloatMacro(PatientSupportRotationAngle, PatientSupportRotationAngle);
+  vtkMRMLCopyFloatMacro(VerticalTableTopDisplacement, VerticalTableTopDisplacement);
+  vtkMRMLCopyFloatMacro(LongitudinalTableTopDisplacement, LongitudinalTableTopDisplacement);
+  vtkMRMLCopyFloatMacro(LateralTableTopDisplacement, LateralTableTopDisplacement);
+  vtkMRMLCopyFloatMacro(AdditionalModelVerticalDisplacement, AdditionalModelVerticalDisplacement);
+  vtkMRMLCopyFloatMacro(AdditionalModelLongitudinalDisplacement, AdditionalModelLongitudinalDisplacement);
+  vtkMRMLCopyFloatMacro(AdditionalModelLateralDisplacement, AdditionalModelLateralDisplacement);
+  vtkMRMLCopyStringMacro(PatientBodySegmentID, PatientBodySegmentID);
+  vtkMRMLCopyStringMacro(TreatmentMachineType, TreatmentMachineType);
+  vtkMRMLCopyEndMacro(); 
 
-  this->CollisionDetectionEnabled = node->CollisionDetectionEnabled;
-  this->GantryRotationAngle = node->GantryRotationAngle;
-  this->CollimatorRotationAngle = node->CollimatorRotationAngle;
-  this->ImagingPanelMovement = node->ImagingPanelMovement;
-  this->PatientSupportRotationAngle = node->PatientSupportRotationAngle;
-  this->VerticalTableTopDisplacement = node->VerticalTableTopDisplacement;
-  this->LongitudinalTableTopDisplacement = node->LongitudinalTableTopDisplacement;
-  this->LateralTableTopDisplacement = node->LateralTableTopDisplacement;
-  this->AdditionalModelVerticalDisplacement = node->AdditionalModelVerticalDisplacement;
-  this->AdditionalModelLongitudinalDisplacement = node->AdditionalModelLongitudinalDisplacement;
-  this->AdditionalModelLateralDisplacement = node->AdditionalModelLateralDisplacement;
-  this->SetPatientBodySegmentID(node->PatientBodySegmentID);
-
-  this->DisableModifiedEventOff();
-  this->InvokePendingModifiedEvent();
+  this->EndModify(disabledModify);
 }
 
 //----------------------------------------------------------------------------
@@ -211,18 +177,21 @@ void vtkMRMLRoomsEyeViewNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << "CollisionDetectionEnabled:   " << (this->CollisionDetectionEnabled ? "true" : "false") << "\n";
-  os << indent << "GantryRotationAngle:   " << this->GantryRotationAngle << "\n";
-  os << indent << "CollimatorRotationAngle:   " << this->CollimatorRotationAngle << "\n";
-  os << indent << "ImagingPanelMovement:    " << this->ImagingPanelMovement << "\n";
-  os << indent << "PatientSupportRotationAngle:   " << this->PatientSupportRotationAngle << "\n";
-  os << indent << "VerticalTableTopDisplacement:    " << this->VerticalTableTopDisplacement << "\n";
-  os << indent << "LongitudinalTableTopDisplacement:    " << this->LongitudinalTableTopDisplacement << "\n";
-  os << indent << "LateralTableTopDisplacement:    " << this->LateralTableTopDisplacement << "\n";
-  os << indent << "AdditionalModelVerticalDisplacement:    " << this->AdditionalModelVerticalDisplacement << "\n";
-  os << indent << "AdditionalModelLongitudinalDisplacement:    " << this->AdditionalModelLongitudinalDisplacement << "\n";
-  os << indent << "AdditionalModelLateralDisplacement:    " << this->AdditionalModelLateralDisplacement << "\n";
-  os << indent << "PatientBodySegmentID:   " << (this->PatientBodySegmentID ? this->PatientBodySegmentID : "NULL") << "\n";
+  vtkMRMLPrintBeginMacro(os, indent);
+  vtkMRMLPrintBooleanMacro(CollisionDetectionEnabled, CollisionDetectionEnabled);
+  vtkMRMLPrintFloatMacro(GantryRotationAngle, GantryRotationAngle);
+  vtkMRMLPrintFloatMacro(CollimatorRotationAngle, CollimatorRotationAngle);
+  vtkMRMLPrintFloatMacro(ImagingPanelMovement, ImagingPanelMovement);
+  vtkMRMLPrintFloatMacro(PatientSupportRotationAngle, PatientSupportRotationAngle);
+  vtkMRMLPrintFloatMacro(VerticalTableTopDisplacement, VerticalTableTopDisplacement);
+  vtkMRMLPrintFloatMacro(LongitudinalTableTopDisplacement, LongitudinalTableTopDisplacement);
+  vtkMRMLPrintFloatMacro(LateralTableTopDisplacement, LateralTableTopDisplacement);
+  vtkMRMLPrintFloatMacro(AdditionalModelVerticalDisplacement, AdditionalModelVerticalDisplacement);
+  vtkMRMLPrintFloatMacro(AdditionalModelLongitudinalDisplacement, AdditionalModelLongitudinalDisplacement);
+  vtkMRMLPrintFloatMacro(AdditionalModelLateralDisplacement, AdditionalModelLateralDisplacement);
+  vtkMRMLPrintStringMacro(PatientBodySegmentID, PatientBodySegmentID);
+  vtkMRMLPrintStringMacro(TreatmentMachineType, TreatmentMachineType);
+  vtkMRMLPrintEndMacro(); 
 }
 
 //----------------------------------------------------------------------------

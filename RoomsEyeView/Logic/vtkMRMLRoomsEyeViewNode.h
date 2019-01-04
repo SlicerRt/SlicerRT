@@ -127,6 +127,11 @@ public:
   /// Set patient body segment ID
   vtkSetStringMacro(PatientBodySegmentID);
 
+  /// Get treatment machine type name
+  vtkGetStringMacro(TreatmentMachineType);
+  /// Set treatment machine type name
+  vtkSetStringMacro(TreatmentMachineType);
+
   vtkGetMacro(CollisionDetectionEnabled, bool);
   vtkSetMacro(CollisionDetectionEnabled, bool);
   vtkBooleanMacro(CollisionDetectionEnabled, bool);
@@ -176,6 +181,9 @@ protected:
 protected:
   /// Patient body segment ID in selected segmentation node
   char* PatientBodySegmentID;
+
+  /// Name of treatment machine used (must match folder name where the models can be found)
+  char* TreatmentMachineType;
 
   bool CollisionDetectionEnabled;
 

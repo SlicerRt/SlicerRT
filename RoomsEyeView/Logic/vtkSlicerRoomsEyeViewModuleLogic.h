@@ -63,8 +63,9 @@ public:
 
 public:
   /// Load pre-defined components of the treatment machine into the scene
-  /// \param machineType Type of the treatment machine (must match folder name where the models can be found)
-  void LoadTreatmentMachineModels(std::string machineType);
+  /// \param parameterNode Parameter node contains the type of treatment machine
+  ///        (must match folder name where the models can be found)
+  void LoadTreatmentMachineModels(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Set up the IEC transforms and model properties on the treatment machine models
   void SetupTreatmentMachineModels();
   /// Create or get transforms taking part in the IEC logic and additional devices, and build the transform hierarchy

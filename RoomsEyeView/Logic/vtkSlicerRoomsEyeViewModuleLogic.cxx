@@ -216,7 +216,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(std::string machineType)
+void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
   vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
@@ -224,11 +224,17 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(std::string ma
     vtkErrorMacro("LoadTreatmentMachineModels: Invalid scene");
     return;
   }
+  if (!parameterNode || !parameterNode->GetTreatmentMachineType())
+  {
+    vtkErrorMacro("LoadTreatmentMachineModels: Invalid parameter node");
+    return;
+  }
 
   // Make sure the transform hierarchy is in place
   this->BuildRoomsEyeViewTransformHierarchy();
 
   std::string moduleShareDirectory = this->GetModuleShareDirectory();
+  std::string machineType(parameterNode->GetTreatmentMachineType());
   std::string treatmentMachineModelsDirectory = moduleShareDirectory + "/" + machineType;
 
   // Create a models logic for convenient loading of components
@@ -1177,10 +1183,20 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToPatientSupportRotat
   // Vertical scaling
   double scaleFactor = fabs((patientSupportModelBounds[4] + patientSupportModelBounds[5]) / 2);
   double tableTopDisplacement = parameterNode->GetVerticalTableTopDisplacement();
-
+  double tableTopDisplacementScaling = 1.0;
+  char* treatmentMachineType = parameterNode->GetTreatmentMachineType();
+  if (treatmentMachineType && !strcmp(treatmentMachineType, "VarianTrueBeamSTx"))
+  {
+    tableTopDisplacementScaling = 0.525;
+  }
+  else if (treatmentMachineType && !strcmp(treatmentMachineType, "SiemensArtiste"))
+  {
+    tableTopDisplacementScaling = 0.095;
+  }
   vtkNew<vtkTransform> rasToScaledRasTransform;
-  //TODO: Magic number
-  rasToScaledRasTransform->Scale(1, 1, ((fabs(patientSupportModelBounds[5]) + tableTopDisplacement*0.525) / fabs(patientSupportModelBounds[5]))); //TODO: Subtract [2]?
+  rasToScaledRasTransform->Scale(1, 1,
+    ( ( fabs(patientSupportModelBounds[5]) + tableTopDisplacement*tableTopDisplacementScaling)
+      / fabs(patientSupportModelBounds[5]) ) ); //TODO: Subtract [2]?
 
   // Translation back from origin after in-place scaling
   vtkNew<vtkTransform> scaledRasToFixedReferenceTransform;

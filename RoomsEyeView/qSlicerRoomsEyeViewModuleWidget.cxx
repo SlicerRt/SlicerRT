@@ -430,15 +430,40 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineModelsButtonClicked(
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
+    return;
+  }
+
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode || !d->ModuleWindowInitialized)
+  {
+    return;
+  }
+
   // Load and setup models
-  std::string treatmentMachineType(d->TreatmentMachineComboBox->currentData().toString().toLatin1().constData());
-  d->logic()->LoadTreatmentMachineModels(treatmentMachineType);
+  QString treatmentMachineType(d->TreatmentMachineComboBox->currentData().toString());
+  paramNode->SetTreatmentMachineType(treatmentMachineType.toLatin1().constData());
+  d->logic()->LoadTreatmentMachineModels(paramNode);
 
   // Reset camera
   qSlicerApplication* slicerApplication = qSlicerApplication::application();
   qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
   qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
   threeDView->resetCamera();
+
+  // Set treatment machine dependent properties
+  if (!treatmentMachineType.compare("VarianTrueBeamSTx"))
+  {
+    d->LateralTableTopDisplacementSlider->setMinimum(-230.0);
+    d->LateralTableTopDisplacementSlider->setMaximum(230.0);
+  }
+  else if (!treatmentMachineType.compare("SiemensArtiste"))
+  {
+    d->LateralTableTopDisplacementSlider->setMinimum(-250.0);
+    d->LateralTableTopDisplacementSlider->setMaximum(250.0);
+  }
 
   // Set orientation marker
   //TODO: Add new option 'Treatment room' to orientation marker choices and merged model with actual colors (surface scalars?)
