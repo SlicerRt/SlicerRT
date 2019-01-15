@@ -100,7 +100,7 @@ unsigned int vtkPlanarContourToRibbonModelConversionRule::GetConversionCost(vtkD
   // Rough input-independent guess (ms)
   // Increase to quasi infinity, so that this path is never chosen by default, but the user has to manually request it.
   // This is due to the superiority of the triangulated and end-capped closed surface path.
-  return UINT_MAX / 2; // To prevent overflow
+  return vtkSegmentationConverterRule::GetConversionInfiniteCost();
 }
 
 //----------------------------------------------------------------------------
@@ -361,7 +361,7 @@ double vtkPlanarContourToRibbonModelConversionRule::ComputeContourPlaneSpacing(v
       {
         // Only add spacing value if it's not 0 - multiple contours may be drawn on the same plane and it's not considered for slice thickness computation
         planeSpacingValues.push_back(currentDistance);
-        
+
         // Store current spacing as found spacing if has not been set
         if (distanceBetweenContourPlanes == -1.0)
         {
