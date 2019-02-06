@@ -154,19 +154,19 @@ void vtkMRMLRoomsEyeViewNode::Copy(vtkMRMLNode *anode)
   Superclass::Copy(anode);
 
   vtkMRMLCopyBeginMacro(anode);
-  vtkMRMLCopyBooleanMacro(CollisionDetectionEnabled, CollisionDetectionEnabled);
-  vtkMRMLCopyFloatMacro(GantryRotationAngle, GantryRotationAngle);
-  vtkMRMLCopyFloatMacro(CollimatorRotationAngle, CollimatorRotationAngle);
-  vtkMRMLCopyFloatMacro(ImagingPanelMovement, ImagingPanelMovement);
-  vtkMRMLCopyFloatMacro(PatientSupportRotationAngle, PatientSupportRotationAngle);
-  vtkMRMLCopyFloatMacro(VerticalTableTopDisplacement, VerticalTableTopDisplacement);
-  vtkMRMLCopyFloatMacro(LongitudinalTableTopDisplacement, LongitudinalTableTopDisplacement);
-  vtkMRMLCopyFloatMacro(LateralTableTopDisplacement, LateralTableTopDisplacement);
-  vtkMRMLCopyFloatMacro(AdditionalModelVerticalDisplacement, AdditionalModelVerticalDisplacement);
-  vtkMRMLCopyFloatMacro(AdditionalModelLongitudinalDisplacement, AdditionalModelLongitudinalDisplacement);
-  vtkMRMLCopyFloatMacro(AdditionalModelLateralDisplacement, AdditionalModelLateralDisplacement);
-  vtkMRMLCopyStringMacro(PatientBodySegmentID, PatientBodySegmentID);
-  vtkMRMLCopyStringMacro(TreatmentMachineType, TreatmentMachineType);
+  vtkMRMLCopyBooleanMacro(CollisionDetectionEnabled);
+  vtkMRMLCopyFloatMacro(GantryRotationAngle);
+  vtkMRMLCopyFloatMacro(CollimatorRotationAngle);
+  vtkMRMLCopyFloatMacro(ImagingPanelMovement);
+  vtkMRMLCopyFloatMacro(PatientSupportRotationAngle);
+  vtkMRMLCopyFloatMacro(VerticalTableTopDisplacement);
+  vtkMRMLCopyFloatMacro(LongitudinalTableTopDisplacement);
+  vtkMRMLCopyFloatMacro(LateralTableTopDisplacement);
+  vtkMRMLCopyFloatMacro(AdditionalModelVerticalDisplacement);
+  vtkMRMLCopyFloatMacro(AdditionalModelLongitudinalDisplacement);
+  vtkMRMLCopyFloatMacro(AdditionalModelLateralDisplacement);
+  vtkMRMLCopyStringMacro(PatientBodySegmentID);
+  vtkMRMLCopyStringMacro(TreatmentMachineType);
   vtkMRMLCopyEndMacro(); 
 
   this->EndModify(disabledModify);
@@ -178,19 +178,19 @@ void vtkMRMLRoomsEyeViewNode::PrintSelf(ostream& os, vtkIndent indent)
   Superclass::PrintSelf(os,indent);
 
   vtkMRMLPrintBeginMacro(os, indent);
-  vtkMRMLPrintBooleanMacro(CollisionDetectionEnabled, CollisionDetectionEnabled);
-  vtkMRMLPrintFloatMacro(GantryRotationAngle, GantryRotationAngle);
-  vtkMRMLPrintFloatMacro(CollimatorRotationAngle, CollimatorRotationAngle);
-  vtkMRMLPrintFloatMacro(ImagingPanelMovement, ImagingPanelMovement);
-  vtkMRMLPrintFloatMacro(PatientSupportRotationAngle, PatientSupportRotationAngle);
-  vtkMRMLPrintFloatMacro(VerticalTableTopDisplacement, VerticalTableTopDisplacement);
-  vtkMRMLPrintFloatMacro(LongitudinalTableTopDisplacement, LongitudinalTableTopDisplacement);
-  vtkMRMLPrintFloatMacro(LateralTableTopDisplacement, LateralTableTopDisplacement);
-  vtkMRMLPrintFloatMacro(AdditionalModelVerticalDisplacement, AdditionalModelVerticalDisplacement);
-  vtkMRMLPrintFloatMacro(AdditionalModelLongitudinalDisplacement, AdditionalModelLongitudinalDisplacement);
-  vtkMRMLPrintFloatMacro(AdditionalModelLateralDisplacement, AdditionalModelLateralDisplacement);
-  vtkMRMLPrintStringMacro(PatientBodySegmentID, PatientBodySegmentID);
-  vtkMRMLPrintStringMacro(TreatmentMachineType, TreatmentMachineType);
+  vtkMRMLPrintBooleanMacro(CollisionDetectionEnabled);
+  vtkMRMLPrintFloatMacro(GantryRotationAngle);
+  vtkMRMLPrintFloatMacro(CollimatorRotationAngle);
+  vtkMRMLPrintFloatMacro(ImagingPanelMovement);
+  vtkMRMLPrintFloatMacro(PatientSupportRotationAngle);
+  vtkMRMLPrintFloatMacro(VerticalTableTopDisplacement);
+  vtkMRMLPrintFloatMacro(LongitudinalTableTopDisplacement);
+  vtkMRMLPrintFloatMacro(LateralTableTopDisplacement);
+  vtkMRMLPrintFloatMacro(AdditionalModelVerticalDisplacement);
+  vtkMRMLPrintFloatMacro(AdditionalModelLongitudinalDisplacement);
+  vtkMRMLPrintFloatMacro(AdditionalModelLateralDisplacement);
+  vtkMRMLPrintStringMacro(PatientBodySegmentID);
+  vtkMRMLPrintStringMacro(TreatmentMachineType);
   vtkMRMLPrintEndMacro(); 
 }
 
