@@ -42,7 +42,7 @@ class VTK_SLICER_SEGMENTMORPHOLOGY_MODULE_LOGIC_EXPORT vtkSlicerSegmentMorpholog
 public:
   static vtkSlicerSegmentMorphologyModuleLogic *New();
   vtkTypeMacro(vtkSlicerSegmentMorphologyModuleLogic, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Perform selected morphological operation
   /// \return Error message, empty string if no error
@@ -56,15 +56,15 @@ protected:
   vtkSlicerSegmentMorphologyModuleLogic();
   virtual ~vtkSlicerSegmentMorphologyModuleLogic();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) VTK_OVERRIDE;
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes() VTK_OVERRIDE;
+  virtual void RegisterNodes() override;
 
-  virtual void UpdateFromMRMLScene() VTK_OVERRIDE;
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node) VTK_OVERRIDE;
-  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node) VTK_OVERRIDE;
-  virtual void OnMRMLSceneEndClose() VTK_OVERRIDE;
+  virtual void UpdateFromMRMLScene() override;
+  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node) override;
+  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node) override;
+  virtual void OnMRMLSceneEndClose() override;
 
 private:
   vtkSlicerSegmentMorphologyModuleLogic(const vtkSlicerSegmentMorphologyModuleLogic&); // Not implemented

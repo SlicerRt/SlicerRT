@@ -60,7 +60,7 @@ public:
   /// Constructor
   static vtkPlmpyRegistration* New();
   vtkTypeMacro(vtkPlmpyRegistration, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   
   /// Execute "classic" registration, not stoppable 
   void RunRegistration();
@@ -169,12 +169,12 @@ protected:
   vtkPlmpyRegistration();
   virtual ~vtkPlmpyRegistration();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) VTK_OVERRIDE;
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes() VTK_OVERRIDE;
+  virtual void RegisterNodes() override;
 
-  virtual void UpdateFromMRMLScene() VTK_OVERRIDE;
+  virtual void UpdateFromMRMLScene() override;
 
 protected:
   /// ID of the fixed image

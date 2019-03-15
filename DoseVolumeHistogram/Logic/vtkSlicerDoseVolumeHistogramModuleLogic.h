@@ -181,12 +181,12 @@ protected:
   vtkSlicerDoseVolumeHistogramModuleLogic();
   virtual ~vtkSlicerDoseVolumeHistogramModuleLogic();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) VTK_OVERRIDE;
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes() VTK_OVERRIDE;
+  virtual void RegisterNodes() override;
 
-  virtual void OnMRMLSceneEndClose() VTK_OVERRIDE;
+  virtual void OnMRMLSceneEndClose() override;
 
 private:
   vtkSlicerDoseVolumeHistogramModuleLogic(const vtkSlicerDoseVolumeHistogramModuleLogic&); // Not implemented

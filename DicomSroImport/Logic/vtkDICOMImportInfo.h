@@ -40,7 +40,7 @@ class VTK_SLICER_DICOMSROIMPORT_MODULE_LOGIC_EXPORT vtkDICOMImportInfo :
 public:
   static vtkDICOMImportInfo *New();
   vtkTypeMacro(vtkDICOMImportInfo, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 public:
   

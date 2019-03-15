@@ -59,7 +59,7 @@ class VTK_SLICERRTCOMMON_EXPORT vtkCollisionDetectionFilter : public vtkPolyData
 {
 public:
   vtkTypeMacro(vtkCollisionDetectionFilter, vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   enum CollisionModes
   {

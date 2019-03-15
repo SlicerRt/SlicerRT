@@ -33,7 +33,7 @@ class VTK_SLICERRTCOMMON_EXPORT vtkFractionalImageAccumulate: public vtkImageAcc
 public:
   static vtkFractionalImageAccumulate* New();
   vtkTypeMacro(vtkFractionalImageAccumulate, vtkImageAccumulate);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   vtkSetMacro(MinimumFractionalValue, double);
   vtkSetMacro(MaximumFractionalValue, double);

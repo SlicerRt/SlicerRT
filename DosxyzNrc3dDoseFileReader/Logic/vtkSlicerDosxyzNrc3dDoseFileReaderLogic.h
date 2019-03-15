@@ -44,7 +44,7 @@ class VTK_SLICER_DOSXYZNRC3DDOSEFILEREADER_LOGIC_EXPORT vtkSlicerDosxyzNrc3dDose
 public:
   static vtkSlicerDosxyzNrc3dDoseFileReaderLogic *New();
   vtkTypeMacro(vtkSlicerDosxyzNrc3dDoseFileReaderLogic, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Load DosxyzNrc3dDose volume from file
   /// \param filename Path and filename of the DosxyzNrc3dDose file

@@ -46,7 +46,7 @@ class VTK_SLICER_DICOMSROIMPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomSroImportModul
 public:
   static vtkSlicerDicomSroImportModuleLogic *New();
   vtkTypeMacro(vtkSlicerDicomSroImportModuleLogic, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Examine a list of file lists and determine what objects can be loaded from them
   void Examine(vtkDICOMImportInfo *importInfo);
@@ -57,7 +57,7 @@ public:
 
 protected:
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes() VTK_OVERRIDE;
+  virtual void RegisterNodes() override;
 
   /// Load Dicom spatial registration objects into the MRML scene
   /// \return Success flag

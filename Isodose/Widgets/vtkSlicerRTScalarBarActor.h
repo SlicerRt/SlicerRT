@@ -43,7 +43,7 @@ public:
   // The usual VTK class functions
   static vtkSlicerRTScalarBarActor *New();
   vtkTypeMacro(vtkSlicerRTScalarBarActor,vtkScalarBarActor);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Get for the flag on using VTK6 annotation as label
   vtkGetMacro(UseAnnotationAsLabel, int);

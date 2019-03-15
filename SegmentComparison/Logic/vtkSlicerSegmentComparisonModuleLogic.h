@@ -42,7 +42,7 @@ class VTK_SLICER_SEGMENTCOMPARISON_MODULE_LOGIC_EXPORT vtkSlicerSegmentCompariso
 public:
   static vtkSlicerSegmentComparisonModuleLogic *New();
   vtkTypeMacro(vtkSlicerSegmentComparisonModuleLogic,vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 public:
   /// Compute Dice statistics from the selected input segment labelmaps
@@ -66,15 +66,15 @@ protected:
   vtkSlicerSegmentComparisonModuleLogic();
   virtual ~vtkSlicerSegmentComparisonModuleLogic();
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) VTK_OVERRIDE;
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes() VTK_OVERRIDE;
+  virtual void RegisterNodes() override;
 
-  virtual void UpdateFromMRMLScene() VTK_OVERRIDE;
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node) VTK_OVERRIDE;
-  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node) VTK_OVERRIDE;
-  virtual void OnMRMLSceneEndClose() VTK_OVERRIDE;
+  virtual void UpdateFromMRMLScene() override;
+  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node) override;
+  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node) override;
+  virtual void OnMRMLSceneEndClose() override;
 
 private:
   vtkSlicerSegmentComparisonModuleLogic(const vtkSlicerSegmentComparisonModuleLogic&); // Not implemented

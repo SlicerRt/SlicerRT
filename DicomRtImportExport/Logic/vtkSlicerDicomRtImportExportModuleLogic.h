@@ -53,7 +53,7 @@ class VTK_SLICER_DICOMRTIMPORTEXPORT_LOGIC_EXPORT vtkSlicerDicomRtImportExportMo
 public:
   static vtkSlicerDicomRtImportExportModuleLogic *New();
   vtkTypeMacro(vtkSlicerDicomRtImportExportModuleLogic, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Examine a list of file lists and determine what objects can be loaded from them
   /// \param fileList List of files to examine and generate loadables from
@@ -86,11 +86,11 @@ public:
   vtkBooleanMacro(BeamModelsInSeparateBranch, bool);
 
 protected:
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) VTK_OVERRIDE;
-  virtual void OnMRMLSceneEndClose() VTK_OVERRIDE;
+  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
+  virtual void OnMRMLSceneEndClose() override;
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes() VTK_OVERRIDE;
+  virtual void RegisterNodes() override;
 
 protected:
   vtkSlicerDicomRtImportExportModuleLogic();

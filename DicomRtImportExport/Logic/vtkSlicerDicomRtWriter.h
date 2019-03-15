@@ -42,7 +42,7 @@ class VTK_SLICER_DICOMRTIMPORTEXPORT_LOGIC_EXPORT vtkSlicerDicomRtWriter :  publ
 public:
   static vtkSlicerDicomRtWriter *New();
   vtkTypeMacro(vtkSlicerDicomRtWriter, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Set anatomical image to Plastimatch RT study for export
   void SetImage(const Plm_image::Pointer&);

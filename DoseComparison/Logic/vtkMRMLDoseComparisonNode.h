@@ -40,22 +40,22 @@ class VTK_SLICER_DOSECOMPARISON_LOGIC_EXPORT vtkMRMLDoseComparisonNode : public 
 public:
   static vtkMRMLDoseComparisonNode *New();
   vtkTypeMacro(vtkMRMLDoseComparisonNode,vtkMRMLNode);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Create instance of a GAD node. 
-  virtual vtkMRMLNode* CreateNodeInstance() VTK_OVERRIDE;
+  virtual vtkMRMLNode* CreateNodeInstance() override;
 
   /// Set node attributes from name/value pairs 
-  virtual void ReadXMLAttributes(const char** atts) VTK_OVERRIDE;
+  virtual void ReadXMLAttributes(const char** atts) override;
 
   /// Write this node's information to a MRML file in XML format. 
-  virtual void WriteXML(ostream& of, int indent) VTK_OVERRIDE;
+  virtual void WriteXML(ostream& of, int indent) override;
 
   /// Copy the node's attributes to this object 
-  virtual void Copy(vtkMRMLNode *node) VTK_OVERRIDE;
+  virtual void Copy(vtkMRMLNode *node) override;
 
   /// Get unique node XML tag name (like Volume, Model) 
-  virtual const char* GetNodeTagName() VTK_OVERRIDE { return "DoseComparison"; };
+  virtual const char* GetNodeTagName() override { return "DoseComparison"; };
 
 public:
   /// Get reference dose volume node

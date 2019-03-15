@@ -41,7 +41,7 @@ public:
 
   static vtkLabelmapToModelFilter *New();
   vtkTypeMacro(vtkLabelmapToModelFilter, vtkObject );
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   virtual vtkPolyData* GetOutput();
 

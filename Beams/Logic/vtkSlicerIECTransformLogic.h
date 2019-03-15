@@ -68,7 +68,7 @@ public:
 public:
   static vtkSlicerIECTransformLogic *New();
   vtkTypeMacro(vtkSlicerIECTransformLogic, vtkMRMLAbstractLogic);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Create or get transforms taking part in the IEC logic, and build the transform hierarchy
   void BuildIECTransformHierarchy();

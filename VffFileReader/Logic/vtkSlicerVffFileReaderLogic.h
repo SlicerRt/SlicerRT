@@ -43,7 +43,7 @@ class VTK_SLICER_VFFFILEREADER_LOGIC_EXPORT vtkSlicerVffFileReaderLogic :
 public:
   static vtkSlicerVffFileReaderLogic *New();
   vtkTypeMacro(vtkSlicerVffFileReaderLogic, vtkSlicerModuleLogic);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Load VFF volume from file
   /// \param filename Path and filename of the VFF file
