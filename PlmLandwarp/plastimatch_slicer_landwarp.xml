@@ -50,6 +50,7 @@
       <channel>output</channel>
       <default>None</default>
       <description>Warped output image</description>
+      <reference role="source" parameter="plmslc_landwarp_moving_volume"/>
     </image>
     <transform fileExtensions=".nrrd" type="nonlinear">
       <name>plmslc_landwarp_output_vf</name>
@@ -58,6 +59,10 @@
       <label>Output vector field (MRML)</label>
       <default>None</default>
       <channel>output</channel>
+      <reference role="spatialRegistrationMoving" parameter="plmslc_landwarp_moving_fiducials"/>
+      <reference role="spatialRegistrationMoving" parameter="plmslc_landwarp_moving_volume"/>
+      <reference role="spatialRegistrationFixed" parameter="plmslc_landwarp_fixed_fiducials"/>
+      <reference role="spatialRegistrationFixed" parameter="plmslc_landwarp_fixed_volume"/>
     </transform>
     <string>
       <name>plmslc_landwarp_output_vf_f</name>

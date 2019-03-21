@@ -83,7 +83,7 @@
       <description>Fiducials in moving volume</description>
       <label>Moving fiducials (old)</label>
     </point>
-    
+
     <!-- Outputs -->
     <image>
       <name>plmslc_output_warped</name>
@@ -92,6 +92,7 @@
       <default>None</default>
       <description>Warped output image</description>
       <label>Output volume</label>
+      <reference role="source" parameter="plmslc_moving_volume"/>
     </image>
     <transform fileExtensions=".txt" type="bspline">
       <name>plmslc_output_bsp</name>
@@ -100,6 +101,12 @@
       <default>None</default>
       <description>B-spline coefficients created by registration</description>
       <label>Output B-spline transform (MRML)</label>
+      <reference role="spatialRegistrationMoving" parameter="plmslc_moving_volume"/>
+      <reference role="spatialRegistrationMoving" parameter="plmslc_moving_fiducials_pointfile"/>
+      <reference role="spatialRegistrationMoving" parameter="plmslc_moving_fiducials"/>
+      <reference role="spatialRegistrationFixed" parameter="plmslc_fixed_volume"/>
+      <reference role="spatialRegistrationFixed" parameter="plmslc_fixed_fiducials_pointfile"/>
+      <reference role="spatialRegistrationFixed" parameter="plmslc_fixed_fiducials"/>
     </transform>
     <transform fileExtensions=".nrrd" type="nonlinear">
       <name>plmslc_output_vf</name>
@@ -108,6 +115,12 @@
       <default>None</default>
       <description>Deformation field created by registration</description>
       <label>Output vector field (MRML)</label>
+      <reference role="spatialRegistrationMoving" parameter="plmslc_moving_volume"/>
+      <reference role="spatialRegistrationMoving" parameter="plmslc_moving_fiducials_pointfile"/>
+      <reference role="spatialRegistrationMoving" parameter="plmslc_moving_fiducials"/>
+      <reference role="spatialRegistrationFixed" parameter="plmslc_fixed_volume"/>
+      <reference role="spatialRegistrationFixed" parameter="plmslc_fixed_fiducials_pointfile"/>
+      <reference role="spatialRegistrationFixed" parameter="plmslc_fixed_fiducials"/>
     </transform>
     <pointfile multiple="true" fileExtensions=".fcsv" coordinateSystem="ras">
       <name>plmslc_warped_fiducials_pointfile</name>
@@ -426,5 +439,5 @@
       <longflag>its</longflag>
       <description>Maximum number of iterations</description>
     </integer>
-  </parameters>    
+  </parameters>
 </executable>
