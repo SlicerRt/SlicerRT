@@ -227,8 +227,8 @@ protected:
   ~vtkSlicerDicomSroReader();
 
 private:
-  vtkSlicerDicomSroReader(const vtkSlicerDicomSroReader&); // Not implemented
-  void operator=(const vtkSlicerDicomSroReader&);         // Not implemented
+  vtkSlicerDicomSroReader(const vtkSlicerDicomSroReader&) = delete;
+  void operator=(const vtkSlicerDicomSroReader&) = delete;
 };
 
 #endif

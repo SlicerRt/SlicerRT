@@ -62,8 +62,8 @@ protected:
   void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData) override;
 
 private:
-  vtkSlicerBeamsModuleLogic(const vtkSlicerBeamsModuleLogic&); // Not implemented
-  void operator=(const vtkSlicerBeamsModuleLogic&);            // Not implemented
+  vtkSlicerBeamsModuleLogic(const vtkSlicerBeamsModuleLogic&) = delete;
+  void operator=(const vtkSlicerBeamsModuleLogic&) = delete;
 };
 
 #endif

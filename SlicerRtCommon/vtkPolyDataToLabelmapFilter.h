@@ -86,8 +86,8 @@ protected:
   ~vtkPolyDataToLabelmapFilter();
 
 private:
-  vtkPolyDataToLabelmapFilter(const vtkPolyDataToLabelmapFilter&); // Not implemented
-  void operator=(const vtkPolyDataToLabelmapFilter&);               // Not implemented
+  vtkPolyDataToLabelmapFilter(const vtkPolyDataToLabelmapFilter&) = delete;
+  void operator=(const vtkPolyDataToLabelmapFilter&) = delete;
 };
 
 #endif

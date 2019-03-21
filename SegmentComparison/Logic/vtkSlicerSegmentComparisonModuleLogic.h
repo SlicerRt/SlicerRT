@@ -77,8 +77,8 @@ protected:
   void OnMRMLSceneEndClose() override;
 
 private:
-  vtkSlicerSegmentComparisonModuleLogic(const vtkSlicerSegmentComparisonModuleLogic&); // Not implemented
-  void operator=(const vtkSlicerSegmentComparisonModuleLogic&);               // Not implemented
+  vtkSlicerSegmentComparisonModuleLogic(const vtkSlicerSegmentComparisonModuleLogic&) = delete;
+  void operator=(const vtkSlicerSegmentComparisonModuleLogic&) = delete;
 
 protected:
   /// Flag telling whether the speed measurements are logged on standard output

@@ -161,8 +161,8 @@ protected:
   Rt_study RtStudy;
 
 private:
-  vtkSlicerDicomRtWriter(const vtkSlicerDicomRtWriter&); // Not implemented
-  void operator=(const vtkSlicerDicomRtWriter&);               // Not implemented
+  vtkSlicerDicomRtWriter(const vtkSlicerDicomRtWriter&) = delete;
+  void operator=(const vtkSlicerDicomRtWriter&) = delete;
 };
 
 #endif

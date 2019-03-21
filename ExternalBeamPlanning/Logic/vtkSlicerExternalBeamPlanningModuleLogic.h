@@ -105,8 +105,8 @@ protected:
   int DRRImageSize[2];
 
 private:
-  vtkSlicerExternalBeamPlanningModuleLogic(const vtkSlicerExternalBeamPlanningModuleLogic&); // Not implemented
-  void operator=(const vtkSlicerExternalBeamPlanningModuleLogic&);               // Not implemented
+  vtkSlicerExternalBeamPlanningModuleLogic(const vtkSlicerExternalBeamPlanningModuleLogic&) = delete;
+  void operator=(const vtkSlicerExternalBeamPlanningModuleLogic&) = delete;
 
   //TODO: Remove internal class and this member when it becomes empty (Matlab dose engines)
   class vtkInternal;

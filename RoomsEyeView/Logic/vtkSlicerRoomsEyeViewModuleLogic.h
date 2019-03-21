@@ -155,8 +155,8 @@ protected:
   void SetMRMLSceneInternal(vtkMRMLScene * newScene) override;
 
 private:
-  vtkSlicerRoomsEyeViewModuleLogic(const vtkSlicerRoomsEyeViewModuleLogic&); // Not implemented
-  void operator=(const vtkSlicerRoomsEyeViewModuleLogic&);            // Not implemented
+  vtkSlicerRoomsEyeViewModuleLogic(const vtkSlicerRoomsEyeViewModuleLogic&) = delete;
+  void operator=(const vtkSlicerRoomsEyeViewModuleLogic&) = delete;
 };
 
 #endif

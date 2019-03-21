@@ -69,8 +69,8 @@ protected:
   void OnMRMLSceneEndClose() override;
 
 private:
-  vtkSlicerDoseAccumulationModuleLogic(const vtkSlicerDoseAccumulationModuleLogic&); // Not implemented
-  void operator=(const vtkSlicerDoseAccumulationModuleLogic&);               // Not implemented
+  vtkSlicerDoseAccumulationModuleLogic(const vtkSlicerDoseAccumulationModuleLogic&) = delete;
+  void operator=(const vtkSlicerDoseAccumulationModuleLogic&) = delete;
 };
 
 #endif

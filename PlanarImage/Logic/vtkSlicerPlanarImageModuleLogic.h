@@ -80,8 +80,8 @@ protected:
   std::map<vtkMRMLScalarVolumeNode*, vtkImageMapToWindowLevelColors*> TextureWindowLevelMappers;
 
 private:
-  vtkSlicerPlanarImageModuleLogic(const vtkSlicerPlanarImageModuleLogic&); // Not implemented
-  void operator=(const vtkSlicerPlanarImageModuleLogic&);               // Not implemented
+  vtkSlicerPlanarImageModuleLogic(const vtkSlicerPlanarImageModuleLogic&) = delete;
+  void operator=(const vtkSlicerPlanarImageModuleLogic&) = delete;
 };
 
 #endif

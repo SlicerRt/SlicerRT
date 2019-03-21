@@ -189,8 +189,8 @@ protected:
   void OnMRMLSceneEndClose() override;
 
 private:
-  vtkSlicerDoseVolumeHistogramModuleLogic(const vtkSlicerDoseVolumeHistogramModuleLogic&); // Not implemented
-  void operator=(const vtkSlicerDoseVolumeHistogramModuleLogic&);               // Not implemented
+  vtkSlicerDoseVolumeHistogramModuleLogic(const vtkSlicerDoseVolumeHistogramModuleLogic&) = delete;
+  void operator=(const vtkSlicerDoseVolumeHistogramModuleLogic&) = delete;
 
 protected:
   /// Start value for the dose axis of the DVH table

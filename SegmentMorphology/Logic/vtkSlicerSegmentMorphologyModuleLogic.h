@@ -67,8 +67,8 @@ protected:
   void OnMRMLSceneEndClose() override;
 
 private:
-  vtkSlicerSegmentMorphologyModuleLogic(const vtkSlicerSegmentMorphologyModuleLogic&); // Not implemented
-  void operator=(const vtkSlicerSegmentMorphologyModuleLogic&);               // Not implemented
+  vtkSlicerSegmentMorphologyModuleLogic(const vtkSlicerSegmentMorphologyModuleLogic&) = delete;
+  void operator=(const vtkSlicerSegmentMorphologyModuleLogic&) = delete;
 };
 
 #endif

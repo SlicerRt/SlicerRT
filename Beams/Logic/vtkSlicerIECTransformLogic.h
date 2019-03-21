@@ -106,8 +106,8 @@ protected:
   ~vtkSlicerIECTransformLogic() override;
 
 private:
-  vtkSlicerIECTransformLogic(const vtkSlicerIECTransformLogic&); // Not implemented
-  void operator=(const vtkSlicerIECTransformLogic&);             // Not implemented
+  vtkSlicerIECTransformLogic(const vtkSlicerIECTransformLogic&) = delete;
+  void operator=(const vtkSlicerIECTransformLogic&) = delete;
 };
 
 #endif

@@ -244,8 +244,8 @@ protected:
   Registration registration;
 
 private:
-  vtkPlmpyRegistration(const vtkPlmpyRegistration&); // Not implemented
-  void operator=(const vtkPlmpyRegistration&);            // Not implemented
+  vtkPlmpyRegistration(const vtkPlmpyRegistration&) = delete;
+  void operator=(const vtkPlmpyRegistration&) = delete;
 };
 
 #endif

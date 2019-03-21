@@ -177,8 +177,8 @@ protected:
   double HistogramSpacing;
   
 private:
-  vtkPolyDataDistanceHistogramFilter(const vtkPolyDataDistanceHistogramFilter&);  // Not implemented.
-  void operator=(const vtkPolyDataDistanceHistogramFilter&);  // Not implemented.
+  vtkPolyDataDistanceHistogramFilter(const vtkPolyDataDistanceHistogramFilter&) = delete;
+  void operator=(const vtkPolyDataDistanceHistogramFilter&) = delete;
 };
  
 #endif

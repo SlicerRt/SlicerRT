@@ -95,8 +95,8 @@ protected:
 protected:
   vtkSlicerDicomRtImportExportModuleLogic();
   ~vtkSlicerDicomRtImportExportModuleLogic() override;
-  vtkSlicerDicomRtImportExportModuleLogic(const vtkSlicerDicomRtImportExportModuleLogic&); // Not implemented
-  void operator=(const vtkSlicerDicomRtImportExportModuleLogic&); // Not implemented
+  vtkSlicerDicomRtImportExportModuleLogic(const vtkSlicerDicomRtImportExportModuleLogic&) = delete;
+  void operator=(const vtkSlicerDicomRtImportExportModuleLogic&) = delete;
 
 private:
   class vtkInternal;

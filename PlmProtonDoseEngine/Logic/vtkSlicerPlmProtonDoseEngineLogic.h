@@ -59,8 +59,8 @@ protected:
   void OnMRMLSceneNodeRemoved(vtkMRMLNode* node) override;
 private:
 
-  vtkSlicerPlmProtonDoseEngineLogic(const vtkSlicerPlmProtonDoseEngineLogic&); // Not implemented
-  void operator=(const vtkSlicerPlmProtonDoseEngineLogic&); // Not implemented
+  vtkSlicerPlmProtonDoseEngineLogic(const vtkSlicerPlmProtonDoseEngineLogic&) = delete;
+  void operator=(const vtkSlicerPlmProtonDoseEngineLogic&) = delete;
 };
 
 #endif

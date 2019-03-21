@@ -258,8 +258,8 @@ protected:
   int ImagePadding[3];
 
 private:
-  vtkPlanarContourToClosedSurfaceConversionRule(const vtkPlanarContourToClosedSurfaceConversionRule&); // Not implemented
-  void operator=(const vtkPlanarContourToClosedSurfaceConversionRule&);               // Not implemented
+  vtkPlanarContourToClosedSurfaceConversionRule(const vtkPlanarContourToClosedSurfaceConversionRule&) = delete;
+  void operator=(const vtkPlanarContourToClosedSurfaceConversionRule&) = delete;
 };
 
 #endif

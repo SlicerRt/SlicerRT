@@ -58,8 +58,8 @@ protected:
   ~vtkSlicerDosxyzNrc3dDoseFileReaderLogic() override;
 
 private:
-  vtkSlicerDosxyzNrc3dDoseFileReaderLogic(const vtkSlicerDosxyzNrc3dDoseFileReaderLogic&);  // Not implemented
-  void operator=(const vtkSlicerDosxyzNrc3dDoseFileReaderLogic&);  // Not implemented
+  vtkSlicerDosxyzNrc3dDoseFileReaderLogic(const vtkSlicerDosxyzNrc3dDoseFileReaderLogic&) = delete;
+  void operator=(const vtkSlicerDosxyzNrc3dDoseFileReaderLogic&) = delete;
 };
 
 #endif

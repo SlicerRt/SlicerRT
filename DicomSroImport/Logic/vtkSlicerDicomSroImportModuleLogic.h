@@ -74,8 +74,8 @@ protected:
 protected:
   vtkSlicerDicomSroImportModuleLogic();
   ~vtkSlicerDicomSroImportModuleLogic() override;
-  vtkSlicerDicomSroImportModuleLogic(const vtkSlicerDicomSroImportModuleLogic&); // Not implemented
-  void operator=(const vtkSlicerDicomSroImportModuleLogic&);              // Not implemented
+  vtkSlicerDicomSroImportModuleLogic(const vtkSlicerDicomSroImportModuleLogic&) = delete;
+  void operator=(const vtkSlicerDicomSroImportModuleLogic&) = delete;
 };
 
 #endif

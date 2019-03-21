@@ -99,8 +99,8 @@ protected:
   ~vtkSlicerIsodoseModuleLogic() override;
 
 private:
-  vtkSlicerIsodoseModuleLogic(const vtkSlicerIsodoseModuleLogic&); // Not implemented
-  void operator=(const vtkSlicerIsodoseModuleLogic&);               // Not implemented
+  vtkSlicerIsodoseModuleLogic(const vtkSlicerIsodoseModuleLogic&) = delete;
+  void operator=(const vtkSlicerIsodoseModuleLogic&) = delete;
 };
 
 #endif

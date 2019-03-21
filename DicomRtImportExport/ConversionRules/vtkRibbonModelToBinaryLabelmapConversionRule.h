@@ -56,8 +56,8 @@ protected:
   ~vtkRibbonModelToBinaryLabelmapConversionRule();
 
 private:
-  vtkRibbonModelToBinaryLabelmapConversionRule(const vtkRibbonModelToBinaryLabelmapConversionRule&); // Not implemented
-  void operator=(const vtkRibbonModelToBinaryLabelmapConversionRule&); // Not implemented
+  vtkRibbonModelToBinaryLabelmapConversionRule(const vtkRibbonModelToBinaryLabelmapConversionRule&) = delete;
+  void operator=(const vtkRibbonModelToBinaryLabelmapConversionRule&) = delete;
 };
 
 #endif // __vtkRibbonModelToBinaryLabelmapConversionRule_h

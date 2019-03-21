@@ -66,8 +66,8 @@ protected:
   bool UseFractionalLabelmap;
 
 private:
-  vtkFractionalImageAccumulate(const vtkFractionalImageAccumulate&);  // Not implemented.
-  void operator=(const vtkFractionalImageAccumulate&);  // Not implemented.
+  vtkFractionalImageAccumulate(const vtkFractionalImageAccumulate&) = delete;
+  void operator=(const vtkFractionalImageAccumulate&) = delete;
 };
 
 #endif // __vtkFractionalImageAccumulate_h

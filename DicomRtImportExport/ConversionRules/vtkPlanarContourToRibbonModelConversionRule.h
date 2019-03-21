@@ -90,8 +90,8 @@ protected:
   ~vtkPlanarContourToRibbonModelConversionRule();
 
 private:
-  vtkPlanarContourToRibbonModelConversionRule(const vtkPlanarContourToRibbonModelConversionRule&); // Not implemented
-  void operator=(const vtkPlanarContourToRibbonModelConversionRule&); // Not implemented
+  vtkPlanarContourToRibbonModelConversionRule(const vtkPlanarContourToRibbonModelConversionRule&) = delete;
+  void operator=(const vtkPlanarContourToRibbonModelConversionRule&) = delete;
 };
 
 #endif // __vtkPlanarContourToRibbonModelConversionRule_h

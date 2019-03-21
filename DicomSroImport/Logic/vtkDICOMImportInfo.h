@@ -91,8 +91,8 @@ protected:
   ~vtkDICOMImportInfo() override;
 
 private:
-  vtkDICOMImportInfo(const vtkDICOMImportInfo&); // Not implemented
-  void operator=(const vtkDICOMImportInfo&);               // Not implemented 
+  vtkDICOMImportInfo(const vtkDICOMImportInfo&) = delete;
+  void operator=(const vtkDICOMImportInfo&) = delete;
 
 private:  
   DicomImportInfoPrivate *PrivateData;

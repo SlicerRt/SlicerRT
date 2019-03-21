@@ -95,8 +95,8 @@ protected:
   ~vtkSlicerPinnacleDvfReader() override;
 
 private:
-  vtkSlicerPinnacleDvfReader(const vtkSlicerPinnacleDvfReader&); // Not implemented
-  void operator=(const vtkSlicerPinnacleDvfReader&);         // Not implemented
+  vtkSlicerPinnacleDvfReader(const vtkSlicerPinnacleDvfReader&) = delete;
+  void operator=(const vtkSlicerPinnacleDvfReader&) = delete;
 };
 
 #endif

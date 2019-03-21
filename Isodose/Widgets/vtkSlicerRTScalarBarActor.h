@@ -70,8 +70,8 @@ protected:
   int UseAnnotationAsLabel;
 
 private:
-  vtkSlicerRTScalarBarActor(const vtkSlicerRTScalarBarActor&);  // Not implemented.
-  void operator=(const vtkSlicerRTScalarBarActor&);  // Not implemented.
+  vtkSlicerRTScalarBarActor(const vtkSlicerRTScalarBarActor&) = delete;
+  void operator=(const vtkSlicerRTScalarBarActor&) = delete;
 };
 
 #endif

@@ -194,8 +194,8 @@ protected:
 
 private:
 
-  vtkCollisionDetectionFilter(const vtkCollisionDetectionFilter&);  // Not implemented.
-  void operator=(const vtkCollisionDetectionFilter&);  // Not implemented.
+  vtkCollisionDetectionFilter(const vtkCollisionDetectionFilter&) = delete;
+  void operator=(const vtkCollisionDetectionFilter&) = delete;
 };
 
 inline const char *vtkCollisionDetectionFilter::GetCollisionModeAsString(void)

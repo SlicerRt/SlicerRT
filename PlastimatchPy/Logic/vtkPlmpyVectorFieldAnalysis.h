@@ -110,8 +110,8 @@ protected:
   char* VFImageID;
 
 private:
-  vtkPlmpyVectorFieldAnalysis(const vtkPlmpyVectorFieldAnalysis&); // Not implemented
-  void operator=(const vtkPlmpyVectorFieldAnalysis&);            // Not implemented
+  vtkPlmpyVectorFieldAnalysis(const vtkPlmpyVectorFieldAnalysis&) = delete;
+  void operator=(const vtkPlmpyVectorFieldAnalysis&) = delete;
 };
 
 #endif

@@ -70,8 +70,8 @@ protected:
   ~vtkLabelmapToModelFilter() override;
 
 private:
-  vtkLabelmapToModelFilter(const vtkLabelmapToModelFilter&); // Not implemented
-  void operator=(const vtkLabelmapToModelFilter&);               // Not implemented
+  vtkLabelmapToModelFilter(const vtkLabelmapToModelFilter&) = delete;
+  void operator=(const vtkLabelmapToModelFilter&) = delete;
 };
 
 #endif 

@@ -50,8 +50,8 @@ protected:
   ~vtkSlicerPinnacleDvfReaderLogic() override;
 
 private:
-  vtkSlicerPinnacleDvfReaderLogic(const vtkSlicerPinnacleDvfReaderLogic&); // Not implemented
-  void operator=(const vtkSlicerPinnacleDvfReaderLogic&);               // Not implemented
+  vtkSlicerPinnacleDvfReaderLogic(const vtkSlicerPinnacleDvfReaderLogic&) = delete;
+  void operator=(const vtkSlicerPinnacleDvfReaderLogic&) = delete;
 };
 
 #endif

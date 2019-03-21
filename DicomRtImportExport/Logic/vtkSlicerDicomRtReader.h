@@ -412,8 +412,8 @@ protected:
   ~vtkSlicerDicomRtReader() override;
 
 private:
-  vtkSlicerDicomRtReader(const vtkSlicerDicomRtReader&); // Not implemented
-  void operator=(const vtkSlicerDicomRtReader&);         // Not implemented
+  vtkSlicerDicomRtReader(const vtkSlicerDicomRtReader&) = delete;
+  void operator=(const vtkSlicerDicomRtReader&) = delete;
 
   class vtkInternal;
   vtkInternal* Internal;
