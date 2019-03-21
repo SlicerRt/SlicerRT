@@ -36,8 +36,8 @@ class qSlicerDosxyzNrc3dDoseFileReaderPlugin
 
 public:
   typedef qSlicerFileReader Superclass;
-  qSlicerDosxyzNrc3dDoseFileReaderPlugin(QObject* parent = 0);
-  qSlicerDosxyzNrc3dDoseFileReaderPlugin(vtkSlicerDosxyzNrc3dDoseFileReaderLogic* logic, QObject* parent = 0);
+  qSlicerDosxyzNrc3dDoseFileReaderPlugin(QObject* parent = nullptr);
+  qSlicerDosxyzNrc3dDoseFileReaderPlugin(vtkSlicerDosxyzNrc3dDoseFileReaderLogic* logic, QObject* parent = nullptr);
   virtual ~qSlicerDosxyzNrc3dDoseFileReaderPlugin();
 
   vtkSlicerDosxyzNrc3dDoseFileReaderLogic* logic()const;

@@ -62,7 +62,7 @@ public:
 //-----------------------------------------------------------------------------
 qMRMLBeamParametersTabWidgetPrivate::qMRMLBeamParametersTabWidgetPrivate(qMRMLBeamParametersTabWidget& object)
   : q_ptr(&object)
-  , BeamNode(NULL)
+  , BeamNode(nullptr)
 {
 }
 
@@ -271,7 +271,7 @@ QWidget* qMRMLBeamParametersTabWidget::beamParametersTab(QString tabName)
   }
 
   // Find tab with given name
-  QWidget* tabWidget = NULL;
+  QWidget* tabWidget = nullptr;
   for (int index=0; index<this->count(); ++index)
   {
     if (!this->tabText(index).compare(tabName))
@@ -281,7 +281,7 @@ QWidget* qMRMLBeamParametersTabWidget::beamParametersTab(QString tabName)
       {
         // Tab layout must be form layout
         qCritical() << Q_FUNC_INFO << ": Invalid layout in tab named " << tabName;
-        return NULL;
+        return nullptr;
       }
       break;
     }

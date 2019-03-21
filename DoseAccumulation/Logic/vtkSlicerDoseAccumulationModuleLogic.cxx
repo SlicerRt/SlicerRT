@@ -190,13 +190,13 @@ std::string vtkSlicerDoseAccumulationModuleLogic::AccumulateDoseVolumes(vtkMRMLD
   // Get reference and output dose volumes
   vtkMRMLScalarVolumeNode* outputAccumulatedDoseVolumeNode = parameterNode->GetAccumulatedDoseVolumeNode();
   vtkMRMLScalarVolumeNode* referenceDoseVolumeNode = parameterNode->GetReferenceDoseVolumeNode();
-  if (referenceDoseVolumeNode == NULL)
+  if (referenceDoseVolumeNode == nullptr)
   {
     std::string errorMessage("Reference volume not specified");
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);
     return errorMessage;
   }
-  if (outputAccumulatedDoseVolumeNode == NULL)
+  if (outputAccumulatedDoseVolumeNode == nullptr)
   {
     std::string errorMessage("Output volume not specified");
     vtkErrorMacro("AccumulateDoseVolumes: " << errorMessage);

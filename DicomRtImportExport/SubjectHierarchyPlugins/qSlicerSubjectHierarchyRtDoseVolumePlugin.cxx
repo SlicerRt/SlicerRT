@@ -83,9 +83,9 @@ qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::qSlicerSubjectHierarchyRtDoseV
 {
   this->DoseVolumeIcon = QIcon(":Icons/DoseVolume.png");
 
-  this->ConvertToRtDoseVolumeAction = NULL;
-  this->CreateIsodoseAction = NULL;
-  this->CalculateDvhAction = NULL;
+  this->ConvertToRtDoseVolumeAction = nullptr;
+  this->CreateIsodoseAction = nullptr;
+  this->CalculateDvhAction = nullptr;
 }
 
 //------------------------------------------------------------------------------
@@ -132,7 +132,7 @@ double qSlicerSubjectHierarchyRtDoseVolumePlugin::canAddNodeToSubjectHierarchy(
   Q_UNUSED(parentItemID);
   if (!node)
     {
-    qCritical() << Q_FUNC_INFO << ": Input node is NULL";
+    qCritical() << Q_FUNC_INFO << ": Input node is nullptr";
     return 0.0;
     }
   else if (vtkSlicerRtCommon::IsDoseVolumeNode(node))
@@ -329,7 +329,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   {
     QString message("The volume must be under a study in order to be converted to dose. Please drag&drop the volume under a study. If there is no study, it can be created under a subject. Consult the help window for more details.");
     qCritical() << Q_FUNC_INFO << ": Failed to find study item among the ancestors of current item '" << shNode->GetItemName(currentItemID).c_str() << "'! " << message;
-    QMessageBox::warning(NULL, tr("Failed to convert volume to dose"), message);
+    QMessageBox::warning(nullptr, tr("Failed to convert volume to dose"), message);
     return;
   }
   std::string doseUnitNameInStudy = shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME);
@@ -338,7 +338,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   // Show dialogs asking about dose unit name and value
   bool ok;
   QString defaultDoseUnitName(!doseUnitNameInStudy.empty() ? doseUnitNameInStudy.c_str() : "Gy");
-  QString doseUnitName = QInputDialog::getText(NULL, tr("RT dose volume properties (1/2)"),
+  QString doseUnitName = QInputDialog::getText(nullptr, tr("RT dose volume properties (1/2)"),
     tr("Dose unit name:"), QLineEdit::Normal, defaultDoseUnitName, &ok);
   if (!ok || doseUnitName.isEmpty())
   {
@@ -346,7 +346,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   }
 
   double defaultDoseUnitValue = (!doseUnitValueInStudy.empty() ? QString(doseUnitValueInStudy.c_str()).toDouble() : 1.0);
-  double doseUnitValue = QInputDialog::getDouble(NULL, tr("RT dose volume properties (2/2)"),
+  double doseUnitValue = QInputDialog::getDouble(nullptr, tr("RT dose volume properties (2/2)"),
     tr("Dose unit value (scaling):\n\nNote: Setting the scaling will NOT apply it to the volume voxels"), defaultDoseUnitValue, EPSILON*EPSILON, 1000.0, 16, &ok);
   if (!ok)
   {
@@ -358,7 +358,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   if (!doseUnitNameInStudy.empty() && doseUnitName.compare(doseUnitNameInStudy.c_str()))
   {
     QMessageBox::StandardButton answer =
-      QMessageBox::question(NULL, tr("Dose unit name changed"),
+      QMessageBox::question(nullptr, tr("Dose unit name changed"),
       tr("Entered dose unit name is different from the already set dose unit name in study.\n\n"
       "Do you wish to overwrite it? It might produce unwanted results."),
       QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
@@ -375,7 +375,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   if (!doseUnitNameInStudy.empty() && fabs(doseUnitValue - defaultDoseUnitValue) > EPSILON*EPSILON )
   {
     QMessageBox::StandardButton answer =
-      QMessageBox::question(NULL, tr("Dose unit name changed"),
+      QMessageBox::question(nullptr, tr("Dose unit name changed"),
       tr("Entered dose unit value is different from the already set dose unit value in study.\n\n"
       "Do you wish to overwrite it? Might result in unwanted results."),
       QMessageBox::Yes | QMessageBox::No, QMessageBox::No);

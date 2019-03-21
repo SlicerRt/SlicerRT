@@ -42,7 +42,7 @@ class Q_SLICER_QTMODULES_ISODOSE_EXPORT qSlicerIsodoseModule :
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerIsodoseModule(QObject *parent=0);
+  explicit qSlicerIsodoseModule(QObject *parent=nullptr);
   virtual ~qSlicerIsodoseModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

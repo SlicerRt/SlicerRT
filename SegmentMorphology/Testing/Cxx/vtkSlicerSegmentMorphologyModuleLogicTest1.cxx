@@ -57,7 +57,7 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
 {
   int argIndex = 1;
 
-  const char *dataDirectoryPath = NULL;
+  const char *dataDirectoryPath = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-DataDirectoryPath") == 0)
@@ -77,7 +77,7 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *inputSegmentationAFile = NULL;
+  const char *inputSegmentationAFile = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-InputSegmentationAFile") == 0)
@@ -97,7 +97,7 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *inputSegmentationBFile = NULL;
+  const char *inputSegmentationBFile = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-InputSegmentationBFile") == 0)
@@ -117,7 +117,7 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *baselineSegmentationFile = NULL;
+  const char *baselineSegmentationFile = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-BaselineSegmentationFile") == 0)
@@ -137,7 +137,7 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *temporarySceneFileName = NULL;
+  const char *temporarySceneFileName = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-TemporarySceneFile") == 0)
@@ -157,7 +157,7 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *morphologicalOperation = NULL;
+  const char *morphologicalOperation = nullptr;
   vtkMRMLSegmentMorphologyNode::SegmentMorphologyOperationType operation = vtkMRMLSegmentMorphologyNode::None;
   if (argc > argIndex+1)
   {
@@ -287,7 +287,7 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
   std::string inputSegmentAID = inputSegmentAIDs[0];
 
   // Load input segmentation B node if specified
-  vtkMRMLSegmentationNode* inputSegmentationBNode = NULL;
+  vtkMRMLSegmentationNode* inputSegmentationBNode = nullptr;
   std::string inputSegmentBID("");
   if (strlen(inputSegmentationBFile) > 0)
   {
@@ -366,7 +366,7 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
 
   // Check output
   outputSegmentationNode = paramNode->GetOutputSegmentationNode();  
-  if (outputSegmentationNode == NULL)
+  if (outputSegmentationNode == nullptr)
   {
     mrmlScene->Commit();
     std::cerr << "Invalid output segmentation node!" << std::endl;

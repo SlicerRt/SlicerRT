@@ -39,7 +39,7 @@ class Q_SLICER_QTMODULES_PLMPROTONDOSEENGINE_EXPORT qSlicerPlmProtonDoseEngineMo
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerPlmProtonDoseEngineModule(QObject *parent=0);
+  explicit qSlicerPlmProtonDoseEngineModule(QObject *parent=nullptr);
   virtual ~qSlicerPlmProtonDoseEngineModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

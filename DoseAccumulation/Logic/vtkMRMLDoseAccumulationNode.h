@@ -72,7 +72,7 @@ public:
   void SetAndObserveAccumulatedDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
   /// Get nth selected input volume node
-  /// \return The pointer of the volume node if available, NULL otherwise
+  /// \return The pointer of the volume node if available, nullptr otherwise
   vtkMRMLScalarVolumeNode* GetNthSelectedInputVolumeNode(unsigned int index);
   /// Get number of selected input volume nodes
   unsigned int GetNumberOfSelectedInputVolumeNodes();

@@ -173,7 +173,7 @@ void qSlicerSubjectHierarchyIsodosePlugin::editProperties(vtkIdType itemID)
 
     //TODO: Get parameter set node for isodose model and model hierarchy node
     // and set corresponding dose volume too when changes in #580 are implemented
-    vtkMRMLIsodoseNode* isodoseParameterSetNode = NULL; //TODO:
+    vtkMRMLIsodoseNode* isodoseParameterSetNode = nullptr; //TODO:
 
     // Choose current data node
     if (nodeSelector && isodoseParameterSetNode)

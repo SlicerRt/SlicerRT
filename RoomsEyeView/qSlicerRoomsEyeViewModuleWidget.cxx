@@ -195,7 +195,7 @@ void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
   // Each time the node is modified, the UI widgets are updated
   qvtkReconnect(paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
   
-  // Set selected MRML nodes in comboboxes in the parameter set if it was NULL there
+  // Set selected MRML nodes in comboboxes in the parameter set if it was nullptr there
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
   if (paramNode)
   {
@@ -771,7 +771,7 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
   
   // Get camera node for view
   vtkCollection* cameras = this->mrmlScene()->GetNodesByClass("vtkMRMLCameraNode");
-  vtkMRMLCameraNode* cameraNode = NULL;
+  vtkMRMLCameraNode* cameraNode = nullptr;
   for (int i = 0; i < cameras->GetNumberOfItems(); i++)
   {
     cameraNode = vtkMRMLCameraNode::SafeDownCast(cameras->GetItemAsObject(i));

@@ -49,8 +49,8 @@ vtkMRMLNodeNewMacro(vtkMRMLSegmentComparisonNode);
 //----------------------------------------------------------------------------
 vtkMRMLSegmentComparisonNode::vtkMRMLSegmentComparisonNode()
 {
-  this->ReferenceSegmentID = NULL;
-  this->CompareSegmentID = NULL;
+  this->ReferenceSegmentID = nullptr;
+  this->CompareSegmentID = nullptr;
 
   this->DiceCoefficient = -1.0;
   this->TruePositivesPercent = -1.0;
@@ -77,8 +77,8 @@ vtkMRMLSegmentComparisonNode::vtkMRMLSegmentComparisonNode()
 //----------------------------------------------------------------------------
 vtkMRMLSegmentComparisonNode::~vtkMRMLSegmentComparisonNode()
 {
-  this->SetReferenceSegmentID(NULL);
-  this->SetCompareSegmentID(NULL);
+  this->SetReferenceSegmentID(nullptr);
+  this->SetCompareSegmentID(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -87,8 +87,8 @@ void vtkMRMLSegmentComparisonNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  of << " ReferenceSegmentID=\"" << (this->ReferenceSegmentID ? this->ReferenceSegmentID : "NULL") << "\"";
-  of << " CompareSegmentID=\"" << (this->CompareSegmentID ? this->CompareSegmentID : "NULL") << "\"";
+  of << " ReferenceSegmentID=\"" << (this->ReferenceSegmentID ? this->ReferenceSegmentID : "nullptr") << "\"";
+  of << " CompareSegmentID=\"" << (this->CompareSegmentID ? this->CompareSegmentID : "nullptr") << "\"";
 
   of << " DiceCoefficient=\"" << this->DiceCoefficient << "\"";
   of << " TruePositivesPercent=\"" << this->TruePositivesPercent << "\"";
@@ -138,10 +138,10 @@ void vtkMRMLSegmentComparisonNode::ReadXMLAttributes(const char** atts)
   vtkMRMLNode::ReadXMLAttributes(atts);
 
   // Read all MRML node attributes from two arrays of names and values
-  const char* attName = NULL;
-  const char* attValue = NULL;
+  const char* attName = nullptr;
+  const char* attValue = nullptr;
 
-  while (*atts != NULL) 
+  while (*atts != nullptr) 
     {
     attName = *(atts++);
     attValue = *(atts++);
@@ -288,8 +288,8 @@ void vtkMRMLSegmentComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << " ReferenceSegmentID:   " << (this->ReferenceSegmentID ? this->ReferenceSegmentID : "NULL") << "\n";
-  os << indent << " CompareSegmentID:   " << (this->CompareSegmentID ? this->CompareSegmentID : "NULL") << "\n";
+  os << indent << " ReferenceSegmentID:   " << (this->ReferenceSegmentID ? this->ReferenceSegmentID : "nullptr") << "\n";
+  os << indent << " CompareSegmentID:   " << (this->CompareSegmentID ? this->CompareSegmentID : "nullptr") << "\n";
 
   os << indent << " DiceCoefficient:   " << this->DiceCoefficient << "\n";
   os << indent << " TruePositivesPercent:   " << this->TruePositivesPercent << "\n";
@@ -348,7 +348,7 @@ void vtkMRMLSegmentComparisonNode::SetAndObserveReferenceSegmentationNode(vtkMRM
     return;
     }
 
-  this->SetNodeReferenceID(REFERENCE_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(REFERENCE_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -366,7 +366,7 @@ void vtkMRMLSegmentComparisonNode::SetAndObserveCompareSegmentationNode(vtkMRMLS
     return;
     }
 
-  this->SetNodeReferenceID(COMPARE_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(COMPARE_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -384,7 +384,7 @@ void vtkMRMLSegmentComparisonNode::SetAndObserveRasterizationReferenceVolumeNode
     return;
     }
 
-  this->SetNodeReferenceID(RASTERIZATION_REFERENCE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(RASTERIZATION_REFERENCE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -402,7 +402,7 @@ void vtkMRMLSegmentComparisonNode::SetAndObserveDiceTableNode(vtkMRMLTableNode* 
     return;
     }
 
-  this->SetNodeReferenceID(DICE_TABLE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(DICE_TABLE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -420,5 +420,5 @@ void vtkMRMLSegmentComparisonNode::SetAndObserveHausdorffTableNode(vtkMRMLTableN
     return;
     }
 
-  this->SetNodeReferenceID(HAUSDORFF_TABLE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(HAUSDORFF_TABLE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }

@@ -75,7 +75,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
   int argIndex = 1;
 
   // TestSceneFile
-  const char *testSceneFileName  = NULL;
+  const char *testSceneFileName  = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-TestSceneFile") == 0)
@@ -95,7 +95,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   // BaselineDvhTableCsvFile
-  const char *baselineDvhTableCsvFileName = NULL;
+  const char *baselineDvhTableCsvFileName = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-BaselineDvhTableCsvFile") == 0)
@@ -115,7 +115,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   // BaselineDvhMetricCsvFile
-  const char *baselineDvhMetricCsvFileName = NULL;
+  const char *baselineDvhMetricCsvFileName = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-BaselineDvhMetricCsvFile") == 0)
@@ -135,7 +135,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   // TemporarySceneFile
-  const char *temporarySceneFileName = NULL;
+  const char *temporarySceneFileName = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-TemporarySceneFile") == 0)
@@ -155,7 +155,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   // TemporaryDvhTableCsvFile
-  const char *temporaryDvhTableCsvFileName = NULL;
+  const char *temporaryDvhTableCsvFileName = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-TemporaryDvhTableCsvFile") == 0)
@@ -175,7 +175,7 @@ int vtkSlicerDoseVolumeHistogramModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   // TemporaryDvhMetricCsvFile
-  const char *temporaryDvhMetricCsvFileName = NULL;
+  const char *temporaryDvhMetricCsvFileName = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-TemporaryDvhMetricCsvFile") == 0)
@@ -611,7 +611,7 @@ int CompareCsvDvhTables(std::string dvhCsvFileName, std::string baselineCsvFileN
       
     // Calculate the agreement percentage for the current structure.
     double acceptedBinsRatio = vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(
-      currentStructure, baselineStructure, NULL, volumeDifferenceCriterion, doseToAgreementCriterion, maxDose );
+      currentStructure, baselineStructure, nullptr, volumeDifferenceCriterion, doseToAgreementCriterion, maxDose );
 
     int numberOfBinsPerStructure = baselineStructure->GetTable()->GetNumberOfRows();
     totalNumberOfBins += numberOfBinsPerStructure;

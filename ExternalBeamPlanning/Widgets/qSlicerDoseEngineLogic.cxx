@@ -164,7 +164,7 @@ void qSlicerDoseEngineLogic::onDoseEngineChangedInPlan(vtkObject* nodeObject)
     qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(planNode->GetDoseEngineName());
   if (!selectedEngine)
   {
-    QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL");
+    QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
   }
@@ -203,7 +203,7 @@ QString qSlicerDoseEngineLogic::calculateDose(vtkMRMLRTPlanNode* planNode)
     qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(planNode->GetDoseEngineName());
   if (!selectedEngine)
   {
-    QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL");
+    QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return errorMessage;
   }
@@ -294,7 +294,7 @@ QString qSlicerDoseEngineLogic::createAccumulatedDose(vtkMRMLRTPlanNode* planNod
     qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(planNode->GetDoseEngineName());
   if (!selectedEngine)
   {
-    QString errorMessage = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL");
+    QString errorMessage = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
@@ -395,7 +395,7 @@ QString qSlicerDoseEngineLogic::createAccumulatedDose(vtkMRMLRTPlanNode* planNod
     qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection(0);
 
     // Set opacity so that volume is visible
-    vtkMRMLSliceCompositeNode* compositeNode = NULL;
+    vtkMRMLSliceCompositeNode* compositeNode = nullptr;
     int numberOfCompositeNodes = planNode->GetScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
     for (int i=0; i<numberOfCompositeNodes; i++)
     {
@@ -423,7 +423,7 @@ void qSlicerDoseEngineLogic::removeIntermediateResults(vtkMRMLRTPlanNode* planNo
     qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(planNode->GetDoseEngineName());
   if (!selectedEngine)
   {
-    QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL");
+    QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
   }
@@ -449,7 +449,7 @@ vtkMRMLRTBeamNode* qSlicerDoseEngineLogic::createBeamInPlan(vtkMRMLRTPlanNode* p
   if (!planNode || !planNode->GetScene())
   {
     qCritical() << Q_FUNC_INFO << ": Invalid plan node!";
-    return NULL;
+    return nullptr;
   }
 
   // Create beam and add to scene
@@ -462,9 +462,9 @@ vtkMRMLRTBeamNode* qSlicerDoseEngineLogic::createBeamInPlan(vtkMRMLRTPlanNode* p
     qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(planNode->GetDoseEngineName());
   if (!selectedEngine)
   {
-    QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL");
+    QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
     qCritical() << Q_FUNC_INFO << ": " << errorString;
-    return NULL;
+    return nullptr;
   }
   selectedEngine->addBeamParameterAttributesToBeamNode(beamNode);
 

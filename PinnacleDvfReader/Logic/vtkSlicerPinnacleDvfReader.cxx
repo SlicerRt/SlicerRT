@@ -44,7 +44,7 @@ vtkStandardNewMacro(vtkSlicerPinnacleDvfReader);
 //----------------------------------------------------------------------------
 vtkSlicerPinnacleDvfReader::vtkSlicerPinnacleDvfReader()
 {
-  this->FileName = NULL;
+  this->FileName = nullptr;
 
   this->GridOrigin[0] = 0.0;
   this->GridOrigin[1] = 0.0;
@@ -76,7 +76,7 @@ void vtkSlicerPinnacleDvfReader::Update()
   this->PostDeformationRegistrationMatrix->Identity();
   this->DeformableRegistrationGridOrientationMatrix->Identity();
 
-  if ((this->FileName != NULL) && (strlen(this->FileName) > 0))
+  if ((this->FileName != nullptr) && (strlen(this->FileName) > 0))
   {
     this->LoadDeformableSpatialRegistration(this->FileName);
   } 
@@ -241,32 +241,32 @@ void vtkSlicerPinnacleDvfReader::LoadDeformableSpatialRegistration(char *fileNam
   if(xBufferHigh)
   {
       delete [] xBufferHigh;
-      xBufferHigh = NULL;
+      xBufferHigh = nullptr;
   }
   if(yBufferHigh)
   {
       delete [] yBufferHigh;
-      yBufferHigh = NULL;
+      yBufferHigh = nullptr;
   }
   if(zBufferHigh)
   {
       delete [] zBufferHigh;
-      zBufferHigh = NULL;
+      zBufferHigh = nullptr;
   }
   if(xBufferLow)
   {
       delete [] xBufferLow;
-      xBufferLow = NULL;
+      xBufferLow = nullptr;
   }
   if(yBufferLow)
   {
       delete [] yBufferLow;
-      yBufferLow = NULL;
+      yBufferLow = nullptr;
   }
   if(zBufferLow)
   {
       delete [] zBufferLow;
-      zBufferLow = NULL;
+      zBufferLow = nullptr;
   }
 
   this->LoadDeformableSpatialRegistrationSuccessful = true; 

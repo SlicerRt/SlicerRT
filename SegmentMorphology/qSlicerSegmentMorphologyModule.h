@@ -42,7 +42,7 @@ class Q_SLICER_QTMODULES_SEGMENTMORPHOLOGY_EXPORT qSlicerSegmentMorphologyModule
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerSegmentMorphologyModule(QObject *parent=0);
+  explicit qSlicerSegmentMorphologyModule(QObject *parent=nullptr);
   virtual ~qSlicerSegmentMorphologyModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

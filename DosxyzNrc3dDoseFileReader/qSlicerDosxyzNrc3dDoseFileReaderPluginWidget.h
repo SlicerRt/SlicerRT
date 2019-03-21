@@ -36,7 +36,7 @@ class Q_SLICER_DOSXYZNRC3DDOSEFILEREADER_EXPORT qSlicerDosxyzNrc3dDoseFileReader
   Q_OBJECT
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerDosxyzNrc3dDoseFileReaderPluginWidget(QWidget *parent=0);
+  qSlicerDosxyzNrc3dDoseFileReaderPluginWidget(QWidget *parent=nullptr);
   virtual ~qSlicerDosxyzNrc3dDoseFileReaderPluginWidget();
 
 protected:

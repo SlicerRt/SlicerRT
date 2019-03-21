@@ -110,7 +110,7 @@ void qSlicerDoseAccumulationModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or create it if there is no one in the scene
-  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
+  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == nullptr)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLDoseAccumulationNode");
     if (node)
@@ -151,7 +151,7 @@ void qSlicerDoseAccumulationModuleWidget::onEnter()
   Q_D(qSlicerDoseAccumulationModuleWidget);
 
   // First check the logic if it has a parameter node
-  if (d->logic() == NULL)
+  if (d->logic() == nullptr)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
@@ -160,7 +160,7 @@ void qSlicerDoseAccumulationModuleWidget::onEnter()
   vtkMRMLDoseAccumulationNode* paramNode = vtkMRMLDoseAccumulationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
 
   // If we have a parameter node select it
-  if (paramNode == NULL)
+  if (paramNode == nullptr)
   {
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLDoseAccumulationNode");
     if (node)
@@ -193,7 +193,7 @@ void qSlicerDoseAccumulationModuleWidget::setParameterNode(vtkMRMLNode *node)
   // Each time the node is modified, the qt widgets are updated
   qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
-  //TODO: Set parameters from UI to new node if UI selection was valid but param node selection empty (NULL, etc.)?
+  //TODO: Set parameters from UI to new node if UI selection was valid but param node selection empty (nullptr, etc.)?
 
   this->updateWidgetFromMRML();
 }

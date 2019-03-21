@@ -53,10 +53,10 @@ vtkStandardNewMacro(vtkPlmpyVectorFieldAnalysis);
 //----------------------------------------------------------------------------
 vtkPlmpyVectorFieldAnalysis::vtkPlmpyVectorFieldAnalysis()
 {
-  this->FixedImageID = NULL;
-  this->OutputVolumeID = NULL;
+  this->FixedImageID = nullptr;
+  this->OutputVolumeID = nullptr;
 
-  this->MovingImageToFixedImageVectorField = NULL;
+  this->MovingImageToFixedImageVectorField = nullptr;
 
   this->jacobian_min = 0;
   this->jacobian_max = 0;
@@ -64,10 +64,10 @@ vtkPlmpyVectorFieldAnalysis::vtkPlmpyVectorFieldAnalysis()
   this->JacobianMinString = (char *)malloc(32);
   this->JacobianMaxString = (char *)malloc(32);
 
-  this->SetFixedImageID(NULL);
-  this->SetOutputVolumeID(NULL);
+  this->SetFixedImageID(nullptr);
+  this->SetOutputVolumeID(nullptr);
 
-  this->MovingImageToFixedImageVectorField = NULL;
+  this->MovingImageToFixedImageVectorField = nullptr;
 
 }
 
@@ -94,9 +94,9 @@ void vtkPlmpyVectorFieldAnalysis::RunJacobian()
 {
   //TODO: Use VTK info/warning/error macro instead of cout
   cout << "started RunJacobian from C++ module\n";
-  if ( this->VFImageID == NULL )
+  if ( this->VFImageID == nullptr )
   {
-    cout << "ERRROR: NULL input VF";
+    cout << "ERRROR: nullptr input VF";
   } 
 
   // vtk to itk transform derived from vtkSlicerRtCommon.txx
@@ -105,9 +105,9 @@ void vtkPlmpyVectorFieldAnalysis::RunJacobian()
   DeformationFieldType::Pointer vol = itk::Image<itk::Vector<float,3> ,3>::New();
 
   vtkImageData* inVolume = VFImage->GetImageData();
-  if ( inVolume == NULL )
+  if ( inVolume == nullptr )
   {
-    vtkErrorWithObjectMacro(VFImage, "ConvertVolumeNodeToItkImage: Failed to convert volume node to itk image - image in input MRML volume node is NULL!");
+    vtkErrorWithObjectMacro(VFImage, "ConvertVolumeNodeToItkImage: Failed to convert volume node to itk image - image in input MRML volume node is nullptr!");
     return;
   }
 
@@ -125,7 +125,7 @@ void vtkPlmpyVectorFieldAnalysis::RunJacobian()
   //--
   vtkSmartPointer<vtkMatrix4x4> rasToWorldTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
   vtkMRMLTransformNode* inTransformNode=VFImage->GetParentTransformNode();
-  if (inTransformNode!=NULL)
+  if (inTransformNode!=nullptr)
   {
     if (inTransformNode->IsTransformToWorldLinear() == 0)
     {

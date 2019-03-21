@@ -39,7 +39,7 @@ class Q_SLICER_DOSXYZNRC3DDOSEFILEREADER_EXPORT qSlicerDosxyzNrc3dDoseFileReader
   Q_OBJECT
 public:
   typedef qSlicerIOOptionsWidget Superclass;
-  qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget(QWidget *parent=0);
+  qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget(QWidget *parent=nullptr);
   virtual ~qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget();
 
 protected slots:

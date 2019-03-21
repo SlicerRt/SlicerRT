@@ -39,7 +39,7 @@ class Q_SLICER_QTMODULES_DICOMSROIMPORT_EXPORT qSlicerDicomSroImportModuleWidget
 public:
 
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerDicomSroImportModuleWidget(QWidget *parent=0);
+  qSlicerDicomSroImportModuleWidget(QWidget *parent=nullptr);
   virtual ~qSlicerDicomSroImportModuleWidget();
 
 public slots:

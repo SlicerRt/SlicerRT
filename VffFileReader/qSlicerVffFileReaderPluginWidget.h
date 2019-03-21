@@ -37,7 +37,7 @@ class Q_SLICER_VFFFILEREADER_EXPORT qSlicerVffFileReaderPluginWidget :
   Q_OBJECT
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerVffFileReaderPluginWidget(QWidget *parent=0);
+  qSlicerVffFileReaderPluginWidget(QWidget *parent=nullptr);
   virtual ~qSlicerVffFileReaderPluginWidget();
 
 protected:

@@ -128,11 +128,11 @@ public:
   /// Get number of beams
   int GetNumberOfBeams();
 
-  /// Search for a beam of a given name.  Return NULL if beam not found
+  /// Search for a beam of a given name.  Return nullptr if beam not found
   /// Note: beam names *are not* unique within a plan
   vtkMRMLRTBeamNode* GetBeamByName(const std::string& beamName);
 
-  /// Search for a beam with given beam number.  Return NULL if beam not found
+  /// Search for a beam with given beam number.  Return nullptr if beam not found
   /// Note: beam numbers *are* unique within a plan
   vtkMRMLRTBeamNode* GetBeamByNumber(int beamNumber);
 

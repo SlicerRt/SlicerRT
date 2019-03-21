@@ -102,7 +102,7 @@ void qSlicerSegmentMorphologyModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or create it if there is no one in the scene
-  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
+  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == nullptr)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLSegmentMorphologyNode");
     if (node)
@@ -187,7 +187,7 @@ void qSlicerSegmentMorphologyModuleWidget::onEnter()
   Q_D(qSlicerSegmentMorphologyModuleWidget);
 
   // First check the logic if it has a parameter node
-  if (d->logic() == NULL)
+  if (d->logic() == nullptr)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
@@ -196,7 +196,7 @@ void qSlicerSegmentMorphologyModuleWidget::onEnter()
   vtkMRMLSegmentMorphologyNode* paramNode = vtkMRMLSegmentMorphologyNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
 
   // If we have a parameter node select it
-  if (paramNode == NULL)
+  if (paramNode == nullptr)
   {
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLSegmentMorphologyNode");
     if (node)
@@ -365,7 +365,7 @@ void qSlicerSegmentMorphologyModuleWidget::setParameterNode(vtkMRMLNode *node)
   // Each time the node is modified, the qt widgets are updated
   qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
-  // Set selected MRML nodes in comboboxes in the parameter set if it was NULL there
+  // Set selected MRML nodes in comboboxes in the parameter set if it was nullptr there
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
   if (paramNode)
   {
@@ -758,7 +758,7 @@ void qSlicerSegmentMorphologyModuleWidget::applyClicked()
   {
     QString message = QString("As the output segmentation will contain only the new output segment, the existing segments in the segmentation will be lost!\nWould you like to use it anyway?");
     QMessageBox::StandardButton answer =
-      QMessageBox::question(NULL, tr("Output segmentation is not empty"), message,
+      QMessageBox::question(nullptr, tr("Output segmentation is not empty"), message,
       QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     if (answer == QMessageBox::No)
     {

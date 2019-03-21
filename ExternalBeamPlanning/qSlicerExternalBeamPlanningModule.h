@@ -42,7 +42,7 @@ class Q_SLICER_QTMODULES_EXTERNALBEAMPLANNING_EXPORT qSlicerExternalBeamPlanning
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerExternalBeamPlanningModule(QObject *parent=0);
+  explicit qSlicerExternalBeamPlanningModule(QObject *parent=nullptr);
   virtual ~qSlicerExternalBeamPlanningModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

@@ -69,7 +69,7 @@ const std::string vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_REFERENCE_D
 const std::string vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_COMPARE_DOSE_VOLUME_REFERENCE_ROLE = "compareDoseVolumeRef"; // Reference
 
 //---------------------------------------------------------------------------
-vtkSlicerDoseComparisonModuleLogic* LogicInstance = NULL;
+vtkSlicerDoseComparisonModuleLogic* LogicInstance = nullptr;
 void GammaProgressCallback(float progress)
 {
   if (LogicInstance)
@@ -84,7 +84,7 @@ vtkStandardNewMacro(vtkSlicerDoseComparisonModuleLogic);
 //----------------------------------------------------------------------------
 vtkSlicerDoseComparisonModuleLogic::vtkSlicerDoseComparisonModuleLogic()
 {
-  this->DefaultGammaColorTableNodeId = NULL;
+  this->DefaultGammaColorTableNodeId = nullptr;
   this->Progress = 0.0;
 
   this->LogSpeedMeasurementsOff();
@@ -95,9 +95,9 @@ vtkSlicerDoseComparisonModuleLogic::vtkSlicerDoseComparisonModuleLogic()
 //----------------------------------------------------------------------------
 vtkSlicerDoseComparisonModuleLogic::~vtkSlicerDoseComparisonModuleLogic()
 {
-  this->SetDefaultGammaColorTableNodeId(NULL);
+  this->SetDefaultGammaColorTableNodeId(nullptr);
 
-  LogicInstance = NULL;
+  LogicInstance = nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -282,7 +282,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
   double checkpointVtkConvertStart = timer->GetUniversalTime();
 
   vtkMRMLScalarVolumeNode* gammaVolumeNode = parameterNode->GetGammaVolumeNode();
-  if (gammaVolumeNode == NULL)
+  if (gammaVolumeNode == nullptr)
   {
     std::string errorMessage("Invalid gamma volume node in parameter set node");
     vtkErrorMacro("ComputeGammaDoseDifference: " << errorMessage);
@@ -293,7 +293,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
   gammaVolumeNode->SetAttribute(vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME, "1");
 
   // Set default colormap to red
-  if (gammaVolumeNode->GetVolumeDisplayNode() == NULL)
+  if (gammaVolumeNode->GetVolumeDisplayNode() == nullptr)
   {
     vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> displayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
     displayNode->SetScene(this->GetMRMLScene());
@@ -347,9 +347,9 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
     parameterNode->GetCompareDoseVolumeNode()->GetID() );
 
   // Select as active volume
-  if (this->GetApplicationLogic()!=NULL)
+  if (this->GetApplicationLogic()!=nullptr)
   {
-    if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
+    if (this->GetApplicationLogic()->GetSelectionNode()!=nullptr)
     {
       this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(gammaVolumeNode->GetID());
       this->GetApplicationLogic()->PropagateVolumeSelection();
@@ -403,7 +403,7 @@ void vtkSlicerDoseComparisonModuleLogic::LoadDefaultGammaColorTable()
   // Load default color table file
   std::string moduleShareDirectory = this->GetModuleShareDirectory();
   std::string colorTableFilePath = moduleShareDirectory + "/" + vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME;
-  vtkMRMLColorTableNode* colorTableNode = NULL;
+  vtkMRMLColorTableNode* colorTableNode = nullptr;
   if (vtksys::SystemTools::FileExists(colorTableFilePath.c_str()) && this->GetMRMLApplicationLogic() && this->GetMRMLApplicationLogic()->GetColorLogic())
   {
     vtkMRMLColorNode* loadedColorNode = this->GetMRMLApplicationLogic()->GetColorLogic()->LoadColorFile( colorTableFilePath.c_str(),

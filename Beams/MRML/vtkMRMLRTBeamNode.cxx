@@ -57,7 +57,7 @@ vtkMRMLNodeNewMacro(vtkMRMLRTBeamNode);
 vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 {
   this->BeamNumber = -1;
-  this->BeamDescription = NULL;
+  this->BeamDescription = nullptr;
   this->BeamWeight = 1.0;
 
   this->X1Jaw = -100.0;
@@ -75,7 +75,7 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 //----------------------------------------------------------------------------
 vtkMRMLRTBeamNode::~vtkMRMLRTBeamNode()
 {
-  this->SetBeamDescription(NULL);
+  this->SetBeamDescription(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -105,10 +105,10 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
   vtkMRMLNode::ReadXMLAttributes(atts);
 
   // Read all MRML node attributes from two arrays of names and values
-  const char* attName = NULL;
-  const char* attValue = NULL;
+  const char* attName = nullptr;
+  const char* attValue = nullptr;
 
-  while (*atts != NULL)
+  while (*atts != nullptr)
   {
     attName = *(atts++);
     attValue = *(atts++);
@@ -225,7 +225,7 @@ void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
   Superclass::PrintSelf(os,indent);
 
   os << indent << " BeamNumber:   " << this->BeamNumber << "\n";
-  os << indent << " BeamDescription:   " << (this->BeamDescription ? BeamDescription : "NULL") << "\n";
+  os << indent << " BeamDescription:   " << (this->BeamDescription ? BeamDescription : "nullptr") << "\n";
   os << indent << " BeamWeight:   " << this->BeamWeight << "\n";
 
   os << indent << " X1Jaw:   " << this->X1Jaw << "\n";
@@ -301,7 +301,7 @@ void vtkMRMLRTBeamNode::SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArr
     return;
     }
 
-  this->SetNodeReferenceID(MLCPOSITION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(MLCPOSITION_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 
   this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
 }
@@ -321,7 +321,7 @@ void vtkMRMLRTBeamNode::SetAndObserveDRRVolumeNode(vtkMRMLScalarVolumeNode* node
     return;
     }
 
-  this->SetNodeReferenceID(DRR_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(DRR_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -339,7 +339,7 @@ void vtkMRMLRTBeamNode::SetAndObserveContourBEVVolumeNode(vtkMRMLScalarVolumeNod
     return;
     }
 
-  this->SetNodeReferenceID(CONTOUR_BEV_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(CONTOUR_BEV_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -349,7 +349,7 @@ vtkMRMLRTPlanNode* vtkMRMLRTBeamNode::GetParentPlanNode()
   if (!shNode)
   {
     vtkErrorMacro("GetParentPlanNode: Failed to access subject hierarchy node");
-    return NULL;
+    return nullptr;
   }
 
   return vtkMRMLRTPlanNode::SafeDownCast(shNode->GetParentDataNode(this));

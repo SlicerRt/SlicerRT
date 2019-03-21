@@ -279,7 +279,7 @@ void qSlicerBeamsModuleWidget::beamWeightChanged(double value)
 
   // Update in beam node
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
-  if (beamNode == NULL)
+  if (beamNode == nullptr)
   {
     return;
   }

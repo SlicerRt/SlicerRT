@@ -38,7 +38,7 @@ class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerBeamsModuleWidget :
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerBeamsModuleWidget(QWidget *parent=0);
+  qSlicerBeamsModuleWidget(QWidget *parent=nullptr);
   virtual ~qSlicerBeamsModuleWidget();
 
   virtual void enter();

@@ -71,7 +71,7 @@ private:
 qMRMLBeamsTableViewPrivate::qMRMLBeamsTableViewPrivate(qMRMLBeamsTableView& object)
   : q_ptr(&object)
 {
-  this->PlanNode = NULL;
+  this->PlanNode = nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -134,7 +134,7 @@ QTableWidgetItem* qMRMLBeamsTableViewPrivate::findItemByBeamNodeID(QString beamN
     QTableWidgetItem* item = this->BeamsTable->item(row, this->columnIndex("Name"));
     if (!item)
       {
-      return NULL;
+      return nullptr;
       }
     if (!item->data(q->IDRole).toString().compare(beamNodeID))
       {
@@ -142,7 +142,7 @@ QTableWidgetItem* qMRMLBeamsTableViewPrivate::findItemByBeamNodeID(QString beamN
       }
     }
 
-  return NULL;
+  return nullptr;
 }
 
 

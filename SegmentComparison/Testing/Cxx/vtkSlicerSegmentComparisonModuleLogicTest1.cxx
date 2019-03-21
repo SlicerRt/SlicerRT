@@ -55,7 +55,7 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
 {
   int argIndex = 1;
 
-  const char *dataDirectoryPath = NULL;
+  const char *dataDirectoryPath = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-DataDirectoryPath") == 0)
@@ -75,7 +75,7 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *inputSegmentationReferenceFileName = NULL;
+  const char *inputSegmentationReferenceFileName = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-InputSegmentationReferenceFile") == 0)
@@ -95,7 +95,7 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *inputSegmentationCompareFileName = NULL;
+  const char *inputSegmentationCompareFileName = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-InputSegmentationCompareFile") == 0)
@@ -115,7 +115,7 @@ int vtkSlicerSegmentComparisonModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *temporarySceneFileName = NULL;
+  const char *temporarySceneFileName = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-TemporarySceneFile") == 0)

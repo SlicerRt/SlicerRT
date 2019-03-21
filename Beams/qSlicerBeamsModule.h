@@ -40,7 +40,7 @@ class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerBeamsModule :
 
 public:
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerBeamsModule(QObject *parent=0);
+  explicit qSlicerBeamsModule(QObject *parent=nullptr);
   virtual ~qSlicerBeamsModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

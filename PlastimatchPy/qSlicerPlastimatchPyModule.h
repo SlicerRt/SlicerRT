@@ -39,7 +39,7 @@ class Q_SLICER_QTMODULES_PLASTIMATCHPY_EXPORT qSlicerPlastimatchPyModule : publi
 
 public:
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerPlastimatchPyModule(QObject *parent=0);
+  explicit qSlicerPlastimatchPyModule(QObject *parent=nullptr);
   virtual ~qSlicerPlastimatchPyModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

@@ -78,8 +78,8 @@ int vtkFractionalImageAccumulateExecute(vtkFractionalImageAccumulate *self,
     switch (self->GetFractionalLabelmap()->GetScalarType())
     {
     vtkTemplateMacro( vtkFractionalImageAccumulateExecute2( self,
-                                                (BaseImageScalarType*) NULL,
-                                                (VTK_TT*) NULL,
+                                                (BaseImageScalarType*) nullptr,
+                                                (VTK_TT*) nullptr,
                                                 inData,
                                                 outData,
                                                 min, max,

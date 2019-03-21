@@ -50,19 +50,19 @@ vtkStandardNewMacro(vtkPlmpyDicomSroExport);
 //----------------------------------------------------------------------------
 vtkPlmpyDicomSroExport::vtkPlmpyDicomSroExport()
 {
-  this->FixedImageID = NULL;
-  this->MovingImageID = NULL;
-  this->XformID = NULL;
-  this->OutputDirectory = NULL;
+  this->FixedImageID = nullptr;
+  this->MovingImageID = nullptr;
+  this->XformID = nullptr;
+  this->OutputDirectory = nullptr;
 }
 
 //----------------------------------------------------------------------------
 vtkPlmpyDicomSroExport::~vtkPlmpyDicomSroExport()
 {
-  this->SetFixedImageID(NULL);
-  this->SetMovingImageID(NULL);
-  this->SetXformID(NULL);
-  this->SetOutputDirectory(NULL);
+  this->SetFixedImageID(nullptr);
+  this->SetMovingImageID(nullptr);
+  this->SetXformID(nullptr);
+  this->SetOutputDirectory(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -124,16 +124,16 @@ void vtkPlmpyDicomSroExport::UpdateFromMRMLScene()
 //----------------------------------------------------------------------------
 void vtkPlmpyDicomSroExport::DoExport ()
 {
-  if (this->FixedImageID == NULL
-    || this->MovingImageID == NULL
-    || this->XformID == NULL
-    || this->OutputDirectory == NULL)
+  if (this->FixedImageID == nullptr
+    || this->MovingImageID == nullptr
+    || this->XformID == nullptr
+    || this->OutputDirectory == nullptr)
   {
     vtkErrorMacro("Sorry, vtkPlmpyDicomSroExport::DoExport () is missing some inputs");
     return;
   }
 
-  if (this->GetMRMLScene() == NULL) {
+  if (this->GetMRMLScene() == nullptr) {
     vtkErrorMacro("Sorry, vtkPlmpyDicomSroExport::DoExport () found that it has no mrml scene");
     return;
   }

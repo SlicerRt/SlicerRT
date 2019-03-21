@@ -51,7 +51,7 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
   std::ostream& errorStream = std::cerr;
 
   // TestSceneFile
-  const char *testSceneFileName  = NULL;
+  const char *testSceneFileName  = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-TestSceneFile") == 0)
@@ -71,7 +71,7 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   // TemporarySceneFile
-  const char *temporarySceneFileName = NULL;
+  const char *temporarySceneFileName = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-TemporarySceneFile") == 0)

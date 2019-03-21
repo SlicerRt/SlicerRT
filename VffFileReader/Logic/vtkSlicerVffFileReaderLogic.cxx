@@ -604,9 +604,9 @@ void vtkSlicerVffFileReaderLogic::LoadVffFile(char *filename, bool useImageInten
       this->GetMRMLScene()->AddNode(vffVolumeDisplayNode);
       vffVolumeNode->SetAndObserveDisplayNodeID(vffVolumeDisplayNode->GetID());
 
-      if (this->GetApplicationLogic()!=NULL)
+      if (this->GetApplicationLogic()!=nullptr)
       {
-        if (this->GetApplicationLogic()->GetSelectionNode()!=NULL)
+        if (this->GetApplicationLogic()->GetSelectionNode()!=nullptr)
         {
           this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(vffVolumeNode->GetID());
           this->GetApplicationLogic()->PropagateVolumeSelection();

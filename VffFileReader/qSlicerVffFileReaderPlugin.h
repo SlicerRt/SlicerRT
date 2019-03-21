@@ -37,8 +37,8 @@ class qSlicerVffFileReaderPlugin
 
 public:
   typedef qSlicerFileReader Superclass;
-  qSlicerVffFileReaderPlugin(QObject* parent = 0);
-  qSlicerVffFileReaderPlugin(vtkSlicerVffFileReaderLogic* logic, QObject* parent = 0);
+  qSlicerVffFileReaderPlugin(QObject* parent = nullptr);
+  qSlicerVffFileReaderPlugin(vtkSlicerVffFileReaderLogic* logic, QObject* parent = nullptr);
   virtual ~qSlicerVffFileReaderPlugin();
 
   vtkSlicerVffFileReaderLogic* logic()const;

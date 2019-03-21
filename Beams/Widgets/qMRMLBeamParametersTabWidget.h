@@ -56,7 +56,7 @@ public:
 public:
   typedef QTabWidget Superclass;
   /// Constructor
-  explicit qMRMLBeamParametersTabWidget(QWidget* parent = 0);
+  explicit qMRMLBeamParametersTabWidget(QWidget* parent = nullptr);
   /// Destructor
   virtual ~qMRMLBeamParametersTabWidget();
 

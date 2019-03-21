@@ -135,7 +135,7 @@ void vtkMRMLIsodoseNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* no
     return;
     }
 
-  this->SetNodeReferenceID(DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -145,7 +145,7 @@ vtkMRMLColorTableNode* vtkMRMLIsodoseNode::GetColorTableNode()
   if (!doseVolumeNode)
   {
     vtkWarningMacro("GetColorTableNode: No dose volume node found. Isodose color table node is associated to dose volume nodes.");
-    return NULL;
+    return nullptr;
   }
 
   return vtkMRMLColorTableNode::SafeDownCast( doseVolumeNode->GetNodeReference(COLOR_TABLE_REFERENCE_ROLE) );
@@ -167,5 +167,5 @@ void vtkMRMLIsodoseNode::SetAndObserveColorTableNode(vtkMRMLColorTableNode* node
     return;
   }
 
-  doseVolumeNode->SetNodeReferenceID(COLOR_TABLE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  doseVolumeNode->SetNodeReferenceID(COLOR_TABLE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }

@@ -98,11 +98,11 @@ public:
   void RemoveDvhFromChart(vtkMRMLPlotChartNode* chartNode, vtkMRMLTableNode* tableNode);
 
   /// Determine if a DVH table is added to the given chart
-  /// \return Plot series node belonging to table in chart if visible, NULL otherwise
+  /// \return Plot series node belonging to table in chart if visible, nullptr otherwise
   vtkMRMLPlotSeriesNode* IsDvhAddedToChart(vtkMRMLPlotChartNode* chartNode, vtkMRMLTableNode* tableNode);
 
   /// Get plot series node from chart for given table
-  /// \return Plot series node belonging to table in chart if created, NULL otherwise
+  /// \return Plot series node belonging to table in chart if created, nullptr otherwise
   vtkMRMLPlotSeriesNode* GetPlotSeriesNodeForTable(vtkMRMLPlotChartNode* chartNode, vtkMRMLTableNode* tableNode);
 
   /// Export DVH values

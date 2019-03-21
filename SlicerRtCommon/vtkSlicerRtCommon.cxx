@@ -94,7 +94,7 @@ const char* vtkSlicerRtCommon::DEFAULT_DOSE_COLOR_TABLE_NAME = "Dose_ColorTable"
 //----------------------------------------------------------------------------
 bool vtkSlicerRtCommon::IsStringNullOrEmpty(const char* aString)
 {
-  if (aString == NULL)
+  if (aString == nullptr)
   {
     return true;
   }
@@ -116,7 +116,7 @@ bool vtkSlicerRtCommon::IsDoseVolumeNode(vtkMRMLNode* node)
   if (node->IsA("vtkMRMLScalarVolumeNode"))
   {
     const char* doseVolumeIdentifier = node->GetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str());
-    if (doseVolumeIdentifier != NULL)
+    if (doseVolumeIdentifier != nullptr)
     {
       return true;
     }
@@ -136,7 +136,7 @@ bool vtkSlicerRtCommon::IsIsodoseModelNode(vtkMRMLNode* node)
   if (node->IsA("vtkMRMLModelNode"))
   {
     const char* isodoseModelIdentifier = node->GetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str());
-    if (isodoseModelIdentifier != NULL)
+    if (isodoseModelIdentifier != nullptr)
     {
       return true;
     }
@@ -190,7 +190,7 @@ bool vtkSlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, 
 {
   if (!volume1 || !volume2)
   {
-    vtkGenericWarningMacro("vtkSlicerRtCommon::DoVolumeLatticesMatch: Invalid (NULL) argument!");
+    vtkGenericWarningMacro("vtkSlicerRtCommon::DoVolumeLatticesMatch: Invalid (nullptr) argument!");
     return false;
   }
 
@@ -310,13 +310,13 @@ void vtkSlicerRtCommon::GenerateRandomColor(vtkMRMLColorTableNode* colorNode, do
 //---------------------------------------------------------------------------
 void vtkSlicerRtCommon::WriteImageDataToFile(vtkMRMLScene* scene, vtkImageData* imageData, const char* fileName, double dirs[3][3], double spacing[3], double origin[3], bool overwrite)
 {
-  if (scene == NULL)
+  if (scene == nullptr)
   {
     vtkGenericWarningMacro("vtkSlicerRtCommon::WriteImageDataToFile: Invalid scene");
     return;
   }
 
-  if (fileName == NULL || strcmp(fileName, "") == 0)
+  if (fileName == nullptr || strcmp(fileName, "") == 0)
   {
     vtkGenericWarningMacro("vtkSlicerRtCommon::WriteImageDataToFile: Invalid filename");
     return;

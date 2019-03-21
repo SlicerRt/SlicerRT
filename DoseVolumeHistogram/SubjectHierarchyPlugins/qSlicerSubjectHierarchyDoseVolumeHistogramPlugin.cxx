@@ -267,7 +267,7 @@ vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDoseVolumeHistogramPlugin
   if (!scene)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid MRML scene";
-    return NULL;
+    return nullptr;
   }
 
   vtkMRMLTableNode* metricsTableNode = vtkMRMLTableNode::SafeDownCast(
@@ -284,5 +284,5 @@ vtkMRMLDoseVolumeHistogramNode* qSlicerSubjectHierarchyDoseVolumeHistogramPlugin
     }
   }
 
-  return NULL;
+  return nullptr;
 }

@@ -43,7 +43,7 @@ class Q_SLICER_VFFFILEREADER_EXPORT qSlicerVffFileReaderModule:
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  qSlicerVffFileReaderModule(QObject *parent=0);
+  qSlicerVffFileReaderModule(QObject *parent=nullptr);
   virtual ~qSlicerVffFileReaderModule();
 
   virtual QString helpText()const;

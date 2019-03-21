@@ -30,7 +30,7 @@ class Q_SLICER_MODULE_BEAMS_WIDGETS_PLUGINS_EXPORT qMRMLBeamsTableViewPlugin
   Q_OBJECT
 
 public:
-  qMRMLBeamsTableViewPlugin(QObject* parent = 0);
+  qMRMLBeamsTableViewPlugin(QObject* parent = nullptr);
 
   QWidget *createWidget(QWidget* parent);
   QString  domXml() const;

@@ -43,7 +43,7 @@ class Q_SLICER_PINNACLEDVFREADER_EXPORT qSlicerPinnacleDvfReaderModule:
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  qSlicerPinnacleDvfReaderModule(QObject *parent=0);
+  qSlicerPinnacleDvfReaderModule(QObject *parent=nullptr);
   virtual ~qSlicerPinnacleDvfReaderModule();
 
   virtual QString helpText()const;

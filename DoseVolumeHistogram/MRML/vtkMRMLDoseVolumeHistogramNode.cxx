@@ -54,11 +54,11 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
 {
   this->SelectedSegmentIDs.clear();
   this->ShowHideAll = 0;
-  this->VDoseValues = NULL;
+  this->VDoseValues = nullptr;
   this->ShowVMetricsCc = false;
   this->ShowVMetricsPercent = false;
-  this->DVolumeValuesCc = NULL;
-  this->DVolumeValuesPercent = NULL;
+  this->DVolumeValuesCc = nullptr;
+  this->DVolumeValuesPercent = nullptr;
   this->ShowDMetrics = false;
   this->ShowDoseVolumesOnly = true;
   this->AutomaticOversampling = false;
@@ -74,9 +74,9 @@ vtkMRMLDoseVolumeHistogramNode::vtkMRMLDoseVolumeHistogramNode()
 vtkMRMLDoseVolumeHistogramNode::~vtkMRMLDoseVolumeHistogramNode()
 {
   this->SelectedSegmentIDs.clear();
-  this->SetVDoseValues(NULL);
-  this->SetDVolumeValuesCc(NULL);
-  this->SetDVolumeValuesPercent(NULL);
+  this->SetVDoseValues(nullptr);
+  this->SetDVolumeValuesCc(nullptr);
+  this->SetDVolumeValuesPercent(nullptr);
   this->AutomaticOversamplingFactors.clear();
 }
 
@@ -113,10 +113,10 @@ void vtkMRMLDoseVolumeHistogramNode::ReadXMLAttributes(const char** atts)
   vtkMRMLNode::ReadXMLAttributes(atts);
 
   // Read all MRML node attributes from two arrays of names and values
-  const char* attName = NULL;
-  const char* attValue = NULL;
+  const char* attName = nullptr;
+  const char* attValue = nullptr;
 
-  while (*atts != NULL) 
+  while (*atts != nullptr) 
     {
     attName = *(atts++);
     attValue = *(atts++);
@@ -245,7 +245,7 @@ void vtkMRMLDoseVolumeHistogramNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVo
     return;
     }
 
-  this->SetNodeReferenceID(DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -263,7 +263,7 @@ void vtkMRMLDoseVolumeHistogramNode::SetAndObserveSegmentationNode(vtkMRMLSegmen
     return;
     }
 
-  this->SetNodeReferenceID(SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -272,7 +272,7 @@ vtkMRMLTableNode* vtkMRMLDoseVolumeHistogramNode::GetMetricsTableNode()
   if (!this->Scene)
   {
     vtkErrorMacro("GetMetricsTableNode: Invalid MRML scene");
-    return NULL;
+    return nullptr;
   }
   vtkMRMLTableNode* metricsTableNode = vtkMRMLTableNode::SafeDownCast( this->GetNodeReference(DVH_METRICS_TABLE_REFERENCE_ROLE) );
   // Metrics table node is unique and mandatory for each DVH node
@@ -298,7 +298,7 @@ void vtkMRMLDoseVolumeHistogramNode::SetAndObserveMetricsTableNode(vtkMRMLTableN
     return;
     }
 
-  this->SetNodeReferenceID(DVH_METRICS_TABLE_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(DVH_METRICS_TABLE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -307,7 +307,7 @@ vtkMRMLPlotChartNode* vtkMRMLDoseVolumeHistogramNode::GetChartNode()
   if (!this->Scene)
   {
     vtkErrorMacro("GetChartNode: Invalid MRML scene");
-    return NULL;
+    return nullptr;
   }
   vtkMRMLPlotChartNode* chartNode = vtkMRMLPlotChartNode::SafeDownCast( this->GetNodeReference(CHART_REFERENCE_ROLE) );
   // Chart node is unique and mandatory for each DVH node
@@ -336,7 +336,7 @@ void vtkMRMLDoseVolumeHistogramNode::SetAndObserveChartNode(vtkMRMLPlotChartNode
     return;
     }
 
-  this->SetNodeReferenceID(CHART_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(CHART_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------

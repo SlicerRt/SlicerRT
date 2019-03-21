@@ -22,7 +22,7 @@ int vtkPolyDataDistanceHistogramFilterTest( int argc, char* argv[] )
   std::ostream& errorStream = std::cerr;
 
   int argIndex = 1;
-  const char *rawDistancesFilename = NULL;
+  const char *rawDistancesFilename = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-RawDistancesPath") == 0)
@@ -42,7 +42,7 @@ int vtkPolyDataDistanceHistogramFilterTest( int argc, char* argv[] )
     return EXIT_FAILURE;
   }
 
-  const char *histogramFilename = NULL;
+  const char *histogramFilename = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-HistogramPath") == 0)
@@ -88,7 +88,7 @@ int vtkPolyDataDistanceHistogramFilterTest( int argc, char* argv[] )
 
   // Export distances to text file for comparison against python
   vtkDoubleArray* rawDistancesDoubleArray = polyDataDistanceHistogramFilter->GetOutputDistances();
-  if ( rawDistancesDoubleArray == NULL )
+  if ( rawDistancesDoubleArray == nullptr )
   {
     errorStream << "Distances are null. Aborting test." << std::endl;
     return EXIT_FAILURE;
@@ -105,7 +105,7 @@ int vtkPolyDataDistanceHistogramFilterTest( int argc, char* argv[] )
 
   // Export histogram
   vtkTable* histogramInTable = polyDataDistanceHistogramFilter->GetOutputHistogram();
-  if ( histogramInTable == NULL )
+  if ( histogramInTable == nullptr )
   {
     errorStream << "Histogram is null." << std::endl;
     return EXIT_FAILURE;

@@ -85,14 +85,14 @@ vtkStandardNewMacro(vtkSlicerSegmentComparisonModuleLogicPrivate);
 
 //-----------------------------------------------------------------------------
 vtkSlicerSegmentComparisonModuleLogicPrivate::vtkSlicerSegmentComparisonModuleLogicPrivate()
-: Logic(NULL)
+: Logic(nullptr)
 {
 }
 
 //-----------------------------------------------------------------------------
 vtkSlicerSegmentComparisonModuleLogicPrivate::~vtkSlicerSegmentComparisonModuleLogicPrivate()
 {
-  this->SetLogic(NULL);
+  this->SetLogic(nullptr);
 }
 
 //---------------------------------------------------------------------------
@@ -179,7 +179,7 @@ vtkCxxSetObjectMacro(vtkSlicerSegmentComparisonModuleLogic, LogicPrivate, vtkSli
 //----------------------------------------------------------------------------
 vtkSlicerSegmentComparisonModuleLogic::vtkSlicerSegmentComparisonModuleLogic()
 {
-  this->LogicPrivate = NULL;
+  this->LogicPrivate = nullptr;
   vtkSmartPointer<vtkSlicerSegmentComparisonModuleLogicPrivate> logicPrivate =
     vtkSmartPointer<vtkSlicerSegmentComparisonModuleLogicPrivate>::New();
   logicPrivate->SetLogic(this);
@@ -191,7 +191,7 @@ vtkSlicerSegmentComparisonModuleLogic::vtkSlicerSegmentComparisonModuleLogic()
 //----------------------------------------------------------------------------
 vtkSlicerSegmentComparisonModuleLogic::~vtkSlicerSegmentComparisonModuleLogic()
 {
-  this->SetLogicPrivate(NULL);
+  this->SetLogicPrivate(nullptr);
 }
 
 //----------------------------------------------------------------------------

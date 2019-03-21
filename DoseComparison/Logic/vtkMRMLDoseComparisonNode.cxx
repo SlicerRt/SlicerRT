@@ -45,7 +45,7 @@ vtkMRMLNodeNewMacro(vtkMRMLDoseComparisonNode);
 //----------------------------------------------------------------------------
 vtkMRMLDoseComparisonNode::vtkMRMLDoseComparisonNode()
 {
-  this->MaskSegmentID = NULL;
+  this->MaskSegmentID = nullptr;
   this->DtaDistanceToleranceMm = 3.0;
   this->DoseDifferenceTolerancePercent = 3.0;
   this->ReferenceDoseGy = 50.0;
@@ -56,7 +56,7 @@ vtkMRMLDoseComparisonNode::vtkMRMLDoseComparisonNode()
   this->DoseThresholdOnReferenceOnly = false;
   this->PassFractionPercent = -1.0;
   this->ResultsValid = false;
-  this->ReportString = NULL;
+  this->ReportString = nullptr;
   this->LocalDoseDifference = false;
 
   this->HideFromEditors = false;
@@ -65,7 +65,7 @@ vtkMRMLDoseComparisonNode::vtkMRMLDoseComparisonNode()
 //----------------------------------------------------------------------------
 vtkMRMLDoseComparisonNode::~vtkMRMLDoseComparisonNode()
 {
-  this->SetMaskSegmentID(NULL);
+  this->SetMaskSegmentID(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -74,7 +74,7 @@ void vtkMRMLDoseComparisonNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  of << " MaskSegmentID=\"" << (this->MaskSegmentID ? this->MaskSegmentID : "NULL") << "\"";
+  of << " MaskSegmentID=\"" << (this->MaskSegmentID ? this->MaskSegmentID : "nullptr") << "\"";
   of << " DtaDistanceToleranceMm=\"" << this->DtaDistanceToleranceMm << "\"";
   of << " DoseDifferenceTolerancePercent=\"" << this->DoseDifferenceTolerancePercent << "\"";
   of << " ReferenceDoseGy=\"" << this->ReferenceDoseGy << "\"";
@@ -95,10 +95,10 @@ void vtkMRMLDoseComparisonNode::ReadXMLAttributes(const char** atts)
   vtkMRMLNode::ReadXMLAttributes(atts);
 
   // Read all MRML node attributes from two arrays of names and values
-  const char* attName = NULL;
-  const char* attValue = NULL;
+  const char* attName = nullptr;
+  const char* attValue = nullptr;
 
-  while (*atts != NULL) 
+  while (*atts != nullptr) 
     {
     attName = *(atts++);
     attValue = *(atts++);
@@ -189,7 +189,7 @@ void vtkMRMLDoseComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << "MaskSegmentID:   " << (this->MaskSegmentID ? this->MaskSegmentID : "NULL") << "\n";
+  os << indent << "MaskSegmentID:   " << (this->MaskSegmentID ? this->MaskSegmentID : "nullptr") << "\n";
   os << indent << "DtaDistanceToleranceMm:   " << this->DtaDistanceToleranceMm << "\n";
   os << indent << "DoseDifferenceTolerancePercent:   " << this->DoseDifferenceTolerancePercent << "\n";
   os << indent << "ReferenceDoseGy:   " << this->ReferenceDoseGy << "\n";
@@ -219,7 +219,7 @@ void vtkMRMLDoseComparisonNode::SetAndObserveReferenceDoseVolumeNode(vtkMRMLScal
     return;
     }
 
-  this->SetNodeReferenceID(REFERENCE_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(REFERENCE_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -237,7 +237,7 @@ void vtkMRMLDoseComparisonNode::SetAndObserveCompareDoseVolumeNode(vtkMRMLScalar
     return;
     }
 
-  this->SetNodeReferenceID(COMPARE_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(COMPARE_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -255,7 +255,7 @@ void vtkMRMLDoseComparisonNode::SetAndObserveMaskSegmentationNode(vtkMRMLSegment
     return;
     }
 
-  this->SetNodeReferenceID(MASK_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(MASK_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -273,5 +273,5 @@ void vtkMRMLDoseComparisonNode::SetAndObserveGammaVolumeNode(vtkMRMLScalarVolume
     return;
     }
 
-  this->SetNodeReferenceID(GAMMA_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(GAMMA_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }

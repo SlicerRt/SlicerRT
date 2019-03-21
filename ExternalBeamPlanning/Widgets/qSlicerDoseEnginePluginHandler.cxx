@@ -26,7 +26,7 @@
 #include <QDebug>
 
 //----------------------------------------------------------------------------
-qSlicerDoseEnginePluginHandler *qSlicerDoseEnginePluginHandler::m_Instance = NULL;
+qSlicerDoseEnginePluginHandler *qSlicerDoseEnginePluginHandler::m_Instance = nullptr;
 
 //----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
@@ -39,7 +39,7 @@ public:
   {
     if (qSlicerDoseEnginePluginHandler::m_Instance)
     {
-      qSlicerDoseEnginePluginHandler::setInstance(NULL);
+      qSlicerDoseEnginePluginHandler::setInstance(nullptr);
     }
   }
 };
@@ -68,7 +68,7 @@ void qSlicerDoseEnginePluginHandler::setInstance(qSlicerDoseEnginePluginHandler*
   {
     return;
   }
-  // Preferably this will be NULL
+  // Preferably this will be nullptr
   if (qSlicerDoseEnginePluginHandler::m_Instance)
   {
     delete qSlicerDoseEnginePluginHandler::m_Instance;
@@ -100,7 +100,7 @@ qSlicerDoseEnginePluginHandler::~qSlicerDoseEnginePluginHandler()
 //---------------------------------------------------------------------------
 bool qSlicerDoseEnginePluginHandler::registerDoseEngine(qSlicerAbstractDoseEngine* engineToRegister)
 {
-  if (engineToRegister == NULL)
+  if (engineToRegister == nullptr)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid dose engine to register!";
     return false;
@@ -112,7 +112,7 @@ bool qSlicerDoseEnginePluginHandler::registerDoseEngine(qSlicerAbstractDoseEngin
   }
 
   // Check if the same engine has already been registered
-  qSlicerAbstractDoseEngine* currentEngine = NULL;
+  qSlicerAbstractDoseEngine* currentEngine = nullptr;
   foreach (currentEngine, this->m_RegisteredDoseEngines)
   {
     if (engineToRegister->name().compare(currentEngine->name()) == 0)
@@ -135,11 +135,11 @@ qSlicerAbstractDoseEngine* qSlicerDoseEnginePluginHandler::doseEngineByName(QStr
 {
 if (name.isEmpty())
   {
-    return NULL;
+    return nullptr;
   }
 
   // Find engine with name
-  qSlicerAbstractDoseEngine* currentEngine = NULL;
+  qSlicerAbstractDoseEngine* currentEngine = nullptr;
   foreach (currentEngine, this->m_RegisteredDoseEngines)
   {
     if (currentEngine->name().compare(name) == 0)
@@ -149,7 +149,7 @@ if (name.isEmpty())
   }
 
   qWarning() << Q_FUNC_INFO << ": Engine named '" << name << "' cannot be found!";
-  return NULL;
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------

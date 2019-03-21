@@ -40,7 +40,7 @@ class Q_SLICER_QTMODULES_ROOMSEYEVIEW_EXPORT qSlicerRoomsEyeViewModule :
 
 public:
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerRoomsEyeViewModule(QObject *parent=0);
+  explicit qSlicerRoomsEyeViewModule(QObject *parent=nullptr);
   virtual ~qSlicerRoomsEyeViewModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

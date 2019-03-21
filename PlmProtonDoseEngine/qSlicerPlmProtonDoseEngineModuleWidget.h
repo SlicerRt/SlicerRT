@@ -37,7 +37,7 @@ class Q_SLICER_QTMODULES_PLMPROTONDOSEENGINE_EXPORT qSlicerPlmProtonDoseEngineMo
 public:
 
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerPlmProtonDoseEngineModuleWidget(QWidget *parent=0);
+  qSlicerPlmProtonDoseEngineModuleWidget(QWidget *parent=nullptr);
   virtual ~qSlicerPlmProtonDoseEngineModuleWidget();
 
   /// Make this module hidden

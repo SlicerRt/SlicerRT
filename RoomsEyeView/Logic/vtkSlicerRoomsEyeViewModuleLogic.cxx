@@ -80,13 +80,13 @@ vtkStandardNewMacro(vtkSlicerRoomsEyeViewModuleLogic);
 
 //----------------------------------------------------------------------------
 vtkSlicerRoomsEyeViewModuleLogic::vtkSlicerRoomsEyeViewModuleLogic()
-  : GantryPatientCollisionDetection(NULL)
-  , GantryTableTopCollisionDetection(NULL)
-  , GantryPatientSupportCollisionDetection(NULL)
-  , CollimatorPatientCollisionDetection(NULL)
-  , CollimatorTableTopCollisionDetection(NULL)
-  , AdditionalModelsTableTopCollisionDetection(NULL)
-  , AdditionalModelsPatientSupportCollisionDetection(NULL)
+  : GantryPatientCollisionDetection(nullptr)
+  , GantryTableTopCollisionDetection(nullptr)
+  , GantryPatientSupportCollisionDetection(nullptr)
+  , CollimatorPatientCollisionDetection(nullptr)
+  , CollimatorTableTopCollisionDetection(nullptr)
+  , AdditionalModelsTableTopCollisionDetection(nullptr)
+  , AdditionalModelsPatientSupportCollisionDetection(nullptr)
 {
   this->IECLogic = vtkSlicerIECTransformLogic::New();
 
@@ -105,43 +105,43 @@ vtkSlicerRoomsEyeViewModuleLogic::~vtkSlicerRoomsEyeViewModuleLogic()
   if (this->IECLogic)
   {
     this->IECLogic->Delete();
-    this->IECLogic = NULL;
+    this->IECLogic = nullptr;
   }
 
   if (this->GantryPatientCollisionDetection)
   {
     this->GantryPatientCollisionDetection->Delete();
-    this->GantryPatientCollisionDetection = NULL;
+    this->GantryPatientCollisionDetection = nullptr;
   }
   if (this->GantryTableTopCollisionDetection)
   {
     this->GantryTableTopCollisionDetection->Delete();
-    this->GantryTableTopCollisionDetection = NULL;
+    this->GantryTableTopCollisionDetection = nullptr;
   }
   if (this->GantryPatientSupportCollisionDetection)
   {
     this->GantryPatientSupportCollisionDetection->Delete();
-    this->GantryPatientSupportCollisionDetection = NULL;
+    this->GantryPatientSupportCollisionDetection = nullptr;
   }
   if (this->CollimatorPatientCollisionDetection)
   {
     this->CollimatorPatientCollisionDetection->Delete();
-    this->CollimatorPatientCollisionDetection = NULL;
+    this->CollimatorPatientCollisionDetection = nullptr;
   }
   if (this->CollimatorTableTopCollisionDetection)
   {
     this->CollimatorTableTopCollisionDetection->Delete();
-    this->CollimatorTableTopCollisionDetection = NULL;
+    this->CollimatorTableTopCollisionDetection = nullptr;
   }
   if (this->AdditionalModelsTableTopCollisionDetection)
   {
     this->AdditionalModelsTableTopCollisionDetection->Delete();
-    this->AdditionalModelsTableTopCollisionDetection = NULL;
+    this->AdditionalModelsTableTopCollisionDetection = nullptr;
   }
   if (this->AdditionalModelsPatientSupportCollisionDetection)
   {
     this->AdditionalModelsPatientSupportCollisionDetection->Delete();
-    this->AdditionalModelsPatientSupportCollisionDetection = NULL;
+    this->AdditionalModelsPatientSupportCollisionDetection = nullptr;
   }
 }
 
@@ -270,7 +270,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(vtkMRMLRoomsEy
   {
     // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
     scene->RemoveNode(collimatorModelNode);
-    collimatorModelNode = NULL;
+    collimatorModelNode = nullptr;
   }
   if (!collimatorModelNode)
   {
@@ -302,7 +302,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(vtkMRMLRoomsEy
   {
     // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
     scene->RemoveNode(gantryModelNode);
-    gantryModelNode = NULL;
+    gantryModelNode = nullptr;
   }
   if (!gantryModelNode)
   {
@@ -334,7 +334,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(vtkMRMLRoomsEy
   {
     // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
     scene->RemoveNode(patientSupportModelNode);
-    patientSupportModelNode = NULL;
+    patientSupportModelNode = nullptr;
   }
   if (!patientSupportModelNode)
   {
@@ -366,7 +366,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(vtkMRMLRoomsEy
   {
     // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
     scene->RemoveNode(tableTopModelNode);
-    tableTopModelNode = NULL;
+    tableTopModelNode = nullptr;
   }
   if (!tableTopModelNode)
   {
@@ -398,7 +398,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(vtkMRMLRoomsEy
   {
     // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
     scene->RemoveNode(linacBodyModelNode);
-    linacBodyModelNode = NULL;
+    linacBodyModelNode = nullptr;
   }
   if (!linacBodyModelNode)
   {
@@ -426,7 +426,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(vtkMRMLRoomsEy
   {
     // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
     scene->RemoveNode(imagingPanelLeftModelNode);
-    imagingPanelLeftModelNode = NULL;
+    imagingPanelLeftModelNode = nullptr;
   }
   if (!imagingPanelLeftModelNode)
   {
@@ -454,7 +454,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(vtkMRMLRoomsEy
   {
     // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
     scene->RemoveNode(imagingPanelRightModelNode);
-    imagingPanelRightModelNode = NULL;
+    imagingPanelRightModelNode = nullptr;
   }
   if (!imagingPanelRightModelNode)
   {
@@ -482,7 +482,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachineModels(vtkMRMLRoomsEy
   {
     // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
     scene->RemoveNode(flatPanelModelNode);
-    flatPanelModelNode = NULL;
+    flatPanelModelNode = nullptr;
   }
   if (!flatPanelModelNode)
   {
@@ -780,7 +780,7 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
   {
     // Orientation marker cannot be assembled if poly data is missing from the mandatory model nodes.
     // This is possible and can be completely valid, for example after closing the scene (because the model nodes are singletons)
-    return NULL;
+    return nullptr;
   }
 
   //

@@ -38,7 +38,7 @@ class Q_SLICER_QTMODULES_SEGMENTCOMPARISON_EXPORT qSlicerSegmentComparisonModule
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerSegmentComparisonModuleWidget(QWidget *parent=0);
+  qSlicerSegmentComparisonModuleWidget(QWidget *parent=nullptr);
   virtual ~qSlicerSegmentComparisonModuleWidget();
 
   virtual void enter();

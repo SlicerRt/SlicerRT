@@ -40,7 +40,7 @@ class Q_SLICER_QTMODULES_DOSEVOLUMEHISTOGRAM_EXPORT qSlicerDoseVolumeHistogramMo
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerDoseVolumeHistogramModuleWidget(QWidget *parent=0);
+  qSlicerDoseVolumeHistogramModuleWidget(QWidget *parent=nullptr);
   virtual ~qSlicerDoseVolumeHistogramModuleWidget();
 
   virtual void enter();

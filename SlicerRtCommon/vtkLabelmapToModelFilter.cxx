@@ -35,11 +35,11 @@ vtkStandardNewMacro(vtkLabelmapToModelFilter);
 //----------------------------------------------------------------------------
 vtkLabelmapToModelFilter::vtkLabelmapToModelFilter()
 {
-  this->InputLabelmap = NULL;
+  this->InputLabelmap = nullptr;
   vtkSmartPointer<vtkImageData> inputLabelmap = vtkSmartPointer<vtkImageData>::New();
   this->SetInputLabelmap(inputLabelmap);
 
-  this->OutputModel = NULL;
+  this->OutputModel = nullptr;
   vtkSmartPointer<vtkPolyData> outputModel = vtkSmartPointer<vtkPolyData>::New();
   this->SetOutputModel(outputModel);
 
@@ -50,8 +50,8 @@ vtkLabelmapToModelFilter::vtkLabelmapToModelFilter()
 //----------------------------------------------------------------------------
 vtkLabelmapToModelFilter::~vtkLabelmapToModelFilter()
 {
-  this->SetInputLabelmap(NULL);
-  this->SetOutputModel(NULL);
+  this->SetInputLabelmap(nullptr);
+  this->SetOutputModel(nullptr);
 }
 
 //----------------------------------------------------------------------------

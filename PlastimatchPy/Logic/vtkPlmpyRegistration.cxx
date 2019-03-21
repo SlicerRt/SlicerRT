@@ -61,24 +61,24 @@ vtkStandardNewMacro(vtkPlmpyRegistration);
 //----------------------------------------------------------------------------
 vtkPlmpyRegistration::vtkPlmpyRegistration()
 {
-  this->FixedImageID = NULL;
-  this->MovingImageID = NULL;
-  this->FixedLandmarksFileName = NULL;
-  this->MovingLandmarksFileName = NULL;
-  this->InitializationLinearTransformationID = NULL;
-  this->OutputVolumeID = NULL;
-  this->OutputVectorFieldID = NULL;
+  this->FixedImageID = nullptr;
+  this->MovingImageID = nullptr;
+  this->FixedLandmarksFileName = nullptr;
+  this->MovingLandmarksFileName = nullptr;
+  this->InitializationLinearTransformationID = nullptr;
+  this->OutputVolumeID = nullptr;
+  this->OutputVectorFieldID = nullptr;
 
-  this->FixedLandmarks = NULL;
-  this->MovingLandmarks = NULL;
+  this->FixedLandmarks = nullptr;
+  this->MovingLandmarks = nullptr;
 
-  this->WarpedLandmarks = NULL;
+  this->WarpedLandmarks = nullptr;
   vtkSmartPointer<vtkPoints> warpedLandmarks = vtkSmartPointer<vtkPoints>::New();
   this->SetWarpedLandmarks(warpedLandmarks);
 
-  this->MovingImageToFixedImageVectorField = NULL;
+  this->MovingImageToFixedImageVectorField = nullptr;
 
-  this->RegistrationParameters = NULL;
+  this->RegistrationParameters = nullptr;
   this->RegistrationData = new Registration_data();
 
 }
@@ -86,21 +86,21 @@ vtkPlmpyRegistration::vtkPlmpyRegistration()
 //----------------------------------------------------------------------------
 vtkPlmpyRegistration::~vtkPlmpyRegistration()
 {
-  this->SetFixedImageID(NULL);
-  this->SetMovingImageID(NULL);
-  this->SetFixedLandmarksFileName(NULL);
-  this->SetMovingLandmarksFileName(NULL);
-  this->SetInitializationLinearTransformationID(NULL);
-  this->SetOutputVolumeID(NULL);
-  this->SetOutputVectorFieldID(NULL);
+  this->SetFixedImageID(nullptr);
+  this->SetMovingImageID(nullptr);
+  this->SetFixedLandmarksFileName(nullptr);
+  this->SetMovingLandmarksFileName(nullptr);
+  this->SetInitializationLinearTransformationID(nullptr);
+  this->SetOutputVolumeID(nullptr);
+  this->SetOutputVectorFieldID(nullptr);
 
-  this->SetFixedLandmarks(NULL);
-  this->SetMovingLandmarks(NULL);
-  this->SetWarpedLandmarks(NULL);
+  this->SetFixedLandmarks(nullptr);
+  this->SetMovingLandmarks(nullptr);
+  this->SetWarpedLandmarks(nullptr);
 
-  this->MovingImageToFixedImageVectorField = NULL;
+  this->MovingImageToFixedImageVectorField = nullptr;
 
-  this->SetRegistrationParameters(NULL);
+  this->SetRegistrationParameters(nullptr);
   delete this->RegistrationData;
 }
 
@@ -423,7 +423,7 @@ void vtkPlmpyRegistration::ApplyInitialLinearTransformation()
 
   // Warp image using the input transformation
   Plm_image::Pointer prealignedImage = Plm_image::New();
-  this->ApplyWarp(prealignedImage, NULL, 
+  this->ApplyWarp(prealignedImage, nullptr, 
     plmInitializationXform, 
     this->RegistrationData->get_fixed_image(), 
     this->RegistrationData->get_moving_image(), -1200, 0, 1);

@@ -212,9 +212,9 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
   this->GetMRMLScene()->AddNode(dosxyzNrc3dDoseVolumeDisplayNode);
   dosxyzNrc3dDoseVolumeNode->SetAndObserveDisplayNodeID(dosxyzNrc3dDoseVolumeDisplayNode->GetID());
 
-  if (this->GetApplicationLogic() != NULL)
+  if (this->GetApplicationLogic() != nullptr)
   {
-    if (this->GetApplicationLogic()->GetSelectionNode() != NULL)
+    if (this->GetApplicationLogic()->GetSelectionNode() != nullptr)
     {
       this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(dosxyzNrc3dDoseVolumeNode->GetID());
       this->GetApplicationLogic()->PropagateVolumeSelection();

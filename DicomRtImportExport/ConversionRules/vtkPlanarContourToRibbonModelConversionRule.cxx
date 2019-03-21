@@ -95,7 +95,7 @@ vtkPlanarContourToRibbonModelConversionRule::~vtkPlanarContourToRibbonModelConve
 }
 
 //----------------------------------------------------------------------------
-unsigned int vtkPlanarContourToRibbonModelConversionRule::GetConversionCost(vtkDataObject* vtkNotUsed(sourceRepresentation)/*=NULL*/, vtkDataObject* vtkNotUsed(targetRepresentation)/*=NULL*/)
+unsigned int vtkPlanarContourToRibbonModelConversionRule::GetConversionCost(vtkDataObject* vtkNotUsed(sourceRepresentation)/*=nullptr*/, vtkDataObject* vtkNotUsed(targetRepresentation)/*=nullptr*/)
 {
   // Rough input-independent guess (ms)
   // Increase to quasi infinity, so that this path is never chosen by default, but the user has to manually request it.
@@ -113,7 +113,7 @@ vtkDataObject* vtkPlanarContourToRibbonModelConversionRule::ConstructRepresentat
   }
   else
   {
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -126,7 +126,7 @@ vtkDataObject* vtkPlanarContourToRibbonModelConversionRule::ConstructRepresentat
   }
   else
   {
-    return NULL;
+    return nullptr;
   }
 }
 

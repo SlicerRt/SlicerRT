@@ -41,7 +41,7 @@ class Q_SLICER_QTMODULES_DOSECOMPARISON_EXPORT qSlicerDoseComparisonModule :
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerDoseComparisonModule(QObject *parent=0);
+  explicit qSlicerDoseComparisonModule(QObject *parent=nullptr);
   virtual ~qSlicerDoseComparisonModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

@@ -51,7 +51,7 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Accumulates dose volumes with the given IDs and corresponding weights
-  /// \return Error message on failure, NULL otherwise
+  /// \return Error message on failure, nullptr otherwise
   std::string AccumulateDoseVolumes(vtkMRMLDoseAccumulationNode* parameterNode);
 
 protected:

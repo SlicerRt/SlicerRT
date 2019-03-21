@@ -69,7 +69,7 @@ public:
   std::string ExportDicomRTStudy(vtkCollection* exportables);
 
   /// Get referenced volume for a segmentation according to subject hierarchy attributes
-  /// \return The reference volume for the segmentation if any, NULL otherwise
+  /// \return The reference volume for the segmentation if any, nullptr otherwise
   static vtkMRMLScalarVolumeNode* GetReferencedVolumeByDicomForSegmentation(vtkMRMLSegmentationNode* segmentationNode);
 
 public:

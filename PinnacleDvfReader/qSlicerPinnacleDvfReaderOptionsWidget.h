@@ -40,7 +40,7 @@ class Q_SLICER_PINNACLEDVFREADER_EXPORT qSlicerPinnacleDvfReaderOptionsWidget :
   Q_OBJECT
 public:
   typedef qSlicerIOOptionsWidget Superclass;
-  qSlicerPinnacleDvfReaderOptionsWidget(QWidget *parent=0);
+  qSlicerPinnacleDvfReaderOptionsWidget(QWidget *parent=nullptr);
   virtual ~qSlicerPinnacleDvfReaderOptionsWidget();
 
 

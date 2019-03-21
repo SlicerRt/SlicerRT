@@ -37,7 +37,7 @@ class Q_SLICER_QTMODULES_ROOMSEYEVIEW_EXPORT qSlicerRoomsEyeViewModuleWidget :
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerRoomsEyeViewModuleWidget(QWidget *parent=0);
+  qSlicerRoomsEyeViewModuleWidget(QWidget *parent=nullptr);
   virtual ~qSlicerRoomsEyeViewModuleWidget();
 
   virtual void enter();

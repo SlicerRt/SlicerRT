@@ -89,7 +89,7 @@ public:
 //----------------------------------------------------------------------------
 vtkSlicerExternalBeamPlanningModuleLogic::vtkInternal::vtkInternal()
 {
-  this->MatlabDoseCalculationModuleLogic = 0;
+  this->MatlabDoseCalculationModuleLogic = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -101,7 +101,7 @@ vtkSlicerExternalBeamPlanningModuleLogic::vtkSlicerExternalBeamPlanningModuleLog
   this->DRRImageSize[0] = 256;
   this->DRRImageSize[1] = 256;
 
-  this->BeamsLogic = NULL;
+  this->BeamsLogic = nullptr;
 
   this->Internal = new vtkInternal;
 }
@@ -109,7 +109,7 @@ vtkSlicerExternalBeamPlanningModuleLogic::vtkSlicerExternalBeamPlanningModuleLog
 //----------------------------------------------------------------------------
 vtkSlicerExternalBeamPlanningModuleLogic::~vtkSlicerExternalBeamPlanningModuleLogic()
 {
-  this->SetBeamsLogic(NULL);
+  this->SetBeamsLogic(nullptr);
 
   delete this->Internal;
 }
@@ -292,23 +292,23 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ProcessMRMLNodesEvents(vtkObject*
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode/*=NULL*/)
+vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtkMRMLRTBeamNode* copiedBeamNode, vtkMRMLRTPlanNode* planNode/*=nullptr*/)
 {
   if (!this->GetMRMLScene())
   {
     vtkErrorMacro("CloneBeamInPlan: Invalid MRML scene");
-    return NULL;
+    return nullptr;
   }
   if (!copiedBeamNode)
   {
     vtkErrorMacro("CloneBeamInPlan: Invalid copied beam node");
-    return NULL;
+    return nullptr;
   }
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
   if (!shNode)
   {
     vtkErrorMacro("CloneBeamInPlan: Failed to access subject hierarchy node");
-    return NULL;
+    return nullptr;
   }
 
   // Determine name of beam clone
@@ -317,12 +317,12 @@ vtkMRMLRTBeamNode* vtkSlicerExternalBeamPlanningModuleLogic::CloneBeamInPlan(vtk
   // Clone beam node via subject hierarchy
   vtkIdType beamShItemID = shNode->GetItemByDataNode(copiedBeamNode);
   vtkIdType beamCloneShItemID = vtkSlicerSubjectHierarchyModuleLogic::CloneSubjectHierarchyItem(
-    shNode, beamShItemID, (newBeamName.empty() ? NULL : newBeamName.c_str()) );
+    shNode, beamShItemID, (newBeamName.empty() ? nullptr : newBeamName.c_str()) );
   vtkMRMLRTBeamNode* beamCloneNode = vtkMRMLRTBeamNode::SafeDownCast(shNode->GetItemDataNode(beamCloneShItemID));
   if (!beamCloneNode)
   {
     vtkErrorMacro("CloneBeamInPlan: Failed to copy beam node " << copiedBeamNode->GetName());
-    return NULL;
+    return nullptr;
   }
 
   // Add beam clone to given plan if specified and different than default
@@ -384,7 +384,7 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(vtkMRM
     return;
   }
 
-  if (this->Internal->MatlabDoseCalculationModuleLogic == 0)
+  if (this->Internal->MatlabDoseCalculationModuleLogic == nullptr)
   {
     vtkErrorMacro("ComputeDoseByMatlab: ERROR: logic is not set");
     return;
@@ -427,7 +427,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::UpdateDRR(vtkMRMLRTPlanNode* plan
   vtkMRMLRTBeamNode* beamNode = planNode->GetBeamByName(beamName);
   if (!beamNode)
   {
-    vtkErrorMacro("UpdateDRR: Unable to access beam node with name " << (beamName?beamName:"NULL"));
+    vtkErrorMacro("UpdateDRR: Unable to access beam node with name " << (beamName?beamName:"nullptr"));
     return;
   }
 

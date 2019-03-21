@@ -81,7 +81,7 @@ public:
 
 protected:
   /// Loads default isodose color table from the supplied color table file
-  /// \return The loaded color table node if loading succeeded, NULL otherwise
+  /// \return The loaded color table node if loading succeeded, nullptr otherwise
   vtkMRMLColorTableNode* LoadDefaultIsodoseColorTable();
 
 protected:

@@ -25,7 +25,7 @@ const int vtkPolyDataDistanceHistogramFilter::OUTPUT_PORT_HISTOGRAM = 0;
 
 //----------------------------------------------------------------------------
 vtkPolyDataDistanceHistogramFilter::vtkPolyDataDistanceHistogramFilter()
-  : OutputDistances(NULL)
+  : OutputDistances(nullptr)
   , SamplePolyDataVertices(1)
   , SamplePolyDataEdges(0)
   , SamplePolyDataFaces(0)
@@ -49,22 +49,22 @@ vtkPolyDataDistanceHistogramFilter::~vtkPolyDataDistanceHistogramFilter()
   if (this->InputComparePolyData)
   {
     this->InputComparePolyData->Delete();
-    this->InputComparePolyData = NULL;
+    this->InputComparePolyData = nullptr;
   }
   if (this->InputReferencePolyData)
   {
     this->InputReferencePolyData->Delete();
-    this->InputReferencePolyData = NULL;
+    this->InputReferencePolyData = nullptr;
   }
   if (this->OutputHistogram)
   {
     this->OutputHistogram->Delete();
-    this->OutputHistogram = NULL;
+    this->OutputHistogram = nullptr;
   }
   if (this->OutputDistances)
   {
     this->OutputDistances->Delete();
-    this->OutputDistances = NULL;
+    this->OutputDistances = nullptr;
   }
 }
 

@@ -31,15 +31,15 @@ vtkStandardNewMacro(vtkPlmpyMismatchError);
 //----------------------------------------------------------------------------
 vtkPlmpyMismatchError::plmpyMismatchError()
 {
-  this->FixedImageID = NULL;
-  this->MovingImageID = NULL;
-  this->FixedLandmarksFileName = NULL;
-  this->MovingLandmarksFileName = NULL;
+  this->FixedImageID = nullptr;
+  this->MovingImageID = nullptr;
+  this->FixedLandmarksFileName = nullptr;
+  this->MovingLandmarksFileName = nullptr;
 
-  this->FixedLandmarks = NULL;
-  this->MovingLandmarks = NULL;
+  this->FixedLandmarks = nullptr;
+  this->MovingLandmarks = nullptr;
 
-  this->WarpedLandmarks = NULL;
+  this->WarpedLandmarks = nullptr;
   vtkSmartPointer<vtkPoints> warpedLandmarks = vtkSmartPointer<vtkPoints>::New();
   this->SetWarpedLandmarks(warpedLandmarks);
 }

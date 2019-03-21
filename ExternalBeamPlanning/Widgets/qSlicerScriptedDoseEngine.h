@@ -50,7 +50,7 @@ class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerScriptedDoseEng
 
 public:
   typedef qSlicerAbstractDoseEngine Superclass;
-  qSlicerScriptedDoseEngine(QObject* parent = NULL);
+  qSlicerScriptedDoseEngine(QObject* parent = nullptr);
   virtual ~qSlicerScriptedDoseEngine();
 
   Q_INVOKABLE QString pythonSource()const;

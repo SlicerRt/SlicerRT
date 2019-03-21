@@ -38,7 +38,7 @@ public:
 
 public:
   typedef qSlicerSubjectHierarchyAbstractPlugin Superclass;
-  qSlicerSubjectHierarchyRtDoseVolumePlugin(QObject* parent = NULL);
+  qSlicerSubjectHierarchyRtDoseVolumePlugin(QObject* parent = nullptr);
   virtual ~qSlicerSubjectHierarchyRtDoseVolumePlugin();
 
 public:

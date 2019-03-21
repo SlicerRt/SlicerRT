@@ -74,7 +74,7 @@ void vtkSlicerPinnacleDvfReaderLogic::LoadPinnacleDvf(char *filename, double gri
   pinnacleDvfReader->Update();
 
   // Post deformation node
-  vtkMatrix4x4* postDeformationMatrix = NULL;
+  vtkMatrix4x4* postDeformationMatrix = nullptr;
   postDeformationMatrix = pinnacleDvfReader->GetPostDeformationRegistrationMatrix();
 
   // Add post deformation transform node
@@ -91,7 +91,7 @@ void vtkSlicerPinnacleDvfReaderLogic::LoadPinnacleDvf(char *filename, double gri
   this->GetMRMLScene()->AddNode(spatialPostTransformNode);
 
   // Deformable grid vector image
-  vtkImageData* deformableRegistrationGrid = NULL;
+  vtkImageData* deformableRegistrationGrid = nullptr;
   deformableRegistrationGrid = pinnacleDvfReader->GetDeformableRegistrationGrid();
 
   // vtkOrientedGridTransform
@@ -102,7 +102,7 @@ void vtkSlicerPinnacleDvfReaderLogic::LoadPinnacleDvf(char *filename, double gri
   gridTransform->SetInterpolationModeToLinear();
 
   // Post deformation node
-  vtkMatrix4x4* gridOrientationMatrix = NULL;
+  vtkMatrix4x4* gridOrientationMatrix = nullptr;
   gridOrientationMatrix = pinnacleDvfReader->GetDeformableRegistrationGridOrientationMatrix();
 
   gridTransform->SetGridDirectionMatrix(gridOrientationMatrix);

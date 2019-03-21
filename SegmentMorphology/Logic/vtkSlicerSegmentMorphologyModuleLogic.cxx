@@ -267,7 +267,7 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation(vtkM
   histogram->Update();
   double valueMax = histogram->GetMax()[0];
 
-  vtkSmartPointer<vtkImageData> tempOutputImageData = NULL;
+  vtkSmartPointer<vtkImageData> tempOutputImageData = nullptr;
   switch (operation) 
   {
   // Expand
@@ -381,7 +381,7 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation(vtkM
   outputSegmentationNode->SetName(newSegmentName.c_str());
 
   // Clear output parent transform, the image data will be in the right coordinate frame
-  outputSegmentationNode->SetAndObserveTransformNodeID(NULL);
+  outputSegmentationNode->SetAndObserveTransformNodeID(nullptr);
 
   return "";
 }

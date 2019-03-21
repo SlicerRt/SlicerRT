@@ -37,7 +37,7 @@ class Q_SLICER_PINNACLEDVFREADER_EXPORT qSlicerPinnacleDvfReaderPluginWidget :
   Q_OBJECT
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerPinnacleDvfReaderPluginWidget(QWidget *parent=0);
+  qSlicerPinnacleDvfReaderPluginWidget(QWidget *parent=nullptr);
   virtual ~qSlicerPinnacleDvfReaderPluginWidget();
 
 protected:

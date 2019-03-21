@@ -36,7 +36,7 @@ class Q_SLICER_PLMPROTONDOSEENGINE_DOSE_ENGINES_EXPORT qSlicerPlmProtonDoseEngin
 public:
   typedef qSlicerAbstractDoseEngine Superclass;
   /// Constructor
-  explicit qSlicerPlmProtonDoseEngine(QObject* parent=NULL);
+  explicit qSlicerPlmProtonDoseEngine(QObject* parent=nullptr);
   /// Destructor
   virtual ~qSlicerPlmProtonDoseEngine();
 

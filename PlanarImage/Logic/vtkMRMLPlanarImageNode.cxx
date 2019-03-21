@@ -64,7 +64,7 @@ void vtkMRMLPlanarImageNode::SetAndObserveRtImageVolumeNode(vtkMRMLScalarVolumeN
     return;
     }
 
-  this->SetNodeReferenceID(PLANARIMAGE_RT_IMAGE_VOLUME_REFERENCE_ROLE.c_str(), (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(PLANARIMAGE_RT_IMAGE_VOLUME_REFERENCE_ROLE.c_str(), (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -83,5 +83,5 @@ void vtkMRMLPlanarImageNode::SetAndObserveDisplayedModelNode(vtkMRMLModelNode* n
     return;
     }
 
-  this->SetNodeReferenceID(PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str(), (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str(), (node ? node->GetID() : nullptr));
 }

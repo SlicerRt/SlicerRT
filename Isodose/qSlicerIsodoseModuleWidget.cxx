@@ -210,7 +210,7 @@ void qSlicerIsodoseModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or create it if there is no one in the scene
-  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
+  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == nullptr)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLIsodoseNode");
     if (node)

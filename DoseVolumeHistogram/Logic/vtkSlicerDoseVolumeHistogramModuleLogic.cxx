@@ -359,7 +359,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     {
       // Resample segmentation labelmap volume
       if ( !vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
-        segmentLabelmap, fixedOversampledDoseVolume, segmentLabelmap, useFractionalLabelmap, false, NULL, minimumValue ) )
+        segmentLabelmap, fixedOversampledDoseVolume, segmentLabelmap, useFractionalLabelmap, false, nullptr, minimumValue ) )
       {
         std::string errorMessage("Failed to resample segment binary labelmap");
         vtkErrorMacro("ComputeDvh: " << errorMessage);
@@ -823,7 +823,7 @@ vtkMRMLPlotViewNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetPlotViewNode()
   if (!plotViewNode)
   {
     vtkErrorMacro("GetPlotViewNode: Unable to get chart view node");
-    return NULL;
+    return nullptr;
   }
 
   return plotViewNode;
@@ -835,13 +835,13 @@ vtkMRMLPlotSeriesNode* vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vt
   if (!this->GetMRMLScene() || !chartNode || !tableNode)
   {
     vtkErrorMacro("AddDvhToChart: Invalid MRML scene, chart node, or DVH node");
-    return NULL;
+    return nullptr;
   }
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
   if (!shNode)
   {
     vtkErrorMacro("AddDvhToChart: Failed to access subject hierarchy node");
-    return NULL;
+    return nullptr;
   }
 
   const char* segmentId = tableNode->GetAttribute(DVH_SEGMENT_ID_ATTRIBUTE_NAME.c_str());
@@ -852,13 +852,13 @@ vtkMRMLPlotSeriesNode* vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vt
   if (!doseVolumeNode || !segmentationNode)
   {
     vtkErrorMacro("AddDvhToChart: Unable to find all referenced nodes");
-    return NULL;
+    return nullptr;
   }
   vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(segmentId);
   if (!segment)
   {
     vtkErrorMacro("AddDvhToChart: Unable to get segment");
-    return NULL;
+    return nullptr;
   }
   std::string segmentName(segment->GetName());
 
@@ -876,10 +876,10 @@ vtkMRMLPlotSeriesNode* vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vt
 
   // Get plot view node
   vtkMRMLPlotViewNode* plotViewNode = this->GetPlotViewNode();
-  if (plotViewNode == NULL)
+  if (plotViewNode == nullptr)
   {
     vtkErrorMacro("AddDvhToChart: Unable to get plot view node");
-    return NULL;
+    return nullptr;
   }
 
   // Create plot series node for the DVH table if needed
@@ -1029,7 +1029,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RemoveDvhFromChart(vtkMRMLPlotChar
   }
 
   vtkMRMLPlotViewNode* plotViewNode = this->GetPlotViewNode();
-  if (plotViewNode == NULL)
+  if (plotViewNode == nullptr)
   {
     vtkErrorMacro("RemoveDvhFromChart: Unable to get plot view node");
     return;
@@ -1050,7 +1050,7 @@ vtkMRMLPlotSeriesNode* vtkSlicerDoseVolumeHistogramModuleLogic::IsDvhAddedToChar
   if (!this->GetMRMLScene() || !chartNode || !tableNode)
   {
     vtkErrorMacro("IsDvhAddedToChart: Invalid MRML scene, chart node, or DVH node");
-    return NULL;
+    return nullptr;
   }
 
   // Find plot series node currently shown in chart for a DVH table
@@ -1063,7 +1063,7 @@ vtkMRMLPlotSeriesNode* vtkSlicerDoseVolumeHistogramModuleLogic::IsDvhAddedToChar
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -1072,7 +1072,7 @@ vtkMRMLPlotSeriesNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetPlotSeriesNod
   if (!chartNode || !tableNode)
   {
     vtkErrorMacro("GetPlotSeriesNodeForTable: Invalid chart node or table node");
-    return NULL;
+    return nullptr;
   }
 
   // Find plot series node created for chart for a DVH table. Finds also if not currently visible
@@ -1088,7 +1088,7 @@ vtkMRMLPlotSeriesNode* vtkSlicerDoseVolumeHistogramModuleLogic::GetPlotSeriesNod
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------

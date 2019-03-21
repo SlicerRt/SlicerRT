@@ -38,7 +38,7 @@ public:
 
 public:
   typedef qSlicerSubjectHierarchyAbstractPlugin Superclass;
-  qSlicerSubjectHierarchyIsodosePlugin(QObject* parent = NULL);
+  qSlicerSubjectHierarchyIsodosePlugin(QObject* parent = nullptr);
   virtual ~qSlicerSubjectHierarchyIsodosePlugin();
 
 public:

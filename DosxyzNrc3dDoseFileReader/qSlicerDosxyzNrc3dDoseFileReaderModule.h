@@ -42,7 +42,7 @@ class Q_SLICER_DOSXYZNRC3DDOSEFILEREADER_EXPORT qSlicerDosxyzNrc3dDoseFileReader
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  qSlicerDosxyzNrc3dDoseFileReaderModule(QObject *parent=0);
+  qSlicerDosxyzNrc3dDoseFileReaderModule(QObject *parent=nullptr);
   virtual ~qSlicerDosxyzNrc3dDoseFileReaderModule();
 
   virtual QString helpText()const;

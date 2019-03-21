@@ -208,12 +208,12 @@ vtkSlicerDicomRtReader::vtkInternal::RoiEntry::RoiEntry()
   this->DisplayColor[0] = 1.0;
   this->DisplayColor[1] = 0.0;
   this->DisplayColor[2] = 0.0;
-  this->PolyData = NULL;
+  this->PolyData = nullptr;
 }
 
 vtkSlicerDicomRtReader::vtkInternal::RoiEntry::~RoiEntry()
 {
-  this->SetPolyData(NULL);
+  this->SetPolyData(nullptr);
 }
 
 vtkSlicerDicomRtReader::vtkInternal::RoiEntry::RoiEntry(const RoiEntry& src)
@@ -224,7 +224,7 @@ vtkSlicerDicomRtReader::vtkInternal::RoiEntry::RoiEntry(const RoiEntry& src)
   this->DisplayColor[0] = src.DisplayColor[0];
   this->DisplayColor[1] = src.DisplayColor[1];
   this->DisplayColor[2] = src.DisplayColor[2];
-  this->PolyData = NULL;
+  this->PolyData = nullptr;
   this->SetPolyData(src.PolyData);
   this->ReferencedSeriesUID = src.ReferencedSeriesUID;
   this->ReferencedFrameOfReferenceUID = src.ReferencedFrameOfReferenceUID;
@@ -254,16 +254,16 @@ void vtkSlicerDicomRtReader::vtkInternal::RoiEntry::SetPolyData(vtkPolyData* roi
     // not changed
     return;
   }
-  if (this->PolyData != NULL)
+  if (this->PolyData != nullptr)
   {
-    this->PolyData->UnRegister(NULL);
+    this->PolyData->UnRegister(nullptr);
   }
 
   this->PolyData = roiPolyData;
 
-  if (this->PolyData != NULL)
+  if (this->PolyData != nullptr)
   {
-    this->PolyData->Register(NULL);
+    this->PolyData->Register(nullptr);
   }
 }
 
@@ -280,7 +280,7 @@ vtkSlicerDicomRtReader::vtkInternal::BeamEntry* vtkSlicerDicomRtReader::vtkInter
 
   // Not found
   vtkErrorWithObjectMacro(this->External, "FindBeamByNumber: Beam cannot be found for number " << beamNumber);
-  return NULL;
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -296,7 +296,7 @@ vtkSlicerDicomRtReader::vtkInternal::RoiEntry* vtkSlicerDicomRtReader::vtkIntern
 
   // Not found
   vtkErrorWithObjectMacro(this->External, "FindBeamByNumber: ROI cannot be found for number " << roiNumber);
-  return NULL;
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -306,35 +306,35 @@ DRTRTReferencedSeriesSequence* vtkSlicerDicomRtReader::vtkInternal::GetReference
   if (!rtReferencedFrameOfReferenceSequenceObject.gotoFirstItem().good())
   {
     vtkErrorWithObjectMacro(this->External, "GetReferencedSeriesSequence: No referenced frame of reference sequence object item is available");
-    return NULL;
+    return nullptr;
   }
 
   DRTReferencedFrameOfReferenceSequence::Item &currentReferencedFrameOfReferenceSequenceItem = rtReferencedFrameOfReferenceSequenceObject.getCurrentItem();
   if (!currentReferencedFrameOfReferenceSequenceItem.isValid())
   {
     vtkErrorWithObjectMacro(this->External, "GetReferencedSeriesSequence: Frame of reference sequence object item is invalid");
-    return NULL;
+    return nullptr;
   }
 
   DRTRTReferencedStudySequence &rtReferencedStudySequenceObject = currentReferencedFrameOfReferenceSequenceItem.getRTReferencedStudySequence();
   if (!rtReferencedStudySequenceObject.gotoFirstItem().good())
   {
     vtkErrorWithObjectMacro(this->External, "GetReferencedSeriesSequence: No referenced study sequence object item is available");
-    return NULL;
+    return nullptr;
   }
 
   DRTRTReferencedStudySequence::Item &rtReferencedStudySequenceItem = rtReferencedStudySequenceObject.getCurrentItem();
   if (!rtReferencedStudySequenceItem.isValid())
   {
     vtkErrorWithObjectMacro(this->External, "GetReferencedSeriesSequence: Referenced study sequence object item is invalid");
-    return NULL;
+    return nullptr;
   }
 
   DRTRTReferencedSeriesSequence &rtReferencedSeriesSequenceObject = rtReferencedStudySequenceItem.getRTReferencedSeriesSequence();
   if (!rtReferencedSeriesSequenceObject.gotoFirstItem().good())
   {
     vtkErrorWithObjectMacro(this->External, "GetReferencedSeriesSequence: No referenced series sequence object item is available");
-    return NULL;
+    return nullptr;
   }
 
   return &rtReferencedSeriesSequenceObject;
@@ -370,21 +370,21 @@ DRTContourImageSequence* vtkSlicerDicomRtReader::vtkInternal::GetReferencedFrame
   if (!rtReferencedSeriesSequenceObject || !rtReferencedSeriesSequenceObject->gotoFirstItem().good())
   {
     vtkErrorWithObjectMacro(this->External, "GetReferencedFrameOfReferenceContourImageSequence: No referenced series sequence object item is available");
-    return NULL;
+    return nullptr;
   }
 
   DRTRTReferencedSeriesSequence::Item &rtReferencedSeriesSequenceItem = rtReferencedSeriesSequenceObject->getCurrentItem();
   if (!rtReferencedSeriesSequenceItem.isValid())
   {
     vtkErrorWithObjectMacro(this->External, "GetReferencedFrameOfReferenceContourImageSequence: Referenced series sequence object item is invalid");
-    return NULL;
+    return nullptr;
   }
 
   DRTContourImageSequence &rtContourImageSequenceObject = rtReferencedSeriesSequenceItem.getContourImageSequence();
   if (!rtContourImageSequenceObject.gotoFirstItem().good())
   {
     vtkErrorWithObjectMacro(this->External, "GetReferencedFrameOfReferenceContourImageSequence: No contour image sequence object item is available");
-    return NULL;
+    return nullptr;
   }
 
   return &rtContourImageSequenceObject;
@@ -659,7 +659,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
   }
   // Strip last space
   serializedDoseUidList = serializedDoseUidList.substr(0, serializedDoseUidList.size()-1);
-  this->External->SetRTPlanReferencedDoseSOPInstanceUIDs(serializedDoseUidList.size() > 0 ? serializedDoseUidList.c_str() : NULL);
+  this->External->SetRTPlanReferencedDoseSOPInstanceUIDs(serializedDoseUidList.size() > 0 ? serializedDoseUidList.c_str() : nullptr);
 
   // Get and store patient, study and series information
   this->External->GetAndStoreHierarchyInformation(&rtPlanObject);
@@ -775,7 +775,7 @@ vtkSlicerDicomRtReader::vtkInternal::RoiEntry* vtkSlicerDicomRtReader::vtkIntern
 {
   if (!roiObject.isValid())
   {
-    return NULL;
+    return nullptr;
   }
 
   // Used for connection from one planar contour ROI to the corresponding anatomical volume slice instance
@@ -786,10 +786,10 @@ vtkSlicerDicomRtReader::vtkInternal::RoiEntry* vtkSlicerDicomRtReader::vtkIntern
   Sint32 referencedRoiNumber = -1;
   roiObject.getReferencedROINumber(referencedRoiNumber);
   RoiEntry* roiEntry = this->FindRoiByNumber(referencedRoiNumber);
-  if (roiEntry == NULL)
+  if (roiEntry == nullptr)
   {
     vtkErrorWithObjectMacro(this->External, "LoadContour: ROI with number " << referencedRoiNumber << " is not found!");      
-    return NULL;
+    return nullptr;
   } 
 
   // Get contour sequence
@@ -1186,45 +1186,45 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
 {
   this->Internal = new vtkInternal(this);
 
-  this->FileName = NULL;
+  this->FileName = nullptr;
 
-  this->RTStructureSetReferencedSOPInstanceUIDs = NULL;
+  this->RTStructureSetReferencedSOPInstanceUIDs = nullptr;
 
   this->SetPixelSpacing(0.0,0.0);
-  this->DoseUnits = NULL;
-  this->DoseGridScaling = NULL;
-  this->RTDoseReferencedRTPlanSOPInstanceUID = NULL;
+  this->DoseUnits = nullptr;
+  this->DoseGridScaling = nullptr;
+  this->RTDoseReferencedRTPlanSOPInstanceUID = nullptr;
 
-  this->SOPInstanceUID = NULL;
+  this->SOPInstanceUID = nullptr;
 
-  this->RTPlanReferencedStructureSetSOPInstanceUID = NULL;
-  this->RTPlanReferencedDoseSOPInstanceUIDs = NULL;
+  this->RTPlanReferencedStructureSetSOPInstanceUID = nullptr;
+  this->RTPlanReferencedDoseSOPInstanceUIDs = nullptr;
 
-  this->ImageType = NULL;
-  this->RTImageLabel = NULL;
-  this->RTImageReferencedRTPlanSOPInstanceUID = NULL;
+  this->ImageType = nullptr;
+  this->RTImageLabel = nullptr;
+  this->RTImageReferencedRTPlanSOPInstanceUID = nullptr;
   this->ReferencedBeamNumber = -1;
   this->SetRTImagePosition(0.0,0.0);
   this->RTImageSID = 0.0;
   this->WindowCenter = 0.0;
   this->WindowWidth = 0.0;
 
-  this->PatientName = NULL;
-  this->PatientId = NULL;
-  this->PatientSex = NULL;
-  this->PatientBirthDate = NULL;
-  this->PatientComments = NULL;
-  this->StudyInstanceUid = NULL;
-  this->StudyId = NULL;
-  this->StudyDescription = NULL;
-  this->StudyDate = NULL;
-  this->StudyTime = NULL;
-  this->SeriesInstanceUid = NULL;
-  this->SeriesDescription = NULL;
-  this->SeriesModality = NULL;
-  this->SeriesNumber = NULL;
+  this->PatientName = nullptr;
+  this->PatientId = nullptr;
+  this->PatientSex = nullptr;
+  this->PatientBirthDate = nullptr;
+  this->PatientComments = nullptr;
+  this->StudyInstanceUid = nullptr;
+  this->StudyId = nullptr;
+  this->StudyDescription = nullptr;
+  this->StudyDate = nullptr;
+  this->StudyTime = nullptr;
+  this->SeriesInstanceUid = nullptr;
+  this->SeriesDescription = nullptr;
+  this->SeriesModality = nullptr;
+  this->SeriesNumber = nullptr;
 
-  this->DatabaseFile = NULL;
+  this->DatabaseFile = nullptr;
 
   this->LoadRTStructureSetSuccessful = false;
   this->LoadRTDoseSuccessful = false;
@@ -1238,7 +1238,7 @@ vtkSlicerDicomRtReader::~vtkSlicerDicomRtReader()
   if (this->Internal)
   {
     delete this->Internal;
-    this->Internal = NULL;
+    this->Internal = nullptr;
   }
 }
 
@@ -1251,7 +1251,7 @@ void vtkSlicerDicomRtReader::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtReader::Update()
 {
-  if ((this->FileName != NULL) && (strlen(this->FileName) > 0))
+  if ((this->FileName != nullptr) && (strlen(this->FileName) > 0))
   {
     // Set DICOM database file name
     QSettings settings;
@@ -1334,7 +1334,7 @@ const char* vtkSlicerDicomRtReader::GetRoiName(unsigned int internalIndex)
   if (internalIndex >= this->Internal->RoiSequenceVector.size())
   {
     vtkErrorMacro("GetRoiName: Cannot get ROI with internal index: " << internalIndex);
-    return NULL;
+    return nullptr;
   }
   return (this->Internal->RoiSequenceVector[internalIndex].Name.empty() ? vtkSlicerRtCommon::DICOMRTIMPORT_NO_NAME : this->Internal->RoiSequenceVector[internalIndex].Name).c_str();
 }
@@ -1345,7 +1345,7 @@ double* vtkSlicerDicomRtReader::GetRoiDisplayColor(unsigned int internalIndex)
   if (internalIndex >= this->Internal->RoiSequenceVector.size())
   {
     vtkErrorMacro("GetRoiDisplayColor: Cannot get ROI with internal index: " << internalIndex);
-    return NULL;
+    return nullptr;
   }
   return this->Internal->RoiSequenceVector[internalIndex].DisplayColor;
 }
@@ -1356,7 +1356,7 @@ vtkPolyData* vtkSlicerDicomRtReader::GetRoiPolyData(unsigned int internalIndex)
   if (internalIndex >= this->Internal->RoiSequenceVector.size())
   {
     vtkErrorMacro("GetRoiPolyData: Cannot get ROI with internal index: " << internalIndex);
-    return NULL;
+    return nullptr;
   }
   return this->Internal->RoiSequenceVector[internalIndex].PolyData;
 }
@@ -1367,7 +1367,7 @@ const char* vtkSlicerDicomRtReader::GetRoiReferencedSeriesUid(unsigned int inter
   if (internalIndex >= this->Internal->RoiSequenceVector.size())
   {
     vtkErrorMacro("GetRoiReferencedSeriesUid: Cannot get ROI with internal index: " << internalIndex);
-    return NULL;
+    return nullptr;
   }
   return this->Internal->RoiSequenceVector[internalIndex].ReferencedSeriesUID.c_str();
 }
@@ -1388,9 +1388,9 @@ unsigned int vtkSlicerDicomRtReader::GetBeamNumberForIndex(unsigned int index)
 const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam==NULL)
+  if (beam==nullptr)
   {
-    return NULL;
+    return nullptr;
   }
   return (beam->Name.empty() ? vtkSlicerRtCommon::DICOMRTIMPORT_NO_NAME : beam->Name).c_str();
 }
@@ -1399,9 +1399,9 @@ const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int beamNumber)
 double* vtkSlicerDicomRtReader::GetBeamIsocenterPositionRas(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam==NULL)
+  if (beam==nullptr)
   {
-    return NULL;
+    return nullptr;
   }  
   return beam->IsocenterPositionRas;
 }
@@ -1410,7 +1410,7 @@ double* vtkSlicerDicomRtReader::GetBeamIsocenterPositionRas(unsigned int beamNum
 double vtkSlicerDicomRtReader::GetBeamSourceAxisDistance(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam==NULL)
+  if (beam==nullptr)
   {
     vtkErrorMacro("GetBeamSourceAxisDistance: Unable to find beam of number" << beamNumber);
     return 0.0;
@@ -1422,7 +1422,7 @@ double vtkSlicerDicomRtReader::GetBeamSourceAxisDistance(unsigned int beamNumber
 double vtkSlicerDicomRtReader::GetBeamGantryAngle(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam==NULL)
+  if (beam==nullptr)
   {
     vtkErrorMacro("GetBeamGantryAngle: Unable to find beam of number" << beamNumber);
     return 0.0;
@@ -1434,7 +1434,7 @@ double vtkSlicerDicomRtReader::GetBeamGantryAngle(unsigned int beamNumber)
 double vtkSlicerDicomRtReader::GetBeamPatientSupportAngle(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam==NULL)
+  if (beam==nullptr)
   {
     vtkErrorMacro("GetBeamPatientSupportAngle: Unable to find beam of number" << beamNumber);
     return 0.0;
@@ -1446,7 +1446,7 @@ double vtkSlicerDicomRtReader::GetBeamPatientSupportAngle(unsigned int beamNumbe
 double vtkSlicerDicomRtReader::GetBeamBeamLimitingDeviceAngle(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam==NULL)
+  if (beam==nullptr)
   {
     vtkErrorMacro("GetBeamBeamLimitingDeviceAngle: Unable to find beam of number" << beamNumber);
     return 0.0;
@@ -1458,7 +1458,7 @@ double vtkSlicerDicomRtReader::GetBeamBeamLimitingDeviceAngle(unsigned int beamN
 void vtkSlicerDicomRtReader::GetBeamLeafJawPositions(unsigned int beamNumber, double jawPositions[2][2])
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam==NULL)
+  if (beam==nullptr)
   {
     jawPositions[0][0]=jawPositions[0][1]=jawPositions[1][0]=jawPositions[1][1]=0.0;
     return;

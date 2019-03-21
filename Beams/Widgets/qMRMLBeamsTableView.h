@@ -53,7 +53,7 @@ class Q_SLICER_MODULE_BEAMS_WIDGETS_EXPORT qMRMLBeamsTableView : public qMRMLWid
 public:
   typedef qMRMLWidget Superclass;
   /// Constructor
-  explicit qMRMLBeamsTableView(QWidget* parent = 0);
+  explicit qMRMLBeamsTableView(QWidget* parent = nullptr);
   /// Destructor
   virtual ~qMRMLBeamsTableView();
 

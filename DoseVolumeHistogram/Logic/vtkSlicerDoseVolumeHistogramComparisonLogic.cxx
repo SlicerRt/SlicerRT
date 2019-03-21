@@ -65,10 +65,10 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(vtkMRMLTabl
   vtkTable* dvh2Table = dvh2TableNode->GetTable();
   unsigned int dvh2Size = dvh2Table->GetNumberOfRows();
 
-  vtkTable* baselineDoubleArray = NULL;
+  vtkTable* baselineDoubleArray = nullptr;
   unsigned int baselineSize = 0;
 
-  vtkTable* currentDoubleArray = NULL;
+  vtkTable* currentDoubleArray = nullptr;
   //unsigned int currentSize = 0; //This variable might be used for sanity checks later
 
   // Determine total volume from the attribute of the current double array node
@@ -100,7 +100,7 @@ double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(vtkMRMLTabl
 
   // Read the total volume from the current node attribute
   double totalVolumeCCs = 0;
-  if (totalVolumeChar != NULL)
+  if (totalVolumeChar != nullptr)
   {
     totalVolumeCCs = vtkVariant(totalVolumeChar).ToDouble();
   }

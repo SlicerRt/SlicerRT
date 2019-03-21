@@ -93,7 +93,7 @@ public:
 qSlicerExternalBeamPlanningModuleWidgetPrivate::qSlicerExternalBeamPlanningModuleWidgetPrivate(qSlicerExternalBeamPlanningModuleWidget& object)
   : q_ptr(&object)
   , ModuleWindowInitialized(false)
-  , DoseEngineLogic(NULL)
+  , DoseEngineLogic(nullptr)
 {
   this->DoseEngineLogic = new qSlicerDoseEngineLogic(&object);
 }
@@ -105,7 +105,7 @@ qSlicerExternalBeamPlanningModuleWidgetPrivate::~qSlicerExternalBeamPlanningModu
   //if (this->DoseEngineLogic)
   //{
   //  delete this->DoseEngineLogic;
-  //  this->DoseEngineLogic = NULL;
+  //  this->DoseEngineLogic = nullptr;
   //}
 }
 
@@ -178,7 +178,7 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
 
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  if (d->logic() == NULL)
+  if (d->logic() == nullptr)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
@@ -186,7 +186,7 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
 
   // Select RT plan node
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
-  if (planNode == NULL)
+  if (planNode == nullptr)
   {
     // Try to find one in the scene
     vtkMRMLNode* node = this->mrmlScene()->GetNthNodeByClass(0, "vtkMRMLRTPlanNode");
@@ -866,20 +866,20 @@ vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode()
   if (!this->mrmlScene())
   {
     qCritical() << Q_FUNC_INFO << ": Invalid scene!";
-    return NULL;
+    return nullptr;
   }
 
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
-    return NULL;
+    return nullptr;
   }
 
   QStringList beamNodeIDs = d->BeamsTableView->selectedBeamNodeIDs();
   if (beamNodeIDs.isEmpty())
   {
-    return NULL;
+    return nullptr;
   }
   else if (beamNodeIDs.count() > 1)
   {
@@ -990,7 +990,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(planNode->GetDoseEngineName());
   if (!selectedEngine)
   {
-    QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "NULL");
+    QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
     d->label_CalculateDoseStatus->setText(errorString);
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;

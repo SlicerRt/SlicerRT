@@ -42,7 +42,7 @@ class Q_SLICER_QTMODULES_DICOMSROIMPORT_EXPORT qSlicerDicomSroImportModule :
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerDicomSroImportModule(QObject *parent=0);
+  explicit qSlicerDicomSroImportModule(QObject *parent=nullptr);
   virtual ~qSlicerDicomSroImportModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

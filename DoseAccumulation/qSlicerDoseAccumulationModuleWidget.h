@@ -42,7 +42,7 @@ class Q_SLICER_QTMODULES_DOSEACCUMULATION_EXPORT qSlicerDoseAccumulationModuleWi
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerDoseAccumulationModuleWidget(QWidget *parent=0);
+  qSlicerDoseAccumulationModuleWidget(QWidget *parent=nullptr);
   virtual ~qSlicerDoseAccumulationModuleWidget();
 
   virtual void enter();

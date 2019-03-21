@@ -42,7 +42,7 @@ class Q_SLICER_QTMODULES_EXTERNALBEAMPLANNING_EXPORT qSlicerExternalBeamPlanning
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerExternalBeamPlanningModuleWidget(QWidget *parent=0);
+  qSlicerExternalBeamPlanningModuleWidget(QWidget *parent=nullptr);
   virtual ~qSlicerExternalBeamPlanningModuleWidget();
 
   /// Support of node editing. Selects node in user interface that the user wants to edit

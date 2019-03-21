@@ -55,9 +55,9 @@ vtkStandardNewMacro(vtkPolyDataToLabelmapFilter);
 
 //----------------------------------------------------------------------------
 vtkPolyDataToLabelmapFilter::vtkPolyDataToLabelmapFilter()
-: InputPolyData(NULL)
-, OutputLabelmap(NULL)
-, ReferenceImageData(NULL)
+: InputPolyData(nullptr)
+, OutputLabelmap(nullptr)
+, ReferenceImageData(nullptr)
 , LabelValue(2)
 , BackgroundValue(0.0)
 , UseReferenceValues(true)
@@ -70,9 +70,9 @@ vtkPolyDataToLabelmapFilter::vtkPolyDataToLabelmapFilter()
 //----------------------------------------------------------------------------
 vtkPolyDataToLabelmapFilter::~vtkPolyDataToLabelmapFilter()
 {
-  this->SetInputPolyData(NULL);
-  this->SetOutputLabelmap(NULL);
-  this->SetReferenceImageData(NULL);
+  this->SetInputPolyData(nullptr);
+  this->SetOutputLabelmap(nullptr);
+  this->SetReferenceImageData(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -147,7 +147,7 @@ void vtkPolyDataToLabelmapFilter::Update()
     referenceImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
 
     void *referenceImagePixelsPointer = referenceImage->GetScalarPointerForExtent(this->ReferenceImageData->GetExtent());
-    if (referenceImagePixelsPointer==NULL)
+    if (referenceImagePixelsPointer==nullptr)
     {
       vtkErrorMacro("ERROR: Cannot allocate memory for accumulation image");
       return;
@@ -206,12 +206,12 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
   this->ReferenceImageData->GetExtent(referenceExtents);
   this->ReferenceImageData->GetOrigin(origin);
 
-  if (this->InputPolyData == NULL)
+  if (this->InputPolyData == nullptr)
   {
     vtkErrorMacro("InputPolyData was null when trying to calculate overlap.");
     return false;
   }
-  if (this->InputPolyData->GetPoints() == NULL)
+  if (this->InputPolyData->GetPoints() == nullptr)
   {
     this->CopyArraysToVectors(referenceExtentsVector, referenceExtents, originVector, origin);
     return true;
@@ -219,7 +219,7 @@ bool vtkPolyDataToLabelmapFilter::DeterminePolyDataReferenceOverlap(std::vector<
   this->InputPolyData->GetPoints()->ComputeBounds();
   this->InputPolyData->GetPoints()->GetBounds(polydataBounds);
 
-  if (this->ReferenceImageData == NULL)
+  if (this->ReferenceImageData == nullptr)
   {
     vtkErrorMacro("ReferenceImageData was null when trying to calcaluate overlap.");
     return false;

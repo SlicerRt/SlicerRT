@@ -52,7 +52,7 @@ public:
 public:
   typedef QObject Superclass;
   /// Constructor
-  explicit qSlicerAbstractDoseEngine(QObject* parent=NULL);
+  explicit qSlicerAbstractDoseEngine(QObject* parent=nullptr);
   /// Destructor
   virtual ~qSlicerAbstractDoseEngine();
 

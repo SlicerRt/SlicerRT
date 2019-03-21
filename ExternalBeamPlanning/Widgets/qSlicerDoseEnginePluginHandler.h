@@ -65,7 +65,7 @@ protected:
 public:
   /// Private constructor made public to enable python wrapping
   /// IMPORTANT: Should not be used for creating effect handler! Use instance() instead.
-  qSlicerDoseEnginePluginHandler(QObject* parent=NULL);
+  qSlicerDoseEnginePluginHandler(QObject* parent=nullptr);
 
   /// Private destructor made public to enable python wrapping
   virtual ~qSlicerDoseEnginePluginHandler();

@@ -55,10 +55,10 @@ vtkCollisionDetectionFilter::vtkCollisionDetectionFilter()
   this->SetNumberOfInputConnections(0,1);
   this->SetNumberOfInputConnections(1,1);
   this->SetNumberOfOutputPorts(3);
-  this->Transform[0] = NULL;
-  this->Transform[1] = NULL;
-  this->Matrix[0] = NULL;
-  this->Matrix[1] = NULL;
+  this->Transform[0] = nullptr;
+  this->Transform[1] = nullptr;
+  this->Matrix[0] = nullptr;
+  this->Matrix[1] = nullptr;
   this->NumberOfBoxTests = 0;
   this->BoxTolerance = 0.0;
   this->CellTolerance = 0.0;
@@ -73,11 +73,11 @@ vtkCollisionDetectionFilter::vtkCollisionDetectionFilter()
 // Destroy any allocated memory.
 vtkCollisionDetectionFilter::~vtkCollisionDetectionFilter()
 {
-  if (this->tree0 != NULL)
+  if (this->tree0 != nullptr)
     {
     this->tree0->Delete();
     }
-  if (this->tree1 != NULL)
+  if (this->tree1 != nullptr)
     {
     this->tree1->Delete();
     }
@@ -85,22 +85,22 @@ vtkCollisionDetectionFilter::~vtkCollisionDetectionFilter()
   if (this->Matrix[0])
     {
     this->Matrix[0]->UnRegister(this);
-    this->Matrix[0] = NULL;
+    this->Matrix[0] = nullptr;
     }
   if (this->Matrix[1])
     {
     this->Matrix[1]->UnRegister(this);
-    this->Matrix[1] = NULL;
+    this->Matrix[1] = nullptr;
     }
   if (this->Transform[0])
     {
     this->Transform[0]->UnRegister(this);
-    this->Transform[0] = NULL;
+    this->Transform[0] = nullptr;
     }
   if (this->Transform[1])
     {
     this->Transform[1]->UnRegister(this);
-    this->Transform[1] = NULL;
+    this->Transform[1] = nullptr;
     }
 
 }
@@ -133,7 +133,7 @@ vtkPolyData *vtkCollisionDetectionFilter::GetInput(int idx)
     {
     vtkErrorMacro(<< "Index " << idx 
       << " is out of range in GetInput. Only two inputs allowed!");
-    return NULL;
+    return nullptr;
     }
   
   return vtkPolyData::SafeDownCast(
@@ -146,7 +146,7 @@ vtkIdTypeArray *vtkCollisionDetectionFilter::GetContactCells(int i)
     {
     vtkErrorMacro(<< "Index " << i 
       << " is out of range in GetContactCells. There are only two contact cells arrays!");
-    return NULL;
+    return nullptr;
     }
 
   return vtkIdTypeArray::SafeDownCast(
@@ -170,13 +170,13 @@ void vtkCollisionDetectionFilter::SetTransform(int i, vtkLinearTransform *transf
   if(this->Transform[i]) 
     {
     this->Transform[i]->Delete();
-    this->Transform[i] = NULL;
+    this->Transform[i] = nullptr;
     }
     
   if (this->Matrix[i])
     {
     this->Matrix[i]->Delete();
-    this->Matrix[i] = NULL;
+    this->Matrix[i] = nullptr;
     } 
   
   if(transform)
@@ -208,13 +208,13 @@ void vtkCollisionDetectionFilter::SetMatrix(int i, vtkMatrix4x4 *matrix)
   if (this->Transform[i])
     {
     this->Transform[i]->Delete();
-    this->Transform[i] = NULL;
+    this->Transform[i] = nullptr;
     }
 
   if(this->Matrix[i]) 
     {
     this->Matrix[i]->Delete();
-    this->Matrix[i] = NULL;
+    this->Matrix[i] = nullptr;
     }
     
   vtkDebugMacro(<< "Setting matrix: " << i << " to point to " << matrix << endl);
@@ -481,7 +481,7 @@ int vtkCollisionDetectionFilter::RequestData(
   vtkMatrix4x4 *matrix = vtkMatrix4x4::New();
   vtkMatrix4x4 *tmpMatrix = vtkMatrix4x4::New();
 
-  if (this->Transform[0] != NULL || this->Transform[1] != NULL)
+  if (this->Transform[0] != nullptr || this->Transform[1] != nullptr)
     {
     vtkMatrix4x4::Invert(this->Transform[0]->GetMatrix(), tmpMatrix);
     // the sequence of multiplication is significant
@@ -493,7 +493,7 @@ int vtkCollisionDetectionFilter::RequestData(
      return 1;
     }
 
-  this->InvokeEvent(vtkCommand::StartEvent, NULL);
+  this->InvokeEvent(vtkCommand::StartEvent, nullptr);
   
 
   // rebuild the obb trees... they do their own mtime checking with input data
@@ -594,7 +594,7 @@ int vtkCollisionDetectionFilter::RequestData(
       }
     }
     
-  this->InvokeEvent(vtkCommand::EndEvent, NULL);
+  this->InvokeEvent(vtkCommand::EndEvent, nullptr);
 
   return 1;
 

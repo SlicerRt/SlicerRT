@@ -334,7 +334,7 @@ vtkMRMLScalarVolumeNode* qSlicerAbstractDoseEngine::getResultDoseForBeam(vtkMRML
   if (!beamNode)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid beam node";
-    return NULL;
+    return nullptr;
   }
 
   // Get last node reference if there are more than one, so that the dose calculated last is returned
@@ -645,7 +645,7 @@ void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QStrin
 
   QString attributeName = this->assembleEngineParameterName(parameterName);
   const char* oldValue = beamNode->GetAttribute(attributeName.toLatin1().constData());
-  if (oldValue == NULL && parameterValue.isEmpty())
+  if (oldValue == nullptr && parameterValue.isEmpty())
     {
     // no change
     return;
@@ -706,12 +706,12 @@ qMRMLBeamParametersTabWidget* qSlicerAbstractDoseEngine::beamParametersTabWidget
   qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module("Beams");
   if (!module)
   {
-    return NULL;
+    return nullptr;
   }
   qSlicerAbstractModuleWidget* moduleWidget = dynamic_cast<qSlicerAbstractModuleWidget*>(module->widgetRepresentation());
   if (!moduleWidget)
   {
-    return NULL;
+    return nullptr;
   }
   return moduleWidget->findChild<qMRMLBeamParametersTabWidget*>("BeamParametersTabWidget");
 }

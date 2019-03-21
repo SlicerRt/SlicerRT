@@ -38,7 +38,7 @@ public:
 
 public:
   typedef qSlicerSubjectHierarchyAbstractPlugin Superclass;
-  qSlicerSubjectHierarchyRtImagePlugin(QObject* parent = NULL);
+  qSlicerSubjectHierarchyRtImagePlugin(QObject* parent = nullptr);
   virtual ~qSlicerSubjectHierarchyRtImagePlugin();
 
 public:

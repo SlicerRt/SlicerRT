@@ -166,7 +166,7 @@ QString qSlicerPlmProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* 
 
   // Get target as ITK image
   vtkSmartPointer<vtkOrientedImageData> targetLabelmap = parentPlanNode->GetTargetOrientedImageData();
-  if (targetLabelmap.GetPointer() == NULL)
+  if (targetLabelmap.GetPointer() == nullptr)
   {
     QString errorMessage("Failed to access target labelmap");
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
@@ -222,7 +222,7 @@ QString qSlicerPlmProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* 
 
   // Plastimatch RT plan and beam
   Plan_calc rt_plan;
-  Beam_calc* rt_beam = NULL;
+  Beam_calc* rt_beam = nullptr;
 
   // Connection of the beam parameters to the rt_beam class used to calculate the dose in Plastimatch
   try

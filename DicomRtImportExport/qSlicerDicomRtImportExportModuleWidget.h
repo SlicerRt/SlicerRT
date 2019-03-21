@@ -39,7 +39,7 @@ class Q_SLICER_QTMODULES_DICOMRTIMPORTEXPORT_EXPORT qSlicerDicomRtImportExportMo
 public:
 
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerDicomRtImportExportModuleWidget(QWidget *parent=0);
+  qSlicerDicomRtImportExportModuleWidget(QWidget *parent=nullptr);
   virtual ~qSlicerDicomRtImportExportModuleWidget();
 
 protected:

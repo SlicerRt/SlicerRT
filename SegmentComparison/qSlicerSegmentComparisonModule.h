@@ -41,7 +41,7 @@ class Q_SLICER_QTMODULES_SEGMENTCOMPARISON_EXPORT qSlicerSegmentComparisonModule
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerSegmentComparisonModule(QObject *parent=0);
+  explicit qSlicerSegmentComparisonModule(QObject *parent=nullptr);
   virtual ~qSlicerSegmentComparisonModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

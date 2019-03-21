@@ -65,7 +65,7 @@ vtkDICOMImportInfo::~vtkDICOMImportInfo()
   RemoveAllFileLists();
   RemoveAllLoadables();  
   delete this->PrivateData;
-  this->PrivateData=NULL;
+  this->PrivateData=nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -80,7 +80,7 @@ vtkStringArray* vtkDICOMImportInfo::GetLoadableFiles(unsigned int loadableIndex)
   if (loadableIndex>=this->PrivateData->Loadables.size())
   {
     vtkErrorMacro("Invalid loadable index" << loadableIndex);
-    return NULL;
+    return nullptr;
   }
   return this->PrivateData->Loadables[loadableIndex].files;
 }
@@ -91,7 +91,7 @@ const char* vtkDICOMImportInfo::GetLoadableName(unsigned int loadableIndex)
   if (loadableIndex>=this->PrivateData->Loadables.size())
   {
     vtkErrorMacro("Invalid loadable index" << loadableIndex);
-    return NULL;
+    return nullptr;
   }
   return this->PrivateData->Loadables[loadableIndex].name.c_str();
 }
@@ -102,7 +102,7 @@ const char* vtkDICOMImportInfo::GetLoadableTooltip(unsigned int loadableIndex)
   if (loadableIndex>=this->PrivateData->Loadables.size())
   {
     vtkErrorMacro("Invalid loadable index" << loadableIndex);
-    return NULL;
+    return nullptr;
   }
   return this->PrivateData->Loadables[loadableIndex].tooltip.c_str();
 }
@@ -113,7 +113,7 @@ const char* vtkDICOMImportInfo::GetLoadableWarning(unsigned int loadableIndex)
   if (loadableIndex>=this->PrivateData->Loadables.size())
   {
     vtkErrorMacro("Invalid loadable index" << loadableIndex);
-    return NULL;
+    return nullptr;
   }
   return this->PrivateData->Loadables[loadableIndex].warning.c_str();
 }
@@ -154,7 +154,7 @@ vtkStringArray* vtkDICOMImportInfo::GetFileList(unsigned int fileListIndex)
   if (fileListIndex>=this->PrivateData->FileLists.size())
   {
     vtkErrorMacro("Invalid file lists index" << fileListIndex);
-    return NULL;
+    return nullptr;
   }
   return this->PrivateData->FileLists[fileListIndex];
 }
@@ -170,10 +170,10 @@ void vtkDICOMImportInfo::RemoveAllFileLists()
 {
   for (unsigned int i=0; i<this->PrivateData->FileLists.size(); i++)
   {
-    if (this->PrivateData->FileLists[i]!=NULL)
+    if (this->PrivateData->FileLists[i]!=nullptr)
     {
       this->PrivateData->FileLists[i]->Delete();
-      this->PrivateData->FileLists[i]=NULL;
+      this->PrivateData->FileLists[i]=nullptr;
     }
   }
   this->PrivateData->FileLists.clear();
@@ -184,10 +184,10 @@ void vtkDICOMImportInfo::RemoveAllLoadables()
 {
   for (unsigned int i=0; i<this->PrivateData->Loadables.size(); i++)
   {
-    if (this->PrivateData->Loadables[i].files!=NULL)
+    if (this->PrivateData->Loadables[i].files!=nullptr)
     {
       this->PrivateData->Loadables[i].files->Delete();
-      this->PrivateData->Loadables[i].files=NULL;
+      this->PrivateData->Loadables[i].files=nullptr;
     }
   }  
   this->PrivateData->Loadables.clear();
@@ -198,7 +198,7 @@ int vtkDICOMImportInfo::InsertNextLoadable(vtkStringArray* files, const char* na
 {
   Loadable loadable;
   loadable.files=files;
-  loadable.files->Register(NULL);
+  loadable.files->Register(nullptr);
   loadable.name=name;
   loadable.tooltip=tooltip;
   loadable.warning=warning;

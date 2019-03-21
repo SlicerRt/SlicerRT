@@ -69,7 +69,7 @@ public:
 qSlicerDoseComparisonModuleWidgetPrivate::qSlicerDoseComparisonModuleWidgetPrivate(qSlicerDoseComparisonModuleWidget& object)
   : q_ptr(&object)
   , ModuleWindowInitialized(false)
-  , GammaProgressDialog(NULL)
+  , GammaProgressDialog(nullptr)
 {
 }
 
@@ -108,7 +108,7 @@ void qSlicerDoseComparisonModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or create it if there is none in the scene
-  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
+  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == nullptr)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLDoseComparisonNode");
     if (node)
@@ -193,7 +193,7 @@ void qSlicerDoseComparisonModuleWidget::setParameterNode(vtkMRMLNode *node)
   // Each time the node is modified, the qt widgets are updated
   qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
-  // Set selected MRML nodes in comboboxes in the parameter set if it was NULL there
+  // Set selected MRML nodes in comboboxes in the parameter set if it was nullptr there
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
   if (paramNode)
   {
@@ -428,7 +428,7 @@ void qSlicerDoseComparisonModuleWidget::maskSegmentChanged(QString segmentID)
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetMaskSegmentID(segmentID.isEmpty() ? NULL : segmentID.toLatin1().constData());
+  paramNode->SetMaskSegmentID(segmentID.isEmpty() ? nullptr : segmentID.toLatin1().constData());
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();

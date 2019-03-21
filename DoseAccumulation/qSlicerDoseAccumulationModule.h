@@ -41,7 +41,7 @@ class Q_SLICER_QTMODULES_DOSEACCUMULATION_EXPORT qSlicerDoseAccumulationModule :
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerDoseAccumulationModule(QObject *parent=0);
+  explicit qSlicerDoseAccumulationModule(QObject *parent=nullptr);
   virtual ~qSlicerDoseAccumulationModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

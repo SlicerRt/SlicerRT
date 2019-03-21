@@ -221,7 +221,7 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadSpatialRegistration(vtkSlicerDicomS
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
   const char* seriesName = loadInfo->GetLoadableName(0);
 
-  vtkMatrix4x4* regMatrix = NULL;
+  vtkMatrix4x4* regMatrix = nullptr;
   regMatrix = regReader->GetSpatialRegistrationMatrix();
 
   // Add transform node
@@ -260,7 +260,7 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadDeformableSpatialRegistration(vtkSl
   const char* seriesName = loadInfo->GetLoadableName(0);
 
   // Post deformation node
-  vtkMatrix4x4* postDeformationMatrix = NULL;
+  vtkMatrix4x4* postDeformationMatrix = nullptr;
   postDeformationMatrix = regReader->GetPostDeformationRegistrationMatrix();
 
   // Add post deformation transform node
@@ -277,7 +277,7 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadDeformableSpatialRegistration(vtkSl
   this->GetMRMLScene()->AddNode(spatialPostTransformNode);
 
   // Deformable grid vector image
-  vtkImageData* deformableRegistrationGrid = NULL;
+  vtkImageData* deformableRegistrationGrid = nullptr;
   deformableRegistrationGrid = regReader->GetDeformableRegistrationGrid();
 
   // vtkOrientedGridTransform
@@ -288,7 +288,7 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadDeformableSpatialRegistration(vtkSl
   gridTransform->SetInterpolationModeToLinear();
 
   // Post deformation node
-  vtkMatrix4x4* gridOrientationMatrix = NULL;
+  vtkMatrix4x4* gridOrientationMatrix = nullptr;
   gridOrientationMatrix = regReader->GetDeformableRegistrationGridOrientationMatrix();
 
   gridTransform->SetGridDirectionMatrix(gridOrientationMatrix);

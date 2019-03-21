@@ -79,9 +79,9 @@ void vtkMRMLDoseAccumulationNode::ReadXMLAttributes(const char** atts)
   vtkMRMLNode::ReadXMLAttributes(atts);
 
   // Read all MRML node attributes from two arrays of names and values
-  const char* attName = NULL;
-  const char* attValue = NULL;
-  while (*atts != NULL) 
+  const char* attName = nullptr;
+  const char* attValue = nullptr;
+  while (*atts != nullptr) 
     {
     attName = *(atts++);
     attValue = *(atts++);
@@ -174,7 +174,7 @@ void vtkMRMLDoseAccumulationNode::SetAndObserveReferenceDoseVolumeNode(vtkMRMLSc
     return;
     }
 
-  this->SetNodeReferenceID(REFERENCE_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(REFERENCE_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -192,7 +192,7 @@ void vtkMRMLDoseAccumulationNode::SetAndObserveAccumulatedDoseVolumeNode(vtkMRML
     return;
     }
 
-  this->SetNodeReferenceID(ACCUMULATED_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(ACCUMULATED_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -215,7 +215,7 @@ void vtkMRMLDoseAccumulationNode::AddSelectedInputVolumeNode(vtkMRMLScalarVolume
     return;
   }
 
-  this->AddNodeReferenceID(SELECTED_INPUT_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->AddNodeReferenceID(SELECTED_INPUT_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 
   this->VolumeNodeIdsToWeightsMap[node->GetID()] = weight;
 }

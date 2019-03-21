@@ -59,26 +59,26 @@ vtkStandardNewMacro(vtkSlicerDicomRtWriter);
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtWriter::vtkSlicerDicomRtWriter()
 {
-  this->PatientName = NULL;
-  this->PatientID = NULL;
-  this->PatientSex = NULL;
-  this->StudyDate = NULL;
-  this->StudyTime = NULL;
-  this->StudyDescription = NULL;
-  this->StudyInstanceUid = NULL;
-  this->StudyID = NULL;
+  this->PatientName = nullptr;
+  this->PatientID = nullptr;
+  this->PatientSex = nullptr;
+  this->StudyDate = nullptr;
+  this->StudyTime = nullptr;
+  this->StudyDescription = nullptr;
+  this->StudyInstanceUid = nullptr;
+  this->StudyID = nullptr;
 
-  this->ImageSeriesDescription = NULL;
-  this->ImageSeriesNumber = NULL;
-  this->ImageSeriesModality = NULL;
+  this->ImageSeriesDescription = nullptr;
+  this->ImageSeriesNumber = nullptr;
+  this->ImageSeriesModality = nullptr;
 
-  this->DoseSeriesDescription = NULL;
-  this->DoseSeriesNumber = NULL;
+  this->DoseSeriesDescription = nullptr;
+  this->DoseSeriesNumber = nullptr;
 
-  this->RtssSeriesDescription = NULL;
-  this->RtssSeriesNumber = NULL;
+  this->RtssSeriesDescription = nullptr;
+  this->RtssSeriesNumber = nullptr;
 
-  this->FileName = NULL;
+  this->FileName = nullptr;
 }
 
 //----------------------------------------------------------------------------

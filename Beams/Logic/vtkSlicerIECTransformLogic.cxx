@@ -277,7 +277,7 @@ vtkMRMLLinearTransformNode* vtkSlicerIECTransformLogic::GetTransformNodeBetween(
   if (!this->GetMRMLScene())
   {
     vtkErrorMacro("GetTransformNodeBetween: Invalid MRML scene");
-    return NULL;
+    return nullptr;
   }
 
   return vtkMRMLLinearTransformNode::SafeDownCast(
@@ -303,7 +303,7 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
   if (fromFrame == Collimator && toFrame == RAS)
   {
     vtkMRMLTransformNode::GetTransformBetweenNodes(
-      this->GetTransformNodeBetween(Collimator, Gantry), NULL, outputTransform );
+      this->GetTransformNodeBetween(Collimator, Gantry), nullptr, outputTransform );
     return true;
   }
 

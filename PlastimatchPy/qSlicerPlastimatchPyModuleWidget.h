@@ -38,7 +38,7 @@ class Q_SLICER_QTMODULES_PLASTIMATCHPY_EXPORT qSlicerPlastimatchPyModuleWidget :
 public:
 
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerPlastimatchPyModuleWidget(QWidget *parent=0);
+  qSlicerPlastimatchPyModuleWidget(QWidget *parent=nullptr);
   virtual ~qSlicerPlastimatchPyModuleWidget();
 
 public slots:

@@ -37,7 +37,7 @@ class Q_SLICER_QTMODULES_DOSECOMPARISON_EXPORT qSlicerDoseComparisonModuleWidget
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerDoseComparisonModuleWidget(QWidget *parent=0);
+  qSlicerDoseComparisonModuleWidget(QWidget *parent=nullptr);
   virtual ~qSlicerDoseComparisonModuleWidget();
 
   virtual void enter();

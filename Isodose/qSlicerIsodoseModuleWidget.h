@@ -40,7 +40,7 @@ class Q_SLICER_QTMODULES_ISODOSE_EXPORT qSlicerIsodoseModuleWidget :
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerIsodoseModuleWidget(QWidget *parent=0);
+  qSlicerIsodoseModuleWidget(QWidget *parent=nullptr);
   virtual ~qSlicerIsodoseModuleWidget();
 
   virtual void enter();

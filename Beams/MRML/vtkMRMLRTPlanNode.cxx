@@ -59,13 +59,13 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 {
   this->RxDose = 1.0;
 
-  this->TargetSegmentID = NULL;
+  this->TargetSegmentID = nullptr;
 
   this->IsocenterSpecification = vtkMRMLRTPlanNode::CenterOfTarget;
 
   this->NextBeamNumber = 1;
 
-  this->DoseEngineName = NULL;
+  this->DoseEngineName = nullptr;
 
   this->DoseGrid[0] = 0;
   this->DoseGrid[1] = 0;
@@ -75,8 +75,8 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode::~vtkMRMLRTPlanNode()
 {
-  this->SetTargetSegmentID(NULL);
-  this->SetDoseEngineName(NULL);
+  this->SetTargetSegmentID(nullptr);
+  this->SetDoseEngineName(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -85,11 +85,11 @@ void vtkMRMLRTPlanNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  if (this->TargetSegmentID != NULL)
+  if (this->TargetSegmentID != nullptr)
   {
     of << " TargetSegmentID=\"" << this->TargetSegmentID << "\"";
   }
-  if (this->DoseEngineName != NULL)
+  if (this->DoseEngineName != nullptr)
   {
     of << " DoseEngineName=\"" << this->DoseEngineName << "\"";
   }
@@ -107,10 +107,10 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
   vtkMRMLNode::ReadXMLAttributes(atts);
 
   // Read all MRML node attributes from two arrays of names and values
-  const char* attName = NULL;
-  const char* attValue = NULL;
+  const char* attName = nullptr;
+  const char* attValue = nullptr;
 
-  while (*atts != NULL)
+  while (*atts != nullptr)
   {
     attName = *(atts++);
     attValue = *(atts++);
@@ -182,8 +182,8 @@ void vtkMRMLRTPlanNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << " TargetSegmentID:   " << (this->TargetSegmentID?this->TargetSegmentID:"NULL") << "\n";
-  os << indent << " DoseEngineName:   " << (this->DoseEngineName?this->DoseEngineName:"NULL") << "\n";
+  os << indent << " TargetSegmentID:   " << (this->TargetSegmentID?this->TargetSegmentID:"nullptr") << "\n";
+  os << indent << " DoseEngineName:   " << (this->DoseEngineName?this->DoseEngineName:"nullptr") << "\n";
   os << indent << " NextBeamNumber:   " << this->NextBeamNumber << "\n";
   os << indent << " RxDose:   " << this->RxDose << "\n";
   os << indent << " IsocenterSpecification:   " << (int)(this->IsocenterSpecification) << "\n";
@@ -202,7 +202,7 @@ void vtkMRMLRTPlanNode::PrintSelf(ostream& os, vtkIndent indent)
 void vtkMRMLRTPlanNode::SetDoseEngineName(const char* engineName)
 {
   vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting DoseEngineName to " << (engineName?engineName:"(null)") );
-  if ( this->DoseEngineName == NULL && engineName == NULL) { return;}
+  if ( this->DoseEngineName == nullptr && engineName == nullptr) { return;}
   if ( this->DoseEngineName && engineName && (!strcmp(this->DoseEngineName,engineName))) { return;}
 
   // Set dose engine name
@@ -217,7 +217,7 @@ void vtkMRMLRTPlanNode::SetDoseEngineName(const char* engineName)
   }
   else
   {
-    this->DoseEngineName = NULL;
+    this->DoseEngineName = nullptr;
   }
 
   // Invoke events
@@ -263,7 +263,7 @@ void vtkMRMLRTPlanNode::SetAndObserveReferenceVolumeNode(vtkMRMLScalarVolumeNode
     return;
     }
 
-  this->SetNodeReferenceID(REFERENCE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(REFERENCE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -281,7 +281,7 @@ void vtkMRMLRTPlanNode::SetAndObserveSegmentationNode(vtkMRMLSegmentationNode* n
     return;
     }
 
-  this->SetNodeReferenceID(SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -333,7 +333,7 @@ void vtkMRMLRTPlanNode::SetAndObservePoisMarkupsFiducialNode(vtkMRMLMarkupsFiduc
     return;
     }
 
-  this->SetNodeReferenceID(POIS_MARKUPS_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(POIS_MARKUPS_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 
   if (node)
   {
@@ -429,7 +429,7 @@ void vtkMRMLRTPlanNode::SetAndObserveOutputTotalDoseVolumeNode(vtkMRMLScalarVolu
     return;
     }
 
-  this->SetNodeReferenceID(OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //---------------------------------------------------------------------------
@@ -503,13 +503,13 @@ vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetBeamByName(const std::string& beamName)
   if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
     vtkErrorMacro("GetBeamByName: Failed to access RT plan subject hierarchy item, although it should always be available");
-    return NULL;
+    return nullptr;
   }
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetScene());
   if (!shNode)
   {
     vtkErrorMacro("GetBeamByName: Failed to access subject hierarchy node");
-    return NULL;
+    return nullptr;
   }
 
   vtkSmartPointer<vtkCollection> beamCollection = vtkSmartPointer<vtkCollection>::New();
@@ -525,7 +525,7 @@ vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetBeamByName(const std::string& beamName)
       return beamNode;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -535,13 +535,13 @@ vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetBeamByNumber(int beamNumber)
   if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
     vtkErrorMacro("GetBeamByName: Failed to access RT plan subject hierarchy item, although it should always be available");
-    return NULL;
+    return nullptr;
   }
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetScene());
   if (!shNode)
   {
     vtkErrorMacro("GetBeamByName: Failed to access subject hierarchy node");
-    return NULL;
+    return nullptr;
   }
 
   vtkSmartPointer<vtkCollection> beamCollection = vtkSmartPointer<vtkCollection>::New();
@@ -556,7 +556,7 @@ vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetBeamByNumber(int beamNumber)
       return beamNode;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -799,7 +799,7 @@ bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double center[3])
 
   // Get a labelmap for the target
   vtkSmartPointer<vtkOrientedImageData> targetLabelmap = this->GetTargetOrientedImageData();
-  if (targetLabelmap.GetPointer() == NULL)
+  if (targetLabelmap.GetPointer() == nullptr)
   {
     return false;
   }

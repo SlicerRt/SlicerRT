@@ -39,7 +39,7 @@ class Q_SLICER_QTMODULES_SEGMENTMORPHOLOGY_EXPORT qSlicerSegmentMorphologyModule
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerSegmentMorphologyModuleWidget(QWidget *parent=0);
+  qSlicerSegmentMorphologyModuleWidget(QWidget *parent=nullptr);
   virtual ~qSlicerSegmentMorphologyModuleWidget();
 
   virtual void enter();

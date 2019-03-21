@@ -38,7 +38,7 @@ class Q_SLICER_QTMODULES_PLANARIMAGE_EXPORT qSlicerPlanarImageModuleWidget :
 
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerPlanarImageModuleWidget(QWidget *parent=0);
+  qSlicerPlanarImageModuleWidget(QWidget *parent=nullptr);
   virtual ~qSlicerPlanarImageModuleWidget();
 
 public slots:

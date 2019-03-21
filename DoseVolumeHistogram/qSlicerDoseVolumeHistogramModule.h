@@ -41,7 +41,7 @@ class Q_SLICER_QTMODULES_DOSEVOLUMEHISTOGRAM_EXPORT qSlicerDoseVolumeHistogramMo
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerDoseVolumeHistogramModule(QObject *parent=0);
+  explicit qSlicerDoseVolumeHistogramModule(QObject *parent=nullptr);
   virtual ~qSlicerDoseVolumeHistogramModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

@@ -58,7 +58,7 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
   int argIndex = 1;
 
   // TestSceneFile
-  const char *testSceneFileName  = NULL;
+  const char *testSceneFileName  = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-TestSceneFile") == 0)
@@ -78,7 +78,7 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
     return EXIT_FAILURE;
   }
   // TemporarySceneFile
-  const char *temporarySceneFileName = NULL;
+  const char *temporarySceneFileName = nullptr;
   if (argc > argIndex+1)
   {
     if (STRCASECMP(argv[argIndex], "-TemporarySceneFile") == 0)
@@ -189,7 +189,7 @@ int vtkSlicerDoseAccumulationModuleLogicTest1( int argc, char * argv[] )
 
   // Get output volume
   vtkMRMLScalarVolumeNode* accumulatedDoseVolumeNode = paramNode->GetAccumulatedDoseVolumeNode();
-  if (accumulatedDoseVolumeNode == NULL)
+  if (accumulatedDoseVolumeNode == nullptr)
   {
     mrmlScene->Commit();
     std::cerr << "ERROR: Unable to get accumulated volume!" << std::endl;

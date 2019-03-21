@@ -50,7 +50,7 @@ class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerDoseEngineLogic
 public:
   typedef QObject Superclass;
   /// Constructor
-  explicit qSlicerDoseEngineLogic(QObject* parent=NULL);
+  explicit qSlicerDoseEngineLogic(QObject* parent=nullptr);
   /// Destructor
   virtual ~qSlicerDoseEngineLogic();
 

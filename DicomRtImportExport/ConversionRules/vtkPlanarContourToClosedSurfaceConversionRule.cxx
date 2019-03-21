@@ -78,8 +78,8 @@ vtkPlanarContourToClosedSurfaceConversionRule::~vtkPlanarContourToClosedSurfaceC
 
 //----------------------------------------------------------------------------
 unsigned int vtkPlanarContourToClosedSurfaceConversionRule::GetConversionCost(
-  vtkDataObject* vtkNotUsed(sourceRepresentation)/*=NULL*/,
-  vtkDataObject* vtkNotUsed(targetRepresentation)/*=NULL*/)
+  vtkDataObject* vtkNotUsed(sourceRepresentation)/*=nullptr*/,
+  vtkDataObject* vtkNotUsed(targetRepresentation)/*=nullptr*/)
 {
   // Rough input-independent guess (ms)
   return 700;
@@ -95,7 +95,7 @@ vtkDataObject* vtkPlanarContourToClosedSurfaceConversionRule::ConstructRepresent
     }
   else
     {
-    return NULL;
+    return nullptr;
     }
 }
 
@@ -108,7 +108,7 @@ vtkDataObject* vtkPlanarContourToClosedSurfaceConversionRule::ConstructRepresent
     }
   else
     {
-    return NULL;
+    return nullptr;
     }
 }
 

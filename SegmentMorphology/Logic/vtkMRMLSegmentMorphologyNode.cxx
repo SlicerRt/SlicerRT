@@ -45,8 +45,8 @@ vtkMRMLNodeNewMacro(vtkMRMLSegmentMorphologyNode);
 //----------------------------------------------------------------------------
 vtkMRMLSegmentMorphologyNode::vtkMRMLSegmentMorphologyNode()
 {
-  this->SegmentAID = NULL;
-  this->SegmentBID = NULL;
+  this->SegmentAID = nullptr;
+  this->SegmentBID = nullptr;
 
   this->Operation = vtkMRMLSegmentMorphologyNode::Expand;
   this->XSize = 1;
@@ -59,8 +59,8 @@ vtkMRMLSegmentMorphologyNode::vtkMRMLSegmentMorphologyNode()
 //----------------------------------------------------------------------------
 vtkMRMLSegmentMorphologyNode::~vtkMRMLSegmentMorphologyNode()
 {
-  this->SetSegmentAID(NULL);
-  this->SetSegmentBID(NULL);
+  this->SetSegmentAID(nullptr);
+  this->SetSegmentBID(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -69,8 +69,8 @@ void vtkMRMLSegmentMorphologyNode::WriteXML(ostream& of, int nIndent)
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
-  of << " SegmentAID=\"" << (this->SegmentAID ? this->SegmentAID : "NULL") << "\"";
-  of << " SegmentBID=\"" << (this->SegmentBID ? this->SegmentBID : "NULL") << "\"";
+  of << " SegmentAID=\"" << (this->SegmentAID ? this->SegmentAID : "nullptr") << "\"";
+  of << " SegmentBID=\"" << (this->SegmentBID ? this->SegmentBID : "nullptr") << "\"";
 
   of << " Operation=\"" << (this->Operation) << "\"";
   of << " XSize=\"" << (this->XSize) << "\"";
@@ -84,10 +84,10 @@ void vtkMRMLSegmentMorphologyNode::ReadXMLAttributes(const char** atts)
   vtkMRMLNode::ReadXMLAttributes(atts);
 
   // Read all MRML node attributes from two arrays of names and values
-  const char* attName = NULL;
-  const char* attValue = NULL;
+  const char* attName = nullptr;
+  const char* attValue = nullptr;
 
-  while (*atts != NULL) 
+  while (*atts != nullptr) 
     {
     attName = *(atts++);
     attValue = *(atts++);
@@ -145,8 +145,8 @@ void vtkMRMLSegmentMorphologyNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << " SegmentAID:   " << (this->SegmentAID ? this->SegmentAID : "NULL") << "\n";
-  os << indent << " SegmentBID:   " << (this->SegmentBID ? this->SegmentBID : "NULL") << "\n";
+  os << indent << " SegmentAID:   " << (this->SegmentAID ? this->SegmentAID : "nullptr") << "\n";
+  os << indent << " SegmentBID:   " << (this->SegmentBID ? this->SegmentBID : "nullptr") << "\n";
 
   os << indent << " Operation:   " << (this->Operation) << "\n";
   os << indent << " XSize:   " << (this->XSize) << "\n";
@@ -169,7 +169,7 @@ void vtkMRMLSegmentMorphologyNode::SetAndObserveSegmentationANode(vtkMRMLSegment
     return;
     }
 
-  this->SetNodeReferenceID(SEGMENTATION_A_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(SEGMENTATION_A_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -187,7 +187,7 @@ void vtkMRMLSegmentMorphologyNode::SetAndObserveSegmentationBNode(vtkMRMLSegment
     return;
     }
 
-  this->SetNodeReferenceID(SEGMENTATION_B_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(SEGMENTATION_B_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
@@ -205,7 +205,7 @@ void vtkMRMLSegmentMorphologyNode::SetAndObserveOutputSegmentationNode(vtkMRMLSe
     return;
     }
 
-  this->SetNodeReferenceID(OUTPUT_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : NULL));
+  this->SetNodeReferenceID(OUTPUT_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------

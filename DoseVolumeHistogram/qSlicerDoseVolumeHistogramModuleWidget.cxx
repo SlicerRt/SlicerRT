@@ -84,7 +84,7 @@ public:
 qSlicerDoseVolumeHistogramModuleWidgetPrivate::qSlicerDoseVolumeHistogramModuleWidgetPrivate(qSlicerDoseVolumeHistogramModuleWidget& object)
  : q_ptr(&object)
 {
-  this->ConvertProgressDialog = NULL;
+  this->ConvertProgressDialog = nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -126,7 +126,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
 
   // Find parameters node or create it if there is no one in the scene
-  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == 0)
+  if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == nullptr)
   {
     vtkMRMLNode* node = scene->GetNthNodeByClass(0, "vtkMRMLDoseVolumeHistogramNode");
     if (node)
@@ -167,7 +167,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::onEnter()
   Q_D(qSlicerDoseVolumeHistogramModuleWidget);
 
   // First check the logic if it has a parameter node
-  if (d->logic() == NULL)
+  if (d->logic() == nullptr)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid logic!";
     return;
@@ -208,7 +208,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::setParameterNode(vtkMRMLNode *node)
   // Each time the node is modified, the qt widgets are updated
   qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
-  //TODO: Set parameters from UI to new node if UI selection was valid but param node selection empty (NULL, etc.)?
+  //TODO: Set parameters from UI to new node if UI selection was valid but param node selection empty (nullptr, etc.)?
 
   this->updateWidgetFromMRML();
 }
@@ -534,7 +534,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
   // User selects file and format
   QString selectedFilter;
 
-  QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH values to file" ) ), tr(""), QString( tr( "CSV comma separated values ( *.csv );;TSV tab separated values ( *.tsv )" ) ), &selectedFilter );
+  QString fileName = QFileDialog::getSaveFileName( nullptr, QString( tr( "Save DVH values to file" ) ), tr(""), QString( tr( "CSV comma separated values ( *.csv );;TSV tab separated values ( *.tsv )" ) ), &selectedFilter );
   if (fileName.isNull())
   {
     return;
@@ -562,7 +562,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
   // User selects file and format
   QString selectedFilter;
 
-  QString fileName = QFileDialog::getSaveFileName( NULL, QString( tr( "Save DVH metrics to file" ) ), tr(""), QString( tr( "CSV comma separated values ( *.csv );;TSV tab separated values ( *.tsv )" ) ), &selectedFilter );
+  QString fileName = QFileDialog::getSaveFileName( nullptr, QString( tr( "Save DVH metrics to file" ) ), tr(""), QString( tr( "CSV comma separated values ( *.csv );;TSV tab separated values ( *.tsv )" ) ), &selectedFilter );
   if (fileName.isNull())
   {
     return;

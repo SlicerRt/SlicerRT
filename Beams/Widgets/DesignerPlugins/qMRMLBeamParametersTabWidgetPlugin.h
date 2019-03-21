@@ -30,7 +30,7 @@ class Q_SLICER_MODULE_BEAMS_WIDGETS_PLUGINS_EXPORT qMRMLBeamParametersTabWidgetP
   Q_OBJECT
 
 public:
-  qMRMLBeamParametersTabWidgetPlugin(QObject* parent = 0);
+  qMRMLBeamParametersTabWidgetPlugin(QObject* parent = nullptr);
 
   QWidget *createWidget(QWidget* parent);
   QString  domXml() const;

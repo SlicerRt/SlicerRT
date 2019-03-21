@@ -599,9 +599,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtDose(vtkSlicerD
   }
 
   // Select as active volume
-  if (this->External->GetApplicationLogic()!=NULL)
+  if (this->External->GetApplicationLogic()!=nullptr)
   {
-    if (this->External->GetApplicationLogic()->GetSelectionNode()!=NULL)
+    if (this->External->GetApplicationLogic()->GetSelectionNode()!=nullptr)
     {
       this->External->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(volumeNode->GetID());
       this->External->GetApplicationLogic()->PropagateVolumeSelection();
@@ -725,7 +725,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
     this->External->BeamsLogic->UpdateTransformForBeam(beamNode);
 
     // Create beam model hierarchy root node if has not been created yet
-    if (beamModelHierarchyRootNode.GetPointer() == NULL)
+    if (beamModelHierarchyRootNode.GetPointer() == nullptr)
     {
       beamModelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
       std::string beamModelHierarchyRootNodeName = seriesName + vtkSlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
@@ -845,7 +845,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
 
     // Get structure
     vtkPolyData* roiPolyData = rtReader->GetRoiPolyData(internalROIIndex);
-    if (roiPolyData == NULL)
+    if (roiPolyData == nullptr)
     {
       vtkWarningWithObjectMacro(this->External, "LoadRtStructureSet: Invalid structure ROI data for ROI named '"
         << (roiLabel?roiLabel:"Unnamed") << "' in file '" << fileName
@@ -906,7 +906,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
     else
     {
       // Create segmentation node for the structure set series, if not created yet
-      if (segmentationNode.GetPointer() == NULL)
+      if (segmentationNode.GetPointer() == nullptr)
       {
         segmentationNode = vtkSmartPointer<vtkMRMLSegmentationNode>::New();
         std::string segmentationNodeName = scene->GenerateUniqueName(seriesName);
@@ -1562,9 +1562,9 @@ vtkSlicerDicomRtImportExportModuleLogic::vtkSlicerDicomRtImportExportModuleLogic
 {
   this->Internal = new vtkInternal(this);
 
-  this->IsodoseLogic = NULL;
-  this->PlanarImageLogic = NULL;
-  this->BeamsLogic = NULL;
+  this->IsodoseLogic = nullptr;
+  this->PlanarImageLogic = nullptr;
+  this->BeamsLogic = nullptr;
 
   this->BeamModelsInSeparateBranch = true;
 }
@@ -1572,14 +1572,14 @@ vtkSlicerDicomRtImportExportModuleLogic::vtkSlicerDicomRtImportExportModuleLogic
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtImportExportModuleLogic::~vtkSlicerDicomRtImportExportModuleLogic()
 {
-  this->SetIsodoseLogic(NULL);
-  this->SetPlanarImageLogic(NULL);
-  this->SetBeamsLogic(NULL);
+  this->SetIsodoseLogic(nullptr);
+  this->SetPlanarImageLogic(nullptr);
+  this->SetBeamsLogic(nullptr);
 
   if (this->Internal)
   {
     delete this->Internal;
-    this->Internal = NULL;
+    this->Internal = nullptr;
   }
 }
 
@@ -1831,9 +1831,9 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   const char* outputPath = firstExportable->GetDirectory();
 
   // Get nodes for the different roles from the exportable list
-  vtkMRMLScalarVolumeNode* doseNode = NULL;
-  vtkMRMLSegmentationNode* segmentationNode = NULL;
-  vtkMRMLScalarVolumeNode* imageNode = NULL;
+  vtkMRMLScalarVolumeNode* doseNode = nullptr;
+  vtkMRMLSegmentationNode* segmentationNode = nullptr;
+  vtkMRMLScalarVolumeNode* imageNode = nullptr;
   std::vector<std::string> imageSliceUIDs;
   for (int index=0; index<exportables->GetNumberOfItems(); ++index)
   {
@@ -2208,13 +2208,13 @@ vtkMRMLScalarVolumeNode* vtkSlicerDicomRtImportExportModuleLogic::GetReferencedV
 {
   if (!segmentationNode)
   {
-    return NULL;
+    return nullptr;
   }
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(segmentationNode->GetScene());
   if (!shNode)
   {
     vtkErrorWithObjectMacro(segmentationNode, "GetReferencedVolumeByDicomForSegmentation: Failed to access subject hierarchy node");
-    return NULL;
+    return nullptr;
   }
 
   // Get referenced series UID for segmentation
@@ -2223,14 +2223,14 @@ vtkMRMLScalarVolumeNode* vtkSlicerDicomRtImportExportModuleLogic::GetReferencedV
   if (referencedSeriesUid.empty())
   {
     vtkErrorWithObjectMacro(segmentationNode, "No referenced series UID found for segmentation '" << segmentationNode->GetName() << "'");
-    return NULL;
+    return nullptr;
   }
 
   // Get referenced volume subject hierarchy item by found UID
   vtkIdType referencedSeriesShItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), referencedSeriesUid.c_str());
   if (referencedSeriesShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    return NULL;
+    return nullptr;
   }
 
   // Get and return referenced volume

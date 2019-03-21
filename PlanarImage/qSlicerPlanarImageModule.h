@@ -40,7 +40,7 @@ class Q_SLICER_QTMODULES_PLANARIMAGE_EXPORT qSlicerPlanarImageModule :
 
 public:
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerPlanarImageModule(QObject *parent=0);
+  explicit qSlicerPlanarImageModule(QObject *parent=nullptr);
   virtual ~qSlicerPlanarImageModule();
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);

@@ -99,8 +99,8 @@ void vtkSlicerIsodoseModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
   this->SetAndObserveMRMLSceneEvents(newScene, events.GetPointer());
 
   // Load (or create) default isodose color table
-  vtkMRMLColorTableNode* isodoseColorTableNode = NULL;
-  if ( (isodoseColorTableNode = this->LoadDefaultIsodoseColorTable()) == NULL )
+  vtkMRMLColorTableNode* isodoseColorTableNode = nullptr;
+  if ( (isodoseColorTableNode = this->LoadDefaultIsodoseColorTable()) == nullptr )
   {
     isodoseColorTableNode = vtkSlicerIsodoseModuleLogic::GetDefaultIsodoseColorTable(newScene);
   }
@@ -260,7 +260,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::GetDefaultIsodoseColorTable(
   if (!scene)
   {
     vtkGenericWarningMacro("vtkSlicerIsodoseModuleLogic::GetDefaultIsodoseColorTable: Invalid MRML scene");
-    return NULL;
+    return nullptr;
   }
 
   // Check if default color table node already exists
@@ -305,7 +305,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::LoadDefaultIsodoseColorTable
   // Load default color table file
   std::string moduleShareDirectory = this->GetModuleShareDirectory();
   std::string colorTableFilePath = moduleShareDirectory + "/" + DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME;
-  vtkMRMLColorTableNode* colorTableNode = NULL;
+  vtkMRMLColorTableNode* colorTableNode = nullptr;
 
   if (vtksys::SystemTools::FileExists(colorTableFilePath.c_str()) && this->GetMRMLApplicationLogic() && this->GetMRMLApplicationLogic()->GetColorLogic())
   {
@@ -351,7 +351,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(
   if (!scene)
   {
     vtkGenericWarningMacro("vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable: Invalid MRML scene");
-    return NULL;
+    return nullptr;
   }
 
   // Check if default color table node already exists
@@ -373,7 +373,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(
   if (!defaultIsodoseColorTable)
   {
     vtkErrorWithObjectMacro(scene, "CreateDefaultDoseColorTable: Unable to access default isodose color table");
-    return NULL;
+    return nullptr;
   }
 
   vtkSmartPointer<vtkMRMLColorTableNode> defaultDoseColorTable = vtkSmartPointer<vtkMRMLColorTableNode>::New();
@@ -397,7 +397,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::SetupColorTableNodeForDoseVo
   if (!doseVolumeNode)
   {
     vtkErrorMacro("SetupColorTableNodeForDoseVolumeNode: Invalid dose volume");
-    return NULL;
+    return nullptr;
   }
 
   // Look for existing associated isodose color table node and return if found
@@ -413,7 +413,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::SetupColorTableNodeForDoseVo
   if (!defaultIsodoseColorTableNode)
   {
     vtkErrorMacro("SetupColorTableNodeForDoseVolumeNode: Failed to get default isodose color table node");
-    return NULL;
+    return nullptr;
   }
 
   std::string colorTableNodeName(doseVolumeNode->GetName());
@@ -553,7 +553,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
 
   vtkSmartPointer<vtkMRMLTransformNode> inputVolumeNodeTransformNode = doseVolumeNode->GetParentTransformNode();
   vtkSmartPointer<vtkMatrix4x4> inputRAS2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (inputVolumeNodeTransformNode!=NULL)
+  if (inputVolumeNodeTransformNode!=nullptr)
   {
     inputVolumeNodeTransformNode->GetMatrixTransformToWorld(inputRAS2RASMatrix);  
     outputIJK2IJKResliceTransform->Concatenate(inputRAS2RASMatrix);

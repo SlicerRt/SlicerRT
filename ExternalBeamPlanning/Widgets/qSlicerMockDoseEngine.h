@@ -37,7 +37,7 @@ class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerMockDoseEngine 
 public:
   typedef qSlicerAbstractDoseEngine Superclass;
   /// Constructor
-  explicit qSlicerMockDoseEngine(QObject* parent=NULL);
+  explicit qSlicerMockDoseEngine(QObject* parent=nullptr);
   /// Destructor
   virtual ~qSlicerMockDoseEngine();
 
