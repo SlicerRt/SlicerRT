@@ -36,7 +36,7 @@ public:
 
 protected:
   vtkSlicerAutoWindowLevelLogic();
-  virtual ~vtkSlicerAutoWindowLevelLogic();
+  ~vtkSlicerAutoWindowLevelLogic() override;
 };
 
 #endif

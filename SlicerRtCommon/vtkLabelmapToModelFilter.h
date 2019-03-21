@@ -67,7 +67,7 @@ protected:
 
 protected:
   vtkLabelmapToModelFilter();
-  virtual ~vtkLabelmapToModelFilter();
+  ~vtkLabelmapToModelFilter() override;
 
 private:
   vtkLabelmapToModelFilter(const vtkLabelmapToModelFilter&); // Not implemented

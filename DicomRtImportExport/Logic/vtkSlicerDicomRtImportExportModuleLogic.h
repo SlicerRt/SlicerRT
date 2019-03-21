@@ -86,15 +86,15 @@ public:
   vtkBooleanMacro(BeamModelsInSeparateBranch, bool);
 
 protected:
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
-  virtual void OnMRMLSceneEndClose() override;
+  void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
+  void OnMRMLSceneEndClose() override;
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes() override;
+  void RegisterNodes() override;
 
 protected:
   vtkSlicerDicomRtImportExportModuleLogic();
-  virtual ~vtkSlicerDicomRtImportExportModuleLogic();
+  ~vtkSlicerDicomRtImportExportModuleLogic() override;
   vtkSlicerDicomRtImportExportModuleLogic(const vtkSlicerDicomRtImportExportModuleLogic&); // Not implemented
   void operator=(const vtkSlicerDicomRtImportExportModuleLogic&); // Not implemented
 

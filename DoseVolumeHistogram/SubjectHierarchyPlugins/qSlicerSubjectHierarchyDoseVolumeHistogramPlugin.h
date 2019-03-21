@@ -40,7 +40,7 @@ public:
 public:
   typedef qSlicerSubjectHierarchyAbstractPlugin Superclass;
   qSlicerSubjectHierarchyDoseVolumeHistogramPlugin(QObject* parent = nullptr);
-  virtual ~qSlicerSubjectHierarchyDoseVolumeHistogramPlugin();
+  ~qSlicerSubjectHierarchyDoseVolumeHistogramPlugin() override;
 
 public:
   /// Determines if the actual plugin can handle a subject hierarchy item. The plugin with
@@ -49,7 +49,7 @@ public:
   /// \param item Item to handle in the subject hierarchy tree
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
   ///   item, and 1 means that the plugin is the only one that can handle the item (by node type or identifier attribute)
-  virtual double canOwnSubjectHierarchyItem(vtkIdType itemID)const;
+  double canOwnSubjectHierarchyItem(vtkIdType itemID)const override;
 
   /// Get role that the plugin assigns to the subject hierarchy item.
   ///   Each plugin should provide only one role.
@@ -57,7 +57,7 @@ public:
 
   /// Get icon of an owned subject hierarchy item
   /// \return Icon to set, empty icon if nothing to set
-  virtual QIcon icon(vtkIdType itemID);
+  QIcon icon(vtkIdType itemID) override;
 
   /// Get visibility icon for a visibility state
   Q_INVOKABLE virtual QIcon visibilityIcon(int visible);

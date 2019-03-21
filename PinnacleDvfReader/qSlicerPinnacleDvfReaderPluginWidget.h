@@ -38,11 +38,11 @@ class Q_SLICER_PINNACLEDVFREADER_EXPORT qSlicerPinnacleDvfReaderPluginWidget :
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerPinnacleDvfReaderPluginWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerPinnacleDvfReaderPluginWidget();
+  ~qSlicerPinnacleDvfReaderPluginWidget() override;
 
 protected:
   QScopedPointer<qSlicerPinnacleDvfReaderPluginWidgetPrivate> d_ptr;
-  virtual void setup();
+  void setup() override;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerPinnacleDvfReaderPluginWidget);

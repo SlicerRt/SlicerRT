@@ -60,7 +60,7 @@ public:
   //
   // The default implementation creates exactly this->NumberOfLabels
   // tick marks, uniformly spaced on a linear or logarithmic scale.
-  virtual void LayoutTicks();
+  void LayoutTicks() override;
 
 protected:
   vtkSlicerRTScalarBarActor();

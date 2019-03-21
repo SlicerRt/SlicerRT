@@ -92,7 +92,7 @@ protected:
 
 protected:
   vtkSlicerPinnacleDvfReader();
-  virtual ~vtkSlicerPinnacleDvfReader();
+  ~vtkSlicerPinnacleDvfReader() override;
 
 private:
   vtkSlicerPinnacleDvfReader(const vtkSlicerPinnacleDvfReader&); // Not implemented

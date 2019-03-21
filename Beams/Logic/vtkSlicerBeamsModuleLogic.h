@@ -48,18 +48,18 @@ public:
 
 protected:
   vtkSlicerBeamsModuleLogic();
-  virtual ~vtkSlicerBeamsModuleLogic();
+  ~vtkSlicerBeamsModuleLogic() override;
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes() override;
+  void RegisterNodes() override;
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
+  void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
 
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node);
-  virtual void OnMRMLSceneEndImport();
+  void OnMRMLSceneNodeAdded(vtkMRMLNode* node) override;
+  void OnMRMLSceneEndImport() override;
 
   /// Handles events registered in the observer manager
-  virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData) override;
+  void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData) override;
 
 private:
   vtkSlicerBeamsModuleLogic(const vtkSlicerBeamsModuleLogic&); // Not implemented

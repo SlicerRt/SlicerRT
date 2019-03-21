@@ -39,7 +39,7 @@ public:
 
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerPlastimatchPyModuleWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerPlastimatchPyModuleWidget();
+  ~qSlicerPlastimatchPyModuleWidget() override;
 
 public slots:
 
@@ -47,7 +47,7 @@ public slots:
 protected:
   QScopedPointer<qSlicerPlastimatchPyModuleWidgetPrivate> d_ptr;
   
-  virtual void setup();
+  void setup() override;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerPlastimatchPyModuleWidget);

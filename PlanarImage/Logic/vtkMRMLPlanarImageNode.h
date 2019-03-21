@@ -43,10 +43,10 @@ public:
   vtkTypeMacro(vtkMRMLPlanarImageNode,vtkMRMLNode);
 
   /// Create instance of a node
-  virtual vtkMRMLNode* CreateNodeInstance();
+  vtkMRMLNode* CreateNodeInstance() override;
 
   /// Get unique node XML tag name (like Volume, Model) 
-  virtual const char* GetNodeTagName() {return "PlanarImage";};
+  const char* GetNodeTagName() override { return "PlanarImage"; };
 
 public:
   /// Get RT image volume node

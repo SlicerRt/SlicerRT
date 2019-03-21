@@ -38,18 +38,12 @@ public:
 
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerPlmProtonDoseEngineModuleWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerPlmProtonDoseEngineModuleWidget();
-
-  /// Make this module hidden
-  virtual bool isHidden()const { return true; };
-
-public slots:
-
+  ~qSlicerPlmProtonDoseEngineModuleWidget() override;
 
 protected:
   QScopedPointer<qSlicerPlmProtonDoseEngineModuleWidgetPrivate> d_ptr;
 
-  virtual void setup();
+  void setup() override;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerPlmProtonDoseEngineModuleWidget);

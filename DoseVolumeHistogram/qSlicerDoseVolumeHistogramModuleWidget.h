@@ -41,9 +41,9 @@ class Q_SLICER_QTMODULES_DOSEVOLUMEHISTOGRAM_EXPORT qSlicerDoseVolumeHistogramMo
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerDoseVolumeHistogramModuleWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerDoseVolumeHistogramModuleWidget();
+  ~qSlicerDoseVolumeHistogramModuleWidget() override;
 
-  virtual void enter();
+  void enter() override;
 
   /// Allows other modules to select input and output nodes in the module's GUI.
   /// There may be multiple node selectors in a module widget, you can select between them
@@ -51,11 +51,11 @@ public:
   /// Context can be specified to make a selection within that node (for example, a markup list
   /// node may contain multiple markups; context can be used to select a specific item).
   /// Returns true if the selection was successful.
-  virtual bool setEditedNode(vtkMRMLNode* node, QString role = QString(), QString context = QString());
+  bool setEditedNode(vtkMRMLNode* node, QString role = QString(), QString context = QString()) override;
 
 public slots:
   /// Set the current MRML scene to the widget
-  virtual void setMRMLScene(vtkMRMLScene*);
+  void setMRMLScene(vtkMRMLScene*) override;
 
   /// Process loaded scene
   void onSceneImportedEvent();
@@ -100,7 +100,7 @@ protected slots:
   void onProgressUpdated(vtkObject*, void*, unsigned long, void*);
 
 protected:
-  virtual void setup();
+  void setup() override;
   void onEnter();
 
   void setVisibleAll(bool on);

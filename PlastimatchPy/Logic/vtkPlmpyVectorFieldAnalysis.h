@@ -85,9 +85,9 @@ public:
 
 protected:
   vtkPlmpyVectorFieldAnalysis();
-  virtual ~vtkPlmpyVectorFieldAnalysis();
+  ~vtkPlmpyVectorFieldAnalysis() override;
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
+  void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
 
 protected:
   /// ID of the fixed image

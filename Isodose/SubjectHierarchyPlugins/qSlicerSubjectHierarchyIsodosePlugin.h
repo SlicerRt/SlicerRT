@@ -39,7 +39,7 @@ public:
 public:
   typedef qSlicerSubjectHierarchyAbstractPlugin Superclass;
   qSlicerSubjectHierarchyIsodosePlugin(QObject* parent = nullptr);
-  virtual ~qSlicerSubjectHierarchyIsodosePlugin();
+  ~qSlicerSubjectHierarchyIsodosePlugin() override;
 
 public:
   /// Determines if the actual plugin can handle a subject hierarchy item. The plugin with
@@ -48,7 +48,7 @@ public:
   /// \param item Item to handle in the subject hierarchy tree
   /// \return Floating point confidence number between 0 and 1, where 0 means that the plugin cannot handle the
   ///   item, and 1 means that the plugin is the only one that can handle the item (by node type or identifier attribute)
-  virtual double canOwnSubjectHierarchyItem(vtkIdType itemID)const;
+  double canOwnSubjectHierarchyItem(vtkIdType itemID)const override;
 
   /// Get role that the plugin assigns to the subject hierarchy item.
   ///   Each plugin should provide only one role.
@@ -56,7 +56,7 @@ public:
 
   /// Get icon of an owned subject hierarchy item
   /// \return Icon to set, empty icon if nothing to set
-  virtual QIcon icon(vtkIdType itemID);
+  QIcon icon(vtkIdType itemID) override;
 
   /// Get visibility icon for a visibility state
   Q_INVOKABLE virtual QIcon visibilityIcon(int visible);
@@ -67,11 +67,11 @@ public:
   /// Set display color of an owned subject hierarchy item
   /// \param color Display color to set
   /// \param terminologyMetaData Map containing terminology meta data
-  virtual void setDisplayColor(vtkIdType itemID, QColor color, QMap<int, QVariant> terminologyMetaData);
+  void setDisplayColor(vtkIdType itemID, QColor color, QMap<int, QVariant> terminologyMetaData) override;
 
   /// Get display color of an owned subject hierarchy item
   /// \param terminologyMetaData Output map containing terminology meta data
-  virtual QColor getDisplayColor(vtkIdType itemID, QMap<int, QVariant> &terminologyMetaData)const;
+  QColor getDisplayColor(vtkIdType itemID, QMap<int, QVariant> &terminologyMetaData)const override;
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyIsodosePluginPrivate> d_ptr;

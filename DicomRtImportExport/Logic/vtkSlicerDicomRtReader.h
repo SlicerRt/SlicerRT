@@ -409,7 +409,7 @@ protected:
 
 protected:
   vtkSlicerDicomRtReader();
-  virtual ~vtkSlicerDicomRtReader();
+  ~vtkSlicerDicomRtReader() override;
 
 private:
   vtkSlicerDicomRtReader(const vtkSlicerDicomRtReader&); // Not implemented

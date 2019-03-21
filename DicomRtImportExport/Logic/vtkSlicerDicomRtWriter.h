@@ -134,7 +134,7 @@ public:
 protected:
   std::string formatColorString (const double *color);
   vtkSlicerDicomRtWriter();
-  virtual ~vtkSlicerDicomRtWriter();
+  ~vtkSlicerDicomRtWriter() override;
 
   // Parameters that get written into DICOM header
   char* PatientName;

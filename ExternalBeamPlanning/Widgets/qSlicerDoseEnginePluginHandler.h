@@ -68,7 +68,7 @@ public:
   qSlicerDoseEnginePluginHandler(QObject* parent=nullptr);
 
   /// Private destructor made public to enable python wrapping
-  virtual ~qSlicerDoseEnginePluginHandler();
+  ~qSlicerDoseEnginePluginHandler() override;
 
 private:
   Q_DISABLE_COPY(qSlicerDoseEnginePluginHandler);

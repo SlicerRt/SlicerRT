@@ -41,40 +41,37 @@ class Q_SLICER_QTMODULES_ROOMSEYEVIEW_EXPORT qSlicerRoomsEyeViewModule :
 public:
   typedef qSlicerLoadableModule Superclass;
   explicit qSlicerRoomsEyeViewModule(QObject *parent=nullptr);
-  virtual ~qSlicerRoomsEyeViewModule();
+  ~qSlicerRoomsEyeViewModule() override;
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);
   
   /// Help to use the module
-  virtual QString helpText()const;
+  QString helpText()const override;
 
   /// Return acknowledgements
-  virtual QString acknowledgementText()const;
+  QString acknowledgementText()const override;
 
   /// Return the authors of the module
-  virtual QStringList  contributors()const;
+  QStringList  contributors()const override;
 
   /// Return a custom icon for the module
-  virtual QIcon icon()const;
+  QIcon icon()const override;
 
   /// Return the categories for the module
-  virtual QStringList categories()const;
+  QStringList categories()const override;
 
   /// List dependencies
-  virtual QStringList dependencies()const;
-
-  /// Make this module hidden
-  virtual bool isHidden()const { return false; };
+  QStringList dependencies()const override;
  
 protected:
   /// Initialize the module. Register the volumes reader/writer
-  virtual void setup();
+  void setup() override;
 
   /// Create and return the widget representation associated to this module
-  virtual qSlicerAbstractModuleRepresentation * createWidgetRepresentation();
+  qSlicerAbstractModuleRepresentation * createWidgetRepresentation() override;
 
   /// Create and return the logic associated to this module
-  virtual vtkMRMLAbstractLogic* createLogic();
+  vtkMRMLAbstractLogic* createLogic() override;
 
 protected:
   QScopedPointer<qSlicerRoomsEyeViewModulePrivate> d_ptr;

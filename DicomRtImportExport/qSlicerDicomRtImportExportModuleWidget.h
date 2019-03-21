@@ -40,12 +40,12 @@ public:
 
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerDicomRtImportExportModuleWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerDicomRtImportExportModuleWidget();
+  ~qSlicerDicomRtImportExportModuleWidget() override;
 
 protected:
   QScopedPointer<qSlicerDicomRtImportExportModuleWidgetPrivate> d_ptr;
   
-  virtual void setup();
+  void setup() override;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDicomRtImportExportModuleWidget);

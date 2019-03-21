@@ -47,7 +47,7 @@ public:
 
 protected:
   vtkSlicerPinnacleDvfReaderLogic();
-  virtual ~vtkSlicerPinnacleDvfReaderLogic();
+  ~vtkSlicerPinnacleDvfReaderLogic() override;
 
 private:
   vtkSlicerPinnacleDvfReaderLogic(const vtkSlicerPinnacleDvfReaderLogic&); // Not implemented

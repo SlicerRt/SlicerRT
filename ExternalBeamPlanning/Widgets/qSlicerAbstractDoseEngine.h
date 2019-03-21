@@ -54,7 +54,7 @@ public:
   /// Constructor
   explicit qSlicerAbstractDoseEngine(QObject* parent=nullptr);
   /// Destructor
-  virtual ~qSlicerAbstractDoseEngine();
+  ~qSlicerAbstractDoseEngine() override;
 
   /// Get dose engine name
   virtual QString name()const;

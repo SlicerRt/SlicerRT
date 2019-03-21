@@ -88,7 +88,7 @@ public:
 
 protected:
   vtkDICOMImportInfo();
-  virtual ~vtkDICOMImportInfo();
+  ~vtkDICOMImportInfo() override;
 
 private:
   vtkDICOMImportInfo(const vtkDICOMImportInfo&); // Not implemented

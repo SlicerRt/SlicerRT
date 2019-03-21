@@ -66,7 +66,7 @@ protected:
 
 protected:
   vtkSlicerVffFileReaderLogic();
-  virtual ~vtkSlicerVffFileReaderLogic();
+  ~vtkSlicerVffFileReaderLogic() override;
 
 private:
   vtkSlicerVffFileReaderLogic(const vtkSlicerVffFileReaderLogic&); // Not implemented

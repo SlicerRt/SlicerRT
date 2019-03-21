@@ -38,9 +38,9 @@ class Q_SLICER_QTMODULES_ROOMSEYEVIEW_EXPORT qSlicerRoomsEyeViewModuleWidget :
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerRoomsEyeViewModuleWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerRoomsEyeViewModuleWidget();
+  ~qSlicerRoomsEyeViewModuleWidget() override;
 
-  virtual void enter();
+  void enter() override;
 
   /// Check for collisions and update UI to indicate result
   void checkForCollisions();
@@ -86,7 +86,7 @@ protected:
   QScopedPointer<qSlicerRoomsEyeViewModuleWidgetPrivate> d_ptr;
 
 protected:
-  virtual void setup();
+  void setup() override;
   void onEnter();
 
 private:

@@ -43,14 +43,14 @@ class Q_SLICER_QTMODULES_EXTERNALBEAMPLANNING_EXPORT qSlicerExternalBeamPlanning
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerExternalBeamPlanningModuleWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerExternalBeamPlanningModuleWidget();
+  ~qSlicerExternalBeamPlanningModuleWidget() override;
 
   /// Support of node editing. Selects node in user interface that the user wants to edit
-  virtual bool setEditedNode(vtkMRMLNode* node, QString role=QString(), QString context=QString());
+  bool setEditedNode(vtkMRMLNode* node, QString role=QString(), QString context=QString()) override;
 
 public slots:
   /// Set the current MRML scene to the widget
-  virtual void setMRMLScene(vtkMRMLScene*);
+  void setMRMLScene(vtkMRMLScene*) override;
 
   /// Process loaded scene
   void onSceneImportedEvent();
@@ -100,8 +100,8 @@ protected slots:
   void onProgressUpdated(double progress);
 
 protected:
-  virtual void setup();
-  virtual void enter();
+  void setup() override;
+  void enter() override;
   void onEnter();
 
   // Populate dose engines combobox from registered dose engines

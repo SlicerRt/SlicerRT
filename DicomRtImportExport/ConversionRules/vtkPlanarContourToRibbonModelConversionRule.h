@@ -45,32 +45,32 @@ class VTK_SLICER_DICOMRTIMPORTEXPORT_CONVERSIONRULES_EXPORT vtkPlanarContourToRi
 public:
   static vtkPlanarContourToRibbonModelConversionRule* New();
   vtkTypeMacro(vtkPlanarContourToRibbonModelConversionRule, vtkSegmentationConverterRule);
-  virtual vtkSegmentationConverterRule* CreateRuleInstance() override;
+  vtkSegmentationConverterRule* CreateRuleInstance() override;
 
   /// Constructs representation object from representation name for the supported representation classes
   /// (typically source and target representation VTK classes, subclasses of vtkDataObject)
   /// Note: Need to take ownership of the created object! For example using vtkSmartPointer<vtkDataObject>::Take
-  virtual vtkDataObject* ConstructRepresentationObjectByRepresentation(std::string representationName) override;
+  vtkDataObject* ConstructRepresentationObjectByRepresentation(std::string representationName) override;
 
   /// Constructs representation object from class name for the supported representation classes
   /// (typically source and target representation VTK classes, subclasses of vtkDataObject)
   /// Note: Need to take ownership of the created object! For example using vtkSmartPointer<vtkDataObject>::Take
-  virtual vtkDataObject* ConstructRepresentationObjectByClass(std::string className) override;
+  vtkDataObject* ConstructRepresentationObjectByClass(std::string className) override;
 
   /// Update the target representation based on the source representation
-  virtual bool Convert(vtkDataObject* sourceRepresentation, vtkDataObject* targetRepresentation) override;
+  bool Convert(vtkDataObject* sourceRepresentation, vtkDataObject* targetRepresentation) override;
 
   /// Get the cost of the conversion.
-  virtual unsigned int GetConversionCost(vtkDataObject* sourceRepresentation=nullptr, vtkDataObject* targetRepresentation=nullptr) override;
+  unsigned int GetConversionCost(vtkDataObject* sourceRepresentation=nullptr, vtkDataObject* targetRepresentation=nullptr) override;
 
   /// Human-readable name of the converter rule
-  virtual const char* GetName() override { return "Planar contour to ribbon model"; };
+  const char* GetName() override { return "Planar contour to ribbon model"; };
   
   /// Human-readable name of the source representation
-  virtual const char* GetSourceRepresentationName() override { return vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName(); };
+  const char* GetSourceRepresentationName() override { return vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName(); };
   
   /// Human-readable name of the target representation
-  virtual const char* GetTargetRepresentationName() override { return vtkSlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME; };
+  const char* GetTargetRepresentationName() override { return vtkSlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME; };
 
 protected:
   /// Compute plane for a given contour

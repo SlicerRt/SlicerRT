@@ -39,16 +39,16 @@ public:
   typedef qSlicerFileReader Superclass;
   qSlicerVffFileReaderPlugin(QObject* parent = nullptr);
   qSlicerVffFileReaderPlugin(vtkSlicerVffFileReaderLogic* logic, QObject* parent = nullptr);
-  virtual ~qSlicerVffFileReaderPlugin();
+  ~qSlicerVffFileReaderPlugin() override;
 
   vtkSlicerVffFileReaderLogic* logic()const;
   void setLogic(vtkSlicerVffFileReaderLogic* logic);
 
-  virtual QString description()const;
-  virtual IOFileType fileType()const;
-  virtual QStringList extensions()const;
-  virtual qSlicerIOOptions* options()const;
-  virtual bool load(const IOProperties& properties);
+  QString description()const override;
+  IOFileType fileType()const override;
+  QStringList extensions()const override;
+  qSlicerIOOptions* options()const override;
+  bool load(const IOProperties& properties) override;
 
 protected:
   QScopedPointer<qSlicerVffFileReaderPluginPrivate> d_ptr;

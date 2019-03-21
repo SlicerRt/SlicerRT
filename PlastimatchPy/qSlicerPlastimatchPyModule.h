@@ -40,29 +40,29 @@ class Q_SLICER_QTMODULES_PLASTIMATCHPY_EXPORT qSlicerPlastimatchPyModule : publi
 public:
   typedef qSlicerLoadableModule Superclass;
   explicit qSlicerPlastimatchPyModule(QObject *parent=nullptr);
-  virtual ~qSlicerPlastimatchPyModule();
+  ~qSlicerPlastimatchPyModule() override;
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);
 
-  virtual QString helpText()const;
-  virtual QString acknowledgementText()const;
-  virtual QStringList contributors()const;
+  QString helpText()const override;
+  QString acknowledgementText()const override;
+  QStringList contributors()const override;
 
-  virtual QStringList categories()const;
-  virtual QStringList dependencies() const;
+  QStringList categories()const override;
+  QStringList dependencies() const override;
 
   /// Make this module hidden
-  virtual bool isHidden()const { return true; };
+  bool isHidden()const override { return true; };
 
 protected:
   /// Initialize the module. Register the volumes reader/writer
-  virtual void setup();
+  void setup() override;
 
   /// Create and return the widget representation associated to this module
-  virtual qSlicerAbstractModuleRepresentation * createWidgetRepresentation();
+  qSlicerAbstractModuleRepresentation * createWidgetRepresentation() override;
 
   /// Create and return the logic associated to this module
-  virtual vtkMRMLAbstractLogic* createLogic();
+  vtkMRMLAbstractLogic* createLogic() override;
 
 protected:
   QScopedPointer<qSlicerPlastimatchPyModulePrivate> d_ptr;

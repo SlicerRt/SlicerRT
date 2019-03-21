@@ -40,16 +40,16 @@ class VTK_SLICER_DICOMRTIMPORTEXPORT_CONVERSIONRULES_EXPORT vtkRibbonModelToBina
 public:
   static vtkRibbonModelToBinaryLabelmapConversionRule* New();
   vtkTypeMacro(vtkRibbonModelToBinaryLabelmapConversionRule, vtkSegmentationConverterRule);
-  virtual vtkSegmentationConverterRule* CreateRuleInstance() override;
+  vtkSegmentationConverterRule* CreateRuleInstance() override;
 
   /// Human-readable name of the converter rule
-  virtual const char* GetName() override { return "Ribbon model to binary labelmap"; };
+  const char* GetName() override { return "Ribbon model to binary labelmap"; };
   
   /// Human-readable name of the source representation
-  virtual const char* GetSourceRepresentationName() override { return vtkSlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME; };
+  const char* GetSourceRepresentationName() override { return vtkSlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME; };
   
   /// Human-readable name of the target representation
-  virtual const char* GetTargetRepresentationName() override { return vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(); };
+  const char* GetTargetRepresentationName() override { return vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName(); };
 
 protected:
   vtkRibbonModelToBinaryLabelmapConversionRule();

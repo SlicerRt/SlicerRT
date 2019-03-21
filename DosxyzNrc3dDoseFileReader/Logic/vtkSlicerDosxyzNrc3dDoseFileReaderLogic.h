@@ -55,7 +55,7 @@ public:
 
 protected:
   vtkSlicerDosxyzNrc3dDoseFileReaderLogic();
-  virtual ~vtkSlicerDosxyzNrc3dDoseFileReaderLogic();
+  ~vtkSlicerDosxyzNrc3dDoseFileReaderLogic() override;
 
 private:
   vtkSlicerDosxyzNrc3dDoseFileReaderLogic(const vtkSlicerDosxyzNrc3dDoseFileReaderLogic&);  // Not implemented

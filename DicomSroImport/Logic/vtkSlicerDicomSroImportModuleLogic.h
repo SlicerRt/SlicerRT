@@ -57,7 +57,7 @@ public:
 
 protected:
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes() override;
+  void RegisterNodes() override;
 
   /// Load Dicom spatial registration objects into the MRML scene
   /// \return Success flag
@@ -73,7 +73,7 @@ protected:
 
 protected:
   vtkSlicerDicomSroImportModuleLogic();
-  virtual ~vtkSlicerDicomSroImportModuleLogic();
+  ~vtkSlicerDicomSroImportModuleLogic() override;
   vtkSlicerDicomSroImportModuleLogic(const vtkSlicerDicomSroImportModuleLogic&); // Not implemented
   void operator=(const vtkSlicerDicomSroImportModuleLogic&);              // Not implemented
 };

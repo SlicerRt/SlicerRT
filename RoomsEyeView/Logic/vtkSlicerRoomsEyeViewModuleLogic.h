@@ -147,12 +147,12 @@ protected:
 
 protected:
   vtkSlicerRoomsEyeViewModuleLogic();
-  virtual ~vtkSlicerRoomsEyeViewModuleLogic();
+  ~vtkSlicerRoomsEyeViewModuleLogic() override;
 
   /// Register MRML Node classes to scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes();
+  void RegisterNodes() override;
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene * newScene);
+  void SetMRMLSceneInternal(vtkMRMLScene * newScene) override;
 
 private:
   vtkSlicerRoomsEyeViewModuleLogic(const vtkSlicerRoomsEyeViewModuleLogic&); // Not implemented

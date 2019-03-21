@@ -39,7 +39,7 @@ public:
   /// Constructor
   explicit qSlicerMockDoseEngine(QObject* parent=nullptr);
   /// Destructor
-  virtual ~qSlicerMockDoseEngine();
+  ~qSlicerMockDoseEngine() override;
 
 public:
   /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic

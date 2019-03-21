@@ -39,16 +39,16 @@ public:
   typedef qSlicerFileReader Superclass;
   qSlicerPinnacleDvfReaderPlugin(QObject* parent = 0);
   qSlicerPinnacleDvfReaderPlugin(vtkSlicerPinnacleDvfReaderLogic* logic, QObject* parent = 0);
-  virtual ~qSlicerPinnacleDvfReaderPlugin();
+  ~qSlicerPinnacleDvfReaderPlugin() override;
 
   vtkSlicerPinnacleDvfReaderLogic* logic()const;
   void setLogic(vtkSlicerPinnacleDvfReaderLogic* logic);
 
-  virtual QString description()const;
-  virtual IOFileType fileType()const;
-  virtual QStringList extensions()const;
-  virtual qSlicerIOOptions* options()const;
-  virtual bool load(const IOProperties& properties);
+  QString description()const override;
+  IOFileType fileType()const override;
+  QStringList extensions()const override;
+  qSlicerIOOptions* options()const override;
+  bool load(const IOProperties& properties) override;
 
 protected:
   QScopedPointer<qSlicerPinnacleDvfReaderPluginPrivate> d_ptr;

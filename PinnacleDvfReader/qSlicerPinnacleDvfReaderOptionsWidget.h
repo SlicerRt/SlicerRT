@@ -41,7 +41,7 @@ class Q_SLICER_PINNACLEDVFREADER_EXPORT qSlicerPinnacleDvfReaderOptionsWidget :
 public:
   typedef qSlicerIOOptionsWidget Superclass;
   qSlicerPinnacleDvfReaderOptionsWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerPinnacleDvfReaderOptionsWidget();
+  ~qSlicerPinnacleDvfReaderOptionsWidget() override;
 
 
 protected slots:

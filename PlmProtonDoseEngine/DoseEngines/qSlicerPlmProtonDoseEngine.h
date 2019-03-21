@@ -38,7 +38,7 @@ public:
   /// Constructor
   explicit qSlicerPlmProtonDoseEngine(QObject* parent=nullptr);
   /// Destructor
-  virtual ~qSlicerPlmProtonDoseEngine();
+  ~qSlicerPlmProtonDoseEngine() override;
 
 protected:
   /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic
@@ -46,7 +46,7 @@ protected:
   /// \param beamNode Beam for which the dose is calculated. Each beam has a parent plan from which the
   ///   plan-specific parameters are got
   /// \param resultDoseVolumeNode Output volume node for the result dose. It is created by \sa CalculateDose
-  virtual QString calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode);
+  QString calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode) override;
 
   /// Define engine-specific beam parameters
   void defineBeamParameters();

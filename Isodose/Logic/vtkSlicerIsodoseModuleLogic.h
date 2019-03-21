@@ -85,18 +85,18 @@ protected:
   vtkMRMLColorTableNode* LoadDefaultIsodoseColorTable();
 
 protected:
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
+  void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes() override;
-  virtual void UpdateFromMRMLScene() override;
-  virtual void OnMRMLSceneNodeAdded(vtkMRMLNode* node) override;
-  virtual void OnMRMLSceneNodeRemoved(vtkMRMLNode* node) override;
-  virtual void OnMRMLSceneEndClose() override;
+  void RegisterNodes() override;
+  void UpdateFromMRMLScene() override;
+  void OnMRMLSceneNodeAdded(vtkMRMLNode* node) override;
+  void OnMRMLSceneNodeRemoved(vtkMRMLNode* node) override;
+  void OnMRMLSceneEndClose() override;
 
 protected:
   vtkSlicerIsodoseModuleLogic();
-  virtual ~vtkSlicerIsodoseModuleLogic();
+  ~vtkSlicerIsodoseModuleLogic() override;
 
 private:
   vtkSlicerIsodoseModuleLogic(const vtkSlicerIsodoseModuleLogic&); // Not implemented

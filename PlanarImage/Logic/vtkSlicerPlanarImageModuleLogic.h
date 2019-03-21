@@ -63,17 +63,17 @@ protected:
 
 protected:
   vtkSlicerPlanarImageModuleLogic();
-  virtual ~vtkSlicerPlanarImageModuleLogic();
+  ~vtkSlicerPlanarImageModuleLogic() override;
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
-  virtual void RegisterNodes() override;
+  void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
+  void RegisterNodes() override;
 
   /// Update texture and if display properties change in an observed planar image volume node,
   /// and geometry if transform is changed
-  virtual void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData) override;
+  void ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData) override;
   /// Removes texture pipeline and displayed model if planar image volume node is about to be removed,
   /// and creates texture pipeline after scene is imported
-  virtual void ProcessMRMLSceneEvents(vtkObject* caller, unsigned long event, void* callData) override;
+  void ProcessMRMLSceneEvents(vtkObject* caller, unsigned long event, void* callData) override;
 
 protected:
   /// Mappers that apply window/level from the volume nodes to the texture images

@@ -71,14 +71,14 @@ protected:
 
 protected:
   vtkPlmpyDicomSroExport();
-  virtual ~vtkPlmpyDicomSroExport();
+  ~vtkPlmpyDicomSroExport() override;
 
-  virtual void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
+  void SetMRMLSceneInternal(vtkMRMLScene* newScene) override;
 
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
-  virtual void RegisterNodes() override;
+  void RegisterNodes() override;
 
-  virtual void UpdateFromMRMLScene() override;
+  void UpdateFromMRMLScene() override;
 
 private:
   vtkPlmpyDicomSroExport(const vtkPlmpyDicomSroExport&);

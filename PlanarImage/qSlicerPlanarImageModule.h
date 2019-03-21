@@ -41,34 +41,34 @@ class Q_SLICER_QTMODULES_PLANARIMAGE_EXPORT qSlicerPlanarImageModule :
 public:
   typedef qSlicerLoadableModule Superclass;
   explicit qSlicerPlanarImageModule(QObject *parent=nullptr);
-  virtual ~qSlicerPlanarImageModule();
+  ~qSlicerPlanarImageModule() override;
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);
   
   /// Help to use the module
-  virtual QString helpText()const;
+  QString helpText()const override;
 
   /// Return acknowledgments
-  virtual QString acknowledgementText()const;
+  QString acknowledgementText()const override;
 
   /// Return the authors of the module
-  virtual QStringList contributors()const;
+  QStringList contributors()const override;
 
   /// Return the categories for the module
-  virtual QStringList categories()const;
+  QStringList categories()const override;
 
   /// Make this module hidden
-  virtual bool isHidden()const { return true; };
+  bool isHidden()const override { return true; };
  
 protected:
   /// Initialize the module. Register the volumes reader/writer
-  virtual void setup();
+  void setup() override;
 
   /// Create and return the widget representation associated to this module
-  virtual qSlicerAbstractModuleRepresentation * createWidgetRepresentation();
+  qSlicerAbstractModuleRepresentation * createWidgetRepresentation() override;
 
   /// Create and return the logic associated to this module
-  virtual vtkMRMLAbstractLogic* createLogic();
+  vtkMRMLAbstractLogic* createLogic() override;
 
 protected:
   QScopedPointer<qSlicerPlanarImageModulePrivate> d_ptr;

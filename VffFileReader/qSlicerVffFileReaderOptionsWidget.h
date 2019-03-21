@@ -41,7 +41,7 @@ class Q_SLICER_VFFFILEREADER_EXPORT qSlicerVffFileReaderOptionsWidget :
 public:
   typedef qSlicerIOOptionsWidget Superclass;
   qSlicerVffFileReaderOptionsWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerVffFileReaderOptionsWidget();
+  ~qSlicerVffFileReaderOptionsWidget() override;
 
 
 protected slots:

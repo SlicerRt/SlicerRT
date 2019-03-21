@@ -38,16 +38,16 @@ public:
   typedef qSlicerFileReader Superclass;
   qSlicerDosxyzNrc3dDoseFileReaderPlugin(QObject* parent = nullptr);
   qSlicerDosxyzNrc3dDoseFileReaderPlugin(vtkSlicerDosxyzNrc3dDoseFileReaderLogic* logic, QObject* parent = nullptr);
-  virtual ~qSlicerDosxyzNrc3dDoseFileReaderPlugin();
+  ~qSlicerDosxyzNrc3dDoseFileReaderPlugin() override;
 
   vtkSlicerDosxyzNrc3dDoseFileReaderLogic* logic()const;
   void setLogic(vtkSlicerDosxyzNrc3dDoseFileReaderLogic* logic);
 
-  virtual QString description()const;
-  virtual IOFileType fileType()const;
-  virtual QStringList extensions()const;
-  virtual qSlicerIOOptions* options()const;
-  virtual bool load(const IOProperties& properties);
+  QString description()const override;
+  IOFileType fileType()const override;
+  QStringList extensions()const override;
+  qSlicerIOOptions* options()const override;
+  bool load(const IOProperties& properties) override;
 
 protected:
   QScopedPointer<qSlicerDosxyzNrc3dDoseFileReaderPluginPrivate> d_ptr;

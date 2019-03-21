@@ -39,18 +39,18 @@ class Q_SLICER_QTMODULES_BEAMS_EXPORT qSlicerBeamsModuleWidget :
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerBeamsModuleWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerBeamsModuleWidget();
+  ~qSlicerBeamsModuleWidget() override;
 
-  virtual void enter();
+  void enter() override;
 
   /// Support of node editing. Selects node in user interface that the user wants to edit
-  virtual bool setEditedNode(vtkMRMLNode* node, QString role=QString(), QString context=QString());
+  bool setEditedNode(vtkMRMLNode* node, QString role=QString(), QString context=QString()) override;
   /// Return a higher confidence value (0.6) for beam nodes to prevent beams to be opened by Models
-  virtual double nodeEditable(vtkMRMLNode* node);
+  double nodeEditable(vtkMRMLNode* node) override;
 
 public slots:
   /// Set the current MRML scene to the widget
-  virtual void setMRMLScene(vtkMRMLScene*);
+  void setMRMLScene(vtkMRMLScene*) override;
 
   /// Process loaded scene
   void onSceneImportedEvent();
@@ -83,7 +83,7 @@ protected:
   QScopedPointer<qSlicerBeamsModuleWidgetPrivate> d_ptr;
 
 protected:
-  virtual void setup();
+  void setup() override;
   void onEnter();
 
 private:

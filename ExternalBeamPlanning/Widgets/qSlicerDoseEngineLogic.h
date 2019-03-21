@@ -52,7 +52,7 @@ public:
   /// Constructor
   explicit qSlicerDoseEngineLogic(QObject* parent=nullptr);
   /// Destructor
-  virtual ~qSlicerDoseEngineLogic();
+  ~qSlicerDoseEngineLogic() override;
 
 public:
   /// Set the current MRML scene to the widget

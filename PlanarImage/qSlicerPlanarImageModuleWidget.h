@@ -39,14 +39,14 @@ class Q_SLICER_QTMODULES_PLANARIMAGE_EXPORT qSlicerPlanarImageModuleWidget :
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerPlanarImageModuleWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerPlanarImageModuleWidget();
+  ~qSlicerPlanarImageModuleWidget() override;
 
 public slots:
 
 protected:
   QScopedPointer<qSlicerPlanarImageModuleWidgetPrivate> d_ptr;
 
-  virtual void setup();
+  void setup() override;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerPlanarImageModuleWidget);

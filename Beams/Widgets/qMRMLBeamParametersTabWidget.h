@@ -58,7 +58,7 @@ public:
   /// Constructor
   explicit qMRMLBeamParametersTabWidget(QWidget* parent = nullptr);
   /// Destructor
-  virtual ~qMRMLBeamParametersTabWidget();
+  ~qMRMLBeamParametersTabWidget() override;
 
   /// Get RT beam MRML node
   Q_INVOKABLE vtkMRMLNode* beamNode();

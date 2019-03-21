@@ -103,7 +103,7 @@ protected:
 
 protected:
   vtkSlicerIECTransformLogic();
-  virtual ~vtkSlicerIECTransformLogic();
+  ~vtkSlicerIECTransformLogic() override;
 
 private:
   vtkSlicerIECTransformLogic(const vtkSlicerIECTransformLogic&); // Not implemented

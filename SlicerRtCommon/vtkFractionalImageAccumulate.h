@@ -48,7 +48,7 @@ public:
     
 protected:
   vtkFractionalImageAccumulate();
-  virtual ~vtkFractionalImageAccumulate();
+  ~vtkFractionalImageAccumulate() override;
 
   virtual int RequestData(vtkInformation* request,
                           vtkInformationVector** inputVector,

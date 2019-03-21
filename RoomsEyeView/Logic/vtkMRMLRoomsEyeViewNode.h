@@ -40,19 +40,19 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /// Create instance of a GAD node. 
-  virtual vtkMRMLNode* CreateNodeInstance();
+  vtkMRMLNode* CreateNodeInstance() override;
 
   /// Set node attributes from name/value pairs 
-  virtual void ReadXMLAttributes( const char** atts);
+  void ReadXMLAttributes( const char** atts) override;
 
   /// Write this node's information to a MRML file in XML format. 
-  virtual void WriteXML(ostream& of, int indent);
+  void WriteXML(ostream& of, int indent) override;
 
   /// Copy the node's attributes to this object 
-  virtual void Copy(vtkMRMLNode *node);
+  void Copy(vtkMRMLNode *node) override;
 
   /// Get unique node XML tag name (like Volume, Model) 
-  virtual const char* GetNodeTagName() {return "RoomsEyeView";};
+  const char* GetNodeTagName() override { return "RoomsEyeView"; };
 
 public:
   vtkMRMLLinearTransformNode* GetGantryToFixedReferenceTransformNode();

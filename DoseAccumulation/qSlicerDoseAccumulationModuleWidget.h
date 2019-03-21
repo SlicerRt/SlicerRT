@@ -43,13 +43,13 @@ class Q_SLICER_QTMODULES_DOSEACCUMULATION_EXPORT qSlicerDoseAccumulationModuleWi
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerDoseAccumulationModuleWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerDoseAccumulationModuleWidget();
+  ~qSlicerDoseAccumulationModuleWidget() override;
 
-  virtual void enter();
+  void enter() override;
 
 public slots:
   /// Set the current MRML scene to the widget
-  virtual void setMRMLScene(vtkMRMLScene*);
+  void setMRMLScene(vtkMRMLScene*) override;
 
   /// Process loaded scene
   void onSceneImportedEvent();
@@ -79,7 +79,7 @@ protected:
   QScopedPointer<qSlicerDoseAccumulationModuleWidgetPrivate> d_ptr;
 
 protected:
-  virtual void setup();
+  void setup() override;
   void onEnter();
 
 protected:

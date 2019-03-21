@@ -39,13 +39,13 @@ class Q_SLICER_QTMODULES_SEGMENTCOMPARISON_EXPORT qSlicerSegmentComparisonModule
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerSegmentComparisonModuleWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerSegmentComparisonModuleWidget();
+  ~qSlicerSegmentComparisonModuleWidget() override;
 
-  virtual void enter();
+  void enter() override;
 
 public slots:
   /// Set the current MRML scene to the widget
-  virtual void setMRMLScene(vtkMRMLScene*);
+  void setMRMLScene(vtkMRMLScene*) override;
 
   /// Process loaded scene
   void onSceneImportedEvent();
@@ -83,7 +83,7 @@ protected:
 protected:
   QScopedPointer<qSlicerSegmentComparisonModuleWidgetPrivate> d_ptr;
   
-  virtual void setup();
+  void setup() override;
   void onEnter();
 
 private:

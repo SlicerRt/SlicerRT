@@ -59,7 +59,7 @@ protected:
 
 protected:
   vtkSlicerDoseVolumeHistogramComparisonLogic();
-  virtual ~vtkSlicerDoseVolumeHistogramComparisonLogic();
+  ~vtkSlicerDoseVolumeHistogramComparisonLogic() override;
 };
 
 #endif

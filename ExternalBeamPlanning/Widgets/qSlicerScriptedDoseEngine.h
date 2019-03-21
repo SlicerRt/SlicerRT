@@ -51,7 +51,7 @@ class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerScriptedDoseEng
 public:
   typedef qSlicerAbstractDoseEngine Superclass;
   qSlicerScriptedDoseEngine(QObject* parent = nullptr);
-  virtual ~qSlicerScriptedDoseEngine();
+  ~qSlicerScriptedDoseEngine() override;
 
   Q_INVOKABLE QString pythonSource()const;
 
@@ -64,7 +64,7 @@ public:
 
   /// Set the name property value.
   /// \sa name
-  virtual void setName(QString name);
+  void setName(QString name) override;
 
 // Dose calculation related functions (API functions to call from the subclass)
 protected:
@@ -81,7 +81,7 @@ protected:
 
   /// Define engine-specific beam parameters.
   /// This is the method that needs to be implemented in each engine.
-  virtual void defineBeamParameters();
+  void defineBeamParameters() override;
 
 protected:
   QScopedPointer<qSlicerScriptedDoseEnginePrivate> d_ptr;

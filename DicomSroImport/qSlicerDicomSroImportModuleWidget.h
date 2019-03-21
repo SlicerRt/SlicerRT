@@ -40,7 +40,7 @@ public:
 
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerDicomSroImportModuleWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerDicomSroImportModuleWidget();
+  ~qSlicerDicomSroImportModuleWidget() override;
 
 public slots:
   void LoadDicomSro();
@@ -48,7 +48,7 @@ public slots:
 protected:
   QScopedPointer<qSlicerDicomSroImportModuleWidgetPrivate> d_ptr;
   
-  virtual void setup();
+  void setup() override;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDicomSroImportModuleWidget);

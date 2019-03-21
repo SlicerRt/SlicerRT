@@ -40,13 +40,13 @@ class Q_SLICER_QTMODULES_SEGMENTMORPHOLOGY_EXPORT qSlicerSegmentMorphologyModule
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerSegmentMorphologyModuleWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerSegmentMorphologyModuleWidget();
+  ~qSlicerSegmentMorphologyModuleWidget() override;
 
-  virtual void enter();
+  void enter() override;
 
 public slots:
   /// Set the current MRML scene to the widget
-  virtual void setMRMLScene(vtkMRMLScene*);
+  void setMRMLScene(vtkMRMLScene*) override;
 
   /// Process loaded scene
   void onSceneImportedEvent();
@@ -85,7 +85,7 @@ protected slots:
 protected:
   QScopedPointer<qSlicerSegmentMorphologyModuleWidgetPrivate> d_ptr;
   
-  virtual void setup();
+  void setup() override;
   void onEnter();
 
 private:

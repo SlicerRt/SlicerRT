@@ -55,7 +55,7 @@ public:
   /// Constructor
   explicit qMRMLBeamsTableView(QWidget* parent = nullptr);
   /// Destructor
-  virtual ~qMRMLBeamsTableView();
+  ~qMRMLBeamsTableView() override;
 
   /// Get plan MRML node
   Q_INVOKABLE vtkMRMLNode* planNode();
@@ -94,7 +94,7 @@ protected slots:
   void updateBeamTable();
 
   /// To prevent accidentally moving out of the widget when pressing up/down arrows
-  virtual bool eventFilter(QObject* target, QEvent* event);
+  bool eventFilter(QObject* target, QEvent* event) override;
 
 protected:
   QScopedPointer<qMRMLBeamsTableViewPrivate> d_ptr;

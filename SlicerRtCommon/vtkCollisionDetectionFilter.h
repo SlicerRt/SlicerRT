@@ -172,7 +172,7 @@ protected:
   ~vtkCollisionDetectionFilter();
 
   // Usual data generation method
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
   vtkOBBTree *tree0;
   vtkOBBTree *tree1;

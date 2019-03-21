@@ -38,11 +38,11 @@ class Q_SLICER_VFFFILEREADER_EXPORT qSlicerVffFileReaderPluginWidget :
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerVffFileReaderPluginWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerVffFileReaderPluginWidget();
+  ~qSlicerVffFileReaderPluginWidget() override;
 
 protected:
   QScopedPointer<qSlicerVffFileReaderPluginWidgetPrivate> d_ptr;
-  virtual void setup();
+  void setup() override;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerVffFileReaderPluginWidget);

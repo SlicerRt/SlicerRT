@@ -37,11 +37,11 @@ class Q_SLICER_DOSXYZNRC3DDOSEFILEREADER_EXPORT qSlicerDosxyzNrc3dDoseFileReader
 public:
   typedef qSlicerAbstractModuleWidget Superclass;
   qSlicerDosxyzNrc3dDoseFileReaderPluginWidget(QWidget *parent=nullptr);
-  virtual ~qSlicerDosxyzNrc3dDoseFileReaderPluginWidget();
+  ~qSlicerDosxyzNrc3dDoseFileReaderPluginWidget() override;
 
 protected:
   QScopedPointer<qSlicerDosxyzNrc3dDoseFileReaderPluginWidgetPrivate> d_ptr;
-  virtual void setup();
+  void setup() override;
 
 private:
   Q_DECLARE_PRIVATE(qSlicerDosxyzNrc3dDoseFileReaderPluginWidget);
