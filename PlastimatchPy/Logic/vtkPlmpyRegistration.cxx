@@ -446,7 +446,7 @@ void vtkPlmpyRegistration::ApplyWarp(
   Plm_image_header plastimatchImageHeader (fixedImage);
   plm_warp (warpedImage, &vectorFieldFromTransformation, 
     inputTransformation, &plastimatchImageHeader,
-    imageToWarp, defaultValue, useItk, interpolationLinear);
+    imageToWarp, defaultValue, false, useItk, interpolationLinear);
   this->MovingImageToFixedImageVectorField = vectorFieldFromTransformation;
 }
 

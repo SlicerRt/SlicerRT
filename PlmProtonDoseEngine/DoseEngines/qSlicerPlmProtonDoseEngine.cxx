@@ -31,7 +31,6 @@
 #include "itk_image_accumulate.h"
 #include "itk_image_create.h"
 #include "itk_image_save.h"
-#include "itk_image_scale.h"
 #include "itk_image_stats.h"
 #include "plm_image.h"
 #include "plm_image_header.h"
