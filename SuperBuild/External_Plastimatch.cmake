@@ -26,7 +26,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "fba14ffb45ed0d69aa283dda037aa6a3531c43f1"
+    "ad5db847f57b302e34fa69ce3787c7d3900f74ae"
     QUIET
     )
 
@@ -65,15 +65,16 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       # Install directories
       # NA
       # Dependencies (satisfied by Slicer)
-     -DDCMTK_DIR:STRING=${DCMTK_DIR}  # XXX What happen is Slicer is built without DICOM support ?
-     -DITK_DIR:STRING=${ITK_DIR}
-     -DVTK_DIR:STRING=${VTK_DIR}
+      -DDCMTK_DIR:STRING=${DCMTK_DIR}  # XXX What happen is Slicer is built without DICOM support ?
+      -DITK_DIR:STRING=${ITK_DIR}
+      -DVTK_DIR:STRING=${VTK_DIR}
       # Options
       -DBUILD_SHARED_LIBS:BOOL=OFF
       -DBUILD_TESTING:BOOL=OFF
       -DPLM_CONFIG_ENABLE_CUDA:BOOL=OFF  # CUDA build is disabled until ticket #226 can be resolved.
       -DPLM_CONFIG_LIBRARY_BUILD:BOOL=ON
       -DPLM_CONFIG_INSTALL_LIBRARIES:BOOL=ON
+      -DPLM_PREFER_SYSTEM_DLIB:BOOL=OFF
       -DPLMLIB_CONFIG_ENABLE_REGISTER:BOOL=TRUE
       -DPLMLIB_CONFIG_ENABLE_DOSE:BOOL=TRUE
       ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS}
