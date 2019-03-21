@@ -46,9 +46,7 @@ public:
 // qSlicerDoseAccumulationModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerDoseAccumulationModulePrivate::qSlicerDoseAccumulationModulePrivate()
-{
-}
+qSlicerDoseAccumulationModulePrivate::qSlicerDoseAccumulationModulePrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerDoseAccumulationModule methods
@@ -67,9 +65,7 @@ QStringList qSlicerDoseAccumulationModule::categories()const
 }
 
 //-----------------------------------------------------------------------------
-qSlicerDoseAccumulationModule::~qSlicerDoseAccumulationModule()
-{
-}
+qSlicerDoseAccumulationModule::~qSlicerDoseAccumulationModule() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerDoseAccumulationModule::helpText()const

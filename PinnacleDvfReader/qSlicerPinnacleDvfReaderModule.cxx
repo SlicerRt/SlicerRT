@@ -51,9 +51,7 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDvfReaderModulePrivate::qSlicerPinnacleDvfReaderModulePrivate()
-{
-}
+qSlicerPinnacleDvfReaderModulePrivate::qSlicerPinnacleDvfReaderModulePrivate() = default;
 
 
 //-----------------------------------------------------------------------------
@@ -64,9 +62,7 @@ qSlicerPinnacleDvfReaderModule::qSlicerPinnacleDvfReaderModule(QObject* _parent)
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDvfReaderModule::~qSlicerPinnacleDvfReaderModule()
-{
-}
+qSlicerPinnacleDvfReaderModule::~qSlicerPinnacleDvfReaderModule() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerPinnacleDvfReaderModule::helpText()const

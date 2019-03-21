@@ -35,9 +35,7 @@ public:
 // qSlicerDicomRtImportExportModuleWidgetPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerDicomRtImportExportModuleWidgetPrivate::qSlicerDicomRtImportExportModuleWidgetPrivate()
-{
-}
+qSlicerDicomRtImportExportModuleWidgetPrivate::qSlicerDicomRtImportExportModuleWidgetPrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerDicomRtImportExportModuleWidget methods
@@ -50,9 +48,7 @@ qSlicerDicomRtImportExportModuleWidget::qSlicerDicomRtImportExportModuleWidget(Q
 }
 
 //-----------------------------------------------------------------------------
-qSlicerDicomRtImportExportModuleWidget::~qSlicerDicomRtImportExportModuleWidget()
-{
-}
+qSlicerDicomRtImportExportModuleWidget::~qSlicerDicomRtImportExportModuleWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerDicomRtImportExportModuleWidget::setup()

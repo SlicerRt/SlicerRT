@@ -37,9 +37,7 @@ public:
 // qSlicerPlastimatchPyModuleWidgetPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerPlastimatchPyModuleWidgetPrivate::qSlicerPlastimatchPyModuleWidgetPrivate()
-{
-}
+qSlicerPlastimatchPyModuleWidgetPrivate::qSlicerPlastimatchPyModuleWidgetPrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerPlastimatchPyModuleWidget methods
@@ -52,9 +50,7 @@ qSlicerPlastimatchPyModuleWidget::qSlicerPlastimatchPyModuleWidget(QWidget* _par
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPlastimatchPyModuleWidget::~qSlicerPlastimatchPyModuleWidget()
-{
-}
+qSlicerPlastimatchPyModuleWidget::~qSlicerPlastimatchPyModuleWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerPlastimatchPyModuleWidget::setup()

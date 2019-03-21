@@ -50,14 +50,10 @@
 vtkStandardNewMacro(vtkSlicerSegmentMorphologyModuleLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerSegmentMorphologyModuleLogic::vtkSlicerSegmentMorphologyModuleLogic()
-{
-}
+vtkSlicerSegmentMorphologyModuleLogic::vtkSlicerSegmentMorphologyModuleLogic() = default;
 
 //----------------------------------------------------------------------------
-vtkSlicerSegmentMorphologyModuleLogic::~vtkSlicerSegmentMorphologyModuleLogic()
-{
-}
+vtkSlicerSegmentMorphologyModuleLogic::~vtkSlicerSegmentMorphologyModuleLogic() = default;
 
 //----------------------------------------------------------------------------
 void vtkSlicerSegmentMorphologyModuleLogic::PrintSelf(ostream& os, vtkIndent indent)

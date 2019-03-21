@@ -82,9 +82,7 @@ vtkSlicerDicomRtWriter::vtkSlicerDicomRtWriter()
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerDicomRtWriter::~vtkSlicerDicomRtWriter()
-{
-}
+vtkSlicerDicomRtWriter::~vtkSlicerDicomRtWriter() = default;
 
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtWriter::PrintSelf(ostream& os, vtkIndent indent)

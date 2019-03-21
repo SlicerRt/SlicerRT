@@ -71,9 +71,8 @@ vtkPlmpyVectorFieldAnalysis::vtkPlmpyVectorFieldAnalysis()
 
 }
 
-vtkPlmpyVectorFieldAnalysis::~vtkPlmpyVectorFieldAnalysis()
-{
-}
+//----------------------------------------------------------------------------
+vtkPlmpyVectorFieldAnalysis::~vtkPlmpyVectorFieldAnalysis() = default;
 
 //----------------------------------------------------------------------------
 void vtkPlmpyVectorFieldAnalysis::PrintSelf(ostream& os, vtkIndent indent)

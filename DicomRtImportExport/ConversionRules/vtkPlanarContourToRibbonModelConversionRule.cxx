@@ -90,9 +90,7 @@ vtkPlanarContourToRibbonModelConversionRule::vtkPlanarContourToRibbonModelConver
 }
 
 //----------------------------------------------------------------------------
-vtkPlanarContourToRibbonModelConversionRule::~vtkPlanarContourToRibbonModelConversionRule()
-{
-}
+vtkPlanarContourToRibbonModelConversionRule::~vtkPlanarContourToRibbonModelConversionRule() = default;
 
 //----------------------------------------------------------------------------
 unsigned int vtkPlanarContourToRibbonModelConversionRule::GetConversionCost(vtkDataObject* vtkNotUsed(sourceRepresentation)/*=nullptr*/, vtkDataObject* vtkNotUsed(targetRepresentation)/*=nullptr*/)

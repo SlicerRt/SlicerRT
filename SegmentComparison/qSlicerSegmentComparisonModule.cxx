@@ -43,9 +43,7 @@ public:
 // qSlicerSegmentComparisonModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentComparisonModulePrivate::qSlicerSegmentComparisonModulePrivate()
-{
-}
+qSlicerSegmentComparisonModulePrivate::qSlicerSegmentComparisonModulePrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerSegmentComparisonModule methods
@@ -58,9 +56,7 @@ qSlicerSegmentComparisonModule::qSlicerSegmentComparisonModule(QObject* _parent)
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentComparisonModule::~qSlicerSegmentComparisonModule()
-{
-}
+qSlicerSegmentComparisonModule::~qSlicerSegmentComparisonModule() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerSegmentComparisonModule::helpText()const

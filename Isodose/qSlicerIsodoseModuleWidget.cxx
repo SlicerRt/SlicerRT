@@ -196,9 +196,7 @@ qSlicerIsodoseModuleWidget::qSlicerIsodoseModuleWidget(QWidget* _parent)
 }
 
 //-----------------------------------------------------------------------------
-qSlicerIsodoseModuleWidget::~qSlicerIsodoseModuleWidget()
-{
-}
+qSlicerIsodoseModuleWidget::~qSlicerIsodoseModuleWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerIsodoseModuleWidget::setMRMLScene(vtkMRMLScene* scene)

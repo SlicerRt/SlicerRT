@@ -33,9 +33,7 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderPluginWidgetPrivate::qSlicerVffFileReaderPluginWidgetPrivate()
-{
-}
+qSlicerVffFileReaderPluginWidgetPrivate::qSlicerVffFileReaderPluginWidgetPrivate() = default;
 
 //-----------------------------------------------------------------------------
 qSlicerVffFileReaderPluginWidget::qSlicerVffFileReaderPluginWidget(QWidget* parentWidget)
@@ -45,9 +43,7 @@ qSlicerVffFileReaderPluginWidget::qSlicerVffFileReaderPluginWidget(QWidget* pare
 }
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderPluginWidget::~qSlicerVffFileReaderPluginWidget()
-{
-}
+qSlicerVffFileReaderPluginWidget::~qSlicerVffFileReaderPluginWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerVffFileReaderPluginWidget::setup()

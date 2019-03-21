@@ -87,7 +87,6 @@ qSlicerAbstractDoseEnginePrivate::qSlicerAbstractDoseEnginePrivate(qSlicerAbstra
 {
 }
 
-
 //-----------------------------------------------------------------------------
 // qSlicerAbstractDoseEngine methods
 
@@ -100,9 +99,7 @@ qSlicerAbstractDoseEngine::qSlicerAbstractDoseEngine(QObject* parent)
 }
 
 //----------------------------------------------------------------------------
-qSlicerAbstractDoseEngine::~qSlicerAbstractDoseEngine()
-{
-}
+qSlicerAbstractDoseEngine::~qSlicerAbstractDoseEngine() = default;
 
 //----------------------------------------------------------------------------
 QString qSlicerAbstractDoseEngine::name() const

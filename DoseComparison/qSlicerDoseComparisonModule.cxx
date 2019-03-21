@@ -47,9 +47,7 @@ public:
 // qSlicerDoseComparisonModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerDoseComparisonModulePrivate::qSlicerDoseComparisonModulePrivate()
-{
-}
+qSlicerDoseComparisonModulePrivate::qSlicerDoseComparisonModulePrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerDoseComparisonModule methods
@@ -62,9 +60,7 @@ qSlicerDoseComparisonModule::qSlicerDoseComparisonModule(QObject* _parent)
 }
 
 //-----------------------------------------------------------------------------
-qSlicerDoseComparisonModule::~qSlicerDoseComparisonModule()
-{
-}
+qSlicerDoseComparisonModule::~qSlicerDoseComparisonModule() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerDoseComparisonModule::helpText()const

@@ -59,9 +59,7 @@ public:
 // qSlicerExternalBeamPlanningModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerExternalBeamPlanningModulePrivate::qSlicerExternalBeamPlanningModulePrivate()
-{
-}
+qSlicerExternalBeamPlanningModulePrivate::qSlicerExternalBeamPlanningModulePrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerExternalBeamPlanningModule methods
@@ -74,9 +72,7 @@ qSlicerExternalBeamPlanningModule::qSlicerExternalBeamPlanningModule(QObject* _p
 }
 
 //-----------------------------------------------------------------------------
-qSlicerExternalBeamPlanningModule::~qSlicerExternalBeamPlanningModule()
-{
-}
+qSlicerExternalBeamPlanningModule::~qSlicerExternalBeamPlanningModule() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerExternalBeamPlanningModule::helpText()const

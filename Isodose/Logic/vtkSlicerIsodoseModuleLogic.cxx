@@ -73,14 +73,10 @@ const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_COLOR_TABLE_NODE_NAME_POS
 vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerIsodoseModuleLogic::vtkSlicerIsodoseModuleLogic()
-{
-}
+vtkSlicerIsodoseModuleLogic::vtkSlicerIsodoseModuleLogic() = default;
 
 //----------------------------------------------------------------------------
-vtkSlicerIsodoseModuleLogic::~vtkSlicerIsodoseModuleLogic()
-{
-}
+vtkSlicerIsodoseModuleLogic::~vtkSlicerIsodoseModuleLogic() = default;
 
 //----------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::PrintSelf(ostream& os, vtkIndent indent)

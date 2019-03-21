@@ -33,14 +33,10 @@
 vtkStandardNewMacro(vtkSlicerAutoWindowLevelLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerAutoWindowLevelLogic::vtkSlicerAutoWindowLevelLogic()
-{
-}
+vtkSlicerAutoWindowLevelLogic::vtkSlicerAutoWindowLevelLogic() = default;
 
 //----------------------------------------------------------------------------
-vtkSlicerAutoWindowLevelLogic::~vtkSlicerAutoWindowLevelLogic()
-{
-}
+vtkSlicerAutoWindowLevelLogic::~vtkSlicerAutoWindowLevelLogic() = default;
 
 //---------------------------------------------------------------------------
 void vtkSlicerAutoWindowLevelLogic::ComputeWindowLevel(vtkMRMLScalarVolumeNode* inputScalarVolumeNode)

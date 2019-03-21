@@ -76,9 +76,7 @@ qSlicerSubjectHierarchyGammaPluginPrivate::qSlicerSubjectHierarchyGammaPluginPri
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyGammaPluginPrivate::~qSlicerSubjectHierarchyGammaPluginPrivate()
-{
-}
+qSlicerSubjectHierarchyGammaPluginPrivate::~qSlicerSubjectHierarchyGammaPluginPrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerSubjectHierarchyGammaPlugin methods
@@ -92,9 +90,7 @@ qSlicerSubjectHierarchyGammaPlugin::qSlicerSubjectHierarchyGammaPlugin(QObject* 
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyGammaPlugin::~qSlicerSubjectHierarchyGammaPlugin()
-{
-}
+qSlicerSubjectHierarchyGammaPlugin::~qSlicerSubjectHierarchyGammaPlugin() = default;
 
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyGammaPlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const

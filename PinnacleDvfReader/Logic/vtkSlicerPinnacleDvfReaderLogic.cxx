@@ -44,14 +44,10 @@
 vtkStandardNewMacro(vtkSlicerPinnacleDvfReaderLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerPinnacleDvfReaderLogic::vtkSlicerPinnacleDvfReaderLogic()
-{
-}
+vtkSlicerPinnacleDvfReaderLogic::vtkSlicerPinnacleDvfReaderLogic() = default;
 
 //----------------------------------------------------------------------------
-vtkSlicerPinnacleDvfReaderLogic::~vtkSlicerPinnacleDvfReaderLogic()
-{
-}
+vtkSlicerPinnacleDvfReaderLogic::~vtkSlicerPinnacleDvfReaderLogic() = default;
 
 //----------------------------------------------------------------------------
 void vtkSlicerPinnacleDvfReaderLogic::PrintSelf(ostream& os, vtkIndent indent)

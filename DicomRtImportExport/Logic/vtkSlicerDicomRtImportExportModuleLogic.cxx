@@ -130,7 +130,7 @@ class vtkSlicerDicomRtImportExportModuleLogic::vtkInternal
 {
 public:
   vtkInternal(vtkSlicerDicomRtImportExportModuleLogic* external);
-  ~vtkInternal() { };
+  ~vtkInternal()  = default;
 
   /// Examine RT Dose dataset and assemble name and referenced SOP instances
   void ExamineRtDoseDataset(DcmDataset* dataset, OFString &name, std::vector<OFString> &referencedSOPInstanceUIDs);

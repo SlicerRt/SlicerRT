@@ -96,9 +96,7 @@ qSlicerDoseAccumulationModuleWidget::qSlicerDoseAccumulationModuleWidget(QWidget
 }
 
 //-----------------------------------------------------------------------------
-qSlicerDoseAccumulationModuleWidget::~qSlicerDoseAccumulationModuleWidget()
-{
-}
+qSlicerDoseAccumulationModuleWidget::~qSlicerDoseAccumulationModuleWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerDoseAccumulationModuleWidget::setMRMLScene(vtkMRMLScene* scene)

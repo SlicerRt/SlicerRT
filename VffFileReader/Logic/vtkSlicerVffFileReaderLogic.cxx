@@ -49,14 +49,10 @@
 vtkStandardNewMacro(vtkSlicerVffFileReaderLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerVffFileReaderLogic::vtkSlicerVffFileReaderLogic()
-{
-}
+vtkSlicerVffFileReaderLogic::vtkSlicerVffFileReaderLogic() = default;
 
 //----------------------------------------------------------------------------
-vtkSlicerVffFileReaderLogic::~vtkSlicerVffFileReaderLogic()
-{
-}
+vtkSlicerVffFileReaderLogic::~vtkSlicerVffFileReaderLogic() = default;
 
 //----------------------------------------------------------------------------
 std::string vtkSlicerVffFileReaderLogic::TrimSpacesFromEndsOfString(std::string &stringToTrim)

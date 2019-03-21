@@ -48,9 +48,7 @@ public:
 // qSlicerRoomsEyeViewModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerRoomsEyeViewModulePrivate::qSlicerRoomsEyeViewModulePrivate()
-{
-}
+qSlicerRoomsEyeViewModulePrivate::qSlicerRoomsEyeViewModulePrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerRoomsEyeViewModule methods
@@ -69,9 +67,7 @@ QStringList qSlicerRoomsEyeViewModule::categories()const
 }
 
 //-----------------------------------------------------------------------------
-qSlicerRoomsEyeViewModule::~qSlicerRoomsEyeViewModule()
-{
-}
+qSlicerRoomsEyeViewModule::~qSlicerRoomsEyeViewModule() = default;
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerRoomsEyeViewModule::dependencies()const

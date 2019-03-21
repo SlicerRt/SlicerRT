@@ -42,14 +42,10 @@
 vtkStandardNewMacro(vtkSlicerBeamsModuleLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerBeamsModuleLogic::vtkSlicerBeamsModuleLogic()
-{
-}
+vtkSlicerBeamsModuleLogic::vtkSlicerBeamsModuleLogic() = default;
 
 //----------------------------------------------------------------------------
-vtkSlicerBeamsModuleLogic::~vtkSlicerBeamsModuleLogic()
-{
-}
+vtkSlicerBeamsModuleLogic::~vtkSlicerBeamsModuleLogic() = default;
 
 //----------------------------------------------------------------------------
 void vtkSlicerBeamsModuleLogic::PrintSelf(ostream& os, vtkIndent indent)

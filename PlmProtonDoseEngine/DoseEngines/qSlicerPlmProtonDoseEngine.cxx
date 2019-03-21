@@ -62,9 +62,7 @@ qSlicerPlmProtonDoseEngine::qSlicerPlmProtonDoseEngine(QObject* parent)
 }
 
 //----------------------------------------------------------------------------
-qSlicerPlmProtonDoseEngine::~qSlicerPlmProtonDoseEngine()
-{
-}
+qSlicerPlmProtonDoseEngine::~qSlicerPlmProtonDoseEngine() = default;
 
 //---------------------------------------------------------------------------
 void qSlicerPlmProtonDoseEngine::defineBeamParameters()

@@ -39,14 +39,10 @@
 vtkStandardNewMacro(vtkSlicerDoseVolumeHistogramComparisonLogic);
 
 //-----------------------------------------------------------------------------
-vtkSlicerDoseVolumeHistogramComparisonLogic::vtkSlicerDoseVolumeHistogramComparisonLogic()
-{
-}
+vtkSlicerDoseVolumeHistogramComparisonLogic::vtkSlicerDoseVolumeHistogramComparisonLogic() = default;
 
 //-----------------------------------------------------------------------------
-vtkSlicerDoseVolumeHistogramComparisonLogic::~vtkSlicerDoseVolumeHistogramComparisonLogic()
-{
-}
+vtkSlicerDoseVolumeHistogramComparisonLogic::~vtkSlicerDoseVolumeHistogramComparisonLogic() = default;
 
 //-----------------------------------------------------------------------------
 double vtkSlicerDoseVolumeHistogramComparisonLogic::CompareDvhTables(vtkMRMLTableNode* dvh1TableNode, vtkMRMLTableNode* dvh2TableNode,

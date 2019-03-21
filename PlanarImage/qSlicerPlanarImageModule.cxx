@@ -47,9 +47,7 @@ public:
 // qSlicerPlanarImageModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerPlanarImageModulePrivate::qSlicerPlanarImageModulePrivate()
-{
-}
+qSlicerPlanarImageModulePrivate::qSlicerPlanarImageModulePrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerPlanarImageModule methods
@@ -68,9 +66,7 @@ QStringList qSlicerPlanarImageModule::categories()const
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPlanarImageModule::~qSlicerPlanarImageModule()
-{
-}
+qSlicerPlanarImageModule::~qSlicerPlanarImageModule() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerPlanarImageModule::helpText()const

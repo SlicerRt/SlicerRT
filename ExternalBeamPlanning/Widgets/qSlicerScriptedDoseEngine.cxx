@@ -74,9 +74,7 @@ qSlicerScriptedDoseEnginePrivate::qSlicerScriptedDoseEnginePrivate()
 }
 
 //-----------------------------------------------------------------------------
-qSlicerScriptedDoseEnginePrivate::~qSlicerScriptedDoseEnginePrivate()
-{
-}
+qSlicerScriptedDoseEnginePrivate::~qSlicerScriptedDoseEnginePrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerScriptedDoseEngine methods
@@ -90,9 +88,7 @@ qSlicerScriptedDoseEngine::qSlicerScriptedDoseEngine(QObject *parent)
 }
 
 //-----------------------------------------------------------------------------
-qSlicerScriptedDoseEngine::~qSlicerScriptedDoseEngine()
-{
-}
+qSlicerScriptedDoseEngine::~qSlicerScriptedDoseEngine() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerScriptedDoseEngine::pythonSource()const

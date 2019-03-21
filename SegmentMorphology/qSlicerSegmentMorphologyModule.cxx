@@ -44,9 +44,7 @@ public:
 // qSlicerSegmentMorphologyModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentMorphologyModulePrivate::qSlicerSegmentMorphologyModulePrivate()
-{
-}
+qSlicerSegmentMorphologyModulePrivate::qSlicerSegmentMorphologyModulePrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerSegmentMorphologyModule methods
@@ -59,9 +57,7 @@ qSlicerSegmentMorphologyModule::qSlicerSegmentMorphologyModule(QObject* _parent)
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentMorphologyModule::~qSlicerSegmentMorphologyModule()
-{
-}
+qSlicerSegmentMorphologyModule::~qSlicerSegmentMorphologyModule() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerSegmentMorphologyModule::helpText()const

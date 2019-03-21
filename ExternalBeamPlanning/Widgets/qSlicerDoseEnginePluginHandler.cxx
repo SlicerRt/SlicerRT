@@ -33,7 +33,7 @@ qSlicerDoseEnginePluginHandler *qSlicerDoseEnginePluginHandler::m_Instance = nul
 class qSlicerDoseEnginePluginHandlerCleanup
 {
 public:
-  inline void use() { }
+  inline void use() { };
 
   ~qSlicerDoseEnginePluginHandlerCleanup()
   {

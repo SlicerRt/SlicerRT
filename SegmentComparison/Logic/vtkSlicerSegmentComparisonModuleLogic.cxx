@@ -85,7 +85,7 @@ vtkStandardNewMacro(vtkSlicerSegmentComparisonModuleLogicPrivate);
 
 //-----------------------------------------------------------------------------
 vtkSlicerSegmentComparisonModuleLogicPrivate::vtkSlicerSegmentComparisonModuleLogicPrivate()
-: Logic(nullptr)
+  : Logic(nullptr)
 {
 }
 

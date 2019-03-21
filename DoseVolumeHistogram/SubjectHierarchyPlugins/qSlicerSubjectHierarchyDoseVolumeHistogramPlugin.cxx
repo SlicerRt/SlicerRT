@@ -90,9 +90,7 @@ qSlicerSubjectHierarchyDoseVolumeHistogramPluginPrivate::qSlicerSubjectHierarchy
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyDoseVolumeHistogramPluginPrivate::~qSlicerSubjectHierarchyDoseVolumeHistogramPluginPrivate()
-{
-}
+qSlicerSubjectHierarchyDoseVolumeHistogramPluginPrivate::~qSlicerSubjectHierarchyDoseVolumeHistogramPluginPrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerSubjectHierarchyDoseVolumeHistogramPluginPrivate methods
@@ -106,9 +104,7 @@ qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::qSlicerSubjectHierarchyDoseVol
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::~qSlicerSubjectHierarchyDoseVolumeHistogramPlugin()
-{
-}
+qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::~qSlicerSubjectHierarchyDoseVolumeHistogramPlugin() = default;
 
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const

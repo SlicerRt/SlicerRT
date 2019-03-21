@@ -57,9 +57,7 @@ qSlicerVffFileReaderOptionsWidget::qSlicerVffFileReaderOptionsWidget(QWidget* pa
 }
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderOptionsWidget::~qSlicerVffFileReaderOptionsWidget()
-{
-}
+qSlicerVffFileReaderOptionsWidget::~qSlicerVffFileReaderOptionsWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerVffFileReaderOptionsWidget::updateProperties()

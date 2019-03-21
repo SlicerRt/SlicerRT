@@ -65,9 +65,7 @@ qSlicerSegmentMorphologyModuleWidgetPrivate::qSlicerSegmentMorphologyModuleWidge
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentMorphologyModuleWidgetPrivate::~qSlicerSegmentMorphologyModuleWidgetPrivate()
-{
-}
+qSlicerSegmentMorphologyModuleWidgetPrivate::~qSlicerSegmentMorphologyModuleWidgetPrivate() = default;
 
 //-----------------------------------------------------------------------------
 vtkSlicerSegmentMorphologyModuleLogic*
@@ -88,9 +86,7 @@ qSlicerSegmentMorphologyModuleWidget::qSlicerSegmentMorphologyModuleWidget(QWidg
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentMorphologyModuleWidget::~qSlicerSegmentMorphologyModuleWidget()
-{
-}
+qSlicerSegmentMorphologyModuleWidget::~qSlicerSegmentMorphologyModuleWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentMorphologyModuleWidget::setMRMLScene(vtkMRMLScene* scene)

@@ -59,9 +59,7 @@ public:
 // qSlicerDicomRtImportExportModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerDicomRtImportExportModulePrivate::qSlicerDicomRtImportExportModulePrivate()
-{
-}
+qSlicerDicomRtImportExportModulePrivate::qSlicerDicomRtImportExportModulePrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerDicomRtImportExportModule methods
@@ -74,9 +72,7 @@ qSlicerDicomRtImportExportModule::qSlicerDicomRtImportExportModule(QObject* _par
 }
 
 //-----------------------------------------------------------------------------
-qSlicerDicomRtImportExportModule::~qSlicerDicomRtImportExportModule()
-{
-}
+qSlicerDicomRtImportExportModule::~qSlicerDicomRtImportExportModule() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerDicomRtImportExportModule::helpText()const

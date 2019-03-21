@@ -83,9 +83,7 @@ qSlicerSegmentComparisonModuleWidget::qSlicerSegmentComparisonModuleWidget(QWidg
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSegmentComparisonModuleWidget::~qSlicerSegmentComparisonModuleWidget()
-{
-}
+qSlicerSegmentComparisonModuleWidget::~qSlicerSegmentComparisonModuleWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerSegmentComparisonModuleWidget::setMRMLScene(vtkMRMLScene* scene)

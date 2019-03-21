@@ -55,14 +55,10 @@
 vtkStandardNewMacro(vtkSlicerDicomSroImportModuleLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerDicomSroImportModuleLogic::vtkSlicerDicomSroImportModuleLogic()
-{
-}
+vtkSlicerDicomSroImportModuleLogic::vtkSlicerDicomSroImportModuleLogic() = default;
 
 //----------------------------------------------------------------------------
-vtkSlicerDicomSroImportModuleLogic::~vtkSlicerDicomSroImportModuleLogic()
-{
-}
+vtkSlicerDicomSroImportModuleLogic::~vtkSlicerDicomSroImportModuleLogic() = default;
 
 //----------------------------------------------------------------------------
 void vtkSlicerDicomSroImportModuleLogic::PrintSelf(ostream& os, vtkIndent indent)

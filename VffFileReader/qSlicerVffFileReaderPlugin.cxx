@@ -53,9 +53,7 @@ qSlicerVffFileReaderPlugin::qSlicerVffFileReaderPlugin(vtkSlicerVffFileReaderLog
 }
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderPlugin::~qSlicerVffFileReaderPlugin()
-{
-}
+qSlicerVffFileReaderPlugin::~qSlicerVffFileReaderPlugin() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerVffFileReaderPlugin::setLogic(vtkSlicerVffFileReaderLogic* logic)

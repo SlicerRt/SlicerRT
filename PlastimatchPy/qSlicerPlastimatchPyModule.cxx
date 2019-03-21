@@ -43,26 +43,20 @@ public:
 // qSlicerPlastimatchPyModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerPlastimatchPyModulePrivate
-::qSlicerPlastimatchPyModulePrivate()
-{
-}
+qSlicerPlastimatchPyModulePrivate::qSlicerPlastimatchPyModulePrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerPlastimatchPyModule methods
 
 //-----------------------------------------------------------------------------
-qSlicerPlastimatchPyModule
-::qSlicerPlastimatchPyModule(QObject* _parent)
+qSlicerPlastimatchPyModule::qSlicerPlastimatchPyModule(QObject* _parent)
   : Superclass(_parent)
   , d_ptr(new qSlicerPlastimatchPyModulePrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPlastimatchPyModule::~qSlicerPlastimatchPyModule()
-{
-}
+qSlicerPlastimatchPyModule::~qSlicerPlastimatchPyModule() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerPlastimatchPyModule::helpText()const

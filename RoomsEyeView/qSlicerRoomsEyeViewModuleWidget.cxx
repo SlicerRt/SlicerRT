@@ -71,7 +71,7 @@ protected:
   qSlicerRoomsEyeViewModuleWidget* const q_ptr;
 public:
   qSlicerRoomsEyeViewModuleWidgetPrivate(qSlicerRoomsEyeViewModuleWidget& object);
-  ~qSlicerRoomsEyeViewModuleWidgetPrivate() { };
+  ~qSlicerRoomsEyeViewModuleWidgetPrivate()  = default;
   vtkSmartPointer<vtkSlicerRoomsEyeViewModuleLogic> logic() const;
 
   bool ModuleWindowInitialized;
@@ -106,9 +106,7 @@ qSlicerRoomsEyeViewModuleWidget::qSlicerRoomsEyeViewModuleWidget(QWidget* _paren
 }
 
 //-----------------------------------------------------------------------------
-qSlicerRoomsEyeViewModuleWidget::~qSlicerRoomsEyeViewModuleWidget()
-{
-}
+qSlicerRoomsEyeViewModuleWidget::~qSlicerRoomsEyeViewModuleWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::setMRMLScene(vtkMRMLScene* scene)

@@ -51,9 +51,7 @@ public:
 // qSlicerDoseVolumeHistogramModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerDoseVolumeHistogramModulePrivate::qSlicerDoseVolumeHistogramModulePrivate()
-{
-}
+qSlicerDoseVolumeHistogramModulePrivate::qSlicerDoseVolumeHistogramModulePrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerDoseVolumeHistogramModule methods
@@ -66,9 +64,7 @@ qSlicerDoseVolumeHistogramModule::qSlicerDoseVolumeHistogramModule(QObject* _par
 }
 
 //-----------------------------------------------------------------------------
-qSlicerDoseVolumeHistogramModule::~qSlicerDoseVolumeHistogramModule()
-{
-}
+qSlicerDoseVolumeHistogramModule::~qSlicerDoseVolumeHistogramModule() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerDoseVolumeHistogramModule::helpText()const

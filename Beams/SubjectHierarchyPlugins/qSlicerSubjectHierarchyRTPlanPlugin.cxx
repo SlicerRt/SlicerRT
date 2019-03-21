@@ -75,9 +75,7 @@ qSlicerSubjectHierarchyRTPlanPluginPrivate::qSlicerSubjectHierarchyRTPlanPluginP
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyRTPlanPluginPrivate::~qSlicerSubjectHierarchyRTPlanPluginPrivate()
-{
-}
+qSlicerSubjectHierarchyRTPlanPluginPrivate::~qSlicerSubjectHierarchyRTPlanPluginPrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerSubjectHierarchyRTPlanPlugin methods
@@ -91,9 +89,7 @@ qSlicerSubjectHierarchyRTPlanPlugin::qSlicerSubjectHierarchyRTPlanPlugin(QObject
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyRTPlanPlugin::~qSlicerSubjectHierarchyRTPlanPlugin()
-{
-}
+qSlicerSubjectHierarchyRTPlanPlugin::~qSlicerSubjectHierarchyRTPlanPlugin() = default;
 
 //----------------------------------------------------------------------------
 double qSlicerSubjectHierarchyRTPlanPlugin::canAddNodeToSubjectHierarchy(vtkMRMLNode* node, vtkIdType parentItemID/*=vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID*/)const

@@ -76,9 +76,7 @@ qSlicerDoseEngineLogicPrivate::qSlicerDoseEngineLogicPrivate(qSlicerDoseEngineLo
 }
 
 //-----------------------------------------------------------------------------
-qSlicerDoseEngineLogicPrivate::~qSlicerDoseEngineLogicPrivate()
-{
-}
+qSlicerDoseEngineLogicPrivate::~qSlicerDoseEngineLogicPrivate() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerDoseEngineLogicPrivate::loadApplicationSettings()
@@ -97,9 +95,7 @@ qSlicerDoseEngineLogic::qSlicerDoseEngineLogic(QObject* parent)
 }
 
 //----------------------------------------------------------------------------
-qSlicerDoseEngineLogic::~qSlicerDoseEngineLogic()
-{
-}
+qSlicerDoseEngineLogic::~qSlicerDoseEngineLogic() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerDoseEngineLogic::setMRMLScene(vtkMRMLScene* scene)

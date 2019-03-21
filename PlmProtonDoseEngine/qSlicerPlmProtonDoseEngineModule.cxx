@@ -46,9 +46,7 @@ qSlicerPlmProtonDoseEngineModule::qSlicerPlmProtonDoseEngineModule(QObject* _par
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPlmProtonDoseEngineModule::~qSlicerPlmProtonDoseEngineModule()
-{
-}
+qSlicerPlmProtonDoseEngineModule::~qSlicerPlmProtonDoseEngineModule() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerPlmProtonDoseEngineModule::helpText() const

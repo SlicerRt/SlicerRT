@@ -35,14 +35,10 @@
 vtkStandardNewMacro(vtkSlicerPlmProtonDoseEngineLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerPlmProtonDoseEngineLogic::vtkSlicerPlmProtonDoseEngineLogic()
-{
-}
+vtkSlicerPlmProtonDoseEngineLogic::vtkSlicerPlmProtonDoseEngineLogic() = default;
 
 //----------------------------------------------------------------------------
-vtkSlicerPlmProtonDoseEngineLogic::~vtkSlicerPlmProtonDoseEngineLogic()
-{
-}
+vtkSlicerPlmProtonDoseEngineLogic::~vtkSlicerPlmProtonDoseEngineLogic() = default;
 
 //----------------------------------------------------------------------------
 void vtkSlicerPlmProtonDoseEngineLogic::PrintSelf(ostream& os, vtkIndent indent)
@@ -73,8 +69,7 @@ void vtkSlicerPlmProtonDoseEngineLogic::UpdateFromMRMLScene()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerPlmProtonDoseEngineLogic
-::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
+void vtkSlicerPlmProtonDoseEngineLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(node))
 {
 }
 

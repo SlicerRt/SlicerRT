@@ -53,9 +53,7 @@ qSlicerPlanarImageModuleWidget::qSlicerPlanarImageModuleWidget(QWidget* _parent)
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPlanarImageModuleWidget::~qSlicerPlanarImageModuleWidget()
-{
-}
+qSlicerPlanarImageModuleWidget::~qSlicerPlanarImageModuleWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerPlanarImageModuleWidget::setup()

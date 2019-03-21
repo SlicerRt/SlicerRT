@@ -73,9 +73,7 @@ qSlicerSubjectHierarchyRTBeamPluginPrivate::qSlicerSubjectHierarchyRTBeamPluginP
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyRTBeamPluginPrivate::~qSlicerSubjectHierarchyRTBeamPluginPrivate()
-{
-}
+qSlicerSubjectHierarchyRTBeamPluginPrivate::~qSlicerSubjectHierarchyRTBeamPluginPrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerSubjectHierarchyRTBeamPlugin methods
@@ -89,9 +87,7 @@ qSlicerSubjectHierarchyRTBeamPlugin::qSlicerSubjectHierarchyRTBeamPlugin(QObject
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyRTBeamPlugin::~qSlicerSubjectHierarchyRTBeamPlugin()
-{
-}
+qSlicerSubjectHierarchyRTBeamPlugin::~qSlicerSubjectHierarchyRTBeamPlugin() = default;
 
 //----------------------------------------------------------------------------
 double qSlicerSubjectHierarchyRTBeamPlugin::canAddNodeToSubjectHierarchy(

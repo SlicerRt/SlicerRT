@@ -72,9 +72,7 @@ vtkPlanarContourToClosedSurfaceConversionRule::vtkPlanarContourToClosedSurfaceCo
 }
 
 //----------------------------------------------------------------------------
-vtkPlanarContourToClosedSurfaceConversionRule::~vtkPlanarContourToClosedSurfaceConversionRule()
-{
-}
+vtkPlanarContourToClosedSurfaceConversionRule::~vtkPlanarContourToClosedSurfaceConversionRule() = default;
 
 //----------------------------------------------------------------------------
 unsigned int vtkPlanarContourToClosedSurfaceConversionRule::GetConversionCost(

@@ -93,9 +93,7 @@ qSlicerDoseComparisonModuleWidget::qSlicerDoseComparisonModuleWidget(QWidget* _p
 }
 
 //-----------------------------------------------------------------------------
-qSlicerDoseComparisonModuleWidget::~qSlicerDoseComparisonModuleWidget()
-{
-}
+qSlicerDoseComparisonModuleWidget::~qSlicerDoseComparisonModuleWidget() = default;
 
 
 //-----------------------------------------------------------------------------

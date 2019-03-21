@@ -163,9 +163,7 @@ qMRMLBeamsTableView::qMRMLBeamsTableView(QWidget* _parent)
 }
 
 //-----------------------------------------------------------------------------
-qMRMLBeamsTableView::~qMRMLBeamsTableView()
-{
-}
+qMRMLBeamsTableView::~qMRMLBeamsTableView() = default;
 
 //-----------------------------------------------------------------------------
 void qMRMLBeamsTableView::setPlanNode(vtkMRMLNode* node)

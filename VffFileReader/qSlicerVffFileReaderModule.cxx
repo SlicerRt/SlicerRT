@@ -48,9 +48,7 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderModulePrivate::qSlicerVffFileReaderModulePrivate()
-{
-}
+qSlicerVffFileReaderModulePrivate::qSlicerVffFileReaderModulePrivate() = default;
 
 
 //-----------------------------------------------------------------------------
@@ -61,9 +59,7 @@ qSlicerVffFileReaderModule::qSlicerVffFileReaderModule(QObject* _parent)
 }
 
 //-----------------------------------------------------------------------------
-qSlicerVffFileReaderModule::~qSlicerVffFileReaderModule()
-{
-}
+qSlicerVffFileReaderModule::~qSlicerVffFileReaderModule() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerVffFileReaderModule::helpText()const

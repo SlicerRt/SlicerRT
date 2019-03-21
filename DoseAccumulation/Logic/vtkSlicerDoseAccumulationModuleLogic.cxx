@@ -62,14 +62,10 @@ const std::string vtkSlicerDoseAccumulationModuleLogic::DOSEACCUMULATION_OUTPUT_
 vtkStandardNewMacro(vtkSlicerDoseAccumulationModuleLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerDoseAccumulationModuleLogic::vtkSlicerDoseAccumulationModuleLogic()
-{
-}
+vtkSlicerDoseAccumulationModuleLogic::vtkSlicerDoseAccumulationModuleLogic() = default;
 
 //----------------------------------------------------------------------------
-vtkSlicerDoseAccumulationModuleLogic::~vtkSlicerDoseAccumulationModuleLogic()
-{
-}
+vtkSlicerDoseAccumulationModuleLogic::~vtkSlicerDoseAccumulationModuleLogic() = default;
 
 //----------------------------------------------------------------------------
 void vtkSlicerDoseAccumulationModuleLogic::PrintSelf(ostream& os, vtkIndent indent)

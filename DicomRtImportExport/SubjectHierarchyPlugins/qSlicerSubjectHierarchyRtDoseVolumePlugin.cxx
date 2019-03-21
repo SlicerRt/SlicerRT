@@ -102,9 +102,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::init()
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::~qSlicerSubjectHierarchyRtDoseVolumePluginPrivate()
-{
-}
+qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::~qSlicerSubjectHierarchyRtDoseVolumePluginPrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerSubjectHierarchyRtDoseVolumePlugin methods
@@ -121,9 +119,7 @@ qSlicerSubjectHierarchyRtDoseVolumePlugin::qSlicerSubjectHierarchyRtDoseVolumePl
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyRtDoseVolumePlugin::~qSlicerSubjectHierarchyRtDoseVolumePlugin()
-{
-}
+qSlicerSubjectHierarchyRtDoseVolumePlugin::~qSlicerSubjectHierarchyRtDoseVolumePlugin() = default;
 
 //----------------------------------------------------------------------------
 double qSlicerSubjectHierarchyRtDoseVolumePlugin::canAddNodeToSubjectHierarchy(

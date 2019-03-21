@@ -86,9 +86,7 @@ qSlicerBeamsModuleWidget::qSlicerBeamsModuleWidget(QWidget* _parent)
 }
 
 //-----------------------------------------------------------------------------
-qSlicerBeamsModuleWidget::~qSlicerBeamsModuleWidget()
-{
-}
+qSlicerBeamsModuleWidget::~qSlicerBeamsModuleWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerBeamsModuleWidget::setMRMLScene(vtkMRMLScene* scene)

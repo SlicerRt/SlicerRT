@@ -53,9 +53,7 @@ qSlicerPinnacleDvfReaderPlugin::qSlicerPinnacleDvfReaderPlugin(vtkSlicerPinnacle
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDvfReaderPlugin::~qSlicerPinnacleDvfReaderPlugin()
-{
-}
+qSlicerPinnacleDvfReaderPlugin::~qSlicerPinnacleDvfReaderPlugin() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerPinnacleDvfReaderPlugin::setLogic(vtkSlicerPinnacleDvfReaderLogic* logic)

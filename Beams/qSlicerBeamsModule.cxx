@@ -52,9 +52,7 @@ public:
 // qSlicerBeamsModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerBeamsModulePrivate::qSlicerBeamsModulePrivate()
-{
-}
+qSlicerBeamsModulePrivate::qSlicerBeamsModulePrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerBeamsModule methods
@@ -73,9 +71,7 @@ QStringList qSlicerBeamsModule::categories()const
 }
 
 //-----------------------------------------------------------------------------
-qSlicerBeamsModule::~qSlicerBeamsModule()
-{
-}
+qSlicerBeamsModule::~qSlicerBeamsModule() = default;
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerBeamsModule::dependencies()const

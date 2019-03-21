@@ -108,9 +108,7 @@ qMRMLBeamParametersTabWidget::qMRMLBeamParametersTabWidget(QWidget* _parent)
 }
 
 //-----------------------------------------------------------------------------
-qMRMLBeamParametersTabWidget::~qMRMLBeamParametersTabWidget()
-{
-}
+qMRMLBeamParametersTabWidget::~qMRMLBeamParametersTabWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qMRMLBeamParametersTabWidget::setBeamNode(vtkMRMLNode* node)

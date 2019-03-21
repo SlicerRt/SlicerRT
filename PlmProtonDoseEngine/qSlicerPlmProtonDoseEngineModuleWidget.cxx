@@ -36,9 +36,7 @@ public:
 // qSlicerPlmProtonDoseEngineModuleWidgetPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerPlmProtonDoseEngineModuleWidgetPrivate::qSlicerPlmProtonDoseEngineModuleWidgetPrivate()
-{
-}
+qSlicerPlmProtonDoseEngineModuleWidgetPrivate::qSlicerPlmProtonDoseEngineModuleWidgetPrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerPlmProtonDoseEngineModuleWidget methods
@@ -51,9 +49,7 @@ qSlicerPlmProtonDoseEngineModuleWidget::qSlicerPlmProtonDoseEngineModuleWidget(Q
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPlmProtonDoseEngineModuleWidget::~qSlicerPlmProtonDoseEngineModuleWidget()
-{
-}
+qSlicerPlmProtonDoseEngineModuleWidget::~qSlicerPlmProtonDoseEngineModuleWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerPlmProtonDoseEngineModuleWidget::setup()

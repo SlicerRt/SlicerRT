@@ -128,9 +128,7 @@ qSlicerExternalBeamPlanningModuleWidget::qSlicerExternalBeamPlanningModuleWidget
 }
 
 //-----------------------------------------------------------------------------
-qSlicerExternalBeamPlanningModuleWidget::~qSlicerExternalBeamPlanningModuleWidget()
-{
-}
+qSlicerExternalBeamPlanningModuleWidget::~qSlicerExternalBeamPlanningModuleWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::setMRMLScene(vtkMRMLScene* scene)

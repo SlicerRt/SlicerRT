@@ -49,9 +49,7 @@ qSlicerMockDoseEngine::qSlicerMockDoseEngine(QObject* parent)
 }
 
 //----------------------------------------------------------------------------
-qSlicerMockDoseEngine::~qSlicerMockDoseEngine()
-{
-}
+qSlicerMockDoseEngine::~qSlicerMockDoseEngine() = default;
 
 //---------------------------------------------------------------------------
 void qSlicerMockDoseEngine::defineBeamParameters()

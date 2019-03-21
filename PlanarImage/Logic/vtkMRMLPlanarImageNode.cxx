@@ -44,9 +44,7 @@ vtkMRMLPlanarImageNode::vtkMRMLPlanarImageNode()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLPlanarImageNode::~vtkMRMLPlanarImageNode()
-{
-}
+vtkMRMLPlanarImageNode::~vtkMRMLPlanarImageNode() = default;
 
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode* vtkMRMLPlanarImageNode::GetRtImageVolumeNode()

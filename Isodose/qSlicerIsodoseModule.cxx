@@ -48,9 +48,7 @@ public:
 // qSlicerIsodoseModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerIsodoseModulePrivate::qSlicerIsodoseModulePrivate()
-{
-}
+qSlicerIsodoseModulePrivate::qSlicerIsodoseModulePrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerIsodoseModule methods
@@ -69,9 +67,7 @@ QStringList qSlicerIsodoseModule::categories()const
 }
 
 //-----------------------------------------------------------------------------
-qSlicerIsodoseModule::~qSlicerIsodoseModule()
-{
-}
+qSlicerIsodoseModule::~qSlicerIsodoseModule() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerIsodoseModule::helpText()const

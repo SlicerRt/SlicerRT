@@ -41,9 +41,7 @@ vtkFractionalImageAccumulate::vtkFractionalImageAccumulate()
 }
 
 //----------------------------------------------------------------------------
-vtkFractionalImageAccumulate::~vtkFractionalImageAccumulate()
-{
-}
+vtkFractionalImageAccumulate::~vtkFractionalImageAccumulate() = default;
 
 //----------------------------------------------------------------------------
 int vtkFractionalImageAccumulate::RequestInformation (

@@ -53,9 +53,7 @@ qSlicerPinnacleDvfReaderOptionsWidget::qSlicerPinnacleDvfReaderOptionsWidget(QWi
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDvfReaderOptionsWidget::~qSlicerPinnacleDvfReaderOptionsWidget()
-{
-}
+qSlicerPinnacleDvfReaderOptionsWidget::~qSlicerPinnacleDvfReaderOptionsWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerPinnacleDvfReaderOptionsWidget::updateProperties()

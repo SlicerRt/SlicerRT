@@ -81,9 +81,7 @@ qSlicerSubjectHierarchyIsodosePluginPrivate::qSlicerSubjectHierarchyIsodosePlugi
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyIsodosePluginPrivate::~qSlicerSubjectHierarchyIsodosePluginPrivate()
-{
-}
+qSlicerSubjectHierarchyIsodosePluginPrivate::~qSlicerSubjectHierarchyIsodosePluginPrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerSubjectHierarchyIsodosePlugin methods
@@ -97,9 +95,7 @@ qSlicerSubjectHierarchyIsodosePlugin::qSlicerSubjectHierarchyIsodosePlugin(QObje
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyIsodosePlugin::~qSlicerSubjectHierarchyIsodosePlugin()
-{
-}
+qSlicerSubjectHierarchyIsodosePlugin::~qSlicerSubjectHierarchyIsodosePlugin() = default;
 
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyIsodosePlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const

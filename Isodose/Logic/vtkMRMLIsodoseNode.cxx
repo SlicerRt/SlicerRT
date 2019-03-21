@@ -54,9 +54,7 @@ vtkMRMLIsodoseNode::vtkMRMLIsodoseNode()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLIsodoseNode::~vtkMRMLIsodoseNode()
-{
-}
+vtkMRMLIsodoseNode::~vtkMRMLIsodoseNode() = default;
 
 //----------------------------------------------------------------------------
 void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)

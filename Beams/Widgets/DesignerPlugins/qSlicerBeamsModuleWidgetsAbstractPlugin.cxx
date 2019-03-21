@@ -21,9 +21,7 @@
 #include "qSlicerBeamsModuleWidgetsAbstractPlugin.h"
 
 //-----------------------------------------------------------------------------
-qSlicerBeamsModuleWidgetsAbstractPlugin::qSlicerBeamsModuleWidgetsAbstractPlugin()
-{
-}
+qSlicerBeamsModuleWidgetsAbstractPlugin::qSlicerBeamsModuleWidgetsAbstractPlugin() = default;
 
 //-----------------------------------------------------------------------------
 QString qSlicerBeamsModuleWidgetsAbstractPlugin::group() const

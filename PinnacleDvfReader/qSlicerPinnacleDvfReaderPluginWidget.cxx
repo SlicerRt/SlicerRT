@@ -33,9 +33,7 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDvfReaderPluginWidgetPrivate::qSlicerPinnacleDvfReaderPluginWidgetPrivate()
-{
-}
+qSlicerPinnacleDvfReaderPluginWidgetPrivate::qSlicerPinnacleDvfReaderPluginWidgetPrivate() = default;
 
 //-----------------------------------------------------------------------------
 qSlicerPinnacleDvfReaderPluginWidget::qSlicerPinnacleDvfReaderPluginWidget(QWidget* parentWidget)
@@ -45,9 +43,7 @@ qSlicerPinnacleDvfReaderPluginWidget::qSlicerPinnacleDvfReaderPluginWidget(QWidg
 }
 
 //-----------------------------------------------------------------------------
-qSlicerPinnacleDvfReaderPluginWidget::~qSlicerPinnacleDvfReaderPluginWidget()
-{
-}
+qSlicerPinnacleDvfReaderPluginWidget::~qSlicerPinnacleDvfReaderPluginWidget() = default;
 
 //-----------------------------------------------------------------------------
 void qSlicerPinnacleDvfReaderPluginWidget::setup()

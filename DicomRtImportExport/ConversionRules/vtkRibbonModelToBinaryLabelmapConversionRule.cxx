@@ -28,11 +28,7 @@
 vtkSegmentationConverterRuleNewMacro(vtkRibbonModelToBinaryLabelmapConversionRule);
 
 //----------------------------------------------------------------------------
-vtkRibbonModelToBinaryLabelmapConversionRule::vtkRibbonModelToBinaryLabelmapConversionRule()
-{
-}
+vtkRibbonModelToBinaryLabelmapConversionRule::vtkRibbonModelToBinaryLabelmapConversionRule() = default;
 
 //----------------------------------------------------------------------------
-vtkRibbonModelToBinaryLabelmapConversionRule::~vtkRibbonModelToBinaryLabelmapConversionRule()
-{
-}
+vtkRibbonModelToBinaryLabelmapConversionRule::~vtkRibbonModelToBinaryLabelmapConversionRule() = default;

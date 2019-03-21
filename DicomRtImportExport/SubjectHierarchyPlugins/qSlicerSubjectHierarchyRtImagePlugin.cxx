@@ -80,9 +80,7 @@ qSlicerSubjectHierarchyRtImagePluginPrivate::qSlicerSubjectHierarchyRtImagePlugi
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyRtImagePluginPrivate::~qSlicerSubjectHierarchyRtImagePluginPrivate()
-{
-}
+qSlicerSubjectHierarchyRtImagePluginPrivate::~qSlicerSubjectHierarchyRtImagePluginPrivate() = default;
 
 //-----------------------------------------------------------------------------
 // qSlicerSubjectHierarchyRtImagePlugin methods
@@ -96,9 +94,7 @@ qSlicerSubjectHierarchyRtImagePlugin::qSlicerSubjectHierarchyRtImagePlugin(QObje
 }
 
 //-----------------------------------------------------------------------------
-qSlicerSubjectHierarchyRtImagePlugin::~qSlicerSubjectHierarchyRtImagePlugin()
-{
-}
+qSlicerSubjectHierarchyRtImagePlugin::~qSlicerSubjectHierarchyRtImagePlugin() = default;
 
 //---------------------------------------------------------------------------
 double qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyItem(vtkIdType itemID)const
