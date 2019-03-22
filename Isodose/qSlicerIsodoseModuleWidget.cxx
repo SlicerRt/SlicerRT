@@ -581,7 +581,7 @@ void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
   {
     vtkIdType childItemID = (*childIt);
     vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(shNode->GetItemDataNode(childItemID));
-    modelNode->GetDisplayNode()->SetSliceIntersectionVisibility(visible);
+    modelNode->GetDisplayNode()->SetVisibility2D(visible);
   }
 }
 

@@ -257,7 +257,7 @@ void vtkMRMLRTBeamNode::CreateDefaultDisplayNodes()
   displayNode->SetOpacity(0.3);
   displayNode->SetBackfaceCulling(0); // Disable backface culling to make the back side of the contour visible as well
   displayNode->VisibilityOn();
-  displayNode->SliceIntersectionVisibilityOn();
+  displayNode->Visibility2DOn();
 }
 
 //----------------------------------------------------------------------------

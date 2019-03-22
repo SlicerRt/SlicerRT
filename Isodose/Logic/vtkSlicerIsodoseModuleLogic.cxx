@@ -632,7 +632,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   
       vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
       displayNode = vtkMRMLModelDisplayNode::SafeDownCast(scene->AddNode(displayNode));
-      displayNode->SliceIntersectionVisibilityOn();  
+      displayNode->Visibility2DOn();  
       displayNode->VisibilityOn(); 
       displayNode->SetColor(val[0], val[1], val[2]);
       displayNode->SetOpacity(val[3]);
