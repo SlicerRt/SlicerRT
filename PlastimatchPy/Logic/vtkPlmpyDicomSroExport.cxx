@@ -88,11 +88,6 @@ void vtkPlmpyDicomSroExport::PrintSelf(ostream& os, vtkIndent indent)
 #endif
 }
 
-void vtkPlmpyDicomSroExport::set_mrml_scene_hack(vtkMRMLScene * newScene)
-{
-  this->SetMRMLScene (newScene);
-}
-
 //---------------------------------------------------------------------------
 void vtkPlmpyDicomSroExport::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
@@ -122,40 +117,40 @@ void vtkPlmpyDicomSroExport::UpdateFromMRMLScene()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlmpyDicomSroExport::DoExport ()
+int vtkPlmpyDicomSroExport::DoExport()
 {
-  if (this->FixedImageID == nullptr
+  if ( this->FixedImageID == nullptr
     || this->MovingImageID == nullptr
     || this->XformID == nullptr
     || this->OutputDirectory == nullptr)
   {
-    vtkErrorMacro("Sorry, vtkPlmpyDicomSroExport::DoExport () is missing some inputs");
-    return;
+    vtkErrorMacro("DoExport: Invalid inputs");
+    return 1;
   }
 
-  if (this->GetMRMLScene() == nullptr) {
-    vtkErrorMacro("Sorry, vtkPlmpyDicomSroExport::DoExport () found that it has no mrml scene");
-    return;
+  if (this->GetMRMLScene() == nullptr)
+  {
+    vtkErrorMacro("DoExport: Invalid MRML scene");
+    return 1;
   }
 
   // Convert input CT/MR image to the format Plastimatch can use
   vtkMRMLScalarVolumeNode* fixedNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
-  Plm_image::Pointer fixedImage = PlmCommon::ConvertVolumeNodeToPlmImage (fixedNode, true);
+  Plm_image::Pointer fixedImage = PlmCommon::ConvertVolumeNodeToPlmImage(fixedNode, true);
 
   vtkMRMLScalarVolumeNode* movingNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->MovingImageID));
-  Plm_image::Pointer movingImage = PlmCommon::ConvertVolumeNodeToPlmImage (movingNode, false);
+  Plm_image::Pointer movingImage = PlmCommon::ConvertVolumeNodeToPlmImage(movingNode, false);
 
   // Convert xform into a form that Plastimatch can use
   vtkMRMLLinearTransformNode *xformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->XformID));
-  if (!xformNode) {
-    vtkErrorMacro("Sorry, vtkPlmpyDicomSroExport::DoExport () could not digest the transform node");
-    return;
+  if (!xformNode)
+  {
+    vtkErrorMacro("DoExport: Only linear transforms are currently supported");
+    return 1;
   }
 
-  // Make a copy of vtk affine matrix to perform some operation before export
-  const vtkMatrix4x4* vtkAffMatrix = xformNode->GetMatrixTransformToParent ();
   vtkSmartPointer<vtkMatrix4x4> vtkAff = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkAff->DeepCopy(vtkAffMatrix);
+  xformNode->GetMatrixTransformToParent(vtkAff);
 
   // Change from RAS system to ITK/DICOM LPS system
   vtkSmartPointer<vtkMatrix4x4> invMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -198,5 +193,7 @@ void vtkPlmpyDicomSroExport::DoExport ()
   dss.set_moving_image (movingImage);
   dss.set_xform (xform);
   dss.set_output_dir (this->OutputDirectory);
-  dss.run ();
+  dss.run (); //TODO: Error handling in exporter
+
+  return 0;
 }

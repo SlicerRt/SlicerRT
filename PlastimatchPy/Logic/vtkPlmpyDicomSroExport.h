@@ -60,8 +60,9 @@ public:
   vtkSetStringMacro(OutputDirectory);
   vtkGetStringMacro(OutputDirectory);
 
-  void set_mrml_scene_hack(vtkMRMLScene * newScene);
-  void DoExport();
+  /// Export DICOM SRO to file
+  /// \return Success flag. 0 in case of success, non-0 otherwise
+  int DoExport();
 
 protected:
   char* FixedImageID;

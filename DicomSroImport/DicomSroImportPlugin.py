@@ -84,16 +84,73 @@ class DicomSroImportPluginClass(DICOMPlugin):
     data into DICOM data
     """
     shn = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
-    dataNode = shn.GetItemDataNode(subjectHierarchyItemID)
-    if dataNode is None:
+    transformNode = shn.GetItemDataNode(subjectHierarchyItemID)
+    if transformNode is None or not transformNode.IsA('vtkMRMLTransformNode'):
       return []
-    #TODO: Add export in the plugin
-    return []
+
+    #TODO: Remove when deformable transforms are supported
+    if not transformNode.IsLinear():
+      logging.warning('Non-linear transform is detected in node ' + transformNode.GetName() \
+        + '. Non-linear transform export is not yet supported through the plugin. Please use the DICOM Registration Export module instead.')
+      return []
+
+    # Get moving and fixed volumes involved in the registration
+    movingVolumeNode = transformNode.GetNodeReference(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole())
+    fixedVolumeNode = transformNode.GetNodeReference(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole())
+    if movingVolumeNode is None or fixedVolumeNode is None:
+      logging.error('Failed to find moving and/or fixed image for transform ' + transformNode.GetName() \
+        + '. These references are needed in order to export the transform into DICOM SRO. Please make sure the transform is created by a registration module.')
+      return []
+
+    exportable = slicer.qSlicerDICOMExportable()
+    exportable.confidence = 1.0
+    # Define type-specific required tags and default values
+    exportable.setTag('Modality', 'REG')
+    exportable.name = self.loadType
+    exportable.tooltip = "Create DICOM file from registration result"
+    exportable.subjectHierarchyItemID = subjectHierarchyItemID
+    exportable.pluginClass = self.__module__
+    # Define common required tags and default values
+    exportable.setTag('SeriesDescription', 'No series description')
+    exportable.setTag('SeriesNumber', '1')
+    return [exportable]
 
   def export(self,exportables):
-    # Convert Qt loadables to VTK ones for the RT export logic
-    #TODO:
-    return "DICOM SRO support is not yet added in the DICOM export mechanism"
+    errorMessage = ''
+    for exportable in exportables:
+      # Get transform node
+      shn = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
+      transformNode = shn.GetItemDataNode(exportable.subjectHierarchyItemID)
+      if transformNode is None or not transformNode.IsA('vtkMRMLTransformNode'):
+        return 'Invalid transform node in exportable (ItemID:' + str(exportable.subjectHierarchyItemID)
+
+      # Get moving and fixed volumes involved in the registration
+      movingVolumeNode = transformNode.GetNodeReference(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole())
+      fixedVolumeNode = transformNode.GetNodeReference(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole())
+      if movingVolumeNode is None or fixedVolumeNode is None:
+        currentError = 'Failed to find moving and/or fixed image for transform ' + transformNode.GetName()
+        logging.error(currentError + '. These references are needed in order to export the transform into DICOM SRO. Please make sure the transform is created by a registration module.')
+        errorMessage += currentError + '\n'
+        continue
+
+      import sys
+      loadablePath = os.path.join(slicer.modules.plastimatch_slicer_bspline.path,'..'+os.sep+'..'+os.sep+'qt-loadable-modules')
+      if loadablePath not in sys.path:
+        sys.path.append(loadablePath)
+      sro = slicer.vtkPlmpyDicomSroExport()
+      sro.SetMRMLScene(slicer.mrmlScene)
+      sro.SetFixedImageID(fixedVolumeNode.GetID())
+      sro.SetMovingImageID(movingVolumeNode.GetID())
+      sro.SetXformID(transformNode.GetID())
+      sro.SetOutputDirectory(exportable.directory)
+      success = sro.DoExport()
+      if success != 0:
+        currentError = 'Failed to export transform node to DICOM SRO: ' + transformNode.GetName()
+        logging.error(currentError)
+        errorMessage += currentError + '\n'
+        continue
+
+    return errorMessage
 
 #
 # DicomSroImportPlugin
