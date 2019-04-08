@@ -42,14 +42,14 @@ set(MODULE_RESOURCES
 #-----------------------------------------------------------------------------
 # Plugin python script
 set(KIT_PYTHON_SCRIPTS
-  DicomSroImportPlugin.py
+  DicomSroImportExportPlugin.py
   )
 
 set(KIT_PYTHON_RESOURCES
   )
 
 ctkMacroCompilePythonScript(
-  TARGET_NAME SlicerDicomSroPlugin
+  TARGET_NAME DicomSroImportExportPlugin
   SCRIPTS "${KIT_PYTHON_SCRIPTS}"
   RESOURCES "${KIT_PYTHON_RESOURCES}"
   DESTINATION_DIR ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR}

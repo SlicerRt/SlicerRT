@@ -12,18 +12,18 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
 ==============================================================================*/
 
 
-// .NAME vtkSlicerPinnacleDvfReader - 
+// .NAME vtkSlicerPinnacleDvfReader -
 // .SECTION Description
 // This class manages the Reader associated with reading Pinnacle DVF file
-// The reader load DVF in LPS and convert it to RAS cooridnate system mainly due to 
+// The reader load DVF in LPS and convert it to RAS cooridnate system mainly due to
 // it is used for Slicer.
 
 #ifndef __vtkSlicerPinnacleDvfReader_h
@@ -37,7 +37,7 @@
 class vtkMatrix4x4;
 class vtkImageData;
 
-/// \ingroup SlicerRt_DicomSroImport
+/// \ingroup SlicerRt_PinnacleDvfReader
 class VTK_SLICER_PINNACLEDVFREADER_LOGIC_EXPORT vtkSlicerPinnacleDvfReader : public vtkObject
 {
 public:

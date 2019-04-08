@@ -5,16 +5,16 @@ import logging
 
 #
 # This is the plugin to handle translation of spatial registration object
-# from DICOM files into MRML nodes.  It follows the DICOM module's
+# from DICOM files into MRML nodes and back. It follows the DICOM module's
 # plugin architecture.
 #
 
-class DicomSroImportPluginClass(DICOMPlugin):
+class DicomSroImportExportPluginClass(DICOMPlugin):
   """ Spatial registration specific interpretation code
   """
 
   def __init__(self,epsilon=0.01):
-    super(DicomSroImportPluginClass,self).__init__()
+    super(DicomSroImportExportPluginClass,self).__init__()
     self.loadType = "REG"
 
     self.tags = {}
@@ -59,7 +59,7 @@ class DicomSroImportPluginClass(DICOMPlugin):
 
   def load(self,loadable):
     """Load the selection as an RT object
-    using the DicomSroImport module
+    using the DicomSroImportExport module
     """
     success = False
 
@@ -153,10 +153,10 @@ class DicomSroImportPluginClass(DICOMPlugin):
     return errorMessage
 
 #
-# DicomSroImportPlugin
+# DicomSroImportExportPlugin
 #
 
-class DicomSroImportPlugin:
+class DicomSroImportExportPlugin:
   """
   This class is the 'hook' for slicer to detect and recognize the plugin
   as a loadable scripted module
@@ -188,12 +188,12 @@ class DicomSroImportPlugin:
     except AttributeError:
       slicer.modules.dicomPlugins = {}
 
-    slicer.modules.dicomPlugins['DicomSroImportPlugin'] = DicomSroImportPluginClass
+    slicer.modules.dicomPlugins['DicomSroImportExportPlugin'] = DicomSroImportExportPluginClass
 
 #
-# DicomSroImportWidget
+# DicomSroImportExportWidget
 #
-class DicomSroImportWidget:
+class DicomSroImportExportWidget:
   def __init__(self, parent = None):
     self.parent = parent
 
