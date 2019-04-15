@@ -91,7 +91,7 @@ class PlmProtonDoseEngineTest(unittest.TestCase):
       numOfFilesInDataSegDirTest = len([name for name in os.listdir(self.dataSegDir) if os.path.isfile(self.dataSegDir + '/' + name)])
       self.assertEqual( numOfFilesInDataSegDirTest, self.expectedNumOfFilesInDataSegDir )
 
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       logging.error('Test caused exception!\n' + str(e))

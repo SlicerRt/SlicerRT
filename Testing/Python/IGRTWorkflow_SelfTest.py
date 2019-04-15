@@ -75,7 +75,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.TestSection_07_AccumulateDose()
       self.TestSection_08_ComputeDvh()
 
-    except Exception, e:
+    except Exception as e:
       pass
 
   #------------------------------------------------------------------------------
@@ -140,7 +140,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
             {}, loadedNodes) as success:
           self.assertTrue(success)
 
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
@@ -176,7 +176,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       # Verify that the correct number of objects were loaded
       self.assertEqual( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ), numOfScalarVolumeNodesBeforeLoad + 2 )
 
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
@@ -220,7 +220,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       doseShItemID = shNode.CreateItem(study2ItemID, day2Dose)
       shNode.SetItemUID(doseShItemID, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMUIDName(), 'Day2Dose_UID')
 
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
@@ -275,7 +275,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.clickAndDrag(threeDView,button='Middle',start=(10,100),end=(10,10))
       self.clickAndDrag(threeDView,start=(10,70),end=(90,20))
 
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
@@ -317,7 +317,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
 
       self.delayDisplay('Show day 1 isodose lines',self.delayMs)
 
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
@@ -360,7 +360,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.assertIsNotNone( day2IsodoseShItemID )
       shNode.SetDisplayVisibilityForBranch(day2IsodoseShItemID, 1)
       
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
@@ -434,7 +434,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
 
         # self.assertEqual( self.cliBrainsFitBSplineNode.GetStatusString(), 'Completed' )
 
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
@@ -469,7 +469,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
         # self.assertEqual( day2DoseCloneBSplineSH.GetAssociatedNode().GetParentTransformNode(), transformDay2ToDay1BSpline )
         # self.assertIsNotNone( day2DoseCloneBSplineSH.GetAssociatedNode().GetDisplayNode() )
 
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
@@ -505,7 +505,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       
       self.TestUtility_ShowVolumes(gammaVolume)
       
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
@@ -575,7 +575,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with rigid registration finished",self.delayMs)
       self.DoseAccumulationUtility_SelectDoseVolume(self.day2DoseRigidName, False)
 
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
@@ -624,7 +624,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.assertTrue( showAllButton )
       showAllButton.click()
 
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
@@ -693,7 +693,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
         else:
           compositeNode.SetForegroundVolumeID(None)
 
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)

@@ -155,15 +155,15 @@ class PlmVectorFieldAnalysisWidget(ScriptedLoadableModuleWidget):
 #      self.applyButton.enabled = False
 
   def onOutputJacobianSelect(self):
-    print "output image selected"
+    print("output image selected")
     self.LogicInputWLIO.outputJacobianNode = self.outputJacobian.currentNode()
 
   def onFixedImageSelect(self):
-    print "fixed image selected"
+    print("fixed image selected")
     self.LogicInputWLIO.fixedImageNode = self.fixedImage.currentNode()
 
   def onvfMRMLSelect(self):
-    print "VF image selected"
+    print("VF image selected")
     self.LogicInputWLIO.vfImageNode = self.vfMRMLSelector.currentNode()
 
   def onJacobianApply(self):
@@ -172,7 +172,7 @@ class PlmVectorFieldAnalysisWidget(ScriptedLoadableModuleWidget):
     self.LogicInputWLIO.fixedImageNode = self.fixedImage.currentNode()
 
     outputWLIO = self.logic.RunVectorFieldAnalysis( self.LogicInputWLIO )
-    print "Done analysis onApply"
+    print("Done analysis onApply")
 
     self.minJacobian.setText(outputWLIO.minjacobian)
     self.maxJacobian.setText(outputWLIO.maxjacobian)
@@ -211,22 +211,22 @@ class PlmVectorFieldAnalysisLogic(ScriptedLoadableModuleLogic):
     reg = vtkSlicerPlastimatchPyModuleLogicPython.vtkSlicerPlastimatchPyModuleLogic()
     reg.SetMRMLScene(slicer.mrmlScene)
 
-    print "running RunVectorFieldAnalysis"
+    print("running RunVectorFieldAnalysis")
 
     #Set input/output images
     reg.SetOutputVolumeID(inputWLIO.outputJacobianNode.GetID() )    
     reg.SetFixedImageID(inputWLIO.fixedImageNode.GetID() )    
     reg.SetVFImageID(inputWLIO.vfImageNode.GetID() )
 
-    print inputWLIO.vfImageNode.GetID()
-    print inputWLIO.outputJacobianNode.GetID()
-    print inputWLIO.fixedImageNode.GetID()
+    print(inputWLIO.vfImageNode.GetID())
+    print(inputWLIO.outputJacobianNode.GetID())
+    print(inputWLIO.fixedImageNode.GetID())
 
 
    # Run Vector Field statistics
-    print "starting RunJacobian"
+    print("starting RunJacobian")
     reg.RunJacobian()
-    print "control went past RunJacobian"
+    print("control went past RunJacobian")
  
     # return min/max values to caller
     outputWLIO = PlmVectorFieldAnalysisWidgetLogicIO()

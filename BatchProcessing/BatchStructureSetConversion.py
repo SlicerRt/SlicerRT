@@ -230,7 +230,7 @@ class BatchStructureSetConversionTest(ScriptedLoadableModuleTest):
           {}, loadedNodes) as success:
         self.assertTrue(success)
 
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e),self.delayMs*2)
@@ -241,7 +241,7 @@ class BatchStructureSetConversionTest(ScriptedLoadableModuleTest):
     try:
       self.labelmapsToSave = self.logic.ConvertStructureSetToLabelmap()
       self.assertTrue(len(self.labelmapsToSave) > 0)
-    except Exception, e:
+    except Exception as e:
       import traceback
       traceback.print_exc()
       self.delayDisplay('Test caused exception!\n' + str(e), self.delayMs * 2)
@@ -322,7 +322,7 @@ def main(argv):
       logic.LoadFirstPatientIntoSlicer()
       save_rtslices(output_folder)
 
-  except Exception, e:
+  except Exception as e:
       print(e)
   sys.exit(0)
 
