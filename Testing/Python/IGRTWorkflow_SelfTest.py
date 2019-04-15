@@ -729,7 +729,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       interactor.SetControlKey(1)
     interactor.SetEventPosition(*start)
     down()
-    for step in xrange(steps):
+    for step in range(steps):
       frac = float(step)/steps
       x = int(start[0] + frac*(end[0]-start[0]))
       y = int(start[1] + frac*(end[1]-start[1]))

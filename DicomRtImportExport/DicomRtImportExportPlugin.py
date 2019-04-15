@@ -40,7 +40,7 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
       loadablesCollection = vtk.vtkCollection()
       slicer.modules.dicomrtimportexport.logic().ExamineForLoad(vtkFileList, loadablesCollection)
 
-      for loadableIndex in xrange(0,loadablesCollection.GetNumberOfItems()):
+      for loadableIndex in range(0,loadablesCollection.GetNumberOfItems()):
         vtkLoadable = loadablesCollection.GetItemAsObject(loadableIndex)
         # Create Qt loadable if confidence is greater than 0
         if vtkLoadable.GetConfidence() > 0:

@@ -97,7 +97,7 @@ class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
         # Create labelmap volume nodes from binary labelmaps
         segmentIDs = vtk.vtkStringArray()
         segmentation.GetSegmentIDs(segmentIDs)
-        for segmentIndex in xrange(0, segmentIDs.GetNumberOfValues()):
+        for segmentIndex in range(0, segmentIDs.GetNumberOfValues()):
           segmentID = segmentIDs.GetValue(segmentIndex)
           segment = segmentation.GetSegment(segmentID)
           binaryLabelmap = segment.GetRepresentation(

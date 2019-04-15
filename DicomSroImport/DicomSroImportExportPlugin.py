@@ -40,11 +40,11 @@ class DicomSroImportExportPluginClass(DICOMPlugin):
 
     # Import loadables from DicomExamineInfo
     loadables = []
-    for loadableIndex in xrange(examineInfo.GetNumberOfLoadables()):
+    for loadableIndex in range(examineInfo.GetNumberOfLoadables()):
       loadable = slicer.qSlicerDICOMLoadable()
       loadableFilesVtk = examineInfo.GetLoadableFiles(loadableIndex)
       loadableFilesPy = []
-      for fileIndex in xrange(loadableFilesVtk.GetNumberOfValues()):
+      for fileIndex in range(loadableFilesVtk.GetNumberOfValues()):
         loadableFilesPy.append(loadableFilesVtk.GetValue(fileIndex))
       loadable.files = loadableFilesPy
 
