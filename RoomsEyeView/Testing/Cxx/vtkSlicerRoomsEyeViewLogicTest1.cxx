@@ -342,7 +342,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
     return EXIT_FAILURE;
     }
   double expectedPatientSupportToPatientSupportRotationTransform_n500_MatrixElements[16] =
-    {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, -261.5, 262.5,   0, 0, 0, 1  };
+    {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, -499, 500,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation),
       expectedPatientSupportToPatientSupportRotationTransform_n500_MatrixElements ) )
@@ -365,7 +365,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   revLogic->UpdatePatientSupportToPatientSupportRotationTransform(paramNode);
   revLogic->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
   double expectedPatientSupportToPatientSupportRotationTransform_300_MatrixElements[16] =
-    {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 158.5, -157.5,   0, 0, 0, 1  };
+    {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 301, -300,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
       revLogic->GetIECLogic()->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation),
       expectedPatientSupportToPatientSupportRotationTransform_300_MatrixElements ) )

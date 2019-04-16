@@ -72,6 +72,7 @@ add_subdirectory(DosxyzNrc3dDoseFileReader)
 add_subdirectory(DicomSroExport)
 add_subdirectory(DicomSroImport)
 add_subdirectory(BatchProcessing)
+add_subdirectory(RoomsEyeView)
 
 add_subdirectory(PlastimatchPy)
 add_subdirectory(PlmBspline)
@@ -80,7 +81,6 @@ add_subdirectory(PlmRegister)
 
 if (SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
   # In development
-  add_subdirectory(RoomsEyeView)
   add_subdirectory(PlmThreshbox)
   add_subdirectory(PinnacleDvfReader)
 
