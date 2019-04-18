@@ -1181,7 +1181,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToPatientSupportRotat
   patientSupportRotationToRasTransform->Translate(patientSupportTranslationToOrigin);
 
   // Vertical scaling
-  double scaleFactor = fabs((patientSupportModelBounds[4] + patientSupportModelBounds[5]) / 2);
   double tableTopDisplacement = parameterNode->GetVerticalTableTopDisplacement();
   double tableTopDisplacementScaling = 1.0;
   char* treatmentMachineType = parameterNode->GetTreatmentMachineType();
@@ -1215,7 +1214,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToPatientSupportRotat
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateTableTopEccentricRotationToPatientSupportRotationTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateTableTopEccentricRotationToPatientSupportRotationTransform(vtkMRMLRoomsEyeViewNode* vtkNotUsed(parameterNode))
 {
   vtkErrorMacro("UpdateTableTopEccentricRotationToPatientSupportRotationTransform: Not implemented, as table top eccentric rotation is not yet supported");
 }
