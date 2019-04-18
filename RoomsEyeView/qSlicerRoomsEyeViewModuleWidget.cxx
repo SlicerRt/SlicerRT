@@ -625,6 +625,8 @@ void qSlicerRoomsEyeViewModuleWidget::onLateralTableTopDisplacementSliderValueCh
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
+  Q_UNUSED(value);
+
   vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode || !d->ModuleWindowInitialized)
   {
@@ -796,7 +798,6 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
     collimatorCenterOfRotation[0] = (collimatorModelBounds[0] + collimatorModelBounds[1]) / 2;
     collimatorCenterOfRotation[1] = (collimatorModelBounds[2] + collimatorModelBounds[3]) / 2;
     collimatorCenterOfRotation[2] = collimatorModelBounds[4];
-    double newSourcePosition[3] = {0, 0, 0};
 
     cameraNode->GetCamera()->SetPosition(collimatorCenterOfRotation);
     if (beamNode->GetPlanIsocenterPosition(isocenter))
