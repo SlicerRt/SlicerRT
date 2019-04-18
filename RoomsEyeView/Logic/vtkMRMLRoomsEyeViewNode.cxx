@@ -70,7 +70,9 @@ vtkMRMLNodeNewMacro(vtkMRMLRoomsEyeViewNode);
 
 //----------------------------------------------------------------------------
 vtkMRMLRoomsEyeViewNode::vtkMRMLRoomsEyeViewNode()
-  : CollisionDetectionEnabled(true)
+  : PatientBodySegmentID(nullptr)
+  , TreatmentMachineType(nullptr)
+  , CollisionDetectionEnabled(true)
   , GantryRotationAngle(0.0)
   , CollimatorRotationAngle(0.0)
   , ImagingPanelMovement(-68.50)
@@ -79,10 +81,8 @@ vtkMRMLRoomsEyeViewNode::vtkMRMLRoomsEyeViewNode()
   , LongitudinalTableTopDisplacement(0.0)
   , LateralTableTopDisplacement(0.0)
   , AdditionalModelVerticalDisplacement(0.0)
-  , AdditionalModelLateralDisplacement(0.0)
   , AdditionalModelLongitudinalDisplacement(0.0)
-  , PatientBodySegmentID(nullptr)
-  , TreatmentMachineType(nullptr)
+  , AdditionalModelLateralDisplacement(0.0)
 {
   this->SetSingletonTag("IEC");
 }
