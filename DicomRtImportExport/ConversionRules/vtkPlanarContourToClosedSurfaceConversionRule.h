@@ -50,7 +50,7 @@ class VTK_SLICER_DICOMRTIMPORTEXPORT_CONVERSIONRULES_EXPORT vtkPlanarContourToCl
 {
 public:
   static vtkPlanarContourToClosedSurfaceConversionRule *New();
-  vtkTypeMacro(vtkPlanarContourToClosedSurfaceConversionRule, vtkSegmentationConverterRule );
+  vtkTypeMacro(vtkPlanarContourToClosedSurfaceConversionRule, vtkSegmentationConverterRule);
   vtkSegmentationConverterRule* CreateRuleInstance() override;
 
   static const std::string GetDefaultSliceThicknessParameterName() { return "Default slice thickness"; };
@@ -69,10 +69,10 @@ public:
   bool Convert(vtkDataObject* sourceRepresentation, vtkDataObject* targetRepresentation) override;
 
   /// Get the cost of the conversion.
-  unsigned int GetConversionCost(vtkDataObject* sourceRepresentation=nullptr, vtkDataObject* targetRepresentation=nullptr) override;
+  unsigned int GetConversionCost(vtkDataObject* sourceRepresentation = nullptr, vtkDataObject* targetRepresentation = nullptr) override;
 
   /// Human-readable name of the converter rule
-  const char* GetName() override  { return "Planar contour to closed surface"; };
+  const char* GetName() override { return "Planar contour to closed surface"; };
 
   /// Human-readable name of the source representation
   const char* GetSourceRepresentationName() override { return vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName(); };
@@ -89,7 +89,7 @@ protected:
   /// \param pointsInLine1 List of points that are contained in the line to be triangulated
   /// \param pointsInLine2 List of points that are contained in the line to be triangulated
   /// \param Cell array that polygons are added to by the triangulation algorithm
-  void TriangulateContours(vtkPolyData* inputROIPoints, vtkIdList* pointsInLine1, vtkIdList* pointsInLine2, vtkCellArray* outputPolygons);
+  void TriangulateBetweenContours(vtkPolyData* inputROIPoints, vtkIdList* pointsInLine1, vtkIdList* pointsInLine2, vtkCellArray* outputPolygons);
 
   /// Find the index of the last point in a contour.
   /// \param startLoopIndex The index of the first point in the contour
@@ -185,7 +185,7 @@ protected:
   /// \param Contour that is being triangulated
   /// \param Cell array that the polygons are added to
   /// \param True if the normals are positive in the z direction, false if the normals are negative
-  void TriangulateLine(vtkLine* inputLine, vtkCellArray* outputPolys, bool normalsUp);
+  void TriangulateContourInterior(vtkLine* inputLine, vtkCellArray* outputPolys, bool normalsUp);
 
   /// Find the index of the next point in the contour.
   /// \param The location of the currentId
