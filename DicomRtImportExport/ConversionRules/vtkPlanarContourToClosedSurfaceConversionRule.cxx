@@ -1548,7 +1548,6 @@ vtkIdType vtkPlanarContourToClosedSurfaceConversionRule::GetPreviousLocation(vtk
 //----------------------------------------------------------------------------
 void vtkPlanarContourToClosedSurfaceConversionRule::FixLines(vtkPolyData* oldLines, vtkPolyData* newLines)
 {
-
   if (!oldLines)
   {
     vtkErrorMacro("FixLines: Invalid vtkPolyData!");
@@ -1592,18 +1591,19 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixLines(vtkPolyData* oldLin
       {
         lines->InsertNextCell(fixedLine);
       }
-
     }
     else
     {
-      lines->InsertNextCell(oldLine);
+      if (oldLine->GetNumberOfPoints() > 1)
+      {
+        lines->InsertNextCell(oldLine);
+      }
     }
 
   }
 
   newLines->SetPoints(oldLines->GetPoints());
   newLines->SetLines(lines);
-
 }
 
 //----------------------------------------------------------------------------
@@ -1677,7 +1677,6 @@ void vtkPlanarContourToClosedSurfaceConversionRule::DecimateLines(vtkPolyData* i
     // If there are less than 2 points, then just copy the line
     if (outputLineIds->GetNumberOfIds() > 2)
     {
-
       //// Loop through the points in the current line
       for (int pointIndex = 0; pointIndex < outputLineIds->GetNumberOfIds(); ++pointIndex)
       {
@@ -1710,7 +1709,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::DecimateLines(vtkPolyData* i
     }
 
     // If there are no points, then the line doesn't need to be added
-    if (outputLineIds->GetNumberOfIds() > 0)
+    if (outputLineIds->GetNumberOfIds() > 1)
     {
       outputLines->InsertNextCell(outputLineIds);
     }
