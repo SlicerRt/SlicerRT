@@ -83,6 +83,8 @@ vtkMRMLRoomsEyeViewNode::vtkMRMLRoomsEyeViewNode()
   , AdditionalModelVerticalDisplacement(0.0)
   , AdditionalModelLongitudinalDisplacement(0.0)
   , AdditionalModelLateralDisplacement(0.0)
+  , ApplicatorHolderVisibility(0)
+  , ElectronApplicatorVisibility(0)
 {
   this->SetSingletonTag("IEC");
 }
@@ -114,6 +116,8 @@ void vtkMRMLRoomsEyeViewNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLFloatMacro(AdditionalModelLateralDisplacement, AdditionalModelLateralDisplacement);
   vtkMRMLWriteXMLStringMacro(PatientBodySegmentID, PatientBodySegmentID);
   vtkMRMLWriteXMLStringMacro(TreatmentMachineType, TreatmentMachineType);
+  vtkMRMLWriteXMLIntMacro(ApplicatorHolderVisibility, ApplicatorHolderVisibility);
+  vtkMRMLWriteXMLIntMacro(ElectronApplicatorVisibility, ElectronApplicatorVisibility);
   vtkMRMLWriteXMLEndMacro(); 
 }
 
@@ -137,6 +141,8 @@ void vtkMRMLRoomsEyeViewNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLFloatMacro(AdditionalModelLateralDisplacement, AdditionalModelLateralDisplacement);
   vtkMRMLReadXMLStringMacro(PatientBodySegmentID, PatientBodySegmentID);
   vtkMRMLReadXMLStringMacro(TreatmentMachineType, TreatmentMachineType);
+  vtkMRMLReadXMLIntMacro(ApplicatorHolderVisibility, ApplicatorHolderVisibility);
+  vtkMRMLReadXMLIntMacro(ElectronApplicatorVisibility, ElectronApplicatorVisibility);
   vtkMRMLReadXMLEndMacro(); 
 
   this->EndModify(disabledModify);
@@ -167,6 +173,8 @@ void vtkMRMLRoomsEyeViewNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyFloatMacro(AdditionalModelLateralDisplacement);
   vtkMRMLCopyStringMacro(PatientBodySegmentID);
   vtkMRMLCopyStringMacro(TreatmentMachineType);
+  vtkMRMLCopyIntMacro(ApplicatorHolderVisibility);
+  vtkMRMLCopyIntMacro(ElectronApplicatorVisibility);
   vtkMRMLCopyEndMacro(); 
 
   this->EndModify(disabledModify);
@@ -191,6 +199,8 @@ void vtkMRMLRoomsEyeViewNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintFloatMacro(AdditionalModelLateralDisplacement);
   vtkMRMLPrintStringMacro(PatientBodySegmentID);
   vtkMRMLPrintStringMacro(TreatmentMachineType);
+  vtkMRMLPrintIntMacro(ApplicatorHolderVisibility);
+  vtkMRMLPrintIntMacro(ElectronApplicatorVisibility);
   vtkMRMLPrintEndMacro(); 
 }
 

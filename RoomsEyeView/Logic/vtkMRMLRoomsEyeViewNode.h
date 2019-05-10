@@ -37,7 +37,7 @@ class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkMRMLRoomsEyeViewNode : public vtkM
 public:
   static vtkMRMLRoomsEyeViewNode *New();
   vtkTypeMacro(vtkMRMLRoomsEyeViewNode,vtkMRMLNode);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Create instance of a GAD node. 
   vtkMRMLNode* CreateNodeInstance() override;
