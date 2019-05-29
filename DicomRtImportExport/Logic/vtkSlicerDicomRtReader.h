@@ -72,6 +72,7 @@ public:
   /// \param internalIndex Internal index of ROI to get
   const char* GetRoiReferencedSeriesUid(unsigned int internalIndex);
 
+
   /// Get number of beams
   int GetNumberOfBeams();
 
@@ -99,6 +100,17 @@ public:
   /// Get beam leaf jaw positions for a given beam
   /// \param jawPositions Array in which the jaw positions are copied
   void GetBeamLeafJawPositions(unsigned int beamNumber, double jawPositions[2][2]);
+
+
+  /// Get number of channels
+  int GetNumberOfChannels();
+
+  /// Get number of control points in channel
+  int GetChannelNumberOfControlPoints(unsigned int channelNumber);
+
+  /// Get number of control points in channel
+  bool GetChannelControlPoint(unsigned int channelNumber, unsigned int controlPointNumber, double controlPointPosition[3]);
+
 
   /// Set input file name
   vtkSetStringMacro(FileName);
@@ -279,9 +291,7 @@ protected:
   vtkSetStringMacro(DatabaseFile);
 
 protected:
-//xBTX //TODO #210: Re-enable
   template<class T> void GetAndStoreHierarchyInformation(T* dcmtkIodObject);
-//xETX
 
 protected:
   /// Input file name

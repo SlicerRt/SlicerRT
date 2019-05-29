@@ -152,6 +152,12 @@ public:
   /// \return Success flag
   bool LoadRtPlan(vtkSlicerDicomRtReader* rtReader, vtkSlicerDICOMLoadable* loadable);
 
+  /// Load external beam plan (called from \sa LoadRtPlan)
+  bool LoadExternalBeamPlan(vtkSlicerDicomRtReader* rtReader, const char* seriesName, vtkMRMLRTPlanNode* planNode);
+
+  /// Load brachytherapy plan (called from \sa LoadRtPlan)
+  bool LoadBrachyPlan(vtkSlicerDicomRtReader* rtReader, const char* seriesName, vtkMRMLRTPlanNode* planNode);
+
   /// Load RT Structure Set and related objects into the MRML scene
   /// \return Success flag
   bool LoadRtStructureSet(vtkSlicerDicomRtReader* rtReader, vtkSlicerDICOMLoadable* loadable);
@@ -626,8 +632,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
     return false;
   }
 
-  vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyRootNode;
-
   const char* seriesName = loadable->GetName();
 
   scene->StartState(vtkMRMLScene::BatchProcessState);
@@ -664,6 +668,87 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
   shNode->SetItemAttribute(planShItemID,
     vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(), referencedSopInstanceUids );
 
+  // If external beam plan
+  if (rtReader->GetNumberOfBeams() > 0)
+  {
+    if (!this->LoadExternalBeamPlan(rtReader, seriesName, planNode))
+    {
+      vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Failed to load external beam plan");
+      return false;
+    }
+  }
+  else if (rtReader->GetNumberOfChannels() > 0)
+  {
+    if (!this->LoadBrachyPlan(rtReader, seriesName, planNode))
+    {
+      vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Failed to load brachy plan");
+      return false;
+    }
+  }
+  else
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Unknown RT plan type");
+    return false;
+  }
+
+  // Insert plan isocenter series in subject hierarchy
+  this->InsertSeriesInSubjectHierarchy(rtReader);
+
+  // Put plan SH item underneath study
+  vtkIdType studyItemID = shNode->GetItemByUID(
+    vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetStudyInstanceUid());
+  if (studyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Failed to find study subject hierarchy item");
+    return false;
+  }
+  if (planShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    shNode->SetItemParent(planShItemID, studyItemID);
+  }
+  // Put plan markups under study within SH
+  vtkIdType planMarkupsShItemID = shNode->GetItemByDataNode(planNode->GetPoisMarkupsFiducialNode());
+  if (planMarkupsShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    shNode->SetItemParent(planMarkupsShItemID, studyItemID);
+  }
+
+  // Compute and set geometry of possible RT image that references the loaded beams.
+  // Uses the referenced RT image if available, otherwise the geometry will be set up when loading the corresponding RT image
+  vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
+  planNode->GetBeams(beams);
+  if (beams)
+  {
+    for (int i=0; i<beams->GetNumberOfItems(); ++i)
+    {
+      vtkMRMLRTBeamNode *beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
+      this->SetupRtImageGeometry(beamNode);
+    }
+  }
+
+  scene->EndState(vtkMRMLScene::BatchProcessState);
+
+  return true;
+}
+
+//---------------------------------------------------------------------------
+bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
+  vtkSlicerDicomRtReader* rtReader, const char* seriesName, vtkMRMLRTPlanNode* planNode )
+{
+  if (!rtReader || !seriesName || !planNode)
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadExternalBeamPlan: Invalid inputs");
+    return false;
+  }
+  vtkMRMLScene* scene = planNode->GetScene();
+  if (!scene)
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadExternalBeamPlan: Invalid MRML scene");
+    return false;
+  }
+
+  vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyRootNode;
+
   // Load beams in plan
   int numberOfBeams = rtReader->GetNumberOfBeams();
   for (int beamIndex = 0; beamIndex < numberOfBeams; beamIndex++) // DICOM starts indexing from 1
@@ -696,7 +781,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
     {
       if (!planNode->SetIsocenterPosition(isocenter))
       {
-        vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Failed to set isocenter position");
+        vtkErrorWithObjectMacro(this->External, "LoadExternalBeamPlan: Failed to set isocenter position");
         return false;
       }
     }
@@ -705,7 +790,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
       double planIsocenter[3] = {0.0, 0.0, 0.0};
       if (!planNode->GetIsocenterPosition(planIsocenter))
       {
-        vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Failed to get plan isocenter position");
+        vtkErrorWithObjectMacro(this->External, "LoadExternalBeamPlan: Failed to get plan isocenter position");
         return false;
       }
       //TODO: Multiple isocenters per plan is not yet supported. Will be part of the beams group nodes developed later
@@ -713,7 +798,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
         || !vtkSlicerRtCommon::AreEqualWithTolerance(planIsocenter[1], isocenter[1])
         || !vtkSlicerRtCommon::AreEqualWithTolerance(planIsocenter[2], isocenter[2]) )
       {
-        vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Different isocenters for each beam are not yet supported! The first isocenter will be used for the whole plan " << planNode->GetName() << ": (" << planIsocenter[0] << ", " << planIsocenter[1] << ", " << planIsocenter[2] << ")");
+        vtkErrorWithObjectMacro(this->External, "LoadExternalBeamPlan: Different isocenters for each beam are not yet supported! The first isocenter will be used for the whole plan " << planNode->GetName() << ": (" << planIsocenter[0] << ", " << planIsocenter[1] << ", " << planIsocenter[2] << ")");
       }
     }
 
@@ -762,42 +847,70 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
     beamModelHierarchyNode->SetAndObserveDisplayNodeID( beamModelHierarchyDisplayNode->GetID() );
   }
 
-  // Insert plan isocenter series in subject hierarchy
-  this->InsertSeriesInSubjectHierarchy(rtReader);
+  return true;
+}
 
-  // Put plan SH item underneath study
-  vtkIdType studyItemID = shNode->GetItemByUID(
-    vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetStudyInstanceUid());
-  if (studyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+//---------------------------------------------------------------------------
+bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadBrachyPlan(
+  vtkSlicerDicomRtReader* rtReader, const char* seriesName, vtkMRMLRTPlanNode* planNode)
+{
+  if (!rtReader || !seriesName || !planNode)
   {
-    vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Failed to find study subject hierarchy item");
+    vtkErrorWithObjectMacro(this->External, "LoadBrachyPlan: Invalid inputs");
     return false;
   }
-  if (planShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  vtkMRMLScene* scene = planNode->GetScene();
+  if (!scene)
   {
-    shNode->SetItemParent(planShItemID, studyItemID);
+    vtkErrorWithObjectMacro(this->External, "LoadBrachyPlan: Invalid MRML scene");
+    return false;
   }
-  // Put plan markups under study within SH
-  vtkIdType planMarkupsShItemID = shNode->GetItemByDataNode(planNode->GetPoisMarkupsFiducialNode());
-  if (planMarkupsShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->External->GetMRMLScene());
+  if (!shNode)
   {
-    shNode->SetItemParent(planMarkupsShItemID, studyItemID);
+    vtkErrorWithObjectMacro(this->External, "LoadBrachyPlan: Failed to access subject hierarchy node");
+    return false;
   }
+  vtkIdType planShItemID = planNode->GetPlanSubjectHierarchyItemID();
 
-  // Compute and set geometry of possible RT image that references the loaded beams.
-  // Uses the referenced RT image if available, otherwise the geometry will be set up when loading the corresponding RT image
-  vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
-  planNode->GetBeams(beams);
-  if (beams)
+  for (int channelIndex = 1; channelIndex <= rtReader->GetNumberOfChannels(); ++channelIndex)
   {
-    for (int i=0; i<beams->GetNumberOfItems(); ++i)
+    std::stringstream channelNameStream;
+    channelNameStream << seriesName << "_" << channelIndex;
+
+    std::string fiducialNodeName = this->External->GetMRMLScene()->GenerateUniqueName(channelNameStream.str());
+    vtkNew<vtkMRMLMarkupsFiducialNode> markupsNode;
+    this->External->GetMRMLScene()->AddNode(markupsNode);
+    markupsNode->SetName(fiducialNodeName.c_str());
+    int numberOfControlPoints = rtReader->GetChannelNumberOfControlPoints(channelIndex);
+    for (int controlPointIndex = 0; controlPointIndex < numberOfControlPoints; ++controlPointIndex)
     {
-      vtkMRMLRTBeamNode *beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
-      this->SetupRtImageGeometry(beamNode);
+      double controlPointPosition[3] = { 0.0, 0.0, 0.0 };
+      if (!rtReader->GetChannelControlPoint(channelIndex, controlPointIndex, controlPointPosition))
+      {
+        vtkErrorWithObjectMacro(this->External, "LoadBrachyPlan: Failed to get control point "
+          << controlPointIndex << " from channel " << channelIndex);
+        continue;
+      }
+      markupsNode->AddFiducialFromArray(controlPointPosition);
+    }
+    markupsNode->SetLocked(1);
+
+    vtkNew<vtkMRMLMarkupsDisplayNode> markupsDisplayNode;
+    this->External->GetMRMLScene()->AddNode(markupsDisplayNode);
+    markupsDisplayNode->SetGlyphType(vtkMRMLMarkupsDisplayNode::Sphere3D);
+    markupsNode->SetAndObserveDisplayNodeID(markupsDisplayNode->GetID());
+
+    // Hide the fiducial by default
+    //markupsNode->SetDisplayVisibility(0);
+
+    // Add channel markups fiducial node under plan in SH
+    vtkIdType channelMarkupsShItemID = shNode->GetItemByDataNode(markupsNode);
+    if (channelMarkupsShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+      shNode->SetItemParent(channelMarkupsShItemID, planShItemID);
     }
   }
-
-  scene->EndState(vtkMRMLScene::BatchProcessState);
 
   return true;
 }
@@ -1113,7 +1226,7 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal
   std::string fiducialNodeName = this->External->GetMRMLScene()->GenerateUniqueName(baseName);
   vtkSmartPointer<vtkMRMLMarkupsFiducialNode> markupsNode = vtkSmartPointer<vtkMRMLMarkupsFiducialNode>::New();
   this->External->GetMRMLScene()->AddNode(markupsNode);
-  markupsNode->SetName(baseName.c_str());
+  markupsNode->SetName(fiducialNodeName.c_str());
   markupsNode->AddFiducialFromArray(roiPosition);
   markupsNode->SetLocked(1);
 

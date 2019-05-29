@@ -287,6 +287,12 @@ void vtkMRMLRTPlanNode::SetAndObserveSegmentationNode(vtkMRMLSegmentationNode* n
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::GetPoisMarkupsFiducialNode()
 {
+  return vtkMRMLMarkupsFiducialNode::SafeDownCast(this->GetNodeReference(POIS_MARKUPS_REFERENCE_ROLE));
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreatePoisMarkupsFiducialNode()
+{
   vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(this->GetNodeReference(POIS_MARKUPS_REFERENCE_ROLE));
   if (!markupsNode)
   {
@@ -388,7 +394,7 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
 //----------------------------------------------------------------------------
 bool vtkMRMLRTPlanNode::GetIsocenterPosition(double isocenter[3])
 {
-  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetPoisMarkupsFiducialNode();
+  vtkMRMLMarkupsFiducialNode* fiducialNode = this->CreatePoisMarkupsFiducialNode();
   if (!fiducialNode)
   {
     vtkErrorMacro("GetIsocenterPosition: Unable to access fiducial node for plan " << this->Name);
@@ -402,7 +408,7 @@ bool vtkMRMLRTPlanNode::GetIsocenterPosition(double isocenter[3])
 //----------------------------------------------------------------------------
 bool vtkMRMLRTPlanNode::SetIsocenterPosition(double isocenter[3])
 {
-  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetPoisMarkupsFiducialNode();
+  vtkMRMLMarkupsFiducialNode* fiducialNode = this->CreatePoisMarkupsFiducialNode();
   if (!fiducialNode)
   {
     vtkErrorMacro("SetIsocenterPosition: Unable to access fiducial node for plan " << this->Name);
@@ -674,7 +680,7 @@ void vtkMRMLRTPlanNode::SetIsocenterSpecification(vtkMRMLRTPlanNode::IsocenterSp
   }
 
   // Get POIs markups node
-  vtkMRMLMarkupsFiducialNode* fiducialNode = this->GetPoisMarkupsFiducialNode();
+  vtkMRMLMarkupsFiducialNode* fiducialNode = this->CreatePoisMarkupsFiducialNode();
   if (!fiducialNode)
   {
     vtkErrorMacro("SetIsocenterSpecification: Unable to access fiducial node for plan " << this->Name);

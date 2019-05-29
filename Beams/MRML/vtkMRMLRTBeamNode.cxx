@@ -364,7 +364,7 @@ bool vtkMRMLRTBeamNode::GetPlanIsocenterPosition(double isocenter[3])
     vtkErrorMacro("GetPlanIsocenterPosition: Failed to access parent plan node");
     return false;
   }
-  vtkMRMLMarkupsFiducialNode* poisMarkupsNode = parentPlanNode->GetPoisMarkupsFiducialNode();
+  vtkMRMLMarkupsFiducialNode* poisMarkupsNode = parentPlanNode->CreatePoisMarkupsFiducialNode();
   if (!poisMarkupsNode)
   {
     vtkErrorMacro("GetPlanIsocenterPosition: Failed to access POIs markups node");

@@ -143,6 +143,8 @@ public:
 
   /// Get plan POIs (isocenters, weight points, CT reference points, beam entry points)
   vtkMRMLMarkupsFiducialNode* GetPoisMarkupsFiducialNode();
+  /// Create plan POIs (isocenters, weight points, CT reference points, beam entry points)
+  vtkMRMLMarkupsFiducialNode* CreatePoisMarkupsFiducialNode();
   /// Set plan POIs (isocenters, weight points, CT reference points, beam entry points)
   void SetAndObservePoisMarkupsFiducialNode(vtkMRMLMarkupsFiducialNode* node);
   /// Get isocenter position
