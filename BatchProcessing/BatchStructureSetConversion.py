@@ -35,7 +35,7 @@ class BatchStructureSetConversion(ScriptedLoadableModule):
             slicer.selfTests = {}
         slicer.selfTests['BatchStructureSetConversion'] = self.runTest
 
-    def runTest(self):
+    def runTest(self, msec=100, **kwargs):
         tester = BatchStructureSetConversionTest()
         tester.runTest()
 
@@ -124,9 +124,8 @@ class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
       for labelmapNode in labelmapsToSave:
         # Clean up file name and set path
         fileName = labelmapNode.GetName() + '.nrrd'
-        charsRoRemove = ['!', '?', ':', ';']
-        fileName = fileName.translate(None, ''.join(charsRoRemove))
-        fileName = fileName.replace(' ', '_')
+        table = str.maketrans(dict.fromkeys('!?:;'))
+        fileName = fileName.translate(table)
         filePath = outputDir + '/' + fileName
         logging.info('  Saving structure ' + labelmapNode.GetName() + '\n    to file ' + fileName)
 
@@ -142,9 +141,8 @@ class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
       for imageNode in sv_nodes.values():
         # Clean up file name and set path
         fileName = imageNode.GetName() + '.nrrd'
-        charsRoRemove = ['!', '?', ':', ';']
-        fileName = fileName.translate(None, ''.join(charsRoRemove))
-        fileName = fileName.replace(' ', '_')
+        table = str.maketrans(dict.fromkeys('!?:;'))
+        fileName = fileName.translate(table)
         filePath = outputDir + '/' + fileName
         logging.info('  Saving image ' + imageNode.GetName() + '\n    to file ' + fileName)
 

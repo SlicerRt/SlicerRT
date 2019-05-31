@@ -93,7 +93,7 @@ class DicomSroExportWidget(ScriptedLoadableModuleWidget):
     self.outputDirectory = ctk.ctkDirectoryButton()
     self.outputDirectory.directory = qt.QDir.homePath()
     parametersFormLayout.addRow("Output Directory: ", self.outputDirectory)
-    
+
     # check box to trigger taking screen shots for later use in tutorials
     self.enableScreenshotsFlagCheckBox = qt.QCheckBox()
     self.enableScreenshotsFlagCheckBox.checked = 0
@@ -158,15 +158,15 @@ class DicomSroExportWidget(ScriptedLoadableModuleWidget):
 #
 
 class DicomSroExportLogic(ScriptedLoadableModuleLogic):
-  """This class should implement all the actual 
-  computation done by your module.  The interface 
+  """This class should implement all the actual
+  computation done by your module.  The interface
   should be such that other python code can import
   this class and make use of the functionality without
   requiring an instance of the Widget
   """
 
   def hasImageData(self,volumeNode):
-    """This is a dummy logic method that 
+    """This is a dummy logic method that
     returns true if the passed in volume
     node has valid image data
     """
@@ -228,7 +228,7 @@ class DicomSroExportTest(ScriptedLoadableModuleTest):
     self.delayDisplay('Starting the test')
 
     # Download test data
-    import urllib
+    import urllib.request, urllib.parse, urllib.error
     downloads = (
         ('http://slicer.kitware.com/midas3/download?items=5767', 'FA.nrrd', slicer.util.loadVolume),
         )
@@ -237,7 +237,7 @@ class DicomSroExportTest(ScriptedLoadableModuleTest):
       filePath = slicer.app.temporaryPath + '/' + name
       if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
         print('Requesting download %s from %s...\n' % (name, url))
-        urllib.urlretrieve(url, filePath)
+        urllib.request.urlretrieve(url, filePath)
       if loader:
         print('Loading %s...\n' % (name,))
         loader(filePath)

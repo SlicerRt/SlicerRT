@@ -62,7 +62,7 @@ class PlmProtonDoseEngineTest(unittest.TestCase):
   #------------------------------------------------------------------------------
   def TestSection_01_RetrieveInputData(self):
     try:
-      import urllib
+      import urllib.request, urllib.parse, urllib.error
       downloads = (
           ('http://slicer.kitware.com/midas3/download/folder/3763/TinyPatient_Seg.zip', self.dataZipFilePath),
           )
@@ -73,7 +73,7 @@ class PlmProtonDoseEngineTest(unittest.TestCase):
           if downloaded == 0:
             logging.info('Downloading input data to folder\n' + self.dataZipFilePath)
           logging.info('Requesting download from %s...' % (url))
-          urllib.urlretrieve(url, filePath)
+          urllib.request.urlretrieve(url, filePath)
           downloaded += 1
         else:
           logging.info('Input data has been found in folder ' + self.dataZipFilePath)

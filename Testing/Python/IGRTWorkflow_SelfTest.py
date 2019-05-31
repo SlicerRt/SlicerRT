@@ -50,7 +50,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
   #------------------------------------------------------------------------------
   def test_IGRTWorkflow_SelfTest_FullTest(self):
     try:
-      #slicer.igrt_selftest_instance = self #TODO: For debugging
+      slicer.igrt_selftest_instance = self # For debugging
 
       # Check for modules
       self.assertIsNotNone( slicer.modules.dicomrtimportexport )
@@ -118,7 +118,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     self.accumulatedDoseUnregisteredName = '5_RTDOSE_Accumulated_Unregistered'
     self.accumulatedDoseRigidName = '5_RTDOSE_Accumulated_Rigid'
     # self.accumulatedDoseBSplineName = '5_RTDOSE_Accumulated_BSpline'
-    
+
     self.setupPathsAndNamesDone = True
 
   #------------------------------------------------------------------------------
@@ -148,7 +148,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
   #------------------------------------------------------------------------------
   def TestSection_02A_LoadDay2Data(self):
     try:
-      import urllib
+      import urllib.request, urllib.parse, urllib.error
       downloads = (
           ('http://slicer.kitware.com/midas3/download?items=10702', self.day2DataDir + '/' + self.day2CTName + '.nrrd', slicer.util.loadVolume),
           ('http://slicer.kitware.com/midas3/download?items=10703', self.day2DataDir + '/' + self.day2DoseName + '.nrrd', slicer.util.loadVolume),
@@ -162,7 +162,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
           if downloaded == 0:
             self.delayDisplay('Downloading Day 2 input data to folder\n' + self.day2DataDir + '\n\n  It may take a few minutes...',self.delayMs)
           logging.info('Requesting download from %s...\n' % (url))
-          urllib.urlretrieve(url, filePath)
+          urllib.request.urlretrieve(url, filePath)
           # TODO Check file sizes if possible (sometimes one of them does not fully download)
           downloaded += 1
         else:
@@ -196,11 +196,11 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.assertIsNotNone( study1ItemID )
       patientItemID = shNode.GetItemParent(study1ItemID)
       self.assertIsNotNone( patientItemID )
-      
+
       # Add new study for the day 2 data
       study2ItemID = shNode.CreateStudyItem(patientItemID, 'Day2')
       shNode.SetItemUID(study2ItemID, slicer.vtkMRMLSubjectHierarchyConstants.GetDICOMUIDName(), 'Day2Study_UID')
-      
+
       # Add dose unit attributes to the new study item
       doseUnitName = shNode.GetItemAttribute(study1ItemID, self.doseUnitNameAttributeName)
       doseUnitValue = shNode.GetItemAttribute(study1ItemID, self.doseUnitValueAttributeName)
@@ -247,7 +247,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       day2Dose.GetDisplayNode().AutoThresholdOff();
       day2Dose.GetDisplayNode().SetLowerThreshold(0.5 * float(doseUnitValue));
       day2Dose.GetDisplayNode().SetApplyThreshold(1);
-      
+
       # Set CT windows
       day1CT = slicer.util.getNode(self.day1CTName)
       day1CT.GetDisplayNode().SetAutoWindowLevel(0)
@@ -264,7 +264,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       sliceWidgetNames = ['Red', 'Green', 'Yellow']
       layoutManager.sliceWidget(sliceWidgetNames[0]).sliceController().setSliceOffsetValue(138)
       layoutManager.sliceWidget(sliceWidgetNames[1]).sliceController().setSliceOffsetValue(-18)
-      
+
       # Set structure visibilities/transparencies
       day1StructureSet = slicer.util.getNode(self.day1StructureSetName)
       day1StructureSet.GetDisplayNode().SetSegmentVisibility('optBRAIN', 0)
@@ -298,8 +298,8 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
 
       isodoseWidget = slicer.modules.isodose.widgetRepresentation()
       doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]
-      applyButton = slicer.util.findChildren(widget=isodoseWidget, className='QPushButton', text='Apply')[0]
-      
+      applyButton = slicer.util.findChildren(widget=isodoseWidget, className='QPushButton', text='Generate isodose')[0]
+
       # Compute isodose for day 1 dose
       day1Dose = slicer.util.getNode(self.day1DoseName)
       doseVolumeMrmlNodeCombobox.setCurrentNodeID(day1Dose.GetID())
@@ -311,7 +311,8 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       day1CT = slicer.util.getNode(self.day1CTName)
       self.TestUtility_ShowVolumes(day1CT)
 
-      day1IsodoseShItemID = shNode.GetItemByDataNode(slicer.util.getNode(self.day1IsodosesName))
+      day1DoseShItemID = shNode.GetItemByDataNode(day1Dose)
+      day1IsodoseShItemID = shNode.GetItemChildWithName(day1DoseShItemID, self.day1IsodosesName)
       self.assertIsNotNone( day1IsodoseShItemID )
       shNode.SetDisplayVisibilityForBranch(day1IsodoseShItemID, 1)
 
@@ -336,7 +337,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
 
       isodoseWidget = slicer.modules.isodose.widgetRepresentation()
       doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]
-      applyButton = slicer.util.findChildren(widget=isodoseWidget, className='QPushButton', text='Apply')[0]
+      applyButton = slicer.util.findChildren(widget=isodoseWidget, className='QPushButton', text='Generate isodose')[0]
 
       # Compute isodose for day 2 dose
       day2Dose = slicer.util.getNode(self.day2DoseName)
@@ -350,16 +351,19 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       # Show day 2 isodose
       shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
       self.assertIsNotNone( shNode )
-      day1IsodoseShItemID = shNode.GetItemByDataNode(slicer.util.getNode(self.day1IsodosesName))
+      day1Dose = slicer.util.getNode(self.day1DoseName)
+      day1DoseShItemID = shNode.GetItemByDataNode(day1Dose)
+      day1IsodoseShItemID = shNode.GetItemChildWithName(day1DoseShItemID, self.day1IsodosesName)
       shNode.SetDisplayVisibilityForBranch(day1IsodoseShItemID, 0)
 
       day2CT = slicer.util.getNode(self.day2CTName)
       self.TestUtility_ShowVolumes(day2CT)
 
-      day2IsodoseShItemID = shNode.GetItemByDataNode(slicer.util.getNode(self.day2IsodosesName))
+      day2DoseShItemID = shNode.GetItemByDataNode(day2Dose)
+      day2IsodoseShItemID = shNode.GetItemChildWithName(day2DoseShItemID, self.day2IsodosesName)
       self.assertIsNotNone( day2IsodoseShItemID )
       shNode.SetDisplayVisibilityForBranch(day2IsodoseShItemID, 1)
-      
+
     except Exception as e:
       import traceback
       traceback.print_exc()
@@ -376,7 +380,9 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       # Hide isodose
       shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
       self.assertIsNotNone( shNode )
-      day2IsodoseShItemID = shNode.GetItemByDataNode(slicer.util.getNode(self.day2IsodosesName))
+      day2Dose = slicer.util.getNode(self.day2DoseName)
+      day2DoseShItemID = shNode.GetItemByDataNode(day2Dose)
+      day2IsodoseShItemID = shNode.GetItemChildWithName(day2DoseShItemID, self.day2IsodosesName)
       shNode.SetDisplayVisibilityForBranch(day2IsodoseShItemID, 0)
 
       # Register Day 2 CT to Day 1 CT using rigid registration
@@ -401,7 +407,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.cliBrainsFitRigidNode = slicer.cli.run(brainsFit, None, parametersRigid)
       waitCount = 0
       while self.cliBrainsFitRigidNode.GetStatusString() != 'Completed' and waitCount < 200:
-        self.delayDisplay( "Register Day 2 CT to Day 1 CT using rigid registration... %d" % waitCount )
+        self.delayDisplay( "Register Day 2 CT to Day 1 CT using rigid registration... %d" % waitCount, self.delayMs )
         waitCount += 1
       self.delayDisplay("Register Day 2 CT to Day 1 CT using rigid registration finished",self.delayMs)
 
@@ -483,7 +489,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       scene = slicer.mrmlScene
       slicer.util.selectModule('DoseComparison')
       numOfVolumeNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') )
-      
+
       gammaWidget = slicer.modules.dosecomparison.widgetRepresentation()
       referenceDoseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=gammaWidget, name='MRMLNodeComboBox_ReferenceDoseVolume')[0]
       compareDoseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=gammaWidget, name='MRMLNodeComboBox_CompareDoseVolume')[0]
@@ -502,9 +508,9 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       applyButton.click()
 
       self.assertEqual( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ), numOfVolumeNodesBeforeLoad + 1 )
-      
+
       self.TestUtility_ShowVolumes(gammaVolume)
-      
+
     except Exception as e:
       import traceback
       traceback.print_exc()
@@ -527,7 +533,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       slicer.util.selectModule('DoseAccumulation')
       doseAccumulationWidget = slicer.modules.doseaccumulation.widgetRepresentation()
       doseAccumulationLogic = slicer.modules.doseaccumulation.logic()
-      
+
       self.doseAccumulationParamNode = slicer.util.getNode('DoseAccumulation')
       self.assertIsNotNone( self.doseAccumulationParamNode )
 
@@ -569,7 +575,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       self.DoseAccumulationUtility_SelectDoseVolume(self.day2DoseRigidName, True)
       outputMrmlNodeCombobox.setCurrentNode(accumulatedDoseRigid)
       doseAccumulationLogic.AccumulateDoseVolumes(self.doseAccumulationParamNode)
-      
+
       self.assertIsNotNone( accumulatedDoseRigid.GetImageData() )
 
       self.delayDisplay("Accumulate Day 1 dose with Day 2 dose registered with rigid registration finished",self.delayMs)
@@ -588,7 +594,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       slicer.util.selectModule('DoseVolumeHistogram')
       dvhWidget = slicer.modules.dosevolumehistogram.widgetRepresentation()
 
-      numOfDoubleArrayNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLDoubleArrayNode*') )
+      numOfTableNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLTableNode*') )
 
       computeDvhButton = slicer.util.findChildren(widget=dvhWidget, text='Compute DVH')[0]
       segmentsCollapsibleGroupBox = slicer.util.findChildren(widget=dvhWidget, name='CollapsibleGroupBox_Segments')[0]
@@ -609,14 +615,14 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       accumulatedDoseUnregistered = slicer.util.getNode(self.accumulatedDoseUnregisteredName)
       doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseUnregistered)
       computeDvhButton.click()
-      
+
       # Compute DVH using accumulated dose volume that used Day 2 dose after rigid transform
       self.delayDisplay("Compute DVH of accumulated dose (rigid registration)",self.delayMs)
       accumulatedDoseRigid = slicer.util.getNode(self.accumulatedDoseRigidName)
       doseVolumeNodeCombobox.setCurrentNode(accumulatedDoseRigid)
       computeDvhButton.click()
 
-      self.assertEqual( len( slicer.util.getNodes('vtkMRMLDoubleArrayNode*') ), numOfDoubleArrayNodesBeforeLoad + 2 )
+      self.assertEqual( len( slicer.util.getNodes('vtkMRMLTableNode*') ), numOfTableNodesBeforeLoad + 2 )
 
       # Create chart and show plots
       self.delayDisplay("Show DVH charts",self.delayMs)
@@ -657,7 +663,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     self.setUp()
 
     self.test_IGRTWorkflow_SelfTest_FullTest()
-      
+
   #------------------------------------------------------------------------------
   # Utility functions
   #------------------------------------------------------------------------------
@@ -680,7 +686,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
 
       layoutManager = slicer.app.layoutManager()
       layoutManager.setLayout(3)
-      
+
       sliceWidgetNames = ['Red', 'Green', 'Yellow']
       for sliceWidgetName in sliceWidgetNames:
         slice = layoutManager.sliceWidget(sliceWidgetName)
@@ -766,7 +772,7 @@ class IGRTWorkflow_SelfTestWidget(ScriptedLoadableModuleWidget):
     self.performWorkflow1Button.name = "IGRTWorkflow_SelfTest_LoadData"
     self.workflow1GroupboxLayout.addWidget(self.performWorkflow1Button)
     self.performWorkflow1Button.connect('clicked()', self.onPerformWorkflow1)
-    
+
     # Load data button
     self.loadDataButton = qt.QPushButton("Load data")
     self.loadDataButton.setMaximumWidth(200)
@@ -814,7 +820,7 @@ class IGRTWorkflow_SelfTestWidget(ScriptedLoadableModuleWidget):
     self.accumulateDoseButton.name = "IGRTWorkflow_SelfTest_AccumulateDose"
     self.workflow1GroupboxLayout.addWidget(self.accumulateDoseButton)
     self.accumulateDoseButton.connect('clicked()', self.onAccumulateDose)
-    
+
     # Compute DVH button
     self.computeDvhButton = qt.QPushButton("Compute DVH")
     self.computeDvhButton.setMaximumWidth(200)
@@ -825,7 +831,7 @@ class IGRTWorkflow_SelfTestWidget(ScriptedLoadableModuleWidget):
 
     self.workflow1Groupbox.setLayout(self.workflow1GroupboxLayout)
     self.layout.addWidget(self.workflow1Groupbox)
-    
+
     # Add vertical spacer
     self.layout.addStretch(4)
 
@@ -853,7 +859,7 @@ class IGRTWorkflow_SelfTestWidget(ScriptedLoadableModuleWidget):
     if not hasattr(tester,'setupPathsAndNamesDone'):
       tester.TestSection_00_SetupPathsAndNames()
     tester.test_IGRTWorkflow_SelfTest_FullTest()
-    
+
   #------------------------------------------------------------------------------
   def onLoadData(self,moduleName="IGRTWorkflow_SelfTest"):
     self.onReload()

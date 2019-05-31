@@ -29,7 +29,7 @@ class DicomRtImportTest(unittest.TestCase):
     self.assertIsNotNone( slicer.modules.dicomrtimportexport )
     self.assertIsNotNone( slicer.modules.segmentations )
     self.assertIsNotNone( slicer.modules.dicom )
-    
+
     self.dicomWidget = slicer.modules.dicom.widgetRepresentation().self()
     self.assertIsNotNone( self.dicomWidget )
 
@@ -45,7 +45,7 @@ class DicomRtImportTest(unittest.TestCase):
 
   #------------------------------------------------------------------------------
   def TestSection_RetrieveInputData(self):
-    import urllib
+    import urllib.request, urllib.parse, urllib.error
 
     dicomRtImportTestDir = slicer.app.temporaryPath + '/DicomRtImportTest'
     if not os.access(dicomRtImportTestDir, os.F_OK):
@@ -67,7 +67,7 @@ class DicomRtImportTest(unittest.TestCase):
       filePath = self.dataDir + '/' + name
       if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
         logging.info('Requesting download %s from %s...\n' % (name, url))
-        urllib.urlretrieve(url, filePath)
+        urllib.request.urlretrieve(url, filePath)
 
     logging.info("Finished with download test data")
 
@@ -83,7 +83,7 @@ class DicomRtImportTest(unittest.TestCase):
       self.originalDatabaseDirectory = None
       settings = qt.QSettings()
       settings.setValue('DatabaseDirectory', self.dicomDatabaseDir)
-      
+
     self.dicomWidget.onDatabaseDirectoryChanged(self.dicomDatabaseDir)
     self.assertTrue( slicer.dicomDatabase.isOpen )
 
