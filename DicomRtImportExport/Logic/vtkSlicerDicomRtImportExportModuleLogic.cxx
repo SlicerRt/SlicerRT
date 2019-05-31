@@ -81,6 +81,7 @@
 
 // MRML includes
 #include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLMarkupsCurveNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLModelNode.h>
@@ -879,7 +880,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadBrachyPlan(
     channelNameStream << seriesName << "_" << channelIndex;
 
     std::string fiducialNodeName = this->External->GetMRMLScene()->GenerateUniqueName(channelNameStream.str());
-    vtkNew<vtkMRMLMarkupsFiducialNode> markupsNode;
+    vtkNew<vtkMRMLMarkupsCurveNode> markupsNode;
     this->External->GetMRMLScene()->AddNode(markupsNode);
     markupsNode->SetName(fiducialNodeName.c_str());
     int numberOfControlPoints = rtReader->GetChannelNumberOfControlPoints(channelIndex);
@@ -892,7 +893,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadBrachyPlan(
           << controlPointIndex << " from channel " << channelIndex);
         continue;
       }
-      markupsNode->AddFiducialFromArray(controlPointPosition);
+      vtkVector3d controlPointPosVector(controlPointPosition);
+      markupsNode->AddControlPoint(controlPointPosVector);
     }
     markupsNode->SetLocked(1);
 
