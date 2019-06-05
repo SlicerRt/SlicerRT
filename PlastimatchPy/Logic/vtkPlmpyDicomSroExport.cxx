@@ -142,13 +142,36 @@ int vtkPlmpyDicomSroExport::DoExport()
   Plm_image::Pointer movingImage = PlmCommon::ConvertVolumeNodeToPlmImage(movingNode, false);
 
   // Convert xform into a form that Plastimatch can use
-  vtkMRMLLinearTransformNode *xformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->XformID));
+  Xform::Pointer xform = Xform::New ();
+  vtkMRMLTransformNode *xformNode = vtkMRMLTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->XformID));
   if (!xformNode)
   {
-    vtkErrorMacro("DoExport: Only linear transforms are currently supported");
+    vtkErrorMacro("DoExport: Transform node was not actually a transform");
+    return 1;
+  }
+  if (xformNode->IsA ("vtkMRMLLinearTransformNode"))
+  {
+    vtkMRMLLinearTransformNode *xformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->XformID));
+    vtkSmartPointer<vtkMatrix4x4> vtkAff = vtkSmartPointer<vtkMatrix4x4>::New();
+    xformNode->GetMatrixTransformToParent(vtkAff);
+    AffineTransformType itkAff;
+    bool rc = vtkITKTransformConverter::SetITKLinearTransformFromVTK(this,itkAff,vtkAff);
+    xform->set_aff(itkAff);
+  }
+  else if (xformNode->IsA ("vtkMRMLGridTransformNode"))
+  {
+    //vtkMRMLDeformationGridTransformNode *xformNode = vtkMRMLDeformationGridTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->XformID));
+    //..
+    //itk::Image< itk::Vector< float 3 >, 3 > itk_vf = ....
+    //xform->set_itk_vf(itk_vf);
+  }
+  else
+  {
+    vtkErrorMacro("DoExport: Only Linear and Grid Transforms are exported");
     return 1;
   }
 
+#if defined (commentout)
   vtkSmartPointer<vtkMatrix4x4> vtkAff = vtkSmartPointer<vtkMatrix4x4>::New();
   xformNode->GetMatrixTransformToParent(vtkAff);
 
@@ -186,7 +209,8 @@ int vtkPlmpyDicomSroExport::DoExport()
   }
   Xform::Pointer xform = Xform::New ();
   xform->set_aff (parms);
-
+#endif
+  
   // Run exporter
   Dicom_sro_save dss;
   dss.set_fixed_image (fixedImage);
