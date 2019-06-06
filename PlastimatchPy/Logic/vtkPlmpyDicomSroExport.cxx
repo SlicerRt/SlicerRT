@@ -162,7 +162,7 @@ int vtkPlmpyDicomSroExport::DoExport()
   {
     //vtkMRMLDeformationGridTransformNode *xformNode = vtkMRMLDeformationGridTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->XformID));
     //..
-    //itk::Image< itk::Vector< float 3 >, 3 > itk_vf = ....
+    //itk::Image< itk::Vector< float 3 >, 3 >::Pointer itk_vf = ....
     //xform->set_itk_vf(itk_vf);
   }
   else
