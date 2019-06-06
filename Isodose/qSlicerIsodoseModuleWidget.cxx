@@ -123,7 +123,7 @@ qSlicerIsodoseModuleWidgetPrivate::qSlicerIsodoseModuleWidgetPrivate(qSlicerIsod
     actor->SetOrientationToVertical();
     actor->SetNumberOfLabels(0);
     actor->SetMaximumNumberOfColors(0);
-    actor->SetTitle("Dose(Gy)");
+    actor->SetTitle("Dose");
     actor->SetLabelFormat(" %s");
     actor->UseAnnotationAsLabelOn();
     // It's a 2d actor, position it in screen space by percentages
@@ -782,8 +782,34 @@ void qSlicerIsodoseModuleWidget::updateScalarBarsFromSelectedColorTable()
     qDebug() << Q_FUNC_INFO << ": No color table node is selected";
     return;
   }
+  vtkMRMLScalarVolumeNode* doseVolumeNode = paramNode->GetDoseVolumeNode();
+  if (!doseVolumeNode)
+  {
+    qWarning() << Q_FUNC_INFO << ": No dose volume node is selected";
+    return;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->mrmlScene());
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+  }
 
   int newNumberOfColors = selectedColorNode->GetNumberOfColors();
+
+  // Get dose unit name and assemble scalar bar title
+  std::string doseUnitName("");
+  vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
+  if (doseShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    doseUnitName = shNode->GetAttributeFromItemAncestor(
+      doseShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+  }
+  std::string scalarBarTitle("Dose");
+  if (!doseUnitName.empty())
+  {
+    scalarBarTitle += " (" + doseUnitName + ")";
+  }
 
   // Update all scalar bar actors
   for (std::vector<vtkScalarBarWidget*>::iterator it = d->ScalarBarWidgets.begin();
@@ -802,6 +828,7 @@ void qSlicerIsodoseModuleWidget::updateScalarBarsFromSelectedColorTable()
     {
       actor->GetLookupTable()->SetAnnotation(colorIndex, vtkStdString(selectedColorNode->GetColorName(colorIndex)));
     }
+    actor->SetTitle(scalarBarTitle.c_str());
     (*it)->Render();
   }
 }
