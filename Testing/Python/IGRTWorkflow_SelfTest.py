@@ -869,10 +869,7 @@ class IGRTWorkflow_SelfTestWidget(ScriptedLoadableModuleWidget):
 
     if not hasattr(tester,'setupPathsAndNamesDone'):
       tester.TestSection_00_SetupPathsAndNames()
-    tester.TestSection_01A_OpenTempDatabase()
-    tester.TestSection_01B_DownloadDay1Data()
-    tester.TestSection_01C_ImportDay1Study()
-    tester.TestSection_01D_SelectLoadablesAndLoad()
+    tester.TestSection_01_LoadDicomData()
     tester.TestSection_02A_LoadDay2Data()
     tester.TestSection_02B_AddDay2DataToSubjectHierarchy()
     tester.TestSection_02C_SetDisplayOptions()
