@@ -88,12 +88,6 @@ class DicomSroImportExportPluginClass(DICOMPlugin):
     if transformNode is None or not transformNode.IsA('vtkMRMLTransformNode'):
       return []
 
-    #TODO: Remove when deformable transforms are supported
-    if not transformNode.IsLinear():
-      logging.warning('Non-linear transform is detected in node ' + transformNode.GetName() \
-        + '. Non-linear transform export is not yet supported through the plugin. Please use the DICOM Registration Export module instead.')
-      return []
-
     # Get moving and fixed volumes involved in the registration
     movingVolumeNode = transformNode.GetNodeReference(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole())
     fixedVolumeNode = transformNode.GetNodeReference(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole())
@@ -137,13 +131,14 @@ class DicomSroImportExportPluginClass(DICOMPlugin):
       loadablePath = os.path.join(slicer.modules.plastimatch_slicer_bspline.path,'..'+os.sep+'..'+os.sep+'qt-loadable-modules')
       if loadablePath not in sys.path:
         sys.path.append(loadablePath)
-      sro = slicer.vtkPlmpyDicomSroExport()
-      sro.SetMRMLScene(slicer.mrmlScene)
-      sro.SetFixedImageID(fixedVolumeNode.GetID())
-      sro.SetMovingImageID(movingVolumeNode.GetID())
-      sro.SetXformID(transformNode.GetID())
-      sro.SetOutputDirectory(exportable.directory)
-      success = sro.DoExport()
+      sroExporter = slicer.vtkPlmpyDicomSroExport()
+      sroExporter.SetMRMLScene(slicer.mrmlScene)
+      sroExporter.SetTransformsLogic(slicer.modules.transforms.logic())
+      sroExporter.SetFixedImageID(fixedVolumeNode.GetID())
+      sroExporter.SetMovingImageID(movingVolumeNode.GetID())
+      sroExporter.SetXformID(transformNode.GetID())
+      sroExporter.SetOutputDirectory(exportable.directory)
+      success = sroExporter.DoExport()
       if success != 0:
         currentError = 'Failed to export transform node to DICOM SRO: ' + transformNode.GetName()
         logging.error(currentError)

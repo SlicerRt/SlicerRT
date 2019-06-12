@@ -23,19 +23,27 @@
 // SlicerRT includes
 #include "PlmCommon.h"
 
+// vtkAddon includes
+#include "vtkOrientedBSplineTransform.h"
+#include "vtkOrientedGridTransform.h"
+
 // MRML includes
-#include <vtkMRMLScene.h>
+#include <vtkITKTransformConverter.h>
+#include <vtkMRMLGridTransformNode.h>
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLScene.h>
 
 // VTK includes
+#include <vtkImageData.h>
+#include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
-#include <vtkImageData.h>
 #include <vtkPoints.h>
-#include <vtkMatrix4x4.h>
 
 // ITK includes
+#include <itkAffineTransform.h>
+#include <itkCastImageFilter.h>
 #include <itkImage.h>
 
 // Plastimatch include
@@ -43,7 +51,6 @@
 #include "plm_image.h"
 
 //------------------------------------------------------------------------------
-//vtkCxxSetObjectMacro(vtkPlmpyDicomSroExport,Points,vtkPoints);
 
 vtkStandardNewMacro(vtkPlmpyDicomSroExport);
 
@@ -54,6 +61,7 @@ vtkPlmpyDicomSroExport::vtkPlmpyDicomSroExport()
   this->MovingImageID = nullptr;
   this->XformID = nullptr;
   this->OutputDirectory = nullptr;
+  this->TransformsLogic = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -63,6 +71,7 @@ vtkPlmpyDicomSroExport::~vtkPlmpyDicomSroExport()
   this->SetMovingImageID(nullptr);
   this->SetXformID(nullptr);
   this->SetOutputDirectory(nullptr);
+  this->SetTransformsLogic(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -135,82 +144,78 @@ int vtkPlmpyDicomSroExport::DoExport()
   }
 
   // Convert input CT/MR image to the format Plastimatch can use
-  vtkMRMLScalarVolumeNode* fixedNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
-  Plm_image::Pointer fixedImage = PlmCommon::ConvertVolumeNodeToPlmImage(fixedNode, true);
+  vtkMRMLScalarVolumeNode* fixedVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->FixedImageID));
+  Plm_image::Pointer fixedImage = PlmCommon::ConvertVolumeNodeToPlmImage(fixedVolumeNode, true);
 
-  vtkMRMLScalarVolumeNode* movingNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->MovingImageID));
-  Plm_image::Pointer movingImage = PlmCommon::ConvertVolumeNodeToPlmImage(movingNode, false);
+  vtkMRMLScalarVolumeNode* movingVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(
+    this->GetMRMLScene()->GetNodeByID(this->MovingImageID));
+  Plm_image::Pointer movingImage = PlmCommon::ConvertVolumeNodeToPlmImage(movingVolumeNode, false);
 
   // Convert xform into a form that Plastimatch can use
-  Xform::Pointer xform = Xform::New ();
   vtkMRMLTransformNode *xformNode = vtkMRMLTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->XformID));
   if (!xformNode)
   {
     vtkErrorMacro("DoExport: Transform node was not actually a transform");
     return 1;
   }
-  if (xformNode->IsA ("vtkMRMLLinearTransformNode"))
+  
+  // Convert any deformable transform to Grid transform, because DICOM only supports vector fields
+  bool removeTemporaryTransformNode = false;
+  if (!xformNode->IsLinear())
   {
-    vtkMRMLLinearTransformNode *xformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->XformID));
-    vtkSmartPointer<vtkMatrix4x4> vtkAff = vtkSmartPointer<vtkMatrix4x4>::New();
-    xformNode->GetMatrixTransformToParent(vtkAff);
-    AffineTransformType itkAff;
-    bool rc = vtkITKTransformConverter::SetITKLinearTransformFromVTK(this,itkAff,vtkAff);
-    xform->set_aff(itkAff);
+    if (!this->TransformsLogic)
+    {
+      vtkErrorMacro("DoExport: Failed to access transforms logic. Please set it using SetTransformsLogic");
+      return 1;
+    }
+    vtkMRMLTransformNode* gridTransformNode = this->TransformsLogic->ConvertToGridTransform(xformNode, fixedVolumeNode);
+    if (!gridTransformNode)
+    {
+      vtkErrorMacro("DoExport: Failed to convert transform '" << xformNode->GetName() << "' to grid transform");
+      return 1;
+    }
+    else
+    {
+      vtkDebugMacro("DoExport: Converted transform '" << xformNode->GetName() << "' to grid transform");
+      removeTemporaryTransformNode = true;
+      xformNode = gridTransformNode;
+    }
   }
-  else if (xformNode->IsA ("vtkMRMLGridTransformNode"))
+
+  vtkAbstractTransform* transformVtk = xformNode->GetTransformToParent();
+  itk::Object::Pointer transformItkObj;
+  itk::Object::Pointer secondaryTransformItk; // only used for ITKv3 compatibility
+  transformItkObj = vtkITKTransformConverter::CreateITKTransformFromVTK(this, transformVtk, secondaryTransformItk, 0);
+  if (transformItkObj.IsNull())
   {
-    //vtkMRMLDeformationGridTransformNode *xformNode = vtkMRMLDeformationGridTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->XformID));
-    //..
-    //itk::Image< itk::Vector< float 3 >, 3 >::Pointer itk_vf = ....
-    //xform->set_itk_vf(itk_vf);
-  }
-  else
-  {
-    vtkErrorMacro("DoExport: Only Linear and Grid Transforms are exported");
+    vtkErrorMacro("DoExport: Cannot to convert VTK transform to ITK transform");
     return 1;
   }
 
-#if defined (commentout)
-  vtkSmartPointer<vtkMatrix4x4> vtkAff = vtkSmartPointer<vtkMatrix4x4>::New();
-  xformNode->GetMatrixTransformToParent(vtkAff);
-
-  // Change from RAS system to ITK/DICOM LPS system
-  vtkSmartPointer<vtkMatrix4x4> invMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  invMatrix->Identity();
-  invMatrix->SetElement(0,0,-1);
-  invMatrix->SetElement(1,1,-1);
-  vtkSmartPointer<vtkMatrix4x4> forMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  forMatrix->Identity();
-  forMatrix->SetElement(0,0,-1);
-  forMatrix->SetElement(1,1,-1);
-  vtkMatrix4x4::Multiply4x4(invMatrix, vtkAff, vtkAff);
-  vtkMatrix4x4::Multiply4x4(vtkAff, forMatrix, vtkAff);
-
-  // Set up the parameters for itk affine transform
-  itk::Array<double> parms(12);
-  unsigned int par = 0;
-  // First set up the matrix part
-  for (int i = 0; i < 3; i++) 
+  Xform::Pointer xform = Xform::New();
+  if (xformNode->IsLinear())
   {
-    for (int j = 0; j < 3; j++) 
-    {
-      //printf ("Setting affine [%d,%d] %g\n", i, j, 
-      //        vtkAff->GetElement (i,j));
-      parms[par] = vtkAff->GetElement (i, j);
-      par++;
-    }
+    itk::AffineTransform<double, 3>::Pointer affineTransformItk =
+      dynamic_cast<itk::AffineTransform<double, 3> *>(transformItkObj.GetPointer());
+    xform->set_aff(affineTransformItk);
   }
-  // Next set up the offset part
-  for (int i = 0; i < 3; i++) 
+  else
   {
-    parms[par] = vtkAff->GetElement (i, 3);
-    par++;
+    // Get vector field as ITK image
+    itk::DisplacementFieldTransform<double, 3>::Pointer gridTransformItk =
+      dynamic_cast<itk::DisplacementFieldTransform<double, 3>*>(transformItkObj.GetPointer());
+    itk::Image<itk::Vector<double, 3>, 3>::Pointer gridTransformImage = gridTransformItk->GetDisplacementField();
+
+    // Cast double vector image to float vector image
+    using FilterType = itk::CastImageFilter< itk::Image<itk::Vector<double, 3>, 3>, itk::Image<itk::Vector<float, 3>, 3> >;
+    FilterType::Pointer castImageFilter = FilterType::New();
+    castImageFilter->SetInput(gridTransformImage);
+    castImageFilter->Update();
+
+    xform->set_itk_vf(castImageFilter->GetOutput());
   }
-  Xform::Pointer xform = Xform::New ();
-  xform->set_aff (parms);
-#endif
-  
+
   // Run exporter
   Dicom_sro_save dss;
   dss.set_fixed_image (fixedImage);
@@ -218,6 +223,11 @@ int vtkPlmpyDicomSroExport::DoExport()
   dss.set_xform (xform);
   dss.set_output_dir (this->OutputDirectory);
   dss.run (); //TODO: Error handling in exporter
+
+  if (removeTemporaryTransformNode)
+  {
+    this->GetMRMLScene()->RemoveNode(xformNode);
+  }
 
   return 0;
 }

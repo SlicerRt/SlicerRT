@@ -8,7 +8,9 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${PlmCommon_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${PLASTIMATCH_INCLUDE_DIRS}
- )
+  ${vtkITK_INCLUDE_DIRS} 
+  ${vtkAddon_INCLUDE_DIRS} 
+  )
 
 set(${KIT}_SRCS
   vtkPlmpyRegistration.cxx
@@ -23,6 +25,7 @@ set(${KIT}_TARGET_LIBRARIES
   ${ITK_LIBRARIES}
   ${PLASTIMATCH_LIBRARIES}
   vtkPlmCommon
+  vtkSlicerTransformsModuleLogic
   )
 
 #-----------------------------------------------------------------------------

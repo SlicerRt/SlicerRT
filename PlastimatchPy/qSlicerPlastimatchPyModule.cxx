@@ -75,6 +75,7 @@ QStringList qSlicerPlastimatchPyModule::contributors()const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Paolo Zaffino (University 'Magna Graecia' of Catanzaro)");
+  moduleContributors << QString("Csaba Pinter (Queen's University)");
   return moduleContributors;
 }
 

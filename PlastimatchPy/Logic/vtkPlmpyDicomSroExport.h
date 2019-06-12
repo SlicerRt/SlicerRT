@@ -23,24 +23,13 @@
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
+#include "vtkSlicerTransformLogic.h"
 
 // PlastimatchPy includes
 #include "vtkSlicerPlastimatchPyModuleLogicExport.h"
 
-// ITK includes
-#include "itkImage.h"
-
 // VTK includes
-#include <vtkPoints.h>
-
-// Plastimatch includes
-#include "landmark_warp.h"
-#include "plm_config.h"
-#include "plm_image.h"
-#include "pointset.h"
-#include "registration_data.h"
-#include "registration_parms.h"
-#include "vf_jacobian.h"
+#include <vtkWeakPointer.h>
 
 class VTK_SLICER_PLASTIMATCHPY_MODULE_LOGIC_EXPORT vtkPlmpyDicomSroExport :
   public vtkSlicerModuleLogic
@@ -59,6 +48,7 @@ public:
   vtkGetStringMacro(XformID);
   vtkSetStringMacro(OutputDirectory);
   vtkGetStringMacro(OutputDirectory);
+  vtkSetObjectMacro(TransformsLogic, vtkSlicerTransformLogic);
 
   /// Export DICOM SRO to file
   /// \return Success flag. 0 in case of success, non-0 otherwise
@@ -84,6 +74,10 @@ protected:
 private:
   vtkPlmpyDicomSroExport(const vtkPlmpyDicomSroExport&);
   void operator=(const vtkPlmpyDicomSroExport&);
+
+private:
+  /// Transforms module logic instance
+  vtkWeakPointer<vtkSlicerTransformLogic> TransformsLogic;
 };
 
 #endif
