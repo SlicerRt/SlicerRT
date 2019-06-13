@@ -3,65 +3,93 @@ import vtk, qt, ctk, slicer
 import logging
 from DoseEngines import *
 
+#------------------------------------------------------------------------------
+#
+# OrthovoltageDoseEngine
+#
+#------------------------------------------------------------------------------
 class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
   """ Orthovoltage python dose engine
   """
 
+  #------------------------------------------------------------------------------
   def __init__(self, scriptedEngine):
     scriptedEngine.name = 'Orthovoltage python'
     AbstractScriptedDoseEngine.__init__(self, scriptedEngine)
 
+    # Define initial defaults for parameters that are stored in application settings
+    self.ctcreateOutputPathDefault = "C:/d/tmp"
+    self.phaseSpaceFilePathDefault = "C:/d/6MV 8x6/DOSXYZnrc_files/egsphsp/6MV_8x6asym_sum.egsphsp1"
+    self.dosxyznrcPathDefault = "C:/EGSnrc/egs_home/dosxyznrc"
+    self.pegsFilePathDefault = "C/EGSnrc/HEN_HOUSE/pegs4/data/521icru.pegs4dat"
+
+  #------------------------------------------------------------------------------
   def defineBeamParameters(self):
+    # Define session defaults for parameters that are stored in application settings
+    settings = qt.QSettings()
+    ctcreateOutputPath = self.ctcreateOutputPathDefault
+    if settings.contains('OrthovoltageDoseEngine/CtcreateOutputPath'):
+       ctcreateOutputPath = str(settings.value('OrthovoltageDoseEngine/CtcreateOutputPath'))
+    phaseSpaceFilePath = self.phaseSpaceFilePathDefault
+    if settings.contains('OrthovoltageDoseEngine/PhaseSpaceFilePath'):
+       phaseSpaceFilePath = str(settings.value('OrthovoltageDoseEngine/PhaseSpaceFilePath'))
+    dosxyznrcPath = self.dosxyznrcPathDefault
+    if settings.contains('OrthovoltageDoseEngine/DosxyznrcPath'):
+       dosxyznrcPath = str(settings.value('OrthovoltageDoseEngine/DosxyznrcPath'))
+    pegsFilePath = self.pegsFilePathDefault
+    if settings.contains('OrthovoltageDoseEngine/PegsFilePath'):
+       pegsFilePath = str(settings.value('OrthovoltageDoseEngine/PegsFilePath'))
+
     ##########################################
     # Generate ctcrate phantom parameters tab
     ##########################################
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "CtcreateOutputPath", "Ctcreate output filepath:", 
-    "Enter filepath to store ctcreate phantom and related files", "C:\\\\d\\\\tmp") 
+    "Generate ctcreate phantom", "CtcreateOutputPath", "Ctcreate output file path:",
+    "Enter file path to store ctcreate phantom and related files", ctcreateOutputPath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "ROIName", "ROI node name for cropping image (optional):", 
+    "Generate ctcreate phantom", "ROIName", "ROI node name for cropping image (optional):",
     "Enter name of ROI, if you wish to crop CT image which will be converted to ctcreate phantom format. \
-    If no ROI entered, will use image bounds from original CT image volume", "") 
+    If no ROI entered, will use image bounds from original CT image volume", "")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "SliceThicknessX", "Slice thickness (mm) in X direction (optional):", 
+    "Generate ctcreate phantom", "SliceThicknessX", "Slice thickness (mm) in X direction (optional):",
     "Enter desired slice thickness in X direction for output ctcreate phantom. If not x,y,z slice \
-    thickness not provided, will use same thickness from original CT image volume", "") 
+    thickness not provided, will use same thickness from original CT image volume", "")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "SliceThicknessY", "Slice thickness (mm) in Y direction (optional):", 
+    "Generate ctcreate phantom", "SliceThicknessY", "Slice thickness (mm) in Y direction (optional):",
     "Enter desired slice thickness in Y direction for output ctcreate phantom. If not x,y,z slice \
-    thickness not provided, will use same thickness from original CT image volume", "") 
+    thickness not provided, will use same thickness from original CT image volume", "")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "SliceThicknessZ", "Slice thickness (mm) in Z direction (optional):", 
+    "Generate ctcreate phantom", "SliceThicknessZ", "Slice thickness (mm) in Z direction (optional):",
     "Enter desired slice thickness in Z direction for output ctcreate phantom. If not x,y,z slice \
-    thickness not provided, will use same thickness from original CT image volume", "") 
+    thickness not provided, will use same thickness from original CT image volume", "")
 
     ##########################################
     # Orthovoltage dose parameters tab
     ##########################################
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Orthovoltage dose", "SimulationTitle", "Simulation title:", 
+    "Orthovoltage dose", "SimulationTitle", "Simulation title:",
     "Enter a title for the DOSXYZNrc simulation", "DOSXYZnrc simulation")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Orthovoltage dose", "PhaseSpaceFilePath", "Phase space filepath:", 
-    "Enter full path to phase space file", "C:/d/6MV 8x6/DOSXYZnrc_files/egsphsp/6MV_8x6asym_sum.egsphsp1")
+    "Orthovoltage dose", "PhaseSpaceFilePath", "Phase space file path:",
+    "Enter full path to phase space file", phaseSpaceFilePath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Orthovoltage dose", "ECut", "Global electron cutoff energy - ECUT (MeV):", 
+    "Orthovoltage dose", "ECut", "Global electron cutoff energy - ECUT (MeV):",
     "Select global electron cutoff energy (MeV)", "0.521")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Orthovoltage dose", "PCut", "Global photon cutoff energy - PCUT (MeV):", 
+    "Orthovoltage dose", "PCut", "Global photon cutoff energy - PCUT (MeV):",
     "Select global electron cutoff energy (MeV)", "0.01")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Orthovoltage dose", "IncidentBeamSize", "Incident beam size (cm):", 
+    "Orthovoltage dose", "IncidentBeamSize", "Incident beam size (cm):",
     "SBEAM SIZE is the side of a square field in cm. The default value for \
     BEAM SIZE is 100 cm. When phase-space particles are read from a data file \
     or reconstructed by a multiple-source model, DOSXYZnrcwill check their \
@@ -69,7 +97,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     Use with caution.", "100.0")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Orthovoltage dose", "DistanceSourceToIsocenter", "Distance from source to isocenter (cm):", 
+    "Orthovoltage dose", "DistanceSourceToIsocenter", "Distance from source to isocenter (cm):",
     "Enter absolute distance from source to isocenter (cm):", "")
 
     self.scriptedEngine.addBeamParameterLineEdit(
@@ -96,11 +124,11 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
 
     self.scriptedEngine.addBeamParameterLineEdit(
       "Orthovoltage dose", "DosxyznrcPath", "Path to dosxyznrc executable:",
-      "Enter filepath to dosxyznrc executable", "C:\\\\EGSnrc\\\\egs_home\\\\dosxyznrc")
+      "Enter file path to dosxyznrc executable", dosxyznrcPath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "PegsFilepath", "Path to pegs4 data file:",
-      "Enter filepath to .pegs5dat file", "C:\\\\EGSnrc\\\\HEN_HOUSE\\\\pegs4\\\\data\\\\521icru.pegs4dat")
+      "Orthovoltage dose", "PegsFilePath", "Path to pegs4 data file:",
+      "Enter file path to .pegs5dat file", pegsFilePath)
 
     ####################
 
@@ -118,53 +146,73 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
       "Angle between the +x direction and the projection on the x-y plane of the line joining the \
       center of the beam on the phantom surface to the isocenter on the xy plane.", "270")
 
-  #todo: verify that all entered parameters are valid
-  def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):
-    import qSlicerExternalBeamPlanningDoseEnginesPythonQt as engines
-    orthovoltageEngine = engines.qSlicerMockDoseEngine()
+  #------------------------------------------------------------------------------
+  #TODO: Add a path parameter type using the CTK path selector that saves the selections to Application Settings
+  def savePathsInApplicationSettings(self, beamNode):
+    if beamNode is None:
+      return
 
+    settings = qt.QSettings()
+
+    ctcreateOutputPath = self.scriptedEngine.parameter(beamNode, "CtcreateOutputPath")
+    if ctcreateOutputPath != self.ctcreateOutputPathDefault:
+      qt.QSettings().setValue('OrthovoltageDoseEngine/CtcreateOutputPath', ctcreateOutputPath)
+    phaseSpaceFilePath = self.scriptedEngine.parameter(beamNode, "PhaseSpaceFilePath")
+    if phaseSpaceFilePath != self.phaseSpaceFilePathDefault:
+      qt.QSettings().setValue('OrthovoltageDoseEngine/PhaseSpaceFilePath', phaseSpaceFilePath)
+    dosxyznrcPath = self.scriptedEngine.parameter(beamNode, "DosxyznrcPath")
+    if dosxyznrcPath != self.dosxyznrcPathDefault:
+      qt.QSettings().setValue('OrthovoltageDoseEngine/DosxyznrcPath', dosxyznrcPath)
+    pegsFilePath = self.scriptedEngine.parameter(beamNode, "PegsFilePath")
+    if pegsFilePath != self.pegsFilePathDefault:
+      qt.QSettings().setValue('OrthovoltageDoseEngine/PegsFilePath', pegsFilePath)
+
+  #------------------------------------------------------------------------------
+  #TODO: verify that all entered parameters are valid
+  def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):
+    # Save path selections in application settings
+    self.savePathsInApplicationSettings(beamNode)
+
+    # Get input nodes and parameters
     parentPlan = beamNode.GetParentPlanNode()
     volumeNode = parentPlan.GetReferenceVolumeNode()
 
-    subjectHierarchyNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
-    subjectID = subjectHierarchyNode.GetItemByDataNode(volumeNode)
-    seriesUID = subjectHierarchyNode.GetItemUID(subjectID, 'DICOM')
+    shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
+    refVolumeShID = shNode.GetItemByDataNode(volumeNode)
+    seriesUID = shNode.GetItemUID(refVolumeShID, 'DICOM')
 
     isocenter = [0]*3
     parentPlan.GetIsocenterPosition(isocenter)
-    isocenter = [x/10.0 for x in isocenter]     #convert from mm to cm
-    print(isocenter)
+    isocenter = [x/10.0 for x in isocenter] # convert from mm to cm
+    logging.info("Isocenter (cm): " + str(isocenter))
 
     ##########################################
     # Get ctcreate parameters
     ##########################################
 
     ctcreateOutputPath = self.scriptedEngine.parameter(beamNode, "CtcreateOutputPath")
-    ROIName = self.scriptedEngine.parameter(beamNode, "ROIName")
+    roiNodeName = self.scriptedEngine.parameter(beamNode, "ROIName")
     volumeName = self.scriptedEngine.parameter(beamNode, "VolumeName")
     sliceThicknessX = self.scriptedEngine.parameter(beamNode, "SliceThicknessX")
     sliceThicknessY = self.scriptedEngine.parameter(beamNode, "SliceThicknessY")
     sliceThicknessZ = self.scriptedEngine.parameter(beamNode, "SliceThicknessZ")
 
-    if ROIName == "":
-      ROI = None
-    else:
+    roiNode = None
+    if roiNodeName != "":
       try:
-        ROI = slicer.util.getNode(ROIName)
+        roiNode = slicer.util.getNode(roiNodeName)
       except:
-        print("Unable to get specified ROI, check for typo")  #todo: this should be output to the Warnings log
-        ROI = None
+        logging.error("Unable to get ROI by name " + roiNodeName)
 
-    if sliceThicknessX == "" or sliceThicknessY == "" or sliceThicknessZ == "":
-      thicknesses = None
-    else:
+    thicknesses = None
+    if sliceThicknessX != "" and sliceThicknessY != "" and sliceThicknessZ != "":
       thicknesses = [float(sliceThicknessX), float(sliceThicknessY), float(sliceThicknessZ)]
 
     ##########################################
     # Call ctcreate
     ##########################################
 
-    generateCtcreateInput(volumeNode,seriesUID, ctcreateOutputPath, ROI, thicknesses)
+    generateCtcreateInput(volumeNode,seriesUID, ctcreateOutputPath, roiNode, thicknesses)
     callCtcreate(ctcreateOutputPath)
 
     ##########################################
@@ -176,14 +224,14 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     pcut = self.scriptedEngine.parameter(beamNode, "PCut")
     incidentBeamSize = self.scriptedEngine.parameter(beamNode,"IncidentBeamSize")
     dosxyznrcPath = self.scriptedEngine.parameter(beamNode, "DosxyznrcPath")
-    pegsFilepath = self.scriptedEngine.parameter(beamNode, "PegsFilepath")
-    nmed = 0 #nmed is number of media
-    smax = 0 #dummy input, used to be max step length
+    pegsFilePath = self.scriptedEngine.parameter(beamNode, "PegsFilePath")
+    nmed = 0 # nmed is number of media
+    smax = 0 # dummy input, used to be max step length
     zeroairdose = 0
     doseprint = 0
     MAX20 = 0
 
-    #Record SC1-8
+    # Record SC1-8
     iqin = 2              #charge of incident beam
     isource = 8
     xiso = isocenter[0]   # isocenter x
@@ -191,21 +239,22 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     ziso = isocenter[2]   # isocenter z
 
     nang = 1 #number of indident theta-phi pairs
-    dsource = self.scriptedEngine.parameter(beamNode, "DistanceSourceToIsocenter") #absolute distance from isocenter to source center
-    phicol = self.scriptedEngine.parameter(beamNode,"CollimatorAngle")            #todo: how to calculate this??
+    dsource = self.scriptedEngine.parameter(beamNode, "DistanceSourceToIsocenter") # absolute distance from isocenter to source center
+    phicol = self.scriptedEngine.parameter(beamNode,"CollimatorAngle") #TODO: how to calculate this??
     i_dbs = 0
     r_dbs = 0
     ssd_dbs = 0
     z_dbs = 0
     e_split = 0
 
-    #Record SC1-8a          todo: how to calculate theta and phi angles based on gantry, collimator and couch angles?
-    nang1_theta = self.scriptedEngine.parameter(beamNode,"ThetaAngle")   # incident theta angle 
+    # Record SC1-8a
+    #TODO: how to calculate theta and phi angles based on gantry, collimator and couch angles?
+    nang1_theta = self.scriptedEngine.parameter(beamNode,"ThetaAngle")   # incident theta angle
     nang1_phi = self.scriptedEngine.parameter(beamNode,"PhiAngle")     # incident phi angle
-    nang1_pang = 1              # probability of a particle being incident at theta(i)-phi(i) 
+    nang1_pang = 1              # probability of a particle being incident at theta(i)-phi(i)
                                 # (probabilities are automatically normalized to 1).
 
-    #Record SC2
+    # Record SC2
     enflag = 2        # for ph-sp beam input or full BEAM sim.
     mode = 0          # default file format for ph-sp data (enflag=2)
     medsur = 1        # medium number for the region outside the phantom
@@ -215,7 +264,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     dsurround_3 = 30  # thickness (cm) of region surrounding phantom in +z direction
     dsurround_4 = 30  # thickness (cm) of region surrounding phantom in -z direction
 
-    #Record 13
+    # Record 13
     ncase = self.scriptedEngine.parameter(beamNode, "NumHistories")
     iwatch = 0        # no tracking output
     timmax = 99       # max CPU time in hours allowed for a simulation, not activated in the current version of DOSXYZnrc
@@ -230,26 +279,26 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     nrcycl = 0        # use entire phase space file with no restarts
     iparallel = 0     # only relevalnt when manually creating/submitting paralel jobs or using unix pproccess script
     parnum = 0        # only relevalnt when manually creating/submitting paralel jobs or using unix pproccess script
-    n_split = 1       
+    n_split = 1
     ihowfarless = 0
     i_phsp_out = 0    # no phase space output (default)
 
-    #EGSnrc inputs
+    # EGSnrc inputs
     globalEcut = ecut
     globalPcut = pcut
-    globalSmax = 5    # 
+    globalSmax = 5    #
     estepe = 0.25     # max fractional energy loss per step (default)
     ximax = 0.5       # max first elastic scattering moment per step (default)
 
-    DOSXYZNRC_INPUT_FILENAME = "dosxyznrcInput.egsinp"
+    dosXyznrcInputFileName = "dosxyznrcInput.egsinp" #TODO: Fixed?
 
-    with open(os.path.join(ctcreateOutputPath, DOSXYZNRC_INPUT_FILENAME), "wb") as outFile:
+    with open(os.path.join(ctcreateOutputPath, dosXyznrcInputFileName), "w") as outFile:
       outFile.write(title + "\n")
       outFile.write(str(nmed) + "\n")
-      outFile.write(os.path.join(ctcreateOutputPath, "slicenames.txt.egsphant") + "\n") # todo: remove hardcode
+      outFile.write(os.path.join(ctcreateOutputPath, "slicenames.txt.egsphant") + "\n") #TODO: remove hardcode
       outFile.write("{}, {}, {}\n".format(ecut, pcut, smax))
       outFile.write("{}, {}, {},\n".format(zeroairdose, doseprint, MAX20))
-      outFile.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(iqin, isource, 
+      outFile.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(iqin, isource,
         xiso, yiso, ziso, nang, dsource, phicol, i_dbs, r_dbs, ssd_dbs, z_dbs, e_split))
       outFile.write("{}, {}, {}\n".format(nang1_theta, nang1_phi, nang1_pang))
       outFile.write("{}, {}, {}, {}, {}, {}, {}, {}\n".format(enflag, mode, medsur, dsurround_1,
@@ -264,7 +313,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
       outFile.write(" Global SMAX= {}\n".format(globalSmax))
       outFile.write(" ESTEPE= {}\n".format(estepe))
       outFile.write(" XIMAX= {}\n".format(ximax))
-      outFile.write(" Boundary crossing algorithm= PRESTA-I\n")   #todo: add comments
+      outFile.write(" Boundary crossing algorithm= PRESTA-I\n") #TODO: add comments
       outFile.write(" Skin depth for BCA= 0\n")
       outFile.write(" Electron-step algorithm= PRESTA-II\n")
       outFile.write(" Spin effects= On\n")
@@ -286,11 +335,10 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     # Call DOSXYZnrc
     ##########################################
 
-    # copy DOSXYZnrc input file to dosxyznrc directory
-    shutil.copy2(os.path.join(ctcreateOutputPath, DOSXYZNRC_INPUT_FILENAME), dosxyznrcPath)
+    # Copy DOSXYZnrc input file to dosxyznrc directory
+    shutil.copy2(os.path.join(ctcreateOutputPath, dosXyznrcInputFileName), dosxyznrcPath)
 
-    os.system("dosxyznrc -i {} -p {}".format(DOSXYZNRC_INPUT_FILENAME, pegsFilepath)) 
+    os.system("dosxyznrc -i {} -p {}".format(dosXyznrcInputFileName, pegsFilePath))
 
-
-    #Call C++ orthovoltage engine to calculate orthovoltage dose
-    return orthovoltageEngine.calculateDoseUsingEngine(beamNode, resultDoseVolumeNode)
+    # Successful execution, no error message
+    return ""

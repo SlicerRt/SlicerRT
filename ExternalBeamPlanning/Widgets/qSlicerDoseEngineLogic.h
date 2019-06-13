@@ -77,17 +77,18 @@ signals:
   /// \param progress Value between 0 and 1
   void progressUpdated(double progress);
 
+public slots:
+  /// Called when the dose engine of a plan is changed.
+  /// The beam parameters specific to the new engine are added to all the beams
+  /// under the plan containing default values
+  void applyDoseEngineInPlan(vtkObject* nodeObject);
+
 protected slots:
   /// Called when a node is added to the scene
   void onNodeAdded(vtkObject* scene, vtkObject* nodeObject);
 
   /// Called when scene import is finished
   void onSceneImportEnded(vtkObject* sceneObject);
-
-  /// Called when the dose engine of a plan is changed.
-  /// The beam parameters specific to the new engine are added to all the beams
-  /// under the plan containing default values
-  void onDoseEngineChangedInPlan(vtkObject* nodeObject);
 
 protected:
   QScopedPointer<qSlicerDoseEngineLogic> d_ptr;

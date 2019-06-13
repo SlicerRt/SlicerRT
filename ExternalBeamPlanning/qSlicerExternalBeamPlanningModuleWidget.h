@@ -63,8 +63,10 @@ public:
   vtkMRMLRTBeamNode* currentBeamNode();
 
 protected slots:
-  // Plan parameters page
+  /// Plan node serves as parameter set node for this module
   void setPlanNode(vtkMRMLNode*);
+
+  // Plan parameters section
   void referenceVolumeNodeChanged(vtkMRMLNode*);
   void segmentationNodeChanged(vtkMRMLNode*);
   void poisMarkupsNodeChanged(vtkMRMLNode*);
@@ -73,29 +75,28 @@ protected slots:
   void isocenterAtTargetCenterCheckboxStateChanged(int state);
   void isocenterCoordinatesChanged(double* isocenterCoordinates);
   void centerViewToIsocenterClicked();
+
   /// Update isocenter controls from isocenter markups fiducial
   void updateIsocenterPosition();
 
   void rxDoseChanged(double);
   void doseEngineChanged(const QString &);
 
-  // Output page
+  // Output section
   void doseVolumeNodeChanged(vtkMRMLNode*);
   void doseROINodeChanged(vtkMRMLNode*);
   void doseGridSpacingChanged(const QString &);
   
-  // RT Beams page
-  //void beamSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
-  void addBeamClicked();
-  void removeBeamClicked();
-
   // Calculation buttons
   void calculateDoseClicked();
   void calculateWEDClicked();
   void clearDoseClicked();
 
+  // Beams section
+  void addBeamClicked();
+  void removeBeamClicked();
+
   // Update functions
-  void onPlanNodeModified();
   void onLogicModified();
   void onProgressUpdated(double progress);
 

@@ -122,7 +122,7 @@ void qSlicerDoseEngineLogic::onNodeAdded(vtkObject* sceneObject, vtkObject* node
     // Observe dose engine changed event so that default beam parameters
     // can be added for the newly selected engine in the beams contained by the plan
     vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(nodeObject);
-    qvtkConnect( planNode, vtkMRMLRTPlanNode::DoseEngineChanged, this, SLOT( onDoseEngineChangedInPlan(vtkObject*) ) );
+    qvtkConnect( planNode, vtkMRMLRTPlanNode::DoseEngineChanged, this, SLOT( applyDoseEngineInPlan(vtkObject*) ) );
   }
 }
 
@@ -142,12 +142,12 @@ void qSlicerDoseEngineLogic::onSceneImportEnded(vtkObject* sceneObject)
   for (std::vector<vtkMRMLNode*>::iterator planNodeIt = planNodes.begin(); planNodeIt != planNodes.end(); ++planNodeIt)
   {
     vtkMRMLNode* planNode = (*planNodeIt);
-    qvtkConnect( planNode, vtkMRMLRTPlanNode::DoseEngineChanged, this, SLOT( onDoseEngineChangedInPlan(vtkObject*) ) );
+    qvtkConnect( planNode, vtkMRMLRTPlanNode::DoseEngineChanged, this, SLOT( applyDoseEngineInPlan(vtkObject*) ) );
   }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseEngineLogic::onDoseEngineChangedInPlan(vtkObject* nodeObject)
+void qSlicerDoseEngineLogic::applyDoseEngineInPlan(vtkObject* nodeObject)
 {
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(nodeObject);
   if (!planNode)

@@ -18,8 +18,7 @@ comment = """
 """
 
 #-----------------------------------------------------------------------------
-def generateSlicenamesTextfile(ctDicomSeriesUID, slicenamesFilename, 
-  outputFolder):
+def generateSlicenamesTextfile(ctDicomSeriesUID, slicenamesFilename, outputFolder):
   """ Generate slicenames.txt file, with list of ct dicom slices, in increasing slice order (IS direction)
   """
   filePaths = slicer.dicomDatabase.filesForSeries(ctDicomSeriesUID)
@@ -30,10 +29,10 @@ def generateSlicenamesTextfile(ctDicomSeriesUID, slicenamesFilename,
   unsortedFileList = slicer.dicomDatabase.filesForSeries(ctDicomSeriesUID)
   sortedFileList, distances, warnings = DICOMUtils.getSortedImageFiles(unsortedFileList)
 
-  outFile = open(os.path.join(outputFolder, slicenamesFilename), "wb")
+  outFile = open(os.path.join(outputFolder, slicenamesFilename), "w")
   counter = 1
   numDicomFiles = len(sortedFileList)
-  for sliceFileName in   sortedFileList:
+  for sliceFileName in sortedFileList:
     outFile.write(sliceFileName)
     if counter != numDicomFiles:
       outFile.write("\n")
@@ -42,48 +41,45 @@ def generateSlicenamesTextfile(ctDicomSeriesUID, slicenamesFilename,
   return True
 
 #-----------------------------------------------------------------------------
-def generateCtcreateInputFile(slicenamesFilename, imageROI, voxelThickness, 
-  outputFolder):
+def generateCtcreateInputFile(slicenamesFilename, imageROI, voxelThickness, outputFolder):
   """ Generate ctcreate.inp file, which is used to execute ctcreate
       Input records are described in the DOSXYZnrc Users Manual.
   """
-  outFile = open(os.path.join(outputFolder, "ctcreate.inp"), "wb")
+  outFile = open(os.path.join(outputFolder, "ctcreate.inp"), "w")
 
-  #CT Record 1 ctformat
+  # CT Record 1 ctformat
   outFile.write("DICOM\n")
 
-  #CT Record 2 CTFilename
+  # CT Record 2 CTFilename
   outFile.write(os.path.join(outputFolder, slicenamesFilename) + "\n")
 
-  #CT Record 3 lower and upper boundaries (cm) to be considered for 
-  #the dosxyznrc phantom
-  outFile.write(", ".join(map(str, imageROI)) + "\n") 
+  # CT Record 3 lower and upper boundaries (cm) to be considered for the dosxyznrc phantom
+  outFile.write(", ".join(map(str, imageROI)) + "\n")
 
-  #CT Record 4 x, y, z voxel dimensions/thicknesses (cm) to be used 
-  #for the dosxyznrc phantom         
+  # CT Record 4 x, y, z voxel dimensions/thicknesses (cm) to be used for the dosxyznrc phantom
   outFile.write(", ".join(map(str, voxelThickness)) + "\n")
 
-  #CT Record 5 num_material, material_ct_lower_bound
+  # CT Record 5 num_material, material_ct_lower_bound
   outFile.write("4, -1024\n")
 
-  """ Record 6 defines the material name, followed by the ramp parameters 
+  """ Record 6 defines the material name, followed by the ramp parameters
       for each material. The ramp parameters are: material ct upper bound,
       material density lower bound, material density upper bound.
 
-      The CT ramp is used to determine the medium and density in each voxel 
-      of the CT data. The material names must correspond to materials in the 
+      The CT ramp is used to determine the medium and density in each voxel
+      of the CT data. The material names must correspond to materials in the
       PEGS4 data file being used in the DOSXYZnrc simulation.
 
-      The values used here are the default values specified for DOSXYZnrc. 
-      It is possible to create a custom CT ramp based on the imager and the 
-      data acquisition method, but since Slicer users will likely not have 
-      a custom CT ramp to accompany their input CT, material information 
+      The values used here are the default values specified for DOSXYZnrc.
+      It is possible to create a custom CT ramp based on the imager and the
+      data acquisition method, but since Slicer users will likely not have
+      a custom CT ramp to accompany their input CT, material information
       is made non-configurable here and default values are used.
 
-      For more information on materials and ramps, please see the DOSXYZnrc 
+      For more information on materials and ramps, please see the DOSXYZnrc
       Users Manual.
   """
-  #CT Record 6 information about material (for i=1 to num_material)
+  # CT Record 6 information about material (for i=1 to num_material)
   outFile.write("AIR521ICRU\n")
   outFile.write("-974, 0.001, 0.044\n")
   outFile.write("LUNG521ICRU\n")
@@ -95,8 +91,7 @@ def generateCtcreateInputFile(slicenamesFilename, imageROI, voxelThickness,
   outFile.close()
 
 #-----------------------------------------------------------------------------
-def generateCtcreateInput(volumeNode, ctDicomSeriesUID, outputFolder, imageROIMm=None, 
-  voxelThicknessMm=None):
+def generateCtcreateInput(volumeNode, ctDicomSeriesUID, outputFolder, imageROIMm=None, voxelThicknessMm=None):
   """ Generate all files needed as input to ctcreate
 
       NOTE: need to supply outputFolder path with 2 slashes (ie "C:\\d\\outputFolder")
@@ -108,7 +103,7 @@ def generateCtcreateInput(volumeNode, ctDicomSeriesUID, outputFolder, imageROIMm
     logging.error('No information provided for desired image ROI in ctcreate \
       phantom. Please provide a volume node, or imageROIMm parameter.')
     return False
-  #If no ROI list provided, get ROI from volume node
+  # If no ROI list provided, get ROI from volume node
   elif imageROIMm is None:
     imageROIMm = [0] * 6
     volumeNode.GetBounds(imageROIMm)
@@ -117,29 +112,27 @@ def generateCtcreateInput(volumeNode, ctDicomSeriesUID, outputFolder, imageROIMm
     logging.error('No information provided for desired voxel thickness in ctcreate \
       phantom. Please provide a volume node, or volumeThicknessMm parameter.')
     return False
-  #If no voxel thickness list provided, get voxel thickness from volume node
-  elif voxelThicknessMm is None: 
+  # If no voxel thickness list provided, get voxel thickness from volume node
+  elif voxelThicknessMm is None:
     voxelThicknessMm = volumeNode.GetSpacing()
 
-  #Convert ROI and voxelThickness from mm to cm
+  # Convert ROI and voxelThickness from mm to cm
   imageROICm = [dimension/10 for dimension in imageROIMm]
   voxelThicknessCm = [dimension/10 for dimension in voxelThicknessMm]
 
-  generateSlicenamesTextfile(ctDicomSeriesUID, slicenamesFilename, 
-    outputFolder)
-  generateCtcreateInputFile(slicenamesFilename, imageROICm, voxelThicknessCm,
-    outputFolder)
+  generateSlicenamesTextfile(ctDicomSeriesUID, slicenamesFilename, outputFolder)
+  generateCtcreateInputFile(slicenamesFilename, imageROICm, voxelThicknessCm, outputFolder)
   return True
 
 #-----------------------------------------------------------------------------
 def callCtcreate(outputFolder, ctcreateInputFilename="ctcreate.inp"):
   """ Call ctcreate executable. Use this function after generating input for ctcreate
   """
-  #If egsphant file exists, remove it
+  # If egsphant file exists, remove it
   outputCtcreatePhantomPath = os.path.join(outputFolder, "slicenames.txt.egsphant")
   if os.path.exists(outputCtcreatePhantomPath):
     logging.warning("Ctcreate phantom already exists in specifying directory. Overwriting it.")
     os.remove(outputCtcreatePhantomPath)
 
-  #User must have ctcreate installed and in path
+  # User must have ctcreate installed and in path
   os.system("ctcreate " + os.path.join(outputFolder, ctcreateInputFilename))

@@ -170,7 +170,7 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
 {
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
 
@@ -178,7 +178,7 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
 
   if (d->logic() == nullptr)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid logic!";
+    qCritical() << Q_FUNC_INFO << ": Invalid logic";
     return;
   }
 
@@ -221,7 +221,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   //}
   //else
   //{
-  //  qWarning() << Q_FUNC_INFO << ": MatlabDoseCalculation module is not found!";
+  //  qWarning() << Q_FUNC_INFO << ": MatlabDoseCalculation module is not found";
   //}
   
   // Make connections
@@ -293,16 +293,18 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
     return;
   }
 
+  // Plan parameters section
+
   // None is enabled for the reference volume and segmentation comboboxes, and invalid selection
   // in plan node is set to GUI so that the user needs to select nodes that are then set to the beams.
   d->MRMLNodeComboBox_ReferenceVolume->setCurrentNode(planNode->GetReferenceVolumeNode());
   d->MRMLNodeComboBox_PlanSegmentation->setCurrentNode(planNode->GetSegmentationNode());
 
-  if (planNode->GetPoisMarkupsFiducialNode())
+  if (planNode->GetPoisMarkupsFiducialNode() && d->MRMLNodeComboBox_PlanPOIs->currentNode())
   {
     d->MRMLNodeComboBox_PlanPOIs->setCurrentNode(planNode->GetPoisMarkupsFiducialNode());
   }
-  if (planNode->GetOutputTotalDoseVolumeNode())
+  if (planNode->GetOutputTotalDoseVolumeNode() && d->MRMLNodeComboBox_DoseVolume->currentNode())
   {
     d->MRMLNodeComboBox_DoseVolume->setCurrentNode(planNode->GetOutputTotalDoseVolumeNode());
   }
@@ -316,7 +318,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
   // Update isocenter controls based on plan isocenter position
   this->updateIsocenterPosition();
 
-  // Populate dose engines combobox
+  // Populate dose engines combobox and make selection
   this->updateDoseEngines();
 
   // Set prescription
@@ -332,7 +334,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->mrmlScene());
@@ -351,7 +353,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
   d->BeamsTableView->setPlanNode(planNode);
 
   // Each time the node is modified, the qt widgets are updated
-  qvtkReconnect(planNode, vtkCommand::ModifiedEvent, this, SLOT(onPlanNodeModified()));
+  qvtkReconnect(planNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
   qvtkReconnect(planNode, vtkMRMLRTPlanNode::IsocenterModifiedEvent, this, SLOT(updateIsocenterPosition()));
 
   if (planNode)
@@ -428,12 +430,6 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::onPlanNodeModified()
-{
-  this->updateWidgetFromMRML();
-}
-
-//-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::onLogicModified()
 {
 }
@@ -445,7 +441,7 @@ void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRML
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
 
@@ -454,7 +450,7 @@ void qSlicerExternalBeamPlanningModuleWidget::referenceVolumeNodeChanged(vtkMRML
   {
     if (node)
     {
-      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     }
     return;
   }
@@ -471,7 +467,7 @@ void qSlicerExternalBeamPlanningModuleWidget::segmentationNodeChanged(vtkMRMLNod
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
 
@@ -480,7 +476,7 @@ void qSlicerExternalBeamPlanningModuleWidget::segmentationNodeChanged(vtkMRMLNod
   {
     if (node)
     {
-      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     }
     return;
   }
@@ -500,7 +496,7 @@ void qSlicerExternalBeamPlanningModuleWidget::poisMarkupsNodeChanged(vtkMRMLNode
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
 
@@ -509,7 +505,7 @@ void qSlicerExternalBeamPlanningModuleWidget::poisMarkupsNodeChanged(vtkMRMLNode
   {
     if (node)
     {
-      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     }
     return;
   }
@@ -536,14 +532,14 @@ void qSlicerExternalBeamPlanningModuleWidget::rxDoseChanged(double value)
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
 
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     return;
   }
 
@@ -559,7 +555,7 @@ void qSlicerExternalBeamPlanningModuleWidget::doseVolumeNodeChanged(vtkMRMLNode*
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
 
@@ -568,7 +564,7 @@ void qSlicerExternalBeamPlanningModuleWidget::doseVolumeNodeChanged(vtkMRMLNode*
   {
     if (node)
     {
-      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     }
     return;
   }
@@ -585,7 +581,7 @@ void qSlicerExternalBeamPlanningModuleWidget::doseROINodeChanged(vtkMRMLNode* no
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
 
@@ -594,12 +590,12 @@ void qSlicerExternalBeamPlanningModuleWidget::doseROINodeChanged(vtkMRMLNode* no
   {
     if (node)
     {
-      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+      qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     }
     return;
   }
 
-  qWarning() << Q_FUNC_INFO << ": Not implemented!";
+  qWarning() << Q_FUNC_INFO << ": Not implemented";
 
   //TODO:
   // planNode->DisableModifiedEventOn();
@@ -615,18 +611,18 @@ void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingChanged(const QStri
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
 
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     return;
   }
 
-  qWarning() << Q_FUNC_INFO << ": Not implemented!";
+  qWarning() << Q_FUNC_INFO << ": Not implemented";
 
   // TODO: to be implemented
 }
@@ -638,14 +634,14 @@ void qSlicerExternalBeamPlanningModuleWidget::targetSegmentChanged(const QString
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
 
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     return;
   }
 
@@ -679,7 +675,7 @@ void qSlicerExternalBeamPlanningModuleWidget::isocenterAtTargetCenterCheckboxSta
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     return;
   }
 
@@ -701,7 +697,7 @@ void qSlicerExternalBeamPlanningModuleWidget::isocenterCoordinatesChanged(double
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     return;
   }
 
@@ -733,7 +729,7 @@ void qSlicerExternalBeamPlanningModuleWidget::centerViewToIsocenterClicked()
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     return;
   }
 
@@ -767,7 +763,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateIsocenterPosition()
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     return;
   }
 
@@ -788,14 +784,19 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
+  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!planNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
+    return;
+  }
+
   qSlicerDoseEnginePluginHandler::DoseEngineListType engines =
     qSlicerDoseEnginePluginHandler::instance()->registeredDoseEngines();
   if (engines.size() == d->comboBox_DoseEngine->count())
   {
     return;
   }
-
-  QString selectedEngineName = d->comboBox_DoseEngine->currentText();
 
   d->comboBox_DoseEngine->blockSignals(true);
   d->comboBox_DoseEngine->clear();
@@ -807,6 +808,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
   }
 
   // Select previously selected engine
+  QString selectedEngineName(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "");
   int index = d->comboBox_DoseEngine->findText(selectedEngineName);
   if (index != -1)
   {
@@ -821,6 +823,9 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
   // not been applied, then it needs to be done now)
   this->doseEngineChanged(d->comboBox_DoseEngine->currentText());
 
+  // Update beam parameter tab visibility
+  d->DoseEngineLogic->applyDoseEngineInPlan(planNode);
+
   d->comboBox_DoseEngine->blockSignals(false);
 }
 
@@ -832,7 +837,7 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineChanged(const QString &t
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     return;
   }
 
@@ -863,14 +868,14 @@ vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode()
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return nullptr;
   }
 
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     return nullptr;
   }
 
@@ -894,14 +899,14 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
 
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     return;
   }
 
@@ -909,7 +914,7 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   vtkMRMLRTBeamNode* beamNode = d->DoseEngineLogic->createBeamInPlan(planNode);
   if (!beamNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Failed to add beam!";
+    qCritical() << Q_FUNC_INFO << ": Failed to add beam";
     return;
   }
 
@@ -934,14 +939,14 @@ void qSlicerExternalBeamPlanningModuleWidget::removeBeamClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
 
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node!";
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     return;
   }
 
@@ -964,7 +969,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
 
@@ -1041,7 +1046,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
 
   if (!this->mrmlScene())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene!";
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
 
