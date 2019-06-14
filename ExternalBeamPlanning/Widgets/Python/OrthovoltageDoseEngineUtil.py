@@ -51,7 +51,8 @@ def generateCtcreateInputFile(slicenamesFilename, imageROI, voxelThickness, outp
   outFile.write("DICOM\n")
 
   # CT Record 2 CTFilename
-  outFile.write(os.path.join(outputFolder, slicenamesFilename) + "\n")
+  slicenamesFilePath = os.path.join(outputFolder, slicenamesFilename)
+  outFile.write(slicenamesFilePath + "\n")
 
   # CT Record 3 lower and upper boundaries (cm) to be considered for the dosxyznrc phantom
   outFile.write(", ".join(map(str, imageROI)) + "\n")
@@ -125,14 +126,28 @@ def generateCtcreateInput(volumeNode, ctDicomSeriesUID, outputFolder, imageROIMm
   return True
 
 #-----------------------------------------------------------------------------
-def callCtcreate(outputFolder, ctcreateInputFilename="ctcreate.inp"):
+def callCtcreate(ctcreateFilePath, outputFolder, ctcreateInputFilename="ctcreate.inp"):
   """ Call ctcreate executable. Use this function after generating input for ctcreate
   """
   # If egsphant file exists, remove it
   outputCtcreatePhantomPath = os.path.join(outputFolder, "slicenames.txt.egsphant")
   if os.path.exists(outputCtcreatePhantomPath):
-    logging.warning("Ctcreate phantom already exists in specifying directory. Overwriting it.")
+    logging.warning("Ctcreate phantom already exists in specifying directory. Overwriting it...")
     os.remove(outputCtcreatePhantomPath)
 
-  # User must have ctcreate installed and in path
-  os.system("ctcreate " + os.path.join(outputFolder, ctcreateInputFilename))
+  # User must have ctcreate installed
+  ctcreateInputFilePath = os.path.join(outputFolder, ctcreateInputFilename)
+  logging.info("Run ctcreate: " + ctcreateFilePath + ' ' + ctcreateInputFilePath)
+
+  import subprocess
+  proc = subprocess.Popen([ctcreateFilePath, ctcreateInputFilePath], stdout=subprocess.PIPE, shell=True)
+  (out, err) = proc.communicate()
+
+  outStr = str(out).replace('\\r','').replace('\\n','\n')
+  logging.debug("ctcreate output: \n" + outStr)
+  outStr = outStr[:outStr.rfind("'")] # Strip closing single quote
+  if outStr[len(outStr)-1:] == '\n':
+    outStr = outStr[:len(outStr)-1] # Strip last empty line if any
+  logging.info("ctcreate output (last paragraph): \n" + outStr[outStr.rfind('\n\n')+2:])
+  if err is not None and str(err) != '':
+    logging.error("ctcreate error: \n" + str(err))

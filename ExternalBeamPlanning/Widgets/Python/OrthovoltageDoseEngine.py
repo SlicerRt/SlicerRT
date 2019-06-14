@@ -19,6 +19,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     AbstractScriptedDoseEngine.__init__(self, scriptedEngine)
 
     # Define initial defaults for parameters that are stored in application settings
+    self.ctcreateFilePathDefault = "C/EGSnrc/HEN_HOUSE/bin/win6432/ctcreate.exe"
     self.ctcreateOutputPathDefault = "C:/d/tmp"
     self.phaseSpaceFilePathDefault = "C:/d/6MV 8x6/DOSXYZnrc_files/egsphsp/6MV_8x6asym_sum.egsphsp1"
     self.dosxyznrcPathDefault = "C:/EGSnrc/egs_home/dosxyznrc"
@@ -28,6 +29,9 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
   def defineBeamParameters(self):
     # Define session defaults for parameters that are stored in application settings
     settings = qt.QSettings()
+    ctcreateFilePath = self.ctcreateFilePathDefault
+    if settings.contains('OrthovoltageDoseEngine/CtcreateFilePath'):
+       ctcreateFilePath = str(settings.value('OrthovoltageDoseEngine/CtcreateFilePath'))
     ctcreateOutputPath = self.ctcreateOutputPathDefault
     if settings.contains('OrthovoltageDoseEngine/CtcreateOutputPath'):
        ctcreateOutputPath = str(settings.value('OrthovoltageDoseEngine/CtcreateOutputPath'))
@@ -44,6 +48,10 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     ##########################################
     # Generate ctcrate phantom parameters tab
     ##########################################
+
+    self.scriptedEngine.addBeamParameterLineEdit(
+    "Generate ctcreate phantom", "CtcreateFilePath", "Ctcreate executable file path:",
+    "Enter file path of the ctcreate executable", ctcreateFilePath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
     "Generate ctcreate phantom", "CtcreateOutputPath", "Ctcreate output file path:",
@@ -155,15 +163,22 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
 
     settings = qt.QSettings()
 
+    ctcreateFilePath = self.scriptedEngine.parameter(beamNode, "CtcreateFilePath")
+    if ctcreateFilePath != self.ctcreateFilePathDefault:
+      qt.QSettings().setValue('OrthovoltageDoseEngine/CtcreateFilePath', ctcreateFilePath)
+
     ctcreateOutputPath = self.scriptedEngine.parameter(beamNode, "CtcreateOutputPath")
     if ctcreateOutputPath != self.ctcreateOutputPathDefault:
       qt.QSettings().setValue('OrthovoltageDoseEngine/CtcreateOutputPath', ctcreateOutputPath)
+
     phaseSpaceFilePath = self.scriptedEngine.parameter(beamNode, "PhaseSpaceFilePath")
     if phaseSpaceFilePath != self.phaseSpaceFilePathDefault:
       qt.QSettings().setValue('OrthovoltageDoseEngine/PhaseSpaceFilePath', phaseSpaceFilePath)
+
     dosxyznrcPath = self.scriptedEngine.parameter(beamNode, "DosxyznrcPath")
     if dosxyznrcPath != self.dosxyznrcPathDefault:
       qt.QSettings().setValue('OrthovoltageDoseEngine/DosxyznrcPath', dosxyznrcPath)
+
     pegsFilePath = self.scriptedEngine.parameter(beamNode, "PegsFilePath")
     if pegsFilePath != self.pegsFilePathDefault:
       qt.QSettings().setValue('OrthovoltageDoseEngine/PegsFilePath', pegsFilePath)
@@ -191,6 +206,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     # Get ctcreate parameters
     ##########################################
 
+    ctcreateFilePath = self.scriptedEngine.parameter(beamNode, "CtcreateFilePath")
     ctcreateOutputPath = self.scriptedEngine.parameter(beamNode, "CtcreateOutputPath")
     roiNodeName = self.scriptedEngine.parameter(beamNode, "ROIName")
     volumeName = self.scriptedEngine.parameter(beamNode, "VolumeName")
@@ -214,7 +230,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     ##########################################
 
     OrthovoltageDoseEngineUtil.generateCtcreateInput(volumeNode,seriesUID, ctcreateOutputPath, roiNode, thicknesses)
-    OrthovoltageDoseEngineUtil.callCtcreate(ctcreateOutputPath)
+    OrthovoltageDoseEngineUtil.callCtcreate(ctcreateFilePath, ctcreateOutputPath)
 
     ##########################################
     # Get DOSXYZnrc parameters
