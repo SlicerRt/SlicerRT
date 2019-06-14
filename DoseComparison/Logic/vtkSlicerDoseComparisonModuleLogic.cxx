@@ -123,7 +123,10 @@ void vtkSlicerDoseComparisonModuleLogic::RegisterNodes()
     vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
     return;
   }
-  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLDoseComparisonNode>::New());
+  if (!scene->IsNodeClassRegistered("vtkMRMLDoseComparisonNode"))
+  {
+    scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLDoseComparisonNode>::New());
+  }
 }
 
 //---------------------------------------------------------------------------

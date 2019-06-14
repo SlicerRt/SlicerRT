@@ -149,7 +149,10 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::RegisterNodes()
     vtkErrorMacro("RegisterNodes: Invalid MRML scene");
     return;
   }
-  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New());
+  if (!scene->IsNodeClassRegistered("vtkMRMLDoseVolumeHistogramNode"))
+  {
+    scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLDoseVolumeHistogramNode>::New());
+  }
 }
 
 //---------------------------------------------------------------------------

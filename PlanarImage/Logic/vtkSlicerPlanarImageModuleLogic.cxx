@@ -86,7 +86,10 @@ void vtkSlicerPlanarImageModuleLogic::RegisterNodes()
     vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
     return;
   }
-  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLPlanarImageNode>::New());
+  if (!scene->IsNodeClassRegistered("vtkMRMLPlanarImageNode"))
+  {
+    scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLPlanarImageNode>::New());
+  }
 }
 
 //----------------------------------------------------------------------------

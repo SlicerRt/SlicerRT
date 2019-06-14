@@ -62,8 +62,14 @@ void vtkSlicerBeamsModuleLogic::RegisterNodes()
     vtkErrorMacro("RegisterNodes: Invalid MRML scene");
     return;
   }
-  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLRTPlanNode>::New());
-  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLRTBeamNode>::New());
+  if (!scene->IsNodeClassRegistered("vtkMRMLRTPlanNode"))
+  {
+    scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLRTPlanNode>::New());
+  }
+  if (!scene->IsNodeClassRegistered("vtkMRMLRTBeamNode"))
+  {
+    scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLRTBeamNode>::New());
+  }
 }
 
 //---------------------------------------------------------------------------

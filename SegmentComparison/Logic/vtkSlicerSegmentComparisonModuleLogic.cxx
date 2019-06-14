@@ -220,7 +220,10 @@ void vtkSlicerSegmentComparisonModuleLogic::RegisterNodes()
     vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
     return;
   }
-  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLSegmentComparisonNode>::New());
+  if (!scene->IsNodeClassRegistered("vtkMRMLSegmentComparisonNode"))
+  {
+    scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLSegmentComparisonNode>::New());
+  }
 }
 
 //---------------------------------------------------------------------------

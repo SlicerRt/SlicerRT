@@ -82,7 +82,10 @@ void vtkSlicerSegmentMorphologyModuleLogic::RegisterNodes()
     vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
     return;
   }
-  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLSegmentMorphologyNode>::New());
+  if (!scene->IsNodeClassRegistered("vtkMRMLSegmentMorphologyNode"))
+  {
+    scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLSegmentMorphologyNode>::New());
+  }
 }
 
 //---------------------------------------------------------------------------

@@ -93,7 +93,10 @@ void vtkSlicerDoseAccumulationModuleLogic::RegisterNodes()
     vtkErrorMacro("RegisterNodes: Invalid MRML scene");
     return;
   }
-  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLDoseAccumulationNode>::New());
+  if (!scene->IsNodeClassRegistered("vtkMRMLDoseAccumulationNode"))
+  {
+    scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLDoseAccumulationNode>::New());
+  }
 }
 
 //---------------------------------------------------------------------------

@@ -120,7 +120,10 @@ void vtkSlicerIsodoseModuleLogic::RegisterNodes()
     vtkErrorMacro("RegisterNodes: Invalid MRML scene");
     return;
   }
-  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLIsodoseNode>::New());
+  if (!scene->IsNodeClassRegistered("vtkMRMLIsodoseNode"))
+  {
+    scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLIsodoseNode>::New());
+  }
 }
 
 //---------------------------------------------------------------------------

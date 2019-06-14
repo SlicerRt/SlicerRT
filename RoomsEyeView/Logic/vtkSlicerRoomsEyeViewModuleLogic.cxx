@@ -160,7 +160,10 @@ void vtkSlicerRoomsEyeViewModuleLogic::RegisterNodes()
     vtkErrorMacro("RegisterNodes: Invalid MRML scene");
     return;
   }
-  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLRoomsEyeViewNode>::New());
+  if (!scene->IsNodeClassRegistered("vtkMRMLRoomsEyeViewNode"))
+  {
+    scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLRoomsEyeViewNode>::New());
+  }
 }
 
 //---------------------------------------------------------------------------
