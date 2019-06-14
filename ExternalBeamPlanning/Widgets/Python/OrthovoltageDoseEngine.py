@@ -1,7 +1,8 @@
 import os, shutil
 import vtk, qt, ctk, slicer
 import logging
-from DoseEngines import *
+from DoseEngines import AbstractScriptedDoseEngine
+from DoseEngines import OrthovoltageDoseEngineUtil
 
 #------------------------------------------------------------------------------
 #
@@ -212,8 +213,8 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     # Call ctcreate
     ##########################################
 
-    generateCtcreateInput(volumeNode,seriesUID, ctcreateOutputPath, roiNode, thicknesses)
-    callCtcreate(ctcreateOutputPath)
+    OrthovoltageDoseEngineUtil.generateCtcreateInput(volumeNode,seriesUID, ctcreateOutputPath, roiNode, thicknesses)
+    OrthovoltageDoseEngineUtil.callCtcreate(ctcreateOutputPath)
 
     ##########################################
     # Get DOSXYZnrc parameters

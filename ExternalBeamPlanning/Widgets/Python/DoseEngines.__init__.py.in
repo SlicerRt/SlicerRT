@@ -1,5 +1,4 @@
 from .AbstractScriptedDoseEngine import *
-from .OrthovoltageDoseEngineUtil import *
 
 # Add engine name to the list of scripted dose engines.
 # ExternalBeamPlanning module will instantiate the engine class and register
@@ -20,4 +19,4 @@ for engineName in engineNames:
     m=importlib.import_module("DoseEngines."+engineName)
     slicer.modules.doseenginenames.extend([engineName])
   except Exception as e:
-    logging.error(traceback.format_exc())
+    print('ERROR: ' + traceback.format_exc())
