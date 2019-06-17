@@ -88,7 +88,7 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
 
   int size[3] = { 0, 0, 0 };
 
-  // read in block 1 (number of voxels in x, y, z directions)
+  // Read in block 1 (number of voxels in x, y, z directions)
   readFileStream >> size[0] >> size[1] >> size[2];
 
   if (size[0] <= 0 || size[1] <= 0 || size[2] <= 0)
@@ -108,7 +108,7 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
   double initialVoxelSpacing = 0;
   double currentVoxelSpacing = 0;
 
-  // read in block 2 (voxel boundaries, cm, in x direction)
+  // Read in block 2 (voxel boundaries, cm, in x direction)
   while (!readFileStream.eof() && counter < size[0] + 1)
   {
     readFileStream >> voxelBoundariesX[counter];
@@ -129,7 +129,7 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
     counter += 1;
   }
 
-  // read in block 3 (voxel boundaries, cm, in y direction)
+  // Read in block 3 (voxel boundaries, cm, in y direction)
   counter = 0;
   while (!readFileStream.eof() && counter < size[1] + 1)
   {
@@ -151,7 +151,7 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
     counter += 1;
   }
 
-  // read in block 4 (voxel boundaries, cm, in z direction)
+  // Read in block 4 (voxel boundaries, cm, in z direction)
   counter = 0;
   while (!readFileStream.eof() && counter < size[2] + 1)
   {
@@ -173,7 +173,7 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
     counter += 1;
   }
 
-  // read in block 5 (dose array values)
+  // Read in block 5 (dose array values)
   vtkSmartPointer<vtkImageData> floatDosxyzNrc3dDoseVolumeData = vtkSmartPointer<vtkImageData>::New();
   floatDosxyzNrc3dDoseVolumeData->SetExtent(0, size[0] - 1, 0, size[1] - 1, 0, size[2] - 1);
   floatDosxyzNrc3dDoseVolumeData->AllocateScalars(VTK_FLOAT, 1); 
@@ -198,16 +198,29 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
     }
   }
 
-  // create volume node for dose values
+  // Create volume node for dose values
   vtkSmartPointer<vtkMRMLScalarVolumeNode> dosxyzNrc3dDoseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   dosxyzNrc3dDoseVolumeNode->SetScene(this->GetMRMLScene());
   dosxyzNrc3dDoseVolumeNode->SetName(vtksys::SystemTools::GetFilenameWithoutExtension(filename).c_str());
   dosxyzNrc3dDoseVolumeNode->SetSpacing(spacingX, spacingY, spacingZ);
-  dosxyzNrc3dDoseVolumeNode->SetOrigin(voxelBoundariesX[0], voxelBoundariesY[0], voxelBoundariesZ[0]);
+  dosxyzNrc3dDoseVolumeNode->SetOrigin( voxelBoundariesX[0] * (-1.0), // LPS to RAS conversion
+                                        voxelBoundariesY[0] * (-1.0), // LPS to RAS conversion
+                                        voxelBoundariesZ[0] );
+  // LPS to RAS conversion
+  vtkSmartPointer<vtkMatrix4x4> lpsToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  lpsToRasMatrix->SetElement(0, 0, -1);
+  lpsToRasMatrix->SetElement(1, 1, -1);
+  vtkSmartPointer<vtkMatrix4x4> dosxyzNrc3dIjkToLpsMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  dosxyzNrc3dDoseVolumeNode->GetIJKToRASMatrix(dosxyzNrc3dIjkToLpsMatrix);
+  vtkSmartPointer<vtkMatrix4x4> dosxyzNrc3dIjkToRasMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkMatrix4x4::Multiply4x4(dosxyzNrc3dIjkToLpsMatrix, lpsToRasMatrix, dosxyzNrc3dIjkToRasMatrix);
+  dosxyzNrc3dDoseVolumeNode->SetIJKToRASMatrix(dosxyzNrc3dIjkToRasMatrix);
+
   this->GetMRMLScene()->AddNode(dosxyzNrc3dDoseVolumeNode);
 
   dosxyzNrc3dDoseVolumeNode->SetAndObserveImageData(floatDosxyzNrc3dDoseVolumeData);
 
+  // Create display node and show volume
   vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode> dosxyzNrc3dDoseVolumeDisplayNode = vtkSmartPointer<vtkMRMLScalarVolumeDisplayNode>::New();
   this->GetMRMLScene()->AddNode(dosxyzNrc3dDoseVolumeDisplayNode);
   dosxyzNrc3dDoseVolumeNode->SetAndObserveDisplayNodeID(dosxyzNrc3dDoseVolumeDisplayNode->GetID());
