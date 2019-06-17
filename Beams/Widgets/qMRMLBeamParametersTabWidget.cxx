@@ -175,11 +175,18 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
         QString parameterValue = d->BeamNode->GetAttribute(attributeName.toLatin1().constData());
 
         // Set value to supported widget types
+        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(currentParameterFieldWidget);
         QSlider* slider = qobject_cast<QSlider*>(currentParameterFieldWidget);
         QDoubleSpinBox* spinBox = qobject_cast<QDoubleSpinBox*>(currentParameterFieldWidget);
         QComboBox* comboBox = qobject_cast<QComboBox*>(currentParameterFieldWidget);
         QCheckBox* checkBox = qobject_cast<QCheckBox*>(currentParameterFieldWidget);
-        if (slider)
+        if (lineEdit)
+        {
+          lineEdit->blockSignals(true);
+          lineEdit->setText(parameterValue);
+          lineEdit->blockSignals(false);
+        }
+        else if (slider)
         {
           slider->blockSignals(true);
           slider->setValue(parameterValue.toDouble()); //TODO: ctkSlider
