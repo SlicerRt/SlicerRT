@@ -71,7 +71,7 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::PrintSelf(ostream& os, vtkIndent i
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* filename, float intensityScalingFactor/*=1.0*/)
+void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* filename, float intensityScalingFactor/*=1e+18*/)
 {
   ifstream readFileStream(filename); 
   if (!readFileStream)
@@ -82,8 +82,8 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
 
   if (intensityScalingFactor == 0)
   {
-    vtkWarningMacro("LoadDosxyzNrc3dDoseFile: Invalid scaling factor of 0 found, setting default value of 1");
-    intensityScalingFactor = 1.0;
+    vtkWarningMacro("LoadDosxyzNrc3dDoseFile: Invalid scaling factor of 0 found, setting default value of 1e+18");
+    intensityScalingFactor = 1e+18;
   }
 
   int size[3] = { 0, 0, 0 };

@@ -33,7 +33,7 @@
       <string/>
      </property>
      <property name="text">
-      <string>1.0</string>
+      <string>1e+18</string>
      </property>
     </widget>
    </item>

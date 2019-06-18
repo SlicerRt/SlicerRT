@@ -50,8 +50,8 @@ qSlicerDosxyzNrc3dDoseFileReaderOptionsWidget::qSlicerDosxyzNrc3dDoseFileReaderO
 
   connect(d->ScalingFactorLineEdit, SIGNAL(textChanged(QString)), this, SLOT(updateProperties()));
 
-  // Image intensity scaling factor is 1.0 by default
-  float defaultScalingFactorValue = 1.0;
+  // Image intensity scaling factor is 10^18 by default
+  float defaultScalingFactorValue = 1e+18;
   QString defaultScalingFactorString = QString::number(defaultScalingFactorValue);
   d->ScalingFactorLineEdit->setText(defaultScalingFactorString);
 }
