@@ -424,6 +424,9 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
         firstBeamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
       }
     }
+
+    // Clear instructions text
+    d->label_CalculateDoseStatus->setText("");
   }
 
   this->updateWidgetFromMRML();
@@ -513,6 +516,12 @@ void qSlicerExternalBeamPlanningModuleWidget::poisMarkupsNodeChanged(vtkMRMLNode
   planNode->DisableModifiedEventOn();
   planNode->SetAndObservePoisMarkupsFiducialNode(vtkMRMLMarkupsFiducialNode::SafeDownCast(node));
   planNode->DisableModifiedEventOff();
+
+  if (!node)
+  {
+    // Do not update beams or isocenter if no markups node was given
+    return;
+  }
 
   // Update beam transforms based on new isocenter
   std::vector<vtkMRMLRTBeamNode*> beams;
