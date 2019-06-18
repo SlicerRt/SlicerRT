@@ -343,7 +343,7 @@ void vtkMRMLRTPlanNode::SetAndObservePoisMarkupsFiducialNode(vtkMRMLMarkupsFiduc
 
   if (node)
   {
-    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+    vtkNew<vtkIntArray> events;
     events->InsertNextValue(vtkMRMLMarkupsNode::PointModifiedEvent);
     vtkObserveMRMLObjectEventsMacro(node, events);
 
@@ -358,7 +358,7 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
   std::string markupsName = std::string(this->GetName()) + "_POI";
 
   // Create markups node (subject hierarchy node is created automatically)
-  vtkSmartPointer<vtkMRMLMarkupsFiducialNode> markupsNode = vtkSmartPointer<vtkMRMLMarkupsFiducialNode>::New();
+  vtkNew<vtkMRMLMarkupsFiducialNode> markupsNode;
   markupsNode->SetName(markupsName.c_str());
 
   // Populate POI markups with default fiducials
@@ -471,7 +471,7 @@ void vtkMRMLRTPlanNode::GetBeams(std::vector<vtkMRMLRTBeamNode*>& beams)
   beams.clear();
 
   // Get unsorted list from hierarchy
-  vtkSmartPointer<vtkCollection> beamCollection = vtkSmartPointer<vtkCollection>::New();
+  vtkNew<vtkCollection> beamCollection;
   this->GetBeams(beamCollection);
 
   // Insertion sort puts them into vector sorted by beam number
@@ -497,7 +497,7 @@ void vtkMRMLRTPlanNode::GetBeams(std::vector<vtkMRMLRTBeamNode*>& beams)
 //---------------------------------------------------------------------------
 int vtkMRMLRTPlanNode::GetNumberOfBeams()
 {
-  vtkSmartPointer<vtkCollection> beamCollection = vtkSmartPointer<vtkCollection>::New();
+  vtkNew<vtkCollection> beamCollection;
   this->GetBeams(beamCollection);
   return beamCollection->GetNumberOfItems();
 }
@@ -518,7 +518,7 @@ vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetBeamByName(const std::string& beamName)
     return nullptr;
   }
 
-  vtkSmartPointer<vtkCollection> beamCollection = vtkSmartPointer<vtkCollection>::New();
+  vtkNew<vtkCollection> beamCollection;
   shNode->GetDataNodesInBranch(planShItemID, beamCollection, "vtkMRMLRTBeamNode");
 
   beamCollection->InitTraversal();
@@ -550,7 +550,7 @@ vtkMRMLRTBeamNode* vtkMRMLRTPlanNode::GetBeamByNumber(int beamNumber)
     return nullptr;
   }
 
-  vtkSmartPointer<vtkCollection> beamCollection = vtkSmartPointer<vtkCollection>::New();
+  vtkNew<vtkCollection> beamCollection;
   shNode->GetDataNodesInBranch(planShItemID, beamCollection, "vtkMRMLRTBeamNode");
 
   beamCollection->InitTraversal();

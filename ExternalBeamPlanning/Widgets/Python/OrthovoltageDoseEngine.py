@@ -3,6 +3,7 @@ import vtk, qt, ctk, slicer
 import logging
 from DoseEngines import AbstractScriptedDoseEngine
 from DoseEngines import OrthovoltageDoseEngineUtil
+from DoseEngines import EGSnrcUtil
 
 #------------------------------------------------------------------------------
 #
@@ -19,28 +20,32 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     AbstractScriptedDoseEngine.__init__(self, scriptedEngine)
 
     # Define initial defaults for parameters that are stored in application settings
-    self.ctcreateFilePathDefault = "C/EGSnrc/HEN_HOUSE/bin/win6432/ctcreate.exe"
+    self.ctcreateExecFilePathDefault = "C/EGSnrc/HEN_HOUSE/bin/win6432/ctcreate.exe"
     self.ctcreateOutputPathDefault = "C:/d/tmp"
     self.phaseSpaceFilePathDefault = "C:/d/6MV 8x6/DOSXYZnrc_files/egsphsp/6MV_8x6asym_sum.egsphsp1"
-    self.dosxyznrcPathDefault = "C:/EGSnrc/egs_home/dosxyznrc"
+    self.dosxyznrcFolderPathDefault = "C:/EGSnrc/egs_home/dosxyznrc"
+    self.dosxyznrcExecFilePathDefault = "C:/EGSnrc/egs_home/bin/win6432/dosxyznrc.exe"
     self.pegsFilePathDefault = "C/EGSnrc/HEN_HOUSE/pegs4/data/521icru.pegs4dat"
 
   #------------------------------------------------------------------------------
   def defineBeamParameters(self):
     # Define session defaults for parameters that are stored in application settings
     settings = qt.QSettings()
-    ctcreateFilePath = self.ctcreateFilePathDefault
-    if settings.contains('OrthovoltageDoseEngine/CtcreateFilePath'):
-       ctcreateFilePath = str(settings.value('OrthovoltageDoseEngine/CtcreateFilePath'))
+    ctcreateExecFilePath = self.ctcreateExecFilePathDefault
+    if settings.contains('OrthovoltageDoseEngine/CtcreateExecFilePath'):
+       ctcreateExecFilePath = str(settings.value('OrthovoltageDoseEngine/CtcreateExecFilePath'))
     ctcreateOutputPath = self.ctcreateOutputPathDefault
     if settings.contains('OrthovoltageDoseEngine/CtcreateOutputPath'):
        ctcreateOutputPath = str(settings.value('OrthovoltageDoseEngine/CtcreateOutputPath'))
     phaseSpaceFilePath = self.phaseSpaceFilePathDefault
     if settings.contains('OrthovoltageDoseEngine/PhaseSpaceFilePath'):
        phaseSpaceFilePath = str(settings.value('OrthovoltageDoseEngine/PhaseSpaceFilePath'))
-    dosxyznrcPath = self.dosxyznrcPathDefault
-    if settings.contains('OrthovoltageDoseEngine/DosxyznrcPath'):
-       dosxyznrcPath = str(settings.value('OrthovoltageDoseEngine/DosxyznrcPath'))
+    dosxyznrcFolderPath = self.dosxyznrcFolderPathDefault
+    if settings.contains('OrthovoltageDoseEngine/DosxyznrcFolderPath'):
+       dosxyznrcFolderPath = str(settings.value('OrthovoltageDoseEngine/DosxyznrcFolderPath'))
+    dosxyznrcExecFilePath = self.dosxyznrcExecFilePathDefault
+    if settings.contains('OrthovoltageDoseEngine/DosxyznrcExecFilePath'):
+       dosxyznrcExecFilePath = str(settings.value('OrthovoltageDoseEngine/DosxyznrcExecFilePath'))
     pegsFilePath = self.pegsFilePathDefault
     if settings.contains('OrthovoltageDoseEngine/PegsFilePath'):
        pegsFilePath = str(settings.value('OrthovoltageDoseEngine/PegsFilePath'))
@@ -50,8 +55,8 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     ##########################################
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "CtcreateFilePath", "Ctcreate executable file path:",
-    "Enter file path of the ctcreate executable", ctcreateFilePath)
+    "Generate ctcreate phantom", "CtcreateExecFilePath", "Ctcreate executable file path:",
+    "Enter file path of the ctcreate executable", ctcreateExecFilePath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
     "Generate ctcreate phantom", "CtcreateOutputPath", "Ctcreate output file path:",
@@ -91,11 +96,11 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
 
     self.scriptedEngine.addBeamParameterLineEdit(
     "Orthovoltage dose", "ECut", "Global electron cutoff energy - ECUT (MeV):",
-    "Select global electron cutoff energy (MeV)", "0.521")
+    "Select global electron cutoff energy (MeV)", "0.512")
 
     self.scriptedEngine.addBeamParameterLineEdit(
     "Orthovoltage dose", "PCut", "Global photon cutoff energy - PCUT (MeV):",
-    "Select global electron cutoff energy (MeV)", "0.01")
+    "Select global electron cutoff energy (MeV)", "0.001")
 
     self.scriptedEngine.addBeamParameterLineEdit(
     "Orthovoltage dose", "IncidentBeamSize", "Incident beam size (cm):",
@@ -107,7 +112,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
 
     self.scriptedEngine.addBeamParameterLineEdit(
     "Orthovoltage dose", "DistanceSourceToIsocenter", "Distance from source to isocenter (cm):",
-    "Enter absolute distance from source to isocenter (cm):", "")
+    "Enter absolute distance from source to isocenter (cm):", "0")
 
     self.scriptedEngine.addBeamParameterLineEdit(
       "Orthovoltage dose", "NumHistories", "Number of histories:",
@@ -132,28 +137,16 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
       "97")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "DosxyznrcPath", "Path to dosxyznrc executable:",
-      "Enter file path to dosxyznrc executable", dosxyznrcPath)
+      "Orthovoltage dose", "DosxyznrcFolderPath", "Dosxyznrc folder path:",
+      "Enter file path to dosxyznrc folder", dosxyznrcFolderPath)
+
+    self.scriptedEngine.addBeamParameterLineEdit(
+      "Orthovoltage dose", "DosxyznrcExecFilePath", "Dosxyznrc executable file path:",
+      "Enter file path to dosxyznrc executable", dosxyznrcExecFilePath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
       "Orthovoltage dose", "PegsFilePath", "Path to pegs4 data file:",
       "Enter file path to .pegs5dat file", pegsFilePath)
-
-    ####################
-
-    self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "CollimatorAngle", "Collimator angle (degrees):",
-      "Angle by which the collimator is rotates in the collimator plane perpendicular to beam direction.", "270")
-
-    self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "ThetaAngle", "Incident theta angle (degrees):",
-      "Angle between the +z direction and a line joining the center of the beam where it strikes \
-      the phantom surface to the isocenter.", "90")
-
-    self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "PhiAngle", "Incident phi angle (degrees):",
-      "Angle between the +x direction and the projection on the x-y plane of the line joining the \
-      center of the beam on the phantom surface to the isocenter on the xy plane.", "270")
 
   #------------------------------------------------------------------------------
   #TODO: Add a path parameter type using the CTK path selector that saves the selections to Application Settings
@@ -163,9 +156,9 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
 
     settings = qt.QSettings()
 
-    ctcreateFilePath = self.scriptedEngine.parameter(beamNode, "CtcreateFilePath")
-    if ctcreateFilePath != self.ctcreateFilePathDefault:
-      qt.QSettings().setValue('OrthovoltageDoseEngine/CtcreateFilePath', ctcreateFilePath)
+    ctcreateExecFilePath = self.scriptedEngine.parameter(beamNode, "CtcreateExecFilePath")
+    if ctcreateExecFilePath != self.ctcreateExecFilePathDefault:
+      qt.QSettings().setValue('OrthovoltageDoseEngine/CtcreateExecFilePath', ctcreateExecFilePath)
 
     ctcreateOutputPath = self.scriptedEngine.parameter(beamNode, "CtcreateOutputPath")
     if ctcreateOutputPath != self.ctcreateOutputPathDefault:
@@ -175,16 +168,19 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     if phaseSpaceFilePath != self.phaseSpaceFilePathDefault:
       qt.QSettings().setValue('OrthovoltageDoseEngine/PhaseSpaceFilePath', phaseSpaceFilePath)
 
-    dosxyznrcPath = self.scriptedEngine.parameter(beamNode, "DosxyznrcPath")
-    if dosxyznrcPath != self.dosxyznrcPathDefault:
-      qt.QSettings().setValue('OrthovoltageDoseEngine/DosxyznrcPath', dosxyznrcPath)
+    dosxyznrcFolderPath = self.scriptedEngine.parameter(beamNode, "DosxyznrcFolderPath")
+    if dosxyznrcFolderPath != self.dosxyznrcFolderPathDefault:
+      qt.QSettings().setValue('OrthovoltageDoseEngine/DosxyznrcFolderPath', dosxyznrcFolderPath)
+
+    dosxyznrcExecFilePath = self.scriptedEngine.parameter(beamNode, "DosxyznrcExecFilePath")
+    if dosxyznrcExecFilePath != self.dosxyznrcExecFilePathDefault:
+      qt.QSettings().setValue('OrthovoltageDoseEngine/DosxyznrcExecFilePath', dosxyznrcExecFilePath)
 
     pegsFilePath = self.scriptedEngine.parameter(beamNode, "PegsFilePath")
     if pegsFilePath != self.pegsFilePathDefault:
       qt.QSettings().setValue('OrthovoltageDoseEngine/PegsFilePath', pegsFilePath)
 
   #------------------------------------------------------------------------------
-  #TODO: verify that all entered parameters are valid
   def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):
     # Save path selections in application settings
     self.savePathsInApplicationSettings(beamNode)
@@ -206,7 +202,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     # Get ctcreate parameters
     ##########################################
 
-    ctcreateFilePath = self.scriptedEngine.parameter(beamNode, "CtcreateFilePath")
+    ctcreateExecFilePath = self.scriptedEngine.parameter(beamNode, "CtcreateExecFilePath")
     ctcreateOutputPath = self.scriptedEngine.parameter(beamNode, "CtcreateOutputPath")
     roiNodeName = self.scriptedEngine.parameter(beamNode, "ROIName")
     volumeName = self.scriptedEngine.parameter(beamNode, "VolumeName")
@@ -229,8 +225,8 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     # Call ctcreate
     ##########################################
 
-    OrthovoltageDoseEngineUtil.generateCtcreateInput(volumeNode,seriesUID, ctcreateOutputPath, roiNode, thicknesses)
-    OrthovoltageDoseEngineUtil.callCtcreate(ctcreateFilePath, ctcreateOutputPath)
+    OrthovoltageDoseEngineUtil.generateCtcreateInput(volumeNode, seriesUID, ctcreateOutputPath, roiNode, thicknesses)
+    EGSnrcUtil.callCtcreate(ctcreateExecFilePath, ctcreateOutputPath)
 
     ##########################################
     # Get DOSXYZnrc parameters
@@ -240,46 +236,47 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     ecut = self.scriptedEngine.parameter(beamNode, "ECut")
     pcut = self.scriptedEngine.parameter(beamNode, "PCut")
     incidentBeamSize = self.scriptedEngine.parameter(beamNode,"IncidentBeamSize")
-    dosxyznrcPath = self.scriptedEngine.parameter(beamNode, "DosxyznrcPath")
+    dosxyznrcFolderPath = self.scriptedEngine.parameter(beamNode, "DosxyznrcFolderPath")
+    dosxyznrcExecFilePath = self.scriptedEngine.parameter(beamNode, "DosxyznrcExecFilePath")
     pegsFilePath = self.scriptedEngine.parameter(beamNode, "PegsFilePath")
     nmed = 0 # nmed is number of media
     smax = 0 # dummy input, used to be max step length
-    zeroairdose = 0
+    zeroairdose = 1
     doseprint = 0
     MAX20 = 0
 
     # Record SC1-8
-    iqin = 2              #charge of incident beam
-    isource = 8
-    xiso = isocenter[0]   # isocenter x
-    yiso = isocenter[1]   # isocenter y
-    ziso = isocenter[2]   # isocenter z
+    iqin = 2              # charge of incident beam
+    isource = 2 #TODO: Why not 8 as it was initially decided?
+    xiso = -isocenter[0]  # isocenter x (RAS -> LPS)
+    yiso = -isocenter[1]  # isocenter y (RAS -> LPS)
+    ziso =  isocenter[2]  # isocenter z
 
-    nang = 1 #number of indident theta-phi pairs
+    nang = 1 # number of incident theta-phi pairs
     dsource = self.scriptedEngine.parameter(beamNode, "DistanceSourceToIsocenter") # absolute distance from isocenter to source center
-    phicol = self.scriptedEngine.parameter(beamNode,"CollimatorAngle") #TODO: how to calculate this??
-    i_dbs = 0
-    r_dbs = 0
-    ssd_dbs = 0
-    z_dbs = 0
+    i_dbs = 1 # I=8: 0
+    r_dbs = 10 # I=8: 0
+    ssd_dbs = 20 # I=8: 0
+    z_dbs = 20 # I=8: 0
     e_split = 0
 
     # Record SC1-8a
-    #TODO: how to calculate theta and phi angles based on gantry, collimator and couch angles?
-    nang1_theta = self.scriptedEngine.parameter(beamNode,"ThetaAngle")   # incident theta angle
-    nang1_phi = self.scriptedEngine.parameter(beamNode,"PhiAngle")     # incident phi angle
-    nang1_pang = 1              # probability of a particle being incident at theta(i)-phi(i)
-                                # (probabilities are automatically normalized to 1).
+    (theta, phi, phicol) = EGSnrcUtil.dcm2dosxyz(
+      beamNode.GetGantryAngle(), beamNode.GetCouchAngle(), beamNode.GetCollimatorAngle() )
+    # nang1_theta = theta # incident theta angle
+    # nang1_phi = phi     # incident phi angle
+    # nang1_pang = 1      # probability of a particle being incident at theta(i)-phi(i)
+    #                     # (probabilities are automatically normalized to 1).
 
     # Record SC2
     enflag = 2        # for ph-sp beam input or full BEAM sim.
     mode = 0          # default file format for ph-sp data (enflag=2)
-    medsur = 1        # medium number for the region outside the phantom
-    dsurround_1 = 30  # thickness (cm) of region surrounding phantom in x direction
-    dflag = 1         # dsurround(1) applied to x direction only
-    dsurround_2 = 60  # thickness (cm) of region surrounding phantom in y direction
-    dsurround_3 = 30  # thickness (cm) of region surrounding phantom in +z direction
-    dsurround_4 = 30  # thickness (cm) of region surrounding phantom in -z direction
+    medsur = 0        # medium number for the region outside the phantom             # I=8: 1
+    dsurround_1 = 10  # thickness (cm) of region surrounding phantom in x direction  # I=8: 30
+    dflag = 0         # dsurround(1) applied to x direction only                     # I=8: 1
+    dsurround_2 = 0   # thickness (cm) of region surrounding phantom in y direction  # I=8: 60
+    dsurround_3 = 0   # thickness (cm) of region surrounding phantom in +z direction # I=8: 30
+    dsurround_4 = 0   # thickness (cm) of region surrounding phantom in -z direction # I=8: 30
 
     # Record 13
     ncase = self.scriptedEngine.parameter(beamNode, "NumHistories")
@@ -290,7 +287,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     beam_size = incidentBeamSize
     ismooth = 0       # re-use the ph-sp data once run out (no redistribution)
     irestart = 0      # first run for this data set (default)
-    idat = 2          # output the data file for restart at end only
+    idat = 0          # output the data file for restart at end only                                       # I=8: 2
     ireject = 0       # do not perform charged particle range rejection (default)
     esave_global = "" # energy (MeV) below which charged particle will be considered for range rejection
     nrcycl = 0        # use entire phase space file with no restarts
@@ -307,55 +304,71 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     estepe = 0.25     # max fractional energy loss per step (default)
     ximax = 0.5       # max first elastic scattering moment per step (default)
 
-    dosXyznrcInputFileName = "dosxyznrcInput.egsinp" #TODO: Fixed?
+    dosXyznrcInputFileName = "dosxyznrcInput.egsinp" #TODO: Constant?
 
-    with open(os.path.join(ctcreateOutputPath, dosXyznrcInputFileName), "w") as outFile:
-      outFile.write(title + "\n")
-      outFile.write(str(nmed) + "\n")
-      outFile.write(os.path.join(ctcreateOutputPath, "slicenames.txt.egsphant") + "\n") #TODO: remove hardcode
-      outFile.write("{}, {}, {}\n".format(ecut, pcut, smax))
-      outFile.write("{}, {}, {},\n".format(zeroairdose, doseprint, MAX20))
-      outFile.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(iqin, isource,
-        xiso, yiso, ziso, nang, dsource, phicol, i_dbs, r_dbs, ssd_dbs, z_dbs, e_split))
-      outFile.write("{}, {}, {}\n".format(nang1_theta, nang1_phi, nang1_pang))
-      outFile.write("{}, {}, {}, {}, {}, {}, {}, {}\n".format(enflag, mode, medsur, dsurround_1,
-        dflag, dsurround_2, dsurround_3, dsurround_4))
-      outFile.write(phaseSpaceFilePath + "\n")
-      outFile.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
+    with open(os.path.join(ctcreateOutputPath, dosXyznrcInputFileName), "w") as dosXyzInFile:
+      dosXyzInFile.write(title + "\n")
+      dosXyzInFile.write(str(nmed) + "\n")
+      dosXyzInFile.write(os.path.join(ctcreateOutputPath, "slicenames.txt.egsphant") + "\n") #TODO: remove hardcode
+      dosXyzInFile.write("{}, {}, {}\n".format(ecut, pcut, smax))
+      dosXyzInFile.write("{}, {}, {},\n".format(zeroairdose, doseprint, MAX20))
+      #TODO: This was for ISOSOURCE=8
+      # dosXyzInFile.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
+      #   iqin, isource, xiso, yiso, ziso, nang, dsource, phicol, i_dbs, r_dbs, ssd_dbs, z_dbs, e_split))
+      # ISOSOURCE=2
+      dosXyzInFile.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
+        iqin, isource, xiso, yiso, ziso, theta, phi, dsource, phicol, i_dbs, r_dbs, ssd_dbs, z_dbs, e_split))
+      # dosXyzInFile.write("{}, {}, {}\n".format(nang1_theta, nang1_phi, nang1_pang)) #TODO: Was here for I=8
+      dosXyzInFile.write("{}, {}, {}, {}, {}, {}, {}, {}\n".format(
+        enflag, mode, medsur, dsurround_1, dflag, dsurround_2, dsurround_3, dsurround_4))
+      dosXyzInFile.write(phaseSpaceFilePath + "\n")
+      dosXyzInFile.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
         ncase, iwatch, timmax, inseed1, inseed2, beam_size, ismooth, irestart, idat, ireject,
         esave_global, nrcycl, iparallel, parnum, n_split, ihowfarless, i_phsp_out))
-      outFile.write(" #########################\n :Start MC Transport Parameter:\n\n")
-      outFile.write(" Global ECUT= {}\n".format(globalEcut))
-      outFile.write(" Global PCUT= {}\n".format(globalPcut))
-      outFile.write(" Global SMAX= {}\n".format(globalSmax))
-      outFile.write(" ESTEPE= {}\n".format(estepe))
-      outFile.write(" XIMAX= {}\n".format(ximax))
-      outFile.write(" Boundary crossing algorithm= PRESTA-I\n") #TODO: add comments
-      outFile.write(" Skin depth for BCA= 0\n")
-      outFile.write(" Electron-step algorithm= PRESTA-II\n")
-      outFile.write(" Spin effects= On\n")
-      outFile.write(" Brems angular sampling= Simple\n")
-      outFile.write(" Brems cross sections= BH\n")
-      outFile.write(" Bound Compton scattering= Off\n")
-      outFile.write(" Compton cross sections= default\n")
-      outFile.write(" Pair angular sampling= Simple\n")
-      outFile.write(" Pair cross sections= BH\n")
-      outFile.write(" Photoelectron angular sampling= Off\n")
-      outFile.write(" Rayleigh scattering= Off\n")
-      outFile.write(" Atomic relaxations= Off\n")
-      outFile.write(" Electron impact ionization= Off\n")
-      outFile.write(" Photon cross sections= xcom\n")
-      outFile.write(" Photon cross-sections output= Off\n")
-      outFile.write("\n :Stop MC Transport Parameter:\n #########################\n\n")
+      dosXyzInFile.write(" #########################\n")
+      dosXyzInFile.write(" :Start MC Transport Parameter:\n \n")
+      dosXyzInFile.write(" Global ECUT= {}\n".format(globalEcut))
+      dosXyzInFile.write(" Global PCUT= {}\n".format(globalPcut))
+      dosXyzInFile.write(" Global SMAX= {}\n".format(globalSmax))
+      dosXyzInFile.write(" ESTEPE= {}\n".format(estepe))
+      dosXyzInFile.write(" XIMAX= {}\n".format(ximax))
+      dosXyzInFile.write(" Boundary crossing algorithm= PRESTA-I\n") #TODO: add comments
+      dosXyzInFile.write(" Skin depth for BCA= 0\n")
+      dosXyzInFile.write(" Electron-step algorithm= PRESTA-II\n")
+      dosXyzInFile.write(" Spin effects= On\n")
+      dosXyzInFile.write(" Brems angular sampling= Simple\n")
+      dosXyzInFile.write(" Brems cross sections= BH\n")
+      dosXyzInFile.write(" Bound Compton scattering= Off\n")
+      dosXyzInFile.write(" Compton cross sections= default\n")
+      dosXyzInFile.write(" Pair angular sampling= Simple\n")
+      dosXyzInFile.write(" Pair cross sections= BH\n")
+      dosXyzInFile.write(" Photoelectron angular sampling= Off\n")
+      dosXyzInFile.write(" Rayleigh scattering= Off\n")
+      dosXyzInFile.write(" Atomic relaxations= Off\n")
+      dosXyzInFile.write(" Electron impact ionization= Off\n")
+      dosXyzInFile.write(" Photon cross sections= xcom\n")
+      dosXyzInFile.write(" Photon cross-sections output= Off\n")
+      dosXyzInFile.write("\n :Stop MC Transport Parameter:\n")
+      dosXyzInFile.write(" #########################\n")
 
     ##########################################
     # Call DOSXYZnrc
     ##########################################
 
     # Copy DOSXYZnrc input file to dosxyznrc directory
-    shutil.copy2(os.path.join(ctcreateOutputPath, dosXyznrcInputFileName), dosxyznrcPath)
+    shutil.copy2(os.path.join(ctcreateOutputPath, dosXyznrcInputFileName), dosxyznrcFolderPath)
 
-    os.system("dosxyznrc -i {} -p {}".format(dosXyznrcInputFileName, pegsFilePath))
+    #os.system("dosxyznrc -i {} -p {}".format(dosXyznrcInputFileName, pegsFilePath))
+    import subprocess
+    proc = subprocess.Popen([dosxyznrcExecFilePath, '-i', dosXyznrcInputFileName, '-p', pegsFilePath], stdout=subprocess.PIPE, shell=True)
+    (out, err) = proc.communicate()
+
+    if err is not None and str(err) != '':
+      logging.error("DOSXYZ error: \n" + str(err))
+      return "DOSXYZ error: " + str(err)
+
+    # Read output 3ddose file into result dose volume
+    #TODO: resultDoseVolumeNode
 
     # Successful execution, no error message
     return ""
