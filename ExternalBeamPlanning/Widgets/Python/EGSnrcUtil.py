@@ -54,6 +54,7 @@ def callCtcreate(ctcreateExecFilePath, outputFolder, ctcreateInputFilename="ctcr
   (out, err) = proc.communicate()
 
   outStr = str(out).replace('\\r','').replace('\\n','\n')
+  logging.debug("-----------------------------\n")
   logging.debug("ctcreate output: \n" + outStr)
   outStr = outStr[:outStr.rfind("'")] # Strip closing single quote
   if outStr[len(outStr)-1:] == '\n':

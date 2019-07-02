@@ -304,7 +304,10 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     estepe = 0.25     # max fractional energy loss per step (default)
     ximax = 0.5       # max first elastic scattering moment per step (default)
 
-    dosXyznrcInputFileName = "dosxyznrcInput.egsinp" #TODO: Constant?
+    import datetime
+    dateTimeStr = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    dosXyznrcSessionFilePrefix = dateTimeStr + "_dosxyznrc"
+    dosXyznrcInputFileName = dosXyznrcSessionFilePrefix + ".egsinp"
 
     with open(os.path.join(ctcreateOutputPath, dosXyznrcInputFileName), "w") as dosXyzInFile:
       dosXyzInFile.write(title + "\n")
@@ -347,8 +350,8 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
       dosXyzInFile.write(" Atomic relaxations= Off\n")
       dosXyzInFile.write(" Electron impact ionization= Off\n")
       dosXyzInFile.write(" Photon cross sections= xcom\n")
-      dosXyzInFile.write(" Photon cross-sections output= Off\n")
-      dosXyzInFile.write("\n :Stop MC Transport Parameter:\n")
+      dosXyzInFile.write(" Photon cross-sections output= Off\n \n")
+      dosXyzInFile.write(" :Stop MC Transport Parameter:\n")
       dosXyzInFile.write(" #########################\n")
 
     ##########################################
@@ -358,17 +361,42 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     # Copy DOSXYZnrc input file to dosxyznrc directory
     shutil.copy2(os.path.join(ctcreateOutputPath, dosXyznrcInputFileName), dosxyznrcFolderPath)
 
-    #os.system("dosxyznrc -i {} -p {}".format(dosXyznrcInputFileName, pegsFilePath))
+    # Run dose calculation
     import subprocess
     proc = subprocess.Popen([dosxyznrcExecFilePath, '-i', dosXyznrcInputFileName, '-p', pegsFilePath], stdout=subprocess.PIPE, shell=True)
     (out, err) = proc.communicate()
 
+    # Manage output log
+    outStr = str(out).replace('\\r','').replace('\\n','\n')
+    logging.debug("-----------------------------\n")
+    logging.debug("DOSXYZ output: \n" + outStr)
+    outStr = outStr[:outStr.rfind("'")] # Strip closing single quote
+    if outStr[len(outStr)-1:] == '\n':
+      outStr = outStr[:len(outStr)-1] # Strip last empty line if any
+    logging.info("DOSXYZ output (last paragraph): \n" + outStr[outStr.rfind('\n\n')+2:])
     if err is not None and str(err) != '':
       logging.error("DOSXYZ error: \n" + str(err))
-      return "DOSXYZ error: " + str(err)
+      return "DOSXYZ error! Please check the log"
 
     # Read output 3ddose file into result dose volume
-    #TODO: resultDoseVolumeNode
+    dosXyznrcOutputFileName = dosXyznrcSessionFilePrefix + ".3ddose"
+    dosXyznrcOutputFilePath = os.path.join(dosxyznrcFolderPath, dosXyznrcOutputFileName)
+    [success, loadedVolumeNode] = slicer.util.loadNodeFromFile(dosXyznrcOutputFilePath, 'DosxyzNrc3dDoseFile', {}, True)
+    if not success:
+      logging.error("Failed to load result dose file {} for session using DOSXYZnrc input file {}".format(dosXyznrcOutputFilePath, dosXyznrcInputFileName))
+      return "Failed to load result dose file! Please check the log"
+
+    resultDoseVolumeNode.CopyOrientation(loadedVolumeNode)
+    doseImageDataCopy = vtk.vtkImageData()
+    doseImageDataCopy.DeepCopy(loadedVolumeNode.GetImageData())
+    resultDoseVolumeNode.SetAndObserveImageData(doseImageDataCopy)
+    slicer.mrmlScene.RemoveNode(loadedVolumeNode)
+    accumulate = vtk.vtkImageAccumulate()
+    accumulate.SetInputData(doseImageDataCopy)
+    accumulate.IgnoreZeroOn()
+    accumulate.Update()
+    logging.info( 'Result dose volume for beam ' + beamNode.GetName() + ' successfully loaded.\n'
+      + '  Dose range: ({:.4f}-{:.4f})'.format(accumulate.GetMin()[0],accumulate.GetMax()[0]) )
 
     # Successful execution, no error message
     return ""
