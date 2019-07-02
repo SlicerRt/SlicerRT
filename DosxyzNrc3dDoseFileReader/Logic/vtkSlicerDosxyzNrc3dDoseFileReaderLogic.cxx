@@ -71,13 +71,13 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::PrintSelf(ostream& os, vtkIndent i
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* filename, float intensityScalingFactor/*=1e+18*/)
+vtkMRMLScalarVolumeNode* vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* filename, float intensityScalingFactor/*=1e+18*/)
 {
   ifstream readFileStream(filename); 
   if (!readFileStream)
   {
     vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The specified file could not be opened.");
-    return;
+    return nullptr;
   }
 
   if (intensityScalingFactor == 0)
@@ -94,7 +94,7 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
   if (size[0] <= 0 || size[1] <= 0 || size[2] <= 0)
   {
     vtkErrorMacro("LoadDosxyzNrc3dDoseFile: Number of voxels in X, Y, or Z direction must be greater than zero." << "numVoxelsX " << size[0] << ", numVoxelsY " << size[1] << ", numVoxelsZ " << size[2]);
-    return;
+    return nullptr;
   }
 
   std::vector<double> voxelBoundariesX(size[0] + 1); 
@@ -241,4 +241,6 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* file
   //todo: read in block 6 (relative errors) of .3ddose file in another volume node
 
   readFileStream.close();
+
+  return dosxyzNrc3dDoseVolumeNode.GetPointer();
 }

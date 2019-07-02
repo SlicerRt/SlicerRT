@@ -48,7 +48,7 @@ public:
   /// Load VFF volume from file
   /// \param filename Path and filename of the VFF file
   /// \param useImageIntensityScaleAndOffsetFromFile Boolean flag which is set to false by default, but is set to true to use the intensity scale and offset provided in the file to load the image
-  void LoadVffFile(char* filename, bool useImageIntensityScaleAndOffsetFromFile = false); //, bool useDataOffset);
+  vtkMRMLScalarVolumeNode* LoadVffFile(char* filename, bool useImageIntensityScaleAndOffsetFromFile = false); //, bool useDataOffset);
 
 protected:
   /// A helper function which removes all spaces from the beginning and end of a string, and returns the modified string.

@@ -102,10 +102,15 @@ bool qSlicerVffFileReaderPlugin::load(const IOProperties& properties)
   QString fileName = properties["fileName"].toString();
   Q_ASSERT(d->Logic);
 
-  bool useImageIntensityScaleAndOffsetFromFile = properties["imageIntensityScaleAndOffset"].toBool();
-  d->Logic->LoadVffFile(fileName.toLatin1().data(), useImageIntensityScaleAndOffsetFromFile);
-
   this->setLoadedNodes(QStringList());
+  bool useImageIntensityScaleAndOffsetFromFile = properties["imageIntensityScaleAndOffset"].toBool();
+  vtkMRMLScalarVolumeNode* node = d->Logic->LoadVffFile(
+    fileName.toLatin1().data(), useImageIntensityScaleAndOffsetFromFile);
+  if (!node)
+  {
+    return false;
+  }
+  this->setLoadedNodes(QStringList(QString(node->GetID())));
 
   return true;
 }
