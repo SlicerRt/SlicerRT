@@ -101,8 +101,8 @@ class PlmProtonDoseEngineTest(unittest.TestCase):
     # Load into Slicer
     ctLoadSuccess = slicer.util.loadVolume(self.dataDir + '/TinyPatient_CT.nrrd')
     self.assertTrue( ctLoadSuccess )
-    segLoadSuccess = slicer.util.loadNodeFromFile(self.dataDir + '/TinyPatient_Structures.seg.vtm', "SegmentationFile", {})
-    self.assertTrue( segLoadSuccess )
+    segmentationNode = slicer.util.loadNodeFromFile(self.dataDir + '/TinyPatient_Structures.seg.vtm', "SegmentationFile", {})
+    self.assertIsNotNone( segmentationNode )
 
     # Add data under a patient and study
     shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
@@ -113,8 +113,6 @@ class PlmProtonDoseEngineTest(unittest.TestCase):
     self.assertIsNotNone(ctVolumeNode)
     shNode.CreateItem(studyItemID, ctVolumeNode)
 
-    segmentationNode = slicer.util.getNode('TinyPatient_Structures')
-    self.assertIsNotNone(segmentationNode)
     shNode.CreateItem(studyItemID, segmentationNode)
 
   #------------------------------------------------------------------------------

@@ -381,8 +381,8 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     # Read output 3ddose file into result dose volume
     dosXyznrcOutputFileName = dosXyznrcSessionFilePrefix + ".3ddose"
     dosXyznrcOutputFilePath = os.path.join(dosxyznrcFolderPath, dosXyznrcOutputFileName)
-    [success, loadedVolumeNode] = slicer.util.loadNodeFromFile(dosXyznrcOutputFilePath, 'DosxyzNrc3dDoseFile', {}, True)
-    if not success:
+    loadedVolumeNode = slicer.util.loadNodeFromFile(dosXyznrcOutputFilePath, 'DosxyzNrc3dDoseFile', {})
+    if loadedVolumeNode is None:
       logging.error("Failed to load result dose file {} for session using DOSXYZnrc input file {}".format(dosXyznrcOutputFilePath, dosXyznrcInputFileName))
       return "Failed to load result dose file! Please check the log"
 
