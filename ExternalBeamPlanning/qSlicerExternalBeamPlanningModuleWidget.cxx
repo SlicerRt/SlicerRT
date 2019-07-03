@@ -399,16 +399,6 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
       }
     }
 
-    // Create and select output dose volume if missing
-    if (!planNode->GetOutputTotalDoseVolumeNode())
-    {
-      vtkSmartPointer<vtkMRMLScalarVolumeNode> newDoseVolume = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-      std::string newDoseVolumeName = std::string(planNode->GetName()) + "_TotalDose";
-      newDoseVolume->SetName(newDoseVolumeName.c_str());
-      this->mrmlScene()->AddNode(newDoseVolume);
-      planNode->SetAndObserveOutputTotalDoseVolumeNode(newDoseVolume);
-    }
-
     // Set dose engine from UI if not specified in plan
     if (!planNode->GetDoseEngineName())
     {
@@ -981,6 +971,12 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     qCritical() << Q_FUNC_INFO << ": Invalid scene";
     return;
   }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->mrmlScene());
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+  }
 
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
@@ -989,6 +985,32 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     d->label_CalculateDoseStatus->setText(errorString);
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
+  }
+
+  // Create and select output dose volume if missing
+  if (!planNode->GetOutputTotalDoseVolumeNode())
+  {
+    vtkIdType planShItemID = shNode->GetItemByDataNode(planNode);
+    if (!planShItemID)
+    {
+      qCritical() << Q_FUNC_INFO << ": Invalid subject hierarchy item for plan " << planNode->GetName();
+      return;
+    }
+    vtkSmartPointer<vtkMRMLScalarVolumeNode> newDoseVolume = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+    std::string newDoseVolumeName = std::string(planNode->GetName()) + "_TotalDose";
+    newDoseVolume->SetName(newDoseVolumeName.c_str());
+    this->mrmlScene()->AddNode(newDoseVolume);
+
+    // Move total dose volume under study (same branch as plan)
+    shNode->SetItemParent(shNode->GetItemByDataNode(newDoseVolume), shNode->GetItemParent(planShItemID));
+
+    // Set volume to plan
+    planNode->SetAndObserveOutputTotalDoseVolumeNode(newDoseVolume);
+
+    // Set also on UI
+    bool wasBlocked = d->MRMLNodeComboBox_DoseVolume->blockSignals(true);
+    d->MRMLNodeComboBox_DoseVolume->setCurrentNode(newDoseVolume);
+    d->MRMLNodeComboBox_DoseVolume->blockSignals(wasBlocked);
   }
 
   // Start timer
