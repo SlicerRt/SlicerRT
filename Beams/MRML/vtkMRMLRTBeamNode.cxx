@@ -210,13 +210,19 @@ void vtkMRMLRTBeamNode::SetScene(vtkMRMLScene* scene)
 {
   Superclass::SetScene(scene);
 
-  if (scene)
+  if (!scene)
+  {
+    return;
+  }
+  
+  if (!this->GetPolyData())
   {
     // Create beam model
     vtkSmartPointer<vtkPolyData> beamModelPolyData = vtkSmartPointer<vtkPolyData>::New();
-    this->CreateBeamPolyData(beamModelPolyData);
     this->SetAndObservePolyData(beamModelPolyData);
   }
+
+  this->CreateBeamPolyData();
 }
 
 //----------------------------------------------------------------------------
@@ -455,12 +461,16 @@ void vtkMRMLRTBeamNode::UpdateGeometry()
   this->CreateDefaultDisplayNodes();
 
   // Update beam poly data based on jaws and MLC
-  this->CreateBeamPolyData(this->GetPolyData());
+  this->CreateBeamPolyData();
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData)
+void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=nullptr*/)
 {
+  if (!beamModelPolyData)
+  {
+    beamModelPolyData = this->GetPolyData();
+  }
   if (!beamModelPolyData)
   {
     vtkErrorMacro("CreateBeamPolyData: Invalid beam node");

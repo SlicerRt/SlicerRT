@@ -122,17 +122,23 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneEndImport()
   scene->GetNodesByClass("vtkMRMLRTBeamNode", beamNodes);
   for (std::vector<vtkMRMLNode*>::iterator beamIt=beamNodes.begin(); beamIt!=beamNodes.end(); ++beamIt)
   {
-    vtkMRMLNode* node = (*beamIt);
+    vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(*beamIt);
 
+    // Re-observe poly data in beam model node
+    // Note: Without this, the beam polydata display is not updated when the beam geometry changes. The
+    //   reason for this is possibly that the pipeline is set up with the file reader and on any modified
+    //   event that pipeline is used instead of simply using the changed contents of the beam polydata.
+    beamNode->SetAndObserveMesh(beamNode->GetMesh());
+    
     // Observe beam events
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
     events->InsertNextValue(vtkMRMLRTBeamNode::BeamTransformModified);
-    vtkObserveMRMLNodeEventsMacro(node, events);
+    vtkObserveMRMLNodeEventsMacro(beamNode, events);
 
     // Make sure geometry and transforms are up-to-date
-    node->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
-    node->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
+    beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
+    beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
   }
 }
 

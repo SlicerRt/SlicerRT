@@ -181,7 +181,8 @@ public:
 
 protected:
   /// Create beam model from beam parameters, supporting MLC leaves
-  void CreateBeamPolyData(vtkPolyData* beamModelPolyData);
+  /// \param beamModelPolyData Output polydata. If none given then the beam node's own polydata is used
+  void CreateBeamPolyData(vtkPolyData* beamModelPolyData=nullptr);
 
 protected:
   vtkMRMLRTBeamNode();
