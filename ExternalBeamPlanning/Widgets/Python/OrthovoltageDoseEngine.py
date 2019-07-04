@@ -247,7 +247,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
 
     # Record SC1-8
     iqin = 2              # charge of incident beam
-    isource = 2 #TODO: Why not 8 as it was initially decided?
+    isource = 2 # Note: May need to change later, see code commented out below
     xiso = -isocenter[0]  # isocenter x (RAS -> LPS)
     yiso = -isocenter[1]  # isocenter y (RAS -> LPS)
     ziso =  isocenter[2]  # isocenter z
@@ -315,13 +315,13 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
       dosXyzInFile.write(os.path.join(ctcreateOutputPath, "slicenames.txt.egsphant") + "\n") #TODO: remove hardcode
       dosXyzInFile.write("{}, {}, {}\n".format(ecut, pcut, smax))
       dosXyzInFile.write("{}, {}, {},\n".format(zeroairdose, doseprint, MAX20))
-      #TODO: This was for ISOSOURCE=8
+      # Note: This was for ISOSOURCE=8
       # dosXyzInFile.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
       #   iqin, isource, xiso, yiso, ziso, nang, dsource, phicol, i_dbs, r_dbs, ssd_dbs, z_dbs, e_split))
       # ISOSOURCE=2
       dosXyzInFile.write("{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n".format(
         iqin, isource, xiso, yiso, ziso, theta, phi, dsource, phicol, i_dbs, r_dbs, ssd_dbs, z_dbs, e_split))
-      # dosXyzInFile.write("{}, {}, {}\n".format(nang1_theta, nang1_phi, nang1_pang)) #TODO: Was here for I=8
+      # dosXyzInFile.write("{}, {}, {}\n".format(nang1_theta, nang1_phi, nang1_pang)) # Note: Was here for ISOSOURCE=8
       dosXyzInFile.write("{}, {}, {}, {}, {}, {}, {}, {}\n".format(
         enflag, mode, medsur, dsurround_1, dflag, dsurround_2, dsurround_3, dsurround_4))
       dosXyzInFile.write(phaseSpaceFilePath + "\n")
