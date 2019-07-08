@@ -1526,6 +1526,17 @@ const char* vtkSlicerDicomRtReader::GetRoiReferencedSeriesUid(unsigned int inter
 }
 
 //----------------------------------------------------------------------------
+int vtkSlicerDicomRtReader::GetRoiNumber(unsigned int internalIndex)
+{
+  if (internalIndex >= this->Internal->RoiSequenceVector.size())
+  {
+    vtkErrorMacro("GetRoiNumber: Cannot get ROI with internal index: " << internalIndex);
+    return -1;
+  }
+  return this->Internal->RoiSequenceVector[internalIndex].Number;
+}
+
+//----------------------------------------------------------------------------
 int vtkSlicerDicomRtReader::GetNumberOfBeams()
 {
   return this->Internal->BeamSequenceVector.size();

@@ -1086,6 +1086,11 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
       segment->SetColor(roiColor[0], roiColor[1], roiColor[2]);
       segment->AddRepresentation(vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName(), roiPolyData);
       segmentationNode->GetSegmentation()->AddSegment(segment);
+
+      // Add DICOM ROI number as tag to the segment
+      std::stringstream roiNumberStream;
+      roiNumberStream << rtReader->GetRoiNumber(internalROIIndex);
+      segment->SetTag(vtkSlicerRtCommon::DICOMRTIMPORT_ROI_NUMBER_SEGMENT_TAG_NAME, roiNumberStream.str());
     }
   } // for all ROIs
 

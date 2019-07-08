@@ -72,6 +72,10 @@ public:
   /// \param internalIndex Internal index of ROI to get
   const char* GetRoiReferencedSeriesUid(unsigned int internalIndex);
 
+  /// Get DICOM ROI number for a certain ROI by internal index
+  /// \param internalIndex Internal index of ROI to get
+  int GetRoiNumber(unsigned int internalIndex);
+
 
   /// Get number of beams
   int GetNumberOfBeams();
