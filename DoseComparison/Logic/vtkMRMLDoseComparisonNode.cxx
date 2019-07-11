@@ -52,7 +52,7 @@ vtkMRMLDoseComparisonNode::vtkMRMLDoseComparisonNode()
   this->AnalysisThresholdPercent = 10.0;
   this->MaximumGamma = 2.0;
   this->UseMaximumDose = true;
-  this->UseLinearInterpolation = true;
+  this->UseGeometricGammaCalculation = true;
   this->DoseThresholdOnReferenceOnly = false;
   this->PassFractionPercent = -1.0;
   this->ResultsValid = false;
@@ -81,7 +81,7 @@ void vtkMRMLDoseComparisonNode::WriteXML(ostream& of, int nIndent)
   of << " AnalysisThresholdPercent=\"" << this->AnalysisThresholdPercent << "\"";
   of << " MaximumGamma=\"" << this->MaximumGamma << "\"";
   of << " UseMaximumDose=\"" << (this->UseMaximumDose ? "true" : "false") << "\"";
-  of << " UseLinearInterpolation=\"" << (this->UseLinearInterpolation ? "true" : "false") << "\"";
+  of << " UseGeometricGammaCalculation=\"" << (this->UseGeometricGammaCalculation ? "true" : "false") << "\"";
   of << " LocalDoseDifference=\"" << (this->LocalDoseDifference ? "true" : "false") << "\"";
   of << " DoseThresholdOnReferenceOnly=\"" << (this->DoseThresholdOnReferenceOnly ? "true" : "false") << "\"";
   of << " PassFractionPercent=\"" << this->PassFractionPercent << "\"";
@@ -98,56 +98,56 @@ void vtkMRMLDoseComparisonNode::ReadXMLAttributes(const char** atts)
   const char* attName = nullptr;
   const char* attValue = nullptr;
 
-  while (*atts != nullptr) 
+  while (*atts != nullptr)
     {
     attName = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "MaskSegmentID")) 
+    if (!strcmp(attName, "MaskSegmentID"))
       {
       this->SetMaskSegmentID(vtkVariant(attValue).ToString());
       }
-    else if (!strcmp(attName, "DtaDistanceToleranceMm")) 
+    else if (!strcmp(attName, "DtaDistanceToleranceMm"))
       {
       this->DtaDistanceToleranceMm = vtkVariant(attValue).ToDouble();
       }
-    else if (!strcmp(attName, "DoseDifferenceTolerancePercent")) 
+    else if (!strcmp(attName, "DoseDifferenceTolerancePercent"))
       {
       this->DoseDifferenceTolerancePercent = vtkVariant(attValue).ToDouble();
       }
-    else if (!strcmp(attName, "ReferenceDoseGy")) 
+    else if (!strcmp(attName, "ReferenceDoseGy"))
       {
       this->ReferenceDoseGy = vtkVariant(attValue).ToDouble();
       }
-    else if (!strcmp(attName, "AnalysisThresholdPercent")) 
+    else if (!strcmp(attName, "AnalysisThresholdPercent"))
       {
       this->AnalysisThresholdPercent = vtkVariant(attValue).ToDouble();
       }
-    else if (!strcmp(attName, "MaximumGamma")) 
+    else if (!strcmp(attName, "MaximumGamma"))
       {
       this->MaximumGamma = vtkVariant(attValue).ToDouble();
       }
-    else if (!strcmp(attName, "UseMaximumDose")) 
+    else if (!strcmp(attName, "UseMaximumDose"))
       {
       this->UseMaximumDose = (strcmp(attValue,"true") ? false : true);
       }
-    else if (!strcmp(attName, "UseLinearInterpolation")) 
+    else if (!strcmp(attName, "UseGeometricGammaCalculation"))
       {
-      this->UseLinearInterpolation = (strcmp(attValue,"true") ? false : true);
+      this->UseGeometricGammaCalculation = (strcmp(attValue,"true") ? false : true);
       }
-    else if (!strcmp(attName, "LocalDoseDifference")) 
+    else if (!strcmp(attName, "LocalDoseDifference"))
       {
       this->LocalDoseDifference = (strcmp(attValue,"true") ? false : true);
       }
-    else if (!strcmp(attName, "DoseThresholdOnReferenceOnly")) 
+    else if (!strcmp(attName, "DoseThresholdOnReferenceOnly"))
       {
       this->DoseThresholdOnReferenceOnly = (strcmp(attValue,"true") ? false : true);
       }
-    else if (!strcmp(attName, "PassFractionPercent")) 
+    else if (!strcmp(attName, "PassFractionPercent"))
       {
       this->PassFractionPercent = vtkVariant(attValue).ToDouble();
       }
-    else if (!strcmp(attName, "ResultsValid")) 
+    else if (!strcmp(attName, "ResultsValid"))
       {
       this->ResultsValid = (strcmp(attValue,"true") ? false : true);
       }
@@ -174,7 +174,7 @@ void vtkMRMLDoseComparisonNode::Copy(vtkMRMLNode *anode)
   this->MaximumGamma = node->MaximumGamma;
   this->PassFractionPercent = node->PassFractionPercent;
   this->UseMaximumDose = node->UseMaximumDose;
-  this->UseLinearInterpolation = node->UseLinearInterpolation;
+  this->UseGeometricGammaCalculation = node->UseGeometricGammaCalculation;
   this->LocalDoseDifference = node->LocalDoseDifference;
   this->DoseThresholdOnReferenceOnly = node->DoseThresholdOnReferenceOnly;
   this->ResultsValid = node->ResultsValid;
@@ -196,7 +196,7 @@ void vtkMRMLDoseComparisonNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "AnalysisThresholdPercent:   " << this->AnalysisThresholdPercent << "\n";
   os << indent << "MaximumGamma:   " << this->MaximumGamma << "\n";
   os << indent << "UseMaximumDose:   " << (this->UseMaximumDose ? "true" : "false") << "\n";
-  os << indent << "UseLinearInterpolation:   " << (this->UseLinearInterpolation ? "true" : "false") << "\n";
+  os << indent << "UseGeometricGammaCalculation:   " << (this->UseGeometricGammaCalculation ? "true" : "false") << "\n";
   os << indent << "LocalDoseDifference:   " << (this->LocalDoseDifference ? "true" : "false") << "\n";
   os << indent << "DoseThresholdOnReferenceOnly:   " << (this->DoseThresholdOnReferenceOnly ? "true" : "false") << "\n";
   os << indent << "PassFractionPercent:   " << this->PassFractionPercent << "\n";

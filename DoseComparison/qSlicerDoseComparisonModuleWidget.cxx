@@ -255,7 +255,7 @@ void qSlicerDoseComparisonModuleWidget::updateWidgetFromMRML()
     d->doubleSpinBox_DoseDifferenceTolerance->setValue(paramNode->GetDoseDifferenceTolerancePercent());
     d->doubleSpinBox_ReferenceDose_cGy->setValue(paramNode->GetReferenceDoseGy() * 100.0); // Spinbox shows cGy
     d->doubleSpinBox_AnalysisThreshold->setValue(paramNode->GetAnalysisThresholdPercent());
-    d->checkBox_LinearInterpolation->setChecked(paramNode->GetUseLinearInterpolation());
+    d->checkBox_GeometricGammaCalculation->setChecked(paramNode->GetUseGeometricGammaCalculation());
     d->checkBox_Local->setChecked(paramNode->GetLocalDoseDifference());
     d->doubleSpinBox_MaximumGamma->setValue(paramNode->GetMaximumGamma());
     if (paramNode->GetUseMaximumDose())
@@ -295,7 +295,7 @@ void qSlicerDoseComparisonModuleWidget::setup()
   connect( d->doubleSpinBox_DoseDifferenceTolerance, SIGNAL(valueChanged(double)), this, SLOT(doseDifferenceToleranceChanged(double)) );
   connect( d->doubleSpinBox_ReferenceDose_cGy, SIGNAL(valueChanged(double)), this, SLOT(referenceDoseChanged(double)) );
   connect( d->doubleSpinBox_AnalysisThreshold, SIGNAL(valueChanged(double)), this, SLOT(analysisThresholdChanged(double)) );
-  connect( d->checkBox_LinearInterpolation, SIGNAL(stateChanged(int)), this, SLOT(linearInterpolationCheckedStateChanged(int)) );
+  connect( d->checkBox_GeometricGammaCalculation, SIGNAL(stateChanged(int)), this, SLOT(geometricGammaCalculationCheckedStateChanged(int)) );
   connect( d->checkBox_Local, SIGNAL(stateChanged(int)), this, SLOT(localDoseDifferenceCheckedStateChanged(int)) );
   connect( d->doubleSpinBox_MaximumGamma, SIGNAL(valueChanged(double)), this, SLOT(maximumGammaChanged(double)) );
   connect( d->radioButton_ReferenceDose_MaximumDose, SIGNAL(toggled(bool)), this, SLOT(referenceDoseUseMaximumDoseChanged(bool)) );
@@ -579,7 +579,7 @@ void qSlicerDoseComparisonModuleWidget::analysisThresholdChanged(double value)
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseComparisonModuleWidget::linearInterpolationCheckedStateChanged(int state)
+void qSlicerDoseComparisonModuleWidget::geometricGammaCalculationCheckedStateChanged(int state)
 {
   Q_D(qSlicerDoseComparisonModuleWidget);
 
@@ -596,7 +596,7 @@ void qSlicerDoseComparisonModuleWidget::linearInterpolationCheckedStateChanged(i
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetUseLinearInterpolation(state);
+  paramNode->SetUseGeometricGammaCalculation(state);
   paramNode->DisableModifiedEventOff();
 
   this->invalidateResults();

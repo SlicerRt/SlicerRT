@@ -17,7 +17,16 @@
    <property name="spacing">
     <number>4</number>
    </property>
-   <property name="margin">
+   <property name="leftMargin">
+    <number>4</number>
+   </property>
+   <property name="topMargin">
+    <number>4</number>
+   </property>
+   <property name="rightMargin">
+    <number>4</number>
+   </property>
+   <property name="bottomMargin">
     <number>4</number>
    </property>
    <item>
@@ -46,14 +55,26 @@
       <string>Input</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
        <number>4</number>
       </property>
       <property name="spacing">
        <number>4</number>
       </property>
       <item row="9" column="2">
-       <widget class="QCheckBox" name="checkBox_LinearInterpolation">
+       <widget class="QCheckBox" name="checkBox_GeometricGammaCalculation">
+        <property name="toolTip">
+         <string>By checking this box, gamma will be calculated according to Ju et al 2008, which finds the point with the minimum gamma value by using the normal vector between the two candidate points.</string>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -84,8 +105,11 @@
       </item>
       <item row="9" column="0">
        <widget class="QLabel" name="label_13">
+        <property name="toolTip">
+         <string>By checking this box, gamma will be calculated according to Ju et al 2008, which finds the point with the minimum gamma value by using the normal vector between the two candidate points.</string>
+        </property>
         <property name="text">
-         <string>Use linear interpolation:</string>
+         <string>Use geometric gamma calculation:</string>
         </property>
        </widget>
       </item>
@@ -425,11 +449,17 @@ p, li { white-space: pre-wrap; }
      <property name="text">
       <string>Output</string>
      </property>
-     <property name="contentsFrameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
        <number>4</number>
       </property>
       <property name="spacing">

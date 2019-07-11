@@ -117,7 +117,7 @@ void vtkSlicerDoseComparisonModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * new
 //-----------------------------------------------------------------------------
 void vtkSlicerDoseComparisonModuleLogic::RegisterNodes()
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
@@ -264,7 +264,8 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
   }
   gamma.set_spatial_tolerance(parameterNode->GetDtaDistanceToleranceMm());
   gamma.set_dose_difference_tolerance(parameterNode->GetDoseDifferenceTolerancePercent() / 100.0);
-  gamma.set_resample_nn(!parameterNode->GetUseLinearInterpolation());
+  gamma.set_resample_nn(false); // Note: This used to be driven by the interpolation checkbox
+  gamma.set_interp_search(parameterNode->GetUseGeometricGammaCalculation());
   gamma.set_local_gamma(parameterNode->GetLocalDoseDifference());
   if (!parameterNode->GetUseMaximumDose())
   {
@@ -344,7 +345,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
   shNode->CreateItem(commonAncestorItemID, gammaVolumeNode);
 
   // Add connection attribute to input dose volume nodes
-  gammaVolumeNode->AddNodeReferenceID( vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_REFERENCE_DOSE_VOLUME_REFERENCE_ROLE.c_str(), 
+  gammaVolumeNode->AddNodeReferenceID( vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_REFERENCE_DOSE_VOLUME_REFERENCE_ROLE.c_str(),
     parameterNode->GetReferenceDoseVolumeNode()->GetID() );
   gammaVolumeNode->AddNodeReferenceID( vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_COMPARE_DOSE_VOLUME_REFERENCE_ROLE.c_str(),
     parameterNode->GetCompareDoseVolumeNode()->GetID() );

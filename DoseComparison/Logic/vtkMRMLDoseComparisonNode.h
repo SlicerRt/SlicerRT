@@ -42,19 +42,19 @@ public:
   vtkTypeMacro(vtkMRMLDoseComparisonNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  /// Create instance of a GAD node. 
+  /// Create instance of a GAD node.
   vtkMRMLNode* CreateNodeInstance() override;
 
-  /// Set node attributes from name/value pairs 
+  /// Set node attributes from name/value pairs
   void ReadXMLAttributes(const char** atts) override;
 
-  /// Write this node's information to a MRML file in XML format. 
+  /// Write this node's information to a MRML file in XML format.
   void WriteXML(ostream& of, int indent) override;
 
-  /// Copy the node's attributes to this object 
+  /// Copy the node's attributes to this object
   void Copy(vtkMRMLNode *node) override;
 
-  /// Get unique node XML tag name (like Volume, Model) 
+  /// Get unique node XML tag name (like Volume, Model)
   const char* GetNodeTagName() override { return "DoseComparison"; };
 
 public:
@@ -115,12 +115,12 @@ public:
   /// Set use maximum dose
   vtkBooleanMacro(UseMaximumDose, bool);
 
-  /// Get use linear interpolation flag
-  vtkGetMacro(UseLinearInterpolation, bool);
-  /// Set use linear interpolation flag
-  vtkSetMacro(UseLinearInterpolation, bool);
-  /// Set use linear interpolation flag
-  vtkBooleanMacro(UseLinearInterpolation, bool);
+  /// Get use geometric gamma calculation flag
+  vtkGetMacro(UseGeometricGammaCalculation, bool);
+  /// Set use geometric gamma calculation flag
+  vtkSetMacro(UseGeometricGammaCalculation, bool);
+  /// Set use geometric gamma calculation flag
+  vtkBooleanMacro(UseGeometricGammaCalculation, bool);
 
   /// Get dose threshold on reference flag
   vtkGetMacro(DoseThresholdOnReferenceOnly, bool);
@@ -187,17 +187,19 @@ protected:
   /// Flag indicating whether the Use maximum dose option is selected (else the Use custom value is selected)
   bool UseMaximumDose;
 
-  /// Flag determining whether linear interpolation is used when resampling the compare dose volume to reference grid.
+  /// Flag determining whether geometric gamma calculation is used.
+  /// If enabled, gamma will be calculated according to Ju et al 2008, which finds the point with the minimum
+  /// gamma value by using the normal vector between the two candidate points.
   /// Default value is true. On false value nearest neighbor is used.
-  bool UseLinearInterpolation;
+  bool UseGeometricGammaCalculation;
 
   /// Flag determining whether local dose difference is used in the gamma calculation. Global if false (default).
   bool LocalDoseDifference;
-  
+
   /// Flag determining whether dose thresholding should be performed using only the reference image
   /// Default value is false, meaning that both images will be used
   bool DoseThresholdOnReferenceOnly;
-  
+
   /// Percentage of voxels that passed (output)
   double PassFractionPercent;
 
