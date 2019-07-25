@@ -16,7 +16,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
 
   #------------------------------------------------------------------------------
   def __init__(self, scriptedEngine):
-    scriptedEngine.name = 'Orthovoltage python'
+    scriptedEngine.name = 'Orthovoltage'
     AbstractScriptedDoseEngine.__init__(self, scriptedEngine)
 
     # Define initial defaults for parameters that are stored in application settings
@@ -193,9 +193,13 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     refVolumeShID = shNode.GetItemByDataNode(volumeNode)
     seriesUID = shNode.GetItemUID(refVolumeShID, 'DICOM')
 
+    # Get isocenter and prepare it for DOSXYZnrc:
+    # 1. Truncate isocenter position (see https://github.com/SlicerRt/SlicerRT/issues/112)
+    # 2. Convert isocenter from mm to cm
     isocenter = [0]*3
     parentPlan.GetIsocenterPosition(isocenter)
-    isocenter = [x/10.0 for x in isocenter] # convert from mm to cm
+    import math
+    isocenter = [math.floor(x*100) / 1000 for x in isocenter]
     logging.info("Isocenter (cm): " + str(isocenter))
 
     ##########################################
