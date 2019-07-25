@@ -19,18 +19,18 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerDicomSroImportModule_h
-#define __qSlicerDicomSroImportModule_h
+#ifndef __qSlicerDicomSroImportExportModule_h
+#define __qSlicerDicomSroImportExportModule_h
 
 // SlicerQt includes
 #include "qSlicerLoadableModule.h"
 
-#include "qSlicerDicomSroImportModuleExport.h"
+#include "qSlicerDicomSroImportExportModuleExport.h"
 
-class qSlicerDicomSroImportModulePrivate;
+class qSlicerDicomSroImportExportModulePrivate;
 
-/// \ingroup SlicerRt_DicomSroImport
-class Q_SLICER_QTMODULES_DICOMSROIMPORT_EXPORT qSlicerDicomSroImportModule :
+/// \ingroup SlicerRt_DicomSroImportExport
+class Q_SLICER_QTMODULES_DICOMSROIMPORTEXPORT_EXPORT qSlicerDicomSroImportExportModule :
   public qSlicerLoadableModule
 {
   Q_OBJECT
@@ -42,8 +42,8 @@ class Q_SLICER_QTMODULES_DICOMSROIMPORT_EXPORT qSlicerDicomSroImportModule :
 public:
 
   typedef qSlicerLoadableModule Superclass;
-  explicit qSlicerDicomSroImportModule(QObject *parent=nullptr);
-  ~qSlicerDicomSroImportModule() override;
+  explicit qSlicerDicomSroImportExportModule(QObject *parent=nullptr);
+  ~qSlicerDicomSroImportExportModule() override;
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);
   
@@ -80,11 +80,11 @@ protected:
   vtkMRMLAbstractLogic* createLogic() override;
 
 protected:
-  QScopedPointer<qSlicerDicomSroImportModulePrivate> d_ptr;
+  QScopedPointer<qSlicerDicomSroImportExportModulePrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerDicomSroImportModule);
-  Q_DISABLE_COPY(qSlicerDicomSroImportModule);
+  Q_DECLARE_PRIVATE(qSlicerDicomSroImportExportModule);
+  Q_DISABLE_COPY(qSlicerDicomSroImportExportModule);
 
 };
 

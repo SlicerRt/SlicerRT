@@ -19,19 +19,19 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerDicomSroImportModuleWidget_h
-#define __qSlicerDicomSroImportModuleWidget_h
+#ifndef __qSlicerDicomSroImportExportModuleWidget_h
+#define __qSlicerDicomSroImportExportModuleWidget_h
 
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
 
-#include "qSlicerDicomSroImportModuleExport.h"
+#include "qSlicerDicomSroImportExportModuleExport.h"
 
-class qSlicerDicomSroImportModuleWidgetPrivate;
+class qSlicerDicomSroImportExportModuleWidgetPrivate;
 class vtkMRMLNode;
 
-/// \ingroup SlicerRt_DicomSroImport
-class Q_SLICER_QTMODULES_DICOMSROIMPORT_EXPORT qSlicerDicomSroImportModuleWidget :
+/// \ingroup SlicerRt_DicomSroImportExport
+class Q_SLICER_QTMODULES_DICOMSROIMPORTEXPORT_EXPORT qSlicerDicomSroImportExportModuleWidget :
   public qSlicerAbstractModuleWidget
 {
   Q_OBJECT
@@ -39,20 +39,20 @@ class Q_SLICER_QTMODULES_DICOMSROIMPORT_EXPORT qSlicerDicomSroImportModuleWidget
 public:
 
   typedef qSlicerAbstractModuleWidget Superclass;
-  qSlicerDicomSroImportModuleWidget(QWidget *parent=nullptr);
-  ~qSlicerDicomSroImportModuleWidget() override;
+  qSlicerDicomSroImportExportModuleWidget(QWidget *parent=nullptr);
+  ~qSlicerDicomSroImportExportModuleWidget() override;
 
 public slots:
   void LoadDicomSro();
 
 protected:
-  QScopedPointer<qSlicerDicomSroImportModuleWidgetPrivate> d_ptr;
+  QScopedPointer<qSlicerDicomSroImportExportModuleWidgetPrivate> d_ptr;
   
   void setup() override;
 
 private:
-  Q_DECLARE_PRIVATE(qSlicerDicomSroImportModuleWidget);
-  Q_DISABLE_COPY(qSlicerDicomSroImportModuleWidget);
+  Q_DECLARE_PRIVATE(qSlicerDicomSroImportExportModuleWidget);
+  Q_DISABLE_COPY(qSlicerDicomSroImportExportModuleWidget);
 };
 
 #endif

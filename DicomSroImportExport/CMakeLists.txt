@@ -1,6 +1,6 @@
 #-----------------------------------------------------------------------------
-set(MODULE_NAME "DicomSroImport")
-set(MODULE_TITLE "DICOM Spatial Registration Object Import")
+set(MODULE_NAME "DicomSroImportExport")
+set(MODULE_TITLE "DICOM Spatial Registration Object Import and Export")
 
 string(TOUPPER ${MODULE_NAME} MODULE_NAME_UPPER)
 

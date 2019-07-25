@@ -1,5 +1,5 @@
 <!DOCTYPE RCC><RCC version="1.0">
   <qresource>
-    <file>Icons/DicomSroImport.png</file>
+    <file>Icons/DicomSroImportExport.png</file>
   </qresource>
 </RCC>

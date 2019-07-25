@@ -19,13 +19,13 @@
 
 ==============================================================================*/
 
-// .NAME vtkSlicerDicomSroImportModuleLogic - slicer logic class for SRO importing
+// .NAME vtkSlicerDicomSroImportExportModuleLogic - slicer logic class for SRO importing
 // .SECTION Description
 // This class manages the logic associated with reading Dicom spatial registration object
 
 
-#ifndef __vtkSlicerDicomSroImportLogic_h
-#define __vtkSlicerDicomSroImportLogic_h
+#ifndef __vtkSlicerDicomSroImportExportModuleLogic_h
+#define __vtkSlicerDicomSroImportExportModuleLogic_h
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
@@ -33,19 +33,19 @@
 // STD includes
 #include <vector>
 
-#include "vtkSlicerDicomSroImportModuleLogicExport.h"
+#include "vtkSlicerDicomSroImportExportModuleLogicExport.h"
 
 class vtkDICOMImportInfo;
 class vtkMatrix4x4;
 class vtkSlicerDicomSroReader;
 
-/// \ingroup SlicerRt_DicomSroImportLogic
-class VTK_SLICER_DICOMSROIMPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomSroImportModuleLogic :
+/// \ingroup SlicerRt_DicomSroImportLogicExport
+class VTK_SLICER_DICOMSROIMPORTEXPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomSroImportExportModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
-  static vtkSlicerDicomSroImportModuleLogic *New();
-  vtkTypeMacro(vtkSlicerDicomSroImportModuleLogic, vtkSlicerModuleLogic);
+  static vtkSlicerDicomSroImportExportModuleLogic *New();
+  vtkTypeMacro(vtkSlicerDicomSroImportExportModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Examine a list of file lists and determine what objects can be loaded from them
@@ -72,10 +72,10 @@ protected:
   bool LoadDeformableSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo* loadInfo);
 
 protected:
-  vtkSlicerDicomSroImportModuleLogic();
-  ~vtkSlicerDicomSroImportModuleLogic() override;
-  vtkSlicerDicomSroImportModuleLogic(const vtkSlicerDicomSroImportModuleLogic&) = delete;
-  void operator=(const vtkSlicerDicomSroImportModuleLogic&) = delete;
+  vtkSlicerDicomSroImportExportModuleLogic();
+  ~vtkSlicerDicomSroImportExportModuleLogic() override;
+  vtkSlicerDicomSroImportExportModuleLogic(const vtkSlicerDicomSroImportExportModuleLogic&) = delete;
+  void operator=(const vtkSlicerDicomSroImportExportModuleLogic&) = delete;
 };
 
 #endif

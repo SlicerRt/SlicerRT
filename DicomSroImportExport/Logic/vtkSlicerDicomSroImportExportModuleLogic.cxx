@@ -20,8 +20,8 @@
 ==============================================================================*/
 
 
-// DicomSroImport includes
-#include "vtkSlicerDicomSroImportModuleLogic.h"
+// DicomSroImportExport includes
+#include "vtkSlicerDicomSroImportExportModuleLogic.h"
 #include "vtkSlicerDicomSroReader.h"
 #include "vtkDICOMImportInfo.h"
 
@@ -52,27 +52,27 @@
 #include <vtkStringArray.h>
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerDicomSroImportModuleLogic);
+vtkStandardNewMacro(vtkSlicerDicomSroImportExportModuleLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerDicomSroImportModuleLogic::vtkSlicerDicomSroImportModuleLogic() = default;
+vtkSlicerDicomSroImportExportModuleLogic::vtkSlicerDicomSroImportExportModuleLogic() = default;
 
 //----------------------------------------------------------------------------
-vtkSlicerDicomSroImportModuleLogic::~vtkSlicerDicomSroImportModuleLogic() = default;
+vtkSlicerDicomSroImportExportModuleLogic::~vtkSlicerDicomSroImportExportModuleLogic() = default;
 
 //----------------------------------------------------------------------------
-void vtkSlicerDicomSroImportModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerDicomSroImportExportModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerDicomSroImportModuleLogic::RegisterNodes()
+void vtkSlicerDicomSroImportExportModuleLogic::RegisterNodes()
 {
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDicomSroImportModuleLogic::Examine(vtkDICOMImportInfo *importInfo)
+void vtkSlicerDicomSroImportExportModuleLogic::Examine(vtkDICOMImportInfo *importInfo)
 {
   importInfo->RemoveAllLoadables();
 
@@ -175,7 +175,7 @@ void vtkSlicerDicomSroImportModuleLogic::Examine(vtkDICOMImportInfo *importInfo)
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerDicomSroImportModuleLogic::LoadDicomSro(vtkDICOMImportInfo *loadInfo)
+bool vtkSlicerDicomSroImportExportModuleLogic::LoadDicomSro(vtkDICOMImportInfo *loadInfo)
 {
   bool loadSuccessful = false;
   if (!loadInfo || !loadInfo->GetLoadableFiles(0) || loadInfo->GetLoadableFiles(0)->GetNumberOfValues() < 1)
@@ -212,7 +212,7 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadDicomSro(vtkDICOMImportInfo *loadIn
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerDicomSroImportModuleLogic::LoadSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo *loadInfo)
+bool vtkSlicerDicomSroImportExportModuleLogic::LoadSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo *loadInfo)
 {
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
   const char* seriesName = loadInfo->GetLoadableName(0);
@@ -239,7 +239,7 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadSpatialRegistration(vtkSlicerDicomS
 
 // TODO: not implemented yet...
 //---------------------------------------------------------------------------
-bool vtkSlicerDicomSroImportModuleLogic::LoadSpatialFiducials(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo *loadInfo)
+bool vtkSlicerDicomSroImportExportModuleLogic::LoadSpatialFiducials(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo *loadInfo)
 {
   UNUSED_VARIABLE(regReader);
   UNUSED_VARIABLE(loadInfo);
@@ -250,7 +250,7 @@ bool vtkSlicerDicomSroImportModuleLogic::LoadSpatialFiducials(vtkSlicerDicomSroR
 //       generate two outputs, one is GridTransformNode without orientation, 
 //       the other is a vectorVolumeNode with orientation.
 //---------------------------------------------------------------------------
-bool vtkSlicerDicomSroImportModuleLogic::LoadDeformableSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo *loadInfo)
+bool vtkSlicerDicomSroImportExportModuleLogic::LoadDeformableSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo *loadInfo)
 {
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
   const char* seriesName = loadInfo->GetLoadableName(0);

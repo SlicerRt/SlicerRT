@@ -81,7 +81,7 @@ QString qSlicerIsodoseModule::helpText()const
 //-----------------------------------------------------------------------------
 QString qSlicerIsodoseModule::acknowledgementText()const
 {
-  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
+  return "This work was funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO), and CANARIE.";
 }
 
 //-----------------------------------------------------------------------------

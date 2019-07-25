@@ -28,13 +28,13 @@
 // VTK includes
 #include "vtkObject.h"
 
-#include "vtkSlicerDicomSroImportModuleLogicExport.h"
+#include "vtkSlicerDicomSroImportExportModuleLogicExport.h"
 
 class vtkStringArray;
 struct DicomImportInfoPrivate;
 
-/// \ingroup SlicerRt_DicomSroImport
-class VTK_SLICER_DICOMSROIMPORT_MODULE_LOGIC_EXPORT vtkDICOMImportInfo : 
+/// \ingroup SlicerRt_DicomSroImportExport
+class VTK_SLICER_DICOMSROIMPORTEXPORT_MODULE_LOGIC_EXPORT vtkDICOMImportInfo : 
   public vtkObject
 {
 public:

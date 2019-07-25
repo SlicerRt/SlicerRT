@@ -23,41 +23,41 @@
 #include <QDebug>
 
 // SlicerQt includes
-#include "qSlicerDicomSroImportModuleWidget.h"
-#include "ui_qSlicerDicomSroImportModule.h"
-#include "vtkSlicerDicomSroImportModuleLogic.h"
+#include "qSlicerDicomSroImportExportModuleWidget.h"
+#include "ui_qSlicerDicomSroImportExportModule.h"
+#include "vtkSlicerDicomSroImportExportModuleLogic.h"
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_DicomSroImport
-class qSlicerDicomSroImportModuleWidgetPrivate: public Ui_qSlicerDicomSroImportModule
+/// \ingroup SlicerRt_DicomSroImportExport
+class qSlicerDicomSroImportExportModuleWidgetPrivate: public Ui_qSlicerDicomSroImportExportModule
 {
 public:
-  qSlicerDicomSroImportModuleWidgetPrivate();
+  qSlicerDicomSroImportExportModuleWidgetPrivate();
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerDicomSroImportModuleWidgetPrivate methods
+// qSlicerDicomSroImportExportModuleWidgetPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerDicomSroImportModuleWidgetPrivate::qSlicerDicomSroImportModuleWidgetPrivate() = default;
+qSlicerDicomSroImportExportModuleWidgetPrivate::qSlicerDicomSroImportExportModuleWidgetPrivate() = default;
 
 //-----------------------------------------------------------------------------
-// qSlicerDicomSroImportModuleWidget methods
+// qSlicerDicomSroImportExportModuleWidget methods
 
 //-----------------------------------------------------------------------------
-qSlicerDicomSroImportModuleWidget::qSlicerDicomSroImportModuleWidget(QWidget* _parent)
+qSlicerDicomSroImportExportModuleWidget::qSlicerDicomSroImportExportModuleWidget(QWidget* _parent)
   : Superclass( _parent )
-  , d_ptr( new qSlicerDicomSroImportModuleWidgetPrivate )
+  , d_ptr( new qSlicerDicomSroImportExportModuleWidgetPrivate )
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerDicomSroImportModuleWidget::~qSlicerDicomSroImportModuleWidget() = default;
+qSlicerDicomSroImportExportModuleWidget::~qSlicerDicomSroImportExportModuleWidget() = default;
 
 //-----------------------------------------------------------------------------
-void qSlicerDicomSroImportModuleWidget::setup()
+void qSlicerDicomSroImportExportModuleWidget::setup()
 {
-  Q_D(qSlicerDicomSroImportModuleWidget);
+  Q_D(qSlicerDicomSroImportExportModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
 
@@ -65,6 +65,6 @@ void qSlicerDicomSroImportModuleWidget::setup()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDicomSroImportModuleWidget::LoadDicomSro()
+void qSlicerDicomSroImportExportModuleWidget::LoadDicomSro()
 {
 }

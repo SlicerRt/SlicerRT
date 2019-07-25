@@ -27,100 +27,100 @@
 #include <qSlicerModuleManager.h>
 
 // ExtensionTemplate Logic includes
-#include <vtkSlicerDicomSroImportModuleLogic.h>
+#include <vtkSlicerDicomSroImportExportModuleLogic.h>
 
 // ExtensionTemplate includes
-#include "qSlicerDicomSroImportModule.h"
-#include "qSlicerDicomSroImportModuleWidget.h"
+#include "qSlicerDicomSroImportExportModule.h"
+#include "qSlicerDicomSroImportExportModuleWidget.h"
 
 //-----------------------------------------------------------------------------
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
 #include <QtPlugin>
-Q_EXPORT_PLUGIN2(qSlicerDicomSroImportModule, qSlicerDicomSroImportModule);
+Q_EXPORT_PLUGIN2(qSlicerDicomSroImportExportModule, qSlicerDicomSroImportExportModule);
 #endif
 
 //-----------------------------------------------------------------------------
-/// \ingroup SlicerRt_DicomSroImport
-class qSlicerDicomSroImportModulePrivate
+/// \ingroup SlicerRt_DicomSroImportExport
+class qSlicerDicomSroImportExportModulePrivate
 {
 public:
-  qSlicerDicomSroImportModulePrivate();
+  qSlicerDicomSroImportExportModulePrivate();
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerDicomSroImportModulePrivate methods
+// qSlicerDicomSroImportExportModulePrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerDicomSroImportModulePrivate::qSlicerDicomSroImportModulePrivate() = default;
+qSlicerDicomSroImportExportModulePrivate::qSlicerDicomSroImportExportModulePrivate() = default;
 
 //-----------------------------------------------------------------------------
-// qSlicerDicomSroImportModule methods
+// qSlicerDicomSroImportExportModule methods
 
 //-----------------------------------------------------------------------------
-qSlicerDicomSroImportModule::qSlicerDicomSroImportModule(QObject* _parent)
+qSlicerDicomSroImportExportModule::qSlicerDicomSroImportExportModule(QObject* _parent)
   : Superclass(_parent)
-  , d_ptr(new qSlicerDicomSroImportModulePrivate)
+  , d_ptr(new qSlicerDicomSroImportExportModulePrivate)
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerDicomSroImportModule::~qSlicerDicomSroImportModule() = default;
+qSlicerDicomSroImportExportModule::~qSlicerDicomSroImportExportModule() = default;
 
 //-----------------------------------------------------------------------------
-QString qSlicerDicomSroImportModule::helpText()const
+QString qSlicerDicomSroImportExportModule::helpText()const
 {
   QString help = 
-    "The DicomSroImport module enables importing and loading DICOM Spatial Registration Objects into the Slicer DICOM database and the Slicer scene. "
+    "The DicomSroImportExport module enables importing and loading DICOM Spatial Registration Objects into the Slicer DICOM database and the Slicer scene, and exporting transformations as DICOM SROs. "
     "For more information see <a href=\"%1/Documentation/%2.%3/Modules/DicomSroImport\">%1/Documentation/%2.%3/Modules/Models</a><br>";
   return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerDicomSroImportModule::acknowledgementText()const
+QString qSlicerDicomSroImportExportModule::acknowledgementText()const
 {
-  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
+  return "This work was funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO), and CANARIE.";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerDicomSroImportModule::contributors()const
+QStringList qSlicerDicomSroImportExportModule::contributors()const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("Kevin Wang (Princess Margaret Cancer Centre)");
+  moduleContributors << QString("Kevin Wang (Princess Margaret Cancer Centre)") << QString("Csaba Pinter (Queen's University)") << QString("Greg Sharp (Massachusetts General Hospital)");
   return moduleContributors;
 }
 
 //-----------------------------------------------------------------------------
-QIcon qSlicerDicomSroImportModule::icon()const
+QIcon qSlicerDicomSroImportExportModule::icon()const
 {
-  return QIcon(":/Icons/DicomSroImport.png");
+  return QIcon(":/Icons/DicomSroImportExport.png");
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerDicomSroImportModule::categories()const
+QStringList qSlicerDicomSroImportExportModule::categories()const
 {
   return QStringList() << "Radiotherapy";
 }
 
 //-----------------------------------------------------------------------------
-QStringList qSlicerDicomSroImportModule::dependencies()const
+QStringList qSlicerDicomSroImportExportModule::dependencies()const
 {
   return QStringList();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDicomSroImportModule::setup()
+void qSlicerDicomSroImportExportModule::setup()
 {
   this->Superclass::setup();
 }
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation * qSlicerDicomSroImportModule::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation * qSlicerDicomSroImportExportModule::createWidgetRepresentation()
 {
-  return new qSlicerDicomSroImportModuleWidget;
+  return new qSlicerDicomSroImportExportModuleWidget;
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLAbstractLogic* qSlicerDicomSroImportModule::createLogic()
+vtkMRMLAbstractLogic* qSlicerDicomSroImportExportModule::createLogic()
 {
-  return vtkSlicerDicomSroImportModuleLogic::New();
+  return vtkSlicerDicomSroImportExportModuleLogic::New();
 }

@@ -27,7 +27,8 @@ class DicomSroImportExportPluginClass(DICOMPlugin):
     fileLists parameter.
     """
     # Export file lists to DicomExamineInfo
-    examineInfo = slicer.vtkDICOMImportInfo()
+    import vtkSlicerDicomSroImportExportModuleLogicPython
+    examineInfo = vtkSlicerDicomSroImportExportModuleLogicPython.vtkDICOMImportInfo()
     for files in fileLists:
       fileListIndex = examineInfo.InsertNextFileList()
       fileList = examineInfo.GetFileList(fileListIndex) # vtk.vtkStringArray()
@@ -64,14 +65,15 @@ class DicomSroImportExportPluginClass(DICOMPlugin):
     success = False
 
     # Export file lists to DicomExamineInfo
-    loadInfo = slicer.vtkDICOMImportInfo()
+    import vtkSlicerDicomSroImportExportModuleLogicPython
+    loadInfo = vtkSlicerDicomSroImportExportModuleLogicPython.vtkDICOMImportInfo()
     fileListIndex = loadInfo.InsertNextFileList()
     fileList = loadInfo.GetFileList(fileListIndex) # vtk.vtkStringArray()
     for f in loadable.files:
       fileList.InsertNextValue(f)
     loadInfo.InsertNextLoadable(fileList, loadable.name, loadable.tooltip, loadable.warning, loadable.selected, loadable.confidence)
 
-    logic = slicer.vtkSlicerDicomSroImportModuleLogic()
+    logic = vtkSlicerDicomSroImportExportModuleLogicPython.vtkSlicerDicomSroImportExportModuleLogic()
     logic.SetMRMLScene(slicer.mrmlScene)
     if logic.LoadDicomSro(loadInfo):
       success = True

@@ -32,14 +32,14 @@
 // VTK includes
 #include "vtkObject.h"
 
-#include "vtkSlicerDicomSroImportModuleLogicExport.h"
+#include "vtkSlicerDicomSroImportExportModuleLogicExport.h"
 
 class DcmDataset;
 class vtkMatrix4x4;
 class vtkImageData;
 
-/// \ingroup SlicerRt_DicomSroImport
-class VTK_SLICER_DICOMSROIMPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomSroReader : public vtkObject
+/// \ingroup SlicerRt_DicomSroImportExport
+class VTK_SLICER_DICOMSROIMPORTEXPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomSroReader : public vtkObject
 {
 public:
   static const std::string DICOMSROREADER_DICOM_DATABASE_FILENAME;
