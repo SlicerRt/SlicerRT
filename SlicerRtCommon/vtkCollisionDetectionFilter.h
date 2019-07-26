@@ -55,6 +55,7 @@ class vtkMatrix4x4;
 // to VTK_GRAPHICS_EXPORT on the next line and delete
 // "#include "vtkBioengConfigure.h" // Include configuration header." above.
 
+/// \ingroup SlicerRt_SlicerRtCommon
 class VTK_SLICERRTCOMMON_EXPORT vtkCollisionDetectionFilter : public vtkPolyDataAlgorithm
 {
 public:

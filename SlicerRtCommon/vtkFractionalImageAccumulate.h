@@ -28,6 +28,7 @@
 #include <vtkImageAccumulate.h>
 #include <vtkImageData.h>
 
+/// \ingroup SlicerRt_SlicerRtCommon
 class VTK_SLICERRTCOMMON_EXPORT vtkFractionalImageAccumulate: public vtkImageAccumulate
 {
 public:

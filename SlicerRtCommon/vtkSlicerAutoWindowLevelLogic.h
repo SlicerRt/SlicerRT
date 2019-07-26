@@ -22,7 +22,7 @@
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 
-/// \ingroup Slicer_QtModules_ExtensionTemplate
+/// \ingroup SlicerRt_SlicerRtCommon
 class VTK_SLICERRTCOMMON_EXPORT vtkSlicerAutoWindowLevelLogic : public vtkObject
 {
 public:

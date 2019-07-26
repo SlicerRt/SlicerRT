@@ -42,6 +42,7 @@
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScene.h>
+#include <vtkMRMLSubjectHierarchyNode.h>
 
 // VTK includes
 #include <vtkImageData.h>
@@ -177,11 +178,16 @@ void vtkSlicerDicomSroImportExportModuleLogic::Examine(vtkDICOMImportInfo *impor
 //---------------------------------------------------------------------------
 bool vtkSlicerDicomSroImportExportModuleLogic::LoadDicomSro(vtkDICOMImportInfo *loadInfo)
 {
-  bool loadSuccessful = false;
   if (!loadInfo || !loadInfo->GetLoadableFiles(0) || loadInfo->GetLoadableFiles(0)->GetNumberOfValues() < 1)
   {
-    vtkErrorMacro("LoadDICOMSpatialRegistration: Unable to load DICOM REG data due to invalid loadable information.");
-    return loadSuccessful;
+    vtkErrorMacro("LoadDicomSro: Unable to load DICOM REG data due to invalid loadable information");
+    return false;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
+  if (!shNode)
+  {
+    vtkErrorMacro("LoadDicomSro: Failed to access subject hierarchy node");
+    return false;
   }
 
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
@@ -190,29 +196,48 @@ bool vtkSlicerDicomSroImportExportModuleLogic::LoadDicomSro(vtkDICOMImportInfo *
   spatialRegistrationReader->SetFileName(firstFileNameStr.c_str());
   spatialRegistrationReader->Update();
 
+  vtkMRMLLinearTransformNode* loadedLinearTransformNode = nullptr;
+  vtkMRMLGridTransformNode* loadedGridTransformNode = nullptr;
+  vtkMRMLTransformNode* loadedTransformNode = nullptr;
+
   // Spatial registration
   if (spatialRegistrationReader->GetLoadSpatialRegistrationSuccessful())
   {
-    loadSuccessful = this->LoadSpatialRegistration(spatialRegistrationReader, loadInfo);
+    loadedLinearTransformNode = this->LoadSpatialRegistration(spatialRegistrationReader, loadInfo);
+    if (loadedLinearTransformNode)
+    {
+      loadedTransformNode = loadedLinearTransformNode;
+    }
   }
-
-  // Spatial fiducials
-  if (spatialRegistrationReader->GetLoadSpatialFiducialsSuccessful())
-  {
-    loadSuccessful = this->LoadSpatialFiducials(spatialRegistrationReader, loadInfo);
-  }
-
   // Deformable spatial registration
   if (spatialRegistrationReader->GetLoadDeformableSpatialRegistrationSuccessful())
   {
-    loadSuccessful = this->LoadDeformableSpatialRegistration(spatialRegistrationReader, loadInfo);
+    loadedGridTransformNode = this->LoadDeformableSpatialRegistration(spatialRegistrationReader, loadInfo);
+    if (loadedGridTransformNode)
+    {
+      loadedTransformNode = loadedGridTransformNode;
+    }
   }
 
-  return loadSuccessful;
+  // Add loaded transform under study of transformed image
+  //TODO:sajt
+
+  // Apply loaded transform to corresponding image
+  //TODO: May change if decision is made on https://github.com/SlicerRt/SlicerRT/issues/108
+  //TODO:sajt
+
+  // Spatial fiducials
+  //TODO: Function not implemented yet (also take into account for return value)
+  //if (spatialRegistrationReader->GetLoadSpatialFiducialsSuccessful())
+  //{
+  //  loadSuccessful = this->LoadSpatialFiducials(spatialRegistrationReader, loadInfo);
+  //}
+
+  return (loadedTransformNode != nullptr);
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerDicomSroImportExportModuleLogic::LoadSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo *loadInfo)
+vtkMRMLLinearTransformNode* vtkSlicerDicomSroImportExportModuleLogic::LoadSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo *loadInfo)
 {
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
   const char* seriesName = loadInfo->GetLoadableName(0);
@@ -234,7 +259,7 @@ bool vtkSlicerDicomSroImportExportModuleLogic::LoadSpatialRegistration(vtkSlicer
 
   this->GetMRMLScene()->AddNode(spatialTransformNode);
 
-  return true;
+  return spatialTransformNode;
 }
 
 // TODO: not implemented yet...
@@ -246,11 +271,8 @@ bool vtkSlicerDicomSroImportExportModuleLogic::LoadSpatialFiducials(vtkSlicerDic
   return false;
 }
 
-// TODO: since currently vtkMRMLGridTransformNode cannot handle orientation, this method
-//       generate two outputs, one is GridTransformNode without orientation, 
-//       the other is a vectorVolumeNode with orientation.
 //---------------------------------------------------------------------------
-bool vtkSlicerDicomSroImportExportModuleLogic::LoadDeformableSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo *loadInfo)
+vtkMRMLGridTransformNode* vtkSlicerDicomSroImportExportModuleLogic::LoadDeformableSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo *loadInfo)
 {
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
   const char* seriesName = loadInfo->GetLoadableName(0);
@@ -302,5 +324,5 @@ bool vtkSlicerDicomSroImportExportModuleLogic::LoadDeformableSpatialRegistration
   deformableRegistrationGridTransformNode->SetDisableModifiedEvent(0);
   this->GetMRMLScene()->AddNode(deformableRegistrationGridTransformNode);
 
-  return true;
+  return deformableRegistrationGridTransformNode;
 }

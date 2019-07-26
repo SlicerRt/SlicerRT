@@ -21,7 +21,7 @@
 
 ==============================================================================*/
 
-// ModuleTemplate includes
+// DicomRtImportExportModuleLogic includes
 #include "vtkSlicerDicomRtReader.h"
 
 // SlicerRt includes
@@ -54,21 +54,7 @@
 #include <dcmtk/dcmrt/drtiontr.h>
 
 // Qt includes
-#include <QSqlQuery>
-#include <QSqlDatabase>
-#include <QVariant>
-#include <QStringList>
 #include <QSettings>
-#include <QFile>
-#include <QFileInfo>
-#include <QDebug>
-
-// CTK includes
-#include <ctkDICOMDatabase.h>
-
-//----------------------------------------------------------------------------
-const std::string vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_DATABASE_FILENAME = "/ctkDICOM.sql";
-const std::string vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_CONNECTION_NAME = "SlicerRt";
 
 vtkStandardNewMacro(vtkSlicerDicomRtReader);
 
@@ -239,11 +225,13 @@ vtkSlicerDicomRtReader::vtkInternal::RoiEntry::RoiEntry()
   this->PolyData = nullptr;
 }
 
+//----------------------------------------------------------------------------
 vtkSlicerDicomRtReader::vtkInternal::RoiEntry::~RoiEntry()
 {
   this->SetPolyData(nullptr);
 }
 
+//----------------------------------------------------------------------------
 vtkSlicerDicomRtReader::vtkInternal::RoiEntry::RoiEntry(const RoiEntry& src)
 {
   this->Number = src.Number;
@@ -259,6 +247,7 @@ vtkSlicerDicomRtReader::vtkInternal::RoiEntry::RoiEntry(const RoiEntry& src)
   this->ContourIndexToSOPInstanceUIDMap = src.ContourIndexToSOPInstanceUIDMap;
 }
 
+//----------------------------------------------------------------------------
 vtkSlicerDicomRtReader::vtkInternal::RoiEntry& vtkSlicerDicomRtReader::vtkInternal::RoiEntry::operator=(const RoiEntry &src)
 {
   this->Number = src.Number;
@@ -275,6 +264,7 @@ vtkSlicerDicomRtReader::vtkInternal::RoiEntry& vtkSlicerDicomRtReader::vtkIntern
   return (*this);
 }
 
+//----------------------------------------------------------------------------
 void vtkSlicerDicomRtReader::vtkInternal::RoiEntry::SetPolyData(vtkPolyData* roiPolyData)
 {
   if (roiPolyData == this->PolyData)
@@ -508,7 +498,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTDose(DcmDataset* dataset)
   this->External->SetSOPInstanceUID(sopInstanceUid.c_str());
 
   // Get and store patient, study and series information
-  this->External->GetAndStoreHierarchyInformation(&rtDose);
+  this->External->GetAndStoreRtHierarchyInformation(&rtDose);
 
   this->External->LoadRTDoseSuccessful = true;
 }
@@ -815,14 +805,10 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
   this->External->SetRTPlanReferencedDoseSOPInstanceUIDs(serializedDoseUidList.size() > 0 ? serializedDoseUidList.c_str() : nullptr);
 
   // Get and store patient, study and series information
-  this->External->GetAndStoreHierarchyInformation(&rtPlan);
+  this->External->GetAndStoreRtHierarchyInformation(&rtPlan);
 
   this->External->LoadRTPlanSuccessful = true;
 }
-
-
-//----------------------------------------------------------------------------
-// vtkSlicerDicomRtReader methods
 
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtReader::vtkInternal::LoadRTStructureSet(DcmDataset* dataset)
@@ -833,6 +819,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTStructureSet(DcmDataset* dataset
   if (rtStructureSet->read(*dataset).bad())
   {
     vtkErrorWithObjectMacro(this->External, "LoadRTStructureSet: Could not load strucure set object from dataset");
+    delete rtStructureSet;
     return;
   }
 
@@ -851,6 +838,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTStructureSet(DcmDataset* dataset
   if (!rtROIContourSequence.gotoFirstItem().good())
   {
     vtkErrorWithObjectMacro(this->External, "LoadRTStructureSet: No ROIContourSequence found");
+    delete rtStructureSet;
     return;
   }
 
@@ -872,14 +860,16 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTStructureSet(DcmDataset* dataset
   if (rtStructureSet->getSOPInstanceUID(sopInstanceUid).bad())
   {
     vtkErrorWithObjectMacro(this->External, "LoadRTStructureSet: Failed to get SOP instance UID for RT structure set");
+    delete rtStructureSet;
     return; // mandatory DICOM value
   }
   this->External->SetSOPInstanceUID(sopInstanceUid.c_str());
 
   // Get and store patient, study and series information
-  this->External->GetAndStoreHierarchyInformation(rtStructureSet);
+  this->External->GetAndStoreRtHierarchyInformation(rtStructureSet);
 
   this->External->LoadRTStructureSetSuccessful = true;
+  delete rtStructureSet;
 }
 
 //----------------------------------------------------------------------------
@@ -1329,17 +1319,19 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTImage(DcmDataset* dataset)
   this->External->SetSOPInstanceUID(sopInstanceUid.c_str());
 
   // Get and store patient, study and series information
-  this->External->GetAndStoreHierarchyInformation(&rtImage);
+  this->External->GetAndStoreRtHierarchyInformation(&rtImage);
 
   this->External->LoadRTImageSuccessful = true;
 }
+
+
+//----------------------------------------------------------------------------
+// vtkSlicerDicomRtReader methods
 
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
 {
   this->Internal = new vtkInternal(this);
-
-  this->FileName = nullptr;
 
   this->RTStructureSetReferencedSOPInstanceUIDs = nullptr;
 
@@ -1361,23 +1353,6 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
   this->RTImageSID = 0.0;
   this->WindowCenter = 0.0;
   this->WindowWidth = 0.0;
-
-  this->PatientName = nullptr;
-  this->PatientId = nullptr;
-  this->PatientSex = nullptr;
-  this->PatientBirthDate = nullptr;
-  this->PatientComments = nullptr;
-  this->StudyInstanceUid = nullptr;
-  this->StudyId = nullptr;
-  this->StudyDescription = nullptr;
-  this->StudyDate = nullptr;
-  this->StudyTime = nullptr;
-  this->SeriesInstanceUid = nullptr;
-  this->SeriesDescription = nullptr;
-  this->SeriesModality = nullptr;
-  this->SeriesNumber = nullptr;
-
-  this->DatabaseFile = nullptr;
 
   this->LoadRTStructureSetSuccessful = false;
   this->LoadRTDoseSuccessful = false;
@@ -1407,9 +1382,10 @@ void vtkSlicerDicomRtReader::Update()
   if ((this->FileName != nullptr) && (strlen(this->FileName) > 0))
   {
     // Set DICOM database file name
+    //TODO: Get rid of Qt code
     QSettings settings;
     QString databaseDirectory = settings.value("DatabaseDirectory").toString();
-    QString databaseFile = databaseDirectory + DICOMRTREADER_DICOM_DATABASE_FILENAME.c_str();
+    QString databaseFile = databaseDirectory + DICOMREADER_DICOM_DATABASE_FILENAME.c_str();
     this->SetDatabaseFile(databaseFile.toLatin1().constData());
 
     // Load DICOM file or dataset

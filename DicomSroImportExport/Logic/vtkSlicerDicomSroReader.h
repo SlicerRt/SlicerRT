@@ -22,15 +22,15 @@
 
 // .NAME vtkSlicerDicomSroReader -
 // .SECTION Description
-// This class manages the Reader associated with reading Dicom Spatial Registration Object
-// The reader load DICOM SRO in LPS and convert it to RAS cooridnate system mainly due to
+// This class manages the Reader associated with reading DICOM Spatial Registration Object
+// The reader load DICOM SRO in LPS and convert it to RAS coordinate system mainly due to
 // it is used for Slicer.
 
 #ifndef __vtkSlicerDicomSroReader_h
 #define __vtkSlicerDicomSroReader_h
 
-// VTK includes
-#include "vtkObject.h"
+// SlicerRtCommon includes
+#include "vtkSlicerDicomReaderBase.h"
 
 #include "vtkSlicerDicomSroImportExportModuleLogicExport.h"
 
@@ -39,15 +39,11 @@ class vtkMatrix4x4;
 class vtkImageData;
 
 /// \ingroup SlicerRt_DicomSroImportExport
-class VTK_SLICER_DICOMSROIMPORTEXPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomSroReader : public vtkObject
+class VTK_SLICER_DICOMSROIMPORTEXPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomSroReader : public vtkSlicerDicomReaderBase
 {
 public:
-  static const std::string DICOMSROREADER_DICOM_DATABASE_FILENAME;
-  static const std::string DICOMSROREADER_DICOM_CONNECTION_NAME;
-
-public:
   static vtkSlicerDicomSroReader *New();
-  vtkTypeMacro(vtkSlicerDicomSroReader, vtkObject);
+  vtkTypeMacro(vtkSlicerDicomSroReader, vtkSlicerDicomReaderBase);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Do reading
@@ -60,55 +56,17 @@ public:
   /// Get post deformation registration matrix
   vtkGetObjectMacro(PostDeformationRegistrationMatrix, vtkMatrix4x4);
 
-  /// Get deformable registration grid (displacment vector field)
+  /// Get deformable registration grid (displacement vector field)
   vtkGetObjectMacro(DeformableRegistrationGrid, vtkImageData);
 
   /// Get deformable registration grid orientation matrix
   vtkGetObjectMacro(DeformableRegistrationGridOrientationMatrix, vtkMatrix4x4);
 
-  /// Set input file name
-  vtkSetStringMacro(FileName);
-
-  /// Get patient name
-  vtkGetStringMacro(PatientName);
-
-  /// Get patient ID
-  vtkGetStringMacro(PatientId);
-
-  /// Get patient sex
-  vtkGetStringMacro(PatientSex);
-
-  /// Get patient birth date
-  vtkGetStringMacro(PatientBirthDate);
-
-  /// Get study instance UID
-  vtkGetStringMacro(StudyInstanceUid);
-
-  /// Get study description
-  vtkGetStringMacro(StudyDescription);
-
-  /// Get study date
-  vtkGetStringMacro(StudyDate);
-
-  /// Get study time
-  vtkGetStringMacro(StudyTime);
-
-  /// Get series instance UID
-  vtkGetStringMacro(SeriesInstanceUid);
-
-  /// Get series description
-  vtkGetStringMacro(SeriesDescription);
-
-  /// Get series modality
-  vtkGetStringMacro(SeriesModality);
-
-  /// Get DICOM database file name
-  vtkGetStringMacro(DatabaseFile);
 
   /// Get load spatial registration successful flag
   vtkGetMacro(LoadSpatialRegistrationSuccessful, bool);
 
-  /// Get load spatial fieducials successful flag
+  /// Get load spatial fiducials successful flag
   vtkGetMacro(LoadSpatialFiducialsSuccessful, bool);
 
   /// Get load deformable spatial registration successful flag
@@ -118,89 +76,14 @@ protected:
   /// Load spatial registration
   void LoadSpatialRegistration(DcmDataset*);
 
-  /// Load spatial fiducials
-  void LoadSpatialFiducials(DcmDataset*);
-
   /// Load deformable spatial registration
   void LoadDeformableSpatialRegistration(DcmDataset*);
 
-protected:
-  /// Set patient name
-  vtkSetStringMacro(PatientName);
-
-  /// Set patient ID
-  vtkSetStringMacro(PatientId);
-
-  /// Set patient sex
-  vtkSetStringMacro(PatientSex);
-
-  /// Set patient birth date
-  vtkSetStringMacro(PatientBirthDate);
-
-  /// Set study instance UID
-  vtkSetStringMacro(StudyInstanceUid);
-
-  /// Set study description
-  vtkSetStringMacro(StudyDescription);
-
-  /// Set study date
-  vtkSetStringMacro(StudyDate);
-
-  /// Set study time
-  vtkSetStringMacro(StudyTime);
-
-  /// Set series instance UID
-  vtkSetStringMacro(SeriesInstanceUid);
-
-  /// Set series description
-  vtkSetStringMacro(SeriesDescription);
-
-  /// Set series modality
-  vtkSetStringMacro(SeriesModality);
-
-  /// Set DICOM database file name
-  vtkSetStringMacro(DatabaseFile);
+  /// Load spatial fiducials
+  /// NOTE: Not implemented yet
+  void LoadSpatialFiducials(DcmDataset*);
 
 protected:
-  /// Input file name
-  char* FileName;
-
-  /// Patient name
-  char* PatientName;
-
-  /// Patient ID
-  char* PatientId;
-
-  /// Patient sex
-  char* PatientSex;
-
-  /// Patient birth date
-  char* PatientBirthDate;
-
-  /// Study instance UID
-  char* StudyInstanceUid;
-
-  /// Study description
-  char* StudyDescription;
-
-  /// Study date
-  char* StudyDate;
-
-  /// Study time
-  char* StudyTime;
-
-  /// Series instance UID
-  char* SeriesInstanceUid;
-
-  /// Series description
-  char* SeriesDescription;
-
-  /// Series modality
-  char* SeriesModality;
-
-  /// DICOM database file name
-  char* DatabaseFile;
-
   /// Spatial registration matrix
   vtkMatrix4x4* SpatialRegistrationMatrix;
 
@@ -212,6 +95,7 @@ protected:
 
   /// Deformable registration grid orientation matrix
   vtkMatrix4x4* DeformableRegistrationGridOrientationMatrix;
+
 
   /// Flag indicating if spatial registration object has been successfully read from the input dataset
   bool LoadSpatialRegistrationSuccessful;
@@ -229,6 +113,9 @@ protected:
 private:
   vtkSlicerDicomSroReader(const vtkSlicerDicomSroReader&) = delete;
   void operator=(const vtkSlicerDicomSroReader&) = delete;
+
+  class vtkInternal;
+  vtkInternal* Internal;
 };
 
 #endif

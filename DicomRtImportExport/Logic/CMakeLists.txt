@@ -19,7 +19,6 @@ set(${KIT}_SRCS
   vtkSlicerDicomRtImportExportModuleLogic.h
   vtkSlicerDicomRtReader.cxx
   vtkSlicerDicomRtReader.h
-  vtkSlicerDicomRtReader.txx
   vtkSlicerDicomRtWriter.cxx
   vtkSlicerDicomRtWriter.h
   )

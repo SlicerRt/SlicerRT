@@ -131,7 +131,7 @@ class vtkSlicerDicomRtImportExportModuleLogic::vtkInternal
 {
 public:
   vtkInternal(vtkSlicerDicomRtImportExportModuleLogic* external);
-  ~vtkInternal()  = default;
+  ~vtkInternal() = default;
 
   /// Examine RT Dose dataset and assemble name and referenced SOP instances
   void ExamineRtDoseDataset(DcmDataset* dataset, OFString &name, std::vector<OFString> &referencedSOPInstanceUIDs);
@@ -241,9 +241,9 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::ExamineRtDoseDataset(
   // Create and open DICOM database to perform database operations for getting RTPlan name
   QSettings settings;
   QString databaseDirectory = settings.value("DatabaseDirectory").toString();
-  QString databaseFile = databaseDirectory + vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_DATABASE_FILENAME.c_str();
+  QString databaseFile = databaseDirectory + vtkSlicerDicomRtReader::DICOMREADER_DICOM_DATABASE_FILENAME.c_str();
   ctkDICOMDatabase* dicomDatabase = new ctkDICOMDatabase();
-  dicomDatabase->openDatabase(databaseFile, vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
+  dicomDatabase->openDatabase(databaseFile, vtkSlicerDicomRtReader::DICOMREADER_DICOM_CONNECTION_NAME.c_str());
 
   // Get RTPlan name to show it with the dose
   QString rtPlanLabelTag("300a,0002");
@@ -256,8 +256,8 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::ExamineRtDoseDataset(
   // Close and delete DICOM database
   dicomDatabase->closeDatabase();
   delete dicomDatabase;
-  QSqlDatabase::removeDatabase(vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
-  QSqlDatabase::removeDatabase(QString(vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_CONNECTION_NAME.c_str()) + "TagCache");
+  QSqlDatabase::removeDatabase(vtkSlicerDicomRtReader::DICOMREADER_DICOM_CONNECTION_NAME.c_str());
+  QSqlDatabase::removeDatabase(QString(vtkSlicerDicomRtReader::DICOMREADER_DICOM_CONNECTION_NAME.c_str()) + "TagCache");
 }
 
 //-----------------------------------------------------------------------------
@@ -1644,7 +1644,7 @@ double vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CalculateSliceSpaci
   double sliceSpacing = 0.0;
 
   ctkDICOMDatabase* dicomDatabase = new ctkDICOMDatabase();
-  dicomDatabase->openDatabase(rtReader->GetDatabaseFile(), vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
+  dicomDatabase->openDatabase(rtReader->GetDatabaseFile(), vtkSlicerDicomRtReader::DICOMREADER_DICOM_CONNECTION_NAME.c_str());
 
   // IPPSorter takes a std::vector<std::string>. Need to convert from QStringList.
   QStringList filesForSeriesQString = dicomDatabase->filesForSeries(roiReferencedSeriesUid);
@@ -1667,8 +1667,8 @@ double vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CalculateSliceSpaci
 
   dicomDatabase->closeDatabase();
   delete dicomDatabase;
-  QSqlDatabase::removeDatabase(vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_CONNECTION_NAME.c_str());
-  QSqlDatabase::removeDatabase(QString(vtkSlicerDicomRtReader::DICOMRTREADER_DICOM_CONNECTION_NAME.c_str()) + "TagCache");
+  QSqlDatabase::removeDatabase(vtkSlicerDicomRtReader::DICOMREADER_DICOM_CONNECTION_NAME.c_str());
+  QSqlDatabase::removeDatabase(QString(vtkSlicerDicomRtReader::DICOMREADER_DICOM_CONNECTION_NAME.c_str()) + "TagCache");
 
   return sliceSpacing;
 }

@@ -1,7 +1,5 @@
 /*==============================================================================
 
-  Program: 3D Slicer
-
   Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
   Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
@@ -39,7 +37,26 @@
 #include <dcmtk/ofstd/ofstring.h>
 
 //----------------------------------------------------------------------------
-template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformation(T* dcmtkIodObject)
+template<typename T> void vtkSlicerDicomReaderBase::GetAndStoreRtHierarchyInformation(T* dcmtkRtIodObject)
+{
+  this->GetAndStorePatientInformation(dcmtkRtIodObject);
+  this->GetAndStoreStudyInformation(dcmtkRtIodObject);
+  this->GetAndStoreSeriesInformation(dcmtkRtIodObject);
+
+  // Patient comments is a field only supported by RT IODs
+  OFString patientComments;
+  if (dcmtkRtIodObject->getPatientComments(patientComments).good())
+  {
+    this->SetPatientComments(patientComments.c_str());
+  }
+  else
+  {
+    this->SetPatientComments(nullptr);
+  }
+}
+
+//----------------------------------------------------------------------------
+template<typename T> void vtkSlicerDicomReaderBase::GetAndStorePatientInformation(T* dcmtkIodObject)
 {
   OFString patientName;
   if (dcmtkIodObject->getPatientName(patientName).good())
@@ -48,7 +65,7 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
   }
   else
   {
-    this->SetPatientName(NULL);
+    this->SetPatientName(nullptr);
   }
 
   OFString patientId;
@@ -58,7 +75,7 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
   }
   else
   {
-    this->SetPatientId(NULL);
+    this->SetPatientId(nullptr);
   }
 
   OFString patientSex;
@@ -68,7 +85,7 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
   }
   else
   {
-    this->SetPatientSex(NULL);
+    this->SetPatientSex(nullptr);
   }
 
   OFString patientBirthDate;
@@ -78,19 +95,13 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
   }
   else
   {
-    this->SetPatientBirthDate(NULL);
+    this->SetPatientBirthDate(nullptr);
   }
+}
 
-  OFString patientComments;
-  if (dcmtkIodObject->getPatientComments(patientComments).good())
-  {
-    this->SetPatientComments(patientComments.c_str());
-  }
-  else
-  {
-    this->SetPatientComments(NULL);
-  }
-
+//----------------------------------------------------------------------------
+template<typename T> void vtkSlicerDicomReaderBase::GetAndStoreStudyInformation(T* dcmtkIodObject)
+{
   OFString studyInstanceUid;
   if (dcmtkIodObject->getStudyInstanceUID(studyInstanceUid).good())
   {
@@ -98,7 +109,7 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
   }
   else
   {
-    this->SetStudyInstanceUid(NULL);
+    this->SetStudyInstanceUid(nullptr);
   }
 
   OFString studyId;
@@ -108,7 +119,7 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
   }
   else
   {
-    this->SetStudyId(NULL);
+    this->SetStudyId(nullptr);
   }
 
   OFString studyDescription;
@@ -118,7 +129,7 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
   }
   else
   {
-    this->SetStudyDescription(NULL);
+    this->SetStudyDescription(nullptr);
   }
 
   OFString studyDate;
@@ -128,7 +139,7 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
   }
   else
   {
-    this->SetStudyDate(NULL);
+    this->SetStudyDate(nullptr);
   }
 
   OFString studyTime;
@@ -138,9 +149,13 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
   }
   else
   {
-    this->SetStudyTime(NULL);
+    this->SetStudyTime(nullptr);
   }
+}
 
+//----------------------------------------------------------------------------
+template<typename T> void vtkSlicerDicomReaderBase::GetAndStoreSeriesInformation(T* dcmtkIodObject)
+{
   OFString seriesInstanceUid;
   if (dcmtkIodObject->getSeriesInstanceUID(seriesInstanceUid).good())
   {
@@ -148,7 +163,7 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
   }
   else
   {
-    this->SetSeriesInstanceUid(NULL);
+    this->SetSeriesInstanceUid(nullptr);
   }
 
   OFString seriesDescription;
@@ -158,7 +173,7 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
   }
   else
   {
-    this->SetSeriesDescription(NULL);
+    this->SetSeriesDescription(nullptr);
   }
 
   OFString seriesModality;
@@ -168,7 +183,7 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
   }
   else
   {
-    this->SetSeriesModality(NULL);
+    this->SetSeriesModality(nullptr);
   }
 
   OFString seriesNumber;
@@ -178,6 +193,6 @@ template<typename T> void vtkSlicerDicomRtReader::GetAndStoreHierarchyInformatio
   }
   else
   {
-    this->SetSeriesNumber(NULL);
+    this->SetSeriesNumber(nullptr);
   }
 }

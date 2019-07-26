@@ -37,6 +37,8 @@
 
 class vtkDICOMImportInfo;
 class vtkMatrix4x4;
+class vtkMRMLGridTransformNode;
+class vtkMRMLLinearTransformNode;
 class vtkSlicerDicomSroReader;
 
 /// \ingroup SlicerRt_DicomSroImportLogicExport
@@ -51,7 +53,7 @@ public:
   /// Examine a list of file lists and determine what objects can be loaded from them
   void Examine(vtkDICOMImportInfo *importInfo);
 
-  /// Load DICOM Sro series from file name
+  /// Load DICOM SRO series from file name
   /// \return True if loading successful
   bool LoadDicomSro(vtkDICOMImportInfo *loadInfo);
 
@@ -59,17 +61,18 @@ protected:
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
   void RegisterNodes() override;
 
-  /// Load Dicom spatial registration objects into the MRML scene
-  /// \return Success flag
-  bool LoadSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo* loadInfo);
+  /// Load DICOM spatial registration objects into the MRML scene
+  /// \return Loaded transform node
+  vtkMRMLLinearTransformNode* LoadSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo* loadInfo);
 
-  /// Load Dicom spatial fiducial objects into the MRML scene
+  /// Load DICOM spatial fiducial objects into the MRML scene
+  /// NOTE: Not yet implemented
   /// \return Success flag
   bool LoadSpatialFiducials(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo* loadInfo);
 
-  /// Load Dicom deformable spatial registration objects into the MRML scene
-  /// \return Success flag
-  bool LoadDeformableSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo* loadInfo);
+  /// Load DICOM deformable spatial registration objects into the MRML scene
+  /// \return Loaded transform node
+  vtkMRMLGridTransformNode* LoadDeformableSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo* loadInfo);
 
 protected:
   vtkSlicerDicomSroImportExportModuleLogic();
