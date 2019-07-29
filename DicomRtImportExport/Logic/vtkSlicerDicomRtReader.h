@@ -135,11 +135,6 @@ public:
   /// Set RT Plan SOP instance UID referenced by RT Dose
   vtkSetStringMacro(RTDoseReferencedRTPlanSOPInstanceUID);
 
-  /// Get SOP instance UID
-  vtkGetStringMacro(SOPInstanceUID);
-  /// Set SOP instance UID
-  vtkSetStringMacro(SOPInstanceUID);
-
   /// Get structure set SOP instance UID referenced by RT Plan
   vtkGetStringMacro(RTPlanReferencedStructureSetSOPInstanceUID);
   /// Set structure set SOP instance UID referenced by RT Plan
@@ -242,9 +237,6 @@ protected:
 
   /// RT Plan SOP instance UID referenced by RT Dose
   char* RTDoseReferencedRTPlanSOPInstanceUID;
-
-  /// SOP instance UID
-  char* SOPInstanceUID;
 
   /// Structure set SOP instance UID referenced by RT Plan
   char* RTPlanReferencedStructureSetSOPInstanceUID;

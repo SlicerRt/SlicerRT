@@ -6,6 +6,7 @@ set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_LOGIC_EXPORT
 
 set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
+  ${vtkSlicerDicomRtImportExportModuleLogic_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -21,6 +22,7 @@ set(${KIT}_TARGET_LIBRARIES
   ${VTK_LIBRARIES}
   ${DCMTK_LIBRARIES}
   vtkSlicerRtCommon
+  vtkSlicerDicomRtImportExportModuleLogic
   )
 
 #-----------------------------------------------------------------------------

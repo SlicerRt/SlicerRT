@@ -37,14 +37,16 @@
 
 #include "vtkSlicerDicomRtImportExportModuleLogicExport.h"
 
+class vtkCollection;
+class vtkMRMLScalarVolumeNode;
+class vtkMRMLScene;
+class vtkMRMLSegmentationNode;
+class vtkSlicerBeamsModuleLogic;
+class vtkSlicerDICOMLoadable;
+class vtkSlicerDicomReaderBase;
 class vtkSlicerIsodoseModuleLogic;
 class vtkSlicerPlanarImageModuleLogic;
-class vtkSlicerBeamsModuleLogic;
-class vtkMRMLScalarVolumeNode;
-class vtkMRMLSegmentationNode;
-class vtkSlicerDICOMLoadable;
 class vtkStringArray;
-class vtkCollection;
 
 /// \ingroup SlicerRt_QtModules_DicomRtImport
 class VTK_SLICER_DICOMRTIMPORTEXPORT_LOGIC_EXPORT vtkSlicerDicomRtImportExportModuleLogic :
@@ -71,6 +73,9 @@ public:
   /// Get referenced volume for a segmentation according to subject hierarchy attributes
   /// \return The reference volume for the segmentation if any, nullptr otherwise
   static vtkMRMLScalarVolumeNode* GetReferencedVolumeByDicomForSegmentation(vtkMRMLSegmentationNode* segmentationNode);
+
+  /// Insert currently loaded series in the proper place in subject hierarchy
+  static void InsertSeriesInSubjectHierarchy(vtkSlicerDicomReaderBase* reader, vtkMRMLScene* scene);
 
 public:
   /// Set Isodose module logic

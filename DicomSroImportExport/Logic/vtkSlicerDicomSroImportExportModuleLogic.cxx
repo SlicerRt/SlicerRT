@@ -27,6 +27,7 @@
 
 // SlicerRT includes
 #include "vtkSlicerRtCommon.h"
+#include "vtkSlicerDicomRtImportExportModuleLogic.h"
 
 // DCMTK includes
 #include <dcmtk/dcmdata/dcfilefo.h>
@@ -192,39 +193,78 @@ bool vtkSlicerDicomSroImportExportModuleLogic::LoadDicomSro(vtkDICOMImportInfo *
 
   vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
 
-  vtkNew<vtkSlicerDicomSroReader> spatialRegistrationReader;
-  spatialRegistrationReader->SetFileName(firstFileNameStr.c_str());
-  spatialRegistrationReader->Update();
+  vtkNew<vtkSlicerDicomSroReader> sroReader;
+  sroReader->SetFileName(firstFileNameStr.c_str());
+  sroReader->Update();
 
   vtkMRMLLinearTransformNode* loadedLinearTransformNode = nullptr;
   vtkMRMLGridTransformNode* loadedGridTransformNode = nullptr;
   vtkMRMLTransformNode* loadedTransformNode = nullptr;
 
   // Spatial registration
-  if (spatialRegistrationReader->GetLoadSpatialRegistrationSuccessful())
+  if (sroReader->GetLoadSpatialRegistrationSuccessful())
   {
-    loadedLinearTransformNode = this->LoadSpatialRegistration(spatialRegistrationReader, loadInfo);
+    loadedLinearTransformNode = this->LoadSpatialRegistration(sroReader, loadInfo);
     if (loadedLinearTransformNode)
     {
       loadedTransformNode = loadedLinearTransformNode;
     }
   }
   // Deformable spatial registration
-  if (spatialRegistrationReader->GetLoadDeformableSpatialRegistrationSuccessful())
+  if (sroReader->GetLoadDeformableSpatialRegistrationSuccessful())
   {
-    loadedGridTransformNode = this->LoadDeformableSpatialRegistration(spatialRegistrationReader, loadInfo);
+    loadedGridTransformNode = this->LoadDeformableSpatialRegistration(sroReader, loadInfo);
     if (loadedGridTransformNode)
     {
       loadedTransformNode = loadedGridTransformNode;
     }
   }
 
+  // Setup subject hierarchy entry
+  vtkIdType seriesItemID = shNode->CreateItem(shNode->GetSceneItemID(), loadedTransformNode);
+  if (sroReader->GetSeriesInstanceUid())
+  {
+    shNode->SetItemUID(seriesItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), sroReader->GetSeriesInstanceUid());
+  }
+  else
+  {
+    vtkErrorMacro("LoadDicomSro: series instance UID not found for transform " << loadedTransformNode->GetName());
+  }
+
   // Add loaded transform under study of transformed image
-  //TODO:sajt
+  vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy(sroReader, this->GetMRMLScene());
 
   // Apply loaded transform to corresponding image
-  //TODO: May change if decision is made on https://github.com/SlicerRt/SlicerRT/issues/108
-  //TODO:sajt
+  vtkIdType studyItemId = shNode->GetItemAncestorAtLevel(seriesItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+  for (int i=0; i<sroReader->GetNumberOfReferencedSeriesUids(); ++i)
+  {
+    // Sanity check
+    if (i > 1)
+    {
+      vtkWarningMacro("LoadDicomSro: Unexpected number of referenced series from SRO transform: " << sroReader->GetNumberOfReferencedSeriesUids());
+      break;
+    }
+
+    std::string seriesUid = sroReader->GetReferencedSeriesUid(i);
+
+    // Set DICOM reference to SRO transform item
+    shNode->SetItemAttribute(seriesItemID,
+      vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(), seriesUid);
+
+    // If the referenced item is a volume, and it is in another study than the transform, then apply the transform
+    //TODO: May change if decision is made on https://github.com/SlicerRt/SlicerRT/issues/108
+    vtkIdType refSeriesItemId = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), seriesUid.c_str());
+    vtkIdType refStudyItemId = shNode->GetItemAncestorAtLevel(refSeriesItemId, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+    if (refStudyItemId != studyItemId)
+    {
+      vtkMRMLScalarVolumeNode* refVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(shNode->GetItemDataNode(refSeriesItemId));
+      if (refVolumeNode)
+      {
+        refVolumeNode->SetAndObserveTransformNodeID(loadedTransformNode->GetID());
+        break;
+      }
+    }
+  }
 
   // Spatial fiducials
   //TODO: Function not implemented yet (also take into account for return value)

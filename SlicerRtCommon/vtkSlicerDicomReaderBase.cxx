@@ -61,6 +61,7 @@ vtkSlicerDicomReaderBase::vtkSlicerDicomReaderBase()
   this->SeriesDescription = nullptr;
   this->SeriesModality = nullptr;
   this->SeriesNumber = nullptr;
+  this->SOPInstanceUID = nullptr;
 
   this->DatabaseFile = nullptr;
 }

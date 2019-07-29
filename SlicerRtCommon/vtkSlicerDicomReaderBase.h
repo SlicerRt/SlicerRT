@@ -70,6 +70,8 @@ public:
   vtkGetStringMacro(SeriesModality);
   /// Get series number
   vtkGetStringMacro(SeriesNumber);
+  /// Get SOP instance UID
+  vtkGetStringMacro(SOPInstanceUID);
 
   /// Get DICOM database file name
   vtkGetStringMacro(DatabaseFile);
@@ -103,6 +105,8 @@ protected:
   vtkSetStringMacro(SeriesModality);
   /// Set series number
   vtkSetStringMacro(SeriesNumber);
+  /// Set SOP instance UID
+  vtkSetStringMacro(SOPInstanceUID);
 
   /// Set DICOM database file name
   vtkSetStringMacro(DatabaseFile);
@@ -159,6 +163,9 @@ protected:
 
   /// Series number
   char* SeriesNumber;
+
+  /// SOP instance UID
+  char* SOPInstanceUID;
 
   /// DICOM database file name
   char* DatabaseFile;

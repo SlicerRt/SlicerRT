@@ -170,9 +170,6 @@ public:
   /// Add an ROI point to the scene
   vtkMRMLMarkupsFiducialNode* AddRoiPoint(double* roiPosition, std::string baseName, double* roiColor);
 
-  /// Insert currently loaded series in the proper place in subject hierarchy
-  void InsertSeriesInSubjectHierarchy(vtkSlicerDicomRtReader* rtReader);
-
   /// Compute and set geometry of an RT image
   /// \param node Either the volume node of the loaded RT image, or the isocenter fiducial node (corresponding to an RT image). This function is called both when
   ///    loading an RT image and when loading a beam. Sets up the RT image geometry only if both information (the image itself and the isocenter data) are available
@@ -561,7 +558,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtDose(vtkSlicerD
   }
 
   // Insert series in subject hierarchy
-  this->InsertSeriesInSubjectHierarchy(rtReader);
+  vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy(rtReader, scene);
 
   // Set dose unit attributes to subject hierarchy study item
   vtkIdType studyItemID = shNode->GetItemParent(seriesItemID);
@@ -693,7 +690,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
   }
 
   // Insert plan isocenter series in subject hierarchy
-  this->InsertSeriesInSubjectHierarchy(rtReader);
+  vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy(rtReader, scene);
 
   // Put plan SH item underneath study
   vtkIdType studyItemID = shNode->GetItemByUID(
@@ -1117,7 +1114,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
   }
 
   // Insert series in subject hierarchy
-  this->InsertSeriesInSubjectHierarchy(rtReader);
+  vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy(rtReader, scene);
 
   // Fire modified events if loading is finished
   scene->EndState(vtkMRMLScene::BatchProcessState);
@@ -1219,7 +1216,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtImage(vtkSlicer
   shNode->SetItemAttribute(seriesShItemID,  vtkSlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME, rtImagePositionStream.str());
 
   // Insert series in subject hierarchy
-  this->InsertSeriesInSubjectHierarchy(rtReader);
+  vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy(rtReader, scene);
 
   // Compute and set RT image geometry. Uses the referenced beam if available, otherwise the geometry will be set up when loading the referenced beam
   this->SetupRtImageGeometry(volumeNode);
@@ -1247,126 +1244,6 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal
   markupsNode->SetDisplayVisibility(0);
 
   return markupsNode;
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::InsertSeriesInSubjectHierarchy(vtkSlicerDicomRtReader* rtReader)
-{
-  // Get the higher level parent items by their IDs (to fill their attributes later if they do not exist yet)
-  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->External->GetMRMLScene());
-  if (!shNode)
-  {
-    vtkErrorWithObjectMacro(this->External, "InsertSeriesInSubjectHierarchy: Failed to access subject hierarchy node");
-    return;
-  }
-
-  vtkIdType patientItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetPatientId());
-  vtkIdType studyItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetStudyInstanceUid());
-
-  // Insert series in hierarchy
-  vtkIdType seriesItemID = vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
-    shNode, rtReader->GetPatientId(), rtReader->GetStudyInstanceUid(), rtReader->GetSeriesInstanceUid() );
-
-  // Fill patient and study attributes if they have been just created
-  if (patientItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-  {
-    patientItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetPatientId());
-    if (patientItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-    {
-      // Add attributes for DICOM tags
-      shNode->SetItemAttribute(patientItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientNameAttributeName(), rtReader->GetPatientName() );
-      shNode->SetItemAttribute(patientItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientIDAttributeName(), rtReader->GetPatientId() );
-      shNode->SetItemAttribute(patientItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientSexAttributeName(), rtReader->GetPatientSex() );
-      shNode->SetItemAttribute(patientItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientBirthDateAttributeName(), rtReader->GetPatientBirthDate() );
-      shNode->SetItemAttribute(patientItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientCommentsAttributeName(), rtReader->GetPatientComments() );
-
-      // Set item name
-      std::string patientItemName = ( !vtkSlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientName())
-        ? std::string(rtReader->GetPatientName()) : vtkSlicerRtCommon::DICOMRTIMPORT_NO_NAME );
-      QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
-      bool displayPatientID = settings->value("SubjectHierarchy/DisplayPatientIDInSubjectHierarchyItemName").toBool();
-      if ( displayPatientID && !vtkSlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientId()) )
-      {
-        patientItemName += " (" + std::string(rtReader->GetPatientId()) + ")";
-      }
-      bool displayPatientBirthDate = settings->value("SubjectHierarchy/DisplayPatientBirthDateInSubjectHierarchyItemName").toBool();
-      if ( displayPatientBirthDate && !vtkSlicerRtCommon::IsStringNullOrEmpty(rtReader->GetPatientBirthDate()) )
-      {
-        patientItemName += " (" + std::string(rtReader->GetPatientBirthDate()) + ")";
-      }
-      shNode->SetItemName(patientItemID, patientItemName);
-    }
-    else
-    {
-      vtkErrorWithObjectMacro(this->External, "InsertSeriesInSubjectHierarchy: Patient item has not been created for series with Instance UID "
-        << (rtReader->GetSeriesInstanceUid() ? rtReader->GetSeriesInstanceUid() : "Missing UID") );
-    }
-  }
-
-  if (studyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-  {
-    studyItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetStudyInstanceUid());
-    if (studyItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-    {
-      // Add attributes for DICOM tags
-      shNode->SetItemAttribute(studyItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyInstanceUIDTagName(), rtReader->GetStudyInstanceUid() );
-      shNode->SetItemAttribute(studyItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyIDTagName(), rtReader->GetStudyId() );
-      shNode->SetItemAttribute(studyItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyDescriptionAttributeName(), rtReader->GetStudyDescription() );
-      shNode->SetItemAttribute(studyItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyDateAttributeName(), rtReader->GetStudyDate() );
-      shNode->SetItemAttribute(studyItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyTimeAttributeName(), rtReader->GetStudyTime() );
-
-      // Set item name
-      std::string studyItemName = ( !vtkSlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDescription())
-        ? std::string(rtReader->GetStudyDescription())
-        : vtkSlicerRtCommon::DICOMRTIMPORT_NO_STUDY_DESCRIPTION );
-      QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
-      bool displayStudyID = settings->value("SubjectHierarchy/DisplayStudyIDInSubjectHierarchyItemName").toBool();
-      if ( displayStudyID && !vtkSlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyId()) )
-      {
-        studyItemName += " (" + std::string(rtReader->GetStudyId()) + ")";
-      }
-      bool displayStudyDate = settings->value("SubjectHierarchy/DisplayStudyDateInSubjectHierarchyItemName").toBool();
-      if ( displayStudyDate && !vtkSlicerRtCommon::IsStringNullOrEmpty(rtReader->GetStudyDate()) )
-      {
-        studyItemName += " (" + std::string(rtReader->GetStudyDate()) + ")";
-      }
-      shNode->SetItemName(studyItemID, studyItemName);
-    }
-    else
-    {
-      vtkErrorWithObjectMacro(this->External, "InsertSeriesInSubjectHierarchy: Study item has not been created for series with Instance UID "
-        << (rtReader->GetSeriesInstanceUid() ? rtReader->GetSeriesInstanceUid() : "Missing UID") );
-    }
-  }
-
-  if (seriesItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-  {
-    // Add attributes for DICOM tags to the series hierarchy item
-    shNode->SetItemAttribute(seriesItemID,
-     vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesModalityAttributeName(), rtReader->GetSeriesModality() );
-    shNode->SetItemAttribute(seriesItemID,
-      vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesNumberAttributeName(), rtReader->GetSeriesNumber() );
-
-    // Set SOP instance UID (RT objects are in one file so have one SOP instance UID per series)
-    // TODO: This is not correct for RTIMAGE, which may have several instances of DRRs within the same series
-    shNode->SetItemUID(seriesItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName(), rtReader->GetSOPInstanceUID());
-  }
-  else
-  {
-    vtkErrorWithObjectMacro(this->External, "InsertSeriesInSubjectHierarchy: Failed to insert series with Instance UID "
-      << (rtReader->GetSeriesInstanceUid() ? rtReader->GetSeriesInstanceUid() : "Missing UID") );
-    return;
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -2355,4 +2232,129 @@ vtkMRMLScalarVolumeNode* vtkSlicerDicomRtImportExportModuleLogic::GetReferencedV
 
   // Get and return referenced volume
   return vtkMRMLScalarVolumeNode::SafeDownCast(shNode->GetItemDataNode(referencedSeriesShItemID));
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy(vtkSlicerDicomReaderBase* reader, vtkMRMLScene* scene)
+{
+  if (!reader || !scene)
+  {
+    vtkGenericWarningMacro("vtkSlicerRtCommon::StretchDiscreteColorTable: Invalid input arguments");
+  }
+
+  // Get the higher level parent items by their IDs (to fill their attributes later if they do not exist yet)
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
+  if (!shNode)
+  {
+    vtkErrorWithObjectMacro(scene, "vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy: Failed to access subject hierarchy node");
+    return;
+  }
+
+  vtkIdType patientItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), reader->GetPatientId());
+  vtkIdType studyItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), reader->GetStudyInstanceUid());
+
+  // Insert series in hierarchy
+  vtkIdType seriesItemID = vtkSlicerSubjectHierarchyModuleLogic::InsertDicomSeriesInHierarchy(
+    shNode, reader->GetPatientId(), reader->GetStudyInstanceUid(), reader->GetSeriesInstanceUid());
+
+  // Fill patient and study attributes if they have been just created
+  if (patientItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    patientItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), reader->GetPatientId());
+    if (patientItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+      // Add attributes for DICOM tags
+      shNode->SetItemAttribute(patientItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientNameAttributeName(), reader->GetPatientName());
+      shNode->SetItemAttribute(patientItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientIDAttributeName(), reader->GetPatientId());
+      shNode->SetItemAttribute(patientItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientSexAttributeName(), reader->GetPatientSex());
+      shNode->SetItemAttribute(patientItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientBirthDateAttributeName(), reader->GetPatientBirthDate());
+      shNode->SetItemAttribute(patientItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientCommentsAttributeName(), reader->GetPatientComments());
+
+      // Set item name
+      std::string patientItemName = (!vtkSlicerRtCommon::IsStringNullOrEmpty(reader->GetPatientName())
+        ? std::string(reader->GetPatientName()) : vtkSlicerRtCommon::DICOMRTIMPORT_NO_NAME);
+      QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
+      bool displayPatientID = settings->value("SubjectHierarchy/DisplayPatientIDInSubjectHierarchyItemName").toBool();
+      if (displayPatientID && !vtkSlicerRtCommon::IsStringNullOrEmpty(reader->GetPatientId()))
+      {
+        patientItemName += " (" + std::string(reader->GetPatientId()) + ")";
+      }
+      bool displayPatientBirthDate = settings->value("SubjectHierarchy/DisplayPatientBirthDateInSubjectHierarchyItemName").toBool();
+      if (displayPatientBirthDate && !vtkSlicerRtCommon::IsStringNullOrEmpty(reader->GetPatientBirthDate()))
+      {
+        patientItemName += " (" + std::string(reader->GetPatientBirthDate()) + ")";
+      }
+      shNode->SetItemName(patientItemID, patientItemName);
+    }
+    else
+    {
+      vtkErrorWithObjectMacro(scene, "vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy: Patient item has not been created for series with Instance UID "
+        << (reader->GetSeriesInstanceUid() ? reader->GetSeriesInstanceUid() : "Missing UID"));
+    }
+  }
+
+  if (studyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    studyItemID = shNode->GetItemByUID(vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), reader->GetStudyInstanceUid());
+    if (studyItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+      // Add attributes for DICOM tags
+      shNode->SetItemAttribute(studyItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyInstanceUIDTagName(), reader->GetStudyInstanceUid());
+      shNode->SetItemAttribute(studyItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyIDTagName(), reader->GetStudyId());
+      shNode->SetItemAttribute(studyItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyDescriptionAttributeName(), reader->GetStudyDescription());
+      shNode->SetItemAttribute(studyItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyDateAttributeName(), reader->GetStudyDate());
+      shNode->SetItemAttribute(studyItemID,
+        vtkMRMLSubjectHierarchyConstants::GetDICOMStudyTimeAttributeName(), reader->GetStudyTime());
+
+      // Set item name
+      std::string studyItemName = (!vtkSlicerRtCommon::IsStringNullOrEmpty(reader->GetStudyDescription())
+        ? std::string(reader->GetStudyDescription())
+        : vtkSlicerRtCommon::DICOMRTIMPORT_NO_STUDY_DESCRIPTION);
+      QSettings* settings = qSlicerApplication::application()->settingsDialog()->settings();
+      bool displayStudyID = settings->value("SubjectHierarchy/DisplayStudyIDInSubjectHierarchyItemName").toBool();
+      if (displayStudyID && !vtkSlicerRtCommon::IsStringNullOrEmpty(reader->GetStudyId()))
+      {
+        studyItemName += " (" + std::string(reader->GetStudyId()) + ")";
+      }
+      bool displayStudyDate = settings->value("SubjectHierarchy/DisplayStudyDateInSubjectHierarchyItemName").toBool();
+      if (displayStudyDate && !vtkSlicerRtCommon::IsStringNullOrEmpty(reader->GetStudyDate()))
+      {
+        studyItemName += " (" + std::string(reader->GetStudyDate()) + ")";
+      }
+      shNode->SetItemName(studyItemID, studyItemName);
+    }
+    else
+    {
+      vtkErrorWithObjectMacro(scene, "vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy: Study item has not been created for series with Instance UID "
+        << (reader->GetSeriesInstanceUid() ? reader->GetSeriesInstanceUid() : "Missing UID"));
+    }
+  }
+
+  if (seriesItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    // Add attributes for DICOM tags to the series hierarchy item
+    shNode->SetItemAttribute(seriesItemID,
+      vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesModalityAttributeName(), reader->GetSeriesModality());
+    shNode->SetItemAttribute(seriesItemID,
+      vtkMRMLSubjectHierarchyConstants::GetDICOMSeriesNumberAttributeName(), reader->GetSeriesNumber());
+
+    // Set SOP instance UID (RT objects are in one file so have one SOP instance UID per series)
+    // TODO: This is not correct for RTIMAGE, which may have several instances of DRRs within the same series
+    shNode->SetItemUID(seriesItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName(), reader->GetSOPInstanceUID());
+  }
+  else
+  {
+    vtkErrorWithObjectMacro(scene, "vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy: Failed to insert series with Instance UID "
+      << (reader->GetSeriesInstanceUid() ? reader->GetSeriesInstanceUid() : "Missing UID"));
+    return;
+  }
 }

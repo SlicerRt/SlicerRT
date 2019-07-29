@@ -40,6 +40,7 @@
 #include <dcmtk/dcmiod/modpatient.h>
 #include <dcmtk/dcmiod/modgeneralstudy.h>
 #include <dcmtk/dcmiod/modgeneralseries.h>
+#include <dcmtk/dcmiod/modsopcommon.h>
 
 // Qt includes
 #include <QSettings>
@@ -166,6 +167,24 @@ vtkSlicerDicomSroReader::~vtkSlicerDicomSroReader()
 void vtkSlicerDicomSroReader::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+}
+
+//----------------------------------------------------------------------------
+int vtkSlicerDicomSroReader::GetNumberOfReferencedSeriesUids()
+{
+  return this->Internal->ReferencedSeriesUids.size();
+}
+
+//----------------------------------------------------------------------------
+std::string vtkSlicerDicomSroReader::GetReferencedSeriesUid(int index)
+{
+  if (index < 0 || index >= this->Internal->ReferencedSeriesUids.size())
+  {
+    vtkErrorMacro("GetReferencedSeriesUid: Invalid index");
+    return "";
+  }
+
+  return this->Internal->ReferencedSeriesUids[index];
 }
 
 //----------------------------------------------------------------------------
@@ -324,6 +343,16 @@ void vtkSlicerDicomSroReader::LoadSpatialRegistration(DcmDataset* dataset)
 
     this->LoadSpatialRegistrationSuccessful = true;
   } // Load registration sequence
+
+  // Get SOP instance UID
+  IODSOPCommonModule sop;
+  OFString sopInstanceUid("");
+  if (sop.read(*dataset).bad() || sop.getSOPInstanceUID(sopInstanceUid).bad())
+  {
+    vtkErrorMacro("LoadSpatialRegistration: Failed to get SOP instance UID for spatial registration object");
+    return; // mandatory DICOM value
+  }
+  this->SetSOPInstanceUID(sopInstanceUid.c_str());
 
   // Get and store patient, study and series information
   IODPatientModule patient;
@@ -621,6 +650,16 @@ void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* data
 
     this->LoadDeformableSpatialRegistrationSuccessful = true; 
   } // Load registration sequence
+
+  // Get SOP instance UID
+  IODSOPCommonModule sop;
+  OFString sopInstanceUid("");
+  if (sop.read(*dataset).bad() || sop.getSOPInstanceUID(sopInstanceUid).bad())
+  {
+    vtkErrorMacro("LoadDeformableSpatialRegistration: Failed to get SOP instance UID for spatial registration object");
+    return; // mandatory DICOM value
+  }
+  this->SetSOPInstanceUID(sopInstanceUid.c_str());
 
   // Get and store patient, study and series information
   IODPatientModule patient;

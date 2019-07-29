@@ -51,7 +51,7 @@ template<typename T> void vtkSlicerDicomReaderBase::GetAndStoreRtHierarchyInform
   }
   else
   {
-    this->SetPatientComments(nullptr);
+    this->SetPatientComments("");
   }
 }
 
@@ -65,7 +65,7 @@ template<typename T> void vtkSlicerDicomReaderBase::GetAndStorePatientInformatio
   }
   else
   {
-    this->SetPatientName(nullptr);
+    this->SetPatientName("");
   }
 
   OFString patientId;
@@ -75,7 +75,7 @@ template<typename T> void vtkSlicerDicomReaderBase::GetAndStorePatientInformatio
   }
   else
   {
-    this->SetPatientId(nullptr);
+    this->SetPatientId("");
   }
 
   OFString patientSex;
@@ -85,7 +85,7 @@ template<typename T> void vtkSlicerDicomReaderBase::GetAndStorePatientInformatio
   }
   else
   {
-    this->SetPatientSex(nullptr);
+    this->SetPatientSex("");
   }
 
   OFString patientBirthDate;
@@ -95,7 +95,7 @@ template<typename T> void vtkSlicerDicomReaderBase::GetAndStorePatientInformatio
   }
   else
   {
-    this->SetPatientBirthDate(nullptr);
+    this->SetPatientBirthDate("");
   }
 }
 
@@ -109,7 +109,7 @@ template<typename T> void vtkSlicerDicomReaderBase::GetAndStoreStudyInformation(
   }
   else
   {
-    this->SetStudyInstanceUid(nullptr);
+    this->SetStudyInstanceUid("");
   }
 
   OFString studyId;
@@ -119,7 +119,7 @@ template<typename T> void vtkSlicerDicomReaderBase::GetAndStoreStudyInformation(
   }
   else
   {
-    this->SetStudyId(nullptr);
+    this->SetStudyId("");
   }
 
   OFString studyDescription;
@@ -129,7 +129,7 @@ template<typename T> void vtkSlicerDicomReaderBase::GetAndStoreStudyInformation(
   }
   else
   {
-    this->SetStudyDescription(nullptr);
+    this->SetStudyDescription("");
   }
 
   OFString studyDate;
@@ -139,7 +139,7 @@ template<typename T> void vtkSlicerDicomReaderBase::GetAndStoreStudyInformation(
   }
   else
   {
-    this->SetStudyDate(nullptr);
+    this->SetStudyDate("");
   }
 
   OFString studyTime;
@@ -149,7 +149,7 @@ template<typename T> void vtkSlicerDicomReaderBase::GetAndStoreStudyInformation(
   }
   else
   {
-    this->SetStudyTime(nullptr);
+    this->SetStudyTime("");
   }
 }
 
@@ -163,7 +163,7 @@ template<typename T> void vtkSlicerDicomReaderBase::GetAndStoreSeriesInformation
   }
   else
   {
-    this->SetSeriesInstanceUid(nullptr);
+    this->SetSeriesInstanceUid("");
   }
 
   OFString seriesDescription;
@@ -173,7 +173,7 @@ template<typename T> void vtkSlicerDicomReaderBase::GetAndStoreSeriesInformation
   }
   else
   {
-    this->SetSeriesDescription(nullptr);
+    this->SetSeriesDescription("");
   }
 
   OFString seriesModality;
@@ -183,7 +183,7 @@ template<typename T> void vtkSlicerDicomReaderBase::GetAndStoreSeriesInformation
   }
   else
   {
-    this->SetSeriesModality(nullptr);
+    this->SetSeriesModality("");
   }
 
   OFString seriesNumber;
@@ -193,6 +193,6 @@ template<typename T> void vtkSlicerDicomReaderBase::GetAndStoreSeriesInformation
   }
   else
   {
-    this->SetSeriesNumber(nullptr);
+    this->SetSeriesNumber("");
   }
 }

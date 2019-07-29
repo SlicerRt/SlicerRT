@@ -488,7 +488,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTDose(DcmDataset* dataset)
     }
   }
 
-  // SOP instance UID
+  // Get SOP instance UID
   OFString sopInstanceUid("");
   if (rtDose.getSOPInstanceUID(sopInstanceUid).bad())
   {
@@ -756,7 +756,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
     return;
   }
 
-  // SOP instance UID
+  // Get SOP instance UID
   OFString sopInstanceUid("");
   if (rtPlan.getSOPInstanceUID(sopInstanceUid).bad())
   {
@@ -855,7 +855,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTStructureSet(DcmDataset* dataset
   }
   while (rtROIContourSequence.gotoNextItem().good());
 
-  // SOP instance UID
+  // Get SOP instance UID
   OFString sopInstanceUid("");
   if (rtStructureSet->getSOPInstanceUID(sopInstanceUid).bad())
   {
@@ -1309,7 +1309,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTImage(DcmDataset* dataset)
     this->External->SetWindowWidth(windowWidth);
   }
 
-  // SOP instance UID
+  // Get SOP instance UID
   OFString sopInstanceUid("");
   if (rtImage.getSOPInstanceUID(sopInstanceUid).bad())
   {
@@ -1339,8 +1339,6 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
   this->DoseUnits = nullptr;
   this->DoseGridScaling = nullptr;
   this->RTDoseReferencedRTPlanSOPInstanceUID = nullptr;
-
-  this->SOPInstanceUID = nullptr;
 
   this->RTPlanReferencedStructureSetSOPInstanceUID = nullptr;
   this->RTPlanReferencedDoseSOPInstanceUIDs = nullptr;

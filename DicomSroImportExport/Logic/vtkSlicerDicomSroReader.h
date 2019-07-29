@@ -49,6 +49,11 @@ public:
   /// Do reading
   void Update();
 
+  /// Get number of referenced series UIDs of the loaded registration object
+  int GetNumberOfReferencedSeriesUids();
+  /// Get referenced series UID with given index
+  std::string GetReferencedSeriesUid(int index);
+
 public:
   /// Get spatial registration matrix
   vtkGetObjectMacro(SpatialRegistrationMatrix, vtkMatrix4x4);

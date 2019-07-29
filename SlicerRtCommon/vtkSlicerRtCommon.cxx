@@ -151,7 +151,7 @@ void vtkSlicerRtCommon::StretchDiscreteColorTable(vtkMRMLColorTableNode* inputDi
 {
   if (!inputDiscreteColorTable || !outputColorTable)
   {
-    vtkGenericWarningMacro("vtkSlicerRtCommon::StretchDiscreteColorTable: Invalid input arguments!");
+    vtkGenericWarningMacro("vtkSlicerRtCommon::StretchDiscreteColorTable: Invalid input arguments");
     return;
   }
 
@@ -191,7 +191,7 @@ bool vtkSlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, 
 {
   if (!volume1 || !volume2)
   {
-    vtkGenericWarningMacro("vtkSlicerRtCommon::DoVolumeLatticesMatch: Invalid (nullptr) argument!");
+    vtkGenericWarningMacro("vtkSlicerRtCommon::DoVolumeLatticesMatch: Invalid (nullptr) argument");
     return false;
   }
 
@@ -200,7 +200,7 @@ bool vtkSlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, 
   vtkImageData* imageData2 = volume2->GetImageData();
   if (!imageData1 || !imageData2)
   {
-    vtkErrorWithObjectMacro(volume1, "vtkSlicerRtCommon::DoVolumeLatticesMatch: At least one of the input volume nodes does not have a valid image data!");
+    vtkErrorWithObjectMacro(volume1, "vtkSlicerRtCommon::DoVolumeLatticesMatch: At least one of the input volume nodes does not have a valid image data");
     return false;
   }
 
@@ -237,7 +237,7 @@ bool vtkSlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, 
     || dimensions1[1] != dimensions2[1]
     || dimensions1[2] != dimensions2[2] )
   {
-    vtkDebugWithObjectMacro(volume1, "vtkSlicerRtCommon::DoVolumeLatticesMatch: VTK image data dimensions differ!!");
+    vtkDebugWithObjectMacro(volume1, "vtkSlicerRtCommon::DoVolumeLatticesMatch: VTK image data dimensions differ!");
     return false;
   }
 
@@ -249,7 +249,7 @@ bool vtkSlicerRtCommon::DoVolumeLatticesMatch(vtkMRMLScalarVolumeNode* volume1, 
     || extent1[2] != extent2[2] || extent1[3] != extent2[3]
     || extent1[4] != extent2[4] || extent1[5] != extent2[5] )
   {
-    vtkDebugWithObjectMacro(volume1, "vtkSlicerRtCommon::DoVolumeLatticesMatch: VTK image data extents differ!!");
+    vtkDebugWithObjectMacro(volume1, "vtkSlicerRtCommon::DoVolumeLatticesMatch: VTK image data extents differ!");
     return false;
   }
 
@@ -360,12 +360,12 @@ bool vtkSlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(vtkMRMLScalarVol
 {
   if (!inVolumeNode || !inVolumeNode->GetImageData())
   {
-    vtkGenericWarningMacro("vtkSlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData: Invalid volume node!");
+    vtkGenericWarningMacro("vtkSlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData: Invalid volume node");
     return false;
   }
   if (!outImageData)
   {
-    vtkErrorWithObjectMacro(inVolumeNode, "ConvertVolumeNodeToVtkOrientedImageData: Invalid output oriented image data!");
+    vtkErrorWithObjectMacro(inVolumeNode, "ConvertVolumeNodeToVtkOrientedImageData: Invalid output oriented image data");
     return false;
   }
 
