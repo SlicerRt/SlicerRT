@@ -23,7 +23,6 @@
 // DicomSroImportExport includes
 #include "vtkSlicerDicomSroImportExportModuleLogic.h"
 #include "vtkSlicerDicomSroReader.h"
-#include "vtkDICOMImportInfo.h"
 
 // SlicerRT includes
 #include "vtkSlicerRtCommon.h"
@@ -53,6 +52,9 @@
 #include <vtkOrientedGridTransform.h>
 #include <vtkStringArray.h>
 
+// DICOMLib includes
+#include "vtkSlicerDICOMLoadable.h"
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomSroImportExportModuleLogic);
 
@@ -74,112 +76,112 @@ void vtkSlicerDicomSroImportExportModuleLogic::RegisterNodes()
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerDicomSroImportExportModuleLogic::Examine(vtkDICOMImportInfo *importInfo)
+void vtkSlicerDicomSroImportExportModuleLogic::ExamineForLoad(vtkStringArray* fileList, vtkCollection* loadables)
 {
-  importInfo->RemoveAllLoadables();
-
-  for (int fileListIndex=0; fileListIndex<importInfo->GetNumberOfFileLists(); fileListIndex++)
+  if (!fileList || !loadables)
   {
-    vtkStringArray *fileList=importInfo->GetFileList(fileListIndex);
-    for (int fileIndex=0; fileIndex<fileList->GetNumberOfValues(); fileIndex++)
+    return;
+  }
+  loadables->RemoveAllItems();
+
+  for (int fileIndex=0; fileIndex<fileList->GetNumberOfValues(); fileIndex++)
+  {
+    DcmFileFormat fileformat;
+
+    vtkStdString fileName=fileList->GetValue(fileIndex);
+    OFCondition result;
+    result = fileformat.loadFile(fileName.c_str(), EXS_Unknown);
+    if (!result.good())
     {
-      DcmFileFormat fileformat;
-
-      vtkStdString fileName=fileList->GetValue(fileIndex);
-      OFCondition result;
-      result = fileformat.loadFile(fileName.c_str(), EXS_Unknown);
-      if (!result.good())
-      {
-        continue; // Failed to parse this file, skip it
-      }
-      DcmDataset *dataset = fileformat.getDataset();
-      // Check SOP Class UID for one of the supported RT objects
-      OFString sopClass;
-      if (!dataset->findAndGetOFString(DCM_SOPClassUID, sopClass).good() || sopClass.empty())
-      {
-        continue; // Failed to parse this file, skip it
-      }    
-      
-      // DICOM parsing is successful, now check if the object is loadable 
-      std::string name;
-      std::string tooltip;
-      std::string warning;
-      bool selected=true;
-      double confidence=0.9; // Almost sure, it's not 1.0 to allow user modules to override this importer
-
-      OFString seriesNumber;
-      dataset->findAndGetOFString(DCM_SeriesNumber, seriesNumber);
-      if (!seriesNumber.empty())
-      {
-        name+=std::string(seriesNumber.c_str())+": ";
-      }
-
-      if (sopClass == UID_SpatialRegistrationStorage)
-      {
-        name+="SpatialReg";
-        OFString instanceNumber;
-        dataset->findAndGetOFString(DCM_InstanceNumber, instanceNumber);
-        OFString seriesDescription;
-        dataset->findAndGetOFString(DCM_SeriesDescription, seriesDescription);
-        if (!seriesDescription.empty())
-        {
-          name+=std::string(": ")+seriesDescription.c_str(); 
-        }
-        if (!instanceNumber.empty())
-        {
-          name+=std::string(" [")+instanceNumber.c_str()+"]"; 
-        }
-      }
-      else if (sopClass == UID_SpatialFiducialsStorage)
-      {
-        name+="SpatialFid";
-        OFString instanceNumber;
-        dataset->findAndGetOFString(DCM_InstanceNumber, instanceNumber);
-        OFString seriesDescription;
-        dataset->findAndGetOFString(DCM_SeriesDescription, seriesDescription);
-        if (!seriesDescription.empty())
-        {
-          name+=std::string(": ")+seriesDescription.c_str(); 
-        }
-        if (!instanceNumber.empty())
-        {
-          name+=std::string(" [")+instanceNumber.c_str()+"]"; 
-        }
-      }
-      else if (sopClass == UID_DeformableSpatialRegistrationStorage)
-      {
-        name+="DeformableReg";
-        OFString instanceNumber;
-        dataset->findAndGetOFString(DCM_InstanceNumber, instanceNumber);
-        OFString seriesDescription;
-        dataset->findAndGetOFString(DCM_SeriesDescription, seriesDescription);
-        if (!seriesDescription.empty())
-        {
-          name+=std::string(": ")+seriesDescription.c_str(); 
-        }
-        if (!instanceNumber.empty())
-        {
-          name+=std::string(" [")+instanceNumber.c_str()+"]"; 
-        }
-      }
-      else
-      {
-        continue; // not an registration object
-      }
-
-      // The object is stored in a single file
-      vtkNew<vtkStringArray> loadableFileList;
-      loadableFileList->InsertNextValue(fileName);
-     
-      importInfo->InsertNextLoadable(loadableFileList, name.c_str(), tooltip.c_str(), warning.c_str(), selected, confidence);
+      continue; // Failed to parse this file, skip it
     }
+    DcmDataset *dataset = fileformat.getDataset();
+    // Check SOP Class UID for one of the supported RT objects
+    OFString sopClass;
+    if (!dataset->findAndGetOFString(DCM_SOPClassUID, sopClass).good() || sopClass.empty())
+    {
+      continue; // Failed to parse this file, skip it
+    }    
+      
+    // DICOM parsing is successful, now check if the object is loadable 
+    std::string name;
+    double confidence=0.9; // Almost sure, it's not 1.0 to allow user modules to override this importer
+
+    OFString seriesNumber;
+    dataset->findAndGetOFString(DCM_SeriesNumber, seriesNumber);
+    if (!seriesNumber.empty())
+    {
+      name+=std::string(seriesNumber.c_str())+": ";
+    }
+
+    if (sopClass == UID_SpatialRegistrationStorage)
+    {
+      name+="SpatialReg";
+      OFString instanceNumber;
+      dataset->findAndGetOFString(DCM_InstanceNumber, instanceNumber);
+      OFString seriesDescription;
+      dataset->findAndGetOFString(DCM_SeriesDescription, seriesDescription);
+      if (!seriesDescription.empty())
+      {
+        name+=std::string(": ")+seriesDescription.c_str(); 
+      }
+      if (!instanceNumber.empty())
+      {
+        name+=std::string(" [")+instanceNumber.c_str()+"]"; 
+      }
+    }
+    else if (sopClass == UID_SpatialFiducialsStorage)
+    {
+      name+="SpatialFid";
+      OFString instanceNumber;
+      dataset->findAndGetOFString(DCM_InstanceNumber, instanceNumber);
+      OFString seriesDescription;
+      dataset->findAndGetOFString(DCM_SeriesDescription, seriesDescription);
+      if (!seriesDescription.empty())
+      {
+        name+=std::string(": ")+seriesDescription.c_str(); 
+      }
+      if (!instanceNumber.empty())
+      {
+        name+=std::string(" [")+instanceNumber.c_str()+"]"; 
+      }
+    }
+    else if (sopClass == UID_DeformableSpatialRegistrationStorage)
+    {
+      name+="DeformableReg";
+      OFString instanceNumber;
+      dataset->findAndGetOFString(DCM_InstanceNumber, instanceNumber);
+      OFString seriesDescription;
+      dataset->findAndGetOFString(DCM_SeriesDescription, seriesDescription);
+      if (!seriesDescription.empty())
+      {
+        name+=std::string(": ")+seriesDescription.c_str(); 
+      }
+      if (!instanceNumber.empty())
+      {
+        name+=std::string(" [")+instanceNumber.c_str()+"]"; 
+      }
+    }
+    else
+    {
+      continue; // not an registration object
+    }
+
+    // The file is a loadable RT object, create and set up loadable
+    vtkNew<vtkSlicerDICOMLoadable> loadable;
+    loadable->SetName(name.c_str());
+    loadable->AddFile(fileName.c_str());
+    loadable->SetConfidence(confidence);
+    loadable->SetSelected(true);
+    std::vector<OFString>::iterator uidIt;
+    loadables->AddItem(loadable);
   }
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerDicomSroImportExportModuleLogic::LoadDicomSro(vtkDICOMImportInfo *loadInfo)
+bool vtkSlicerDicomSroImportExportModuleLogic::LoadDicomSro(vtkSlicerDICOMLoadable* loadable)
 {
-  if (!loadInfo || !loadInfo->GetLoadableFiles(0) || loadInfo->GetLoadableFiles(0)->GetNumberOfValues() < 1)
+  if (!loadable || loadable->GetFiles()->GetNumberOfValues() < 1 || loadable->GetConfidence() == 0.0)
   {
     vtkErrorMacro("LoadDicomSro: Unable to load DICOM REG data due to invalid loadable information");
     return false;
@@ -191,10 +193,12 @@ bool vtkSlicerDicomSroImportExportModuleLogic::LoadDicomSro(vtkDICOMImportInfo *
     return false;
   }
 
-  vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
+  const char* firstFileName = loadable->GetFiles()->GetValue(0);
+
+  vtkDebugMacro("Loading series '" << loadable->GetName() << "' from file '" << firstFileName << "'");
 
   vtkNew<vtkSlicerDicomSroReader> sroReader;
-  sroReader->SetFileName(firstFileNameStr.c_str());
+  sroReader->SetFileName(firstFileName);
   sroReader->Update();
 
   vtkMRMLLinearTransformNode* loadedLinearTransformNode = nullptr;
@@ -204,7 +208,7 @@ bool vtkSlicerDicomSroImportExportModuleLogic::LoadDicomSro(vtkDICOMImportInfo *
   // Spatial registration
   if (sroReader->GetLoadSpatialRegistrationSuccessful())
   {
-    loadedLinearTransformNode = this->LoadSpatialRegistration(sroReader, loadInfo);
+    loadedLinearTransformNode = this->LoadSpatialRegistration(sroReader, loadable);
     if (loadedLinearTransformNode)
     {
       loadedTransformNode = loadedLinearTransformNode;
@@ -213,7 +217,7 @@ bool vtkSlicerDicomSroImportExportModuleLogic::LoadDicomSro(vtkDICOMImportInfo *
   // Deformable spatial registration
   if (sroReader->GetLoadDeformableSpatialRegistrationSuccessful())
   {
-    loadedGridTransformNode = this->LoadDeformableSpatialRegistration(sroReader, loadInfo);
+    loadedGridTransformNode = this->LoadDeformableSpatialRegistration(sroReader, loadable);
     if (loadedGridTransformNode)
     {
       loadedTransformNode = loadedGridTransformNode;
@@ -257,11 +261,24 @@ bool vtkSlicerDicomSroImportExportModuleLogic::LoadDicomSro(vtkDICOMImportInfo *
     vtkIdType refStudyItemId = shNode->GetItemAncestorAtLevel(refSeriesItemId, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
     if (refStudyItemId != studyItemId)
     {
+      // Study of moving image
       vtkMRMLScalarVolumeNode* refVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(shNode->GetItemDataNode(refSeriesItemId));
       if (refVolumeNode)
       {
+        // Apply transform on moving image
         refVolumeNode->SetAndObserveTransformNodeID(loadedTransformNode->GetID());
-        break;
+        // Set node reference indicating moving image
+        loadedTransformNode->AddNodeReferenceID(vtkMRMLTransformNode::GetMovingNodeReferenceRole(), refVolumeNode->GetID());
+      }
+    }
+    else
+    {
+      // Study of fixed image
+      vtkMRMLScalarVolumeNode* refVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(shNode->GetItemDataNode(refSeriesItemId));
+      if (refVolumeNode)
+      {
+        // Set node reference indicating fixed image
+        loadedTransformNode->AddNodeReferenceID(vtkMRMLTransformNode::GetFixedNodeReferenceRole(), refVolumeNode->GetID());
       }
     }
   }
@@ -270,17 +287,16 @@ bool vtkSlicerDicomSroImportExportModuleLogic::LoadDicomSro(vtkDICOMImportInfo *
   //TODO: Function not implemented yet (also take into account for return value)
   //if (spatialRegistrationReader->GetLoadSpatialFiducialsSuccessful())
   //{
-  //  loadSuccessful = this->LoadSpatialFiducials(spatialRegistrationReader, loadInfo);
+  //  loadSuccessful = this->LoadSpatialFiducials(spatialRegistrationReader, loadable);
   //}
 
   return (loadedTransformNode != nullptr);
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkSlicerDicomSroImportExportModuleLogic::LoadSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo *loadInfo)
+vtkMRMLLinearTransformNode* vtkSlicerDicomSroImportExportModuleLogic::LoadSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkSlicerDICOMLoadable* loadable)
 {
-  vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
-  const char* seriesName = loadInfo->GetLoadableName(0);
+  const char* seriesName = loadable->GetName();
 
   vtkMatrix4x4* regMatrix = nullptr;
   regMatrix = regReader->GetSpatialRegistrationMatrix();
@@ -302,20 +318,10 @@ vtkMRMLLinearTransformNode* vtkSlicerDicomSroImportExportModuleLogic::LoadSpatia
   return spatialTransformNode;
 }
 
-// TODO: not implemented yet...
 //---------------------------------------------------------------------------
-bool vtkSlicerDicomSroImportExportModuleLogic::LoadSpatialFiducials(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo *loadInfo)
+vtkMRMLGridTransformNode* vtkSlicerDicomSroImportExportModuleLogic::LoadDeformableSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkSlicerDICOMLoadable* loadable)
 {
-  UNUSED_VARIABLE(regReader);
-  UNUSED_VARIABLE(loadInfo);
-  return false;
-}
-
-//---------------------------------------------------------------------------
-vtkMRMLGridTransformNode* vtkSlicerDicomSroImportExportModuleLogic::LoadDeformableSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo *loadInfo)
-{
-  vtkStdString firstFileNameStr = loadInfo->GetLoadableFiles(0)->GetValue(0);
-  const char* seriesName = loadInfo->GetLoadableName(0);
+  const char* seriesName = loadable->GetName();
 
   // Post deformation node
   vtkMatrix4x4* postDeformationMatrix = nullptr;
@@ -365,4 +371,13 @@ vtkMRMLGridTransformNode* vtkSlicerDicomSroImportExportModuleLogic::LoadDeformab
   this->GetMRMLScene()->AddNode(deformableRegistrationGridTransformNode);
 
   return deformableRegistrationGridTransformNode;
+}
+
+// TODO: not implemented yet...
+//---------------------------------------------------------------------------
+bool vtkSlicerDicomSroImportExportModuleLogic::LoadSpatialFiducials(vtkSlicerDicomSroReader* regReader, vtkSlicerDICOMLoadable* loadable)
+{
+  UNUSED_VARIABLE(regReader);
+  UNUSED_VARIABLE(loadable);
+  return false;
 }

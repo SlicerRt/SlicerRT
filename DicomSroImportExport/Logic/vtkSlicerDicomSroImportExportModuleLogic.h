@@ -35,11 +35,13 @@
 
 #include "vtkSlicerDicomSroImportExportModuleLogicExport.h"
 
-class vtkDICOMImportInfo;
+class vtkCollection;
 class vtkMatrix4x4;
 class vtkMRMLGridTransformNode;
 class vtkMRMLLinearTransformNode;
+class vtkSlicerDICOMLoadable;
 class vtkSlicerDicomSroReader;
+class vtkStringArray;
 
 /// \ingroup SlicerRt_DicomSroImportLogicExport
 class VTK_SLICER_DICOMSROIMPORTEXPORT_MODULE_LOGIC_EXPORT vtkSlicerDicomSroImportExportModuleLogic :
@@ -51,11 +53,11 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Examine a list of file lists and determine what objects can be loaded from them
-  void Examine(vtkDICOMImportInfo *importInfo);
+  void ExamineForLoad(vtkStringArray* fileList, vtkCollection* loadables);
 
   /// Load DICOM SRO series from file name
   /// \return True if loading successful
-  bool LoadDicomSro(vtkDICOMImportInfo *loadInfo);
+  bool LoadDicomSro(vtkSlicerDICOMLoadable* loadable);
 
 protected:
   /// Register MRML Node classes to Scene. Gets called automatically when the MRMLScene is attached to this logic class.
@@ -63,16 +65,16 @@ protected:
 
   /// Load DICOM spatial registration objects into the MRML scene
   /// \return Loaded transform node
-  vtkMRMLLinearTransformNode* LoadSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo* loadInfo);
+  vtkMRMLLinearTransformNode* LoadSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkSlicerDICOMLoadable* loadable);
+
+  /// Load DICOM deformable spatial registration objects into the MRML scene
+  /// \return Loaded transform node
+  vtkMRMLGridTransformNode* LoadDeformableSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkSlicerDICOMLoadable* loadable);
 
   /// Load DICOM spatial fiducial objects into the MRML scene
   /// NOTE: Not yet implemented
   /// \return Success flag
-  bool LoadSpatialFiducials(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo* loadInfo);
-
-  /// Load DICOM deformable spatial registration objects into the MRML scene
-  /// \return Loaded transform node
-  vtkMRMLGridTransformNode* LoadDeformableSpatialRegistration(vtkSlicerDicomSroReader* regReader, vtkDICOMImportInfo* loadInfo);
+  bool LoadSpatialFiducials(vtkSlicerDicomSroReader* regReader, vtkSlicerDICOMLoadable* loadable);
 
 protected:
   vtkSlicerDicomSroImportExportModuleLogic();

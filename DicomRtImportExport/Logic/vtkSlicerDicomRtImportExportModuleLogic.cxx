@@ -97,18 +97,18 @@
 #include <vtkMRMLMarkupsDisplayNode.h>
 
 // VTK includes
-#include <vtkSmartPointer.h>
-#include <vtkPolyData.h>
+#include <vtkCutter.h>
+#include <vtkGeneralTransform.h>
+#include <vtkImageCast.h>
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
-#include <vtkImageCast.h>
-#include <vtkStringArray.h>
 #include <vtkObjectFactory.h>
-#include <vtkGeneralTransform.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkCutter.h>
-#include <vtkStripper.h>
 #include <vtkPlane.h>
+#include <vtkPolyData.h>
+#include <vtkSmartPointer.h>
+#include <vtkStringArray.h>
+#include <vtkStripper.h>
+#include <vtkTransformPolyDataFilter.h>
 
 // ITK includes
 #include <itkImage.h>
@@ -1692,7 +1692,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::ExamineForLoad(vtkStringArray* fil
     }
 
     // The file is a loadable RT object, create and set up loadable
-    vtkSmartPointer<vtkSlicerDICOMLoadable> loadable = vtkSmartPointer<vtkSlicerDICOMLoadable>::New();
+    vtkNew<vtkSlicerDICOMLoadable> loadable;
     loadable->SetName(name.c_str());
     loadable->AddFile(fileName.c_str());
     loadable->SetConfidence(1.0);
@@ -1719,7 +1719,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadDicomRT(vtkSlicerDICOMLoadable
 
   const char* firstFileName = loadable->GetFiles()->GetValue(0);
 
-  std::cout << "Loading series '" << loadable->GetName() << "' from file '" << firstFileName << "'" << std::endl;
+  vtkDebugMacro("Loading series '" << loadable->GetName() << "' from file '" << firstFileName << "'");
 
   vtkSmartPointer<vtkSlicerDicomRtReader> rtReader = vtkSmartPointer<vtkSlicerDicomRtReader>::New();
   rtReader->SetFileName(firstFileName);

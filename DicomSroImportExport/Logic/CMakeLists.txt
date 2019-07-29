@@ -12,8 +12,6 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}ModuleLogic.cxx
   vtkSlicer${MODULE_NAME}ModuleLogic.h
-  vtkDICOMImportInfo.cxx
-  vtkDICOMImportInfo.h
   vtkSlicerDicomSroReader.cxx
   vtkSlicerDicomSroReader.h
   )

@@ -26,35 +26,29 @@ class DicomSroImportExportPluginClass(DICOMPlugin):
     corresponding to ways of interpreting the
     fileLists parameter.
     """
-    # Export file lists to DicomExamineInfo
-    import vtkSlicerDicomSroImportExportModuleLogicPython
-    examineInfo = vtkSlicerDicomSroImportExportModuleLogicPython.vtkDICOMImportInfo()
-    for files in fileLists:
-      fileListIndex = examineInfo.InsertNextFileList()
-      fileList = examineInfo.GetFileList(fileListIndex) # vtk.vtkStringArray()
-      for f in files:
-        fileList.InsertNextValue(f)
-
-    # Examine files
-    logic = slicer.vtkSlicerDicomSroImportModuleLogic()
-    logic.Examine(examineInfo)
-
-    # Import loadables from DicomExamineInfo
+    # Create loadables for each file list
     loadables = []
-    for loadableIndex in range(examineInfo.GetNumberOfLoadables()):
-      loadable = slicer.qSlicerDICOMLoadable()
-      loadableFilesVtk = examineInfo.GetLoadableFiles(loadableIndex)
-      loadableFilesPy = []
-      for fileIndex in range(loadableFilesVtk.GetNumberOfValues()):
-        loadableFilesPy.append(loadableFilesVtk.GetValue(fileIndex))
-      loadable.files = loadableFilesPy
+    for fileList in fileLists: # Each file list corresponds to one series, so do loadables
+      # Convert file list to VTK object to be able to pass it for examining
+      # (VTK class cannot have Qt object as argument, otherwise it is not python wrapped)
+      vtkFileList = vtk.vtkStringArray()
+      for file in fileList:
+        vtkFileList.InsertNextValue(slicer.util.toVTKString(file))
 
-      name = examineInfo.GetLoadableName(loadableIndex)
-      loadable.name = name
-      loadable.tooltip = examineInfo.GetLoadableTooltip(loadableIndex)
-      loadable.selected = examineInfo.GetLoadableSelected(loadableIndex)
-      loadable.confidence = examineInfo.GetLoadableConfidence(loadableIndex)
-      loadables.append(loadable)
+      # Examine files
+      loadablesCollection = vtk.vtkCollection()
+      slicer.modules.dicomsroimportexport.logic().ExamineForLoad(vtkFileList, loadablesCollection)
+
+      for loadableIndex in range(0,loadablesCollection.GetNumberOfItems()):
+        vtkLoadable = loadablesCollection.GetItemAsObject(loadableIndex)
+        # Create Qt loadable if confidence is greater than 0
+        if vtkLoadable.GetConfidence() > 0:
+          # Convert to Qt loadable to pass it back
+          qtLoadable = slicer.qSlicerDICOMLoadable()
+          qtLoadable.copyFromVtkLoadable(vtkLoadable)
+          qtLoadable.tooltip = 'Valid REG object in selection'
+          qtLoadable.selected = True
+          loadables.append(qtLoadable)
 
     return loadables
 
@@ -64,19 +58,12 @@ class DicomSroImportExportPluginClass(DICOMPlugin):
     """
     success = False
 
-    # Export file lists to DicomExamineInfo
-    import vtkSlicerDicomSroImportExportModuleLogicPython
-    loadInfo = vtkSlicerDicomSroImportExportModuleLogicPython.vtkDICOMImportInfo()
-    fileListIndex = loadInfo.InsertNextFileList()
-    fileList = loadInfo.GetFileList(fileListIndex) # vtk.vtkStringArray()
-    for f in loadable.files:
-      fileList.InsertNextValue(f)
-    loadInfo.InsertNextLoadable(fileList, loadable.name, loadable.tooltip, loadable.warning, loadable.selected, loadable.confidence)
-
-    logic = vtkSlicerDicomSroImportExportModuleLogicPython.vtkSlicerDicomSroImportExportModuleLogic()
-    logic.SetMRMLScene(slicer.mrmlScene)
-    if logic.LoadDicomSro(loadInfo):
-      success = True
+    if len(loadable.files) > 1:
+      logging.error('REG objects must be contained by a single file')
+    vtkLoadable = slicer.vtkSlicerDICOMLoadable()
+    loadable.copyToVtkLoadable(vtkLoadable)
+    success = slicer.modules.dicomsroimportexport.logic().LoadDicomSro(vtkLoadable)
+    return success
 
     return success
 
