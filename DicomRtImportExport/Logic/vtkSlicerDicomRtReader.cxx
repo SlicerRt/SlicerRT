@@ -970,6 +970,13 @@ vtkSlicerDicomRtReader::vtkInternal::RoiEntry* vtkSlicerDicomRtReader::vtkIntern
     // Get contour point data
     OFVector<vtkTypeFloat64> contourData_LPS;
     contourItem.getContourData(contourData_LPS);
+    if (contourData_LPS.size() != numberOfPoints * 3)
+    {
+      vtkErrorWithObjectMacro(this->External, "LoadContour: Contour sequence object item is invalid: "
+        << " number of contour points is " << numberOfPoints << " therefore expected "
+        << numberOfPoints * 3 << " values in contour data but only found " << contourData_LPS.size());
+      continue;
+    }
 
     unsigned int contourIndex = currentRoiContourCells->InsertNextCell(numberOfPoints+1);
     for (int k=0; k<numberOfPoints; k++)
