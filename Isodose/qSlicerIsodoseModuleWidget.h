@@ -71,7 +71,7 @@ public slots:
 
 protected slots:
   /// Slot handling change of dose volume node
-  void doseVolumeNodeChanged(vtkMRMLNode*);
+  void setDoseVolumeNode(vtkMRMLNode*);
 
   /// Slot handling change of show dose only checkbox
   void showDoseVolumesOnlyCheckboxChanged(int);

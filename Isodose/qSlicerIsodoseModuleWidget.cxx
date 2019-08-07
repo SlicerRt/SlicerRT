@@ -290,24 +290,21 @@ void qSlicerIsodoseModuleWidget::updateWidgetFromMRML()
     if (paramNode->GetDoseVolumeNode())
     {
       d->MRMLNodeComboBox_DoseVolume->setCurrentNode(paramNode->GetDoseVolumeNode());
-
-      vtkMRMLColorTableNode* colorTableNode = paramNode->GetColorTableNode();       
-      if (!colorTableNode)
-      {
-        qCritical() << Q_FUNC_INFO << ": Invalid color table node";
-        return;
-      }
-      d->spinBox_NumberOfLevels->setValue(colorTableNode->GetNumberOfColors());
     }
     else
     {
-      this->doseVolumeNodeChanged(d->MRMLNodeComboBox_DoseVolume->currentNode());
+      this->setDoseVolumeNode(d->MRMLNodeComboBox_DoseVolume->currentNode());
     }
 
     this->updateScalarBarsFromSelectedColorTable();
 
     d->checkBox_Isoline->setChecked(paramNode->GetShowIsodoseLines());
     d->checkBox_Isosurface->setChecked(paramNode->GetShowIsodoseSurfaces());
+
+    d->checkBox_ScalarBar->setChecked(paramNode->GetShowScalarBar());
+    d->checkBox_ScalarBar2D->setChecked(paramNode->GetShowScalarBar2D());
+
+    d->checkBox_ShowDoseVolumesOnly->setChecked(paramNode->GetShowDoseVolumesOnly());
   }
 }
 
@@ -329,7 +326,7 @@ void qSlicerIsodoseModuleWidget::setup()
 
   // Make connections
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT( setParameterNode(vtkMRMLNode*) ) );
-  connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( doseVolumeNodeChanged(vtkMRMLNode*) ) );
+  connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL( currentNodeChanged(vtkMRMLNode*) ), this, SLOT( setDoseVolumeNode(vtkMRMLNode*) ) );
   connect( d->spinBox_NumberOfLevels, SIGNAL(valueChanged(int)), this, SLOT(setNumberOfLevels(int)));
 
   connect( d->checkBox_ShowDoseVolumesOnly, SIGNAL( stateChanged(int) ), this, SLOT( showDoseVolumesOnlyCheckboxChanged(int) ) );
@@ -398,10 +395,11 @@ void qSlicerIsodoseModuleWidget::setParameterNode(vtkMRMLNode *node)
   qvtkReconnect( paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()) );
 
   this->updateWidgetFromMRML();
+  this->updateButtonsState();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerIsodoseModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* node)
+void qSlicerIsodoseModuleWidget::setDoseVolumeNode(vtkMRMLNode* node)
 {
   Q_D(qSlicerIsodoseModuleWidget);
 
@@ -467,11 +465,6 @@ void qSlicerIsodoseModuleWidget::doseVolumeNodeChanged(vtkMRMLNode* node)
 void qSlicerIsodoseModuleWidget::setNumberOfLevels(int newNumber)
 {
   Q_D(qSlicerIsodoseModuleWidget);
-
-  //if (!d->spinBox_NumberOfLevels->isEnabled()) //TODO: Needed?
-  //{
-  //  return;
-  //}
 
   vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
   if (!paramNode)
@@ -651,7 +644,12 @@ void qSlicerIsodoseModuleWidget::setScalarBarVisibility(bool visible)
     qCritical() << Q_FUNC_INFO << ": Invalid scalar bar widget";
     return;
   }
-  if (visible) //TODO:
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetShowScalarBar(visible);
+  paramNode->DisableModifiedEventOff();
+
+  if (visible)
   {
     d->ScalarBarActor->UseAnnotationAsLabelOn();
   }
@@ -689,7 +687,12 @@ void qSlicerIsodoseModuleWidget::setScalarBar2DVisibility(bool visible)
     qCritical() << Q_FUNC_INFO << ": Invalid scalar bar widget";
     return;
   }
-  if (visible) //TODO:
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetShowScalarBar2D(visible);
+  paramNode->DisableModifiedEventOff();
+
+  if (visible)
   {
     d->ScalarBarActor2DRed->UseAnnotationAsLabelOn();
     d->ScalarBarActor2DYellow->UseAnnotationAsLabelOn();

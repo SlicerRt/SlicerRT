@@ -69,20 +69,25 @@ public:
   /// Set and observe color table node (associated to dose volume node)
   void SetAndObserveColorTableNode(vtkMRMLColorTableNode* node);
 
-  /// Get/Set show Gy for D metrics checkbox state
+  /// Get/Set show isodose lines checkbox state
   vtkGetMacro(ShowIsodoseLines, bool);
   vtkSetMacro(ShowIsodoseLines, bool);
   vtkBooleanMacro(ShowIsodoseLines, bool);
 
-  /// Get/Set Save labelmaps checkbox state
+  /// Get/Set show isodose surfaces checkbox state
   vtkGetMacro(ShowIsodoseSurfaces, bool);
   vtkSetMacro(ShowIsodoseSurfaces, bool);
   vtkBooleanMacro(ShowIsodoseSurfaces, bool);
 
-  /// Get/Set Save labelmaps checkbox state
+  /// Get/Set show scalar bar (3D) checkbox state
   vtkGetMacro(ShowScalarBar, bool);
   vtkSetMacro(ShowScalarBar, bool);
   vtkBooleanMacro(ShowScalarBar, bool);
+
+  /// Get/Set show scalar bar 3D checkbox state
+  vtkGetMacro(ShowScalarBar2D, bool);
+  vtkSetMacro(ShowScalarBar2D, bool);
+  vtkBooleanMacro(ShowScalarBar2D, bool);
 
   /// Get/Set show dose volumes only checkbox state
   vtkGetMacro(ShowDoseVolumesOnly, bool);
@@ -104,6 +109,9 @@ protected:
 
   /// State of Show scalar bar checkbox
   bool ShowScalarBar;
+
+  /// State of Show scalar bar 2D checkbox
+  bool ShowScalarBar2D;
 
   /// State of Show dose volumes only checkbox
   bool ShowDoseVolumesOnly;

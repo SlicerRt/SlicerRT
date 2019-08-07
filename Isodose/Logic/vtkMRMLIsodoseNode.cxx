@@ -48,6 +48,7 @@ vtkMRMLIsodoseNode::vtkMRMLIsodoseNode()
   this->ShowIsodoseLines = true;
   this->ShowIsodoseSurfaces = true;
   this->ShowScalarBar = false;
+  this->ShowScalarBar2D = false;
   this->ShowDoseVolumesOnly = true;
 
   this->HideFromEditors = false;
@@ -66,6 +67,7 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLBooleanMacro(ShowIsodoseLines, ShowIsodoseLines);
   vtkMRMLWriteXMLBooleanMacro(ShowIsodoseSurfaces, ShowIsodoseSurfaces);
   vtkMRMLWriteXMLBooleanMacro(ShowScalarBar, ShowScalarBar);
+  vtkMRMLWriteXMLBooleanMacro(ShowScalarBar2D, ShowScalarBar2D);
   vtkMRMLWriteXMLBooleanMacro(ShowDoseVolumesOnly, ShowDoseVolumesOnly);
   vtkMRMLWriteXMLEndMacro(); 
 }
@@ -80,6 +82,7 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLBooleanMacro(ShowIsodoseLines, ShowIsodoseLines);
   vtkMRMLReadXMLBooleanMacro(ShowIsodoseSurfaces, ShowIsodoseSurfaces);
   vtkMRMLReadXMLBooleanMacro(ShowScalarBar, ShowScalarBar);
+  vtkMRMLReadXMLBooleanMacro(ShowScalarBar2D, ShowScalarBar2D);
   vtkMRMLReadXMLBooleanMacro(ShowDoseVolumesOnly, ShowDoseVolumesOnly);
   vtkMRMLReadXMLEndMacro();
 
@@ -99,6 +102,7 @@ void vtkMRMLIsodoseNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyBooleanMacro(ShowIsodoseLines);
   vtkMRMLCopyBooleanMacro(ShowIsodoseSurfaces);
   vtkMRMLCopyBooleanMacro(ShowScalarBar);
+  vtkMRMLCopyBooleanMacro(ShowScalarBar2D);
   vtkMRMLCopyBooleanMacro(ShowDoseVolumesOnly);
   vtkMRMLCopyEndMacro();
 
@@ -114,6 +118,7 @@ void vtkMRMLIsodoseNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintBooleanMacro(ShowIsodoseLines);
   vtkMRMLPrintBooleanMacro(ShowIsodoseSurfaces);
   vtkMRMLPrintBooleanMacro(ShowScalarBar);
+  vtkMRMLPrintBooleanMacro(ShowScalarBar2D);
   vtkMRMLPrintBooleanMacro(ShowDoseVolumesOnly);
   vtkMRMLPrintEndMacro();
 }
