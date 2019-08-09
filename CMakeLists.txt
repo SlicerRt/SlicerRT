@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 3.5)
 set(EXTENSION_NAME SlicerRT)
 
 # ------------------------------------------------------------------------
-set(SLICERRT_VERSION_MAJOR "0")
-set(SLICERRT_VERSION_MINOR "18")
+set(SLICERRT_VERSION_MAJOR "1")
+set(SLICERRT_VERSION_MINOR "0")
 set(SLICERRT_VERSION_PATCH "0")
 set(SLICERRT_VERSION ${SLICERRT_VERSION_MAJOR}.${SLICERRT_VERSION_MINOR}.${SLICERRT_VERSION_PATCH})
 
