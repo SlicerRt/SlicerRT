@@ -215,13 +215,18 @@ bool vtkSlicerDicomSroImportExportModuleLogic::LoadDicomSro(vtkSlicerDICOMLoadab
     }
   }
   // Deformable spatial registration
-  if (sroReader->GetLoadDeformableSpatialRegistrationSuccessful())
+  else if (sroReader->GetLoadDeformableSpatialRegistrationSuccessful())
   {
     loadedGridTransformNode = this->LoadDeformableSpatialRegistration(sroReader, loadable);
     if (loadedGridTransformNode)
     {
       loadedTransformNode = loadedGridTransformNode;
     }
+  }
+  else
+  {
+    vtkErrorMacro("Failed to load DICOM registration object from file " << (firstFileName ? firstFileName : "(null)"));
+    return false;
   }
 
   // Setup subject hierarchy entry

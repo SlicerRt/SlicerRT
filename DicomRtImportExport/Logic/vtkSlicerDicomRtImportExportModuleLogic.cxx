@@ -1183,7 +1183,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtImage(vtkSlicer
   // Set RT image specific attributes
   shNode->SetItemAttribute(seriesShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME, "1");
   shNode->SetItemAttribute(seriesShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(),
-    rtReader->GetRTImageReferencedRTPlanSOPInstanceUID());
+    (rtReader->GetRTImageReferencedRTPlanSOPInstanceUID() ? rtReader->GetRTImageReferencedRTPlanSOPInstanceUID() : "") );
 
   std::stringstream radiationMachineSadStream;
   radiationMachineSadStream << rtReader->GetRadiationMachineSAD();

@@ -683,4 +683,5 @@ void vtkSlicerDicomSroReader::LoadSpatialFiducials(DcmDataset* dataset)
 {
   UNUSED_VARIABLE(dataset);
   this->LoadSpatialFiducialsSuccessful = false;
+  vtkErrorMacro("LoadSpatialFiducials: Not yet implemented");
 }
