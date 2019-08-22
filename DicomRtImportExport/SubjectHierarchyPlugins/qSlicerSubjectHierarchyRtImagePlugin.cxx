@@ -235,7 +235,7 @@ int qSlicerSubjectHierarchyRtImagePlugin::getDisplayVisibility(vtkIdType itemID)
         associatedVolumeNode->GetNodeReference(vtkMRMLPlanarImageNode::PLANARIMAGE_DISPLAYED_MODEL_REFERENCE_ROLE.c_str()) );
       if (!modelNode)
       {
-        qCritical() << Q_FUNC_INFO << ": No displayed model found for planar image '" << associatedVolumeNode->GetName() << "'!";
+        // Happens a lot when setting attributes while loading before the RT image is properly set up
         return -1;
       }
       return modelNode->GetDisplayVisibility();

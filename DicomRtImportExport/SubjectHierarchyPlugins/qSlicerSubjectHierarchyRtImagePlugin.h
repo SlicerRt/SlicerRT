@@ -52,24 +52,24 @@ public:
 
   /// Get role that the plugin assigns to the subject hierarchy item.
   ///   Each plugin should provide only one role.
-  Q_INVOKABLE virtual const QString roleForPlugin()const;
+  Q_INVOKABLE const QString roleForPlugin()const override;
 
   /// Get icon of an owned subject hierarchy item
   /// \return Icon to set, empty icon if nothing to set
   QIcon icon(vtkIdType itemID) override;
 
   /// Get visibility icon for a visibility state
-  Q_INVOKABLE virtual QIcon visibilityIcon(int visible);
+  Q_INVOKABLE QIcon visibilityIcon(int visible) override;
 
   /// Open module belonging to item and set inputs in opened module
-  Q_INVOKABLE virtual void editProperties(vtkIdType itemID);
+  Q_INVOKABLE void editProperties(vtkIdType itemID) override;
 
   /// Set display visibility of a owned subject hierarchy item
-  Q_INVOKABLE virtual void setDisplayVisibility(vtkIdType itemID, int visible);
+  Q_INVOKABLE void setDisplayVisibility(vtkIdType itemID, int visible) override;
 
   /// Get display visibility of a owned subject hierarchy item
   /// \return Display visibility (0: hidden, 1: shown, 2: partially shown)
-  Q_INVOKABLE virtual int getDisplayVisibility(vtkIdType itemID)const;
+  Q_INVOKABLE int getDisplayVisibility(vtkIdType itemID)const override;
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyRtImagePluginPrivate> d_ptr;

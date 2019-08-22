@@ -225,24 +225,20 @@ void vtkSlicerPlanarImageModuleLogic::ComputeImagePlaneCorners(vtkMRMLScalarVolu
   }
 
   // Assemble image plane to world transform
-  vtkSmartPointer<vtkTransform> planarImageParentTransform = vtkSmartPointer<vtkTransform>::New();
-  planarImageParentTransform->Identity();
+  vtkNew<vtkMatrix4x4> planarImageParentTransformMatrix;
   if (planarImageVolumeNode->GetParentTransformNode())
   {
-    vtkSmartPointer<vtkMatrix4x4> planarImageParentTransformMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
     planarImageVolumeNode->GetParentTransformNode()->GetMatrixTransformToWorld(planarImageParentTransformMatrix);
-    planarImageParentTransform->SetMatrix(planarImageParentTransformMatrix);
   }
 
-  vtkSmartPointer<vtkTransform> planarImageIjkToRasTransform = vtkSmartPointer<vtkTransform>::New();
-  planarImageIjkToRasTransform->Identity();
-  planarImageVolumeNode->GetIJKToRASMatrix( planarImageIjkToRasTransform->GetMatrix() );
+  vtkNew<vtkMatrix4x4> planarImageIjkToRasTransformMatrix;
+  planarImageVolumeNode->GetIJKToRASMatrix(planarImageIjkToRasTransformMatrix);
 
-  vtkSmartPointer<vtkTransform> planarImageIjkToWorldTransform = vtkSmartPointer<vtkTransform>::New();
+  vtkNew<vtkTransform> planarImageIjkToWorldTransform;
   planarImageIjkToWorldTransform->Identity();
   planarImageIjkToWorldTransform->PostMultiply();
-  planarImageIjkToWorldTransform->Concatenate(planarImageParentTransform);
-  planarImageIjkToWorldTransform->Concatenate(planarImageIjkToRasTransform);
+  planarImageIjkToWorldTransform->Concatenate(planarImageParentTransformMatrix);
+  planarImageIjkToWorldTransform->Concatenate(planarImageIjkToRasTransformMatrix);
 
   // Four corners of the image in volume IJK coordinate system.
   double point1Image[4] = { 0.0,             0.0,             0.0 };
