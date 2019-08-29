@@ -121,22 +121,22 @@ main (int argc, char * argv [])
 
   /* Sphere options */
   if (plmslc_spherecenter.size() >= 3) {
-    sm_parms.sphere_center[0] = plmslc_spherecenter[0];
-    sm_parms.sphere_center[1] = plmslc_spherecenter[1];
-    sm_parms.sphere_center[2] = plmslc_spherecenter[2];
+    sm_parms.center[0] = plmslc_spherecenter[0];
+    sm_parms.center[1] = plmslc_spherecenter[1];
+    sm_parms.center[2] = plmslc_spherecenter[2];
   } else if (plmslc_spherecenter.size() >= 1) {
-    sm_parms.sphere_center[0] = plmslc_spherecenter[0];
-    sm_parms.sphere_center[1] = plmslc_spherecenter[0];
-    sm_parms.sphere_center[2] = plmslc_spherecenter[0];
+    sm_parms.center[0] = plmslc_spherecenter[0];
+    sm_parms.center[1] = plmslc_spherecenter[0];
+    sm_parms.center[2] = plmslc_spherecenter[0];
   }
   if (plmslc_spheresize.size() >= 3) {
-    sm_parms.sphere_radius[0] = plmslc_spheresize[0];
-    sm_parms.sphere_radius[1] = plmslc_spheresize[1];
-    sm_parms.sphere_radius[2] = plmslc_spheresize[2];
+    sm_parms.radius[0] = plmslc_spheresize[0];
+    sm_parms.radius[1] = plmslc_spheresize[1];
+    sm_parms.radius[2] = plmslc_spheresize[2];
   } else if (plmslc_spheresize.size() >= 1) {
-    sm_parms.sphere_radius[0] = plmslc_spheresize[0];
-    sm_parms.sphere_radius[1] = plmslc_spheresize[0];
-    sm_parms.sphere_radius[2] = plmslc_spheresize[0];
+    sm_parms.radius[0] = plmslc_spheresize[0];
+    sm_parms.radius[1] = plmslc_spheresize[0];
+    sm_parms.radius[2] = plmslc_spheresize[0];
   }
 
   /* Create Volume 1 */
@@ -184,9 +184,9 @@ main (int argc, char * argv [])
     sm_parms.rect_size[3] += xlat[1];
     sm_parms.rect_size[4] += xlat[2];
     sm_parms.rect_size[5] += xlat[2];
-    sm_parms.sphere_center[0] += xlat[0];
-    sm_parms.sphere_center[1] += xlat[1];
-    sm_parms.sphere_center[2] += xlat[2];
+    sm_parms.center[0] += xlat[0];
+    sm_parms.center[1] += xlat[1];
+    sm_parms.center[2] += xlat[2];
     sm_parms.gauss_center[0] += xlat[0];
     sm_parms.gauss_center[1] += xlat[1];
     sm_parms.gauss_center[2] += xlat[2];
