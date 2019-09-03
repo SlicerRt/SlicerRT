@@ -72,46 +72,54 @@ class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
       patient = slicer.dicomDatabase.patients()[0]
       DICOMUtils.loadPatientByUID(patient)
 
-    def ConvertStructureSetToLabelmap(self):
+    def ConvertStructureSetToLabelmap(self, use_ref_image, ref_image_node_id=None):
       import vtkSegmentationCorePython as vtkSegmentationCore
 
       labelmapsToSave = []
+
+      # Get reference image volume node
+      referenceVolume = None
+      if ref_image_node_id is not None:
+        try:
+          referenceVolume = slicer.util.getNode(ref_image_node_id)
+        except slicer.util.MRMLNodeNotFoundException:
+          logging.error('Failed to get reference image with ID ' + str(ref_image_node_id) + '. Using image referenced by DICOM')
 
       # Get all segmentation nodes from the scene
       segmentationNodes = slicer.util.getNodes('vtkMRMLSegmentationNode*')
 
       for segmentationNode in segmentationNodes.values():
         logging.info('  Converting structure set ' + segmentationNode.GetName())
-        # Set referenced volume as rasterization reference
-        referenceVolume = slicer.vtkSlicerDicomRtImportExportModuleLogic.GetReferencedVolumeByDicomForSegmentation(
-          segmentationNode)
-        if referenceVolume == None:
+        # Set referenced volume as rasterization reference from DICOM if not explicitly specified
+        if referenceVolume is None and use_ref_image == True:
+          referenceVolume = slicer.vtkSlicerDicomRtImportExportModuleLogic.GetReferencedVolumeByDicomForSegmentation(
+            segmentationNode)
+        if referenceVolume is None and use_ref_image == True:
           logging.error('No reference volume found for segmentation ' + segmentationNode.GetName())
           continue
 
         # Perform conversion
-        binaryLabelmapRepresentationName = vtkSegmentationCore.vtkSegmentationConverter.GetSegmentationBinaryLabelmapRepresentationName()
-        segmentation = segmentationNode.GetSegmentation()
-        segmentation.CreateRepresentation(binaryLabelmapRepresentationName)
+        if not segmentationNode.CreateBinaryLabelmapRepresentation():
+          logging.error('Failed to create binary labelmap representation for segmentation ' + segmentationNode.GetName())
+          continue
 
         # Create labelmap volume nodes from binary labelmaps
-        segmentIDs = vtk.vtkStringArray()
-        segmentation.GetSegmentIDs(segmentIDs)
-        for segmentIndex in range(0, segmentIDs.GetNumberOfValues()):
-          segmentID = segmentIDs.GetValue(segmentIndex)
-          segment = segmentation.GetSegment(segmentID)
-          binaryLabelmap = segment.GetRepresentation(
-            vtkSegmentationCore.vtkSegmentationConverter.GetSegmentationBinaryLabelmapRepresentationName())
-          if not binaryLabelmap:
-            logging.error(
-              'Failed to retrieve binary labelmap from segment ' + segmentID + ' in segmentation ' + segmentationNode.GetName())
-            continue
+        allSegmentIDs = vtk.vtkStringArray()
+        segmentationNode.GetSegmentation().GetSegmentIDs(allSegmentIDs)
+        for segmentIndex in range(allSegmentIDs.GetNumberOfValues()):
+          segmentID = allSegmentIDs.GetValue(segmentIndex)
+
+          # Create output labelmap volume
           labelmapNode = slicer.vtkMRMLLabelMapVolumeNode()
           slicer.mrmlScene.AddNode(labelmapNode)
           labelmapName = segmentationNode.GetName() + "_" + segmentID
           labelmapNode.SetName(labelmapName)
-          if not slicer.vtkSlicerSegmentationsModuleLogic.CreateLabelmapVolumeFromOrientedImageData(
-              binaryLabelmap, labelmapNode):
+
+          # Export single segment to labelmap
+          singleSegmentIDArray = vtk.vtkStringArray()
+          singleSegmentIDArray.InsertNextValue(segmentID)
+          if not slicer.vtkSlicerSegmentationsModuleLogic.ExportSegmentsToLabelmapNode(
+              segmentationNode, singleSegmentIDArray, labelmapNode, referenceVolume):
             logging.error('Failed to create labelmap from segment ' + segmentID + ' in segmentation ' + segmentationNode.GetName())
             continue
 
@@ -134,7 +142,7 @@ class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
         if not success:
           logging.error('Failed to save labelmap: ' + filePath)
 
-    def SaveImages(self, outputDir, node_key = 'vtkMRMLScalarVolumeNode*'):
+    def SaveImages(self, outputDir, node_key='vtkMRMLScalarVolumeNode*'):
       # Save all of the ScalarVolumes (or whatever is in node_key) to NRRD files
       sv_nodes = slicer.util.getNodes(node_key)
       logging.info("Save image volumes nodes to directory %s: %s" % (outputDir, ','.join(sv_nodes.keys())))
@@ -262,7 +270,14 @@ def main(argv):
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Batch Structure Set Conversion")
     parser.add_argument("-i", "--input-folder", dest="input_folder", metavar="PATH",
-                        default="-", required=True, help="Folder of input DICOM study (or database path to use existing)")
+                        default="-", required=True,
+                        help="Folder of input DICOM study (or database path to use existing)")
+    parser.add_argument("-r", "--ref-dicom-folder", dest="ref_dicom_folder", metavar="PATH",
+                        default="", required=False,
+                        help="Folder containing reference anatomy DICOM image series, if stored outside the input study")
+    parser.add_argument("-u", "--use-ref-image", dest="use_ref_image",
+                        default=False, required=False, action='store_true',
+                        help="Use anatomy image as reference when converting structure set to labelmap")
     parser.add_argument("-x", "--exist-db", dest="exist_db",
                         default=False, required=False, action='store_true',
                         help="Process an existing database")
@@ -270,7 +285,8 @@ def main(argv):
                         default=False, required=False, action='store_true',
                         help="Export image data with labelmaps")
     parser.add_argument("-o", "--output-folder", dest="output_folder", metavar="PATH",
-                        default=".", help="Folder for output labelmaps")
+                        default=".",
+                        help="Folder for output labelmaps")
 
     args = parser.parse_args(argv)
 
@@ -282,16 +298,19 @@ def main(argv):
 
     # Convert to python path style
     input_folder = args.input_folder.replace('\\', '/')
+    ref_dicom_folder = args.ref_dicom_folder.replace('\\', '/')
     output_folder = args.output_folder.replace('\\', '/')
+
+    use_ref_image = args.use_ref_image
     exist_db = args.exist_db
     export_images = args.export_images
 
     # Perform batch conversion
     logic = BatchStructureSetConversionLogic()
-    def save_rtslices(output_dir):
+    def save_rtslices(output_dir, use_ref_image, ref_image_node_id=None):
       # package the saving code into a subfunction
       logging.info("Convert loaded structure set to labelmap volumes")
-      labelmaps = logic.ConvertStructureSetToLabelmap()
+      labelmaps = logic.ConvertStructureSetToLabelmap(use_ref_image, ref_image_node_id=None)
 
       logging.info("Save labelmaps to directory " + output_dir)
       logic.SaveLabelmaps(labelmaps, output_dir)
@@ -304,21 +323,35 @@ def main(argv):
       DICOMUtils.openDatabase(input_folder)
       all_patients = slicer.dicomDatabase.patients()
       logging.info('Must Process Patients %s' % len(all_patients))
+
       for patient in all_patients:
         slicer.mrmlScene.Clear(0) # clear the scene
         DICOMUtils.loadPatientByUID(patient)
         output_dir = os.path.join(output_folder,patient)
         if not os.access(output_dir, os.F_OK):
           os.mkdir(output_dir)
-        save_rtslices(output_dir)
+        save_rtslices(output_dir, use_ref_image)
+
     else:
+      ref_image_node_id = None
+      if os.path.isdir(ref_dicom_folder):
+        # If reference DICOM folder is given and valid, then load that volume
+        logging.info("Import reference anatomy DICOM data from " + ref_dicom_folder)
+        DICOMUtils.openTemporaryDatabase()
+        DICOMUtils.importDicom(ref_dicom_folder)
+        logic.LoadFirstPatientIntoSlicer()
+        # Remember first volume
+        scalarVolumeNodes = list(slicer.util.getNodes('vtkMRMLScalarVolume*').values())
+        if len(scalarVolumeNodes) > 0:
+          ref_image_node_id = scalarVolumeNodes[0].GetID()
+
       logging.info("Import DICOM data from " + input_folder)
       DICOMUtils.openTemporaryDatabase()
       DICOMUtils.importDicom(input_folder)
 
       logging.info("Load first patient into Slicer")
       logic.LoadFirstPatientIntoSlicer()
-      save_rtslices(output_folder)
+      save_rtslices(output_folder, use_ref_image, ref_image_node_id)
 
   except Exception as e:
       print(e)
