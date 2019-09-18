@@ -143,6 +143,7 @@ int vtkSlicerDoseComparisonModuleLogicTest1( int argc, char * argv[] )
   paramNode->SetAndObserveReferenceDoseVolumeNode(day1DoseScalarVolumeNode);
   paramNode->SetAndObserveCompareDoseVolumeNode(day2DoseScalarVolumeNode);
   paramNode->SetAndObserveGammaVolumeNode(outputGammaVolumeNode);
+  paramNode->SetUseGeometricGammaCalculation(false);
 
   // Disable symmetric dose threshold (it is the new default)
   paramNode->SetDoseThresholdOnReferenceOnly(true);
