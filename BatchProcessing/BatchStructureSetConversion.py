@@ -245,7 +245,7 @@ class BatchStructureSetConversionTest(ScriptedLoadableModuleTest):
     self.delayDisplay("Convert loaded structure set to labelmap", self.delayMs)
     qt.QApplication.setOverrideCursor(qt.QCursor(qt.Qt.BusyCursor))
     try:
-      self.labelmapsToSave = self.logic.ConvertStructureSetToLabelmap()
+      self.labelmapsToSave = self.logic.ConvertStructureSetToLabelmap(use_ref_image=True)
       self.assertTrue(len(self.labelmapsToSave) > 0)
     except Exception as e:
       import traceback
