@@ -40,6 +40,9 @@
 // STD includes
 #include <algorithm>
 
+// SegmentationCore includes
+#include <vtkSegment.h>
+
 // Directions used for dynamic programming table backtracking
 enum BacktrackDirection
 {
@@ -115,16 +118,18 @@ vtkDataObject* vtkPlanarContourToClosedSurfaceConversionRule::ConstructRepresent
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourceRepresentation, vtkDataObject* targetRepresentation)
+bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkSegment* segment)
 {
+  this->CreateTargetRepresentation(segment);
+
   // Check validity of source and target representation objects
-  vtkPolyData* planarContoursPolyData = vtkPolyData::SafeDownCast(sourceRepresentation);
+  vtkPolyData* planarContoursPolyData = vtkPolyData::SafeDownCast(segment->GetRepresentation(this->GetSourceRepresentationName()));
   if (!planarContoursPolyData)
   {
     vtkErrorMacro("Convert: Source representation is not a poly data!");
     return false;
   }
-  vtkPolyData* closedSurfacePolyData = vtkPolyData::SafeDownCast(targetRepresentation);
+  vtkPolyData* closedSurfacePolyData = vtkPolyData::SafeDownCast(segment->GetRepresentation(this->GetTargetRepresentationName()));
   if (!closedSurfacePolyData)
   {
     vtkErrorMacro("Convert: Target representation is not a poly data!");

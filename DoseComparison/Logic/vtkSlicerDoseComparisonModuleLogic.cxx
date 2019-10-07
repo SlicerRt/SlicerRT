@@ -231,8 +231,8 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
       return errorMessage;
     }
     // Get segment binary labelmap
-    vtkOrientedImageData* maskSegmentLabelmap = vtkOrientedImageData::SafeDownCast( segmentationCopy->GetSegment(maskSegmentID)->GetRepresentation(
-      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) );
+    vtkNew<vtkOrientedImageData>  maskSegmentLabelmap;
+    maskSegmentationNode->GetBinaryLabelmapRepresentation(maskSegmentID, maskSegmentLabelmap);
 
     // Apply parent transformation nodes if necessary
     if ( maskSegmentationNode->GetParentTransformNode()

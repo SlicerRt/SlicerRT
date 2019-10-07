@@ -764,9 +764,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetTargetOrientedImageD
 
   if (segmentation->ContainsRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
   {
-    targetOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
-    targetOrientedImageData->DeepCopy( vtkOrientedImageData::SafeDownCast(
-        segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) ) );
+    segmentationNode->GetBinaryLabelmapRepresentation(this->TargetSegmentID, targetOrientedImageData);
   }
   else
   {

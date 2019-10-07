@@ -58,7 +58,7 @@ public:
   vtkDataObject* ConstructRepresentationObjectByClass(std::string className) override;
 
   /// Update the target representation based on the source representation
-  bool Convert(vtkDataObject* sourceRepresentation, vtkDataObject* targetRepresentation) override;
+  bool Convert(vtkSegment* segment) override;
 
   /// Get the cost of the conversion.
   unsigned int GetConversionCost(vtkDataObject* sourceRepresentation=nullptr, vtkDataObject* targetRepresentation=nullptr) override;

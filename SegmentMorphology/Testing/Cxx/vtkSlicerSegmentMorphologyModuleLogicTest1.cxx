@@ -409,12 +409,10 @@ int vtkSlicerSegmentMorphologyModuleLogicTest1( int argc, char * argv[] )
   mrmlScene->Commit();
 
   // Compare output to baseline
-  vtkOrientedImageData* baselineImageData = vtkOrientedImageData::SafeDownCast(
-    baselineSegmentationNode->GetSegmentation()->GetSegment(baselineSegmentID)->GetRepresentation(
-      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) );
-  vtkOrientedImageData* outputImageData = vtkOrientedImageData::SafeDownCast(
-    outputSegmentationNode->GetSegmentation()->GetSegment(outputSegmentID)->GetRepresentation(
-      vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) );
+  vtkNew<vtkOrientedImageData> baselineImageData;
+  baselineSegmentationNode->GetBinaryLabelmapRepresentation(baselineSegmentID, baselineImageData);
+  vtkNew<vtkOrientedImageData> outputImageData;
+  outputSegmentationNode->GetBinaryLabelmapRepresentation(outputSegmentID, outputImageData);
   if (!baselineImageData || !outputImageData)
   {
     std::cerr << "Failed to retrieve binary labelmap representation from the baseline or the output segmentation!" << std::endl;

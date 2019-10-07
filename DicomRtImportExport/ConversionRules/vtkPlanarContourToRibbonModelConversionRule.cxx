@@ -33,6 +33,9 @@
 #include <vtkRibbonFilter.h>
 #include <vtkMath.h>
 
+// SegmentationCore includes
+#include <vtkSegment.h>
+
 //----------------------------------------------------------------------------
 // Utility functions
 namespace
@@ -129,16 +132,18 @@ vtkDataObject* vtkPlanarContourToRibbonModelConversionRule::ConstructRepresentat
 }
 
 //----------------------------------------------------------------------------
-bool vtkPlanarContourToRibbonModelConversionRule::Convert(vtkDataObject* sourceRepresentation, vtkDataObject* targetRepresentation)
+bool vtkPlanarContourToRibbonModelConversionRule::Convert(vtkSegment* segment)
 {
+  this->CreateTargetRepresentation(segment);
+
   // Check validity of source and target representation objects
-  vtkPolyData* planarContourPolyData = vtkPolyData::SafeDownCast(sourceRepresentation);
+  vtkPolyData* planarContourPolyData = vtkPolyData::SafeDownCast(segment->GetRepresentation(this->GetSourceRepresentationName()));
   if (!planarContourPolyData)
   {
     vtkErrorMacro("Convert: Source representation is not a poly data!");
     return false;
   }
-  vtkPolyData* ribbonModelPolyData = vtkPolyData::SafeDownCast(targetRepresentation);
+  vtkPolyData* ribbonModelPolyData = vtkPolyData::SafeDownCast(segment->GetRepresentation(this->GetTargetRepresentationName()));
   if (!ribbonModelPolyData)
   {
     vtkErrorMacro("Convert: Target representation is not a poly data!");
