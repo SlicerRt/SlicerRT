@@ -40,6 +40,11 @@
 // STD includes
 #include <algorithm>
 
+// SegmentationCore includes
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+#include <vtkSegment.h>
+#endif 
+
 // Directions used for dynamic programming table backtracking
 enum BacktrackDirection
 {
@@ -115,16 +120,30 @@ vtkDataObject* vtkPlanarContourToClosedSurfaceConversionRule::ConstructRepresent
 }
 
 //----------------------------------------------------------------------------
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkSegment* segment)
+{
+  this->CreateTargetRepresentation(segment);
+#else
 bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourceRepresentation, vtkDataObject* targetRepresentation)
 {
+#endif
   // Check validity of source and target representation objects
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+  vtkPolyData* planarContoursPolyData = vtkPolyData::SafeDownCast(segment->GetRepresentation(this->GetSourceRepresentationName()));
+#else
   vtkPolyData* planarContoursPolyData = vtkPolyData::SafeDownCast(sourceRepresentation);
+#endif
   if (!planarContoursPolyData)
   {
     vtkErrorMacro("Convert: Source representation is not a poly data!");
     return false;
   }
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+  vtkPolyData* closedSurfacePolyData = vtkPolyData::SafeDownCast(segment->GetRepresentation(this->GetTargetRepresentationName()));
+#else
   vtkPolyData* closedSurfacePolyData = vtkPolyData::SafeDownCast(targetRepresentation);
+#endif
   if (!closedSurfacePolyData)
   {
     vtkErrorMacro("Convert: Target representation is not a poly data!");

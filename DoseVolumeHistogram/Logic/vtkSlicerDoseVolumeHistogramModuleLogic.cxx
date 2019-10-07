@@ -235,6 +235,11 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   fixedOversamplingValueStream << this->DefaultDoseVolumeOversamplingFactor;
   segmentationCopy->SetConversionParameter( vtkClosedSurfaceToBinaryLabelmapConversionRule::GetOversamplingFactorParameterName(),
     parameterNode->GetAutomaticOversampling() ? "A" : fixedOversamplingValueStream.str().c_str() );
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+  // We don't want to try to merge the labelmaps since if they have different oversampling factors, they would conflict.
+  // Could perhaps leave the labelmaps merged if there is a performance increase, but for now merging will be disabled for DVH calculation.
+  segmentationCopy->SetConversionParameter(vtkClosedSurfaceToBinaryLabelmapConversionRule::GetCollapseLabelmapsParameterName(), "0");
+#endif
 
   char* representationName = 0;
   bool useFractionalLabelmap = parameterNode->GetUseFractionalLabelmap();
@@ -326,8 +331,28 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     vtkSegment* segment = segmentationCopy->GetSegment(*segmentIdIt);
 
     // Get segment labelmap
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+    vtkSmartPointer<vtkOrientedImageData> segmentLabelmap = vtkOrientedImageData::SafeDownCast( segment->GetRepresentation(
+      representationName ) );
+    if (representationName == vtkSegmentationConverter::GetBinaryLabelmapRepresentationName())
+    {
+      vtkSmartPointer<vtkOrientedImageData> mergedLabelmap = segmentLabelmap;
+      vtkNew<vtkImageThreshold> threshold;
+      threshold->SetInputData(mergedLabelmap);
+      threshold->ThresholdBetween(segment->GetLabelValue(), segment->GetLabelValue());
+      threshold->SetInValue(1);
+      threshold->SetOutValue(0);
+      threshold->SetOutputScalarTypeToUnsignedChar();
+      threshold->Update();
+      segmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
+      segmentLabelmap->ShallowCopy(threshold->GetOutput());
+      segmentLabelmap->CopyDirections(mergedLabelmap);
+    }
+#else
     vtkOrientedImageData* segmentLabelmap = vtkOrientedImageData::SafeDownCast( segment->GetRepresentation(
       representationName ) );
+#endif
+
     if (!segmentLabelmap)
     {
       std::string errorMessage("Failed to get labelmap for segments");

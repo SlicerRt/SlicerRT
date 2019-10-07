@@ -33,6 +33,11 @@
 #include <vtkRibbonFilter.h>
 #include <vtkMath.h>
 
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+// SegmentationCore includes
+#include <vtkSegment.h>
+#endif
+
 //----------------------------------------------------------------------------
 // Utility functions
 namespace
@@ -129,16 +134,30 @@ vtkDataObject* vtkPlanarContourToRibbonModelConversionRule::ConstructRepresentat
 }
 
 //----------------------------------------------------------------------------
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+bool vtkPlanarContourToRibbonModelConversionRule::Convert(vtkSegment* segment)
+{
+  this->CreateTargetRepresentation(segment);
+#else
 bool vtkPlanarContourToRibbonModelConversionRule::Convert(vtkDataObject* sourceRepresentation, vtkDataObject* targetRepresentation)
 {
+#endif
   // Check validity of source and target representation objects
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+  vtkPolyData* planarContourPolyData = vtkPolyData::SafeDownCast(segment->GetRepresentation(this->GetSourceRepresentationName()));
+#else
   vtkPolyData* planarContourPolyData = vtkPolyData::SafeDownCast(sourceRepresentation);
+#endif
   if (!planarContourPolyData)
   {
     vtkErrorMacro("Convert: Source representation is not a poly data!");
     return false;
   }
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+  vtkPolyData* ribbonModelPolyData = vtkPolyData::SafeDownCast(segment->GetRepresentation(this->GetTargetRepresentationName()));
+#else
   vtkPolyData* ribbonModelPolyData = vtkPolyData::SafeDownCast(targetRepresentation);
+#endif
   if (!ribbonModelPolyData)
   {
     vtkErrorMacro("Convert: Target representation is not a poly data!");

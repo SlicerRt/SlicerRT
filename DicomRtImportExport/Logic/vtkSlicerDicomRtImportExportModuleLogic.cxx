@@ -2021,8 +2021,13 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
         vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(*segmentIdIt);
 
         // Get binary labelmap representation
+#if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
+        vtkNew<vtkOrientedImageData> binaryLabelmap;
+        segmentationNode->GetBinaryLabelmapRepresentation(segmentID, binaryLabelmap);
+#else
         vtkOrientedImageData* binaryLabelmap = vtkOrientedImageData::SafeDownCast(
           segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()) );
+#endif
         if (!binaryLabelmap)
         {
           error = "Failed to get binary labelmap representation from segment " + segmentID;
