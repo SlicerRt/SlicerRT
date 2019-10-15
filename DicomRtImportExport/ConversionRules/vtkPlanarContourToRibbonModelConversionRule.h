@@ -21,6 +21,9 @@
 #ifndef __vtkPlanarContourToRibbonModelConversionRule_h
 #define __vtkPlanarContourToRibbonModelConversionRule_h
 
+// Slicer include
+#include <vtkSlicerVersionConfigure.h>
+
 // SegmentationCore includes
 #include "vtkSegmentationConverterRule.h"
 #include "vtkSegmentationConverter.h"

@@ -38,6 +38,9 @@
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
 
+// Slicer includes
+#include <vtkSlicerVersionConfigure.h>
+
 // Qt includes
 #include <QDebug>
 

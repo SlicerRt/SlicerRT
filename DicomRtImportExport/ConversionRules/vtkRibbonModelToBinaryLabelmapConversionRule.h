@@ -21,6 +21,9 @@
 #ifndef __vtkRibbonModelToBinaryLabelmapConversionRule_h
 #define __vtkRibbonModelToBinaryLabelmapConversionRule_h
 
+// Slicer include
+#include <vtkSlicerVersionConfigure.h>
+
 // SegmentationCore includes
 #include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
 #include "vtkSegmentationConverter.h"
