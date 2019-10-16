@@ -77,6 +77,9 @@
 // STD includes
 #include <set>
 
+// Slicer includes
+#include <vtkSlicerVersionConfigure.h>
+
 //----------------------------------------------------------------------------
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "DVH"; // Identifier
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_CREATED_DVH_NODE_REFERENCE_ROLE = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "createdDvhArrayRef"; // Reference
