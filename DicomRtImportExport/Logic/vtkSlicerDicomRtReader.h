@@ -35,6 +35,9 @@
 // SlicerRtCommon includes
 #include "vtkSlicerDicomReaderBase.h"
 
+// STD includes
+#include <vector>
+
 class vtkPolyData;
 
 /// \ingroup SlicerRt_QtModules_DicomRtImport

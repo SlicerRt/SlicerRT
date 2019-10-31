@@ -1643,8 +1643,9 @@ bool vtkSlicerDicomRtReader::GetMultiLeafCollimatorX( double& distance, std::vec
     pairBoundaries.clear();
 
     for ( unsigned int i = 0; i < pairs; ++i)
+    {
       pairBoundaries.push_back(std::make_pair( boundary[i], boundary[i + 1]));
-
+    }
     return true;
   }
   else
@@ -1682,8 +1683,9 @@ bool vtkSlicerDicomRtReader::GetMultiLeafCollimatorY( double& distance, std::vec
     pairBoundaries.clear();
 
     for ( unsigned int i = 0; i < pairs; ++i)
+    {
       pairBoundaries.push_back(std::make_pair( boundary[i], boundary[i + 1]));
-
+    }
     return true;
   }
   else
@@ -1792,7 +1794,8 @@ bool vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositionsX( unsigned int 
   std::vector<double>& leafPositions)
 {
   vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
-  if (beam) {
+  if (beam)
+  {
     leafPositions = beam->LeafJawPositionsMLC[0];
     return true;
   }
@@ -1808,9 +1811,12 @@ bool vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositionsX( unsigned int 
   unsigned int& pairs = this->Internal->MultiLeafCollimator[0].NumberOfLeafJawPairs;
 
   leafPairPositions.clear();
-  if (beam && ((pairs * 2) == beam->LeafJawPositionsMLC[0].size())) {
+  if (beam && ((pairs * 2) == beam->LeafJawPositionsMLC[0].size()))
+  {
     for ( unsigned int i = 0; i < pairs; ++i)
+    {
       leafPairPositions.push_back(std::make_pair( beam->LeafJawPositionsMLC[0][i], beam->LeafJawPositionsMLC[0][i + pairs]));
+    }
     return true;
   }
   else
@@ -1822,7 +1828,8 @@ bool vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositionsY( unsigned int 
   std::vector<double>& leafPositions)
 {
   vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
-  if (beam) {
+  if (beam)
+  {
     leafPositions = beam->LeafJawPositionsMLC[1];
     return true;
   }
@@ -1838,9 +1845,12 @@ bool vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositionsY( unsigned int 
   unsigned int& pairs = this->Internal->MultiLeafCollimator[1].NumberOfLeafJawPairs;
 
   leafPairPositions.clear();
-  if (beam && ((pairs * 2) == beam->LeafJawPositionsMLC[1].size())) {
+  if (beam && ((pairs * 2) == beam->LeafJawPositionsMLC[1].size()))
+  {
     for ( unsigned int i = 0; i < pairs; ++i)
+    {
       leafPairPositions.push_back(std::make_pair( beam->LeafJawPositionsMLC[1][i], beam->LeafJawPositionsMLC[1][i + pairs]));
+    }
     return true;
   }
   else
