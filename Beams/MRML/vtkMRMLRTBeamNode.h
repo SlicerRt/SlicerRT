@@ -31,6 +31,7 @@
 class vtkPolyData;
 class vtkMRMLScene;
 class vtkMRMLDoubleArrayNode;
+class vtkMRMLTableNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
@@ -98,11 +99,11 @@ public:
   /// Get parent plan node
   vtkMRMLRTPlanNode* GetParentPlanNode();
 
-  /// Get MLC position double array node
-  vtkMRMLDoubleArrayNode* GetMLCPositionDoubleArrayNode();
-  /// Set and observe MLC position double array node.
+  /// Get MLC boundary & position table node
+  vtkMRMLTableNode* GetMLCBoundaryPositionTableNode();
+  /// Set and observe MLC boundary & position table node
   /// Triggers \sa BeamGeometryModified event and re-generation of beam model
-  void SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode* node);
+  void SetAndObserveMLCBoundaryPositionTableNode(vtkMRMLTableNode* node);
 
   /// Get DRR volume node
   vtkMRMLScalarVolumeNode* GetDRRVolumeNode();

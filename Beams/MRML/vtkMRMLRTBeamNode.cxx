@@ -23,10 +23,14 @@
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
 
+// SlicerRT includes
+#include "vtkSlicerRtCommon.h"
+
 // MRML includes
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLDoubleArrayNode.h>
+#include <vtkMRMLTableNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLSubjectHierarchyNode.h>
@@ -39,7 +43,9 @@
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkDoubleArray.h>
+#include <vtkTable.h>
 #include <vtkCellArray.h>
+
 
 //------------------------------------------------------------------------------
 const char* vtkMRMLRTBeamNode::NEW_BEAM_NODE_NAME_PREFIX = "NewBeam_";
@@ -293,13 +299,13 @@ void vtkMRMLRTBeamNode::CreateNewBeamTransformNode()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLDoubleArrayNode* vtkMRMLRTBeamNode::GetMLCPositionDoubleArrayNode()
+vtkMRMLTableNode* vtkMRMLRTBeamNode::GetMLCBoundaryPositionTableNode()
 {
-  return vtkMRMLDoubleArrayNode::SafeDownCast( this->GetNodeReference(MLCPOSITION_REFERENCE_ROLE) );
+  return vtkMRMLTableNode::SafeDownCast( this->GetNodeReference(MLCPOSITION_REFERENCE_ROLE) );
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode* node)
+void vtkMRMLRTBeamNode::SetAndObserveMLCBoundaryPositionTableNode(vtkMRMLTableNode* node)
 {
   if (node && this->Scene != node->GetScene())
     {
@@ -480,94 +486,194 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> cellArray = vtkSmartPointer<vtkCellArray>::New();
 
-  vtkMRMLDoubleArrayNode* mlcArrayNode = this->GetMLCPositionDoubleArrayNode();
-  if (mlcArrayNode)
+  vtkMRMLTableNode* mlcTableNode = this->GetMLCBoundaryPositionTableNode();
+
+  // Check that we have MLCX with Jaws opening
+  bool xOpened = !vtkSlicerRtCommon::AreEqualWithTolerance( this->X2Jaw, this->X1Jaw);
+  bool yOpened = !vtkSlicerRtCommon::AreEqualWithTolerance( this->Y2Jaw, this->Y1Jaw);
+
+  if (mlcTableNode && !strcmp( "MLCX", mlcTableNode->GetName()) && xOpened && yOpened)
   {
-    // First we extract the shape of the MLC
-    int y2count = -(this->Y2Jaw/10.0);
-    int y1count = -(this->Y1Jaw/10.0);
-    int numLeavesVisible = y1count - y2count; // Calculate the number of leaves visible
-    int numPointsEachSide = numLeavesVisible *2;
+    typedef std::vector< std::pair< double, double > > MLCType;
 
-    double x1LeafPosition[40];
-    double x2LeafPosition[40];
+    int leaves = mlcTableNode->GetNumberOfRows();
+    vtkTable* table = mlcTableNode->GetTable();
+    MLCType mlcBoundary; // temporary MLCX Boundaries vector
+    MLCType mlcPosition; // temporary MLCX Positions vector
+    MLCType s1, s2; // real points for side "1" and "2"
 
-    // Calculate X1 first
-    for (int i = y1count; i >= y2count; i--)
+    // copy MLC data for proper (easier processing)
+    for ( int leaf = 0; leaf < leaves; leaf++)
     {
-      double leafPosition = mlcArrayNode->GetArray()->GetComponent(i-20, 1);
-      if (leafPosition < this->X1Jaw)
-      {
-        x1LeafPosition[i-20] = leafPosition;
-      }
-      else
-      {
-        x1LeafPosition[i-20] = this->X1Jaw;
-      }
-    }
-    // Calculate X2 next
-    for (int i = y1count; i >= y2count; i--)
-    {
-      double leafPosition = mlcArrayNode->GetArray()->GetComponent(i-20, 0);
-      if (leafPosition < this->X2Jaw)
-      {
-        x2LeafPosition[i-20] = leafPosition;
-      }
-      else
-      {
-        x2LeafPosition[i-20] = this->X2Jaw;
-      }
+      double begin = table->GetValue( vtkIdType(leaf), 0).ToDouble();
+      double end = table->GetValue( vtkIdType(leaf), 1).ToDouble();
+      double pos1 = table->GetValue( vtkIdType(leaf), 2).ToDouble();
+      double pos2 = table->GetValue( vtkIdType(leaf), 3).ToDouble();
+      mlcBoundary.push_back(std::make_pair( begin, end));
+      mlcPosition.push_back(std::make_pair( pos1, pos2));
     }
 
-    // Create beam model
-    points->InsertPoint(0,0,0,this->SAD);
-
-    int count = 1;
-    for (int i = y1count; i > y2count; i--)
+    MLCType::iterator firstLeafIterator = mlcBoundary.end();
+    MLCType::iterator lastLeafIterator = mlcBoundary.end();
+    // find first and last visible leaves
+    for ( MLCType::iterator it = mlcBoundary.begin(); it != mlcBoundary.end(); ++it)
     {
-      points->InsertPoint(count,-x1LeafPosition[i-20]*2, i*10*2, -this->SAD );
-      count ++;
-      points->InsertPoint(count,-x1LeafPosition[i-20]*2, (i-1)*10*2, -this->SAD );
-      count ++;
+      MLCType::iterator positer = it - mlcBoundary.begin() + mlcPosition.begin();
+      if ((*it).first <= this->Y1Jaw && (*it).second > this->Y1Jaw)
+      {
+        if (vtkSlicerRtCommon::AreEqualWithTolerance( (*positer).first, (*positer).second))
+        {
+          firstLeafIterator = it + 1;
+        }
+        else
+          firstLeafIterator = it;
+      }
+      else if ((*it).first <= this->Y2Jaw && (*it).second > this->Y2Jaw)
+      {
+        if (vtkSlicerRtCommon::AreEqualWithTolerance( (*positer).first, (*positer).second))
+        {
+          lastLeafIterator = it - 1;
+        }
+        else
+          lastLeafIterator = it;
+      }
+    }
+    // iterate through visible leaves to fill temporary points vectors
+    if (firstLeafIterator != mlcBoundary.end() && lastLeafIterator != mlcBoundary.end())
+    {
+      MLCType side1, side2; // temporary vectors to save visible points
+      for ( MLCType::iterator iter = firstLeafIterator; iter <= lastLeafIterator; ++iter)
+      {
+        MLCType::iterator positer = iter - mlcBoundary.begin() + mlcPosition.begin();
+        // add points for the first visible leaf for side "1" and "2"
+        side1.push_back(std::make_pair( (*positer).first, (*iter).first));
+        side1.push_back(std::make_pair( (*positer).first, (*iter).second));
+        side2.push_back(std::make_pair( (*positer).second, (*iter).first));
+        side2.push_back(std::make_pair( (*positer).second, (*iter).second));
+      }
+      // reverse side "2"
+      std::reverse( side2.begin(), side2.end());
+
+      // intersection between jaws X and mlc (logical AND) side "1"
+      for ( MLCType::iterator iter = side1.begin(); iter != side1.end(); ++iter)
+      {
+        if ((*iter).first <= this->X1Jaw)
+        {
+          (*iter).first = this->X1Jaw;
+        }
+      }
+      // intersection between jaws X and mlc (logical AND) side "2"
+      for ( MLCType::iterator iter = side2.begin(); iter != side2.end(); ++iter)
+      {
+        if ((*iter).first >= this->X2Jaw)
+        {
+          (*iter).first = this->X2Jaw;
+        }
+      }
+      // intersection between jaws Y and mlc (logical AND) side "1"
+      for ( MLCType::iterator iter = side1.begin(); iter != side1.end(); ++iter)
+      {
+        if ((*iter).second <= this->Y1Jaw)
+        {
+          (*iter).second = this->Y1Jaw;
+        }
+        if ((*iter).second >= this->Y2Jaw)
+        {
+          (*iter).second = this->Y2Jaw;
+        }
+      }
+      // intersection between jaws Y and mlc (logical AND) side "2"
+      for ( MLCType::iterator iter = side2.begin(); iter != side2.end(); ++iter)
+      {
+        if ((*iter).second <= this->Y1Jaw)
+        {
+          (*iter).second = this->Y1Jaw;
+        }
+        if ((*iter).second >= this->Y2Jaw)
+        {
+          (*iter).second = this->Y2Jaw;
+        }
+      }
+
+      // remove excessive points from side "1" and "2" and fill real points vectors
+      std::pair< double, double> p = *side1.begin();
+      s1.push_back(p);
+      for ( size_t i = 0; i < side1.size() - 1; ++i)
+      {
+        if (vtkSlicerRtCommon::AreEqualWithTolerance(p.first, side1[i + 1].first) && 
+          vtkSlicerRtCommon::AreEqualWithTolerance(p.first, side1[i + 1].first))
+          {
+            continue;
+          }
+
+        p = side1[i];
+        s1.push_back(p);
+      }
+      p = *(side1.end() - 1);
+      s1.push_back(p);
+
+      p = *side2.begin();
+      s2.push_back(p);
+      for ( size_t i = 0; i < side2.size() - 1; ++i)
+      {
+        if (vtkSlicerRtCommon::AreEqualWithTolerance(p.first, side2[i + 1].first) && 
+          vtkSlicerRtCommon::AreEqualWithTolerance(p.first, side2[i + 1].first))
+          {
+            continue;
+          }
+
+        p = side2[i];
+        s2.push_back(p);
+      }
+      p = *(side2.end() - 1);
+      s2.push_back(p);
     }
 
-    for (int i = y2count; i < y1count; i++)
+    // fill vtk points
+    points->InsertPoint( 0, 0, 0, this->SAD); // source
+    // side "1"
+    for ( size_t i = 0; i < s1.size(); ++i)
     {
-      points->InsertPoint(count,x2LeafPosition[i-20]*2, i*10*2, -this->SAD );
-      count ++;
-      points->InsertPoint(count,x2LeafPosition[i-20]*2, (i+1)*10*2, -this->SAD );
-      count ++;
+      points->InsertPoint( i + 1, 2. * s1[i].first, 2. * s1[i].second, -this->SAD);
+    }
+    // side "2"
+    for ( size_t i = 0; i < s2.size(); ++i)
+    {
+      points->InsertPoint( i + 1 + s1.size(), 2. * s2[i].first, 2. * s2[i].second, -this->SAD);
     }
 
-    for (int i = 1; i <numPointsEachSide; i++)
+    // fill cell array for side "1"
+    for ( size_t i = 1; i < s1.size(); ++i)
     {
       cellArray->InsertNextCell(3);
       cellArray->InsertCellPoint(0);
       cellArray->InsertCellPoint(i);
-      cellArray->InsertCellPoint(i+1);
+      cellArray->InsertCellPoint(i + 1);
     }
-    // Add connection between X1 and X2
+    // fill cell connection between side "1" -> side "2"
     cellArray->InsertNextCell(3);
     cellArray->InsertCellPoint(0);
-    cellArray->InsertCellPoint(numPointsEachSide);
-    cellArray->InsertCellPoint(numPointsEachSide+1);
-    for (int i = numPointsEachSide+1; i <2*numPointsEachSide; i++)
+    cellArray->InsertCellPoint(s1.size());
+    cellArray->InsertCellPoint(s1.size() + 1);
+
+    // fill cell array for side "2"
+    for ( size_t i = 1; i < s2.size(); ++i)
     {
       cellArray->InsertNextCell(3);
       cellArray->InsertCellPoint(0);
-      cellArray->InsertCellPoint(i);
-      cellArray->InsertCellPoint(i+1);
+      cellArray->InsertCellPoint(s1.size() + i);
+      cellArray->InsertCellPoint(s1.size() + i + 1);
     }
 
-    // Add connection between X1 and X2
+    // fill cell connection between side "2" -> side "1"
     cellArray->InsertNextCell(3);
     cellArray->InsertCellPoint(0);
-    cellArray->InsertCellPoint(2*numPointsEachSide);
+    cellArray->InsertCellPoint(s1.size() + s2.size());
     cellArray->InsertCellPoint(1);
 
     // Add the cap to the bottom
-    cellArray->InsertNextCell(2*numPointsEachSide);
-    for (int i = 1; i <= 2*numPointsEachSide; i++)
+    cellArray->InsertNextCell(s1.size() + s2.size());
+    for ( size_t i = 1; i <= s1.size() + s2.size(); i++)
     {
       cellArray->InsertCellPoint(i);
     }
