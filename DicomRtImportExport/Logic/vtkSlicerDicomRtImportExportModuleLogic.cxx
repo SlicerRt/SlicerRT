@@ -808,16 +808,12 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
     }
 
     // Create MLC table node
-    double distance;
-    unsigned int numberOfPairs;
     std::vector<double> boundaries, positions;
     vtkMRMLTableNode* tableNode = nullptr;
     // Check MLCX
-    bool mlcAvailable = rtReader->GetBeamMultiLeafCollimatorX( dicomBeamNumber,
-      distance, numberOfPairs, boundaries);
-    bool mlcPositionsAvailable = rtReader->GetBeamMultiLeafCollimatorPositionsX( dicomBeamNumber, 
-      positions);
-    if (mlcAvailable && mlcPositionsAvailable)
+    bool validMLC = rtReader->GetBeamMultiLeafCollimatorPositionsX( dicomBeamNumber, 
+      boundaries, positions);
+    if (validMLC)
     {
       tableNode = this->CreateMultiLeafCollimatorTableNode( "MLCX", 
         boundaries, positions);
@@ -827,11 +823,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
       vtkDebugWithObjectMacro(this->External, "MLCX data unavailable");
     }
     // Check MLCY
-    mlcAvailable = rtReader->GetBeamMultiLeafCollimatorY( dicomBeamNumber,
-      distance, numberOfPairs, boundaries);
-    mlcPositionsAvailable = rtReader->GetBeamMultiLeafCollimatorPositionsY( dicomBeamNumber, 
-      positions);
-    if (mlcAvailable && mlcPositionsAvailable)
+    validMLC = rtReader->GetBeamMultiLeafCollimatorPositionsY( dicomBeamNumber, 
+      boundaries, positions);
+    if (validMLC)
     {
       tableNode = this->CreateMultiLeafCollimatorTableNode( "MLCY", 
         boundaries, positions);
