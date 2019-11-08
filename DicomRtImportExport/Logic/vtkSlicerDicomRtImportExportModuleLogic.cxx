@@ -1318,7 +1318,7 @@ vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMu
     pos2->SetName("2");
     table->AddColumn(pos2);
 
-    vtkIdType size = nofBoundaries - 1;
+    vtkIdType size = mlcBoundaries.size() - 1;
     table->SetNumberOfRows(size);
     for ( vtkIdType row = 0; row < size; ++row)
     {
