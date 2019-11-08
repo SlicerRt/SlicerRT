@@ -832,7 +832,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
     }
     else
     {
-      vtkDebugWithObjectMacro(this->External, "MLCX data unavailable");
+      vtkDebugWithObjectMacro(this->External, "MLCY data unavailable");
     }
 
     // Add beam to scene (triggers poly data and transform creation and update)
