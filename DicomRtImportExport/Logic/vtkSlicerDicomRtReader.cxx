@@ -1740,36 +1740,6 @@ void vtkSlicerDicomRtReader::GetBeamLeafJawPositions(unsigned int beamNumber, do
 }
 
 //----------------------------------------------------------------------------
-double vtkSlicerDicomRtReader::GetBeamSourceToJawDistanceX(unsigned int beamNumber)
-{
-  vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam)
-  {
-    return beam->SourceToJawDistance[0];
-  }
-  else
-  {
-    vtkErrorMacro("GetBeamSourceToJawDistanceX: Unable to find beam of number" << beamNumber);
-    return -1.0;
-  }
-}
-
-//----------------------------------------------------------------------------
-double vtkSlicerDicomRtReader::GetBeamSourceToJawDistanceY(unsigned int beamNumber)
-{
-  vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam)
-  {
-    return beam->SourceToJawDistance[1];
-  }
-  else
-  {
-    vtkErrorMacro("GetBeamSourceToJawDistanceY: Unable to find beam of number" << beamNumber);
-    return -1.0;
-  }
-}
-
-//----------------------------------------------------------------------------
 bool vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositionsX( unsigned int beamNumber, 
   std::vector<double>& pairBoundaries, std::vector<double>& leafPositions)
 {

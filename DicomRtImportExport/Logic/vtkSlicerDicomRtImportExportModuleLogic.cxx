@@ -1291,66 +1291,55 @@ vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMu
   const char* name, const std::vector<double>& mlcBoundaries, 
   const std::vector<double>& mlcPositions)
 {
-  size_t nofBoundaries = mlcBoundaries.size();
-  size_t nofPositions = mlcPositions.size();
+  vtkSmartPointer<vtkMRMLTableNode> tableNode = vtkSmartPointer<vtkMRMLTableNode>::New();
+  this->External->GetMRMLScene()->AddNode(tableNode);
+  tableNode->SetName(name);
 
-  if (nofBoundaries && nofPositions && (2 * (nofBoundaries - 1) == nofPositions))
+  vtkTable* table = tableNode->GetTable();
+  if (table)
   {
-    vtkSmartPointer<vtkMRMLTableNode> tableNode = vtkSmartPointer<vtkMRMLTableNode>::New();
-    this->External->GetMRMLScene()->AddNode(tableNode);
-    tableNode->SetName(name);
+    // Start boundary of the leaf
+    vtkNew<vtkDoubleArray> boundStart;
+    boundStart->SetName("Start");
+    table->AddColumn(boundStart);
 
-    vtkTable* table = tableNode->GetTable();
-    if (table)
+    // Stop boundary of the leaf
+    vtkNew<vtkDoubleArray> boundStop;
+    boundStop->SetName("Stop");
+    table->AddColumn(boundStop);
+
+    // Leaf position on the side "1"
+    vtkNew<vtkDoubleArray> pos1;
+    pos1->SetName("1");
+    table->AddColumn(pos1);
+
+    // Leaf position on the side "2"
+    vtkNew<vtkDoubleArray> pos2;
+    pos2->SetName("2");
+    table->AddColumn(pos2);
+
+    vtkIdType size = nofBoundaries - 1;
+    table->SetNumberOfRows(size);
+    for ( vtkIdType row = 0; row < size; ++row)
     {
-      // Start boundary of the leaf
-      vtkNew<vtkDoubleArray> boundStart;
-      boundStart->SetName("Start");
-      table->AddColumn(boundStart);
-
-      // Stop boundary of the leaf
-      vtkNew<vtkDoubleArray> boundStop;
-      boundStop->SetName("Stop");
-      table->AddColumn(boundStop);
-
-      // Leaf position on the side "1"
-      vtkNew<vtkDoubleArray> pos1;
-      pos1->SetName("1");
-      table->AddColumn(pos1);
-
-      // Leaf position on the side "2"
-      vtkNew<vtkDoubleArray> pos2;
-      pos2->SetName("2");
-      table->AddColumn(pos2);
-
-      vtkIdType size = nofBoundaries - 1;
-      table->SetNumberOfRows(size);
-      for ( vtkIdType row = 0; row < size; ++row)
-      {
-        table->SetValue( row, 0, mlcBoundaries[row]);
-        table->SetValue( row, 1, mlcBoundaries[row + 1]);
-        table->SetValue( row, 2, mlcPositions[row]);
-        table->SetValue( row, 3, mlcPositions[row + size]);
-      }
-      table->Modified();
-      tableNode->SetUseColumnNameAsColumnHeader(true);
-      tableNode->SetColumnDescription( "Start", "Start boundary of the leaf");
-      tableNode->SetColumnDescription( "Stop", "Stop boundary of the leaf");
-      tableNode->SetColumnDescription( "1", "Leaf position on the side \"1\"");
-      tableNode->SetColumnDescription( "2", "Leaf position on the side \"2\"");
-      tableNode->SetLocked(1);
-      return tableNode;
+      table->SetValue( row, 0, mlcBoundaries[row]);
+      table->SetValue( row, 1, mlcBoundaries[row + 1]);
+      table->SetValue( row, 2, mlcPositions[row]);
+      table->SetValue( row, 3, mlcPositions[row + size]);
     }
-    else
-    {
-      vtkErrorWithObjectMacro( this->External, 
-        "CreateMultiLeafCollimatorTableNode: unable to create vtkTable to fill MLC data");
-    }
+    table->Modified();
+    tableNode->SetUseColumnNameAsColumnHeader(true);
+    tableNode->SetColumnDescription( "Start", "Start boundary of the leaf");
+    tableNode->SetColumnDescription( "Stop", "Stop boundary of the leaf");
+    tableNode->SetColumnDescription( "1", "Leaf position on the side \"1\"");
+    tableNode->SetColumnDescription( "2", "Leaf position on the side \"2\"");
+    tableNode->SetLocked(1);
+    return tableNode;
   }
   else
   {
     vtkErrorWithObjectMacro( this->External, 
-      "CreateMultiLeafCollimatorTableNode: MLC boundary and position vectors have different sizes");
+      "CreateMultiLeafCollimatorTableNode: unable to create vtkTable to fill MLC data");
   }
   return nullptr;
 }
