@@ -526,7 +526,9 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
           firstLeafIterator = it + 1;
         }
         else
+        {
           firstLeafIterator = it;
+        }
       }
       else if ((*it).first <= this->Y2Jaw && (*it).second > this->Y2Jaw)
       {
@@ -535,7 +537,9 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
           lastLeafIterator = it - 1;
         }
         else
+        {
           lastLeafIterator = it;
+        }
       }
     }
     // iterate through visible leaves to fill temporary points vectors
