@@ -117,6 +117,13 @@ public:
   bool GetBeamMultiLeafCollimatorPositionsY( unsigned int beamNumber, 
     std::vector<double>& pairBoundaries, std::vector<double>& leafPositions);
 
+  /// Get MLC leaves boundaries & leaves positions opening for a given beam
+  /// \param pairBoundaries Array in which the raw leaves boundaries are copied
+  /// \param leafPositions Array in which the raw leaf positions are copied
+  /// \return "MLCX" or "MLCY" if data is valid, nullptr otherwise
+  const char* GetBeamMultiLeafCollimatorPositions( unsigned int beamNumber, 
+    std::vector<double>& pairBoundaries, std::vector<double>& leafPositions);
+
   /// Get number of channels
   int GetNumberOfChannels();
 

@@ -810,30 +810,17 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
     // Create MLC table node if MLCX or MLCY are available
     std::vector<double> boundaries, positions;
     vtkMRMLTableNode* tableNode = nullptr;
-    // Check MLCX
-    bool validMLCX = rtReader->GetBeamMultiLeafCollimatorPositionsX( dicomBeamNumber, 
+    // Check MLC
+    const char* mlcName = rtReader->GetBeamMultiLeafCollimatorPositions( dicomBeamNumber, 
       boundaries, positions);
-    if (validMLCX)
+    if (mlcName)
     {
-      tableNode = this->CreateMultiLeafCollimatorTableNode( "MLCX", 
+      tableNode = this->CreateMultiLeafCollimatorTableNode( mlcName, 
         boundaries, positions);
     }
     else
     {
-      vtkDebugWithObjectMacro(this->External, "MLCX data unavailable");
-
-      // Check MLCY
-      bool validMLCY = rtReader->GetBeamMultiLeafCollimatorPositionsY( dicomBeamNumber, 
-        boundaries, positions);
-      if (validMLCY)
-      {
-        tableNode = this->CreateMultiLeafCollimatorTableNode( "MLCY", 
-          boundaries, positions);
-      }
-      else
-      {
-        vtkDebugWithObjectMacro(this->External, "MLCY data unavailable");
-      }
+      vtkDebugWithObjectMacro(this->External, "MLC data unavailable");
     }
 
     // Add beam to scene (triggers poly data and transform creation and update)

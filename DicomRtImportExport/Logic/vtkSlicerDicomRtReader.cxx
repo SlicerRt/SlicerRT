@@ -56,6 +56,13 @@
 // Qt includes
 #include <QSettings>
 
+namespace {
+
+const char* const MLCX_STRING = "MLCX";
+const char* const MLCY_STRING = "MLCY";
+
+} // namespace
+
 vtkStandardNewMacro(vtkSlicerDicomRtReader);
 
 //----------------------------------------------------------------------------
@@ -1797,6 +1804,28 @@ bool vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositionsY( unsigned int 
     vtkWarningMacro("GetBeamMultiLeafCollimatorPositionsY: Unable to find beam of number" << beamNumber);
   }
   return false;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositions( unsigned int beamNumber, 
+  std::vector<double>& pairBoundaries, std::vector<double>& leafPositions)
+{
+  bool mlcxIsValid = this->GetBeamMultiLeafCollimatorPositionsX( beamNumber,
+    pairBoundaries, leafPositions);
+  if (mlcxIsValid)
+  {
+    return MLCX_STRING;
+  }
+  else
+  {
+    bool mlcyIsValid = this->GetBeamMultiLeafCollimatorPositionsY( beamNumber,
+    pairBoundaries, leafPositions);
+    if (mlcyIsValid)
+    {
+      return MLCY_STRING;
+    }
+  }
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
