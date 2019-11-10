@@ -564,10 +564,20 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       {
         MLCType::iterator positer = iter - mlcBoundary.begin() + mlcPosition.begin();
         // add points for the first visible leaf for side "1" and "2"
-        side1.push_back(std::make_pair( (*positer).first, (*iter).first));
-        side1.push_back(std::make_pair( (*positer).first, (*iter).second));
-        side2.push_back(std::make_pair( (*positer).second, (*iter).first));
-        side2.push_back(std::make_pair( (*positer).second, (*iter).second));
+        if (!strcmp( "MLCX", mlcTableNode->GetName())) // MLCX
+        {
+          side1.push_back(std::make_pair( (*positer).first, (*iter).first));
+          side1.push_back(std::make_pair( (*positer).first, (*iter).second));
+          side2.push_back(std::make_pair( (*positer).second, (*iter).first));
+          side2.push_back(std::make_pair( (*positer).second, (*iter).second));
+        }
+        else if (!strcmp( "MLCY", mlcTableNode->GetName())) // MLCY
+        {
+          side1.push_back(std::make_pair( (*iter).first, (*positer).first));
+          side1.push_back(std::make_pair( (*iter).second, (*positer).first));
+          side2.push_back(std::make_pair( (*iter).first, (*positer).second));
+          side2.push_back(std::make_pair( (*iter).second, (*positer).second));
+        }
       }
       // reverse side "2"
       std::reverse( side2.begin(), side2.end());
