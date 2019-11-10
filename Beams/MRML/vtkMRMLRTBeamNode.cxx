@@ -515,67 +515,47 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
 
     MLCType::iterator firstLeafIterator = mlcBoundary.end();
     MLCType::iterator lastLeafIterator = mlcBoundary.end();
+    double& jawBegin = this->Y1Jaw;
+    double& jawEnd = this->Y2Jaw;
     if (!strcmp( "MLCX", mlcTableNode->GetName())) // MLCX
     {
-      // find first and last visible leaves
-      for ( MLCType::iterator it = mlcBoundary.begin(); it != mlcBoundary.end(); ++it)
-      {
-        MLCType::iterator positer = it - mlcBoundary.begin() + mlcPosition.begin();
-        if ((*it).first <= this->Y1Jaw && (*it).second > this->Y1Jaw)
-        {
-          if (vtkSlicerRtCommon::AreEqualWithTolerance( (*positer).first, (*positer).second))
-          {
-            firstLeafIterator = it + 1;
-          }
-          else
-          {
-            firstLeafIterator = it;
-          }
-        }
-        else if ((*it).first <= this->Y2Jaw && (*it).second > this->Y2Jaw)
-        {
-          if (vtkSlicerRtCommon::AreEqualWithTolerance( (*positer).first, (*positer).second))
-          {
-            lastLeafIterator = it - 1;
-          }
-          else
-          {
-            lastLeafIterator = it;
-          }
-        }
-      }
+      jawBegin = this->Y1Jaw;
+      jawEnd = this->Y2Jaw;
     }
     else if (!strcmp( "MLCY", mlcTableNode->GetName())) // MLCY
     {
-      // find first and last visible leaves
-      for ( MLCType::iterator it = mlcBoundary.begin(); it != mlcBoundary.end(); ++it)
+      jawBegin = this->X1Jaw;
+      jawEnd = this->X2Jaw;
+    }
+
+    // find first and last visible leaves
+    for ( MLCType::iterator it = mlcBoundary.begin(); it != mlcBoundary.end(); ++it)
+    {
+      MLCType::iterator positer = it - mlcBoundary.begin() + mlcPosition.begin();
+      if ((*it).first <= jawBegin && (*it).second > jawBegin)
       {
-        MLCType::iterator positer = it - mlcBoundary.begin() + mlcPosition.begin();
-        if ((*it).first <= this->X1Jaw && (*it).second > this->X1Jaw)
+        if (vtkSlicerRtCommon::AreEqualWithTolerance( (*positer).first, (*positer).second))
         {
-          if (vtkSlicerRtCommon::AreEqualWithTolerance( (*positer).first, (*positer).second))
-          {
-            firstLeafIterator = it + 1;
-          }
-          else
-          {
-            firstLeafIterator = it;
-          }
+          firstLeafIterator = it + 1;
         }
-        else if ((*it).first <= this->X2Jaw && (*it).second > this->X2Jaw)
+        else
         {
-          if (vtkSlicerRtCommon::AreEqualWithTolerance( (*positer).first, (*positer).second))
-          {
-            lastLeafIterator = it - 1;
-          }
-          else
-          {
-            lastLeafIterator = it;
-          }
+          firstLeafIterator = it;
+        }
+      }
+      else if ((*it).first <= jawEnd && (*it).second > jawEnd)
+      {
+        if (vtkSlicerRtCommon::AreEqualWithTolerance( (*positer).first, (*positer).second))
+        {
+          lastLeafIterator = it - 1;
+        }
+        else
+        {
+          lastLeafIterator = it;
         }
       }
     }
-
+    
     // iterate through visible leaves to fill temporary points vectors
     if (firstLeafIterator != mlcBoundary.end() && lastLeafIterator != mlcBoundary.end())
     {
