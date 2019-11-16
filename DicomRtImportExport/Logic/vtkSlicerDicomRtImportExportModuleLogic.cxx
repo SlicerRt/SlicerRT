@@ -173,9 +173,9 @@ public:
   /// Add an ROI point to the scene
   vtkMRMLMarkupsFiducialNode* AddRoiPoint(double* roiPosition, std::string baseName, double* roiColor);
 
-  /// Create table node (boundaries and positions) for the MLC
+  /// Create table node positions for the MLC
   vtkMRMLTableNode* CreateMultiLeafCollimatorTableNode( const char* name, 
-    const std::vector<double>& mlcBoundaries, const std::vector<double>& mlcPositions);
+    const std::vector<double>& mlcPositions);
 
   /// Compute and set geometry of an RT image
   /// \param node Either the volume node of the loaded RT image, or the isocenter fiducial node (corresponding to an RT image). This function is called both when
@@ -815,8 +815,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
       boundaries, positions);
     if (mlcName)
     {
-      tableNode = this->CreateMultiLeafCollimatorTableNode( mlcName, 
-        boundaries, positions);
+      beamNode->SetMultiLeafCollimatorBoundaries(boundaries);
+      tableNode = this->CreateMultiLeafCollimatorTableNode( mlcName, positions);
     }
     else
     {
@@ -827,8 +827,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
     scene->AddNode(beamNode);
     // Add MLC to beam
     if (tableNode) {
-      beamNode->SetAndObserveMLCBoundaryPositionTableNode(tableNode);
-      beamNode->UpdateGeometry();
+      beamNode->SetAndObserveMLCPositionTableNode(tableNode);
     }
     // Add beam to plan
     planNode->AddBeam(beamNode);
@@ -1276,8 +1275,7 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal
 
 //---------------------------------------------------------------------------
 vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMultiLeafCollimatorTableNode( 
-  const char* name, const std::vector<double>& mlcBoundaries, 
-  const std::vector<double>& mlcPositions)
+  const char* name, const std::vector<double>& mlcPositions)
 {
   vtkSmartPointer<vtkMRMLTableNode> tableNode = vtkSmartPointer<vtkMRMLTableNode>::New();
   this->External->GetMRMLScene()->AddNode(tableNode);
@@ -1286,16 +1284,6 @@ vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMu
   vtkTable* table = tableNode->GetTable();
   if (table)
   {
-    // Start boundary of the leaf
-    vtkNew<vtkDoubleArray> boundStart;
-    boundStart->SetName("Start");
-    table->AddColumn(boundStart);
-
-    // Stop boundary of the leaf
-    vtkNew<vtkDoubleArray> boundStop;
-    boundStop->SetName("Stop");
-    table->AddColumn(boundStop);
-
     // Leaf position on the side "1"
     vtkNew<vtkDoubleArray> pos1;
     pos1->SetName("1");
@@ -1306,28 +1294,22 @@ vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMu
     pos2->SetName("2");
     table->AddColumn(pos2);
 
-    vtkIdType size = mlcBoundaries.size() - 1;
+    vtkIdType size = mlcPositions.size() / 2;
     table->SetNumberOfRows(size);
     for ( vtkIdType row = 0; row < size; ++row)
     {
-      table->SetValue( row, 0, mlcBoundaries[row]);
-      table->SetValue( row, 1, mlcBoundaries[row + 1]);
-      table->SetValue( row, 2, mlcPositions[row]);
-      table->SetValue( row, 3, mlcPositions[row + size]);
+      table->SetValue( row, 0, mlcPositions[row]);
+      table->SetValue( row, 1, mlcPositions[row + size]);
     }
-    table->Modified();
     tableNode->SetUseColumnNameAsColumnHeader(true);
-    tableNode->SetColumnDescription( "Start", "Start boundary of the leaf");
-    tableNode->SetColumnDescription( "Stop", "Stop boundary of the leaf");
     tableNode->SetColumnDescription( "1", "Leaf position on the side \"1\"");
     tableNode->SetColumnDescription( "2", "Leaf position on the side \"2\"");
-    tableNode->SetLocked(1);
     return tableNode;
   }
   else
   {
     vtkErrorWithObjectMacro( this->External, 
-      "CreateMultiLeafCollimatorTableNode: unable to create vtkTable to fill MLC data");
+      "CreateMultiLeafCollimatorTableNode: unable to create vtkTable to fill MLC positions");
   }
   return nullptr;
 }

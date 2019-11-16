@@ -100,10 +100,10 @@ public:
   vtkMRMLRTPlanNode* GetParentPlanNode();
 
   /// Get MLC boundary & position table node
-  vtkMRMLTableNode* GetMLCBoundaryPositionTableNode();
-  /// Set and observe MLC boundary & position table node
+  vtkMRMLTableNode* GetMLCPositionTableNode();
+  /// Set and observe MLC position table node
   /// Triggers \sa BeamGeometryModified event and re-generation of beam model
-  void SetAndObserveMLCBoundaryPositionTableNode(vtkMRMLTableNode* node);
+  void SetAndObserveMLCPositionTableNode(vtkMRMLTableNode* node);
 
   /// Get DRR volume node
   vtkMRMLScalarVolumeNode* GetDRRVolumeNode();
@@ -180,6 +180,11 @@ public:
   /// Set beam weight
   vtkSetMacro(BeamWeight, double);
 
+  /// Set MLC boundaries
+  void SetMultiLeafCollimatorBoundaries(const std::vector<double>& mlcBoundaries);
+  /// Get MLC boundaries
+  void GetMultiLeafCollimatorBoundaries(std::vector<double>& mlcBoundaries);
+
 protected:
   /// Create beam model from beam parameters, supporting MLC leaves
   /// \param beamModelPolyData Output polydata. If none given then the beam node's own polydata is used
@@ -217,6 +222,8 @@ protected:
   double CollimatorAngle;
   /// Couch angle
   double CouchAngle;
+  /// MLC Boundaries vector (DICOM raw values)
+  std::vector<double> MultiLeafCollimatorBoundaries;
 };
 
 #endif // __vtkMRMLRTBeamNode_h
