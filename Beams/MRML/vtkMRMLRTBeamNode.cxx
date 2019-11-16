@@ -47,9 +47,6 @@
 #include <vtkTable.h>
 #include <vtkCellArray.h>
 
-#define MIN( A, B) ((A) < (B) ? (A) : (B))
-#define MAX( A, B) ((A) > (B) ? (A) : (B))
-
 //------------------------------------------------------------------------------
 const char* vtkMRMLRTBeamNode::NEW_BEAM_NODE_NAME_PREFIX = "NewBeam_";
 const char* vtkMRMLRTBeamNode::BEAM_TRANSFORM_NODE_NAME_POSTFIX = "_BeamTransform";
@@ -596,8 +593,8 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
 
       if (firstLeafIterator1 != mlcBoundary.end() && lastLeafIterator1 != mlcBoundary.end())
       {
-        lastLeafIterator = MIN( lastLeafIterator1, lastLeafIterator);
-        firstLeafIterator = MIN( firstLeafIterator1, firstLeafIterator);
+        lastLeafIterator = std::min( lastLeafIterator1, lastLeafIterator);
+        firstLeafIterator = std::min( firstLeafIterator1, firstLeafIterator);
       }
 
       MLCType side1, side2; // temporary vectors to save visible points
@@ -607,17 +604,17 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         // add points for the first visible leaf for side "1" and "2"
         if (!strcmp( "MLCX", mlcTableNode->GetName())) // MLCX
         {
-          side1.push_back(std::make_pair( MAX( (*positer).first, this->X1Jaw), (*iter).first));
-          side1.push_back(std::make_pair( MAX( (*positer).first, this->X1Jaw), (*iter).second));
-          side2.push_back(std::make_pair( MIN( (*positer).second, this->X2Jaw), (*iter).first));
-          side2.push_back(std::make_pair( MIN( (*positer).second, this->X2Jaw), (*iter).second));
+          side1.push_back(std::make_pair( std::max( (*positer).first, this->X1Jaw), (*iter).first));
+          side1.push_back(std::make_pair( std::max( (*positer).first, this->X1Jaw), (*iter).second));
+          side2.push_back(std::make_pair( std::min( (*positer).second, this->X2Jaw), (*iter).first));
+          side2.push_back(std::make_pair( std::min( (*positer).second, this->X2Jaw), (*iter).second));
         }
         else if (!strcmp( "MLCY", mlcTableNode->GetName())) // MLCY
         {
-          side1.push_back(std::make_pair( (*iter).first, MAX( (*positer).first, this->Y1Jaw));
-          side1.push_back(std::make_pair( (*iter).second, MAX( (*positer).first, this->Y1Jaw));
-          side2.push_back(std::make_pair( (*iter).first, MIN( (*positer).second, this->Y2Jaw)));
-          side2.push_back(std::make_pair( (*iter).second, MIN( (*positer).second, this->Y2Jaw));
+          side1.push_back(std::make_pair( (*iter).first, std::max( (*positer).first, this->Y1Jaw)));
+          side1.push_back(std::make_pair( (*iter).second, std::max( (*positer).first, this->Y1Jaw)));
+          side2.push_back(std::make_pair( (*iter).first, std::min( (*positer).second, this->Y2Jaw)));
+          side2.push_back(std::make_pair( (*iter).second, std::min( (*positer).second, this->Y2Jaw)));
         }
       }
       // reverse side "2"
