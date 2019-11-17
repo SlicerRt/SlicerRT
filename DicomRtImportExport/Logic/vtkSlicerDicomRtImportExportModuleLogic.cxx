@@ -91,6 +91,7 @@
 #include <vtkMRMLLabelMapVolumeDisplayNode.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
+#include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLTableNode.h>
 
 // Markups includes
@@ -176,6 +177,10 @@ public:
   /// Create table node positions for the MLC
   vtkMRMLTableNode* CreateMultiLeafCollimatorTableNode( const char* name, 
     const std::vector<double>& mlcPositions);
+
+  /// Create double array node boundaries for the MLC
+  vtkMRMLDoubleArrayNode* CreateMultiLeafCollimatorDoubleArrayNode( const char* name, 
+    const std::vector<double>& mlcBoundaries);
 
   /// Compute and set geometry of an RT image
   /// \param node Either the volume node of the loaded RT image, or the isocenter fiducial node (corresponding to an RT image). This function is called both when
@@ -810,13 +815,15 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
     // Create MLC table node if MLCX or MLCY are available
     std::vector<double> boundaries, positions;
     vtkMRMLTableNode* tableNode = nullptr;
+    vtkMRMLDoubleArrayNode* arrayNode = nullptr;
     // Check MLC
     const char* mlcName = rtReader->GetBeamMultiLeafCollimatorPositions( dicomBeamNumber, 
       boundaries, positions);
     if (mlcName)
     {
-      beamNode->SetMultiLeafCollimatorBoundaries(boundaries);
       tableNode = this->CreateMultiLeafCollimatorTableNode( mlcName, positions);
+      std::string mlcString = std::string(mlcName) + "_Boundaries";
+      arrayNode = this->CreateMultiLeafCollimatorDoubleArrayNode( mlcString.c_str(), boundaries);
     }
     else
     {
@@ -826,7 +833,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
     // Add beam to scene (triggers poly data and transform creation and update)
     scene->AddNode(beamNode);
     // Add MLC to beam
-    if (tableNode) {
+    if (tableNode && arrayNode) {
+      beamNode->SetAndObserveMLCBoundaryDoubleArrayNode(arrayNode);
       beamNode->SetAndObserveMLCPositionTableNode(tableNode);
     }
     // Add beam to plan
@@ -1271,6 +1279,35 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal
   markupsNode->SetDisplayVisibility(0);
 
   return markupsNode;
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLDoubleArrayNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMultiLeafCollimatorDoubleArrayNode( 
+  const char* name, const std::vector<double>& mlcBoundaries)
+{
+  vtkSmartPointer<vtkMRMLDoubleArrayNode> arrayNode = vtkSmartPointer<vtkMRMLDoubleArrayNode>::New();
+  this->External->GetMRMLScene()->AddNode(arrayNode);
+  arrayNode->SetName(name);
+
+  // Leaf boundaries
+  if (mlcBoundaries.size())
+  {
+    vtkNew<vtkDoubleArray> b;
+    b->SetNumberOfComponents(1);
+    b->SetNumberOfTuples(mlcBoundaries.size());
+    for ( size_t i = 0; i < mlcBoundaries.size(); ++i)
+    {
+      b->InsertTuple( i, mlcBoundaries.data() + i);
+    }
+    arrayNode->SetArray(b);
+    return arrayNode;
+  }
+  else
+  {
+    vtkErrorWithObjectMacro( this->External, 
+      "CreateMultiLeafCollimatorDoubleArrayNode: MLC boundaries array is empty");
+  }
+  return nullptr;
 }
 
 //---------------------------------------------------------------------------

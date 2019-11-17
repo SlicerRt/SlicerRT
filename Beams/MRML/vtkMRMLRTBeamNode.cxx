@@ -52,6 +52,7 @@ const char* vtkMRMLRTBeamNode::NEW_BEAM_NODE_NAME_PREFIX = "NewBeam_";
 const char* vtkMRMLRTBeamNode::BEAM_TRANSFORM_NODE_NAME_POSTFIX = "_BeamTransform";
 
 //------------------------------------------------------------------------------
+static const char* MLCBOUNDARY_REFERENCE_ROLE = "MLCBoundaryRef";
 static const char* MLCPOSITION_REFERENCE_ROLE = "MLCPositionRef";
 static const char* DRR_REFERENCE_ROLE = "DRRRef";
 static const char* CONTOUR_BEV_REFERENCE_ROLE = "contourBEVRef";
@@ -299,6 +300,26 @@ void vtkMRMLRTBeamNode::CreateNewBeamTransformNode()
 }
 
 //----------------------------------------------------------------------------
+vtkMRMLDoubleArrayNode* vtkMRMLRTBeamNode::GetMLCBoundaryDoubleArrayNode()
+{
+  return vtkMRMLDoubleArrayNode::SafeDownCast( this->GetNodeReference(MLCBOUNDARY_REFERENCE_ROLE) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetAndObserveMLCBoundaryDoubleArrayNode(vtkMRMLDoubleArrayNode* node)
+{
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
+  this->SetNodeReferenceID(MLCBOUNDARY_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
+
+  this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
+}
+
+//----------------------------------------------------------------------------
 vtkMRMLTableNode* vtkMRMLRTBeamNode::GetMLCPositionTableNode()
 {
   return vtkMRMLTableNode::SafeDownCast( this->GetNodeReference(MLCPOSITION_REFERENCE_ROLE) );
@@ -488,19 +509,32 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
 
   vtkMRMLTableNode* mlcTableNode = nullptr;
 
-  size_t nofLeaves = this->MultiLeafCollimatorBoundaries.size();
+  vtkIdType nofLeaves = 0;
+
+  // MLC boundary data
+  vtkMRMLDoubleArrayNode* arrayNode = this->GetMLCBoundaryDoubleArrayNode();
+  std::vector<double> mlcBounds;
+  if (arrayNode)
+  {
+    vtkDoubleArray* array = arrayNode->GetArray();
+    nofLeaves = array->GetNumberOfTuples(); // real number of leaves plus 1
+    for ( vtkIdType i = 0; i < nofLeaves; ++i)
+    {
+      mlcBounds.push_back(array->GetTuple1(i));
+    }
+    nofLeaves--; // real number of leaves
+  }
+
   if (nofLeaves)
   {
     mlcTableNode = this->GetMLCPositionTableNode();
-    if (mlcTableNode && (mlcTableNode->GetNumberOfRows() == int(nofLeaves - 1)))
+    if (!mlcTableNode || (mlcTableNode->GetNumberOfRows() != nofLeaves))
     {
-      ;
-    }
-    else
-    {
-      vtkErrorMacro("CreateBeamPolyData: Invalid MLC table node, or " \
+      vtkErrorMacro("CreateBeamPolyData: Invalid MLC nodes, or " \
         "number of MLC boundaries and positions are different");
       mlcTableNode = nullptr;
+      arrayNode = nullptr;
+      return;
     }
   }
 
@@ -515,13 +549,11 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     MLCType mlcBoundary; // temporary MLC Boundaries vector
     MLCType mlcPosition; // temporary MLC Positions vector
     MLCType s1, s2; // real points for side "1" and "2"
-    
-    std::vector<double>& mlcBounds = this->MultiLeafCollimatorBoundaries;
-    int leaves = mlcTableNode->GetNumberOfRows();
+
     vtkTable* table = mlcTableNode->GetTable();
 
     // copy MLC data for proper (easier processing)
-    for ( int leaf = 0; leaf < leaves; leaf++)
+    for ( vtkIdType leaf = 0; leaf < nofLeaves; leaf++)
     {
       double pos1 = table->GetValue( leaf, 0).ToDouble();
       double pos2 = table->GetValue( leaf, 1).ToDouble();
@@ -812,16 +844,4 @@ void vtkMRMLRTBeamNode::RequestCloning()
   {
     this->GetDisplayNode()->Modified();
   }
-}
-
-//---------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetMultiLeafCollimatorBoundaries(const std::vector<double>& mlcBoundaries)
-{
-  this->MultiLeafCollimatorBoundaries = mlcBoundaries;
-}
-
-//---------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::GetMultiLeafCollimatorBoundaries(std::vector<double>& mlcBoundaries)
-{
-  mlcBoundaries = this->MultiLeafCollimatorBoundaries;
 }
