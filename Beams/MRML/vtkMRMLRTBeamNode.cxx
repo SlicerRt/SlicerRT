@@ -711,10 +711,11 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         }
       }
 
-      // remove excessive points from side "1" and "2" and fill real points vectors
-      std::pair< double, double> p = *side1.begin();
+      // fill real points vectors s1 and s2 without excessive points 
+      // from side1 and side2 points vectors
+      MLCType::value_type& p = *side1.begin();
       s1.push_back(p);
-      for ( size_t i = 0; i < side1.size() - 1; ++i)
+      for ( size_t i = 1; i < side1.size() - 1; ++i)
       {
         if (vtkSlicerRtCommon::AreEqualWithTolerance(p.first, side1[i + 1].first) && 
           vtkSlicerRtCommon::AreEqualWithTolerance(p.first, side1[i + 1].first))
@@ -730,7 +731,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
 
       p = *side2.begin();
       s2.push_back(p);
-      for ( size_t i = 0; i < side2.size() - 1; ++i)
+      for ( size_t i = 1; i < side2.size() - 1; ++i)
       {
         if (vtkSlicerRtCommon::AreEqualWithTolerance(p.first, side2[i + 1].first) && 
           vtkSlicerRtCommon::AreEqualWithTolerance(p.first, side2[i + 1].first))
