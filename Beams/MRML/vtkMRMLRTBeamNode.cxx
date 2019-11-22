@@ -583,7 +583,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       jawEnd = this->X2Jaw;
     }
 
-    // find first and last visible (opened) leaves
+    // find first and last opened leaves
     for ( MLCType::iterator it = mlcBoundary.begin(); it != mlcBoundary.end(); ++it)
     {
       MLCType::iterator positer = it - mlcBoundary.begin() + mlcPosition.begin();
@@ -603,6 +603,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     {
       MLCType::iterator firstLeafIterator1 = mlcBoundary.end();
       MLCType::iterator lastLeafIterator1 = mlcBoundary.end();
+      // find first and last visible leaves using Jaws data
       for ( MLCType::iterator it = firstLeafIterator; it <= lastLeafIterator; ++it)
       {
         MLCType::iterator positer = it - mlcBoundary.begin() + mlcPosition.begin();
@@ -630,10 +631,11 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         }
       }
 
+      // find opened MLC leaves into Jaws opening (logical AND)
       if (firstLeafIterator1 != mlcBoundary.end() && lastLeafIterator1 != mlcBoundary.end())
       {
         lastLeafIterator = std::min( lastLeafIterator1, lastLeafIterator);
-        firstLeafIterator = std::min( firstLeafIterator1, firstLeafIterator);
+        firstLeafIterator = std::max( firstLeafIterator1, firstLeafIterator);
       }
 
       MLCType side1, side2; // temporary vectors to save visible points
@@ -718,8 +720,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         }
       }
 
-      // fill real points vectors s1 and s2 without excessive points 
-      // from side1 and side2 points vectors
+      // fill real points vector s1 without excessive points from side1 vector
       MLCType::value_type& p = *side1.begin();
       s1.push_back(p);
       for ( size_t i = 1; i < side1.size() - 1; ++i)
@@ -736,6 +737,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       p = *(side1.end() - 1);
       s1.push_back(p);
 
+      // fill real points vector s2 without excessive points from side2 vector
       p = *side2.begin();
       s2.push_back(p);
       for ( size_t i = 1; i < side2.size() - 1; ++i)
@@ -755,12 +757,12 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     
     // fill vtk points
     points->InsertPoint( 0, 0, 0, this->SAD); // source
-    // side "1"
+    // side "1" using s1 points vector
     for ( size_t i = 0; i < s1.size(); ++i)
     {
       points->InsertPoint( i + 1, 2. * s1[i].first, 2. * s1[i].second, -this->SAD);
     }
-    // side "2"
+    // side "2" using s2 points vector
     for ( size_t i = 0; i < s2.size(); ++i)
     {
       points->InsertPoint( i + 1 + s1.size(), 2. * s2[i].first, 2. * s2[i].second, -this->SAD);
