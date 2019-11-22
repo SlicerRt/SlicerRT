@@ -48,6 +48,13 @@
 #include <vtkCellArray.h>
 
 //------------------------------------------------------------------------------
+namespace
+{
+  const size_t MLCX_STRING_SIZE = strlen("MLCX");
+  const size_t MLCY_STRING_SIZE = strlen("MLCY");
+} // namespace
+
+//------------------------------------------------------------------------------
 const char* vtkMRMLRTBeamNode::NEW_BEAM_NODE_NAME_PREFIX = "NewBeam_";
 const char* vtkMRMLRTBeamNode::BEAM_TRANSFORM_NODE_NAME_POSTFIX = "_BeamTransform";
 
@@ -565,12 +572,12 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     MLCType::iterator lastLeafIterator = mlcBoundary.end();
     double& jawBegin = this->Y1Jaw;
     double& jawEnd = this->Y2Jaw;
-    if (!strcmp( "MLCX", mlcTableNode->GetName())) // MLCX
+    if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
     {
       jawBegin = this->Y1Jaw;
       jawEnd = this->Y2Jaw;
     }
-    else if (!strcmp( "MLCY", mlcTableNode->GetName())) // MLCY
+    else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
     {
       jawBegin = this->X1Jaw;
       jawEnd = this->X2Jaw;
@@ -634,14 +641,14 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       {
         MLCType::iterator positer = iter - mlcBoundary.begin() + mlcPosition.begin();
         // add points for the first visible leaf for side "1" and "2"
-        if (!strcmp( "MLCX", mlcTableNode->GetName())) // MLCX
+        if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
         {
           side1.push_back(std::make_pair( std::max( (*positer).first, this->X1Jaw), (*iter).first));
           side1.push_back(std::make_pair( std::max( (*positer).first, this->X1Jaw), (*iter).second));
           side2.push_back(std::make_pair( std::min( (*positer).second, this->X2Jaw), (*iter).first));
           side2.push_back(std::make_pair( std::min( (*positer).second, this->X2Jaw), (*iter).second));
         }
-        else if (!strcmp( "MLCY", mlcTableNode->GetName())) // MLCY
+        else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
         {
           side1.push_back(std::make_pair( (*iter).first, std::max( (*positer).first, this->Y1Jaw)));
           side1.push_back(std::make_pair( (*iter).second, std::max( (*positer).first, this->Y1Jaw)));
@@ -655,7 +662,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       // intersection between Jaws and MLC (logical AND) side "1"
       for ( MLCType::iterator iter = side1.begin(); iter != side1.end(); ++iter)
       {
-        if (!strcmp( "MLCX", mlcTableNode->GetName())) // MLCX
+        if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
         {
           // jaws X and mlcx
           if ((*iter).first <= this->X1Jaw)
@@ -663,7 +670,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
             (*iter).first = this->X1Jaw;
           }
         }
-        else if (!strcmp( "MLCY", mlcTableNode->GetName())) // MLCY
+        else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
         {
           // jaws Y and mlcy
           if ((*iter).first <= this->Y1Jaw)
@@ -684,7 +691,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       // intersection between Jaws and MLC (logical AND) side "2"
       for ( MLCType::iterator iter = side2.begin(); iter != side2.end(); ++iter)
       {
-        if (!strcmp( "MLCX", mlcTableNode->GetName())) // MLCX
+        if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
         {
           // jaws X and mlcx
           if ((*iter).first >= this->X2Jaw)
@@ -692,7 +699,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
             (*iter).first = this->X2Jaw;
           }
         }
-        else if (!strcmp( "MLCY", mlcTableNode->GetName())) // MLCY
+        else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
         {
           // jaws Y and mlcy
           if ((*iter).first >= this->Y2Jaw)
