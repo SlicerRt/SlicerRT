@@ -201,11 +201,6 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
       // Update beam model
       beamNode->UpdateGeometry();
     }
-    else if (event == vtkMRMLRTBeamNode::BeamGeometryModified)
-    {
-      // Update beam model
-      beamNode->UpdateGeometry();
-    }
   }
   else if (caller->IsA("vtkMRMLRTPlanNode"))
   {

@@ -582,8 +582,8 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       jawBegin = this->X1Jaw;
       jawEnd = this->X2Jaw;
     }
-
     // find first and last opened leaves
+    MLCType side1, side2; // temporary vectors to save visible points
     for ( MLCType::iterator it = mlcBoundary.begin(); it != mlcBoundary.end(); ++it)
     {
       MLCType::iterator positer = it - mlcBoundary.begin() + mlcPosition.begin();
@@ -592,7 +592,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       {
         firstLeafIterator = it;
       }
-      else if (mlcOpened && firstLeafIterator != mlcBoundary.end())
+      if (mlcOpened && firstLeafIterator != mlcBoundary.end())
       {
         lastLeafIterator = it;
       }
@@ -606,31 +606,16 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       // find first and last visible leaves using Jaws data
       for ( MLCType::iterator it = firstLeafIterator; it <= lastLeafIterator; ++it)
       {
-        MLCType::iterator positer = it - mlcBoundary.begin() + mlcPosition.begin();
         if ((*it).first <= jawBegin && (*it).second > jawBegin)
         {
-          if (vtkSlicerRtCommon::AreEqualWithTolerance( (*positer).first, (*positer).second))
-          {
-            firstLeafIterator1 = it + 1;
-          }
-          else
-          {
-            firstLeafIterator1 = it;
-          }
+          firstLeafIterator1 = it;
         }
-        else if ((*it).first <= jawEnd && (*it).second > jawEnd)
+        if ((*it).first <= jawEnd && (*it).second > jawEnd)
         {
-          if (vtkSlicerRtCommon::AreEqualWithTolerance( (*positer).first, (*positer).second))
-          {
-            lastLeafIterator1 = it - 1;
-          }
-          else
-          {
-            lastLeafIterator1 = it;
-          }
+          lastLeafIterator1 = it;
         }
       }
-
+      
       // find opened MLC leaves into Jaws opening (logical AND)
       if (firstLeafIterator1 != mlcBoundary.end() && lastLeafIterator1 != mlcBoundary.end())
       {
@@ -638,49 +623,30 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         firstLeafIterator = std::max( firstLeafIterator1, firstLeafIterator);
       }
 
-      MLCType side1, side2; // temporary vectors to save visible points
+      // temporary vectors to save visible points
       for ( MLCType::iterator iter = firstLeafIterator; iter <= lastLeafIterator; ++iter)
       {
         MLCType::iterator positer = iter - mlcBoundary.begin() + mlcPosition.begin();
         // add points for the first visible leaf for side "1" and "2"
         if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
         {
-          side1.push_back(std::make_pair( std::max( (*positer).first, this->X1Jaw), (*iter).first));
-          side1.push_back(std::make_pair( std::max( (*positer).first, this->X1Jaw), (*iter).second));
-          side2.push_back(std::make_pair( std::min( (*positer).second, this->X2Jaw), (*iter).first));
-          side2.push_back(std::make_pair( std::min( (*positer).second, this->X2Jaw), (*iter).second));
+          side1.push_back(std::make_pair( std::max( (*positer).first, X1Jaw), (*iter).first));
+          side1.push_back(std::make_pair( std::max( (*positer).first, X1Jaw), (*iter).second));
+          side2.push_back(std::make_pair( std::min( (*positer).second, X2Jaw), (*iter).first));
+          side2.push_back(std::make_pair( std::min( (*positer).second, X2Jaw), (*iter).second));
         }
         else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
         {
-          side1.push_back(std::make_pair( (*iter).first, std::max( (*positer).first, this->Y1Jaw)));
-          side1.push_back(std::make_pair( (*iter).second, std::max( (*positer).first, this->Y1Jaw)));
-          side2.push_back(std::make_pair( (*iter).first, std::min( (*positer).second, this->Y2Jaw)));
-          side2.push_back(std::make_pair( (*iter).second, std::min( (*positer).second, this->Y2Jaw)));
+          side1.push_back(std::make_pair( (*iter).first, std::max( (*positer).first, Y1Jaw)));
+          side1.push_back(std::make_pair( (*iter).second, std::max( (*positer).first, Y1Jaw)));
+          side2.push_back(std::make_pair( (*iter).first, std::min( (*positer).second, Y2Jaw)));
+          side2.push_back(std::make_pair( (*iter).second, std::min( (*positer).second, Y2Jaw)));
         }
       }
-      // reverse side "2"
-      std::reverse( side2.begin(), side2.end());
 
       // intersection between Jaws and MLC (logical AND) side "1"
       for ( MLCType::iterator iter = side1.begin(); iter != side1.end(); ++iter)
       {
-        if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
-        {
-          // jaws X and mlcx
-          if ((*iter).first <= this->X1Jaw)
-          {
-            (*iter).first = this->X1Jaw;
-          }
-        }
-        else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
-        {
-          // jaws Y and mlcy
-          if ((*iter).first <= this->Y1Jaw)
-          {
-            (*iter).first = this->Y1Jaw;
-          }
-        }
-
         if ((*iter).second <= jawBegin)
         {
           (*iter).second = jawBegin;
@@ -688,28 +654,24 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         else if ((*iter).second >= jawEnd)
         {
           (*iter).second = jawEnd;
+        }
+
+        if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
+        {
+          // jaws X and mlcx
+        }
+        else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
+        {
+          // jaws Y and mlcy
+          if ((*iter).first <= Y1Jaw)
+          {
+            (*iter).first = Y1Jaw;
+          }
         }
       }
       // intersection between Jaws and MLC (logical AND) side "2"
       for ( MLCType::iterator iter = side2.begin(); iter != side2.end(); ++iter)
       {
-        if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
-        {
-          // jaws X and mlcx
-          if ((*iter).first >= this->X2Jaw)
-          {
-            (*iter).first = this->X2Jaw;
-          }
-        }
-        else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
-        {
-          // jaws Y and mlcy
-          if ((*iter).first >= this->Y2Jaw)
-          {
-            (*iter).first = this->Y2Jaw;
-          }
-        }
-
         if ((*iter).second <= jawBegin)
         {
           (*iter).second = jawBegin;
@@ -718,21 +680,35 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         {
           (*iter).second = jawEnd;
         }
+
+        if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
+        {
+          // jaws X and mlcx
+        }
+        else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
+        {
+          // jaws Y and mlcy
+          if ((*iter).first >= Y2Jaw)
+          {
+            (*iter).first = Y2Jaw;
+          }
+        }
       }
+
+      // reverse side "2"
+      std::reverse( side2.begin(), side2.end());
 
       // fill real points vector s1 without excessive points from side1 vector
       MLCType::value_type& p = *side1.begin();
       s1.push_back(p);
       for ( size_t i = 1; i < side1.size() - 1; ++i)
       {
-        if (vtkSlicerRtCommon::AreEqualWithTolerance(p.first, side1[i + 1].first) && 
-          vtkSlicerRtCommon::AreEqualWithTolerance(p.first, side1[i + 1].first))
+        if (!vtkSlicerRtCommon::AreEqualWithTolerance( p.first, side1[i + 1].first) && 
+          !vtkSlicerRtCommon::AreEqualWithTolerance(p.second, side1[i + 1].second))
           {
-            continue;
+            p = side1[i];
+            s1.push_back(p);
           }
-
-        p = side1[i];
-        s1.push_back(p);
       }
       p = *(side1.end() - 1);
       s1.push_back(p);
@@ -742,14 +718,12 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       s2.push_back(p);
       for ( size_t i = 1; i < side2.size() - 1; ++i)
       {
-        if (vtkSlicerRtCommon::AreEqualWithTolerance(p.first, side2[i + 1].first) && 
-          vtkSlicerRtCommon::AreEqualWithTolerance(p.first, side2[i + 1].first))
+        if (!vtkSlicerRtCommon::AreEqualWithTolerance( p.first, side2[i + 1].first) && 
+          !vtkSlicerRtCommon::AreEqualWithTolerance( p.second, side2[i + 1].second))
           {
-            continue;
+            p = side2[i];
+            s2.push_back(p);
           }
-
-        p = side2[i];
-        s2.push_back(p);
       }
       p = *(side2.end() - 1);
       s2.push_back(p);
@@ -760,12 +734,16 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     // side "1" using s1 points vector
     for ( size_t i = 0; i < s1.size(); ++i)
     {
-      points->InsertPoint( i + 1, 2. * s1[i].first, 2. * s1[i].second, -this->SAD);
+      double& x = s1[i].first;
+      double& y = s1[i].second;
+      points->InsertPoint( i + 1, 2. * x, 2. * y, -this->SAD);
     }
     // side "2" using s2 points vector
     for ( size_t i = 0; i < s2.size(); ++i)
     {
-      points->InsertPoint( i + 1 + s1.size(), 2. * s2[i].first, 2. * s2[i].second, -this->SAD);
+      double& x = s2[i].first;
+      double& y = s2[i].second;
+      points->InsertPoint( i + 1 + s1.size(), 2. * x, 2. * y, -this->SAD);
     }
 
     // fill cell array for side "1"
