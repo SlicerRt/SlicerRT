@@ -627,70 +627,77 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       for ( MLCType::iterator iter = firstLeafIterator; iter <= lastLeafIterator; ++iter)
       {
         MLCType::iterator positer = iter - mlcBoundary.begin() + mlcPosition.begin();
-        // add points for the first visible leaf for side "1" and "2"
+        // add points for the visible leaves of side "1" and "2"
+        // into side1 and side2 points vectors
         if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
         {
-          side1.push_back(std::make_pair( std::max( (*positer).first, X1Jaw), (*iter).first));
-          side1.push_back(std::make_pair( std::max( (*positer).first, X1Jaw), (*iter).second));
-          side2.push_back(std::make_pair( std::min( (*positer).second, X2Jaw), (*iter).first));
-          side2.push_back(std::make_pair( std::min( (*positer).second, X2Jaw), (*iter).second));
+          side1.push_back(std::make_pair( std::max( (*positer).first, this->X1Jaw), (*iter).first));
+          side1.push_back(std::make_pair( std::max( (*positer).first, this->X1Jaw), (*iter).second));
+          side2.push_back(std::make_pair( std::min( (*positer).second, this->X2Jaw), (*iter).first));
+          side2.push_back(std::make_pair( std::min( (*positer).second, this->X2Jaw), (*iter).second));
         }
         else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
         {
-          side1.push_back(std::make_pair( (*iter).first, std::max( (*positer).first, Y1Jaw)));
-          side1.push_back(std::make_pair( (*iter).second, std::max( (*positer).first, Y1Jaw)));
-          side2.push_back(std::make_pair( (*iter).first, std::min( (*positer).second, Y2Jaw)));
-          side2.push_back(std::make_pair( (*iter).second, std::min( (*positer).second, Y2Jaw)));
+          side1.push_back(std::make_pair( (*iter).first, std::max( (*positer).first, this->Y1Jaw)));
+          side1.push_back(std::make_pair( (*iter).second, std::max( (*positer).first, this->Y1Jaw)));
+          side2.push_back(std::make_pair( (*iter).first, std::min( (*positer).second, this->Y2Jaw)));
+          side2.push_back(std::make_pair( (*iter).second, std::min( (*positer).second, this->Y2Jaw)));
         }
       }
 
       // intersection between Jaws and MLC (logical AND) side "1"
       for ( MLCType::iterator iter = side1.begin(); iter != side1.end(); ++iter)
       {
-        if ((*iter).second <= jawBegin)
-        {
-          (*iter).second = jawBegin;
-        }
-        else if ((*iter).second >= jawEnd)
-        {
-          (*iter).second = jawEnd;
-        }
-
         if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
         {
           // jaws X and mlcx
+          if ((*iter).second <= jawBegin)
+          {
+            (*iter).second = jawBegin;
+          }
+          else if ((*iter).second >= jawEnd)
+          {
+            (*iter).second = jawEnd;
+          }
         }
         else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
         {
           // jaws Y and mlcy
-          if ((*iter).first <= Y1Jaw)
+          if ((*iter).first <= jawBegin)
           {
-            (*iter).first = Y1Jaw;
+            (*iter).first = jawBegin;
+          }
+          else if ((*iter).first >= jawEnd)
+          {
+            (*iter).first = jawEnd;
           }
         }
       }
       // intersection between Jaws and MLC (logical AND) side "2"
       for ( MLCType::iterator iter = side2.begin(); iter != side2.end(); ++iter)
       {
-        if ((*iter).second <= jawBegin)
-        {
-          (*iter).second = jawBegin;
-        }
-        else if ((*iter).second >= jawEnd)
-        {
-          (*iter).second = jawEnd;
-        }
-
         if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
         {
           // jaws X and mlcx
+          if ((*iter).second <= jawBegin)
+          {
+            (*iter).second = jawBegin;
+          }
+          else if ((*iter).second >= jawEnd)
+          {
+            (*iter).second = jawEnd;
+          }
         }
         else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
         {
           // jaws Y and mlcy
-          if ((*iter).first >= Y2Jaw)
+          if ((*iter).first <= jawBegin)
           {
-            (*iter).first = Y2Jaw;
+            (*iter).first = jawBegin;
+          }
+          else if ((*iter).first >= jawEnd)
+          {
+            (*iter).first = jawEnd;
           }
         }
       }
@@ -699,12 +706,16 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       std::reverse( side2.begin(), side2.end());
 
       // fill real points vector s1 without excessive points from side1 vector
-      MLCType::value_type& p = *side1.begin();
+      MLCType::value_type& p = *side1.begin(); // current (start) point
+      double& px = p.first; // x coordinate of current point
+      double& py = p.second; // y coordinate of current point
       s1.push_back(p);
       for ( size_t i = 1; i < side1.size() - 1; ++i)
       {
-        if (!vtkSlicerRtCommon::AreEqualWithTolerance( p.first, side1[i + 1].first) && 
-          !vtkSlicerRtCommon::AreEqualWithTolerance(p.second, side1[i + 1].second))
+        double& pxNext = side1[i + 1].first; // x coordinate of next point
+        double& pyNext = side1[i + 1].second; // y coordinate of next point
+        if (!vtkSlicerRtCommon::AreEqualWithTolerance( px, pxNext) && 
+          !vtkSlicerRtCommon::AreEqualWithTolerance( py, pyNext))
           {
             p = side1[i];
             s1.push_back(p);
@@ -718,8 +729,10 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       s2.push_back(p);
       for ( size_t i = 1; i < side2.size() - 1; ++i)
       {
-        if (!vtkSlicerRtCommon::AreEqualWithTolerance( p.first, side2[i + 1].first) && 
-          !vtkSlicerRtCommon::AreEqualWithTolerance( p.second, side2[i + 1].second))
+        double& pxNext = side2[i + 1].first; // x coordinate of next point
+        double& pyNext = side2[i + 1].second; // y coordinate of next point
+        if (!vtkSlicerRtCommon::AreEqualWithTolerance( px, pxNext) && 
+          !vtkSlicerRtCommon::AreEqualWithTolerance( py, pyNext))
           {
             p = side2[i];
             s2.push_back(p);
