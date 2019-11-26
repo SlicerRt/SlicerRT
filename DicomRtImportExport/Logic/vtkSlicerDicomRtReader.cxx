@@ -56,6 +56,13 @@
 // Qt includes
 #include <QSettings>
 
+namespace {
+
+const char* const MLCX_STRING = "MLCX";
+const char* const MLCY_STRING = "MLCY";
+
+} // namespace
+
 vtkStandardNewMacro(vtkSlicerDicomRtReader);
 
 //----------------------------------------------------------------------------
@@ -66,6 +73,29 @@ public:
   ~vtkInternal();
 
 public:
+  /// Structure storing a Beam Limiting Device Parameters (MLC)
+  /// BeamLimitingDeviceEntry is a description of MLC,
+  /// or any beam limiting device such as symmetric or asymmetric jaws.
+
+  /// DICOM standard describes two kinds of multi-leaf collimators: 
+  /// "MLCX" - leaves moves along X-axis, "MCLY" - leaves moves along Y-axis.
+  class BeamLimitingDeviceEntry
+  {
+  public:
+    BeamLimitingDeviceEntry()
+      :
+      Distance(-1.),
+      NumberOfLeafJawPairs(0)
+    {
+    }
+    /// Source to BeamLimitingDevice (MLC) distance for RTPlan
+    /// or Isocenter to BeamLimitingDevice (MLC) distance for RTIonPlan
+    double Distance; // loaded, but not used
+    unsigned int NumberOfLeafJawPairs;
+    /// MLC position boundaries: Raw DICOM values
+    std::vector<double> LeafPositionBoundary;
+  };
+
   /// Structure storing a ROI of an RT structure set
   class RoiEntry
   {
@@ -109,6 +139,8 @@ public:
       LeafJawPositions[0][1] = 0.0;
       LeafJawPositions[1][0] = 0.0;
       LeafJawPositions[1][1] = 0.0;
+      SourceToJawDistance[0] = -1.;
+      SourceToJawDistance[1] = -1.;
     }
     unsigned int Number;
     std::string Name;
@@ -128,6 +160,24 @@ public:
     double BeamLimitingDeviceAngle;
     /// Jaw positions: X and Y positions with isocenter as origin (e.g. {{-50,50}{-50,50}} )
     double LeafJawPositions[2][2];
+
+    /// Jaw distance: X and Y distance from souce with isocenter as origin
+    /// SourceToJawDistance[0] - X or ASYMX
+    /// SourceToJawDistance[1] - Y or ASYMY
+    double SourceToJawDistance[2]; // loaded, but not used
+
+    /// MLC parameters: Raw DICOM values
+    /// MultiLeafCollimator[0] - MLCX parameters
+    /// MultiLeafCollimator[1] - MLCY parameters
+    BeamLimitingDeviceEntry MultiLeafCollimator[2];
+
+    /// MLC positions: Raw DICOM values
+    /// LeafJawPositionsMLC[0] - leaf position vector for MLCX
+    /// LeafJawPositionsMLC[1] - leaf position vector for MLCY
+    // TODO: Positions should be vector for each control point
+    //   not for only one control point. LoadRTPlan must load all
+    //   control points not only one.
+    std::vector<double> LeafJawPositionsMLC[2];
   };
 
   /// List of loaded beams from external beam plan
@@ -558,6 +608,71 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
       currentBeamSequenceItem.getSourceAxisDistance(sourceAxisDistance);
       beamEntry.SourceAxisDistance = sourceAxisDistance;
 
+      // Get multi leaf collimators parameters: distance, number of leaf pairs, leaf position boundaries
+      DRTBeamLimitingDeviceSequenceInRTBeamsModule& rtBeamLimitingDeviceSequence = 
+        currentBeamSequenceItem.getBeamLimitingDeviceSequence();
+      if (rtBeamLimitingDeviceSequence.gotoFirstItem().good())
+      {
+        do
+        {
+          DRTBeamLimitingDeviceSequenceInRTBeamsModule::Item &collimatorItem =
+            rtBeamLimitingDeviceSequence.getCurrentItem();
+          if (collimatorItem.isValid())
+          {
+            OFString deviceType("");
+            Sint32 nofPairs = -1;
+
+            // source to beam limiting device (any collimator) distance
+            Float64 distance = -1.;
+            collimatorItem.getSourceToBeamLimitingDeviceDistance(distance);
+
+            collimatorItem.getRTBeamLimitingDeviceType(deviceType);
+            if (!deviceType.compare("X") || !deviceType.compare("ASYMX"))
+            {
+              beamEntry.SourceToJawDistance[0] = distance;
+            }
+            else if (!deviceType.compare("Y") || !deviceType.compare("ASYMY"))
+            {
+              beamEntry.SourceToJawDistance[1] = distance;
+            }
+            else if (!deviceType.compare("MLCX") || !deviceType.compare("MLCY"))
+            {              
+              OFCondition getNumberOfPairsCondition = collimatorItem.getNumberOfLeafJawPairs(nofPairs);
+              if (getNumberOfPairsCondition.good())
+              {
+                OFVector<Float64> leafPositionBoundaries;
+                OFCondition getBoundariesCondition = collimatorItem.getLeafPositionBoundaries(leafPositionBoundaries);
+                if (getBoundariesCondition.good())
+                {
+                  double& distanceX = beamEntry.MultiLeafCollimator[0].Distance;
+                  double& distanceY = beamEntry.MultiLeafCollimator[1].Distance;
+                  unsigned int& pairsX = beamEntry.MultiLeafCollimator[0].NumberOfLeafJawPairs;
+                  unsigned int& pairsY = beamEntry.MultiLeafCollimator[1].NumberOfLeafJawPairs;
+                  std::vector<double>& boundX = beamEntry.MultiLeafCollimator[0].LeafPositionBoundary;
+                  std::vector<double>& boundY = beamEntry.MultiLeafCollimator[1].LeafPositionBoundary;
+                  if (!deviceType.compare("MLCX"))
+                  {
+                    distanceX = distance;
+                    pairsX = nofPairs;
+                    boundX.resize(leafPositionBoundaries.size());
+                    std::copy( leafPositionBoundaries.begin(), leafPositionBoundaries.end(), boundX.begin());
+                    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: MLCX number of leaf/jaw pairs: " << nofPairs);
+                  }
+                  else if (!deviceType.compare("MLCY"))
+                  {
+                    distanceY = distance;
+                    pairsY = nofPairs;
+                    boundY.resize(leafPositionBoundaries.size());
+                    std::copy( leafPositionBoundaries.begin(), leafPositionBoundaries.end(), boundY.begin());
+                    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: MLCY number of leaf/jaw pairs: " << nofPairs);
+                  }
+                }
+              }
+            }
+          }
+        } while (rtBeamLimitingDeviceSequence.gotoNextItem().good());
+      }
+
       DRTControlPointSequence &rtControlPointSequence = currentBeamSequenceItem.getControlPointSequence();
       if (!rtControlPointSequence.gotoFirstItem().good())
       {
@@ -636,7 +751,24 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
               }
               else if ( !rtBeamLimitingDeviceType.compare("MLCX") || !rtBeamLimitingDeviceType.compare("MLCY") )
               {
-                vtkWarningWithObjectMacro(this->External, "LoadRTPlan: Multi-leaf collimator entry found. This collimator type is not yet supported");
+                // Get MLC leaves positions
+                if (getJawPositionsCondition.good())
+                {
+                  std::vector<double>& positionsX = beamEntry.LeafJawPositionsMLC[0];
+                  std::vector<double>& positionsY = beamEntry.LeafJawPositionsMLC[1];
+                  if (!rtBeamLimitingDeviceType.compare("MLCX"))
+                  {
+                    positionsX.resize(leafJawPositions.size());
+                    std::copy( leafJawPositions.begin(), leafJawPositions.end(), positionsX.begin());
+                    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: MLCX leaf positions have been loaded");
+                  }
+                  else if (!rtBeamLimitingDeviceType.compare("MLCY"))
+                  {
+                    positionsY.resize(leafJawPositions.size());
+                    std::copy( leafJawPositions.begin(), leafJawPositions.end(), positionsY.begin());
+                    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: MLCY leaf positions have been loaded");
+                  }
+                }
               }
               else
               {
@@ -1612,6 +1744,88 @@ void vtkSlicerDicomRtReader::GetBeamLeafJawPositions(unsigned int beamNumber, do
   jawPositions[0][1]=beam->LeafJawPositions[0][1];
   jawPositions[1][0]=beam->LeafJawPositions[1][0];
   jawPositions[1][1]=beam->LeafJawPositions[1][1];
+}
+
+//----------------------------------------------------------------------------
+bool vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositionsX( unsigned int beamNumber, 
+  std::vector<double>& pairBoundaries, std::vector<double>& leafPositions)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam) {
+    const unsigned int& pairs = beam->MultiLeafCollimator[0].NumberOfLeafJawPairs;
+    size_t positions = beam->LeafJawPositionsMLC[0].size();
+    size_t boundaries = beam->MultiLeafCollimator[0].LeafPositionBoundary.size();
+    if (pairs && positions && boundaries &&
+      ((pairs * 2) == positions) && ((pairs + 1) == boundaries))
+    {
+      pairBoundaries = beam->MultiLeafCollimator[0].LeafPositionBoundary;
+      leafPositions = beam->LeafJawPositionsMLC[0];
+      return true;
+    }
+    else
+    {
+      vtkWarningMacro("GetBeamMultiLeafCollimatorPositionsX: " \
+       "MLCX parameters undefined, " \
+       "or different number of leaf pairs and positions");
+    }
+  }
+  else
+  {
+    vtkWarningMacro("GetBeamMultiLeafCollimatorPositionsX: Unable to find beam of number" << beamNumber);
+  }
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositionsY( unsigned int beamNumber, 
+  std::vector<double>& pairBoundaries, std::vector<double>& leafPositions)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam) {
+    const unsigned int& pairs = beam->MultiLeafCollimator[1].NumberOfLeafJawPairs;
+    size_t positions = beam->LeafJawPositionsMLC[1].size();
+    size_t boundaries = beam->MultiLeafCollimator[1].LeafPositionBoundary.size();
+    if (pairs && positions && boundaries &&
+      ((pairs * 2) == positions) && ((pairs + 1) == boundaries))
+    {
+      pairBoundaries = beam->MultiLeafCollimator[1].LeafPositionBoundary;
+      leafPositions = beam->LeafJawPositionsMLC[1];
+      return true;
+    }
+    else
+    {
+      vtkWarningMacro("GetBeamMultiLeafCollimatorPositionsY: " \
+       "MLCY parameters undefined, " \
+       "or different number of leaf pairs and positions");
+    }
+  }
+  else
+  {
+    vtkWarningMacro("GetBeamMultiLeafCollimatorPositionsY: Unable to find beam of number" << beamNumber);
+  }
+  return false;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositions( unsigned int beamNumber, 
+  std::vector<double>& pairBoundaries, std::vector<double>& leafPositions)
+{
+  bool mlcxIsValid = this->GetBeamMultiLeafCollimatorPositionsX( beamNumber,
+    pairBoundaries, leafPositions);
+  if (mlcxIsValid)
+  {
+    return MLCX_STRING;
+  }
+  else
+  {
+    bool mlcyIsValid = this->GetBeamMultiLeafCollimatorPositionsY( beamNumber,
+    pairBoundaries, leafPositions);
+    if (mlcyIsValid)
+    {
+      return MLCY_STRING;
+    }
+  }
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------

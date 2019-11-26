@@ -91,6 +91,8 @@
 #include <vtkMRMLLabelMapVolumeDisplayNode.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
+#include <vtkMRMLDoubleArrayNode.h>
+#include <vtkMRMLTableNode.h>
 
 // Markups includes
 #include <vtkMRMLMarkupsFiducialNode.h>
@@ -109,6 +111,8 @@
 #include <vtkStringArray.h>
 #include <vtkStripper.h>
 #include <vtkTransformPolyDataFilter.h>
+#include <vtkTable.h>
+#include <vtkDoubleArray.h>
 
 // ITK includes
 #include <itkImage.h>
@@ -169,6 +173,14 @@ public:
 
   /// Add an ROI point to the scene
   vtkMRMLMarkupsFiducialNode* AddRoiPoint(double* roiPosition, std::string baseName, double* roiColor);
+
+  /// Create table node positions for the MLC
+  vtkMRMLTableNode* CreateMultiLeafCollimatorTableNode( const char* name, 
+    const std::vector<double>& mlcPositions);
+
+  /// Create double array node boundaries for the MLC
+  vtkMRMLDoubleArrayNode* CreateMultiLeafCollimatorDoubleArrayNode( const char* name, 
+    const std::vector<double>& mlcBoundaries);
 
   /// Compute and set geometry of an RT image
   /// \param node Either the volume node of the loaded RT image, or the isocenter fiducial node (corresponding to an RT image). This function is called both when
@@ -800,8 +812,34 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
       }
     }
 
+    // Create MLC table node if MLCX or MLCY are available
+    std::vector<double> boundaries, positions;
+    vtkMRMLTableNode* tableNode = nullptr;
+    vtkMRMLDoubleArrayNode* arrayNode = nullptr;
+    // Check MLC
+    const char* mlcName = rtReader->GetBeamMultiLeafCollimatorPositions( dicomBeamNumber, 
+      boundaries, positions);
+    if (mlcName)
+    {
+      std::string mlcPositionString = std::string(mlcName) + "_Position";
+      tableNode = this->CreateMultiLeafCollimatorTableNode( 
+        mlcPositionString.c_str(), positions);
+      std::string mlcBoundaryString = std::string(mlcName) + "_Boundary";
+      arrayNode = this->CreateMultiLeafCollimatorDoubleArrayNode( 
+        mlcBoundaryString.c_str(), boundaries);
+    }
+    else
+    {
+      vtkDebugWithObjectMacro(this->External, "MLC data unavailable");
+    }
+
     // Add beam to scene (triggers poly data and transform creation and update)
     scene->AddNode(beamNode);
+    // Add MLC to beam
+    if (tableNode && arrayNode) {
+      beamNode->SetAndObserveMLCBoundaryDoubleArrayNode(arrayNode);
+      beamNode->SetAndObserveMLCPositionTableNode(tableNode);
+    }
     // Add beam to plan
     planNode->AddBeam(beamNode);
     // Update beam transforms (batch processing prevents processing events that would do this)
@@ -1244,6 +1282,76 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal
   markupsNode->SetDisplayVisibility(0);
 
   return markupsNode;
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLDoubleArrayNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMultiLeafCollimatorDoubleArrayNode( 
+  const char* name, const std::vector<double>& mlcBoundaries)
+{
+  vtkSmartPointer<vtkMRMLDoubleArrayNode> arrayNode = vtkSmartPointer<vtkMRMLDoubleArrayNode>::New();
+  this->External->GetMRMLScene()->AddNode(arrayNode);
+  arrayNode->SetName(name);
+
+  // Leaf boundaries
+  if (mlcBoundaries.size())
+  {
+    vtkNew<vtkDoubleArray> b;
+    b->SetNumberOfComponents(1);
+    b->SetNumberOfTuples(mlcBoundaries.size());
+    for ( size_t i = 0; i < mlcBoundaries.size(); ++i)
+    {
+      b->InsertTuple( i, mlcBoundaries.data() + i);
+    }
+    arrayNode->SetArray(b);
+    return arrayNode;
+  }
+  else
+  {
+    vtkErrorWithObjectMacro( this->External, 
+      "CreateMultiLeafCollimatorDoubleArrayNode: MLC boundaries array is empty");
+  }
+  return nullptr;
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMultiLeafCollimatorTableNode( 
+  const char* name, const std::vector<double>& mlcPositions)
+{
+  vtkSmartPointer<vtkMRMLTableNode> tableNode = vtkSmartPointer<vtkMRMLTableNode>::New();
+  this->External->GetMRMLScene()->AddNode(tableNode);
+  tableNode->SetName(name);
+
+  vtkTable* table = tableNode->GetTable();
+  if (table)
+  {
+    // Leaf position on the side "1"
+    vtkNew<vtkDoubleArray> pos1;
+    pos1->SetName("1");
+    table->AddColumn(pos1);
+
+    // Leaf position on the side "2"
+    vtkNew<vtkDoubleArray> pos2;
+    pos2->SetName("2");
+    table->AddColumn(pos2);
+
+    vtkIdType size = mlcPositions.size() / 2;
+    table->SetNumberOfRows(size);
+    for ( vtkIdType row = 0; row < size; ++row)
+    {
+      table->SetValue( row, 0, mlcPositions[row]);
+      table->SetValue( row, 1, mlcPositions[row + size]);
+    }
+    tableNode->SetUseColumnNameAsColumnHeader(true);
+    tableNode->SetColumnDescription( "1", "Leaf position on the side \"1\"");
+    tableNode->SetColumnDescription( "2", "Leaf position on the side \"2\"");
+    return tableNode;
+  }
+  else
+  {
+    vtkErrorWithObjectMacro( this->External, 
+      "CreateMultiLeafCollimatorTableNode: unable to create vtkTable to fill MLC positions");
+  }
+  return nullptr;
 }
 
 //------------------------------------------------------------------------------

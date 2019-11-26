@@ -35,6 +35,9 @@
 // SlicerRtCommon includes
 #include "vtkSlicerDicomReaderBase.h"
 
+// STD includes
+#include <vector>
+
 class vtkPolyData;
 
 /// \ingroup SlicerRt_QtModules_DicomRtImport
@@ -72,7 +75,6 @@ public:
   /// \param internalIndex Internal index of ROI to get
   int GetRoiNumber(unsigned int internalIndex);
 
-
   /// Get number of beams
   int GetNumberOfBeams();
 
@@ -101,6 +103,26 @@ public:
   /// \param jawPositions Array in which the jaw positions are copied
   void GetBeamLeafJawPositions(unsigned int beamNumber, double jawPositions[2][2]);
 
+  /// Get MLCX leaves boundaries & leaves positions opening for a given beam
+  /// \param pairBoundaries Array in which the raw leaves boundaries are copied
+  /// \param leafPositions Array in which the raw leaf positions are copied
+  /// \return true if data is valid, false otherwise
+  bool GetBeamMultiLeafCollimatorPositionsX( unsigned int beamNumber, 
+    std::vector<double>& pairBoundaries, std::vector<double>& leafPositions);
+
+  /// Get MLCY leaves boundaries & leaves positions opening for a given beam
+  /// \param pairBoundaries Array in which the raw leaves boundaries are copied
+  /// \param leafPositions Array in which the raw leaf positions are copied
+  /// \return true if data is valid, false otherwise
+  bool GetBeamMultiLeafCollimatorPositionsY( unsigned int beamNumber, 
+    std::vector<double>& pairBoundaries, std::vector<double>& leafPositions);
+
+  /// Get MLC leaves boundaries & leaves positions opening for a given beam
+  /// \param pairBoundaries Array in which the raw leaves boundaries are copied
+  /// \param leafPositions Array in which the raw leaf positions are copied
+  /// \return "MLCX" or "MLCY" if data is valid, nullptr otherwise
+  const char* GetBeamMultiLeafCollimatorPositions( unsigned int beamNumber, 
+    std::vector<double>& pairBoundaries, std::vector<double>& leafPositions);
 
   /// Get number of channels
   int GetNumberOfChannels();

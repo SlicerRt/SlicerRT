@@ -30,6 +30,7 @@
 #include <vtkMRMLScene.h>
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
+#include <vtkMRMLTableNode.h>
 
 // VTK includes
 #include <vtkNew.h>
@@ -103,6 +104,12 @@ void vtkSlicerBeamsModuleLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
   {
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
     events->InsertNextValue(vtkMRMLRTPlanNode::BeamAdded);
+    vtkObserveMRMLNodeEventsMacro(node, events);
+  }
+  else if (node->IsA("vtkMRMLTableNode"))
+  {
+    vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+    events->InsertNextValue(vtkCommand::ModifiedEvent);
     vtkObserveMRMLNodeEventsMacro(node, events);
   }
 }
@@ -222,6 +229,29 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
 
       // Make sure display is set up
       beamNode->UpdateGeometry();
+    }
+  }
+  else if (caller->IsA("vtkMRMLTableNode"))
+  {
+    vtkMRMLTableNode* tableNode = vtkMRMLTableNode::SafeDownCast(caller);
+    if (event == vtkCommand::ModifiedEvent)
+    {
+      // Iterate through all beam nodes
+      std::vector<vtkMRMLNode*> beamNodes;
+      mrmlScene->GetNodesByClass("vtkMRMLRTBeamNode", beamNodes);
+      for (std::vector<vtkMRMLNode*>::iterator beamIterator = beamNodes.begin(); 
+        beamIterator != beamNodes.end(); ++beamIterator)
+      {
+        // if caller node and referenced table node is the same
+        // update beam polydata
+        vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(*beamIterator);
+        vtkMRMLTableNode* beamMLCTableNode = beamNode->GetMLCPositionTableNode();
+        if (beamMLCTableNode == tableNode)
+        {
+          // Update beam model
+          beamNode->UpdateGeometry();
+        }
+      }
     }
   }
 }
