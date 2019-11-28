@@ -513,22 +513,21 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
 
   // MLC boundary data
   vtkMRMLDoubleArrayNode* arrayNode = this->GetMLCBoundaryDoubleArrayNode();
-  std::vector<double> mlcBounds;
+  vtkDoubleArray* mlcBoundArray = nullptr;
   if (arrayNode)
   {
-    vtkDoubleArray* array = arrayNode->GetArray();
-    nofLeaves = array->GetNumberOfTuples(); // real number of leaves plus 1
-    for ( vtkIdType i = 0; i < nofLeaves; ++i)
-    {
-      mlcBounds.push_back(array->GetTuple1(i));
-    }
-    nofLeaves--; // real number of leaves
+    mlcBoundArray = arrayNode->GetArray();
+    nofLeaves = (mlcBoundArray) ? (mlcBoundArray->GetNumberOfTuples() - 1) : 0;
   }
 
   if (nofLeaves)
   {
     mlcTableNode = this->GetMLCPositionTableNode();
-    if (!mlcTableNode || (mlcTableNode->GetNumberOfRows() != nofLeaves))
+    if (mlcTableNode && (mlcTableNode->GetNumberOfRows() == nofLeaves))
+    {
+      vtkDebugMacro("CreateBeamPolyData: Valid MLC nodes, number of leaves: " << nofLeaves);
+    }
+    else
     {
       vtkErrorMacro("CreateBeamPolyData: Invalid MLC nodes, or " \
         "number of MLC boundaries and positions are different");
@@ -542,13 +541,13 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
   bool yOpened = !AreEqual( this->Y2Jaw, this->Y1Jaw);
 
   // Check that we have MLC with Jaws opening
-  if (mlcTableNode && xOpened && yOpened)
+  if (xOpened && yOpened)
   {
     using PointVector = std::vector< std::pair< double, double > >;
-    using MLCType = std::vector< std::array< double, 4 > >;
+    using LeafDataVector = std::vector< std::array< double, 4 > >;
     
-    MLCType mlc; // temporary MLC vector (Boundary and Position)
-    PointVector s1, s2; // real points for side "1" and "2"
+    LeafDataVector mlc; // temporary MLC vector (Boundary and Position)
+    PointVector side12; // real points for side "1" and "2"
     std::pair< bool, bool > type; // first == MLCX, second = MLCY
 
     vtkTable* table = mlcTableNode->GetTable();
@@ -558,11 +557,13 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     // copy MLC data for proper (easier processing)
     for ( vtkIdType leaf = 0; leaf < nofLeaves; leaf++)
     {
+      double boundBegin = mlcBoundArray->GetTuple1(leaf);
+      double boundEnd = mlcBoundArray->GetTuple1(leaf + 1);
       double pos1 = table->GetValue( leaf, 0).ToDouble();
       double pos2 = table->GetValue( leaf, 1).ToDouble();
-      mlc.push_back({ mlcBounds[leaf], mlcBounds[leaf + 1], pos1, pos2});
+      
+      mlc.push_back({ boundBegin, boundEnd, pos1, pos2});
     }
-    mlcBounds.clear(); // doesn't need anymore
 
     auto firstLeafIterator = mlc.end();
     auto lastLeafIterator = mlc.end();
@@ -678,11 +679,11 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       // reverse side "2"
       std::reverse( side2.begin(), side2.end());
 
-      // fill real points vector s1 without excessive points from side1 vector
-      PointVector::value_type& p = side1[0]; // current (start) point
-      double& px = p.first; // x coordinate of current point
-      double& py = p.second; // y coordinate of current point
-      s1.push_back(p);
+      // fill real points vector side12 without excessive points from side1 vector
+      PointVector::value_type& p = side1.front(); // start point
+      double& px = p.first; // x coordinate of p point
+      double& py = p.second; // y coordinate of p point
+      side12.push_back(p);
       for ( size_t i = 1; i < side1.size() - 1; ++i)
       {
         double& pxNext = side1[i + 1].first; // x coordinate of next point
@@ -690,15 +691,14 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         if (!AreEqual( px, pxNext) && !AreEqual( py, pyNext))
         {
           p = side1[i];
-          s1.push_back(p);
+          side12.push_back(p);
         }
       }
-      p = *(side1.end() - 1);
-      s1.push_back(p);
+      side12.push_back(side1.back()); // end point
 
-      // fill real points vector s2 without excessive points from side2 vector
-      p = side2[0];
-      s2.push_back(p);
+      // same for the side2 vector
+      p = side2.front();
+      side12.push_back(p);
       for ( size_t i = 1; i < side2.size() - 1; ++i)
       {
         double& pxNext = side2[i + 1].first;
@@ -706,62 +706,44 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         if (!AreEqual( px, pxNext) && !AreEqual( py, pyNext))
         {
           p = side2[i];
-          s2.push_back(p);
+          side12.push_back(p);
         }
       }
-      p = *(side2.end() - 1);
-      s2.push_back(p);
-    }
-    
-    // fill vtk points
-    points->InsertPoint( 0, 0, 0, this->SAD); // source
-    // side "1" using s1 points vector
-    for ( size_t i = 0; i < s1.size(); ++i)
-    {
-      double& x = s1[i].first;
-      double& y = s1[i].second;
-      points->InsertPoint( i + 1, 2. * x, 2. * y, -this->SAD);
-    }
-    // side "2" using s2 points vector
-    for ( size_t i = 0; i < s2.size(); ++i)
-    {
-      double& x = s2[i].first;
-      double& y = s2[i].second;
-      points->InsertPoint( i + 1 + s1.size(), 2. * x, 2. * y, -this->SAD);
+      side12.push_back(side2.back());
     }
 
-    // fill cell array for side "1"
-    for ( size_t i = 1; i < s1.size(); ++i)
+    // fill vtk points
+    points->InsertPoint( 0, 0, 0, this->SAD); // source
+
+    // side "1" and "2" points vector
+    vtkIdType pointIds = 0;
+    for ( PointVector::value_type& point : side12)
+    {
+      double& x = point.first;
+      double& y = point.second;
+      points->InsertPoint( pointIds + 1, 2. * x, 2. * y, -this->SAD);
+      pointIds++;
+    }
+    side12.clear(); // doesn't need anymore
+
+    // fill cell array for side "1" and "2"
+    for ( vtkIdType i = 1; i < pointIds; ++i)
     {
       cellArray->InsertNextCell(3);
       cellArray->InsertCellPoint(0);
       cellArray->InsertCellPoint(i);
       cellArray->InsertCellPoint(i + 1);
     }
-    // fill cell connection between side "1" -> side "2"
-    cellArray->InsertNextCell(3);
-    cellArray->InsertCellPoint(0);
-    cellArray->InsertCellPoint(s1.size());
-    cellArray->InsertCellPoint(s1.size() + 1);
-
-    // fill cell array for side "2"
-    for ( size_t i = 1; i < s2.size(); ++i)
-    {
-      cellArray->InsertNextCell(3);
-      cellArray->InsertCellPoint(0);
-      cellArray->InsertCellPoint(s1.size() + i);
-      cellArray->InsertCellPoint(s1.size() + i + 1);
-    }
 
     // fill cell connection between side "2" -> side "1"
     cellArray->InsertNextCell(3);
     cellArray->InsertCellPoint(0);
-    cellArray->InsertCellPoint(s1.size() + s2.size());
     cellArray->InsertCellPoint(1);
+    cellArray->InsertCellPoint(pointIds);
 
     // Add the cap to the bottom
-    cellArray->InsertNextCell(s1.size() + s2.size());
-    for ( size_t i = 1; i <= s1.size() + s2.size(); i++)
+    cellArray->InsertNextCell(pointIds);
+    for ( size_t i = 1; i <= pointIds; i++)
     {
       cellArray->InsertCellPoint(i);
     }
