@@ -658,17 +658,25 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         {
           // JawsY and MLCX
           if (y <= jawBegin)
+          {
             y = jawBegin;
+          }
           else if (y >= jawEnd)
+          {
             y = jawEnd;
+          }
         }
         else if (type.second) // MLCY
         {
           // JawsX and MLCY
           if (x <= jawBegin)
+          {
             x = jawBegin;
+          }
           else if (x >= jawEnd)
+          {
             x = jawEnd;
+          }
         }
       };
       // apply lambda to side "1"
@@ -747,6 +755,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     {
       cellArray->InsertCellPoint(i);
     }
+
   }
   else
   {
