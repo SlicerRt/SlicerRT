@@ -48,13 +48,6 @@
 #include <vtkCellArray.h>
 
 //------------------------------------------------------------------------------
-namespace
-{
-  const size_t MLCX_STRING_SIZE = strlen("MLCX");
-  const size_t MLCY_STRING_SIZE = strlen("MLCY");
-} // namespace
-
-//------------------------------------------------------------------------------
 const char* vtkMRMLRTBeamNode::NEW_BEAM_NODE_NAME_PREFIX = "NewBeam_";
 const char* vtkMRMLRTBeamNode::BEAM_TRANSFORM_NODE_NAME_POSTFIX = "_BeamTransform";
 
@@ -539,174 +532,154 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     {
       vtkErrorMacro("CreateBeamPolyData: Invalid MLC nodes, or " \
         "number of MLC boundaries and positions are different");
-      mlcTableNode = nullptr;
-      arrayNode = nullptr;
       return;
     }
   }
 
-  bool xOpened = !vtkSlicerRtCommon::AreEqualWithTolerance( this->X2Jaw, this->X1Jaw);
-  bool yOpened = !vtkSlicerRtCommon::AreEqualWithTolerance( this->Y2Jaw, this->Y1Jaw);
+  bool(*AreEqual)(double, double) = vtkSlicerRtCommon::AreEqualWithTolerance;
+
+  bool xOpened = !AreEqual( this->X2Jaw, this->X1Jaw);
+  bool yOpened = !AreEqual( this->Y2Jaw, this->Y1Jaw);
 
   // Check that we have MLC with Jaws opening
   if (mlcTableNode && xOpened && yOpened)
   {
-    typedef std::vector< std::pair< double, double > > MLCType;
+    using PointVector = std::vector< std::pair< double, double > >;
+    using MLCType = std::vector< std::array< double, 4 > >;
     
-    MLCType mlcBoundary; // temporary MLC Boundaries vector
-    MLCType mlcPosition; // temporary MLC Positions vector
-    MLCType s1, s2; // real points for side "1" and "2"
+    MLCType mlc; // temporary MLC vector (Boundary and Position)
+    PointVector s1, s2; // real points for side "1" and "2"
+    std::pair< bool, bool > type; // first == MLCX, second = MLCY
 
     vtkTable* table = mlcTableNode->GetTable();
+    type.first = !strncmp( "MLCX", mlcTableNode->GetName(), strlen("MLCX"));
+    type.second = !strncmp( "MLCY", mlcTableNode->GetName(), strlen("MLCY"));
 
     // copy MLC data for proper (easier processing)
     for ( vtkIdType leaf = 0; leaf < nofLeaves; leaf++)
     {
       double pos1 = table->GetValue( leaf, 0).ToDouble();
       double pos2 = table->GetValue( leaf, 1).ToDouble();
-      mlcBoundary.push_back(std::make_pair( mlcBounds[leaf], mlcBounds[leaf + 1]));
-      mlcPosition.push_back(std::make_pair( pos1, pos2));
+      mlc.push_back({ mlcBounds[leaf], mlcBounds[leaf + 1], pos1, pos2});
     }
+    mlcBounds.clear(); // doesn't need anymore
 
-    MLCType::iterator firstLeafIterator = mlcBoundary.end();
-    MLCType::iterator lastLeafIterator = mlcBoundary.end();
+    auto firstLeafIterator = mlc.end();
+    auto lastLeafIterator = mlc.end();
     double& jawBegin = this->Y1Jaw;
     double& jawEnd = this->Y2Jaw;
-    if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
+    if (type.first) // MLCX
     {
       jawBegin = this->Y1Jaw;
       jawEnd = this->Y2Jaw;
     }
-    else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
+    else if (type.second) // MLCY
     {
       jawBegin = this->X1Jaw;
       jawEnd = this->X2Jaw;
     }
+
     // find first and last opened leaves
-    MLCType side1, side2; // temporary vectors to save visible points
-    for ( MLCType::iterator it = mlcBoundary.begin(); it != mlcBoundary.end(); ++it)
+    PointVector side1, side2; // temporary vectors to save visible points
+    for ( auto it = mlc.begin(); it != mlc.end(); ++it)
     {
-      MLCType::iterator positer = it - mlcBoundary.begin() + mlcPosition.begin();
-      bool mlcOpened = !vtkSlicerRtCommon::AreEqualWithTolerance( (*positer).first, (*positer).second);
-      if (mlcOpened && firstLeafIterator == mlcBoundary.end())
+      double& pos1 = (*it)[2]; // leaf position "1"
+      double& pos2 = (*it)[3]; // leaf position "2"
+      bool mlcOpened = !AreEqual( pos1, pos2);
+      if (mlcOpened && firstLeafIterator == mlc.end())
       {
         firstLeafIterator = it;
       }
-      if (mlcOpened && firstLeafIterator != mlcBoundary.end())
+      if (mlcOpened && firstLeafIterator != mlc.end())
       {
         lastLeafIterator = it;
       }
     }
     
     // iterate through visible leaves to fill temporary points vectors
-    if (firstLeafIterator != mlcBoundary.end() && lastLeafIterator != mlcBoundary.end())
+    if (firstLeafIterator != mlc.end() && lastLeafIterator != mlc.end())
     {
-      MLCType::iterator firstLeafIterator1 = mlcBoundary.end();
-      MLCType::iterator lastLeafIterator1 = mlcBoundary.end();
+      auto firstLeafIteratorJaws = firstLeafIterator;
+      auto lastLeafIteratorJaws = lastLeafIterator;
       // find first and last visible leaves using Jaws data
-      for ( MLCType::iterator it = firstLeafIterator; it <= lastLeafIterator; ++it)
+      for ( auto it = firstLeafIterator; it <= lastLeafIterator; ++it)
       {
-        if ((*it).first <= jawBegin && (*it).second > jawBegin)
+        double& bound1 = (*it)[0]; // leaf begin boundary
+        double& bound2 = (*it)[1]; // leaf end boundary
+        if (bound1 <= jawBegin && bound2 > jawBegin)
         {
-          firstLeafIterator1 = it;
+          firstLeafIteratorJaws = it;
         }
-        if ((*it).first <= jawEnd && (*it).second > jawEnd)
+        if (bound1 <= jawEnd && bound2 > jawEnd)
         {
-          lastLeafIterator1 = it;
+          lastLeafIteratorJaws = it;
         }
       }
-      
+
       // find opened MLC leaves into Jaws opening (logical AND)
-      if (firstLeafIterator1 != mlcBoundary.end() && lastLeafIterator1 != mlcBoundary.end())
+      if (firstLeafIteratorJaws != mlc.end() && lastLeafIteratorJaws != mlc.end())
       {
-        lastLeafIterator = std::min( lastLeafIterator1, lastLeafIterator);
-        firstLeafIterator = std::max( firstLeafIterator1, firstLeafIterator);
+        lastLeafIterator = std::min( lastLeafIteratorJaws, lastLeafIterator);
+        firstLeafIterator = std::max( firstLeafIteratorJaws, firstLeafIterator);
       }
 
-      // temporary vectors to save visible points
-      for ( MLCType::iterator iter = firstLeafIterator; iter <= lastLeafIterator; ++iter)
+      // add points for the visible leaves of side "1" and "2"
+      // into side1 and side2 points vectors
+      for ( auto it = firstLeafIterator; it <= lastLeafIterator; ++it)
       {
-        MLCType::iterator positer = iter - mlcBoundary.begin() + mlcPosition.begin();
-        // add points for the visible leaves of side "1" and "2"
-        // into side1 and side2 points vectors
-        if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
+        double& bound1 = (*it)[0]; // leaf begin boundary
+        double& bound2 = (*it)[1]; // leaf end boundary
+        double& pos1 = (*it)[2]; // leaf position "1"
+        double& pos2 = (*it)[3]; // leaf position "2"
+        if (type.first) // MLCX
         {
-          side1.push_back(std::make_pair( std::max( (*positer).first, this->X1Jaw), (*iter).first));
-          side1.push_back(std::make_pair( std::max( (*positer).first, this->X1Jaw), (*iter).second));
-          side2.push_back(std::make_pair( std::min( (*positer).second, this->X2Jaw), (*iter).first));
-          side2.push_back(std::make_pair( std::min( (*positer).second, this->X2Jaw), (*iter).second));
+          side1.push_back({ std::max( pos1, this->X1Jaw), bound1});
+          side1.push_back({ std::max( pos1, this->X1Jaw), bound2});
+          side2.push_back({ std::min( pos2, this->X2Jaw), bound1});
+          side2.push_back({ std::min( pos2, this->X2Jaw), bound2});
         }
-        else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
+        else if (type.second) // MLCY
         {
-          side1.push_back(std::make_pair( (*iter).first, std::max( (*positer).first, this->Y1Jaw)));
-          side1.push_back(std::make_pair( (*iter).second, std::max( (*positer).first, this->Y1Jaw)));
-          side2.push_back(std::make_pair( (*iter).first, std::min( (*positer).second, this->Y2Jaw)));
-          side2.push_back(std::make_pair( (*iter).second, std::min( (*positer).second, this->Y2Jaw)));
+          side1.push_back({ bound1, std::max( pos1, this->Y1Jaw)});
+          side1.push_back({ bound2, std::max( pos1, this->Y1Jaw)});
+          side2.push_back({ bound1, std::min( pos2, this->Y2Jaw)});
+          side2.push_back({ bound2, std::min( pos2, this->Y2Jaw)});
         }
       }
+      mlc.clear(); // doesn't need anymore
 
-      // intersection between Jaws and MLC (logical AND) side "1"
-      for ( MLCType::iterator iter = side1.begin(); iter != side1.end(); ++iter)
+      // intersection between Jaws and MLC boundary (logical AND) lambda
+      auto intersectJawsMLC = [ jawBegin, jawEnd, type](PointVector::value_type& point)
       {
-        if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
+        double& x = point.first;
+        double& y = point.second;
+        if (type.first) // MLCX
         {
-          // jaws X and mlcx
-          if ((*iter).second <= jawBegin)
-          {
-            (*iter).second = jawBegin;
-          }
-          else if ((*iter).second >= jawEnd)
-          {
-            (*iter).second = jawEnd;
-          }
+          // JawsY and MLCX
+          if (y <= jawBegin)
+            y = jawBegin;
+          else if (y >= jawEnd)
+            y = jawEnd;
         }
-        else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
+        else if (type.second) // MLCY
         {
-          // jaws Y and mlcy
-          if ((*iter).first <= jawBegin)
-          {
-            (*iter).first = jawBegin;
-          }
-          else if ((*iter).first >= jawEnd)
-          {
-            (*iter).first = jawEnd;
-          }
+          // JawsX and MLCY
+          if (x <= jawBegin)
+            x = jawBegin;
+          else if (x >= jawEnd)
+            x = jawEnd;
         }
-      }
-      // intersection between Jaws and MLC (logical AND) side "2"
-      for ( MLCType::iterator iter = side2.begin(); iter != side2.end(); ++iter)
-      {
-        if (!strncmp( "MLCX", mlcTableNode->GetName(), MLCX_STRING_SIZE)) // MLCX
-        {
-          // jaws X and mlcx
-          if ((*iter).second <= jawBegin)
-          {
-            (*iter).second = jawBegin;
-          }
-          else if ((*iter).second >= jawEnd)
-          {
-            (*iter).second = jawEnd;
-          }
-        }
-        else if (!strncmp( "MLCY", mlcTableNode->GetName(), MLCY_STRING_SIZE)) // MLCY
-        {
-          // jaws Y and mlcy
-          if ((*iter).first <= jawBegin)
-          {
-            (*iter).first = jawBegin;
-          }
-          else if ((*iter).first >= jawEnd)
-          {
-            (*iter).first = jawEnd;
-          }
-        }
-      }
+      };
+      // apply lambda to side "1"
+      std::for_each( side1.begin(), side1.end(), intersectJawsMLC);
+      // apply lambda to side "2"
+      std::for_each( side2.begin(), side2.end(), intersectJawsMLC);
 
       // reverse side "2"
       std::reverse( side2.begin(), side2.end());
 
       // fill real points vector s1 without excessive points from side1 vector
-      MLCType::value_type& p = *side1.begin(); // current (start) point
+      PointVector::value_type& p = side1[0]; // current (start) point
       double& px = p.first; // x coordinate of current point
       double& py = p.second; // y coordinate of current point
       s1.push_back(p);
@@ -714,29 +687,27 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       {
         double& pxNext = side1[i + 1].first; // x coordinate of next point
         double& pyNext = side1[i + 1].second; // y coordinate of next point
-        if (!vtkSlicerRtCommon::AreEqualWithTolerance( px, pxNext) && 
-          !vtkSlicerRtCommon::AreEqualWithTolerance( py, pyNext))
-          {
-            p = side1[i];
-            s1.push_back(p);
-          }
+        if (!AreEqual( px, pxNext) && !AreEqual( py, pyNext))
+        {
+          p = side1[i];
+          s1.push_back(p);
+        }
       }
       p = *(side1.end() - 1);
       s1.push_back(p);
 
       // fill real points vector s2 without excessive points from side2 vector
-      p = *side2.begin();
+      p = side2[0];
       s2.push_back(p);
       for ( size_t i = 1; i < side2.size() - 1; ++i)
       {
-        double& pxNext = side2[i + 1].first; // x coordinate of next point
-        double& pyNext = side2[i + 1].second; // y coordinate of next point
-        if (!vtkSlicerRtCommon::AreEqualWithTolerance( px, pxNext) && 
-          !vtkSlicerRtCommon::AreEqualWithTolerance( py, pyNext))
-          {
-            p = side2[i];
-            s2.push_back(p);
-          }
+        double& pxNext = side2[i + 1].first;
+        double& pyNext = side2[i + 1].second;
+        if (!AreEqual( px, pxNext) && !AreEqual( py, pyNext))
+        {
+          p = side2[i];
+          s2.push_back(p);
+        }
       }
       p = *(side2.end() - 1);
       s2.push_back(p);
