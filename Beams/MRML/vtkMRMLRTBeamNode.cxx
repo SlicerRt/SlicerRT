@@ -531,7 +531,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     {
       vtkErrorMacro("CreateBeamPolyData: Invalid MLC nodes, or " \
         "number of MLC boundaries and positions are different");
-      return;
+      mlcTableNode = nullptr; // draw beam polydata without MLC
     }
   }
 
@@ -541,7 +541,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
   bool yOpened = !AreEqual( this->Y2Jaw, this->Y1Jaw);
 
   // Check that we have MLC with Jaws opening
-  if (xOpened && yOpened)
+  if (mlcTableNode && xOpened && yOpened)
   {
     using PointVector = std::vector< std::pair< double, double > >;
     using LeafDataVector = std::vector< std::array< double, 4 > >;
