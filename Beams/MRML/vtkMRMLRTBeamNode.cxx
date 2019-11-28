@@ -517,7 +517,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
   if (arrayNode)
   {
     mlcBoundArray = arrayNode->GetArray();
-    nofLeaves = (mlcBoundArray) ? (mlcBoundArray->GetNumberOfTuples() - 1) : 0;
+    nofLeaves = mlcBoundArray ? (mlcBoundArray->GetNumberOfTuples() - 1) : 0;
   }
 
   if (nofLeaves)
@@ -743,7 +743,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
 
     // Add the cap to the bottom
     cellArray->InsertNextCell(pointIds);
-    for ( size_t i = 1; i <= pointIds; i++)
+    for ( vtkIdType i = 1; i <= pointIds; i++)
     {
       cellArray->InsertCellPoint(i);
     }
