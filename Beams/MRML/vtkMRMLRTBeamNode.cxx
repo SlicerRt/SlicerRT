@@ -536,7 +536,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     }
   }
 
-  // static function ptr for less code text
+  // static function ptr
   bool(*AreEqual)(double, double) = vtkSlicerRtCommon::AreEqualWithTolerance;
 
   bool xOpened = !AreEqual( this->X2Jaw, this->X1Jaw);
@@ -583,18 +583,36 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       jawEnd = this->X2Jaw;
     }
 
-    // find first and last opened leaves
+    // find first and last opened leaves visible within jaws
     PointVector side1, side2; // temporary vectors to save visible points
     for ( auto it = mlc.begin(); it != mlc.end(); ++it)
     {
       double& pos1 = (*it)[2]; // leaf position "1"
       double& pos2 = (*it)[3]; // leaf position "2"
       bool mlcOpened = !AreEqual( pos1, pos2);
-      if (mlcOpened && firstLeafIterator == mlc.end())
+      bool withinJaw = false;
+      if (mlcType.first) // MLCX
+      {
+        withinJaw = ((pos1 < this->X1Jaw && pos2 >= this->X1Jaw && pos2 <= this->X2Jaw) || 
+          (pos1 >= this->X1Jaw && pos1 <= this->X2Jaw && pos2 > this->X2Jaw) || 
+          (pos1 <= this->X1Jaw && pos2 >= this->X2Jaw) || 
+          (pos1 >= this->X1Jaw && pos1 <= this->X2Jaw && 
+            pos2 >= this->X1Jaw && pos2 <= this->X2Jaw));
+      }
+      else if (mlcType.second) // MLCY
+      {
+        withinJaw = ((pos1 < this->Y1Jaw && pos2 >= this->Y1Jaw && pos2 <= this->Y2Jaw) || 
+          (pos1 >= this->Y1Jaw && pos1 <= this->Y2Jaw && pos2 > this->Y2Jaw) || 
+          (pos1 <= this->Y1Jaw && pos2 >= this->Y2Jaw) || 
+          (pos1 >= this->Y1Jaw && pos1 <= this->Y2Jaw && 
+            pos2 >= this->Y1Jaw && pos2 <= this->Y2Jaw));
+      }
+
+      if (withinJaw && mlcOpened && firstLeafIterator == mlc.end())
       {
         firstLeafIterator = it;
       }
-      if (mlcOpened && firstLeafIterator != mlc.end())
+      if (withinJaw && mlcOpened && firstLeafIterator != mlc.end())
       {
         lastLeafIterator = it;
       }
@@ -621,7 +639,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       }
 
       // find opened MLC leaves into Jaws opening (logical AND)
-      if (firstLeafIteratorJaws != mlc.end() && lastLeafIteratorJaws != mlc.end())
+      if (firstLeafIteratorJaws != firstLeafIterator || lastLeafIteratorJaws != lastLeafIterator)
       {
         lastLeafIterator = std::min( lastLeafIteratorJaws, lastLeafIterator);
         firstLeafIterator = std::max( firstLeafIteratorJaws, firstLeafIterator);
@@ -719,6 +737,11 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         }
       }
       side12.push_back(side2.back());
+    }
+    else
+    {
+      vtkErrorMacro("CreateBeamPolyData: Unable to calculate MLC visible data of opened leaves");
+      return;
     }
 
     // fill vtk points
