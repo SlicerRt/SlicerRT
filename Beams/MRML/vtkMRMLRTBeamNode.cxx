@@ -520,6 +520,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     nofLeaves = mlcBoundArray ? (mlcBoundArray->GetNumberOfTuples() - 1) : 0;
   }
 
+  // MLC position data
   if (nofLeaves)
   {
     mlcTableNode = this->GetMLCPositionTableNode();
@@ -535,6 +536,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     }
   }
 
+  // static function ptr for less code text
   bool(*AreEqual)(double, double) = vtkSlicerRtCommon::AreEqualWithTolerance;
 
   bool xOpened = !AreEqual( this->X2Jaw, this->X1Jaw);
@@ -548,13 +550,14 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     
     LeafDataVector mlc; // temporary MLC vector (Boundary and Position)
     PointVector side12; // real points for side "1" and "2"
-    std::pair< bool, bool > type; // first == MLCX, second = MLCY
 
     vtkTable* table = mlcTableNode->GetTable();
-    type.first = !strncmp( "MLCX", mlcTableNode->GetName(), strlen("MLCX"));
-    type.second = !strncmp( "MLCY", mlcTableNode->GetName(), strlen("MLCY"));
+    std::pair< bool, bool > mlcType{
+      !strncmp( "MLCX", mlcTableNode->GetName(), strlen("MLCX")),
+      !strncmp( "MLCY", mlcTableNode->GetName(), strlen("MLCY"))
+    }; // first == MLCX, second = MLCY
 
-    // copy MLC data for proper (easier processing)
+    // copy MLC data for easier processing
     for ( vtkIdType leaf = 0; leaf < nofLeaves; leaf++)
     {
       double boundBegin = mlcBoundArray->GetTuple1(leaf);
@@ -562,19 +565,19 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       double pos1 = table->GetValue( leaf, 0).ToDouble();
       double pos2 = table->GetValue( leaf, 1).ToDouble();
       
-      mlc.push_back({ boundBegin, boundEnd, pos1, pos2});
+      mlc.push_back({ boundBegin, boundEnd, pos1, pos2 });
     }
 
     auto firstLeafIterator = mlc.end();
     auto lastLeafIterator = mlc.end();
     double& jawBegin = this->Y1Jaw;
     double& jawEnd = this->Y2Jaw;
-    if (type.first) // MLCX
+    if (mlcType.first) // MLCX
     {
       jawBegin = this->Y1Jaw;
       jawEnd = this->Y2Jaw;
     }
-    else if (type.second) // MLCY
+    else if (mlcType.second) // MLCY
     {
       jawBegin = this->X1Jaw;
       jawEnd = this->X2Jaw;
@@ -632,14 +635,14 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         double& bound2 = (*it)[1]; // leaf end boundary
         double& pos1 = (*it)[2]; // leaf position "1"
         double& pos2 = (*it)[3]; // leaf position "2"
-        if (type.first) // MLCX
+        if (mlcType.first) // MLCX
         {
           side1.push_back({ std::max( pos1, this->X1Jaw), bound1});
           side1.push_back({ std::max( pos1, this->X1Jaw), bound2});
           side2.push_back({ std::min( pos2, this->X2Jaw), bound1});
           side2.push_back({ std::min( pos2, this->X2Jaw), bound2});
         }
-        else if (type.second) // MLCY
+        else if (mlcType.second) // MLCY
         {
           side1.push_back({ bound1, std::max( pos1, this->Y1Jaw)});
           side1.push_back({ bound2, std::max( pos1, this->Y1Jaw)});
@@ -650,32 +653,30 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       mlc.clear(); // doesn't need anymore
 
       // intersection between Jaws and MLC boundary (logical AND) lambda
-      auto intersectJawsMLC = [ jawBegin, jawEnd, type](PointVector::value_type& point)
+      auto intersectJawsMLC = [ jawBegin, jawEnd, mlcType](PointVector::value_type& point)
       {
-        double& x = point.first;
-        double& y = point.second;
-        if (type.first) // MLCX
+        if (mlcType.first) // JawsY and MLCX
         {
-          // JawsY and MLCX
-          if (y <= jawBegin)
+          double& leafBoundary = point.second;
+          if (leafBoundary <= jawBegin)
           {
-            y = jawBegin;
+            leafBoundary = jawBegin;
           }
-          else if (y >= jawEnd)
+          else if (leafBoundary >= jawEnd)
           {
-            y = jawEnd;
+            leafBoundary = jawEnd;
           }
         }
-        else if (type.second) // MLCY
+        else if (mlcType.second) // JawsX and MLCY
         {
-          // JawsX and MLCY
-          if (x <= jawBegin)
+          double& leafBoundary = point.first;
+          if (leafBoundary <= jawBegin)
           {
-            x = jawBegin;
+            leafBoundary = jawBegin;
           }
-          else if (x >= jawEnd)
+          else if (leafBoundary >= jawEnd)
           {
-            x = jawEnd;
+            leafBoundary = jawEnd;
           }
         }
       };
@@ -755,7 +756,6 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     {
       cellArray->InsertCellPoint(i);
     }
-
   }
   else
   {
