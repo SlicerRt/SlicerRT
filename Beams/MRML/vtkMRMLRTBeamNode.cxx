@@ -612,7 +612,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       {
         firstLeafIterator = it;
       }
-      if (withinJaw && mlcOpened && firstLeafIterator != mlc.end())
+      else if (withinJaw && mlcOpened && firstLeafIterator != mlc.end())
       {
         lastLeafIterator = it;
       }
@@ -632,14 +632,15 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         {
           firstLeafIteratorJaws = it;
         }
-        if (bound1 <= jawEnd && bound2 > jawEnd)
+        else if (bound1 <= jawEnd && bound2 > jawEnd)
         {
           lastLeafIteratorJaws = it;
         }
       }
 
       // find opened MLC leaves into Jaws opening (logical AND)
-      if (firstLeafIteratorJaws != firstLeafIterator || lastLeafIteratorJaws != lastLeafIterator)
+      if (firstLeafIteratorJaws != firstLeafIterator || 
+        lastLeafIteratorJaws != lastLeafIterator)
       {
         lastLeafIterator = std::min( lastLeafIteratorJaws, lastLeafIterator);
         firstLeafIterator = std::max( firstLeafIteratorJaws, firstLeafIterator);
@@ -740,7 +741,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     }
     else
     {
-      vtkErrorMacro("CreateBeamPolyData: Unable to calculate MLC visible data of opened leaves");
+      vtkErrorMacro("CreateBeamPolyData: Unable to calculate MLC visible data");
       return;
     }
 
