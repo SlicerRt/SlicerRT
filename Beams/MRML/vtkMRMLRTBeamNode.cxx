@@ -551,7 +551,6 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     LeafDataVector mlc; // temporary MLC vector (Boundary and Position)
     PointVector side12; // real points for side "1" and "2"
 
-    vtkTable* table = mlcTableNode->GetTable();
     std::pair< bool, bool > mlcType{
       !strncmp( "MLCX", mlcTableNode->GetName(), strlen("MLCX")),
       !strncmp( "MLCY", mlcTableNode->GetName(), strlen("MLCY"))
@@ -560,6 +559,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     // copy MLC data for easier processing
     for ( vtkIdType leaf = 0; leaf < nofLeaves; leaf++)
     {
+      vtkTable* table = mlcTableNode->GetTable();
       double boundBegin = mlcBoundArray->GetTuple1(leaf);
       double boundEnd = mlcBoundArray->GetTuple1(leaf + 1);
       double pos1 = table->GetValue( leaf, 0).ToDouble();
