@@ -577,7 +577,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       jawBegin = this->Y1Jaw;
       jawEnd = this->Y2Jaw;
     }
-    else if (mlcType.second) // MLCY
+    if (mlcType.second) // MLCY
     {
       jawBegin = this->X1Jaw;
       jawEnd = this->X2Jaw;
@@ -599,7 +599,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
           (pos1 >= this->X1Jaw && pos1 <= this->X2Jaw && 
             pos2 >= this->X1Jaw && pos2 <= this->X2Jaw));
       }
-      else if (mlcType.second) // MLCY
+      if (mlcType.second) // MLCY
       {
         withinJaw = ((pos1 < this->Y1Jaw && pos2 >= this->Y1Jaw && pos2 <= this->Y2Jaw) || 
           (pos1 >= this->Y1Jaw && pos1 <= this->Y2Jaw && pos2 > this->Y2Jaw) || 
@@ -639,11 +639,13 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       }
 
       // find opened MLC leaves into Jaws opening (logical AND)
-      if (firstLeafIteratorJaws != firstLeafIterator || 
-        lastLeafIteratorJaws != lastLeafIterator)
+      if (firstLeafIteratorJaws != firstLeafIterator)
+      {
+        firstLeafIterator = std::max( firstLeafIteratorJaws, firstLeafIterator);
+      }
+      if (lastLeafIteratorJaws != lastLeafIterator)
       {
         lastLeafIterator = std::min( lastLeafIteratorJaws, lastLeafIterator);
-        firstLeafIterator = std::max( firstLeafIteratorJaws, firstLeafIterator);
       }
 
       // add points for the visible leaves of side "1" and "2"
@@ -661,7 +663,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
           side2.push_back({ std::min( pos2, this->X2Jaw), bound1});
           side2.push_back({ std::min( pos2, this->X2Jaw), bound2});
         }
-        else if (mlcType.second) // MLCY
+        if (mlcType.second) // MLCY
         {
           side1.push_back({ bound1, std::max( pos1, this->Y1Jaw)});
           side1.push_back({ bound2, std::max( pos1, this->Y1Jaw)});
@@ -686,7 +688,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
             leafBoundary = jawEnd;
           }
         }
-        else if (mlcType.second) // JawsX and MLCY
+        if (mlcType.second) // JawsX and MLCY
         {
           double& leafBoundary = point.first;
           if (leafBoundary <= jawBegin)
