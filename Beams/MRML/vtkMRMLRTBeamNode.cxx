@@ -553,7 +553,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
 
     const char* mlcName = mlcTableNode->GetName();
     bool typeMLCX = !strncmp( "MLCX", mlcName, strlen("MLCX"));
-    bool typeMLCY = !strncmp( "MLCX", mlcName, strlen("MLCY"));
+    bool typeMLCY = !strncmp( "MLCY", mlcName, strlen("MLCY"));
 
     // copy MLC data for easier processing
     for ( vtkIdType leaf = 0; leaf < nofLeaves; leaf++)
@@ -673,32 +673,25 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       mlc.clear(); // doesn't need anymore
 
       // intersection between Jaws and MLC boundary (logical AND) lambda
-      std::pair< bool, bool > typeMLC{ typeMLCX, typeMLCY };
-      auto intersectJawsMLC = [ jawBegin, jawEnd, typeMLC](PointVector::value_type& point)
+      auto intersectJawsMLC = [ jawBegin, jawEnd, typeMLCX, typeMLCY](PointVector::value_type& point)
       {
-        if (typeMLC.first) // JawsY and MLCX
+        double& leafBoundary = point.second;
+        if (typeMLCX) // JawsY and MLCX
         {
-          double& leafBoundary = point.second;
-          if (leafBoundary <= jawBegin)
-          {
-            leafBoundary = jawBegin;
-          }
-          else if (leafBoundary >= jawEnd)
-          {
-            leafBoundary = jawEnd;
-          }
+          leafBoundary = point.second;
         }
-        else if (typeMLC.second) // JawsX and MLCY
+        else if (typeMLCY) // JawsX and MLCY
         {
-          double& leafBoundary = point.first;
-          if (leafBoundary <= jawBegin)
-          {
-            leafBoundary = jawBegin;
-          }
-          else if (leafBoundary >= jawEnd)
-          {
-            leafBoundary = jawEnd;
-          }
+          leafBoundary = point.first;
+        }
+
+        if (leafBoundary <= jawBegin)
+        {
+          leafBoundary = jawBegin;
+        }
+        else if (leafBoundary >= jawEnd)
+        {
+          leafBoundary = jawEnd;
         }
       };
       // apply lambda to side "1"

@@ -233,7 +233,6 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
   }
   else if (caller->IsA("vtkMRMLTableNode"))
   {
-    vtkMRMLTableNode* tableNode = vtkMRMLTableNode::SafeDownCast(caller);
     if (event == vtkCommand::ModifiedEvent)
     {
       // Iterate through all beam nodes
@@ -246,6 +245,7 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
         // update beam polydata
         vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(*beamIterator);
         vtkMRMLTableNode* beamMLCTableNode = beamNode->GetMLCPositionTableNode();
+        vtkMRMLTableNode* tableNode = vtkMRMLTableNode::SafeDownCast(caller);
         if (beamMLCTableNode == tableNode)
         {
           // Update beam model
