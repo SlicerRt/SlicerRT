@@ -821,10 +821,12 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
       boundaries, positions);
     if (mlcName)
     {
-      std::string mlcPositionString = std::string(mlcName) + "_Position";
+      std::string mlcPositionString = std::string(mlcName) + "_Position" 
+        + " : " + beamNode->GetName();
       tableNode = this->CreateMultiLeafCollimatorTableNode( 
         mlcPositionString.c_str(), positions);
-      std::string mlcBoundaryString = std::string(mlcName) + "_Boundary";
+      std::string mlcBoundaryString = std::string(mlcName) + "_Boundary" 
+        + " : " + beamNode->GetName();
       arrayNode = this->CreateMultiLeafCollimatorDoubleArrayNode( 
         mlcBoundaryString.c_str(), boundaries);
     }

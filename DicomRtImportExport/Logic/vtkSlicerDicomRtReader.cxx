@@ -56,13 +56,6 @@
 // Qt includes
 #include <QSettings>
 
-namespace {
-
-const char* const MLCX_STRING = "MLCX";
-const char* const MLCY_STRING = "MLCY";
-
-} // namespace
-
 vtkStandardNewMacro(vtkSlicerDicomRtReader);
 
 //----------------------------------------------------------------------------
@@ -1814,7 +1807,7 @@ const char* vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositions( unsigne
     pairBoundaries, leafPositions);
   if (mlcxIsValid)
   {
-    return MLCX_STRING;
+    return "MLCX";
   }
   else
   {
@@ -1822,7 +1815,7 @@ const char* vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositions( unsigne
     pairBoundaries, leafPositions);
     if (mlcyIsValid)
     {
-      return MLCY_STRING;
+      return "MLCY";
     }
   }
   return nullptr;
