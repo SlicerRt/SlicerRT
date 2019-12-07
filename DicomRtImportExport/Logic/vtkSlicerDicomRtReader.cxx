@@ -77,16 +77,51 @@ public:
   public:
     BeamLimitingDeviceEntry()
       :
-      Distance(-1.),
-      NumberOfLeafJawPairs(0)
+      SourceIsoDistance(0.),
+      NumberOfPairs(0)
     {
     }
-    /// Source to BeamLimitingDevice (MLC) distance for RTPlan
+    /// Source to BeamLimitingDevice (MLC) distance for RTPlan (first element)
     /// or Isocenter to BeamLimitingDevice (MLC) distance for RTIonPlan
-    double Distance; // loaded, but not used
-    unsigned int NumberOfLeafJawPairs;
+    double SourceIsoDistance;
+    unsigned int NumberOfPairs;
     /// MLC position boundaries: Raw DICOM values
     std::vector<double> LeafPositionBoundary;
+  };
+
+  /// Structure storing a beam range shifter parameters associated with ion beam
+  class RangeShifterEntry
+  {
+  public:
+    RangeShifterEntry()
+      :
+      Number(0),
+      Type("BINARY")
+    {
+    }
+    int Number;
+    std::string ID;
+    std::string AccessoryCode;
+    std::string Type; // "ANALOG", "BINARY"
+    std::string Description;
+  };
+
+  /// Structure storing a treatment compensator parameters associated with beam
+  class CompensatorEntry
+  {
+  public:
+    CompensatorEntry()
+    {
+    }
+  };
+
+  /// Structure storing a shielding block parameters associated with beam
+  class BlockEntry
+  {
+  public:
+    BlockEntry()
+    {
+    }
   };
 
   /// Structure storing a ROI of an RT structure set
@@ -103,7 +138,7 @@ public:
     unsigned int Number;
     std::string Name;
     std::string Description;
-    double DisplayColor[3];
+    std::array< double, 3 > DisplayColor;
     vtkPolyData* PolyData;
     std::string ReferencedSeriesUID;
     std::string ReferencedFrameOfReferenceUID;
@@ -113,64 +148,162 @@ public:
   /// List of loaded contour ROIs from structure set
   std::vector<RoiEntry> RoiSequenceVector;
 
-  /// Structure storing an RT beam
-  class BeamEntry
+  class ReferencedBeamEntry
+  {
+    public:
+      ReferencedBeamEntry()
+        :
+        Number(0)
+      {
+      }
+      unsigned int Number; /// Referenced Beam Number (300C,0006)
+      /// pair.first = Cumulative Meterset Weight (300A,0134)
+      /// pair.second = Referenced Control Point Index (300C,00F0)
+      std::vector< std::pair< double, unsigned int > > BeamDoseVerificationControlPointSequenceVector;
+  };
+
+  /// Structure storing Fraction information of RT plan or RT Ion plan
+  class FractionEntry
   {
   public:
-    BeamEntry()
+    FractionEntry()
+      :
+      Number(0),
+      NumberOfBeams(0),
+      NumberOfBrachyApplicationSetups(0)
     {
-      Number = -1;
-      IsocenterPositionRas[0] = 0.0;
-      IsocenterPositionRas[1] = 0.0;
-      IsocenterPositionRas[2] = 0.0;
-      SourceAxisDistance = 0.0;
-      GantryAngle = 0.0;
-      PatientSupportAngle = 0.0;
-      BeamLimitingDeviceAngle = 0.0;
-      //TODO: good default values for the jaw positions?
-      LeafJawPositions[0][0] = 0.0;
-      LeafJawPositions[0][1] = 0.0;
-      LeafJawPositions[1][0] = 0.0;
-      LeafJawPositions[1][1] = 0.0;
-      SourceToJawDistance[0] = -1.;
-      SourceToJawDistance[1] = -1.;
     }
     unsigned int Number;
-    std::string Name;
-    std::string Type;
     std::string Description;
-    double IsocenterPositionRas[3];
+    unsigned int NumberOfBeams;
+    unsigned int NumberOfBrachyApplicationSetups;
+    std::vector< ReferencedBeamEntry > ReferencedBeamSequenceVector;
+  };
 
-    //TODO: 
+  /// List of loaded fractions from RT plan or RT Ion plan 
+  std::vector< FractionEntry > FractionSequenceVector;
+
+  /// Structure storing Control Point information for the current beam
+  class ControlPointEntry
+  {
+  public:
+    ControlPointEntry();
+    ControlPointEntry(const ControlPointEntry& src);
+    ControlPointEntry& operator=(const ControlPointEntry& src);
+
+    unsigned int Index;
+    std::array< double, 3 > IsocenterPositionRas;
+    
+    //TODO:
     // In case of VMAT the following parameters can change by each control point
     //   (this is not supported yet!)
     // In case of IMRT, these are fixed (for Slicer visualization, in reality there is
     //   a second control point that defines the CumulativeMetersetWeight to know when
     //   to end irradiation.
-    double SourceAxisDistance;
+    double CumulativeMetersetWeight;
     double GantryAngle;
     double PatientSupportAngle;
     double BeamLimitingDeviceAngle;
+    double NominalBeamEnergy; // MeV/u
+    double MetersetRate;
+
     /// Jaw positions: X and Y positions with isocenter as origin (e.g. {{-50,50}{-50,50}} )
-    double LeafJawPositions[2][2];
+    std::array< double, 4 > JawPositions; // X[0], X[1], Y[0], Y[1]
+    std::string MultiLeafCollimatorType; // "MLCX" or "MLCY"
+    /// MLC positions: Raw DICOM values
+    std::vector<double> LeafPositions;
+
+    int ReferencedRangeShifterNumber;
+    std::string RangeShifterSetting;
+    double IsocenterToRangeShifterDistance;
+    double RangeShifterWaterEquivalentThickness;
+
+    // Parameters taken from plastimatch (for future use)
+    std::string GantryRotationDirection;
+    float GantryPitchAngle;
+    std::string GantryPitchRotationDirection;
+    std::string BeamLimitingDeviceRotationDirection;
+
+    std::string ScanSpotTuneId;
+    size_t NumberOfScanSpotPositions;
+    std::string ScanSpotReorderingAllowed;
+    std::vector<float> ScanSpotPositionMap;
+    std::vector<float> ScanSpotMetersetWeights;
+    size_t NumberOfPaintings;
+    std::array< float, 2 > ScanningSpotSize;
+    std::string PatientSupportRotationDirection;
+    
+    float TableTopPitchAngle;
+    std::string TableTopPitchRotationDirection;
+    float TableTopRollAngle;
+    std::string TableTopRollRotationDirection;
+    float TableTopVerticalPosition;
+    float TableTopLongitudinalPosition;
+    float TableTopLateralPosition;
+  };
+
+  /// Structure storing an RT beam
+  class BeamEntry
+  {
+  public:
+    BeamEntry()
+      :
+      Number(0),
+      RadiationIon({ 0, 0, 0 }),
+      SourceAxisDistance({ 1000., 1000. }),
+      SourceToJawDistance({ 500., 500. }),
+      NumberOfCompensators(0),
+      NumberOfBlocks(0),
+      NumberOfRangeShifters(0),
+      NumberOfControlPoints(0),
+      FinalCumulativeMetersetWeight(-1.)
+    {}
+    unsigned int Number;
+    std::string Name;
+    std::string Type;
+    std::string Description;
+    std::string RadiationType;
+
+    /// RadiationIon[0] = RadiationMassNumber;
+    /// RadiationIon[1] = RadiationAtomicNumber;
+    /// RadiationIon[2] = RadiationChargeState;
+    std::array< unsigned int, 3 > RadiationIon;
+    /// SourceAxisDistance (SAD) for RTPlan (first element)
+    /// VirtualSourceAxisDistance (VSAD) for RTIonPlan    
+    std::array< double, 2 > SourceAxisDistance;
 
     /// Jaw distance: X and Y distance from souce with isocenter as origin
     /// SourceToJawDistance[0] - X or ASYMX
     /// SourceToJawDistance[1] - Y or ASYMY
-    double SourceToJawDistance[2]; // loaded, but not used
+    std::array< double, 2 > SourceToJawDistance;
 
     /// MLC parameters: Raw DICOM values
-    /// MultiLeafCollimator[0] - MLCX parameters
-    /// MultiLeafCollimator[1] - MLCY parameters
-    BeamLimitingDeviceEntry MultiLeafCollimator[2];
+    std::string MultiLeafCollimatorType; // "MLCX" or "MLCY"
+    BeamLimitingDeviceEntry MultiLeafCollimator;
 
-    /// MLC positions: Raw DICOM values
-    /// LeafJawPositionsMLC[0] - leaf position vector for MLCX
-    /// LeafJawPositionsMLC[1] - leaf position vector for MLCY
-    // TODO: Positions should be vector for each control point
-    //   not for only one control point. LoadRTPlan must load all
-    //   control points not only one.
-    std::vector<double> LeafJawPositionsMLC[2];
+    unsigned int NumberOfCompensators;
+    std::vector< CompensatorEntry > CompensatorSequenceVector;
+
+    unsigned int NumberOfBlocks;
+    std::vector< BlockEntry > BlockSequenceVector;
+
+    unsigned int NumberOfRangeShifters; // for RTIonPlan only 
+    std::vector< RangeShifterEntry > RangeShifterSequenceVector;
+
+    unsigned int NumberOfControlPoints;
+    std::vector< ControlPointEntry > ControlPointSequenceVector;
+
+    /// Meterset at end of all control points
+    double FinalCumulativeMetersetWeight;
+
+    // Parameters taken from plastimatch (for future use)
+    std::string TreatmentMachineName;
+    std::string TreatmentDeliveryType;
+    std::string Manufacturer;
+    std::string InstitutionName;
+    std::string InstitutionAddress;
+    std::string InstitutionalDepartmentName;
+    std::string ManufacturerModelName;
   };
 
   /// List of loaded beams from external beam plan
@@ -182,7 +315,7 @@ public:
   public:
     ChannelEntry()
     {
-      Number = -1;
+      Number = 0;
       NumberOfControlPoints = 0;
       Length = 0.0;
       TotalTime = 0.0;
@@ -204,6 +337,8 @@ public:
 
   /// Load RT Plan 
   void LoadRTPlan(DcmDataset* dataset);
+  /// Load RT Ion Plan
+  void LoadRTIonPlan(DcmDataset* dataset);
 
   /// Load RT Structure Set
   void LoadRTStructureSet(DcmDataset* dataset);
@@ -262,9 +397,7 @@ vtkSlicerDicomRtReader::vtkInternal::~vtkInternal()
 vtkSlicerDicomRtReader::vtkInternal::RoiEntry::RoiEntry()
 {
   this->Number = 0;
-  this->DisplayColor[0] = 1.0;
-  this->DisplayColor[1] = 0.0;
-  this->DisplayColor[2] = 0.0;
+  this->DisplayColor = { 1.0, 0.0, 0.0 };
   this->PolyData = nullptr;
 }
 
@@ -280,9 +413,7 @@ vtkSlicerDicomRtReader::vtkInternal::RoiEntry::RoiEntry(const RoiEntry& src)
   this->Number = src.Number;
   this->Name = src.Name;
   this->Description = src.Description;
-  this->DisplayColor[0] = src.DisplayColor[0];
-  this->DisplayColor[1] = src.DisplayColor[1];
-  this->DisplayColor[2] = src.DisplayColor[2];
+  this->DisplayColor = src.DisplayColor;
   this->PolyData = nullptr;
   this->SetPolyData(src.PolyData);
   this->ReferencedSeriesUID = src.ReferencedSeriesUID;
@@ -296,9 +427,7 @@ vtkSlicerDicomRtReader::vtkInternal::RoiEntry& vtkSlicerDicomRtReader::vtkIntern
   this->Number = src.Number;
   this->Name = src.Name;
   this->Description = src.Description;
-  this->DisplayColor[0] = src.DisplayColor[0];
-  this->DisplayColor[1] = src.DisplayColor[1];
-  this->DisplayColor[2] = src.DisplayColor[2];
+  this->DisplayColor = src.DisplayColor;
   this->SetPolyData(src.PolyData);
   this->ReferencedSeriesUID = src.ReferencedSeriesUID;
   this->ReferencedFrameOfReferenceUID = src.ReferencedFrameOfReferenceUID;
@@ -326,6 +455,107 @@ void vtkSlicerDicomRtReader::vtkInternal::RoiEntry::SetPolyData(vtkPolyData* roi
   {
     this->PolyData->Register(nullptr);
   }
+}
+
+vtkSlicerDicomRtReader::vtkInternal::ControlPointEntry::ControlPointEntry()
+  :
+  Index(0),
+  IsocenterPositionRas({ 0.0, 0.0, 0.0 }),
+  CumulativeMetersetWeight(-1.0),
+  GantryAngle(0.0),
+  PatientSupportAngle(0.0),
+  BeamLimitingDeviceAngle(0.0),
+  NominalBeamEnergy(0.0),
+  MetersetRate(0.0),
+  JawPositions({ 0.0, 0.0, 0.0, 0.0 })
+{
+}
+
+vtkSlicerDicomRtReader::vtkInternal::ControlPointEntry::ControlPointEntry(const ControlPointEntry& src)
+  :
+  Index(src.Index),
+  IsocenterPositionRas(src.IsocenterPositionRas),
+  CumulativeMetersetWeight(src.CumulativeMetersetWeight),
+  GantryAngle(src.GantryAngle),
+  PatientSupportAngle(src.PatientSupportAngle),
+  BeamLimitingDeviceAngle(src.BeamLimitingDeviceAngle),
+  NominalBeamEnergy(src.NominalBeamEnergy),
+  MetersetRate(src.MetersetRate),
+  JawPositions(src.JawPositions),
+  MultiLeafCollimatorType(src.MultiLeafCollimatorType),
+  LeafPositions(src.LeafPositions),
+  ReferencedRangeShifterNumber(src.ReferencedRangeShifterNumber),
+  RangeShifterSetting(src.RangeShifterSetting),
+  IsocenterToRangeShifterDistance(src.IsocenterToRangeShifterDistance),
+  RangeShifterWaterEquivalentThickness(src.RangeShifterWaterEquivalentThickness),
+  GantryRotationDirection(src.GantryRotationDirection),
+  GantryPitchAngle(src.GantryPitchAngle),
+  GantryPitchRotationDirection(src.GantryPitchRotationDirection),
+  BeamLimitingDeviceRotationDirection(src.BeamLimitingDeviceRotationDirection),
+  ScanSpotTuneId(src.ScanSpotTuneId),
+  NumberOfScanSpotPositions(src.NumberOfScanSpotPositions),
+  ScanSpotReorderingAllowed(src.ScanSpotReorderingAllowed),
+  ScanSpotPositionMap(src.ScanSpotPositionMap),
+  ScanSpotMetersetWeights(src.ScanSpotMetersetWeights),
+  NumberOfPaintings(src.NumberOfPaintings),
+  ScanningSpotSize(src.ScanningSpotSize),
+  PatientSupportRotationDirection(src.PatientSupportRotationDirection),
+  TableTopPitchAngle(src.TableTopPitchAngle),
+  TableTopPitchRotationDirection(src.TableTopPitchRotationDirection),
+  TableTopRollAngle(src.TableTopRollAngle),
+  TableTopRollRotationDirection(src.TableTopRollRotationDirection),
+  TableTopVerticalPosition(src.TableTopVerticalPosition),
+  TableTopLongitudinalPosition(src.TableTopLongitudinalPosition),
+  TableTopLateralPosition(src.TableTopLateralPosition)
+{
+}
+
+vtkSlicerDicomRtReader::vtkInternal::ControlPointEntry&
+vtkSlicerDicomRtReader::vtkInternal::ControlPointEntry::operator=(const ControlPointEntry& src)
+{
+  this->Index = src.Index;
+  this->IsocenterPositionRas = src.IsocenterPositionRas;
+  
+  this->CumulativeMetersetWeight = src.CumulativeMetersetWeight;
+  
+  this->GantryAngle = src.GantryAngle;
+  this->PatientSupportAngle = src.PatientSupportAngle;
+  this->BeamLimitingDeviceAngle = src.BeamLimitingDeviceAngle;
+  
+  this->NominalBeamEnergy = src.NominalBeamEnergy;
+  this->MetersetRate = src.MetersetRate;
+  
+  this->JawPositions = src.JawPositions;
+  this->MultiLeafCollimatorType = src.MultiLeafCollimatorType;
+  this->LeafPositions = src.LeafPositions;
+  
+  this->ReferencedRangeShifterNumber = src.ReferencedRangeShifterNumber;
+  this->RangeShifterSetting = src.RangeShifterSetting;
+  this->IsocenterToRangeShifterDistance = src.IsocenterToRangeShifterDistance;
+  this->RangeShifterWaterEquivalentThickness = src.RangeShifterWaterEquivalentThickness;
+
+  this->GantryRotationDirection = src.GantryRotationDirection;
+  this->GantryPitchAngle = src.GantryPitchAngle;
+  this->GantryPitchRotationDirection = src.GantryPitchRotationDirection;
+  this->BeamLimitingDeviceRotationDirection = src.BeamLimitingDeviceRotationDirection;
+
+  this->ScanSpotTuneId = src.ScanSpotTuneId;
+  this->NumberOfScanSpotPositions = src.NumberOfScanSpotPositions;
+  this->ScanSpotReorderingAllowed = src.ScanSpotReorderingAllowed;
+  this->ScanSpotPositionMap = src.ScanSpotPositionMap;
+  this->ScanSpotMetersetWeights = src.ScanSpotMetersetWeights;
+  this->NumberOfPaintings = src.NumberOfPaintings;
+  this->ScanningSpotSize = src.ScanningSpotSize;
+  this->PatientSupportRotationDirection = src.PatientSupportRotationDirection;
+    
+  this->TableTopPitchAngle = src.TableTopPitchAngle;
+  this->TableTopPitchRotationDirection = src.TableTopPitchRotationDirection;
+  this->TableTopRollAngle = src.TableTopRollAngle;
+  this->TableTopRollRotationDirection = src.TableTopRollRotationDirection;
+  this->TableTopVerticalPosition = src.TableTopVerticalPosition;
+  this->TableTopLongitudinalPosition = src.TableTopLongitudinalPosition;
+  this->TableTopLateralPosition = src.TableTopLateralPosition;
+  return *this;
 }
 
 //----------------------------------------------------------------------------
@@ -562,18 +792,19 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
 
   DRTBeamSequence &rtPlanBeamSequence = rtPlan.getBeamSequence();
   DRTApplicationSetupSequence &rtPlanApplicationSetupSequence = rtPlan.getApplicationSetupSequence();
-  // RT external beam plan
-  if (rtPlanBeamSequence.gotoFirstItem().good())
+  // RTPlan beam sequence (external beam plan)
+  if (rtPlanBeamSequence.isValid() && rtPlanBeamSequence.gotoFirstItem().good())
   {
     do
     {
-      DRTBeamSequence::Item &currentBeamSequenceItem = rtPlanBeamSequence.getCurrentItem();  
+      DRTBeamSequence::Item &currentBeamSequenceItem = rtPlanBeamSequence.getCurrentItem();
       if (!currentBeamSequenceItem.isValid())
       {
+        // possibly reach the end of the sequence
         if (rtPlanBeamSequence.gotoNextItem().good())
         {
           // Only log warning if this is not the last item (the loop reaches here after the final item)
-          vtkWarningWithObjectMacro(this->External, "LoadRTPlan: Found an invalid beam sequence in dataset");
+          vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Found an invalid beam item in dataset");
         }
         continue;
       }
@@ -597,14 +828,22 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
       currentBeamSequenceItem.getBeamNumber( beamNumber );        
       beamEntry.Number = beamNumber;
 
-      vtkTypeFloat64 sourceAxisDistance = 0.0;
+      OFString radiationType("");
+      currentBeamSequenceItem.getRadiationType(radiationType);
+      beamEntry.RadiationType = radiationType.c_str();
+
+      Float64 sourceAxisDistance = 0.0;
       currentBeamSequenceItem.getSourceAxisDistance(sourceAxisDistance);
-      beamEntry.SourceAxisDistance = sourceAxisDistance;
+      beamEntry.SourceAxisDistance[0] = sourceAxisDistance;
+
+      Float64 finalCumulativeMetersetWeight = -1.;
+      currentBeamSequenceItem.getFinalCumulativeMetersetWeight(finalCumulativeMetersetWeight);
+      beamEntry.FinalCumulativeMetersetWeight = finalCumulativeMetersetWeight;
 
       // Get multi leaf collimators parameters: distance, number of leaf pairs, leaf position boundaries
       DRTBeamLimitingDeviceSequenceInRTBeamsModule& rtBeamLimitingDeviceSequence = 
         currentBeamSequenceItem.getBeamLimitingDeviceSequence();
-      if (rtBeamLimitingDeviceSequence.gotoFirstItem().good())
+      if (rtBeamLimitingDeviceSequence.isValid() && rtBeamLimitingDeviceSequence.gotoFirstItem().good())
       {
         do
         {
@@ -633,80 +872,124 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
               OFCondition getNumberOfPairsCondition = collimatorItem.getNumberOfLeafJawPairs(nofPairs);
               if (getNumberOfPairsCondition.good())
               {
+                std::string& type = beamEntry.MultiLeafCollimatorType;
+                double& mlcDistance = beamEntry.MultiLeafCollimator.SourceIsoDistance;
+                unsigned int& pairs = beamEntry.MultiLeafCollimator.NumberOfPairs;
+                std::vector<double>& bounds = beamEntry.MultiLeafCollimator.LeafPositionBoundary;
                 OFVector<Float64> leafPositionBoundaries;
                 OFCondition getBoundariesCondition = collimatorItem.getLeafPositionBoundaries(leafPositionBoundaries);
                 if (getBoundariesCondition.good())
                 {
-                  double& distanceX = beamEntry.MultiLeafCollimator[0].Distance;
-                  double& distanceY = beamEntry.MultiLeafCollimator[1].Distance;
-                  unsigned int& pairsX = beamEntry.MultiLeafCollimator[0].NumberOfLeafJawPairs;
-                  unsigned int& pairsY = beamEntry.MultiLeafCollimator[1].NumberOfLeafJawPairs;
-                  std::vector<double>& boundX = beamEntry.MultiLeafCollimator[0].LeafPositionBoundary;
-                  std::vector<double>& boundY = beamEntry.MultiLeafCollimator[1].LeafPositionBoundary;
-                  if (!deviceType.compare("MLCX"))
-                  {
-                    distanceX = distance;
-                    pairsX = nofPairs;
-                    boundX.resize(leafPositionBoundaries.size());
-                    std::copy( leafPositionBoundaries.begin(), leafPositionBoundaries.end(), boundX.begin());
-                    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: MLCX number of leaf/jaw pairs: " << nofPairs);
-                  }
-                  else if (!deviceType.compare("MLCY"))
-                  {
-                    distanceY = distance;
-                    pairsY = nofPairs;
-                    boundY.resize(leafPositionBoundaries.size());
-                    std::copy( leafPositionBoundaries.begin(), leafPositionBoundaries.end(), boundY.begin());
-                    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: MLCY number of leaf/jaw pairs: " << nofPairs);
-                  }
+                  type = deviceType.c_str();
+                  mlcDistance = distance;
+                  pairs = nofPairs;
+                  bounds.resize(leafPositionBoundaries.size());
+                  std::copy( leafPositionBoundaries.begin(), leafPositionBoundaries.end(), bounds.begin());
+                  vtkDebugWithObjectMacro( this->External, "LoadRTPlan: multi-leaf collimator type is " 
+                    << type << ", number of leaf pairs are " << nofPairs);
                 }
               }
             }
           }
-        } while (rtBeamLimitingDeviceSequence.gotoNextItem().good());
+        }
+        while (rtBeamLimitingDeviceSequence.gotoNextItem().good());
+
       }
+
+      Sint32 beamNumberOfControlPoints = -1;
+      currentBeamSequenceItem.getNumberOfControlPoints(beamNumberOfControlPoints);
+      beamEntry.NumberOfControlPoints = beamNumberOfControlPoints;
 
       DRTControlPointSequence &rtControlPointSequence = currentBeamSequenceItem.getControlPointSequence();
-      if (!rtControlPointSequence.gotoFirstItem().good())
+      if (!rtControlPointSequence.isValid() || !rtControlPointSequence.gotoFirstItem().good())
       {
-        vtkWarningWithObjectMacro(this->External, "LoadRTPlan: Found an invalid RT control point sequence in dataset");
+        vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Found an invalid RT control point sequence in dataset");
         continue;
       }
-
-      //do //TODO: comment out for now since only first control point is loaded (as isocenter)
-      //{
+    
+      // Initialize control point vector so that it can be correctly filled even if control points arrive in random order
+      for ( Sint32 i = 0; i < beamNumberOfControlPoints; ++i)
+      {
+        ControlPointEntry dummyControlPoint;
+        beamEntry.ControlPointSequenceVector.push_back(dummyControlPoint);
+      }
+      unsigned int controlPointCount = 0;
+    
+      do
+      {
         DRTControlPointSequence::Item &controlPointItem = rtControlPointSequence.getCurrentItem();
+
         if (!controlPointItem.isValid())
         {
-          vtkWarningWithObjectMacro(this->External, "LoadRTPlan: Found an invalid RT control point in dataset");
+          // possibly reach the end of the sequence
+          if (rtControlPointSequence.gotoNextItem().good())
+          {
+            vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Found an invalid RT control point in dataset, "
+              << "control point counter = " << controlPointCount);
+          }
           continue;
         }
 
-        OFVector<vtkTypeFloat64> isocenterPositionDataLps;
-        controlPointItem.getIsocenterPosition(isocenterPositionDataLps);
+        Sint32 controlPointIndex = -1;
+        controlPointItem.getControlPointIndex(controlPointIndex);
+        if (controlPointIndex < 0 || controlPointIndex >= beamNumberOfControlPoints)
+        {
+          vtkErrorWithObjectMacro( this->External, 
+            "LoadRTPlan: Invalid control point index value " 
+            << controlPointIndex << ", for a beam number "
+            << beamEntry.Number << " named \"" << beamEntry.Name << "\"");
+          continue;
+        }
 
-        // Convert from DICOM LPS -> Slicer RAS
-        beamEntry.IsocenterPositionRas[0] = -isocenterPositionDataLps[0];
-        beamEntry.IsocenterPositionRas[1] = -isocenterPositionDataLps[1];
-        beamEntry.IsocenterPositionRas[2] = isocenterPositionDataLps[2];
+        // Control point item from the ControlPointSequenceVector
+        ControlPointEntry& controlPoint = beamEntry.ControlPointSequenceVector.at(controlPointIndex);
+//        ControlPointEntry& controlPointEntry = beamEntry.ControlPointSequenceVector.at(controlPointCount); 
+        controlPoint.Index = controlPointIndex;
 
-        vtkTypeFloat64 gantryAngle = 0.0;
-        controlPointItem.getGantryAngle(gantryAngle);
-        beamEntry.GantryAngle = gantryAngle;
+        OFVector<Float64> isocenterPositionDataLps;
+        OFCondition dataCondition = controlPointItem.getIsocenterPosition(isocenterPositionDataLps);
+        if (dataCondition.good())
+        {
+          // Convert from DICOM LPS -> Slicer RAS
+          controlPoint.IsocenterPositionRas[0] = -isocenterPositionDataLps[0];
+          controlPoint.IsocenterPositionRas[1] = -isocenterPositionDataLps[1];
+          controlPoint.IsocenterPositionRas[2] = isocenterPositionDataLps[2];
+        }
 
-        vtkTypeFloat64 patientSupportAngle = 0.0;
-        controlPointItem.getPatientSupportAngle(patientSupportAngle);
-        beamEntry.PatientSupportAngle = patientSupportAngle;
+        Float64 gantryAngle = 0.0;
+        dataCondition = controlPointItem.getGantryAngle(gantryAngle);
+        if (dataCondition.good())
+        {
+          controlPoint.GantryAngle = gantryAngle;
+        }
 
-        vtkTypeFloat64 beamLimitingDeviceAngle = 0.0;
-        controlPointItem.getBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
-        beamEntry.BeamLimitingDeviceAngle = beamLimitingDeviceAngle;
+        Float64 patientSupportAngle = 0.0;
+        dataCondition = controlPointItem.getPatientSupportAngle(patientSupportAngle);
+        if (dataCondition.good())
+        {
+          controlPoint.PatientSupportAngle = patientSupportAngle;
+        }
+        
+        Float64 beamLimitingDeviceAngle = 0.0;
+        dataCondition = controlPointItem.getBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
+        if (dataCondition.good())
+        {
+          controlPoint.BeamLimitingDeviceAngle = beamLimitingDeviceAngle;
+        }
+
+        Float64 cumulativeMetersetWeight = -1.;
+        dataCondition = controlPointItem.getCumulativeMetersetWeight(cumulativeMetersetWeight);
+        if (dataCondition.good())
+        {
+          controlPoint.CumulativeMetersetWeight = cumulativeMetersetWeight;
+        }
 
         DRTBeamLimitingDevicePositionSequence &currentCollimatorPositionSequence =
           controlPointItem.getBeamLimitingDevicePositionSequence();
-        if (currentCollimatorPositionSequence.gotoFirstItem().good())
+        if (currentCollimatorPositionSequence.isValid() && 
+          currentCollimatorPositionSequence.gotoFirstItem().good())
         {
-          do 
+          do
           {
             DRTBeamLimitingDevicePositionSequence::Item &collimatorPositionItem =
               currentCollimatorPositionSequence.getCurrentItem();
@@ -715,15 +998,15 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
               OFString rtBeamLimitingDeviceType("");
               collimatorPositionItem.getRTBeamLimitingDeviceType(rtBeamLimitingDeviceType);
 
-              OFVector<vtkTypeFloat64> leafJawPositions;
+              OFVector<Float64> leafJawPositions;
               OFCondition getJawPositionsCondition = collimatorPositionItem.getLeafJawPositions(leafJawPositions);
 
               if ( !rtBeamLimitingDeviceType.compare("ASYMX") || !rtBeamLimitingDeviceType.compare("X") )
               {
                 if (getJawPositionsCondition.good())
                 {
-                  beamEntry.LeafJawPositions[0][0] = leafJawPositions[0];
-                  beamEntry.LeafJawPositions[0][1] = leafJawPositions[1];
+                  controlPoint.JawPositions[0] = leafJawPositions[0];
+                  controlPoint.JawPositions[1] = leafJawPositions[1];
                 }
                 else
                 {
@@ -734,8 +1017,8 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
               {
                 if (getJawPositionsCondition.good())
                 {
-                  beamEntry.LeafJawPositions[1][0] = leafJawPositions[0];
-                  beamEntry.LeafJawPositions[1][1] = leafJawPositions[1];
+                  controlPoint.JawPositions[2] = leafJawPositions[0];
+                  controlPoint.JawPositions[3] = leafJawPositions[1];
                 }
                 else
                 {
@@ -744,39 +1027,52 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
               }
               else if ( !rtBeamLimitingDeviceType.compare("MLCX") || !rtBeamLimitingDeviceType.compare("MLCY") )
               {
-                // Get MLC leaves positions
+                // Get MLC leaves position (opening)
                 if (getJawPositionsCondition.good())
                 {
-                  std::vector<double>& positionsX = beamEntry.LeafJawPositionsMLC[0];
-                  std::vector<double>& positionsY = beamEntry.LeafJawPositionsMLC[1];
-                  if (!rtBeamLimitingDeviceType.compare("MLCX"))
-                  {
-                    positionsX.resize(leafJawPositions.size());
-                    std::copy( leafJawPositions.begin(), leafJawPositions.end(), positionsX.begin());
-                    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: MLCX leaf positions have been loaded");
-                  }
-                  else if (!rtBeamLimitingDeviceType.compare("MLCY"))
-                  {
-                    positionsY.resize(leafJawPositions.size());
-                    std::copy( leafJawPositions.begin(), leafJawPositions.end(), positionsY.begin());
-                    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: MLCY leaf positions have been loaded");
-                  }
+                  std::vector<double>& mlcPositions = controlPoint.LeafPositions;
+                  std::string& mlcType = controlPoint.MultiLeafCollimatorType;
+
+                  mlcType = rtBeamLimitingDeviceType.c_str();
+                  mlcPositions.resize(leafJawPositions.size());
+                  std::copy( leafJawPositions.begin(), leafJawPositions.end(), mlcPositions.begin());
+                  vtkDebugWithObjectMacro( this->External, "LoadRTPlan: " 
+                    << mlcType << " leaf positions have been loaded");
+                }
+                else
+                {
+                  vtkWarningWithObjectMacro( this->External, "LoadRTPlan: No MLC position found in collimator entry");
                 }
               }
               else
               {
-                vtkErrorWithObjectMacro(this->External, "LoadRTPlan: Unsupported collimator type: " << rtBeamLimitingDeviceType);
+                vtkErrorWithObjectMacro( this->External, 
+                  "LoadRTPlan: Unsupported collimator type: " << rtBeamLimitingDeviceType);
               }
             }
           }
           while (currentCollimatorPositionSequence.gotoNextItem().good());
-        } // endif controlPointItem.isValid()
-      //}
-      //while (rtControlPointSequence.gotoNextItem().good());
+ 
+        }
+        ++controlPointCount;
+        // assign current control point to the next control point
+        if (controlPointIndex > 0 && controlPointIndex < beamNumberOfControlPoints - 1)
+        {
+          beamEntry.ControlPointSequenceVector.at(controlPointIndex + 1) = 
+            ControlPointEntry(controlPoint);
+        }
+      }
+      while (rtControlPointSequence.gotoNextItem().good());
 
+      if (Sint32(controlPointCount) != beamNumberOfControlPoints)
+      {
+        vtkErrorWithObjectMacro( this->External, "LoadRTPlan: Number of control points expected ("
+          << beamNumberOfControlPoints << ") and found (" << controlPointCount << ") do not match. Invalid points remain among control points");
+      }
       this->BeamSequenceVector.push_back(beamEntry);
     }
     while (rtPlanBeamSequence.gotoNextItem().good());
+
   }
   // RT brachy plan
   else if (rtPlanApplicationSetupSequence.gotoFirstItem().good())
@@ -800,6 +1096,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
       DRTChannelSequence::Item &currentChannelSequenceItem = channelSequence.getCurrentItem();  
       if (!currentChannelSequenceItem.isValid())
       {
+        // possibly reach the end of the sequence
         if (channelSequence.gotoNextItem().good())
         {
           // Only log warning if this is not the last item (the loop reaches here after the final item)
@@ -865,7 +1162,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
       }
       while (rtBrachyControlPointSequence.gotoNextItem().good());
 
-      if (controlPointCount != channelNumberOfControlPoints)
+      if (Sint32(controlPointCount) != channelNumberOfControlPoints)
       {
         vtkErrorWithObjectMacro(this->External, "LoadRTPlan: Number of brachy control points expected ("
           << channelNumberOfControlPoints << ") and found (" << controlPointCount << ") do not match. Invalid points remain among control points");
@@ -933,6 +1230,369 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
   this->External->GetAndStoreRtHierarchyInformation(&rtPlan);
 
   this->External->LoadRTPlanSuccessful = true;
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
+{
+  this->External->LoadRTIonPlanSuccessful = false;
+
+  DRTIonPlanIOD ionPlan;
+  if (ionPlan.read(*dataset).bad())
+  {
+    vtkErrorWithObjectMacro( this->External, "LoadRTIonPlan: Failed to read RT Ion Plan object!");
+    return;
+  }
+
+  vtkDebugWithObjectMacro( this->External, "LoadRTIonPlan: Load RT Ion Plan object");
+
+  DRTIonBeamSequence &ionBeamSequence = ionPlan.getIonBeamSequence();
+  // RTPlan ion beam sequence (external ion beam plan)
+  if (ionBeamSequence.isValid() && ionBeamSequence.gotoFirstItem().good())
+  {
+    do
+    {
+      DRTIonBeamSequence::Item &currentIonBeamSequenceItem = ionBeamSequence.getCurrentItem();
+      if (!currentIonBeamSequenceItem.isValid())
+      {
+        // possibly reach the end of the sequense
+        if (ionBeamSequence.gotoNextItem().good())
+        {
+          vtkDebugWithObjectMacro( this->External, "LoadRTIonPlan: Found an invalid ion beam item in dataset");
+        }
+        continue;
+      }
+
+      // Read item into the BeamSequenceVector
+      BeamEntry beamEntry;
+
+      OFString beamName("");
+      currentIonBeamSequenceItem.getBeamName(beamName);
+      beamEntry.Name = beamName.c_str();
+
+      OFString beamDescription("");
+      currentIonBeamSequenceItem.getBeamDescription(beamDescription);
+      beamEntry.Description = beamDescription.c_str();
+
+      OFString beamType("");
+      currentIonBeamSequenceItem.getBeamType(beamType);
+      beamEntry.Type = beamType.c_str();
+
+      Sint32 beamNumber = -1;
+      currentIonBeamSequenceItem.getBeamNumber(beamNumber);
+      beamEntry.Number = beamNumber;
+
+      OFString radiationType("");
+      currentIonBeamSequenceItem.getRadiationType(radiationType);
+      beamEntry.RadiationType = radiationType.c_str();
+      if (!radiationType.compare("ION"))
+      {
+        Sint32 Z = 0;
+        currentIonBeamSequenceItem.getRadiationAtomicNumber(Z);
+        beamEntry.RadiationIon[0] = Z;
+        Sint32 A = 0;
+        currentIonBeamSequenceItem.getRadiationMassNumber(A);
+        beamEntry.RadiationIon[1] = A;
+        Sint16 Charge = 0;
+        currentIonBeamSequenceItem.getRadiationChargeState(Charge);
+        beamEntry.RadiationIon[2] = Charge;
+      }
+
+      Float32 VSADx = -1.0f, VSADy = -1.0f; // virtual source axis distance components
+      currentIonBeamSequenceItem.getVirtualSourceAxisDistances( VSADx, 0);
+      currentIonBeamSequenceItem.getVirtualSourceAxisDistances( VSADy, 1);
+      beamEntry.SourceAxisDistance = { VSADx, VSADy };
+
+      Float64 finalCumulativeMetersetWeight = -1.;
+      currentIonBeamSequenceItem.getFinalCumulativeMetersetWeight(finalCumulativeMetersetWeight);
+      beamEntry.FinalCumulativeMetersetWeight = finalCumulativeMetersetWeight;
+
+      DRTIonBeamLimitingDeviceSequence& rtIonBeamLimitingDeviceSequence = 
+        currentIonBeamSequenceItem.getIonBeamLimitingDeviceSequence();
+      if (rtIonBeamLimitingDeviceSequence.isValid() && 
+        rtIonBeamLimitingDeviceSequence.gotoFirstItem().good())
+      {
+        do
+        {
+          DRTIonBeamLimitingDeviceSequence::Item &collimatorItem =
+            rtIonBeamLimitingDeviceSequence.getCurrentItem();
+          if (collimatorItem.isValid())
+          {
+            OFString deviceType("");
+            Sint32 nofPairs = -1;
+
+            // isocenter to beam limiting device distance
+            Float32 distance = -1.0f;
+            collimatorItem.getIsocenterToBeamLimitingDeviceDistance(distance);
+
+            collimatorItem.getRTBeamLimitingDeviceType(deviceType);
+            if (!deviceType.compare("X") || !deviceType.compare("ASYMX"))
+            {
+              beamEntry.SourceToJawDistance[0] = distance;
+            }
+            else if (!deviceType.compare("Y") || !deviceType.compare("ASYMY"))
+            {
+              beamEntry.SourceToJawDistance[1] = distance;
+            }
+            else if (!deviceType.compare("MLCX") || !deviceType.compare("MLCY"))
+            {              
+              OFCondition getNumberOfPairsCondition = collimatorItem.getNumberOfLeafJawPairs(nofPairs);
+              if (getNumberOfPairsCondition.good())
+              {
+                std::string& type = beamEntry.MultiLeafCollimatorType;
+                double& mlcDistance = beamEntry.MultiLeafCollimator.SourceIsoDistance;
+                unsigned int& pairs = beamEntry.MultiLeafCollimator.NumberOfPairs;
+                std::vector<double>& bounds = beamEntry.MultiLeafCollimator.LeafPositionBoundary;
+                OFVector<Float64> leafPositionBoundaries;
+                OFCondition getBoundariesCondition = collimatorItem.getLeafPositionBoundaries(leafPositionBoundaries);
+                if (getBoundariesCondition.good())
+                {
+                  type = deviceType.c_str();
+                  mlcDistance = distance;
+                  pairs = nofPairs;
+                  bounds.resize(leafPositionBoundaries.size());
+                  std::copy( leafPositionBoundaries.begin(), leafPositionBoundaries.end(), bounds.begin());
+                  vtkDebugWithObjectMacro( this->External, "LoadRTIonPlan: multi-leaf collimator type is " 
+                    << type << ", number of leaf pairs are " << nofPairs);
+                }
+              }
+            }
+          }
+        } while (rtIonBeamLimitingDeviceSequence.gotoNextItem().good());
+      }
+
+      Sint32 beamNumberOfControlPoints = -1;
+      currentIonBeamSequenceItem.getNumberOfControlPoints(beamNumberOfControlPoints);
+      beamEntry.NumberOfControlPoints = beamNumberOfControlPoints;
+
+      DRTIonControlPointSequence &rtIonControlPointSequence = currentIonBeamSequenceItem.getIonControlPointSequence();
+      if (!rtIonControlPointSequence.isValid() || !rtIonControlPointSequence.gotoFirstItem().good())
+      {
+        vtkWarningWithObjectMacro( this->External, "LoadRTIonPlan: Found an invalid RT ion control point sequence in dataset");
+        continue;
+      }
+
+      // Initialize control point vector so that it can be correctly filled even if control points arrive in random order
+      for ( Sint32 i = 0; i < beamNumberOfControlPoints; ++i)
+      {
+        ControlPointEntry dummyControlPoint;
+        beamEntry.ControlPointSequenceVector.push_back(dummyControlPoint);
+      }
+      unsigned int controlPointCount = 0;
+
+      do
+      {
+        DRTIonControlPointSequence::Item &controlPointItem = rtIonControlPointSequence.getCurrentItem();
+        if (!controlPointItem.isValid())
+        {
+          // possibly reach the end of the sequense
+          if (rtIonControlPointSequence.gotoNextItem().good())
+          {
+            vtkWarningWithObjectMacro( this->External, "LoadRTIonPlan: Found an invalid RT ion control point in dataset");
+          }
+          continue;
+        }
+
+        Sint32 controlPointIndex = -1;
+        controlPointItem.getControlPointIndex(controlPointIndex);
+        if (controlPointIndex < 0 || controlPointIndex >= beamNumberOfControlPoints)
+        {
+          vtkErrorWithObjectMacro( this->External, 
+            "LoadRTIonPlan: Invalid control point index value " 
+            << controlPointIndex << ", for a beam number "
+            << beamEntry.Number << " named \"" << beamEntry.Name << "\"");
+          continue;
+        }
+
+        // Control point item from the ControlPointSequenceVector
+        ControlPointEntry& controlPoint = beamEntry.ControlPointSequenceVector.at(controlPointIndex);
+//        ControlPointEntry& controlPointEntry = beamEntry.ControlPointSequenceVector.at(controlPointCount);        
+        controlPoint.Index = controlPointIndex;
+
+        OFVector<Float64> isocenterPositionDataLps;
+        OFCondition dataCondition = controlPointItem.getIsocenterPosition(isocenterPositionDataLps);
+        if (dataCondition.good())
+        {
+          // Convert from DICOM LPS -> Slicer RAS
+          controlPoint.IsocenterPositionRas[0] = -isocenterPositionDataLps[0];
+          controlPoint.IsocenterPositionRas[1] = -isocenterPositionDataLps[1];
+          controlPoint.IsocenterPositionRas[2] = isocenterPositionDataLps[2];
+        }
+        
+        Float64 gantryAngle = 0.0;
+        dataCondition = controlPointItem.getGantryAngle(gantryAngle);
+        if (dataCondition.good())
+        {
+          controlPoint.GantryAngle = gantryAngle;
+        }
+
+        Float64 patientSupportAngle = 0.0;
+        dataCondition = controlPointItem.getPatientSupportAngle(patientSupportAngle);
+        if (dataCondition.good())
+        {
+          controlPoint.PatientSupportAngle = patientSupportAngle;
+        }
+
+        Float64 beamLimitingDeviceAngle = 0.0;
+        dataCondition = controlPointItem.getBeamLimitingDeviceAngle(beamLimitingDeviceAngle);
+        if (dataCondition.good())
+        {
+          controlPoint.BeamLimitingDeviceAngle = beamLimitingDeviceAngle;
+        }
+
+        Float64 cumulativeMetersetWeight = -1.;
+        dataCondition = controlPointItem.getCumulativeMetersetWeight(cumulativeMetersetWeight);
+        if (dataCondition.good())
+        {
+          controlPoint.CumulativeMetersetWeight = cumulativeMetersetWeight;
+        }
+
+        DRTBeamLimitingDevicePositionSequence &currentCollimatorPositionSequence =
+          controlPointItem.getBeamLimitingDevicePositionSequence();
+        if (currentCollimatorPositionSequence.isValid() &&
+          currentCollimatorPositionSequence.gotoFirstItem().good())
+        {
+          do
+          {
+            DRTBeamLimitingDevicePositionSequence::Item &collimatorPositionItem =
+              currentCollimatorPositionSequence.getCurrentItem();
+            if (collimatorPositionItem.isValid())
+            {
+              OFString rtBeamLimitingDeviceType("");
+              collimatorPositionItem.getRTBeamLimitingDeviceType(rtBeamLimitingDeviceType);
+
+              OFVector<Float64> leafJawPositions;
+              OFCondition getJawPositionsCondition = collimatorPositionItem.getLeafJawPositions(leafJawPositions);
+              if (!rtBeamLimitingDeviceType.compare("ASYMX") || !rtBeamLimitingDeviceType.compare("X"))
+              {
+                if (getJawPositionsCondition.good())
+                {
+                  controlPoint.JawPositions[0] = leafJawPositions[0];
+                  controlPoint.JawPositions[1] = leafJawPositions[1];
+                }
+                else
+                {
+                  vtkDebugWithObjectMacro(this->External, "LoadRTIonPlan: No jaw position found in collimator entry");
+                }
+              }
+              else if (!rtBeamLimitingDeviceType.compare("ASYMY") || !rtBeamLimitingDeviceType.compare("Y"))
+              {
+                if (getJawPositionsCondition.good())
+                {
+                  controlPoint.JawPositions[2] = leafJawPositions[0];
+                  controlPoint.JawPositions[3] = leafJawPositions[1];
+                }
+                else
+                {
+                  vtkDebugWithObjectMacro( this->External, "LoadRTIonPlan: No jaw position found in collimator entry");
+                }
+              }
+              else if (!rtBeamLimitingDeviceType.compare("MLCX") || !rtBeamLimitingDeviceType.compare("MLCY"))
+              {
+                // Get MLC leaves position (opening)
+                if (getJawPositionsCondition.good())
+                {
+                  std::vector<double>& mlcPositions = controlPoint.LeafPositions;
+                  std::string& mlcType = controlPoint.MultiLeafCollimatorType;
+
+                  mlcType = rtBeamLimitingDeviceType.c_str();
+                  mlcPositions.resize(leafJawPositions.size());
+                  std::copy( leafJawPositions.begin(), leafJawPositions.end(), mlcPositions.begin());
+                  vtkDebugWithObjectMacro( this->External, "LoadRTIonPlan: " 
+                    << mlcType << " leaf positions have been loaded");
+                }
+                else
+                {
+                  vtkDebugWithObjectMacro( this->External, "LoadRTIonPlan: No MLC position found in collimator entry");
+                }
+              }
+              else
+              {
+                vtkErrorWithObjectMacro( this->External, 
+                  "LoadRTIonPlan: Unsupported collimator type: " 
+                  << rtBeamLimitingDeviceType);
+              }
+            }
+          }
+          while (currentCollimatorPositionSequence.gotoNextItem().good());
+        }
+        ++controlPointCount;
+        // assign current control point to the next control point
+        if (controlPointIndex > 0 && controlPointIndex < beamNumberOfControlPoints - 1)
+        {
+          beamEntry.ControlPointSequenceVector.at(controlPointIndex + 1) = 
+            ControlPointEntry(controlPoint);
+        }
+      }
+      while (rtIonControlPointSequence.gotoNextItem().good());
+
+      if (Sint32(controlPointCount) != beamNumberOfControlPoints)
+      {
+        vtkErrorWithObjectMacro( this->External, "LoadRTIonPlan: Number of control points expected ("
+          << beamNumberOfControlPoints << ") and found (" << controlPointCount << ") do not match. Invalid points remain among control points");
+      }
+      this->BeamSequenceVector.push_back(beamEntry);
+    }
+    while (ionBeamSequence.gotoNextItem().good());
+
+  }
+  else
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadRTIonPlan: No beams found in RT ion plan!");
+    return;
+  }
+
+  // SOP instance UID
+  OFString sopInstanceUid("");
+  if (ionPlan.getSOPInstanceUID(sopInstanceUid).bad())
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadRTIonPlan: Failed to get SOP instance UID for RT plan!");
+    return; // mandatory DICOM value
+  }
+  this->External->SetSOPInstanceUID(sopInstanceUid.c_str());
+
+  // Referenced structure set UID
+  DRTReferencedStructureSetSequence &referencedStructureSetSequence = ionPlan.getReferencedStructureSetSequence();
+  if (referencedStructureSetSequence.gotoFirstItem().good())
+  {
+    DRTReferencedStructureSetSequence::Item &referencedStructureSetSequenceItem = referencedStructureSetSequence.getCurrentItem();
+    if (referencedStructureSetSequenceItem.isValid())
+    {
+      OFString referencedSOPInstanceUID("");
+      if (referencedStructureSetSequenceItem.getReferencedSOPInstanceUID(referencedSOPInstanceUID).good())
+      {
+        this->External->SetRTPlanReferencedStructureSetSOPInstanceUID(referencedSOPInstanceUID.c_str());
+      }
+    }
+  }
+
+  // Referenced dose UID
+  DRTReferencedDoseSequence &referencedDoseSequence = ionPlan.getReferencedDoseSequence();
+  std::string serializedDoseUidList("");
+  if (referencedDoseSequence.gotoFirstItem().good())
+  {
+    do
+    {
+      DRTReferencedDoseSequence::Item &currentDoseSequenceItem = referencedDoseSequence.getCurrentItem();
+      if (currentDoseSequenceItem.isValid())
+      {
+        OFString referencedSOPInstanceUID("");
+        if (currentDoseSequenceItem.getReferencedSOPInstanceUID(referencedSOPInstanceUID).good())
+        {
+          serializedDoseUidList.append(referencedSOPInstanceUID.c_str());
+          serializedDoseUidList.append(" ");
+        }
+      }
+    } while (referencedDoseSequence.gotoNextItem().good());
+  }
+  // Strip last space
+  serializedDoseUidList = serializedDoseUidList.substr(0, serializedDoseUidList.size() - 1);
+  this->External->SetRTPlanReferencedDoseSOPInstanceUIDs(serializedDoseUidList.size() > 0 ? serializedDoseUidList.c_str() : NULL);
+
+  // Get and store patient, study and series information
+  this->External->GetAndStoreRtHierarchyInformation(&ionPlan);
+
+  this->External->LoadRTIonPlanSuccessful = true;
 }
 
 //----------------------------------------------------------------------------
@@ -1095,7 +1755,7 @@ vtkSlicerDicomRtReader::vtkInternal::RoiEntry* vtkSlicerDicomRtReader::vtkIntern
     // Get contour point data
     OFVector<vtkTypeFloat64> contourData_LPS;
     contourItem.getContourData(contourData_LPS);
-    if (contourData_LPS.size() != numberOfPoints * 3)
+    if (contourData_LPS.size() != size_t(numberOfPoints * 3))
     {
       vtkErrorWithObjectMacro(this->External, "LoadContour: Contour sequence object item is invalid: "
         << " number of contour points is " << numberOfPoints << " therefore expected "
@@ -1487,6 +2147,7 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
   this->LoadRTStructureSetSuccessful = false;
   this->LoadRTDoseSuccessful = false;
   this->LoadRTPlanSuccessful = false;
+  this->LoadRTIonPlanSuccessful = false;
   this->LoadRTImageSuccessful = false;
 }
 
@@ -1554,6 +2215,7 @@ void vtkSlicerDicomRtReader::Update()
         }
         else if (sopClass == UID_RTIonPlanStorage)
         {
+          this->Internal->LoadRTIonPlan(dataset);
           //result = dumpRTIonPlan(out, *dataset);
         }
         else if (sopClass == UID_RTIonBeamsTreatmentRecordStorage)
@@ -1606,7 +2268,7 @@ double* vtkSlicerDicomRtReader::GetRoiDisplayColor(unsigned int internalIndex)
     vtkErrorMacro("GetRoiDisplayColor: Cannot get ROI with internal index: " << internalIndex);
     return nullptr;
   }
-  return this->Internal->RoiSequenceVector[internalIndex].DisplayColor;
+  return this->Internal->RoiSequenceVector[internalIndex].DisplayColor.data();
 }
 
 //----------------------------------------------------------------------------
@@ -1658,7 +2320,7 @@ unsigned int vtkSlicerDicomRtReader::GetBeamNumberForIndex(unsigned int index)
 const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam==nullptr)
+  if (!beam)
   {
     return nullptr;
   }
@@ -1669,156 +2331,137 @@ const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int beamNumber)
 double* vtkSlicerDicomRtReader::GetBeamIsocenterPositionRas(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam==nullptr)
+  if (!beam)
   {
     return nullptr;
   }
-  return beam->IsocenterPositionRas;
+  return beam->ControlPointSequenceVector.front().IsocenterPositionRas.data();
 }
 
 //----------------------------------------------------------------------------
 double vtkSlicerDicomRtReader::GetBeamSourceAxisDistance(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam==nullptr)
+  if (!beam)
   {
     vtkErrorMacro("GetBeamSourceAxisDistance: Unable to find beam of number" << beamNumber);
     return 0.0;
   }
-  return beam->SourceAxisDistance;
+  return beam->SourceAxisDistance[0];
 }
 
 //----------------------------------------------------------------------------
 double vtkSlicerDicomRtReader::GetBeamGantryAngle(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam==nullptr)
+  if (!beam)
   {
     vtkErrorMacro("GetBeamGantryAngle: Unable to find beam of number" << beamNumber);
     return 0.0;
   }
-  return beam->GantryAngle;
+  return beam->ControlPointSequenceVector.front().GantryAngle;
 }
 
 //----------------------------------------------------------------------------
 double vtkSlicerDicomRtReader::GetBeamPatientSupportAngle(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam==nullptr)
+  if (!beam)
   {
     vtkErrorMacro("GetBeamPatientSupportAngle: Unable to find beam of number" << beamNumber);
     return 0.0;
   }
-  return beam->PatientSupportAngle;
+  return beam->ControlPointSequenceVector.front().PatientSupportAngle;
 }
 
 //----------------------------------------------------------------------------
 double vtkSlicerDicomRtReader::GetBeamBeamLimitingDeviceAngle(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam==nullptr)
+  if (!beam)
   {
     vtkErrorMacro("GetBeamBeamLimitingDeviceAngle: Unable to find beam of number" << beamNumber);
     return 0.0;
   }
-  return beam->BeamLimitingDeviceAngle;
+  return beam->ControlPointSequenceVector.front().BeamLimitingDeviceAngle;
 }
 
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtReader::GetBeamLeafJawPositions(unsigned int beamNumber, double jawPositions[2][2])
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (beam==nullptr)
+  if (!beam)
   {
     jawPositions[0][0]=jawPositions[0][1]=jawPositions[1][0]=jawPositions[1][1]=0.0;
     return;
   }
-  jawPositions[0][0]=beam->LeafJawPositions[0][0];
-  jawPositions[0][1]=beam->LeafJawPositions[0][1];
-  jawPositions[1][0]=beam->LeafJawPositions[1][0];
-  jawPositions[1][1]=beam->LeafJawPositions[1][1];
-}
-
-//----------------------------------------------------------------------------
-bool vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositionsX( unsigned int beamNumber, 
-  std::vector<double>& pairBoundaries, std::vector<double>& leafPositions)
-{
-  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
-  if (beam) {
-    const unsigned int& pairs = beam->MultiLeafCollimator[0].NumberOfLeafJawPairs;
-    size_t positions = beam->LeafJawPositionsMLC[0].size();
-    size_t boundaries = beam->MultiLeafCollimator[0].LeafPositionBoundary.size();
-    if (pairs && positions && boundaries &&
-      ((pairs * 2) == positions) && ((pairs + 1) == boundaries))
-    {
-      pairBoundaries = beam->MultiLeafCollimator[0].LeafPositionBoundary;
-      leafPositions = beam->LeafJawPositionsMLC[0];
-      return true;
-    }
-    else
-    {
-      vtkWarningMacro("GetBeamMultiLeafCollimatorPositionsX: " \
-       "MLCX parameters undefined, " \
-       "or different number of leaf pairs and positions");
-    }
-  }
-  else
-  {
-    vtkWarningMacro("GetBeamMultiLeafCollimatorPositionsX: Unable to find beam of number" << beamNumber);
-  }
-  return false;
-}
-
-//----------------------------------------------------------------------------
-bool vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositionsY( unsigned int beamNumber, 
-  std::vector<double>& pairBoundaries, std::vector<double>& leafPositions)
-{
-  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
-  if (beam) {
-    const unsigned int& pairs = beam->MultiLeafCollimator[1].NumberOfLeafJawPairs;
-    size_t positions = beam->LeafJawPositionsMLC[1].size();
-    size_t boundaries = beam->MultiLeafCollimator[1].LeafPositionBoundary.size();
-    if (pairs && positions && boundaries &&
-      ((pairs * 2) == positions) && ((pairs + 1) == boundaries))
-    {
-      pairBoundaries = beam->MultiLeafCollimator[1].LeafPositionBoundary;
-      leafPositions = beam->LeafJawPositionsMLC[1];
-      return true;
-    }
-    else
-    {
-      vtkWarningMacro("GetBeamMultiLeafCollimatorPositionsY: " \
-       "MLCY parameters undefined, " \
-       "or different number of leaf pairs and positions");
-    }
-  }
-  else
-  {
-    vtkWarningMacro("GetBeamMultiLeafCollimatorPositionsY: Unable to find beam of number" << beamNumber);
-  }
-  return false;
+  jawPositions[0][0]=beam->ControlPointSequenceVector.front().JawPositions[0];
+  jawPositions[0][1]=beam->ControlPointSequenceVector.front().JawPositions[1];
+  jawPositions[1][0]=beam->ControlPointSequenceVector.front().JawPositions[2];
+  jawPositions[1][1]=beam->ControlPointSequenceVector.front().JawPositions[3];
 }
 
 //----------------------------------------------------------------------------
 const char* vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositions( unsigned int beamNumber, 
   std::vector<double>& pairBoundaries, std::vector<double>& leafPositions)
 {
-  bool mlcxIsValid = this->GetBeamMultiLeafCollimatorPositionsX( beamNumber,
-    pairBoundaries, leafPositions);
-  if (mlcxIsValid)
-  {
-    return "MLCX";
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam) {
+    const unsigned int& pairs = beam->MultiLeafCollimator.NumberOfPairs;
+    const std::string& mlcType = beam->MultiLeafCollimatorType;
+    if (mlcType.empty())
+    {
+      vtkDebugMacro("GetBeamMultiLeafCollimatorPositions: MLC type undefined");
+      return nullptr;
+    }
+    if (beam->ControlPointSequenceVector.size())
+    {
+      const std::string& mlcPositionsType = beam->ControlPointSequenceVector.front().MultiLeafCollimatorType;
+      size_t positions = beam->ControlPointSequenceVector.front().LeafPositions.size();
+      size_t boundaries = beam->MultiLeafCollimator.LeafPositionBoundary.size();
+
+      if ((mlcPositionsType == mlcType) && pairs && positions && boundaries &&
+        ((pairs * 2) == positions) && ((pairs + 1) == boundaries))
+      {
+        pairBoundaries = beam->MultiLeafCollimator.LeafPositionBoundary;
+        leafPositions = beam->ControlPointSequenceVector.front().LeafPositions;
+        return mlcType.c_str();
+      }
+      else
+      {
+        vtkWarningMacro("GetBeamMultiLeafCollimatorPositions: " \
+         "Different kings of MLC between control point data and beam limiting device type, " \
+         "or different number of leaf pairs and positions");
+      }
+    }
+    else
+    {
+      vtkErrorMacro("GetBeamMultiLeafCollimatorPositions: " \
+       "No control point sequence data for current beam: " << beam->Name);
+    }
   }
   else
   {
-    bool mlcyIsValid = this->GetBeamMultiLeafCollimatorPositionsY( beamNumber,
-    pairBoundaries, leafPositions);
-    if (mlcyIsValid)
-    {
-      return "MLCY";
-    }
+    vtkErrorMacro("GetBeamMultiLeafCollimatorPositions: " \
+      "Unable to find beam of number" << beamNumber);
   }
   return nullptr;
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamSourceToMultiLeafCollimatorDistance(unsigned int beamNumber)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam)
+  {
+     return beam->MultiLeafCollimator.SourceIsoDistance;
+  }
+  else
+  {
+    vtkErrorMacro("GetBeamSourceToMultiLeafCollimatorDistance: " \
+      "Unable to find beam of number" << beamNumber);
+  }
+  return 0.0;
 }
 
 //----------------------------------------------------------------------------
@@ -1831,7 +2474,7 @@ int vtkSlicerDicomRtReader::GetNumberOfChannels()
 int vtkSlicerDicomRtReader::GetChannelNumberOfControlPoints(unsigned int channelNumber)
 {
   vtkInternal::ChannelEntry* channel=this->Internal->FindChannelByNumber(channelNumber);
-  if (channel==nullptr)
+  if (!channel)
   {
     vtkErrorMacro("GetChannelNumberOfControlPoints: Unable to find channel of number" << channelNumber);
     return 0;
@@ -1844,13 +2487,13 @@ bool vtkSlicerDicomRtReader::GetChannelControlPoint(
   unsigned int channelNumber, unsigned int controlPointNumber, double controlPointPosition[3] )
 {
   vtkInternal::ChannelEntry* channel=this->Internal->FindChannelByNumber(channelNumber);
-  if (channel==nullptr)
+  if (!channel)
   {
     vtkErrorMacro("GetChannelControlPoint: Unable to find channel of number" << channelNumber);
     return false;
   }
 
-  if (controlPointNumber < 0 || controlPointNumber >= channel->ControlPointVector.size())
+  if (controlPointNumber >= channel->ControlPointVector.size())
   {
     vtkErrorMacro("GetChannelControlPoint: Invalid control point index (" << controlPointNumber << ") for channel of number" << channelNumber);
     return false;
