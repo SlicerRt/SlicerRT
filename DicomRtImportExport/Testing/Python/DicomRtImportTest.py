@@ -84,7 +84,7 @@ class DicomRtImportTest(unittest.TestCase):
       settings = qt.QSettings()
       settings.setValue('DatabaseDirectory', self.dicomDatabaseDir)
 
-    self.dicomWidget.onDatabaseDirectoryChanged(self.dicomDatabaseDir)
+    slicer.dicomDatabase.openDatabase(self.dicomDatabaseDir + "/ctkDICOM.sql")
     self.assertTrue( slicer.dicomDatabase.isOpen )
 
     initialized = slicer.dicomDatabase.initializeDatabase()
@@ -115,13 +115,13 @@ class DicomRtImportTest(unittest.TestCase):
     studies = slicer.dicomDatabase.studiesForPatient(patient)
     series = [slicer.dicomDatabase.seriesForStudy(study) for study in studies]
     seriesUIDs = [uid for uidList in series for uid in uidList]
-    self.dicomWidget.detailsPopup.offerLoadables(seriesUIDs, 'SeriesUIDList')
-    self.dicomWidget.detailsPopup.examineForLoading()
+    self.dicomWidget.browserWidget.onSeriesSelected(seriesUIDs)
+    self.dicomWidget.browserWidget.examineForLoading()
 
-    loadables = self.dicomWidget.detailsPopup.loadableTable.loadables
+    loadables = self.dicomWidget.browserWidget.loadableTable.loadables
 
     # Make sure the loadables are good (RT is assigned to 4 out of 8 and they are selected)
-    loadablesByPlugin = self.dicomWidget.detailsPopup.loadablesByPlugin
+    loadablesByPlugin = self.dicomWidget.browserWidget.loadablesByPlugin
     rtFound = False
     loadablesForRt = 0
     for plugin in loadablesByPlugin:
@@ -141,7 +141,7 @@ class DicomRtImportTest(unittest.TestCase):
     # slicer.util.delayDisplay("Load into Slicer",self.delayMs)
     logging.info("Load into Slicer")
 
-    self.dicomWidget.detailsPopup.loadCheckedLoadables()
+    self.dicomWidget.browserWidget.loadCheckedLoadables()
 
     # Verify that the correct number of objects were loaded
     # Volumes: Dose, RT image
@@ -154,7 +154,7 @@ class DicomRtImportTest(unittest.TestCase):
     self.assertEqual( len( slicer.util.getNodes('vtkMRMLMarkupsFiducialNode*') ), 1 )
     # Subject hierarchy items
     shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
-    self.assertEqual( shNode.GetNumberOfItems(), 24 )
+    self.assertEqual( shNode.GetNumberOfItems(), 28 )
 
   #------------------------------------------------------------------------------
   def TestSection_SaveScene(self):
@@ -188,4 +188,4 @@ class DicomRtImportTest(unittest.TestCase):
     # slicer.util.delayDisplay("Restoring original database directory",self.delayMs)
     logging.info("Restoring original database directory")
     if self.originalDatabaseDirectory:
-      self.dicomWidget.onDatabaseDirectoryChanged(self.originalDatabaseDirectory)
+      slicer.dicomDatabase.openDatabase(self.originalDatabaseDirectory)
