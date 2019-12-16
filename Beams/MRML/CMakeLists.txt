@@ -19,6 +19,8 @@ set(${KIT}_SRCS
   vtkMRMLRTPlanNode.h
   vtkMRMLRTBeamNode.cxx
   vtkMRMLRTBeamNode.h
+  vtkMRMLRTIonBeamNode.cxx
+  vtkMRMLRTIonBeamNode.h
   )
 
 SET (${KIT}_INCLUDE_DIRS
