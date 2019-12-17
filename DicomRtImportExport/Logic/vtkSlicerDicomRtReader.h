@@ -80,7 +80,7 @@ public:
 
   /// Get number of control points for a given beams
   /// \result >= 2 if number of control points are valid, 0 otherwise
-//  unsigned int GetBeamNumberOfControlPoints(unsigned int beamNumber);
+  unsigned int GetNumberOfControlPoints(unsigned int beamNumber);
 
   /// Get beam number (as defined in DICOM) for a beam index (that is between 0 and numberOfBeams-1)
   unsigned int GetBeamNumberForIndex(unsigned int index);
@@ -89,73 +89,110 @@ public:
   const char* GetBeamName(unsigned int beamNumber);
 
   /// Get beam isocenter for a given beam
-  double* GetBeamIsocenterPositionRas(unsigned int beamNumber);
+  double* GetBeamIsocenterPositionRas(unsigned int beamNumber); // DEPRICATED
+
+  /// Get radiation type (primary particle) for a given beam
+  const char* GetBeamTreatmentDeliveryType(unsigned int beamNumber);
+
+  /// Get radiation type (primary particle) for a given beam
+  const char* GetBeamRadiationType(unsigned int beamNumber);
 
   /// Get isocenter for a given control point of a beam
-//  double* GetControlPointIsocenterPositionRas( unsigned int beamNumber, 
-//    unsigned int controlPoint);
+  double* GetControlPointIsocenterPositionRas( unsigned int beamNumber, 
+    unsigned int controlPointIndex);
 
-  /// Get beam source axis distance for a given beam
+  /// Get nominal beam energy for a given control point of a beam
+  double GetControlPointNominalBeamEnergy( unsigned int beamNumber, 
+    unsigned int controlPoint);
+
+  /// Get source axis distance for a given beam
   double GetBeamSourceAxisDistance(unsigned int beamNumber);
-
-  /// Get source axis distance for a given control point of a beam
-//  double GetControlPointSourceAxisDistance( unsigned int beamNumber, 
-//    unsigned int controlPoint);
 
   /// Get virtual source axis distance for a given control point of a beam
   /// \return pointer to VSAD[2], or nullptr othervise
-//  double* GetControlPointVirtualSourceAxisDistance( unsigned int beamNumber, 
-//    unsigned int controlPoint);
+  double* GetBeamVirtualSourceAxisDistance(unsigned int beamNumber);
 
   /// Get beam gantry angle for a given beam
-  double GetBeamGantryAngle(unsigned int beamNumber);
+  double GetBeamGantryAngle(unsigned int beamNumber); // DEPRICATED
 
   /// Get gantry angle for a given control point of a beam
-//  double GetControlPointGantryAngle( unsigned int beamNumber, 
-//    unsigned int controlPoint);
+  double GetControlPointGantryAngle( unsigned int beamNumber, 
+    unsigned int controlPoint);
 
   /// Get beam patient support (couch) angle for a given beam
-  double GetBeamPatientSupportAngle(unsigned int beamNumber);
+  double GetBeamPatientSupportAngle(unsigned int beamNumber); // DEPRICATED
 
   /// Get patient support (couch) angle for a given control point of a beam
-//  double GetControlPointPatientSupportAngle( unsigned int beamNumber, 
-//    unsigned int controlPoint);
+  double GetControlPointPatientSupportAngle( unsigned int beamNumber, 
+    unsigned int controlPoint);
 
   /// Get beam beam limiting device (collimator) angle for a given beam
-  double GetBeamBeamLimitingDeviceAngle(unsigned int beamNumber);
+  double GetBeamBeamLimitingDeviceAngle(unsigned int beamNumber); // DEPRICATED
 
   /// Get beam limiting device (collimator) angle for a given control point of a beam
-//  double GetControlPointBeamLimitingDeviceAngle( unsigned int beamNumber, 
-//    unsigned int controlPoint);
+  double GetControlPointBeamLimitingDeviceAngle( unsigned int beamNumber, 
+    unsigned int controlPoint);
 
   /// Get beam leaf jaw positions for a given beam
   /// \param jawPositions Array in which the jaw positions are copied
-  void GetBeamLeafJawPositions(unsigned int beamNumber, double jawPositions[2][2]);
+  void GetBeamLeafJawPositions(unsigned int beamNumber, double jawPositions[2][2]); // DEPRICATED
 
-  /// Get leaf jaw positions for a given control point of a beam
+  /// Get jaw positions for a given control point of a beam
   /// \param jawPositions Array in which the jaw positions are copied
-//  void GetControlPointLeafJawPositions( unsigned int beamNumber, 
-//    unsigned int controlPoint, double jawPositions[2][2]);
+  /// \return true if jaw positions are valid, false otherwise 
+  bool GetControlPointJawPositions( unsigned int beamNumber, 
+    unsigned int controlPoint, double jawPositions[2][2]);
 
   /// Get MLC leaves boundaries & leaves positions opening for a given beam
   /// \param pairBoundaries Array in which the raw leaves boundaries are copied
   /// \param leafPositions Array in which the raw leaf positions are copied
   /// \return "MLCX" or "MLCY" if data is valid, nullptr otherwise
   const char* GetBeamMultiLeafCollimatorPositions( unsigned int beamNumber, 
-    std::vector<double>& pairBoundaries, std::vector<double>& leafPositions);
+    std::vector<double>& pairBoundaries, std::vector<double>& leafPositions); // DEPRICATED
 
-  /// Get source to beam limiting device distance (MLC) for a given beam
+  /// Get Scan spot position map and meterset weights for a given 
+  /// control point of a modulated ion beam
+  /// \param positionMap Array in which the raw position map are copied
+  /// \param metersetWeights Array in which the raw meterset weights are copied
+  /// \return true if data is valid, false otherwise
+  bool GetControlPointScanSpotParameters( unsigned int beamNumber, 
+    unsigned int controlPointIndex, std::vector<float>& positionMap, 
+    std::vector<float>& metersetWeights);
+
+  /// Get Scan spot size for a given control point of a modulated ion beam
+  /// \param ScanSpotSize Array in which the raw scanning spot size is copied
+  /// \return true if data is valid, false otherwise
+  bool GetControlPointScanningSpotSize( unsigned int beamNumber, 
+    unsigned int controlPointIndex, std::array< float, 2 >& ScanSpotSize);
+
+  /// Get source to beam limiting device distance (MLC) for a given beam of RTPlan
+  /// or isocenter to beam limiting device distance (MLC) for a given beam of RTIonPlan
   /// \param beamNumber - number of a beam
-  /// \return source to beam limiting device distance
-  double GetBeamSourceToMultiLeafCollimatorDistance( unsigned int beamNumber);
+  /// \return source to beam limiting device distance, 0.0 in case of an error
+  double GetBeamSourceToMultiLeafCollimatorDistance(unsigned int beamNumber);
+  double GetBeamIsocenterToMultiLeafCollimatorDistance(unsigned int beamNumber);
+
+  /// Get source to beam limiting device distance (Jaws X) for a given beam of RTPlan
+  /// or isocenter to beam limiting device distance (Jaws X) for a given beam of RTIonPlan
+  /// \param beamNumber - number of a beam
+  /// \return source to beam limiting device distance, 0.0 in case of an error
+  double GetBeamSourceToJawsDistanceX(unsigned int beamNumber);
+  double GetBeamIsocenterToJawsDistanceX(unsigned int beamNumber);
+
+  /// Get source to beam limiting device distance (Jaws Y) for a given beam of RTPlan
+  /// or isocenter to beam limiting device distance (Jaws Y) for a given beam of RTIonPlan
+  /// \param beamNumber - number of a beam
+  /// \return source to beam limiting device distance, 0.0 in case of an error
+  double GetBeamSourceToJawsDistanceY(unsigned int beamNumber);
+  double GetBeamIsocenterToJawsDistanceY(unsigned int beamNumber);
 
   /// Get MLC leaves boundaries & leaves positions opening for a given control point of a beam
   /// \param pairBoundaries Array in which the raw leaves boundaries are copied
   /// \param leafPositions Array in which the raw leaf positions are copied
   /// \return "MLCX" or "MLCY" if data is valid, nullptr otherwise
-//  const char* GetControlPointMultiLeafCollimatorPositions( unsigned int beamNumber, 
-//    unsigned int controlPoint, std::vector<double>& pairBoundaries, 
-//    std::vector<double>& leafPositions);
+  const char* GetControlPointMultiLeafCollimatorPositions( unsigned int beamNumber, 
+    unsigned int controlPoint, std::vector<double>& pairBoundaries, 
+    std::vector<double>& leafPositions);
 
   /// Get number of channels
   int GetNumberOfChannels();
