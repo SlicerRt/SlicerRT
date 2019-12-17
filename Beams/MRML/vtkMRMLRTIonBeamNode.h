@@ -67,21 +67,53 @@ public:
   void CreateNewBeamTransformNode() override;
 
 public:
-
-  /// Get VSADx distance
+  /// Get VSAD distance x component
   vtkGetMacro( VSADx, double);
-  /// Set VSADx distance. Triggers \sa BeamGeometryModified event and re-generation of beam model
-  void SetVSADx(double VSADxComponent);
-
-  /// Get VSADy distance
+  /// Get VSAD distance y component
   vtkGetMacro( VSADy, double);
-  /// Set VSADy distance. Triggers \sa BeamGeometryModified event and re-generation of beam model
-  void SetVSADy(double VSADyComponent);
+
+  /// Set VSAD distance. Triggers \sa BeamGeometryModified event and re-generation of beam model
+  void SetVSAD( double VSADx,  double VSADy);
+  void SetVSAD(double VSAD[2]);
+  void SetVSAD(const std::array< double, 2 >& VSAD);
+
+  float* GetScanningSpotSize() { return this->ScanningSpotSize.data(); }
+
+  /// Set scanning spot size for modulated beam
+  /// Triggers \sa BeamGeometryModified event and re-generation of beam model
+  void SetScanningSpotSize(const std::array< float, 2 >& ScanSpotSize);
+
+  /// Get isocenter to jaws X distance
+  vtkGetMacro(IsocenterToJawsDistanceX, double);
+  /// Set isocenter to jaws X distance. Triggers \sa BeamTransformModified event and re-generation of beam model
+  void SetIsocenterToJawsDistanceX(double distance);
+
+  /// Get isocenter to jaws Y distance
+  vtkGetMacro(IsocenterToJawsDistanceY, double);
+  /// Set isocenter to jaws Y distance. Triggers \sa BeamTransformModified event and re-generation of beam model
+  void SetIsocenterToJawsDistanceY(double distance);
+
+  /// Get isocenter to range shifter distance
+  vtkGetMacro(IsocenterToRangeShifterDistance, double);
+  /// Set isocenter to range shifter. Triggers \sa BeamTransformModified event and re-generation of beam model
+  void SetIsocenterToRangeShifterDistance(double distance);
+
+  /// Get isocenter to multi-leaf collimator distance
+  vtkGetMacro(IsocenterToMultiLeafCollimatorDistance, double);
+  /// Set isocenter to multi-leaf collimator distance. Triggers \sa BeamTransformModified event and re-generation of beam model
+  void SetIsocenterToMultiLeafCollimatorDistance(double distance);
+
+  /// Set and observe scan spot position map & meterset weights table node
+  /// Triggers \sa BeamGeometryModified event and re-generation of beam model
+  void SetAndObserveScanSpotTableNode(vtkMRMLTableNode* node);
+  /// Get scan spot position map & meterset weights table node
+  vtkMRMLTableNode* GetScanSpotTableNode();
 
 protected:
-  /// Create beam model from beam parameters, supporting MLC leaves
+  /// Create beam model from beam parameters, supporting MLC leaves, jaws
+  /// and scan spot map for modulated scan mode
   /// \param beamModelPolyData Output polydata. If none given then the beam node's own polydata is used
-  virtual void CreateBeamPolyData(vtkPolyData* beamModelPolyData=nullptr);
+  void CreateBeamPolyData(vtkPolyData* beamModelPolyData=nullptr) override;
 
 protected:
   vtkMRMLRTIonBeamNode();
@@ -93,9 +125,22 @@ protected:
 protected:
 
   /// Virtual Source-axis distance x component
-  double& VSADx; // using SAD to store value
+  double& VSADx; // using SAD to store value from vtkMRMLRTBeamNode
   /// Virtual Source-axis distance y component
   double VSADy;
+  /// distance from isocenter to beam limiting device X, ASYMX
+  // using SourceToJawsDistanceX to store value from vtkMRMLRTBeamNode
+  double& IsocenterToJawsDistanceX;
+  /// distance from isocenter to beam limiting device Y, ASYMY
+  // using SourceToJawsDistanceY to store value from vtkMRMLRTBeamNode
+  double& IsocenterToJawsDistanceY;
+  /// distance from isocenter to beam limiting device MLCX, MLCY
+  // using SourceToMultiLeafCollimatorDistance to store value from vtkMRMLRTBeamNode
+  double& IsocenterToMultiLeafCollimatorDistance;
+  /// distance from isocenter to range shifter device
+  double IsocenterToRangeShifterDistance;
+
+  std::array< float, 2 > ScanningSpotSize;
 };
 
 #endif // __vtkMRMLRTIonBeamNode_h

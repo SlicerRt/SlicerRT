@@ -169,12 +169,14 @@ public:
     FractionEntry()
       :
       Number(0),
+      NumberOfFractionsPlanned(0),
       NumberOfBeams(0),
       NumberOfBrachyApplicationSetups(0)
     {
     }
     unsigned int Number;
     std::string Description;
+    unsigned int NumberOfFractionsPlanned;
     unsigned int NumberOfBeams;
     unsigned int NumberOfBrachyApplicationSetups;
     std::vector< ReferencedBeamEntry > ReferencedBeamSequenceVector;
@@ -225,11 +227,11 @@ public:
     std::string BeamLimitingDeviceRotationDirection;
 
     std::string ScanSpotTuneId;
-    size_t NumberOfScanSpotPositions;
+    unsigned int NumberOfScanSpotPositions;
     std::string ScanSpotReorderingAllowed;
     std::vector<float> ScanSpotPositionMap;
     std::vector<float> ScanSpotMetersetWeights;
-    size_t NumberOfPaintings;
+    unsigned int NumberOfPaintings;
     std::array< float, 2 > ScanningSpotSize;
     std::string PatientSupportRotationDirection;
     
@@ -249,15 +251,18 @@ public:
     BeamEntry()
       :
       Number(0),
+      Type("STATIC"),
       RadiationIon({ 0, 0, 0 }),
       SourceAxisDistance({ 1000., 1000. }),
-      SourceToJawDistance({ 500., 500. }),
+      SourceIsoToJawsDistance({ 500., 500. }),
       NumberOfCompensators(0),
       NumberOfBlocks(0),
       NumberOfRangeShifters(0),
       NumberOfControlPoints(0),
-      FinalCumulativeMetersetWeight(-1.)
-    {}
+      FinalCumulativeMetersetWeight(-1.),
+      ScanMode("NONE")
+    {
+    }
     unsigned int Number;
     std::string Name;
     std::string Type;
@@ -272,10 +277,11 @@ public:
     /// VirtualSourceAxisDistance (VSAD) for RTIonPlan    
     std::array< double, 2 > SourceAxisDistance;
 
-    /// Jaw distance: X and Y distance from souce with isocenter as origin
-    /// SourceToJawDistance[0] - X or ASYMX
-    /// SourceToJawDistance[1] - Y or ASYMY
-    std::array< double, 2 > SourceToJawDistance;
+    /// Source to jaw distance: Distance from source to Jaws X and Jaws Y for RTPlan
+    /// Distance from isocenter to Jaws X and Jaws Y for RTIonPlan
+    /// SourceIsoToJawsDistance[0] - X or ASYMX
+    /// SourceIsoToJawsDistance[1] - Y or ASYMY
+    std::array< double, 2 > SourceIsoToJawsDistance;
 
     /// MLC parameters: Raw DICOM values
     std::string MultiLeafCollimatorType; // "MLCX" or "MLCY"
@@ -295,7 +301,8 @@ public:
 
     /// Meterset at end of all control points
     double FinalCumulativeMetersetWeight;
-
+    /// Scan mode type;
+    std::string ScanMode; // MODULATED, NONE, UNIFORM
     // Parameters taken from plastimatch (for future use)
     std::string TreatmentMachineName;
     std::string TreatmentDeliveryType;
@@ -546,6 +553,7 @@ vtkSlicerDicomRtReader::vtkInternal::ControlPointEntry::operator=(const ControlP
   this->ScanSpotMetersetWeights = src.ScanSpotMetersetWeights;
   this->NumberOfPaintings = src.NumberOfPaintings;
   this->ScanningSpotSize = src.ScanningSpotSize;
+
   this->PatientSupportRotationDirection = src.PatientSupportRotationDirection;
     
   this->TableTopPitchAngle = src.TableTopPitchAngle;
@@ -789,6 +797,110 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
   }
 
   vtkDebugWithObjectMacro(this->External, "LoadRTPlan: Load RT Plan object");
+  if (rtPlan.isRTFractionSchemeModulePresent(OFTrue) == OFTrue)
+  {
+    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: Fraction Scheme is correct");
+  }
+  else if (rtPlan.isRTFractionSchemeModulePresent() == OFTrue)
+  {
+    vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Fraction Scheme is partially correct");
+  }
+  else if (rtPlan.isRTFractionSchemeModulePresent() == OFTrue)
+  {
+    vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Fraction Scheme is partially correct");
+  }
+  else
+  {
+    vtkErrorWithObjectMacro( this->External, "LoadRTPlan: Fraction Scheme is absent");
+    return;
+  }
+
+  // Check beams module
+  bool hasBeamsModule = true, hasBrachyApplicationSetupsModule = true;
+  if (rtPlan.isRTBeamsModulePresent(OFTrue) == OFTrue)
+  {
+    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: Beams module is correct");
+    
+  }
+  else if (rtPlan.isRTBeamsModulePresent() == OFTrue)
+  {
+    vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Beams module is partially correct");
+  }
+  else
+  {
+    vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Beams module is absent");
+    hasBeamsModule = false;
+  }
+
+  // Check brachy setups module
+  if (rtPlan.isRTBrachyApplicationSetupsModulePresent(OFTrue) == OFTrue)
+  {
+    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: Brachy application setups module is correct");
+  }
+  else if (rtPlan.isRTBrachyApplicationSetupsModulePresent() == OFTrue)
+  {
+    vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Brachy application setups module is partially correct");
+  }
+  else
+  {
+    vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Brachy application setups module is absent");
+    hasBrachyApplicationSetupsModule = false;
+  }
+
+  bool haveBeams = false, haveBrachy = false;
+  DRTFractionGroupSequence& rtPlanFractionsSequence = rtPlan.getFractionGroupSequence();
+  // RTPlan fraction sequence
+  if (rtPlanFractionsSequence.isValid() && rtPlanFractionsSequence.gotoFirstItem().good())
+  {
+    do
+    {
+      DRTFractionGroupSequence::Item &fractionSequenceItem = rtPlanFractionsSequence.getCurrentItem();
+      if (!fractionSequenceItem.isValid())
+      {
+        // possibly reach the end of the sequence
+        if (rtPlanFractionsSequence.gotoNextItem().good())
+        {
+          // Only log warning if this is not the last item (the loop reaches here after the final item)
+          vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Found an invalid fraction item in dataset");
+        }
+        continue;
+      }
+
+      Sint32 Number = -1;
+      fractionSequenceItem.getFractionGroupNumber(Number);
+
+      Sint32 nofBeams = -1;
+      fractionSequenceItem.getNumberOfBeams(nofBeams);
+
+      Sint32 nofBrachy = -1;
+      fractionSequenceItem.getNumberOfBrachyApplicationSetups(nofBrachy);
+
+      if (nofBeams > 0)
+      {
+        vtkDebugWithObjectMacro( this->External, "LoadRTPlan: Number of beams are " 
+          << nofBeams << " in fraction group item number " << Number);
+        haveBeams = true;
+      }
+      if (nofBrachy > 0)
+      {
+        vtkDebugWithObjectMacro( this->External, "LoadRTPlan: Number of brachy application setups are " 
+          << nofBrachy << " in fraction group item number " << Number);
+        haveBrachy = true;
+      }
+    }
+    while (rtPlanFractionsSequence.gotoNextItem().good());
+
+  }
+
+  if ((hasBeamsModule && haveBeams) || (hasBrachyApplicationSetupsModule && haveBrachy))
+  {
+    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: Data is available for loading");
+  }
+  else
+  {
+    vtkErrorWithObjectMacro( this->External, "LoadRTPlan: No data for loading");
+    return;
+  }
 
   DRTBeamSequence &rtPlanBeamSequence = rtPlan.getBeamSequence();
   DRTApplicationSetupSequence &rtPlanApplicationSetupSequence = rtPlan.getApplicationSetupSequence();
@@ -819,6 +931,10 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
       OFString beamDescription("");
       currentBeamSequenceItem.getBeamDescription(beamDescription);
       beamEntry.Description=beamDescription.c_str();
+
+      OFString treatmentDeliveryType("");
+      currentBeamSequenceItem.getTreatmentDeliveryType(treatmentDeliveryType);
+      beamEntry.TreatmentDeliveryType=treatmentDeliveryType.c_str();
 
       OFString beamType("");
       currentBeamSequenceItem.getBeamType(beamType);
@@ -861,11 +977,11 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
             collimatorItem.getRTBeamLimitingDeviceType(deviceType);
             if (!deviceType.compare("X") || !deviceType.compare("ASYMX"))
             {
-              beamEntry.SourceToJawDistance[0] = distance;
+              beamEntry.SourceIsoToJawsDistance[0] = distance;
             }
             else if (!deviceType.compare("Y") || !deviceType.compare("ASYMY"))
             {
-              beamEntry.SourceToJawDistance[1] = distance;
+              beamEntry.SourceIsoToJawsDistance[1] = distance;
             }
             else if (!deviceType.compare("MLCX") || !deviceType.compare("MLCY"))
             {              
@@ -943,17 +1059,36 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
 
         // Control point item from the ControlPointSequenceVector
         ControlPointEntry& controlPoint = beamEntry.ControlPointSequenceVector.at(controlPointIndex);
+        // assign previous point control point to a current control point
+        if (controlPointIndex > 0)
+        {
+          ControlPointEntry& prevControlPoint = beamEntry.ControlPointSequenceVector.at(controlPointIndex - 1);
+          controlPoint = ControlPointEntry(prevControlPoint);
+        }
 //        ControlPointEntry& controlPointEntry = beamEntry.ControlPointSequenceVector.at(controlPointCount); 
         controlPoint.Index = controlPointIndex;
 
         OFVector<Float64> isocenterPositionDataLps;
-        OFCondition dataCondition = controlPointItem.getIsocenterPosition(isocenterPositionDataLps);
-        if (dataCondition.good())
+        OFString isocenterStringX, isocenterStringY, isocenterStringZ;
+
+        controlPointItem.getIsocenterPosition( isocenterStringX, 0);
+        controlPointItem.getIsocenterPosition( isocenterStringY, 1);
+        controlPointItem.getIsocenterPosition( isocenterStringZ, 2);
+
+        controlPointItem.getIsocenterPosition(isocenterPositionDataLps);
+        if (!isocenterStringX.empty() && !isocenterStringY.empty() && !isocenterStringZ.empty())
         {
           // Convert from DICOM LPS -> Slicer RAS
           controlPoint.IsocenterPositionRas[0] = -isocenterPositionDataLps[0];
           controlPoint.IsocenterPositionRas[1] = -isocenterPositionDataLps[1];
           controlPoint.IsocenterPositionRas[2] = isocenterPositionDataLps[2];
+        }
+
+        Float64 nominalBeamEnergy = 0.0;
+        OFCondition dataCondition = controlPointItem.getNominalBeamEnergy(nominalBeamEnergy);
+        if (dataCondition.good())
+        {
+          controlPoint.NominalBeamEnergy = nominalBeamEnergy;
         }
 
         Float64 gantryAngle = 0.0;
@@ -1055,12 +1190,6 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
  
         }
         ++controlPointCount;
-        // assign current control point to the next control point
-        if (controlPointIndex > 0 && controlPointIndex < beamNumberOfControlPoints - 1)
-        {
-          beamEntry.ControlPointSequenceVector.at(controlPointIndex + 1) = 
-            ControlPointEntry(controlPoint);
-        }
       }
       while (rtControlPointSequence.gotoNextItem().good());
 
@@ -1125,6 +1254,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
       channelEntry.NumberOfControlPoints = channelNumberOfControlPoints;
 
       DRTBrachyControlPointSequence &rtBrachyControlPointSequence = currentChannelSequenceItem.getBrachyControlPointSequence();
+
       if (!rtBrachyControlPointSequence.gotoFirstItem().good())
       {
         vtkWarningWithObjectMacro(this->External, "LoadRTPlan: Found an invalid brachy control point sequence in dataset");
@@ -1141,9 +1271,15 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
       do
       {
         DRTBrachyControlPointSequence::Item &brachyControlPointItem = rtBrachyControlPointSequence.getCurrentItem();
+
         if (!brachyControlPointItem.isValid())
         {
-          vtkWarningWithObjectMacro(this->External, "LoadRTPlan: Found an invalid brachy control point in dataset");
+          // possibly reach the end of the sequence
+          if (rtBrachyControlPointSequence.gotoNextItem().good())
+          {
+            vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Found an invalid brachy control point in dataset, "
+              << "control point counter = " << controlPointCount);
+          }
           continue;
         }
 
@@ -1245,6 +1381,79 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
   }
 
   vtkDebugWithObjectMacro( this->External, "LoadRTIonPlan: Load RT Ion Plan object");
+  if (ionPlan.isRTFractionSchemeModulePresent(OFTrue) == OFTrue)
+  {
+    vtkDebugWithObjectMacro( this->External, "LoadRTIonPlan: Fraction Scheme is correct");
+  }
+  else if (ionPlan.isRTFractionSchemeModulePresent() == OFTrue)
+  {
+    vtkWarningWithObjectMacro( this->External, "LoadRTIonPlan: Fraction Scheme is partially correct");
+  }
+  else
+  {
+    vtkErrorWithObjectMacro( this->External, "LoadRTIonPlan: Fraction Scheme is absent");
+    return;
+  }
+
+  bool hasBeamsModule = true;
+  if (ionPlan.isRTIonBeamsModulePresent(OFTrue) == OFTrue)
+  {
+    vtkDebugWithObjectMacro( this->External, "LoadRTIonPlan: Ion beams module is correct");
+  }
+  else if (ionPlan.isRTIonBeamsModulePresent() == OFTrue)
+  {
+    vtkWarningWithObjectMacro( this->External, "LoadRTIonPlan: Ion beams module is partially correct");
+  }
+  else
+  {
+    vtkErrorWithObjectMacro( this->External, "LoadRTIonPlan: Ion beams module is absent");
+    hasBeamsModule = false;
+  }
+
+  bool haveBeams = false;
+  DRTFractionGroupSequence& rtPlanFractionsSequence = ionPlan.getFractionGroupSequence();
+  // RTPlan fraction sequence
+  if (rtPlanFractionsSequence.isValid() && rtPlanFractionsSequence.gotoFirstItem().good())
+  {
+    do
+    {
+      DRTFractionGroupSequence::Item &fractionSequenceItem = rtPlanFractionsSequence.getCurrentItem();
+      if (!fractionSequenceItem.isValid())
+      {
+        // possibly reach the end of the sequence
+        if (rtPlanFractionsSequence.gotoNextItem().good())
+        {
+          // Only log warning if this is not the last item (the loop reaches here after the final item)
+          vtkWarningWithObjectMacro( this->External, "LoadRTIonPlan: Found an invalid fraction item in dataset");
+        }
+        continue;
+      }
+
+      Sint32 Number = -1;
+      fractionSequenceItem.getFractionGroupNumber(Number);
+
+      Sint32 nofBeams = -1;
+      fractionSequenceItem.getNumberOfBeams(nofBeams);
+      if (nofBeams > 0)
+      {
+        vtkDebugWithObjectMacro( this->External, "LoadRTIonPlan: Number of beams are " 
+          << nofBeams << " in fraction group item number " << Number);
+        haveBeams = true;
+      }
+    }
+    while (rtPlanFractionsSequence.gotoNextItem().good());
+
+  }
+
+  if (hasBeamsModule && haveBeams)
+  {
+    vtkDebugWithObjectMacro( this->External, "LoadRTIonPlan: Data is available for loading");
+  }
+  else
+  {
+    vtkErrorWithObjectMacro( this->External, "LoadRTIonPlan: No data for loading");
+    return;
+  }
 
   DRTIonBeamSequence &ionBeamSequence = ionPlan.getIonBeamSequence();
   // RTPlan ion beam sequence (external ion beam plan)
@@ -1274,6 +1483,10 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
       currentIonBeamSequenceItem.getBeamDescription(beamDescription);
       beamEntry.Description = beamDescription.c_str();
 
+      OFString treatmentDeliveryType("");
+      currentIonBeamSequenceItem.getTreatmentDeliveryType(treatmentDeliveryType);
+      beamEntry.TreatmentDeliveryType=treatmentDeliveryType.c_str();
+
       OFString beamType("");
       currentIonBeamSequenceItem.getBeamType(beamType);
       beamEntry.Type = beamType.c_str();
@@ -1281,6 +1494,10 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
       Sint32 beamNumber = -1;
       currentIonBeamSequenceItem.getBeamNumber(beamNumber);
       beamEntry.Number = beamNumber;
+
+      OFString scanMode("");
+      currentIonBeamSequenceItem.getScanMode(scanMode);
+      beamEntry.ScanMode = scanMode.c_str();
 
       OFString radiationType("");
       currentIonBeamSequenceItem.getRadiationType(radiationType);
@@ -1328,11 +1545,11 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
             collimatorItem.getRTBeamLimitingDeviceType(deviceType);
             if (!deviceType.compare("X") || !deviceType.compare("ASYMX"))
             {
-              beamEntry.SourceToJawDistance[0] = distance;
+              beamEntry.SourceIsoToJawsDistance[0] = distance;
             }
             else if (!deviceType.compare("Y") || !deviceType.compare("ASYMY"))
             {
-              beamEntry.SourceToJawDistance[1] = distance;
+              beamEntry.SourceIsoToJawsDistance[1] = distance;
             }
             else if (!deviceType.compare("MLCX") || !deviceType.compare("MLCY"))
             {              
@@ -1406,19 +1623,51 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
 
         // Control point item from the ControlPointSequenceVector
         ControlPointEntry& controlPoint = beamEntry.ControlPointSequenceVector.at(controlPointIndex);
+        // assign previous point control point to a current control point
+        if (controlPointIndex > 0)
+        {
+          ControlPointEntry& prevControlPoint = beamEntry.ControlPointSequenceVector.at(controlPointIndex - 1);
+          controlPoint = ControlPointEntry(prevControlPoint);
+        }
 //        ControlPointEntry& controlPointEntry = beamEntry.ControlPointSequenceVector.at(controlPointCount);        
         controlPoint.Index = controlPointIndex;
 
         OFVector<Float64> isocenterPositionDataLps;
-        OFCondition dataCondition = controlPointItem.getIsocenterPosition(isocenterPositionDataLps);
-        if (dataCondition.good())
+        OFString isocenterStringX, isocenterStringY, isocenterStringZ;
+
+        controlPointItem.getIsocenterPosition( isocenterStringX, 0);
+        controlPointItem.getIsocenterPosition( isocenterStringY, 1);
+        controlPointItem.getIsocenterPosition( isocenterStringZ, 2);
+
+        controlPointItem.getIsocenterPosition(isocenterPositionDataLps);
+        if (!isocenterStringX.empty() && !isocenterStringY.empty() && !isocenterStringZ.empty())
         {
           // Convert from DICOM LPS -> Slicer RAS
           controlPoint.IsocenterPositionRas[0] = -isocenterPositionDataLps[0];
           controlPoint.IsocenterPositionRas[1] = -isocenterPositionDataLps[1];
           controlPoint.IsocenterPositionRas[2] = isocenterPositionDataLps[2];
         }
-        
+
+        OFCondition dataCondition;
+
+        OFString kvpString, beamEnergyString;
+        controlPointItem.getNominalBeamEnergy(beamEnergyString);
+        controlPointItem.getKVP(kvpString);
+
+        if (!beamEnergyString.empty() && kvpString.empty())
+        {
+          Float64 nominalBeamEnergy = 0.0;
+          dataCondition = controlPointItem.getNominalBeamEnergy(nominalBeamEnergy);
+          if (dataCondition.good())
+          {
+            controlPoint.NominalBeamEnergy = nominalBeamEnergy;
+          }
+        }
+        else if (beamEnergyString.empty() && !kvpString.empty())
+        {
+          // Do something with KVP value
+        }
+
         Float64 gantryAngle = 0.0;
         dataCondition = controlPointItem.getGantryAngle(gantryAngle);
         if (dataCondition.good())
@@ -1447,6 +1696,74 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
           controlPoint.CumulativeMetersetWeight = cumulativeMetersetWeight;
         }
 
+        if (beamEntry.ScanMode == "MODULATED")
+        {
+          OFString scanSpotTuneId("");
+          dataCondition = controlPointItem.getScanSpotTuneID(scanSpotTuneId);
+          if (dataCondition.good())
+          {
+            controlPoint.ScanSpotTuneId = scanSpotTuneId.c_str();
+          }
+ 
+          Sint32 nofScanSpotPositions = -1;
+          dataCondition = controlPointItem.getNumberOfScanSpotPositions(nofScanSpotPositions);
+          if (dataCondition.good())
+          {
+            controlPoint.NumberOfScanSpotPositions = nofScanSpotPositions;
+          }
+
+          OFString scanSpotReorderingAllowed("");
+          dataCondition = controlPointItem.getScanSpotReorderingAllowed(scanSpotReorderingAllowed);
+          if (dataCondition.good())
+          {
+            controlPoint.ScanSpotReorderingAllowed = scanSpotReorderingAllowed.c_str();
+          }
+          
+          Float32 scanningSpotSizeX = -1.f, scanningSpotSizeY = -1.f;
+          dataCondition = controlPointItem.getScanningSpotSize( scanningSpotSizeX, 0);
+          if (dataCondition.good())
+          {
+            controlPoint.ScanningSpotSize[0] = scanningSpotSizeX;
+          }
+          dataCondition = controlPointItem.getScanningSpotSize( scanningSpotSizeY, 1);
+          if (dataCondition.good())
+          {
+            controlPoint.ScanningSpotSize[1] = scanningSpotSizeY;
+          }
+          if (controlPoint.NumberOfScanSpotPositions > 0)
+          {
+            controlPoint.ScanSpotPositionMap.resize(2 * controlPoint.NumberOfScanSpotPositions);
+            controlPoint.ScanSpotMetersetWeights.resize(controlPoint.NumberOfScanSpotPositions);
+
+            for ( unsigned int i = 0; i < controlPoint.NumberOfScanSpotPositions; ++i)
+            {
+              Float32 x = -1.f, y = -1.f, w = -1.f;
+              dataCondition = controlPointItem.getScanSpotPositionMap( x, 2 * i);
+              if (dataCondition.good())
+              {
+                controlPoint.ScanSpotPositionMap.at(2 * i) = float(x);
+              }
+              dataCondition = controlPointItem.getScanSpotPositionMap( y, 2 * i + 1);
+              if (dataCondition.good())
+              {
+                controlPoint.ScanSpotPositionMap.at(2 * i + 1) = float(x);
+              }
+
+              dataCondition = controlPointItem.getScanSpotMetersetWeights( w, i);
+              if (dataCondition.good())
+              {
+                controlPoint.ScanSpotMetersetWeights.at(i) = float(w);
+              }
+            }
+          }
+          Sint32 nofPaintings = -1;
+          dataCondition = controlPointItem.getNumberOfPaintings(nofPaintings);
+          if (dataCondition.good())
+          {
+            controlPoint.NumberOfPaintings = nofPaintings;
+          }
+        }
+        
         DRTBeamLimitingDevicePositionSequence &currentCollimatorPositionSequence =
           controlPointItem.getBeamLimitingDevicePositionSequence();
         if (currentCollimatorPositionSequence.isValid() &&
@@ -1515,14 +1832,9 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
             }
           }
           while (currentCollimatorPositionSequence.gotoNextItem().good());
+
         }
         ++controlPointCount;
-        // assign current control point to the next control point
-        if (controlPointIndex > 0 && controlPointIndex < beamNumberOfControlPoints - 1)
-        {
-          beamEntry.ControlPointSequenceVector.at(controlPointIndex + 1) = 
-            ControlPointEntry(controlPoint);
-        }
       }
       while (rtIonControlPointSequence.gotoNextItem().good());
 
@@ -2216,7 +2528,6 @@ void vtkSlicerDicomRtReader::Update()
         else if (sopClass == UID_RTIonPlanStorage)
         {
           this->Internal->LoadRTIonPlan(dataset);
-          //result = dumpRTIonPlan(out, *dataset);
         }
         else if (sopClass == UID_RTIonBeamsTreatmentRecordStorage)
         {
@@ -2311,6 +2622,18 @@ int vtkSlicerDicomRtReader::GetNumberOfBeams()
 }
 
 //----------------------------------------------------------------------------
+unsigned int vtkSlicerDicomRtReader::GetNumberOfControlPoints(unsigned int beamNumber)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+
+  if (beam)
+  {
+    return (beam->ControlPointSequenceVector.size() > 1) ? beam->ControlPointSequenceVector.size() : 0;
+  }
+  return 0;
+}
+
+//----------------------------------------------------------------------------
 unsigned int vtkSlicerDicomRtReader::GetBeamNumberForIndex(unsigned int index)
 {
   return this->Internal->BeamSequenceVector[index].Number;
@@ -2330,12 +2653,55 @@ const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int beamNumber)
 //----------------------------------------------------------------------------
 double* vtkSlicerDicomRtReader::GetBeamIsocenterPositionRas(unsigned int beamNumber)
 {
+  return GetControlPointIsocenterPositionRas( beamNumber, 0);
+}
+
+//----------------------------------------------------------------------------
+const char* vtkSlicerDicomRtReader::GetBeamTreatmentDeliveryType(unsigned int beamNumber)
+{
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
   if (!beam)
   {
     return nullptr;
   }
-  return beam->ControlPointSequenceVector.front().IsocenterPositionRas.data();
+  return beam->TreatmentDeliveryType.c_str();
+}
+
+//----------------------------------------------------------------------------
+const char* vtkSlicerDicomRtReader::GetBeamRadiationType(unsigned int beamNumber)
+{
+  vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
+  if (!beam)
+  {
+    return nullptr;
+  }
+  return beam->RadiationType.c_str();
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetControlPointNominalBeamEnergy( unsigned int beamNumber, 
+  unsigned int controlPointIndex)
+{
+  vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (controlPointIndex < beam->ControlPointSequenceVector.size()))
+  {
+    vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
+    return controlPoint.NominalBeamEnergy;
+  }
+  return 0.;
+}
+
+//----------------------------------------------------------------------------
+double* vtkSlicerDicomRtReader::GetControlPointIsocenterPositionRas( unsigned int beamNumber,
+  unsigned int controlPointIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (controlPointIndex < beam->ControlPointSequenceVector.size()))
+  {
+    vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
+    return controlPoint.IsocenterPositionRas.data();
+  }
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -2351,101 +2717,273 @@ double vtkSlicerDicomRtReader::GetBeamSourceAxisDistance(unsigned int beamNumber
 }
 
 //----------------------------------------------------------------------------
-double vtkSlicerDicomRtReader::GetBeamGantryAngle(unsigned int beamNumber)
+double* vtkSlicerDicomRtReader::GetBeamVirtualSourceAxisDistance(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
   if (!beam)
   {
-    vtkErrorMacro("GetBeamGantryAngle: Unable to find beam of number" << beamNumber);
-    return 0.0;
+    vtkErrorMacro("GetBeamVirtualSourceAxisDistance: Unable to find beam of number" << beamNumber);
+    return nullptr;
   }
-  return beam->ControlPointSequenceVector.front().GantryAngle;
+  return beam->SourceAxisDistance.data();
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamGantryAngle(unsigned int beamNumber)
+{
+  return GetControlPointGantryAngle( beamNumber, 0);
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetControlPointGantryAngle( unsigned int beamNumber, 
+  unsigned int controlPointIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (controlPointIndex < beam->ControlPointSequenceVector.size()))
+  {
+    vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
+    return controlPoint.GantryAngle;
+  }
+  else if (!beam)
+  {
+    vtkErrorMacro("GetControlPointGantryAngle: " \
+      "Unable to find beam of number" << beamNumber);
+  }
+  else
+  {
+    vtkErrorMacro("GetControlPointGantryAngle: " \
+     "No control point sequence data for current beam: " << beam->Name);
+  }
+  return 0.0;
 }
 
 //----------------------------------------------------------------------------
 double vtkSlicerDicomRtReader::GetBeamPatientSupportAngle(unsigned int beamNumber)
 {
-  vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (!beam)
+  return GetControlPointPatientSupportAngle( beamNumber, 0);
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetControlPointPatientSupportAngle( unsigned int beamNumber, 
+  unsigned int controlPointIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (controlPointIndex < beam->ControlPointSequenceVector.size()))
   {
-    vtkErrorMacro("GetBeamPatientSupportAngle: Unable to find beam of number" << beamNumber);
-    return 0.0;
+    vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
+    return controlPoint.PatientSupportAngle;
   }
-  return beam->ControlPointSequenceVector.front().PatientSupportAngle;
+  else if (!beam)
+  {
+    vtkErrorMacro("GetControlPointPatientSupportAngle: " \
+      "Unable to find beam of number" << beamNumber);
+  }
+  else
+  {
+    vtkErrorMacro("GetControlPointPatientSupportAngle: " \
+     "No control point sequence data for current beam: " << beam->Name);
+  }
+  return 0.0;
 }
 
 //----------------------------------------------------------------------------
 double vtkSlicerDicomRtReader::GetBeamBeamLimitingDeviceAngle(unsigned int beamNumber)
 {
-  vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (!beam)
+  return GetControlPointBeamLimitingDeviceAngle( beamNumber, 0);
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetControlPointBeamLimitingDeviceAngle( unsigned int beamNumber, 
+  unsigned int controlPointIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (controlPointIndex < beam->ControlPointSequenceVector.size()))
   {
-    vtkErrorMacro("GetBeamBeamLimitingDeviceAngle: Unable to find beam of number" << beamNumber);
-    return 0.0;
+    vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
+    return controlPoint.BeamLimitingDeviceAngle;
   }
-  return beam->ControlPointSequenceVector.front().BeamLimitingDeviceAngle;
+  else if (!beam)
+  {
+    vtkErrorMacro("GetControlPointBeamLimitingDeviceAngle: " \
+      "Unable to find beam of number" << beamNumber);
+  }
+  else
+  {
+    vtkErrorMacro("GetControlPointBeamLimitingDeviceAngle: " \
+     "No control point sequence data for current beam: " << beam->Name);
+  }
+  return 0.0;
 }
 
 //----------------------------------------------------------------------------
 void vtkSlicerDicomRtReader::GetBeamLeafJawPositions(unsigned int beamNumber, double jawPositions[2][2])
 {
-  vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
-  if (!beam)
+  GetControlPointJawPositions( beamNumber, 0, jawPositions);
+}
+
+//----------------------------------------------------------------------------
+bool vtkSlicerDicomRtReader::GetControlPointJawPositions( unsigned int beamNumber, 
+  unsigned int controlPointIndex, double jawPositions[2][2])
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (controlPointIndex < beam->ControlPointSequenceVector.size()))
   {
-    jawPositions[0][0]=jawPositions[0][1]=jawPositions[1][0]=jawPositions[1][1]=0.0;
-    return;
+    vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
+    jawPositions[0][0] = controlPoint.JawPositions[0];
+    jawPositions[0][1] = controlPoint.JawPositions[1];
+    jawPositions[1][0] = controlPoint.JawPositions[2];
+    jawPositions[1][1] = controlPoint.JawPositions[3];
+    return true;
   }
-  jawPositions[0][0]=beam->ControlPointSequenceVector.front().JawPositions[0];
-  jawPositions[0][1]=beam->ControlPointSequenceVector.front().JawPositions[1];
-  jawPositions[1][0]=beam->ControlPointSequenceVector.front().JawPositions[2];
-  jawPositions[1][1]=beam->ControlPointSequenceVector.front().JawPositions[3];
+  else if (!beam)
+  {
+    vtkErrorMacro("GetControlPointJawPositions: " \
+      "Unable to find beam of number" << beamNumber);
+  }
+  else
+  {
+    vtkErrorMacro("GetControlPointJawPositions: " \
+     "No control point sequence data for current beam: " << beam->Name);
+  }
+  return false;
 }
 
 //----------------------------------------------------------------------------
 const char* vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositions( unsigned int beamNumber, 
   std::vector<double>& pairBoundaries, std::vector<double>& leafPositions)
 {
+  return GetControlPointMultiLeafCollimatorPositions( beamNumber, 0, 
+    pairBoundaries, leafPositions);
+}
+
+//----------------------------------------------------------------------------
+const char* vtkSlicerDicomRtReader::GetControlPointMultiLeafCollimatorPositions( unsigned int beamNumber, 
+  unsigned int controlPointIndex, std::vector<double>& pairBoundaries, 
+  std::vector<double>& leafPositions)
+{
   vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
-  if (beam) {
+  if (beam)
+  {
     const unsigned int& pairs = beam->MultiLeafCollimator.NumberOfPairs;
     const std::string& mlcType = beam->MultiLeafCollimatorType;
     if (mlcType.empty())
     {
-      vtkDebugMacro("GetBeamMultiLeafCollimatorPositions: MLC type undefined");
+      vtkDebugMacro("GetControlPointMultiLeafCollimatorPositions: MLC type undefined");
       return nullptr;
     }
-    if (beam->ControlPointSequenceVector.size())
+    if (beam->ControlPointSequenceVector.size() && (controlPointIndex < beam->ControlPointSequenceVector.size()))
     {
-      const std::string& mlcPositionsType = beam->ControlPointSequenceVector.front().MultiLeafCollimatorType;
-      size_t positions = beam->ControlPointSequenceVector.front().LeafPositions.size();
+      vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
+      const std::string& mlcPositionsType = controlPoint.MultiLeafCollimatorType;
+      size_t positions = controlPoint.LeafPositions.size();
       size_t boundaries = beam->MultiLeafCollimator.LeafPositionBoundary.size();
 
       if ((mlcPositionsType == mlcType) && pairs && positions && boundaries &&
         ((pairs * 2) == positions) && ((pairs + 1) == boundaries))
       {
         pairBoundaries = beam->MultiLeafCollimator.LeafPositionBoundary;
-        leafPositions = beam->ControlPointSequenceVector.front().LeafPositions;
+        leafPositions = controlPoint.LeafPositions;
         return mlcType.c_str();
       }
       else
       {
-        vtkWarningMacro("GetBeamMultiLeafCollimatorPositions: " \
-         "Different kings of MLC between control point data and beam limiting device type, " \
+        vtkErrorMacro("GetControlPointMultiLeafCollimatorPositions: " \
+         "Different kinds of MLC between control point data and beam limiting device type, " \
          "or different number of leaf pairs and positions");
       }
     }
     else
     {
-      vtkErrorMacro("GetBeamMultiLeafCollimatorPositions: " \
+      vtkErrorMacro("GetControlPointMultiLeafCollimatorPositions: " \
        "No control point sequence data for current beam: " << beam->Name);
     }
   }
   else
   {
-    vtkErrorMacro("GetBeamMultiLeafCollimatorPositions: " \
+    vtkErrorMacro("GetControlPointMultiLeafCollimatorPositions: " \
       "Unable to find beam of number" << beamNumber);
   }
   return nullptr;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSlicerDicomRtReader::GetControlPointScanSpotParameters( unsigned int beamNumber, 
+  unsigned int controlPointIndex, std::vector<float>& positionMap, 
+  std::vector<float>& metersetWeights)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (controlPointIndex < beam->ControlPointSequenceVector.size()))
+  {
+    vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
+
+    const std::string& scanMode = beam->ScanMode;
+    if (!scanMode.compare( 0, strlen("MODULATED") - 1, "MODULATED"))
+    {
+      vtkWarningMacro("GetControlPointScanSpotParameters: ScanMode of the beam isn't MODULATED");
+      return false;
+    }
+    const unsigned int& positions = controlPoint.NumberOfScanSpotPositions;
+    size_t mapSize = controlPoint.ScanSpotPositionMap.size();
+    size_t weightSize = controlPoint.ScanSpotMetersetWeights.size();
+
+    if (positions && mapSize && weightSize &&
+      (positions * 2 == mapSize) && (positions == weightSize))
+    {
+      positionMap = controlPoint.ScanSpotPositionMap;
+      metersetWeights = controlPoint.ScanSpotMetersetWeights;
+      return true;
+    }
+    else
+    {
+      vtkWarningMacro("GetControlPointScanSpotParameters: " \
+       "Different number of scan spot positions in map or weights");
+    }
+  }
+  else if (!beam)
+  {
+    vtkErrorMacro("GetControlPointScanSpotParameters: " \
+      "Unable to find beam of number" << beamNumber);
+  }
+  else
+  {
+    vtkErrorMacro("GetControlPointScanSpotParameters: " \
+     "No control point sequence data for current beam: " << beam->Name);
+  }
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool vtkSlicerDicomRtReader::GetControlPointScanningSpotSize( unsigned int beamNumber, 
+  unsigned int controlPointIndex, std::array< float, 2 >& ScanSpotSize)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (controlPointIndex < beam->ControlPointSequenceVector.size()))
+  {
+    vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
+
+    const std::string& scanMode = beam->ScanMode;
+    if (!scanMode.compare( 0, strlen("MODULATED") - 1, "MODULATED"))
+    {
+      ScanSpotSize = controlPoint.ScanningSpotSize;
+      return true;
+    }
+    else
+    {
+      vtkWarningMacro("GetControlPointScanSpotParameters: ScanMode of the beam isn't MODULATED");
+      return false;
+    }
+  }
+  else if (!beam)
+  {
+    vtkErrorMacro("GetControlPointScanSpotParameters: " \
+      "Unable to find beam of number" << beamNumber);
+  }
+  else
+  {
+    vtkErrorMacro("GetControlPointScanSpotParameters: " \
+     "No control point sequence data for current beam: " << beam->Name);
+  }
+  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -2462,6 +3000,56 @@ double vtkSlicerDicomRtReader::GetBeamSourceToMultiLeafCollimatorDistance(unsign
       "Unable to find beam of number" << beamNumber);
   }
   return 0.0;
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamIsocenterToMultiLeafCollimatorDistance(unsigned int beamNumber)
+{
+  return this->LoadRTIonPlanSuccessful ? this->GetBeamSourceToMultiLeafCollimatorDistance(beamNumber) : 0.0;
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamSourceToJawsDistanceX(unsigned int beamNumber)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam)
+  {
+     return beam->SourceIsoToJawsDistance[0];
+  }
+  else
+  {
+    vtkErrorMacro("GetBeamSourceToJawsXDistance: " \
+      "Unable to find beam of number" << beamNumber);
+  }
+  return 0.0;
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamIsocenterToJawsDistanceX(unsigned int beamNumber)
+{
+  return this->LoadRTIonPlanSuccessful ? this->GetBeamSourceToJawsDistanceX(beamNumber) : 0.0;
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamSourceToJawsDistanceY(unsigned int beamNumber)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam)
+  {
+     return beam->SourceIsoToJawsDistance[1];
+  }
+  else
+  {
+    vtkErrorMacro("GetBeamSourceToJawsYDistance: " \
+      "Unable to find beam of number" << beamNumber);
+  }
+  return 0.0;
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamIsocenterToJawsDistanceY(unsigned int beamNumber)
+{
+  return this->LoadRTIonPlanSuccessful ? this->GetBeamSourceToJawsDistanceY(beamNumber) : 0.0;
 }
 
 //----------------------------------------------------------------------------

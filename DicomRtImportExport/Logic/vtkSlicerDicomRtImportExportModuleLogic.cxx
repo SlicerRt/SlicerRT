@@ -55,6 +55,7 @@
 #include "vtkSlicerBeamsModuleLogic.h"
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
+#include "vtkMRMLRTIonBeamNode.h"
 
 // Segmentations includes
 #include "vtkMRMLSegmentationNode.h"
@@ -160,10 +161,6 @@ public:
   /// \return Success flag
   bool LoadRtPlan(vtkSlicerDicomRtReader* rtReader, vtkSlicerDICOMLoadable* loadable);
 
-  /// Load RT Plan and related objects into the MRML scene
-  /// \return Success flag
-  bool LoadRtIonPlan(vtkSlicerDicomRtReader* rtReader, vtkSlicerDICOMLoadable* loadable);
-
   /// Load external beam plan (called from \sa LoadRtPlan)
   bool LoadExternalBeamPlan(vtkSlicerDicomRtReader* rtReader, const char* seriesName, vtkMRMLRTPlanNode* planNode);
 
@@ -184,6 +181,10 @@ public:
   /// Create table node positions for the MLC
   vtkMRMLTableNode* CreateMultiLeafCollimatorTableNode( const char* name, 
     const std::vector<double>& mlcPositions);
+
+  /// Create table node for scan spot parameters of modulated ion beam
+  vtkMRMLTableNode* CreateScanSpotTableNode( const char* name, 
+    const std::vector<float>& positions, const std::vector<float>& weights);
 
   /// Create double array node boundaries for the MLC
   vtkMRMLDoubleArrayNode* CreateMultiLeafCollimatorDoubleArrayNode( const char* name, 
@@ -688,7 +689,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
   // If external beam plan
   if (rtReader->GetNumberOfBeams() > 0)
   {
-    vtkWarningWithObjectMacro( this->External, "LoadRtPlan: Number of beams is " << rtReader->GetNumberOfBeams());
     if (!this->LoadExternalBeamPlan(rtReader, seriesName, planNode))
     {
       vtkErrorWithObjectMacro(this->External, "LoadRtPlan: Failed to load external beam plan");
@@ -746,199 +746,25 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
 
   scene->EndState(vtkMRMLScene::BatchProcessState);
 
-  return true;
-}
-
-//---------------------------------------------------------------------------
-bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtIonPlan(vtkSlicerDicomRtReader* rtReader, vtkSlicerDICOMLoadable* loadable)
-{
-  //TODO: Add code that loads ion plan here. See function above for example
-  vtkMRMLScene* scene = this->External->GetMRMLScene();
-  if (!scene)
-  {
-    vtkErrorWithObjectMacro(this->External, "LoadRtIonPlan: Invalid MRML scene");
-    return false;
-  }
-  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->External->GetMRMLScene());
-  if (!shNode)
-  {
-    vtkErrorWithObjectMacro(this->External, "LoadRtIonPlan: Failed to access subject hierarchy node");
-    return false;
-  }
-
-  vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyRootNode;
-
-  const char* seriesName = loadable->GetName();
-
-  scene->StartState(vtkMRMLScene::BatchProcessState);
-
-  // Create plan node
-  vtkSmartPointer<vtkMRMLRTPlanNode> planNode = vtkSmartPointer<vtkMRMLRTPlanNode>::New();
-  planNode->SetName(seriesName);
-  scene->AddNode(planNode);
-
-  // Set up plan subject hierarchy node
-  vtkIdType planShItemID = planNode->GetPlanSubjectHierarchyItemID();
-  if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-  {
-    vtkErrorWithObjectMacro( this->External, "LoadRtIonPlan: Created RT plan node, but it doesn't have a subject hierarchy item");
-    return false;
-  }
-
-  // Attach attributes to plan subject hierarchy item
-  shNode->SetItemUID(planShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetSeriesInstanceUid());
-  shNode->SetItemName(planShItemID, seriesName);
-
-  const char* referencedStructureSetSopInstanceUid = rtReader->GetRTPlanReferencedStructureSetSOPInstanceUID();
-  const char* referencedDoseSopInstanceUids = rtReader->GetRTPlanReferencedDoseSOPInstanceUIDs();
-  std::string referencedSopInstanceUids = "";
-  if (referencedStructureSetSopInstanceUid)
-  {
-    referencedSopInstanceUids = std::string(referencedStructureSetSopInstanceUid);
-  }
-  if (referencedDoseSopInstanceUids)
-  {
-    referencedSopInstanceUids = referencedSopInstanceUids +
-      (referencedStructureSetSopInstanceUid ? " " : "") + std::string(referencedDoseSopInstanceUids);
-  }
-  shNode->SetItemAttribute( planShItemID, 
-    vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(), referencedSopInstanceUids);
-
-  // Load beams in plan
-  int numberOfBeams = rtReader->GetNumberOfBeams();
-  for (int beamIndex = 0; beamIndex < numberOfBeams; beamIndex++) // DICOM starts indexing from 1
-  {
-    unsigned int dicomBeamNumber = rtReader->GetBeamNumberForIndex(beamIndex);
-    const char* beamName = rtReader->GetBeamName(dicomBeamNumber);
-
-    // Create the beam node
-    vtkSmartPointer<vtkMRMLRTBeamNode> beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
-    beamNode->SetName(beamName);
-
-    // Set beam geometry parameters from DICOM
-    double jawPositions[2][2] = { { 0.0, 0.0 },{ 0.0, 0.0 } };
-    rtReader->GetBeamLeafJawPositions(dicomBeamNumber, jawPositions);
-    beamNode->SetX1Jaw(jawPositions[0][0]);
-    beamNode->SetX2Jaw(jawPositions[0][1]);
-    beamNode->SetY1Jaw(jawPositions[1][0]);
-    beamNode->SetY2Jaw(jawPositions[1][1]);
-
-    beamNode->SetGantryAngle(rtReader->GetBeamGantryAngle(dicomBeamNumber));
-    beamNode->SetCollimatorAngle(rtReader->GetBeamBeamLimitingDeviceAngle(dicomBeamNumber));
-    beamNode->SetCouchAngle(rtReader->GetBeamPatientSupportAngle(dicomBeamNumber));
-
-    beamNode->SetSAD(rtReader->GetBeamSourceAxisDistance(dicomBeamNumber));
-
-    // Set isocenter to parent plan
-    double* isocenter = rtReader->GetBeamIsocenterPositionRas(dicomBeamNumber);
-    planNode->SetIsocenterSpecification(vtkMRMLRTPlanNode::ArbitraryPoint);
-    if (beamIndex == 0)
-    {
-      if (!planNode->SetIsocenterPosition(isocenter))
-      {
-        vtkErrorWithObjectMacro(this->External, "LoadRtIonPlan: Failed to set isocenter position");
-        return false;
-      }
-    }
-    else
-    {
-      double planIsocenter[3] = { 0.0, 0.0, 0.0 };
-      if (!planNode->GetIsocenterPosition(planIsocenter))
-      {
-        vtkErrorWithObjectMacro(this->External, "LoadRtIonPlan: Failed to get plan isocenter position");
-        return false;
-      }
-      //TODO: Multiple isocenters per plan is not yet supported. Will be part of the beams group nodes developed later
-      if (!vtkSlicerRtCommon::AreEqualWithTolerance(planIsocenter[0], isocenter[0])
-        || !vtkSlicerRtCommon::AreEqualWithTolerance(planIsocenter[1], isocenter[1])
-        || !vtkSlicerRtCommon::AreEqualWithTolerance(planIsocenter[2], isocenter[2]))
-      {
-        vtkErrorWithObjectMacro(this->External, "LoadRtIonPlan: Different isocenters for each beam are not yet supported! The first isocenter will be used for the whole plan " << planNode->GetName() << ": (" << planIsocenter[0] << ", " << planIsocenter[1] << ", " << planIsocenter[2] << ")");
-      }
-    }
-
-    // Add beam to scene (triggers poly data and transform creation and update)
-    scene->AddNode(beamNode);
-    // Add beam to plan
-    planNode->AddBeam(beamNode);
-    // Update beam transforms (batch processing prevents processing events that would do this)
-    this->External->BeamsLogic->UpdateTransformForBeam(beamNode);
-
-    // Create beam model hierarchy root node if has not been created yet
-    if (beamModelHierarchyRootNode.GetPointer() == nullptr)
-    {
-      beamModelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-      std::string beamModelHierarchyRootNodeName = seriesName + vtkSlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
-      beamModelHierarchyRootNodeName = scene->GenerateUniqueName(beamModelHierarchyRootNodeName);
-      beamModelHierarchyRootNode->SetName(beamModelHierarchyRootNodeName.c_str());
-      beamModelHierarchyRootNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
-      scene->AddNode(beamModelHierarchyRootNode);
-
-      // Create display node for the hierarchy node
-      vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelHierarchyRootDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-      std::string beamModelHierarchyRootDisplayNodeName = beamModelHierarchyRootNodeName + std::string("Display");
-      beamModelHierarchyRootDisplayNode->SetName(beamModelHierarchyRootDisplayNodeName.c_str());
-      beamModelHierarchyRootDisplayNode->SetVisibility(1);
-      scene->AddNode(beamModelHierarchyRootDisplayNode);
-      beamModelHierarchyRootNode->SetAndObserveDisplayNodeID(beamModelHierarchyRootDisplayNode->GetID());
-    }
-
-    // Put beam model in the model hierarchy
-    vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-    std::string beamModelHierarchyNodeName = std::string(beamNode->GetName()) + vtkSlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
-    beamModelHierarchyNode->SetName(beamModelHierarchyNodeName.c_str());
-    scene->AddNode(beamModelHierarchyNode);
-    beamModelHierarchyNode->SetAssociatedNodeID(beamNode->GetID());
-    beamModelHierarchyNode->SetParentNodeID(beamModelHierarchyRootNode->GetID());
-    beamModelHierarchyNode->SetIndexInParent(beamIndex);
-    beamModelHierarchyNode->HideFromEditorsOn();
-
-    // Create display node for the hierarchy node
-    vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelHierarchyDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-    std::string beamModelHierarchyDisplayNodeName = beamModelHierarchyNodeName + std::string("Display");
-    beamModelHierarchyDisplayNode->SetName(beamModelHierarchyDisplayNodeName.c_str());
-    beamModelHierarchyDisplayNode->SetVisibility(1);
-    scene->AddNode(beamModelHierarchyDisplayNode);
-    beamModelHierarchyNode->SetAndObserveDisplayNodeID(beamModelHierarchyDisplayNode->GetID());
-  }
-
-  // Insert plan isocenter series in subject hierarchy
-  vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy( rtReader, scene);
-
-  // Put plan SH item underneath study
-  vtkIdType studyItemID = shNode->GetItemByUID(
-    vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), rtReader->GetStudyInstanceUid());
-  if (studyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-  {
-    vtkErrorWithObjectMacro(this->External, "LoadRtIonPlan: Failed to find study subject hierarchy item");
-    return false;
-  }
-  if (planShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-  {
-    shNode->SetItemParent(planShItemID, studyItemID);
-  }
-  // Put plan markups under study within SH
-  vtkIdType planMarkupsShItemID = shNode->GetItemByDataNode(planNode->GetPoisMarkupsFiducialNode());
-  if (planMarkupsShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-  {
-    shNode->SetItemParent(planMarkupsShItemID, studyItemID);
-  }
-
-  // Compute and set geometry of possible RT image that references the loaded beams.
-  // Uses the referenced RT image if available, otherwise the geometry will be set up when loading the corresponding RT image
-  vtkSmartPointer<vtkCollection> beams = vtkSmartPointer<vtkCollection>::New();
-  planNode->GetBeams(beams);
+  // Exec after batch processing has ended (once again)
+  // Update beam node using observed nodes, and don't show display nodes of the beams
   if (beams)
   {
-    for (int i = 0; i<beams->GetNumberOfItems(); ++i)
+    for (int i=0; i<beams->GetNumberOfItems(); ++i)
     {
       vtkMRMLRTBeamNode *beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
-      this->SetupRtImageGeometry(beamNode);
+      if (beamNode)
+      {
+        beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
+
+        vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast(beamNode->GetDisplayNode());
+        if (displayNode)
+        {
+          displayNode->VisibilityOff();
+        }
+      }
     }
   }
-
-  scene->EndState(vtkMRMLScene::BatchProcessState);
-
   return true;
 }
 
@@ -958,134 +784,231 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
     return false;
   }
 
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
+  if (!shNode)
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadExternalBeamPlan: Failed to access subject hierarchy node");
+    return false;
+  }
   vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyRootNode;
 
   // Load beams in plan
   int numberOfBeams = rtReader->GetNumberOfBeams();
   for (int beamIndex = 0; beamIndex < numberOfBeams; beamIndex++) // DICOM starts indexing from 1
   {
-    vtkWarningWithObjectMacro( this->External, "LoadExternalBeamPlan: Loading beam index " << beamIndex);
     unsigned int dicomBeamNumber = rtReader->GetBeamNumberForIndex(beamIndex);
     const char* beamName = rtReader->GetBeamName(dicomBeamNumber);
+    unsigned int nofCointrolPoints = rtReader->GetNumberOfControlPoints(dicomBeamNumber);
 
-    // Create the beam node
-    vtkSmartPointer<vtkMRMLRTBeamNode> beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
-    beamNode->SetName(beamName);
-
-    // Set beam geometry parameters from DICOM
-    double jawPositions[2][2] = {{0.0, 0.0},{0.0, 0.0}};
-    rtReader->GetBeamLeafJawPositions(dicomBeamNumber, jawPositions);
-    beamNode->SetX1Jaw(jawPositions[0][0]);
-    beamNode->SetX2Jaw(jawPositions[0][1]);
-    beamNode->SetY1Jaw(jawPositions[1][0]);
-    beamNode->SetY2Jaw(jawPositions[1][1]);
-
-    beamNode->SetGantryAngle(rtReader->GetBeamGantryAngle(dicomBeamNumber));
-    beamNode->SetCollimatorAngle(rtReader->GetBeamBeamLimitingDeviceAngle(dicomBeamNumber));
-    beamNode->SetCouchAngle(rtReader->GetBeamPatientSupportAngle(dicomBeamNumber));
-
-    beamNode->SetSAD(rtReader->GetBeamSourceAxisDistance(dicomBeamNumber));
-
-    // Set isocenter to parent plan
-    double* isocenter = rtReader->GetBeamIsocenterPositionRas(dicomBeamNumber);
-    planNode->SetIsocenterSpecification(vtkMRMLRTPlanNode::ArbitraryPoint);
-    if (beamIndex == 0)
+    for ( unsigned int cointrolPointIndex = 0; cointrolPointIndex < nofCointrolPoints; ++cointrolPointIndex)
     {
-      if (!planNode->SetIsocenterPosition(isocenter))
+      // Create the beam node for each control point
+      vtkSmartPointer<vtkMRMLRTBeamNode> beamNode; // for RTPlan
+      vtkSmartPointer<vtkMRMLRTIonBeamNode> ionBeamNode; // for RTIonPlan
+      if (rtReader->GetLoadRTPlanSuccessful())
       {
-        vtkErrorWithObjectMacro(this->External, "LoadExternalBeamPlan: Failed to set isocenter position");
-        return false;
+        beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
       }
-    }
-    else
-    {
-      double planIsocenter[3] = {0.0, 0.0, 0.0};
-      if (!planNode->GetIsocenterPosition(planIsocenter))
+      else if (rtReader->GetLoadRTIonPlanSuccessful())
       {
-        vtkErrorWithObjectMacro(this->External, "LoadExternalBeamPlan: Failed to get plan isocenter position");
-        return false;
+        beamNode = ionBeamNode = vtkSmartPointer<vtkMRMLRTIonBeamNode>::New();
       }
-      //TODO: Multiple isocenters per plan is not yet supported. Will be part of the beams group nodes developed later
-      if ( !vtkSlicerRtCommon::AreEqualWithTolerance(planIsocenter[0], isocenter[0])
-        || !vtkSlicerRtCommon::AreEqualWithTolerance(planIsocenter[1], isocenter[1])
-        || !vtkSlicerRtCommon::AreEqualWithTolerance(planIsocenter[2], isocenter[2]) )
+
+      std::ostringstream nameStream;
+      const char* treatmentDeliveryType = rtReader->GetBeamTreatmentDeliveryType(dicomBeamNumber);
+      if (treatmentDeliveryType)
       {
-        vtkErrorWithObjectMacro(this->External, "LoadExternalBeamPlan: Different isocenters for each beam are not yet supported! The first isocenter will be used for the whole plan " << planNode->GetName() << ": (" << planIsocenter[0] << ", " << planIsocenter[1] << ", " << planIsocenter[2] << ")");
+        nameStream << std::string(beamName) << " [" << treatmentDeliveryType 
+          << "]" << std::string(" : CP") << cointrolPointIndex;
       }
-    }
+      else
+      {
+        nameStream << std::string(beamName) << std::string(" : CP") << cointrolPointIndex;
+      }
 
-    // Create MLC table node if MLCX or MLCY are available
-    std::vector<double> boundaries, positions;
-    vtkMRMLTableNode* tableNode = nullptr;
-    vtkMRMLDoubleArrayNode* arrayNode = nullptr;
-    // Check MLC
-    const char* mlcName = rtReader->GetBeamMultiLeafCollimatorPositions( dicomBeamNumber, 
-      boundaries, positions);
-    if (mlcName)
-    {
-      std::string mlcPositionString = std::string(mlcName) + "_Position" 
-        + " : " + beamNode->GetName();
-      tableNode = this->CreateMultiLeafCollimatorTableNode( 
-        mlcPositionString.c_str(), positions);
-      std::string mlcBoundaryString = std::string(mlcName) + "_Boundary" 
-        + " : " + beamNode->GetName();
-      arrayNode = this->CreateMultiLeafCollimatorDoubleArrayNode( 
-        mlcBoundaryString.c_str(), boundaries);
-    }
-    else
-    {
-      vtkDebugWithObjectMacro(this->External, "MLC data unavailable");
-    }
+      std::string newBeamName = nameStream.str();
+      beamNode->SetName(newBeamName.c_str());
 
-    // Add beam to scene (triggers poly data and transform creation and update)
-    scene->AddNode(beamNode);
-    // Add MLC to beam
-    if (tableNode && arrayNode) {
-      beamNode->SetAndObserveMLCBoundaryDoubleArrayNode(arrayNode);
-      beamNode->SetAndObserveMLCPositionTableNode(tableNode);
-    }
-    // Add beam to plan
-    planNode->AddBeam(beamNode);
-    // Update beam transforms (batch processing prevents processing events that would do this)
-    this->External->BeamsLogic->UpdateTransformForBeam(beamNode);
+      // Set beam geometry parameters from DICOM
+      double jawPositions[2][2] = {{0.0, 0.0},{0.0, 0.0}};
+      if (rtReader->GetControlPointJawPositions( dicomBeamNumber, cointrolPointIndex, jawPositions))
+      {
+        beamNode->SetX1Jaw(jawPositions[0][0]);
+        beamNode->SetX2Jaw(jawPositions[0][1]);
+        beamNode->SetY1Jaw(jawPositions[1][0]);
+        beamNode->SetY2Jaw(jawPositions[1][1]);
+      }
 
-    // Create beam model hierarchy root node if has not been created yet
-    if (beamModelHierarchyRootNode.GetPointer() == nullptr)
-    {
-      beamModelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-      std::string beamModelHierarchyRootNodeName = seriesName + vtkSlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
-      beamModelHierarchyRootNodeName = scene->GenerateUniqueName(beamModelHierarchyRootNodeName);
-      beamModelHierarchyRootNode->SetName(beamModelHierarchyRootNodeName.c_str());
-      beamModelHierarchyRootNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
-      scene->AddNode(beamModelHierarchyRootNode);
+      beamNode->SetGantryAngle(rtReader->GetControlPointGantryAngle( dicomBeamNumber, cointrolPointIndex));
+      beamNode->SetCollimatorAngle(rtReader->GetControlPointBeamLimitingDeviceAngle( dicomBeamNumber, cointrolPointIndex));
+      beamNode->SetCouchAngle(rtReader->GetControlPointPatientSupportAngle( dicomBeamNumber, cointrolPointIndex));
+
+      // SAD for RTPlan, source to beam limiting devices (Jaws, MLC)
+      if (beamNode && !ionBeamNode)
+      {
+        beamNode->SetSAD(rtReader->GetBeamSourceAxisDistance(dicomBeamNumber));
+        beamNode->SetSourceToJawsDistanceX(rtReader->GetBeamSourceToJawsDistanceX(dicomBeamNumber));
+        beamNode->SetSourceToJawsDistanceY(rtReader->GetBeamSourceToJawsDistanceY(dicomBeamNumber));
+        beamNode->SetSourceToMultiLeafCollimatorDistance(rtReader->GetBeamSourceToMultiLeafCollimatorDistance(dicomBeamNumber));
+      }
+      // VSAD for RTIonPlan
+      // isocenter to beam limiting devices (Jaws, MLC), scanning spot size for ion beams  
+      else if (ionBeamNode)
+      {
+        std::array< float, 2 > ScanSpotSize;
+        ionBeamNode->SetVSAD(rtReader->GetBeamVirtualSourceAxisDistance(dicomBeamNumber));
+        ionBeamNode->SetIsocenterToJawsDistanceX(rtReader->GetBeamIsocenterToJawsDistanceX(dicomBeamNumber));
+        ionBeamNode->SetIsocenterToJawsDistanceY(rtReader->GetBeamIsocenterToJawsDistanceY(dicomBeamNumber));
+        ionBeamNode->SetIsocenterToMultiLeafCollimatorDistance(rtReader->GetBeamIsocenterToMultiLeafCollimatorDistance(dicomBeamNumber));
+        bool res = rtReader->GetControlPointScanningSpotSize( dicomBeamNumber, 
+          cointrolPointIndex, ScanSpotSize);
+        if (res)
+        {
+          ionBeamNode->SetScanningSpotSize(ScanSpotSize);
+        }
+      }
+
+      // Set isocenter to parent plan
+      double* isocenter = rtReader->GetControlPointIsocenterPositionRas( dicomBeamNumber, 
+        cointrolPointIndex);
+      planNode->SetIsocenterSpecification(vtkMRMLRTPlanNode::ArbitraryPoint);
+      if (beamIndex == 0)
+      {
+        if (!planNode->SetIsocenterPosition(isocenter))
+        {
+          vtkErrorWithObjectMacro(this->External, "LoadExternalBeamPlan: Failed to set isocenter position");
+          return false;
+        }
+      }
+      else
+      {
+        double planIsocenter[3] = {0.0, 0.0, 0.0};
+        if (!planNode->GetIsocenterPosition(planIsocenter))
+        {
+          vtkErrorWithObjectMacro(this->External, "LoadExternalBeamPlan: Failed to get plan isocenter position");
+          return false;
+        }
+        //TODO: Multiple isocenters per plan is not yet supported. Will be part of the beams group nodes developed later
+        if ( !vtkSlicerRtCommon::AreEqualWithTolerance(planIsocenter[0], isocenter[0])
+          || !vtkSlicerRtCommon::AreEqualWithTolerance(planIsocenter[1], isocenter[1])
+          || !vtkSlicerRtCommon::AreEqualWithTolerance(planIsocenter[2], isocenter[2]) )
+        {
+          vtkErrorWithObjectMacro( this->External, "LoadExternalBeamPlan: Different isocenters for each beam are not yet supported! The first isocenter will be used for the whole plan " << planNode->GetName() << ": (" << planIsocenter[0] << ", " << planIsocenter[1] << ", " << planIsocenter[2] << ")");
+        }
+      }
+
+      // Create MLC table node if MLCX or MLCY are available
+      std::vector<double> boundaries, positions;
+      vtkMRMLTableNode* mlcTableNode = nullptr;
+      vtkMRMLDoubleArrayNode* mlcArrayNode = nullptr;
+      // Check MLC
+      const char* mlcName = rtReader->GetControlPointMultiLeafCollimatorPositions( dicomBeamNumber, 
+        cointrolPointIndex, boundaries, positions);
+      if (mlcName)
+      {
+        std::ostringstream mlcNameStreamPos;
+        mlcNameStreamPos << std::string(mlcName) << std::string("_CP")
+          << cointrolPointIndex << std::string(" : ") << std::string(beamName);
+      
+        std::string mlcPositionString = mlcNameStreamPos.str();
+        mlcTableNode = this->CreateMultiLeafCollimatorTableNode( 
+          mlcPositionString.c_str(), positions);
+
+        std::ostringstream mlcNameStreamBound;
+        mlcNameStreamBound << std::string(mlcName) << std::string("_Boundary_CP")
+          << cointrolPointIndex << std::string(" : ") << std::string(beamName);      
+
+        std::string mlcBoundaryString = mlcNameStreamBound.str();
+        mlcArrayNode = this->CreateMultiLeafCollimatorDoubleArrayNode( 
+          mlcBoundaryString.c_str(), boundaries);
+      }
+      else
+      {
+        vtkDebugWithObjectMacro(this->External, "MLC data unavailable");
+      }
+
+
+      // Check Scan Spot parameters of modulated ion beam
+      vtkMRMLTableNode* scanSpotTableNode = nullptr;
+      if (ionBeamNode)
+      {
+        std::vector<float> positions, weights;
+        bool result = rtReader->GetControlPointScanSpotParameters( dicomBeamNumber, 
+          cointrolPointIndex, positions, weights);
+        if (result)
+        {
+          std::ostringstream ssNameStream;
+          ssNameStream << std::string("ScanSpot_CP") << cointrolPointIndex 
+            << std::string(" : ") << std::string(beamName);
+          std::string ssString = ssNameStream.str();
+          scanSpotTableNode = CreateScanSpotTableNode( ssString.c_str(), positions, weights);
+        }
+        else
+        {
+          vtkDebugWithObjectMacro(this->External, "ScanSpot data unavailable");
+        }
+      }
+
+      // Add beam to scene (triggers poly data and transform creation and update)
+      scene->AddNode(beamNode);
+
+      // Add beam to plan
+      planNode->AddBeam(beamNode);
+
+      // Add MLC to beam or ion beam
+      if (beamNode && mlcTableNode && mlcArrayNode)
+      {
+        beamNode->SetAndObserveMLCBoundaryDoubleArrayNode(mlcArrayNode);
+        beamNode->SetAndObserveMLCPositionTableNode(mlcTableNode);
+      }
+
+      // Add scan spot to ion beam
+      if (ionBeamNode && scanSpotTableNode)
+      {
+        ionBeamNode->SetAndObserveScanSpotTableNode(scanSpotTableNode);
+      }
+
+      // Update beam transforms (batch processing prevents processing events that would do this)
+      this->External->BeamsLogic->UpdateTransformForBeam(beamNode);
+
+      // Create beam model hierarchy root node if has not been created yet
+      if (beamModelHierarchyRootNode.GetPointer() == nullptr)
+      {
+        beamModelHierarchyRootNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+        std::string beamModelHierarchyRootNodeName = seriesName + vtkSlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX;
+        beamModelHierarchyRootNodeName = scene->GenerateUniqueName(beamModelHierarchyRootNodeName);
+        beamModelHierarchyRootNode->SetName(beamModelHierarchyRootNodeName.c_str());
+        beamModelHierarchyRootNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
+        scene->AddNode(beamModelHierarchyRootNode);
+
+        // Create display node for the hierarchy node
+        vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelHierarchyRootDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+        std::string beamModelHierarchyRootDisplayNodeName = beamModelHierarchyRootNodeName + std::string("Display");
+        beamModelHierarchyRootDisplayNode->SetName(beamModelHierarchyRootDisplayNodeName.c_str());
+        beamModelHierarchyRootDisplayNode->SetVisibility(1);
+        scene->AddNode(beamModelHierarchyRootDisplayNode);
+        beamModelHierarchyRootNode->SetAndObserveDisplayNodeID( beamModelHierarchyRootDisplayNode->GetID() );
+      }
+
+      // Put beam model in the model hierarchy
+      vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
+      std::string beamModelHierarchyNodeName = std::string(beamNode->GetName()) + vtkSlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
+      beamModelHierarchyNode->SetName(beamModelHierarchyNodeName.c_str());
+      scene->AddNode(beamModelHierarchyNode);
+      beamModelHierarchyNode->SetAssociatedNodeID(beamNode->GetID());
+      beamModelHierarchyNode->SetParentNodeID(beamModelHierarchyRootNode->GetID());
+      beamModelHierarchyNode->SetIndexInParent(beamIndex);
+      beamModelHierarchyNode->HideFromEditorsOn();
 
       // Create display node for the hierarchy node
-      vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelHierarchyRootDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-      std::string beamModelHierarchyRootDisplayNodeName = beamModelHierarchyRootNodeName + std::string("Display");
-      beamModelHierarchyRootDisplayNode->SetName(beamModelHierarchyRootDisplayNodeName.c_str());
-      beamModelHierarchyRootDisplayNode->SetVisibility(1);
-      scene->AddNode(beamModelHierarchyRootDisplayNode);
-      beamModelHierarchyRootNode->SetAndObserveDisplayNodeID( beamModelHierarchyRootDisplayNode->GetID() );
-    }
-
-    // Put beam model in the model hierarchy
-    vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyNode = vtkSmartPointer<vtkMRMLModelHierarchyNode>::New();
-    std::string beamModelHierarchyNodeName = std::string(beamNode->GetName()) + vtkSlicerRtCommon::DICOMRTIMPORT_MODEL_HIERARCHY_NODE_NAME_POSTFIX;
-    beamModelHierarchyNode->SetName(beamModelHierarchyNodeName.c_str());
-    scene->AddNode(beamModelHierarchyNode);
-    beamModelHierarchyNode->SetAssociatedNodeID(beamNode->GetID());
-    beamModelHierarchyNode->SetParentNodeID(beamModelHierarchyRootNode->GetID());
-    beamModelHierarchyNode->SetIndexInParent(beamIndex);
-    beamModelHierarchyNode->HideFromEditorsOn();
-
-    // Create display node for the hierarchy node
-    vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelHierarchyDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-    std::string beamModelHierarchyDisplayNodeName = beamModelHierarchyNodeName + std::string("Display");
-    beamModelHierarchyDisplayNode->SetName(beamModelHierarchyDisplayNodeName.c_str());
-    beamModelHierarchyDisplayNode->SetVisibility(1);
-    scene->AddNode(beamModelHierarchyDisplayNode);
-    beamModelHierarchyNode->SetAndObserveDisplayNodeID( beamModelHierarchyDisplayNode->GetID() );
-  }
+      vtkSmartPointer<vtkMRMLModelDisplayNode> beamModelHierarchyDisplayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
+      std::string beamModelHierarchyDisplayNodeName = beamModelHierarchyNodeName + std::string("Display");
+      beamModelHierarchyDisplayNode->SetName(beamModelHierarchyDisplayNodeName.c_str());
+      beamModelHierarchyDisplayNode->SetVisibility(1);
+      scene->AddNode(beamModelHierarchyDisplayNode);
+      beamModelHierarchyNode->SetAndObserveDisplayNodeID( beamModelHierarchyDisplayNode->GetID() );
+    } // end of a control point
+  } // end of a beam
 
   return true;
 }
@@ -1558,6 +1481,55 @@ vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMu
   return nullptr;
 }
 
+//---------------------------------------------------------------------------
+vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateScanSpotTableNode( 
+  const char* name, const std::vector<float>& positions, 
+  const std::vector<float>& weights)
+{
+  vtkSmartPointer<vtkMRMLTableNode> tableNode = vtkSmartPointer<vtkMRMLTableNode>::New();
+  this->External->GetMRMLScene()->AddNode(tableNode);
+  tableNode->SetName(name);
+
+  vtkTable* table = tableNode->GetTable();
+  if (table)
+  {
+    // Scan spot positions X
+    vtkNew<vtkDoubleArray> posX;
+    posX->SetName("X");
+    table->AddColumn(posX);
+
+    // Scan spot positions Y
+    vtkNew<vtkDoubleArray> posY;
+    posY->SetName("Y");
+    table->AddColumn(posY);
+
+    // Scan spot meterset weights
+    vtkNew<vtkDoubleArray> msWeights;
+    msWeights->SetName("Weight");
+    table->AddColumn(msWeights);
+
+    vtkIdType size = positions.size() / 2;
+    table->SetNumberOfRows(size);
+    for ( vtkIdType row = 0; row < size; ++row)
+    {
+      table->SetValue( row, 0, positions[2 * row]);
+      table->SetValue( row, 1, positions[2 * row + 1]);
+      table->SetValue( row, 2, weights[row]);
+    }
+    tableNode->SetUseColumnNameAsColumnHeader(true);
+    tableNode->SetColumnDescription( "X", "Scan spot positions X");
+    tableNode->SetColumnDescription( "Y", "Scan spot positions Y");
+    tableNode->SetColumnDescription( "Weight", "Scan spot meterset weights");
+    return tableNode;
+  }
+  else
+  {
+    vtkErrorWithObjectMacro( this->External, 
+      "CreateScanSpotTableNode: unable to create vtkTable to fill scan spot parameters");
+  }
+  return nullptr;
+}
+
 //------------------------------------------------------------------------------
 void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::SetupRtImageGeometry(vtkMRMLNode* node)
 {
@@ -1981,13 +1953,11 @@ void vtkSlicerDicomRtImportExportModuleLogic::ExamineForLoad(vtkStringArray* fil
     // RTPlan
     else if (sopClass == UID_RTPlanStorage)
     {
-      vtkWarningMacro("ExamineForLoad: Checking RTPlan dataset");
       this->Internal->ExamineRtPlanDataset(dataset, name, referencedSOPInstanceUIDs);
     }
     // RTIonPlan
     else if (sopClass == UID_RTIonPlanStorage)
     {
-      vtkWarningMacro("ExamineForLoad: Checking RTIonPlan dataset");
       this->Internal->ExamineRtPlanDataset(dataset, name, referencedSOPInstanceUIDs);
     }
     // RTStructureSet
@@ -2061,14 +2031,12 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadDicomRT(vtkSlicerDICOMLoadable
   // RTPLAN
   if (rtReader->GetLoadRTPlanSuccessful())
   {
-    vtkWarningMacro("LoadDicomRT: RTPlan loaded successfully");
     loadSuccessful = this->Internal->LoadRtPlan(rtReader, loadable);
   }
 
   // RTIONPLAN
   if (rtReader->GetLoadRTIonPlanSuccessful())
   {
-    vtkWarningMacro("LoadDicomRT: RTIonPlan loaded successfully");
     loadSuccessful = this->Internal->LoadRtPlan(rtReader, loadable);
   }
 

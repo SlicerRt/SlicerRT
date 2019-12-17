@@ -186,6 +186,21 @@ public:
   /// Set beam weight
   vtkSetMacro(BeamWeight, double);
 
+  /// Get source to jaws X distance
+  vtkGetMacro(SourceToJawsDistanceX, double);
+  /// Set source to jaws X distance. Triggers \sa BeamTransformModified event and re-generation of beam model
+  void SetSourceToJawsDistanceX(double distance);
+
+  /// Get source to jaws Y distance
+  vtkGetMacro(SourceToJawsDistanceY, double);
+  /// Set source to jaws Y distance. Triggers \sa BeamTransformModified event and re-generation of beam model
+  void SetSourceToJawsDistanceY(double distance);
+
+  /// Get source to multi-leaf collimator distance
+  vtkGetMacro(SourceToMultiLeafCollimatorDistance, double);
+  /// Set source to multi-leaf collimator distance. Triggers \sa BeamTransformModified event and re-generation of beam model
+  void SetSourceToMultiLeafCollimatorDistance(double distance);
+
 protected:
   /// Create beam model from beam parameters, supporting MLC leaves
   /// \param beamModelPolyData Output polydata. If none given then the beam node's own polydata is used
@@ -216,6 +231,13 @@ protected:
   double Y2Jaw;
   /// Source-axis distance
   double SAD;
+
+  /// distance from source to beam limiting device X, ASYMX
+  double SourceToJawsDistanceX;
+  /// distance from source to beam limiting device Y, ASYMY
+  double SourceToJawsDistanceY;
+  /// distance from source to beam limiting device MLCX, MLCY
+  double SourceToMultiLeafCollimatorDistance;
 
   /// Gantry angle
   double GantryAngle;
