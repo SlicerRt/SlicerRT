@@ -747,20 +747,52 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
   scene->EndState(vtkMRMLScene::BatchProcessState);
 
   // Exec after batch processing has ended (once again)
-  // Update beam node using observed nodes, and don't show display nodes of the beams
   if (beams)
   {
     for (int i=0; i<beams->GetNumberOfItems(); ++i)
     {
       vtkMRMLRTBeamNode *beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
+
+      vtkIdType beamShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
+      vtkIdType mlcPositionShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
+
       if (beamNode)
       {
+        // Update beam node using observed nodes, and don't show display nodes of the beams
+        // set beam node as a parent for a observed nodes
         beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
-
         vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast(beamNode->GetDisplayNode());
         if (displayNode)
         {
           displayNode->VisibilityOff();
+        }
+        // put observed mlc data under beam and ion beam node parent
+        beamShId = shNode->GetItemByDataNode(beamNode);
+        if (vtkMRMLTableNode* mlcTableNode = beamNode->GetMLCPositionTableNode())
+        {
+          mlcPositionShId = shNode->GetItemByDataNode(mlcTableNode);
+        }
+        if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
+          mlcPositionShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+        {
+          shNode->SetItemParent( mlcPositionShId, beamShId);
+        }
+
+        // put observed scan spot data under ion beam node parent
+        if (vtkMRMLRTIonBeamNode *ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(beamNode))
+        {
+          vtkIdType scanSpotShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
+
+          if (vtkMRMLTableNode* scanSpotTableNode = ionBeamNode->GetScanSpotTableNode())
+          {
+            scanSpotShId = shNode->GetItemByDataNode(scanSpotTableNode);
+          }
+
+          if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
+            scanSpotShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+          {
+            shNode->SetItemParent( scanSpotShId, beamShId);
+          }
         }
       }
     }
@@ -819,11 +851,11 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
       if (treatmentDeliveryType)
       {
         nameStream << std::string(beamName) << " [" << treatmentDeliveryType 
-          << "]" << std::string(" : CP") << cointrolPointIndex;
+          << "] : CP" << cointrolPointIndex;
       }
       else
       {
-        nameStream << std::string(beamName) << std::string(" : CP") << cointrolPointIndex;
+        nameStream << std::string(beamName) << " : CP" << cointrolPointIndex;
       }
 
       std::string newBeamName = nameStream.str();
@@ -906,25 +938,17 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
         cointrolPointIndex, boundaries, positions);
       if (mlcName)
       {
-        std::ostringstream mlcNameStreamPos;
-        mlcNameStreamPos << std::string(mlcName) << std::string("_CP")
-          << cointrolPointIndex << std::string(" : ") << std::string(beamName);
-      
-        std::string mlcPositionString = mlcNameStreamPos.str();
+        std::string mlcPositionString = std::string(mlcName) + "_Position";
         mlcTableNode = this->CreateMultiLeafCollimatorTableNode( 
-          mlcPositionString.c_str(), positions);
+          mlcPositionString.c_str(), positions);    
 
-        std::ostringstream mlcNameStreamBound;
-        mlcNameStreamBound << std::string(mlcName) << std::string("_Boundary_CP")
-          << cointrolPointIndex << std::string(" : ") << std::string(beamName);      
-
-        std::string mlcBoundaryString = mlcNameStreamBound.str();
+        std::string mlcBoundaryString = std::string(mlcName) + "_Boundary";
         mlcArrayNode = this->CreateMultiLeafCollimatorDoubleArrayNode( 
           mlcBoundaryString.c_str(), boundaries);
       }
       else
       {
-        vtkDebugWithObjectMacro(this->External, "MLC data unavailable");
+        vtkDebugWithObjectMacro( this->External, "MLC data unavailable");
       }
 
 
@@ -937,15 +961,11 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
           cointrolPointIndex, positions, weights);
         if (result)
         {
-          std::ostringstream ssNameStream;
-          ssNameStream << std::string("ScanSpot_CP") << cointrolPointIndex 
-            << std::string(" : ") << std::string(beamName);
-          std::string ssString = ssNameStream.str();
-          scanSpotTableNode = CreateScanSpotTableNode( ssString.c_str(), positions, weights);
+          scanSpotTableNode = CreateScanSpotTableNode( "ScanSpot_PositionMap_MetersetWeights", positions, weights);
         }
         else
         {
-          vtkDebugWithObjectMacro(this->External, "ScanSpot data unavailable");
+          vtkDebugWithObjectMacro( this->External, "ScanSpot data unavailable");
         }
       }
 
