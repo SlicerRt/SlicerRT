@@ -347,10 +347,9 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
   }
   else
   {
-    vtkErrorMacro("CreateBeamPolyData: Invalid table node with " \
+    vtkWarningMacro("CreateBeamPolyData: Invalid or absent table node with " \
       "scan spot parameters for a node " 
       << "\"" << this->GetName() << "\"");
-    return;
   }
     
   // Scanning spot beam
