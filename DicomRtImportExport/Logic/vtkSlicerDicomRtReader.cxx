@@ -77,7 +77,7 @@ public:
   public:
     BeamLimitingDeviceEntry()
       :
-      SourceIsoDistance(0.),
+      SourceIsoDistance(400.),
       NumberOfPairs(0)
     {
     }
@@ -253,7 +253,7 @@ public:
       Number(0),
       Type("STATIC"),
       RadiationIon({ 0, 0, 0 }),
-      SourceAxisDistance({ 1000., 1000. }),
+      SourceAxisDistance({ 2000., 2000. }),
       SourceIsoToJawsDistance({ 500., 500. }),
       NumberOfCompensators(0),
       NumberOfBlocks(0),
@@ -474,7 +474,7 @@ vtkSlicerDicomRtReader::vtkInternal::ControlPointEntry::ControlPointEntry()
   BeamLimitingDeviceAngle(0.0),
   NominalBeamEnergy(0.0),
   MetersetRate(0.0),
-  JawPositions({ 0.0, 0.0, 0.0, 0.0 })
+  JawPositions({ -100.0, 100.0, -100.0, 100.0 })
 {
 }
 
@@ -1763,7 +1763,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
             controlPoint.NumberOfPaintings = nofPaintings;
           }
         }
-        
+
         DRTBeamLimitingDevicePositionSequence &currentCollimatorPositionSequence =
           controlPointItem.getBeamLimitingDevicePositionSequence();
         if (currentCollimatorPositionSequence.isValid() &&
