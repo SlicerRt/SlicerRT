@@ -245,6 +245,20 @@ protected:
   double CollimatorAngle;
   /// Couch angle
   double CouchAngle;
+
+private:
+  /// Visible multi-leaf collimator points
+  typedef std::vector< std::pair< double, double > > MLCVisiblePointVector;
+  /// Multi-leaf collimator boundary position parameters 
+  typedef std::vector< std::array< double, 4 > > MLCBoundaryPositionVector;
+  /// Start and stop border of multi-leaf collimator opened section
+  typedef std::vector< std::pair< MLCBoundaryPositionVector::iterator, MLCBoundaryPositionVector::iterator > > MLCSectionVector;
+
+  /// \brief Create visible points of MLC enclosure (perimeter) 
+  ///  in IEC BEAM LIMITING DEVICE coordinate axis (isocenter plane)
+  void CreateMLCPointsFromSectionBorder( double jawBegin, double jawEnd, 
+    bool typeMLCX, bool typeMLCY, const MLCSectionVector::value_type& sectionBorder, 
+    MLCVisiblePointVector& side12);
 };
 
 #endif // __vtkMRMLRTBeamNode_h

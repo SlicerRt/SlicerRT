@@ -78,13 +78,14 @@ public:
     BeamLimitingDeviceEntry()
       :
       SourceIsoDistance(400.),
-      NumberOfPairs(0)
+      NumberOfLeafJawPairs(0)
     {
     }
-    /// Source to BeamLimitingDevice (MLC) distance for RTPlan (first element)
+    /// Source to BeamLimitingDevice (MLC) distance for RTPlan
     /// or Isocenter to BeamLimitingDevice (MLC) distance for RTIonPlan
     double SourceIsoDistance;
-    unsigned int NumberOfPairs;
+    /// Number of leaf pairs for MLC, or 1 for symmetric or asymmetric jaws
+    unsigned int NumberOfLeafJawPairs;
     /// MLC position boundaries: Raw DICOM values
     std::vector<double> LeafPositionBoundary;
   };
@@ -95,7 +96,7 @@ public:
   public:
     RangeShifterEntry()
       :
-      Number(0),
+      Number(-1),
       Type("BINARY")
     {
     }
@@ -106,7 +107,8 @@ public:
     std::string Description;
   };
 
-  /// Structure storing a treatment compensator parameters associated with beam
+  //TODO: Add support of compensators
+  //Structure storing a treatment compensator parameters associated with beam
   class CompensatorEntry
   {
   public:
@@ -115,7 +117,8 @@ public:
     }
   };
 
-  /// Structure storing a shielding block parameters associated with beam
+  //TODO: Add support of shielding blocks
+  //Structure storing a shielding block parameters associated with beam
   class BlockEntry
   {
   public:
@@ -148,12 +151,13 @@ public:
   /// List of loaded contour ROIs from structure set
   std::vector<RoiEntry> RoiSequenceVector;
 
+  //TODO: Use referenced beams to load beams in correct order
   class ReferencedBeamEntry
   {
     public:
       ReferencedBeamEntry()
         :
-        Number(0)
+        Number(-1)
       {
       }
       unsigned int Number; /// Referenced Beam Number (300C,0006)
@@ -162,13 +166,14 @@ public:
       std::vector< std::pair< double, unsigned int > > BeamDoseVerificationControlPointSequenceVector;
   };
 
+  //TODO: Use fraction entry to check that RTPlan data is valid
   /// Structure storing Fraction information of RT plan or RT Ion plan
   class FractionEntry
   {
   public:
     FractionEntry()
       :
-      Number(0),
+      Number(-1),
       NumberOfFractionsPlanned(0),
       NumberOfBeams(0),
       NumberOfBrachyApplicationSetups(0)
@@ -250,7 +255,7 @@ public:
   public:
     BeamEntry()
       :
-      Number(0),
+      Number(-1),
       Type("STATIC"),
       RadiationIon({ 0, 0, 0 }),
       SourceAxisDistance({ 2000., 2000. }),
@@ -322,7 +327,7 @@ public:
   public:
     ChannelEntry()
     {
-      Number = 0;
+      Number = -1;
       NumberOfControlPoints = 0;
       Length = 0.0;
       TotalTime = 0.0;
@@ -985,12 +990,12 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
             }
             else if (!deviceType.compare("MLCX") || !deviceType.compare("MLCY"))
             {              
-              OFCondition getNumberOfPairsCondition = collimatorItem.getNumberOfLeafJawPairs(nofPairs);
-              if (getNumberOfPairsCondition.good())
+              OFCondition getNumberOfLeafJawPairsCondition = collimatorItem.getNumberOfLeafJawPairs(nofPairs);
+              if (getNumberOfLeafJawPairsCondition.good())
               {
                 std::string& type = beamEntry.MultiLeafCollimatorType;
                 double& mlcDistance = beamEntry.MultiLeafCollimator.SourceIsoDistance;
-                unsigned int& pairs = beamEntry.MultiLeafCollimator.NumberOfPairs;
+                unsigned int& pairs = beamEntry.MultiLeafCollimator.NumberOfLeafJawPairs;
                 std::vector<double>& bounds = beamEntry.MultiLeafCollimator.LeafPositionBoundary;
                 OFVector<Float64> leafPositionBoundaries;
                 OFCondition getBoundariesCondition = collimatorItem.getLeafPositionBoundaries(leafPositionBoundaries);
@@ -1553,12 +1558,12 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
             }
             else if (!deviceType.compare("MLCX") || !deviceType.compare("MLCY"))
             {              
-              OFCondition getNumberOfPairsCondition = collimatorItem.getNumberOfLeafJawPairs(nofPairs);
-              if (getNumberOfPairsCondition.good())
+              OFCondition getNumberOfLeafJawPairsCondition = collimatorItem.getNumberOfLeafJawPairs(nofPairs);
+              if (getNumberOfLeafJawPairsCondition.good())
               {
                 std::string& type = beamEntry.MultiLeafCollimatorType;
                 double& mlcDistance = beamEntry.MultiLeafCollimator.SourceIsoDistance;
-                unsigned int& pairs = beamEntry.MultiLeafCollimator.NumberOfPairs;
+                unsigned int& pairs = beamEntry.MultiLeafCollimator.NumberOfLeafJawPairs;
                 std::vector<double>& bounds = beamEntry.MultiLeafCollimator.LeafPositionBoundary;
                 OFVector<Float64> leafPositionBoundaries;
                 OFCondition getBoundariesCondition = collimatorItem.getLeafPositionBoundaries(leafPositionBoundaries);
@@ -1696,7 +1701,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
           controlPoint.CumulativeMetersetWeight = cumulativeMetersetWeight;
         }
 
-        if (beamEntry.ScanMode == "MODULATED")
+        if (!beamEntry.ScanMode.compare("MODULATED") || !beamEntry.ScanMode.compare("MODULATED_SPEC"))
         {
           OFString scanSpotTuneId("");
           dataCondition = controlPointItem.getScanSpotTuneID(scanSpotTuneId);
@@ -1746,7 +1751,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
               dataCondition = controlPointItem.getScanSpotPositionMap( y, 2 * i + 1);
               if (dataCondition.good())
               {
-                controlPoint.ScanSpotPositionMap.at(2 * i + 1) = float(x);
+                controlPoint.ScanSpotPositionMap.at(2 * i + 1) = float(y);
               }
 
               dataCondition = controlPointItem.getScanSpotMetersetWeights( w, i);
@@ -2622,10 +2627,9 @@ int vtkSlicerDicomRtReader::GetNumberOfBeams()
 }
 
 //----------------------------------------------------------------------------
-unsigned int vtkSlicerDicomRtReader::GetNumberOfControlPoints(unsigned int beamNumber)
+unsigned int vtkSlicerDicomRtReader::GetBeamNumberOfControlPoints(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
-
   if (beam)
   {
     return (beam->ControlPointSequenceVector.size() > 1) ? beam->ControlPointSequenceVector.size() : 0;
@@ -2650,10 +2654,10 @@ const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int beamNumber)
   return (beam->Name.empty() ? vtkSlicerRtCommon::DICOMRTIMPORT_NO_NAME : beam->Name).c_str();
 }
 
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------- DEPRICATED
 double* vtkSlicerDicomRtReader::GetBeamIsocenterPositionRas(unsigned int beamNumber)
 {
-  return GetControlPointIsocenterPositionRas( beamNumber, 0);
+  return GetBeamControlPointIsocenterPositionRas( beamNumber, 0);
 }
 
 //----------------------------------------------------------------------------
@@ -2679,7 +2683,7 @@ const char* vtkSlicerDicomRtReader::GetBeamRadiationType(unsigned int beamNumber
 }
 
 //----------------------------------------------------------------------------
-double vtkSlicerDicomRtReader::GetControlPointNominalBeamEnergy( unsigned int beamNumber, 
+double vtkSlicerDicomRtReader::GetBeamControlPointNominalBeamEnergy( unsigned int beamNumber, 
   unsigned int controlPointIndex)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
@@ -2692,7 +2696,7 @@ double vtkSlicerDicomRtReader::GetControlPointNominalBeamEnergy( unsigned int be
 }
 
 //----------------------------------------------------------------------------
-double* vtkSlicerDicomRtReader::GetControlPointIsocenterPositionRas( unsigned int beamNumber,
+double* vtkSlicerDicomRtReader::GetBeamControlPointIsocenterPositionRas( unsigned int beamNumber,
   unsigned int controlPointIndex)
 {
   vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
@@ -2728,14 +2732,14 @@ double* vtkSlicerDicomRtReader::GetBeamVirtualSourceAxisDistance(unsigned int be
   return beam->SourceAxisDistance.data();
 }
 
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------- DEPRICATED
 double vtkSlicerDicomRtReader::GetBeamGantryAngle(unsigned int beamNumber)
 {
-  return GetControlPointGantryAngle( beamNumber, 0);
+  return GetBeamControlPointGantryAngle( beamNumber, 0);
 }
 
 //----------------------------------------------------------------------------
-double vtkSlicerDicomRtReader::GetControlPointGantryAngle( unsigned int beamNumber, 
+double vtkSlicerDicomRtReader::GetBeamControlPointGantryAngle( unsigned int beamNumber, 
   unsigned int controlPointIndex)
 {
   vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
@@ -2757,14 +2761,14 @@ double vtkSlicerDicomRtReader::GetControlPointGantryAngle( unsigned int beamNumb
   return 0.0;
 }
 
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------- DEPRICATED
 double vtkSlicerDicomRtReader::GetBeamPatientSupportAngle(unsigned int beamNumber)
 {
-  return GetControlPointPatientSupportAngle( beamNumber, 0);
+  return GetBeamControlPointPatientSupportAngle( beamNumber, 0);
 }
 
 //----------------------------------------------------------------------------
-double vtkSlicerDicomRtReader::GetControlPointPatientSupportAngle( unsigned int beamNumber, 
+double vtkSlicerDicomRtReader::GetBeamControlPointPatientSupportAngle( unsigned int beamNumber, 
   unsigned int controlPointIndex)
 {
   vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
@@ -2786,14 +2790,14 @@ double vtkSlicerDicomRtReader::GetControlPointPatientSupportAngle( unsigned int 
   return 0.0;
 }
 
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------- DEPRICATED
 double vtkSlicerDicomRtReader::GetBeamBeamLimitingDeviceAngle(unsigned int beamNumber)
 {
-  return GetControlPointBeamLimitingDeviceAngle( beamNumber, 0);
+  return GetBeamControlPointBeamLimitingDeviceAngle( beamNumber, 0);
 }
 
 //----------------------------------------------------------------------------
-double vtkSlicerDicomRtReader::GetControlPointBeamLimitingDeviceAngle( unsigned int beamNumber, 
+double vtkSlicerDicomRtReader::GetBeamControlPointBeamLimitingDeviceAngle( unsigned int beamNumber, 
   unsigned int controlPointIndex)
 {
   vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
@@ -2815,14 +2819,14 @@ double vtkSlicerDicomRtReader::GetControlPointBeamLimitingDeviceAngle( unsigned 
   return 0.0;
 }
 
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------- DEPRICATED
 void vtkSlicerDicomRtReader::GetBeamLeafJawPositions(unsigned int beamNumber, double jawPositions[2][2])
 {
-  GetControlPointJawPositions( beamNumber, 0, jawPositions);
+  GetBeamControlPointJawPositions( beamNumber, 0, jawPositions);
 }
 
 //----------------------------------------------------------------------------
-bool vtkSlicerDicomRtReader::GetControlPointJawPositions( unsigned int beamNumber, 
+bool vtkSlicerDicomRtReader::GetBeamControlPointJawPositions( unsigned int beamNumber, 
   unsigned int controlPointIndex, double jawPositions[2][2])
 {
   vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
@@ -2848,23 +2852,23 @@ bool vtkSlicerDicomRtReader::GetControlPointJawPositions( unsigned int beamNumbe
   return false;
 }
 
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------- DEPRICATED
 const char* vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositions( unsigned int beamNumber, 
   std::vector<double>& pairBoundaries, std::vector<double>& leafPositions)
 {
-  return GetControlPointMultiLeafCollimatorPositions( beamNumber, 0, 
+  return GetBeamControlPointMultiLeafCollimatorPositions( beamNumber, 0, 
     pairBoundaries, leafPositions);
 }
 
 //----------------------------------------------------------------------------
-const char* vtkSlicerDicomRtReader::GetControlPointMultiLeafCollimatorPositions( unsigned int beamNumber, 
+const char* vtkSlicerDicomRtReader::GetBeamControlPointMultiLeafCollimatorPositions( unsigned int beamNumber, 
   unsigned int controlPointIndex, std::vector<double>& pairBoundaries, 
   std::vector<double>& leafPositions)
 {
   vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
   if (beam)
   {
-    const unsigned int& pairs = beam->MultiLeafCollimator.NumberOfPairs;
+    const unsigned int& pairs = beam->MultiLeafCollimator.NumberOfLeafJawPairs;
     const std::string& mlcType = beam->MultiLeafCollimatorType;
     if (mlcType.empty())
     {
@@ -2907,7 +2911,7 @@ const char* vtkSlicerDicomRtReader::GetControlPointMultiLeafCollimatorPositions(
 }
 
 //----------------------------------------------------------------------------
-bool vtkSlicerDicomRtReader::GetControlPointScanSpotParameters( unsigned int beamNumber, 
+bool vtkSlicerDicomRtReader::GetBeamControlPointScanSpotParameters( unsigned int beamNumber, 
   unsigned int controlPointIndex, std::vector<float>& positionMap, 
   std::vector<float>& metersetWeights)
 {
@@ -2953,7 +2957,7 @@ bool vtkSlicerDicomRtReader::GetControlPointScanSpotParameters( unsigned int bea
 }
 
 //----------------------------------------------------------------------------
-bool vtkSlicerDicomRtReader::GetControlPointScanningSpotSize( unsigned int beamNumber, 
+bool vtkSlicerDicomRtReader::GetBeamControlPointScanningSpotSize( unsigned int beamNumber, 
   unsigned int controlPointIndex, std::array< float, 2 >& ScanSpotSize)
 {
   vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);

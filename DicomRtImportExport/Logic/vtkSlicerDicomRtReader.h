@@ -80,7 +80,7 @@ public:
 
   /// Get number of control points for a given beams
   /// \result >= 2 if number of control points are valid, 0 otherwise
-  unsigned int GetNumberOfControlPoints(unsigned int beamNumber);
+  unsigned int GetBeamNumberOfControlPoints(unsigned int beamNumber);
 
   /// Get beam number (as defined in DICOM) for a beam index (that is between 0 and numberOfBeams-1)
   unsigned int GetBeamNumberForIndex(unsigned int index);
@@ -98,11 +98,11 @@ public:
   const char* GetBeamRadiationType(unsigned int beamNumber);
 
   /// Get isocenter for a given control point of a beam
-  double* GetControlPointIsocenterPositionRas( unsigned int beamNumber, 
+  double* GetBeamControlPointIsocenterPositionRas( unsigned int beamNumber, 
     unsigned int controlPointIndex);
 
   /// Get nominal beam energy for a given control point of a beam
-  double GetControlPointNominalBeamEnergy( unsigned int beamNumber, 
+  double GetBeamControlPointNominalBeamEnergy( unsigned int beamNumber, 
     unsigned int controlPoint);
 
   /// Get source axis distance for a given beam
@@ -116,21 +116,21 @@ public:
   double GetBeamGantryAngle(unsigned int beamNumber); // DEPRICATED
 
   /// Get gantry angle for a given control point of a beam
-  double GetControlPointGantryAngle( unsigned int beamNumber, 
+  double GetBeamControlPointGantryAngle( unsigned int beamNumber, 
     unsigned int controlPoint);
 
   /// Get beam patient support (couch) angle for a given beam
   double GetBeamPatientSupportAngle(unsigned int beamNumber); // DEPRICATED
 
   /// Get patient support (couch) angle for a given control point of a beam
-  double GetControlPointPatientSupportAngle( unsigned int beamNumber, 
+  double GetBeamControlPointPatientSupportAngle( unsigned int beamNumber, 
     unsigned int controlPoint);
 
   /// Get beam beam limiting device (collimator) angle for a given beam
   double GetBeamBeamLimitingDeviceAngle(unsigned int beamNumber); // DEPRICATED
 
   /// Get beam limiting device (collimator) angle for a given control point of a beam
-  double GetControlPointBeamLimitingDeviceAngle( unsigned int beamNumber, 
+  double GetBeamControlPointBeamLimitingDeviceAngle( unsigned int beamNumber, 
     unsigned int controlPoint);
 
   /// Get beam leaf jaw positions for a given beam
@@ -140,7 +140,7 @@ public:
   /// Get jaw positions for a given control point of a beam
   /// \param jawPositions Array in which the jaw positions are copied
   /// \return true if jaw positions are valid, false otherwise 
-  bool GetControlPointJawPositions( unsigned int beamNumber, 
+  bool GetBeamControlPointJawPositions( unsigned int beamNumber, 
     unsigned int controlPoint, double jawPositions[2][2]);
 
   /// Get MLC leaves boundaries & leaves positions opening for a given beam
@@ -155,14 +155,14 @@ public:
   /// \param positionMap Array in which the raw position map are copied
   /// \param metersetWeights Array in which the raw meterset weights are copied
   /// \return true if data is valid, false otherwise
-  bool GetControlPointScanSpotParameters( unsigned int beamNumber, 
+  bool GetBeamControlPointScanSpotParameters( unsigned int beamNumber, 
     unsigned int controlPointIndex, std::vector<float>& positionMap, 
     std::vector<float>& metersetWeights);
 
   /// Get Scan spot size for a given control point of a modulated ion beam
   /// \param ScanSpotSize Array in which the raw scanning spot size is copied
   /// \return true if data is valid, false otherwise
-  bool GetControlPointScanningSpotSize( unsigned int beamNumber, 
+  bool GetBeamControlPointScanningSpotSize( unsigned int beamNumber, 
     unsigned int controlPointIndex, std::array< float, 2 >& ScanSpotSize);
 
   /// Get source to beam limiting device distance (MLC) for a given beam of RTPlan
@@ -190,7 +190,7 @@ public:
   /// \param pairBoundaries Array in which the raw leaves boundaries are copied
   /// \param leafPositions Array in which the raw leaf positions are copied
   /// \return "MLCX" or "MLCY" if data is valid, nullptr otherwise
-  const char* GetControlPointMultiLeafCollimatorPositions( unsigned int beamNumber, 
+  const char* GetBeamControlPointMultiLeafCollimatorPositions( unsigned int beamNumber, 
     unsigned int controlPoint, std::vector<double>& pairBoundaries, 
     std::vector<double>& leafPositions);
 

@@ -63,10 +63,10 @@ vtkMRMLNodeNewMacro(vtkMRMLRTIonBeamNode);
 vtkMRMLRTIonBeamNode::vtkMRMLRTIonBeamNode()
   :
   Superclass(),
-  VSADx(Superclass::SAD),
-  IsocenterToJawsDistanceX(Superclass::SourceToJawsDistanceX),
-  IsocenterToJawsDistanceY(Superclass::SourceToJawsDistanceY),
-  IsocenterToMultiLeafCollimatorDistance(Superclass::SourceToMultiLeafCollimatorDistance),
+  VSADx(vtkMRMLRTBeamNode::SAD),
+  IsocenterToJawsDistanceX(vtkMRMLRTBeamNode::SourceToJawsDistanceX),
+  IsocenterToJawsDistanceY(vtkMRMLRTBeamNode::SourceToJawsDistanceY),
+  IsocenterToMultiLeafCollimatorDistance(vtkMRMLRTBeamNode::SourceToMultiLeafCollimatorDistance),
   IsocenterToRangeShifterDistance(4000.),
   ScanningSpotSize({ 15.0, 15.0 })
 {
@@ -88,64 +88,32 @@ void vtkMRMLRTIonBeamNode::WriteXML(ostream& of, int nIndent)
 {
   Superclass::WriteXML(of, nIndent);
 
+  vtkMRMLWriteXMLBeginMacro(of);
   // Write all MRML node attributes into output stream
-  of << " VSADx=\"" << this->VSADx << "\"";
-  of << " VSADy=\"" << this->VSADy << "\"";
-  of << " IsocenterToJawsDistanceX=\"" << this->IsocenterToJawsDistanceX << "\"";
-  of << " IsocenterToJawsDistanceY=\"" << this->IsocenterToJawsDistanceY << "\"";
-  of << " IsocenterToMultiLeafCollimatorDistance=\"" << this->IsocenterToMultiLeafCollimatorDistance << "\"";
-  of << " IsocenterToRangeShifterDistance=\"" << this->IsocenterToRangeShifterDistance << "\"";
-  of << " ScanningSpotSizeX=\"" << this->ScanningSpotSize[0] << "\"";
-  of << " ScanningSpotSizeY=\"" << this->ScanningSpotSize[1] << "\"";
+  vtkMRMLWriteXMLFloatMacro( VSADx, VSADx);
+  vtkMRMLWriteXMLFloatMacro( VSADy, VSADy);
+  vtkMRMLWriteXMLFloatMacro( IsocenterToJawsDistanceX, IsocenterToJawsDistanceX);
+  vtkMRMLWriteXMLFloatMacro( IsocenterToJawsDistanceY, IsocenterToJawsDistanceY);
+  vtkMRMLWriteXMLFloatMacro( IsocenterToMultiLeafCollimatorDistance, IsocenterToMultiLeafCollimatorDistance);
+  vtkMRMLWriteXMLFloatMacro( IsocenterToRangeShifterDistance, IsocenterToRangeShifterDistance);
+  vtkMRMLWriteXMLVectorMacro( ScanningSpotSize, ScanningSpotSize, float, 2);
+  vtkMRMLWriteXMLEndMacro();
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTIonBeamNode::ReadXMLAttributes(const char** atts)
 {
   Superclass::ReadXMLAttributes(atts);
-
-  // Read all MRML node attributes from two arrays of names and values
-  const char* attName = nullptr;
-  const char* attValue = nullptr;
-
-  while (*atts != nullptr)
-  {
-    attName = *(atts++);
-    attValue = *(atts++);
-
-    if (!strcmp( attName, "VSADx"))
-    {
-      this->VSADx = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp( attName, "VSADy"))
-    {
-      this->VSADy = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp( attName, "IsocenterToJawsDistanceX"))
-    {
-      this->IsocenterToJawsDistanceX = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp( attName, "IsocenterToJawsDistanceY"))
-    {
-      this->IsocenterToJawsDistanceY = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp( attName, "IsocenterToMultiLeafCollimatorDistance"))
-    {
-      this->IsocenterToMultiLeafCollimatorDistance = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp( attName, "IsocenterToRangeShifterDistance"))
-    {
-      this->IsocenterToRangeShifterDistance = vtkVariant(attValue).ToDouble();
-    }
-    else if (!strcmp( attName, "ScanningSpotSizeX"))
-    {
-      this->ScanningSpotSize[0] = vtkVariant(attValue).ToFloat();
-    }
-    else if (!strcmp( attName, "ScanningSpotSizeY"))
-    {
-      this->ScanningSpotSize[1] = vtkVariant(attValue).ToFloat();
-    }
-  }
+  
+  vtkMRMLReadXMLBeginMacro(atts);
+  vtkMRMLReadXMLFloatMacro( VSADx, VSADx);
+  vtkMRMLReadXMLFloatMacro( VSADy, VSADy);
+  vtkMRMLReadXMLFloatMacro( IsocenterToJawsDistanceX, IsocenterToJawsDistanceX);
+  vtkMRMLReadXMLFloatMacro( IsocenterToJawsDistanceY, IsocenterToJawsDistanceY);
+  vtkMRMLReadXMLFloatMacro( IsocenterToMultiLeafCollimatorDistance, IsocenterToMultiLeafCollimatorDistance);
+  vtkMRMLReadXMLFloatMacro( IsocenterToRangeShifterDistance, IsocenterToRangeShifterDistance);
+  vtkMRMLReadXMLVectorMacro( ScanningSpotSize, ScanningSpotSize, float, 2);
+  vtkMRMLReadXMLEndMacro();
 }
 
 //----------------------------------------------------------------------------
@@ -153,6 +121,8 @@ void vtkMRMLRTIonBeamNode::ReadXMLAttributes(const char** atts)
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLRTIonBeamNode::Copy(vtkMRMLNode *anode)
 {
+  int disabledModify = this->StartModify();
+
   // Do not call Copy function of the direct model base class, as it copies the poly data too,
   // which is undesired for beams, as they generate their own poly data from their properties.
   vtkMRMLDisplayableNode::Copy(anode);
@@ -190,14 +160,14 @@ void vtkMRMLRTIonBeamNode::Copy(vtkMRMLNode *anode)
   this->SetIsocenterToMultiLeafCollimatorDistance(node->GetIsocenterToMultiLeafCollimatorDistance());
   this->SetIsocenterToRangeShifterDistance(node->GetIsocenterToRangeShifterDistance());
 
-  float* scanSpotSize = node->GetScanningSpotSize();
-  this->SetScanningSpotSize({ scanSpotSize[0], scanSpotSize[1] });
+  this->SetScanningSpotSize(node->GetScanningSpotSize());
 
   this->SetGantryAngle(node->GetGantryAngle());
   this->SetCollimatorAngle(node->GetCollimatorAngle());
   this->SetCouchAngle(node->GetCouchAngle());
 
-  this->DisableModifiedEventOff();
+  this->EndModify(disabledModify);
+  
   this->InvokePendingModifiedEvent();
 }
 
@@ -212,14 +182,15 @@ void vtkMRMLRTIonBeamNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << " VSADx:   " << this->VSADx << "\n";
-  os << indent << " VSADy:   " << this->VSADy << "\n";
-  os << indent << " IsocenterToJawsDistanceX:   " << this->IsocenterToJawsDistanceX << "\n";
-  os << indent << " IsocenterToJawsDistanceY:   " << this->IsocenterToJawsDistanceY << "\n";
-  os << indent << " IsocenterToMultiLeafCollimatorDistance:   " << this->IsocenterToMultiLeafCollimatorDistance << "\n";
-  os << indent << " IsocenterToRangeShifterDistance:   " << this->IsocenterToRangeShifterDistance << "\n";
-  os << indent << " ScanningSpotSizeX:   " << this->ScanningSpotSize[0] << "\n";
-  os << indent << " ScanningSpotSizeY:   " << this->ScanningSpotSize[1] << "\n";
+  vtkMRMLPrintBeginMacro(os, indent);
+  vtkMRMLPrintFloatMacro(VSADx);
+  vtkMRMLPrintFloatMacro(VSADy);
+  vtkMRMLPrintFloatMacro(IsocenterToJawsDistanceX);
+  vtkMRMLPrintFloatMacro(IsocenterToJawsDistanceY);
+  vtkMRMLPrintFloatMacro(IsocenterToMultiLeafCollimatorDistance);
+  vtkMRMLPrintFloatMacro(IsocenterToRangeShifterDistance);
+  vtkMRMLPrintVectorMacro( ScanningSpotSize, float, 2);
+  vtkMRMLPrintEndMacro();
 }
 
 //----------------------------------------------------------------------------
@@ -233,7 +204,7 @@ void vtkMRMLRTIonBeamNode::SetAndObserveScanSpotTableNode(vtkMRMLTableNode* node
 
   this->SetNodeReferenceID( SCANSPOT_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 
-  this->InvokeCustomModifiedEvent(Superclass::BeamGeometryModified);
+  this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
 }
 
 //----------------------------------------------------------------------------
@@ -281,6 +252,15 @@ void vtkMRMLRTIonBeamNode::SetVSAD(double VSAD[2])
 void vtkMRMLRTIonBeamNode::SetVSAD(const std::array< double, 2 >& VSAD)
 {
   this->SetVSAD( VSAD[0], VSAD[1]);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTIonBeamNode::SetScanningSpotSize(float size[2])
+{
+  this->ScanningSpotSize[0] = size[0];
+  this->ScanningSpotSize[1] = size[1];
+  this->Modified();
+  this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
 }
 
 //----------------------------------------------------------------------------

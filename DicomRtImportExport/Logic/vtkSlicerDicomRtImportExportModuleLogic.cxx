@@ -830,7 +830,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
   {
     unsigned int dicomBeamNumber = rtReader->GetBeamNumberForIndex(beamIndex);
     const char* beamName = rtReader->GetBeamName(dicomBeamNumber);
-    unsigned int nofCointrolPoints = rtReader->GetNumberOfControlPoints(dicomBeamNumber);
+    unsigned int nofCointrolPoints = rtReader->GetBeamNumberOfControlPoints(dicomBeamNumber);
 
     for ( unsigned int cointrolPointIndex = 0; cointrolPointIndex < nofCointrolPoints; ++cointrolPointIndex)
     {
@@ -863,7 +863,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
 
       // Set beam geometry parameters from DICOM
       double jawPositions[2][2] = {{0.0, 0.0},{0.0, 0.0}};
-      if (rtReader->GetControlPointJawPositions( dicomBeamNumber, cointrolPointIndex, jawPositions))
+      if (rtReader->GetBeamControlPointJawPositions( dicomBeamNumber, cointrolPointIndex, jawPositions))
       {
         beamNode->SetX1Jaw(jawPositions[0][0]);
         beamNode->SetX2Jaw(jawPositions[0][1]);
@@ -871,9 +871,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
         beamNode->SetY2Jaw(jawPositions[1][1]);
       }
 
-      beamNode->SetGantryAngle(rtReader->GetControlPointGantryAngle( dicomBeamNumber, cointrolPointIndex));
-      beamNode->SetCollimatorAngle(rtReader->GetControlPointBeamLimitingDeviceAngle( dicomBeamNumber, cointrolPointIndex));
-      beamNode->SetCouchAngle(rtReader->GetControlPointPatientSupportAngle( dicomBeamNumber, cointrolPointIndex));
+      beamNode->SetGantryAngle(rtReader->GetBeamControlPointGantryAngle( dicomBeamNumber, cointrolPointIndex));
+      beamNode->SetCollimatorAngle(rtReader->GetBeamControlPointBeamLimitingDeviceAngle( dicomBeamNumber, cointrolPointIndex));
+      beamNode->SetCouchAngle(rtReader->GetBeamControlPointPatientSupportAngle( dicomBeamNumber, cointrolPointIndex));
 
       // SAD for RTPlan, source to beam limiting devices (Jaws, MLC)
       if (beamNode && !ionBeamNode)
@@ -892,7 +892,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
         ionBeamNode->SetIsocenterToJawsDistanceX(rtReader->GetBeamIsocenterToJawsDistanceX(dicomBeamNumber));
         ionBeamNode->SetIsocenterToJawsDistanceY(rtReader->GetBeamIsocenterToJawsDistanceY(dicomBeamNumber));
         ionBeamNode->SetIsocenterToMultiLeafCollimatorDistance(rtReader->GetBeamIsocenterToMultiLeafCollimatorDistance(dicomBeamNumber));
-        bool res = rtReader->GetControlPointScanningSpotSize( dicomBeamNumber, 
+        bool res = rtReader->GetBeamControlPointScanningSpotSize( dicomBeamNumber, 
           cointrolPointIndex, ScanSpotSize);
         if (res)
         {
@@ -901,7 +901,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
       }
 
       // Set isocenter to parent plan
-      double* isocenter = rtReader->GetControlPointIsocenterPositionRas( dicomBeamNumber, 
+      double* isocenter = rtReader->GetBeamControlPointIsocenterPositionRas( dicomBeamNumber, 
         cointrolPointIndex);
       planNode->SetIsocenterSpecification(vtkMRMLRTPlanNode::ArbitraryPoint);
       if (beamIndex == 0)
@@ -934,7 +934,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
       vtkMRMLTableNode* mlcTableNode = nullptr;
       vtkMRMLDoubleArrayNode* mlcArrayNode = nullptr;
       // Check MLC
-      const char* mlcName = rtReader->GetControlPointMultiLeafCollimatorPositions( dicomBeamNumber, 
+      const char* mlcName = rtReader->GetBeamControlPointMultiLeafCollimatorPositions( dicomBeamNumber, 
         cointrolPointIndex, boundaries, positions);
       if (mlcName)
       {
@@ -957,7 +957,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
       if (ionBeamNode)
       {
         std::vector<float> positions, weights;
-        bool result = rtReader->GetControlPointScanSpotParameters( dicomBeamNumber, 
+        bool result = rtReader->GetBeamControlPointScanSpotParameters( dicomBeamNumber, 
           cointrolPointIndex, positions, weights);
         if (result)
         {
