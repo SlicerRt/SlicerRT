@@ -69,11 +69,15 @@ public:
 public:
   /// Get VSAD distance x component
   vtkGetMacro( VSADx, double);
+  /// Set VSAD distance x component
+  vtkSetMacro( VSADx, double);
   /// Get VSAD distance y component
   vtkGetMacro( VSADy, double);
+  /// Set VSAD distance y component
+  vtkSetMacro( VSADy, double);
 
   /// Set VSAD distance. Triggers \sa BeamGeometryModified event and re-generation of beam model
-  void SetVSAD( double VSADx,  double VSADy);
+  void SetVSAD( double VSADx, double VSADy);
   void SetVSAD(double VSAD[2]);
   void SetVSAD(const std::array< double, 2 >& VSAD);
 
@@ -81,6 +85,7 @@ public:
 
   /// Set scanning spot size for modulated beam
   /// Triggers \sa BeamGeometryModified event and re-generation of beam model
+  void SetScanningSpotSize(float ScanSpotSize[2]);
   void SetScanningSpotSize(const std::array< float, 2 >& ScanSpotSize);
 
   /// Get isocenter to jaws X distance
