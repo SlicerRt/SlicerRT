@@ -52,7 +52,7 @@ namespace
 {
 
 const char* const SCANSPOT_REFERENCE_ROLE = "ScanSpotRef";
-constexpr double FWHM_TO_SIGMA = 1. / (2. * sqrt(2. * log(2.)));
+double FWHM_TO_SIGMA = 1. / (2. * sqrt(2. * log(2.)));
 
 } // namespace
 
@@ -67,14 +67,15 @@ vtkMRMLRTIonBeamNode::vtkMRMLRTIonBeamNode()
   IsocenterToJawsDistanceX(vtkMRMLRTBeamNode::SourceToJawsDistanceX),
   IsocenterToJawsDistanceY(vtkMRMLRTBeamNode::SourceToJawsDistanceY),
   IsocenterToMultiLeafCollimatorDistance(vtkMRMLRTBeamNode::SourceToMultiLeafCollimatorDistance),
-  IsocenterToRangeShifterDistance(4000.),
-  ScanningSpotSize({ 15.0, 15.0 })
+  IsocenterToRangeShifterDistance(4000.)
 {
   this->VSADx = 6500.0;
   this->VSADy = 6500.0;
   this->IsocenterToJawsDistanceX = 3000.;
   this->IsocenterToJawsDistanceY = 3000.;
   this->IsocenterToMultiLeafCollimatorDistance = 2500.;
+  this->ScanningSpotSize[0] = 15.0f;
+  this->ScanningSpotSize[1] = 15.0f;
 }
 
 //----------------------------------------------------------------------------
@@ -266,7 +267,8 @@ void vtkMRMLRTIonBeamNode::SetScanningSpotSize(float size[2])
 //----------------------------------------------------------------------------
 void vtkMRMLRTIonBeamNode::SetScanningSpotSize(const std::array< float, 2 >& size)
 {
-  this->ScanningSpotSize = size;
+  this->ScanningSpotSize[0] = size[0];
+  this->ScanningSpotSize[1] = size[1];
   this->Modified();
   this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
 }
@@ -323,7 +325,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
   vtkMRMLTableNode* scanSpotTableNode = this->GetScanSpotTableNode();
   if (scanSpotTableNode)
   {
-    vtkDebugMacro("CreateBeamPolyData: Valid MLC nodes, number of leaves: " << nofLeaves);
+    vtkDebugMacro("CreateBeamPolyData: Valid scan spot parameters table node");
   }
   else
   {

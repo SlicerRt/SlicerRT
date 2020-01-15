@@ -81,7 +81,7 @@ public:
   void SetVSAD(double VSAD[2]);
   void SetVSAD(const std::array< double, 2 >& VSAD);
 
-  float* GetScanningSpotSize() { return this->ScanningSpotSize.data(); }
+  vtkGetVector2Macro( ScanningSpotSize, float);
 
   /// Set scanning spot size for modulated beam
   /// Triggers \sa BeamGeometryModified event and re-generation of beam model
@@ -145,7 +145,7 @@ protected:
   /// distance from isocenter to range shifter device
   double IsocenterToRangeShifterDistance;
 
-  std::array< float, 2 > ScanningSpotSize;
+  float ScanningSpotSize[2];
 };
 
 #endif // __vtkMRMLRTIonBeamNode_h
