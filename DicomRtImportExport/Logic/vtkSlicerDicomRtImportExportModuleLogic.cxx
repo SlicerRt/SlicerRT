@@ -833,12 +833,14 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
     unsigned int nofCointrolPoints = rtReader->GetBeamNumberOfControlPoints(dicomBeamNumber);
     const char* beamType = rtReader->GetBeamType(dicomBeamNumber);
     const char* treatmentDeliveryType = rtReader->GetBeamTreatmentDeliveryType(dicomBeamNumber);
-    bool isStaticBeam = false;
+    bool singleBeam = false;
     if (beamType)
     {
-      isStaticBeam = !strcmp( beamType, "STATIC");
-      if (isStaticBeam && nofCointrolPoints == 2) // STATIC beam with 2 control points
+      bool staticBeam = !strcmp( beamType, "STATIC");
+      // RTPlan static beam with 2 control points
+      if (staticBeam && nofCointrolPoints == 2)
       {
+        singleBeam = true;
         vtkDebugWithObjectMacro( this->External, "LoadExternalBeamPlan: Single beam node will be created for a STATIC beam");
         nofCointrolPoints = 1; // will be used only control point 0
       }
@@ -858,23 +860,20 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
         beamNode = ionBeamNode = vtkSmartPointer<vtkMRMLRTIonBeamNode>::New();
       }
 
-      std::ostringstream nameStream;
-      if (!isStaticBeam) // DYNAMIC beam
-      {
-        nameStream << std::string(beamName);
-        if (treatmentDeliveryType)
-        {
-          nameStream << " [" << treatmentDeliveryType << "]";
-        }
-        nameStream << " : CP" << cointrolPointIndex;
-      }
-
-      if (isStaticBeam) // STATIC name
+      if (singleBeam) // single beam
       {
         beamNode->SetName(beamName);
       }
-      else // DYNAMIC name
+      else // beam with more than 2 control points
       {
+        std::ostringstream nameStream;
+        nameStream << std::string(beamName);
+        if (treatmentDeliveryType)
+        {
+          nameStream << " [" << treatmentDeliveryType << ']';
+        }
+        nameStream << " : CP" << cointrolPointIndex;
+
         std::string newBeamName = nameStream.str();
         beamNode->SetName(newBeamName.c_str());
       }
