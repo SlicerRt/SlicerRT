@@ -1701,7 +1701,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
           controlPoint.CumulativeMetersetWeight = cumulativeMetersetWeight;
         }
 
-        if (!beamEntry.ScanMode.compare("MODULATED") || !beamEntry.ScanMode.compare("MODULATED_SPEC"))
+        if (!scanMode.compare("MODULATED") || !scanMode.compare("MODULATED_SPEC"))
         {
           OFString scanSpotTuneId("");
           dataCondition = controlPointItem.getScanSpotTuneID(scanSpotTuneId);
@@ -2977,7 +2977,7 @@ bool vtkSlicerDicomRtReader::GetBeamControlPointScanningSpotSize( unsigned int b
     vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
 
     const std::string& scanMode = beam->ScanMode;
-    if (!scanMode.compare( 0, strlen("MODULATED") - 1, "MODULATED"))
+    if (scanMode == "MODULATED" || scanMode == "MODULATED_SPEC")
     {
       ScanSpotSize = controlPoint.ScanningSpotSize;
       return true;
