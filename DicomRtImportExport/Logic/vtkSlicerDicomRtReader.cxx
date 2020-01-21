@@ -2665,7 +2665,7 @@ const char* vtkSlicerDicomRtReader::GetBeamType(unsigned int beamNumber)
   return (beam->Type.empty() ? nullptr : beam->Type.c_str());
 }
 
-//---------------------------------------------------------------------------- DEPRICATED
+//---------------------------------------------------------------------------- DEPRECATED
 double* vtkSlicerDicomRtReader::GetBeamIsocenterPositionRas(unsigned int beamNumber)
 {
   return GetBeamControlPointIsocenterPositionRas( beamNumber, 0);
@@ -2743,7 +2743,7 @@ double* vtkSlicerDicomRtReader::GetBeamVirtualSourceAxisDistance(unsigned int be
   return beam->SourceAxisDistance.data();
 }
 
-//---------------------------------------------------------------------------- DEPRICATED
+//---------------------------------------------------------------------------- DEPRECATED
 double vtkSlicerDicomRtReader::GetBeamGantryAngle(unsigned int beamNumber)
 {
   return GetBeamControlPointGantryAngle( beamNumber, 0);
@@ -2772,7 +2772,7 @@ double vtkSlicerDicomRtReader::GetBeamControlPointGantryAngle( unsigned int beam
   return 0.0;
 }
 
-//---------------------------------------------------------------------------- DEPRICATED
+//---------------------------------------------------------------------------- DEPRECATED
 double vtkSlicerDicomRtReader::GetBeamPatientSupportAngle(unsigned int beamNumber)
 {
   return GetBeamControlPointPatientSupportAngle( beamNumber, 0);
@@ -2801,7 +2801,7 @@ double vtkSlicerDicomRtReader::GetBeamControlPointPatientSupportAngle( unsigned 
   return 0.0;
 }
 
-//---------------------------------------------------------------------------- DEPRICATED
+//---------------------------------------------------------------------------- DEPRECATED
 double vtkSlicerDicomRtReader::GetBeamBeamLimitingDeviceAngle(unsigned int beamNumber)
 {
   return GetBeamControlPointBeamLimitingDeviceAngle( beamNumber, 0);
@@ -2830,7 +2830,7 @@ double vtkSlicerDicomRtReader::GetBeamControlPointBeamLimitingDeviceAngle( unsig
   return 0.0;
 }
 
-//---------------------------------------------------------------------------- DEPRICATED
+//---------------------------------------------------------------------------- DEPRECATED
 void vtkSlicerDicomRtReader::GetBeamLeafJawPositions(unsigned int beamNumber, double jawPositions[2][2])
 {
   GetBeamControlPointJawPositions( beamNumber, 0, jawPositions);
@@ -2863,7 +2863,7 @@ bool vtkSlicerDicomRtReader::GetBeamControlPointJawPositions( unsigned int beamN
   return false;
 }
 
-//---------------------------------------------------------------------------- DEPRICATED
+//---------------------------------------------------------------------------- DEPRECATED
 const char* vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositions( unsigned int beamNumber, 
   std::vector<double>& pairBoundaries, std::vector<double>& leafPositions)
 {

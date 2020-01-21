@@ -833,11 +833,11 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
     unsigned int nofCointrolPoints = rtReader->GetBeamNumberOfControlPoints(dicomBeamNumber);
     const char* beamType = rtReader->GetBeamType(dicomBeamNumber);
     const char* treatmentDeliveryType = rtReader->GetBeamTreatmentDeliveryType(dicomBeamNumber);
-    bool notStaticBeam = true;
+    bool isStaticBeam = false;
     if (beamType)
     {
-      notStaticBeam = strcmp( beamType, "STATIC");
-      if (!notStaticBeam && nofCointrolPoints == 2) // STATIC beam with 2 control points
+      isStaticBeam = !strcmp( beamType, "STATIC");
+      if (isStaticBeam && nofCointrolPoints == 2) // STATIC beam with 2 control points
       {
         vtkDebugWithObjectMacro( this->External, "LoadExternalBeamPlan: Single beam node will be created for a STATIC beam");
         nofCointrolPoints = 1; // will be used only control point 0
@@ -859,21 +859,21 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
       }
 
       std::ostringstream nameStream;
-      if (notStaticBeam && treatmentDeliveryType) // DINAMIC and TREATMENT
+      if (!isStaticBeam) // DYNAMIC beam
       {
-        nameStream << std::string(beamName) << " [" << treatmentDeliveryType 
-          << "] : CP" << cointrolPointIndex;
+        nameStream << std::string(beamName);
+        if (treatmentDeliveryType)
+        {
+          nameStream << " [" << treatmentDeliveryType << "]";
+        }
+        nameStream << " : CP" << cointrolPointIndex;
       }
-      else if (notStaticBeam) // DINAMIC
-      {
-        nameStream << std::string(beamName) << " : CP" << cointrolPointIndex;
-      }
-      else // STATIC name
+
+      if (isStaticBeam) // STATIC name
       {
         beamNode->SetName(beamName);
       }
-
-      if (notStaticBeam) // DINAMIC name
+      else // DYNAMIC name
       {
         std::string newBeamName = nameStream.str();
         beamNode->SetName(newBeamName.c_str());
