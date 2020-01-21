@@ -831,7 +831,19 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
     unsigned int dicomBeamNumber = rtReader->GetBeamNumberForIndex(beamIndex);
     const char* beamName = rtReader->GetBeamName(dicomBeamNumber);
     unsigned int nofCointrolPoints = rtReader->GetBeamNumberOfControlPoints(dicomBeamNumber);
-
+    const char* beamType = rtReader->GetBeamType(dicomBeamNumber);
+    const char* treatmentDeliveryType = rtReader->GetBeamTreatmentDeliveryType(dicomBeamNumber);
+    bool notStaticBeam = true;
+    if (beamType)
+    {
+      notStaticBeam = strcmp( beamType, "STATIC");
+      if (!notStaticBeam && nofCointrolPoints == 2) // STATIC beam with 2 control points
+      {
+        vtkDebugWithObjectMacro( this->External, "LoadExternalBeamPlan: Single beam node will be created for a STATIC beam");
+        nofCointrolPoints = 1; // will be used only control point 0
+      }
+    }
+    
     for ( unsigned int cointrolPointIndex = 0; cointrolPointIndex < nofCointrolPoints; ++cointrolPointIndex)
     {
       // Create the beam node for each control point
@@ -847,19 +859,25 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
       }
 
       std::ostringstream nameStream;
-      const char* treatmentDeliveryType = rtReader->GetBeamTreatmentDeliveryType(dicomBeamNumber);
-      if (treatmentDeliveryType)
+      if (notStaticBeam && treatmentDeliveryType) // DINAMIC and TREATMENT
       {
         nameStream << std::string(beamName) << " [" << treatmentDeliveryType 
           << "] : CP" << cointrolPointIndex;
       }
-      else
+      else if (notStaticBeam) // DINAMIC
       {
         nameStream << std::string(beamName) << " : CP" << cointrolPointIndex;
       }
+      else // STATIC name
+      {
+        beamNode->SetName(beamName);
+      }
 
-      std::string newBeamName = nameStream.str();
-      beamNode->SetName(newBeamName.c_str());
+      if (notStaticBeam) // DINAMIC name
+      {
+        std::string newBeamName = nameStream.str();
+        beamNode->SetName(newBeamName.c_str());
+      }
 
       // Set beam geometry parameters from DICOM
       double jawPositions[2][2] = {{0.0, 0.0},{0.0, 0.0}};

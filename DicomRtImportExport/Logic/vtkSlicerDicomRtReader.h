@@ -88,6 +88,9 @@ public:
   /// Get name of beam
   const char* GetBeamName(unsigned int beamNumber);
 
+  /// Get type of beam
+  const char* GetBeamType(unsigned int beamNumber);
+
   /// Get beam isocenter for a given beam
   double* GetBeamIsocenterPositionRas(unsigned int beamNumber); // DEPRICATED
 

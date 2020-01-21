@@ -2654,6 +2654,17 @@ const char* vtkSlicerDicomRtReader::GetBeamName(unsigned int beamNumber)
   return (beam->Name.empty() ? vtkSlicerRtCommon::DICOMRTIMPORT_NO_NAME : beam->Name).c_str();
 }
 
+//----------------------------------------------------------------------------
+const char* vtkSlicerDicomRtReader::GetBeamType(unsigned int beamNumber)
+{
+  vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
+  if (!beam)
+  {
+    return nullptr;
+  }
+  return (beam->Type.empty() ? nullptr : beam->Type.c_str());
+}
+
 //---------------------------------------------------------------------------- DEPRICATED
 double* vtkSlicerDicomRtReader::GetBeamIsocenterPositionRas(unsigned int beamNumber)
 {
