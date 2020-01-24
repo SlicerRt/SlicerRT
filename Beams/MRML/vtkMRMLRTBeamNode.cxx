@@ -590,9 +590,12 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     MLCSectionVector sections; // sections (first & last leaf iterator) of opened MLC
     for ( auto it = mlc.begin(); it != mlc.end(); ++it)
     {
+      double& bound1 = (*it)[0]; // leaf pair boundary begin
+      double& bound2 = (*it)[1]; // leaf pair boundary end
       double& pos1 = (*it)[2]; // leaf position "1"
       double& pos2 = (*it)[3]; // leaf position "2"
-      bool mlcOpened = !AreEqual( pos1, pos2);
+      // if leaf pair is outside the jaws, then it is closed
+      bool mlcOpened = (bound2 < jawBegin || bound1 > jawEnd) ? false : !AreEqual( pos1, pos2);
       bool withinJaw = false;
       if (typeMLCX)
       {
