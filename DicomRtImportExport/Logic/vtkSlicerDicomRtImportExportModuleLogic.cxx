@@ -867,10 +867,10 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
       else // beam with more than 2 control points
       {
         std::ostringstream nameStream;
-        nameStream << std::string(beamName);
+        nameStream << beamName;
         if (treatmentDeliveryType)
         {
-          nameStream << " [" << treatmentDeliveryType << ']';
+          nameStream << " [" << treatmentDeliveryType << "]";
         }
         nameStream << " : CP" << cointrolPointIndex;
 
