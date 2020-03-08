@@ -108,7 +108,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   vtkSmartPointer<vtkMRMLRoomsEyeViewNode> paramNode = vtkSmartPointer<vtkMRMLRoomsEyeViewNode>::New();
   mrmlScene->AddNode(paramNode);
 
-  int expectedNumberOfLinearTransformNodes = 11;
+  int expectedNumberOfLinearTransformNodes = 14;
   int numberOfLinearTransformNodes = mrmlScene->GetNumberOfNodesByClass("vtkMRMLLinearTransformNode");
   if (numberOfLinearTransformNodes != expectedNumberOfLinearTransformNodes)
   {
@@ -181,7 +181,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Gantry angle, 1 degree
   paramNode->SetGantryRotationAngle(1.0);
   revLogic->UpdateGantryToFixedReferenceTransform(paramNode);
-  expectedNumOfNonIdentityTransforms = 2;
+  expectedNumOfNonIdentityTransforms = 3;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
@@ -215,7 +215,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   //TODO: Different transform after consolidation (and for many other transforms as well)
   paramNode->SetCollimatorRotationAngle(1.0);
   revLogic->UpdateCollimatorToGantryTransform(paramNode);
-  expectedNumOfNonIdentityTransforms = 3;
+  expectedNumOfNonIdentityTransforms = 4;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
@@ -248,7 +248,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Imaging panel, position -50 (slightly extended)
   paramNode->SetImagingPanelMovement(-50.0);
   revLogic->UpdateImagingPanelMovementTransforms(paramNode);
-  expectedNumOfNonIdentityTransforms = 5;
+  expectedNumOfNonIdentityTransforms = 6;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
@@ -272,7 +272,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Imaging panel, position 500 (fully extended)
   paramNode->SetImagingPanelMovement(500.0);
   revLogic->UpdateImagingPanelMovementTransforms(paramNode);
-  expectedNumOfNonIdentityTransforms = 5;
+  expectedNumOfNonIdentityTransforms = 6;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
@@ -296,7 +296,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Patient support rotation, 1 degree angle
   paramNode->SetPatientSupportRotationAngle(1.0);
   revLogic->UpdatePatientSupportRotationToFixedReferenceTransform(paramNode);
-  expectedNumOfNonIdentityTransforms = 6;
+  expectedNumOfNonIdentityTransforms = 7;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
@@ -315,7 +315,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Patient support rotation, 90 degrees angle
   paramNode->SetPatientSupportRotationAngle(90.0);
   revLogic->UpdatePatientSupportRotationToFixedReferenceTransform(paramNode);
-  expectedNumOfNonIdentityTransforms = 6;
+  expectedNumOfNonIdentityTransforms = 7;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
@@ -335,7 +335,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   paramNode->SetVerticalTableTopDisplacement(-500.0);
   revLogic->UpdatePatientSupportToPatientSupportRotationTransform(paramNode);
   revLogic->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  expectedNumOfNonIdentityTransforms = 8;
+  expectedNumOfNonIdentityTransforms = 9;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
@@ -386,7 +386,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Table top longitudinal displacement, position 10 (slight movement)
   paramNode->SetLongitudinalTableTopDisplacement(10.0);
   revLogic->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  expectedNumOfNonIdentityTransforms = 8;
+  expectedNumOfNonIdentityTransforms = 9;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
@@ -419,7 +419,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Table top lateral displacement, position -230 (lowest)
   paramNode->SetLateralTableTopDisplacement(-230.0);
   revLogic->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  expectedNumOfNonIdentityTransforms = 8;
+  expectedNumOfNonIdentityTransforms = 9;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;

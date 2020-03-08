@@ -63,7 +63,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   vtkSmartPointer<vtkSlicerBeamsModuleLogic> beamsLogic = vtkSmartPointer<vtkSlicerBeamsModuleLogic>::New();
   beamsLogic->SetMRMLScene(mrmlScene);
 
-  int expectedNumberOfLinearTransformNodes = 10;
+  int expectedNumberOfLinearTransformNodes = 13;
   int numberOfLinearTransformNodes = mrmlScene->GetNumberOfNodesByClass("vtkMRMLLinearTransformNode");
   if (numberOfLinearTransformNodes != expectedNumberOfLinearTransformNodes)
   {
@@ -105,7 +105,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Isocenter position, origin
   int numOfNonIdentityTransforms = 0;
-  int expectedNumOfNonIdentityTransforms = 1;
+  int expectedNumOfNonIdentityTransforms = 2;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
@@ -158,7 +158,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Gantry angle, 1 degree
   beamNode->SetGantryAngle(1.0);
   iecLogic->UpdateBeamTransform(beamNode);
-  expectedNumOfNonIdentityTransforms = 2;
+  expectedNumOfNonIdentityTransforms = 3;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
@@ -210,7 +210,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   //TODO: Different transform after consolidation
   beamNode->SetCollimatorAngle(1.0);
   iecLogic->UpdateBeamTransform(beamNode);
-  expectedNumOfNonIdentityTransforms = 3;
+  expectedNumOfNonIdentityTransforms = 4;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
     {
     std::cerr << __LINE__ << ": Number of non-identity linear transforms: " << numOfNonIdentityTransforms << " does not match expected value: " << expectedNumOfNonIdentityTransforms << std::endl;
