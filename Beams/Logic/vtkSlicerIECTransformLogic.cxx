@@ -34,6 +34,9 @@
 #include <vtkGeneralTransform.h>
 #include <vtkTransform.h>
 
+// STD includes
+#include <array>
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerIECTransformLogic);
 
@@ -287,8 +290,8 @@ void vtkSlicerIECTransformLogic::UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* 
     this->GetTransformNodeBetween(FixedReference, RAS);
   vtkTransform* fixedReferenceToRasTransform = vtkTransform::SafeDownCast(fixedReferenceToRasTransformNode->GetTransformToParent());
   fixedReferenceToRasTransform->Identity();
+
   // Apply isocenter translation
-  isocenterPosition = { 0.0, 0.0, 0.0 };
   if (beamNode->GetPlanIsocenterPosition(isocenterPosition.data()))
   {
     fixedReferenceToRasTransform->Translate(isocenterPosition[0], isocenterPosition[1], isocenterPosition[2]);
