@@ -781,8 +781,7 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
     }
   }
 
-  //TODO: !!! Hard-coded node name !!!
-  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(this->mrmlScene()->GetFirstNodeByName("NewBeam_7"));
+  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_Beam->currentNode());
   double sourcePosition[3] = {0.0, 0.0, 0.0};
   double isocenter[3] = {0.0, 0.0, 0.0};
 
