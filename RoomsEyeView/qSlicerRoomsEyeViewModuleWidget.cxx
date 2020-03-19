@@ -780,6 +780,11 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
       break;
     }
   }
+  if (!cameraNode)
+  {
+    qCritical() << Q_FUNC_INFO << "Failed to find camera for view " << (viewNode ? viewNode->GetID() : "(null)");
+    return;
+  }
 
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_Beam->currentNode());
   double sourcePosition[3] = {0.0, 0.0, 0.0};
@@ -787,18 +792,19 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
 
   if (beamNode && beamNode->GetSourcePosition(sourcePosition))
   {
-    vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(this->mrmlScene()->GetFirstNodeByName("CollimatorModel"));
-    vtkPolyData* collimatorModelPolyData = collimatorModel->GetPolyData();
+    //vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(this->mrmlScene()->GetFirstNodeByName("CollimatorModel"));
+    //vtkPolyData* collimatorModelPolyData = collimatorModel->GetPolyData();
 
-    double collimatorCenterOfRotation[3] = {0.0, 0.0, 0.0};
-    double collimatorModelBounds[6] = { 0, 0, 0, 0, 0, 0 };
+    //double collimatorCenterOfRotation[3] = {0.0, 0.0, 0.0};
+    //double collimatorModelBounds[6] = { 0, 0, 0, 0, 0, 0 };
 
-    collimatorModelPolyData->GetBounds(collimatorModelBounds);
-    collimatorCenterOfRotation[0] = (collimatorModelBounds[0] + collimatorModelBounds[1]) / 2;
-    collimatorCenterOfRotation[1] = (collimatorModelBounds[2] + collimatorModelBounds[3]) / 2;
-    collimatorCenterOfRotation[2] = collimatorModelBounds[4];
+    //collimatorModelPolyData->GetBounds(collimatorModelBounds);
+    //collimatorCenterOfRotation[0] = (collimatorModelBounds[0] + collimatorModelBounds[1]) / 2;
+    //collimatorCenterOfRotation[1] = (collimatorModelBounds[2] + collimatorModelBounds[3]) / 2;
+    //collimatorCenterOfRotation[2] = collimatorModelBounds[4];
 
-    cameraNode->GetCamera()->SetPosition(collimatorCenterOfRotation);
+    //cameraNode->GetCamera()->SetPosition(collimatorCenterOfRotation);
+    cameraNode->GetCamera()->SetPosition(sourcePosition);
     if (beamNode->GetPlanIsocenterPosition(isocenter))
     {
       cameraNode->GetCamera()->SetFocalPoint(isocenter);
