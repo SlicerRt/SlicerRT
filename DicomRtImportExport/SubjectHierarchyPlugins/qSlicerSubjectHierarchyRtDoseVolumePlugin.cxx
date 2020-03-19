@@ -365,7 +365,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   }
   if (setDoseUnitName)
   {
-    shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), doseUnitName.toLatin1().constData());
+    shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME.c_str(), doseUnitName.toUtf8().constData());
   }
   bool setDoseUnitValue = true;
   if (!doseUnitNameInStudy.empty() && fabs(doseUnitValue - defaultDoseUnitValue) > EPSILON*EPSILON )
@@ -383,7 +383,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   if (setDoseUnitValue)
   {
     QString doseUnitValueString = QString::number(doseUnitValue);
-    shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), doseUnitValueString.toLatin1().constData());
+    shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME.c_str(), doseUnitValueString.toUtf8().constData());
   }
 
   // Set RT dose identifier attribute to data node

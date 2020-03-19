@@ -373,7 +373,7 @@ void qSlicerSegmentMorphologyModuleWidget::setParameterNode(vtkMRMLNode *node)
     if ( !paramNode->GetSegmentAID()
       && !d->SegmentSelectorWidget_SegmentA->currentSegmentID().isEmpty() )
     {
-      paramNode->SetSegmentAID(d->SegmentSelectorWidget_SegmentA->currentSegmentID().toLatin1().constData());
+      paramNode->SetSegmentAID(d->SegmentSelectorWidget_SegmentA->currentSegmentID().toUtf8().constData());
     }
     if ( !paramNode->GetSegmentationBNode()
       && d->SegmentSelectorWidget_SegmentB->currentNode() )
@@ -383,7 +383,7 @@ void qSlicerSegmentMorphologyModuleWidget::setParameterNode(vtkMRMLNode *node)
     if ( !paramNode->GetSegmentBID()
       && !d->SegmentSelectorWidget_SegmentB->currentSegmentID().isEmpty() )
     {
-      paramNode->SetSegmentBID(d->SegmentSelectorWidget_SegmentB->currentSegmentID().toLatin1().constData());
+      paramNode->SetSegmentBID(d->SegmentSelectorWidget_SegmentB->currentSegmentID().toUtf8().constData());
     }
 
     this->updateButtonsState();
@@ -434,7 +434,7 @@ void qSlicerSegmentMorphologyModuleWidget::segmentAChanged(QString segmentID)
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetSegmentAID(segmentID.toLatin1().constData());
+  paramNode->SetSegmentAID(segmentID.toUtf8().constData());
   paramNode->DisableModifiedEventOff();
 
   this->updateWidgetFromMRML();
@@ -482,7 +482,7 @@ void qSlicerSegmentMorphologyModuleWidget::segmentBChanged(QString segmentID)
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetSegmentBID(segmentID.toLatin1().constData());
+  paramNode->SetSegmentBID(segmentID.toUtf8().constData());
   paramNode->DisableModifiedEventOff();
 
   this->updateWidgetFromMRML();

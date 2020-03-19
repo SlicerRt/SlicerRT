@@ -14,7 +14,7 @@ create_test_sourcelist(Tests ${KIT}CxxTests.cxx
 list(REMOVE_ITEM Tests ${KIT_TEST_NAMES_CXX})
 list(APPEND Tests ${KIT_TEST_SRCS})
 
-add_executable(${KIT}CxxTests ${Tests})
+ctk_add_executable_utf8(${KIT}CxxTests ${Tests})
 target_link_libraries(${KIT}CxxTests ${KIT})
 
 foreach(testname ${KIT_TEST_NAMES})

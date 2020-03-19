@@ -267,7 +267,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::ExamineRtDoseDataset(
   QString rtPlanFileName = dicomDatabase->fileForInstance(referencedSOPInstanceUID.c_str());
   if (!rtPlanFileName.isEmpty())
   {
-    name += OFString(": ") + OFString(dicomDatabase->fileValue(rtPlanFileName,rtPlanLabelTag).toLatin1().constData());
+    name += OFString(": ") + OFString(dicomDatabase->fileValue(rtPlanFileName,rtPlanLabelTag).toUtf8().constData());
   }
 
   // Close and delete DICOM database

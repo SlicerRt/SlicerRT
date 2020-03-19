@@ -105,7 +105,7 @@ bool qSlicerPinnacleDvfReaderPlugin::load(const IOProperties& properties)
   double gridOriginX = properties["gridOriginX"].toDouble();
   double gridOriginY = properties["gridOriginY"].toDouble();
   double gridOriginZ = properties["gridOriginZ"].toDouble();
-  d->Logic->LoadPinnacleDvf(fileName.toLatin1().data(), gridOriginX, gridOriginY, gridOriginZ);
+  d->Logic->LoadPinnacleDvf(fileName.toUtf8().data(), gridOriginX, gridOriginY, gridOriginZ);
 
   this->setLoadedNodes(QStringList());
 

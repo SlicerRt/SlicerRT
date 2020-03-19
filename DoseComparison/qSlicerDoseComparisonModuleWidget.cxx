@@ -209,7 +209,7 @@ void qSlicerDoseComparisonModuleWidget::setParameterNode(vtkMRMLNode *node)
     }
     if ( !paramNode->GetMaskSegmentID() && !d->SegmentSelectorWidget_Mask->currentSegmentID().isEmpty() )
     {
-      paramNode->SetMaskSegmentID(d->SegmentSelectorWidget_Mask->currentSegmentID().toLatin1().constData());
+      paramNode->SetMaskSegmentID(d->SegmentSelectorWidget_Mask->currentSegmentID().toUtf8().constData());
     }
     if (!paramNode->GetGammaVolumeNode() && d->MRMLNodeComboBox_GammaVolume->currentNode())
     {
@@ -426,7 +426,7 @@ void qSlicerDoseComparisonModuleWidget::maskSegmentChanged(QString segmentID)
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetMaskSegmentID(segmentID.isEmpty() ? nullptr : segmentID.toLatin1().constData());
+  paramNode->SetMaskSegmentID(segmentID.isEmpty() ? nullptr : segmentID.toUtf8().constData());
   paramNode->DisableModifiedEventOff();
 
   this->updateButtonsState();

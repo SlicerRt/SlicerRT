@@ -172,7 +172,7 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
       if (currentParameterFieldWidget->property(USED_BY_CURRENT_ENGINE_PROPERTY).toBool())
       {
         QString attributeName = currentParameterFieldWidget->property(BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY).toString();
-        QString parameterValue = d->BeamNode->GetAttribute(attributeName.toLatin1().constData());
+        QString parameterValue = d->BeamNode->GetAttribute(attributeName.toUtf8().constData());
 
         // Set value to supported widget types
         QLineEdit* lineEdit = qobject_cast<QLineEdit*>(currentParameterFieldWidget);
@@ -454,8 +454,8 @@ void qMRMLBeamParametersTabWidget::doubleBeamParameterChanged(double newValue)
   // Set parameter as attribute in beam node
   d->BeamNode->DisableModifiedEventOn();
   d->BeamNode->SetAttribute(
-    attributeName.toLatin1().constData(),
-    QString::number(newValue).toLatin1().constData() );
+    attributeName.toUtf8().constData(),
+    QString::number(newValue).toUtf8().constData() );
   d->BeamNode->DisableModifiedEventOff();
 }
 
@@ -475,8 +475,8 @@ void qMRMLBeamParametersTabWidget::integerBeamParameterChanged(int newValue)
   // Set parameter as attribute in beam node
   d->BeamNode->DisableModifiedEventOn();
   d->BeamNode->SetAttribute(
-    attributeName.toLatin1().constData(),
-    QString::number(newValue).toLatin1().constData() );
+    attributeName.toUtf8().constData(),
+    QString::number(newValue).toUtf8().constData() );
   d->BeamNode->DisableModifiedEventOff();
 }
 
@@ -496,8 +496,8 @@ void qMRMLBeamParametersTabWidget::booleanBeamParameterChanged(int newValue)
   // Set parameter as attribute in beam node
   d->BeamNode->DisableModifiedEventOn();
   d->BeamNode->SetAttribute(
-    attributeName.toLatin1().constData(),
-    QVariant(newValue != 0).toString().toLatin1().constData() );
+    attributeName.toUtf8().constData(),
+    QVariant(newValue != 0).toString().toUtf8().constData() );
   d->BeamNode->DisableModifiedEventOff();
 
   // Enable/disable dependent parameters
@@ -520,8 +520,8 @@ void qMRMLBeamParametersTabWidget::stringBeamParameterChanged(QString newValue)
   // Set parameter as attribute in beam node
   d->BeamNode->DisableModifiedEventOn();
   d->BeamNode->SetAttribute(
-    attributeName.toLatin1().constData(),
-    newValue.toLatin1().constData() );
+    attributeName.toUtf8().constData(),
+    newValue.toUtf8().constData() );
   d->BeamNode->DisableModifiedEventOff();
 }
 

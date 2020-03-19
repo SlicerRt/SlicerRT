@@ -106,7 +106,7 @@ bool qSlicerDosxyzNrc3dDoseFileReaderPlugin::load(const IOProperties& properties
   this->setLoadedNodes(QStringList());
   float intensityScalingFactor = properties["scalingFactor"].toFloat();
   vtkMRMLScalarVolumeNode* node = d->Logic->LoadDosxyzNrc3dDoseFile(
-    fileName.toLatin1().data(), intensityScalingFactor);
+    fileName.toUtf8().data(), intensityScalingFactor);
   if (!node)
   {
     return false;

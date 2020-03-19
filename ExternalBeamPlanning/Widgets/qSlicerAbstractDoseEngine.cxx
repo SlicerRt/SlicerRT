@@ -536,11 +536,11 @@ void qSlicerAbstractDoseEngine::addBeamParameterAttributesToBeamNode(vtkMRMLRTBe
   foreach (QString parameterName, d->BeamParameters.keys())
   {
     if ( !beamNode->GetAttribute(
-      this->assembleEngineParameterName(parameterName).toLatin1().constData()) )
+      this->assembleEngineParameterName(parameterName).toUtf8().constData()) )
     {
       beamNode->SetAttribute(
-        this->assembleEngineParameterName(parameterName).toLatin1().constData(),
-        d->BeamParameters[parameterName].toString().toLatin1().constData() );
+        this->assembleEngineParameterName(parameterName).toUtf8().constData(),
+        d->BeamParameters[parameterName].toString().toUtf8().constData() );
     }
   }
 }
@@ -559,7 +559,7 @@ QString qSlicerAbstractDoseEngine::parameter(vtkMRMLRTBeamNode* beamNode, QStrin
 
   // Get effect-specific prefixed parameter first
   QString attributeName = this->assembleEngineParameterName(parameterName);
-  const char* value = beamNode->GetAttribute(attributeName.toLatin1().constData());
+  const char* value = beamNode->GetAttribute(attributeName.toUtf8().constData());
   if (!value)
   {
     qCritical() << Q_FUNC_INFO << ": Parameter named " << parameterName << " cannot be found for beam " << beamNode->GetName();
@@ -641,7 +641,7 @@ void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QStrin
   }
 
   QString attributeName = this->assembleEngineParameterName(parameterName);
-  const char* oldValue = beamNode->GetAttribute(attributeName.toLatin1().constData());
+  const char* oldValue = beamNode->GetAttribute(attributeName.toUtf8().constData());
   if (oldValue == nullptr && parameterValue.isEmpty())
     {
     // no change
@@ -660,7 +660,7 @@ void qSlicerAbstractDoseEngine::setParameter(vtkMRMLRTBeamNode* beamNode, QStrin
   //beamNode->SetDisableModifiedEvent(1);
 
   // Set parameter as attribute
-  beamNode->SetAttribute(attributeName.toLatin1().constData(), parameterValue.toLatin1().constData());
+  beamNode->SetAttribute(attributeName.toUtf8().constData(), parameterValue.toUtf8().constData());
 
   // Re-enable full modified events for parameter node
   //beamNode->SetDisableModifiedEvent(disableState);

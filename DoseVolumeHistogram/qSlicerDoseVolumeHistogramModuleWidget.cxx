@@ -450,7 +450,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::segmentSelectionChanged(const QItem
   std::vector<std::string> selectedSegmentIDs;
   foreach (QString segmentId, d->SegmentsTableView->selectedSegmentIDs())
   {
-    selectedSegmentIDs.push_back(segmentId.toLatin1().constData());
+    selectedSegmentIDs.push_back(segmentId.toUtf8().constData());
   }
   paramNode->SetSelectedSegmentIDs(selectedSegmentIDs);
 }
@@ -538,7 +538,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
   bool comma = selectedFilter.compare("TSV tab separated values ( *.tsv )");
 
   // Export
-  if (! d->logic()->ExportDvhToCsv(paramNode, fileName.toLatin1().data(), comma) )
+  if (! d->logic()->ExportDvhToCsv(paramNode, fileName.toUtf8().data(), comma) )
   {
     qCritical() << Q_FUNC_INFO << ": Error occurred while exporting DVH to file " << fileName;
   }
@@ -566,7 +566,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
   bool comma = selectedFilter.compare("TSV tab separated values ( *.tsv )");
 
   // Export
-  if (! d->logic()->ExportDvhMetricsToCsv(paramNode, fileName.toLatin1().data(), comma) )
+  if (! d->logic()->ExportDvhMetricsToCsv(paramNode, fileName.toUtf8().data(), comma) )
   {
     qCritical() << Q_FUNC_INFO << ": Error occurred while exporting DVH to file " << fileName;
   }
@@ -590,7 +590,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditVDoseEdited(QString aText)
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetVDoseValues(aText.toLatin1().constData());
+  paramNode->SetVDoseValues(aText.toUtf8().constData());
   paramNode->DisableModifiedEventOff();
 
   if (!d->logic()->ComputeVMetrics(paramNode))
@@ -680,7 +680,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumeCcEdited(QString aTe
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetDVolumeValuesCc(aText.toLatin1().constData());
+  paramNode->SetDVolumeValuesCc(aText.toUtf8().constData());
   paramNode->DisableModifiedEventOff();
 
   if (!d->logic()->ComputeDMetrics(paramNode))
@@ -710,7 +710,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::lineEditDVolumePercentEdited(QStrin
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetDVolumeValuesPercent(aText.toLatin1().constData());
+  paramNode->SetDVolumeValuesPercent(aText.toUtf8().constData());
   paramNode->DisableModifiedEventOff();
 
   if (!d->logic()->ComputeDMetrics(paramNode))

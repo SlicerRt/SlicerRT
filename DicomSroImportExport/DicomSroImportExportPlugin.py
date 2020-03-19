@@ -33,7 +33,7 @@ class DicomSroImportExportPluginClass(DICOMPlugin):
       # (VTK class cannot have Qt object as argument, otherwise it is not python wrapped)
       vtkFileList = vtk.vtkStringArray()
       for file in fileList:
-        vtkFileList.InsertNextValue(slicer.util.toVTKString(file))
+        vtkFileList.InsertNextValue(file)
 
       # Examine files
       loadablesCollection = vtk.vtkCollection()

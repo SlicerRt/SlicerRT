@@ -191,7 +191,7 @@ void qSlicerSegmentComparisonModuleWidget::setParameterNode(vtkMRMLNode *node)
     if ( !paramNode->GetReferenceSegmentID()
       && !d->SegmentSelectorWidget_Reference->currentSegmentID().isEmpty() )
     {
-      paramNode->SetReferenceSegmentID(d->SegmentSelectorWidget_Reference->currentSegmentID().toLatin1().constData());
+      paramNode->SetReferenceSegmentID(d->SegmentSelectorWidget_Reference->currentSegmentID().toUtf8().constData());
     }
     if ( !paramNode->GetCompareSegmentationNode()
       && d->SegmentSelectorWidget_Compare->currentNode() )
@@ -201,7 +201,7 @@ void qSlicerSegmentComparisonModuleWidget::setParameterNode(vtkMRMLNode *node)
     if ( !paramNode->GetCompareSegmentID()
       && !d->SegmentSelectorWidget_Compare->currentSegmentID().isEmpty() )
     {
-      paramNode->SetCompareSegmentID(d->SegmentSelectorWidget_Compare->currentSegmentID().toLatin1().constData());
+      paramNode->SetCompareSegmentID(d->SegmentSelectorWidget_Compare->currentSegmentID().toUtf8().constData());
     }
     this->updateButtonsState();
   }
@@ -371,7 +371,7 @@ void qSlicerSegmentComparisonModuleWidget::referenceSegmentChanged(QString segme
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetReferenceSegmentID(segmentID.toLatin1().constData());
+  paramNode->SetReferenceSegmentID(segmentID.toUtf8().constData());
   paramNode->DisableModifiedEventOff();
 
   this->invalidateDiceResults();
@@ -423,7 +423,7 @@ void qSlicerSegmentComparisonModuleWidget::compareSegmentChanged(QString segment
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetCompareSegmentID(segmentID.toLatin1().constData());
+  paramNode->SetCompareSegmentID(segmentID.toUtf8().constData());
   paramNode->DisableModifiedEventOff();
 
   this->invalidateDiceResults();

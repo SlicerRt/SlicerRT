@@ -402,7 +402,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
     // Set dose engine from UI if not specified in plan
     if (!planNode->GetDoseEngineName())
     {
-      planNode->SetDoseEngineName(d->comboBox_DoseEngine->currentText().toLatin1().constData());
+      planNode->SetDoseEngineName(d->comboBox_DoseEngine->currentText().toUtf8().constData());
     }
 
     // Trigger update of IEC logic based on the first beam
@@ -646,7 +646,7 @@ void qSlicerExternalBeamPlanningModuleWidget::targetSegmentChanged(const QString
 
   // Set target segment ID
   planNode->DisableModifiedEventOn();
-  planNode->SetTargetSegmentID(segment.toLatin1().constData());
+  planNode->SetTargetSegmentID(segment.toUtf8().constData());
   planNode->DisableModifiedEventOff();
 
   if (planNode->GetIsocenterSpecification() == vtkMRMLRTPlanNode::CenterOfTarget)
@@ -847,7 +847,7 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineChanged(const QString &t
 
   // Get newly selected dose engine
   qSlicerAbstractDoseEngine* selectedEngine =
-    qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(text.toLatin1().constData());
+    qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(text.toUtf8().constData());
   if (!selectedEngine)
   {
     qCritical() << Q_FUNC_INFO << ": Failed to access dose engine with name" << text;
@@ -856,7 +856,7 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineChanged(const QString &t
 
   qDebug() << "Dose engine selection changed to " << text;
   planNode->DisableModifiedEventOn();
-  planNode->SetDoseEngineName(selectedEngine->name().toLatin1().constData());
+  planNode->SetDoseEngineName(selectedEngine->name().toUtf8().constData());
   planNode->DisableModifiedEventOff();
 }
 
@@ -888,7 +888,7 @@ vtkMRMLRTBeamNode* qSlicerExternalBeamPlanningModuleWidget::currentBeamNode()
     qWarning() << Q_FUNC_INFO << ": Multiple beams selected, the first one is used for the current operation";
   }
 
-  return vtkMRMLRTBeamNode::SafeDownCast( this->mrmlScene()->GetNodeByID(beamNodeIDs[0].toLatin1().constData()) );
+  return vtkMRMLRTBeamNode::SafeDownCast( this->mrmlScene()->GetNodeByID(beamNodeIDs[0].toUtf8().constData()) );
 }
 
 //-----------------------------------------------------------------------------
@@ -954,7 +954,7 @@ void qSlicerExternalBeamPlanningModuleWidget::removeBeamClicked()
   {
     // Remove beam
     vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(
-      this->mrmlScene()->GetNodeByID(beamNodeID.toLatin1().constData()) );
+      this->mrmlScene()->GetNodeByID(beamNodeID.toUtf8().constData()) );
     planNode->RemoveBeam(beamNode);
   }
 }

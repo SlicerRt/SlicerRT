@@ -304,7 +304,7 @@ void qMRMLBeamsTableView::onBeamTableItemChanged(QTableWidgetItem* changedItem)
   QString beamNodeID = changedItem->data(IDRole).toString();
   // Get beam node from scene
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(
-    d->PlanNode->GetScene()->GetNodeByID(beamNodeID.toLatin1().constData()) );
+    d->PlanNode->GetScene()->GetNodeByID(beamNodeID.toUtf8().constData()) );
   if (!beamNode)
   {
     qCritical() << Q_FUNC_INFO << ": Beam node with ID '" << beamNodeID << "' not found!";
@@ -329,7 +329,7 @@ void qMRMLBeamsTableView::onBeamTableItemChanged(QTableWidgetItem* changedItem)
   else if (changedItem->column() == d->columnIndex("Name"))
   {
     QString nameText(changedItem->text());
-    beamNode->SetName(nameText.toLatin1().constData());
+    beamNode->SetName(nameText.toUtf8().constData());
   }
   // If gantry angle has been changed
   else if (changedItem->column() == d->columnIndex("Gantry"))
@@ -380,7 +380,7 @@ void qMRMLBeamsTableView::onEditButtonClicked()
   // Get beam node from scene
   QString beamNodeID = senderButton->property(ID_PROPERTY).toString();
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(
-    d->PlanNode->GetScene()->GetNodeByID(beamNodeID.toLatin1().constData()) );
+    d->PlanNode->GetScene()->GetNodeByID(beamNodeID.toUtf8().constData()) );
 
   // Open Beams module and select beam
   qSlicerApplication::application()->openNodeModule(beamNode);
@@ -399,7 +399,7 @@ void qMRMLBeamsTableView::onCloneButtonClicked()
   // Get beam node from scene
   QString beamNodeID = senderButton->property(ID_PROPERTY).toString();
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(
-    d->PlanNode->GetScene()->GetNodeByID(beamNodeID.toLatin1().constData()) );
+    d->PlanNode->GetScene()->GetNodeByID(beamNodeID.toUtf8().constData()) );
 
   // Clone beam node in its parent plan
   beamNode->RequestCloning();

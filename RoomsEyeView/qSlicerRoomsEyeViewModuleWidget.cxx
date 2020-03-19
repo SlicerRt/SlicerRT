@@ -207,7 +207,7 @@ void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
     }
     if (!paramNode->GetPatientBodySegmentID() && !d->SegmentSelectorWidget_PatientBody->currentSegmentID().isEmpty())
     {
-      paramNode->SetPatientBodySegmentID(d->SegmentSelectorWidget_PatientBody->currentSegmentID().toLatin1().constData());
+      paramNode->SetPatientBodySegmentID(d->SegmentSelectorWidget_PatientBody->currentSegmentID().toUtf8().constData());
     }
 
     paramNode->SetApplicatorHolderVisibility(0);
@@ -419,7 +419,7 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientBodySegmentChanged(QString segmen
   }
 
   paramNode->DisableModifiedEventOn();
-  paramNode->SetPatientBodySegmentID(segmentID.toLatin1().constData());
+  paramNode->SetPatientBodySegmentID(segmentID.toUtf8().constData());
   paramNode->DisableModifiedEventOff();
 }
 
@@ -442,7 +442,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineModelsButtonClicked(
 
   // Load and setup models
   QString treatmentMachineType(d->TreatmentMachineComboBox->currentData().toString());
-  paramNode->SetTreatmentMachineType(treatmentMachineType.toLatin1().constData());
+  paramNode->SetTreatmentMachineType(treatmentMachineType.toUtf8().constData());
   d->logic()->LoadTreatmentMachineModels(paramNode);
 
   // Reset camera
