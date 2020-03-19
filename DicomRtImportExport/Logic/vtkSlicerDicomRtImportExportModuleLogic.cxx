@@ -653,8 +653,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
 
   const char* seriesName = loadable->GetName();
 
-  scene->StartState(vtkMRMLScene::BatchProcessState);
-
   // Create plan node
   vtkSmartPointer<vtkMRMLRTPlanNode> planNode = vtkSmartPointer<vtkMRMLRTPlanNode>::New();
   planNode->SetName(seriesName);
@@ -724,12 +722,13 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
   if (planShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
     shNode->SetItemParent(planShItemID, studyItemID);
-  }
-  // Put plan markups under study within SH
-  vtkIdType planMarkupsShItemID = shNode->GetItemByDataNode(planNode->GetPoisMarkupsFiducialNode());
-  if (planMarkupsShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-  {
-    shNode->SetItemParent(planMarkupsShItemID, studyItemID);
+
+    // Put plan markups under plan within SH
+    vtkIdType planMarkupsShItemID = shNode->GetItemByDataNode(planNode->GetPoisMarkupsFiducialNode());
+    if (planMarkupsShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+      shNode->SetItemParent(planMarkupsShItemID, planShItemID);
+    }
   }
 
   // Compute and set geometry of possible RT image that references the loaded beams.
@@ -744,8 +743,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
       this->SetupRtImageGeometry(beamNode);
     }
   }
-
-  scene->EndState(vtkMRMLScene::BatchProcessState);
 
   // Exec after batch processing has ended (once again)
   if (beams)
@@ -1142,8 +1139,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
   const char* seriesName = loadable->GetName();
   std::string structureSetReferencedSeriesUid("");
 
-  scene->StartState(vtkMRMLScene::BatchProcessState);
-
   // Get referenced SOP instance UIDs
   const char* referencedSopInstanceUids = rtReader->GetRTStructureSetReferencedSOPInstanceUIDs();
   // Number of loaded points. Used to prevent unreasonably long loading times with the downside of a less nice initial representation
@@ -1318,9 +1313,6 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
 
   // Insert series in subject hierarchy
   vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy(rtReader, scene);
-
-  // Fire modified events if loading is finished
-  scene->EndState(vtkMRMLScene::BatchProcessState);
 
   return true;
 }
