@@ -321,16 +321,20 @@ def main(argv):
     if exist_db:
       logging.info('BatchStructureSet running in existing database mode')
       DICOMUtils.openDatabase(input_folder)
-      all_patients = slicer.dicomDatabase.patients()
+      db = slicer.dicomDatabase
+      all_patients = db.patients()
       logging.info('Must Process Patients %s' % len(all_patients))
-
       for patient in all_patients:
-        slicer.mrmlScene.Clear(0) # clear the scene
-        DICOMUtils.loadPatientByUID(patient)
-        output_dir = os.path.join(output_folder,patient)
+        slicer.mrmlScene.Clear(0) # clear the scen
+        studyList=db.studiesForPatient(patient) # code modified from https://www.slicer.org/wiki/Documentation/Nightly/ScriptRepository 
+        seriesList=db.seriesForStudy(studyList[0])
+        fileList=db.filesForSeries(seriesList[0])
+        print(db.fileValue(fileList[0],'0010,0020'))
+        DICOMUtils.loadPatientByUID(patient)       
+        output_dir = os.path.join(output_folder,db.fileValue(fileList[0],'0010,0020'))
         if not os.access(output_dir, os.F_OK):
           os.mkdir(output_dir)
-        save_rtslices(output_dir, use_ref_image)
+        save_rtslices(output_dir)
 
     else:
       ref_image_node_id = None
