@@ -30,7 +30,6 @@
 
 class vtkPolyData;
 class vtkMRMLScene;
-class vtkMRMLDoubleArrayNode;
 class vtkMRMLTableNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLScalarVolumeNode;
@@ -99,17 +98,11 @@ public:
   /// Get parent plan node
   vtkMRMLRTPlanNode* GetParentPlanNode();
 
-  /// Get MLC boundary double array node
-  vtkMRMLDoubleArrayNode* GetMLCBoundaryDoubleArrayNode();
-  /// Set and observe MLC boundary double array node.
+  /// Get MLC boundary and position table node
+  vtkMRMLTableNode* GetMultiLeafCollimatorTableNode();
+  /// Set and observe MLC boundary and position table node
   /// Triggers \sa BeamGeometryModified event and re-generation of beam model
-  void SetAndObserveMLCBoundaryDoubleArrayNode(vtkMRMLDoubleArrayNode* node);
-
-  /// Get MLC position table node
-  vtkMRMLTableNode* GetMLCPositionTableNode();
-  /// Set and observe MLC position table node
-  /// Triggers \sa BeamGeometryModified event and re-generation of beam model
-  void SetAndObserveMLCPositionTableNode(vtkMRMLTableNode* node);
+  void SetAndObserveMultiLeafCollimatorTableNode(vtkMRMLTableNode* node);
 
   /// Get DRR volume node
   vtkMRMLScalarVolumeNode* GetDRRVolumeNode();
@@ -257,7 +250,7 @@ private:
   /// \brief Create visible points of MLC enclosure (perimeter) 
   ///  in IEC BEAM LIMITING DEVICE coordinate axis (isocenter plane)
   void CreateMLCPointsFromSectionBorder( double jawBegin, double jawEnd, 
-    bool typeMLCX, bool typeMLCY, const MLCSectionVector::value_type& sectionBorder, 
+    bool mlcType, const MLCSectionVector::value_type& sectionBorder, 
     MLCVisiblePointVector& side12);
 };
 

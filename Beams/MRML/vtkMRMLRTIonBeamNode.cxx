@@ -29,7 +29,6 @@
 // MRML includes
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLTableNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLLinearTransformNode.h>
