@@ -660,7 +660,6 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         append->AddInputData(beamPolyData);
       }
     }
-
     append->Update();
     beamModelPolyData->ShallowCopy(append->GetOutput());
   }

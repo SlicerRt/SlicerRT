@@ -742,59 +742,21 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
       this->SetupRtImageGeometry(beamNode);
     }
   }
-/*
-  // Exec after batch processing has ended (once again)
+
+  // Allow beam modification after all beams are loaded
   if (beams)
   {
     for (int i=0; i<beams->GetNumberOfItems(); ++i)
     {
       vtkMRMLRTBeamNode *beamNode = vtkMRMLRTBeamNode::SafeDownCast(beams->GetItemAsObject(i));
 
-      vtkIdType beamShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
-      vtkIdType mlcPositionShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
-
       if (beamNode)
       {
-        // Update beam node using observed nodes, and don't show display nodes of the beams
-        // set beam node as a parent for a observed nodes
- //       beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
-        vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast(beamNode->GetDisplayNode());
-        if (displayNode)
-        {
-          displayNode->VisibilityOff();
-        }
-        // put observed mlc data under beam and ion beam node parent
-        beamShId = shNode->GetItemByDataNode(beamNode);
-        if (vtkMRMLTableNode* mlcTableNode = beamNode->GetMultiLeafCollimatorTableNode())
-        {
-          mlcPositionShId = shNode->GetItemByDataNode(mlcTableNode);
-        }
-        if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
-          mlcPositionShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-        {
-          shNode->SetItemParent( mlcPositionShId, beamShId);
-        }
-
-        // put observed scan spot data under ion beam node parent
-        if (vtkMRMLRTIonBeamNode *ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(beamNode))
-        {
-          vtkIdType scanSpotShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
-
-          if (vtkMRMLTableNode* scanSpotTableNode = ionBeamNode->GetScanSpotTableNode())
-          {
-            scanSpotShId = shNode->GetItemByDataNode(scanSpotTableNode);
-          }
-
-          if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
-            scanSpotShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
-          {
-            shNode->SetItemParent( scanSpotShId, beamShId);
-          }
-        }
+        beamNode->DisableModifiedEventOff();
       }
     }
   }
-*/
+
   return true;
 }
 
@@ -999,7 +961,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
         ionBeamNode->SetAndObserveScanSpotTableNode(scanSpotTableNode);
       }
 
-      // Update beam geometry (allow beam modification)
+      // Update beam geometry
       beamNode->InvokePendingModifiedEvent();
 
       // Create beam model hierarchy root node if has not been created yet
