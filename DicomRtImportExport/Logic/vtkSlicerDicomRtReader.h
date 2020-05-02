@@ -91,9 +91,6 @@ public:
   /// Get type of beam
   const char* GetBeamType(unsigned int beamNumber);
 
-  /// Get beam isocenter for a given beam
-  double* GetBeamIsocenterPositionRas(unsigned int beamNumber); // DEPRECATED
-
   /// Get radiation type (primary particle) for a given beam
   const char* GetBeamTreatmentDeliveryType(unsigned int beamNumber);
 
@@ -115,43 +112,23 @@ public:
   /// \return pointer to VSAD[2], or nullptr othervise
   double* GetBeamVirtualSourceAxisDistance(unsigned int beamNumber);
 
-  /// Get beam gantry angle for a given beam
-  double GetBeamGantryAngle(unsigned int beamNumber); // DEPRECATED
-
   /// Get gantry angle for a given control point of a beam
   double GetBeamControlPointGantryAngle( unsigned int beamNumber, 
     unsigned int controlPoint);
-
-  /// Get beam patient support (couch) angle for a given beam
-  double GetBeamPatientSupportAngle(unsigned int beamNumber); // DEPRECATED
 
   /// Get patient support (couch) angle for a given control point of a beam
   double GetBeamControlPointPatientSupportAngle( unsigned int beamNumber, 
     unsigned int controlPoint);
 
-  /// Get beam beam limiting device (collimator) angle for a given beam
-  double GetBeamBeamLimitingDeviceAngle(unsigned int beamNumber); // DEPRECATED
-
   /// Get beam limiting device (collimator) angle for a given control point of a beam
   double GetBeamControlPointBeamLimitingDeviceAngle( unsigned int beamNumber, 
     unsigned int controlPoint);
-
-  /// Get beam leaf jaw positions for a given beam
-  /// \param jawPositions Array in which the jaw positions are copied
-  void GetBeamLeafJawPositions(unsigned int beamNumber, double jawPositions[2][2]); // DEPRECATED
 
   /// Get jaw positions for a given control point of a beam
   /// \param jawPositions Array in which the jaw positions are copied
   /// \return true if jaw positions are valid, false otherwise 
   bool GetBeamControlPointJawPositions( unsigned int beamNumber, 
     unsigned int controlPoint, double jawPositions[2][2]);
-
-  /// Get MLC leaves boundaries & leaves positions opening for a given beam
-  /// \param pairBoundaries Array in which the raw leaves boundaries are copied
-  /// \param leafPositions Array in which the raw leaf positions are copied
-  /// \return "MLCX" or "MLCY" if data is valid, nullptr otherwise
-  const char* GetBeamMultiLeafCollimatorPositions( unsigned int beamNumber, 
-    std::vector<double>& pairBoundaries, std::vector<double>& leafPositions); // DEPRECATED
 
   /// Get Scan spot position map and meterset weights for a given 
   /// control point of a modulated ion beam
