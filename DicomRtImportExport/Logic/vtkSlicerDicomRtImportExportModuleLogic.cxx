@@ -92,7 +92,6 @@
 #include <vtkMRMLLabelMapVolumeDisplayNode.h>
 #include <vtkMRMLSelectionNode.h>
 #include <vtkMRMLVolumeArchetypeStorageNode.h>
-#include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLTableNode.h>
 
 // Markups includes
@@ -178,17 +177,17 @@ public:
   /// Add an ROI point to the scene
   vtkMRMLMarkupsFiducialNode* AddRoiPoint(double* roiPosition, std::string baseName, double* roiColor);
 
-  /// Create table node positions for the MLC
+  /// Create table node for MLC boundary and position
+  /// Columns of the table node:
+  ///  Column 0 - leaf pair boundary values
+  ///  Column 1 - leaf positions on side 1
+  ///  Column 2 - leaf positions on side 2
   vtkMRMLTableNode* CreateMultiLeafCollimatorTableNode( const char* name, 
-    const std::vector<double>& mlcPositions);
+    const std::vector<double>& mlcBoundary, const std::vector<double>& mlcPosition);
 
   /// Create table node for scan spot parameters of modulated ion beam
   vtkMRMLTableNode* CreateScanSpotTableNode( const char* name, 
     const std::vector<float>& positions, const std::vector<float>& weights);
-
-  /// Create double array node boundaries for the MLC
-  vtkMRMLDoubleArrayNode* CreateMultiLeafCollimatorDoubleArrayNode( const char* name, 
-    const std::vector<double>& mlcBoundaries);
 
   /// Compute and set geometry of an RT image
   /// \param node Either the volume node of the loaded RT image, or the isocenter fiducial node (corresponding to an RT image). This function is called both when
@@ -743,7 +742,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
       this->SetupRtImageGeometry(beamNode);
     }
   }
-
+/*
   // Exec after batch processing has ended (once again)
   if (beams)
   {
@@ -758,7 +757,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
       {
         // Update beam node using observed nodes, and don't show display nodes of the beams
         // set beam node as a parent for a observed nodes
-        beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
+ //       beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
         vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast(beamNode->GetDisplayNode());
         if (displayNode)
         {
@@ -766,7 +765,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
         }
         // put observed mlc data under beam and ion beam node parent
         beamShId = shNode->GetItemByDataNode(beamNode);
-        if (vtkMRMLTableNode* mlcTableNode = beamNode->GetMLCPositionTableNode())
+        if (vtkMRMLTableNode* mlcTableNode = beamNode->GetMultiLeafCollimatorTableNode())
         {
           mlcPositionShId = shNode->GetItemByDataNode(mlcTableNode);
         }
@@ -795,6 +794,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
       }
     }
   }
+*/
   return true;
 }
 
@@ -876,6 +876,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
         beamNode->SetName(newBeamName.c_str());
       }
 
+      // Prevent beam from geometry modification
+      beamNode->DisableModifiedEventOn();
+
       // Set beam geometry parameters from DICOM
       double jawPositions[2][2] = {{0.0, 0.0},{0.0, 0.0}};
       if (rtReader->GetBeamControlPointJawPositions( dicomBeamNumber, cointrolPointIndex, jawPositions))
@@ -947,25 +950,19 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
       // Create MLC table node if MLCX or MLCY are available
       std::vector<double> boundaries, positions;
       vtkMRMLTableNode* mlcTableNode = nullptr;
-      vtkMRMLDoubleArrayNode* mlcArrayNode = nullptr;
       // Check MLC
       const char* mlcName = rtReader->GetBeamControlPointMultiLeafCollimatorPositions( dicomBeamNumber, 
         cointrolPointIndex, boundaries, positions);
       if (mlcName)
       {
-        std::string mlcPositionString = std::string(mlcName) + "_Position";
+        std::string mlcBoundaryPositionString = std::string(mlcName) + "_BoundaryAndPosition";
         mlcTableNode = this->CreateMultiLeafCollimatorTableNode( 
-          mlcPositionString.c_str(), positions);    
-
-        std::string mlcBoundaryString = std::string(mlcName) + "_Boundary";
-        mlcArrayNode = this->CreateMultiLeafCollimatorDoubleArrayNode( 
-          mlcBoundaryString.c_str(), boundaries);
+          mlcBoundaryPositionString.c_str(), boundaries, positions);
       }
       else
       {
         vtkDebugWithObjectMacro( this->External, "MLC data unavailable");
       }
-
 
       // Check Scan Spot parameters of modulated ion beam
       vtkMRMLTableNode* scanSpotTableNode = nullptr;
@@ -991,10 +988,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
       planNode->AddBeam(beamNode);
 
       // Add MLC to beam or ion beam
-      if (beamNode && mlcTableNode && mlcArrayNode)
+      if (beamNode && mlcTableNode)
       {
-        beamNode->SetAndObserveMLCBoundaryDoubleArrayNode(mlcArrayNode);
-        beamNode->SetAndObserveMLCPositionTableNode(mlcTableNode);
+        beamNode->SetAndObserveMultiLeafCollimatorTableNode(mlcTableNode);
       }
 
       // Add scan spot to ion beam
@@ -1003,8 +999,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
         ionBeamNode->SetAndObserveScanSpotTableNode(scanSpotTableNode);
       }
 
-      // Update beam transforms (batch processing prevents processing events that would do this)
-      this->External->BeamsLogic->UpdateTransformForBeam(beamNode);
+      // Update beam geometry (allow beam modification)
+      beamNode->InvokePendingModifiedEvent();
 
       // Create beam model hierarchy root node if has not been created yet
       if (beamModelHierarchyRootNode.GetPointer() == nullptr)
@@ -1042,6 +1038,46 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
       beamModelHierarchyDisplayNode->SetVisibility(1);
       scene->AddNode(beamModelHierarchyDisplayNode);
       beamModelHierarchyNode->SetAndObserveDisplayNodeID( beamModelHierarchyDisplayNode->GetID() );
+
+      // Show only control point 0 by default
+      vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast(beamNode->GetDisplayNode());
+      if (displayNode && cointrolPointIndex > 0)
+      {
+        displayNode->VisibilityOff();
+      }
+
+      // Set beam node as a parent for observed nodes
+      vtkIdType beamShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
+      vtkIdType mlcTableShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
+      // get beam subject hierarchy ID
+      beamShId = shNode->GetItemByDataNode(beamNode);
+      // put observed mlc data under beam node parent
+      if (mlcTableNode)
+      {
+        mlcTableShId = shNode->GetItemByDataNode(mlcTableNode);
+      }
+      if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
+        mlcTableShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+      {
+        shNode->SetItemParent( mlcTableShId, beamShId);
+      }
+
+      // put observed scan spot data under ion beam node parent
+      if (ionBeamNode)
+      {
+        vtkIdType scanSpotShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
+
+        if (scanSpotTableNode)
+        {
+          scanSpotShId = shNode->GetItemByDataNode(scanSpotTableNode);
+        }
+
+        if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
+          scanSpotShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+        {
+          shNode->SetItemParent( scanSpotShId, beamShId);
+        }
+      }
     } // end of a control point
   } // end of a beam
 
@@ -1442,37 +1478,8 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLDoubleArrayNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMultiLeafCollimatorDoubleArrayNode( 
-  const char* name, const std::vector<double>& mlcBoundaries)
-{
-  vtkSmartPointer<vtkMRMLDoubleArrayNode> arrayNode = vtkSmartPointer<vtkMRMLDoubleArrayNode>::New();
-  this->External->GetMRMLScene()->AddNode(arrayNode);
-  arrayNode->SetName(name);
-
-  // Leaf boundaries
-  if (mlcBoundaries.size())
-  {
-    vtkNew<vtkDoubleArray> b;
-    b->SetNumberOfComponents(1);
-    b->SetNumberOfTuples(mlcBoundaries.size());
-    for ( size_t i = 0; i < mlcBoundaries.size(); ++i)
-    {
-      b->InsertTuple( i, mlcBoundaries.data() + i);
-    }
-    arrayNode->SetArray(b);
-    return arrayNode;
-  }
-  else
-  {
-    vtkErrorWithObjectMacro( this->External, 
-      "CreateMultiLeafCollimatorDoubleArrayNode: MLC boundaries array is empty");
-  }
-  return nullptr;
-}
-
-//---------------------------------------------------------------------------
 vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMultiLeafCollimatorTableNode( 
-  const char* name, const std::vector<double>& mlcPositions)
+  const char* name, const std::vector<double>& mlcBoundary, const std::vector<double>& mlcPosition)
 {
   vtkSmartPointer<vtkMRMLTableNode> tableNode = vtkSmartPointer<vtkMRMLTableNode>::New();
   this->External->GetMRMLScene()->AddNode(tableNode);
@@ -1481,24 +1488,38 @@ vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMu
   vtkTable* table = tableNode->GetTable();
   if (table)
   {
-    // Leaf position on the side "1"
+    // Column 0; Leaf pair boundary values
+    vtkNew<vtkDoubleArray> boundary;
+    boundary->SetName("Boundary");
+    table->AddColumn(boundary);
+
+    // Column 1; Leaf positions on the side "1"
     vtkNew<vtkDoubleArray> pos1;
     pos1->SetName("1");
     table->AddColumn(pos1);
 
-    // Leaf position on the side "2"
+    // Column 2; Leaf positions on the side "2"
     vtkNew<vtkDoubleArray> pos2;
     pos2->SetName("2");
     table->AddColumn(pos2);
 
-    vtkIdType size = mlcPositions.size() / 2;
-    table->SetNumberOfRows(size);
+    vtkIdType size = mlcPosition.size() / 2;
+    table->SetNumberOfRows(size + 1);
+
+    for ( vtkIdType row = 0; row < size + 1; ++row)
+    {
+      table->SetValue( row, 0, mlcBoundary[row]);
+    }
     for ( vtkIdType row = 0; row < size; ++row)
     {
-      table->SetValue( row, 0, mlcPositions[row]);
-      table->SetValue( row, 1, mlcPositions[row + size]);
+      table->SetValue( row, 1, mlcPosition[row]);
+      table->SetValue( row, 2, mlcPosition[row + size]);
     }
+    table->SetValue( size, 1, 0.); // side "1" set last unused value to zero
+    table->SetValue( size, 2, 0.); // side "2" set last unused value to zero
+
     tableNode->SetUseColumnNameAsColumnHeader(true);
+    tableNode->SetColumnDescription( "Boundary", "Leaf pair boundary");
     tableNode->SetColumnDescription( "1", "Leaf position on the side \"1\"");
     tableNode->SetColumnDescription( "2", "Leaf position on the side \"2\"");
     return tableNode;
