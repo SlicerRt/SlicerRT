@@ -244,7 +244,7 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
         // if caller node and referenced table node is the same
         // update beam polydata
         vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(*beamIterator);
-        vtkMRMLTableNode* beamMLCTableNode = beamNode->GetMLCPositionTableNode();
+        vtkMRMLTableNode* beamMLCTableNode = beamNode->GetMultiLeafCollimatorTableNode();
         vtkMRMLTableNode* tableNode = vtkMRMLTableNode::SafeDownCast(caller);
         if (beamMLCTableNode == tableNode)
         {

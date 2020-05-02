@@ -2665,12 +2665,6 @@ const char* vtkSlicerDicomRtReader::GetBeamType(unsigned int beamNumber)
   return (beam->Type.empty() ? nullptr : beam->Type.c_str());
 }
 
-//---------------------------------------------------------------------------- DEPRECATED
-double* vtkSlicerDicomRtReader::GetBeamIsocenterPositionRas(unsigned int beamNumber)
-{
-  return GetBeamControlPointIsocenterPositionRas( beamNumber, 0);
-}
-
 //----------------------------------------------------------------------------
 const char* vtkSlicerDicomRtReader::GetBeamTreatmentDeliveryType(unsigned int beamNumber)
 {
@@ -2743,12 +2737,6 @@ double* vtkSlicerDicomRtReader::GetBeamVirtualSourceAxisDistance(unsigned int be
   return beam->SourceAxisDistance.data();
 }
 
-//---------------------------------------------------------------------------- DEPRECATED
-double vtkSlicerDicomRtReader::GetBeamGantryAngle(unsigned int beamNumber)
-{
-  return GetBeamControlPointGantryAngle( beamNumber, 0);
-}
-
 //----------------------------------------------------------------------------
 double vtkSlicerDicomRtReader::GetBeamControlPointGantryAngle( unsigned int beamNumber, 
   unsigned int controlPointIndex)
@@ -2770,12 +2758,6 @@ double vtkSlicerDicomRtReader::GetBeamControlPointGantryAngle( unsigned int beam
      "No control point sequence data for current beam: " << beam->Name);
   }
   return 0.0;
-}
-
-//---------------------------------------------------------------------------- DEPRECATED
-double vtkSlicerDicomRtReader::GetBeamPatientSupportAngle(unsigned int beamNumber)
-{
-  return GetBeamControlPointPatientSupportAngle( beamNumber, 0);
 }
 
 //----------------------------------------------------------------------------
@@ -2801,12 +2783,6 @@ double vtkSlicerDicomRtReader::GetBeamControlPointPatientSupportAngle( unsigned 
   return 0.0;
 }
 
-//---------------------------------------------------------------------------- DEPRECATED
-double vtkSlicerDicomRtReader::GetBeamBeamLimitingDeviceAngle(unsigned int beamNumber)
-{
-  return GetBeamControlPointBeamLimitingDeviceAngle( beamNumber, 0);
-}
-
 //----------------------------------------------------------------------------
 double vtkSlicerDicomRtReader::GetBeamControlPointBeamLimitingDeviceAngle( unsigned int beamNumber, 
   unsigned int controlPointIndex)
@@ -2828,12 +2804,6 @@ double vtkSlicerDicomRtReader::GetBeamControlPointBeamLimitingDeviceAngle( unsig
      "No control point sequence data for current beam: " << beam->Name);
   }
   return 0.0;
-}
-
-//---------------------------------------------------------------------------- DEPRECATED
-void vtkSlicerDicomRtReader::GetBeamLeafJawPositions(unsigned int beamNumber, double jawPositions[2][2])
-{
-  GetBeamControlPointJawPositions( beamNumber, 0, jawPositions);
 }
 
 //----------------------------------------------------------------------------
@@ -2861,14 +2831,6 @@ bool vtkSlicerDicomRtReader::GetBeamControlPointJawPositions( unsigned int beamN
      "No control point sequence data for current beam: " << beam->Name);
   }
   return false;
-}
-
-//---------------------------------------------------------------------------- DEPRECATED
-const char* vtkSlicerDicomRtReader::GetBeamMultiLeafCollimatorPositions( unsigned int beamNumber, 
-  std::vector<double>& pairBoundaries, std::vector<double>& leafPositions)
-{
-  return GetBeamControlPointMultiLeafCollimatorPositions( beamNumber, 0, 
-    pairBoundaries, leafPositions);
 }
 
 //----------------------------------------------------------------------------
