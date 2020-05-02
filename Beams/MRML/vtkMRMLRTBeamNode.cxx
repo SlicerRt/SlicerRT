@@ -496,18 +496,24 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
   vtkMRMLTableNode* mlcTableNode = this->GetMultiLeafCollimatorTableNode();
 
   vtkIdType nofLeafPairs = 0;
-
-  // MLC position data
-  if (mlcTableNode && (mlcTableNode->GetNumberOfColumns() == 3) && (mlcTableNode->GetNumberOfRows() > 0))
+  if (mlcTableNode)
   {
     nofLeafPairs = mlcTableNode->GetNumberOfRows() - 1;
-    vtkDebugMacro("CreateBeamPolyData: Valid MLC nodes, number of leaf pairs: " << nofLeafPairs);
   }
-  else
+
+  if (nofLeafPairs)
   {
-    vtkErrorMacro("CreateBeamPolyData: Invalid MLC table node, or " \
-      "invalid number of rows or columns in the table");
-    mlcTableNode = nullptr; // draw beam polydata without MLC
+    // MLC position data
+    if (mlcTableNode && (mlcTableNode->GetNumberOfColumns() == 3) && (mlcTableNode->GetNumberOfRows() > 0))
+    {
+      vtkDebugMacro("CreateBeamPolyData: Valid MLC nodes, number of leaf pairs: " << nofLeafPairs);
+    }
+    else
+    {
+      vtkErrorMacro("CreateBeamPolyData: Invalid MLC table node, or " \
+        "invalid number of rows or columns in the table");
+      mlcTableNode = nullptr; // draw beam polydata without MLC
+    }
   }
 
   bool xOpened = !AreEqual( this->X2Jaw, this->X1Jaw);
