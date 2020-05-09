@@ -499,19 +499,27 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
   if (mlcTableNode)
   {
     nofLeafPairs = mlcTableNode->GetNumberOfRows() - 1;
+    if (nofLeafPairs <= 0)
+    {
+      vtkWarningMacro("CreateBeamPolyData: Wrong number of leaf pairs in the MLC table node, " \
+        "beam model poly data will be created without MLC");
+      mlcTableNode = nullptr; // draw beam polydata without MLC
+      nofLeafPairs = 0;
+    }
   }
 
-  if (nofLeafPairs)
+  // valid MLC node
+  if (nofLeafPairs > 0)
   {
-    // MLC position data
-    if (mlcTableNode && (mlcTableNode->GetNumberOfColumns() == 3) && (mlcTableNode->GetNumberOfRows() > 0))
+    // MLC boundary and position data
+    if (mlcTableNode->GetNumberOfColumns() == 3)
     {
-      vtkDebugMacro("CreateBeamPolyData: Valid MLC nodes, number of leaf pairs: " << nofLeafPairs);
+      vtkDebugMacro("CreateBeamPolyData: MLC table node is present, number of leaf pairs = " << nofLeafPairs);
     }
     else
     {
-      vtkErrorMacro("CreateBeamPolyData: Invalid MLC table node, or " \
-        "invalid number of rows or columns in the table");
+      vtkWarningMacro("CreateBeamPolyData: Wrong number of columns in the MLC table node, " \
+        "beam model poly data will be created without MLC");
       mlcTableNode = nullptr; // draw beam polydata without MLC
     }
   }
