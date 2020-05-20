@@ -263,12 +263,12 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::ExamineRtDoseDataset(
 
   // Get RTPlan name to show it with the dose
   //TODO: Uncomment this line when figured out the reason for the crash, see https://github.com/SlicerRt/SlicerRT/issues/135
-  //QString rtPlanLabelTag("300a,0002");
-  //QString rtPlanFileName = dicomDatabase->fileForInstance(referencedSOPInstanceUID.c_str());
-  //if (!rtPlanFileName.isEmpty())
-  //{
-  //  name += OFString(": ") + OFString(dicomDatabase->fileValue(rtPlanFileName,rtPlanLabelTag).toUtf8().constData());
-  //}
+  QString rtPlanLabelTag("300a,0002");
+  QString rtPlanFileName = dicomDatabase->fileForInstance(referencedSOPInstanceUID.c_str());
+  if (!rtPlanFileName.isEmpty())
+  {
+   name += OFString(": ") + OFString(dicomDatabase->fileValue(rtPlanFileName,rtPlanLabelTag).toUtf8().constData());
+  }
 
   // Close and delete DICOM database
   dicomDatabase->closeDatabase();
