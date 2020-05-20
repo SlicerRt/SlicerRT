@@ -805,7 +805,12 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
         nofCointrolPoints = 1; // will be used only control point 0
       }
     }
-    
+
+    //TODO: Implement correct loading of multiple control points (e.g. sequence nodes)
+    singleBeam = true;
+    vtkWarningWithObjectMacro( this->External, "LoadExternalBeamPlan: Multiple control points loading are currently disabled!");
+    nofCointrolPoints = 1; // will be used only control point 0
+
     for ( unsigned int cointrolPointIndex = 0; cointrolPointIndex < nofCointrolPoints; ++cointrolPointIndex)
     {
       // Create the beam node for each control point
