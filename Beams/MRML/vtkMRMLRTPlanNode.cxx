@@ -612,6 +612,41 @@ void vtkMRMLRTPlanNode::AddBeam(vtkMRMLRTBeamNode* beamNode)
 }
 
 //---------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::AddProxyBeam(vtkMRMLRTBeamNode* beamNode)
+{
+  if (!this->GetScene())
+  {
+    vtkErrorMacro("AddProxyBeam: Invalid MRML scene");
+    return;
+  }
+  if (!beamNode)
+  {
+    return;
+  }
+
+  // Get subject hierarchy item for the RT Plan
+  vtkIdType planShItemID = this->GetPlanSubjectHierarchyItemID();
+  if (planShItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    vtkErrorMacro("AddProxyBeam: Failed to access RT plan subject hierarchy item, although it should always be available");
+    return;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(beamNode->GetScene());
+  if (!shNode)
+  {
+    vtkErrorMacro("AddProxyBeam: Failed to access subject hierarchy node");
+    return;
+  }
+
+  // Set the beam number
+  beamNode->SetBeamNumber(this->NextBeamNumber++);
+
+  // Add beam node in the right subject hierarchy branch
+  shNode->CreateItem(planShItemID, beamNode);
+  this->Modified();
+}
+
+//---------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::RemoveBeam(vtkMRMLRTBeamNode* beamNode)
 {
   if (!this->GetScene())

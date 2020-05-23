@@ -50,6 +50,16 @@ public:
 
   vtkGetObjectMacro(MLCPositionLogic, vtkSlicerMLCPositionLogic);
 
+  /// Update parent transform of a given beam using its parameters and the IEC logic
+  /// without using plan node (only isocenter position)
+  /// @param beamSequenceScene - inner scene of the beam sequence node
+  /// @param beamNode - a current beam node (must be added to the beam sequence node beforehand)
+  /// @param beamTransformNode - parent transform of the beam according to the beam parameters and isocenter
+  /// @param isocenter - isocenter position
+  /// \warning This method is used only in vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequence
+  void UpdateTransformForBeam( vtkMRMLScene* beamSequenceScene, vtkMRMLRTBeamNode* beamNode, 
+    vtkMRMLLinearTransformNode* beamTransformNode, double isocenter[3]);
+
 protected:
   vtkSlicerBeamsModuleLogic();
   ~vtkSlicerBeamsModuleLogic() override;

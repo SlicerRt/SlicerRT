@@ -146,8 +146,8 @@ class DicomRtImportTest(unittest.TestCase):
     # Verify that the correct number of objects were loaded
     # Volumes: Dose, RT image
     self.assertEqual( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ), 2 )
-    # Model hierarchies: Beam models (parent + individual beams)
-    self.assertEqual( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ), 6 )
+    # RT Beam nodes (static beams and dynamic beam sequences)
+    self.assertEqual( len( slicer.util.getNodes('vtkMRMLRTBeamNode*') ), 5 )
     # Segmentation: The loaded structures
     self.assertEqual( len( slicer.util.getNodes('vtkMRMLSegmentationNode*') ), 1 )
     # Markups: the RT plan POI

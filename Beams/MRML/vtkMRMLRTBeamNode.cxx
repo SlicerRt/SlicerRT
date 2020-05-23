@@ -195,6 +195,36 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*/)
+{
+  MRMLNodeModifyBlocker blocker(this);
+  Superclass::CopyContent( anode, deepCopy);
+
+  vtkMRMLRTBeamNode* node = vtkMRMLRTBeamNode::SafeDownCast(anode);
+  if (!node)
+  {
+    return;
+  }
+
+  this->SetBeamNumber(node->GetBeamNumber());
+  this->SetBeamDescription(node->GetBeamDescription());
+  this->SetBeamWeight(node->GetBeamWeight());
+
+  this->SetX1Jaw(node->GetX1Jaw());
+  this->SetX2Jaw(node->GetX2Jaw());
+  this->SetY1Jaw(node->GetY1Jaw());
+  this->SetY2Jaw(node->GetY2Jaw());
+
+  this->SetSourceToJawsDistanceX(node->GetSourceToJawsDistanceX());
+  this->SetSourceToJawsDistanceY(node->GetSourceToJawsDistanceY());
+  this->SetSourceToMultiLeafCollimatorDistance(node->GetSourceToMultiLeafCollimatorDistance());
+
+  this->SetGantryAngle(node->GetGantryAngle());
+  this->SetCollimatorAngle(node->GetCollimatorAngle());
+  this->SetCouchAngle(node->GetCouchAngle());
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetScene(vtkMRMLScene* scene)
 {
   Superclass::SetScene(scene);
@@ -282,6 +312,21 @@ void vtkMRMLRTBeamNode::CreateNewBeamTransformNode()
   transformNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
 
   this->SetAndObserveTransformNodeID(transformNode->GetID());
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLLinearTransformNode* vtkMRMLRTBeamNode::CreateBeamTransformNode(vtkMRMLScene* scene)
+{
+  // Create transform node for beam
+  vtkNew<vtkMRMLLinearTransformNode> transformNode;
+  std::string transformName = std::string(this->GetName()) + BEAM_TRANSFORM_NODE_NAME_POSTFIX;
+  transformNode->SetName(transformName.c_str());
+  scene->AddNode(transformNode);
+
+  // Hide transform node from subject hierarchy as it is not supposed to be used by the user
+  transformNode->SetAttribute(vtkMRMLSubjectHierarchyConstants::GetSubjectHierarchyExcludeFromTreeAttributeName().c_str(), "1");
+
+  return transformNode;
 }
 
 //----------------------------------------------------------------------------
@@ -528,6 +573,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
   bool yOpened = !AreEqual( this->Y2Jaw, this->Y1Jaw);
 
   // Check that we have MLC with Jaws opening
+  bool polydataAppended = false;
   if (mlcTableNode && xOpened && yOpened)
   {
     MLCBoundaryPositionVector mlc;
@@ -619,14 +665,14 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     }
 
     // append one or more visible sections to beam model poly data
-    auto append = vtkSmartPointer<vtkAppendPolyData>::New();
+    vtkNew<vtkAppendPolyData> append;
     for (const MLCSectionVector::value_type& section : sections)
     {
       if (section.first != mlc.end() && section.second != mlc.end())
       {
-        vtkSmartPointer<vtkPolyData> beamPolyData = vtkSmartPointer<vtkPolyData>::New();
-        vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-        vtkSmartPointer<vtkCellArray> cellArray = vtkSmartPointer<vtkCellArray>::New();
+        vtkNew<vtkPolyData> beamPolyData;
+        vtkNew<vtkPoints> points;
+        vtkNew<vtkCellArray> cellArray;
 
         MLCVisiblePointVector side12; // real points for side "1" and "2"
         CreateMLCPointsFromSectionBorder( jawBegin, jawEnd, typeMLCX, section, side12);
@@ -672,52 +718,60 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
 
         // append section to form final polydata
         append->AddInputData(beamPolyData);
+        polydataAppended = true;
       }
     }
-    append->Update();
-    beamModelPolyData->ShallowCopy(append->GetOutput());
+    if (polydataAppended)
+    {
+      append->Update();
+      beamModelPolyData->DeepCopy(append->GetOutput());
+    }
   }
-  else
+  if (polydataAppended)
   {
-    vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-    vtkSmartPointer<vtkCellArray> cellArray = vtkSmartPointer<vtkCellArray>::New();
-
-    points->InsertPoint(0,0,0,this->SAD);
-    points->InsertPoint(1, 2*this->X1Jaw, 2*this->Y1Jaw, -this->SAD );
-    points->InsertPoint(2, 2*this->X1Jaw, 2*this->Y2Jaw, -this->SAD );
-    points->InsertPoint(3, 2*this->X2Jaw, 2*this->Y2Jaw, -this->SAD );
-    points->InsertPoint(4, 2*this->X2Jaw, 2*this->Y1Jaw, -this->SAD );
-
-    cellArray->InsertNextCell(3);
-    cellArray->InsertCellPoint(0);
-    cellArray->InsertCellPoint(1);
-    cellArray->InsertCellPoint(2);
-
-    cellArray->InsertNextCell(3);
-    cellArray->InsertCellPoint(0);
-    cellArray->InsertCellPoint(2);
-    cellArray->InsertCellPoint(3);
-
-    cellArray->InsertNextCell(3);
-    cellArray->InsertCellPoint(0);
-    cellArray->InsertCellPoint(3);
-    cellArray->InsertCellPoint(4);
-
-    cellArray->InsertNextCell(3);
-    cellArray->InsertCellPoint(0);
-    cellArray->InsertCellPoint(4);
-    cellArray->InsertCellPoint(1);
-
-    // Add the cap to the bottom
-    cellArray->InsertNextCell(4);
-    cellArray->InsertCellPoint(1);
-    cellArray->InsertCellPoint(2);
-    cellArray->InsertCellPoint(3);
-    cellArray->InsertCellPoint(4);
-
-    beamModelPolyData->SetPoints(points);
-    beamModelPolyData->SetPolys(cellArray);
+    vtkDebugMacro("CreateBeamPolyData: Beam \"" << this->GetName() << "\" with MLC data has been created!");
+    return;
   }
+ 
+  // Default beam polydata (no MLC)
+  vtkNew<vtkPoints> points;
+  vtkNew<vtkCellArray> cellArray;
+
+  points->InsertPoint(0,0,0,this->SAD);
+  points->InsertPoint(1, 2*this->X1Jaw, 2*this->Y1Jaw, -this->SAD );
+  points->InsertPoint(2, 2*this->X1Jaw, 2*this->Y2Jaw, -this->SAD );
+  points->InsertPoint(3, 2*this->X2Jaw, 2*this->Y2Jaw, -this->SAD );
+  points->InsertPoint(4, 2*this->X2Jaw, 2*this->Y1Jaw, -this->SAD );
+
+  cellArray->InsertNextCell(3);
+  cellArray->InsertCellPoint(0);
+  cellArray->InsertCellPoint(1);
+  cellArray->InsertCellPoint(2);
+
+  cellArray->InsertNextCell(3);
+  cellArray->InsertCellPoint(0);
+  cellArray->InsertCellPoint(2);
+  cellArray->InsertCellPoint(3);
+
+  cellArray->InsertNextCell(3);
+  cellArray->InsertCellPoint(0);
+  cellArray->InsertCellPoint(3);
+  cellArray->InsertCellPoint(4);
+
+  cellArray->InsertNextCell(3);
+  cellArray->InsertCellPoint(0);
+  cellArray->InsertCellPoint(4);
+  cellArray->InsertCellPoint(1);
+
+  // Add the cap to the bottom
+  cellArray->InsertNextCell(4);
+  cellArray->InsertCellPoint(1);
+  cellArray->InsertCellPoint(2);
+  cellArray->InsertCellPoint(3);
+  cellArray->InsertCellPoint(4);
+
+  beamModelPolyData->SetPoints(points);
+  beamModelPolyData->SetPolys(cellArray);
 }
 
 //---------------------------------------------------------------------------

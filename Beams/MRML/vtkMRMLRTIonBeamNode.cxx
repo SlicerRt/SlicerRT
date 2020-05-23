@@ -172,6 +172,39 @@ void vtkMRMLRTIonBeamNode::Copy(vtkMRMLNode *anode)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLRTIonBeamNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*/)
+{
+  MRMLNodeModifyBlocker blocker(this);
+  Superclass::CopyContent( anode, deepCopy);
+
+  vtkMRMLRTIonBeamNode* node = vtkMRMLRTIonBeamNode::SafeDownCast(anode);
+  if (!node)
+  {
+    return;
+  }
+
+  this->SetBeamNumber(node->GetBeamNumber());
+  this->SetBeamDescription(node->GetBeamDescription());
+  this->SetBeamWeight(node->GetBeamWeight());
+
+  this->SetX1Jaw(node->GetX1Jaw());
+  this->SetX2Jaw(node->GetX2Jaw());
+  this->SetY1Jaw(node->GetY1Jaw());
+  this->SetY2Jaw(node->GetY2Jaw());
+  this->SetVSAD( node->GetVSADx(), node->GetVSADy());
+  this->SetIsocenterToJawsDistanceX(node->GetIsocenterToJawsDistanceX());
+  this->SetIsocenterToJawsDistanceY(node->GetIsocenterToJawsDistanceY());
+  this->SetIsocenterToMultiLeafCollimatorDistance(node->GetIsocenterToMultiLeafCollimatorDistance());
+  this->SetIsocenterToRangeShifterDistance(node->GetIsocenterToRangeShifterDistance());
+
+  this->SetScanningSpotSize(node->GetScanningSpotSize());
+
+  this->SetGantryAngle(node->GetGantryAngle());
+  this->SetCollimatorAngle(node->GetCollimatorAngle());
+  this->SetCouchAngle(node->GetCouchAngle());
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLRTIonBeamNode::SetScene(vtkMRMLScene* scene)
 {
   Superclass::SetScene(scene);
@@ -231,6 +264,13 @@ void vtkMRMLRTIonBeamNode::CreateNewBeamTransformNode()
 {
   // Create transform node for ion beam
   Superclass::CreateNewBeamTransformNode();
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLLinearTransformNode* vtkMRMLRTIonBeamNode::CreateBeamTransformNode(vtkMRMLScene* scene)
+{
+  // Create transform node for ion beam
+  return Superclass::CreateBeamTransformNode(scene);
 }
 
 //----------------------------------------------------------------------------
