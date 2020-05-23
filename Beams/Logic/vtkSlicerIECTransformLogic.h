@@ -135,8 +135,12 @@ public:
 
   /// Update parent transform node of a given beam from the IEC transform hierarchy and the beam parameters
   void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode);
+  /// Update parent transform node of a given beam from the IEC transform hierarchy and the beam parameters
+  /// \warning This method is used only in vtkSlicerBeamsModuleLogic::UpdateTransformForBeam
+  void UpdateBeamTransform( vtkMRMLRTBeamNode* beamNode, vtkMRMLLinearTransformNode* beamTransformNode, double* isocenter);
+
   /// Update IEC transforms according to beam node
-  void UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* beamNode);
+  void UpdateIECTransformsFromBeam( vtkMRMLRTBeamNode* beamNode, double* isocenter = nullptr);
 
 protected:
   /// Get name of transform node between two coordinate systems

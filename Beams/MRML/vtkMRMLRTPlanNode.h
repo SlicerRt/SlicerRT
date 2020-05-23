@@ -95,6 +95,12 @@ public:
 
   /// Add given beam node to plan
   void AddBeam(vtkMRMLRTBeamNode* beam);
+
+  /// Add given proxy beam node to plan
+  /// @param proxyBeam - Pointer to the selected beam of the beam sequence node,
+  /// the selection process is controlled by a sequence browser node
+  void AddProxyBeam(vtkMRMLRTBeamNode* proxyBeam);
+
   /// Remove given beam node from plan
   void RemoveBeam(vtkMRMLRTBeamNode* beam);
   /// Remove all beam nodes from plan

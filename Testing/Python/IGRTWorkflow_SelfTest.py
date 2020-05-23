@@ -99,7 +99,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     self.tempDir = IGRTWorkflow_SelfTestDir + '/Temp'
 
     self.day1CTName = '2: ENT IMRT'
-    self.day1DoseName = '5: RTDOSE: BRAI1'
+    self.day1DoseName = '5: RTDOSE'
     self.day1StructureSetName = '3: RTSTRUCT: ENT'
     self.day1PlanName = '4: RTPLAN: BRAI1'
     self.day1IsodosesName = '5: RTDOSE: BRAI1_IsodoseSurfaces'
@@ -131,9 +131,9 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
 
         # Download, unzip, import, and load data. Verify selected plugins and loaded nodes.
         selectedPlugins = { 'Scalar Volume':2, 'RT':3 }
-        loadedNodes = { 'vtkMRMLScalarVolumeNode':2, \
+        loadedNodes = { 'vtkMRMLScalarVolumeNode':3, \
                         'vtkMRMLSegmentationNode':1, \
-                        'vtkMRMLModelHierarchyNode':7 }
+                        'vtkMRMLRTBeamNode':6 }
         with DICOMUtils.LoadDICOMFilesToDatabase( \
             self.dicomZipFileUrl, self.dicomZipFilePath, \
             self.dicomDataDir, self.expectedNumOfFilesInDicomDataDir, \

@@ -187,6 +187,33 @@ void vtkSlicerBeamsModuleLogic::UpdateTransformForBeam(vtkMRMLRTBeamNode* beamNo
   iecLogic->UpdateBeamTransform(beamNode);
 }
 
+//---------------------------------------------------------------------------
+void vtkSlicerBeamsModuleLogic::UpdateTransformForBeam( vtkMRMLScene* beamSequenceScene, 
+  vtkMRMLRTBeamNode* beamNode, vtkMRMLLinearTransformNode* beamTransformNode, double* isocenter)
+{
+  if (!beamNode)
+  {
+    vtkErrorMacro("UpdateTransformForBeam: Invalid beam node");
+    return;
+  }
+  if (!beamTransformNode)
+  {
+    vtkErrorMacro("UpdateTransformForBeam: Invalid beam transform node");
+    return;
+  }
+
+  if (!beamSequenceScene)
+  {
+    vtkErrorMacro("UpdateTransformForBeam: Invalid MRML scene");
+    return;
+  }
+
+  //TODO: Use one IEC logic in a private scene for all beam transform updates?
+  vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
+  iecLogic->SetMRMLScene(beamSequenceScene);
+  iecLogic->UpdateBeamTransform( beamNode, beamTransformNode, isocenter);
+}
+
 //----------------------------------------------------------------------------
 void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData)
 {

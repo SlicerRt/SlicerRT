@@ -34,6 +34,7 @@ class vtkMRMLTableNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
+class vtkMRMLLinearTransformNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLModelNode
@@ -70,6 +71,9 @@ public:
   /// Copy the node's attributes to this object 
   void Copy(vtkMRMLNode *node) override;
 
+  /// Copy node content (excludes basic data, such a name and node reference)
+  vtkMRMLCopyContentMacro(vtkMRMLRTBeamNode);
+
   /// Make sure display node and transform node are present and valid
   void SetScene(vtkMRMLScene* scene) override;
 
@@ -86,6 +90,11 @@ public:
   /// Create transform node that places the beam poly data in the right position based on geometry.
   /// Always creates a new transform node.
   virtual void CreateNewBeamTransformNode();
+
+  /// Create transform node that places the beam poly data in the right position based on geometry.
+  /// Always creates a new transform node.
+  /// This method is used only in vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequence
+  virtual vtkMRMLLinearTransformNode* CreateBeamTransformNode(vtkMRMLScene *externalScene);
 
   /// Update beam poly data based on beam geometry parameters (jaws, MLC)
   void UpdateGeometry();

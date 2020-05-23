@@ -49,6 +49,9 @@ public:
   /// Copy the node's attributes to this object 
   void Copy(vtkMRMLNode *node) override;
 
+  /// Copy node content (excludes basic data, such a name and node reference)
+  vtkMRMLCopyContentMacro(vtkMRMLRTIonBeamNode);
+
   /// Make sure display node and transform node are present and valid
   void SetScene(vtkMRMLScene* scene) override;
 
@@ -65,6 +68,10 @@ public:
   /// Create transform node that places the beam poly data in the right position based on geometry.
   /// Always creates a new transform node.
   void CreateNewBeamTransformNode() override;
+
+  /// Create transform node that places the beam poly data in the right position based on geometry.
+  /// Always creates a new transform node.
+  vtkMRMLLinearTransformNode* CreateBeamTransformNode(vtkMRMLScene*) override;
 
 public:
   /// Get VSAD distance x component

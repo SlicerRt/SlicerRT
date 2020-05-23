@@ -9,7 +9,10 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSlicerSubjectHierarchyModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerSequencesModuleMRML_INCLUDE_DIRS}
+  ${vtkSlicerSequencesModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerDICOMLibModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   ${PlmCommon_INCLUDE_DIRS}
   ${PLASTIMATCH_INCLUDE_DIRS}
   )
@@ -29,6 +32,8 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerSubjectHierarchyModuleLogic
   vtkSlicerSegmentationsModuleMRML
   vtkSlicerSegmentationsModuleLogic
+  vtkSlicerSequencesModuleMRML
+  vtkSlicerSequencesModuleLogic
   vtkSlicerIsodoseModuleLogic
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}

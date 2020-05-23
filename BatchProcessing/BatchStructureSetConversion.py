@@ -228,7 +228,7 @@ class BatchStructureSetConversionTest(ScriptedLoadableModuleTest):
 
       # Download, unzip, import, and load data. Verify selected plugins and loaded nodes.
       selectedPlugins = { 'Scalar Volume':1, 'RT':2 }
-      loadedNodes = { 'vtkMRMLScalarVolumeNode':2, \
+      loadedNodes = { 'vtkMRMLScalarVolumeNode':3, \
                       'vtkMRMLSegmentationNode':1 }
       with DICOMUtils.LoadDICOMFilesToDatabase( \
           self.dicomZipFileUrl, self.dicomZipFilePath, \
