@@ -147,14 +147,14 @@ class DicomRtImportTest(unittest.TestCase):
     # Volumes: Dose, RT image
     self.assertEqual( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ), 2 )
     # Model hierarchies: Beam models (parent + individual beams)
-    self.assertEqual( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ), 11 )
+    self.assertEqual( len( slicer.util.getNodes('vtkMRMLModelHierarchyNode*') ), 6 )
     # Segmentation: The loaded structures
     self.assertEqual( len( slicer.util.getNodes('vtkMRMLSegmentationNode*') ), 1 )
     # Markups: the RT plan POI
     self.assertEqual( len( slicer.util.getNodes('vtkMRMLMarkupsFiducialNode*') ), 1 )
     # Subject hierarchy items
     shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
-    self.assertEqual( shNode.GetNumberOfItems(), 42 )
+    self.assertEqual( shNode.GetNumberOfItems(), 28 )
 
   #------------------------------------------------------------------------------
   def TestSection_SaveScene(self):

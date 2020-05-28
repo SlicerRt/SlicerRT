@@ -36,7 +36,7 @@ endforeach()
 slicer_add_python_unittest(
   SCRIPT DicomRtImportTest.py
   SLICER_ARGS --disable-cli-modules
-              # --no-main-window
+              --no-main-window
               --additional-module-paths
                 ${MODULE_BUILD_DIR}
                 ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR} 

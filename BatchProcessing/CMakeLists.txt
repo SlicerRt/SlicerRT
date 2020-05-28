@@ -27,7 +27,7 @@ endif()
 
 slicer_add_python_unittest(
   SCRIPT BatchStructureSetConversion.py
-  SLICER_ARGS # --no-main-window
+  SLICER_ARGS --no-main-window
               --additional-module-paths
                 ${MODULE_BUILD_DIR}
                 ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR} 
