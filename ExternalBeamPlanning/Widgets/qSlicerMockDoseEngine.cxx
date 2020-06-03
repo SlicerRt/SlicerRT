@@ -81,7 +81,7 @@ QString qSlicerMockDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamN
     return errorMessage;
   }
 
-  vtkSmartPointer<vtkClosedSurfaceToBinaryLabelmapConversionRule> converter = 
+  vtkSmartPointer<vtkClosedSurfaceToBinaryLabelmapConversionRule> converter =
     vtkSmartPointer<vtkClosedSurfaceToBinaryLabelmapConversionRule>::New();
   converter->SetUseOutputImageDataGeometry(true);
   vtkSmartPointer<vtkSegment> beamSegment = vtkSmartPointer<vtkSegment>::Take(
@@ -89,11 +89,20 @@ QString qSlicerMockDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamN
   vtkPolyData* beamPolyData = vtkPolyData::SafeDownCast(beamSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName()));
   vtkSmartPointer<vtkOrientedImageData> beamImageData = vtkSmartPointer<vtkOrientedImageData>::Take(
     vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(referenceVolumeNode) );
+  beamSegment->AddRepresentation(vtkSegmentationConverter::GetBinaryLabelmapRepresentationName(), beamImageData);
 #if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
   converter->Convert(beamSegment);
+  beamImageData = vtkOrientedImageData::SafeDownCast(beamSegment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()));
 #else
   converter->Convert(beamPolyData, beamImageData);
 #endif
+
+  if (!beamImageData)
+  {
+    QString errorMessage("Unable to create beam image!");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+    return errorMessage;
+  }
 
   // Create dose image
   vtkSmartPointer<vtkImageData> protonDoseImageData = vtkSmartPointer<vtkImageData>::New();
