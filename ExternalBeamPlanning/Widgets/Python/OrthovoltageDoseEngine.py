@@ -20,12 +20,12 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     AbstractScriptedDoseEngine.__init__(self, scriptedEngine)
 
     # Define initial defaults for parameters that are stored in application settings
-    self.ctcreateExecFilePathDefault = "C/EGSnrc/HEN_HOUSE/bin/win6432/ctcreate.exe"
+    self.ctcreateExecFilePathDefault = "C:/EGSnrc/HEN_HOUSE/bin/win6432/ctcreate.exe"
     self.ctcreateOutputPathDefault = "C:/d/tmp"
     self.phaseSpaceFilePathDefault = "C:/d/6MV 8x6/DOSXYZnrc_files/egsphsp/6MV_8x6asym_sum.egsphsp1"
     self.dosxyznrcFolderPathDefault = "C:/EGSnrc/egs_home/dosxyznrc"
     self.dosxyznrcExecFilePathDefault = "C:/EGSnrc/egs_home/bin/win6432/dosxyznrc.exe"
-    self.pegsFilePathDefault = "C/EGSnrc/HEN_HOUSE/pegs4/data/521icru.pegs4dat"
+    self.pegsFilePathDefault = "C:/EGSnrc/HEN_HOUSE/pegs4/data/521icru.pegs4dat"
 
   #------------------------------------------------------------------------------
   def defineBeamParameters(self):
