@@ -157,7 +157,7 @@ protected slots:
 // Default beam parameter handler functions
 protected slots:
   // Geometry page
-  void mlcPositionDoubleArrayNodeChanged(vtkMRMLNode* node);
+  void mlcBoundaryAndPositionTableNodeChanged(vtkMRMLNode* node);
   void sourceDistanceChanged(double);
   void xJawsPositionValuesChanged(double, double);
   void yJawsPositionValuesChanged(double, double);
@@ -169,6 +169,11 @@ protected slots:
   void updateDRRClicked();
   void beamEyesViewClicked(bool);
   void contoursInBEWClicked(bool);
+
+  // Multi Leaf Collimator page
+  void generateMLCboundaryClicked();
+  void updateMLCboundaryClicked();
+  void calculateMLCPositionClicked();
 
 protected:
   QScopedPointer<qMRMLBeamParametersTabWidgetPrivate> d_ptr;

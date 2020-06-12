@@ -23,13 +23,30 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include "qMRMLBeamParametersTabWidget.h"
 #include "ui_qMRMLBeamParametersTabWidget.h"
 
+// Segmentations Module Logic includes
+#include <vtkSlicerSegmentationsModuleLogic.h>
+
+// SlicerRT includes
+#include <vtkSlicerBeamsModuleLogic.h>
+#include <vtkSlicerMLCPositionLogic.h>
+
 #include "vtkMRMLRTBeamNode.h"
+#include "vtkMRMLRTPlanNode.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
+#include <vtkMRMLTableNode.h>
+#include <vtkMRMLTransformNode.h>
+#include <vtkMRMLMarkupsClosedCurveNode.h> // for convex hull curve
+#include <vtkMRMLSegmentationNode.h> // for RTSTRUCT sermentation data
 
 // VTK includes
 #include <vtkWeakPointer.h>
+
+// Slicer includes
+#include <qSlicerCoreApplication.h>
+#include <qSlicerModuleManager.h>
+#include <qSlicerAbstractCoreModule.h>
 
 // Qt includes
 #include <QDebug>
@@ -57,12 +74,16 @@ public:
 
   /// Map storing beam parameter tab widgets by name
   QMap<QString,QWidget*> BeamParametersTabWidgets;
+
+  /// Logic for MLC position calculation
+  vtkSlicerMLCPositionLogic* MLCPositionLogic;
 };
 
 //-----------------------------------------------------------------------------
 qMRMLBeamParametersTabWidgetPrivate::qMRMLBeamParametersTabWidgetPrivate(qMRMLBeamParametersTabWidget& object)
   : q_ptr(&object)
   , BeamNode(nullptr)
+  , MLCPositionLogic(nullptr)
 {
 }
 
@@ -73,7 +94,7 @@ void qMRMLBeamParametersTabWidgetPrivate::init()
   this->setupUi(q);
 
   // Geometry page
-  QObject::connect( this->MRMLNodeComboBox_MLCPositionDoubleArray, SIGNAL(currentNodeChanged(vtkMRMLNode*)), q, SLOT(mlcPositionDoubleArrayNodeChanged(vtkMRMLNode*)) );
+  QObject::connect( this->MRMLNodeComboBox_MLCBoundaryAndPositionTable, SIGNAL(currentNodeChanged(vtkMRMLNode*)), q, SLOT(mlcBoundaryAndPositionTableNodeChanged(vtkMRMLNode*)) );
   QObject::connect( this->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), q, SLOT(sourceDistanceChanged(double)) );
   QObject::connect( this->RangeWidget_XJawsPosition, SIGNAL(valuesChanged(double, double)), q, SLOT(xJawsPositionValuesChanged(double, double)) );
   QObject::connect( this->RangeWidget_YJawsPosition, SIGNAL(valuesChanged(double, double)), q, SLOT(yJawsPositionValuesChanged(double, double)) );
@@ -85,6 +106,18 @@ void qMRMLBeamParametersTabWidgetPrivate::init()
   QObject::connect( this->pushButton_UpdateDRR, SIGNAL(clicked()), q, SLOT(updateDRRClicked()) );
   QObject::connect( this->checkBox_BeamsEyeView, SIGNAL(clicked(bool)), q, SLOT(beamEyesViewClicked(bool)) );
   QObject::connect( this->checkBox_ContoursInBEW, SIGNAL(clicked(bool)), q, SLOT(contoursInBEWClicked(bool)) );
+
+  // Multi Leaf Collimator page
+  QObject::connect( this->pushButton_GenerateMLCBoundary, SIGNAL(clicked()), q, SLOT(generateMLCboundaryClicked()) );
+  QObject::connect( this->pushButton_UpdateMLCBoundary, SIGNAL(clicked()), q, SLOT(updateMLCboundaryClicked()) );
+  QObject::connect( this->pushButton_CalculateMLCPosition, SIGNAL(clicked()), q, SLOT(calculateMLCPositionClicked()) );
+
+  // Load MLC position calculation logic
+  qSlicerCoreApplication* app = qSlicerCoreApplication::application();
+  qSlicerModuleManager* manager = app->moduleManager();
+  vtkMRMLAbstractLogic* logic = manager->module("Beams")->logic();
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(logic);
+  this->MLCPositionLogic = beamsLogic->GetMLCPositionLogic();
 
   // Remove Visualization tab as it is not yet functional
   //TODO: Re-enable when works
@@ -123,6 +156,7 @@ void qMRMLBeamParametersTabWidget::setBeamNode(vtkMRMLNode* node)
 
   d->BeamNode = beamNode;
   this->updateWidgetFromMRML();
+  this->setCurrentIndex(0);
 }
 
 //-----------------------------------------------------------------------------
@@ -153,6 +187,17 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
   d->SliderWidget_GantryAngle->blockSignals(false);
   d->SliderWidget_CouchAngle->setValue(d->BeamNode->GetCouchAngle());
 
+  d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setMRMLScene(d->BeamNode->GetScene());
+  if (vtkMRMLTableNode* mlcTable = d->BeamNode->GetMultiLeafCollimatorTableNode())
+  {
+    d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setCurrentNode(mlcTable);
+    d->pushButton_UpdateMLCBoundary->setEnabled(true);
+  }
+  else
+  {
+    d->pushButton_UpdateMLCBoundary->setEnabled(false);
+  }
+
   // Update engine-specific values
   foreach (QWidget* tabWidget, d->BeamParametersTabWidgets)
   {
@@ -176,7 +221,7 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
 
         // Set value to supported widget types
         QLineEdit* lineEdit = qobject_cast<QLineEdit*>(currentParameterFieldWidget);
-        QSlider* slider = qobject_cast<QSlider*>(currentParameterFieldWidget);
+        ctkSliderWidget* slider = qobject_cast<ctkSliderWidget*>(currentParameterFieldWidget);
         QDoubleSpinBox* spinBox = qobject_cast<QDoubleSpinBox*>(currentParameterFieldWidget);
         QComboBox* comboBox = qobject_cast<QComboBox*>(currentParameterFieldWidget);
         QCheckBox* checkBox = qobject_cast<QCheckBox*>(currentParameterFieldWidget);
@@ -189,7 +234,7 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
         else if (slider)
         {
           slider->blockSignals(true);
-          slider->setValue(parameterValue.toDouble()); //TODO: ctkSlider
+          slider->setValue(parameterValue.toDouble());
           slider->blockSignals(false);
         }
         else if (spinBox)
@@ -329,8 +374,7 @@ void qMRMLBeamParametersTabWidget::addBeamParameterFloatingPointNumber(
 
   if (slider)
   {
-    //TODO: ctkSliderWidget instead to support double? (fix updateWidgetFromMRML too)
-    QSlider* slider = new QSlider(tabWidget);
+    ctkSliderWidget* slider = new ctkSliderWidget(tabWidget);
     slider->setToolTip(tooltip);
     slider->setRange(minimumValue, maximumValue);
     slider->setValue(defaultValue);
@@ -613,9 +657,27 @@ void qMRMLBeamParametersTabWidget::updateTabVisibility()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-void qMRMLBeamParametersTabWidget::mlcPositionDoubleArrayNodeChanged(vtkMRMLNode* node)
+void qMRMLBeamParametersTabWidget::mlcBoundaryAndPositionTableNodeChanged(vtkMRMLNode* node)
 {
   Q_D(qMRMLBeamParametersTabWidget);
+
+  d->pushButton_UpdateMLCBoundary->setEnabled(node ? true : false);
+  d->pushButton_CalculateMLCPosition->setEnabled(node ? true : false);
+
+  if (!d->BeamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Beam node is invalid!";
+    return;
+  }
+
+  if (vtkMRMLTableNode* mlcTable = vtkMRMLTableNode::SafeDownCast(node))
+  {
+    d->BeamNode->SetAndObserveMultiLeafCollimatorTableNode(mlcTable);
+  }
+  else
+  {
+    qCritical() << Q_FUNC_INFO << ": MLC boundary and position table node is invalid!";
+  }
 
   // GCS FIX TODO *** Come back to this later ***
   Q_UNUSED(node);
@@ -650,6 +712,127 @@ void qMRMLBeamParametersTabWidget::mlcPositionDoubleArrayNodeChanged(vtkMRMLNode
   beamNode->SetAndObserveMLCPositionDoubleArrayNode(vtkMRMLDoubleArrayNode::SafeDownCast(node));
   beamNode->DisableModifiedEventOff();
 #endif
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::generateMLCboundaryClicked()
+{
+  Q_D(qMRMLBeamParametersTabWidget);
+
+  if (!d->MLCPositionLogic)
+  {
+    qCritical() << Q_FUNC_INFO << ": MLC position calculation logic is invalid!";
+    return;
+  }
+
+  bool mlcType = d->radioButton_MLCX->isChecked();
+  int nofPairs = static_cast<int>(d->SliderWidget_NumberOfLeafPairs->value());
+  double leafPairSize = d->SliderWidget_LeafPairBoundarySize->value();
+  double offset = d->SliderWidget_IsocenterOffset->value();
+  
+  vtkMRMLTableNode* mlcTable = d->MLCPositionLogic->CreateMultiLeafCollimatorTableNodeBoundaryData( 
+    mlcType, nofPairs, leafPairSize, offset);
+  if (mlcTable)
+  {
+    const char* beamName = d->BeamNode->GetName();
+    const char* mlcName = mlcTable->GetName();
+    std::string newName = std::string(mlcName) + ": " + beamName;
+    mlcTable->SetName(newName.c_str());
+  }
+  else
+  {
+    qCritical() << Q_FUNC_INFO << ": Unable to create MLC boundary data table!";
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::updateMLCboundaryClicked()
+{
+  Q_D(qMRMLBeamParametersTabWidget);
+
+  if (!d->MLCPositionLogic)
+  {
+    qCritical() << Q_FUNC_INFO << ": MLC position calculation logic is invalid!";
+    return;
+  }
+
+  bool mlcType = d->radioButton_MLCX->isChecked();
+  int nofPairs = static_cast<int>(d->SliderWidget_NumberOfLeafPairs->value());
+  double leafPairSize = d->SliderWidget_LeafPairBoundarySize->value();
+  double offset = d->SliderWidget_IsocenterOffset->value();
+
+  vtkMRMLNode* node = d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->currentNode();
+  vtkMRMLTableNode* mlcTableNode = vtkMRMLTableNode::SafeDownCast(node);
+  if (mlcTableNode && d->radioButton_MLCX->isChecked())
+  {
+    d->MLCPositionLogic->UpdateMultiLeafCollimatorTableNodeBoundaryData( mlcTableNode,
+    mlcType, nofPairs, leafPairSize, offset);
+  }
+  else
+  {
+    qCritical() << Q_FUNC_INFO << ": Unable to update MLC boundary data table!";
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::calculateMLCPositionClicked()
+{
+  Q_D(qMRMLBeamParametersTabWidget);
+  vtkMRMLNode* mlcTable = d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->currentNode();
+
+  if (!d->BeamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node!";
+    return;
+  }
+  vtkMRMLRTPlanNode* planNode = d->BeamNode->GetParentPlanNode();
+  if (!planNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": No plan node for current beam!";
+    return;
+  }
+  vtkMRMLSegmentationNode* segmentationNode = planNode->GetSegmentationNode();
+  vtkMRMLScalarVolumeNode* volumeNode = planNode->GetReferenceVolumeNode();
+  const char* targetID = planNode->GetTargetSegmentID();
+
+  if (!segmentationNode || !volumeNode || !targetID)
+  {
+    qCritical() << Q_FUNC_INFO << ": No segmentation, reference volume or target id data!";
+    return;
+  }
+
+  vtkPolyData* targetPoly = segmentationNode->GetClosedSurfaceInternalRepresentation(std::string(targetID));
+  if (targetPoly)
+  {
+    vtkMRMLMarkupsCurveNode* convexHullCurve = d->MLCPositionLogic->CalculatePositionConvexHullCurve( d->BeamNode, targetPoly);
+    if (convexHullCurve)
+    {
+      const char* beamName = d->BeamNode->GetName();
+      const char* curveName = convexHullCurve->GetName();
+      std::string newName = std::string(curveName) + ": " + beamName;
+      convexHullCurve->SetName(newName.c_str());
+
+      vtkMRMLTransformNode* beamTransformNode = d->BeamNode->GetParentTransformNode();
+
+      vtkMRMLTableNode* mlcTableNode = vtkMRMLTableNode::SafeDownCast(mlcTable);
+      if (mlcTableNode && d->MLCPositionLogic->CalculateMultiLeafCollimatorPosition( mlcTableNode, convexHullCurve) 
+        && d->MLCPositionLogic->CalculateMultiLeafCollimatorPosition( d->BeamNode, mlcTableNode, targetPoly))
+      {
+        d->BeamNode->SetAndObserveMultiLeafCollimatorTableNode(mlcTableNode);
+        d->MLCPositionLogic->SetParentForMultiLeafCollimatorTableNode(d->BeamNode);
+
+        double area = d->MLCPositionLogic->CalculateMultiLeafCollimatorPositionArea(d->BeamNode);
+        qDebug() << Q_FUNC_INFO << ": MLC position area (mm^2) = " << area;
+
+        area = d->MLCPositionLogic->CalculateCurvePolygonArea(convexHullCurve);
+        qDebug() << Q_FUNC_INFO << ": Convex hull closed curve area (mm^2) = " << area;
+
+        d->MLCPositionLogic->SetParentForMultiLeafCollimatorCurve( d->BeamNode, convexHullCurve);
+
+        convexHullCurve->SetAndObserveTransformNodeID(beamTransformNode->GetID());
+      }
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

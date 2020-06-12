@@ -61,6 +61,8 @@
 // VTK includes
 #include <vtkCamera.h>
 #include <vtkPolyData.h>
+#include <vtkMatrix4x4.h>
+#include <vtkTransform.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
@@ -768,7 +770,7 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
   qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
   vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
   //vtkCamera* beamsEyeCamera = vtkSmartPointer<vtkCamera>::New();
-  
+
   // Get camera node for view
   vtkCollection* cameras = this->mrmlScene()->GetNodesByClass("vtkMRMLCameraNode");
   vtkMRMLCameraNode* cameraNode = nullptr;
@@ -783,6 +785,7 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
   if (!cameraNode)
   {
     qCritical() << Q_FUNC_INFO << "Failed to find camera for view " << (viewNode ? viewNode->GetID() : "(null)");
+    cameras->Delete();
     return;
   }
 
@@ -792,6 +795,27 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
 
   if (beamNode && beamNode->GetSourcePosition(sourcePosition))
   {
+    vtkMRMLTransformNode* beamTransformNode = beamNode->GetParentTransformNode();
+    vtkTransform* beamTransform = nullptr;
+    vtkNew<vtkMatrix4x4> mat;
+    mat->Identity();
+
+    if (beamTransformNode)
+    {
+      beamTransform = vtkTransform::SafeDownCast(beamTransformNode->GetTransformToParent());
+      beamTransform->GetMatrix(mat);
+    }
+    else
+    {
+      qCritical() << Q_FUNC_INFO << "Beam transform node is invalid";
+      cameras->Delete();
+      return;
+    }
+
+    double viewUpVector[4] = { -1., 0., 0., 0. }; // beam negative X-axis
+    double vup[4];
+  
+    mat->MultiplyPoint( viewUpVector, vup);
     //vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(this->mrmlScene()->GetFirstNodeByName("CollimatorModel"));
     //vtkPolyData* collimatorModelPolyData = collimatorModel->GetPolyData();
 
@@ -809,9 +833,11 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
     {
       cameraNode->GetCamera()->SetFocalPoint(isocenter);
     }
+    cameraNode->SetViewUp(vup);
   }
   
   cameraNode->GetCamera()->Elevation(-(d->GantryRotationSlider->value()));
+  cameras->Delete();
 
   //TODO: Oblique slice updating real-time based on beam geometry
   //vtkMRMLSliceNode* redSliceNode = redSliceWidget->mrmlSliceNode();
