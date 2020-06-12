@@ -15,6 +15,8 @@ set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}ModuleLogic.h
   vtkSlicerIECTransformLogic.cxx
   vtkSlicerIECTransformLogic.h
+  vtkSlicerMLCPositionLogic.cxx
+  vtkSlicerMLCPositionLogic.h
   )
 
 SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${vtkSlicerBeamsModuleMRML_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)

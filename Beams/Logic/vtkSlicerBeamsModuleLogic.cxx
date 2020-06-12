@@ -21,6 +21,7 @@
 // Beams includes
 #include "vtkSlicerBeamsModuleLogic.h"
 #include "vtkSlicerIECTransformLogic.h"
+#include "vtkSlicerMLCPositionLogic.h"
 
 // SlicerRT includes
 #include "vtkMRMLRTPlanNode.h"
@@ -43,10 +44,21 @@
 vtkStandardNewMacro(vtkSlicerBeamsModuleLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerBeamsModuleLogic::vtkSlicerBeamsModuleLogic() = default;
+vtkSlicerBeamsModuleLogic::vtkSlicerBeamsModuleLogic()
+ :
+ MLCPositionLogic(vtkSlicerMLCPositionLogic::New())
+{
+}
 
 //----------------------------------------------------------------------------
-vtkSlicerBeamsModuleLogic::~vtkSlicerBeamsModuleLogic() = default;
+vtkSlicerBeamsModuleLogic::~vtkSlicerBeamsModuleLogic()
+{
+  if (this->MLCPositionLogic)
+  {
+    this->MLCPositionLogic->Delete();
+    this->MLCPositionLogic = nullptr;
+  }
+}
 
 //----------------------------------------------------------------------------
 void vtkSlicerBeamsModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
@@ -81,6 +93,11 @@ void vtkSlicerBeamsModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::EndImportEvent);
   this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
+
+  if (this->MLCPositionLogic)
+  {
+    this->MLCPositionLogic->SetMRMLScene(newScene);
+  }
 }
 
 //---------------------------------------------------------------------------

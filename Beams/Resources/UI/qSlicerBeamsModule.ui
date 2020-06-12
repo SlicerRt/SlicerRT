@@ -14,7 +14,16 @@
    <string>Beams</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <property name="margin">
+   <property name="leftMargin">
+    <number>4</number>
+   </property>
+   <property name="topMargin">
+    <number>4</number>
+   </property>
+   <property name="rightMargin">
+    <number>4</number>
+   </property>
+   <property name="bottomMargin">
     <number>4</number>
    </property>
    <property name="spacing">
@@ -26,7 +35,16 @@
       <string>Beam parameters</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_5">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
        <number>4</number>
       </property>
       <property name="spacing">
@@ -73,7 +91,11 @@
        </layout>
       </item>
       <item row="3" column="0">
-       <widget class="qMRMLBeamParametersTabWidget" name="BeamParametersTabWidget"/>
+       <widget class="qMRMLBeamParametersTabWidget" name="BeamParametersTabWidget">
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -140,7 +162,7 @@
         <string>Switch to parent plan</string>
        </property>
        <property name="icon">
-        <iconset resource="../../SubjectHierarchyPlugins/Resources/qSlicerBeamsSubjectHierarchyPlugins.qrc">
+        <iconset>
          <normaloff>:/Icons/Plan.png</normaloff>:/Icons/Plan.png</iconset>
        </property>
       </widget>
@@ -164,6 +186,12 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
    <header>qMRMLNodeComboBox.h</header>
@@ -179,12 +207,6 @@
    <class>qMRMLBeamParametersTabWidget</class>
    <extends>QTabWidget</extends>
    <header>qMRMLBeamParametersTabWidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>ctkCollapsibleButton</class>
-   <extends>QWidget</extends>
-   <header>ctkCollapsibleButton.h</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>
