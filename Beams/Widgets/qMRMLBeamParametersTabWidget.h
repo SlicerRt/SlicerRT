@@ -159,6 +159,9 @@ protected slots:
   // Geometry page
   void mlcBoundaryAndPositionTableNodeChanged(vtkMRMLNode* node);
   void sourceDistanceChanged(double);
+  void mlcDistanceChanged(double);
+  void virtualSourceAxisXDistanceChanged(double);
+  void virtualSourceAxisYDistanceChanged(double);
   void xJawsPositionValuesChanged(double, double);
   void yJawsPositionValuesChanged(double, double);
   void collimatorAngleChanged(double);

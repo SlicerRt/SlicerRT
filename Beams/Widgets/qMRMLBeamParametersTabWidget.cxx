@@ -31,6 +31,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include <vtkSlicerMLCPositionLogic.h>
 
 #include "vtkMRMLRTBeamNode.h"
+#include "vtkMRMLRTIonBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
 
 // MRML includes
@@ -96,6 +97,7 @@ void qMRMLBeamParametersTabWidgetPrivate::init()
   // Geometry page
   QObject::connect( this->MRMLNodeComboBox_MLCBoundaryAndPositionTable, SIGNAL(currentNodeChanged(vtkMRMLNode*)), q, SLOT(mlcBoundaryAndPositionTableNodeChanged(vtkMRMLNode*)) );
   QObject::connect( this->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), q, SLOT(sourceDistanceChanged(double)) );
+  QObject::connect( this->doubleSpinBox_DistanceMLC, SIGNAL(valueChanged(double)), q, SLOT(mlcDistanceChanged(double)) );
   QObject::connect( this->RangeWidget_XJawsPosition, SIGNAL(valuesChanged(double, double)), q, SLOT(xJawsPositionValuesChanged(double, double)) );
   QObject::connect( this->RangeWidget_YJawsPosition, SIGNAL(valuesChanged(double, double)), q, SLOT(yJawsPositionValuesChanged(double, double)) );
   QObject::connect( this->SliderWidget_CollimatorAngle, SIGNAL(valueChanged(double)), q, SLOT(collimatorAngleChanged(double)) );
@@ -188,6 +190,8 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
   d->SliderWidget_CouchAngle->setValue(d->BeamNode->GetCouchAngle());
 
   d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setMRMLScene(d->BeamNode->GetScene());
+
+  // Check for MLC table and enable combo box
   if (vtkMRMLTableNode* mlcTable = d->BeamNode->GetMultiLeafCollimatorTableNode())
   {
     d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setCurrentNode(mlcTable);
@@ -195,6 +199,8 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
   }
   else
   {
+    d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setCurrentNode(nullptr);
+    d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setEnabled(false);
     d->pushButton_UpdateMLCBoundary->setEnabled(false);
   }
 
@@ -261,6 +267,62 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
       }
     } // For each row
   } // For each tab
+
+  // Update RTBeamNode specific widgets according to the type of rt beam node
+  vtkMRMLRTIonBeamNode* ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(d->BeamNode);
+  if (d->BeamNode && !ionBeamNode)
+  {
+    connect( d->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), this, SLOT(sourceDistanceChanged(double)) );
+    disconnect( d->doubleSpinBox_VSADx, SIGNAL(valueChanged(double)), this, SLOT(virtualSourceAxisXDistanceChanged(double)) );
+    disconnect( d->doubleSpinBox_VSADy, SIGNAL(valueChanged(double)), this, SLOT(virtualSourceAxisYDistanceChanged(double)) );
+    // rename some labels
+    d->label_DistanceMLC->setText(tr("Source to MLC distance (mm):"));
+
+    // hide widgets from rt beam
+    d->label_VSADx->hide();
+    d->doubleSpinBox_VSADx->hide();
+    d->label_VSADy->hide();
+    d->doubleSpinBox_VSADy->hide();
+    d->label_ScanSpotParameters->hide();
+    d->MRMLNodeComboBox_ScanSpotParametersTable->hide();
+
+    // show widgets for rt beam
+    d->doubleSpinBox_SAD->show();
+    d->label_SAD->show();
+  }
+  else if (ionBeamNode)
+  {
+    disconnect( d->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), this, SLOT(sourceDistanceChanged(double)) );
+    connect( d->doubleSpinBox_VSADx, SIGNAL(valueChanged(double)), this, SLOT(virtualSourceAxisXDistanceChanged(double)) );
+    connect( d->doubleSpinBox_VSADy, SIGNAL(valueChanged(double)), this, SLOT(virtualSourceAxisYDistanceChanged(double)) );
+
+    // Check for ScanSpot table and enable combo box
+    if (vtkMRMLTableNode* scanspotTable = ionBeamNode->GetScanSpotTableNode())
+    {
+      d->MRMLNodeComboBox_ScanSpotParametersTable->setMRMLScene(d->BeamNode->GetScene());
+      d->MRMLNodeComboBox_ScanSpotParametersTable->setCurrentNode(scanspotTable);
+    }
+    else
+    {
+      d->MRMLNodeComboBox_ScanSpotParametersTable->setCurrentNode(nullptr);
+      d->MRMLNodeComboBox_ScanSpotParametersTable->setEnabled(false);
+    }
+
+    // rename some labels
+    d->label_DistanceMLC->setText(tr("Isocenter to MLC distance (mm):"));
+
+    // hide widgets from rt ion beam
+    d->doubleSpinBox_SAD->hide();
+    d->label_SAD->hide();
+
+    // show widgets for rt ion beam
+    d->label_VSADx->show();
+    d->doubleSpinBox_VSADx->show();
+    d->label_VSADy->show();
+    d->doubleSpinBox_VSADy->show();
+    d->label_ScanSpotParameters->show();
+    d->MRMLNodeComboBox_ScanSpotParametersTable->show();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -661,8 +723,8 @@ void qMRMLBeamParametersTabWidget::mlcBoundaryAndPositionTableNodeChanged(vtkMRM
 {
   Q_D(qMRMLBeamParametersTabWidget);
 
-  d->pushButton_UpdateMLCBoundary->setEnabled(node ? true : false);
-  d->pushButton_CalculateMLCPosition->setEnabled(node ? true : false);
+  d->pushButton_UpdateMLCBoundary->setEnabled(node);
+  d->pushButton_CalculateMLCPosition->setEnabled(node);
 
   if (!d->BeamNode)
   {
@@ -738,6 +800,8 @@ void qMRMLBeamParametersTabWidget::generateMLCboundaryClicked()
     const char* mlcName = mlcTable->GetName();
     std::string newName = std::string(mlcName) + ": " + beamName;
     mlcTable->SetName(newName.c_str());
+    // enable MRML combobox if it was disabled
+    d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setEnabled(true);
   }
   else
   {
@@ -763,7 +827,7 @@ void qMRMLBeamParametersTabWidget::updateMLCboundaryClicked()
 
   vtkMRMLNode* node = d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->currentNode();
   vtkMRMLTableNode* mlcTableNode = vtkMRMLTableNode::SafeDownCast(node);
-  if (mlcTableNode && d->radioButton_MLCX->isChecked())
+  if (mlcTableNode)
   {
     d->MLCPositionLogic->UpdateMultiLeafCollimatorTableNodeBoundaryData( mlcTableNode,
     mlcType, nofPairs, leafPairSize, offset);
@@ -925,6 +989,67 @@ void qMRMLBeamParametersTabWidget::sourceDistanceChanged(double value)
 
   // Do not disable modifier events as geometry needs to be updated
   d->BeamNode->SetSAD(value);
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::virtualSourceAxisXDistanceChanged(double value)
+{
+  Q_D(qMRMLBeamParametersTabWidget);
+
+  if (!d->BeamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node!";
+    return;
+  }
+
+  vtkMRMLRTIonBeamNode* ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(d->BeamNode);
+  if (ionBeamNode)
+  {
+    // Do not disable modifier events as geometry needs to be updated
+    ionBeamNode->SetVSADx(value);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::virtualSourceAxisYDistanceChanged(double value)
+{
+  Q_D(qMRMLBeamParametersTabWidget);
+
+  if (!d->BeamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node!";
+    return;
+  }
+
+  vtkMRMLRTIonBeamNode* ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(d->BeamNode);
+  if (ionBeamNode)
+  {
+    // Do not disable modifier events as geometry needs to be updated
+    ionBeamNode->SetVSADy(value);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::mlcDistanceChanged(double value)
+{
+  Q_D(qMRMLBeamParametersTabWidget);
+
+  if (!d->BeamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node!";
+    return;
+  }
+
+  vtkMRMLRTIonBeamNode* ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(d->BeamNode);
+  // Do not disable modifier events as geometry needs to be updated
+  if (d->BeamNode && !ionBeamNode) // RTBeam
+  {
+    d->BeamNode->SetSourceToMultiLeafCollimatorDistance(value);
+  }
+  else if (ionBeamNode) // RTIonBeam
+  {
+    ionBeamNode->SetIsocenterToMultiLeafCollimatorDistance(value);
+  }
 }
 
 //-----------------------------------------------------------------------------

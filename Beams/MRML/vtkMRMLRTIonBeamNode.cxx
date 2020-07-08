@@ -45,6 +45,7 @@
 #include <vtkDoubleArray.h>
 #include <vtkTable.h>
 #include <vtkCellArray.h>
+#include <vtkAppendPolyData.h>
 
 //------------------------------------------------------------------------------
 namespace
@@ -372,7 +373,41 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
       "scan spot parameters for a node " 
       << "\"" << this->GetName() << "\"");
   }
-    
+
+  vtkMRMLTableNode* mlcTableNode = this->GetMultiLeafCollimatorTableNode();
+
+  vtkIdType nofLeafPairs = 0;
+  if (mlcTableNode)
+  {
+    nofLeafPairs = mlcTableNode->GetNumberOfRows() - 1;
+    if (nofLeafPairs <= 0)
+    {
+      vtkWarningMacro("CreateBeamPolyData: Wrong number of leaf pairs in the MLC table node, " \
+        "beam model poly data will be created without MLC");
+      mlcTableNode = nullptr; // draw beam polydata without MLC
+      nofLeafPairs = 0;
+    }
+  }
+
+  // valid MLC node
+  if (nofLeafPairs > 0)
+  {
+    // MLC boundary and position data
+    if (mlcTableNode->GetNumberOfColumns() == 3)
+    {
+      vtkDebugMacro("CreateBeamPolyData: MLC table node is present, number of leaf pairs = " << nofLeafPairs);
+    }
+    else
+    {
+      vtkWarningMacro("CreateBeamPolyData: Wrong number of columns in the MLC table node, " \
+        "beam model poly data will be created without MLC");
+      mlcTableNode = nullptr; // draw beam polydata without MLC
+    }
+  }
+
+  bool xOpened = !AreEqual( this->X2Jaw, this->X1Jaw);
+  bool yOpened = !AreEqual( this->Y2Jaw, this->Y1Jaw);
+
   // Scanning spot beam
   if (scanSpotTableNode)
   {
@@ -463,17 +498,214 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
     cellArray->InsertCellPoint(5);
     cellArray->InsertCellPoint(6);
     cellArray->InsertCellPoint(7);
+
+    beamModelPolyData->SetPoints(points);
+    beamModelPolyData->SetPolys(cellArray);
   }
-  else // symmetric jaws, asymmetric jaws, MLC
+  else if (mlcTableNode && xOpened && yOpened) // MLC with opened Jaws
   {
-    std::array< double, 3 > distance{ IsocenterToJawsDistanceX, 
-      IsocenterToJawsDistanceY, IsocenterToMultiLeafCollimatorDistance };
+    bool polydataAppended = false;
+    MLCBoundaryPositionVector mlc;
+
+    const char* mlcName = mlcTableNode->GetName();
+    bool typeMLCX = !strncmp( "MLCX", mlcName, strlen("MLCX")); // MLCX by default
+    bool typeMLCY = !strncmp( "MLCY", mlcName, strlen("MLCY"));
+    if (typeMLCY && !typeMLCX)
+    {
+      typeMLCX = false;
+    }
+
+    // copy MLC data for easier processing
+    for ( vtkIdType leafPair = 0; leafPair < nofLeafPairs; leafPair++)
+    {
+      vtkTable* table = mlcTableNode->GetTable();
+      double boundBegin = table->GetValue( leafPair, 0).ToDouble();
+      double boundEnd = table->GetValue( leafPair + 1, 0).ToDouble();
+      double pos1 = table->GetValue( leafPair, 1).ToDouble();
+      double pos2 = table->GetValue( leafPair, 2).ToDouble();
+      
+      mlc.push_back({ boundBegin, boundEnd, pos1, pos2 });
+    }
+
+    auto firstLeafIterator = mlc.end();
+    auto lastLeafIterator = mlc.end();
+    double& jawBegin = this->Y1Jaw;
+    double& jawEnd = this->Y2Jaw;
+    if (typeMLCX) // MLCX
+    {
+      jawBegin = this->Y1Jaw;
+      jawEnd = this->Y2Jaw;
+    }
+    else // MLCY
+    {
+      jawBegin = this->X1Jaw;
+      jawEnd = this->X2Jaw;
+    }
+
+    // find first and last opened leaves visible within jaws
+    // and fill sections vector for further processing
+    MLCSectionVector sections; // sections (first & last leaf iterator) of opened MLC
+    for ( auto it = mlc.begin(); it != mlc.end(); ++it)
+    {
+      double& bound1 = (*it)[0]; // leaf pair boundary begin
+      double& bound2 = (*it)[1]; // leaf pair boundary end
+      double& pos1 = (*it)[2]; // leaf position "1"
+      double& pos2 = (*it)[3]; // leaf position "2"
+      // if leaf pair is outside the jaws, then it is closed
+      bool mlcOpened = (bound2 < jawBegin || bound1 > jawEnd) ? false : !AreEqual( pos1, pos2);
+      bool withinJaw = false;
+      if (typeMLCX) // MLCX
+      {
+        withinJaw = ((pos1 < this->X1Jaw && pos2 >= this->X1Jaw && pos2 <= this->X2Jaw) || 
+          (pos1 >= this->X1Jaw && pos1 <= this->X2Jaw && pos2 > this->X2Jaw) || 
+          (pos1 <= this->X1Jaw && pos2 >= this->X2Jaw) || 
+          (pos1 >= this->X1Jaw && pos1 <= this->X2Jaw && 
+            pos2 >= this->X1Jaw && pos2 <= this->X2Jaw));
+      }
+      else // MLCY
+      {
+        withinJaw = ((pos1 < this->Y1Jaw && pos2 >= this->Y1Jaw && pos2 <= this->Y2Jaw) || 
+          (pos1 >= this->Y1Jaw && pos1 <= this->Y2Jaw && pos2 > this->Y2Jaw) || 
+          (pos1 <= this->Y1Jaw && pos2 >= this->Y2Jaw) || 
+          (pos1 >= this->Y1Jaw && pos1 <= this->Y2Jaw && 
+            pos2 >= this->Y1Jaw && pos2 <= this->Y2Jaw));
+      }
+
+      if (withinJaw && mlcOpened && firstLeafIterator == mlc.end())
+      {
+        firstLeafIterator = it;
+      }
+      if (withinJaw && mlcOpened && firstLeafIterator != mlc.end())
+      {
+        lastLeafIterator = it;
+      }
+      // check if next leaf pair is not the last
+      if (it != mlc.end() - 1)
+      {
+        auto next_it = it + 1;
+        double& next_pos1 = (*next_it)[2]; // position "1" of the next leaf
+        double& next_pos2 = (*next_it)[3]; // position "2" of the next leaf
+        // if there is no open space between neighbors => start new section
+        if (mlcOpened && (next_pos1 > pos2 || next_pos2 < pos1))
+        {
+          mlcOpened = false;
+        }
+      }
+      if (firstLeafIterator != mlc.end() && lastLeafIterator != mlc.end() && !mlcOpened)
+      {
+        sections.push_back({ firstLeafIterator, lastLeafIterator});
+        firstLeafIterator = mlc.end();
+        lastLeafIterator = mlc.end();
+      }
+    }
+
+    if (!sections.size()) // no visible sections
+    {
+      vtkErrorMacro("CreateBeamPolyData: Unable to calculate MLC visible data");
+      return;
+    }
+
+    // append one or more visible sections to beam model poly data
+    vtkNew<vtkAppendPolyData> append;
+    for (const MLCSectionVector::value_type& section : sections)
+    {
+      if (section.first != mlc.end() && section.second != mlc.end())
+      {
+        vtkNew<vtkPolyData> beamPolyData;
+        vtkNew<vtkPoints> points;
+        vtkNew<vtkCellArray> cellArray;
+
+        MLCVisiblePointVector side12; // real points for side "1" and "2"
+        CreateMLCPointsFromSectionBorder( jawBegin, jawEnd, typeMLCX, section, side12);
+
+        // fill vtk points
+        double cy1 = (this->VSADy + this->IsocenterToMultiLeafCollimatorDistance) / this->VSADy;
+        double cx1 = (this->VSADx + this->IsocenterToMultiLeafCollimatorDistance) / this->VSADx;
+        double cy = (this->VSADy - this->IsocenterToMultiLeafCollimatorDistance) / this->VSADy;
+        double cx = (this->VSADx - this->IsocenterToMultiLeafCollimatorDistance) / this->VSADx;
+
+        // side "1" and "2" points vector
+        vtkIdType pointIds = 0;
+        // points on MLC side
+        vtkIdType nofPoints = side12.size();
+        for ( const MLCVisiblePointVector::value_type& point : side12)
+        {
+          const double& x = point.first;
+          const double& y = point.second;
+          double x_ = x * cx;
+          double y_ = y * cy;
+          points->InsertPoint( pointIds++, x_, y_, this->IsocenterToMultiLeafCollimatorDistance);
+        }
+
+        // points on the opposite (from isocenter) side
+        for ( const MLCVisiblePointVector::value_type& point : side12)
+        {
+          const double& x = point.first;
+          const double& y = point.second;
+
+          double x_ = x * cx1;
+          double y_ = y * cy1;
+          points->InsertPoint( pointIds++, x_, y_, -this->IsocenterToMultiLeafCollimatorDistance);
+        }
+        side12.clear(); // doesn't need anymore
+
+        // fill cell array for side "1" and "2"
+        for ( vtkIdType i = 0; i < nofPoints - 1; ++i)
+        {
+          cellArray->InsertNextCell(4);
+          cellArray->InsertCellPoint(i);
+          cellArray->InsertCellPoint(i + 1);
+          cellArray->InsertCellPoint(i + nofPoints + 1);
+          cellArray->InsertCellPoint(i + nofPoints);
+        }
+
+        // fill cell connection between side "2" -> side "1"
+        cellArray->InsertNextCell(4);
+        cellArray->InsertCellPoint(0);
+        cellArray->InsertCellPoint(nofPoints);
+        cellArray->InsertCellPoint(2 * nofPoints - 1);
+        cellArray->InsertCellPoint(nofPoints - 1);
+
+        // Add the cap to the bottom
+        cellArray->InsertNextCell(nofPoints);
+        for ( vtkIdType i = 0; i < nofPoints; i++)
+        {
+          cellArray->InsertCellPoint(i);
+        }
+
+        // Add the cap to the top
+        cellArray->InsertNextCell(nofPoints);
+        for ( vtkIdType i = nofPoints; i < 2 * nofPoints; i++)
+        {
+          cellArray->InsertCellPoint(i);
+        }
+
+        beamPolyData->SetPoints(points);
+        beamPolyData->SetPolys(cellArray);
+
+        // append section to form final polydata
+        append->AddInputData(beamPolyData);
+        polydataAppended = true;
+      }
+    }
+    if (polydataAppended)
+    {
+      append->Update();
+      beamModelPolyData->DeepCopy(append->GetOutput());
+      return;
+    }
+  }
+  else // symmetric jaws, asymmetric jaws, no MLC
+  {
+    std::array< double, 2 > distance{ IsocenterToJawsDistanceX, IsocenterToJawsDistanceY };
 
     double beamTopCap = *std::min_element( distance.begin(), distance.end());
     double beamBottomCap = -beamTopCap;
 
     double Mx = (this->VSADx - beamTopCap) / this->VSADx;
     double My = (this->VSADy - beamTopCap) / this->VSADy;
+    double Mx1 = (this->VSADx + beamTopCap) / this->VSADx;
+    double My1 = (this->VSADy + beamTopCap) / this->VSADy;
 
     // beam begin cap
     points->InsertPoint( 0, Mx * this->X1Jaw, My * this->Y1Jaw, beamTopCap);
@@ -482,10 +714,10 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
     points->InsertPoint( 3, Mx * this->X2Jaw, My * this->Y1Jaw, beamTopCap);
 
     // beam end cap
-    points->InsertPoint( 4, 2. * Mx * this->X1Jaw, 2. * My * this->Y1Jaw, beamBottomCap);
-    points->InsertPoint( 5, 2. * Mx * this->X1Jaw, 2. * My * this->Y2Jaw, beamBottomCap);
-    points->InsertPoint( 6, 2. * Mx * this->X2Jaw, 2. * My * this->Y2Jaw, beamBottomCap);
-    points->InsertPoint( 7, 2. * Mx * this->X2Jaw, 2. * My * this->Y1Jaw, beamBottomCap);
+    points->InsertPoint( 4, Mx1 * this->X1Jaw, My1 * this->Y1Jaw, beamBottomCap);
+    points->InsertPoint( 5, Mx1 * this->X1Jaw, My1 * this->Y2Jaw, beamBottomCap);
+    points->InsertPoint( 6, Mx1 * this->X2Jaw, My1 * this->Y2Jaw, beamBottomCap);
+    points->InsertPoint( 7, Mx1 * this->X2Jaw, My1 * this->Y1Jaw, beamBottomCap);
 
     // Add the cap to the top
     cellArray->InsertNextCell(4);
@@ -528,8 +760,8 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
     cellArray->InsertCellPoint(5);
     cellArray->InsertCellPoint(6);
     cellArray->InsertCellPoint(7);
-  }
 
-  beamModelPolyData->SetPoints(points);
-  beamModelPolyData->SetPolys(cellArray);
+    beamModelPolyData->SetPoints(points);
+    beamModelPolyData->SetPolys(cellArray);
+  }
 }

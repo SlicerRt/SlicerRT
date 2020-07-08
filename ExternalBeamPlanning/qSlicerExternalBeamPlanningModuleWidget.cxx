@@ -358,6 +358,8 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
 
   if (planNode)
   {
+    planNode->SetIonPlanFlag(d->checkBox_IonPlanFlag->isChecked());
+
     // Set input segmentation and reference volume if specified by DICOM
     vtkIdType planShItemID = shNode->GetItemByDataNode(planNode);
     if (!planShItemID)

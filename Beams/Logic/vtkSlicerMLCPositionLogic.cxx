@@ -181,7 +181,7 @@ vtkMRMLMarkupsCurveNode* vtkSlicerMLCPositionLogic::CalculatePositionConvexHullC
   // Create markups node (subject hierarchy node is created automatically)
   vtkNew<vtkMRMLMarkupsClosedCurveNode> curveNode;
   curveNode->SetCurveTypeToLinear();
-  curveNode->SetName("MultiLeafCollimatorProjectionCurve");
+  curveNode->SetName("MultiLeafCollimatorMinimumConvexHullCurve");
 
   this->GetMRMLScene()->AddNode(curveNode);
 

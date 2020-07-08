@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>383</width>
-    <height>331</height>
+    <height>389</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,14 +47,14 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="0">
+    <item row="4" column="0">
      <widget class="QLabel" name="label_MLCBoundaryAndPosition">
       <property name="text">
        <string>MLC positions:</string>
       </property>
      </widget>
     </item>
-    <item row="1" column="1">
+    <item row="4" column="1">
      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_MLCBoundaryAndPositionTable">
       <property name="enabled">
        <bool>true</bool>
@@ -78,14 +78,14 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="0">
+    <item row="9" column="0">
      <widget class="QLabel" name="label_XjawPosition">
       <property name="text">
        <string>X jaw positions (mm):</string>
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
+    <item row="9" column="1">
      <widget class="ctkRangeWidget" name="RangeWidget_XJawsPosition">
       <property name="decimals">
        <number>0</number>
@@ -104,14 +104,14 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="0">
+    <item row="10" column="0">
      <widget class="QLabel" name="label_YJawPosition">
       <property name="text">
        <string>Y jaw positions (mm):</string>
       </property>
      </widget>
     </item>
-    <item row="3" column="1">
+    <item row="10" column="1">
      <widget class="ctkRangeWidget" name="RangeWidget_YJawsPosition">
       <property name="decimals">
        <number>0</number>
@@ -130,14 +130,14 @@
       </property>
      </widget>
     </item>
-    <item row="4" column="0">
+    <item row="11" column="0">
      <widget class="QLabel" name="label_GantryAngle">
       <property name="text">
        <string>Gantry angle (°):</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="1">
+    <item row="11" column="1">
      <widget class="ctkSliderWidget" name="SliderWidget_GantryAngle">
       <property name="decimals">
        <number>0</number>
@@ -147,14 +147,14 @@
       </property>
      </widget>
     </item>
-    <item row="5" column="0">
+    <item row="12" column="0">
      <widget class="QLabel" name="label_CollimatorAngle">
       <property name="text">
        <string>Collimator angle (°):</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="1">
+    <item row="12" column="1">
      <widget class="ctkSliderWidget" name="SliderWidget_CollimatorAngle">
       <property name="decimals">
        <number>0</number>
@@ -164,20 +164,84 @@
       </property>
      </widget>
     </item>
-    <item row="6" column="0">
+    <item row="13" column="0">
      <widget class="QLabel" name="label_CouchAngle">
       <property name="text">
        <string>Couch angle (°):</string>
       </property>
      </widget>
     </item>
-    <item row="6" column="1">
+    <item row="13" column="1">
      <widget class="ctkSliderWidget" name="SliderWidget_CouchAngle">
       <property name="decimals">
        <number>0</number>
       </property>
       <property name="maximum">
        <double>359.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_VSADx">
+      <property name="text">
+       <string>Source distance X (mm):</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_VSADy">
+      <property name="text">
+       <string>Source distance Y (mm):</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_VSADx">
+      <property name="maximum">
+       <double>30000.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>5400.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_VSADy">
+      <property name="maximum">
+       <double>30000.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>4500.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="label_ScanSpotParameters">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="text">
+       <string>Scan spot parameters:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
+     <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ScanSpotParametersTable"/>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_DistanceMLC">
+      <property name="text">
+       <string>Distance MLC (mm):</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_DistanceMLC">
+      <property name="maximum">
+       <double>30000.000000000000000</double>
+      </property>
+      <property name="value">
+       <double>400.000000000000000</double>
       </property>
      </widget>
     </item>

@@ -933,7 +933,7 @@ vtkMRMLRTBeamNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadSta
     0, boundaries, positions);
   if (mlcName)
   {
-    std::string mlcBoundaryPositionString = std::string(mlcName) + "_BoundaryAndPosition";
+    std::string mlcBoundaryPositionString = std::string(mlcName) + "_BoundaryAndPosition" + ": " + beamName;
     mlcTableNode = this->CreateMultiLeafCollimatorTableNode( 
       mlcBoundaryPositionString.c_str(), boundaries, positions);
   }
@@ -1187,7 +1187,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
       controlPointIndex, boundaries, positions);
     if (mlcName)
     {
-      std::string mlcBoundaryPositionString = std::string(mlcName) + "_BoundaryAndPosition";
+      std::string mlcBoundaryPositionString = std::string(mlcName) + "_BoundaryAndPosition" + ": " + beamName;
       mlcTableNode = this->CreateMultiLeafCollimatorTableNode( 
         mlcBoundaryPositionString.c_str(), boundaries, positions, 
         tableSequenceNode->GetSequenceScene());
@@ -1314,7 +1314,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
     displayNode->VisibilityOff();
   }
 
-  vtkMRMLRTIonBeamNode* ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(proxyBeamNode);
+  vtkMRMLRTIonBeamNode* proxyIonBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(proxyBeamNode);
 
   proxyMlcTableNode = vtkMRMLTableNode::SafeDownCast(beamSequenceBrowserNode->GetProxyNode(tableSequenceNode));
   proxyScanSpotTableNode = vtkMRMLTableNode::SafeDownCast(beamSequenceBrowserNode->GetProxyNode(tableSequenceNode));
@@ -1337,13 +1337,14 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
   }
 
   // put observed scan spot data under ion beam node parent
-  if (ionBeamNode)
+  if (proxyIonBeamNode)
   {
     vtkIdType scanSpotShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
 
     if (proxyScanSpotTableNode)
     {
-      ionBeamNode->SetAndObserveScanSpotTableNode(proxyScanSpotTableNode);
+      proxyBeamNode->SetAndObserveMultiLeafCollimatorTableNode(nullptr);
+      proxyIonBeamNode->SetAndObserveScanSpotTableNode(proxyScanSpotTableNode);
       scanSpotShId = shNode->GetItemByDataNode(proxyScanSpotTableNode);
     }
 
