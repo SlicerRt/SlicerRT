@@ -56,14 +56,6 @@ static const char* DRR_REFERENCE_ROLE = "DRRRef";
 static const char* CONTOUR_BEV_REFERENCE_ROLE = "contourBEVRef";
 
 //------------------------------------------------------------------------------
-namespace
-{
-
-bool(*AreEqual)( double, double) = vtkSlicerRtCommon::AreEqualWithTolerance;
-
-} // namespace
-
-//------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLRTBeamNode);
 
 //----------------------------------------------------------------------------
@@ -650,6 +642,18 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       {
         lastLeafIterator = it;
       }
+      // check if next leaf pair is not the last
+      if (it != mlc.end() - 1)
+      {
+        auto next_it = it + 1;
+        double& next_pos1 = (*next_it)[2]; // position "1" of the next leaf
+        double& next_pos2 = (*next_it)[3]; // position "2" of the next leaf
+        // if there is no open space between neighbors => start new section
+        if (mlcOpened && (next_pos1 > pos2 || next_pos2 < pos1))
+        {
+          mlcOpened = false;
+        }
+      }
       if (firstLeafIterator != mlc.end() && lastLeafIterator != mlc.end() && !mlcOpened)
       {
         sections.push_back({ firstLeafIterator, lastLeafIterator});
@@ -911,4 +915,10 @@ void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder( double jawBegin,
     }
   }
   side12.push_back(side2.back());
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLRTBeamNode::AreEqual( double v1, double v2)
+{
+  return vtkSlicerRtCommon::AreEqualWithTolerance( v1, v2);
 }

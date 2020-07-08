@@ -26,6 +26,7 @@
 
 // Beams includes
 #include "vtkMRMLRTBeamNode.h"
+#include "vtkMRMLRTIonBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
 
 // SlicerRT includes
@@ -449,7 +450,16 @@ vtkMRMLRTBeamNode* qSlicerDoseEngineLogic::createBeamInPlan(vtkMRMLRTPlanNode* p
   }
 
   // Create beam and add to scene
-  vtkSmartPointer<vtkMRMLRTBeamNode> beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
+  vtkSmartPointer<vtkMRMLRTBeamNode> beamNode;
+  if (planNode->GetIonPlanFlag())
+  {
+    beamNode = vtkSmartPointer<vtkMRMLRTIonBeamNode>::New();
+  }
+  else
+  {
+    beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
+  }
+
   beamNode->SetName(planNode->GenerateNewBeamName().c_str());
   planNode->GetScene()->AddNode(beamNode);
 

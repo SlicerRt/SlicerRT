@@ -248,7 +248,7 @@ protected:
   /// Couch angle
   double CouchAngle;
 
-private:
+protected:
   /// Visible multi-leaf collimator points
   typedef std::vector< std::pair< double, double > > MLCVisiblePointVector;
   /// Multi-leaf collimator boundary position parameters 
@@ -261,6 +261,8 @@ private:
   void CreateMLCPointsFromSectionBorder( double jawBegin, double jawEnd, 
     bool mlcType, const MLCSectionVector::value_type& sectionBorder, 
     MLCVisiblePointVector& side12);
+
+  static bool AreEqual( double v1, double v2);
 };
 
 #endif // __vtkMRMLRTBeamNode_h

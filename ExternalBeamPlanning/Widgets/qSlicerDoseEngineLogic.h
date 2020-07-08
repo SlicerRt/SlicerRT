@@ -70,6 +70,7 @@ public:
   Q_INVOKABLE void removeIntermediateResults(vtkMRMLRTPlanNode* planNode);
 
   /// Create a beam for a plan (with beam parameters defined by the dose engine of the plan)
+  /// @param planNode - node of the current plan
   Q_INVOKABLE vtkMRMLRTBeamNode* createBeamInPlan(vtkMRMLRTPlanNode* planNode);
 
 signals:

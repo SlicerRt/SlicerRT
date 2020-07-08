@@ -200,7 +200,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneEndImport()
   // Observe plan events of all plan nodes
   std::vector<vtkMRMLNode*> nodes;
   this->GetMRMLScene()->GetNodesByClass("vtkMRMLRTPlanNode", nodes);
-  for (std::vector<vtkMRMLNode*>::iterator nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
+  for ( auto nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
   {
     // Observe plan events
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
@@ -211,7 +211,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneEndImport()
   // Observe beam events of all beam nodes
   nodes.clear();
   this->GetMRMLScene()->GetNodesByClass("vtkMRMLRTBeamNode", nodes);
-  for (std::vector<vtkMRMLNode*>::iterator nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
+  for ( auto nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
   {
     // Observe beam events
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
@@ -272,7 +272,7 @@ void vtkSlicerExternalBeamPlanningModuleLogic::ProcessMRMLNodesEvents(vtkObject*
       // Update transform for child beams
       std::vector<vtkMRMLRTBeamNode*> beams;
       planNode->GetBeams(beams);
-      for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
+      for (auto beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
       {
         // Calculate transform from beam parameters and isocenter from plan
         vtkMRMLRTBeamNode* beamNode = (*beamIt);
