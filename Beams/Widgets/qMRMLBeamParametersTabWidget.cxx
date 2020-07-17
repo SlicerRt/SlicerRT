@@ -735,11 +735,14 @@ void qMRMLBeamParametersTabWidget::mlcBoundaryAndPositionTableNodeChanged(vtkMRM
   if (vtkMRMLTableNode* mlcTable = vtkMRMLTableNode::SafeDownCast(node))
   {
     d->BeamNode->SetAndObserveMultiLeafCollimatorTableNode(mlcTable);
+    d->MLCPositionLogic->SetParentForMultiLeafCollimatorTableNode(d->BeamNode);
   }
   else
   {
-    qCritical() << Q_FUNC_INFO << ": MLC boundary and position table node is invalid!";
+    d->BeamNode->SetAndObserveMultiLeafCollimatorTableNode(nullptr);
+    qCritical() << Q_FUNC_INFO << ": MLC boundary and position table node is invalid, set nullptr value by default!";
   }
+  d->BeamNode->UpdateGeometry();
 
   // GCS FIX TODO *** Come back to this later ***
   Q_UNUSED(node);
@@ -807,6 +810,10 @@ void qMRMLBeamParametersTabWidget::generateMLCboundaryClicked()
   {
     qCritical() << Q_FUNC_INFO << ": Unable to create MLC boundary data table!";
   }
+  if (!d->checkBox_ParallelBeam->isChecked())
+  {
+    d->MLCPositionLogic->CalculateLeavesProjection( d->BeamNode, mlcTable);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -835,6 +842,10 @@ void qMRMLBeamParametersTabWidget::updateMLCboundaryClicked()
   else
   {
     qCritical() << Q_FUNC_INFO << ": Unable to update MLC boundary data table!";
+  }
+  if (!d->checkBox_ParallelBeam->isChecked())
+  {
+    d->MLCPositionLogic->CalculateLeavesProjection( d->BeamNode, mlcTableNode);
   }
 }
 
@@ -1005,8 +1016,9 @@ void qMRMLBeamParametersTabWidget::virtualSourceAxisXDistanceChanged(double valu
   vtkMRMLRTIonBeamNode* ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(d->BeamNode);
   if (ionBeamNode)
   {
-    // Do not disable modifier events as geometry needs to be updated
     ionBeamNode->SetVSADx(value);
+    // Explicit geometry update
+    ionBeamNode->UpdateGeometry();
   }
 }
 
@@ -1024,8 +1036,9 @@ void qMRMLBeamParametersTabWidget::virtualSourceAxisYDistanceChanged(double valu
   vtkMRMLRTIonBeamNode* ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(d->BeamNode);
   if (ionBeamNode)
   {
-    // Do not disable modifier events as geometry needs to be updated
     ionBeamNode->SetVSADy(value);
+    // Explicit geometry update
+    ionBeamNode->UpdateGeometry();
   }
 }
 
@@ -1045,10 +1058,14 @@ void qMRMLBeamParametersTabWidget::mlcDistanceChanged(double value)
   if (d->BeamNode && !ionBeamNode) // RTBeam
   {
     d->BeamNode->SetSourceToMultiLeafCollimatorDistance(value);
+    // Explicit geometry update
+    d->BeamNode->UpdateGeometry();
   }
   else if (ionBeamNode) // RTIonBeam
   {
     ionBeamNode->SetIsocenterToMultiLeafCollimatorDistance(value);
+    // Explicit geometry update
+    ionBeamNode->UpdateGeometry();
   }
 }
 

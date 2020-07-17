@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>383</width>
-    <height>389</height>
+    <width>427</width>
+    <height>425</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -390,20 +390,34 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
+       <item row="5" column="1">
         <widget class="QPushButton" name="pushButton_GenerateMLCBoundary">
          <property name="text">
           <string>Generate new MLC boundary table</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
+       <item row="6" column="1">
         <widget class="QPushButton" name="pushButton_UpdateMLCBoundary">
          <property name="enabled">
           <bool>false</bool>
          </property>
          <property name="text">
           <string>Update selected MLC table</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QCheckBox" name="checkBox_ParallelBeam">
+         <property name="text">
+          <string>Parallel beam</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0" colspan="2">
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
          </property>
         </widget>
        </item>
@@ -416,13 +430,6 @@
        <string>Position</string>
       </property>
       <layout class="QFormLayout" name="formLayout_5">
-       <item row="0" column="0">
-        <widget class="QCheckBox" name="checkBox_ParallelBeam">
-         <property name="text">
-          <string>Parallel beam</string>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="1">
         <widget class="QPushButton" name="pushButton_CalculateMLCPosition">
          <property name="enabled">

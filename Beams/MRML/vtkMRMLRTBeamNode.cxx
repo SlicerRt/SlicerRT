@@ -164,22 +164,21 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   // Copy beam parameters
   this->DisableModifiedEventOn();
 
-  this->SetBeamNumber(node->GetBeamNumber());
-  this->SetBeamDescription(node->GetBeamDescription());
-  this->SetBeamWeight(node->GetBeamWeight());
-
-  this->SetX1Jaw(node->GetX1Jaw());
-  this->SetX2Jaw(node->GetX2Jaw());
-  this->SetY1Jaw(node->GetY1Jaw());
-  this->SetY2Jaw(node->GetY2Jaw());
-
-  this->SetSourceToJawsDistanceX(node->GetSourceToJawsDistanceX());
-  this->SetSourceToJawsDistanceY(node->GetSourceToJawsDistanceY());
-  this->SetSourceToMultiLeafCollimatorDistance(node->GetSourceToMultiLeafCollimatorDistance());
-
-  this->SetGantryAngle(node->GetGantryAngle());
-  this->SetCollimatorAngle(node->GetCollimatorAngle());
-  this->SetCouchAngle(node->GetCouchAngle());
+  vtkMRMLCopyBeginMacro(node);
+  vtkMRMLCopyIntMacro(BeamNumber);
+  vtkMRMLCopyStringMacro(BeamDescription);
+  vtkMRMLCopyFloatMacro(BeamWeight);
+  vtkMRMLCopyFloatMacro(X1Jaw);
+  vtkMRMLCopyFloatMacro(X2Jaw);
+  vtkMRMLCopyFloatMacro(Y1Jaw);
+  vtkMRMLCopyFloatMacro(Y2Jaw);
+  vtkMRMLCopyFloatMacro(SourceToJawsDistanceX);
+  vtkMRMLCopyFloatMacro(SourceToJawsDistanceY);
+  vtkMRMLCopyFloatMacro(SourceToMultiLeafCollimatorDistance);
+  vtkMRMLCopyFloatMacro(GantryAngle);
+  vtkMRMLCopyFloatMacro(CollimatorAngle);
+  vtkMRMLCopyFloatMacro(CouchAngle);
+  vtkMRMLCopyEndMacro();
 
   this->EndModify(disabledModify);
 
@@ -198,22 +197,21 @@ void vtkMRMLRTBeamNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*/)
     return;
   }
 
-  this->SetBeamNumber(node->GetBeamNumber());
-  this->SetBeamDescription(node->GetBeamDescription());
-  this->SetBeamWeight(node->GetBeamWeight());
-
-  this->SetX1Jaw(node->GetX1Jaw());
-  this->SetX2Jaw(node->GetX2Jaw());
-  this->SetY1Jaw(node->GetY1Jaw());
-  this->SetY2Jaw(node->GetY2Jaw());
-
-  this->SetSourceToJawsDistanceX(node->GetSourceToJawsDistanceX());
-  this->SetSourceToJawsDistanceY(node->GetSourceToJawsDistanceY());
-  this->SetSourceToMultiLeafCollimatorDistance(node->GetSourceToMultiLeafCollimatorDistance());
-
-  this->SetGantryAngle(node->GetGantryAngle());
-  this->SetCollimatorAngle(node->GetCollimatorAngle());
-  this->SetCouchAngle(node->GetCouchAngle());
+  vtkMRMLCopyBeginMacro(node);
+  vtkMRMLCopyIntMacro(BeamNumber);
+  vtkMRMLCopyStringMacro(BeamDescription);
+  vtkMRMLCopyFloatMacro(BeamWeight);
+  vtkMRMLCopyFloatMacro(X1Jaw);
+  vtkMRMLCopyFloatMacro(X2Jaw);
+  vtkMRMLCopyFloatMacro(Y1Jaw);
+  vtkMRMLCopyFloatMacro(Y2Jaw);
+  vtkMRMLCopyFloatMacro(SourceToJawsDistanceX);
+  vtkMRMLCopyFloatMacro(SourceToJawsDistanceY);
+  vtkMRMLCopyFloatMacro(SourceToMultiLeafCollimatorDistance);
+  vtkMRMLCopyFloatMacro(GantryAngle);
+  vtkMRMLCopyFloatMacro(CollimatorAngle);
+  vtkMRMLCopyFloatMacro(CouchAngle);
+  vtkMRMLCopyEndMacro();
 }
 
 //----------------------------------------------------------------------------
@@ -561,8 +559,8 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     }
   }
 
-  bool xOpened = !AreEqual( this->X2Jaw, this->X1Jaw);
-  bool yOpened = !AreEqual( this->Y2Jaw, this->Y1Jaw);
+  bool xOpened = !vtkSlicerRtCommon::AreEqualWithTolerance( this->X2Jaw, this->X1Jaw);
+  bool yOpened = !vtkSlicerRtCommon::AreEqualWithTolerance( this->Y2Jaw, this->Y1Jaw);
 
   // Check that we have MLC with Jaws opening
   bool polydataAppended = false;
@@ -579,7 +577,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     }
 
     // copy MLC data for easier processing
-    for ( vtkIdType leafPair = 0; leafPair < nofLeafPairs; leafPair++)
+    for (vtkIdType leafPair = 0; leafPair < nofLeafPairs; leafPair++)
     {
       vtkTable* table = mlcTableNode->GetTable();
       double boundBegin = table->GetValue( leafPair, 0).ToDouble();
@@ -608,14 +606,14 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     // find first and last opened leaves visible within jaws
     // and fill sections vector for further processing
     MLCSectionVector sections; // sections (first & last leaf iterator) of opened MLC
-    for ( auto it = mlc.begin(); it != mlc.end(); ++it)
+    for (auto it = mlc.begin(); it != mlc.end(); ++it)
     {
       double& bound1 = (*it)[0]; // leaf pair boundary begin
       double& bound2 = (*it)[1]; // leaf pair boundary end
       double& pos1 = (*it)[2]; // leaf position "1"
       double& pos2 = (*it)[3]; // leaf position "2"
       // if leaf pair is outside the jaws, then it is closed
-      bool mlcOpened = (bound2 < jawBegin || bound1 > jawEnd) ? false : !AreEqual( pos1, pos2);
+      bool mlcOpened = (bound2 < jawBegin || bound1 > jawEnd) ? false : !vtkSlicerRtCommon::AreEqualWithTolerance( pos1, pos2);
       bool withinJaw = false;
       if (typeMLCX) // MLCX
       {
@@ -686,7 +684,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
 
         // side "1" and "2" points vector
         vtkIdType pointIds = 0;
-        for ( const MLCVisiblePointVector::value_type& point : side12)
+        for (const MLCVisiblePointVector::value_type& point : side12)
         {
           const double& x = point.first;
           const double& y = point.second;
@@ -696,7 +694,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
         side12.clear(); // doesn't need anymore
 
         // fill cell array for side "1" and "2"
-        for ( vtkIdType i = 1; i < pointIds; ++i)
+        for (vtkIdType i = 1; i < pointIds; ++i)
         {
           cellArray->InsertNextCell(3);
           cellArray->InsertCellPoint(0);
@@ -712,7 +710,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
 
         // Add the cap to the bottom
         cellArray->InsertNextCell(pointIds);
-        for ( vtkIdType i = 1; i <= pointIds; i++)
+        for (vtkIdType i = 1; i <= pointIds; i++)
         {
           cellArray->InsertCellPoint(i);
         }
@@ -803,7 +801,7 @@ void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder( double jawBegin,
   MLCBoundaryPositionVector::iterator lastLeafIteratorJaws = lastLeafIterator;
 
   // find first and last visible leaves using Jaws data
-  for ( auto it = firstLeafIterator; it <= lastLeafIterator; ++it)
+  for (auto it = firstLeafIterator; it <= lastLeafIterator; ++it)
   {
     double& bound1 = (*it)[0]; // leaf begin boundary
     double& bound2 = (*it)[1]; // leaf end boundary
@@ -829,7 +827,7 @@ void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder( double jawBegin,
 
   // add points for the visible leaves of side "1" and "2"
   // into side1 and side2 points vectors
-  for ( auto it = firstLeafIterator; it <= lastLeafIterator; ++it)
+  for (auto it = firstLeafIterator; it <= lastLeafIterator; ++it)
   {
     double& bound1 = (*it)[0]; // leaf begin boundary
     double& bound2 = (*it)[1]; // leaf end boundary
@@ -889,11 +887,12 @@ void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder( double jawBegin,
   double& px = p.first; // x coordinate of p point
   double& py = p.second; // y coordinate of p point
   side12.push_back(p);
-  for ( size_t i = 1; i < side1.size() - 1; ++i)
+  for (size_t i = 1; i < side1.size() - 1; ++i)
   {
     double& pxNext = side1[i + 1].first; // x coordinate of next point
     double& pyNext = side1[i + 1].second; // y coordinate of next point
-    if (!AreEqual( px, pxNext) && !AreEqual( py, pyNext))
+    if (!vtkSlicerRtCommon::AreEqualWithTolerance( px, pxNext) && 
+      !vtkSlicerRtCommon::AreEqualWithTolerance( py, pyNext))
     {
       p = side1[i];
       side12.push_back(p);
@@ -904,11 +903,12 @@ void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder( double jawBegin,
   // same for the side2 vector
   p = side2.front();
   side12.push_back(p);
-  for ( size_t i = 1; i < side2.size() - 1; ++i)
+  for (size_t i = 1; i < side2.size() - 1; ++i)
   {
     double& pxNext = side2[i + 1].first;
     double& pyNext = side2[i + 1].second;
-    if (!AreEqual( px, pxNext) && !AreEqual( py, pyNext))
+    if (!vtkSlicerRtCommon::AreEqualWithTolerance( px, pxNext) && 
+      !vtkSlicerRtCommon::AreEqualWithTolerance( py, pyNext))
     {
       p = side2[i];
       side12.push_back(p);

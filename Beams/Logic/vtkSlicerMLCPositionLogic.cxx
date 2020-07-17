@@ -159,7 +159,7 @@ vtkMRMLMarkupsCurveNode* vtkSlicerMLCPositionLogic::CalculatePositionConvexHullC
 {
   if (!beamNode)
   {
-    vtkErrorMacro("CalculatePositionCurve: Beam node is invalid");
+    vtkErrorMacro("CalculatePositionConvexHullCurve: Beam node is invalid");
     return nullptr;
   }
 
@@ -174,7 +174,7 @@ vtkMRMLMarkupsCurveNode* vtkSlicerMLCPositionLogic::CalculatePositionConvexHullC
   }
   else
   {
-    vtkErrorMacro("CalculatePositionCurve: Beam transform node is invalid");
+    vtkErrorMacro("CalculatePositionConvexHullCurve: Beam transform node is invalid");
     return nullptr;
   }
 
@@ -279,7 +279,7 @@ vtkMRMLTableNode* vtkSlicerMLCPositionLogic::CreateMultiLeafCollimatorTableNodeB
   vtkTable* table = tableNode->GetTable();
   if (!table)
   {
-    vtkErrorMacro("CreateMultiLeafCollimatorBoundaryTableNode: Unable to create vtkTable to fill MLC data");
+    vtkErrorMacro("CreateMultiLeafCollimatorTableNodeBoundaryData: Unable to create vtkTable to fill MLC data");
     return nullptr;
   }
 
@@ -317,6 +317,61 @@ vtkMRMLTableNode* vtkSlicerMLCPositionLogic::CreateMultiLeafCollimatorTableNodeB
   tableNode->SetColumnDescription( "1", "Leaf position on the side \"1\"");
   tableNode->SetColumnDescription( "2", "Leaf position on the side \"2\"");
   return tableNode;
+}
+
+//---------------------------------------------------------------------------
+bool vtkSlicerMLCPositionLogic::CalculateLeavesProjection( vtkMRMLRTBeamNode* beamNode, vtkMRMLTableNode* mlcTableNode)
+{
+  if (!beamNode || !mlcTableNode)
+  {
+    return false;
+  }
+
+  vtkTable* mlcTable = mlcTableNode->GetTable();
+  if (!mlcTable)
+  {
+    vtkErrorMacro("CalculateLeavesProjection: Unable to get vtkTable to recalculate MLC data");
+    return false;
+  }
+  if (mlcTable->GetNumberOfColumns() != 3)
+  {
+    vtkErrorMacro("CalculateLeavesProjection: Wrong number of table columns")
+    return false;
+  }
+  if (mlcTable->GetNumberOfRows() - 1 <= 0)
+  {
+    vtkErrorMacro("CalculateLeavesProjection: Wrong number of table rows")
+    return false;
+  }
+
+  const char* mlcName = mlcTableNode->GetName();
+  bool typeMLCY = !strncmp( "MLCY", mlcName, strlen("MLCY"));
+  bool typeMLCX = !strncmp( "MLCX", mlcName, strlen("MLCX"));
+  if (typeMLCY && !typeMLCX)
+  {
+    typeMLCX = false;
+  }
+
+  for ( int row = 0; row < mlcTable->GetNumberOfRows(); ++row)
+  {
+    double leafBoundary = mlcTable->GetValue( row, 0).ToDouble();
+
+    vtkMRMLRTIonBeamNode* ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(beamNode);
+    if (beamNode && !ionBeamNode)
+    {
+      double coeff = beamNode->GetSAD() / beamNode->GetSourceToMultiLeafCollimatorDistance();
+      leafBoundary *= coeff;
+    }
+    else if (ionBeamNode)
+    {
+      double isocenterToMLC = ionBeamNode->GetIsocenterToMultiLeafCollimatorDistance();
+      double vsad = (typeMLCX) ? ionBeamNode->GetVSADx() : ionBeamNode->GetVSADy();
+      double coeff = vsad / (vsad - isocenterToMLC);
+      leafBoundary *= coeff;
+    }
+    mlcTable->SetValue( row, 0, leafBoundary);
+  }
+  return true;
 }
 
 //---------------------------------------------------------------------------

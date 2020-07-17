@@ -238,7 +238,7 @@ protected:
   /// (currently output dose volume has the same spacing as the reference anatomy)
   double DoseGrid[3];
 
-  /// Flag for ion plan
+  /// Flag, indicates that a plan node is an ion plan node
   bool IonPlanFlag;
 };
 
