@@ -200,7 +200,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneEndImport()
   // Observe plan events of all plan nodes
   std::vector<vtkMRMLNode*> nodes;
   this->GetMRMLScene()->GetNodesByClass("vtkMRMLRTPlanNode", nodes);
-  for ( auto nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
+
+  for (auto nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
   {
     // Observe plan events
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
@@ -211,7 +212,8 @@ void vtkSlicerExternalBeamPlanningModuleLogic::OnMRMLSceneEndImport()
   // Observe beam events of all beam nodes
   nodes.clear();
   this->GetMRMLScene()->GetNodesByClass("vtkMRMLRTBeamNode", nodes);
-  for ( auto nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
+
+  for (auto nodeIt=nodes.begin(); nodeIt!=nodes.end(); ++nodeIt)
   {
     // Observe beam events
     vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();

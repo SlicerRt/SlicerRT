@@ -58,6 +58,13 @@ public:
   vtkMRMLTableNode* CreateMultiLeafCollimatorTableNodeBoundaryData( bool mlcType, unsigned int nofLeafPairs,
     double leafPairSize, double isocenterOffset = 0.0);
 
+  /// Calculate Multi-leaf collimator leaves projection on 
+  /// BEAM LIMITING DEVICE isocenter plain using geometry data
+  /// @param beam - beam node
+  /// @param mlcTable - MLC table of parallel beam
+  /// @return true if mlcTable was recalculated and updated, false otherwise  
+  bool CalculateLeavesProjection( vtkMRMLRTBeamNode* beam, vtkMRMLTableNode* mlcTable);
+
   /// Update table with Multi Leaf Collimator boundary data.
   /// @param mlcType - type of Multi Leaf Collimator: true = MLCX, false = MLCY
   /// @param nofLeafPairs - number of leaf pairs in MLC

@@ -147,25 +147,25 @@ void vtkMRMLRTIonBeamNode::Copy(vtkMRMLNode *anode)
   // Copy beam parameters
   this->DisableModifiedEventOn();
 
-  this->SetBeamNumber(node->GetBeamNumber());
-  this->SetBeamDescription(node->GetBeamDescription());
-  this->SetBeamWeight(node->GetBeamWeight());
-
-  this->SetX1Jaw(node->GetX1Jaw());
-  this->SetX2Jaw(node->GetX2Jaw());
-  this->SetY1Jaw(node->GetY1Jaw());
-  this->SetY2Jaw(node->GetY2Jaw());
-  this->SetVSAD( node->GetVSADx(), node->GetVSADy());
-  this->SetIsocenterToJawsDistanceX(node->GetIsocenterToJawsDistanceX());
-  this->SetIsocenterToJawsDistanceY(node->GetIsocenterToJawsDistanceY());
-  this->SetIsocenterToMultiLeafCollimatorDistance(node->GetIsocenterToMultiLeafCollimatorDistance());
-  this->SetIsocenterToRangeShifterDistance(node->GetIsocenterToRangeShifterDistance());
-
-  this->SetScanningSpotSize(node->GetScanningSpotSize());
-
-  this->SetGantryAngle(node->GetGantryAngle());
-  this->SetCollimatorAngle(node->GetCollimatorAngle());
-  this->SetCouchAngle(node->GetCouchAngle());
+  vtkMRMLCopyBeginMacro(node);
+  vtkMRMLCopyIntMacro(BeamNumber);
+  vtkMRMLCopyStringMacro(BeamDescription);
+  vtkMRMLCopyFloatMacro(BeamWeight);
+  vtkMRMLCopyFloatMacro(X1Jaw);
+  vtkMRMLCopyFloatMacro(X2Jaw);
+  vtkMRMLCopyFloatMacro(Y1Jaw);
+  vtkMRMLCopyFloatMacro(Y2Jaw);
+  vtkMRMLCopyFloatMacro(VSADx);
+  vtkMRMLCopyFloatMacro(VSADy);
+  vtkMRMLCopyFloatMacro(IsocenterToJawsDistanceX);
+  vtkMRMLCopyFloatMacro(IsocenterToJawsDistanceY);
+  vtkMRMLCopyFloatMacro(IsocenterToMultiLeafCollimatorDistance);
+  vtkMRMLCopyFloatMacro(IsocenterToRangeShifterDistance);
+  vtkMRMLCopyVectorMacro(ScanningSpotSize, float, 2);
+  vtkMRMLCopyFloatMacro(GantryAngle);
+  vtkMRMLCopyFloatMacro(CollimatorAngle);
+  vtkMRMLCopyFloatMacro(CouchAngle);
+  vtkMRMLCopyEndMacro();
 
   this->EndModify(disabledModify);
   
@@ -184,25 +184,25 @@ void vtkMRMLRTIonBeamNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*
     return;
   }
 
-  this->SetBeamNumber(node->GetBeamNumber());
-  this->SetBeamDescription(node->GetBeamDescription());
-  this->SetBeamWeight(node->GetBeamWeight());
-
-  this->SetX1Jaw(node->GetX1Jaw());
-  this->SetX2Jaw(node->GetX2Jaw());
-  this->SetY1Jaw(node->GetY1Jaw());
-  this->SetY2Jaw(node->GetY2Jaw());
-  this->SetVSAD( node->GetVSADx(), node->GetVSADy());
-  this->SetIsocenterToJawsDistanceX(node->GetIsocenterToJawsDistanceX());
-  this->SetIsocenterToJawsDistanceY(node->GetIsocenterToJawsDistanceY());
-  this->SetIsocenterToMultiLeafCollimatorDistance(node->GetIsocenterToMultiLeafCollimatorDistance());
-  this->SetIsocenterToRangeShifterDistance(node->GetIsocenterToRangeShifterDistance());
-
-  this->SetScanningSpotSize(node->GetScanningSpotSize());
-
-  this->SetGantryAngle(node->GetGantryAngle());
-  this->SetCollimatorAngle(node->GetCollimatorAngle());
-  this->SetCouchAngle(node->GetCouchAngle());
+  vtkMRMLCopyBeginMacro(node);
+  vtkMRMLCopyIntMacro(BeamNumber);
+  vtkMRMLCopyStringMacro(BeamDescription);
+  vtkMRMLCopyFloatMacro(BeamWeight);
+  vtkMRMLCopyFloatMacro(X1Jaw);
+  vtkMRMLCopyFloatMacro(X2Jaw);
+  vtkMRMLCopyFloatMacro(Y1Jaw);
+  vtkMRMLCopyFloatMacro(Y2Jaw);
+  vtkMRMLCopyFloatMacro(VSADx);
+  vtkMRMLCopyFloatMacro(VSADy);
+  vtkMRMLCopyFloatMacro(IsocenterToJawsDistanceX);
+  vtkMRMLCopyFloatMacro(IsocenterToJawsDistanceY);
+  vtkMRMLCopyFloatMacro(IsocenterToMultiLeafCollimatorDistance);
+  vtkMRMLCopyFloatMacro(IsocenterToRangeShifterDistance);
+  vtkMRMLCopyVectorMacro(ScanningSpotSize, float, 2);
+  vtkMRMLCopyFloatMacro(GantryAngle);
+  vtkMRMLCopyFloatMacro(CollimatorAngle);
+  vtkMRMLCopyFloatMacro(CouchAngle);
+  vtkMRMLCopyEndMacro();
 }
 
 //----------------------------------------------------------------------------
@@ -405,8 +405,8 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
     }
   }
 
-  bool xOpened = !AreEqual( this->X2Jaw, this->X1Jaw);
-  bool yOpened = !AreEqual( this->Y2Jaw, this->Y1Jaw);
+  bool xOpened = !vtkSlicerRtCommon::AreEqualWithTolerance( this->X2Jaw, this->X1Jaw);
+  bool yOpened = !vtkSlicerRtCommon::AreEqualWithTolerance( this->Y2Jaw, this->Y1Jaw);
 
   // Scanning spot beam
   if (scanSpotTableNode)
@@ -416,7 +416,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
     positionX.resize(rows);
     positionY.resize(rows);
     // copy scan scot map data for processing
-    for ( vtkIdType row = 0; row < rows; row++)
+    for (vtkIdType row = 0; row < rows; row++)
     {
       vtkTable* table = scanSpotTableNode->GetTable();
       positionX[row] = table->GetValue( row, 0).ToDouble();
@@ -501,6 +501,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
 
     beamModelPolyData->SetPoints(points);
     beamModelPolyData->SetPolys(cellArray);
+    return;
   }
   else if (mlcTableNode && xOpened && yOpened) // MLC with opened Jaws
   {
@@ -516,7 +517,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
     }
 
     // copy MLC data for easier processing
-    for ( vtkIdType leafPair = 0; leafPair < nofLeafPairs; leafPair++)
+    for (vtkIdType leafPair = 0; leafPair < nofLeafPairs; leafPair++)
     {
       vtkTable* table = mlcTableNode->GetTable();
       double boundBegin = table->GetValue( leafPair, 0).ToDouble();
@@ -545,14 +546,14 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
     // find first and last opened leaves visible within jaws
     // and fill sections vector for further processing
     MLCSectionVector sections; // sections (first & last leaf iterator) of opened MLC
-    for ( auto it = mlc.begin(); it != mlc.end(); ++it)
+    for (auto it = mlc.begin(); it != mlc.end(); ++it)
     {
       double& bound1 = (*it)[0]; // leaf pair boundary begin
       double& bound2 = (*it)[1]; // leaf pair boundary end
       double& pos1 = (*it)[2]; // leaf position "1"
       double& pos2 = (*it)[3]; // leaf position "2"
       // if leaf pair is outside the jaws, then it is closed
-      bool mlcOpened = (bound2 < jawBegin || bound1 > jawEnd) ? false : !AreEqual( pos1, pos2);
+      bool mlcOpened = (bound2 < jawBegin || bound1 > jawEnd) ? false : !vtkSlicerRtCommon::AreEqualWithTolerance( pos1, pos2);
       bool withinJaw = false;
       if (typeMLCX) // MLCX
       {
@@ -628,7 +629,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
         vtkIdType pointIds = 0;
         // points on MLC side
         vtkIdType nofPoints = side12.size();
-        for ( const MLCVisiblePointVector::value_type& point : side12)
+        for (const MLCVisiblePointVector::value_type& point : side12)
         {
           const double& x = point.first;
           const double& y = point.second;
@@ -638,7 +639,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
         }
 
         // points on the opposite (from isocenter) side
-        for ( const MLCVisiblePointVector::value_type& point : side12)
+        for (const MLCVisiblePointVector::value_type& point : side12)
         {
           const double& x = point.first;
           const double& y = point.second;
@@ -650,7 +651,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
         side12.clear(); // doesn't need anymore
 
         // fill cell array for side "1" and "2"
-        for ( vtkIdType i = 0; i < nofPoints - 1; ++i)
+        for (vtkIdType i = 0; i < nofPoints - 1; ++i)
         {
           cellArray->InsertNextCell(4);
           cellArray->InsertCellPoint(i);
@@ -668,14 +669,14 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
 
         // Add the cap to the bottom
         cellArray->InsertNextCell(nofPoints);
-        for ( vtkIdType i = 0; i < nofPoints; i++)
+        for (vtkIdType i = 0; i < nofPoints; i++)
         {
           cellArray->InsertCellPoint(i);
         }
 
         // Add the cap to the top
         cellArray->InsertNextCell(nofPoints);
-        for ( vtkIdType i = nofPoints; i < 2 * nofPoints; i++)
+        for (vtkIdType i = nofPoints; i < 2 * nofPoints; i++)
         {
           cellArray->InsertCellPoint(i);
         }
@@ -695,73 +696,70 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
       return;
     }
   }
-  else // symmetric jaws, asymmetric jaws, no MLC
-  {
-    std::array< double, 2 > distance{ IsocenterToJawsDistanceX, IsocenterToJawsDistanceY };
 
-    double beamTopCap = *std::min_element( distance.begin(), distance.end());
-    double beamBottomCap = -beamTopCap;
+  // Default beam polydata (symmetric or asymmetric jaws, no ScanSpot, no MLC)
+  double beamTopCap = std::min( IsocenterToJawsDistanceX, IsocenterToJawsDistanceY);
+  double beamBottomCap = -beamTopCap;
 
-    double Mx = (this->VSADx - beamTopCap) / this->VSADx;
-    double My = (this->VSADy - beamTopCap) / this->VSADy;
-    double Mx1 = (this->VSADx + beamTopCap) / this->VSADx;
-    double My1 = (this->VSADy + beamTopCap) / this->VSADy;
+  double Mx = (this->VSADx - beamTopCap) / this->VSADx;
+  double My = (this->VSADy - beamTopCap) / this->VSADy;
+  double Mx1 = (this->VSADx + beamTopCap) / this->VSADx;
+  double My1 = (this->VSADy + beamTopCap) / this->VSADy;
 
-    // beam begin cap
-    points->InsertPoint( 0, Mx * this->X1Jaw, My * this->Y1Jaw, beamTopCap);
-    points->InsertPoint( 1, Mx * this->X1Jaw, My * this->Y2Jaw, beamTopCap);
-    points->InsertPoint( 2, Mx * this->X2Jaw, My * this->Y2Jaw, beamTopCap);
-    points->InsertPoint( 3, Mx * this->X2Jaw, My * this->Y1Jaw, beamTopCap);
+  // beam begin cap
+  points->InsertPoint( 0, Mx * this->X1Jaw, My * this->Y1Jaw, beamTopCap);
+  points->InsertPoint( 1, Mx * this->X1Jaw, My * this->Y2Jaw, beamTopCap);
+  points->InsertPoint( 2, Mx * this->X2Jaw, My * this->Y2Jaw, beamTopCap);
+  points->InsertPoint( 3, Mx * this->X2Jaw, My * this->Y1Jaw, beamTopCap);
 
-    // beam end cap
-    points->InsertPoint( 4, Mx1 * this->X1Jaw, My1 * this->Y1Jaw, beamBottomCap);
-    points->InsertPoint( 5, Mx1 * this->X1Jaw, My1 * this->Y2Jaw, beamBottomCap);
-    points->InsertPoint( 6, Mx1 * this->X2Jaw, My1 * this->Y2Jaw, beamBottomCap);
-    points->InsertPoint( 7, Mx1 * this->X2Jaw, My1 * this->Y1Jaw, beamBottomCap);
+  // beam end cap
+  points->InsertPoint( 4, Mx1 * this->X1Jaw, My1 * this->Y1Jaw, beamBottomCap);
+  points->InsertPoint( 5, Mx1 * this->X1Jaw, My1 * this->Y2Jaw, beamBottomCap);
+  points->InsertPoint( 6, Mx1 * this->X2Jaw, My1 * this->Y2Jaw, beamBottomCap);
+  points->InsertPoint( 7, Mx1 * this->X2Jaw, My1 * this->Y1Jaw, beamBottomCap);
 
-    // Add the cap to the top
-    cellArray->InsertNextCell(4);
-    cellArray->InsertCellPoint(0);
-    cellArray->InsertCellPoint(1);
-    cellArray->InsertCellPoint(2);
-    cellArray->InsertCellPoint(3);
+  // Add the cap to the top
+  cellArray->InsertNextCell(4);
+  cellArray->InsertCellPoint(0);
+  cellArray->InsertCellPoint(1);
+  cellArray->InsertCellPoint(2);
+  cellArray->InsertCellPoint(3);
 
-    // Side polygon 1
-    cellArray->InsertNextCell(4);
-    cellArray->InsertCellPoint(0);
-    cellArray->InsertCellPoint(4);
-    cellArray->InsertCellPoint(5);
-    cellArray->InsertCellPoint(1);
+  // Side polygon 1
+  cellArray->InsertNextCell(4);
+  cellArray->InsertCellPoint(0);
+  cellArray->InsertCellPoint(4);
+  cellArray->InsertCellPoint(5);
+  cellArray->InsertCellPoint(1);
 
-    // Side polygon 2
-    cellArray->InsertNextCell(4);
-    cellArray->InsertCellPoint(1);
-    cellArray->InsertCellPoint(5);
-    cellArray->InsertCellPoint(6);
-    cellArray->InsertCellPoint(2);
+  // Side polygon 2
+  cellArray->InsertNextCell(4);
+  cellArray->InsertCellPoint(1);
+  cellArray->InsertCellPoint(5);
+  cellArray->InsertCellPoint(6);
+  cellArray->InsertCellPoint(2);
 
-    // Side polygon 3
-    cellArray->InsertNextCell(4);
-    cellArray->InsertCellPoint(2);
-    cellArray->InsertCellPoint(6);
-    cellArray->InsertCellPoint(7);
-    cellArray->InsertCellPoint(3);
+  // Side polygon 3
+  cellArray->InsertNextCell(4);
+  cellArray->InsertCellPoint(2);
+  cellArray->InsertCellPoint(6);
+  cellArray->InsertCellPoint(7);
+  cellArray->InsertCellPoint(3);
 
-    // Side polygon 4
-    cellArray->InsertNextCell(4);
-    cellArray->InsertCellPoint(3);
-    cellArray->InsertCellPoint(7);
-    cellArray->InsertCellPoint(4);
-    cellArray->InsertCellPoint(0);
+  // Side polygon 4
+  cellArray->InsertNextCell(4);
+  cellArray->InsertCellPoint(3);
+  cellArray->InsertCellPoint(7);
+  cellArray->InsertCellPoint(4);
+  cellArray->InsertCellPoint(0);
 
-    // Add the cap to the bottom
-    cellArray->InsertNextCell(4);
-    cellArray->InsertCellPoint(4);
-    cellArray->InsertCellPoint(5);
-    cellArray->InsertCellPoint(6);
-    cellArray->InsertCellPoint(7);
+  // Add the cap to the bottom
+  cellArray->InsertNextCell(4);
+  cellArray->InsertCellPoint(4);
+  cellArray->InsertCellPoint(5);
+  cellArray->InsertCellPoint(6);
+  cellArray->InsertCellPoint(7);
 
-    beamModelPolyData->SetPoints(points);
-    beamModelPolyData->SetPolys(cellArray);
-  }
+  beamModelPolyData->SetPoints(points);
+  beamModelPolyData->SetPolys(cellArray);
 }

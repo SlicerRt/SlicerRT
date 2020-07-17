@@ -130,14 +130,14 @@ void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
 
   this->DisableModifiedEventOn();
 
-  this->SetTargetSegmentID(node->TargetSegmentID);
-  this->SetDoseEngineName(node->DoseEngineName);
-  this->SetIonPlanFlag(node->IonPlanFlag);
-
-  this->SetIsocenterSpecification(node->GetIsocenterSpecification());
-  std::copy(node->DoseGrid, node->DoseGrid + 3, this->DoseGrid);
-
-  this->NextBeamNumber = node->NextBeamNumber;
+  vtkMRMLCopyBeginMacro(node);
+  vtkMRMLCopyStringMacro(TargetSegmentID);
+  vtkMRMLCopyIntMacro(IsocenterSpecification);
+  vtkMRMLCopyIntMacro(NextBeamNumber);
+  vtkMRMLCopyStringMacro(DoseEngineName);
+  vtkMRMLCopyVectorMacro(DoseGrid, double, 3);
+  vtkMRMLCopyBooleanMacro(IonPlanFlag);
+  vtkMRMLCopyEndMacro();
 
   // Copy beams
   this->RemoveAllBeams();
@@ -168,13 +168,15 @@ void vtkMRMLRTPlanNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*/)
     return;
   }
 
-  this->SetRxDose(node->GetRxDose());
-  this->SetTargetSegmentID(node->GetTargetSegmentID());
-  this->SetIsocenterSpecification(node->GetIsocenterSpecification());
-  this->SetNextBeamNumber(node->GetNextBeamNumber());
-  this->SetDoseEngineName(node->GetDoseEngineName());
-  this->SetDoseGrid(node->GetDoseGrid());
-  this->SetIonPlanFlag(node->GetIonPlanFlag());
+  vtkMRMLCopyBeginMacro(node);
+  vtkMRMLCopyFloatMacro(RxDose);
+  vtkMRMLCopyStringMacro(TargetSegmentID);
+  vtkMRMLCopyIntMacro(IsocenterSpecification);
+  vtkMRMLCopyIntMacro(NextBeamNumber);
+  vtkMRMLCopyStringMacro(DoseEngineName);
+  vtkMRMLCopyVectorMacro(DoseGrid, double, 3);
+  vtkMRMLCopyBooleanMacro(IonPlanFlag);
+  vtkMRMLCopyEndMacro();
 }
 
 //----------------------------------------------------------------------------
