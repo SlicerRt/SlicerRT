@@ -67,7 +67,7 @@ QString qSlicerVffFileReaderModule::helpText()const
   QString help = QString(
     "The VffFileReader module enables importing and loading VFF files into Slicer.<br>"
     "The VffFileReader module is hidden and therefore does not require an application.<br>");
-  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
+  return help;
 }
 
 //-----------------------------------------------------------------------------

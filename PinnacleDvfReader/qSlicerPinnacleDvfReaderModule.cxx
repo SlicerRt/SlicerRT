@@ -70,7 +70,7 @@ QString qSlicerPinnacleDvfReaderModule::helpText()const
   QString help = QString(
     "The PinnacleDvfReader module enables importing and loading .DVF files into Slicer.<br>"
     "The PinnacleDvfReader module is hidden and therefore does not require an application.<br>");
-  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
+  return help;
 }
 
 //-----------------------------------------------------------------------------

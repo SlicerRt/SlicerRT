@@ -69,7 +69,7 @@ QString qSlicerDosxyzNrc3dDoseFileReaderModule::helpText()const
   QString help = QString(
     "The DosxyzNrc3dDoseFileReader module enables importing and loading .3ddose files into Slicer.<br>"
     "The DosxyzNrc3dDoseFileReader module is hidden and therefore does not require an application.<br>");
-  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
+  return help;
 }
 
 //-----------------------------------------------------------------------------
