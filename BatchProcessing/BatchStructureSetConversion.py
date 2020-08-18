@@ -98,6 +98,10 @@ class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
           logging.error('No reference volume found for segmentation ' + segmentationNode.GetName())
           continue
 
+        # Use reference image for closed surface to binary labelmap conversion
+        if use_ref_image:
+          segmentationNode.SetReferenceImageGeometryParameterFromVolumeNode(referenceVolume)
+
         # Perform conversion
         if not segmentationNode.CreateBinaryLabelmapRepresentation():
           logging.error('Failed to create binary labelmap representation for segmentation ' + segmentationNode.GetName())
@@ -310,7 +314,7 @@ def main(argv):
     def save_rtslices(output_dir, use_ref_image, ref_image_node_id=None):
       # package the saving code into a subfunction
       logging.info("Convert loaded structure set to labelmap volumes")
-      labelmaps = logic.ConvertStructureSetToLabelmap(use_ref_image, ref_image_node_id=None)
+      labelmaps = logic.ConvertStructureSetToLabelmap(use_ref_image, ref_image_node_id)
 
       logging.info("Save labelmaps to directory " + output_dir)
       logic.SaveLabelmaps(labelmaps, output_dir)
