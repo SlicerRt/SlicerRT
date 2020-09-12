@@ -222,6 +222,13 @@ void vtkSlicerDicomSroReader::Update()
           if (!this->LoadSpatialRegistrationSuccessful)
           {
             vtkWarningMacro("vtkSlicerDicomSroReader::Update: failed to load spatial registration");
+
+            // WORKAROUND START
+            // maybe the SOP instance UID was set incorrectly, give it one more chance
+            // and try to read it with UID_DeformableSpatialRegistrationStorage
+            sopClass = UID_DeformableSpatialRegistrationStorage;
+            // WORKAROUND END
+
           }
         }
         if (sopClass == UID_DeformableSpatialRegistrationStorage)
