@@ -219,14 +219,26 @@ void vtkSlicerDicomSroReader::Update()
         if (sopClass == UID_SpatialRegistrationStorage)
         {
           this->LoadSpatialRegistration(dataset);
+          if (!this->LoadSpatialRegistrationSuccessful)
+          {
+            vtkWarningMacro("vtkSlicerDicomSroReader::Update: failed to load spatial registration");
+          }
         }
-        else if (sopClass == UID_DeformableSpatialRegistrationStorage)
+        if (sopClass == UID_DeformableSpatialRegistrationStorage)
         {
           this->LoadDeformableSpatialRegistration(dataset);  
+          if (!this->LoadDeformableSpatialRegistrationSuccessful)
+          {
+            vtkWarningMacro("vtkSlicerDicomSroReader::Update: failed to load deformable spatial registration");
+          }
         }
         else if (sopClass == UID_SpatialFiducialsStorage)
         {
           this->LoadSpatialFiducials(dataset);
+          if (!this->LoadSpatialFiducialsSuccessful)
+          {
+            vtkWarningMacro("vtkSlicerDicomSroReader::Update: failed to load spatial fiducials");
+          }
         }
         else
         {
@@ -620,29 +632,33 @@ void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* data
           this->DeformableRegistrationGrid->SetExtent(0,gridDimX-1,0,gridDimY-1,0,gridDimZ-1);
           this->DeformableRegistrationGrid->AllocateScalars(VTK_DOUBLE, 3);
 
-          unsigned int n = 0;
-          for (unsigned int k=0; k<gridDimZ; k++)
+          const Float32* vectorGridData = nullptr;
+          unsigned long vectorGridCount = 0;
+          if (deformableRegistrationGridSequenceItem->findAndGetFloat32Array(DCM_VectorGridData, vectorGridData, &vectorGridCount).good())
           {
-            for (unsigned int j=0; j<gridDimY; j++)
+            if (gridDimX * gridDimY * gridDimZ * 3 == vectorGridCount)
             {
-              for (unsigned int i=0; i<gridDimX; i++)
+              double* gridDataTargetPtr = static_cast<double*>(this->DeformableRegistrationGrid->GetScalarPointer());
+              double* gridDataTargetEndPtr = gridDataTargetPtr + vectorGridCount;
+              while (gridDataTargetPtr < gridDataTargetEndPtr)
               {
-                n = i + j*gridDimX + k*gridDimX*gridDimY ;
-                if (deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_VectorGridData, tmpStrX, 3*n).good() &&
-                    deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_VectorGridData, tmpStrY, 3*n + 1).good() &&
-                    deformableRegistrationGridSequenceItem->findAndGetOFString(DCM_VectorGridData, tmpStrZ, 3*n + 2).good())
-                {
-                  this->DeformableRegistrationGrid->SetScalarComponentFromDouble(i,j,k,0,-atof(tmpStrX.c_str()));
-                  this->DeformableRegistrationGrid->SetScalarComponentFromDouble(i,j,k,1,-atof(tmpStrY.c_str()));
-                  this->DeformableRegistrationGrid->SetScalarComponentFromDouble(i,j,k,2,atof(tmpStrZ.c_str()));
-                }
-                else
-                {
-                  continue;
-                }
+                // Copy with LPS->RAS conversion
+                *(gridDataTargetPtr++) = -*(vectorGridData++);
+                *(gridDataTargetPtr++) = -*(vectorGridData++);
+                *(gridDataTargetPtr++) =  *(vectorGridData++);
               }
             }
+            else
+            {
+              vtkErrorMacro("LoadDeformableSpatialRegistration: VectorGridDatafrom size mismatch: expected "
+                << gridDimX << "*" << gridDimY << "*" << gridDimZ << "* 3 values, but found " << vectorGridCount << " values instead");
+            }
           }
+          else
+          {
+            vtkErrorMacro("LoadDeformableSpatialRegistration: Failed to get VectorGridDatafrom spatial registration object");
+          }
+
         } // numOfMatrixRegistrationSequenceItems
       } // if 
 
