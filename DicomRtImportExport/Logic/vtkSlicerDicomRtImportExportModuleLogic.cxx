@@ -136,6 +136,14 @@ vtkCxxSetObjectMacro(vtkSlicerDicomRtImportExportModuleLogic, IsodoseLogic, vtkS
 vtkCxxSetObjectMacro(vtkSlicerDicomRtImportExportModuleLogic, PlanarImageLogic, vtkSlicerPlanarImageModuleLogic);
 vtkCxxSetObjectMacro(vtkSlicerDicomRtImportExportModuleLogic, BeamsLogic, vtkSlicerBeamsModuleLogic);
 
+namespace
+{
+  const char* SafeStr(const char* ptr)
+  {
+    return ptr ? ptr : "";
+  }
+}
+
 //----------------------------------------------------------------------------
 class vtkSlicerDicomRtImportExportModuleLogic::vtkInternal
 {
@@ -1688,7 +1696,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtImage(vtkSlicer
   // Set RT image specific attributes
   shNode->SetItemAttribute(seriesShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_RTIMAGE_IDENTIFIER_ATTRIBUTE_NAME, "1");
   shNode->SetItemAttribute(seriesShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(),
-    (rtReader->GetRTImageReferencedRTPlanSOPInstanceUID() ? rtReader->GetRTImageReferencedRTPlanSOPInstanceUID() : "") );
+    SafeStr(rtReader->GetRTImageReferencedRTPlanSOPInstanceUID()) );
 
   std::stringstream radiationMachineSadStream;
   radiationMachineSadStream << rtReader->GetRadiationMachineSAD();
@@ -2904,15 +2912,15 @@ void vtkSlicerDicomRtImportExportModuleLogic::InsertSeriesInSubjectHierarchy(vtk
     {
       // Add attributes for DICOM tags
       shNode->SetItemAttribute(patientItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientNameAttributeName(), reader->GetPatientName());
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientNameAttributeName(), SafeStr(reader->GetPatientName()));
       shNode->SetItemAttribute(patientItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientIDAttributeName(), reader->GetPatientId());
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientIDAttributeName(), SafeStr(reader->GetPatientId()));
       shNode->SetItemAttribute(patientItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientSexAttributeName(), reader->GetPatientSex());
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientSexAttributeName(), SafeStr(reader->GetPatientSex()));
       shNode->SetItemAttribute(patientItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientBirthDateAttributeName(), reader->GetPatientBirthDate());
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientBirthDateAttributeName(), SafeStr(reader->GetPatientBirthDate()));
       shNode->SetItemAttribute(patientItemID,
-        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientCommentsAttributeName(), reader->GetPatientComments());
+        vtkMRMLSubjectHierarchyConstants::GetDICOMPatientCommentsAttributeName(), SafeStr(reader->GetPatientComments()));
 
       // Set item name
       std::string patientItemName = (!vtkSlicerRtCommon::IsStringNullOrEmpty(reader->GetPatientName())
