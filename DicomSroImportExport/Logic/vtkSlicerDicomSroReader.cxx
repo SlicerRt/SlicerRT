@@ -571,9 +571,11 @@ void vtkSlicerDicomSroReader::LoadDeformableSpatialRegistration(DcmDataset* data
           this->DeformableRegistrationGridOrientationMatrix->SetElement(1, 0, imageOrientationPatient[3]);
           this->DeformableRegistrationGridOrientationMatrix->SetElement(1, 1, imageOrientationPatient[4]);
           this->DeformableRegistrationGridOrientationMatrix->SetElement(1, 2, imageOrientationPatient[5]);
-          this->DeformableRegistrationGridOrientationMatrix->SetElement(2, 0, 0);
-          this->DeformableRegistrationGridOrientationMatrix->SetElement(2, 1, 0);
-          this->DeformableRegistrationGridOrientationMatrix->SetElement(2, 2, 1);
+          double imageOrientationPatientZ[3] = { 0.0, 0.0, 1.0 };
+          vtkMath::Cross(imageOrientationPatient, imageOrientationPatient + 3, imageOrientationPatientZ);
+          this->DeformableRegistrationGridOrientationMatrix->SetElement(2, 0, imageOrientationPatientZ[0]);
+          this->DeformableRegistrationGridOrientationMatrix->SetElement(2, 1, imageOrientationPatientZ[1]);
+          this->DeformableRegistrationGridOrientationMatrix->SetElement(2, 2, imageOrientationPatientZ[2]);
           this->DeformableRegistrationGridOrientationMatrix->SetElement(0, 3, imagePositionPatient[0]);
           this->DeformableRegistrationGridOrientationMatrix->SetElement(1, 3, imagePositionPatient[1]);
           this->DeformableRegistrationGridOrientationMatrix->SetElement(2, 3, imagePositionPatient[2]);
