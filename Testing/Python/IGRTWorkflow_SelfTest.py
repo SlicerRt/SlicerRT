@@ -29,7 +29,7 @@ class IGRTWorkflow_SelfTest(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "SlicerRT IGRT Self Test"
     self.parent.categories = ["Testing.SlicerRT Tests"]
-    self.parent.dependencies = ["DicomRtImportExport", "SubjectHierarchy", "Segmentations", "Isodose", "BRAINSFit", "DoseComparison", "DoseAccumulation", "DoseVolumeHistogram", "SegmentComparison", "SegmentMorphology"]
+    self.parent.dependencies = ["DicomRtImportExport", "SubjectHierarchy", "Segmentations", "Isodose", "BRAINSFit", "DoseComparison", "DoseAccumulation", "DoseVolumeHistogram", "SegmentComparison"]
     self.parent.contributors = ["Csaba Pinter (Queen's)"]
     self.parent.helpText = """
     This is a self test that automatically runs the IGRT workflow, for tutorial purposes and to test every step involved.
