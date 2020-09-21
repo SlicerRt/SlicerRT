@@ -193,8 +193,7 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation(vtkM
   // Prepare segment A for processing
   vtkSmartPointer<vtkOrientedImageData> imageA = vtkSmartPointer<vtkOrientedImageData>::New();
   const char* segmentAID = parameterNode->GetSegmentAID();
-  if ( !vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(
-    inputSegmentationANode, segmentAID, imageA ) )
+  if (!inputSegmentationANode->GetBinaryLabelmapRepresentation(segmentAID, imageA))
   {
     std::string errorMessage("Failed to get binary labelmap from segment A: " + std::string(segmentAID));
     vtkErrorMacro("ApplyMorphologyOperation: " << errorMessage);
@@ -216,8 +215,7 @@ std::string vtkSlicerSegmentMorphologyModuleLogic::ApplyMorphologyOperation(vtkM
       vtkErrorMacro("ApplyMorphologyOperation: " << errorMessage);
       return errorMessage;
     }
-    if ( !vtkSlicerSegmentationsModuleLogic::GetSegmentBinaryLabelmapRepresentation(
-      inputSegmentationBNode, segmentBID, imageB ) )
+    if (!inputSegmentationBNode->GetBinaryLabelmapRepresentation(segmentBID, imageB))
     {
       std::string errorMessage("Failed to get binary labelmap from segment B: " + std::string(segmentAID));
       vtkErrorMacro("ApplyMorphologyOperation: " << errorMessage);
