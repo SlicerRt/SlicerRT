@@ -137,7 +137,7 @@ std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmV
     return errorMessage;
   }
   vtkSmartPointer<vtkOrientedImageData> compareSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
-  if (!referenceSegmentationNode->GetBinaryLabelmapRepresentation(compareSegmentID, compareSegmentLabelmap))
+  if (!compareSegmentationNode->GetBinaryLabelmapRepresentation(compareSegmentID, compareSegmentLabelmap))
   {
     std::string errorMessage("Failed to get binary labelmap from reference segment: " + std::string(compareSegmentID));
     vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
