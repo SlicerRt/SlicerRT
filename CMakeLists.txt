@@ -74,6 +74,7 @@ add_subdirectory(RoomsEyeView)
 
 add_subdirectory(PlastimatchPy)
 add_subdirectory(PlmBspline)
+add_subdirectory(PlmDrr)
 add_subdirectory(PlmLandwarp)
 add_subdirectory(PlmRegister)
 
