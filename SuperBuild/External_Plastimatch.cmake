@@ -20,13 +20,13 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY
-    "https://gitlab.com/plastimatch/plastimatch.git" # Gitlab only support https for anonymous checkout
+    "https://gitlab.com/MichaelColonel/plastimatch.git" # Gitlab only support https for anonymous checkout
     QUIET
     )
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "2e729bc2c7c4eaa51184ed0acb23d91e615a7ff8"
+    "255ee155a6aeefc6da004618f8229c145a6a125b"
     QUIET
     )
 
@@ -76,6 +76,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       -DPLM_CONFIG_INSTALL_LIBRARIES:BOOL=ON
       -DPLM_PREFER_SYSTEM_DLIB:BOOL=OFF
       -DPLMLIB_CONFIG_ENABLE_REGISTER:BOOL=TRUE
+      -DPLMLIB_CONFIG_ENABLE_RECONSTRUCT:BOOL=TRUE
       -DPLMLIB_CONFIG_ENABLE_DOSE:BOOL=TRUE
       ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS}
     INSTALL_COMMAND ""
