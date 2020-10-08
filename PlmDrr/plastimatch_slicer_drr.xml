@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<executable>
+  <category>Plastimatch.Reconstruct</category>
+  <title>DRR generation</title>
+  <description><![CDATA[This is a CLI module that computes a synthetic radiograph (DRR) which can be generated from a CT scan.]]></description>
+  <version>0.0.1.001.vc</version>
+  <documentation-url>http://www.plastimatch.org/drr.html</documentation-url>
+  <license>Slicer</license>
+  <contributor>Mikhail Polkovnikov (NRC \'Kurchatov Institute\' - IHEP)</contributor>
+  <acknowledgements></acknowledgements>
+
+  <parameters>
+    <label>I/O</label>
+    <description><![CDATA[Input/output parameters]]></description>
+    <image type="scalar">
+      <name>inputVolume</name>
+      <description><![CDATA[CT input volume]]></description>
+      <label>CT Input Volume</label>
+      <channel>input</channel>
+      <index>0</index>
+    </image>
+
+    <image type="scalar">
+      <name>outputVolume</name>
+      <description><![CDATA[RTImage DRR output volume]]></description>
+      <label>DRR Output Volume</label>
+      <channel>output</channel>
+      <index>1</index>
+    </image>
+  </parameters>
+
+  <parameters>
+    <label>Source and Imager Geometry Parameters</label>
+    <description><![CDATA[Basic geometry parameters of source and imager]]></description>
+    <double>
+      <name>sourceAxisDistance</name>
+      <longflag>sad</longflag>
+      <description><![CDATA[Distance between a source and an axis of rotation (isocenter)]]></description>
+      <label>SAD</label>
+      <default>1000</default>
+      <constraints>
+        <minimum>400</minimum>
+        <maximum>2000</maximum>
+        <step>.01</step>
+      </constraints>
+    </double>
+
+    <double>
+      <name>sourceImagerDistance</name>
+      <longflag>sid</longflag>
+      <description><![CDATA[Distance between a source and an imager]]></description>
+      <label>SID</label>
+      <default>1400</default>
+      <constraints>
+        <minimum>400</minimum>
+        <maximum>4000</maximum>
+        <step>.01</step>
+      </constraints>
+    </double>
+<!--
+    <double>
+      <name>gantryAngle</name>
+      <longflag>gantryAngle</longflag>
+      <flag>y</flag>
+      <label>Gantry angle</label>
+      <description><![CDATA[Gantry angle for image source in degrees]]></description>
+      <default>0.0</default>
+      <constraints>
+        <minimum>0</minimum>
+        <maximum>359.99</maximum>
+        <step>.01</step>
+      </constraints>
+    </double>
+
+    <double>
+      <name>supportRotationAngle</name>
+      <longflag>supportRotationAngle</longflag>
+      <flag>u</flag>
+      <label>Patient support rotation angle</label>
+      <description><![CDATA[Patient support rotation angle for image source in degrees]]></description>
+      <default>0.0</default>
+      <constraints>
+        <minimum>0</minimum>
+        <maximum>359.99</maximum>
+        <step>.01</step>
+      </constraints>
+    </double>
+-->
+    <float-vector>
+      <name>viewUpVector</name>
+      <description><![CDATA[View up vector to the first row in LPS (DICOM) coordinate system]]></description>
+      <label>View-Up vector</label>
+      <longflag>vup</longflag>
+      <default>-1.0,0.0,0.0</default>
+    </float-vector> 
+
+    <float-vector>
+      <name>normalVector</name>
+      <description><![CDATA[Imager surface normal vector in LPS (DICOM) coordinate system]]></description>
+      <label>Normal vector</label>
+      <flag>n</flag>
+      <longflag>normal</longflag>
+      <default>0.0,-1.0,0.0</default>
+    </float-vector>
+
+    <float-vector>
+      <name>isocenterPosition</name>
+      <description><![CDATA[Isocenter position in LPS (DICOM) coordinate system]]></description>
+      <flag>o</flag>
+      <longflag>isocenter</longflag>
+      <label>Isocenter position</label>
+      <default>0.0,0.0,0.0</default>
+    </float-vector>
+  </parameters>
+
+  <parameters>
+    <label>Imager and Image Parameters</label>
+    <description><![CDATA[Image and imager parameters]]></description>
+
+    <integer-vector>
+      <name>imagerResolution</name>
+      <description><![CDATA[Imager resolution (columns, rows)]]></description>
+      <flag>r</flag>
+      <longflag>dim</longflag>
+      <label>Resolution</label>
+      <default>2000,2000</default>
+    </integer-vector>
+
+    <float-vector>
+      <name>imagerSpacing</name>
+      <description><![CDATA[Imager spacing in mm (columns, rows)]]></description>
+      <flag>p</flag>
+      <longflag>spacing</longflag>
+      <label>Spacing</label>
+      <default>0.25,0.25</default>
+    </float-vector>
+
+    <boolean>
+      <name>useImageWindow</name>
+      <longflag>useImageWindow</longflag>
+      <description><![CDATA[Use image subwindow or a whole imager (detector)]]></description>
+      <label>Use image window</label>
+      <default>false</default>
+    </boolean>
+
+    <integer-vector>
+      <name>imageWindow</name>
+      <description><![CDATA[Limit DRR output to a subwindow (column_begin, row_begin, column_end, row_end)]]></description>
+      <flag>w</flag>
+      <longflag>subwindow</longflag>
+      <label>Image window</label>
+      <default>0,0,1999,1999</default>
+    </integer-vector>
+
+    <boolean>
+      <name>autoscale</name>
+      <longflag>autoscale</longflag>
+      <description><![CDATA[Automatically rescale intensity]]></description>
+      <label>Automatically rescale intensity</label>
+      <default>false</default>
+    </boolean>
+
+    <float-vector>
+      <name>autoscaleRange</name>
+      <description><![CDATA[Range used for autoscale in form (min, max)]]></description>
+      <longflag>autoscaleRange</longflag>
+      <label>Autoscale range</label>
+      <default>0.,255.</default>
+    </float-vector>
+
+    <boolean>
+      <name>exponentialMapping</name>
+      <longflag>exponential</longflag>
+      <description><![CDATA[Apply exponential mapping of output values]]></description>
+      <label>Exponential mapping</label>
+      <default>true</default>
+    </boolean>
+  </parameters>
+
+  <parameters>
+    <label>Process Parameters</label>
+    <description><![CDATA[DRR computation process parameters]]></description>
+
+    <string-enumeration>
+      <label>Threading type</label>
+      <name>threading</name>
+      <flag>A</flag>
+      <longflag>threading</longflag>
+      <default>cpu</default>
+      <element>cpu</element>
+      <element>cuda</element>
+      <element>opencl</element>
+    </string-enumeration>
+
+    <string-enumeration>
+      <label>HU conversion type</label>
+      <name>huconversion</name>
+      <longflag>huconversion</longflag>
+      <default>preprocess</default>
+      <element>preprocess</element>
+      <element>inline</element>
+      <element>none</element>
+    </string-enumeration>
+
+    <string-enumeration>
+      <label>Exposure type</label>
+      <name>algorithm</name>
+      <longflag>algorithm</longflag>
+      <default>exact</default>
+      <element>exact</element>
+      <element>uniform</element>
+    </string-enumeration>
+
+    <string-enumeration>
+      <label>Output format</label>
+      <name>outputFormat</name>
+      <flag>t</flag>
+      <longflag>outputFormat</longflag>
+      <default>raw</default> <!-- Only this must be used for 3DSlicer visualization -->
+      <element>pgm</element>
+      <element>pfm</element>
+      <element>raw</element>
+    </string-enumeration>
+
+    <boolean>
+      <name>invertIntensity</name>
+      <longflag>negative</longflag>
+      <description><![CDATA[Invert intensity of DRR image (makes it negative)]]></description>
+      <label>Invert intensity</label>
+      <default>true</default>
+    </boolean>
+  </parameters>
+
+</executable>
