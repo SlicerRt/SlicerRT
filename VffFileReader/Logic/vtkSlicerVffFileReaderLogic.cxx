@@ -67,7 +67,7 @@ std::string vtkSlicerVffFileReaderLogic::TrimSpacesFromEndsOfString(std::string 
 }
 
 //----------------------------------------------------------------------------
-bool vtkSlicerVffFileReaderLogic::ReadVffFileHeader(ifstream &readFileStream, std::map<std::string, std::string> &parameterList)
+bool vtkSlicerVffFileReaderLogic::ReadVffFileHeader(std::ifstream &readFileStream, std::map<std::string, std::string> &parameterList)
 {
   std::string currentStringFromFile = "";
   while(readFileStream.good())
@@ -194,7 +194,7 @@ void vtkSlicerVffFileReaderLogic::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode* vtkSlicerVffFileReaderLogic::LoadVffFile(char* filename, bool useImageIntensityScaleAndOffsetFromFile)
 {
-  ifstream readFileStream;
+  std::ifstream readFileStream;
   readFileStream.open(filename, std::ios::binary);
   if (readFileStream.fail())
   {

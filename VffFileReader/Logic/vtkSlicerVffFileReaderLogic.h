@@ -62,7 +62,7 @@ protected:
   /// \return Vector containing the extracted numbers
   template <class Num> std::vector<Num> ParseNumberOfNumbersFromString(std::string stringToParse, unsigned int numberOfNumbers);
 
-  bool ReadVffFileHeader(ifstream &readFileStream, std::map<std::string, std::string> &parameterList);
+  bool ReadVffFileHeader(std::ifstream &readFileStream, std::map<std::string, std::string> &parameterList);
 
 protected:
   vtkSlicerVffFileReaderLogic();

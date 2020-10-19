@@ -73,7 +73,7 @@ void vtkSlicerDosxyzNrc3dDoseFileReaderLogic::PrintSelf(ostream& os, vtkIndent i
 //----------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode* vtkSlicerDosxyzNrc3dDoseFileReaderLogic::LoadDosxyzNrc3dDoseFile(char* filename, float intensityScalingFactor/*=1e+18*/)
 {
-  ifstream readFileStream(filename); 
+  std::ifstream readFileStream(filename); 
   if (!readFileStream)
   {
     vtkErrorMacro("LoadDosxyzNrc3dDoseFile: The specified file could not be opened.");

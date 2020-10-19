@@ -201,7 +201,7 @@ template<typename T> bool vtkSlicerRtCommon::ConvertVtkOrientedImageDataToItkIma
   }
   catch(itk::ExceptionObject & err)
   {
-    vtkErrorWithObjectMacro(inImageData, "ConvertVtkOrientedImageDataToItkImage: Failed to allocate memory for the image conversion: " << err.GetDescription())
+    vtkErrorWithObjectMacro(inImageData, "ConvertVtkOrientedImageDataToItkImage: Failed to allocate memory for the image conversion: " << err.GetDescription());
     return false;
   }
 

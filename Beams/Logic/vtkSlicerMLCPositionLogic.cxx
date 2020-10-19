@@ -335,12 +335,12 @@ bool vtkSlicerMLCPositionLogic::CalculateLeavesProjection( vtkMRMLRTBeamNode* be
   }
   if (mlcTable->GetNumberOfColumns() != 3)
   {
-    vtkErrorMacro("CalculateLeavesProjection: Wrong number of table columns")
+    vtkErrorMacro("CalculateLeavesProjection: Wrong number of table columns");
     return false;
   }
   if (mlcTable->GetNumberOfRows() - 1 <= 0)
   {
-    vtkErrorMacro("CalculateLeavesProjection: Wrong number of table rows")
+    vtkErrorMacro("CalculateLeavesProjection: Wrong number of table rows");
     return false;
   }
 
@@ -384,7 +384,7 @@ bool vtkSlicerMLCPositionLogic::UpdateMultiLeafCollimatorTableNodeBoundaryData( 
   }
   if (mlcTable->GetNumberOfColumns() != 3)
   {
-    vtkErrorMacro("UpdateMultiLeafCollimatorTableNodeBoundaryData: Wrong number of table columns")
+    vtkErrorMacro("UpdateMultiLeafCollimatorTableNodeBoundaryData: Wrong number of table columns");
     return false;
   }
 

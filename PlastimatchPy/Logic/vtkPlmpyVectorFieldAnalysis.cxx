@@ -194,7 +194,7 @@ void vtkPlmpyVectorFieldAnalysis::RunJacobian()
   }
   catch(itk::ExceptionObject & err)
   {
-    vtkErrorWithObjectMacro(VFImage, "ConvertVolumeNodeToItkImage: Failed to allocate memory for the image conversion: " << err.GetDescription())
+    vtkErrorWithObjectMacro(VFImage, "ConvertVolumeNodeToItkImage: Failed to allocate memory for the image conversion: " << err.GetDescription());
     return;
   }
 
