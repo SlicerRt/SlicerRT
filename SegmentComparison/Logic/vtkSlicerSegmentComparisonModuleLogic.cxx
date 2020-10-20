@@ -97,7 +97,7 @@ vtkSlicerSegmentComparisonModuleLogicPrivate::~vtkSlicerSegmentComparisonModuleL
 
 //---------------------------------------------------------------------------
 std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmVolumes(
-  vtkMRMLSegmentComparisonNode* parameterNode, 
+  vtkMRMLSegmentComparisonNode* parameterNode,
   Plm_image::Pointer& plmRefSegmentLabelmap,
   Plm_image::Pointer& plmCmpSegmentLabelmap,
   double &checkpointItkConvertStart )
@@ -142,6 +142,24 @@ std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmV
     std::string errorMessage("Failed to get binary labelmap from reference segment: " + std::string(compareSegmentID));
     vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
     return errorMessage;
+  }
+
+  // Apply parent transformation nodes if necessary
+  if (referenceSegmentationNode != compareSegmentationNode
+    && referenceSegmentationNode->GetParentTransformNode() != compareSegmentationNode->GetParentTransformNode())
+  {
+    if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(referenceSegmentationNode, referenceSegmentLabelmap))
+    {
+      std::string errorMessage("Failed to apply parent transformation to compare segment!");
+      vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
+      return errorMessage;
+    }
+    if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(compareSegmentationNode, compareSegmentLabelmap))
+    {
+      std::string errorMessage("Failed to apply parent transformation to reference segment!");
+      vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
+      return errorMessage;
+    }
   }
 
   // Convert inputs to ITK images
@@ -212,7 +230,7 @@ void vtkSlicerSegmentComparisonModuleLogic::SetMRMLSceneInternal(vtkMRMLScene * 
 //-----------------------------------------------------------------------------
 void vtkSlicerSegmentComparisonModuleLogic::RegisterNodes()
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("RegisterNodes: Invalid MRML scene!");
@@ -321,7 +339,7 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics(vtkMRML
 
   dice.run();
 
-  unsigned long numberOfVoxels = dice.get_true_positives() 
+  unsigned long numberOfVoxels = dice.get_true_positives()
     + dice.get_true_negatives() + dice.get_false_positives()
     + dice.get_false_negatives();
 
