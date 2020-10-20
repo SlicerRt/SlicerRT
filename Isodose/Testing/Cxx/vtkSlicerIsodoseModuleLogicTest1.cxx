@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -197,7 +197,7 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
     std::cerr << "No isodose subject hierarchy folder created" << std::endl;
     return EXIT_FAILURE;
   }
-  
+
   mrmlScene->Commit();
 
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(mrmlScene);
@@ -228,9 +228,15 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   propertiesCurrent->SetInputData(modelNode->GetPolyData());
   propertiesCurrent->Update();
 
-  if (fabs(propertiesBaseline->GetVolume() - propertiesCurrent->GetVolume()) > volumeDifferenceToleranceCc)
+  double baselineVolumeCc = propertiesBaseline->GetVolume();
+  double currentVolumeCc = propertiesCurrent->GetVolume();
+  double volumeDifferenceCc = fabs(baselineVolumeCc - currentVolumeCc);
+  if (volumeDifferenceCc > volumeDifferenceToleranceCc)
   {
     std::cerr << "Volume difference Tolerance(Cc) exceeds threshold" << std::endl;
+    std::cerr << "Baseline volume (Cc):\t" << baselineVolumeCc << std::endl;
+    std::cerr << "Current volume (Cc):\t" << currentVolumeCc << std::endl;
+    std::cerr << "Volume difference (Cc):\t" << volumeDifferenceCc << std::endl;
     return EXIT_FAILURE;
   }
 
