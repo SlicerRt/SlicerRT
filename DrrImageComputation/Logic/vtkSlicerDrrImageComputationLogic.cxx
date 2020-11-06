@@ -1227,7 +1227,7 @@ bool vtkSlicerDrrImageComputationLogic::SetupGeometry( vtkMRMLDrrImageComputatio
 
   vtkNew<vtkTransform> couchToFixedTransform;
   couchToFixedTransform->Identity();
-  couchToFixedTransform->RotateWXYZ(couchAngle, 0.0, 1.0, 0.0);
+  couchToFixedTransform->RotateWXYZ(-1. * couchAngle, 0.0, 1.0, 0.0);
 
   vtkNew<vtkTransform> gantryToCouchTransform;
   gantryToCouchTransform->Identity();
