@@ -64,9 +64,11 @@
 //----------------------------------------------------------------------------
 const char* DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME = "Isodose_ColorTable.ctbl";
 const char* DEFAULT_ISODOSE_COLOR_TABLE_NODE_NAME = "Isodose_ColorTable_Default";
+const char* RELATIVE_ISODOSE_COLOR_TABLE_NODE_NAME = "Isodose_ColorTable_Relative";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_PREFIX = "IsodoseLevel_";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX = "IsodoseParameterSet_";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX = "_IsodoseSurfaces";
+const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_RELATIVE_ROOT_HIERARCHY_NAME_POSTFIX = "_RelativeIsodoseSurfaces";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX = "_IsodoseColorTable";
 
 //----------------------------------------------------------------------------
@@ -104,6 +106,7 @@ void vtkSlicerIsodoseModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
   if (isodoseColorTableNode)
   {
     vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(newScene);
+    vtkSlicerIsodoseModuleLogic::CreateRelativeDoseColorTable(newScene);
   }
   else
   {
@@ -238,10 +241,8 @@ vtkIdType vtkSlicerIsodoseModuleLogic::GetIsodoseFolderItemID(vtkMRMLNode* node)
 
   std::vector<vtkIdType> doseChildItemIDs;
   shNode->GetItemChildren(doseShItemID, doseChildItemIDs, false);
-  std::vector<vtkIdType>::iterator childIt;
-  for (childIt=doseChildItemIDs.begin(); childIt!=doseChildItemIDs.end(); ++childIt)
+  for (vtkIdType childItemID : doseChildItemIDs)
   {
-    vtkIdType childItemID = (*childIt);
     std::string childItemName = shNode->GetItemName(childItemID);
     std::string childItemNamePostfix = childItemName.substr(childItemName.size() - ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX.size());
     if (!childItemNamePostfix.compare(ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX))
@@ -284,14 +285,60 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::GetDefaultIsodoseColorTable(
   //colorTableNode->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
 
   colorTableNode->NamesInitialisedOn();
-  colorTableNode->SetNumberOfColors(6);
-  colorTableNode->GetLookupTable()->SetTableRange(0,5);
+  colorTableNode->SetNumberOfColors(7);
+  colorTableNode->GetLookupTable()->SetTableRange(0,6);
   colorTableNode->AddColor("5", 0, 1, 0, 0.2);
   colorTableNode->AddColor("10", 0.5, 1, 0, 0.2);
   colorTableNode->AddColor("15", 1, 1, 0, 0.2);
   colorTableNode->AddColor("20", 1, 0.66, 0, 0.2);
   colorTableNode->AddColor("25", 1, 0.33, 0, 0.2);
   colorTableNode->AddColor("30", 1, 0, 0, 0.2);
+  colorTableNode->AddColor("35", 221./255., 18./255., 123./255., 0.2);
+  colorTableNode->SaveWithSceneOff();
+  
+  scene->AddNode(colorTableNode);
+  return colorTableNode;
+}
+
+//------------------------------------------------------------------------------
+vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::GetRelativeIsodoseColorTable(vtkMRMLScene* scene)
+{
+  if (!scene)
+  {
+    vtkGenericWarningMacro("vtkSlicerIsodoseModuleLogic::GetRelativeIsodoseColorTable: Invalid MRML scene");
+    return nullptr;
+  }
+
+  // Check if default color table node already exists
+  vtkSmartPointer<vtkCollection> relativeIsodoseColorTableNodes = vtkSmartPointer<vtkCollection>::Take(
+    scene->GetNodesByName(RELATIVE_ISODOSE_COLOR_TABLE_NODE_NAME) );
+  if (relativeIsodoseColorTableNodes->GetNumberOfItems() > 0)
+  {
+    if (relativeIsodoseColorTableNodes->GetNumberOfItems() != 1)
+    {
+      vtkWarningWithObjectMacro(scene, "GetRelativeIsodoseColorTable: Multiple default isodose color table nodes found");
+    }
+
+    vtkMRMLColorTableNode* isodoseColorTableNode = vtkMRMLColorTableNode::SafeDownCast(relativeIsodoseColorTableNodes->GetItemAsObject(0));
+    return isodoseColorTableNode;
+  }
+
+  // Create default isodose color table if does not yet exist
+  vtkNew<vtkMRMLColorTableNode> colorTableNode;
+  colorTableNode->SetName(RELATIVE_ISODOSE_COLOR_TABLE_NODE_NAME);
+  colorTableNode->SetTypeToUser();
+  colorTableNode->SetSingletonTag(RELATIVE_ISODOSE_COLOR_TABLE_NODE_NAME);
+  //colorTableNode->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
+
+  colorTableNode->NamesInitialisedOn();
+  colorTableNode->SetNumberOfColors(5);
+  colorTableNode->GetLookupTable()->SetTableRange(0,4);
+
+  colorTableNode->AddColor("80", 108./255., 0., 208./255., 0.2);
+  colorTableNode->AddColor("90", 0., 147./255., 221./255., 0.2);
+  colorTableNode->AddColor("100", 1., 1., 0., 0.2);
+  colorTableNode->AddColor("105", 1., 0.5, 0., 0.2);
+  colorTableNode->AddColor("110", 1., 0., 0., 0.2);
   colorTableNode->SaveWithSceneOff();
   
   scene->AddNode(colorTableNode);
@@ -391,6 +438,52 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(
 }
 
 //------------------------------------------------------------------------------
+vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::CreateRelativeDoseColorTable(vtkMRMLScene* scene)
+{
+  if (!scene)
+  {
+    vtkGenericWarningMacro("vtkSlicerIsodoseModuleLogic::CreateRelativeDoseColorTable: Invalid MRML scene");
+    return nullptr;
+  }
+
+  // Check if default color table node already exists
+  vtkSmartPointer<vtkCollection> relativeDoseColorTableNodes = vtkSmartPointer<vtkCollection>::Take(
+    scene->GetNodesByName(vtkSlicerRtCommon::RELATIVE_DOSE_COLOR_TABLE_NAME) );
+  if (relativeDoseColorTableNodes->GetNumberOfItems() > 0)
+  {
+    if (relativeDoseColorTableNodes->GetNumberOfItems() != 1)
+    {
+      vtkWarningWithObjectMacro(scene, "CreateRelativeDoseColorTable: Multiple relative dose color table nodes found");
+    }
+
+    vtkMRMLColorTableNode* doseColorTable = vtkMRMLColorTableNode::SafeDownCast(relativeDoseColorTableNodes->GetItemAsObject(0));
+    return doseColorTable;
+  }
+
+  // Create relative dose color table if does not yet exist
+  vtkMRMLColorTableNode* relativeIsodoseColorTable = vtkSlicerIsodoseModuleLogic::GetRelativeIsodoseColorTable(scene);
+  if (!relativeIsodoseColorTable)
+  {
+    vtkErrorWithObjectMacro(scene, "CreateRelativeDoseColorTable: Unable to access relative isodose color table");
+    return nullptr;
+  }
+
+  vtkSmartPointer<vtkMRMLColorTableNode> relativeDoseColorTable = vtkSmartPointer<vtkMRMLColorTableNode>::New();
+  relativeDoseColorTable->SetName(vtkSlicerRtCommon::RELATIVE_DOSE_COLOR_TABLE_NAME);
+  relativeDoseColorTable->SetTypeToFile();
+  relativeDoseColorTable->SetSingletonTag(vtkSlicerRtCommon::RELATIVE_DOSE_COLOR_TABLE_NAME);
+  //relativeDoseColorTable->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
+  relativeDoseColorTable->SetNumberOfColors(256);
+  relativeDoseColorTable->SaveWithSceneOff();
+
+  // Create dose color table by stretching the isodose color table
+  vtkSlicerRtCommon::StretchDiscreteColorTable(relativeIsodoseColorTable, relativeDoseColorTable);
+
+  scene->AddNode(relativeDoseColorTable);
+  return relativeDoseColorTable;
+}
+
+//------------------------------------------------------------------------------
 vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::SetupColorTableNodeForDoseVolumeNode(vtkMRMLScalarVolumeNode* doseVolumeNode)
 {
   if (!doseVolumeNode)
@@ -447,36 +540,86 @@ void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(vtkMRMLIsodoseNode* p
   colorTableNode->SetNumberOfColors(newNumberOfColors);
   colorTableNode->GetLookupTable()->SetTableRange(0, newNumberOfColors-1);
 
-  // Set the default colors in case the number of colors was less than that in the default table
-  for (int colorIndex=currentNumberOfColors; colorIndex<newNumberOfColors; ++colorIndex)
+  vtkMRMLIsodoseNode::DoseUnitsType doseUnits = parameterNode->GetDoseUnits();
+
+  bool relativeFlag = false;
+  if (parameterNode->GetRelativeRepresentationFlag() 
+    && (doseUnits == vtkMRMLIsodoseNode::Gy
+    || doseUnits == vtkMRMLIsodoseNode::Unknown))
   {
-    switch (colorIndex)
+    relativeFlag = true;
+  }
+  else if (doseUnits == vtkMRMLIsodoseNode::Relative)
+  {
+    relativeFlag = true;
+  }
+
+  if (!relativeFlag) // absolute values
+  {
+    // Set the default colors in case the number of colors was less than that in the default table
+    for (int colorIndex=currentNumberOfColors; colorIndex<newNumberOfColors; ++colorIndex)
     {
-    case 0:
-      colorTableNode->SetColor(colorIndex, "5", 0, 1, 0, 0.2);
-      break;
-    case 1:
-      colorTableNode->SetColor(colorIndex, "10", 0.5, 1, 0, 0.2);
-      break;
-    case 2:
-      colorTableNode->SetColor(colorIndex, "15", 1, 1, 0, 0.2);
-      break;
-    case 3:
-      colorTableNode->SetColor(colorIndex, "20", 1, 0.66, 0, 0.2);
-      break;
-    case 4:
-      colorTableNode->SetColor(colorIndex, "25", 1, 0.33, 0, 0.2);
-      break;
-    case 5:
-      colorTableNode->SetColor(colorIndex, "30", 1, 0, 0, 0.2);
-      break;
+      switch (colorIndex)
+      {
+      case 0:
+        colorTableNode->SetColor(colorIndex, "5", 0, 1, 0, 0.2);
+        break;
+      case 1:
+        colorTableNode->SetColor(colorIndex, "10", 0.5, 1, 0, 0.2);
+        break;
+      case 2:
+        colorTableNode->SetColor(colorIndex, "15", 1, 1, 0, 0.2);
+        break;
+      case 3:
+        colorTableNode->SetColor(colorIndex, "20", 1, 0.66, 0, 0.2);
+        break;
+      case 4:
+        colorTableNode->SetColor(colorIndex, "25", 1, 0.33, 0, 0.2);
+        break;
+      case 5:
+        colorTableNode->SetColor(colorIndex, "30", 1, 0, 0, 0.2);
+        break;
+      case 6:
+        colorTableNode->SetColor(colorIndex, "35", 221./255., 18./255., 123./255., 0.2);
+        break;
+      }
+    }
+    // Add colors with index 7 and higher with default gray color
+    for (int colorIndex=7; colorIndex<newNumberOfColors; ++colorIndex)
+    {
+      colorTableNode->SetColor(colorIndex,
+        vtkSlicerRtCommon::COLOR_VALUE_INVALID[0], vtkSlicerRtCommon::COLOR_VALUE_INVALID[1], vtkSlicerRtCommon::COLOR_VALUE_INVALID[2], 0.2);
     }
   }
-  // Add colors with index 6 and higher with default gray color
-  for (int colorIndex=6; colorIndex<newNumberOfColors; ++colorIndex)
+  else // relative
   {
-    colorTableNode->SetColor(colorIndex,
-      vtkSlicerRtCommon::COLOR_VALUE_INVALID[0], vtkSlicerRtCommon::COLOR_VALUE_INVALID[1], vtkSlicerRtCommon::COLOR_VALUE_INVALID[2], 0.2);
+    for (int colorIndex=currentNumberOfColors; colorIndex<newNumberOfColors; ++colorIndex)
+    {
+      switch (colorIndex)
+      {
+      case 0:
+        colorTableNode->SetColor(colorIndex, "80", 108./255., 0., 208./255., 0.2);
+        break;
+      case 1:
+        colorTableNode->SetColor(colorIndex, "90", 0., 147./255., 221./255., 0.2);
+        break;
+      case 2:
+        colorTableNode->SetColor(colorIndex, "100", 1., 1., 0., 0.2);
+        break;
+      case 3:
+        colorTableNode->SetColor(colorIndex, "105", 1., 0.5, 0., 0.2);
+        break;
+      case 4:
+        colorTableNode->SetColor(colorIndex, "110", 1., 0., 0., 0.2);
+        break;
+      }
+    }
+    // Add colors with index 5 and higher with default gray color
+    for (int colorIndex=5; colorIndex<newNumberOfColors; ++colorIndex)
+    {
+      colorTableNode->SetColor(colorIndex,
+        vtkSlicerRtCommon::COLOR_VALUE_INVALID[0], vtkSlicerRtCommon::COLOR_VALUE_INVALID[1], vtkSlicerRtCommon::COLOR_VALUE_INVALID[2], 0.2);
+    }
   }
 
   // Something messes up the category, it needs to be set back to SlicerRT
@@ -523,8 +666,25 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     shNode->RemoveItem(isodoseFolderItemID, true, true);
   }
 
+  // Check if that absolute of relative values
+  bool relativeFlag = false;
+  vtkMRMLIsodoseNode::DoseUnitsType doseUnits = parameterNode->GetDoseUnits();
+  if (parameterNode->GetRelativeRepresentationFlag() 
+    && (doseUnits == vtkMRMLIsodoseNode::Gy
+    || doseUnits == vtkMRMLIsodoseNode::Unknown))
+  {
+    relativeFlag = true;
+  }
+  else if (doseUnits == vtkMRMLIsodoseNode::Relative)
+  {
+    relativeFlag = true;
+  }
+  std::string isodoseName = relativeFlag ? 
+    vtkSlicerIsodoseModuleLogic::ISODOSE_RELATIVE_ROOT_HIERARCHY_NAME_POSTFIX :
+    vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX;
+
   // Setup isodose subject hierarchy folder
-  std::string isodoseFolderName = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX;
+  std::string isodoseFolderName = std::string(doseVolumeNode->GetName()) + isodoseName;
   isodoseFolderItemID = shNode->CreateFolderItem(doseShItemID, isodoseFolderName);
 
   // Get color table
@@ -535,6 +695,28 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     return;
   }
 
+  // Check that range is valid for dose and relative dose
+  // Set dose unit name
+  std::string doseUnitName = "Gy";
+  switch (doseUnits)
+  {
+  case vtkMRMLIsodoseNode::Gy:
+    break;
+  case vtkMRMLIsodoseNode::Relative:
+    doseUnitName = "%";
+    break;
+  case vtkMRMLIsodoseNode::Unknown:
+  default:
+    doseUnitName = "MU";
+    break;
+  }
+
+  // force percentage dose units for relative isodose representation
+  if (relativeFlag)
+  {
+    doseUnitName = "%";
+  }
+  
   // Progress
   int progressStepCount = colorTableNode->GetNumberOfColors() + 1 /* reslice step */;
   int currentProgressStep = 0;
@@ -577,12 +759,23 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   double progress = (double)(currentProgressStep) / (double)progressStepCount;
   this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progress);
 
+  // reference value for relative representation
+  double referenceValue = parameterNode->GetReferenceDoseValue();
+
   // Create isodose surfaces
   for (int i = 0; i < colorTableNode->GetNumberOfColors(); i++)
   {
     double val[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     const char* strIsoLevel = colorTableNode->GetColorName(i);
     double isoLevel = vtkVariant(strIsoLevel).ToDouble();
+    // change isoLevel value for relative representation
+    if (relativeFlag)
+    {
+      if (doseUnits != vtkMRMLIsodoseNode::Relative)
+      {
+        isoLevel = isoLevel * referenceValue / 100.;
+      }
+    }
     colorTableNode->GetColor(i, val);
 
     vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();
@@ -642,10 +835,6 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     
       // Disable backface culling to make the back side of the model visible as well
       displayNode->SetBackfaceCulling(0);
-
-      // Get dose unit name
-      std::string doseUnitName = shNode->GetAttributeFromItemAncestor(
-        doseShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
 
       vtkSmartPointer<vtkMRMLModelNode> isodoseModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
       std::string isodoseModelNodeName = vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_PREFIX + strIsoLevel + doseUnitName;
@@ -736,8 +925,8 @@ void vtkSlicerIsodoseModuleLogic::UpdateDoseColorTableFromIsodose(vtkMRMLIsodose
   int minDoseInDefaultIsodoseLevels = vtkVariant(isodoseColorTableNode->GetColorName(0)).ToInt();
   int maxDoseInDefaultIsodoseLevels = vtkVariant(isodoseColorTableNode->GetColorName(isodoseColorTableNode->GetNumberOfColors()-1)).ToInt();
 
-  doseVolumeDisplayNode->AutoWindowLevelOff();
   doseVolumeDisplayNode->SetWindowLevelMinMax(minDoseInDefaultIsodoseLevels, maxDoseInDefaultIsodoseLevels);
+  doseVolumeDisplayNode->AutoWindowLevelOn();
 
   // Get dose grid scaling
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);

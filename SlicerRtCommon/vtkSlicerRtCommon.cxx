@@ -87,6 +87,7 @@ const std::string vtkSlicerRtCommon::DICOMRTIMPORT_SOURCE_HIERARCHY_NODE_NAME_PO
 const std::string vtkSlicerRtCommon::DICOMRTIMPORT_BEAMMODEL_HIERARCHY_NODE_NAME_POSTFIX = "_Beams";
 
 const char* vtkSlicerRtCommon::DEFAULT_DOSE_COLOR_TABLE_NAME = "Dose_ColorTable";
+const char* vtkSlicerRtCommon::RELATIVE_DOSE_COLOR_TABLE_NAME = "Dose_ColorTable_Relative";
 
 //----------------------------------------------------------------------------
 // Utility functions

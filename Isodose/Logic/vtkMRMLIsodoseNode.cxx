@@ -50,6 +50,9 @@ vtkMRMLIsodoseNode::vtkMRMLIsodoseNode()
   this->ShowScalarBar = false;
   this->ShowScalarBar2D = false;
   this->ShowDoseVolumesOnly = true;
+  this->DoseUnits = DoseUnitsType::Unknown;
+  this->ReferenceDoseValue = -1.;
+  this->RelativeRepresentationFlag = false;
 
   this->HideFromEditors = false;
 }
@@ -69,6 +72,10 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLBooleanMacro(ShowScalarBar, ShowScalarBar);
   vtkMRMLWriteXMLBooleanMacro(ShowScalarBar2D, ShowScalarBar2D);
   vtkMRMLWriteXMLBooleanMacro(ShowDoseVolumesOnly, ShowDoseVolumesOnly);
+  vtkMRMLWriteXMLIntMacro(DoseUnits, DoseUnits);
+  vtkMRMLWriteXMLFloatMacro(ReferenceDoseValue, ReferenceDoseValue);
+  vtkMRMLWriteXMLBooleanMacro(RelativeRepresentationFlag, RelativeRepresentationFlag);
+
   vtkMRMLWriteXMLEndMacro(); 
 }
 
@@ -84,6 +91,9 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLBooleanMacro(ShowScalarBar, ShowScalarBar);
   vtkMRMLReadXMLBooleanMacro(ShowScalarBar2D, ShowScalarBar2D);
   vtkMRMLReadXMLBooleanMacro(ShowDoseVolumesOnly, ShowDoseVolumesOnly);
+  vtkMRMLReadXMLIntMacro(DoseUnits, DoseUnits);
+  vtkMRMLReadXMLFloatMacro(ReferenceDoseValue, ReferenceDoseValue);
+  vtkMRMLReadXMLBooleanMacro(RelativeRepresentationFlag, RelativeRepresentationFlag);
   vtkMRMLReadXMLEndMacro();
 
   this->EndModify(disabledModify);
@@ -104,6 +114,9 @@ void vtkMRMLIsodoseNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyBooleanMacro(ShowScalarBar);
   vtkMRMLCopyBooleanMacro(ShowScalarBar2D);
   vtkMRMLCopyBooleanMacro(ShowDoseVolumesOnly);
+  vtkMRMLCopyIntMacro(DoseUnits);
+  vtkMRMLCopyFloatMacro(ReferenceDoseValue);
+  vtkMRMLCopyBooleanMacro(RelativeRepresentationFlag);
   vtkMRMLCopyEndMacro();
 
   this->EndModify(disabledModify);
@@ -120,6 +133,9 @@ void vtkMRMLIsodoseNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintBooleanMacro(ShowScalarBar);
   vtkMRMLPrintBooleanMacro(ShowScalarBar2D);
   vtkMRMLPrintBooleanMacro(ShowDoseVolumesOnly);
+  vtkMRMLPrintIntMacro(DoseUnits);
+  vtkMRMLPrintFloatMacro(ReferenceDoseValue);
+  vtkMRMLPrintBooleanMacro(RelativeRepresentationFlag);
   vtkMRMLPrintEndMacro();
 }
 
@@ -171,4 +187,22 @@ void vtkMRMLIsodoseNode::SetAndObserveColorTableNode(vtkMRMLColorTableNode* node
   }
 
   doseVolumeNode->SetNodeReferenceID(COLOR_TABLE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLIsodoseNode::SetDoseUnits(int doseUnits)
+{
+  switch (doseUnits)
+  {
+    case 0:
+      SetDoseUnits(DoseUnitsType::Gy);
+      break;
+    case 1:
+      SetDoseUnits(DoseUnitsType::Relative);
+      break;
+    case -1:
+    default:
+      SetDoseUnits(DoseUnitsType::Unknown);
+      break;
+  }
 }

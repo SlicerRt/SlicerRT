@@ -47,6 +47,7 @@ public:
   static const std::string ISODOSE_MODEL_NODE_NAME_PREFIX;
   static const std::string ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX;
   static const std::string ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX;
+  static const std::string ISODOSE_RELATIVE_ROOT_HIERARCHY_NAME_POSTFIX;
   static const std::string ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX;
 
 public:
@@ -75,9 +76,15 @@ public:
   /// Creates default isodose color table. Gets and returns if already exists
   static vtkMRMLColorTableNode* GetDefaultIsodoseColorTable(vtkMRMLScene* scene);
 
-  /// Creates default dose color table (which is the default isodose color table stretched.
+  /// Creates relative isodose color table. Gets and returns if already exists
+  static vtkMRMLColorTableNode* GetRelativeIsodoseColorTable(vtkMRMLScene *scene);
+
+  /// Creates default dose color table (which is the default isodose color table stretched).
   /// Gets and returns if already exists
   static vtkMRMLColorTableNode* CreateDefaultDoseColorTable(vtkMRMLScene *scene);
+
+  /// Creates relative dose color table. Gets and returns if already exists
+  static vtkMRMLColorTableNode* CreateRelativeDoseColorTable(vtkMRMLScene *scene);
 
 protected:
   /// Loads default isodose color table from the supplied color table file
