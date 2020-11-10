@@ -115,11 +115,9 @@ qSlicerIsodoseModuleWidgetPrivate::qSlicerIsodoseModuleWidgetPrivate(qSlicerIsod
   this->ScalarBarWidget2DGreen->SetScalarBarActor(this->ScalarBarActor2DGreen);
   this->ScalarBarWidgets.push_back(this->ScalarBarWidget2DGreen);
 
-  for (std::vector<vtkScalarBarWidget*>::iterator it = this->ScalarBarWidgets.begin();
-    it != this->ScalarBarWidgets.end(); ++it)
+  for (vtkScalarBarWidget* scalarBarWidget : ScalarBarWidgets)
   {
-    vtkSlicerRTScalarBarActor* actor = vtkSlicerRTScalarBarActor::SafeDownCast(
-      (*it)->GetScalarBarActor() );
+    vtkSlicerRTScalarBarActor* actor = vtkSlicerRTScalarBarActor::SafeDownCast( scalarBarWidget->GetScalarBarActor() );
     actor->SetOrientationToVertical();
     actor->SetNumberOfLabels(0);
     actor->SetMaximumNumberOfColors(0);
@@ -206,6 +204,7 @@ void qSlicerIsodoseModuleWidget::setMRMLScene(vtkMRMLScene* scene)
   this->Superclass::setMRMLScene(scene);
 
   qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndImportEvent, this, SLOT(onSceneImportedEvent()) );
+  qvtkReconnect( d->logic(), scene, vtkMRMLScene::EndCloseEvent, this, SLOT(onSceneClosedEvent()) );
 
   // Find parameters node or create it if there is no one in the scene
   if (scene && d->MRMLNodeComboBox_ParameterSet->currentNode() == nullptr)
@@ -217,7 +216,7 @@ void qSlicerIsodoseModuleWidget::setMRMLScene(vtkMRMLScene* scene)
     }
     else 
     {
-      vtkSmartPointer<vtkMRMLIsodoseNode> newNode = vtkSmartPointer<vtkMRMLIsodoseNode>::New();
+      vtkNew<vtkMRMLIsodoseNode> newNode;
       this->mrmlScene()->AddNode(newNode);
       this->setParameterNode(newNode);
     }
@@ -228,6 +227,12 @@ void qSlicerIsodoseModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 void qSlicerIsodoseModuleWidget::onSceneImportedEvent()
 {
   this->onEnter();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerIsodoseModuleWidget::onSceneClosedEvent()
+{
+  //TODO: Hide colorbars if they are shown on slices and 3D.
 }
 
 //-----------------------------------------------------------------------------
@@ -296,7 +301,10 @@ void qSlicerIsodoseModuleWidget::updateWidgetFromMRML()
       this->setDoseVolumeNode(d->MRMLNodeComboBox_DoseVolume->currentNode());
     }
 
-    this->updateScalarBarsFromSelectedColorTable();
+    d->groupBox_RelativeIsolevels->setChecked(paramNode->GetRelativeRepresentationFlag());
+
+    //TODO: It causes a crash when switch from Volumes module to Isodose module
+//    this->updateScalarBarsFromSelectedColorTable();
 
     d->checkBox_Isoline->setChecked(paramNode->GetShowIsodoseLines());
     d->checkBox_Isosurface->setChecked(paramNode->GetShowIsodoseSurfaces());
@@ -336,6 +344,8 @@ void qSlicerIsodoseModuleWidget::setup()
   connect( d->checkBox_ScalarBar2D, SIGNAL(toggled(bool)), this, SLOT( setScalarBar2DVisibility(bool) ) );
 
   connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
+  connect( d->groupBox_RelativeIsolevels, SIGNAL(toggled(bool)), this, SLOT(setRelativeIsolevelsFlag(bool)));
+  connect( d->sliderWidget_ReferenceDose, SIGNAL(valueChanged(double)), this, SLOT(setReferenceDoseValue(double)));
 
   d->pushButton_Apply->setMinimumSize(d->pushButton_Apply->sizeHint().width() + 8, d->pushButton_Apply->sizeHint().height() + 4);
 
@@ -430,6 +440,56 @@ void qSlicerIsodoseModuleWidget::setDoseVolumeNode(vtkMRMLNode* node)
   if (paramNode->GetDoseVolumeNode() && vtkSlicerRtCommon::IsDoseVolumeNode(paramNode->GetDoseVolumeNode()))
   {
     d->label_NotDoseVolumeWarning->setText("");
+
+    vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->mrmlScene());
+    if (!shNode)
+    {
+      qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+      return;
+    }
+
+    std::string doseUnitName("");
+    vtkIdType doseShItemID = shNode->GetItemByDataNode(paramNode->GetDoseVolumeNode());
+    if (doseShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+      doseUnitName = shNode->GetAttributeFromItemAncestor(
+        doseShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+    }
+
+    double valueRange[2];
+    vtkImageData* image = paramNode->GetDoseVolumeNode()->GetImageData();
+    image->GetScalarRange(valueRange);
+    if (!doseUnitName.compare("RELATIVE"))
+    {
+      paramNode->SetDoseUnits(vtkMRMLIsodoseNode::Relative);
+      paramNode->SetReferenceDoseValue(-1.);
+      d->sliderWidget_ReferenceDose->setEnabled(false);
+      d->groupBox_RelativeIsolevels->setEnabled(false);
+      d->sliderWidget_ReferenceDose->setSuffix("");
+    }
+    else if (!doseUnitName.compare("GY"))
+    {
+      paramNode->SetDoseUnits(vtkMRMLIsodoseNode::Gy);
+      paramNode->SetReferenceDoseValue(valueRange[1]);
+      d->groupBox_RelativeIsolevels->setEnabled(true);
+      d->sliderWidget_ReferenceDose->setEnabled(true);
+      d->sliderWidget_ReferenceDose->setMinimum(valueRange[0]);
+      d->sliderWidget_ReferenceDose->setMaximum(2. * valueRange[1]);
+      d->sliderWidget_ReferenceDose->setValue(0.87 * valueRange[1]);
+      d->sliderWidget_ReferenceDose->setSuffix(tr(" Gy"));
+    }
+    else
+    {
+      paramNode->SetDoseUnits(vtkMRMLIsodoseNode::Unknown);
+      paramNode->SetReferenceDoseValue(valueRange[1]);
+      d->groupBox_RelativeIsolevels->setEnabled(true);
+      d->sliderWidget_ReferenceDose->setEnabled(true);
+      d->sliderWidget_ReferenceDose->setMinimum(valueRange[0]);
+      d->sliderWidget_ReferenceDose->setMaximum(2. * valueRange[1]);
+      d->sliderWidget_ReferenceDose->setValue(0.87 * valueRange[1]);
+      d->sliderWidget_ReferenceDose->setSuffix("");
+      d->label_NotDoseVolumeWarning->setText(tr("Neither \"GY\" nor \"RELATIVE\""));
+    }
   }
   else
   {
@@ -526,6 +586,121 @@ void qSlicerIsodoseModuleWidget::showDoseVolumesOnlyCheckboxChanged(int aState)
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerIsodoseModuleWidget::setRelativeIsolevelsFlag(bool useRelativeIsolevels)
+{
+  Q_D(qSlicerIsodoseModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
+    return;
+  }
+
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode)
+  {
+    return;
+  }
+
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetRelativeRepresentationFlag(useRelativeIsolevels);
+  paramNode->DisableModifiedEventOff();
+
+  vtkMRMLIsodoseNode::DoseUnitsType doseUnits = paramNode->GetDoseUnits();
+  
+  // Get dose unit name and assemble scalar bar title
+  QString labelHeaderTitle = QObject::tr("Label");
+  switch (doseUnits)
+  {
+  case vtkMRMLIsodoseNode::Gy:
+  {
+    QString msg = useRelativeIsolevels ? QObject::tr("Relative Dose (%)") : QObject::tr("Dose (Gy)");
+    labelHeaderTitle = msg;
+  }
+    break;
+  case vtkMRMLIsodoseNode::Unknown:
+  {
+    QString msg = useRelativeIsolevels ? QObject::tr("Relative Units (%)") : QObject::tr("Units (MU)");
+    labelHeaderTitle = msg;
+  }
+    break;
+  case vtkMRMLIsodoseNode::Relative:
+    labelHeaderTitle = QObject::tr("Relative Dose (%)");
+    break;
+  default:
+    break;
+  }
+  d->tableView_IsodoseLevels->model()->setHeaderData( 1, Qt::Horizontal, labelHeaderTitle);
+
+  // Make sure the dose volume has an associated isodose color table node
+  vtkMRMLColorTableNode* selectedColorNode = (useRelativeIsolevels) ? 
+    d->logic()->GetRelativeIsodoseColorTable(this->mrmlScene())
+    :
+    d->logic()->GetDefaultIsodoseColorTable(this->mrmlScene());
+
+  // Show color table node associated to the dose volume
+  paramNode->DisableModifiedEventOn();
+  paramNode->SetAndObserveColorTableNode(selectedColorNode);
+  paramNode->DisableModifiedEventOff();
+
+  d->tableView_IsodoseLevels->setMRMLColorNode(selectedColorNode);
+  // Set current number of isodose levels
+  bool wasBlocked = d->spinBox_NumberOfLevels->blockSignals(true);
+  if (selectedColorNode)
+  {
+    d->spinBox_NumberOfLevels->setValue(selectedColorNode->GetNumberOfColors());
+
+    qvtkConnect(selectedColorNode, vtkCommand::ModifiedEvent,
+      this, SLOT(updateScalarBarsFromSelectedColorTable()));
+  }
+  else
+  {
+    d->spinBox_NumberOfLevels->setValue(0);
+  }
+  d->spinBox_NumberOfLevels->blockSignals(wasBlocked);
+  // Update scalar bars
+  this->updateScalarBarsFromSelectedColorTable();
+  // Update dose volume palette
+  d->logic()->UpdateDoseColorTableFromIsodose(paramNode);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerIsodoseModuleWidget::setReferenceDoseValue(double value)
+{
+  Q_D(qSlicerIsodoseModuleWidget);
+
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode)
+  {
+    return;
+  }
+
+  if (d->sliderWidget_ReferenceDose->maximum() > 0.)
+  {
+    double percentage = 200. * value / d->sliderWidget_ReferenceDose->maximum();
+    d->label_PercentageOfMaxVolumeDose->setText(tr("%1 %").arg( percentage, 0, 'g', 4));
+  }
+  else
+  {
+    d->label_PercentageOfMaxVolumeDose->setText("");
+  }
+
+  paramNode->DisableModifiedEventOn();
+  switch (paramNode->GetDoseUnits())
+  {
+  case vtkMRMLIsodoseNode::Gy:
+  case vtkMRMLIsodoseNode::Unknown:
+    paramNode->SetReferenceDoseValue(value);
+    break;
+  case vtkMRMLIsodoseNode::Relative:
+  default:
+    paramNode->SetReferenceDoseValue(-1.);
+    break;
+  }
+  paramNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
 QString qSlicerIsodoseModuleWidget::generateNewIsodoseLevel() const
 {
   QString newIsodoseLevelBase("New level");
@@ -569,10 +744,8 @@ void qSlicerIsodoseModuleWidget::setIsolineVisibility(bool visible)
 
   std::vector<vtkIdType> childItemIDs;
   shNode->GetItemChildren(isdoseFolderItemID, childItemIDs, false);
-  std::vector<vtkIdType>::iterator childIt;
-  for (childIt=childItemIDs.begin(); childIt!=childItemIDs.end(); ++childIt)
+  for (vtkIdType childItemID : childItemIDs)
   {
-    vtkIdType childItemID = (*childIt);
     vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(shNode->GetItemDataNode(childItemID));
     modelNode->GetDisplayNode()->SetVisibility2D(visible);
   }
@@ -614,10 +787,8 @@ void qSlicerIsodoseModuleWidget::setIsosurfaceVisibility(bool visible)
 
   std::vector<vtkIdType> childItemIDs;
   shNode->GetItemChildren(isdoseFolderItemID, childItemIDs, false);
-  std::vector<vtkIdType>::iterator childIt;
-  for (childIt=childItemIDs.begin(); childIt!=childItemIDs.end(); ++childIt)
+  for (vtkIdType childItemID : childItemIDs)
   {
-    vtkIdType childItemID = (*childIt);
     vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(shNode->GetItemDataNode(childItemID));
     modelNode->GetDisplayNode()->SetVisibility(visible);
   }
@@ -800,26 +971,35 @@ void qSlicerIsodoseModuleWidget::updateScalarBarsFromSelectedColorTable()
 
   int newNumberOfColors = selectedColorNode->GetNumberOfColors();
 
+  vtkMRMLIsodoseNode::DoseUnitsType doseUnits = paramNode->GetDoseUnits();
+  bool relativeRepresentation = paramNode->GetRelativeRepresentationFlag();
+  
   // Get dose unit name and assemble scalar bar title
-  std::string doseUnitName("");
-  vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
-  if (doseShItemID != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  std::string scalarBarTitle("Isolevels");
+  switch (doseUnits)
   {
-    doseUnitName = shNode->GetAttributeFromItemAncestor(
-      doseShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+  case vtkMRMLIsodoseNode::Gy:
+  {
+    const char* str = relativeRepresentation ? " (%)" : " (Gy)";
+    scalarBarTitle += std::string(str);
   }
-  std::string scalarBarTitle("Dose");
-  if (!doseUnitName.empty())
+    break;
+  case vtkMRMLIsodoseNode::Relative:
+    scalarBarTitle += std::string(" (%)");
+    break;
+  case vtkMRMLIsodoseNode::Unknown:
+  default:
   {
-    scalarBarTitle += " (" + doseUnitName + ")";
+    const char* str = relativeRepresentation ? " (%)" : " (MU)";
+    scalarBarTitle += std::string(str);
+  }
+    break;
   }
 
   // Update all scalar bar actors
-  for (std::vector<vtkScalarBarWidget*>::iterator it = d->ScalarBarWidgets.begin();
-    it != d->ScalarBarWidgets.end(); ++it)
+  for (vtkScalarBarWidget* scalarBarWidget : d->ScalarBarWidgets)
   {
-    vtkSlicerRTScalarBarActor* actor = vtkSlicerRTScalarBarActor::SafeDownCast(
-      (*it)->GetScalarBarActor() );
+    vtkSlicerRTScalarBarActor* actor = vtkSlicerRTScalarBarActor::SafeDownCast( scalarBarWidget->GetScalarBarActor() );
 
     // Update actor
     actor->UseAnnotationAsLabelOn(); // Needed each time
@@ -832,6 +1012,6 @@ void qSlicerIsodoseModuleWidget::updateScalarBarsFromSelectedColorTable()
       actor->GetLookupTable()->SetAnnotation(colorIndex, vtkStdString(selectedColorNode->GetColorName(colorIndex)));
     }
     actor->SetTitle(scalarBarTitle.c_str());
-    (*it)->Render();
+    scalarBarWidget->Render();
   }
 }

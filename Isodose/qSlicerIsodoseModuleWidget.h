@@ -59,6 +59,8 @@ public slots:
 
   /// Process loaded scene
   void onSceneImportedEvent();
+  /// Process is scene is closed
+  void onSceneClosedEvent();
 
   /// Set current parameter node
   void setParameterNode(vtkMRMLNode *node);
@@ -96,6 +98,12 @@ protected slots:
 
   /// Slot called on modify of the color table
   void updateScalarBarsFromSelectedColorTable();
+
+  /// Slot setting type of isolevels representation
+  void setRelativeIsolevelsFlag(bool useRelativeIsolevels);
+
+  /// Slot called to set reference dose value
+  void setReferenceDoseValue(double value);
 
 protected:
   // Generates a new isodose level name

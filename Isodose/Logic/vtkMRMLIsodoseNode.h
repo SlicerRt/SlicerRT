@@ -37,6 +37,7 @@ class vtkMRMLColorTableNode;
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkMRMLIsodoseNode : public vtkMRMLNode
 {
 public:
+  enum DoseUnitsType { Unknown = -1, Gy = 0, Relative = 1 };
   static const char* COLOR_TABLE_REFERENCE_ROLE;
 
   static vtkMRMLIsodoseNode *New();
@@ -94,11 +95,26 @@ public:
   vtkSetMacro(ShowDoseVolumesOnly, bool);
   vtkBooleanMacro(ShowDoseVolumesOnly, bool);
 
+  /// Get/Set reference dose value
+  vtkGetMacro(ReferenceDoseValue, double);
+  vtkSetMacro(ReferenceDoseValue, double);
+
+  /// Get/Set dose units type
+  vtkGetMacro(DoseUnits, DoseUnitsType);
+  vtkSetMacro(DoseUnits, DoseUnitsType);
+
+  /// Get/Set relative representation flag
+  vtkGetMacro(RelativeRepresentationFlag, bool);
+  vtkSetMacro(RelativeRepresentationFlag, bool);
+  vtkBooleanMacro(RelativeRepresentationFlag, bool);
+
 protected:
   vtkMRMLIsodoseNode();
   ~vtkMRMLIsodoseNode();
   vtkMRMLIsodoseNode(const vtkMRMLIsodoseNode&);
   void operator=(const vtkMRMLIsodoseNode&);
+
+  void SetDoseUnits(int doseUnits);
 
 protected:
   /// State of Show isodose lines checkbox
@@ -115,6 +131,16 @@ protected:
 
   /// State of Show dose volumes only checkbox
   bool ShowDoseVolumesOnly;
+
+  /// Type of dose units
+  DoseUnitsType DoseUnits;
+
+  /// Reference dose value
+  double ReferenceDoseValue;
+
+  /// Whether use relative isolevels representation
+  /// for absolute dose (Gy) and unknown units or not
+  bool RelativeRepresentationFlag;
 };
 
 #endif
