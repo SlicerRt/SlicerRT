@@ -28,6 +28,7 @@
 #include <vtkImageStencil.h>
 #include <vtkLine.h>
 #include <vtkMarchingSquares.h>
+#include <vtkPlane.h>
 #include <vtkPolyDataToImageStencil.h>
 #include <vtkPolygon.h>
 #include <vtkPriorityQueue.h>
@@ -37,13 +38,16 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkUnstructuredGrid.h>
 
+// vtkAddon includes
+#include <vtkAddonMathUtilities.h>
+
 // STD includes
 #include <algorithm>
 
 // SegmentationCore includes
 #if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
 #include <vtkSegment.h>
-#endif 
+#endif
 
 // Directions used for dynamic programming table backtracking
 enum BacktrackDirection
@@ -1840,7 +1844,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CalculateContourNormal(vtkPo
 {
   vtkSmartPointer<vtkIdList> currentContour = vtkSmartPointer<vtkIdList>::New();
 
-  double meshNormalSum[3] = { 0, 0, 0 };
+  double averageNormalSum[3] = { 0, 0, 0 };
 
   int numberOfSmallContours = 0;
   int currentContourIndex = 0;
@@ -1853,14 +1857,17 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CalculateContourNormal(vtkPo
     extract->SetInputData(inputPolyData);
     extract->AddCellRange(currentContourIndex, currentContourIndex);
     extract->Update();
-
     if (extract->GetOutput()->GetNumberOfPoints() > minimumContourSize)
     {
-      vtkNew<vtkTextureMapToPlane> textureMapToPlane;
-      textureMapToPlane->SetInputConnection(extract->GetOutputPort());
-      textureMapToPlane->Update();
-      textureMapToPlane->GetNormal(contourNormal);
-      vtkMath::Add(contourNormal, meshNormalSum, meshNormalSum);
+      vtkNew<vtkPlane> plane;
+      vtkAddonMathUtilities::FitPlaneToPoints(extract->GetOutput()->GetPoints(), plane);
+      plane->GetNormal(contourNormal);
+      // Ensure that the normal faces the same direction as the average normal
+      if (vtkMath::Dot(contourNormal, averageNormalSum) < 0.0)
+      {
+        vtkMath::MultiplyScalar(contourNormal, -1.0);
+      }
+      vtkMath::Add(contourNormal, averageNormalSum, averageNormalSum);
     }
     else
     {
@@ -1871,7 +1878,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CalculateContourNormal(vtkPo
 
   // All contours had less than the minimum number of points.
   // Return before divide by 0 error
-  if (numberOfSmallContours >= inputPolyData->GetNumberOfLines() || vtkMath::Norm(meshNormalSum) == 0.0)
+  if (numberOfSmallContours >= inputPolyData->GetNumberOfLines() || vtkMath::Norm(averageNormalSum) == 0.0)
   {
     return;
   }
