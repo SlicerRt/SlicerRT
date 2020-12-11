@@ -1885,7 +1885,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CalculateContourNormal(vtkPo
 
   for (int i = 0; i < 3; ++i)
   {
-    outputNormal[i] = meshNormalSum[i] / (inputPolyData->GetNumberOfLines() - numberOfSmallContours);
+    outputNormal[i] = averageNormalSum[i] / (inputPolyData->GetNumberOfLines() - numberOfSmallContours);
   }
   vtkMath::Normalize(outputNormal);
 
