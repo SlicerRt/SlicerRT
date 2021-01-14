@@ -20,13 +20,13 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY
-    "https://gitlab.com/MichaelColonel/plastimatch.git" # Gitlab only support https for anonymous checkout
+    "${EP_GIT_PROTOCOL}://github.com/SlicerRt/plastimatch.git"
     QUIET
     )
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "4bc64806812a0c0b73255391ad373db3fe8844db"
+    "4bc64806812a0c0b73255391ad373db3fe8844db" # slicerrt-1.9.0-2020.04.10-2e729bc2c
     QUIET
     )
 
