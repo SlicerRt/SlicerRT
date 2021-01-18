@@ -3,6 +3,13 @@ set(proj Plastimatch)
 
 # Set dependency list
 set(${proj}_DEPENDS "")
+if(DEFINED Slicer_SOURCE_DIR)
+  list(APPEND ${proj}_DEPENDS
+    DCMTK
+    ITK
+    VTK
+    )
+endif()
 
 # Include dependent projects if any
 ExternalProject_Include_Dependencies(${proj} PROJECT_VAR proj)
