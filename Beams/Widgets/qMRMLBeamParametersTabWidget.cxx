@@ -116,10 +116,17 @@ void qMRMLBeamParametersTabWidgetPrivate::init()
 
   // Load MLC position calculation logic
   qSlicerCoreApplication* app = qSlicerCoreApplication::application();
-  qSlicerModuleManager* manager = app->moduleManager();
-  vtkMRMLAbstractLogic* logic = manager->module("Beams")->logic();
-  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(logic);
-  this->MLCPositionLogic = beamsLogic->GetMLCPositionLogic();
+  if (!app)
+  {
+    qCritical() << Q_FUNC_INFO << ": MLC Position logic is not found (not a Slicer core application instance)";
+  }
+  else
+  {
+    qSlicerModuleManager* manager = app->moduleManager();
+    vtkMRMLAbstractLogic* logic = manager->module("Beams")->logic();
+    vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(logic);
+    this->MLCPositionLogic = beamsLogic->GetMLCPositionLogic();
+  }
 
   // Remove Visualization tab as it is not yet functional
   //TODO: Re-enable when works
@@ -726,6 +733,11 @@ void qMRMLBeamParametersTabWidget::mlcBoundaryAndPositionTableNodeChanged(vtkMRM
   d->pushButton_UpdateMLCBoundary->setEnabled(node);
   d->pushButton_CalculateMLCPosition->setEnabled(node);
 
+  if (!d->MLCPositionLogic)
+  {
+    qCritical() << Q_FUNC_INFO << ": MLC position calculation logic is invalid!";
+    return;
+  }
   if (!d->BeamNode)
   {
     qCritical() << Q_FUNC_INFO << ": Beam node is invalid!";
@@ -855,6 +867,11 @@ void qMRMLBeamParametersTabWidget::calculateMLCPositionClicked()
   Q_D(qMRMLBeamParametersTabWidget);
   vtkMRMLNode* mlcTable = d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->currentNode();
 
+  if (!d->MLCPositionLogic)
+  {
+    qCritical() << Q_FUNC_INFO << ": MLC position calculation logic is invalid!";
+    return;
+  }
   if (!d->BeamNode)
   {
     qCritical() << Q_FUNC_INFO << ": No current beam node!";
