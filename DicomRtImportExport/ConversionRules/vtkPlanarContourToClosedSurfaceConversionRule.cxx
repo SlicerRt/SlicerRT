@@ -82,6 +82,8 @@ vtkPlanarContourToClosedSurfaceConversionRule::vtkPlanarContourToClosedSurfaceCo
 
   this->ConversionParameters[this->GetDefaultSliceThicknessParameterName()] = std::make_pair("0.0",
     "Default thickness for contours if slice spacing cannot be calculated.");
+  this->ConversionParameters[this->GetEndCappingParameterName()] = std::make_pair("1",
+    "Create end cap to close surface inside contours on the top and bottom of the structure. 1 (default) = close surface by generating end caps. 0 = leave contours open on surface exterior.");
 }
 
 //----------------------------------------------------------------------------
@@ -311,7 +313,10 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
   }
 
   // Triangulate all contours which are exposed.
-  this->EndCapping(inputContoursCopy, outputPolygons, lineTriganulatedToAbove, lineTriganulatedToBelow);
+  if (vtkVariant(this->GetConversionParameter(this->GetEndCappingParameterName())).ToInt() == true)
+  {
+    this->EndCapping(inputContoursCopy, outputPolygons, lineTriganulatedToAbove, lineTriganulatedToBelow);
+  }
 
   // Initialize the output data.
   closedSurfacePolyData->SetPoints(outputPoints);

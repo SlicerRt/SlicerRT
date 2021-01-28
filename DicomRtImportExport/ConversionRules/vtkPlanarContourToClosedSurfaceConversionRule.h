@@ -57,6 +57,7 @@ public:
   vtkSegmentationConverterRule* CreateRuleInstance() override;
 
   static const std::string GetDefaultSliceThicknessParameterName() { return "Default slice thickness"; };
+  static const std::string GetEndCappingParameterName() { return "End capping"; };
 
   /// Constructs representation object from representation name for the supported representation classes
   /// (typically source and target representation VTK classes, subclasses of vtkDataObject)
