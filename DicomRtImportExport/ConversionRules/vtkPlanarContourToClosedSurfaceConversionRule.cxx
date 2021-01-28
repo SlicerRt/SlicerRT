@@ -1138,7 +1138,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::EndCapping(vtkPolyData* inpu
           vtkSmartPointer<vtkLine> newLine = vtkSmartPointer<vtkLine>::New();
           newLine->DeepCopy(inputROIPoints->GetCell(newLineId));
 
-          this->TriangulateContourInterior(newLine, outputPolygons, true);
+          this->TriangulateContourInterior(newLine, outputPolygons, direction == CAPPING_ABOVE);
 
           vtkSmartPointer<vtkPolyData> linePolyData = vtkSmartPointer<vtkPolyData>::New();
           linePolyData->SetPoints(newLine->GetPoints());
