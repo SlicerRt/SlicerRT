@@ -83,7 +83,11 @@ vtkPlanarContourToClosedSurfaceConversionRule::vtkPlanarContourToClosedSurfaceCo
   this->ConversionParameters[this->GetDefaultSliceThicknessParameterName()] = std::make_pair("0.0",
     "Default thickness for contours if slice spacing cannot be calculated.");
   this->ConversionParameters[this->GetEndCappingParameterName()] = std::make_pair("1",
-    "Create end cap to close surface inside contours on the top and bottom of the structure. 1 (default) = close surface by generating end caps. 0 = leave contours open on surface exterior.");
+    "Create end cap to close surface inside contours on the top and bottom of the structure.\n"
+    "0 = leave contours open on surface exterior.\n"
+    "1 (default) = close surface by generating smooth end caps.\n"
+    "2 = close surface by generating straight end caps."
+  );
 }
 
 //----------------------------------------------------------------------------
@@ -313,7 +317,7 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
   }
 
   // Triangulate all contours which are exposed.
-  if (vtkVariant(this->GetConversionParameter(this->GetEndCappingParameterName())).ToInt() == true)
+  if (vtkVariant(this->GetConversionParameter(this->GetEndCappingParameterName())).ToInt() != EndCappingModes::None)
   {
     this->EndCapping(inputContoursCopy, outputPolygons, lineTriganulatedToAbove, lineTriganulatedToBelow);
   }
@@ -1262,6 +1266,68 @@ double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtk
 
 //----------------------------------------------------------------------------
 void vtkPlanarContourToClosedSurfaceConversionRule::CreateEndCapContour(vtkPolyData* inputROIPoints, vtkLine* inputLine, vtkCellArray* outputLines, double lineSpacing)
+{
+  if (!inputROIPoints)
+  {
+    vtkErrorMacro("CreateEndCapContour: invalid vtkPolyData");
+    return;
+  }
+
+  if (!inputLine)
+  {
+    vtkErrorMacro("CreateEndCapContour: invalid vtkLine");
+    return;
+  }
+
+  if (!outputLines)
+  {
+    vtkErrorMacro("CreateEndCapContour: invalid vtkCellArray");
+  }
+
+  if (vtkVariant(this->GetConversionParameter(this->GetEndCappingParameterName())).ToInt() == EndCappingModes::Smooth)
+  {
+    this->CreateSmoothEndCapContour(inputROIPoints, inputLine, outputLines, lineSpacing);
+  }
+  else if (vtkVariant(this->GetConversionParameter(this->GetEndCappingParameterName())).ToInt() == EndCappingModes::Straight)
+  {
+    this->CreateStraightEndCapContour(inputROIPoints, inputLine, outputLines, lineSpacing);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkPlanarContourToClosedSurfaceConversionRule::CreateStraightEndCapContour(vtkPolyData* inputROIPoints, vtkLine* inputLine, vtkCellArray* outputLines, double lineSpacing)
+{
+  if (!inputROIPoints)
+  {
+    vtkErrorMacro("CreateEndCapContour: invalid vtkPolyData");
+    return;
+  }
+
+  if (!inputLine)
+  {
+    vtkErrorMacro("CreateEndCapContour: invalid vtkLine");
+    return;
+  }
+
+  if (!outputLines)
+  {
+    vtkErrorMacro("CreateEndCapContour: invalid vtkCellArray");
+  }
+
+  vtkSmartPointer<vtkPoints> inputPoints = inputROIPoints->GetPoints();
+  vtkNew<vtkIdList> endCapLine;
+  for (int i = 0; i < inputLine->GetNumberOfPoints(); ++i)
+  {
+    double endCapPoint[3] = { 0.0, 0.0, 0.0 };
+    inputPoints->GetPoint(inputLine->GetPointId(i), endCapPoint);
+    endCapPoint[2] += lineSpacing / 2.0;
+    endCapLine->InsertNextId(inputPoints->InsertNextPoint(endCapPoint));
+  }
+  outputLines->InsertNextCell(endCapLine);
+}
+
+//----------------------------------------------------------------------------
+void vtkPlanarContourToClosedSurfaceConversionRule::CreateSmoothEndCapContour(vtkPolyData* inputROIPoints, vtkLine* inputLine, vtkCellArray* outputLines, double lineSpacing)
 {
   if (!inputROIPoints)
   {

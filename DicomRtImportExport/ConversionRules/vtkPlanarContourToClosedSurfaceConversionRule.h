@@ -58,6 +58,12 @@ public:
 
   static const std::string GetDefaultSliceThicknessParameterName() { return "Default slice thickness"; };
   static const std::string GetEndCappingParameterName() { return "End capping"; };
+  enum EndCappingModes
+  {
+    None = 0,
+    Smooth = 1,
+    Straight = 2
+  };
 
   /// Constructs representation object from representation name for the supported representation classes
   /// (typically source and target representation VTK classes, subclasses of vtkDataObject)
@@ -188,6 +194,22 @@ protected:
   /// \param outputLines Cell array containing all of the lines that are created by the algorithm
   /// \param The size of the spacing between the contours. Contours created by this function will be offset by 1/2 of this amount
   void CreateEndCapContour(vtkPolyData* inputROIPoints, vtkLine* inputLine, vtkCellArray* outputLines, double lineSpacing);
+
+  /// Create smoothly interpolated end cap contours on the exterior of the surface.
+  /// Called by CreateEndCapContour based on the "End capping" conversion parameter.
+  /// \param inputROIPoints Polydata containing all of the points and contours
+  /// \param inputLine The original line that needs to be extended
+  /// \param outputLines Cell array containing all of the lines that are created by the algorithm
+  /// \param The size of the spacing between the contours. Contours created by this function will be offset by 1/2 of this amount
+  void CreateSmoothEndCapContour(vtkPolyData* inputROIPoints, vtkLine* inputLine, vtkCellArray* outputLines, double lineSpacing);
+
+  /// Create straight extruded end cap contours on the exterior of the surface.
+  /// Called by CreateEndCapContour based on the "End capping" conversion parameter.
+  /// \param inputROIPoints Polydata containing all of the points and contours
+  /// \param inputLine The original line that needs to be extended
+  /// \param outputLines Cell array containing all of the lines that are created by the algorithm
+  /// \param The size of the spacing between the contours. Contours created by this function will be offset by 1/2 of this amount
+  void CreateStraightEndCapContour(vtkPolyData* inputROIPoints, vtkLine* inputLine, vtkCellArray* outputLines, double lineSpacing);
 
   /// Triangulate the interior of a contour on the xy plane.
   /// \param Contour that is being triangulated
