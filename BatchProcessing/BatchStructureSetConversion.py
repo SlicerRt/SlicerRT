@@ -361,7 +361,7 @@ def main(argv):
       logging.info('BatchStructureSet running in existing database mode')
       DICOMUtils.openDatabase(input_folder)
       all_patients = slicer.dicomDatabase.patients()
-      logging.info('Must Process Patients %s' % len(all_patients))
+      logging.info('Processing %d patients...' % len(all_patients))
 
       for patient in all_patients:
         slicer.mrmlScene.Clear(0) # clear the scene
@@ -372,25 +372,43 @@ def main(argv):
         save_rtslices(output_dir, use_ref_image)
 
     else:
-      ref_image_node_id = None
+      logging.info('BatchStructureSet running in file mode')
+      ref_volume_file_path = None
       if os.path.isdir(ref_dicom_folder):
-        # If reference DICOM folder is given and valid, then load that volume
+        # If reference DICOM folder is given and valid, then import reference patient and save its ID
         logging.info("Import reference anatomy DICOM data from " + ref_dicom_folder)
         DICOMUtils.openTemporaryDatabase()
         DICOMUtils.importDicom(ref_dicom_folder)
+        # Save first volume to be used as reference
         logic.LoadFirstPatientIntoSlicer()
-        # Remember first volume
         scalarVolumeNodes = list(slicer.util.getNodes('vtkMRMLScalarVolume*').values())
         if len(scalarVolumeNodes) > 0:
-          ref_image_node_id = scalarVolumeNodes[0].GetID()
+          refVolNode = scalarVolumeNodes[0]
+          refVolStorageNode = refVolNode.CreateDefaultStorageNode()
+          ref_volume_file_path = os.path.join(output_folder, 'refVolume.nrrd')
+          refVolStorageNode.SetFileName(ref_volume_file_path)
+          refVolStorageNode.WriteData(refVolNode)        
 
       logging.info("Import DICOM data from " + input_folder)
       DICOMUtils.openTemporaryDatabase()
       DICOMUtils.importDicom(input_folder)
 
-      logging.info("Load first patient into Slicer")
-      logic.LoadFirstPatientIntoSlicer()
-      save_rtslices(output_folder, use_ref_image, ref_image_node_id)
+      all_patients = slicer.dicomDatabase.patients()
+      logging.info('Processing %d patients...' % len(all_patients))
+      for patient in all_patients:
+        slicer.mrmlScene.Clear(0) # clear the scene
+        DICOMUtils.loadPatientByUID(patient)
+        output_dir = os.path.join(output_folder,patient)
+        if not os.access(output_dir, os.F_OK):
+          os.mkdir(output_dir)
+        ref_volume_node_id = None
+        if ref_volume_file_path:
+          try:
+            refVolNode = slicer.util.loadVolume(ref_volume_file_path)
+            ref_volume_node_id = refVolNode.GetID()
+          except:
+            pass
+        save_rtslices(output_dir, use_ref_image, ref_volume_node_id)
 
   except Exception as e:
       import traceback
