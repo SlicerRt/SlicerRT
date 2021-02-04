@@ -1051,13 +1051,13 @@ bool vtkSlicerDrrImageComputationLogic::ComputePlastimatchDRR( vtkMRMLDrrImageCo
   std::string threadingString = "cpu";
   switch (parameterNode->GetThreading())
   {
-  case vtkMRMLDrrImageComputationNode::PlastimatchThreadingType::CPU:
+  case vtkMRMLDrrImageComputationNode::CPU:
     threadingString = "cpu";
     break;
-  case vtkMRMLDrrImageComputationNode::PlastimatchThreadingType::CUDA:
+  case vtkMRMLDrrImageComputationNode::CUDA:
     threadingString = "cuda";
     break;
-  case vtkMRMLDrrImageComputationNode::PlastimatchThreadingType::OPENCL:
+  case vtkMRMLDrrImageComputationNode::OpenCL:
     threadingString = "opencl";
     break;
   default:
@@ -1068,13 +1068,13 @@ bool vtkSlicerDrrImageComputationLogic::ComputePlastimatchDRR( vtkMRMLDrrImageCo
   std::string huconversionString = "preprocess";
   switch (parameterNode->GetHUConversion())
   {
-  case vtkMRMLDrrImageComputationNode::PlastimatchHounsfieldUnitsConversionType::INLINE:
+  case vtkMRMLDrrImageComputationNode::Inline:
     huconversionString = "inline";
     break;
-  case vtkMRMLDrrImageComputationNode::PlastimatchHounsfieldUnitsConversionType::PREPROCESS:
+  case vtkMRMLDrrImageComputationNode::Preprocess:
     huconversionString = "preprocess";
     break;
-  case vtkMRMLDrrImageComputationNode::PlastimatchHounsfieldUnitsConversionType::NONE:
+  case vtkMRMLDrrImageComputationNode::None:
     huconversionString = "none";
     break;
   default:
@@ -1085,10 +1085,10 @@ bool vtkSlicerDrrImageComputationLogic::ComputePlastimatchDRR( vtkMRMLDrrImageCo
   std::string algorithmString = "exact";
   switch (parameterNode->GetAlgorithmReconstuction())
   {
-  case vtkMRMLDrrImageComputationNode::PlastimatchAlgorithmReconstuctionType::EXACT:
+  case vtkMRMLDrrImageComputationNode::Exact:
     algorithmString = "exact";
     break;
-  case vtkMRMLDrrImageComputationNode::PlastimatchAlgorithmReconstuctionType::UNIFORM:
+  case vtkMRMLDrrImageComputationNode::Uniform:
     algorithmString = "uniform";
     break;
   default:
