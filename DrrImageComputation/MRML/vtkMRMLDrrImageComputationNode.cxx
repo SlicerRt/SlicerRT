@@ -69,8 +69,8 @@ vtkMRMLDrrImageComputationNode::vtkMRMLDrrImageComputationNode()
   ImageCenter[0] = ImageWindow[0] + (ImageWindow[2] - ImageWindow[0]) / 2.f; // column
   ImageCenter[1] = ImageWindow[1] + (ImageWindow[3] - ImageWindow[1]) / 2.f; // row
 
-  AlgorithmReconstuction = UNIFORM;
-  HUConversion = PREPROCESS;
+  AlgorithmReconstuction = Uniform;
+  HUConversion = Preprocess;
   Threading = CPU;
   ExponentialMappingFlag = true;
   AutoscaleFlag = true;
@@ -286,11 +286,11 @@ void vtkMRMLDrrImageComputationNode::SetAlgorithmReconstuction(int algorithmReco
   switch (algorithmReconstuction)
   {
     case 1:
-      SetAlgorithmReconstuction(PlastimatchAlgorithmReconstuctionType::UNIFORM);
+      SetAlgorithmReconstuction(PlastimatchAlgorithmReconstuctionType::Uniform);
       break;
     case 0:
     default:
-      SetAlgorithmReconstuction(PlastimatchAlgorithmReconstuctionType::EXACT);
+      SetAlgorithmReconstuction(PlastimatchAlgorithmReconstuctionType::Exact);
       break;
   };
 }
@@ -301,14 +301,14 @@ void vtkMRMLDrrImageComputationNode::SetHUConversion(int huConvension)
   switch (huConvension)
   {
     case 1:
-      SetHUConversion(PlastimatchHounsfieldUnitsConversionType::INLINE);
+      SetHUConversion(PlastimatchHounsfieldUnitsConversionType::Inline);
       break;
     case 2:
-      SetHUConversion(PlastimatchHounsfieldUnitsConversionType::NONE);
+      SetHUConversion(PlastimatchHounsfieldUnitsConversionType::None);
       break;
     case 0:
     default:
-      SetHUConversion(PlastimatchHounsfieldUnitsConversionType::PREPROCESS);
+      SetHUConversion(PlastimatchHounsfieldUnitsConversionType::Preprocess);
       break;
   };
 }
@@ -322,7 +322,7 @@ void vtkMRMLDrrImageComputationNode::SetThreading(int threading)
       SetThreading(PlastimatchThreadingType::CUDA);
       break;
     case 2:
-      SetThreading(PlastimatchThreadingType::OPENCL);
+      SetThreading(PlastimatchThreadingType::OpenCL);
       break;
     case 0:
     default:

@@ -121,7 +121,7 @@ void qSlicerDrrImageComputationModuleWidget::setup()
   // Buttons
   connect( d->PushButton_ComputeDrr, SIGNAL(clicked()), this, SLOT(onComputeDrrClicked()));
   connect( d->CheckBox_ShowDrrMarkups, SIGNAL(toggled(bool)), this, SLOT(onShowMarkupsToggled(bool)));
-  connect( d->CheckBox_UseImageWindow, SIGNAL(toggled(bool)), this, SLOT(onUseImageWindowToggled(bool)));
+  connect( d->GroupBox_ImageWindowParameters, SIGNAL(toggled(bool)), this, SLOT(onUseImageWindowToggled(bool)));
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT(onLogicModified()));
@@ -247,9 +247,7 @@ void qSlicerDrrImageComputationModuleWidget::updateWidgetFromMRML()
   int imageWindow[4] = {};
   parameterNode->GetImageWindow(imageWindow);
 
-  // TODO: Image window is disabled for now
-  useImageWindow = false;
-  d->CheckBox_UseImageWindow->setChecked(useImageWindow);
+  d->GroupBox_ImageWindowParameters->setChecked(useImageWindow);
   if (!useImageWindow)
   {
     d->RangeWidget_ImageWindowColumns->setValues( 0., double(imagerResolution[0] - 1));
@@ -519,8 +517,6 @@ void qSlicerDrrImageComputationModuleWidget::onUseImageWindowToggled(bool value)
     return;
   }
 
-  // TODO: Image window is disabled for now
-  value = false;
   if (value)
   {
     int imagerResolution[2] = {};

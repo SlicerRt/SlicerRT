@@ -127,40 +127,49 @@
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout_2">
-          <item row="4" column="0" colspan="2">
-           <widget class="ctkCollapsibleGroupBox" name="CollapsibleGroupBox_ImageWindowParameters">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
+          <item row="2" column="1">
+           <widget class="ctkCoordinatesWidget" name="CoordinatesWidget_ImagerSpacing">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="dimension">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10.000000000000000</double>
+            </property>
+            <property name="coordinates" stdset="0">
+             <string>0.25,0.25</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <widget class="QGroupBox" name="GroupBox_ImageWindowParameters">
             <property name="title">
              <string>Image window parameters</string>
             </property>
-            <property name="collapsed">
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
              <bool>false</bool>
             </property>
-            <layout class="QGridLayout" name="gridLayout_10">
-             <item row="1" column="0">
+            <layout class="QGridLayout" name="gridLayout_6">
+             <item row="0" column="0">
               <widget class="QLabel" name="label_5">
                <property name="text">
                 <string>Columns</string>
                </property>
               </widget>
              </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_6">
-               <property name="text">
-                <string>Rows</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="1">
-              <widget class="ctkRangeWidget" name="RangeWidget_ImageWindowRows">
+             <item row="0" column="1">
+              <widget class="ctkRangeWidget" name="RangeWidget_ImageWindowColumns">
                <property name="decimals">
                 <number>0</number>
                </property>
@@ -178,8 +187,15 @@
                </property>
               </widget>
              </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string>Rows</string>
+               </property>
+              </widget>
+             </item>
              <item row="1" column="1">
-              <widget class="ctkRangeWidget" name="RangeWidget_ImageWindowColumns">
+              <widget class="ctkRangeWidget" name="RangeWidget_ImageWindowRows">
                <property name="decimals">
                 <number>0</number>
                </property>
@@ -200,32 +216,6 @@
             </layout>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_8">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Imager resolution (columns, rows):</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="ctkSliderWidget" name="SliderWidget_IsocenterImagerDistance">
-            <property name="maximum">
-             <double>999.899999999999977</double>
-            </property>
-            <property name="value">
-             <double>300.000000000000000</double>
-            </property>
-            <property name="suffix">
-             <string> mm</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_9">
             <property name="sizePolicy">
@@ -239,38 +229,16 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Isocenter to imager distance:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="ctkCoordinatesWidget" name="CoordinatesWidget_ImagerSpacing">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="dimension">
-             <number>2</number>
-            </property>
-            <property name="minimum">
-             <double>0.100000000000000</double>
-            </property>
+          <item row="0" column="1">
+           <widget class="ctkSliderWidget" name="SliderWidget_IsocenterImagerDistance">
             <property name="maximum">
-             <double>10.000000000000000</double>
+             <double>999.899999999999977</double>
             </property>
-            <property name="coordinates" stdset="0">
-             <string>0.25,0.25</string>
+            <property name="value">
+             <double>300.000000000000000</double>
+            </property>
+            <property name="suffix">
+             <string> mm</string>
             </property>
            </widget>
           </item>
@@ -299,13 +267,29 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0" colspan="2">
-           <widget class="QCheckBox" name="CheckBox_UseImageWindow">
-            <property name="enabled">
-             <bool>false</bool>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
             <property name="text">
-             <string>Use image window</string>
+             <string>Imager resolution (columns, rows):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Isocenter to imager distance:</string>
             </property>
            </widget>
           </item>
@@ -373,12 +357,6 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ctkCollapsibleGroupBox</class>
-   <extends>QGroupBox</extends>
-   <header>ctkCollapsibleGroupBox.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>ctkCoordinatesWidget</class>
    <extends>QWidget</extends>
    <header>ctkCoordinatesWidget.h</header>
@@ -416,22 +394,6 @@
   <include location="../../../../Slicer/Libs/MRML/Widgets/Resources/qMRMLWidgets.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>CheckBox_UseImageWindow</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>CollapsibleGroupBox_ImageWindowParameters</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>131</x>
-     <y>556</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>247</x>
-     <y>646</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>qSlicerDrrImageComputationModuleWidget</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
