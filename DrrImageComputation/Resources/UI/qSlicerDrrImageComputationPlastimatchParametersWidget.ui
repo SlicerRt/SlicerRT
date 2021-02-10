@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>470</width>
-    <height>588</height>
+    <width>440</width>
+    <height>373</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,19 +34,6 @@
            <string>Intensity</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_8">
-           <item row="0" column="0">
-            <widget class="QCheckBox" name="CheckBox_AutoscaleIntensity">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="text">
-              <string>Autoscale</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label">
              <property name="text">
@@ -80,136 +67,127 @@
              </property>
             </widget>
            </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="CheckBox_AutoscaleIntensity">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Autoscale</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
         <item>
-         <widget class="QGroupBox" name="GroupBox_ReconstuctionAlgorithm">
-          <property name="title">
-           <string>Reconstruction algorithm</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_5">
-           <item row="0" column="0">
-            <widget class="QRadioButton" name="RadioButton_Exact">
+         <layout class="QFormLayout" name="formLayout">
+          <item row="0" column="1">
+           <widget class="ctkComboBox" name="ComboBox_ReconstructionAlgorithm">
+            <property name="currentIndex">
+             <number>1</number>
+            </property>
+            <item>
              <property name="text">
               <string>Exact</string>
              </property>
-             <property name="checked">
-              <bool>false</bool>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">ButtonGroup_ReconstructAlgorithm</string>
-             </attribute>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QRadioButton" name="RadioButton_Uniform">
+            </item>
+            <item>
              <property name="text">
               <string>Uniform</string>
              </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">ButtonGroup_ReconstructAlgorithm</string>
-             </attribute>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="GroupBox_HounsfieldConversion">
-          <property name="title">
-           <string>Hounsfield units conversion</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_4">
-           <item row="0" column="0">
-            <widget class="QRadioButton" name="RadioButton_Preprocess">
+            </item>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Reconstruction algorithm:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Hounsfield units conversion:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Threading:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="ctkComboBox" name="ComboBox_HounsfieldConversion">
+            <item>
              <property name="text">
               <string>Preprocess</string>
              </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">ButtonGroup_HuConversion</string>
-             </attribute>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QRadioButton" name="RadioButton_Inline">
+            </item>
+            <item>
              <property name="text">
               <string>Inline</string>
              </property>
-             <attribute name="buttonGroup">
-              <string notr="true">ButtonGroup_HuConversion</string>
-             </attribute>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QRadioButton" name="RadioButton_None">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
+            </item>
+            <item>
              <property name="text">
               <string>None</string>
              </property>
-             <attribute name="buttonGroup">
-              <string notr="true">ButtonGroup_HuConversion</string>
-             </attribute>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="GroupBox_Threading">
-          <property name="title">
-           <string>Threading</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_2">
-           <item row="0" column="0">
-            <widget class="QRadioButton" name="RadioButton_CPU">
+            </item>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="ctkComboBox" name="ComboBox_Threading">
+            <item>
              <property name="text">
               <string>CPU</string>
              </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-             <attribute name="buttonGroup">
-              <string notr="true">ButtonGroup_Threading</string>
-             </attribute>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QRadioButton" name="RadioButton_CUDA">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
+            </item>
+            <item>
              <property name="text">
               <string>CUDA</string>
              </property>
-             <attribute name="buttonGroup">
-              <string notr="true">ButtonGroup_Threading</string>
-             </attribute>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QRadioButton" name="RadioButton_OpenCL">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
+            </item>
+            <item>
              <property name="text">
               <string>OpenCL</string>
              </property>
-             <attribute name="buttonGroup">
-              <string notr="true">ButtonGroup_Threading</string>
-             </attribute>
-            </widget>
-           </item>
-          </layout>
-         </widget>
+            </item>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Hounsfield units threshold:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="ctkSliderWidget" name="SliderWidget_HounsfieldThreshold">
+            <property name="toolTip">
+             <string>Process HU values higher than theshold</string>
+            </property>
+            <property name="decimals">
+             <number>0</number>
+            </property>
+            <property name="minimum">
+             <double>-1000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>3095.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>-1000.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
@@ -264,16 +242,26 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>ctkComboBox</class>
+   <extends>QComboBox</extends>
+   <header>ctkComboBox.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkRangeWidget</class>
    <extends>QWidget</extends>
    <header>ctkRangeWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ctkSliderWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkSliderWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="ButtonGroup_HuConversion"/>
   <buttongroup name="ButtonGroup_ReconstructAlgorithm"/>
   <buttongroup name="ButtonGroup_Threading"/>
+  <buttongroup name="ButtonGroup_HuConversion"/>
  </buttongroups>
 </ui>

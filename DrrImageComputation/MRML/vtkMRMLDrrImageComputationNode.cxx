@@ -79,6 +79,7 @@ vtkMRMLDrrImageComputationNode::vtkMRMLDrrImageComputationNode()
   InvertIntensityFlag = false;
 
   IsocenterImagerDistance = 300.;
+  HUThresholdBelow = -1000;
 }
 
 //----------------------------------------------------------------------------
@@ -108,6 +109,7 @@ void vtkMRMLDrrImageComputationNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLVectorMacro(AutoscaleRange, AutoscaleRange, float, 2); 
   vtkMRMLWriteXMLIntMacro(AlgorithmReconstuction, AlgorithmReconstuction);
   vtkMRMLWriteXMLIntMacro(HUConversion, HUConversion);
+  vtkMRMLWriteXMLIntMacro(HUThresholdBelow, HUThresholdBelow);
   vtkMRMLWriteXMLIntMacro(Threading, Threading);
   // add new parameters here
   vtkMRMLWriteXMLEndMacro(); 
@@ -135,6 +137,7 @@ void vtkMRMLDrrImageComputationNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLVectorMacro(AutoscaleRange, AutoscaleRange, float, 2);
   vtkMRMLReadXMLIntMacro(AlgorithmReconstuction, AlgorithmReconstuction);
   vtkMRMLReadXMLIntMacro(HUConversion, HUConversion);
+  vtkMRMLReadXMLIntMacro(HUThresholdBelow, HUThresholdBelow);
   vtkMRMLReadXMLIntMacro(Threading, Threading);
   // add new parameters here
   vtkMRMLReadXMLEndMacro();
@@ -176,6 +179,7 @@ void vtkMRMLDrrImageComputationNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyVectorMacro(AutoscaleRange, float, 2);
   vtkMRMLCopyIntMacro(AlgorithmReconstuction);
   vtkMRMLCopyIntMacro(HUConversion);
+  vtkMRMLCopyIntMacro(HUThresholdBelow);
   vtkMRMLCopyIntMacro(Threading);
   // add new parameters here
   vtkMRMLCopyEndMacro(); 
@@ -213,6 +217,7 @@ void vtkMRMLDrrImageComputationNode::CopyContent(vtkMRMLNode *anode, bool deepCo
   vtkMRMLCopyVectorMacro(AutoscaleRange, float, 2);
   vtkMRMLCopyIntMacro(AlgorithmReconstuction);
   vtkMRMLCopyIntMacro(HUConversion);
+  vtkMRMLCopyIntMacro(HUThresholdBelow);
   vtkMRMLCopyIntMacro(Threading);
   // add new parameters here
   vtkMRMLCopyEndMacro();
@@ -239,6 +244,7 @@ void vtkMRMLDrrImageComputationNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintVectorMacro(AutoscaleRange, float, 2);
   vtkMRMLPrintIntMacro(AlgorithmReconstuction);
   vtkMRMLPrintIntMacro(HUConversion);
+  vtkMRMLPrintIntMacro(HUThresholdBelow);
   vtkMRMLPrintIntMacro(Threading);
   // add new parameters here
   vtkMRMLPrintEndMacro(); 

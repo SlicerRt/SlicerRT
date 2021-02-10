@@ -1047,6 +1047,7 @@ bool vtkSlicerDrrImageComputationLogic::ComputePlastimatchDRR( vtkMRMLDrrImageCo
   cmdNode->SetParameterAsString( "autoscaleRange", autoscaleRangeStream.str());
 
   cmdNode->SetParameterAsBool( "exponentialMapping", parameterNode->GetExponentialMappingFlag());
+  cmdNode->SetParameterAsInt( "thresholdBelow", parameterNode->GetHUThresholdBelow());
   
   std::string threadingString = "cpu";
   switch (parameterNode->GetThreading())

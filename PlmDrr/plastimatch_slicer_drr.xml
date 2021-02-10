@@ -175,6 +175,19 @@
       <label>Exponential mapping</label>
       <default>true</default>
     </boolean>
+
+    <integer>
+      <name>thresholdBelow</name>
+      <longflag>thresholdBelow</longflag>
+      <description><![CDATA[Set HU value below threshold to Air]]></description>
+      <label>Threshold below</label>
+      <default>-1000</default>
+      <constraints>
+        <minimum>-1000</minimum>
+        <maximum>3095</maximum>
+        <step>1.</step>
+      </constraints>
+    </integer>
   </parameters>
 
   <parameters>
