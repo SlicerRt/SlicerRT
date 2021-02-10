@@ -126,6 +126,9 @@ public:
   vtkGetMacro(ImageWindowFlag, bool);
   vtkSetMacro(ImageWindowFlag, bool);
 
+  vtkGetMacro(HUThresholdBelow, int);
+  vtkSetMacro(HUThresholdBelow, int);
+
   vtkGetMacro(InvertIntensityFlag, bool);
   vtkSetMacro(InvertIntensityFlag, bool);
 
@@ -159,6 +162,7 @@ protected:
   bool AutoscaleFlag;
   bool InvertIntensityFlag;
   float AutoscaleRange[2];
+  int HUThresholdBelow;
 };
 
 #endif

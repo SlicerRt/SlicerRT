@@ -67,6 +67,9 @@ protected slots:
   /// Type Hounsfield Units conversion
   void onHUConversionChanged(int);
   void onAutoscaleIntensityRangeChanged(double, double);
+  /// HU threshold value for processing
+  /// @param thresholdBelow - Air HU value (-1000) below that threshold
+  void onHUThresholdChanged(double thresholdBelow);
 
 protected:
   QScopedPointer<qSlicerDrrImageComputationPlastimatchParametersWidgetPrivate> d_ptr;
