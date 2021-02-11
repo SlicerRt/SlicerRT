@@ -9,7 +9,7 @@ graphical user interface loadable module.
 
 ### Command Line Interface module (CLI)
 
-![image](https://user-images.githubusercontent.com/3785912/96350796-25ddf300-10c0-11eb-9389-3ea0068616c3.png)
+![image](https://user-images.githubusercontent.com/3785912/107616458-2c8c0980-6c5f-11eb-923e-fafb55a0e61f.png)
 
 CLI module "slicer_plastimatch_drr" takes a CT image as input, and generates one 
 DRR image according to the parameters of detector orientation, source distance,
@@ -46,10 +46,11 @@ based on [plastimatch drr](http://www.plastimatch.org/drr.html) ones.
 17. **Exposure type**: Type of exposure algorithm
 18. **Output format**: Type of output file formal ("raw" for 3DSlicer)
 19. **Invert intensity**: Apply intensity inversion during data post-processing.
+20. **Threshold below**: HU values below threshold are counted as -1000 (Air value)
 
 ### Graphical User Interface loadable module (GUI)
 
-![image](https://user-images.githubusercontent.com/3785912/97528819-a6093000-19bf-11eb-969b-3eaa38bf98c4.png)
+![image](https://user-images.githubusercontent.com/3785912/107616582-6a892d80-6c5f-11eb-8e8f-968a31b89fac.png)
 
 Loadable GUI module "DRR Image Computation" uses CLI module's logic and nodes data to calculate
 and visualize DRR image. It also shows basic detector elements such as: detector boundary,
@@ -71,12 +72,12 @@ represented by vtkMRMLRTBeamNode object.
 
 #### Geometry basic parameters
 
-![image](https://user-images.githubusercontent.com/3785912/96576643-23a3b080-12db-11eb-85c0-187d364a2e33.png)
+![image](https://user-images.githubusercontent.com/3785912/107616499-40d00680-6c5f-11eb-9d45-c6cccc9e12cd.png)
 
 4. **Isocenter to imager distance**: Distance from isocenter to detector center in mm
 5. **Imager resolution (columns, rows)**: Detector resolution in pixels
 6. **Imager spacing in mm (columns, rows)**: Detector spacing in mm
-7. **Use image window**:  whether use image subwindow or a whole detector
+7. **Image window parameters**:  Use and setup image subwindow or a whole detector
 
 #### Image Window Parameters
 8. **Columns**: Number of image columns in subwindow 
@@ -85,7 +86,7 @@ represented by vtkMRMLRTBeamNode object.
 
 #### Plastimatch DRR image processing
 
-![image](https://user-images.githubusercontent.com/3785912/97527533-99cfa380-19bc-11eb-8875-42598847f246.png)
+![image](https://user-images.githubusercontent.com/3785912/107617306-b38db180-6c60-11eb-9dd1-b2751b23a314.png)
 
 10. **Use exponential mapping**: Apply exponential mapping of output values
 11. **Autoscale**: Automatically rescale intensity
@@ -94,6 +95,7 @@ represented by vtkMRMLRTBeamNode object.
 14. **Reconstruction algorithm**: Type of reconstruction algorithm (Type of exposure algorithm in CLI module)
 15. **Hounsfield units conversion**: Type of Hounsfield Units conversion during computation
 16. **Threading**: Type of parallelism of computation
+17. **Hounsfield units threshold**: HU values below threshold are counted as -1000 (Air value)
 
 #### Plastimatch DRR command arguments (read only)
 
