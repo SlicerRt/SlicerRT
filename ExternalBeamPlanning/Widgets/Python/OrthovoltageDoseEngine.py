@@ -148,6 +148,10 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
       "Orthovoltage dose", "PegsFilePath", "Path to pegs4 data file:",
       "Enter file path to .pegs5dat file", pegsFilePath)
 
+    self.scriptedEngine.addBeamParameterCheckBox(
+      "Orthovoltage dose", "CTCreateOnly", "Generate ctcreate phantom only:",
+      "If checked, only the ctcreate file will be generated", False)
+
   #------------------------------------------------------------------------------
   #TODO: Add a path parameter type using the CTK path selector that saves the selections to Application Settings
   def savePathsInApplicationSettings(self, beamNode):
@@ -231,6 +235,10 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
 
     OrthovoltageDoseEngineUtil.generateCtcreateInput(volumeNode, seriesUID, ctcreateOutputPath, roiNode, thicknesses)
     EGSnrcUtil.callCtcreate(ctcreateExecFilePath, ctcreateOutputPath)
+
+    if self.scriptedEngine.booleanParameter(beamNode, "CTCreateOnly"):
+      resultDoseVolumeNode.SetAndObserveImageData(vtk.vtkImageData())
+      return ""
 
     ##########################################
     # Get DOSXYZnrc parameters
