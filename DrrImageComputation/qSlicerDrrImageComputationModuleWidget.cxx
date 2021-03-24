@@ -572,9 +572,13 @@ void qSlicerDrrImageComputationModuleWidget::onComputeDrrClicked()
     return;
   }
   
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+
   bool result = d->logic()->ComputePlastimatchDRR( parameterNode, ctVolumeNode);
   if (result)
   {
+    QApplication::restoreOverrideCursor();
     return;
   }
+  QApplication::restoreOverrideCursor();
 }

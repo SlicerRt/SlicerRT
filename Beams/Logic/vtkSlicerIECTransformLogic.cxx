@@ -401,7 +401,8 @@ vtkMRMLLinearTransformNode* vtkSlicerIECTransformLogic::GetTransformNodeBetween(
 }
 
 //-----------------------------------------------------------------------------
-bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame, vtkGeneralTransform* outputTransform)
+bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame, 
+  vtkGeneralTransform* outputTransform, bool transformForBeam/* = true*/)
 {
   if (!outputTransform)
   {
@@ -467,7 +468,14 @@ bool vtkSlicerIECTransformLogic::GetTransformBetween(CoordinateSystemIdentifier 
       if (toTransform)
       {
         vtkNew<vtkMatrix4x4> mat;
-        toTransform->GetMatrixTransformFromParent(mat);
+        if (transformForBeam) // calculation for beam transformation
+        {
+          toTransform->GetMatrixTransformFromParent(mat);
+        }
+        else // calculation for a treatment room models transformations
+        {
+          toTransform->GetMatrixTransformToParent(mat);
+        }
         mat->Invert();
         outputTransform->Concatenate(mat);
 
