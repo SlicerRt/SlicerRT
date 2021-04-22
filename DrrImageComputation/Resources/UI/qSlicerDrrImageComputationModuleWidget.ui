@@ -16,6 +16,18 @@
   <layout class="QGridLayout" name="gridLayout_5">
    <item row="0" column="0">
     <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="1">
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
+       <property name="nodeTypes">
+        <stringlist>
+         <string>vtkMRMLDrrImageComputationNode</string>
+        </stringlist>
+       </property>
+       <property name="noneDisplay">
+        <string>Please select a node</string>
+       </property>
+      </widget>
+     </item>
      <item row="2" column="1">
       <widget class="QCheckBox" name="CheckBox_ShowDrrMarkups">
        <property name="text">
@@ -26,93 +38,24 @@
        </property>
       </widget>
      </item>
+     <item row="5" column="0" colspan="2">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QPushButton" name="PushButton_ComputeDrr">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Compute DRR image</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
      <item row="0" column="0">
       <widget class="QLabel" name="label_4">
        <property name="text">
         <string>Parameter set:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0" colspan="2">
-      <widget class="ctkCollapsibleButton" name="CollapsibleButton_ReferenceInput">
-       <property name="text">
-        <string>Reference input nodes</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>CT volume:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_CtVolume">
-          <property name="nodeTypes">
-           <stringlist>
-            <string>vtkMRMLScalarVolumeNode</string>
-           </stringlist>
-          </property>
-          <property name="showChildNodeTypes">
-           <bool>false</bool>
-          </property>
-          <property name="noneEnabled">
-           <bool>true</bool>
-          </property>
-          <property name="addEnabled">
-           <bool>false</bool>
-          </property>
-          <property name="removeEnabled">
-           <bool>false</bool>
-          </property>
-          <property name="noneDisplay">
-           <string>Please select a node</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>RT beam:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RtBeam">
-          <property name="nodeTypes">
-           <stringlist>
-            <string>vtkMRMLRTBeamNode</string>
-           </stringlist>
-          </property>
-          <property name="showChildNodeTypes">
-           <bool>false</bool>
-          </property>
-          <property name="noneEnabled">
-           <bool>true</bool>
-          </property>
-          <property name="addEnabled">
-           <bool>false</bool>
-          </property>
-          <property name="removeEnabled">
-           <bool>false</bool>
-          </property>
-          <property name="noneDisplay">
-           <string>Please select a node</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
-       <property name="nodeTypes">
-        <stringlist>
-         <string>vtkMRMLDrrImageComputationNode</string>
-        </stringlist>
-       </property>
-       <property name="noneDisplay">
-        <string>Please select a node</string>
        </property>
       </widget>
      </item>
@@ -127,25 +70,29 @@
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout_2">
-          <item row="2" column="1">
-           <widget class="ctkCoordinatesWidget" name="CoordinatesWidget_ImagerSpacing">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_3">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="dimension">
-             <number>2</number>
+            <property name="text">
+             <string>Isocenter to imager distance:</string>
             </property>
-            <property name="minimum">
-             <double>0.100000000000000</double>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-            <property name="maximum">
-             <double>10.000000000000000</double>
-            </property>
-            <property name="coordinates" stdset="0">
-             <string>0.25,0.25</string>
+            <property name="text">
+             <string>Imager resolution (columns, rows):</string>
             </property>
            </widget>
           </item>
@@ -229,19 +176,6 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="ctkSliderWidget" name="SliderWidget_IsocenterImagerDistance">
-            <property name="maximum">
-             <double>999.899999999999977</double>
-            </property>
-            <property name="value">
-             <double>300.000000000000000</double>
-            </property>
-            <property name="suffix">
-             <string> mm</string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="1">
            <widget class="ctkCoordinatesWidget" name="CoordinatesWidget_ImagerResolution">
             <property name="sizePolicy">
@@ -267,29 +201,154 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_8">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+          <item row="0" column="1">
+           <widget class="ctkSliderWidget" name="SliderWidget_IsocenterImagerDistance">
+            <property name="maximum">
+             <double>999.899999999999977</double>
             </property>
-            <property name="text">
-             <string>Imager resolution (columns, rows):</string>
+            <property name="value">
+             <double>300.000000000000000</double>
+            </property>
+            <property name="suffix">
+             <string> mm</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_3">
+          <item row="2" column="1">
+           <widget class="ctkCoordinatesWidget" name="CoordinatesWidget_ImagerSpacing">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="dimension">
+             <number>2</number>
+            </property>
+            <property name="minimum">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10.000000000000000</double>
+            </property>
+            <property name="coordinates" stdset="0">
+             <string>0.25,0.25</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="2">
+      <widget class="ctkCollapsibleButton" name="CollapsibleButton_ReferenceInput">
+       <property name="text">
+        <string>Reference input nodes</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="1" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>RT beam:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>CT volume:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_CtVolume">
+          <property name="nodeTypes">
+           <stringlist>
+            <string>vtkMRMLScalarVolumeNode</string>
+           </stringlist>
+          </property>
+          <property name="showChildNodeTypes">
+           <bool>false</bool>
+          </property>
+          <property name="noneEnabled">
+           <bool>true</bool>
+          </property>
+          <property name="addEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="removeEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="noneDisplay">
+           <string>Please select a CT volume node</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RtBeam">
+          <property name="nodeTypes">
+           <stringlist>
+            <string>vtkMRMLRTBeamNode</string>
+           </stringlist>
+          </property>
+          <property name="showChildNodeTypes">
+           <bool>false</bool>
+          </property>
+          <property name="noneEnabled">
+           <bool>true</bool>
+          </property>
+          <property name="addEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="removeEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="noneDisplay">
+           <string>Please select a RTBeam node</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_7">
+          <property name="text">
+           <string>Camera:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Camera">
+            <property name="nodeTypes">
+             <stringlist>
+              <string>vtkMRMLCameraNode</string>
+             </stringlist>
+            </property>
+            <property name="showChildNodeTypes">
+             <bool>false</bool>
+            </property>
+            <property name="noneEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="addEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="removeEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="noneDisplay">
+             <string>Please select a 3D Camera node</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="PushButton_UpdateBeamFromCamera">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
-             <string>Isocenter to imager distance:</string>
+             <string>Update beam</string>
             </property>
            </widget>
           </item>
@@ -307,20 +366,6 @@
         </sizepolicy>
        </property>
       </widget>
-     </item>
-     <item row="5" column="0" colspan="2">
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QPushButton" name="PushButton_ComputeDrr">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Compute DRR image</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
      </item>
     </layout>
    </item>
@@ -429,6 +474,22 @@
     <hint type="destinationlabel">
      <x>305</x>
      <y>50</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerDrrImageComputationModuleWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_Camera</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>337</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>285</x>
+     <y>140</y>
     </hint>
    </hints>
   </connection>

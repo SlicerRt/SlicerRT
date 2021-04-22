@@ -50,6 +50,7 @@ public slots:
   void onParameterNodeChanged(vtkMRMLNode*);
   void onRTBeamNodeChanged(vtkMRMLNode*);
   void onCtVolumeNodeChanged(vtkMRMLNode*);
+  void onCameraNodeChanged(vtkMRMLNode*);
 
   void onLogicModified();
   void onIsocenterImagerDistanceValueChanged(double);
@@ -59,6 +60,7 @@ public slots:
   void onImagerResolutionChanged(double*);
   void onShowMarkupsToggled(bool);
   void onUseImageWindowToggled(bool);
+  void onUpdateBeamFromCameraClicked();
   void onComputeDrrClicked();
 
   /// Update widget GUI from RT Image parameters node

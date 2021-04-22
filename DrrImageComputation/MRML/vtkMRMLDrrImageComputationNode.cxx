@@ -22,6 +22,7 @@
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLCameraNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -36,6 +37,7 @@ namespace
 {
 
 const char* BEAM_REFERENCE_ROLE = "beamRef";
+const char* CAMERA_REFERENCE_ROLE = "cameraRef";
 
 } // namespace
 
@@ -76,7 +78,7 @@ vtkMRMLDrrImageComputationNode::vtkMRMLDrrImageComputationNode()
   AutoscaleFlag = true;
   AutoscaleRange[0] = 0.;
   AutoscaleRange[1] = 255.;
-  InvertIntensityFlag = false;
+  InvertIntensityFlag = true;
 
   IsocenterImagerDistance = 300.;
   HUThresholdBelow = -1000;
@@ -266,6 +268,24 @@ void vtkMRMLDrrImageComputationNode::SetAndObserveBeamNode(vtkMRMLRTBeamNode* no
   }
 
   this->SetNodeReferenceID(BEAM_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLCameraNode* vtkMRMLDrrImageComputationNode::GetCameraNode()
+{
+  return vtkMRMLCameraNode::SafeDownCast( this->GetNodeReference(CAMERA_REFERENCE_ROLE) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLDrrImageComputationNode::SetAndObserveCameraNode(vtkMRMLCameraNode* node)
+{
+  if (node && this->Scene != node->GetScene())
+  {
+    vtkErrorMacro("SetAndObserveCameraNode: Cannot set reference, the referenced and referencing node are not in the same scene");
+    return;
+  }
+
+  this->SetNodeReferenceID(CAMERA_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------

@@ -35,6 +35,7 @@ class vtkMRMLRTBeamNode;
 class vtkMRMLMarkupsClosedCurveNode;
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLMarkupsLineNode;
+class vtkMRMLCameraNode;
 
 /// \ingroup SlicerRt_QtModules_DrrImageComputation
 /// 
@@ -81,6 +82,14 @@ public:
   vtkMRMLRTBeamNode* GetBeamNode();
   /// Set and observe beam node. This updates Normal and View-Up vectors.
   void SetAndObserveBeamNode(vtkMRMLRTBeamNode* node);
+
+  /// Get camera node
+  vtkMRMLCameraNode* GetCameraNode();
+  /// Set and observe camera node.
+  /// Camera updates beam parameters: gantry angle, couch angle, SAD.
+  /// Beam transformation and beam geometry will be updated 
+  /// if camera was used to calculate beam parameters from direction cosines.   
+  void SetAndObserveCameraNode(vtkMRMLCameraNode* node);
 
   vtkGetVector3Macro(NormalVector, double);
   vtkSetVector3Macro(NormalVector, double);
