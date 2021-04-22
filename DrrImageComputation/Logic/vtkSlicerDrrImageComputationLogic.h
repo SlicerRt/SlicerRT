@@ -43,6 +43,7 @@ class vtkMRMLMarkupsPlaneNode;
 class vtkMRMLMarkupsClosedCurveNode;
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLMarkupsLineNode;
+class vtkMRMLCameraNode;
 
 class vtkMRMLLinearTransformNode;
 
@@ -87,6 +88,11 @@ public:
   /// @param parameterNode - parameters of DRR image computation
   /// @param ctInputVolume - CT volume
   bool ComputePlastimatchDRR( vtkMRMLDrrImageComputationNode* parameterNode, vtkMRMLScalarVolumeNode* ctInputVolume);
+
+  /// Update Beam node from 3D view camera position
+  /// @param parameterNode - parameters of DRR image computation
+  /// @return true if beam was updated, false otherwise
+  bool UpdateBeamFromCamera(vtkMRMLDrrImageComputationNode* parameterNode);
 
 protected:
   vtkSlicerDrrImageComputationLogic();

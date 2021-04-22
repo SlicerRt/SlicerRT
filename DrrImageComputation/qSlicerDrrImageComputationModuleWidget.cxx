@@ -26,6 +26,8 @@
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLSubjectHierarchyNode.h>
+#include <vtkMRMLCameraNode.h>
+#include <vtkCamera.h>
 
 // SlicerRT MRML Beams includes
 #include <vtkMRMLRTBeamNode.h>
@@ -103,6 +105,8 @@ void qSlicerDrrImageComputationModuleWidget::setup()
     this, SLOT(onCtVolumeNodeChanged(vtkMRMLNode*)));
   connect( d->MRMLNodeComboBox_ParameterSet, SIGNAL(currentNodeChanged(vtkMRMLNode*)), 
     this, SLOT(onParameterNodeChanged(vtkMRMLNode*)));
+  connect( d->MRMLNodeComboBox_Camera, SIGNAL(currentNodeChanged(vtkMRMLNode*)), 
+    this, SLOT(onCameraNodeChanged(vtkMRMLNode*)));
 
   // Sliders
   connect( d->SliderWidget_IsocenterImagerDistance, SIGNAL(valueChanged(double)), 
@@ -122,6 +126,7 @@ void qSlicerDrrImageComputationModuleWidget::setup()
   connect( d->PushButton_ComputeDrr, SIGNAL(clicked()), this, SLOT(onComputeDrrClicked()));
   connect( d->CheckBox_ShowDrrMarkups, SIGNAL(toggled(bool)), this, SLOT(onShowMarkupsToggled(bool)));
   connect( d->GroupBox_ImageWindowParameters, SIGNAL(toggled(bool)), this, SLOT(onUseImageWindowToggled(bool)));
+  connect( d->PushButton_UpdateBeamFromCamera, SIGNAL(clicked()), this, SLOT(onUpdateBeamFromCameraClicked()));
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT(onLogicModified()));
@@ -262,6 +267,10 @@ void qSlicerDrrImageComputationModuleWidget::updateWidgetFromMRML()
       static_cast<double>(std::max<int>( 0, imageWindow[1])), 
       static_cast<double>(std::min<int>( imagerResolution[1] - 1, imageWindow[3])));
   }
+  
+  // update RT beam from camera button
+  vtkMRMLCameraNode* cameraNode = vtkMRMLCameraNode::SafeDownCast(d->MRMLNodeComboBox_Camera->currentNode());
+  d->PushButton_UpdateBeamFromCamera->setEnabled(cameraNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -357,6 +366,31 @@ void qSlicerDrrImageComputationModuleWidget::onParameterNodeChanged(vtkMRMLNode*
   }
 
   this->setParameterNode(parameterNode);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDrrImageComputationModuleWidget::onCameraNodeChanged(vtkMRMLNode* node)
+{
+  Q_D(qSlicerDrrImageComputationModuleWidget);
+
+  vtkMRMLDrrImageComputationNode* parameterNode = vtkMRMLDrrImageComputationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!parameterNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
+    return;
+  }
+
+  vtkMRMLCameraNode* cameraNode = vtkMRMLCameraNode::SafeDownCast(node);
+  if (!cameraNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid camera node";
+    d->PushButton_UpdateBeamFromCamera->setEnabled(false);
+    parameterNode->SetAndObserveCameraNode(nullptr);
+    return;
+  }
+
+  parameterNode->SetAndObserveCameraNode(cameraNode);
+  d->PushButton_UpdateBeamFromCamera->setEnabled(node);
 }
 
 //-----------------------------------------------------------------------------
@@ -462,6 +496,25 @@ void qSlicerDrrImageComputationModuleWidget::onImagerResolutionChanged(double* r
 
   parameterNode->SetImagerResolution(imagerResolution);
   parameterNode->Modified(); // Update imager and image markups, DRR arguments
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDrrImageComputationModuleWidget::onUpdateBeamFromCameraClicked()
+{
+  Q_D(qSlicerDrrImageComputationModuleWidget);
+
+  vtkMRMLDrrImageComputationNode* parameterNode = vtkMRMLDrrImageComputationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!parameterNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
+    return;
+  }
+
+  // Update DRR RT beam parameters from observed 3D camera node data
+  if (d->logic()->UpdateBeamFromCamera(parameterNode))
+  {
+    parameterNode->Modified(); // Update imager and image markups, DRR arguments
+  }
 }
 
 //-----------------------------------------------------------------------------

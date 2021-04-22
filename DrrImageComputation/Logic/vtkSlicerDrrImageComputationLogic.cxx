@@ -29,6 +29,7 @@
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
 #include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLCameraNode.h>
 
 //#include <vtkMRMLMarkupsPlaneNode.h>
 #include <vtkMRMLMarkupsClosedCurveNode.h>
@@ -58,6 +59,7 @@
 #include <vtkIntArray.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
+#include <vtkCamera.h>
 
 // SlicerRT includes
 #include <vtkSlicerRtCommon.h>
@@ -1335,9 +1337,9 @@ vtkMRMLLinearTransformNode* vtkSlicerDrrImageComputationLogic::UpdateImageTransf
   // Dynamic transform from Gantry to RAS
   // Transformation path:
   // Gantry -> FixedReference -> PatientSupport -> TableTopEccentricRotation -> TableTop -> Patient -> RAS
+  using IEC = vtkSlicerIECTransformLogic::CoordinateSystemIdentifier;
   vtkNew<vtkGeneralTransform> generalTransform;
-  if (iecLogic->GetTransformBetween( vtkSlicerIECTransformLogic::CoordinateSystemIdentifier::Gantry, 
-    vtkSlicerIECTransformLogic::CoordinateSystemIdentifier::RAS, generalTransform))
+  if (iecLogic->GetTransformBetween( IEC::Gantry, IEC::RAS, generalTransform))
   {
     // Convert general transform to linear
     // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
@@ -1417,6 +1419,83 @@ void vtkSlicerDrrImageComputationLogic::UpdateNormalAndVupVectors(vtkMRMLDrrImag
 
   parameterNode->SetNormalVector(n);
   parameterNode->SetViewUpVector(vup);
+}
+
+//------------------------------------------------------------------------------
+bool vtkSlicerDrrImageComputationLogic::UpdateBeamFromCamera(vtkMRMLDrrImageComputationNode* parameterNode)
+{
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateBeamFromCameras: Parameter node is invalid");
+    return false;
+  }
+
+  vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode();
+
+  if (!beamNode)
+  {
+    // Observed beam node is invalid
+    vtkErrorMacro("UpdateBeamFromCamera: RT Beam node is invalid");
+    return false;
+  }
+
+  vtkMRMLCameraNode* cameraNode = parameterNode->GetCameraNode();
+  if (!cameraNode)
+  {
+    // Observed camera node is invalid
+    vtkErrorMacro("UpdateBeamFromCamera: Camera node is invalid");
+    return false;
+  }
+
+  // Transform RAS to IEC Patient 
+  vtkNew<vtkTransform> rasToPatientTransform;
+  rasToPatientTransform->Identity();
+  rasToPatientTransform->RotateX(-90.);
+  rasToPatientTransform->RotateZ(180.);
+  rasToPatientTransform->Inverse();
+
+  // Calculate gantry angle (Theta), patient support angle (Phi) from camera and CT volume
+  // Update beam transform
+  vtkCamera* camera = cameraNode->GetCamera();
+  if (camera)
+  {
+    double cameraProjRAS[4] = {};
+    camera->GetDirectionOfProjection(cameraProjRAS);
+    double cameraProjIEC[4] = {};
+    rasToPatientTransform->MultiplyPoint( cameraProjRAS, cameraProjIEC);
+    cameraProjIEC[0] *= -1.;
+    cameraProjIEC[1] *= -1.;
+    cameraProjIEC[2] *= -1.;
+    // Theta [0, pi], phi [0, 2*pi]
+    double phi_x = acos(cameraProjIEC[0] / sqrt(cameraProjIEC[0] * cameraProjIEC[0] + cameraProjIEC[1] * cameraProjIEC[1])) * 180. / M_PI;
+    double phi_y = asin(cameraProjIEC[1] / sqrt(cameraProjIEC[0] * cameraProjIEC[0] + cameraProjIEC[1] * cameraProjIEC[1])) * 180. / M_PI;
+    double phi = atan(cameraProjIEC[1] / cameraProjIEC[0]) * 180. / M_PI;
+    double theta = acos(cameraProjIEC[2] / sqrt(cameraProjIEC[0] * cameraProjIEC[0] + cameraProjIEC[1] * cameraProjIEC[1] +  + cameraProjIEC[2] * cameraProjIEC[2])) * 180. / M_PI;
+    if (phi_x > 0. && phi_y > 0.)
+    {
+      phi = 360. - phi_x;
+    }
+    else
+    {
+      phi = phi_x;
+    }
+    beamNode->DisableModifiedEventOn();
+    beamNode->SetGantryAngle(theta);
+    beamNode->SetCouchAngle(phi);
+    beamNode->SetSAD(camera->GetDistance());
+    beamNode->DisableModifiedEventOff();
+    // Update geometry and transform of the beam
+    beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
+    beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
+    // Reset beam node 
+    parameterNode->SetAndObserveBeamNode(beamNode);
+    return true;
+  }
+  else
+  {
+    // vtkCamera is invalid
+    return false;
+  }
 }
 
 //------------------------------------------------------------------------------
