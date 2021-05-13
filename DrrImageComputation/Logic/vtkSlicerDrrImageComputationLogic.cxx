@@ -61,6 +61,10 @@
 #include <vtkObjectFactory.h>
 #include <vtkCamera.h>
 
+// std includes
+#define _USE_MATH_DEFINES // Required for M_PI constant
+#include <math.h>
+
 // SlicerRT includes
 #include <vtkSlicerRtCommon.h>
 
