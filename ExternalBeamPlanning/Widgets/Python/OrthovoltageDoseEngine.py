@@ -152,6 +152,28 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
       "Orthovoltage dose", "CTCreateOnly", "Generate ctcreate phantom only:",
       "If checked, only the ctcreate file will be generated", False)
 
+    self.scriptedEngine.addBeamParameterCheckBox(
+      "Orthovoltage dose", "ZeroAirDose", "Enable dose in air:",
+      "If checked, sets dose in air to zero", True)
+
+    self.scriptedEngine.addBeamParameterCheckBox(
+      "Orthovoltage dose", "IReject", "Enable electron range rejection:",
+      "If checked, enables electron range reject, which speeds up the simulation\
+      Use ESAVE_GLOBAL threshold for cutoff particle energy cutoff", False)
+
+    self.scriptedEngine.addBeamParameterLineEdit(
+      "Orthovoltage dose", "ESaveGlobal", "E save global (MeV):",
+      "Energy (MeV) below which charged particle will be considered for range rejection", 0)
+
+    self.scriptedEngine.addBeamParameterLineEdit(
+      "Orthovoltage dose", "NRcycl", "Number of times to recycle each particle:",
+      "Number of times to recycle each particle.\n\
+      Each particle in the phase space file is used a total of NRCYCL+1 times before going on to the next particle.", 0)
+
+    self.scriptedEngine.addBeamParameterCheckBox(
+      "Orthovoltage dose", "IHowFarLess", "Enable HOWFARLESS algorithm:",
+      "If checked, enables 'HOWFARLESS' algorithm for transport in a homogeneous phantom.", False)
+
   #------------------------------------------------------------------------------
   #TODO: Add a path parameter type using the CTK path selector that saves the selections to Application Settings
   def savePathsInApplicationSettings(self, beamNode):
@@ -253,7 +275,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     pegsFilePath = self.scriptedEngine.parameter(beamNode, "PegsFilePath")
     nmed = 0 # nmed is number of media
     smax = 0 # dummy input, used to be max step length
-    zeroairdose = 1
+    zeroairdose = int(self.scriptedEngine.booleanParameter(beamNode, "ZeroAirDose"))
     doseprint = 0
     MAX20 = 0
 
@@ -300,13 +322,13 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     ismooth = 0       # re-use the ph-sp data once run out (no redistribution)
     irestart = 0      # first run for this data set (default)
     idat = 0          # output the data file for restart at end only                                       # I=8: 2
-    ireject = 0       # do not perform charged particle range rejection (default)
-    esave_global = "" # energy (MeV) below which charged particle will be considered for range rejection
-    nrcycl = 0        # use entire phase space file with no restarts
+    ireject = int(self.scriptedEngine.booleanParameter(beamNode, "IReject")) # Perform charged particle range rejection (default: off)
+    esave_global = self.scriptedEngine.parameter(beamNode, "ESaveGlobal") # energy (MeV) below which charged particle will be considered for range rejection
+    nrcycl = self.scriptedEngine.parameter(beamNode, "NRcycl") # Number of times to recycle each particle. (default: 0; use entire phase space file with no restarts)
     iparallel = 0     # only relevalnt when manually creating/submitting paralel jobs or using unix pproccess script
     parnum = 0        # only relevalnt when manually creating/submitting paralel jobs or using unix pproccess script
     n_split = 1
-    ihowfarless = 0
+    ihowfarless = int(self.scriptedEngine.booleanParameter(beamNode, "IHowFarLess"))
     i_phsp_out = 0    # no phase space output (default)
 
     # EGSnrc inputs
