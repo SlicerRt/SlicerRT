@@ -60,10 +60,10 @@
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkCamera.h>
+#include <vtkMath.h>
 
 // std includes
-#define _USE_MATH_DEFINES // Required for M_PI constant
-#include <math.h>
+#include <cmath>
 
 // SlicerRT includes
 #include <vtkSlicerRtCommon.h>
@@ -1471,10 +1471,10 @@ bool vtkSlicerDrrImageComputationLogic::UpdateBeamFromCamera(vtkMRMLDrrImageComp
     cameraProjIEC[1] *= -1.;
     cameraProjIEC[2] *= -1.;
     // Theta [0, pi], phi [0, 2*pi]
-    double phi_x = acos(cameraProjIEC[0] / sqrt(cameraProjIEC[0] * cameraProjIEC[0] + cameraProjIEC[1] * cameraProjIEC[1])) * 180. / M_PI;
-    double phi_y = asin(cameraProjIEC[1] / sqrt(cameraProjIEC[0] * cameraProjIEC[0] + cameraProjIEC[1] * cameraProjIEC[1])) * 180. / M_PI;
-    double phi = atan(cameraProjIEC[1] / cameraProjIEC[0]) * 180. / M_PI;
-    double theta = acos(cameraProjIEC[2] / sqrt(cameraProjIEC[0] * cameraProjIEC[0] + cameraProjIEC[1] * cameraProjIEC[1] +  + cameraProjIEC[2] * cameraProjIEC[2])) * 180. / M_PI;
+    double phi_x = vtkMath::DegreesFromRadians(acos(cameraProjIEC[0] / vtkMath::Norm(cameraProjIEC, 2)));
+    double phi_y = vtkMath::DegreesFromRadians(asin(cameraProjIEC[1] / vtkMath::Norm(cameraProjIEC, 2)));
+    double phi = vtkMath::DegreesFromRadians(atan(cameraProjIEC[1] / cameraProjIEC[0]));
+    double theta = vtkMath::DegreesFromRadians(acos(cameraProjIEC[2] / vtkMath::Norm(cameraProjIEC, 3)));
     if (phi_x > 0. && phi_y > 0.)
     {
       phi = 360. - phi_x;
@@ -1491,8 +1491,7 @@ bool vtkSlicerDrrImageComputationLogic::UpdateBeamFromCamera(vtkMRMLDrrImageComp
     // Update geometry and transform of the beam
     beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
     beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
-    // Reset beam node 
-    parameterNode->SetAndObserveBeamNode(beamNode);
+
     return true;
   }
   else
