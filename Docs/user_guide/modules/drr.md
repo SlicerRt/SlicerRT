@@ -50,7 +50,7 @@ based on [plastimatch drr](http://www.plastimatch.org/drr.html) ones.
 
 ### Graphical User Interface loadable module (GUI)
 
-![image](https://user-images.githubusercontent.com/3785912/107616582-6a892d80-6c5f-11eb-8e8f-968a31b89fac.png)
+![image](https://user-images.githubusercontent.com/3785912/118298680-726b9e80-b4e8-11eb-8a39-c5e607459e62.png)
 
 Loadable GUI module "DRR Image Computation" uses CLI module's logic and nodes data to calculate
 and visualize DRR image. It also shows basic detector elements such as: detector boundary,
@@ -61,14 +61,16 @@ Markups data is only for WYSIWYG purpose.
 
 #### Reference input nodes
 
-![image](https://user-images.githubusercontent.com/3785912/96576548-01aa2e00-12db-11eb-9a4a-6ed445d6fc4f.png)
+![image](https://user-images.githubusercontent.com/3785912/118298709-7e576080-b4e8-11eb-8c2b-b1a4f8222eba.png)
 
 1. **CT volume**: Input CT data
 2. **RT beam**: Input RT beam (vtkMRMLRTBeamNode) for source and detector orientation parameters
-3. **Show DRR markups**: Show or hide detector markups
+2. **Camera**: Camera node (vtkMRMLCameraNode) to update if needed beam geometry and transformation
+3. **Update beam**: Update beam geometry and transformation using camera node data 
+4. **Show DRR markups**: Show or hide detector markups
 
 CT data is represented by vtkMRMLScalarVolumeNode object. RT beam data is
-represented by vtkMRMLRTBeamNode object.
+represented by vtkMRMLRTBeamNode object. Camera data is represented by vtkMRMLCameraNode object.
 
 #### Geometry basic parameters
 
@@ -82,7 +84,6 @@ represented by vtkMRMLRTBeamNode object.
 #### Image Window Parameters
 8. **Columns**: Number of image columns in subwindow 
 9. **Rows**: Number of image rows in subwindow
-
 
 #### Plastimatch DRR image processing
 
