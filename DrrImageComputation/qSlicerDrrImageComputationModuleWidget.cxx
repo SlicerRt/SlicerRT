@@ -513,6 +513,7 @@ void qSlicerDrrImageComputationModuleWidget::onUpdateBeamFromCameraClicked()
   // Update DRR RT beam parameters from observed 3D camera node data
   if (d->logic()->UpdateBeamFromCamera(parameterNode))
   {
+    d->logic()->UpdateMarkupsNodes(parameterNode); // Update markups geometry
     parameterNode->Modified(); // Update imager and image markups, DRR arguments
   }
 }

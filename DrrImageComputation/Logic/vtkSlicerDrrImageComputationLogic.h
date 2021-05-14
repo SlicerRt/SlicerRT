@@ -43,7 +43,6 @@ class vtkMRMLMarkupsPlaneNode;
 class vtkMRMLMarkupsClosedCurveNode;
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLMarkupsLineNode;
-class vtkMRMLCameraNode;
 
 class vtkMRMLLinearTransformNode;
 
