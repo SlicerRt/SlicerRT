@@ -103,3 +103,178 @@ represented by vtkMRMLRTBeamNode object.
 
 Arguments for [plastimatch drr](http://www.plastimatch.org/drr.html) program are generated using loadable module parameters
 for testing and debugging purposes.
+
+## How to compute a DRR image using python in 3D Slicer?
+
+One must have a CT volume (mandatory) and RTSTRUCT or segmentation (optional).
+
+#### Example 1 (CT Volume with segmentation, beam is set manually, isocenter is a center of ROI)
+```
+# Create dummy RTPlan
+rtImagePlan = slicer.mrmlScene.AddNewNodeByClass( 'vtkMRMLRTPlanNode', 'rtImagePlan')
+# Create RTImage dummy beam
+rtImageBeam = slicer.mrmlScene.AddNewNodeByClass( 'vtkMRMLRTBeamNode', 'rtImageBeam')
+# Add beam to the plan
+rtImagePlan.AddBeam(rtImageBeam)
+# Set required beam parameters 
+rtImageBeam.SetGantryAngle(90.)
+rtImageBeam.SetCouchAngle(12.)
+# Get CT volume
+ctVolume = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLScalarVolumeNode')
+# Get Segmentation (RTSTRUCT)
+ctSegmentation = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLSegmentationNode')
+# Set and observe CT volume by the plan
+rtImagePlan.SetAndObserveReferenceVolumeNode(ctVolume)
+# Set and observe Segmentation by the plan
+rtImagePlan.SetAndObserveSegmentationNode(ctSegmentation)
+# Set isocenter position as a center of ROI
+rtImagePlan.SetIsocenterSpecification(rtImagePlan.CenterOfTarget)
+# Set required segment ID (for example 'PTV')
+rtImagePlan.SetTargetSegmentID('PTV')
+rtImagePlan.SetIsocenterToTargetCenter()
+# Create DRR image computation node for user imager parameters
+drrParameters = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLDrrImageComputationNode', 'rtImageBeamParams')
+# Set and observe RTImage beam by the DRR node
+drrParameters.SetAndObserveBeamNode(rtImageBeam)
+# Get DRR computation logic
+drrLogic = slicer.modules.drrimagecomputation.logic()
+# Update imager markups for the 3D view and slice views (optional)
+drrLogic.UpdateMarkupsNodes(drrParameters)
+# Update imager normal and view-up vectors (mandatory)
+drrLogic.UpdateNormalAndVupVectors(drrParameters) # REQUIRED
+# Compute DRR image
+drrLogic.ComputePlastimatchDRR( drrParameters, ctVolume)
+
+```
+#### Example 2 (CT Volume with segmentation, beam updated according to the 3D camera orientation, isocenter is a center of ROI)
+```
+# Create dummy plan
+rtImagePlan = slicer.mrmlScene.AddNewNodeByClass( 'vtkMRMLRTPlanNode', 'rtImagePlan')
+# Create RTImage dummy beam
+rtImageBeam = slicer.mrmlScene.AddNewNodeByClass( 'vtkMRMLRTBeamNode', 'rtImageBeam')
+# Add beam to the plan
+rtImagePlan.AddBeam(rtImageBeam)
+# Get CT volume
+ctVolume = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLScalarVolumeNode')
+# Set and observe CT volume by the plan
+rtImagePlan.SetAndObserveReferenceVolumeNode(ctVolume)
+# Get Segmentation (RTSTRUCT)
+ctSegmentation = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLSegmentationNode')
+# Set and observe CT volume by the plan
+rtImagePlan.SetAndObserveReferenceVolumeNode(referenceVolume)
+# Set and observe Segmentation by the plan
+rtImagePlan.SetAndObserveSegmentationNode(ctSegmentation)
+# Set isocenter position as a center of ROI
+rtImagePlan.SetIsocenterSpecification(rtPlan.CenterOfTarget)
+# Set name of target segment from segmentation (for example 'PTV')
+rtImagePlan.SetTargetSegmentID('PTV')
+rtImagePlan.SetIsocenterToTargetCenter()
+# Get 3D camera
+threeDcamera = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLCameraNode')
+# Create DRR image computation node for user imager parameters
+rtImageParameters = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLDrrImageComputationNode', 'rtImageBeamParams')
+# Set and observe RTImage beam by the DRR node
+rtImageParameters.SetAndObserveBeamNode(rtImageBeam)
+# Set and observe camera node by the DRR node
+rtImageParameters.SetAndObserveCameraNode(threeDcamera)
+# Set required DRR parameters
+rtImageParameters.SetHUThresholdBelow(120)
+# Get DRR computation logic
+drrLogic = slicer.modules.drrimagecomputation.logic()
+
+# Update beam according to the 3D camera orientation (mandatory)
+if (drrLogic.UpdateBeamFromCamera(rtImageParameters)): # REQUIRED
+  print('Beam orientation updated according to the 3D camera orientation')
+
+# Update imager markups for the 3D view and slice views (optional)
+drrLogic.UpdateMarkupsNodes(rtImageParameters)
+# Update imager normal and view-up vectors (mandatory)
+drrLogic.UpdateNormalAndVupVectors(rtImageParameters) # REQUIRED
+# Compute DRR image
+drrLogic.ComputePlastimatchDRR( rtImageParameters, ctVolume)
+
+```
+
+#### Example 3 (CT Volume only, beam is set manually, isocenter is set manually)
+```
+# Create dummy plan
+rtImagePlan = slicer.mrmlScene.AddNewNodeByClass( 'vtkMRMLRTPlanNode', 'rtImagePlan')
+# Create RTImage dummy beam
+rtImageBeam = slicer.mrmlScene.AddNewNodeByClass( 'vtkMRMLRTBeamNode', 'rtImageBeam')
+# Set required beam parameters 
+rtImageBeam.SetGantryAngle(90.)
+rtImageBeam.SetCouchAngle(12.)
+# Add beam to the plan
+rtImagePlan.AddBeam(rtImageBeam)
+# Get CT volume
+ctVolume = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLScalarVolumeNode')
+# Set and observe CT volume by the plan
+rtImagePlan.SetAndObserveReferenceVolumeNode(ctVolume)
+
+# Set required isocenter position as a point
+rtImagePlan.SetIsocenterSpecification(rtImagePlan.ArbitraryPoint)
+isocenterPosition = [ -1., -2., -3. ]
+if (rtImagePlan.SetIsocenterPosition(isocenterPosition)):
+  print('New isocenter position is set')
+
+# Create DRR image computation node for user imager parameters
+rtImageParameters = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLDrrImageComputationNode', 'rtImageBeamParams')
+# Set and observe RTImage beam by the DRR node
+rtImageParameters.SetAndObserveBeamNode(rtImageBeam)
+# Set required DRR parameters
+rtImageParameters.SetHUThresholdBelow(50)
+# Get DRR computation logic
+drrLogic = slicer.modules.drrimagecomputation.logic()
+# Update imager markups for the 3D view and slice views (optional)
+drrLogic.UpdateMarkupsNodes(rtImageParameters)
+# Update imager normal and view-up vectors (mandatory)
+drrLogic.UpdateNormalAndVupVectors(rtImageParameters) # REQUIRED
+# Compute DRR image
+drrLogic.ComputePlastimatchDRR( rtImageParameters, ctVolume)
+
+```
+
+#### Example 4 (CT Volume only, beam updated according to the 3D camera orientation, isocenter is set manually)
+```
+# Create dummy plan
+rtImagePlan = slicer.mrmlScene.AddNewNodeByClass( 'vtkMRMLRTPlanNode', 'rtImagePlan')
+# Create RTImage dummy beam
+rtImageBeam = slicer.mrmlScene.AddNewNodeByClass( 'vtkMRMLRTBeamNode', 'rtImageBeam')
+# Add beam to the plan
+rtImagePlan.AddBeam(rtImageBeam)
+# Get CT volume
+ctVolume = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLScalarVolumeNode')
+# Set and observe CT volume by the plan
+rtImagePlan.SetAndObserveReferenceVolumeNode(ctVolume)
+
+# Set required isocenter position as a point
+rtImagePlan.SetIsocenterSpecification(rtImagePlan.ArbitraryPoint)
+isocenterPosition = [ -1., -2., -3. ]
+if (rtImagePlan.SetIsocenterPosition(isocenterPosition)):
+  print('New isocenter position is set')
+
+# Get 3D camera
+threeDcamera = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLCameraNode')
+# Create DRR image computation node for user imager parameters
+rtImageParameters = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLDrrImageComputationNode', 'rtImageBeamParams')
+# Set and observe RTImage beam by the DRR node
+rtImageParameters.SetAndObserveBeamNode(rtImageBeam)
+# Set and observe camera node by the DRR node
+rtImageParameters.SetAndObserveCameraNode(threeDcamera)
+# Set required DRR parameters
+rtImageParameters.SetHUThresholdBelow(-500)
+# Get DRR computation logic
+drrLogic = slicer.modules.drrimagecomputation.logic()
+
+# Update beam according to the 3D camera orientation (mandatory)
+if (drrLogic.UpdateBeamFromCamera(rtImageParameters)): # REQUIRED
+  print('Beam orientation updated according to the 3D camera orientation')
+
+# Update imager markups for the 3D view and slice views (optional)
+drrLogic.UpdateMarkupsNodes(rtImageParameters)
+# Update imager normal and view-up vectors (mandatory)
+drrLogic.UpdateNormalAndVupVectors(rtImageParameters) # REQUIRED
+# Compute DRR image
+drrLogic.ComputePlastimatchDRR( rtImageParameters, ctVolume)
+
+```
