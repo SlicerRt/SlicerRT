@@ -82,6 +82,24 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     "Enter desired slice thickness in Z direction for output ctcreate phantom. If not x,y,z slice \
     thickness not provided, will use same thickness from original CT image volume", "")
 
+    self.scriptedEngine.addBeamParameterLineEdit(
+    "Generate ctcreate phantom", "AirMaterial", "Air material:",
+    "Enter the air material name.", "AIR512ICRU")
+
+    self.scriptedEngine.addBeamParameterLineEdit(
+    "Generate ctcreate phantom", "AirRampParameters", "Air ramp parameters:",
+    "Enter the air ramp parameters. Parameters are: material ct upper bound, \
+    material density lower bound, material density upper bound.", "-200, 0.001205, 0.001205")
+
+    self.scriptedEngine.addBeamParameterLineEdit(
+    "Generate ctcreate phantom", "H2OMaterial", "H2O material:",
+    "Enter the H2O material name.", "H2O512ICRU")
+
+    self.scriptedEngine.addBeamParameterLineEdit(
+    "Generate ctcreate phantom", "H2ORampParameters", "H2O ramp parameters:",
+    "Enter the H2O ramp parameters. Parameters are: material ct upper bound, \
+    material density lower bound, material density upper bound.", "200, 1.0, 1.0")
+
     ##########################################
     # Orthovoltage dose parameters tab
     ##########################################
@@ -255,7 +273,15 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     # Call ctcreate
     ##########################################
 
-    OrthovoltageDoseEngineUtil.generateCtcreateInput(volumeNode, seriesUID, ctcreateOutputPath, roiNode, thicknesses)
+    waterMaterialName = self.scriptedEngine.parameter(beamNode, "H2OMaterial")
+    waterRampParameters = self.scriptedEngine.parameter(beamNode, "H2ORampParameters")
+
+    airMaterialName = self.scriptedEngine.parameter(beamNode, "AirMaterial")
+    airRampParameters = self.scriptedEngine.parameter(beamNode, "AirRampParameters")
+
+    materials = [(waterMaterialName, waterRampParameters), (airMaterialName, airRampParameters)]
+
+    OrthovoltageDoseEngineUtil.generateCtcreateInput(volumeNode, seriesUID, ctcreateOutputPath, materials, roiNode, thicknesses)
     EGSnrcUtil.callCtcreate(ctcreateExecFilePath, ctcreateOutputPath)
 
     if self.scriptedEngine.booleanParameter(beamNode, "CTCreateOnly"):

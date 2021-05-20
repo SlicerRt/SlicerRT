@@ -15,7 +15,7 @@ from DoseEngines import EGSnrcUtil
 
 
 #-----------------------------------------------------------------------------
-def generateCtcreateInputFile(slicenamesFilename, volumeRoiArrayCm, voxelThickness, outputFolder):
+def generateCtcreateInputFile(slicenamesFilename, volumeRoiArrayCm, voxelThickness, outputFolder, materials):
   """ Generate ctcreate.inp file, which is used to execute ctcreate
       Input records are described in the DOSXYZnrc Users Manual.
   """
@@ -56,22 +56,13 @@ def generateCtcreateInputFile(slicenamesFilename, volumeRoiArrayCm, voxelThickne
       Users Manual.
   """
   # CT Record 6 information about material (for i=1 to num_material)
-  outFile.write("AIR512ICRU\n")
-  outFile.write("-200, 0.001205, 0.001205\n")
-  outFile.write("H2O512ICRU\n")
-  outFile.write("200, 1, 1\n")
-  # outFile.write("AIR521ICRU\n")
-  # outFile.write("-974, 0.001, 0.044\n")
-  # outFile.write("LUNG521ICRU\n")
-  # outFile.write("-724, 0.044, 0.302\n")
-  # outFile.write("ICRUTISSUE521ICRU\n")
-  # outFile.write("101, 0.302, 1.101\n")
-  # outFile.write("ICRPBONE521ICRU\n")
-  # outFile.write("1976, 1.101, 2.088")
+  for materialName, rampParameters in materials:
+    outFile.write("{0}\n".format(materialName))
+    outFile.write("{0}\n".format(rampParameters))
   outFile.close()
 
 #-----------------------------------------------------------------------------
-def generateCtcreateInput(volumeNode, ctDicomSeriesUID, outputFolder, roiNode=None, voxelThicknessMm=None):
+def generateCtcreateInput(volumeNode, ctDicomSeriesUID, outputFolder, materials, roiNode=None, voxelThicknessMm=None):
   """ Generate all files needed as input to ctcreate
 
       NOTE: need to supply outputFolder path with 2 slashes (ie "C:\\d\\outputFolder")
@@ -112,5 +103,5 @@ def generateCtcreateInput(volumeNode, ctDicomSeriesUID, outputFolder, roiNode=No
   voxelThicknessCm = [dimension/10 for dimension in voxelThicknessMm]
 
   EGSnrcUtil.generateSlicenamesTextfile(ctDicomSeriesUID, slicenamesFilename, outputFolder)
-  generateCtcreateInputFile(slicenamesFilename, volumeRoiArrayCm, voxelThicknessCm, outputFolder)
+  generateCtcreateInputFile(slicenamesFilename, volumeRoiArrayCm, voxelThicknessCm, outputFolder, materials)
   return True
