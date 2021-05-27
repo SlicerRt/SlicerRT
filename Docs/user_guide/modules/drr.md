@@ -129,7 +129,7 @@ rtImagePlan.SetAndObserveReferenceVolumeNode(ctVolume)
 # Set and observe Segmentation by the plan
 rtImagePlan.SetAndObserveSegmentationNode(ctSegmentation)
 # Set isocenter position as a center of ROI
-rtImagePlan.SetIsocenterSpecification(rtImagePlan.CenterOfTarget)
+rtImagePlan.SetIsocenterSpecification(slicer.vtkMRMLRTPlanNode.CenterOfTarget)
 # Set required segment ID (for example 'PTV')
 rtImagePlan.SetTargetSegmentID('PTV')
 rtImagePlan.SetIsocenterToTargetCenter()
@@ -162,11 +162,11 @@ rtImagePlan.SetAndObserveReferenceVolumeNode(ctVolume)
 # Get Segmentation (RTSTRUCT)
 ctSegmentation = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLSegmentationNode')
 # Set and observe CT volume by the plan
-rtImagePlan.SetAndObserveReferenceVolumeNode(referenceVolume)
+rtImagePlan.SetAndObserveReferenceVolumeNode(ctVolume)
 # Set and observe Segmentation by the plan
 rtImagePlan.SetAndObserveSegmentationNode(ctSegmentation)
 # Set isocenter position as a center of ROI
-rtImagePlan.SetIsocenterSpecification(rtPlan.CenterOfTarget)
+rtImagePlan.SetIsocenterSpecification(slicer.vtkMRMLRTPlanNode.CenterOfTarget)
 # Set name of target segment from segmentation (for example 'PTV')
 rtImagePlan.SetTargetSegmentID('PTV')
 rtImagePlan.SetIsocenterToTargetCenter()
@@ -213,7 +213,7 @@ ctVolume = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLScalarVolumeNode')
 rtImagePlan.SetAndObserveReferenceVolumeNode(ctVolume)
 
 # Set required isocenter position as a point
-rtImagePlan.SetIsocenterSpecification(rtImagePlan.ArbitraryPoint)
+rtImagePlan.SetIsocenterSpecification(slicer.vtkMRMLRTPlanNode.ArbitraryPoint)
 isocenterPosition = [ -1., -2., -3. ]
 if (rtImagePlan.SetIsocenterPosition(isocenterPosition)):
   print('New isocenter position is set')
@@ -249,7 +249,7 @@ ctVolume = slicer.mrmlScene.GetFirstNodeByClass('vtkMRMLScalarVolumeNode')
 rtImagePlan.SetAndObserveReferenceVolumeNode(ctVolume)
 
 # Set required isocenter position as a point
-rtImagePlan.SetIsocenterSpecification(rtImagePlan.ArbitraryPoint)
+rtImagePlan.SetIsocenterSpecification(slicer.vtkMRMLRTPlanNode.ArbitraryPoint)
 isocenterPosition = [ -1., -2., -3. ]
 if (rtImagePlan.SetIsocenterPosition(isocenterPosition)):
   print('New isocenter position is set')
