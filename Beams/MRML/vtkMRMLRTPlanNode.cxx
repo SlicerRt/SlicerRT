@@ -359,6 +359,12 @@ void vtkMRMLRTPlanNode::SetAndObservePoisMarkupsFiducialNode(vtkMRMLMarkupsFiduc
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
 {
+  if (!this->GetScene())
+  {
+    vtkErrorMacro("CreateMarkupsFiducialNode: Invalid MRML scene");
+    return nullptr;
+  }
+
   // Create name
   std::string markupsName = std::string(this->GetName()) + "_POI";
 
