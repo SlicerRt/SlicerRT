@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>373</width>
+    <width>392</width>
     <height>604</height>
    </rect>
   </property>
@@ -27,8 +27,8 @@
       </widget>
      </item>
      <item>
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
-       <property name="nodeTypes">
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet" native="true">
+       <property name="nodeTypes" stdset="0">
         <stringlist>
          <string>vtkMRMLIsodoseNode</string>
         </stringlist>
@@ -49,6 +49,98 @@
       <string>Input</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_5">
+      <item row="3" column="0" colspan="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Number of iso levels:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="spinBox_NumberOfLevels">
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="value">
+           <number>6</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="toggleButton_IsoLevelsBorderMode">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Represent isodose as a surface with a single border aka solid mode. Surface shows dose higher that thesholdMin.</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="../qSlicerIsodoseModule.qrc">
+            <normaloff>:/Icons/IsodoseSingleBorder.png</normaloff>:/Icons/IsodoseSingleBorder.png</iconset>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="4" column="0" colspan="2">
+       <widget class="qMRMLColorTableView" name="tableView_IsodoseLevels">
+        <attribute name="horizontalHeaderVisible">
+         <bool>true</bool>
+        </attribute>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="checkBox_ShowDoseVolumesOnly">
+        <property name="text">
+         <string>Show dose volumes only</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Dose volume:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume" native="true">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="nodeTypes" stdset="0">
+         <stringlist>
+          <string>vtkMRMLScalarVolumeNode</string>
+         </stringlist>
+        </property>
+        <property name="addEnabled" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="renameEnabled" stdset="0">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="1">
        <widget class="QLabel" name="label_NotDoseVolumeWarning">
         <property name="palette">
@@ -506,68 +598,6 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLScalarVolumeNode</string>
-         </stringlist>
-        </property>
-        <property name="addEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="renameEnabled">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QSpinBox" name="spinBox_NumberOfLevels">
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="value">
-         <number>6</number>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Dose volume:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QCheckBox" name="checkBox_ShowDoseVolumesOnly">
-        <property name="text">
-         <string>Show dose volumes only</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0" colspan="2">
-       <widget class="qMRMLColorTableView" name="tableView_IsodoseLevels">
-        <attribute name="horizontalHeaderVisible">
-         <bool>true</bool>
-        </attribute>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Number of iso levels:</string>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="0" colspan="2">
        <widget class="QGroupBox" name="groupBox_RelativeIsolevels">
         <property name="enabled">
@@ -777,6 +807,12 @@
    <header>ctkSliderWidget.h</header>
   </customwidget>
   <customwidget>
+   <class>qSlicerWidget</class>
+   <extends>QWidget</extends>
+   <header>qSlicerWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>qMRMLColorTableView</class>
    <extends>QTableView</extends>
    <header>qMRMLColorTableView.h</header>
@@ -787,14 +823,10 @@
    <header>qMRMLNodeComboBox.h</header>
    <container>1</container>
   </customwidget>
-  <customwidget>
-   <class>qSlicerWidget</class>
-   <extends>QWidget</extends>
-   <header>qSlicerWidget.h</header>
-   <container>1</container>
-  </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../qSlicerIsodoseModule.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>qSlicerIsodoseModule</sender>

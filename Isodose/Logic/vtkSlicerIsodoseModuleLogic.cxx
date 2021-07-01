@@ -39,6 +39,11 @@
 #include <vtkMRMLScene.h>
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
+#include <vtkMRMLSegmentationNode.h>
+#include <vtkMRMLSegmentationDisplayNode.h>
+
+// DicomRtImportExport includes
+#include <vtkPlanarContourToClosedSurfaceConversionRule.h>
 
 // MRMLLogic includes
 #include <vtkMRMLColorLogic.h>
@@ -59,7 +64,12 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTriangleFilter.h>
 #include <vtkWindowedSincPolyDataFilter.h>
+#include <vtkBooleanOperationPolyDataFilter.h>
+#include <vtkAppendPolyData.h>
 #include "vtksys/SystemTools.hxx"
+
+// STD includes
+#include <tuple>
 
 //----------------------------------------------------------------------------
 const char* DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME = "Isodose_ColorTable.ctbl";
@@ -659,13 +669,6 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     return;
   }
 
-  // Check existing isodose set and remove if exists
-  vtkIdType isodoseFolderItemID = this->GetIsodoseFolderItemID(doseVolumeNode);
-  if (isodoseFolderItemID)
-  {
-    shNode->RemoveItem(isodoseFolderItemID, true, true);
-  }
-
   // Check if that absolute of relative values
   bool relativeFlag = false;
   vtkMRMLIsodoseNode::DoseUnitsType doseUnits = parameterNode->GetDoseUnits();
@@ -683,9 +686,38 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     vtkSlicerIsodoseModuleLogic::ISODOSE_RELATIVE_ROOT_HIERARCHY_NAME_POSTFIX :
     vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX;
 
-  // Setup isodose subject hierarchy folder
+  // Segmentation node data
+  vtkIdType segmentationShItemID = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
+
+  // Setup isodose subject hierarchy folder if isodose representation is not segmentation node
   std::string isodoseFolderName = std::string(doseVolumeNode->GetName()) + isodoseName;
-  isodoseFolderItemID = shNode->CreateFolderItem(doseShItemID, isodoseFolderName);
+
+  vtkNew<vtkMRMLSegmentationNode> segmentationNode;
+  std::string segmentationNodeName = scene->GenerateUniqueName(isodoseFolderName.c_str());
+  segmentationNode->SetName(segmentationNodeName.c_str());
+  scene->AddNode(segmentationNode);
+
+  // Set master representation to closed surface
+  segmentationNode->SetMasterRepresentationToClosedSurface();
+
+  double doseVolumeSpacing[3] = { 0.0, 0.0, 0.0 };
+
+  // Get image geometry from previously loaded volume if found
+  // Segmentation node checks added nodes and sets the geometry parameter in case the referenced volume is loaded later
+  segmentationNode->SetReferenceImageGeometryParameterFromVolumeNode(doseVolumeNode);
+  doseVolumeNode->GetSpacing(doseVolumeSpacing);
+
+  // Set up subject hierarchy node for segmentation
+  segmentationShItemID = shNode->CreateItem(shNode->GetSceneItemID(), segmentationNode);
+  shNode->SetItemUID(segmentationShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMUIDName(), "");
+  shNode->SetItemAttribute(segmentationShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_ROI_REFERENCED_SERIES_UID_ATTRIBUTE_NAME, "");
+  shNode->SetItemAttribute(segmentationShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(), "" );
+
+  // Setup segmentation display and storage
+  vtkNew<vtkMRMLSegmentationDisplayNode> segmentationDisplayNode;
+  scene->AddNode(segmentationDisplayNode);
+  segmentationNode->SetAndObserveDisplayNodeID(segmentationDisplayNode->GetID());
+  segmentationDisplayNode->SetBackfaceCulling(0);
 
   // Get color table
   vtkMRMLColorTableNode* colorTableNode = parameterNode->GetColorTableNode();
@@ -722,19 +754,19 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   int currentProgressStep = 0;
 
   // Reslice dose volume
-  vtkSmartPointer<vtkMatrix4x4> inputIJK2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkNew<vtkMatrix4x4> inputIJK2RASMatrix;
   doseVolumeNode->GetIJKToRASMatrix(inputIJK2RASMatrix);
-  vtkSmartPointer<vtkMatrix4x4> inputRAS2IJKMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkNew<vtkMatrix4x4> inputRAS2IJKMatrix;
   doseVolumeNode->GetRASToIJKMatrix(inputRAS2IJKMatrix); 
 
-  vtkSmartPointer<vtkTransform> outputIJK2IJKResliceTransform = vtkSmartPointer<vtkTransform>::New(); 
+  vtkNew<vtkTransform> outputIJK2IJKResliceTransform; 
   outputIJK2IJKResliceTransform->Identity();
   outputIJK2IJKResliceTransform->PostMultiply();
   outputIJK2IJKResliceTransform->SetMatrix(inputIJK2RASMatrix);
 
   vtkSmartPointer<vtkMRMLTransformNode> inputVolumeNodeTransformNode = doseVolumeNode->GetParentTransformNode();
-  vtkSmartPointer<vtkMatrix4x4> inputRAS2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (inputVolumeNodeTransformNode!=nullptr)
+  vtkNew<vtkMatrix4x4> inputRAS2RASMatrix;
+  if (inputVolumeNodeTransformNode)
   {
     inputVolumeNodeTransformNode->GetMatrixTransformToWorld(inputRAS2RASMatrix);  
     outputIJK2IJKResliceTransform->Concatenate(inputRAS2RASMatrix);
@@ -745,14 +777,13 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
 
   int dimensions[3] = {0, 0, 0};
   doseVolumeNode->GetImageData()->GetDimensions(dimensions);
-  vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
+  vtkNew<vtkImageReslice> reslice;
   reslice->SetInputData(doseVolumeNode->GetImageData());
   reslice->SetOutputOrigin(0, 0, 0);
   reslice->SetOutputSpacing(1, 1, 1);
   reslice->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
   reslice->SetResliceTransform(outputIJK2IJKResliceTransform);
   reslice->Update();
-  vtkSmartPointer<vtkImageData> reslicedDoseVolumeImage = reslice->GetOutput(); 
 
   // Report progress
   ++currentProgressStep;
@@ -762,10 +793,12 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   // reference value for relative representation
   double referenceValue = parameterNode->GetReferenceDoseValue();
 
+  std::vector< std::tuple< std::string, std::array< double, 6>, vtkSmartPointer<vtkPolyData> > > singleBorderData;
+
   // Create isodose surfaces
   for (int i = 0; i < colorTableNode->GetNumberOfColors(); i++)
   {
-    double val[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    std::array< double, 6 > val;
     const char* strIsoLevel = colorTableNode->GetColorName(i);
     double isoLevel = vtkVariant(strIsoLevel).ToDouble();
     // change isoLevel value for relative representation
@@ -776,10 +809,10 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
         isoLevel = isoLevel * referenceValue / 100.;
       }
     }
-    colorTableNode->GetColor(i, val);
-
-    vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();
-    marchingCubes->SetInputData(reslicedDoseVolumeImage);
+    colorTableNode->GetColor(i, val.data());
+    
+    vtkNew<vtkImageMarchingCubes> marchingCubes;
+    marchingCubes->SetInputData(reslice->GetOutput());
     marchingCubes->SetNumberOfContours(1); 
     marchingCubes->SetValue(0, isoLevel);
     marchingCubes->ComputeScalarsOff();
@@ -787,14 +820,14 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     marchingCubes->ComputeNormalsOff();
     marchingCubes->Update();
 
-    vtkSmartPointer<vtkPolyData> isoPolyData= marchingCubes->GetOutput();
-    if (isoPolyData->GetNumberOfPoints() >= 1)
+    vtkPolyData* isoPolyData = marchingCubes->GetOutput();
+    if (isoPolyData && isoPolyData->GetNumberOfPoints() > 0)
     {
-      vtkSmartPointer<vtkTriangleFilter> triangleFilter = vtkSmartPointer<vtkTriangleFilter>::New();
+      vtkNew<vtkTriangleFilter> triangleFilter;
       triangleFilter->SetInputData(marchingCubes->GetOutput());
       triangleFilter->Update();
 
-      vtkSmartPointer<vtkDecimatePro> decimate = vtkSmartPointer<vtkDecimatePro>::New();
+      vtkNew<vtkDecimatePro> decimate;
       decimate->SetInputData(triangleFilter->GetOutput());
       decimate->SetTargetReduction(0.6);
       decimate->SetFeatureAngle(60);
@@ -803,55 +836,30 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
       decimate->SetMaximumError(1);
       decimate->Update();
 
-      vtkSmartPointer<vtkWindowedSincPolyDataFilter> smootherSinc = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+      vtkNew<vtkWindowedSincPolyDataFilter> smootherSinc;
       smootherSinc->SetPassBand(0.1);
-      smootherSinc->SetInputData(decimate->GetOutput() );
+      smootherSinc->SetInputData(decimate->GetOutput());
       smootherSinc->SetNumberOfIterations(2);
       smootherSinc->FeatureEdgeSmoothingOff();
       smootherSinc->BoundarySmoothingOff();
       smootherSinc->Update();
 
-      vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+      vtkNew<vtkPolyDataNormals> normals;
       normals->SetInputData(smootherSinc->GetOutput());
       normals->ComputePointNormalsOn();
       normals->SetFeatureAngle(60);
       normals->Update();
 
-      vtkSmartPointer<vtkTransform> inputIJKToRASTransform = vtkSmartPointer<vtkTransform>::New();
+      vtkNew<vtkTransform> inputIJKToRASTransform;
       inputIJKToRASTransform->Identity();
       inputIJKToRASTransform->SetMatrix(inputIJK2RASMatrix);
 
-      vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyData = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+      vtkNew<vtkTransformPolyDataFilter> transformPolyData;
       transformPolyData->SetInputData(normals->GetOutput());
       transformPolyData->SetTransform(inputIJKToRASTransform);
       transformPolyData->Update();
-  
-      vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-      displayNode = vtkMRMLModelDisplayNode::SafeDownCast(scene->AddNode(displayNode));
-      displayNode->Visibility2DOn();  
-      displayNode->VisibilityOn(); 
-      displayNode->SetColor(val[0], val[1], val[2]);
-      displayNode->SetOpacity(val[3]);
-    
-      // Disable backface culling to make the back side of the model visible as well
-      displayNode->SetBackfaceCulling(0);
 
-      vtkSmartPointer<vtkMRMLModelNode> isodoseModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
-      std::string isodoseModelNodeName = vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_PREFIX + strIsoLevel + doseUnitName;
-      isodoseModelNode->SetName(isodoseModelNodeName.c_str());
-      isodoseModelNode->SetSelectable(1);
-      isodoseModelNode->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1"); // The attribute above distinguishes isodoses from regular models
-      scene->AddNode(isodoseModelNode);
-      isodoseModelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
-      isodoseModelNode->SetAndObservePolyData(transformPolyData->GetOutput());
-      shNode->RequestOwnerPluginSearch(isodoseModelNode); //TODO: Why is this needed?
-
-      // Put the new node in the isodose folder
-      vtkIdType isodoseModelItemID = shNode->GetItemByDataNode(isodoseModelNode);
-      if (isodoseModelItemID) // There is no automatic SH creation in automatic tests 
-      {
-        shNode->SetItemParent(isodoseModelItemID, isodoseFolderItemID);
-      }
+      singleBorderData.push_back({ std::string(strIsoLevel), val, transformPolyData->GetOutput()});
     }
 
     // Report progress
@@ -864,6 +872,72 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   this->UpdateDoseColorTableFromIsodose(parameterNode);
 
   scene->EndState(vtkMRMLScene::BatchProcessState);
+
+  switch (parameterNode->GetBorderMode())
+  {
+  case vtkMRMLIsodoseNode::Double:
+    {
+      for (size_t i = 1; i < singleBorderData.size(); ++i)
+      {
+        vtkNew<vtkAppendPolyData> append;
+        std::string prevLevelString;
+        vtkSmartPointer<vtkPolyData> prevPolyData;
+        std::tie( prevLevelString, std::ignore, prevPolyData) = singleBorderData[i - 1];
+
+        std::string currLevelString;
+        std::array< double, 6 > currColor;
+        vtkSmartPointer<vtkPolyData> currPolyData;
+        std::tie( currLevelString, currColor, currPolyData) = singleBorderData[i];
+        const double* currVal = currColor.data();
+
+        append->AddInputData(prevPolyData);
+        append->AddInputData(currPolyData);
+        append->Update();
+
+        // Add segment for double border isolevels
+        std::string name = prevLevelString + "-" + currLevelString;
+        vtkNew<vtkSegment> segment;
+        segment->SetName(name.c_str());
+        segment->SetColor(currVal[0], currVal[1], currVal[2]);
+        segment->AddRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName(), append->GetOutput());
+        segmentationNode->GetSegmentation()->AddSegment(segment);
+
+        // Add DICOM ROI number as tag to the segment
+        segment->SetTag(vtkSlicerRtCommon::DICOMRTIMPORT_ROI_NUMBER_SEGMENT_TAG_NAME, std::to_string(i).c_str());
+      }
+    }
+    break;
+  case vtkMRMLIsodoseNode::Single:
+    {
+      // Fill segmentation node data with single border mode
+      int i = 0;
+      for (const auto& tupleValue : singleBorderData)
+      {
+        std::string isoLevelString;
+        std::array< double, 6 > colorValue;
+        vtkSmartPointer<vtkPolyData> polyData;
+        std::tie( isoLevelString, colorValue, polyData) = tupleValue;
+        const double* val = colorValue.data();
+    
+        // Add segment for current structure
+        vtkNew<vtkSegment> segment;
+        segment->SetName(isoLevelString.c_str());
+        segment->SetColor(val[0], val[1], val[2]);
+        segment->AddRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName(), polyData);
+        segmentationNode->GetSegmentation()->AddSegment(segment);
+
+        // Add DICOM ROI number as tag to the segment
+        segment->SetTag(vtkSlicerRtCommon::DICOMRTIMPORT_ROI_NUMBER_SEGMENT_TAG_NAME, std::to_string(i).c_str());
+        ++i;
+      } // For all isodose levels
+    }
+    break;
+  }
+  // Set fill opacity and parent
+//  segmentationDisplayNode->SetAllSegmentsOpacity2DFill(0.);
+//  segmentationDisplayNode->SetAllSegmentsVisibility(true);
+  // dose volume as a parent in subject hierarchy
+  shNode->SetItemParent( segmentationShItemID, doseShItemID);
 }
 
 //---------------------------------------------------------------------------
