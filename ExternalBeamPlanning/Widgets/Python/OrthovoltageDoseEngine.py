@@ -332,7 +332,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     enflag = 2        # for ph-sp beam input or full BEAM sim.
     mode = 0          # default file format for ph-sp data (enflag=2)
     medsur = 0        # medium number for the region outside the phantom             # I=8: 1
-    dsurround_1 = 10  # thickness (cm) of region surrounding phantom in x direction  # I=8: 30
+    dsurround_1 = 60  # thickness (cm) of region surrounding phantom in x direction  # I=8: 30
     dflag = 0         # dsurround(1) applied to x direction only                     # I=8: 1
     dsurround_2 = 0   # thickness (cm) of region surrounding phantom in y direction  # I=8: 60
     dsurround_3 = 0   # thickness (cm) of region surrounding phantom in +z direction # I=8: 30
