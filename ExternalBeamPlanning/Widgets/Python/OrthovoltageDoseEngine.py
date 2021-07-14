@@ -342,6 +342,11 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     # Record SC1-8a
     (theta, phi, phicol) = EGSnrcUtil.dcm2dosxyz(
       beamNode.GetGantryAngle(), beamNode.GetCouchAngle(), beamNode.GetCollimatorAngle() )
+    # Truncate angles to 3 decimals to prevent hang in dosexyz.
+    theta = math.floor(theta*1000)/1000
+    phi = math.floor(phi*1000)/1000
+    phicol = math.floor(phicol*1000)/1000
+
     # nang1_theta = theta # incident theta angle
     # nang1_phi = phi     # incident phi angle
     # nang1_pang = 1      # probability of a particle being incident at theta(i)-phi(i)
