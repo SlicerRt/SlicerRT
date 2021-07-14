@@ -192,6 +192,25 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
       "Orthovoltage dose", "IHowFarLess", "Enable HOWFARLESS algorithm:",
       "If checked, enables 'HOWFARLESS' algorithm for transport in a homogeneous phantom.", False)
 
+    self.scriptedEngine.addBeamParameterCheckBox(
+      "Orthovoltage dose", "IDBS", "Enable directional bremsstrahlung splitting:",
+      "If checked, enables directional bremsstrahlung splitting (DBS).", True)
+
+    self.scriptedEngine.addBeamParameterLineEdit(
+      "Orthovoltage dose", "RDBS", "DBS splitting radius (cm):",
+      "DBS splitting radius used in BEAMnrc simulation (cm).\n\
+      Set to 0 to disable this option. Only needed if DBS is enabled.", 10)
+
+    self.scriptedEngine.addBeamParameterLineEdit(
+      "Orthovoltage dose", "SSDDBS", "DBS SSD (cm):",
+      "SSD at which r_dbs is defined in the BEAM sim. (cm).\n\
+      Only needed if DBS is enabled.", 20)
+
+    self.scriptedEngine.addBeamParameterLineEdit(
+      "Orthovoltage dose", "ZDBS", "DBS Z (cm):",
+       "Z in the BEAMnrc run where the phase space source was scored (cm).\n\
+      Only needed if DBS is enabled.", 20)
+
   #------------------------------------------------------------------------------
   #TODO: Add a path parameter type using the CTK path selector that saves the selections to Application Settings
   def savePathsInApplicationSettings(self, beamNode):
@@ -314,10 +333,10 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
 
     nang = 1 # number of incident theta-phi pairs
     dsource = self.scriptedEngine.parameter(beamNode, "DistanceSourceToIsocenter") # absolute distance from isocenter to source center
-    i_dbs = 1 # I=8: 0
-    r_dbs = 10 # I=8: 0
-    ssd_dbs = 20 # I=8: 0
-    z_dbs = 20 # I=8: 0
+    i_dbs = int(self.scriptedEngine.booleanParameter(beamNode, "IDBS")) # I=8: 0
+    r_dbs = self.scriptedEngine.parameter(beamNode, "RDBS") # I=8: 0
+    ssd_dbs = self.scriptedEngine.parameter(beamNode, "SSDDBS") # I=8: 0
+    z_dbs = self.scriptedEngine.parameter(beamNode, "ZDBS") # I=8: 0
     e_split = 0
 
     # Record SC1-8a
