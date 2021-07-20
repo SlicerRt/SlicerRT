@@ -133,6 +133,10 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     "Enter absolute distance from source to isocenter (cm):", "0")
 
     self.scriptedEngine.addBeamParameterLineEdit(
+      "Orthovoltage dose", "MedSur", "Surrounding medium:",
+      "Medium number for the region outside the phantom. Default = 0 (vacuum)", "0")
+
+    self.scriptedEngine.addBeamParameterLineEdit(
       "Orthovoltage dose", "NumHistories", "Number of histories:",
       "Number of histories to use for simulation", "129796480")
 
@@ -353,14 +357,14 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     #                     # (probabilities are automatically normalized to 1).
 
     # Record SC2
-    enflag = 2        # for ph-sp beam input or full BEAM sim.
-    mode = 0          # default file format for ph-sp data (enflag=2)
-    medsur = 1        # medium number for the region outside the phantom             # I=8: 1
-    dsurround_1 = 60  # thickness (cm) of region surrounding phantom in x direction  # I=8: 30
-    dflag = 0         # dsurround(1) applied to x direction only                     # I=8: 1
-    dsurround_2 = 0   # thickness (cm) of region surrounding phantom in y direction  # I=8: 60
-    dsurround_3 = 0   # thickness (cm) of region surrounding phantom in +z direction # I=8: 30
-    dsurround_4 = 0   # thickness (cm) of region surrounding phantom in -z direction # I=8: 30
+    enflag = 2                                                  # for ph-sp beam input or full BEAM sim.
+    mode = 0                                                    # default file format for ph-sp data (enflag=2)
+    medsur = self.scriptedEngine.parameter(beamNode, "MedSur")  # medium number for the region outside the phantom             # I=8: 1
+    dsurround_1 = 60                                            # thickness (cm) of region surrounding phantom in x direction  # I=8: 30
+    dflag = 0                                                   # dsurround(1) applied to x direction only                     # I=8: 1
+    dsurround_2 = 0                                             # thickness (cm) of region surrounding phantom in y direction  # I=8: 60
+    dsurround_3 = 0                                             # thickness (cm) of region surrounding phantom in +z direction # I=8: 30
+    dsurround_4 = 0                                             # thickness (cm) of region surrounding phantom in -z direction # I=8: 30
 
     # Record 13
     ncase = self.scriptedEngine.parameter(beamNode, "NumHistories")
