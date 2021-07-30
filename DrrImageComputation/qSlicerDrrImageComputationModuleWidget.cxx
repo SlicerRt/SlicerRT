@@ -186,7 +186,6 @@ void qSlicerDrrImageComputationModuleWidget::setParameterNode(vtkMRMLNode *node)
       vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(d->MRMLNodeComboBox_RtBeam->currentNode());
 //      qvtkConnect( beamNode, vtkMRMLRTBeamNode::BeamTransformModified, this, SLOT(updateNormalAndVupVectors()));
       parameterNode->SetAndObserveBeamNode(beamNode);
-      parameterNode->Modified();
     }
   }
   this->updateWidgetFromMRML();
@@ -321,8 +320,7 @@ void qSlicerDrrImageComputationModuleWidget::onRTBeamNodeChanged(vtkMRMLNode* no
     return;
   }
 
-  parameterNode->SetAndObserveBeamNode(beamNode);
-  parameterNode->Modified(); // Update imager and image markups, DRR arguments in logic
+  parameterNode->SetAndObserveBeamNode(beamNode); // Update imager and image markups, DRR arguments in logic
 }
 
 //-----------------------------------------------------------------------------
@@ -451,8 +449,7 @@ void qSlicerDrrImageComputationModuleWidget::onIsocenterImagerDistanceValueChang
     return;
   }
 
-  parameterNode->SetIsocenterImagerDistance(value);
-  parameterNode->Modified(); // Update imager and image markups, DRR arguments
+  parameterNode->SetIsocenterImagerDistance(value); // Update imager and image markups, DRR arguments
 }
 
 //-----------------------------------------------------------------------------
@@ -467,8 +464,7 @@ void qSlicerDrrImageComputationModuleWidget::onImagerSpacingChanged(double* spac
   }
 
   double s[2] = { spacing[0], spacing[1] }; // columns, rows
-  parameterNode->SetImagerSpacing(s);
-  parameterNode->Modified(); // Update imager and image markups, DRR arguments
+  parameterNode->SetImagerSpacing(s); // Update imager and image markups, DRR arguments
 }
 
 //-----------------------------------------------------------------------------
@@ -494,8 +490,7 @@ void qSlicerDrrImageComputationModuleWidget::onImagerResolutionChanged(double* r
 
   int imagerResolution[2] = { static_cast<int>(res[0]), static_cast<int>(res[1]) }; // x, y
 
-  parameterNode->SetImagerResolution(imagerResolution);
-  parameterNode->Modified(); // Update imager and image markups, DRR arguments
+  parameterNode->SetImagerResolution(imagerResolution); // Update imager and image markups, DRR arguments
 }
 
 //-----------------------------------------------------------------------------
@@ -513,8 +508,7 @@ void qSlicerDrrImageComputationModuleWidget::onUpdateBeamFromCameraClicked()
   // Update DRR RT beam parameters from observed 3D camera node data
   if (d->logic()->UpdateBeamFromCamera(parameterNode))
   {
-    d->logic()->UpdateMarkupsNodes(parameterNode); // Update markups geometry
-    parameterNode->Modified(); // Update imager and image markups, DRR arguments
+    d->logic()->UpdateMarkupsNodes(parameterNode); // Update imager and image markups, DRR arguments
   }
 }
 
@@ -535,8 +529,7 @@ void qSlicerDrrImageComputationModuleWidget::onImageWindowColumnsValuesChanged(d
   imageWindow[0] = start_column;
   imageWindow[2] = end_column;
 
-  parameterNode->SetImageWindow(imageWindow);
-  parameterNode->Modified(); // Update imager and image markups, DRR arguments
+  parameterNode->SetImageWindow(imageWindow); // Update imager and image markups, DRR arguments
 }
 
 //-----------------------------------------------------------------------------
@@ -556,8 +549,7 @@ void qSlicerDrrImageComputationModuleWidget::onImageWindowRowsValuesChanged( dou
   imageWindow[1] = start_row;
   imageWindow[3] = end_row;
 
-  parameterNode->SetImageWindow(imageWindow);
-  parameterNode->Modified(); // Update imager and image markups, DRR arguments
+  parameterNode->SetImageWindow(imageWindow); // Update imager and image markups, DRR arguments
 }
 
 //-----------------------------------------------------------------------------
@@ -597,8 +589,7 @@ void qSlicerDrrImageComputationModuleWidget::onUseImageWindowToggled(bool value)
 //    imageWindow[3] = static_cast<int>(window[1] - 1.); // r2 = y2
   }
 
-  parameterNode->SetImageWindowFlag(value);
-  parameterNode->Modified(); // Update imager and image markups, DRR arguments
+  parameterNode->SetImageWindowFlag(value); // Update imager and image markups, DRR arguments
 }
 
 //-----------------------------------------------------------------------------
