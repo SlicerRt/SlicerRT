@@ -1,6 +1,7 @@
 import os, shutil
 import vtk, qt, ctk, slicer
 import logging
+import json
 from DoseEngines import AbstractScriptedDoseEngine
 from DoseEngines import OrthovoltageDoseEngineUtil
 from DoseEngines import EGSnrcUtil
@@ -82,23 +83,23 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     "Enter desired slice thickness in Z direction for output ctcreate phantom. If not x,y,z slice \
     thickness not provided, will use same thickness from original CT image volume", "")
 
+    defaultMaterials = [
+      {
+      "Name": "AIR512ICRU",
+      "Ramp": "-200, 0.001205, 0.001205"
+      },
+      {
+      "Name": "H2O512ICRU",
+      "Ramp": "200, 1.0, 1.0"
+      }
+    ]
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "AirMaterial", "Air material:",
-    "Enter the air material name.", "AIR512ICRU")
+      "Generate ctcreate phantom", "Materials", "Materials:",
+      "JSON string containing all of the material names and ramp values.", json.dumps(defaultMaterials))
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "AirRampParameters", "Air ramp parameters:",
-    "Enter the air ramp parameters. Parameters are: material ct upper bound, \
-    material density lower bound, material density upper bound.", "-200, 0.001205, 0.001205")
-
-    self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "H2OMaterial", "H2O material:",
-    "Enter the H2O material name.", "H2O512ICRU")
-
-    self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "H2ORampParameters", "H2O ramp parameters:",
-    "Enter the H2O ramp parameters. Parameters are: material ct upper bound, \
-    material density lower bound, material density upper bound.", "200, 1.0, 1.0")
+      "Generate ctcreate phantom", "LowerBound", "Lower bound:",
+      "Lower CT number for the first medium in the ramp.", "-1024")
 
     ##########################################
     # Orthovoltage dose parameters tab
@@ -296,15 +297,16 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     # Call ctcreate
     ##########################################
 
-    waterMaterialName = self.scriptedEngine.parameter(beamNode, "H2OMaterial")
-    waterRampParameters = self.scriptedEngine.parameter(beamNode, "H2ORampParameters")
 
-    airMaterialName = self.scriptedEngine.parameter(beamNode, "AirMaterial")
-    airRampParameters = self.scriptedEngine.parameter(beamNode, "AirRampParameters")
+    materialJSON = self.scriptedEngine.parameter(beamNode, "Materials")
+    try:
+      materials = json.loads(materialJSON)
+    except:
+      logging.error("Unable parse materials JSON string")
 
-    materials = [(waterMaterialName, waterRampParameters), (airMaterialName, airRampParameters)]
+    lowerBound = self.scriptedEngine.parameter(beamNode, "LowerBound")
 
-    OrthovoltageDoseEngineUtil.generateCtcreateInput(volumeNode, seriesUID, ctcreateOutputPath, materials, roiNode, thicknesses)
+    OrthovoltageDoseEngineUtil.generateCtcreateInput(volumeNode, seriesUID, ctcreateOutputPath, materials, lowerBound, roiNode, thicknesses)
     EGSnrcUtil.callCtcreate(ctcreateExecFilePath, ctcreateOutputPath)
 
     if self.scriptedEngine.booleanParameter(beamNode, "CTCreateOnly"):

@@ -15,7 +15,7 @@ from DoseEngines import EGSnrcUtil
 
 
 #-----------------------------------------------------------------------------
-def generateCtcreateInputFile(slicenamesFilename, volumeRoiArrayCm, voxelThickness, outputFolder, materials):
+def generateCtcreateInputFile(slicenamesFilename, volumeRoiArrayCm, voxelThickness, outputFolder, materials, lowerBound):
   """ Generate ctcreate.inp file, which is used to execute ctcreate
       Input records are described in the DOSXYZnrc Users Manual.
   """
@@ -35,8 +35,7 @@ def generateCtcreateInputFile(slicenamesFilename, volumeRoiArrayCm, voxelThickne
   outFile.write(", ".join(map(str, voxelThickness)) + "\n")
 
   # CT Record 5 num_material, material_ct_lower_bound
-  outFile.write("2, -1024\n")
-  # outFile.write("4, -1024\n")
+  outFile.write("{numMaterials}, {lowerBound}\n".format(numMaterials=len(materials), lowerBound=lowerBound))
 
   """ Record 6 defines the material name, followed by the ramp parameters
       for each material. The ramp parameters are: material ct upper bound,
@@ -56,13 +55,13 @@ def generateCtcreateInputFile(slicenamesFilename, volumeRoiArrayCm, voxelThickne
       Users Manual.
   """
   # CT Record 6 information about material (for i=1 to num_material)
-  for materialName, rampParameters in materials:
-    outFile.write("{0}\n".format(materialName))
-    outFile.write("{0}\n".format(rampParameters))
+  for material in materials:
+    outFile.write("{0}\n".format(material["Name"]))
+    outFile.write("{0}\n".format(material["Ramp"]))
   outFile.close()
 
 #-----------------------------------------------------------------------------
-def generateCtcreateInput(volumeNode, ctDicomSeriesUID, outputFolder, materials, roiNode=None, voxelThicknessMm=None):
+def generateCtcreateInput(volumeNode, ctDicomSeriesUID, outputFolder, materials, lowerBound, roiNode=None, voxelThicknessMm=None):
   """ Generate all files needed as input to ctcreate
 
       NOTE: need to supply outputFolder path with 2 slashes (ie "C:\\d\\outputFolder")
@@ -103,5 +102,5 @@ def generateCtcreateInput(volumeNode, ctDicomSeriesUID, outputFolder, materials,
   voxelThicknessCm = [dimension/10 for dimension in voxelThicknessMm]
 
   EGSnrcUtil.generateSlicenamesTextfile(ctDicomSeriesUID, slicenamesFilename, outputFolder)
-  generateCtcreateInputFile(slicenamesFilename, volumeRoiArrayCm, voxelThicknessCm, outputFolder, materials)
+  generateCtcreateInputFile(slicenamesFilename, volumeRoiArrayCm, voxelThicknessCm, outputFolder, materials, lowerBound)
   return True
