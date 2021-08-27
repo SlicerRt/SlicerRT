@@ -171,9 +171,16 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
       "Orthovoltage dose", "PegsFilePath", "Path to pegs4 data file:",
       "Enter file path to .pegs5dat file", pegsFilePath)
 
-    self.scriptedEngine.addBeamParameterCheckBox(
-      "Orthovoltage dose", "CTCreateOnly", "Generate ctcreate phantom only:",
-      "If checked, only the ctcreate file will be generated", False)
+    self.runCTCreateAndDoseXYZnrcIndex = 0
+    self.runCTCreateOnlyIndex = 1
+    self.runDOSXYZnrcOnlyIndex = 2
+    self.scriptedEngine.addBeamParameterComboBox(
+      "Orthovoltage dose", "RunCTCreateDOSXYZnrc", "Run ctcreate and DOSXYZnrc",
+      "Choose if only one, or both ctcreate and DOSXYZnrc should be run", ["ctcreate and DOSXYZnrc", "ctcreate only", "DOSXYZnrc only"], self.runCTCreateAndDoseXYZnrcIndex)
+
+    self.scriptedEngine.addBeamParameterLineEdit(
+      "Orthovoltage dose", "ExistingCtcreatePath", "Existing ctcreate file path (DOSXYZnrc only):",
+      "Enter file path for existing ctcreate phantom and related files. Required if only running DOSXYZnrc.", "")
 
     self.scriptedEngine.addBeamParameterCheckBox(
       "Orthovoltage dose", "ZeroAirDose", "Enable dose in air:",
@@ -297,19 +304,20 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     # Call ctcreate
     ##########################################
 
+    runCTCreateDOSXYZnrc = int(self.scriptedEngine.parameter(beamNode, "RunCTCreateDOSXYZnrc"))
+    if runCTCreateDOSXYZnrc != self.runCTCreateAndDoseXYZnrcIndex:
+      materialJSON = self.scriptedEngine.parameter(beamNode, "Materials")
+      try:
+        materials = json.loads(materialJSON)
+      except:
+        logging.error("Unable parse materials JSON string")
 
-    materialJSON = self.scriptedEngine.parameter(beamNode, "Materials")
-    try:
-      materials = json.loads(materialJSON)
-    except:
-      logging.error("Unable parse materials JSON string")
+      lowerBound = self.scriptedEngine.parameter(beamNode, "LowerBound")
+      
+      OrthovoltageDoseEngineUtil.generateCtcreateInput(volumeNode, seriesUID, ctcreateOutputPath, materials, lowerBound, roiNode, thicknesses)
+      EGSnrcUtil.callCtcreate(ctcreateExecFilePath, ctcreateOutputPath)
 
-    lowerBound = self.scriptedEngine.parameter(beamNode, "LowerBound")
-
-    OrthovoltageDoseEngineUtil.generateCtcreateInput(volumeNode, seriesUID, ctcreateOutputPath, materials, lowerBound, roiNode, thicknesses)
-    EGSnrcUtil.callCtcreate(ctcreateExecFilePath, ctcreateOutputPath)
-
-    if self.scriptedEngine.booleanParameter(beamNode, "CTCreateOnly"):
+    if runCTCreateDOSXYZnrc == self.runCTCreateOnlyIndex:
       resultDoseVolumeNode.SetAndObserveImageData(vtk.vtkImageData())
       return ""
 
@@ -348,7 +356,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     # Record SC1-8a
     (theta, phi, phicol) = EGSnrcUtil.dcm2dosxyz(
       beamNode.GetGantryAngle(), beamNode.GetCouchAngle(), beamNode.GetCollimatorAngle() )
-    # Truncate angles to 3 decimals to prevent hang in dosexyz.
+    # Truncate angles to 3 decimals to prevent hang in dosxyz.
     theta = math.floor(theta*1000)/1000
     phi = math.floor(phi*1000)/1000
     phicol = math.floor(phicol*1000)/1000
@@ -399,10 +407,18 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     dosXyznrcSessionFilePrefix = dateTimeStr + "_dosxyznrc"
     dosXyznrcInputFileName = dosXyznrcSessionFilePrefix + ".egsinp"
 
-    with open(os.path.join(ctcreateOutputPath, dosXyznrcInputFileName), "w") as dosXyzInFile:
+    ctcreateFilePath = ctcreateOutputPath
+    if runCTCreateDOSXYZnrc == self.runDOSXYZnrcOnlyIndex:
+       ctcreateFilePath = self.scriptedEngine.parameter(beamNode, "ExistingCtcreatePath")
+
+    if ctcreateFilePath == "":
+      logging.error("ctcreate file path not specified")
+      return
+
+    with open(os.path.join(ctcreateFilePath, dosXyznrcInputFileName), "w") as dosXyzInFile:
       dosXyzInFile.write(title + "\n")
       dosXyzInFile.write(str(nmed) + "\n")
-      dosXyzInFile.write(os.path.join(ctcreateOutputPath, "slicenames.txt.egsphant") + "\n") #TODO: remove hardcode
+      dosXyzInFile.write(os.path.join(ctcreateFilePath, "slicenames.txt.egsphant") + "\n") #TODO: remove hardcode
       dosXyzInFile.write("{}, {}, {}\n".format(ecut, pcut, smax))
       dosXyzInFile.write("{}, {}, {},\n".format(zeroairdose, doseprint, MAX20))
       # Note: This was for ISOSOURCE=8
@@ -449,7 +465,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     ##########################################
 
     # Copy DOSXYZnrc input file to dosxyznrc directory
-    shutil.copy2(os.path.join(ctcreateOutputPath, dosXyznrcInputFileName), dosxyznrcFolderPath)
+    shutil.copy2(os.path.join(ctcreateFilePath, dosXyznrcInputFileName), dosxyznrcFolderPath)
 
     # Run dose calculation
     import subprocess
