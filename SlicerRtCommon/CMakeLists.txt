@@ -23,8 +23,6 @@ SET (SlicerRtCommon_SRCS
   vtkPolyDataToLabelmapFilter.h
   vtkSlicerAutoWindowLevelLogic.cxx
   vtkSlicerAutoWindowLevelLogic.h
-  vtkCollisionDetectionFilter.cxx
-  vtkCollisionDetectionFilter.h
   vtkFractionalImageAccumulate.cxx
   vtkFractionalImageAccumulate.h
   vtkSlicerDicomReaderBase.cxx
