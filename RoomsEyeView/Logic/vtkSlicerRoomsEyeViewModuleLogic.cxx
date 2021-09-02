@@ -637,14 +637,14 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
 
   //
   // Set up collision detection between components
-  this->GantryTableTopCollisionDetection->SetInput(0, gantryModel->GetPolyData());
-  this->GantryTableTopCollisionDetection->SetInput(1, tableTopModel->GetPolyData());
+  this->GantryTableTopCollisionDetection->SetInputData(0, gantryModel->GetPolyData());
+  this->GantryTableTopCollisionDetection->SetInputData(1, tableTopModel->GetPolyData());
 
-  this->GantryPatientSupportCollisionDetection->SetInput(0, gantryModel->GetPolyData());
-  this->GantryPatientSupportCollisionDetection->SetInput(1, patientSupportModel->GetPolyData());
+  this->GantryPatientSupportCollisionDetection->SetInputData(0, gantryModel->GetPolyData());
+  this->GantryPatientSupportCollisionDetection->SetInputData(1, patientSupportModel->GetPolyData());
 
-  this->CollimatorTableTopCollisionDetection->SetInput(0, collimatorModel->GetPolyData());
-  this->CollimatorTableTopCollisionDetection->SetInput(1, tableTopModel->GetPolyData());
+  this->CollimatorTableTopCollisionDetection->SetInputData(0, collimatorModel->GetPolyData());
+  this->CollimatorTableTopCollisionDetection->SetInputData(1, tableTopModel->GetPolyData());
 
   //TODO: Whole patient (segmentation, CT) will need to be transformed when the table top is transformed
   //vtkMRMLLinearTransformNode* patientModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
@@ -652,8 +652,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels()
   //patientModel->SetAndObserveTransformNodeID(patientModelTransforms->GetID());
 
   // Patient model is set when calculating collisions, as it can be changed dynamically
-  this->GantryPatientCollisionDetection->SetInput(0, gantryModel->GetPolyData());
-  this->CollimatorPatientCollisionDetection->SetInput(0, collimatorModel->GetPolyData());
+  this->GantryPatientCollisionDetection->SetInputData(0, gantryModel->GetPolyData());
+  this->CollimatorPatientCollisionDetection->SetInputData(0, collimatorModel->GetPolyData());
   // Set identity transform for patient (parent transform is taken into account when getting poly data from segmentation)
   vtkNew<vtkTransform> identityTransform;
   identityTransform->Identity();
@@ -757,14 +757,14 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupBasicCollimatorMountedDeviceModels()
   //this->GetMRMLScene()->AddNode(outputModel);
   //outputModel->SetAndObservePolyData(output);
 
-  //this->AdditionalModelsTableTopCollisionDetection->SetInput(0, outputModel->GetPolyData());
-  //this->AdditionalModelsTableTopCollisionDetection->SetInput(1, tableTopModel->GetPolyData());
+  //this->AdditionalModelsTableTopCollisionDetection->SetInputData(0, outputModel->GetPolyData());
+  //this->AdditionalModelsTableTopCollisionDetection->SetInputData(1, tableTopModel->GetPolyData());
   //this->AdditionalModelsTableTopCollisionDetection->SetMatrix(0, this->CollimatorToWorldTransformMatrix);
   //this->AdditionalModelsTableTopCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
   //this->AdditionalModelsTableTopCollisionDetection->Update();
 
-  //this->AdditionalModelsPatientSupportCollisionDetection->SetInput(0, outputModel->GetPolyData());
-  //this->AdditionalModelsPatientSupportCollisionDetection->SetInput(1, patientSupportModel->GetPolyData());
+  //this->AdditionalModelsPatientSupportCollisionDetection->SetInputData(0, outputModel->GetPolyData());
+  //this->AdditionalModelsPatientSupportCollisionDetection->SetInputData(1, patientSupportModel->GetPolyData());
   //this->AdditionalModelsPatientSupportCollisionDetection->SetMatrix(0, this->CollimatorToWorldTransformMatrix);
   //this->AdditionalModelsPatientSupportCollisionDetection->SetMatrix(1, this->TableTopToWorldTransformMatrix);
   //this->AdditionalModelsPatientSupportCollisionDetection->Update();
@@ -1414,7 +1414,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
   vtkNew<vtkPolyData> patientBodyPolyData;
   if (this->GetPatientBodyPolyData(parameterNode, patientBodyPolyData))
   {
-    this->GantryPatientCollisionDetection->SetInput(1, patientBodyPolyData);
+    this->GantryPatientCollisionDetection->SetInputData(1, patientBodyPolyData);
     this->GantryPatientCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(gantryToRasTransform));
     this->GantryPatientCollisionDetection->Update();
     if (this->GantryPatientCollisionDetection->GetNumberOfContacts() > 0)
@@ -1422,7 +1422,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
       statusString = statusString + "Collision between gantry and patient\n";
     }
 
-    this->CollimatorPatientCollisionDetection->SetInput(1, patientBodyPolyData);
+    this->CollimatorPatientCollisionDetection->SetInputData(1, patientBodyPolyData);
     this->CollimatorPatientCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(collimatorToRasTransform));
     this->CollimatorPatientCollisionDetection->Update();
     if (this->CollimatorPatientCollisionDetection->GetNumberOfContacts() > 0)

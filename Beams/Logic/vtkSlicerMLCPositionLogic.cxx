@@ -1016,9 +1016,9 @@ bool vtkSlicerMLCPositionLogic::FindLeafAndTargetCollision( vtkMRMLRTBeamNode* v
   vtkNew<vtkTransform> leafTransform; // moving leaf transform
   leafTransform->Identity();
   vtkNew<vtkCollisionDetectionFilter> collide;
-  collide->SetInput( 0, leafPolyData); // moving leaf polydata
+  collide->SetInputData( 0, leafPolyData); // moving leaf polydata
   collide->SetTransform( 0, leafTransform);
-  collide->SetInput( 1, targetPolyData); // stationary target polydata
+  collide->SetInputData( 1, targetPolyData); // stationary target polydata
   collide->SetMatrix( 1, targetMatrix);
   collide->SetBoxTolerance(0.0);
   collide->SetCellTolerance(0.0);
