@@ -81,13 +81,13 @@
       <default>gauss</default>
       <description>Radial basis function to use</description>
     </string-enumeration>
-    <float>
+    <float-vector>
      <name>plmslc_landwarp_rbf_radius</name>
      <label>RBF radius</label>
      <longflag>rbfradius</longflag>
      <default>50.0</default>
      <description>Radius of the radial basis function</description>
-    </float>
+    </float-vector>
     <integer>
       <name>plmslc_landwarp_num_clusters</name>
       <label>Number of clusters</label>

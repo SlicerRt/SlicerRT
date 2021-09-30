@@ -99,7 +99,6 @@ main (int argc, char *argv[])
 
   /* Set other parameters */
   lw->default_val=plmslc_landwarp_default_value;
-  lw->rbf_radius=plmslc_landwarp_rbf_radius;
   lw->young_modulus=plmslc_landwarp_stiffness;
   lw->num_clusters=plmslc_landwarp_num_clusters;
 
@@ -110,6 +109,25 @@ main (int argc, char *argv[])
   if (plmslc_landwarp_moving_fiducials.size() < num_fiducials) {
     num_fiducials = plmslc_landwarp_moving_fiducials.size();
   }
+
+  unsigned long num_rbf_radius = plmslc_landwarp_rbf_radius.size();
+
+  if (num_rbf_radius != 1 && num_rbf_radius != num_fiducials){
+    return EXIT_FAILURE;
+  }
+
+  lw->adapt_radius = (float *)malloc(num_fiducials*sizeof(float));
+  lw->rbf_radius = 0.0;
+  for (unsigned long i = 0; i<num_fiducials; i++){
+    if (num_rbf_radius == 1){
+      lw->adapt_radius[i] = plmslc_landwarp_rbf_radius[0];
+    }else{
+      lw->adapt_radius[i] = plmslc_landwarp_rbf_radius[i];
+    }
+    lw->rbf_radius += lw->adapt_radius[i];
+  }
+
+  lw->rbf_radius = lw->rbf_radius / num_fiducials;
 
   /* NSh: pointset_load_fcsv assumes RAS, as does Slicer.
      For some reason, pointset_load_txt assumes LPS.
