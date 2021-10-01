@@ -135,7 +135,7 @@ void vtkSlicerPinnacleDvfReader::LoadDeformableSpatialRegistration(char *fileNam
   invMatrix->SetElement(0,0,-1);
   invMatrix->SetElement(1,1,-1);
 
-  ifstream readFileStream;
+  std::ifstream readFileStream;
   readFileStream.open(fileName, std::ios::binary);
   if (readFileStream.fail())
   {

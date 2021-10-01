@@ -58,7 +58,7 @@ void vtkSlicerPinnacleDvfReaderLogic::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkSlicerPinnacleDvfReaderLogic::LoadPinnacleDvf(char *filename, double gridOriginX, double gridOriginY, double gridOriginZ)
 {
-  ifstream readFileStream;
+  std::ifstream readFileStream;
   readFileStream.open(filename, std::ios::binary);
   if (readFileStream.fail())
   {
