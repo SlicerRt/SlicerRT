@@ -19,6 +19,9 @@
 
 ==============================================================================*/
 
+// Colors includes
+#include "vtkSlicerColorLogic.h"
+
 // Isodose includes
 #include "vtkSlicerIsodoseModuleLogic.h"
 #include "vtkMRMLIsodoseNode.h"
@@ -64,12 +67,15 @@
 //----------------------------------------------------------------------------
 const char* DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME = "Isodose_ColorTable.ctbl";
 const char* DEFAULT_ISODOSE_COLOR_TABLE_NODE_NAME = "Isodose_ColorTable_Default";
+const char* DEFAULT_ISODOSE_COLOR_TABLECOPY_NODE_NAME = "Isodose_ColorTable_DefaultCopy";
 const char* RELATIVE_ISODOSE_COLOR_TABLE_NODE_NAME = "Isodose_ColorTable_Relative";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_PREFIX = "IsodoseLevel_";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX = "IsodoseParameterSet_";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX = "_IsodoseSurfaces";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_RELATIVE_ROOT_HIERARCHY_NAME_POSTFIX = "_RelativeIsodoseSurfaces";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX = "_IsodoseColorTable";
+
+std::string vtkSlicerIsodoseModuleLogic::IsodoseColorNodeCopyUniqueName = DEFAULT_ISODOSE_COLOR_TABLECOPY_NODE_NAME;
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerIsodoseModuleLogic);
@@ -102,9 +108,26 @@ void vtkSlicerIsodoseModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
   {
     isodoseColorTableNode = vtkSlicerIsodoseModuleLogic::GetDefaultIsodoseColorTable(newScene);
   }
-  // Create dose color table if load/create succeeded
+  // Create a copy of default isodose color table. The copy can be edited.
   if (isodoseColorTableNode)
   {
+    // Get "Colors" module logic
+    auto aLogic = this->GetApplicationLogic()->GetModuleLogic("Colors");
+    vtkSlicerColorLogic* colorLogic = vtkSlicerColorLogic::SafeDownCast(aLogic);
+
+    // Create a copy of isodose color table with unique name
+    std::string& uniqueName = vtkSlicerIsodoseModuleLogic::IsodoseColorNodeCopyUniqueName;
+    uniqueName = this->GetMRMLScene()->GenerateUniqueName(isodoseColorTableNode->GetName());
+    vtkMRMLColorTableNode* colorNode = colorLogic->CopyNode(isodoseColorTableNode, uniqueName.c_str());
+    if (colorNode)
+    {
+      if (!this->GetMRMLScene()->AddNode(colorNode))
+      {
+        vtkErrorMacro("SetMRMLSceneInternal: Failed to add copy of default isodose color node to scene");
+      }
+      colorNode->Delete();
+    }
+    // Create dose color table for relative abnd absolute doses
     vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(newScene);
     vtkSlicerIsodoseModuleLogic::CreateRelativeDoseColorTable(newScene);
   }
@@ -263,9 +286,9 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::GetDefaultIsodoseColorTable(
     return nullptr;
   }
 
-  // Check if default color table node already exists
+  // Check if copy with unique name of default isodose color table node already exists
   vtkSmartPointer<vtkCollection> defaultIsodoseColorTableNodes = vtkSmartPointer<vtkCollection>::Take(
-    scene->GetNodesByName(DEFAULT_ISODOSE_COLOR_TABLE_NODE_NAME) );
+    scene->GetNodesByName(vtkSlicerIsodoseModuleLogic::IsodoseColorNodeCopyUniqueName.c_str()) );
   if (defaultIsodoseColorTableNodes->GetNumberOfItems() > 0)
   {
     if (defaultIsodoseColorTableNodes->GetNumberOfItems() != 1)
@@ -950,3 +973,9 @@ void vtkSlicerIsodoseModuleLogic::UpdateDoseColorTableFromIsodose(vtkMRMLIsodose
   doseVolumeDisplayNode->SetLowerThreshold(0.5 * doseUnitValue);
   doseVolumeDisplayNode->SetApplyThreshold(1);
 }
+
+//---------------------------------------------------------------------------
+//void vtkSlicerIsodoseModuleLogic::SetColorsLogic(vtkSlicerColorLogic* colorLogic)
+//{
+//  this->ColorLogic = colorLogic;
+//}

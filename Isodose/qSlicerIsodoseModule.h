@@ -61,6 +61,7 @@ public:
 
   /// Return the categories for the module
   QStringList categories()const override;
+  QStringList dependencies() const override;
 
 protected:
 
