@@ -39,6 +39,8 @@ class vtkMRMLIsodoseNode;
 class vtkMRMLModelHierarchyNode;
 class vtkMRMLScalarVolumeNode;
 
+class vtkSlicerColorLogic;
+
 /// \ingroup SlicerRt_QtModules_Isodose
 class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerIsodoseModuleLogic : public vtkSlicerModuleLogic
 {
@@ -108,6 +110,8 @@ protected:
 private:
   vtkSlicerIsodoseModuleLogic(const vtkSlicerIsodoseModuleLogic&) = delete;
   void operator=(const vtkSlicerIsodoseModuleLogic&) = delete;
+  /// Unique name of the copy of default isodose color table node
+  static std::string IsodoseColorNodeCopyUniqueName;
 };
 
 #endif

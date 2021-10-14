@@ -19,6 +19,10 @@
 
 ==============================================================================*/
 
+// SlicerQt includes
+#include <qSlicerCoreApplication.h>
+#include <qSlicerModuleManager.h>
+
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyIsodosePlugin.h"
@@ -26,9 +30,15 @@
 // Isodose Logic includes
 #include <vtkSlicerIsodoseModuleLogic.h>
 
+// Color Logic includes
+#include <vtkSlicerColorLogic.h>
+
 // Isodose includes
 #include "qSlicerIsodoseModule.h"
 #include "qSlicerIsodoseModuleWidget.h"
+
+// Qt includes
+#include <QDebug>
 
 //-----------------------------------------------------------------------------
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
@@ -92,6 +102,12 @@ QStringList qSlicerIsodoseModule::contributors()const
   moduleContributors << QString("Csaba Pinter (Queen's)");
   moduleContributors << QString("Andras Lasso (Queen's)");
   return moduleContributors;
+}
+
+//-----------------------------------------------------------------------------
+QStringList qSlicerIsodoseModule::dependencies() const
+{
+  return QStringList() << "Colors";
 }
 
 //-----------------------------------------------------------------------------
