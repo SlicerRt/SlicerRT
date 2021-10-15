@@ -105,6 +105,9 @@ protected slots:
   /// Slot called to set reference dose value
   void setReferenceDoseValue(double value);
 
+  /// Slot called to set isodose representation
+  void onIsoLevelsBorderModeToggled(bool toggled);
+
 protected:
   // Generates a new isodose level name
   QString generateNewIsodoseLevel() const;

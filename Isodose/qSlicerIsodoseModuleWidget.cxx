@@ -313,6 +313,16 @@ void qSlicerIsodoseModuleWidget::updateWidgetFromMRML()
     d->checkBox_ScalarBar2D->setChecked(paramNode->GetShowScalarBar2D());
 
     d->checkBox_ShowDoseVolumesOnly->setChecked(paramNode->GetShowDoseVolumesOnly());
+    switch (paramNode->GetBorderMode())
+    {
+    case vtkMRMLIsodoseNode::Double:
+      d->toggleButton_IsoLevelsBorderMode->setChecked(true);
+      break;
+    default:
+    case vtkMRMLIsodoseNode::Single:
+      d->toggleButton_IsoLevelsBorderMode->setChecked(false);
+      break;
+    }
   }
 }
 
@@ -343,6 +353,7 @@ void qSlicerIsodoseModuleWidget::setup()
   connect( d->checkBox_ScalarBar, SIGNAL(toggled(bool)), this, SLOT( setScalarBarVisibility(bool) ) );
   connect( d->checkBox_ScalarBar2D, SIGNAL(toggled(bool)), this, SLOT( setScalarBar2DVisibility(bool) ) );
 
+  connect( d->toggleButton_IsoLevelsBorderMode, SIGNAL(toggled(bool)), this, SLOT(onIsoLevelsBorderModeToggled(bool)) );
   connect( d->pushButton_Apply, SIGNAL(clicked()), this, SLOT(applyClicked()) );
   connect( d->groupBox_RelativeIsolevels, SIGNAL(toggled(bool)), this, SLOT(setRelativeIsolevelsFlag(bool)));
   connect( d->sliderWidget_ReferenceDose, SIGNAL(valueChanged(double)), this, SLOT(setReferenceDoseValue(double)));
@@ -920,6 +931,37 @@ void qSlicerIsodoseModuleWidget::updateButtonsState()
                    && paramNode->GetColorTableNode()
                    && paramNode->GetColorTableNode()->GetNumberOfColors() > 0;
   d->pushButton_Apply->setEnabled(applyEnabled);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerIsodoseModuleWidget::onIsoLevelsBorderModeToggled(bool toggled)
+{
+  Q_D(qSlicerIsodoseModuleWidget);
+
+  vtkMRMLIsodoseNode* paramNode = vtkMRMLIsodoseNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (paramNode)
+  {
+    if (toggled)
+    {
+      paramNode->SetBorderMode(vtkMRMLIsodoseNode::Double);
+    }
+    else
+    {
+      paramNode->SetBorderMode(vtkMRMLIsodoseNode::Single);
+    }
+  }
+
+  if (!toggled)
+  {
+    d->toggleButton_IsoLevelsBorderMode->setIcon(QIcon(":/Icons/IsodoseSingleBorder.png"));
+    d->toggleButton_IsoLevelsBorderMode->setToolTip(tr("Represent isodose as a surface with a single border aka solid mode. Surface shows dose higher that thesholdMin"));
+  }
+  else
+  {
+    d->toggleButton_IsoLevelsBorderMode->setIcon(QIcon(":/Icons/IsodoseDoubleBorder.png"));
+    d->toggleButton_IsoLevelsBorderMode->setToolTip(tr("Represent isodose as a surface with double borders aka ring mode. Surface shows dose higher than thesholdMin but lower than thesholdMax"));
+  }
+
 }
 
 //-----------------------------------------------------------

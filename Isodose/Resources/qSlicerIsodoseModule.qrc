@@ -1,5 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
   <qresource>
     <file>Icons/Isodose.png</file>
+    <file>Icons/IsodoseSingleBorder.png</file>
+    <file>Icons/IsodoseDoubleBorder.png</file>
   </qresource>
 </RCC>

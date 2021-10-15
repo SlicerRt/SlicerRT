@@ -53,6 +53,7 @@ vtkMRMLIsodoseNode::vtkMRMLIsodoseNode()
   this->DoseUnits = DoseUnitsType::Unknown;
   this->ReferenceDoseValue = -1.;
   this->RelativeRepresentationFlag = false;
+  this->BorderMode = BorderModeType::Single;
 
   this->HideFromEditors = false;
 }
@@ -73,6 +74,7 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLBooleanMacro(ShowScalarBar2D, ShowScalarBar2D);
   vtkMRMLWriteXMLBooleanMacro(ShowDoseVolumesOnly, ShowDoseVolumesOnly);
   vtkMRMLWriteXMLIntMacro(DoseUnits, DoseUnits);
+  vtkMRMLWriteXMLIntMacro(BorderMode, BorderMode);
   vtkMRMLWriteXMLFloatMacro(ReferenceDoseValue, ReferenceDoseValue);
   vtkMRMLWriteXMLBooleanMacro(RelativeRepresentationFlag, RelativeRepresentationFlag);
 
@@ -92,6 +94,7 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLBooleanMacro(ShowScalarBar2D, ShowScalarBar2D);
   vtkMRMLReadXMLBooleanMacro(ShowDoseVolumesOnly, ShowDoseVolumesOnly);
   vtkMRMLReadXMLIntMacro(DoseUnits, DoseUnits);
+  vtkMRMLReadXMLIntMacro(BorderMode, BorderMode);
   vtkMRMLReadXMLFloatMacro(ReferenceDoseValue, ReferenceDoseValue);
   vtkMRMLReadXMLBooleanMacro(RelativeRepresentationFlag, RelativeRepresentationFlag);
   vtkMRMLReadXMLEndMacro();
@@ -115,6 +118,7 @@ void vtkMRMLIsodoseNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyBooleanMacro(ShowScalarBar2D);
   vtkMRMLCopyBooleanMacro(ShowDoseVolumesOnly);
   vtkMRMLCopyIntMacro(DoseUnits);
+  vtkMRMLCopyIntMacro(BorderMode);
   vtkMRMLCopyFloatMacro(ReferenceDoseValue);
   vtkMRMLCopyBooleanMacro(RelativeRepresentationFlag);
   vtkMRMLCopyEndMacro();
@@ -134,6 +138,7 @@ void vtkMRMLIsodoseNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintBooleanMacro(ShowScalarBar2D);
   vtkMRMLPrintBooleanMacro(ShowDoseVolumesOnly);
   vtkMRMLPrintIntMacro(DoseUnits);
+  vtkMRMLPrintIntMacro(BorderMode);
   vtkMRMLPrintFloatMacro(ReferenceDoseValue);
   vtkMRMLPrintBooleanMacro(RelativeRepresentationFlag);
   vtkMRMLPrintEndMacro();
@@ -194,15 +199,30 @@ void vtkMRMLIsodoseNode::SetDoseUnits(int doseUnits)
 {
   switch (doseUnits)
   {
-    case 0:
-      SetDoseUnits(DoseUnitsType::Gy);
-      break;
-    case 1:
-      SetDoseUnits(DoseUnitsType::Relative);
-      break;
-    case -1:
-    default:
-      SetDoseUnits(DoseUnitsType::Unknown);
-      break;
+  case 0:
+    this->SetDoseUnits(DoseUnitsType::Gy);
+    break;
+  case 1:
+    this->SetDoseUnits(DoseUnitsType::Relative);
+    break;
+  case -1:
+  default:
+    this->SetDoseUnits(DoseUnitsType::Unknown);
+    break;
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLIsodoseNode::SetBorderMode(int doseBorder)
+{
+  switch (doseBorder)
+  {
+  case 2:
+    this->SetBorderMode(BorderModeType::Double);
+    break;
+  case 1:
+  default:
+    this->SetBorderMode(BorderModeType::Single);
+    break;
   }
 }

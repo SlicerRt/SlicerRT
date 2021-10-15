@@ -38,6 +38,10 @@ class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkMRMLIsodoseNode : public vtkMRMLNode
 {
 public:
   enum DoseUnitsType { Unknown = -1, Gy = 0, Relative = 1 };
+  enum BorderModeType {
+    Single = 1, /// solid shape. Shows dose higher that thesholdMin.
+    Double = 2 /// hollow shape aka ring-shaped. Shows dose higher than thesholdMin but lower than thesholdMax.
+  };
   static const char* COLOR_TABLE_REFERENCE_ROLE;
 
   static vtkMRMLIsodoseNode *New();
@@ -103,6 +107,10 @@ public:
   vtkGetMacro(DoseUnits, DoseUnitsType);
   vtkSetMacro(DoseUnits, DoseUnitsType);
 
+  /// Get/Set dose border mode type
+  vtkGetMacro(BorderMode, BorderModeType);
+  vtkSetMacro(BorderMode, BorderModeType);
+
   /// Get/Set relative representation flag
   vtkGetMacro(RelativeRepresentationFlag, bool);
   vtkSetMacro(RelativeRepresentationFlag, bool);
@@ -115,6 +123,7 @@ protected:
   void operator=(const vtkMRMLIsodoseNode&);
 
   void SetDoseUnits(int doseUnits);
+  void SetBorderMode(int doseBorder);
 
 protected:
   /// State of Show isodose lines checkbox
@@ -134,6 +143,9 @@ protected:
 
   /// Type of dose units
   DoseUnitsType DoseUnits;
+
+  /// Type of isodose border surface
+  BorderModeType BorderMode;
 
   /// Reference dose value
   double ReferenceDoseValue;

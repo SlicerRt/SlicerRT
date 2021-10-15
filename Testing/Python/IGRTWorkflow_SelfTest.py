@@ -294,7 +294,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       shNode.SetDisplayVisibilityForBranch(planShItemID, 0)
 
       slicer.util.selectModule('Isodose')
-      numOfModelNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLModelNode*') )
+      numOfSegmentationNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLSegmentationNode*') )
 
       isodoseWidget = slicer.modules.isodose.widgetRepresentation()
       doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]
@@ -305,7 +305,7 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       doseVolumeMrmlNodeCombobox.setCurrentNodeID(day1Dose.GetID())
       applyButton.click()
 
-      self.assertEqual( len( slicer.util.getNodes('vtkMRMLModelNode*') ), numOfModelNodesBeforeLoad + 6 )
+      self.assertEqual( len( slicer.util.getNodes('vtkMRMLSegmentationNode*') ), numOfSegmentationNodesBeforeLoad + 1 )
 
       # Show day 1 isodose
       day1CT = slicer.util.getNode(self.day1CTName)
@@ -331,9 +331,9 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
     try:
       scene = slicer.mrmlScene
       slicer.util.selectModule('Isodose')
-      modelNodeCollection = slicer.mrmlScene.GetNodesByClass('vtkMRMLModelNode')
-      modelNodeCollection.UnRegister(None)
-      numOfModelNodesBeforeLoad = modelNodeCollection.GetNumberOfItems()
+      segmentationNodeCollection = slicer.mrmlScene.GetNodesByClass('vtkMRMLSegmentationNode')
+      segmentationNodeCollection.UnRegister(None)
+      numOfSegmentationNodesBeforeLoad = segmentationNodeCollection.GetNumberOfItems()
 
       isodoseWidget = slicer.modules.isodose.widgetRepresentation()
       doseVolumeMrmlNodeCombobox = slicer.util.findChildren(widget=isodoseWidget, className='qMRMLNodeComboBox', name='MRMLNodeComboBox_DoseVolume')[0]
@@ -344,9 +344,9 @@ class IGRTWorkflow_SelfTestTest(ScriptedLoadableModuleTest):
       doseVolumeMrmlNodeCombobox.setCurrentNodeID(day2Dose.GetID())
       applyButton.click()
 
-      modelNodeCollection = slicer.mrmlScene.GetNodesByClass('vtkMRMLModelNode')
-      modelNodeCollection.UnRegister(None)
-      self.assertEqual( modelNodeCollection.GetNumberOfItems(), numOfModelNodesBeforeLoad + 6 )
+      segmentationNodeCollection = slicer.mrmlScene.GetNodesByClass('vtkMRMLSegmentationNode')
+      segmentationNodeCollection.UnRegister(None)
+      self.assertEqual( segmentationNodeCollection.GetNumberOfItems(), numOfSegmentationNodesBeforeLoad + 1 )
 
       # Show day 2 isodose
       shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
