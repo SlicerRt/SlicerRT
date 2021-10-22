@@ -112,7 +112,9 @@ main (int argc, char *argv[])
 
   unsigned long num_rbf_radius = plmslc_landwarp_rbf_radius.size();
 
-  if (num_rbf_radius != 1 && num_rbf_radius != num_fiducials){
+  if (num_rbf_radius > 1 && num_rbf_radius != num_fiducials){
+    std::cerr << "The number of RBF radius specified is more than one but does not match the number of fiducials.\n"
+              << "Specify one RBF radius to use as a global parameter or multiple comma separated values corresponding to each fiducial.\n";
     return EXIT_FAILURE;
   }
 
