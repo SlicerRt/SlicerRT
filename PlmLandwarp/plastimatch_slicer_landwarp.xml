@@ -86,7 +86,7 @@
      <label>RBF radius</label>
      <longflag>rbfradius</longflag>
      <default>50.0</default>
-     <description>Radius of the radial basis function</description>
+     <description>Radius of the radial basis function. If more than one value is specified then these are used as fiducial specific RBF radius. Therefore, the number of radius must be one or the same as the number of fiducials.</description>
     </float-vector>
     <integer>
       <name>plmslc_landwarp_num_clusters</name>
