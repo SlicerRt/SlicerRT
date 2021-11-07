@@ -28,7 +28,6 @@
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyDefaultPlugin.h"
-#include "qSlicerSubjectHierarchyChartsPlugin.h"
 
 // DoseVolumeHistogram includes
 #include "vtkMRMLDoseVolumeHistogramNode.h"

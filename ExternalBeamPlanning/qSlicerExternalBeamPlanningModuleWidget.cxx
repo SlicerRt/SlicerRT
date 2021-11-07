@@ -52,7 +52,6 @@
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
-#include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLLayoutNode.h>
 #include <vtkMRMLSliceNode.h>
 #include <vtkMRMLSubjectHierarchyNode.h>

@@ -44,7 +44,6 @@
 #include "vtkMRMLDoseVolumeHistogramNode.h"
 
 // MRML includes
-#include <vtkMRMLDoubleArrayNode.h>
 #include <vtkMRMLLayoutNode.h>
 #include <vtkMRMLPlotChartNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
