@@ -69,9 +69,15 @@ class BatchStructureSetConversionLogic(ScriptedLoadableModuleLogic):
         os.mkdir(self.dataDir)
 
     def LoadFirstPatientIntoSlicer(self):
-      # Choose first patient from the patient list
-      patient = slicer.dicomDatabase.patients()[0]
-      DICOMUtils.loadPatientByUID(patient)
+      # Choose first non-empty patient from the patient list
+      all_patients = slicer.dicomDatabase.patients()
+      for patient in all_patients:
+        try:
+          DICOMUtils.loadPatientByUID(patient)
+          return
+        except OSError as e:
+          # Failed to load patient, probably no studies are associated with it
+          pass
 
     def ConvertStructureSetToLabelmap(self, use_ref_image, ref_image_node_id=None):
       import vtkSegmentationCorePython as vtkSegmentationCore
@@ -364,12 +370,16 @@ def main(argv):
       logging.info('Processing %d patients...' % len(all_patients))
 
       for patient in all_patients:
-        slicer.mrmlScene.Clear(0) # clear the scene
-        DICOMUtils.loadPatientByUID(patient)
-        output_dir = os.path.join(output_folder,patient)
-        if not os.access(output_dir, os.F_OK):
-          os.mkdir(output_dir)
-        save_rtslices(output_dir, use_ref_image)
+        try:
+          slicer.mrmlScene.Clear(0) # clear the scene
+          DICOMUtils.loadPatientByUID(patient)
+          output_dir = os.path.join(output_folder,patient)
+          if not os.access(output_dir, os.F_OK):
+            os.mkdir(output_dir)
+          save_rtslices(output_dir, use_ref_image)
+        except OSError as e:
+          # Failed to load data from this patient, continue with the next one
+          print(e)
 
     else:
       logging.info('BatchStructureSet running in file mode')
@@ -396,19 +406,23 @@ def main(argv):
       all_patients = slicer.dicomDatabase.patients()
       logging.info('Processing %d patients...' % len(all_patients))
       for patient in all_patients:
-        slicer.mrmlScene.Clear(0) # clear the scene
-        DICOMUtils.loadPatientByUID(patient)
-        output_dir = os.path.join(output_folder,patient)
-        if not os.access(output_dir, os.F_OK):
-          os.mkdir(output_dir)
-        ref_volume_node_id = None
-        if ref_volume_file_path:
-          try:
-            refVolNode = slicer.util.loadVolume(ref_volume_file_path)
-            ref_volume_node_id = refVolNode.GetID()
-          except:
-            pass
-        save_rtslices(output_dir, use_ref_image, ref_volume_node_id)
+        try:
+          slicer.mrmlScene.Clear(0) # clear the scene
+          DICOMUtils.loadPatientByUID(patient)
+          output_dir = os.path.join(output_folder,patient)
+          if not os.access(output_dir, os.F_OK):
+            os.mkdir(output_dir)
+          ref_volume_node_id = None
+          if ref_volume_file_path:
+            try:
+              refVolNode = slicer.util.loadVolume(ref_volume_file_path)
+              ref_volume_node_id = refVolNode.GetID()
+            except:
+              pass
+          save_rtslices(output_dir, use_ref_image, ref_volume_node_id)
+        except OSError as e:
+          # Failed to load data from this patient, continue with the next one
+          print(e)
 
   except Exception as e:
       import traceback
