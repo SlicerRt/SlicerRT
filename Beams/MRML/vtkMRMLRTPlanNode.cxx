@@ -326,7 +326,7 @@ bool vtkMRMLRTPlanNode::IsPoisMarkupsFiducialNodeValid()
   }
 
   // Check if markups node contains default fiducials
-  if (markupsNode->GetNthFiducialLabel(ISOCENTER_FIDUCIAL_INDEX) != std::string(ISOCENTER_FIDUCIAL_NAME))
+  if (markupsNode->GetNthControlPointLabel(ISOCENTER_FIDUCIAL_INDEX) != std::string(ISOCENTER_FIDUCIAL_NAME))
   {
     vtkErrorMacro("IsPoisMarkupsFiducialNodeValid: Unable to access isocenter fiducial in the markups node belonging to plan " << this->Name);
     return false;
@@ -373,12 +373,13 @@ vtkMRMLMarkupsFiducialNode* vtkMRMLRTPlanNode::CreateMarkupsFiducialNode()
   markupsNode->SetName(markupsName.c_str());
 
   // Populate POI markups with default fiducials
-  markupsNode->AddFiducial(0,0,0,ISOCENTER_FIDUCIAL_NAME); // index 0: ISOCENTER_FIDUCIAL_INDEX
+  vtkVector3d pointCoord(0,0,0);
+  markupsNode->AddControlPoint( pointCoord, ISOCENTER_FIDUCIAL_NAME); // index 0: ISOCENTER_FIDUCIAL_INDEX
 
   // Lock isocenter fiducial based on isocenter specification setting
   if (this->IsocenterSpecification == vtkMRMLRTPlanNode::CenterOfTarget)
   {
-    markupsNode->SetNthMarkupLocked(ISOCENTER_FIDUCIAL_INDEX, true);
+    markupsNode->SetNthControlPointLocked(ISOCENTER_FIDUCIAL_INDEX, true);
   }
 
   this->GetScene()->AddNode(markupsNode);
@@ -412,7 +413,7 @@ bool vtkMRMLRTPlanNode::GetIsocenterPosition(double isocenter[3])
     return false;
   }
 
-  fiducialNode->GetNthFiducialPosition(ISOCENTER_FIDUCIAL_INDEX, isocenter);
+  fiducialNode->GetNthControlPointPosition(ISOCENTER_FIDUCIAL_INDEX, isocenter);
   return true;
 }
 
@@ -426,7 +427,7 @@ bool vtkMRMLRTPlanNode::SetIsocenterPosition(double isocenter[3])
     return false;
   }
 
-  fiducialNode->SetNthFiducialPositionFromArray(ISOCENTER_FIDUCIAL_INDEX, isocenter);
+  fiducialNode->SetNthControlPointPositionFromArray(ISOCENTER_FIDUCIAL_INDEX, isocenter);
 
   return true;
 }
@@ -742,12 +743,12 @@ void vtkMRMLRTPlanNode::SetIsocenterSpecification(vtkMRMLRTPlanNode::IsocenterSp
     this->SetIsocenterToTargetCenter();
 
     // Lock isocenter fiducial so that user cannot move it
-    fiducialNode->SetNthMarkupLocked(ISOCENTER_FIDUCIAL_INDEX, true);
+    fiducialNode->SetNthControlPointLocked(ISOCENTER_FIDUCIAL_INDEX, true);
   }
   else // ArbitraryPoint
   {
     // Unlock isocenter fiducial so that user can move it
-    fiducialNode->SetNthMarkupLocked(ISOCENTER_FIDUCIAL_INDEX, false);
+    fiducialNode->SetNthControlPointLocked(ISOCENTER_FIDUCIAL_INDEX, false);
   }
 
   this->Modified();

@@ -1744,7 +1744,8 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal
   vtkSmartPointer<vtkMRMLMarkupsFiducialNode> markupsNode = vtkSmartPointer<vtkMRMLMarkupsFiducialNode>::New();
   this->External->GetMRMLScene()->AddNode(markupsNode);
   markupsNode->SetName(fiducialNodeName.c_str());
-  markupsNode->AddFiducialFromArray(roiPosition);
+  vtkVector3d roiPoint(roiPosition);
+  markupsNode->AddControlPoint(roiPoint);
   markupsNode->SetLocked(1);
 
   vtkSmartPointer<vtkMRMLMarkupsDisplayNode> markupsDisplayNode = vtkSmartPointer<vtkMRMLMarkupsDisplayNode>::New();
