@@ -404,7 +404,7 @@ bool vtkMRMLRTBeamNode::GetPlanIsocenterPosition(double isocenter[3])
     return false;
   }
 
-  poisMarkupsNode->GetNthFiducialPosition(vtkMRMLRTPlanNode::ISOCENTER_FIDUCIAL_INDEX, isocenter);
+  poisMarkupsNode->GetNthControlPointPosition(vtkMRMLRTPlanNode::ISOCENTER_FIDUCIAL_INDEX, isocenter);
   return true;
 }
 
