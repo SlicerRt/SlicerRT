@@ -40,7 +40,6 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLDrrImageComputationNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLMarkupsPlaneNode;
-class vtkMRMLMarkupsClosedCurveNode;
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLMarkupsLineNode;
 
@@ -55,8 +54,8 @@ class VTK_SLICER_DRRIMAGECOMPUTATION_MODULE_LOGIC_EXPORT vtkSlicerDrrImageComput
   public vtkSlicerModuleLogic
 {
 public:
-  static const char* IMAGER_BOUNDARY_MARKUPS_NODE_NAME; // curve
-  static const char* IMAGE_WINDOW_MARKUPS_NODE_NAME; // curve
+  static const char* IMAGER_BOUNDARY_MARKUPS_NODE_NAME; // plane
+  static const char* IMAGE_WINDOW_MARKUPS_NODE_NAME; // plane
   static const char* FIDUCIALS_MARKUPS_NODE_NAME; // fiducial
   static const char* NORMAL_VECTOR_MARKUPS_NODE_NAME; // line
   static const char* VUP_VECTOR_MARKUPS_NODE_NAME; // line
@@ -116,9 +115,9 @@ private:
   /// Create markups for view up normal vector
   vtkMRMLMarkupsLineNode* CreateImagerVUP(vtkMRMLDrrImageComputationNode* node); // vup
   /// Create markups for imager boundary
-  vtkMRMLMarkupsClosedCurveNode* CreateImagerBoundary(vtkMRMLDrrImageComputationNode* node); // Imager == Reciever == Detector
+  vtkMRMLMarkupsPlaneNode* CreateImagerBoundary(vtkMRMLDrrImageComputationNode* node); // Imager == Reciever == Detector
   /// Create markups for image window within imager
-  vtkMRMLMarkupsClosedCurveNode* CreateImageWindow(vtkMRMLDrrImageComputationNode* node); // subwindow
+  vtkMRMLMarkupsPlaneNode* CreateImageWindow(vtkMRMLDrrImageComputationNode* node); // subwindow
   /// Create fiducial markups: (0,0), Center, etc
   vtkMRMLMarkupsFiducialNode* CreateFiducials(vtkMRMLDrrImageComputationNode* node);
   /// Setup nodes for calculated DRR image

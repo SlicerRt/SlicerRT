@@ -321,6 +321,7 @@ void qSlicerDrrImageComputationModuleWidget::onRTBeamNodeChanged(vtkMRMLNode* no
   }
 
   parameterNode->SetAndObserveBeamNode(beamNode); // Update imager and image markups, DRR arguments in logic
+  parameterNode->Modified();
 }
 
 //-----------------------------------------------------------------------------
