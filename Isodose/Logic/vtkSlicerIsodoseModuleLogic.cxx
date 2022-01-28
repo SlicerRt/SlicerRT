@@ -111,23 +111,20 @@ void vtkSlicerIsodoseModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
   // Create a copy of default isodose color table. The copy can be edited.
   if (isodoseColorTableNode)
   {
-    // Get "Colors" module logic
-    auto aLogic = this->GetApplicationLogic()->GetModuleLogic("Colors");
-    vtkSlicerColorLogic* colorLogic = vtkSlicerColorLogic::SafeDownCast(aLogic);
-
     // Create a copy of isodose color table with unique name
-    std::string& uniqueName = vtkSlicerIsodoseModuleLogic::IsodoseColorNodeCopyUniqueName;
-    uniqueName = this->GetMRMLScene()->GenerateUniqueName(isodoseColorTableNode->GetName());
-    vtkMRMLColorTableNode* colorNode = colorLogic->CopyNode(isodoseColorTableNode, uniqueName.c_str());
+    std::string uniqueName = this->GetMRMLScene()->GenerateUniqueName(vtkSlicerIsodoseModuleLogic::IsodoseColorNodeCopyUniqueName.c_str());
+    // Get "Colors" module logic and copy a isodose color node
+    vtkMRMLColorTableNode* colorNode = this->GetMRMLApplicationLogic()->GetColorLogic()->CopyNode(isodoseColorTableNode, uniqueName.c_str());
     if (colorNode)
     {
+      colorNode->SetSingletonTag(DEFAULT_ISODOSE_COLOR_TABLECOPY_NODE_NAME); // set tag that it's a copy
       if (!this->GetMRMLScene()->AddNode(colorNode))
       {
         vtkErrorMacro("SetMRMLSceneInternal: Failed to add copy of default isodose color node to scene");
       }
       colorNode->Delete();
     }
-    // Create dose color table for relative abnd absolute doses
+    // Create dose color table for relative and absolute doses
     vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(newScene);
     vtkSlicerIsodoseModuleLogic::CreateRelativeDoseColorTable(newScene);
   }
@@ -287,6 +284,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::GetDefaultIsodoseColorTable(
   }
 
   // Check if copy with unique name of default isodose color table node already exists
+  // Get all the nodes with name template starting with Isodose_ColorTable_Default
   vtkSmartPointer<vtkCollection> defaultIsodoseColorTableNodes = vtkSmartPointer<vtkCollection>::Take(
     scene->GetNodesByName(vtkSlicerIsodoseModuleLogic::IsodoseColorNodeCopyUniqueName.c_str()) );
   if (defaultIsodoseColorTableNodes->GetNumberOfItems() > 0)
@@ -301,7 +299,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::GetDefaultIsodoseColorTable(
   }
 
   // Create default isodose color table if does not yet exist
-  vtkSmartPointer<vtkMRMLColorTableNode> colorTableNode = vtkSmartPointer<vtkMRMLColorTableNode>::New();
+  vtkNew<vtkMRMLColorTableNode> colorTableNode;
   colorTableNode->SetName(DEFAULT_ISODOSE_COLOR_TABLE_NODE_NAME);
   colorTableNode->SetTypeToUser();
   colorTableNode->SetSingletonTag(DEFAULT_ISODOSE_COLOR_TABLE_NODE_NAME);
@@ -383,8 +381,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::LoadDefaultIsodoseColorTable
 
     // Create temporary lookup table storing the color data while the type of the loaded color table is set to user
     // (workaround for bug #409)
-    vtkSmartPointer<vtkLookupTable> tempLookupTable = vtkSmartPointer<vtkLookupTable>::New();
-    tempLookupTable->DeepCopy(loadedColorNode->GetLookupTable());
+    vtkSmartPointer<vtkLookupTable> tempLookupTable = vtkSmartPointer<vtkLookupTable>::Take(loadedColorNode->CreateLookupTableCopy());
 
     colorTableNode = vtkMRMLColorTableNode::SafeDownCast(loadedColorNode);
     colorTableNode->SetName(DEFAULT_ISODOSE_COLOR_TABLE_NODE_NAME);
@@ -745,18 +742,18 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   int currentProgressStep = 0;
 
   // Reslice dose volume
-  vtkSmartPointer<vtkMatrix4x4> inputIJK2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkNew<vtkMatrix4x4> inputIJK2RASMatrix;
   doseVolumeNode->GetIJKToRASMatrix(inputIJK2RASMatrix);
-  vtkSmartPointer<vtkMatrix4x4> inputRAS2IJKMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkNew<vtkMatrix4x4> inputRAS2IJKMatrix;
   doseVolumeNode->GetRASToIJKMatrix(inputRAS2IJKMatrix); 
 
-  vtkSmartPointer<vtkTransform> outputIJK2IJKResliceTransform = vtkSmartPointer<vtkTransform>::New(); 
+  vtkNew<vtkTransform> outputIJK2IJKResliceTransform; 
   outputIJK2IJKResliceTransform->Identity();
   outputIJK2IJKResliceTransform->PostMultiply();
   outputIJK2IJKResliceTransform->SetMatrix(inputIJK2RASMatrix);
 
   vtkSmartPointer<vtkMRMLTransformNode> inputVolumeNodeTransformNode = doseVolumeNode->GetParentTransformNode();
-  vtkSmartPointer<vtkMatrix4x4> inputRAS2RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkNew<vtkMatrix4x4> inputRAS2RASMatrix;
   if (inputVolumeNodeTransformNode!=nullptr)
   {
     inputVolumeNodeTransformNode->GetMatrixTransformToWorld(inputRAS2RASMatrix);  
@@ -768,7 +765,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
 
   int dimensions[3] = {0, 0, 0};
   doseVolumeNode->GetImageData()->GetDimensions(dimensions);
-  vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
+  vtkNew<vtkImageReslice> reslice;
   reslice->SetInputData(doseVolumeNode->GetImageData());
   reslice->SetOutputOrigin(0, 0, 0);
   reslice->SetOutputSpacing(1, 1, 1);
@@ -801,7 +798,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     }
     colorTableNode->GetColor(i, val);
 
-    vtkSmartPointer<vtkImageMarchingCubes> marchingCubes = vtkSmartPointer<vtkImageMarchingCubes>::New();
+    vtkNew<vtkImageMarchingCubes> marchingCubes;
     marchingCubes->SetInputData(reslicedDoseVolumeImage);
     marchingCubes->SetNumberOfContours(1); 
     marchingCubes->SetValue(0, isoLevel);
@@ -813,11 +810,11 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     vtkSmartPointer<vtkPolyData> isoPolyData= marchingCubes->GetOutput();
     if (isoPolyData->GetNumberOfPoints() >= 1)
     {
-      vtkSmartPointer<vtkTriangleFilter> triangleFilter = vtkSmartPointer<vtkTriangleFilter>::New();
+      vtkNew<vtkTriangleFilter> triangleFilter;
       triangleFilter->SetInputData(marchingCubes->GetOutput());
       triangleFilter->Update();
 
-      vtkSmartPointer<vtkDecimatePro> decimate = vtkSmartPointer<vtkDecimatePro>::New();
+      vtkNew<vtkDecimatePro> decimate;
       decimate->SetInputData(triangleFilter->GetOutput());
       decimate->SetTargetReduction(0.6);
       decimate->SetFeatureAngle(60);
@@ -826,7 +823,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
       decimate->SetMaximumError(1);
       decimate->Update();
 
-      vtkSmartPointer<vtkWindowedSincPolyDataFilter> smootherSinc = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+      vtkNew<vtkWindowedSincPolyDataFilter> smootherSinc;
       smootherSinc->SetPassBand(0.1);
       smootherSinc->SetInputData(decimate->GetOutput() );
       smootherSinc->SetNumberOfIterations(2);
@@ -834,32 +831,32 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
       smootherSinc->BoundarySmoothingOff();
       smootherSinc->Update();
 
-      vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+      vtkNew<vtkPolyDataNormals> normals;
       normals->SetInputData(smootherSinc->GetOutput());
       normals->ComputePointNormalsOn();
       normals->SetFeatureAngle(60);
       normals->Update();
 
-      vtkSmartPointer<vtkTransform> inputIJKToRASTransform = vtkSmartPointer<vtkTransform>::New();
+      vtkNew<vtkTransform> inputIJKToRASTransform;
       inputIJKToRASTransform->Identity();
       inputIJKToRASTransform->SetMatrix(inputIJK2RASMatrix);
 
-      vtkSmartPointer<vtkTransformPolyDataFilter> transformPolyData = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+      vtkNew<vtkTransformPolyDataFilter> transformPolyData;
       transformPolyData->SetInputData(normals->GetOutput());
       transformPolyData->SetTransform(inputIJKToRASTransform);
       transformPolyData->Update();
   
       vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
       displayNode = vtkMRMLModelDisplayNode::SafeDownCast(scene->AddNode(displayNode));
-      displayNode->Visibility2DOn();  
-      displayNode->VisibilityOn(); 
+      displayNode->Visibility2DOn();
+      displayNode->VisibilityOn();
       displayNode->SetColor(val[0], val[1], val[2]);
       displayNode->SetOpacity(val[3]);
-    
+
       // Disable backface culling to make the back side of the model visible as well
       displayNode->SetBackfaceCulling(0);
 
-      vtkSmartPointer<vtkMRMLModelNode> isodoseModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+      vtkNew<vtkMRMLModelNode> isodoseModelNode;
       std::string isodoseModelNodeName = vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_PREFIX + strIsoLevel + doseUnitName;
       isodoseModelNode->SetName(isodoseModelNodeName.c_str());
       isodoseModelNode->SetSelectable(1);
@@ -973,9 +970,3 @@ void vtkSlicerIsodoseModuleLogic::UpdateDoseColorTableFromIsodose(vtkMRMLIsodose
   doseVolumeDisplayNode->SetLowerThreshold(0.5 * doseUnitValue);
   doseVolumeDisplayNode->SetApplyThreshold(1);
 }
-
-//---------------------------------------------------------------------------
-//void vtkSlicerIsodoseModuleLogic::SetColorsLogic(vtkSlicerColorLogic* colorLogic)
-//{
-//  this->ColorLogic = colorLogic;
-//}
