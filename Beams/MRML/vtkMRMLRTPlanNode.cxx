@@ -427,7 +427,7 @@ bool vtkMRMLRTPlanNode::SetIsocenterPosition(double isocenter[3])
     return false;
   }
 
-  fiducialNode->SetNthControlPointPositionFromArray(ISOCENTER_FIDUCIAL_INDEX, isocenter);
+  fiducialNode->SetNthControlPointPosition(ISOCENTER_FIDUCIAL_INDEX, isocenter);
 
   return true;
 }
