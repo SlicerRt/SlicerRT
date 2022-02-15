@@ -209,8 +209,6 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onReconstructionAlgo
     return;
   }
 
-  d->ParameterNode->DisableModifiedEventOn();
-
   switch (id)
   {
   case 0:
@@ -223,8 +221,6 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onReconstructionAlgo
     qWarning() << Q_FUNC_INFO << ": Invalid reconstruct algorithm button id";
     break;
   }
-  d->ParameterNode->DisableModifiedEventOff();
-  this->updatePlastimatchDrrArguments();
 }
 
 //-----------------------------------------------------------------------------
@@ -238,7 +234,6 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onThreadingChanged(i
     return;
   }
 
-  d->ParameterNode->DisableModifiedEventOn();
   switch (id)
   {
   case 0:
@@ -254,8 +249,6 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onThreadingChanged(i
     qWarning() << Q_FUNC_INFO << ": Invalid threading button id";
     break;
   }
-  d->ParameterNode->DisableModifiedEventOff();
-  this->updatePlastimatchDrrArguments();
 }
 
 //-----------------------------------------------------------------------------
@@ -269,7 +262,6 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onHUConversionChange
     return;
   }
 
-  d->ParameterNode->DisableModifiedEventOn();
   switch (id)
   {
   case 0:
@@ -285,8 +277,6 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onHUConversionChange
     qWarning() << Q_FUNC_INFO << ": Invalid Hounsfield units conversion button id";
     break;
   }
-  d->ParameterNode->DisableModifiedEventOff();
-  this->updatePlastimatchDrrArguments();
 }
 
 //-----------------------------------------------------------------------------
@@ -299,10 +289,7 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onUseExponentialMapp
     qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
     return;
   }
-  d->ParameterNode->DisableModifiedEventOn();
   d->ParameterNode->SetExponentialMappingFlag(value);
-  d->ParameterNode->DisableModifiedEventOn();
-  this->updatePlastimatchDrrArguments();
 }
 
 //-----------------------------------------------------------------------------
@@ -315,10 +302,7 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onAutoscalePixelsRan
     qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
     return;
   }
-  d->ParameterNode->DisableModifiedEventOn();
   d->ParameterNode->SetAutoscaleFlag(value);
-  d->ParameterNode->DisableModifiedEventOff();
-  this->updatePlastimatchDrrArguments();
 }
 
 //-----------------------------------------------------------------------------
@@ -334,7 +318,6 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onHUThresholdChanged
   d->ParameterNode->DisableModifiedEventOn();
   d->ParameterNode->SetHUThresholdBelow(static_cast<int>(value));
   d->ParameterNode->DisableModifiedEventOff();
-  this->updatePlastimatchDrrArguments();
 }
 
 //-----------------------------------------------------------------------------
@@ -347,10 +330,7 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onInvertIntensityTog
     qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
     return;
   }
-  d->ParameterNode->DisableModifiedEventOn();
   d->ParameterNode->SetInvertIntensityFlag(value);
-  d->ParameterNode->DisableModifiedEventOff();
-  this->updatePlastimatchDrrArguments();
 }
 
 //-----------------------------------------------------------------------------
@@ -363,10 +343,7 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onAutoscaleIntensity
     qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
     return;
   }
-  d->ParameterNode->DisableModifiedEventOn();
   d->ParameterNode->SetAutoscaleRange( min, max);
-  d->ParameterNode->DisableModifiedEventOff();
-  this->updatePlastimatchDrrArguments();
 }
 
 //-----------------------------------------------------------------------------
