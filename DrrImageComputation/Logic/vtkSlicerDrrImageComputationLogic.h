@@ -72,7 +72,7 @@ public:
   void CreateMarkupsNodes(vtkMRMLDrrImageComputationNode* parameterNode);
   /// Update markups nodes using parameter node data
   void UpdateMarkupsNodes(vtkMRMLDrrImageComputationNode* parameterNode);
-  /// Show markups
+  /// Show/hide markups
   void ShowMarkupsNodes(bool toggled = false);
 
   /// Set Planar Image module logic

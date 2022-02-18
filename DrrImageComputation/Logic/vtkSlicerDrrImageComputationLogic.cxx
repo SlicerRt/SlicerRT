@@ -210,9 +210,9 @@ void vtkSlicerDrrImageComputationLogic::ProcessMRMLNodesEvents(vtkObject* caller
 
     if (event == vtkCommand::ModifiedEvent)
     {
-      // Update parameters using beam node data and crate/update markups transform if they weren't created/updated
+      // Update parameters using beam node data and create/update markups transform if they weren't created/updated
       this->UpdateNormalAndVupVectors(parameterNode);
-      this->CreateMarkupsNodes(parameterNode); // crate markups or update markups transform
+      this->CreateMarkupsNodes(parameterNode); // create markups or update markups transform
       this->UpdateMarkupsNodes(parameterNode); // update markups geometry
     }
   }
@@ -574,7 +574,7 @@ void vtkSlicerDrrImageComputationLogic::ShowMarkupsNodes(bool toggled)
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
   {
-    vtkErrorMacro("UpdateMarkupsNodes: Invalid MRML scene");
+    vtkErrorMacro("ShowMarkupsNodes: Invalid MRML scene");
     return;
   }
 
@@ -628,13 +628,10 @@ vtkMRMLMarkupsPlaneNode* vtkSlicerDrrImageComputationLogic::CreateImagerBoundary
     vtkErrorMacro("CreateImagerBoundary: Invalid MRML scene");
     return nullptr;
   }
-  vtkMRMLNode* node = scene->AddNewNodeByClass( "vtkMRMLMarkupsPlaneNode", IMAGER_BOUNDARY_MARKUPS_NODE_NAME);
 
-  vtkMRMLMarkupsPlaneNode* imagerMarkupsNode = nullptr;
-  if (node)
-  {
-    imagerMarkupsNode = vtkMRMLMarkupsPlaneNode::SafeDownCast(node);
-  }
+  vtkMRMLMarkupsPlaneNode* imagerMarkupsNode = vtkMRMLMarkupsPlaneNode::SafeDownCast(
+    scene->AddNewNodeByClass( "vtkMRMLMarkupsPlaneNode", IMAGER_BOUNDARY_MARKUPS_NODE_NAME));
+
   if (!imagerMarkupsNode)
   {
     vtkErrorMacro("CreateImagerBoundary: Invalid imager plane node");
@@ -696,13 +693,10 @@ vtkMRMLMarkupsPlaneNode* vtkSlicerDrrImageComputationLogic::CreateImageWindow(vt
     vtkErrorMacro("CreateImageWindow: Invalid MRML scene");
     return nullptr;
   }
-  vtkMRMLNode* node = scene->AddNewNodeByClass( "vtkMRMLMarkupsPlaneNode", IMAGE_WINDOW_MARKUPS_NODE_NAME);
 
-  vtkMRMLMarkupsPlaneNode* imageWindowMarkupsNode = nullptr;
-  if (node)
-  {
-    imageWindowMarkupsNode = vtkMRMLMarkupsPlaneNode::SafeDownCast(node);
-  }
+  vtkMRMLMarkupsPlaneNode* imageWindowMarkupsNode = vtkMRMLMarkupsPlaneNode::SafeDownCast(
+    scene->AddNewNodeByClass( "vtkMRMLMarkupsPlaneNode", IMAGE_WINDOW_MARKUPS_NODE_NAME));
+
   if (!imageWindowMarkupsNode)
   {
     vtkErrorMacro("CreateImageWindow: Invalid image window plane node");
@@ -775,13 +769,10 @@ vtkMRMLMarkupsLineNode* vtkSlicerDrrImageComputationLogic::CreateImagerNormal(vt
     vtkErrorMacro("CreateImagerNormal: Invalid MRML scene");
     return nullptr;
   }
-  vtkMRMLNode* node = scene->AddNewNodeByClass( "vtkMRMLMarkupsLineNode", NORMAL_VECTOR_MARKUPS_NODE_NAME);
 
-  vtkMRMLMarkupsLineNode* vectorMarkupsNode = nullptr;
-  if (node)
-  {
-    vectorMarkupsNode = vtkMRMLMarkupsLineNode::SafeDownCast(node);
-  }
+  vtkMRMLMarkupsLineNode* vectorMarkupsNode = vtkMRMLMarkupsLineNode::SafeDownCast(
+    scene->AddNewNodeByClass( "vtkMRMLMarkupsLineNode", NORMAL_VECTOR_MARKUPS_NODE_NAME));
+
   if (!vectorMarkupsNode)
   {
     vtkErrorMacro("CreateImagerNormal: Invalid normal line node");
@@ -825,13 +816,10 @@ vtkMRMLMarkupsLineNode* vtkSlicerDrrImageComputationLogic::CreateImagerVUP(vtkMR
     vtkErrorMacro("CreateImagerVUP: Invalid MRML scene");
     return nullptr;
   }
-  vtkMRMLNode* node = scene->AddNewNodeByClass( "vtkMRMLMarkupsLineNode", VUP_VECTOR_MARKUPS_NODE_NAME);
 
-  vtkMRMLMarkupsLineNode* vectorMarkupsNode = nullptr;
-  if (node)
-  {
-    vectorMarkupsNode = vtkMRMLMarkupsLineNode::SafeDownCast(node);
-  }
+  vtkMRMLMarkupsLineNode* vectorMarkupsNode = vtkMRMLMarkupsLineNode::SafeDownCast(
+    scene->AddNewNodeByClass( "vtkMRMLMarkupsLineNode", VUP_VECTOR_MARKUPS_NODE_NAME));
+
   if (!vectorMarkupsNode)
   {
     vtkErrorMacro("CreateImagerVUP: Invalid view-up line node");
@@ -887,13 +875,10 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDrrImageComputationLogic::CreateFiducials(v
     vtkErrorMacro("CreateFiducials: Invalid MRML scene");
     return nullptr;
   }
-  vtkMRMLNode* node = scene->AddNewNodeByClass( "vtkMRMLMarkupsFiducialNode", FIDUCIALS_MARKUPS_NODE_NAME);
 
-  vtkMRMLMarkupsFiducialNode* pointsMarkupsNode = nullptr;
-  if (node)
-  {
-    pointsMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(node);
-  }
+  vtkMRMLMarkupsFiducialNode* pointsMarkupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(
+    scene->AddNewNodeByClass( "vtkMRMLMarkupsFiducialNode", FIDUCIALS_MARKUPS_NODE_NAME));
+
   if (!pointsMarkupsNode)
   {
     vtkErrorMacro("CreateFiducials: Invalid fiducials node");

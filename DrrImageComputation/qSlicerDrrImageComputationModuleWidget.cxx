@@ -425,7 +425,7 @@ void qSlicerDrrImageComputationModuleWidget::onEnter()
     d->logic()->UpdateNormalAndVupVectors(parameterNode);
   }
 
-  // Create or update DRR markups nodes
+  // Create DRR markups nodes
   d->logic()->CreateMarkupsNodes(parameterNode);
 
   this->updateWidgetFromMRML();
@@ -474,7 +474,7 @@ void qSlicerDrrImageComputationModuleWidget::onShowMarkupsToggled(bool toggled)
 {
   Q_D(qSlicerDrrImageComputationModuleWidget);
 
-  // Update imager and image markups, DRR arguments
+  // Show/hide imager and image markups
   d->logic()->ShowMarkupsNodes(toggled);
 }
 
