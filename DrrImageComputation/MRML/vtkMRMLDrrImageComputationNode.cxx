@@ -32,6 +32,9 @@
 
 #include "vtkMRMLDrrImageComputationNode.h"
 
+// STD include
+#include <cstring>
+
 //------------------------------------------------------------------------------
 namespace
 {
@@ -82,6 +85,13 @@ vtkMRMLDrrImageComputationNode::vtkMRMLDrrImageComputationNode()
 
   IsocenterImagerDistance = 300.;
   HUThresholdBelow = -1000;
+
+  // Observe RTBeam node events (like change of transform or geometry)
+  vtkNew<vtkIntArray> nodeEvents;
+  nodeEvents->InsertNextValue(vtkCommand::ModifiedEvent);
+  nodeEvents->InsertNextValue(vtkMRMLRTBeamNode::BeamGeometryModified);
+  nodeEvents->InsertNextValue(vtkMRMLRTBeamNode::BeamTransformModified);
+  this->AddNodeReferenceRole(BEAM_REFERENCE_ROLE, nullptr, nodeEvents);
 }
 
 //----------------------------------------------------------------------------
@@ -250,6 +260,33 @@ void vtkMRMLDrrImageComputationNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintIntMacro(Threading);
   // add new parameters here
   vtkMRMLPrintEndMacro(); 
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLDrrImageComputationNode::ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData)
+{
+  Superclass::ProcessMRMLEvents(caller, eventID, callData);
+
+  if (!this->Scene)
+  {
+    vtkErrorMacro("ProcessMRMLEvents: Invalid MRML scene");
+    return;
+  }
+  if (this->Scene->IsBatchProcessing())
+  {
+    return;
+  }
+
+  // Update the DRR View-Up and normal vectors, if beam geometry or transform was changed
+  switch (eventID)
+  {
+  case vtkMRMLRTBeamNode::BeamGeometryModified:
+  case vtkMRMLRTBeamNode::BeamTransformModified:
+    this->Modified();
+    break;
+  default:
+    break;
+  }
 }
 
 //----------------------------------------------------------------------------
