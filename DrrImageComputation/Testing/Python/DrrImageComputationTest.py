@@ -39,8 +39,6 @@ class DrrImageComputationTest(unittest.TestCase):
     self.assertIsNotNone( slicer.modules.plastimatch_slicer_drr )
     self.assertIsNotNone( slicer.modules.drrimagecomputation )
 
-    # Main setups
-    self.TestSection_SetupPathsAndNames()
     # Load CT volume
     ctVolumeNode = self.TestSection_DownloadCtData()
     # Create dummy RTPlan and RTBeam
@@ -55,62 +53,12 @@ class DrrImageComputationTest(unittest.TestCase):
     logging.info("Test finished")
 
   #------------------------------------------------------------------------------
-  def TestSection_SetupPathsAndNames(self):
-    pass
-    if not os.access(slicer.app.temporaryPath, os.F_OK):
-      os.mkdir(slicer.app.temporaryPath)
-#
-#    self.DRR_SelfTestDir = slicer.app.temporaryPath + '/DRR_SelfTestDir'
-#    if not os.access(self.DRR_SelfTestDir, os.F_OK):
-#      os.mkdir(self.DRR_SelfTestDir)
-
-    self.CT_FileUrl = 'http://slicer.kitware.com/midas3/download/?items=292307,1' # CT-Chest.rnnd
-    self.CT_FileName = 'CT-Chest.nrrd'
-    self.CT_FileSize = 42189103
-
-  #------------------------------------------------------------------------------
   def TestSection_DownloadCtData(self):
-#    import SampleData
-#    sampleDataLogic = SampleData.SampleDataLogic()
-#    ctVolumeNode = sampleDataLogic.downloadCTChest()
-#    self.assertIsNotNone( ctVolumeNode )
-#    return ctVolumeNode
-    
     try:
-      import urllib.request, urllib.parse, urllib.error
-      
-      numOfScalarVolumeNodesBeforeLoad = len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') )
-      
-      ctVolumeNode = None
-      downloaded = False
-      filePath = slicer.app.temporaryPath + '/' + self.CT_FileName
-      if not os.path.exists(filePath) or os.stat(filePath).st_size != self.CT_FileSize:
-        if not downloaded:
-          logging.info('Downloading DRR CT data to folder\n' + slicer.app.temporaryPath + '\n\n  It may take a few minutes...')
-        logging.info('Requesting download from %s...\n' % (self.CT_FileUrl))
-        newfilePath, httpMsg = urllib.request.urlretrieve(self.CT_FileUrl, filePath)
- 
-        self.assertTrue( filePath == newfilePath )
-        
-        if os.stat(filePath).st_size == self.CT_FileSize:
-          downloaded = True
-        else:
-          logging.warning('Wrong filesize: ' + os.stat(filePath).st_size + ' bytes, instead of ' + self.CT_FileSize + ' bytes')
-          raise Exception("Downloaded CT file has a wrong size!")
-      else:
-        downloaded = True
-        logging.info('DRR CT data has been found in folder ' + slicer.app.temporaryPath)
-
-      logging.info("Finished with download test CT data")
-      
-      if downloaded:
-        logging.info('Loading %s...' % (os.path.split(filePath)[1]))
-        ctVolumeNode = slicer.util.loadVolume(filePath)
-
-      # Verify that the CT volume has been loaded
-      self.assertEqual( len( slicer.util.getNodes('vtkMRMLScalarVolumeNode*') ), numOfScalarVolumeNodesBeforeLoad + 1 )      
+      import SampleData
+      sampleDataLogic = SampleData.SampleDataLogic()
+      ctVolumeNode = sampleDataLogic.downloadCTChest()
       self.assertIsNotNone( ctVolumeNode )
-
       return ctVolumeNode
 
     except Exception as e:

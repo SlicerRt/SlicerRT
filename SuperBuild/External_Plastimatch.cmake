@@ -27,13 +27,13 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY
-    "${EP_GIT_PROTOCOL}://github.com/SlicerRt/plastimatch.git"
+    "${EP_GIT_PROTOCOL}://gitlab.com/MichaelColonel/plastimatch.git"
     QUIET
     )
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "6307b2193f48724a31c6b735516eeb50abb14b62" # slicerrt-1.9.2-2021.03.03-6307b219
+    "072f70c30ba3168063be2a8d5edf41fa69bae918" # Temporary fix to prevent compilation error with ITK-5.3
     QUIET
     )
 

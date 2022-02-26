@@ -77,6 +77,9 @@ public:
   void GetRTImagePosition(double position[2]);
   void GetIsocenterPositionLPS(double position[3]);
 
+  /// Handles events registered in the observer manager
+  void ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData) override;
+
 public:
   /// Get beam node
   vtkMRMLRTBeamNode* GetBeamNode();

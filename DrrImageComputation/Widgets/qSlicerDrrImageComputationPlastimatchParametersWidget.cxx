@@ -289,7 +289,6 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onUseExponentialMapp
     qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
     return;
   }
-
   d->ParameterNode->SetExponentialMappingFlag(value);
 }
 
@@ -303,7 +302,6 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onAutoscalePixelsRan
     qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
     return;
   }
-
   d->ParameterNode->SetAutoscaleFlag(value);
 }
 
@@ -317,8 +315,9 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onHUThresholdChanged
     qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
     return;
   }
-
+  d->ParameterNode->DisableModifiedEventOn();
   d->ParameterNode->SetHUThresholdBelow(static_cast<int>(value));
+  d->ParameterNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -331,7 +330,6 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::onInvertIntensityTog
     qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
     return;
   }
-
   d->ParameterNode->SetInvertIntensityFlag(value);
 }
 
