@@ -33,6 +33,7 @@ class vtkMRMLRTBeamNode;
 class vtkMRMLRTPlanNode;
 class QString;
 class QItemSelection;
+class QAbstractButton;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class Q_SLICER_QTMODULES_EXTERNALBEAMPLANNING_EXPORT qSlicerExternalBeamPlanningModuleWidget :
@@ -57,6 +58,8 @@ public slots:
 
   /// Update the entire widget based on the current parameter node
   void updateWidgetFromMRML();
+
+  void onArcBeamDirectionClicked(QAbstractButton* button);
 
 public:
   /// Get selected beam node. If there are multiple selections then return the first one

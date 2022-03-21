@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>482</width>
-    <height>586</height>
+    <height>632</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -185,10 +185,10 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="noneEnabled" stdset="0">
+              <property name="noneEnabled">
                <bool>true</bool>
               </property>
-              <property name="segmentationNodeSelectorVisible" stdset="0">
+              <property name="segmentationNodeSelectorVisible">
                <bool>false</bool>
               </property>
              </widget>
@@ -490,16 +490,6 @@
        <number>4</number>
       </property>
       <item row="1" column="0">
-       <widget class="qMRMLBeamsTableView" name="BeamsTableView">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <item>
          <widget class="QPushButton" name="pushButton_AddBeam">
@@ -549,6 +539,92 @@
          </widget>
         </item>
        </layout>
+      </item>
+      <item row="2" column="0">
+       <widget class="qMRMLBeamsTableView" name="BeamsTableView">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QGroupBox" name="GroupBox_ArcBeamSequence">
+        <property name="title">
+         <string>Arc beam sequence</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_6">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="gridLayout_5">
+           <item row="0" column="2">
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Final angle</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Initial angle</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QDoubleSpinBox" name="DoubleSpinBox_ArcBeamInitialAngle">
+             <property name="maximum">
+              <double>359.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="5">
+            <widget class="QRadioButton" name="RadioButton_ArcBeamRotationCCW">
+             <property name="text">
+              <string>CCW</string>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">ButtonGroup_ArcBeamRotationDirection</string>
+             </attribute>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QDoubleSpinBox" name="DoubleSpinBox_ArcBeamFinalAngle">
+             <property name="decimals">
+              <number>2</number>
+             </property>
+             <property name="maximum">
+              <double>359.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>180.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="4">
+            <widget class="QRadioButton" name="RadioButton_ArcBeamRotationCW">
+             <property name="text">
+              <string>CW</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">ButtonGroup_ArcBeamRotationDirection</string>
+             </attribute>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -737,4 +813,7 @@
    </hints>
   </connection>
  </connections>
+ <buttongroups>
+  <buttongroup name="ButtonGroup_ArcBeamRotationDirection"/>
+ </buttongroups>
 </ui>

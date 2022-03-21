@@ -23,7 +23,7 @@
 #include "qSlicerExternalBeamPlanningModuleWidget.h"
 #include "ui_qSlicerExternalBeamPlanningModule.h"
 
-// Slicer includes
+// SlicerQt includes
 #include <qSlicerApplication.h>
 #include <qSlicerLayoutManager.h> 
 #include <qSlicerCoreApplication.h>
@@ -34,7 +34,8 @@
 #include "vtkMRMLSegmentationNode.h"
 
 // SlicerRT includes
-#include "vtkSlicerRtCommon.h"
+#include <vtkSlicerBeamsModuleLogic.h>
+#include <vtkSlicerRtCommon.h>
 
 // Beams includes
 #include "vtkMRMLRTBeamNode.h"
@@ -247,6 +248,9 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
 
   // Beams section
   //connect( d->BeamsTableView, SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(beamSelectionChanged(QItemSelection,QItemSelection) ) );
+  connect( d->ButtonGroup_ArcBeamRotationDirection, SIGNAL(buttonClicked(QAbstractButton*)),
+    this, SLOT(onArcBeamDirectionClicked(QAbstractButton*)));
+  
   connect( d->pushButton_AddBeam, SIGNAL(clicked()), this, SLOT(addBeamClicked()) );
   connect( d->pushButton_RemoveBeam, SIGNAL(clicked()), this, SLOT(removeBeamClicked()) );
 
@@ -910,12 +914,42 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
     return;
   }
 
-  // Create new beam node by replicating currently selected beam
-  vtkMRMLRTBeamNode* beamNode = d->DoseEngineLogic->createBeamInPlan(planNode);
-  if (!beamNode)
+  vtkMRMLRTBeamNode* beamNode = nullptr;
+  if (!d->GroupBox_ArcBeamSequence->isChecked()) // Static beam
   {
-    qCritical() << Q_FUNC_INFO << ": Failed to add beam";
-    return;
+    // Create new beam node by replicating currently selected beam
+    beamNode = d->DoseEngineLogic->createBeamInPlan(planNode);
+    if (!beamNode)
+    {
+      qCritical() << Q_FUNC_INFO << ": Failed to add beam";
+      return;
+    }
+  }
+  else // Dynamic beam sequence
+  {
+    int direction = -1;
+    if (d->RadioButton_ArcBeamRotationCW->isChecked())
+    {
+      direction = 0;
+    }
+    else if (d->RadioButton_ArcBeamRotationCCW->isChecked())
+    {
+      direction = 1;
+    }
+    
+    if (direction != -1)
+    {
+      // Create a new dynamic beam sequence node by replicating currently selected beam
+      beamNode = d->DoseEngineLogic->createArcBeamInPlan( planNode,
+        d->DoubleSpinBox_ArcBeamInitialAngle->value(), d->DoubleSpinBox_ArcBeamFinalAngle->value(),
+        static_cast<bool>(direction));
+
+      if (!beamNode)
+      {
+        qCritical() << Q_FUNC_INFO << ": Failed to add beam";
+        return;
+      }
+    }
   }
 
   // Add engine-specific beam parameters to newly created beam node
@@ -926,7 +960,11 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
     qCritical() << Q_FUNC_INFO << ": Failed to access dose engine with name" << planNode->GetDoseEngineName();
     return;
   }
-  selectedEngine->addBeamParameterAttributesToBeamNode(beamNode);
+
+  if (beamNode)
+  {
+    selectedEngine->addBeamParameterAttributesToBeamNode(beamNode);
+  }
 
   // Clear instruction text
   d->label_CalculateDoseStatus->setText("");
@@ -1126,4 +1164,20 @@ bool qSlicerExternalBeamPlanningModuleWidget::setEditedNode(vtkMRMLNode* node, Q
     return true;
   }
   return false;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::onArcBeamDirectionClicked(QAbstractButton* button)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  QRadioButton* rButton = qobject_cast<QRadioButton*>(button);
+  if (rButton == d->RadioButton_ArcBeamRotationCCW)
+  {
+    qDebug() << Q_FUNC_INFO << ": Counter clockwise";
+  }
+  else if (rButton == d->RadioButton_ArcBeamRotationCW)
+  {
+    qDebug() << Q_FUNC_INFO << ": Clockwise";
+  }
 }

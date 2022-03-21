@@ -72,6 +72,13 @@ public:
   /// Create a beam for a plan (with beam parameters defined by the dose engine of the plan)
   /// @param planNode - node of the current plan
   Q_INVOKABLE vtkMRMLRTBeamNode* createBeamInPlan(vtkMRMLRTPlanNode* planNode);
+  /// Create a beam for a RT plan (with beam parameters defined by the dose engine of the plan)
+  /// @param planNode - node of the current plan
+  /// @param initialAngle - initial angle
+  /// @param finalAngle - final angle
+  /// @param direction - rotation direction (0 == CW, 1 == CCW)
+  Q_INVOKABLE vtkMRMLRTBeamNode* createArcBeamInPlan(vtkMRMLRTPlanNode* planNode,
+    double initialAngle, double finalAngle, bool rotationDirection);
 
 signals:
   /// Signals for dose calculation progress update
