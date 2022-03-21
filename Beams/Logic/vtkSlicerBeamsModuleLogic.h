@@ -35,6 +35,8 @@
 #include "vtkMRMLRTBeamNode.h"
 
 class vtkSlicerMLCPositionLogic;
+class vtkMRMLSequenceBrowserNode;
+class vtkMRMLSequenceNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkSlicerBeamsModuleLogic :
@@ -59,6 +61,20 @@ public:
   /// \warning This method is used only in vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequence
   void UpdateTransformForBeam( vtkMRMLScene* beamSequenceScene, vtkMRMLRTBeamNode* beamNode, 
     vtkMRMLLinearTransformNode* beamTransformNode, double isocenter[3]);
+
+  /// Create arc delivery beam sequence 
+  /// @param initialAngle - initial angle in degrees
+  /// @param finalAngle - final angle in degrees
+  /// @param angleStep - single angle step within arc
+  /// @param direction - 0 - clockwise, 1 - counter-clockwise
+  /// @param planNode - input plan node, which contains reference volume node and isocenter position
+  /// @param sequenceBrowserNode - output sequence browser node
+  /// @param sequenceBeamNode - output beam node
+  /// @param sequenceTransformNode - output transform node
+  bool CreateArcBeamDynamicSequence( double initialAngle, double finalAngle,
+    double angleStep, bool direction, vtkMRMLRTPlanNode* planNode,
+    vtkMRMLSequenceBrowserNode* beamSequenceBrowserNode,
+    vtkMRMLSequenceNode* beamSequenceNode, vtkMRMLSequenceNode* transformSequenceNode);
 
 protected:
   vtkSlicerBeamsModuleLogic();

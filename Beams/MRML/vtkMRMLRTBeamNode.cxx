@@ -916,9 +916,3 @@ void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder( double jawBegin,
   }
   side12.push_back(side2.back());
 }
-
-//----------------------------------------------------------------------------
-bool vtkMRMLRTBeamNode::AreEqual( double v1, double v2)
-{
-  return vtkSlicerRtCommon::AreEqualWithTolerance( v1, v2);
-}

@@ -94,6 +94,15 @@ public:
   /// Get radiation type (primary particle) for a given beam
   const char* GetBeamTreatmentDeliveryType(unsigned int beamNumber);
 
+  /// Check if beam control point sequence is an arc beam delivery
+  /// @param beamNumber - beam number
+  /// @param initialAngle - initial angle of the arc sequence in degrees
+  /// @param finalAngle - final angle of the arc sequence in degrees
+  /// @param rotationDirection - rotation direction of the gantry (0 - clockwise, 1 - counter clockwise)
+  /// @return true if beam control point sequence is arc, false otherwise
+  bool CheckBeamArcDeliveryType(unsigned int beamNumber, double& initialAngle,
+    double& finalAngle, bool& rotationDirection) const;
+
   /// Get radiation type (primary particle) for a given beam
   const char* GetBeamRadiationType(unsigned int beamNumber);
 
