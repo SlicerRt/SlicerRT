@@ -927,6 +927,7 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   }
   else // Dynamic beam sequence
   {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     int direction = -1;
     if (d->RadioButton_ArcBeamRotationCW->isChecked())
     {
@@ -947,9 +948,11 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
       if (!beamNode)
       {
         qCritical() << Q_FUNC_INFO << ": Failed to add beam";
+        QApplication::restoreOverrideCursor();
         return;
       }
     }
+    QApplication::restoreOverrideCursor();
   }
 
   // Add engine-specific beam parameters to newly created beam node

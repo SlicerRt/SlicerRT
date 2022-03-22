@@ -516,12 +516,9 @@ vtkMRMLRTBeamNode* qSlicerDoseEngineLogic::createArcBeamInPlan( vtkMRMLRTPlanNod
   vtkNew<vtkMRMLSequenceNode> transformSequenceNode;
   vtkNew<vtkMRMLSequenceBrowserNode> beamSequenceBrowserNode;
 
-  if (beamsLogic->CreateArcBeamDynamicSequence( initialAngle, finalAngle, rotationDirection, 
+  if (beamsLogic->CreateArcBeamDynamicSequence( initialAngle, finalAngle, rotationDirection, 1.,
     planNode, beamSequenceBrowserNode, beamSequenceNode, transformSequenceNode))
   {
-//    vtkMRMLNode* node = beamSequenceBrowserNode->GetProxyNode(beamSequenceNode);
-//    return vtkMRMLRTBeamNode::SafeDownCast(node);
-
     // Get proxy beam node
     vtkMRMLNode* node = beamSequenceBrowserNode->GetProxyNode(beamSequenceNode);
     vtkMRMLRTBeamNode* proxyBeamNode = vtkMRMLRTBeamNode::SafeDownCast(node);

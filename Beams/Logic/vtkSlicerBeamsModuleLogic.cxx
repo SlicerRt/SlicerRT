@@ -315,7 +315,7 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
 
 //----------------------------------------------------------------------------
 bool vtkSlicerBeamsModuleLogic::CreateArcBeamDynamicSequence( 
-  double initialAngle, double finalAngle, bool direction,
+  double initialAngle, double finalAngle, bool direction, double angleStep,
   vtkMRMLRTPlanNode* planNode, vtkMRMLSequenceBrowserNode* beamSequenceBrowserNode,
   vtkMRMLSequenceNode* beamSequenceNode, vtkMRMLSequenceNode* transformSequenceNode)
 {
@@ -376,23 +376,23 @@ bool vtkSlicerBeamsModuleLogic::CreateArcBeamDynamicSequence(
   }
   vtkSmartPointer<vtkMRMLModelHierarchyNode> beamModelHierarchyRootNode;
 
-  const char* beamName = "Beam [Arc]";
+  const char* beamName = "Beam [ArcDelivery]";
   // Create sequence node for RTBeam, transformation, table
 
-  // beamSequenceNode;
+  // beamSequenceNode
   beamSequenceNode->SetName(beamName);
   beamSequenceNode->SetIndexName("Control point");
   beamSequenceNode->SetIndexUnit("index");
   beamSequenceNode->SetIndexType(vtkMRMLSequenceNode::NumericIndex);
 
-  // transformSequenceNode;
+  // transformSequenceNode
   std::string name = std::string(beamName) + vtkMRMLRTBeamNode::BEAM_TRANSFORM_NODE_NAME_POSTFIX;
   transformSequenceNode->SetName(name.c_str());
   transformSequenceNode->SetIndexName("Control point");
   transformSequenceNode->SetIndexUnit("index");
   transformSequenceNode->SetIndexType(vtkMRMLSequenceNode::NumericIndex);
 
-  // beamSequenceBrowserNode;
+  // beamSequenceBrowserNode
   name = std::string(beamName) + "_SequenceBrowser";
   beamSequenceBrowserNode->SetName(name.c_str());
 
