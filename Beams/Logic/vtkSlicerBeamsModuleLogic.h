@@ -65,14 +65,14 @@ public:
   /// Create arc delivery beam sequence 
   /// @param initialAngle - initial angle in degrees
   /// @param finalAngle - final angle in degrees
-  /// @param direction - 0 - clockwise, 1 - counter-clockwise
   /// @param angleStep - single angle step within arc
+  /// @param direction - 0 - clockwise, 1 - counter-clockwise
   /// @param planNode - input plan node, which contains reference volume node and isocenter position
   /// @param sequenceBrowserNode - output sequence browser node
   /// @param sequenceBeamNode - output beam node
   /// @param sequenceTransformNode - output transform node
   bool CreateArcBeamDynamicSequence( double initialAngle, double finalAngle,
-    bool direction, double angleStep, vtkMRMLRTPlanNode* planNode,
+    double angleStep, bool direction, vtkMRMLRTPlanNode* planNode,
     vtkMRMLSequenceBrowserNode* beamSequenceBrowserNode,
     vtkMRMLSequenceNode* beamSequenceNode, vtkMRMLSequenceNode* transformSequenceNode);
 

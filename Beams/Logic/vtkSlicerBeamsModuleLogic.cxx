@@ -315,7 +315,7 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
 
 //----------------------------------------------------------------------------
 bool vtkSlicerBeamsModuleLogic::CreateArcBeamDynamicSequence( 
-  double initialAngle, double finalAngle, bool direction, double angleStep,
+  double initialAngle, double finalAngle, double stepAngle, bool direction,
   vtkMRMLRTPlanNode* planNode, vtkMRMLSequenceBrowserNode* beamSequenceBrowserNode,
   vtkMRMLSequenceNode* beamSequenceNode, vtkMRMLSequenceNode* transformSequenceNode)
 {
@@ -325,6 +325,95 @@ bool vtkSlicerBeamsModuleLogic::CreateArcBeamDynamicSequence(
     return false;
   }
 
+  if (finalAngle < 0. && finalAngle > 360. && initialAngle < 0. && initialAngle > 360.)
+  {
+    return false;
+  }
+
+  if (!direction && initialAngle < finalAngle) // CW, ini < fin
+  {
+    for (double angle = initialAngle; angle <= finalAngle; angle += stepAngle)
+    {
+      angles.push_back(angle);
+    }
+    if (angles.back() < finalAngle)
+    {
+      angles.push_back(finalAngle);
+    }
+    std::cout << "Angles " << angles.size() << '\n';
+    std::for_each( angles.begin(), angles.end(), [](double v){ std::cout << v << ' '; });
+    std::cout << std::endl;
+  }
+  else if (!direction && initialAngle > finalAngle) // CW, ini > fin
+  {
+    for (double angle = initialAngle; angle <= 360.; angle += stepAngle)
+    {
+      angles.push_back(angle);
+    }
+    double startAngle = 1.;
+    if (angles.back() < 360.)
+    {
+      startAngle = angles.back() + stepAngle - 360.;
+    }
+    else if (angles.back() == 360.)
+    {
+      startAngle = stepAngle;
+    }
+
+    for (double angle = startAngle; angle <= finalAngle; angle += stepAngle)
+    {
+      angles.push_back(angle);
+    }
+    if (angles.back() < finalAngle)
+    {
+      angles.push_back(finalAngle);
+    }
+    std::cout << "Angles " << angles.size() << '\n';
+    std::for_each( angles.begin(), angles.end(), [](double v){ std::cout << v << ' '; });
+    std::cout << std::endl;
+  }
+  else if (direction && initialAngle < finalAngle) // CCW, ini < fin
+  {
+    for (double angle = initialAngle; angle >= 0.0; angle -= stepAngle)
+    {
+      angles.push_back(angle);
+    }
+    double startAngle = 359.;
+    if (angles.back() > 0.)
+    {
+      startAngle = angles.back() - stepAngle + 360.;
+    }
+    else if (angles.back() == 0.)
+    {
+      startAngle = 360. - stepAngle;
+    }
+    for (double angle = startAngle; angle >= finalAngle; angle -= stepAngle)
+    {
+      angles.push_back(angle);
+    }
+    if (angles.back() > finalAngle)
+    {
+      angles.push_back(finalAngle);
+    }
+    std::cout << "Angles " << angles.size() << '\n';
+    std::for_each( angles.begin(), angles.end(), [](double v){ std::cout << v << ' '; });
+    std::cout << std::endl;
+  }
+  else if (direction && initialAngle > finalAngle) // CCW, ini > fin
+  {
+    for (double angle = initialAngle; angle >= finalAngle; angle -= stepAngle)
+    {
+      angles.push_back(angle);
+    }
+    if (angles.back() > finalAngle)
+    {
+      angles.push_back(finalAngle);
+    }
+    std::cout << "Angles " << angles.size() << '\n';
+    std::for_each( angles.begin(), angles.end(), [](double v){ std::cout << v << ' '; });
+    std::cout << std::endl;
+  }
+/*
   if (finalAngle < 0. && finalAngle > 360. && initialAngle < 0. && initialAngle > 360.)
   {
     return false;
@@ -366,6 +455,13 @@ bool vtkSlicerBeamsModuleLogic::CreateArcBeamDynamicSequence(
       angles.push_back(angle);
     }
   }
+*/
+  if (angles.size() < 2)
+  {
+    vtkErrorMacro("CreateArcBeamDynamicSequence: Number of angle elements is less than 2");
+    return false;
+  }
+
   vtkMRMLScene* scene = planNode->GetScene();
 
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);

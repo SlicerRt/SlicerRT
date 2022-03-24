@@ -942,7 +942,9 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
     {
       // Create a new dynamic beam sequence node by replicating currently selected beam
       beamNode = d->DoseEngineLogic->createArcBeamInPlan( planNode,
-        d->DoubleSpinBox_ArcBeamInitialAngle->value(), d->DoubleSpinBox_ArcBeamFinalAngle->value(),
+        d->DoubleSpinBox_ArcBeamInitialAngle->value(), 
+        d->DoubleSpinBox_ArcBeamFinalAngle->value(), 
+        d->DoubleSpinBox_ArcBeamAngleStep->value(),
         static_cast<bool>(direction));
 
       if (!beamNode)

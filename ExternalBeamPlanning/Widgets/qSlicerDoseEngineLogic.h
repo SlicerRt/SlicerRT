@@ -76,9 +76,10 @@ public:
   /// @param planNode - node of the current plan
   /// @param initialAngle - initial angle
   /// @param finalAngle - final angle
+  /// @param stepAngle - step angle
   /// @param direction - rotation direction (0 == CW, 1 == CCW)
   Q_INVOKABLE vtkMRMLRTBeamNode* createArcBeamInPlan(vtkMRMLRTPlanNode* planNode,
-    double initialAngle, double finalAngle, bool rotationDirection);
+    double initialAngle = 0., double finalAngle = 360., double stepAngle = 1., bool rotationDirection = false);
 
 signals:
   /// Signals for dose calculation progress update
