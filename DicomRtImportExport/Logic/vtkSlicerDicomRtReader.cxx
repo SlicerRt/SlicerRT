@@ -2707,6 +2707,18 @@ const char* vtkSlicerDicomRtReader::GetBeamTreatmentDeliveryType(unsigned int be
 }
 
 //----------------------------------------------------------------------------
+bool vtkSlicerDicomRtReader::CheckBeamArcDeliveryType(unsigned int beamNumber,
+  double& initialAngle, double& finalAngle, bool& rotationDirection) const
+{
+  const vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
+  if (!beam)
+  {
+    return false;
+  }
+  return beam->IsArcDeliverySequence(initialAngle, finalAngle, rotationDirection);
+}
+
+//----------------------------------------------------------------------------
 const char* vtkSlicerDicomRtReader::GetBeamRadiationType(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
