@@ -114,7 +114,7 @@ void vtkSlicerIsodoseModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
     // Create a copy of isodose color table with unique name
     std::string uniqueName = this->GetMRMLScene()->GenerateUniqueName(vtkSlicerIsodoseModuleLogic::IsodoseColorNodeCopyUniqueName.c_str());
     // Get "Colors" module logic and copy a isodose color node
-    vtkMRMLColorTableNode* colorNode = this->GetMRMLApplicationLogic()->GetColorLogic()->CopyNode(isodoseColorTableNode, uniqueName.c_str());
+    vtkMRMLColorTableNode* colorNode = vtkMRMLColorLogic::CopyNode(isodoseColorTableNode, uniqueName.c_str());
     if (colorNode)
     {
       colorNode->SetSingletonTag(DEFAULT_ISODOSE_COLOR_TABLECOPY_NODE_NAME); // set tag that it's a copy
@@ -530,7 +530,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::SetupColorTableNodeForDoseVo
 
   std::string colorTableNodeName(doseVolumeNode->GetName());
   colorTableNodeName.append(ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX);
-  colorTableNode = this->GetMRMLApplicationLogic()->GetColorLogic()->CopyNode(defaultIsodoseColorTableNode, colorTableNodeName.c_str());
+  colorTableNode = vtkMRMLColorLogic::CopyNode(defaultIsodoseColorTableNode, colorTableNodeName.c_str());
   this->GetMRMLScene()->AddNode(colorTableNode);
   colorTableNode->SetSingletonOff();
   //colorTableNode->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
