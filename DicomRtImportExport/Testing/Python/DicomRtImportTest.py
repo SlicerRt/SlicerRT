@@ -57,10 +57,10 @@ class DicomRtImportTest(unittest.TestCase):
     self.tempDir = dicomRtImportTestDir + '/Temp'
 
     downloads = (
-        ('http://slicer.kitware.com/midas3/download?items=10613', 'RD.1.2.246.352.71.7.2088656855.452083.20110920153746.dcm'),
-        ('http://slicer.kitware.com/midas3/download?items=10614', 'RP.1.2.246.352.71.5.2088656855.377401.20110920153647.dcm'),
-        ('http://slicer.kitware.com/midas3/download?items=10615', 'RS.1.2.246.352.71.4.2088656855.2404649.20110920153449.dcm'),
-        ('http://slicer.kitware.com/midas3/download/item/119940', 'RI.1.2.246.352.71.3.2088656855.2381134.20110921150951.dcm')
+        ('https://github.com/SlicerRt/SlicerRtData/raw/master/eclipse-8.1.20-phantom-prostate/Original/RD.1.2.246.352.71.7.2088656855.452083.20110920153746.dcm', 'RD.1.2.246.352.71.7.2088656855.452083.20110920153746.dcm'),
+        ('https://github.com/SlicerRt/SlicerRtData/raw/master/eclipse-8.1.20-phantom-prostate/Original/RP.1.2.246.352.71.5.2088656855.377401.20110920153647.dcm', 'RP.1.2.246.352.71.5.2088656855.377401.20110920153647.dcm'),
+        ('https://github.com/SlicerRt/SlicerRtData/raw/master/eclipse-8.1.20-phantom-prostate/Original/RS.1.2.246.352.71.4.2088656855.2404649.20110920153449.dcm', 'RS.1.2.246.352.71.4.2088656855.2404649.20110920153449.dcm'),
+        ('https://github.com/SlicerRt/SlicerRtData/raw/master/eclipse-8.1.20-phantom-prostate/Original/RI.1.2.246.352.71.3.2088656855.2381134.20110921150951.dcm', 'RI.1.2.246.352.71.3.2088656855.2381134.20110921150951.dcm')
         )
 
     for url,name in downloads:
