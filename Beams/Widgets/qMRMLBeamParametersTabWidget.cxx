@@ -122,10 +122,11 @@ void qMRMLBeamParametersTabWidgetPrivate::init()
   }
   else
   {
-    qSlicerModuleManager* manager = app->moduleManager();
-    vtkMRMLAbstractLogic* logic = manager->module("Beams")->logic();
-    vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(logic);
-    this->MLCPositionLogic = beamsLogic->GetMLCPositionLogic();
+    vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(app->moduleLogic("Beams"));
+    if (beamsLogic)
+    {
+      this->MLCPositionLogic = beamsLogic->GetMLCPositionLogic();
+    }
   }
 
   // Remove Visualization tab as it is not yet functional
@@ -768,7 +769,7 @@ void qMRMLBeamParametersTabWidget::mlcBoundaryAndPositionTableNodeChanged(vtkMRM
   // Get rt plan node for ExternalBeamPlanning node
   vtkMRMLRTPlanNode* rtPlanNode = d->logic()->GetExternalBeamPlanningNode()->GetRtPlanNode();
   if (!rtPlanNode)
-  { 
+  {
     qCritical() << Q_FUNC_INFO << ": Invalid plan node!";
     return;
   }
@@ -806,8 +807,8 @@ void qMRMLBeamParametersTabWidget::generateMLCboundaryClicked()
   int nofPairs = static_cast<int>(d->SliderWidget_NumberOfLeafPairs->value());
   double leafPairSize = d->SliderWidget_LeafPairBoundarySize->value();
   double offset = d->SliderWidget_IsocenterOffset->value();
-  
-  vtkMRMLTableNode* mlcTable = d->MLCPositionLogic->CreateMultiLeafCollimatorTableNodeBoundaryData( 
+
+  vtkMRMLTableNode* mlcTable = d->MLCPositionLogic->CreateMultiLeafCollimatorTableNodeBoundaryData(
     mlcType, nofPairs, leafPairSize, offset);
   if (mlcTable)
   {
@@ -907,7 +908,7 @@ void qMRMLBeamParametersTabWidget::calculateMLCPositionClicked()
       vtkMRMLTransformNode* beamTransformNode = d->BeamNode->GetParentTransformNode();
 
       vtkMRMLTableNode* mlcTableNode = vtkMRMLTableNode::SafeDownCast(mlcTable);
-      if (mlcTableNode && d->MLCPositionLogic->CalculateMultiLeafCollimatorPosition( mlcTableNode, convexHullCurve) 
+      if (mlcTableNode && d->MLCPositionLogic->CalculateMultiLeafCollimatorPosition( mlcTableNode, convexHullCurve)
         && d->MLCPositionLogic->CalculateMultiLeafCollimatorPosition( d->BeamNode, mlcTableNode, targetPoly))
       {
         d->BeamNode->SetAndObserveMultiLeafCollimatorTableNode(mlcTableNode);
@@ -1123,7 +1124,7 @@ void qMRMLBeamParametersTabWidget::contoursInBEWClicked(bool checked)
   }
 
   // TODO: add the logic to check if contours should be included in the DRR view
-  // right now the contours are included always. 
+  // right now the contours are included always.
   if (checked)
   {
   }
