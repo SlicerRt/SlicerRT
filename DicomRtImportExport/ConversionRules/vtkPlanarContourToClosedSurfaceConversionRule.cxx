@@ -21,6 +21,7 @@
 #include "vtkPlanarContourToClosedSurfaceConversionRule.h"
 
 // VTK includes
+#include <vtkCleanPolyData.h>
 #include <vtkExtractCells.h>
 #include <vtkImageAccumulate.h>
 #include <vtkImageData.h>
@@ -1355,6 +1356,12 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CreateSmoothEndCapContour(vt
   linePolyData->SetPoints(inputROIPoints->GetPoints());
   linePolyData->SetLines(lines);
 
+  // Remove unused points
+  vtkNew<vtkCleanPolyData> cleanFilter;
+  cleanFilter->SetInputData(linePolyData);
+  cleanFilter->Update();
+  linePolyData->ShallowCopy(cleanFilter->GetOutput());
+
   double bounds[6] = { 0, 0, 0, 0, 0, 0 };
   linePolyData->GetBounds(bounds);
 
@@ -1383,7 +1390,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CreateSmoothEndCapContour(vt
                         static_cast<int>(std::ceil((bounds[3] - bounds[2]) / spacing[1])),
                         1 };
   double origin[3] = { bounds[0], bounds[2], bounds[4] };
-  int extent[6] = { 0, dimensions[0] - 1, 0, dimensions[1] - 1, 0, 0 };
+  int extent[6] = { 0, dimensions[0] - 1, 0, dimensions[1] - 1, 0, dimensions[2] - 1 };
 
   vtkSmartPointer<vtkImageData> blankImage = vtkSmartPointer<vtkImageData>::New();
   blankImage->SetSpacing(spacing);
@@ -1471,7 +1478,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CreateSmoothEndCapContour(vt
   // Calculate the decimation factor with the following formula: ( # of lines in input * number of points in original line ) / number of points in input
   double decimationFactor = (1.0 * newLines->GetNumberOfLines() * inputLine->GetNumberOfPoints() + 1) / newLines->GetNumberOfPoints();
 
-  // Reduce the number of points in the line until the ration between the input and output lines meets the specified decimation factor
+  // Reduce the number of points in the line until the ratio between the input and output lines meets the specified decimation factor
   this->DecimateLines(newLines, decimationFactor);
 
   vtkSmartPointer<vtkPoints> inputPoints = inputROIPoints->GetPoints();
