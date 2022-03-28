@@ -55,7 +55,7 @@ class PlmProtonDoseEngineTest(unittest.TestCase):
     self.dataZipFilePath = self.segmentationsModuleTestDir + '/TinyPatient_Seg.zip'
 
     # Define variables
-    self.expectedNumOfFilesInDataDir = 2
+    self.expectedNumOfFilesInDataDir = 4
     self.expectedNumOfFilesInDataSegDir = 2
     self.plastimatchProtonDoseEngineName = 'Plastimatch proton'
 
@@ -64,7 +64,7 @@ class PlmProtonDoseEngineTest(unittest.TestCase):
     try:
       import urllib.request, urllib.parse, urllib.error
       downloads = (
-          ('http://slicer.kitware.com/midas3/download/folder/3763/TinyPatient_Seg.zip', self.dataZipFilePath),
+          ('https://github.com/Slicer/SlicerTestingData/releases/download/SHA256/b902f635ef2059cd3b4ba854c000b388e4a9e817a651f28be05c22511a317ec7', self.dataZipFilePath),
           )
 
       downloaded = 0
