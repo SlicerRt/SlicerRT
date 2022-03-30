@@ -74,7 +74,7 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->CollimatorAngle = 0.0;
   this->CouchAngle = 0.0;
 
-  this->SAD = 1000.0;
+  this->SAD = 2000.0;
 
   this->SourceToJawsDistanceX = 500.;
   this->SourceToJawsDistanceY = 500.;
