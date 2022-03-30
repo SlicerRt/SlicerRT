@@ -147,6 +147,7 @@ class PlmProtonDoseEngineTest(unittest.TestCase):
 
     # Add first beam
     firstBeamNode = engineLogic.createBeamInPlan(planNode)
+    firstBeamNode.SetSAD(2000)
     firstBeamNode.SetX1Jaw(-50.0)
     firstBeamNode.SetX2Jaw(50.0)
     firstBeamNode.SetY1Jaw(-50.0)
