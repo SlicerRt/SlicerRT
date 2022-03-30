@@ -237,7 +237,7 @@ class BatchStructureSetConversionTest(ScriptedLoadableModuleTest):
     if not os.access(self.dataDir, os.F_OK):
         os.mkdir(self.dataDir)
     self.dicomDatabaseDir = self.dataDir + '/CtkDicomDatabase'
-    self.dicomZipFileUrl = 'http://slicer.kitware.com/midas3/download/folder/2822/TinyRtStudy.zip'
+    self.dicomZipFileUrl = 'https://github.com/SlicerRt/SlicerRtData/releases/download/TestData/plastimatch_tiny-rt-study.zip'
     self.dicomZipFilePath = self.logic.dataDir + '/TinyRtStudy.zip'
     self.expectedNumOfFilesInDicomDataDir = 12
     self.db = None
