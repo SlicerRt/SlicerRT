@@ -229,8 +229,6 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     if beamNode is None:
       return
 
-    settings = qt.QSettings()
-
     ctcreateExecFilePath = self.scriptedEngine.parameter(beamNode, "CtcreateExecFilePath")
     if ctcreateExecFilePath != self.ctcreateExecFilePathDefault:
       qt.QSettings().setValue('OrthovoltageDoseEngine/CtcreateExecFilePath', ctcreateExecFilePath)
@@ -284,7 +282,6 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     ctcreateExecFilePath = self.scriptedEngine.parameter(beamNode, "CtcreateExecFilePath")
     ctcreateOutputPath = self.scriptedEngine.parameter(beamNode, "CtcreateOutputPath")
     roiNodeName = self.scriptedEngine.parameter(beamNode, "ROIName")
-    volumeName = self.scriptedEngine.parameter(beamNode, "VolumeName")
     sliceThicknessX = self.scriptedEngine.parameter(beamNode, "SliceThicknessX")
     sliceThicknessY = self.scriptedEngine.parameter(beamNode, "SliceThicknessY")
     sliceThicknessZ = self.scriptedEngine.parameter(beamNode, "SliceThicknessZ")
@@ -305,7 +302,8 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     ##########################################
 
     runCTCreateDOSXYZnrc = int(self.scriptedEngine.parameter(beamNode, "RunCTCreateDOSXYZnrc"))
-    if runCTCreateDOSXYZnrc != self.runCTCreateAndDoseXYZnrcIndex:
+    if runCTCreateDOSXYZnrc != self.runDOSXYZnrcOnlyIndex:
+      logging.info("Running ctCreate")
       materialJSON = self.scriptedEngine.parameter(beamNode, "Materials")
       try:
         materials = json.loads(materialJSON)
@@ -313,7 +311,6 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
         logging.error("Unable parse materials JSON string")
 
       lowerBound = self.scriptedEngine.parameter(beamNode, "LowerBound")
-      
       OrthovoltageDoseEngineUtil.generateCtcreateInput(volumeNode, seriesUID, ctcreateOutputPath, materials, lowerBound, roiNode, thicknesses)
       EGSnrcUtil.callCtcreate(ctcreateExecFilePath, ctcreateOutputPath)
 
@@ -409,7 +406,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
 
     ctcreateFilePath = ctcreateOutputPath
     if runCTCreateDOSXYZnrc == self.runDOSXYZnrcOnlyIndex:
-       ctcreateFilePath = self.scriptedEngine.parameter(beamNode, "ExistingCtcreatePath")
+      ctcreateFilePath = self.scriptedEngine.parameter(beamNode, "ExistingCtcreatePath")
 
     if ctcreateFilePath == "":
       logging.error("ctcreate file path not specified")
