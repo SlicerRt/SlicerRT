@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -137,7 +137,7 @@ void vtkSlicerIsodoseModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
 //-----------------------------------------------------------------------------
 void vtkSlicerIsodoseModuleLogic::RegisterNodes()
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("RegisterNodes: Invalid MRML scene");
@@ -316,7 +316,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::GetDefaultIsodoseColorTable(
   colorTableNode->AddColor("30", 1, 0, 0, 0.2);
   colorTableNode->AddColor("35", 221./255., 18./255., 123./255., 0.2);
   colorTableNode->SaveWithSceneOff();
-  
+
   scene->AddNode(colorTableNode);
   return colorTableNode;
 }
@@ -361,7 +361,7 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::GetRelativeIsodoseColorTable
   colorTableNode->AddColor("105", 1., 0.5, 0., 0.2);
   colorTableNode->AddColor("110", 1., 0., 0., 0.2);
   colorTableNode->SaveWithSceneOff();
-  
+
   scene->AddNode(colorTableNode);
   return colorTableNode;
 }
@@ -550,7 +550,7 @@ void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(vtkMRMLIsodoseNode* p
     return;
   }
 
-  vtkMRMLColorTableNode* colorTableNode = parameterNode->GetColorTableNode();  
+  vtkMRMLColorTableNode* colorTableNode = parameterNode->GetColorTableNode();
   if (!colorTableNode || newNumberOfColors < 1)
   {
     return;
@@ -563,7 +563,7 @@ void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(vtkMRMLIsodoseNode* p
   vtkMRMLIsodoseNode::DoseUnitsType doseUnits = parameterNode->GetDoseUnits();
 
   bool relativeFlag = false;
-  if (parameterNode->GetRelativeRepresentationFlag() 
+  if (parameterNode->GetRelativeRepresentationFlag()
     && (doseUnits == vtkMRMLIsodoseNode::Gy
     || doseUnits == vtkMRMLIsodoseNode::Unknown))
   {
@@ -669,7 +669,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     return;
   }
 
-  scene->StartState(vtkMRMLScene::BatchProcessState); 
+  scene->StartState(vtkMRMLScene::BatchProcessState);
 
   // Get subject hierarchy item for the dose volume
   vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
@@ -689,7 +689,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   // Check if that absolute of relative values
   bool relativeFlag = false;
   vtkMRMLIsodoseNode::DoseUnitsType doseUnits = parameterNode->GetDoseUnits();
-  if (parameterNode->GetRelativeRepresentationFlag() 
+  if (parameterNode->GetRelativeRepresentationFlag()
     && (doseUnits == vtkMRMLIsodoseNode::Gy
     || doseUnits == vtkMRMLIsodoseNode::Unknown))
   {
@@ -699,7 +699,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   {
     relativeFlag = true;
   }
-  std::string isodoseName = relativeFlag ? 
+  std::string isodoseName = relativeFlag ?
     vtkSlicerIsodoseModuleLogic::ISODOSE_RELATIVE_ROOT_HIERARCHY_NAME_POSTFIX :
     vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX;
 
@@ -736,7 +736,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   {
     doseUnitName = "%";
   }
-  
+
   // Progress
   int progressStepCount = colorTableNode->GetNumberOfColors() + 1 /* reslice step */;
   int currentProgressStep = 0;
@@ -745,9 +745,9 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   vtkNew<vtkMatrix4x4> inputIJK2RASMatrix;
   doseVolumeNode->GetIJKToRASMatrix(inputIJK2RASMatrix);
   vtkNew<vtkMatrix4x4> inputRAS2IJKMatrix;
-  doseVolumeNode->GetRASToIJKMatrix(inputRAS2IJKMatrix); 
+  doseVolumeNode->GetRASToIJKMatrix(inputRAS2IJKMatrix);
 
-  vtkNew<vtkTransform> outputIJK2IJKResliceTransform; 
+  vtkNew<vtkTransform> outputIJK2IJKResliceTransform;
   outputIJK2IJKResliceTransform->Identity();
   outputIJK2IJKResliceTransform->PostMultiply();
   outputIJK2IJKResliceTransform->SetMatrix(inputIJK2RASMatrix);
@@ -756,10 +756,10 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   vtkNew<vtkMatrix4x4> inputRAS2RASMatrix;
   if (inputVolumeNodeTransformNode!=nullptr)
   {
-    inputVolumeNodeTransformNode->GetMatrixTransformToWorld(inputRAS2RASMatrix);  
+    inputVolumeNodeTransformNode->GetMatrixTransformToWorld(inputRAS2RASMatrix);
     outputIJK2IJKResliceTransform->Concatenate(inputRAS2RASMatrix);
   }
-  
+
   outputIJK2IJKResliceTransform->Concatenate(inputRAS2IJKMatrix);
   outputIJK2IJKResliceTransform->Inverse();
 
@@ -772,7 +772,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   reslice->SetOutputExtent(0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1);
   reslice->SetResliceTransform(outputIJK2IJKResliceTransform);
   reslice->Update();
-  vtkSmartPointer<vtkImageData> reslicedDoseVolumeImage = reslice->GetOutput(); 
+  vtkSmartPointer<vtkImageData> reslicedDoseVolumeImage = reslice->GetOutput();
 
   // Report progress
   ++currentProgressStep;
@@ -800,7 +800,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
 
     vtkNew<vtkImageMarchingCubes> marchingCubes;
     marchingCubes->SetInputData(reslicedDoseVolumeImage);
-    marchingCubes->SetNumberOfContours(1); 
+    marchingCubes->SetNumberOfContours(1);
     marchingCubes->SetValue(0, isoLevel);
     marchingCubes->ComputeScalarsOff();
     marchingCubes->ComputeGradientsOff();
@@ -845,7 +845,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
       transformPolyData->SetInputData(normals->GetOutput());
       transformPolyData->SetTransform(inputIJKToRASTransform);
       transformPolyData->Update();
-  
+
       vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
       displayNode = vtkMRMLModelDisplayNode::SafeDownCast(scene->AddNode(displayNode));
       displayNode->Visibility2DOn();
@@ -868,7 +868,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
 
       // Put the new node in the isodose folder
       vtkIdType isodoseModelItemID = shNode->GetItemByDataNode(isodoseModelNode);
-      if (isodoseModelItemID) // There is no automatic SH creation in automatic tests 
+      if (isodoseModelItemID) // There is no automatic SH creation in automatic tests
       {
         shNode->SetItemParent(isodoseModelItemID, isodoseFolderItemID);
       }
@@ -942,11 +942,34 @@ void vtkSlicerIsodoseModuleLogic::UpdateDoseColorTableFromIsodose(vtkMRMLIsodose
   doseVolumeDisplayNode->SetAndObserveColorNodeID(doseColorTableNode->GetID());
 
   // Set window/level to match the isodose levels
-  int minDoseInDefaultIsodoseLevels = vtkVariant(isodoseColorTableNode->GetColorName(0)).ToInt();
-  int maxDoseInDefaultIsodoseLevels = vtkVariant(isodoseColorTableNode->GetColorName(isodoseColorTableNode->GetNumberOfColors()-1)).ToInt();
+  double minDoseInDefaultIsodoseLevels = vtkVariant(isodoseColorTableNode->GetColorName(0)).ToDouble();
+  double maxDoseInDefaultIsodoseLevels = vtkVariant(isodoseColorTableNode->GetColorName(isodoseColorTableNode->GetNumberOfColors()-1)).ToDouble();
+
+  // Check if the isodose levels are relative values
+  bool relativeFlag = false;
+  vtkMRMLIsodoseNode::DoseUnitsType doseUnits = parameterNode->GetDoseUnits();
+  if (parameterNode->GetRelativeRepresentationFlag()
+    && (doseUnits == vtkMRMLIsodoseNode::Gy
+      || doseUnits == vtkMRMLIsodoseNode::Unknown))
+  {
+    relativeFlag = true;
+  }
+  else if (doseUnits == vtkMRMLIsodoseNode::Relative)
+  {
+    relativeFlag = true;
+  }
+  if (relativeFlag)
+  {
+    // reference value for relative representation
+    double referenceValue = parameterNode->GetReferenceDoseValue();
+
+    // If the isodose levels are relative, we need to scale the min/max isodose level for dose volume scalars.
+    minDoseInDefaultIsodoseLevels *= referenceValue / 100.0;
+    maxDoseInDefaultIsodoseLevels *= referenceValue / 100.0;
+  }
 
   doseVolumeDisplayNode->SetWindowLevelMinMax(minDoseInDefaultIsodoseLevels, maxDoseInDefaultIsodoseLevels);
-  doseVolumeDisplayNode->AutoWindowLevelOn();
+  doseVolumeDisplayNode->AutoWindowLevelOff();
 
   // Get dose grid scaling
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
