@@ -83,6 +83,7 @@ void vtkSlicerRTScalarBarActor::LayoutTicks()
   // created, text properties are created and shallow-assigned a font size
   // which value might be "far" from the target font size).
   this->Superclass::P->TextActors.resize(this->NumberOfLabels);
+  this->Superclass::P->TextActorAnchors.resize(this->NumberOfLabels);
 
   // Does this map have its scale set to log?
   int isLogTable = this->LookupTable->UsingLogScale();
@@ -119,6 +120,8 @@ void vtkSlicerRTScalarBarActor::LayoutTicks()
         val = range[0] + 0.5*(range[1]-range[0]);
         }
       }
+
+    this->P->TextActorAnchors[i] = this->NumberOfLabels > 1 ? static_cast<double>(i) / (this->NumberOfLabels - 1) : 0.5;
 
     // if the lookuptable uses the new annotation functionality in VTK6.0
     // then use it as labels
