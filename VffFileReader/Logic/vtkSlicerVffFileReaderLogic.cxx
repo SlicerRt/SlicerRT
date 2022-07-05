@@ -58,11 +58,20 @@ vtkSlicerVffFileReaderLogic::~vtkSlicerVffFileReaderLogic() = default;
 std::string vtkSlicerVffFileReaderLogic::TrimSpacesFromEndsOfString(std::string &stringToTrim)
 {
   // Trim spaces from the beginning of the string
-  stringToTrim.erase(stringToTrim.begin(), std::find_if(stringToTrim.begin(), stringToTrim.end(), std::not1(std::ptr_fun<int, int>(std::isspace)))); 
+  stringToTrim.erase(stringToTrim.begin(), std::find_if(stringToTrim.begin(), stringToTrim.end(),
+    [](unsigned char ch)
+    {
+    return !std::isspace(ch);
+    }));
 
    // Trim spaces from the end of the string
-  stringToTrim.erase(std::find_if(stringToTrim.rbegin(), stringToTrim.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), stringToTrim.end()); 
-  
+  stringToTrim.erase(std::find_if(stringToTrim.rbegin(), stringToTrim.rend(),
+    [](unsigned char ch)
+    {
+      return !std::isspace(ch);
+    }).base(),
+    stringToTrim.end()); 
+
   return stringToTrim;
 }
 
