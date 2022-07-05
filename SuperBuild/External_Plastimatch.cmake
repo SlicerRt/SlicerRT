@@ -27,13 +27,13 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY
-    "${EP_GIT_PROTOCOL}://gitlab.com/MichaelColonel/plastimatch.git"
+    "https://github.com/SlicerRT/plastimatch.git"
     QUIET
     )
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "072f70c30ba3168063be2a8d5edf41fa69bae918" # Temporary fix to prevent compilation error with ITK-5.3
+    "21cfbc181eaf349e86536b27d6f3b631d0c8e99a"
     QUIET
     )
 
