@@ -43,7 +43,7 @@
 namespace
 {
 
-int DoSetupDRR( int argc, char * argv[], Drr_options& options ) throw( std::string )
+int DoSetupDRR( int argc, char * argv[], Drr_options& options )
 {
   PARSE_ARGS;
 
@@ -166,7 +166,7 @@ int DoSetupDRR( int argc, char * argv[], Drr_options& options ) throw( std::stri
 }
 
 template <typename TPixel>
-int DoIt( int argc, char * argv[], Drr_options& options, TPixel ) throw( std::string, itk::ExceptionObject )
+int DoIt( int argc, char * argv[], Drr_options& options, TPixel )
 {
   PARSE_ARGS;
 
