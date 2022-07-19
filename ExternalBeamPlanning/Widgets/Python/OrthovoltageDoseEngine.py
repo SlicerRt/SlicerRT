@@ -5,6 +5,7 @@ import json
 from DoseEngines import AbstractScriptedDoseEngine
 from DoseEngines import OrthovoltageDoseEngineUtil
 from DoseEngines import EGSnrcUtil
+from SegmentEditorEffects import SegmentEditorMaskVolumeEffect
 
 #------------------------------------------------------------------------------
 #
@@ -222,6 +223,10 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
       "Orthovoltage dose", "ZDBS", "DBS Z (cm):",
        "Z in the BEAMnrc run where the phase space source was scored (cm).\n\
       Only needed if DBS is enabled.", 20)
+
+    self.scriptedEngine.addBeamParameterLineEdit(
+      "Orthovoltage dose", "EraseOutsideSegment", "Erase outside segment:",
+      "If specified, causes the dose volume to be erased outside of the segment with the specified name.", "")
 
   #------------------------------------------------------------------------------
   #TODO: Add a path parameter type using the CTK path selector that saves the selections to Application Settings
@@ -500,6 +505,23 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     accumulate.Update()
     logging.info( 'Result dose volume for beam ' + beamNode.GetName() + ' successfully loaded.\n'
       + '  Dose range: ({:.4f}-{:.4f})'.format(accumulate.GetMin()[0],accumulate.GetMax()[0]) )
+
+    # Erase dose outside of the specified segment
+    maskSegmentId = ""
+    maskSegmentName = self.scriptedEngine.parameter(beamNode, "EraseOutsideSegment")
+    segmentationNode = parentPlan.GetSegmentationNode()
+    if segmentationNode is None or segmentationNode.GetSegmentation() is None:
+      logging.error("Could not mask dose volume. Invalid segmentation.")
+    elif maskSegmentName != "":
+      maskSegmentId = segmentationNode.GetSegmentation().GetSegmentIdBySegmentName(maskSegmentName)
+
+    if maskSegmentId != "":
+      logging.info(f"Erasing dose outside of {maskSegmentName}[ID: {maskSegmentId}]")
+      operationMode = "FILL_OUTSIDE"
+      fillValues = [0]
+      SegmentEditorMaskVolumeEffect.maskVolumeWithSegment(segmentationNode, maskSegmentId, operationMode, fillValues, resultDoseVolumeNode, resultDoseVolumeNode)
+    else:
+      logging.error("Could not mask dose volume. Invalid segment id.")
 
     # Successful execution, no error message
     return ""
