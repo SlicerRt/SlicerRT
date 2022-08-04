@@ -534,6 +534,15 @@ vtkMRMLRTBeamNode* qSlicerDoseEngineLogic::createArcBeamInPlan( vtkMRMLRTPlanNod
       proxyBeamNode->SetAndObserveTransformNodeID(proxyTransformNode->GetID());
       return proxyBeamNode;
     }
+    else
+    {
+      qWarning() << Q_FUNC_INFO << ": Proxy beam node or proxy transform node in beam sequence is invalid";
+    }
   }
+  else
+  {
+    qWarning() << Q_FUNC_INFO << ": Unable to create arc beam sequence";
+  }
+
   return nullptr;
 }

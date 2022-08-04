@@ -915,7 +915,7 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
   }
 
   vtkMRMLRTBeamNode* beamNode = nullptr;
-  if (!d->GroupBox_ArcBeamSequence->isChecked()) // Static beam
+  if (!d->CollapsibleGroupBox_ArcBeamSequence->isChecked()) // Static beam
   {
     // Create new beam node by replicating currently selected beam
     beamNode = d->DoseEngineLogic->createBeamInPlan(planNode);
@@ -925,7 +925,7 @@ void qSlicerExternalBeamPlanningModuleWidget::addBeamClicked()
       return;
     }
   }
-  else // Dynamic beam sequence
+  else // Arc beam sequence
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
     int direction = -1;

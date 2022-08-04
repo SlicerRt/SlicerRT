@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>483</width>
-    <height>704</height>
+    <width>485</width>
+    <height>787</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -489,58 +489,7 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="1" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_6">
-        <item>
-         <widget class="QPushButton" name="pushButton_AddBeam">
-          <property name="minimumSize">
-           <size>
-            <width>112</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Add beam</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../qSlicerExternalBeamPlanningModule.qrc">
-            <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_RemoveBeam">
-          <property name="minimumSize">
-           <size>
-            <width>112</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Remove beam</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../qSlicerExternalBeamPlanningModule.qrc">
-            <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="2" column="0">
+      <item row="3" column="0">
        <widget class="qMRMLBeamsTableView" name="BeamsTableView">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -551,7 +500,7 @@
        </widget>
       </item>
       <item row="0" column="0">
-       <widget class="QGroupBox" name="GroupBox_ArcBeamSequence">
+       <widget class="ctkCollapsibleGroupBox" name="CollapsibleGroupBox_ArcBeamSequence">
         <property name="title">
          <string>Arc beam sequence</string>
         </property>
@@ -663,6 +612,57 @@
         </layout>
        </widget>
       </item>
+      <item row="2" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QPushButton" name="pushButton_AddBeam">
+          <property name="minimumSize">
+           <size>
+            <width>112</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Add beam</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../qSlicerExternalBeamPlanningModule.qrc">
+            <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_RemoveBeam">
+          <property name="minimumSize">
+           <size>
+            <width>112</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Remove beam</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../qSlicerExternalBeamPlanningModule.qrc">
+            <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
      </layout>
     </widget>
    </item>
@@ -673,6 +673,12 @@
    <class>ctkCollapsibleButton</class>
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>ctkCollapsibleGroupBox.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

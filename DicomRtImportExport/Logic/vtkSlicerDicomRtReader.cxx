@@ -319,7 +319,7 @@ public:
     std::string InstitutionalDepartmentName;
     std::string ManufacturerModelName;
   };
-  
+
   /// List of loaded beams from external beam plan
   std::vector<BeamEntry> BeamSequenceVector;
 
@@ -589,9 +589,8 @@ bool vtkSlicerDicomRtReader::vtkInternal::BeamEntry::IsArcDeliverySequence(
       (cp1.GantryAngle >= 0. && cp1.GantryAngle <= 360.);
 
     res = point0 && point1;
-    if (point0 && point1)
+    if (res)
     {
-      res = true;
       initialAngle = cp0.GantryAngle;
       finalAngle = cp1.GantryAngle;
       // rotation: 0 - clockwise, 1 - counter clockwise

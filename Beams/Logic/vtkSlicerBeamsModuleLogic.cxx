@@ -340,9 +340,6 @@ bool vtkSlicerBeamsModuleLogic::CreateArcBeamDynamicSequence(
     {
       angles.push_back(finalAngle);
     }
-    std::cout << "Angles " << angles.size() << '\n';
-    std::for_each( angles.begin(), angles.end(), [](double v){ std::cout << v << ' '; });
-    std::cout << std::endl;
   }
   else if (!direction && initialAngle > finalAngle) // CW, ini > fin
   {
@@ -368,9 +365,6 @@ bool vtkSlicerBeamsModuleLogic::CreateArcBeamDynamicSequence(
     {
       angles.push_back(finalAngle);
     }
-    std::cout << "Angles " << angles.size() << '\n';
-    std::for_each( angles.begin(), angles.end(), [](double v){ std::cout << v << ' '; });
-    std::cout << std::endl;
   }
   else if (direction && initialAngle < finalAngle) // CCW, ini < fin
   {
@@ -395,9 +389,6 @@ bool vtkSlicerBeamsModuleLogic::CreateArcBeamDynamicSequence(
     {
       angles.push_back(finalAngle);
     }
-    std::cout << "Angles " << angles.size() << '\n';
-    std::for_each( angles.begin(), angles.end(), [](double v){ std::cout << v << ' '; });
-    std::cout << std::endl;
   }
   else if (direction && initialAngle > finalAngle) // CCW, ini > fin
   {
@@ -409,53 +400,7 @@ bool vtkSlicerBeamsModuleLogic::CreateArcBeamDynamicSequence(
     {
       angles.push_back(finalAngle);
     }
-    std::cout << "Angles " << angles.size() << '\n';
-    std::for_each( angles.begin(), angles.end(), [](double v){ std::cout << v << ' '; });
-    std::cout << std::endl;
   }
-/*
-  if (finalAngle < 0. && finalAngle > 360. && initialAngle < 0. && initialAngle > 360.)
-  {
-    return false;
-  }
-
-  if (!direction && initialAngle < finalAngle) // CW, ini < fin
-  {
-    for (double angle = initialAngle; angle <= finalAngle; angle += 1.)
-    {
-      angles.push_back(angle);
-    }
-  }
-  else if (!direction && initialAngle > finalAngle) // CW, ini > fin
-  {
-    for (double angle = initialAngle; angle <= 360.; angle += 1.)
-    {
-      angles.push_back(angle);
-    }
-    for (double angle = 1.; angle <= finalAngle; angle += 1.)
-    {
-      angles.push_back(angle);
-    }
-  }
-  else if (direction && initialAngle < finalAngle) // CCW, ini < fin
-  {
-    for (double angle = initialAngle; angle >= 0.0; angle -= 1.)
-    {
-      angles.push_back(angle);
-    }
-    for (double angle = 359.; angle >= finalAngle; angle -= 1.)
-    {
-      angles.push_back(angle);
-    }
-  }
-  else if (direction && initialAngle > finalAngle) // CCW, ini > fin
-  {
-    for (double angle = initialAngle; angle >= finalAngle; angle -= 1.)
-    {
-      angles.push_back(angle);
-    }
-  }
-*/
   if (angles.size() < 2)
   {
     vtkErrorMacro("CreateArcBeamDynamicSequence: Number of angle elements is less than 2");
@@ -464,7 +409,7 @@ bool vtkSlicerBeamsModuleLogic::CreateArcBeamDynamicSequence(
 
   vtkMRMLScene* scene = planNode->GetScene();
 
-  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
+  vtkMRMLSubjectHierarchyNode* shNode = scene->GetSubjectHierarchyNode();
   if (!shNode)
   {
     vtkErrorMacro("CreateArcBeamDynamicSequence: Failed to access subject hierarchy node");
@@ -521,10 +466,7 @@ bool vtkSlicerBeamsModuleLogic::CreateArcBeamDynamicSequence(
     // SAD for RTPlan, source to beam limiting devices (Jaws, MLC)
     if (beamNode)
     {
-//      beamNode->SetSAD(rtReader->GetBeamSourceAxisDistance(dicomBeamNumber));
-//      beamNode->SetSourceToJawsDistanceX(rtReader->GetBeamSourceToJawsDistanceX(dicomBeamNumber));
-//      beamNode->SetSourceToJawsDistanceY(rtReader->GetBeamSourceToJawsDistanceY(dicomBeamNumber));
-//      beamNode->SetSourceToMultiLeafCollimatorDistance(rtReader->GetBeamSourceToMultiLeafCollimatorDistance(dicomBeamNumber));
+// TODO: Add beam parameters for each angle step
     }
 
     // Add beam to beam sequence node
@@ -545,7 +487,7 @@ bool vtkSlicerBeamsModuleLogic::CreateArcBeamDynamicSequence(
         this->UpdateTransformForBeam( beamSequenceNode->GetSequenceScene(), beamNode, transformNode, isocenter);
 
         vtkTransform* transform = vtkTransform::SafeDownCast(transformNode->GetTransformToParent());
-        if (isocenter)
+        if (transform)
         {
           // Actual translation to isocenter
           transform->Translate( isocenter[0], isocenter[1], isocenter[2]);
