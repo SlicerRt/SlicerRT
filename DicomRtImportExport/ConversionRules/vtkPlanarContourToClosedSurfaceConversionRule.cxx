@@ -81,9 +81,9 @@ vtkPlanarContourToClosedSurfaceConversionRule::vtkPlanarContourToClosedSurfaceCo
   this->ImagePadding[1] = 4;
   this->ImagePadding[2] = 0;
 
-  this->ConversionParameters[this->GetDefaultSliceThicknessParameterName()] = std::make_pair("0.0",
+  this->ConversionParameters->SetParameter(this->GetDefaultSliceThicknessParameterName(), "0.0",
     "Default thickness for contours if slice spacing cannot be calculated.");
-  this->ConversionParameters[this->GetEndCappingParameterName()] = std::make_pair("1",
+  this->ConversionParameters->SetParameter(this->GetEndCappingParameterName(), "1",
     "Create end cap to close surface inside contours on the top and bottom of the structure.\n"
     "0 = leave contours open on surface exterior.\n"
     "1 (default) = close surface by generating smooth end caps.\n"
@@ -1181,7 +1181,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::EndCapping(vtkPolyData* inpu
 //----------------------------------------------------------------------------
 double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtkPolyData* inputROIPoints)
 {
-  double defaultSliceThickness = vtkVariant(this->ConversionParameters[this->GetDefaultSliceThicknessParameterName()].first).ToDouble();
+  double defaultSliceThickness = this->ConversionParameters->GetValueAsDouble(this->GetDefaultSliceThicknessParameterName());
 
   if (!inputROIPoints)
   {
