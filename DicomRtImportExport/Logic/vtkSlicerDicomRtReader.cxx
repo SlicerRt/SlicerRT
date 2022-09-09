@@ -268,6 +268,8 @@ public:
       ScanMode("NONE")
     {
     }
+    bool IsArcDeliverySequence(double& initialAngle, double& finalAngle, bool& rotationDirection) const;
+
     unsigned int Number;
     std::string Name;
     std::string Type;
@@ -569,6 +571,33 @@ vtkSlicerDicomRtReader::vtkInternal::ControlPointEntry::operator=(const ControlP
   this->TableTopLongitudinalPosition = src.TableTopLongitudinalPosition;
   this->TableTopLateralPosition = src.TableTopLateralPosition;
   return *this;
+}
+
+bool vtkSlicerDicomRtReader::vtkInternal::BeamEntry::IsArcDeliverySequence(
+  double& initialAngle, double& finalAngle, bool& rotationDirection) const
+{
+  bool res = false;
+  if (ControlPointSequenceVector.size() == 2)
+  {
+    const ControlPointEntry& cp0 = ControlPointSequenceVector[0];
+    bool point0 = (cp0.CumulativeMetersetWeight == 0.) &&
+      (cp0.GantryRotationDirection == "CC" || cp0.GantryRotationDirection == "CW") &&
+      (cp0.GantryAngle >= 0. && cp0.GantryAngle <= 360.);
+    const ControlPointEntry& cp1 = ControlPointSequenceVector[1];
+    bool point1 = (cp1.CumulativeMetersetWeight == 1.) &&
+      (cp1.GantryRotationDirection == "NONE") &&
+      (cp1.GantryAngle >= 0. && cp1.GantryAngle <= 360.);
+
+    res = point0 && point1;
+    if (res)
+    {
+      initialAngle = cp0.GantryAngle;
+      finalAngle = cp1.GantryAngle;
+      // rotation: 0 - clockwise, 1 - counter clockwise
+      rotationDirection = (cp0.GantryRotationDirection == "CC");
+    }
+  }
+  return res;
 }
 
 //----------------------------------------------------------------------------
@@ -2674,6 +2703,18 @@ const char* vtkSlicerDicomRtReader::GetBeamTreatmentDeliveryType(unsigned int be
     return nullptr;
   }
   return beam->TreatmentDeliveryType.c_str();
+}
+
+//----------------------------------------------------------------------------
+bool vtkSlicerDicomRtReader::CheckBeamArcDeliveryType(unsigned int beamNumber,
+  double& initialAngle, double& finalAngle, bool& rotationDirection) const
+{
+  const vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
+  if (!beam)
+  {
+    return false;
+  }
+  return beam->IsArcDeliverySequence(initialAngle, finalAngle, rotationDirection);
 }
 
 //----------------------------------------------------------------------------

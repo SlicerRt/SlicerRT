@@ -35,6 +35,8 @@
 #include "vtkMRMLRTBeamNode.h"
 
 class vtkSlicerMLCPositionLogic;
+class vtkMRMLSequenceBrowserNode;
+class vtkMRMLSequenceNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkSlicerBeamsModuleLogic :
@@ -52,13 +54,27 @@ public:
 
   /// Update parent transform of a given beam using its parameters and the IEC logic
   /// without using plan node (only isocenter position)
-  /// @param beamSequenceScene - inner scene of the beam sequence node
-  /// @param beamNode - a current beam node (must be added to the beam sequence node beforehand)
-  /// @param beamTransformNode - parent transform of the beam according to the beam parameters and isocenter
-  /// @param isocenter - isocenter position
+  /// \param beamSequenceScene inner scene of the beam sequence node
+  /// \param beamNode a current beam node (must be added to the beam sequence node beforehand)
+  /// \param beamTransformNode parent transform of the beam according to the beam parameters and isocenter
+  /// \param isocenter isocenter position
   /// \warning This method is used only in vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequence
-  void UpdateTransformForBeam( vtkMRMLScene* beamSequenceScene, vtkMRMLRTBeamNode* beamNode, 
+  void UpdateTransformForBeam(vtkMRMLScene* beamSequenceScene, vtkMRMLRTBeamNode* beamNode, 
     vtkMRMLLinearTransformNode* beamTransformNode, double isocenter[3]);
+
+  /// Create arc delivery beam sequence 
+  /// \param initialAngle initial angle in degrees
+  /// \param finalAngle final angle in degrees
+  /// \param angleStep single angle step within arc
+  /// \param direction 0 - clockwise, 1 - counter-clockwise
+  /// \param planNode input plan node, which contains reference volume node and isocenter position
+  /// \param sequenceBrowserNode output sequence browser node
+  /// \param sequenceBeamNode output beam node
+  /// \param sequenceTransformNode output transform node
+  bool CreateArcBeamDynamicSequence(double initialAngle, double finalAngle,
+    double angleStep, bool direction, vtkMRMLRTPlanNode* planNode,
+    vtkMRMLSequenceBrowserNode* beamSequenceBrowserNode,
+    vtkMRMLSequenceNode* beamSequenceNode, vtkMRMLSequenceNode* transformSequenceNode);
 
 protected:
   vtkSlicerBeamsModuleLogic();
@@ -79,7 +95,7 @@ private:
   vtkSlicerBeamsModuleLogic(const vtkSlicerBeamsModuleLogic&) = delete;
   void operator=(const vtkSlicerBeamsModuleLogic&) = delete;
   
-  vtkSlicerMLCPositionLogic* MLCPositionLogic;
+  vtkSlicerMLCPositionLogic* MLCPositionLogic{ nullptr };
 };
 
 #endif

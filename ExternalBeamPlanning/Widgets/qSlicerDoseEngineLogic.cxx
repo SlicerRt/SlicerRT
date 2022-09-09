@@ -33,6 +33,7 @@
 #include "vtkMRMLDoseAccumulationNode.h"
 #include "vtkSlicerDoseAccumulationModuleLogic.h"
 #include "vtkSlicerIsodoseModuleLogic.h"
+#include <vtkSlicerBeamsModuleLogic.h>
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -44,9 +45,18 @@
 #include <vtkMRMLSliceCompositeNode.h>
 #include <vtkMRMLSelectionNode.h>
 
+#include <vtkMRMLSequenceNode.h>
+#include <vtkMRMLSequenceBrowserNode.h>
+#include <vtkMRMLLinearTransformNode.h>
+
 // Slicer includes
 #include "qSlicerCoreApplication.h"
 #include "vtkSlicerApplicationLogic.h"
+
+#include <qSlicerApplication.h>
+#include <qSlicerLayoutManager.h> 
+#include <qSlicerModuleManager.h>
+#include <qSlicerAbstractCoreModule.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -478,4 +488,61 @@ vtkMRMLRTBeamNode* qSlicerDoseEngineLogic::createBeamInPlan(vtkMRMLRTPlanNode* p
   planNode->AddBeam(beamNode);
 
   return beamNode;
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLRTBeamNode* qSlicerDoseEngineLogic::createArcBeamInPlan( vtkMRMLRTPlanNode* planNode, 
+  double initialAngle, double finalAngle, double stepAngle, bool rotationDirection)
+{
+  // Set beams logic
+  vtkSlicerBeamsModuleLogic* beamsLogic = nullptr;
+  qSlicerAbstractCoreModule* beamsModule = qSlicerCoreApplication::application()->moduleManager()->module("Beams");
+  if (beamsModule)
+  {
+    beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(beamsModule->logic());
+  }
+  else
+  {
+    qCritical() << Q_FUNC_INFO << ": Beams module is not found";
+  }
+
+  if (!planNode || !planNode->GetScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid plan node!";
+    return nullptr;
+  }
+
+  vtkNew<vtkMRMLSequenceNode> beamSequenceNode;
+  vtkNew<vtkMRMLSequenceNode> transformSequenceNode;
+  vtkNew<vtkMRMLSequenceBrowserNode> beamSequenceBrowserNode;
+
+  if (beamsLogic->CreateArcBeamDynamicSequence( initialAngle, finalAngle, stepAngle,
+    rotationDirection, planNode, beamSequenceBrowserNode, beamSequenceNode, transformSequenceNode))
+  {
+    // Get proxy beam node
+    vtkMRMLNode* node = beamSequenceBrowserNode->GetProxyNode(beamSequenceNode);
+    vtkMRMLRTBeamNode* proxyBeamNode = vtkMRMLRTBeamNode::SafeDownCast(node);
+
+    // Get proxy transform node
+    node = beamSequenceBrowserNode->GetProxyNode(transformSequenceNode);
+    vtkMRMLLinearTransformNode* proxyTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+
+    if (proxyBeamNode && proxyTransformNode)
+    {
+      // Add proxy beam node to plan (create Subject Hierarchy for beam node)
+      planNode->AddProxyBeam(proxyBeamNode);
+      proxyBeamNode->SetAndObserveTransformNodeID(proxyTransformNode->GetID());
+      return proxyBeamNode;
+    }
+    else
+    {
+      qWarning() << Q_FUNC_INFO << ": Proxy beam node or proxy transform node in beam sequence is invalid";
+    }
+  }
+  else
+  {
+    qWarning() << Q_FUNC_INFO << ": Unable to create arc beam sequence";
+  }
+
+  return nullptr;
 }

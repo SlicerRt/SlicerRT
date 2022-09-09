@@ -70,8 +70,16 @@ public:
   Q_INVOKABLE void removeIntermediateResults(vtkMRMLRTPlanNode* planNode);
 
   /// Create a beam for a plan (with beam parameters defined by the dose engine of the plan)
-  /// @param planNode - node of the current plan
+  /// \param planNode node of the current plan
   Q_INVOKABLE vtkMRMLRTBeamNode* createBeamInPlan(vtkMRMLRTPlanNode* planNode);
+  /// Create a beam for a RT plan (with beam parameters defined by the dose engine of the plan)
+  /// \param planNode node of the current plan
+  /// \param initialAngle initial angle
+  /// \param finalAngle final angle
+  /// \param stepAngle step angle
+  /// \param direction rotation direction (0 == CW, 1 == CCW)
+  Q_INVOKABLE vtkMRMLRTBeamNode* createArcBeamInPlan(vtkMRMLRTPlanNode* planNode,
+    double initialAngle = 0., double finalAngle = 360., double stepAngle = 1., bool rotationDirection = false);
 
 signals:
   /// Signals for dose calculation progress update
