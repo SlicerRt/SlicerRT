@@ -46,10 +46,7 @@ class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkSlicerIsodoseModuleLogic : public vtkSl
 {
 public:
   // Isodose constants
-  static const std::string ISODOSE_MODEL_NODE_NAME_PREFIX;
-  static const std::string ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX;
-  static const std::string ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX;
-  static const std::string ISODOSE_RELATIVE_ROOT_HIERARCHY_NAME_POSTFIX;
+  static const std::string ISODOSE_MODEL_NODE_NAME_POSTFIX;
   static const std::string ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX;
 
 public:
@@ -60,19 +57,19 @@ public:
   /// Set number of isodose levels
   void SetNumberOfIsodoseLevels(vtkMRMLIsodoseNode* parameterNode, int newNumberOfColors);
 
-  /// Accumulates dose volumes with the given IDs and corresponding weights
-  void CreateIsodoseSurfaces(vtkMRMLIsodoseNode* parameterNode);
-
-  /// Get isodose folder for a dose volume
-  /// \param node Dose volume node or isodose parameter node referencing the dose volume
-  /// \return Subject hierarchy item ID of the folder containing the isodose surfaces. 0 if not found
-  vtkIdType GetIsodoseFolderItemID(vtkMRMLNode* node);
+  /// Create dose isolevels surfaces for dose volume associated with the parameterNode
+  /// \param parameterNode isodose node parameters
+  /// \return true if success, false otherwise
+  bool CreateIsodoseSurfaces(vtkMRMLIsodoseNode* parameterNode);
 
   /// Make sure a dose volume has a valid associated isodose color table node
   vtkMRMLColorTableNode* SetupColorTableNodeForDoseVolumeNode(vtkMRMLScalarVolumeNode* doseVolumeNode);
 
   /// Update dose volume color table from isodose levels
   void UpdateDoseColorTableFromIsodose(vtkMRMLIsodoseNode* parameterNode);
+
+  /// Set default color legend parameters from isodose parameter set
+  void SetColorLegendDefaults(vtkMRMLIsodoseNode* parameterNode);
 
 public:
   /// Creates default isodose color table. Gets and returns if already exists

@@ -8,19 +8,19 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${vtkSlicerSubjectHierarchyModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerColorsModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerIsodoseModuleMRML_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}ModuleLogic.cxx
   vtkSlicer${MODULE_NAME}ModuleLogic.h
-  vtkMRML${MODULE_NAME}Node.cxx
-  vtkMRML${MODULE_NAME}Node.h
   )
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicerRtCommon
   vtkSlicerSubjectHierarchyModuleLogic
   vtkSlicerColorsModuleLogic
+  vtkSlicer${MODULE_NAME}ModuleMRML
   MRMLCore
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}

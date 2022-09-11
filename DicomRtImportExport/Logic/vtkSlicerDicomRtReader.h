@@ -37,6 +37,7 @@
 
 // STD includes
 #include <vector>
+#include <array>
 
 class vtkPolyData;
 
