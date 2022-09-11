@@ -187,56 +187,43 @@ int vtkSlicerIsodoseModuleLogicTest1( int argc, char * argv[] )
   paramNode->SetAndObserveDoseVolumeNode(doseScalarVolumeNode);
   paramNode->SetAndObserveColorTableNode(isodoseColorNode);
 
-  // Compute isodose
-  isodoseLogic->CreateIsodoseSurfaces(paramNode);
-
-  vtkIdType isodoseFolderitemID = isodoseLogic->GetIsodoseFolderItemID(paramNode);
-  if (!isodoseFolderitemID)
-  {
-    mrmlScene->Commit();
-    std::cerr << "No isodose subject hierarchy folder created" << std::endl;
-    return EXIT_FAILURE;
-  }
-
+  // Compute isosurface for dose volume
+  bool result = isodoseLogic->CreateIsodoseSurfaces(paramNode);
   mrmlScene->Commit();
-
-  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(mrmlScene);
-  if (!shNode)
+  // Check the result and model
+  if (result && paramNode->GetIsosurfacesModelNode())
   {
-    std::cerr << "Failed to access subject hierarchy node";
-    return EXIT_FAILURE;
+    // Get calculated model
+    vtkMRMLModelNode* modelNode = paramNode->GetIsosurfacesModelNode();
+
+    vtkNew<vtkPolyDataReader> reader;
+    reader->SetFileName(baselineIsodoseSurfaceFileName);
+    reader->Update();
+
+    vtkNew<vtkPolyData> baselinePolyData;
+    vtkNew<vtkMassProperties> propertiesBaseline;
+    propertiesBaseline->SetInputData(reader->GetOutput());
+    propertiesBaseline->Update();
+
+    vtkNew<vtkMassProperties> propertiesCurrent;
+    propertiesCurrent->SetInputData(modelNode->GetPolyData());
+    propertiesCurrent->Update();
+
+    double baselineVolumeCc = propertiesBaseline->GetVolume();
+    double currentVolumeCc = propertiesCurrent->GetVolume();
+    double volumeDifferenceCc = fabs(baselineVolumeCc - currentVolumeCc);
+    if (volumeDifferenceCc > volumeDifferenceToleranceCc)
+    {
+      std::cerr << "Volume difference Tolerance(Cc) exceeds threshold" << std::endl;
+      std::cerr << "Baseline volume (Cc):\t" << baselineVolumeCc << std::endl;
+      std::cerr << "Current volume (Cc):\t" << currentVolumeCc << std::endl;
+      std::cerr << "Volume difference (Cc):\t" << volumeDifferenceCc << std::endl;
+      return EXIT_FAILURE;
+    }
   }
-  std::vector<vtkIdType> isodoseChildItemIDs;
-  shNode->GetItemChildren(isodoseFolderitemID, isodoseChildItemIDs, false);
-  if (isodoseChildItemIDs.size() == 0)
+  else
   {
-    std::cerr << "No items in isodose folder" << std::endl;
-    return EXIT_FAILURE;
-  }
-  vtkMRMLModelNode* modelNode = vtkMRMLModelNode::SafeDownCast(shNode->GetItemDataNode(isodoseChildItemIDs[0]));
-
-  vtkNew<vtkPolyDataReader> reader;
-  reader->SetFileName(baselineIsodoseSurfaceFileName);
-  reader->Update();
-
-  vtkNew<vtkPolyData> baselinePolyData;
-  vtkNew<vtkMassProperties> propertiesBaseline;
-  propertiesBaseline->SetInputData(reader->GetOutput());
-  propertiesBaseline->Update();
-
-  vtkNew<vtkMassProperties> propertiesCurrent;
-  propertiesCurrent->SetInputData(modelNode->GetPolyData());
-  propertiesCurrent->Update();
-
-  double baselineVolumeCc = propertiesBaseline->GetVolume();
-  double currentVolumeCc = propertiesCurrent->GetVolume();
-  double volumeDifferenceCc = fabs(baselineVolumeCc - currentVolumeCc);
-  if (volumeDifferenceCc > volumeDifferenceToleranceCc)
-  {
-    std::cerr << "Volume difference Tolerance(Cc) exceeds threshold" << std::endl;
-    std::cerr << "Baseline volume (Cc):\t" << baselineVolumeCc << std::endl;
-    std::cerr << "Current volume (Cc):\t" << currentVolumeCc << std::endl;
-    std::cerr << "Volume difference (Cc):\t" << volumeDifferenceCc << std::endl;
+    std::cerr << "Unable to compute isosurfaces model" << std::endl;
     return EXIT_FAILURE;
   }
 

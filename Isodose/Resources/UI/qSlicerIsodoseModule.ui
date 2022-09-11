@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>373</width>
-    <height>604</height>
+    <height>670</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -36,6 +36,72 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item row="6" column="0">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_DisplayOptions">
+     <property name="text">
+      <string>Display options</string>
+     </property>
+     <property name="collapsed">
+      <bool>true</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="checkBox_Isosurface">
+        <property name="text">
+         <string>Show isodose surfaces</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="checkBox_Isoline">
+        <property name="text">
+         <string>Show isodose lines</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_ColorLegend">
+     <property name="text">
+      <string>Color Legend</string>
+     </property>
+     <property name="collapsed">
+      <bool>true</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="0" column="0">
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0" colspan="2">
+         <widget class="qMRMLColorLegendDisplayNodeWidget" name="ColorLegendDisplayNodeWidget"/>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
    </item>
    <item row="1" column="0">
     <widget class="ctkCollapsibleButton" name="CollapsibleButton_Input">
@@ -634,8 +700,17 @@
      </layout>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="3" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
      <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
@@ -680,82 +755,40 @@
      </item>
     </layout>
    </item>
-   <item row="3" column="0">
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_DisplayOptions">
+   <item row="2" column="0">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton">
      <property name="text">
-      <string>Display options</string>
+      <string>Output</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_3">
-      <property name="leftMargin">
-       <number>4</number>
-      </property>
-      <property name="topMargin">
-       <number>4</number>
-      </property>
-      <property name="rightMargin">
-       <number>4</number>
-      </property>
-      <property name="bottomMargin">
-       <number>4</number>
-      </property>
-      <property name="spacing">
-       <number>4</number>
-      </property>
+     <property name="collapsed">
+      <bool>true</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_7">
       <item row="0" column="0">
-       <widget class="QCheckBox" name="checkBox_Isosurface">
+       <widget class="QLabel" name="IsodoseModelLabel">
         <property name="text">
-         <string>Show isodose surfaces</string>
+         <string>Model node:</string>
         </property>
-        <property name="checked">
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_IsodoseModel">
+        <property name="nodeTypes">
+         <stringlist>
+          <string>vtkMRMLModelNode</string>
+         </stringlist>
+        </property>
+        <property name="noneEnabled">
          <bool>true</bool>
         </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QCheckBox" name="checkBox_Isoline">
-        <property name="text">
-         <string>Show isodose lines</string>
+        <property name="removeEnabled">
+         <bool>false</bool>
         </property>
-        <property name="checked">
+        <property name="renameEnabled">
          <bool>true</bool>
         </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="4" column="0">
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_ScalarBar">
-     <property name="text">
-      <string>Scalar bar</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_4">
-      <property name="leftMargin">
-       <number>4</number>
-      </property>
-      <property name="topMargin">
-       <number>4</number>
-      </property>
-      <property name="rightMargin">
-       <number>4</number>
-      </property>
-      <property name="bottomMargin">
-       <number>4</number>
-      </property>
-      <property name="spacing">
-       <number>4</number>
-      </property>
-      <item row="1" column="0">
-       <widget class="QCheckBox" name="checkBox_ScalarBar">
-        <property name="text">
-         <string>Show scalar bar in 3D viewer</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QCheckBox" name="checkBox_ScalarBar2D">
-        <property name="text">
-         <string>Show scalar bar in 2D viewer</string>
+        <property name="noneDisplay">
+         <string>Create a new isodose model</string>
         </property>
        </widget>
       </item>
@@ -788,9 +821,21 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>qMRMLWidget</class>
+   <extends>QWidget</extends>
+   <header>qMRMLWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>qSlicerWidget</class>
    <extends>QWidget</extends>
    <header>qSlicerWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qMRMLColorLegendDisplayNodeWidget</class>
+   <extends>qMRMLWidget</extends>
+   <header>qMRMLColorLegendDisplayNodeWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -889,6 +934,22 @@
     <hint type="destinationlabel">
      <x>301</x>
      <y>198</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerIsodoseModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLNodeComboBox_IsodoseModel</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>186</x>
+     <y>335</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>249</x>
+     <y>530</y>
     </hint>
    </hints>
   </connection>

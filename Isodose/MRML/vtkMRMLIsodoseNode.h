@@ -24,20 +24,20 @@
 #define __vtkMRMLIsodoseNode_h
 
 // MRML includes
-#include <vtkMRML.h>
 #include <vtkMRMLNode.h>
 
-#include "vtkSlicerIsodoseModuleLogicExport.h"
+#include "vtkSlicerIsodoseModuleMRMLExport.h"
 
 class vtkMRMLScalarVolumeNode;
-class vtkMRMLModelHierarchyNode;
+class vtkMRMLModelNode;
+class vtkMRMLColorNode;
 class vtkMRMLColorTableNode;
 
 /// \ingroup SlicerRt_QtModules_Isodose
-class VTK_SLICER_ISODOSE_LOGIC_EXPORT vtkMRMLIsodoseNode : public vtkMRMLNode
+class VTK_SLICER_ISODOSE_MODULE_MRML_EXPORT vtkMRMLIsodoseNode : public vtkMRMLNode
 {
 public:
-  enum DoseUnitsType { Unknown = -1, Gy = 0, Relative = 1 };
+  enum DoseUnitsType : int { Unknown = -1, Gy = 0, Relative = 1, DoseUnits_Last };
   static const char* COLOR_TABLE_REFERENCE_ROLE;
 
   static vtkMRMLIsodoseNode *New();
@@ -70,6 +70,11 @@ public:
   /// Set and observe color table node (associated to dose volume node)
   void SetAndObserveColorTableNode(vtkMRMLColorTableNode* node);
 
+  /// Get isosurfaces model node
+  vtkMRMLModelNode* GetIsosurfacesModelNode();
+  /// Set and observe isosurfaces model node
+  void SetAndObserveIsosurfacesModelNode(vtkMRMLModelNode* node);
+
   /// Get/Set show isodose lines checkbox state
   vtkGetMacro(ShowIsodoseLines, bool);
   vtkSetMacro(ShowIsodoseLines, bool);
@@ -79,16 +84,6 @@ public:
   vtkGetMacro(ShowIsodoseSurfaces, bool);
   vtkSetMacro(ShowIsodoseSurfaces, bool);
   vtkBooleanMacro(ShowIsodoseSurfaces, bool);
-
-  /// Get/Set show scalar bar (3D) checkbox state
-  vtkGetMacro(ShowScalarBar, bool);
-  vtkSetMacro(ShowScalarBar, bool);
-  vtkBooleanMacro(ShowScalarBar, bool);
-
-  /// Get/Set show scalar bar 3D checkbox state
-  vtkGetMacro(ShowScalarBar2D, bool);
-  vtkSetMacro(ShowScalarBar2D, bool);
-  vtkBooleanMacro(ShowScalarBar2D, bool);
 
   /// Get/Set show dose volumes only checkbox state
   vtkGetMacro(ShowDoseVolumesOnly, bool);
@@ -114,20 +109,15 @@ protected:
   vtkMRMLIsodoseNode(const vtkMRMLIsodoseNode&);
   void operator=(const vtkMRMLIsodoseNode&);
 
-  void SetDoseUnits(int doseUnits);
+  static const char* GetDoseUnitsAsString(int id);
+  static int GetDoseUnitsFromString(const char* name);
+  void SetDoseUnits(int id);
 
-protected:
   /// State of Show isodose lines checkbox
   bool ShowIsodoseLines;
 
   /// State of Show isodose surfaces checkbox
   bool ShowIsodoseSurfaces;
-
-  /// State of Show scalar bar checkbox
-  bool ShowScalarBar;
-
-  /// State of Show scalar bar 2D checkbox
-  bool ShowScalarBar2D;
 
   /// State of Show dose volumes only checkbox
   bool ShowDoseVolumesOnly;

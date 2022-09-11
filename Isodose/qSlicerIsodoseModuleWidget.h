@@ -75,6 +75,9 @@ protected slots:
   /// Slot handling change of dose volume node
   void setDoseVolumeNode(vtkMRMLNode*);
 
+  /// Slot handling change of isodose model node
+  void setIsodoseModelNode(vtkMRMLNode*);
+
   /// Slot handling change of show dose only checkbox
   void showDoseVolumesOnlyCheckboxChanged(int);
 
@@ -83,12 +86,6 @@ protected slots:
 
   /// Slot for changing isosurface visibility
   void setIsosurfaceVisibility(bool);
-
-  /// Slot for changing 3D scalar bar visibility
-  void setScalarBarVisibility(bool);
-
-  /// Slot for changing 2D scalar bar visibility
-  void setScalarBar2DVisibility(bool);
 
   /// Slot handling clicking the Apply button
   void applyClicked();
@@ -104,6 +101,9 @@ protected slots:
 
   /// Slot called to set reference dose value
   void setReferenceDoseValue(double value);
+
+  /// Updates color legend widget
+  void updateColorLegendFromMRML();
 
 protected:
   // Generates a new isodose level name

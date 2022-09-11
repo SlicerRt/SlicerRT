@@ -23,7 +23,9 @@
 #include "vtkMRMLIsodoseNode.h"
 
 // MRML includes
+#include <vtkMRMLColorNode.h>
 #include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLModelNode.h>
 #include <vtkMRMLModelHierarchyNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScene.h>
@@ -33,10 +35,12 @@
 #include <vtkSmartPointer.h>
 
 // STD includes
+#include <cstring>
 #include <sstream>
 
 //------------------------------------------------------------------------------
 static const char* DOSE_VOLUME_REFERENCE_ROLE = "doseVolumeRef";
+static const char* ISOSURFACES_MODEL_REFERENCE_ROLE = "isosurfacesModelRef";
 const char* vtkMRMLIsodoseNode::COLOR_TABLE_REFERENCE_ROLE = "colorTableRef";
 
 //------------------------------------------------------------------------------
@@ -47,8 +51,6 @@ vtkMRMLIsodoseNode::vtkMRMLIsodoseNode()
 {
   this->ShowIsodoseLines = true;
   this->ShowIsodoseSurfaces = true;
-  this->ShowScalarBar = false;
-  this->ShowScalarBar2D = false;
   this->ShowDoseVolumesOnly = true;
   this->DoseUnits = DoseUnitsType::Unknown;
   this->ReferenceDoseValue = -1.;
@@ -69,10 +71,8 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLBeginMacro(of);
   vtkMRMLWriteXMLBooleanMacro(ShowIsodoseLines, ShowIsodoseLines);
   vtkMRMLWriteXMLBooleanMacro(ShowIsodoseSurfaces, ShowIsodoseSurfaces);
-  vtkMRMLWriteXMLBooleanMacro(ShowScalarBar, ShowScalarBar);
-  vtkMRMLWriteXMLBooleanMacro(ShowScalarBar2D, ShowScalarBar2D);
   vtkMRMLWriteXMLBooleanMacro(ShowDoseVolumesOnly, ShowDoseVolumesOnly);
-  vtkMRMLWriteXMLIntMacro(DoseUnits, DoseUnits);
+  vtkMRMLWriteXMLEnumMacro(DoseUnits, DoseUnits);
   vtkMRMLWriteXMLFloatMacro(ReferenceDoseValue, ReferenceDoseValue);
   vtkMRMLWriteXMLBooleanMacro(RelativeRepresentationFlag, RelativeRepresentationFlag);
 
@@ -88,10 +88,8 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLBeginMacro(atts);
   vtkMRMLReadXMLBooleanMacro(ShowIsodoseLines, ShowIsodoseLines);
   vtkMRMLReadXMLBooleanMacro(ShowIsodoseSurfaces, ShowIsodoseSurfaces);
-  vtkMRMLReadXMLBooleanMacro(ShowScalarBar, ShowScalarBar);
-  vtkMRMLReadXMLBooleanMacro(ShowScalarBar2D, ShowScalarBar2D);
   vtkMRMLReadXMLBooleanMacro(ShowDoseVolumesOnly, ShowDoseVolumesOnly);
-  vtkMRMLReadXMLIntMacro(DoseUnits, DoseUnits);
+  vtkMRMLReadXMLEnumMacro(DoseUnits, DoseUnits);
   vtkMRMLReadXMLFloatMacro(ReferenceDoseValue, ReferenceDoseValue);
   vtkMRMLReadXMLBooleanMacro(RelativeRepresentationFlag, RelativeRepresentationFlag);
   vtkMRMLReadXMLEndMacro();
@@ -111,10 +109,8 @@ void vtkMRMLIsodoseNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyBeginMacro(anode);
   vtkMRMLCopyBooleanMacro(ShowIsodoseLines);
   vtkMRMLCopyBooleanMacro(ShowIsodoseSurfaces);
-  vtkMRMLCopyBooleanMacro(ShowScalarBar);
-  vtkMRMLCopyBooleanMacro(ShowScalarBar2D);
   vtkMRMLCopyBooleanMacro(ShowDoseVolumesOnly);
-  vtkMRMLCopyIntMacro(DoseUnits);
+  vtkMRMLCopyEnumMacro(DoseUnits);
   vtkMRMLCopyFloatMacro(ReferenceDoseValue);
   vtkMRMLCopyBooleanMacro(RelativeRepresentationFlag);
   vtkMRMLCopyEndMacro();
@@ -130,10 +126,8 @@ void vtkMRMLIsodoseNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintBeginMacro(os, indent);
   vtkMRMLPrintBooleanMacro(ShowIsodoseLines);
   vtkMRMLPrintBooleanMacro(ShowIsodoseSurfaces);
-  vtkMRMLPrintBooleanMacro(ShowScalarBar);
-  vtkMRMLPrintBooleanMacro(ShowScalarBar2D);
   vtkMRMLPrintBooleanMacro(ShowDoseVolumesOnly);
-  vtkMRMLPrintIntMacro(DoseUnits);
+  vtkMRMLPrintEnumMacro(DoseUnits);
   vtkMRMLPrintFloatMacro(ReferenceDoseValue);
   vtkMRMLPrintBooleanMacro(RelativeRepresentationFlag);
   vtkMRMLPrintEndMacro();
@@ -149,10 +143,10 @@ vtkMRMLScalarVolumeNode* vtkMRMLIsodoseNode::GetDoseVolumeNode()
 void vtkMRMLIsodoseNode::SetAndObserveDoseVolumeNode(vtkMRMLScalarVolumeNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -190,19 +184,87 @@ void vtkMRMLIsodoseNode::SetAndObserveColorTableNode(vtkMRMLColorTableNode* node
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLIsodoseNode::SetDoseUnits(int doseUnits)
+vtkMRMLModelNode* vtkMRMLIsodoseNode::GetIsosurfacesModelNode()
 {
-  switch (doseUnits)
+  return vtkMRMLModelNode::SafeDownCast( this->GetNodeReference(ISOSURFACES_MODEL_REFERENCE_ROLE) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLIsodoseNode::SetAndObserveIsosurfacesModelNode(vtkMRMLModelNode* node)
+{
+  if (node && this->Scene != node->GetScene())
   {
-    case 0:
-      SetDoseUnits(DoseUnitsType::Gy);
-      break;
-    case 1:
-      SetDoseUnits(DoseUnitsType::Relative);
-      break;
-    case -1:
-    default:
-      SetDoseUnits(DoseUnitsType::Unknown);
-      break;
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
   }
+
+  this->SetNodeReferenceID(ISOSURFACES_MODEL_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLIsodoseNode::SetDoseUnits(int id)
+{
+  switch (id)
+  {
+  case 0:
+    this->SetDoseUnits(vtkMRMLIsodoseNode::Gy);
+    break;
+  case 1:
+    this->SetDoseUnits(vtkMRMLIsodoseNode::Relative);
+    break;
+  default:
+    this->SetDoseUnits(vtkMRMLIsodoseNode::Unknown);
+    break;
+  }
+}
+
+//---------------------------------------------------------------------------
+const char* vtkMRMLIsodoseNode::GetDoseUnitsAsString(int id)
+{
+  switch (id)
+  {
+  case vtkMRMLIsodoseNode::Gy:
+    return "Gy";
+  case vtkMRMLIsodoseNode::Relative:
+    return "Relative";
+  case vtkMRMLIsodoseNode::Unknown:
+  default:
+    return "Unknown";
+  }
+}
+
+//---------------------------------------------------------------------------
+int vtkMRMLIsodoseNode::GetDoseUnitsFromString(const char* name)
+{
+  if (name == nullptr)
+  {
+    // invalid name
+    return -1;
+  }
+
+  for (int i = 0; i < vtkMRMLIsodoseNode::DoseUnits_Last; i++)
+  {
+    if (std::strcmp(name, vtkMRMLIsodoseNode::GetDoseUnitsAsString(i)) == 0)
+    {
+      // found a matching name
+      return i;
+    }
+  }
+
+  // Check old values as "0", "1", "-1"
+  // check only first byte
+  int unitsType = -1; // unknown name
+  switch (name[0])
+  {
+  case '0':
+    unitsType = 0;
+    break;
+  case '1':
+    unitsType = 1;
+    break;
+  case '-':
+  default:
+    break;
+  }
+  return unitsType;
 }

@@ -36,6 +36,7 @@
 
 // MRML includes
 #include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLColorLegendDisplayNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
@@ -62,6 +63,11 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTriangleFilter.h>
 #include <vtkWindowedSincPolyDataFilter.h>
+#include <vtkAppendPolyData.h>
+#include <vtkPointData.h>
+#include <vtkUnsignedCharArray.h>
+#include <vtkFloatArray.h>
+
 #include "vtksys/SystemTools.hxx"
 
 //----------------------------------------------------------------------------
@@ -69,10 +75,7 @@ const char* DEFAULT_ISODOSE_COLOR_TABLE_FILE_NAME = "Isodose_ColorTable.ctbl";
 const char* DEFAULT_ISODOSE_COLOR_TABLE_NODE_NAME = "Isodose_ColorTable_Default";
 const char* DEFAULT_ISODOSE_COLOR_TABLECOPY_NODE_NAME = "Isodose_ColorTable_DefaultCopy";
 const char* RELATIVE_ISODOSE_COLOR_TABLE_NODE_NAME = "Isodose_ColorTable_Relative";
-const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_PREFIX = "IsodoseLevel_";
-const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_PARAMETER_SET_BASE_NAME_PREFIX = "IsodoseParameterSet_";
-const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX = "_IsodoseSurfaces";
-const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_RELATIVE_ROOT_HIERARCHY_NAME_POSTFIX = "_RelativeIsodoseSurfaces";
+const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_POSTFIX = "_IsodoseLevels";
 const std::string vtkSlicerIsodoseModuleLogic::ISODOSE_COLOR_TABLE_NODE_NAME_POSTFIX = "_IsodoseColorTable";
 
 std::string vtkSlicerIsodoseModuleLogic::IsodoseColorNodeCopyUniqueName = DEFAULT_ISODOSE_COLOR_TABLECOPY_NODE_NAME;
@@ -215,65 +218,6 @@ void vtkSlicerIsodoseModuleLogic::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
   }
 }
 
-//----------------------------------------------------------------------------
-vtkIdType vtkSlicerIsodoseModuleLogic::GetIsodoseFolderItemID(vtkMRMLNode* node)
-{
-  if (!this->GetMRMLScene())
-  {
-    vtkErrorMacro("GetIsodoseFolderItemID: Invalid scene");
-    return 0;
-  }
-  vtkMRMLScalarVolumeNode* doseVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
-  if (!doseVolumeNode)
-  {
-    // If input is not a volume then check if it's a parameter node and get the dose volume from that
-    vtkMRMLIsodoseNode* parameterNode = vtkMRMLIsodoseNode::SafeDownCast(node);
-    if (!parameterNode)
-    {
-      vtkErrorMacro("GetIsodoseFolderItemID: Input node must be a dose volume node or an isodose parameter node");
-      return 0;
-    }
-    doseVolumeNode = parameterNode->GetDoseVolumeNode();
-  }
-  if (!doseVolumeNode)
-  {
-    vtkErrorMacro("GetIsodoseFolderItemID: Failed to get dose volume");
-    return 0;
-  }
-  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
-  if (!shNode)
-  {
-    vtkErrorMacro("GetIsodoseFolderItemID: Failed to access subject hierarchy node");
-    return 0;
-  }
-
-  vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
-  if (!doseShItemID)
-  {
-    vtkErrorMacro("GetIsodoseFolderItemID: Failed to find subject hierarchy item for dose volume");
-    return 0;
-  }
-  if (shNode->GetNumberOfItemChildren(doseShItemID) == 0)
-  {
-    // No isodose folder yet
-    return 0;
-  }
-
-  std::vector<vtkIdType> doseChildItemIDs;
-  shNode->GetItemChildren(doseShItemID, doseChildItemIDs, false);
-  for (vtkIdType childItemID : doseChildItemIDs)
-  {
-    std::string childItemName = shNode->GetItemName(childItemID);
-    std::string childItemNamePostfix = childItemName.substr(childItemName.size() - ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX.size());
-    if (!childItemNamePostfix.compare(ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX))
-    {
-      return childItemID;
-    }
-  }
-
-  return 0;
-}
-
 //------------------------------------------------------------------------------
 vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::GetDefaultIsodoseColorTable(vtkMRMLScene* scene)
 {
@@ -308,13 +252,13 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::GetDefaultIsodoseColorTable(
   colorTableNode->NamesInitialisedOn();
   colorTableNode->SetNumberOfColors(7);
   colorTableNode->GetLookupTable()->SetTableRange(0,6);
-  colorTableNode->AddColor("5", 0, 1, 0, 0.2);
-  colorTableNode->AddColor("10", 0.5, 1, 0, 0.2);
-  colorTableNode->AddColor("15", 1, 1, 0, 0.2);
-  colorTableNode->AddColor("20", 1, 0.66, 0, 0.2);
-  colorTableNode->AddColor("25", 1, 0.33, 0, 0.2);
-  colorTableNode->AddColor("30", 1, 0, 0, 0.2);
-  colorTableNode->AddColor("35", 221./255., 18./255., 123./255., 0.2);
+  colorTableNode->AddColor("5", 0., 1., 0., 1.);
+  colorTableNode->AddColor("10", 0.5, 1., 0., 1.);
+  colorTableNode->AddColor("15", 1., 1., 0., 1.);
+  colorTableNode->AddColor("20", 1., 0.66, 0., 1.);
+  colorTableNode->AddColor("25", 1., 0.33, 0., 1.);
+  colorTableNode->AddColor("30", 1., 0., 0., 1.);
+  colorTableNode->AddColor("35", 221./255., 18./255., 123./255., 1.);
   colorTableNode->SaveWithSceneOff();
 
   scene->AddNode(colorTableNode);
@@ -355,11 +299,11 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::GetRelativeIsodoseColorTable
   colorTableNode->SetNumberOfColors(5);
   colorTableNode->GetLookupTable()->SetTableRange(0,4);
 
-  colorTableNode->AddColor("80", 108./255., 0., 208./255., 0.2);
-  colorTableNode->AddColor("90", 0., 147./255., 221./255., 0.2);
-  colorTableNode->AddColor("100", 1., 1., 0., 0.2);
-  colorTableNode->AddColor("105", 1., 0.5, 0., 0.2);
-  colorTableNode->AddColor("110", 1., 0., 0., 0.2);
+  colorTableNode->AddColor("80", 108./255., 0., 208./255., 1.);
+  colorTableNode->AddColor("90", 0., 147./255., 221./255., 1.);
+  colorTableNode->AddColor("100", 1., 1., 0., 1.);
+  colorTableNode->AddColor("105", 1., 0.5, 0., 1.);
+  colorTableNode->AddColor("110", 1., 0., 0., 1.);
   colorTableNode->SaveWithSceneOff();
 
   scene->AddNode(colorTableNode);
@@ -582,25 +526,25 @@ void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(vtkMRMLIsodoseNode* p
       switch (colorIndex)
       {
       case 0:
-        colorTableNode->SetColor(colorIndex, "5", 0, 1, 0, 0.2);
+        colorTableNode->SetColor(colorIndex, "5", 0., 1., 0., 1.);
         break;
       case 1:
-        colorTableNode->SetColor(colorIndex, "10", 0.5, 1, 0, 0.2);
+        colorTableNode->SetColor(colorIndex, "10", 0.5, 1., 0., 1.);
         break;
       case 2:
-        colorTableNode->SetColor(colorIndex, "15", 1, 1, 0, 0.2);
+        colorTableNode->SetColor(colorIndex, "15", 1., 1., 0., 1.);
         break;
       case 3:
-        colorTableNode->SetColor(colorIndex, "20", 1, 0.66, 0, 0.2);
+        colorTableNode->SetColor(colorIndex, "20", 1., 0.66, 0., 1.);
         break;
       case 4:
-        colorTableNode->SetColor(colorIndex, "25", 1, 0.33, 0, 0.2);
+        colorTableNode->SetColor(colorIndex, "25", 1., 0.33, 0., 1.);
         break;
       case 5:
-        colorTableNode->SetColor(colorIndex, "30", 1, 0, 0, 0.2);
+        colorTableNode->SetColor(colorIndex, "30", 1., 0., 0., 1.);
         break;
       case 6:
-        colorTableNode->SetColor(colorIndex, "35", 221./255., 18./255., 123./255., 0.2);
+        colorTableNode->SetColor(colorIndex, "35", 221./255., 18./255., 123./255., 1.);
         break;
       }
     }
@@ -618,19 +562,19 @@ void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(vtkMRMLIsodoseNode* p
       switch (colorIndex)
       {
       case 0:
-        colorTableNode->SetColor(colorIndex, "80", 108./255., 0., 208./255., 0.2);
+        colorTableNode->SetColor(colorIndex, "80", 108./255., 0., 208./255., 1.);
         break;
       case 1:
-        colorTableNode->SetColor(colorIndex, "90", 0., 147./255., 221./255., 0.2);
+        colorTableNode->SetColor(colorIndex, "90", 0., 147./255., 221./255., 1.);
         break;
       case 2:
-        colorTableNode->SetColor(colorIndex, "100", 1., 1., 0., 0.2);
+        colorTableNode->SetColor(colorIndex, "100", 1., 1., 0., 1.);
         break;
       case 3:
-        colorTableNode->SetColor(colorIndex, "105", 1., 0.5, 0., 0.2);
+        colorTableNode->SetColor(colorIndex, "105", 1., 0.5, 0., 1.);
         break;
       case 4:
-        colorTableNode->SetColor(colorIndex, "110", 1., 0., 0., 0.2);
+        colorTableNode->SetColor(colorIndex, "110", 1., 0., 0., 1.);
         break;
       }
     }
@@ -647,26 +591,26 @@ void vtkSlicerIsodoseModuleLogic::SetNumberOfIsodoseLevels(vtkMRMLIsodoseNode* p
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* parameterNode)
+bool vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* parameterNode)
 {
   vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene || !parameterNode)
   {
     vtkErrorMacro("CreateIsodoseSurfaces: Invalid scene or parameter set node");
-    return;
+    return false;
   }
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
   if (!shNode)
   {
     vtkErrorMacro("CreateIsodoseSurfaces: Failed to access subject hierarchy node");
-    return;
+    return false;
   }
 
   vtkMRMLScalarVolumeNode* doseVolumeNode = parameterNode->GetDoseVolumeNode();
   if (!doseVolumeNode || !doseVolumeNode->GetImageData())
   {
     vtkErrorMacro("CreateIsodoseSurfaces: Invalid dose volume");
-    return;
+    return false;
   }
 
   scene->StartState(vtkMRMLScene::BatchProcessState);
@@ -676,14 +620,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   if (!doseShItemID)
   {
     vtkErrorMacro("CreateIsodoseSurfaces: Failed to get subject hierarchy item for dose volume '" << doseVolumeNode->GetName() << "'");
-    return;
-  }
-
-  // Check existing isodose set and remove if exists
-  vtkIdType isodoseFolderItemID = this->GetIsodoseFolderItemID(doseVolumeNode);
-  if (isodoseFolderItemID)
-  {
-    shNode->RemoveItem(isodoseFolderItemID, true, true);
+    return false;
   }
 
   // Check if that absolute of relative values
@@ -699,20 +636,13 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   {
     relativeFlag = true;
   }
-  std::string isodoseName = relativeFlag ?
-    vtkSlicerIsodoseModuleLogic::ISODOSE_RELATIVE_ROOT_HIERARCHY_NAME_POSTFIX :
-    vtkSlicerIsodoseModuleLogic::ISODOSE_ROOT_HIERARCHY_NAME_POSTFIX;
-
-  // Setup isodose subject hierarchy folder
-  std::string isodoseFolderName = std::string(doseVolumeNode->GetName()) + isodoseName;
-  isodoseFolderItemID = shNode->CreateFolderItem(doseShItemID, isodoseFolderName);
 
   // Get color table
   vtkMRMLColorTableNode* colorTableNode = parameterNode->GetColorTableNode();
   if (!colorTableNode)
   {
     vtkErrorMacro("CreateIsodoseSurfaces: Failed to get isodose color table node for dose volume " << doseVolumeNode->GetName());
-    return;
+    return false;
   }
 
   // Check that range is valid for dose and relative dose
@@ -783,9 +713,14 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   double referenceValue = parameterNode->GetReferenceDoseValue();
 
   // Create isodose surfaces
+  vtkNew<vtkAppendPolyData> append;
+  vtkNew<vtkFloatArray> colors;
+  colors->SetNumberOfComponents(1);
+  colors->SetName("isolevels");
+
+  bool res = true;
   for (int i = 0; i < colorTableNode->GetNumberOfColors(); i++)
   {
-    double val[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     const char* strIsoLevel = colorTableNode->GetColorName(i);
     double isoLevel = vtkVariant(strIsoLevel).ToDouble();
     // change isoLevel value for relative representation
@@ -796,7 +731,6 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
         isoLevel = isoLevel * referenceValue / 100.;
       }
     }
-    colorTableNode->GetColor(i, val);
 
     vtkNew<vtkImageMarchingCubes> marchingCubes;
     marchingCubes->SetInputData(reslicedDoseVolumeImage);
@@ -807,7 +741,7 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     marchingCubes->ComputeNormalsOff();
     marchingCubes->Update();
 
-    vtkSmartPointer<vtkPolyData> isoPolyData= marchingCubes->GetOutput();
+    vtkSmartPointer<vtkPolyData> isoPolyData = marchingCubes->GetOutput();
     if (isoPolyData->GetNumberOfPoints() >= 1)
     {
       vtkNew<vtkTriangleFilter> triangleFilter;
@@ -846,32 +780,12 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
       transformPolyData->SetTransform(inputIJKToRASTransform);
       transformPolyData->Update();
 
-      vtkSmartPointer<vtkMRMLModelDisplayNode> displayNode = vtkSmartPointer<vtkMRMLModelDisplayNode>::New();
-      displayNode = vtkMRMLModelDisplayNode::SafeDownCast(scene->AddNode(displayNode));
-      displayNode->Visibility2DOn();
-      displayNode->VisibilityOn();
-      displayNode->SetColor(val[0], val[1], val[2]);
-      displayNode->SetOpacity(val[3]);
-
-      // Disable backface culling to make the back side of the model visible as well
-      displayNode->SetBackfaceCulling(0);
-
-      vtkNew<vtkMRMLModelNode> isodoseModelNode;
-      std::string isodoseModelNodeName = vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_PREFIX + strIsoLevel + doseUnitName;
-      isodoseModelNode->SetName(isodoseModelNodeName.c_str());
-      isodoseModelNode->SetSelectable(1);
-      isodoseModelNode->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1"); // The attribute above distinguishes isodoses from regular models
-      scene->AddNode(isodoseModelNode);
-      isodoseModelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
-      isodoseModelNode->SetAndObservePolyData(transformPolyData->GetOutput());
-      shNode->RequestOwnerPluginSearch(isodoseModelNode); //TODO: Why is this needed?
-
-      // Put the new node in the isodose folder
-      vtkIdType isodoseModelItemID = shNode->GetItemByDataNode(isodoseModelNode);
-      if (isodoseModelItemID) // There is no automatic SH creation in automatic tests
+      vtkPolyData* isoSurface = transformPolyData->GetOutput();
+      for (vtkIdType i = 0; i < isoSurface->GetNumberOfPoints(); ++i)
       {
-        shNode->SetItemParent(isodoseModelItemID, isodoseFolderItemID);
+        colors->InsertNextTuple1(static_cast<float>(isoLevel));
       }
+      append->AddInputData(isoSurface);
     }
 
     // Report progress
@@ -880,10 +794,71 @@ void vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progress);
   } // For all isodose levels
 
-  // Update dose color table based on isodose
-  this->UpdateDoseColorTableFromIsodose(parameterNode);
+  // update appended isosurfaces
+  append->Update();
+
+  // create or update display node
+  vtkPolyData* isoSurfaces = append->GetOutput();
+  if (isoSurfaces)
+  {
+    isoSurfaces->GetPointData()->SetScalars(colors);
+
+    vtkMRMLModelDisplayNode* displayNode = nullptr;
+
+    vtkSmartPointer<vtkMRMLModelNode> isodoseModelNode;
+    if (parameterNode->GetIsosurfacesModelNode())
+    {
+      isodoseModelNode = parameterNode->GetIsosurfacesModelNode();
+      std::string name = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_POSTFIX;
+      isodoseModelNode->SetName(name.c_str());
+      displayNode = vtkMRMLModelDisplayNode::SafeDownCast(isodoseModelNode->GetDisplayNode());
+    }
+    else
+    {
+      isodoseModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
+      std::string tempname = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_POSTFIX;
+      std::string uniqueName = scene->GenerateUniqueName(tempname.c_str());
+      isodoseModelNode->SetName(uniqueName.c_str());
+      scene->AddNode(isodoseModelNode);
+      // Set and observe isosurfaces node
+      parameterNode->SetAndObserveIsosurfacesModelNode(isodoseModelNode);
+
+      displayNode = vtkMRMLModelDisplayNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLModelDisplayNode"));
+      isodoseModelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+    }
+
+    // Disable backface culling to make the back side of the model visible as well
+    displayNode->SetBackfaceCulling(0);
+
+    displayNode->Visibility2DOn();
+    displayNode->VisibilityOn();
+    displayNode->SetActiveScalarName("isolevels");
+    displayNode->SetAutoScalarRange(true);
+    displayNode->SetAndObserveColorNodeID(colorTableNode->GetID());
+    displayNode->SetScalarVisibility(true);
+
+    isodoseModelNode->SetSelectable(1);
+    isodoseModelNode->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1"); // The attribute above distinguishes isodoses from regular models
+    isodoseModelNode->SetAndObservePolyData(isoSurfaces);
+
+    // Put the new node as a child of dose volume
+    vtkIdType isodoseModelItemID = shNode->GetItemByDataNode(isodoseModelNode);
+    if (isodoseModelItemID) // There is no automatic SH creation in automatic tests 
+    {
+      shNode->SetItemParent(isodoseModelItemID, doseShItemID);
+    }
+
+    // Update dose color table based on isodose
+    this->UpdateDoseColorTableFromIsodose(parameterNode);
+  }
+  else
+  {
+    vtkErrorMacro("CreateIsodoseSurfaces: Failed to create isosurfaces for dose volume " << doseVolumeNode->GetName());
+    res = false;
+  }
 
   scene->EndState(vtkMRMLScene::BatchProcessState);
+  return res;
 }
 
 //---------------------------------------------------------------------------
@@ -992,4 +967,58 @@ void vtkSlicerIsodoseModuleLogic::UpdateDoseColorTableFromIsodose(vtkMRMLIsodose
   doseVolumeDisplayNode->AutoThresholdOff();
   doseVolumeDisplayNode->SetLowerThreshold(0.5 * doseUnitValue);
   doseVolumeDisplayNode->SetApplyThreshold(1);
+}
+
+//---------------------------------------------------------------------------
+void vtkSlicerIsodoseModuleLogic::SetColorLegendDefaults(vtkMRMLIsodoseNode* parameterNode)
+{
+  if (!parameterNode)
+  {
+    vtkErrorMacro("SetColorLegendDefaults: Invalid parameter set node");
+    return;
+  }
+
+  vtkMRMLModelNode* isodoseModelNode = parameterNode->GetIsosurfacesModelNode();
+  if (!isodoseModelNode)
+  {
+    vtkErrorMacro("SetColorLegendDefaults: Invalid isodose surface model node");
+    return;
+  }
+
+  vtkMRMLColorLegendDisplayNode* dispNode = vtkSlicerColorLogic::GetColorLegendDisplayNode(isodoseModelNode);
+  if (!dispNode)
+  {
+    vtkErrorMacro("SetColorLegendDefaults: Failed to get color legend display node for isodose model node" << isodoseModelNode->GetName());
+    return;
+  }
+
+  // Check that range is valid for dose and relative dose
+  // Set dose unit name
+  std::string doseUnits = "Gy";
+  std::string title = "Isolevels, ";
+  switch (parameterNode->GetDoseUnits())
+  {
+  case vtkMRMLIsodoseNode::Gy:
+    break;
+  case vtkMRMLIsodoseNode::Relative:
+    doseUnits = "%";
+    title = "Relative isolevels, ";
+    break;
+  case vtkMRMLIsodoseNode::Unknown:
+  default:
+    doseUnits = "MU";
+    break;
+  }
+
+  // force percentage dose units for relative isodose representation
+  if (parameterNode->GetRelativeRepresentationFlag())
+  {
+    doseUnits = "%";
+    title = "Relative isolevels, ";
+  }
+  title += doseUnits;
+
+  dispNode->SetTitleText(title);
+  dispNode->SetSize( 0.08, 0.46);
+  dispNode->SetPosition( 0.98, 0.5);
 }
