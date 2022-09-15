@@ -248,7 +248,7 @@ vtkMRMLMarkupsCurveNode* vtkSlicerMLCPositionLogic::CalculatePositionConvexHullC
       curveNode->AddControlPoint(point); // add point to the closed curve
     }
 
-    delete xyCoordinates;
+    delete [] xyCoordinates;
     return curveNode.GetPointer();
   }
   else
