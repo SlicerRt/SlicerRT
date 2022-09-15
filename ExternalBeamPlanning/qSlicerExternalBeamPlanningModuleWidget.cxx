@@ -599,7 +599,7 @@ void qSlicerExternalBeamPlanningModuleWidget::doseROINodeChanged(vtkMRMLNode* no
 
   //TODO:
   // planNode->DisableModifiedEventOn();
-  // planNode->SetAndObserveDoseROINode(vtkMRMLAnnotationsROINode::SafeDownCast(node));
+  // planNode->SetAndObserveDoseROINode(vtkMRMLMarkupsROINode::SafeDownCast(node));
   // planNode->DisableModifiedEventOff();
 }
 
