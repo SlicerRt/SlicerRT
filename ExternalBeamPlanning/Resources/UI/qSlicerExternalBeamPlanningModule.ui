@@ -378,7 +378,7 @@
        <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseROI">
         <property name="nodeTypes">
          <stringlist>
-          <string>vtkMRMLAnnotationROINode</string>
+          <string>vtkMRMLMarkupsROINode</string>
          </stringlist>
         </property>
        </widget>
