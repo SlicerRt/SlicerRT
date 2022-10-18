@@ -33,7 +33,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "889a36f0340e4723e79747562683c45523caa338" # Temporary fix to prevent compilation error with ITK-5.3 and compile errors with C++17
+    "436aebba99f2405deadec4d9186a6bee91a7bf10" # Fix to prevent compilation error after recent ITK and VTK update
     QUIET
     )
 
