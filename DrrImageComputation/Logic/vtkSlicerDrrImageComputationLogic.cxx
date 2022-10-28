@@ -60,6 +60,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkCamera.h>
 #include <vtkMath.h>
+#include <vtkPlane.h>
 
 // std includes
 #include <cmath>
@@ -1248,8 +1249,6 @@ bool vtkSlicerDrrImageComputationLogic::SetupGeometry( vtkMRMLDrrImageComputatio
   // Get RT image IJK to RAS matrix (containing the spacing and the LPS-RAS conversion)
   vtkNew<vtkMatrix4x4> rtImageIjkToRtImageRasTransformMatrix;
   drrVolumeNode->GetIJKToRASMatrix(rtImageIjkToRtImageRasTransformMatrix);
-  vtkNew<vtkTransform> rtImageIjkToRtImageRasTransform;
-  rtImageIjkToRtImageRasTransform->SetMatrix(rtImageIjkToRtImageRasTransformMatrix);
 
   // Concatenate the transform components
   vtkNew<vtkTransform> isocenterToRtImageRas;
@@ -1279,6 +1278,347 @@ bool vtkSlicerDrrImageComputationLogic::SetupGeometry( vtkMRMLDrrImageComputatio
 
   // Show the displayed planar image model by default
   displayedModelNode->SetDisplayVisibility(1);
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool vtkSlicerDrrImageComputationLogic::GetRtImageIJKToRASMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat)
+{
+  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  if (!scene)
+  {
+    vtkErrorMacro("GetRtImageIJKToRASMatrix: Invalid MRML scene");
+    return false;
+  }
+
+  if (!parameterNode)
+  {
+    vtkErrorMacro("GetRtImageIJKToRASMatrix: Invalid parameter node");
+    return false;
+  }
+
+  vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode();
+  if (!beamNode)
+  {
+    vtkErrorMacro("GetRtImageIJKToRASMatrix: Invalid RT Beam node");
+    return false;
+  }
+
+  double gantryAngle = beamNode->GetGantryAngle();
+  double couchAngle = beamNode->GetCouchAngle();
+
+  // RT image position (the x and y coordinates (in mm) of the upper left hand corner of the image, in the IEC X-RAY IMAGE RECEPTOR coordinate system)
+  double rtImagePosition[2] = {};
+  parameterNode->GetRTImagePosition(rtImagePosition);
+
+  // Get isocenter coordinates
+  double isocenterWorldCoordinates[3] = {};
+  if (!beamNode->GetPlanIsocenterPosition(isocenterWorldCoordinates))
+  {
+    vtkErrorMacro("SetupGeometry: Failed to get plan isocenter position");
+    return false;
+  }
+
+  // Assemble transform from isocenter IEC to RT image RAS
+  vtkNew<vtkTransform> fixedToIsocenterTransform;
+  fixedToIsocenterTransform->Identity();
+  fixedToIsocenterTransform->Translate(isocenterWorldCoordinates);
+
+  vtkNew<vtkTransform> couchToFixedTransform;
+  couchToFixedTransform->Identity();
+  couchToFixedTransform->RotateWXYZ(-1. * couchAngle, 0.0, 1.0, 0.0);
+
+  vtkNew<vtkTransform> gantryToCouchTransform;
+  gantryToCouchTransform->Identity();
+  gantryToCouchTransform->RotateWXYZ(gantryAngle, 0.0, 0.0, 1.0);
+
+  vtkNew<vtkTransform> rtImageCenterToGantryTransform;
+  rtImageCenterToGantryTransform->Identity();
+  rtImageCenterToGantryTransform->Translate(0.0, -1. * parameterNode->GetIsocenterImagerDistance(), 0.0);
+
+  vtkNew<vtkTransform> rtImageCenterToCornerTransform;
+  rtImageCenterToCornerTransform->Identity();
+  rtImageCenterToCornerTransform->Translate( -1. * rtImagePosition[0], 0.0, rtImagePosition[1]);
+
+  // Create isocenter to RAS transform
+  // The transformation below is based section C.8.8 in DICOM standard volume 3:
+  // "Note: IEC document 62C/269/CDV 'Amendment to IEC 61217: Radiotherapy Equipment -
+  //  Coordinates, movements and scales' also defines a patient-based coordinate system, and
+  //  specifies the relationship between the DICOM Patient Coordinate System (see Section
+  //  C.7.6.2.1.1) and the IEC PATIENT Coordinate System. Rotating the IEC PATIENT Coordinate
+  //  System described in IEC 62C/269/CDV (1999) by 90 degrees counter-clockwise (in the negative
+  //  direction) about the x-axis yields the DICOM Patient Coordinate System, i.e. (XDICOM, YDICOM,
+  //  ZDICOM) = (XIEC, -ZIEC, YIEC). Refer to the latest IEC documentation for the current definition of the
+  //  IEC PATIENT Coordinate System."
+  // The IJK to RAS transform already contains the LPS to RAS conversion, so we only need to consider this rotation
+  vtkNew<vtkTransform> iecToLpsTransform;
+  iecToLpsTransform->Identity();
+  iecToLpsTransform->RotateX(90.0);
+  iecToLpsTransform->RotateZ(-90.0);
+
+  // RT image IJK to RAS matrix (containing the spacing and the LPS-RAS conversion)
+  vtkNew<vtkTransform> rtImageIjkToRtImageRasTransform;
+  double spacing[2] = {};
+  parameterNode->GetImagerSpacing(spacing);
+  rtImageIjkToRtImageRasTransform->Scale( -1. * spacing[0], -1. * spacing[1], 1. );
+
+  // Concatenate the transform components
+  vtkNew<vtkTransform> isocenterToRtImageRas;
+  isocenterToRtImageRas->Identity();
+  isocenterToRtImageRas->PreMultiply();
+  isocenterToRtImageRas->Concatenate(fixedToIsocenterTransform);
+  isocenterToRtImageRas->Concatenate(couchToFixedTransform);
+  isocenterToRtImageRas->Concatenate(gantryToCouchTransform);
+  isocenterToRtImageRas->Concatenate(rtImageCenterToGantryTransform);
+  isocenterToRtImageRas->Concatenate(rtImageCenterToCornerTransform);
+  isocenterToRtImageRas->Concatenate(iecToLpsTransform); // LPS = IJK
+  isocenterToRtImageRas->Concatenate(rtImageIjkToRtImageRasTransform);
+  isocenterToRtImageRas->Update();
+  isocenterToRtImageRas->GetMatrix(mat);
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool vtkSlicerDrrImageComputationLogic::GetRayIntersectWithImagerPlane(vtkMRMLDrrImageComputationNode* parameterNode,
+  const double point[3], double pointIntersect[3])
+{
+  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  if (!scene)
+  {
+    vtkErrorMacro("GetRayIntersectWithImagerPlane: Invalid MRML scene");
+    return false;
+  }
+
+  if (!parameterNode)
+  {
+    vtkErrorMacro("GetRayIntersectWithImagerPlane: Invalid parameter node");
+    return false;
+  }
+
+  vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode();
+  if (!beamNode)
+  {
+    vtkErrorMacro("GetRayIntersectWithImagerPlane: Invalid RT Beam node");
+    return false;
+  }
+
+  double distance = parameterNode->GetIsocenterImagerDistance();
+     
+  double spacing[2] = {};
+  parameterNode->GetImagerSpacing(spacing);
+
+  int resolution[2] = {};
+  parameterNode->GetImagerResolution(resolution);
+
+  double offset[2] = {};
+  parameterNode->GetImagerCenterOffset(offset);
+
+  double imagerHalfWidth = spacing[0] * resolution[0] / 2.; // columns
+  double imagerHalfHeight = spacing[1] * resolution[1] / 2.; // rows
+
+  double& x = imagerHalfWidth;
+  double& y = imagerHalfHeight;
+
+  // add points
+  double imagerCenter[4] = { 0., 0., -1. * distance, 1. }; // imager center
+  double imagerNormal[4] = { 0., 0., -1., 0. }; // n
+  double imagerOrigin[4] = { -1. * y + offset[0], -1. * x + offset[1], -distance, 1. }; // (0,0)
+
+  vtkTransform* transform = nullptr;
+
+  if (vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode())
+  {
+    vtkMRMLTransformNode* transformNode = this->UpdateImageTransformFromBeam(beamNode);
+    transform = vtkTransform::SafeDownCast(transformNode->GetTransformToParent());
+    vtkNew<vtkMatrix4x4> mat; // transform matrix
+    mat->Identity();
+    if (transform)
+    {
+      transform->GetMatrix(mat);
+      double projCenter[4] = {};
+      double projNormal[4] = {};
+      double projOrigin[4] = {};
+      mat->MultiplyPoint( imagerCenter, projCenter);
+      mat->MultiplyPoint( imagerNormal, projNormal);
+      mat->MultiplyPoint( imagerOrigin, projOrigin);
+
+      double qeval = vtkPlane::Evaluate( projNormal, projCenter, projOrigin);
+      if (std::fabs(qeval) > EPSILON)
+      {
+        vtkWarningMacro("GetRayIntersectWithImagerPlane: Plane evaluation failed");
+        return false;
+      }
+      vtkNew<vtkPlane> imagerPlane;
+      imagerPlane->SetNormal( projNormal[0], projNormal[1], projNormal[2]);
+      imagerPlane->SetOrigin( projOrigin[0], projOrigin[1], projOrigin[2]);
+      // Calculate 2 ray points: p1 - xraySource coordinates in RAS, p2 - point coordinates in RAS
+      double rayOrigin[3] = {};
+      beamNode->GetSourcePosition(rayOrigin);
+      double rayDirection[3] = {};
+      double rayEndPoint[3] = {};
+      for (int i = 0; i < 3; ++i)
+      {
+        rayDirection[i] = point[i] - rayOrigin[i];
+        rayEndPoint[i] = rayOrigin[i] + rayDirection[i] * 10000.;
+      }
+
+      double t;
+      int res = imagerPlane->IntersectWithLine(rayOrigin, rayEndPoint, t, pointIntersect);
+      if (res == 0)
+      {
+        vtkWarningMacro("GetRayIntersectWithImagerPlane: No intersection! The parametric coordinate along the line is " << t);
+        return false;
+      }
+    }
+    else
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool vtkSlicerDrrImageComputationLogic::GetRtImageTransformMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat)
+{
+  if (!parameterNode)
+  {
+    vtkErrorMacro("GetRtImageTransformMatrix: Invalid parameter node");
+    return false;
+  }
+
+  vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode();
+  if (!beamNode)
+  {
+    vtkErrorMacro("GetRtImageTransformMatrix: Invalid RT Beam node");
+    return false;
+  }
+
+  if (vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode())
+  {
+    return this->GetRtImageTransformMatrixFromBeam(beamNode, mat);
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+bool vtkSlicerDrrImageComputationLogic::GetPlastimatchIntrinsicMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat)
+{
+  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  if (!scene)
+  {
+    vtkErrorMacro("GetPlastimatchIntrinsicMatrix: Invalid MRML scene");
+    return false;
+  }
+
+  if (!parameterNode)
+  {
+    vtkErrorMacro("GetPlastimatchIntrinsicMatrix: Invalid parameter node");
+    return false;
+  }
+
+  vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode();
+  if (!beamNode)
+  {
+    vtkErrorMacro("GetPlastimatchIntrinsicMatrix: Invalid RT Beam node");
+    return false;
+  }
+
+  double spacing[2] = {};
+  parameterNode->GetImagerSpacing(spacing);
+  double sid = beamNode->GetSAD() + parameterNode->GetIsocenterImagerDistance();
+  vtkNew<vtkTransform> scaleTransform;
+  scaleTransform->Identity();
+  scaleTransform->Scale(1. / spacing[0], 1. / spacing[1], 1. / sid);
+  scaleTransform->GetMatrix(mat);
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool vtkSlicerDrrImageComputationLogic::GetPlastimatchExtrinsicMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat)
+{
+  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  if (!scene)
+  {
+    vtkErrorMacro("GetPlastimatchExtrinsicMatrix: Invalid MRML scene");
+    return false;
+  }
+
+  if (!parameterNode)
+  {
+    vtkErrorMacro("GetPlastimatchExtrinsicMatrix: Invalid parameter node");
+    return false;
+  }
+
+  vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode();
+  if (!beamNode)
+  {
+    vtkErrorMacro("GetPlastimatchExtrinsicMatrix: Invalid RT Beam node");
+    return false;
+  }
+
+  mat->Identity();
+
+  double nrm[3]; // Panel normal vector
+  double vup[3]; // Panel view-up vector
+  double tgt[3]; // Target point or isocenter position
+  double plt[3];  // Panel left (toward first column)
+  double pup[3];  // Panel up (toward top row)
+
+  parameterNode->GetNormalVector(nrm);
+  parameterNode->GetViewUpVector(vup);
+  parameterNode->GetIsocenterPositionLPS(tgt);
+
+  // plt = nrm x vup
+  vtkMath::Cross( nrm, vup, plt);
+  vtkMath::Normalize(plt);
+  // pup = plt x nrm
+  vtkMath::Cross( plt, nrm, pup);
+  vtkMath::Normalize(pup);
+  double extrinsicMatrix[16] = {
+    0., 0., 0., 0.,
+    0., 0., 0., 0.,
+    0., 0., 0., 0.,
+    0., 0., 0., 1.
+  };
+  // Build extrinsic matrix - rotation part
+  extrinsicMatrix[0] = -1. * plt[0];
+  extrinsicMatrix[1] = -1. * plt[1];
+  extrinsicMatrix[2] = -1. * plt[2];
+  extrinsicMatrix[4] = -1. * pup[0];
+  extrinsicMatrix[5] = -1. * pup[1];
+  extrinsicMatrix[6] = -1. * pup[2];
+  extrinsicMatrix[8] = -1. * nrm[0];
+  extrinsicMatrix[9] = -1. * nrm[1];
+  extrinsicMatrix[10] = -1. * nrm[2];
+  // Build extrinsic matrix - translation part
+  extrinsicMatrix[3] = vtkMath::Dot(plt, tgt);
+  extrinsicMatrix[7] = vtkMath::Dot(pup, tgt);
+  extrinsicMatrix[11] = vtkMath::Dot(nrm, tgt) + beamNode->GetSAD();
+  // Copy vector into matrix (fill rows, columns)
+  mat->DeepCopy(extrinsicMatrix);
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool vtkSlicerDrrImageComputationLogic::GetPlastimatchProjectionMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat)
+{
+  vtkNew<vtkMatrix4x4> intrinsic;
+  vtkNew<vtkMatrix4x4> extrinsic;
+  if (!this->GetPlastimatchIntrinsicMatrix(parameterNode, intrinsic))
+  {
+    vtkErrorMacro("GetPlastimatchProjectionMatrix: Unable to get intrinsic matrix");
+    return false;
+  }
+  if (!this->GetPlastimatchExtrinsicMatrix(parameterNode, extrinsic))
+  {
+    vtkErrorMacro("GetPlastimatchProjectionMatrix: Unable to get extrinsic matrix");
+    return false;
+  }
+  vtkMatrix4x4::Multiply4x4(intrinsic, extrinsic, mat);
 
   return true;
 }
@@ -1338,6 +1678,48 @@ vtkMRMLLinearTransformNode* vtkSlicerDrrImageComputationLogic::UpdateImageTransf
     transformNode->SetAndObserveTransformToParent(linearTransform);
   }
   return transformNode;
+}
+
+//------------------------------------------------------------------------------
+bool vtkSlicerDrrImageComputationLogic::GetRtImageTransformMatrixFromBeam(vtkMRMLRTBeamNode* beamNode, vtkMatrix4x4* mat)
+{
+  if (!beamNode)
+  {
+    vtkErrorMacro("GetRtImageTransformMatrixFromBeam: Invalid beam node");
+    return false;
+  }
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  if (!scene)
+  {
+    vtkErrorMacro("GetRtImageTransformMatrixFromBeam: Invalid MRML scene");
+    return false;
+  }
+
+  vtkNew<vtkSlicerIECTransformLogic> iecLogic;
+  iecLogic->SetMRMLScene(scene);
+
+  // Update transforms in IEC logic from beam node parameters
+  iecLogic->UpdateIECTransformsFromBeam(beamNode);
+
+  // Dynamic transform from Gantry to RAS
+  // Transformation path:
+  // Gantry -> FixedReference -> PatientSupport -> TableTopEccentricRotation -> TableTop -> Patient -> RAS
+  using IEC = vtkSlicerIECTransformLogic::CoordinateSystemIdentifier;
+  vtkNew<vtkGeneralTransform> generalTransform;
+  if (iecLogic->GetTransformBetween( IEC::Gantry, IEC::RAS, generalTransform))
+  {
+    // Convert general transform to linear
+    // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
+    vtkNew<vtkTransform> linearTransform;
+    if (!vtkMRMLTransformNode::IsGeneralTransformLinear(generalTransform, linearTransform))
+    {
+      vtkErrorMacro("GetImageTransformMatrixFromBeam: Unable to set transform with non-linear components to beam " << beamNode->GetName());
+      return false;
+    }
+    // Set transform to node
+    linearTransform->GetMatrix(mat);
+  }
+  return true;
 }
 
 //------------------------------------------------------------------------------
@@ -1480,6 +1862,123 @@ bool vtkSlicerDrrImageComputationLogic::UpdateBeamFromCamera(vtkMRMLDrrImageComp
     // vtkCamera is invalid
     return false;
   }
+}
+
+/// Get RT Imager origin position in RAS
+//------------------------------------------------------------------------------
+bool vtkSlicerDrrImageComputationLogic::GetRtImagerOriginPosition(vtkMRMLDrrImageComputationNode* parameterNode, double originPositionRAS[3])
+{
+  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  if (!scene)
+  {
+    vtkErrorMacro("GetRayIntersectWithImagerPlane: Invalid MRML scene");
+    return false;
+  }
+
+  if (!parameterNode)
+  {
+    vtkErrorMacro("GetRayIntersectWithImagerPlane: Invalid parameter node");
+    return false;
+  }
+
+  vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode();
+  if (!beamNode)
+  {
+    vtkErrorMacro("GetRayIntersectWithImagerPlane: Invalid RT Beam node");
+    return false;
+  }
+
+  double distance = parameterNode->GetIsocenterImagerDistance();
+     
+  double spacing[2] = {};
+  parameterNode->GetImagerSpacing(spacing);
+
+  int resolution[2] = {};
+  parameterNode->GetImagerResolution(resolution);
+
+  double offset[2] = {};
+  parameterNode->GetImagerCenterOffset(offset);
+
+  double imagerHalfWidth = spacing[0] * resolution[0] / 2.; // columns
+  double imagerHalfHeight = spacing[1] * resolution[1] / 2.; // rows
+
+  double& x = imagerHalfWidth;
+  double& y = imagerHalfHeight;
+
+  // points
+  double imagerOrigin[4] = { -1. * y + offset[0], -1. * x + offset[1], -distance, 1. }; // (0,0)
+
+  vtkNew<vtkMatrix4x4> mat; // transform matrix
+  if (this->GetRtImageTransformMatrixFromBeam(beamNode, mat))
+  {
+    double projOrigin[4] = {};
+    mat->MultiplyPoint( imagerOrigin, projOrigin);
+    originPositionRAS[0] = projOrigin[0];
+    originPositionRAS[1] = projOrigin[1];
+    originPositionRAS[2] = projOrigin[2];
+    return true;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+bool vtkSlicerDrrImageComputationLogic::GetPointOffsetFromImagerOrigin(
+  vtkMRMLDrrImageComputationNode* parameterNode, const double pointRAS[3],
+  double widthHeightOffset[2], double columnRowOffset[2])
+{
+  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  if (!scene)
+  {
+    vtkErrorMacro("GetPointOffsetFromImagerOrigin: Invalid MRML scene");
+    return false;
+  }
+
+  if (!parameterNode)
+  {
+    vtkErrorMacro("GetPointOffsetFromImagerOrigin: Invalid parameter node");
+    return false;
+  }
+
+  vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode();
+  if (!beamNode)
+  {
+    vtkErrorMacro("GetPointOffsetFromImagerOrigin: Invalid RT Beam node");
+    return false;
+  }
+  
+  vtkNew<vtkMatrix4x4> rtImageTransformMatrix;
+  if (!this->GetRtImageTransformMatrixFromBeam(beamNode, rtImageTransformMatrix))
+  {
+    return false;
+  }
+  double originProjPos[4] = { 0., 0., 0., 1.};
+  if (!this->GetRtImagerOriginPosition(parameterNode, originProjPos))
+  {
+    return false;
+  }
+  double pointProjPos[4] = { 0., 0., 0., 1.};
+  if (!this->GetRayIntersectWithImagerPlane(parameterNode, pointRAS, pointProjPos))
+  {
+    return false;
+  }
+  rtImageTransformMatrix->Invert();
+  double originRtImager[4], pointRtImager[4];
+  rtImageTransformMatrix->MultiplyPoint(originProjPos, originRtImager);
+  rtImageTransformMatrix->MultiplyPoint(pointProjPos, pointRtImager);
+
+  widthHeightOffset[1] = pointRtImager[0] - originRtImager[0];
+  widthHeightOffset[0] = pointRtImager[1] - originRtImager[1];
+  vtkNew<vtkMatrix4x4> rtImageIJKToRASMatrix;
+  if (!this->GetRtImageIJKToRASMatrix(parameterNode, rtImageIJKToRASMatrix))
+  {
+    return false;
+  }
+  rtImageIJKToRASMatrix->Invert();
+  double columnRowIndex[4] = {};
+  rtImageIJKToRASMatrix->MultiplyPoint(pointProjPos, columnRowIndex);
+  columnRowOffset[0] = columnRowIndex[0];
+  columnRowOffset[1] = columnRowIndex[1];
+  return true;
 }
 
 //------------------------------------------------------------------------------

@@ -20,12 +20,14 @@
 
 // qSlicer includes
 #include "qSlicerDrrImageComputationModuleWidget.h"
+#include "qSlicerSimpleMarkupsWidget.h"
 #include "ui_qSlicerDrrImageComputationModuleWidget.h"
 
 // Slicer MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLSubjectHierarchyNode.h>
+#include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLCameraNode.h>
 #include <vtkCamera.h>
 
@@ -39,6 +41,9 @@
 // Logic includes
 #include "vtkSlicerDrrImageComputationLogic.h"
 
+// VTK includes
+#include <vtkMatrix4x4.h>
+
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_DrrImageComputation
 class qSlicerDrrImageComputationModuleWidgetPrivate: public Ui_qSlicerDrrImageComputationModuleWidget
@@ -50,6 +55,7 @@ public:
   qSlicerDrrImageComputationModuleWidgetPrivate(qSlicerDrrImageComputationModuleWidget &object);
   virtual ~qSlicerDrrImageComputationModuleWidgetPrivate();
   vtkSlicerDrrImageComputationLogic* logic() const;
+  bool CheckPointWithinVolumeBounds(vtkMRMLScalarVolumeNode* volumeNode, const double pointRAS[3]);
 
   bool ModuleWindowInitialized;
 };
@@ -74,6 +80,21 @@ vtkSlicerDrrImageComputationLogic* qSlicerDrrImageComputationModuleWidgetPrivate
 {
   Q_Q(const qSlicerDrrImageComputationModuleWidget);
   return vtkSlicerDrrImageComputationLogic::SafeDownCast(q->logic());
+}
+
+//------------------------------------------------------------------------------
+bool qSlicerDrrImageComputationModuleWidgetPrivate::CheckPointWithinVolumeBounds(vtkMRMLScalarVolumeNode* volumeNode, const double pointRAS[3])
+{
+  if (!volumeNode)
+  {
+    return false;
+  }
+  double bounds[6] = {};
+  volumeNode->GetRASBounds(bounds);
+
+  return (pointRAS[0] > bounds[0] && pointRAS[0] < bounds[1] &&
+  pointRAS[1] > bounds[2] && pointRAS[1] < bounds[3] &&
+  pointRAS[2] > bounds[4] && pointRAS[2] < bounds[5]);
 }
 
 //-----------------------------------------------------------------------------
@@ -121,6 +142,10 @@ void qSlicerDrrImageComputationModuleWidget::setup()
     this, SLOT(onImageWindowColumnsValuesChanged( double, double)));
   connect( d->RangeWidget_ImageWindowRows, SIGNAL(valuesChanged( double, double)), 
     this, SLOT(onImageWindowRowsValuesChanged( double, double)));
+
+  // Widgets
+  connect( d->SimpleMarkupsWidget_PointCoordinates, SIGNAL(currentMarkupsControlPointSelectionChanged(int)), 
+    this, SLOT(onMarkupsControlPointSelectionChanged(int)));
 
   // Buttons
   connect( d->PushButton_ComputeDrr, SIGNAL(clicked()), this, SLOT(onComputeDrrClicked()));
@@ -270,6 +295,35 @@ void qSlicerDrrImageComputationModuleWidget::updateWidgetFromMRML()
   // update RT beam from camera button
   vtkMRMLCameraNode* cameraNode = vtkMRMLCameraNode::SafeDownCast(d->MRMLNodeComboBox_Camera->currentNode());
   d->PushButton_UpdateBeamFromCamera->setEnabled(cameraNode);
+
+  // Update Markups imager plan intersection widgets
+  double pos[3] = {};
+  d->CoordinatesWidget_IntersectionWithPlane->setEnabled(false);
+  d->CoordinatesWidget_IntersectionWithPlane->setCoordinates(pos);
+  d->Label_IntersectionStatus->setText(tr("Unknown"));
+  d->CoordinatesWidget_ProjectionOffsetFromOrigin->setEnabled(false);
+  d->CoordinatesWidget_ProjectionOffsetFromOrigin->setCoordinates(pos);
+
+  d->CoordinatesWidget_ProjectionRowColumn->setEnabled(false);
+  d->CoordinatesWidget_ProjectionRowColumn->setCoordinates(pos);
+
+  vtkNew<vtkMatrix4x4> intrinsicMat;
+  if (d->logic()->GetPlastimatchIntrinsicMatrix(parameterNode, intrinsicMat))
+  {
+    d->PlastimatchParametersWidget->setIntrinsicMatrix(intrinsicMat);
+  }
+
+  vtkNew<vtkMatrix4x4> extrinsicMat;
+  if (d->logic()->GetPlastimatchExtrinsicMatrix(parameterNode, extrinsicMat))
+  {
+    d->PlastimatchParametersWidget->setExtrinsicMatrix(extrinsicMat);
+  }
+
+  vtkNew<vtkMatrix4x4> projectionMat;
+  if (d->logic()->GetPlastimatchProjectionMatrix(parameterNode, projectionMat))
+  {
+    d->PlastimatchParametersWidget->setProjectionMatrix(projectionMat);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -628,4 +682,60 @@ void qSlicerDrrImageComputationModuleWidget::onComputeDrrClicked()
     return;
   }
   QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDrrImageComputationModuleWidget::onMarkupsControlPointSelectionChanged(int index)
+{
+  Q_D(qSlicerDrrImageComputationModuleWidget);
+  vtkMRMLDrrImageComputationNode* parameterNode = vtkMRMLDrrImageComputationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+
+  if (!parameterNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
+    return;
+  }
+
+  vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->SimpleMarkupsWidget_PointCoordinates->currentNode());
+  if (!markupsNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid markups fiducial node";
+    return;
+  }
+
+  vtkMRMLScalarVolumeNode* ctVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(d->MRMLNodeComboBox_CtVolume->currentNode());
+  if (!ctVolumeNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid referenced volume node";
+    return;
+  }
+
+  double pointPos[3] = {};
+  markupsNode->GetNthControlPointPosition( index, pointPos);
+
+  if (!d->CheckPointWithinVolumeBounds(ctVolumeNode, pointPos))
+  {
+    qCritical() << Q_FUNC_INFO << ": Point is out of volume bounds!";
+    d->Label_IntersectionStatus->setText(tr("Point is out of volume bounds!"));
+    return;
+  }
+
+  double pointImagerIntersection[3] = {};
+  bool res = d->logic()->GetRayIntersectWithImagerPlane(parameterNode, pointPos, pointImagerIntersection);
+  QString msg = res ? tr("Intersection found!") : tr("No intersection!");
+  
+  d->CoordinatesWidget_IntersectionWithPlane->setEnabled(res);
+  d->CoordinatesWidget_IntersectionWithPlane->setCoordinates(pointImagerIntersection);
+  d->Label_IntersectionStatus->setText(msg);
+  double offsetFromOrigin[2] = {};
+  double offsetRowColumn[2] = {};
+
+  d->CoordinatesWidget_ProjectionOffsetFromOrigin->setEnabled(res);
+  d->CoordinatesWidget_ProjectionRowColumn->setEnabled(res);
+  if (res && d->logic()->GetPointOffsetFromImagerOrigin(parameterNode, pointPos, offsetFromOrigin, offsetRowColumn))
+  {
+    d->Label_IntersectionStatus->setText(tr("Projection on image plane is valid"));
+  }
+  d->CoordinatesWidget_ProjectionOffsetFromOrigin->setCoordinates(offsetFromOrigin);
+  d->CoordinatesWidget_ProjectionRowColumn->setCoordinates(offsetRowColumn);
 }

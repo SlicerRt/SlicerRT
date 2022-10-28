@@ -22,6 +22,8 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${vtkSlicer${MODULE_NAME}ModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   ${qSlicerSubjectHierarchyModuleWidgets_INCLUDE_DIRS}
+  ${qSlicerMarkupsModuleWidgets_INCLUDE_DIRS}
+  ${vtkSlicerMarkupsModuleMRML_INCLUDE_DIRS}
   )
 
 set(MODULE_SRCS
@@ -44,6 +46,7 @@ set(MODULE_UI_SRCS
 set(MODULE_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleLogic
   qSlicer${MODULE_NAME}ModuleWidgets
+  qSlicerMarkupsModuleWidgets
   )
 
 set(MODULE_RESOURCES
