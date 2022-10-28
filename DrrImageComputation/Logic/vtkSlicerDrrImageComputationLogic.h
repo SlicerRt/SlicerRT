@@ -49,6 +49,8 @@ class vtkSlicerBeamsModuleLogic;
 class vtkSlicerPlanarImageModuleLogic;
 class vtkSlicerCLIModuleLogic;
 
+class vtkMatrix4x4;
+
 /// \ingroup Slicer_QtModules_DrrImageComputation
 class VTK_SLICER_DRRIMAGECOMPUTATION_MODULE_LOGIC_EXPORT vtkSlicerDrrImageComputationLogic :
   public vtkSlicerModuleLogic
@@ -83,14 +85,67 @@ public:
   void SetBeamsLogic(vtkSlicerBeamsModuleLogic* beamsLogic);
 
   /// Compute DRR image
-  /// @param parameterNode - parameters of DRR image computation
-  /// @param ctInputVolume - CT volume
+  /// \param parameterNode - parameters of DRR image computation
+  /// \param ctInputVolume - CT volume
   bool ComputePlastimatchDRR( vtkMRMLDrrImageComputationNode* parameterNode, vtkMRMLScalarVolumeNode* ctInputVolume);
 
   /// Update Beam node from 3D view camera position
-  /// @param parameterNode - parameters of DRR image computation
-  /// @return true if beam was updated, false otherwise
+  /// \param parameterNode - parameters of DRR image computation
+  /// \return true if beam was updated, false otherwise
   bool UpdateBeamFromCamera(vtkMRMLDrrImageComputationNode* parameterNode);
+
+  /// Get transformation matrix for RT-Image
+  /// \param parameterNode - parameters of DRR image computation
+  /// \param mat - linear transformation matrix
+  /// \return - true if matrix is valid, false otherwise 
+  bool GetRtImageTransformMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat);
+
+  /// Get plastimatch intrinsic matrix component
+  /// \param parameterNode - parameters of DRR image computation
+  /// \param mat - linear transformation matrix
+  /// \return - true if matrix is valid, false otherwise 
+  bool GetPlastimatchIntrinsicMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat);
+
+  /// Get plastimatch extrinsic matrix component
+  /// \param parameterNode - parameters of DRR image computation
+  /// \param mat - linear transformation matrix
+  /// \return - true if matrix is valid, false otherwise 
+  bool GetPlastimatchExtrinsicMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat);
+
+  /// Get plastimatch projection matrix
+  /// \param parameterNode - parameters of DRR image computation
+  /// \param mat - linear transformation matrix
+  /// \return - true if matrix is valid, false otherwise 
+  bool GetPlastimatchProjectionMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat);
+
+  /// Get plastimatch projection matrix
+  /// \param parameterNode - parameters of DRR image computation
+  /// \param mat - linear transformation matrix
+  /// \return - true if matrix is valid, false otherwise 
+  bool GetPointOffsetFromImagerOrigin(vtkMRMLDrrImageComputationNode* parameterNode, const double pointRAS[3],
+    double offsetWidthHeight[2], double offsetColumnRow[2]);
+
+  /// Get intersection point between a ray and imager plane
+  /// Origin of the ray (first point of the line) is the x-ray source from a RTBeamNode
+  /// Second point of the line is the point itself
+  /// \param parameterNode - parameters of DRR image computation
+  /// \param point - second ray point coordinates in RAS
+  /// \param pointIntersect - intersection coordinates of point ray and imager plane in RAS
+  /// \return - true if there is an intersection, false otherwise 
+  bool GetRayIntersectWithImagerPlane(vtkMRMLDrrImageComputationNode* parameterNode,
+    const double pointRAS[3], double pointIntersectRAS[3]);
+
+  /// Get IJK to RAS transformation matrix for current parameter node
+  /// \param parameterNode - parameters of DRR image computation
+  /// \param mat - linear transformation matrix
+  /// \return - true if matrix is valid, false otherwise
+  bool GetRtImageIJKToRASMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat);
+
+  /// Get transformation matrix, IEC Transformation from Gantry -> RAS (without collimator)
+  bool GetRtImageTransformMatrixFromBeam(vtkMRMLRTBeamNode* node, vtkMatrix4x4* mat);
+
+  /// Get RT Imager origin position in RAS
+  bool GetRtImagerOriginPosition(vtkMRMLDrrImageComputationNode* parameterNode, double originPositionRAS[3]);
 
 protected:
   vtkSlicerDrrImageComputationLogic();
@@ -121,16 +176,15 @@ private:
   /// Create fiducial markups: (0,0), Center, etc
   vtkMRMLMarkupsFiducialNode* CreateFiducials(vtkMRMLDrrImageComputationNode* node);
   /// Setup nodes for calculated DRR image
-  /// @param parameterNode - parameters of DRR image computation
-  /// @param drrVolumeNode - RTImage DRR volume
+  /// \param parameterNode - parameters of DRR image computation
+  /// \param drrVolumeNode - RTImage DRR volume
   bool SetupDisplayAndSubjectHierarchyNodes( vtkMRMLDrrImageComputationNode* parameterNode, vtkMRMLScalarVolumeNode* drrVolumeNode);
   /// Setup geometry for calculated DRR image
-  /// @param parameterNode - parameters of DRR image computation
-  /// @param drrVolumeNode - RTImage DRR volume
+  /// \param parameterNode - parameters of DRR image computation
+  /// \param drrVolumeNode - RTImage DRR volume
   bool SetupGeometry( vtkMRMLDrrImageComputationNode* parameterNode, vtkMRMLScalarVolumeNode* drrVolumeNode);
-
   /// IEC Transformation from Gantry -> RAS (without collimator)
-  vtkMRMLLinearTransformNode* UpdateImageTransformFromBeam(vtkMRMLRTBeamNode* node = nullptr);
+  vtkMRMLLinearTransformNode* UpdateImageTransformFromBeam(vtkMRMLRTBeamNode* node);
 
   /// Planar Image logic instance
   vtkSlicerPlanarImageModuleLogic* PlanarImageLogic;

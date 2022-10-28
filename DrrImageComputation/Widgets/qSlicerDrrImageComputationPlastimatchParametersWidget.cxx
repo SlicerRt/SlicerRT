@@ -20,6 +20,7 @@
 
 // VTK includes
 #include <vtkWeakPointer.h>
+#include <vtkMatrix4x4.h>
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -51,7 +52,7 @@ public:
     qSlicerDrrImageComputationPlastimatchParametersWidget& object);
   virtual void setupUi(qSlicerDrrImageComputationPlastimatchParametersWidget*);
   void init();
-  
+
   /// RT Image MRML node containing shown parameters
   vtkWeakPointer<vtkMRMLDrrImageComputationNode> ParameterNode;
 };
@@ -129,6 +130,69 @@ void qSlicerDrrImageComputationPlastimatchParametersWidget::setParameterNode(vtk
 
   d->ParameterNode = parameterNode;
   this->updateWidgetFromMRML();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDrrImageComputationPlastimatchParametersWidget::setIntrinsicMatrix(const vtkMatrix4x4* mat)
+{
+  Q_D(qSlicerDrrImageComputationPlastimatchParametersWidget);
+
+  if (!d->ParameterNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
+    return;
+  }
+
+  for (int i = 0; i < 4; i++)
+  {
+    for (int j = 0; j < 4; j++)
+    {
+      double v = mat->GetElement( i, j );
+      d->MatrixWidget_Intrinsic->setValue( i, j, v );
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDrrImageComputationPlastimatchParametersWidget::setExtrinsicMatrix(const vtkMatrix4x4* mat)
+{
+  Q_D(qSlicerDrrImageComputationPlastimatchParametersWidget);
+
+  if (!d->ParameterNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
+    return;
+  }
+
+  for (int i = 0; i < 4; i++)
+  {
+    for (int j = 0; j < 4; j++)
+    {
+      double v = mat->GetElement( i, j );
+      d->MatrixWidget_Extrinsic->setValue( i, j, v );
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerDrrImageComputationPlastimatchParametersWidget::setProjectionMatrix(const vtkMatrix4x4* mat)
+{
+  Q_D(qSlicerDrrImageComputationPlastimatchParametersWidget);
+
+  if (!d->ParameterNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
+    return;
+  }
+
+  for (int i = 0; i < 4; i++)
+  {
+    for (int j = 0; j < 4; j++)
+    {
+      double v = mat->GetElement( i, j );
+      d->MatrixWidget_Projection->setValue( i, j, v );
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

@@ -35,6 +35,8 @@ class vtkMRMLNode;
 class vtkMRMLDrrImageComputationNode;
 class qSlicerDrrImageComputationPlastimatchParametersWidgetPrivate;
 
+class vtkMatrix4x4;
+
 /// \ingroup Slicer_QtModules_DrrImageComputation
 class Q_SLICER_MODULE_DRRIMAGECOMPUTATION_WIDGETS_EXPORT qSlicerDrrImageComputationPlastimatchParametersWidget
   : public QWidget
@@ -52,6 +54,9 @@ public slots:
   void setParameterNode(vtkMRMLNode* node);
   /// Update widget GUI from RT Image parameters node
   void updateWidgetFromMRML();
+  void setIntrinsicMatrix(const vtkMatrix4x4*);
+  void setExtrinsicMatrix(const vtkMatrix4x4*);
+  void setProjectionMatrix(const vtkMatrix4x4*);
 
 protected slots:
   /// Exponential mapping flag

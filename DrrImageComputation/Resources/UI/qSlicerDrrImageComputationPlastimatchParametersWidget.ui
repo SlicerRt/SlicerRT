@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>440</width>
-    <height>373</height>
+    <width>385</width>
+    <height>350</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -207,7 +207,7 @@
      </layout>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item row="2" column="0">
     <widget class="ctkCollapsibleButton" name="CollapsibleButton_PlastimatchDrrArguments">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
@@ -232,6 +232,97 @@
      </layout>
     </widget>
    </item>
+   <item row="1" column="0">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_PlastimatchDrrMatrices">
+     <property name="text">
+      <string>Plastimatch DRR projection matrices</string>
+     </property>
+     <property name="collapsed">
+      <bool>true</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="0">
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_7">
+          <property name="text">
+           <string>Intrinsic:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>Projection:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>Extrinsic:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="ctkMatrixWidget" name="MatrixWidget_Extrinsic">
+          <property name="editable">
+           <bool>false</bool>
+          </property>
+          <property name="minimum">
+           <double>-10000.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>10000.000000000000000</double>
+          </property>
+          <property name="decimals">
+           <number>4</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="ctkMatrixWidget" name="MatrixWidget_Intrinsic">
+          <property name="rowCount">
+           <number>4</number>
+          </property>
+          <property name="editable">
+           <bool>false</bool>
+          </property>
+          <property name="minimum">
+           <double>-10000.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>10000.000000000000000</double>
+          </property>
+          <property name="decimals">
+           <number>4</number>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="ctkMatrixWidget" name="MatrixWidget_Projection">
+          <property name="rowCount">
+           <number>4</number>
+          </property>
+          <property name="editable">
+           <bool>false</bool>
+          </property>
+          <property name="minimum">
+           <double>-10000.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>10000.000000000000000</double>
+          </property>
+          <property name="decimals">
+           <number>4</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -247,6 +338,11 @@
    <header>ctkComboBox.h</header>
   </customwidget>
   <customwidget>
+   <class>ctkMatrixWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkMatrixWidget.h</header>
+  </customwidget>
+  <customwidget>
    <class>ctkRangeWidget</class>
    <extends>QWidget</extends>
    <header>ctkRangeWidget.h</header>
@@ -259,9 +355,4 @@
  </customwidgets>
  <resources/>
  <connections/>
- <buttongroups>
-  <buttongroup name="ButtonGroup_ReconstructAlgorithm"/>
-  <buttongroup name="ButtonGroup_Threading"/>
-  <buttongroup name="ButtonGroup_HuConversion"/>
- </buttongroups>
 </ui>

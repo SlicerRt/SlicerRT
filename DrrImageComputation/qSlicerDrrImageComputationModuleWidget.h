@@ -62,6 +62,7 @@ public slots:
   void onUseImageWindowToggled(bool);
   void onUpdateBeamFromCameraClicked();
   void onComputeDrrClicked();
+  void onMarkupsControlPointSelectionChanged(int index);
 
   /// Update widget GUI from RT Image parameters node
   void updateWidgetFromMRML();
