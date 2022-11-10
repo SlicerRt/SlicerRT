@@ -1,0 +1,64 @@
+{
+  "TreatmentMachineName": "Varian TrueBeam STx",
+  "Author": "Eduardo Meilán Bermejo",
+  "Date":"2017",
+  "$schema": "https://raw.githubusercontent.com/???/???-schema.json#",
+  "Part": [
+    {
+      "Type": "Collimator",
+      "Name": "Collimator",
+      "FilePath": "Collimator.stl",
+      "FileToPartTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "Color": [255, 255, 255],
+      "Enabled": true
+    },
+    {
+      "Type": "Gantry",
+      "Name": "Gantry",
+      "FilePath": "Gantry.stl",
+      "FileToPartTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "Color": [255, 255, 255],
+      "Enabled": true
+    },
+    {
+      "Type": "ImagingPanelLeft",
+      "Name": "Left imaging panel",
+      "FilePath": "ImagingPanelLeft.stl",
+      "FileToPartTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "Color": [255, 255, 255],
+      "Enabled": true
+    },
+    {
+      "Type": "ImagingPanelRight",
+      "Name": "Right imaging panel",
+      "FilePath": "ImagingPanelRight.stl",
+      "FileToPartTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "Color": [255, 255, 255],
+      "Enabled": true
+    },
+    {
+      "Type": "LinacBody",
+      "Name": "Linac body",
+      "FilePath": "LinacBody.stl",
+      "FileToPartTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "Color": [255, 255, 255],
+      "Enabled": true
+    },
+    {
+      "Type": "PatientSupport",
+      "Name": "Patient support",
+      "FilePath": "PatientSupport.stl",
+      "FileToPartTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "Color": [255, 255, 255],
+      "Enabled": true
+    },
+    {
+      "Type": "TableTop",
+      "Name": "Table top",
+      "FilePath": "TableTop.stl",
+      "FileToPartTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "Color": [255, 255, 255],
+      "Enabled": true
+    }
+  ]
+}
