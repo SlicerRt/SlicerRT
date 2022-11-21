@@ -57,12 +57,19 @@ public slots:
   void onImageWindowColumnsValuesChanged( double, double);
   void onImageWindowRowsValuesChanged( double, double);
   void onImagerSpacingChanged(double*);
+  /// \brief Setup imager resolution (dimention)
+  /// \param dimention: dimention[0] = columns, dimention[1] = rows
   void onImagerResolutionChanged(double*);
   void onShowMarkupsToggled(bool);
   void onUseImageWindowToggled(bool);
   void onUpdateBeamFromCameraClicked();
   void onComputeDrrClicked();
+
   void onMarkupsControlPointSelectionChanged(int index);
+  void onMarkupsNodeChanged();
+
+  void onProjectMarkupsControlPointsClicked();
+  void onClearProjectedTableClicked();
 
   /// Update widget GUI from RT Image parameters node
   void updateWidgetFromMRML();

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>458</width>
-    <height>781</height>
+    <height>859</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -384,7 +384,7 @@
      <item row="4" column="0" colspan="2">
       <widget class="ctkCollapsibleButton" name="CollapsibleButton_ProjectionOnImagerPlane">
        <property name="text">
-        <string>Markups projection intersection with an imager plane</string>
+        <string>Markups perspective projection on the imager plane</string>
        </property>
        <property name="collapsed">
         <bool>true</bool>
@@ -392,31 +392,56 @@
        <layout class="QGridLayout" name="gridLayout_7">
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout_8">
-          <item row="2" column="1">
-           <widget class="ctkCoordinatesWidget" name="CoordinatesWidget_IntersectionWithPlane">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
+          <item row="3" column="0">
+           <widget class="QTableWidget" name="TableWidget_ProjectedPointsCoordinates">
+            <column>
+             <property name="text">
+              <string>Original label</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>R</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>A</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>S</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Width</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Height</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Column</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Row</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Status</string>
+             </property>
+            </column>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_10">
-            <property name="text">
-             <string>Status:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>Coordinates (RAS):</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" colspan="2">
+          <item row="1" column="0" colspan="2">
            <widget class="qSlicerSimpleMarkupsWidget" name="SimpleMarkupsWidget_PointCoordinates">
             <property name="enterPlaceModeOnNodeChange">
              <bool>false</bool>
@@ -426,65 +451,76 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="Label_IntersectionStatus">
-            <property name="text">
-             <string>Unknown</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0" colspan="2">
-           <widget class="QGroupBox" name="GroupBox_MarkupsProjectionCorrdinates">
+          <item row="2" column="0">
+           <widget class="QGroupBox" name="GroupBox_ProcessControlPoints">
             <property name="title">
-             <string>Projection coordinates on imager plane</string>
+             <string>Process control points</string>
             </property>
-            <layout class="QGridLayout" name="gridLayout_10">
+            <layout class="QGridLayout" name="gridLayout_9">
              <item row="0" column="0">
-              <layout class="QGridLayout" name="gridLayout_9">
-               <item row="0" column="1">
-                <widget class="ctkCoordinatesWidget" name="CoordinatesWidget_ProjectionOffsetFromOrigin">
+              <layout class="QHBoxLayout" name="horizontalLayout_2">
+               <item>
+                <widget class="QRadioButton" name="RadioButton_ProjectAllControlPoints">
+                 <property name="text">
+                  <string>All</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                 <attribute name="buttonGroup">
+                  <string notr="true">ButtonGroup_ProjectControlPoints</string>
+                 </attribute>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="RadioButton_ProjectSelectedControlPoints">
+                 <property name="text">
+                  <string>Selected</string>
+                 </property>
+                 <attribute name="buttonGroup">
+                  <string notr="true">ButtonGroup_ProjectControlPoints</string>
+                 </attribute>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item row="1" column="0">
+              <widget class="QCheckBox" name="CheckBox_CreateValidProjectionsMarkupsNode">
+               <property name="text">
+                <string>Create a new markups node for valid projections</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <layout class="QHBoxLayout" name="horizontalLayout_4">
+               <item>
+                <widget class="QPushButton" name="PushButton_ProjectControlPoints">
                  <property name="enabled">
                   <bool>false</bool>
                  </property>
-                 <property name="dimension">
-                  <number>2</number>
-                 </property>
-                 <property name="readOnly">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="0">
-                <widget class="QLabel" name="label_11">
                  <property name="text">
-                  <string>Offset from origin in mm:</string>
+                  <string>Project control point</string>
                  </property>
                 </widget>
                </item>
-               <item row="1" column="1">
-                <widget class="ctkCoordinatesWidget" name="CoordinatesWidget_ProjectionRowColumn">
+               <item>
+                <widget class="QPushButton" name="PushButton_ClearProjectedTableWidget">
                  <property name="enabled">
                   <bool>false</bool>
                  </property>
-                 <property name="dimension">
-                  <number>2</number>
-                 </property>
-                 <property name="decimals">
-                  <number>0</number>
-                 </property>
-                 <property name="readOnly">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="0">
-                <widget class="QLabel" name="label_13">
                  <property name="text">
-                  <string>Column, Row:</string>
+                  <string>Clear projection table</string>
                  </property>
                 </widget>
                </item>
               </layout>
+             </item>
+             <item row="2" column="0">
+              <widget class="QCheckBox" name="CheckBox_CreateValidProjectionsTableNode">
+               <property name="text">
+                <string>Create a new table node for valid projections</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>
@@ -653,4 +689,7 @@
    </hints>
   </connection>
  </connections>
+ <buttongroups>
+  <buttongroup name="ButtonGroup_ProjectControlPoints"/>
+ </buttongroups>
 </ui>

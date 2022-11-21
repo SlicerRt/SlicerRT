@@ -42,6 +42,7 @@ class vtkMRMLRTBeamNode;
 class vtkMRMLMarkupsPlaneNode;
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLMarkupsLineNode;
+class vtkMRMLTableNode;
 
 class vtkMRMLLinearTransformNode;
 
@@ -87,7 +88,8 @@ public:
   /// Compute DRR image
   /// \param parameterNode - parameters of DRR image computation
   /// \param ctInputVolume - CT volume
-  bool ComputePlastimatchDRR( vtkMRMLDrrImageComputationNode* parameterNode, vtkMRMLScalarVolumeNode* ctInputVolume);
+  /// \return valid computed DRR volume node or nullptr otherwise 
+  vtkMRMLScalarVolumeNode* ComputePlastimatchDRR(vtkMRMLDrrImageComputationNode* parameterNode, vtkMRMLScalarVolumeNode* ctInputVolume);
 
   /// Update Beam node from 3D view camera position
   /// \param parameterNode - parameters of DRR image computation
@@ -146,6 +148,10 @@ public:
 
   /// Get RT Imager origin position in RAS
   bool GetRtImagerOriginPosition(vtkMRMLDrrImageComputationNode* parameterNode, double originPositionRAS[3]);
+
+  /// Create projections table node
+  vtkMRMLTableNode* CreateProjectionsTableNode(vtkMRMLDrrImageComputationNode* parameterNode,
+    vtkMRMLScalarVolumeNode* ctInputVolume);
 
 protected:
   vtkSlicerDrrImageComputationLogic();
