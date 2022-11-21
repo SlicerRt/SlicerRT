@@ -613,14 +613,21 @@ bool vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     return false;
   }
 
-  scene->StartState(vtkMRMLScene::BatchProcessState);
+  if (!parameterNode->GetRealTime())
+  {
+    scene->StartState(vtkMRMLScene::BatchProcessState);
+  }
 
   // Get subject hierarchy item for the dose volume
-  vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
-  if (!doseShItemID)
+  vtkIdType doseShItemID = 0
+  if (!parameterNode->GetRealTime())
   {
-    vtkErrorMacro("CreateIsodoseSurfaces: Failed to get subject hierarchy item for dose volume '" << doseVolumeNode->GetName() << "'");
-    return false;
+    doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
+    if (!doseShItemID)
+    {
+      vtkErrorMacro("CreateIsodoseSurfaces: Failed to get subject hierarchy item for dose volume '" << doseVolumeNode->GetName() << "'");
+      return false;
+    }
   }
 
   // Check if that absolute of relative values
@@ -705,9 +712,13 @@ bool vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   vtkSmartPointer<vtkImageData> reslicedDoseVolumeImage = reslice->GetOutput();
 
   // Report progress
-  ++currentProgressStep;
-  double progress = (double)(currentProgressStep) / (double)progressStepCount;
-  this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progress);
+  double progress = 0.0;
+  if (!parameterNode->GetRealTime())
+  {
+    ++currentProgressStep;
+    progress = (double)(currentProgressStep) / (double)progressStepCount;
+    this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progress);
+  }
 
   // reference value for relative representation
   double referenceValue = parameterNode->GetReferenceDoseValue();
@@ -788,10 +799,13 @@ bool vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
       append->AddInputData(isoSurface);
     }
 
-    // Report progress
-    ++currentProgressStep;
-    progress = (double)(currentProgressStep) / (double)progressStepCount;
-    this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progress);
+    if (!parameterNode->GetRealTime())
+    {
+      // Report progress
+      ++currentProgressStep;
+      progress = (double)(currentProgressStep) / (double)progressStepCount;
+      this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progress);
+    }
   } // For all isodose levels
 
   // update appended isosurfaces
@@ -842,14 +856,27 @@ bool vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     isodoseModelNode->SetAndObservePolyData(isoSurfaces);
 
     // Put the new node as a child of dose volume
-    vtkIdType isodoseModelItemID = shNode->GetItemByDataNode(isodoseModelNode);
-    if (isodoseModelItemID) // There is no automatic SH creation in automatic tests 
+    if (!parameterNode->GetRealTime())
     {
-      shNode->SetItemParent(isodoseModelItemID, doseShItemID);
+      vtkIdType isodoseModelItemID = shNode->GetItemByDataNode(isodoseModelNode);
+      if (isodoseModelItemID) // There is no automatic SH creation in automatic tests 
+      {
+        shNode->SetItemParent(isodoseModelItemID, doseShItemID);
+      }
+      
+      // Update dose color table based on isodose
+      this->UpdateDoseColorTableFromIsodose(parameterNode);
     }
-
-    // Update dose color table based on isodose
-    this->UpdateDoseColorTableFromIsodose(parameterNode);
+  }
+  else if (parameterNode->GetRealTime())
+  {
+    // In real-time mode we need to clear the polydata when there is no output
+    vtkMRMLModelNode* isodoseModelNode = parameterNode->GetIsosurfacesModelNode();
+    if (isodoseModelNode)
+    {
+      vtkNew<vtkPolyData> emptyPolyData;
+      isodoseModelNode->SetAndObservePolyData(emptyPolyData);
+    }
   }
   else
   {
@@ -857,7 +884,11 @@ bool vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     res = false;
   }
 
-  scene->EndState(vtkMRMLScene::BatchProcessState);
+  if (!parameterNode->GetRealTime())
+  {
+    scene->EndState(vtkMRMLScene::BatchProcessState);
+  }
+
   return res;
 }
 
