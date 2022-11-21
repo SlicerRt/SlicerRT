@@ -34,6 +34,7 @@
 #include <vtkMRMLMarkupsPlaneNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLMarkupsLineNode.h>
+#include <vtkMRMLTableNode.h>
 
 // SlicerRT Beams MRML includes
 #include <vtkMRMLRTBeamNode.h>
@@ -55,12 +56,15 @@
 #include <vtkTransform.h>
 #include <vtkGeneralTransform.h>
 #include <vtkMatrix4x4.h>
+#include <vtkDoubleArray.h>
+#include <vtkStringArray.h>
 #include <vtkIntArray.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
 #include <vtkCamera.h>
 #include <vtkMath.h>
 #include <vtkPlane.h>
+#include <vtkTable.h>
 
 // std includes
 #include <cmath>
@@ -934,46 +938,46 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDrrImageComputationLogic::CreateFiducials(v
 }
 
 //------------------------------------------------------------------------------
-bool vtkSlicerDrrImageComputationLogic::ComputePlastimatchDRR( vtkMRMLDrrImageComputationNode* parameterNode, 
+vtkMRMLScalarVolumeNode* vtkSlicerDrrImageComputationLogic::ComputePlastimatchDRR( vtkMRMLDrrImageComputationNode* parameterNode, 
   vtkMRMLScalarVolumeNode* ctVolumeNode)
 {
   vtkMRMLScene* scene = this->GetMRMLScene(); 
   if (!scene)
   {
     vtkErrorMacro("ComputePlastimatchDRR: Invalid MRML scene");
-    return false;
+    return nullptr;
   }
 
   if (!parameterNode)
   {
     vtkErrorMacro("ComputePlastimatchDRR: Invalid parameter node");
-    return false;
+    return nullptr;
   }
 
   vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode();
   if (!beamNode)
   {
     vtkErrorMacro("ComputePlastimatchDRR: Invalid RT Beam node");
-    return false;
+    return nullptr;
   }
 
   if (!ctVolumeNode)
   {
     vtkErrorMacro("ComputePlastimatchDRR: Invalid input CT volume node");
-    return false;
+    return nullptr;
   }
 
   if (!this->PlastimatchDRRComputationLogic)
   {
     vtkErrorMacro("ComputePlastimatchDRR: slicer_plastimatch_drr logic is not set");
-    return false;
+    return nullptr;
   }
 
   vtkMRMLCommandLineModuleNode* cmdNode = this->PlastimatchDRRComputationLogic->CreateNodeInScene();
   if (!cmdNode)
   {
     vtkErrorMacro("ComputePlastimatchDRR: failed to create CLI module node");
-    return false;
+    return nullptr;
   }
 
   // Create node for the DRR image volume
@@ -1092,7 +1096,6 @@ bool vtkSlicerDrrImageComputationLogic::ComputePlastimatchDRR( vtkMRMLDrrImageCo
   scene->RemoveNode(cmdNode);
   // TODO: Add results checking ( image size is valid, and computation didn't crash )
 
-  bool res = false;
   if (drrVolumeNode->GetImageData() && drrVolumeNode->GetSpacing())
   {
     // Set more user friendly DRR image name
@@ -1105,9 +1108,12 @@ bool vtkSlicerDrrImageComputationLogic::ComputePlastimatchDRR( vtkMRMLDrrImageCo
     parameterNode->SetName(parameterSetNodeName.c_str());
     parameterNode->SetAndObserveRtImageVolumeNode(drrVolumeNode);
 
-    res = this->SetupDisplayAndSubjectHierarchyNodes( parameterNode, drrVolumeNode);
+    if (this->SetupDisplayAndSubjectHierarchyNodes( parameterNode, drrVolumeNode))
+    {
+      return drrVolumeNode.GetPointer();
+    }
   }
-  return res;
+  return nullptr;
 }
 
 //------------------------------------------------------------------------------
@@ -1426,17 +1432,11 @@ bool vtkSlicerDrrImageComputationLogic::GetRayIntersectWithImagerPlane(vtkMRMLDr
   double imagerNormal[4] = { 0., 0., -1., 0. }; // n
   double imagerOrigin[4] = { -1. * y + offset[0], -1. * x + offset[1], -distance, 1. }; // (0,0)
 
-  vtkTransform* transform = nullptr;
-
   if (vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode())
   {
-    vtkMRMLTransformNode* transformNode = this->UpdateImageTransformFromBeam(beamNode);
-    transform = vtkTransform::SafeDownCast(transformNode->GetTransformToParent());
     vtkNew<vtkMatrix4x4> mat; // transform matrix
-    mat->Identity();
-    if (transform)
+    if (this->GetRtImageTransformMatrixFromBeam(beamNode, mat))
     {
-      transform->GetMatrix(mat);
       double projCenter[4] = {};
       double projNormal[4] = {};
       double projOrigin[4] = {};
@@ -1474,6 +1474,7 @@ bool vtkSlicerDrrImageComputationLogic::GetRayIntersectWithImagerPlane(vtkMRMLDr
     }
     else
     {
+      vtkWarningMacro("GetRayIntersectWithImagerPlane: Unable to get RTImage transform matrix for beam " << beamNode->GetName());
       return false;
     }
   }
@@ -1979,6 +1980,87 @@ bool vtkSlicerDrrImageComputationLogic::GetPointOffsetFromImagerOrigin(
   columnRowOffset[0] = columnRowIndex[0];
   columnRowOffset[1] = columnRowIndex[1];
   return true;
+}
+
+//------------------------------------------------------------------------------
+vtkMRMLTableNode* vtkSlicerDrrImageComputationLogic::CreateProjectionsTableNode(
+  vtkMRMLDrrImageComputationNode* parameterNode, vtkMRMLScalarVolumeNode* ctInputVolume)
+{
+  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  if (!scene)
+  {
+    vtkErrorMacro("CreateProjectionsTableNode: Invalid MRML scene");
+    return nullptr;
+  }
+
+  if (!parameterNode)
+  {
+    vtkErrorMacro("CreateProjectionsTableNode: Invalid parameter node");
+    return nullptr;
+  }
+
+  if (!ctInputVolume)
+  {
+    vtkErrorMacro("CreateProjectionsTableNode: Invalid CT volume node");
+    return nullptr;
+  }
+
+  std::string name = std::string("DRR : ") + ctInputVolume->GetName() + "_MarkupsProjectionData";
+  vtkMRMLTableNode* tableNode = vtkMRMLTableNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLTableNode", name.c_str()));
+
+  vtkTable* table = tableNode->GetTable();
+  if (!table)
+  {
+    vtkErrorMacro("CreateProjectionsTableNode: Unable to create vtkTable to fill projection data");
+    return nullptr;
+  }
+
+  // Column 0; Original label name
+  vtkNew<vtkStringArray> originLabelString;
+  originLabelString->SetName("Original label");
+  table->AddColumn(originLabelString);
+
+  // Column 1; R
+  vtkNew<vtkDoubleArray> rPosition;
+  rPosition->SetName("R");
+  table->AddColumn(rPosition);
+
+  // Column 2; A
+  vtkNew<vtkDoubleArray> aPosition;
+  aPosition->SetName("A");
+  table->AddColumn(aPosition);
+
+  // Column 3; S
+  vtkNew<vtkDoubleArray> sPosition;
+  sPosition->SetName("S");
+  table->AddColumn(sPosition);
+
+  // Column 4; Width
+  vtkNew<vtkDoubleArray> widthOffset;
+  widthOffset->SetName("Width");
+  table->AddColumn(widthOffset);
+
+  // Column 5; Height
+  vtkNew<vtkDoubleArray> heigthOffset;
+  heigthOffset->SetName("Height");
+  table->AddColumn(heigthOffset);
+
+  // Column 6; Column
+  vtkNew<vtkIntArray> columnOffset;
+  columnOffset->SetName("Column");
+  table->AddColumn(columnOffset);
+
+  // Column 7; Row
+  vtkNew<vtkIntArray> rowOffset;
+  rowOffset->SetName("Row");
+  table->AddColumn(rowOffset);
+
+  // Column 8; Status string
+  vtkNew<vtkStringArray> statusString;
+  statusString->SetName("Status");
+  table->AddColumn(statusString);
+
+  return tableNode;
 }
 
 //------------------------------------------------------------------------------
