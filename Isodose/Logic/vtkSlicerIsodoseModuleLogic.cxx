@@ -803,29 +803,24 @@ bool vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   {
     isoSurfaces->GetPointData()->SetScalars(colors);
 
-    vtkMRMLModelDisplayNode* displayNode = nullptr;
-
-    vtkSmartPointer<vtkMRMLModelNode> isodoseModelNode;
-    if (parameterNode->GetIsosurfacesModelNode())
+    std::string tempname = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_POSTFIX;
+    std::string uniqueName = scene->GenerateUniqueName(tempname.c_str());
+    vtkMRMLModelNode* isodoseModelNode = vtkMRMLModelNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLModelNode", uniqueName));
+    if (!isodoseModelNode)
     {
-      isodoseModelNode = parameterNode->GetIsosurfacesModelNode();
-      std::string name = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_POSTFIX;
-      isodoseModelNode->SetName(name.c_str());
-      displayNode = vtkMRMLModelDisplayNode::SafeDownCast(isodoseModelNode->GetDisplayNode());
+      vtkErrorMacro("CreateIsodoseSurfaces: Failed to create isodose lines model node");
+      return false;
     }
-    else
-    {
-      isodoseModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
-      std::string tempname = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_POSTFIX;
-      std::string uniqueName = scene->GenerateUniqueName(tempname.c_str());
-      isodoseModelNode->SetName(uniqueName.c_str());
-      scene->AddNode(isodoseModelNode);
-      // Set and observe isosurfaces node
-      parameterNode->SetAndObserveIsosurfacesModelNode(isodoseModelNode);
+    // Set and observe a newly created isosurfaces node
+    parameterNode->SetAndObserveIsosurfacesModelNode(isodoseModelNode);
 
-      displayNode = vtkMRMLModelDisplayNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLModelDisplayNode"));
-      isodoseModelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+    vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLModelDisplayNode"));
+    if (!displayNode)
+    {
+      vtkErrorMacro("CreateIsodoseSurfaces: Failed to create isodose lines model display node");
+      return false;
     }
+    isodoseModelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
 
     // Disable backface culling to make the back side of the model visible as well
     displayNode->SetBackfaceCulling(0);
