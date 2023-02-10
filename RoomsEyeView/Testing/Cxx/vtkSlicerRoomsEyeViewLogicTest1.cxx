@@ -68,6 +68,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   revLogic->BuildRoomsEyeViewTransformHierarchy();
 
   // Create mock linac component models
+  /*
   vtkSmartPointer<vtkMRMLModelNode> collimatorModelNode = vtkSmartPointer<vtkMRMLModelNode>::New();
   collimatorModelNode->SetName(vtkSlicerRoomsEyeViewModuleLogic::COLLIMATOR_MODEL_NAME);
   mrmlScene->AddNode(collimatorModelNode);
@@ -455,6 +456,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   std::cout << "Room's eye view logic test passed" << std::endl;
   return EXIT_SUCCESS;
+  */return EXIT_FAILURE;
 }
 
 //----------------------------------------------------------------------------

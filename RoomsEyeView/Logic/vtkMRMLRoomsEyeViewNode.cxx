@@ -71,7 +71,7 @@ vtkMRMLNodeNewMacro(vtkMRMLRoomsEyeViewNode);
 //----------------------------------------------------------------------------
 vtkMRMLRoomsEyeViewNode::vtkMRMLRoomsEyeViewNode()
   : PatientBodySegmentID(nullptr)
-  , TreatmentMachineType(nullptr)
+  , TreatmentMachineDescriptorFilePath(nullptr)
   , CollisionDetectionEnabled(true)
   , GantryRotationAngle(0.0)
   , CollimatorRotationAngle(0.0)
@@ -93,7 +93,7 @@ vtkMRMLRoomsEyeViewNode::vtkMRMLRoomsEyeViewNode()
 vtkMRMLRoomsEyeViewNode::~vtkMRMLRoomsEyeViewNode()
 {
   this->SetPatientBodySegmentID(nullptr);
-  this->SetTreatmentMachineType(nullptr);
+  this->SetTreatmentMachineDescriptorFilePath(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -115,7 +115,7 @@ void vtkMRMLRoomsEyeViewNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLFloatMacro(AdditionalModelLongitudinalDisplacement, AdditionalModelLongitudinalDisplacement);
   vtkMRMLWriteXMLFloatMacro(AdditionalModelLateralDisplacement, AdditionalModelLateralDisplacement);
   vtkMRMLWriteXMLStringMacro(PatientBodySegmentID, PatientBodySegmentID);
-  vtkMRMLWriteXMLStringMacro(TreatmentMachineType, TreatmentMachineType);
+  vtkMRMLWriteXMLStringMacro(TreatmentMachineDescriptorFilePath, TreatmentMachineDescriptorFilePath);
   vtkMRMLWriteXMLIntMacro(ApplicatorHolderVisibility, ApplicatorHolderVisibility);
   vtkMRMLWriteXMLIntMacro(ElectronApplicatorVisibility, ElectronApplicatorVisibility);
   vtkMRMLWriteXMLEndMacro(); 
@@ -140,7 +140,7 @@ void vtkMRMLRoomsEyeViewNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLFloatMacro(AdditionalModelLongitudinalDisplacement, AdditionalModelLongitudinalDisplacement);
   vtkMRMLReadXMLFloatMacro(AdditionalModelLateralDisplacement, AdditionalModelLateralDisplacement);
   vtkMRMLReadXMLStringMacro(PatientBodySegmentID, PatientBodySegmentID);
-  vtkMRMLReadXMLStringMacro(TreatmentMachineType, TreatmentMachineType);
+  vtkMRMLReadXMLStringMacro(TreatmentMachineDescriptorFilePath, TreatmentMachineDescriptorFilePath);
   vtkMRMLReadXMLIntMacro(ApplicatorHolderVisibility, ApplicatorHolderVisibility);
   vtkMRMLReadXMLIntMacro(ElectronApplicatorVisibility, ElectronApplicatorVisibility);
   vtkMRMLReadXMLEndMacro(); 
@@ -172,7 +172,7 @@ void vtkMRMLRoomsEyeViewNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyFloatMacro(AdditionalModelLongitudinalDisplacement);
   vtkMRMLCopyFloatMacro(AdditionalModelLateralDisplacement);
   vtkMRMLCopyStringMacro(PatientBodySegmentID);
-  vtkMRMLCopyStringMacro(TreatmentMachineType);
+  vtkMRMLCopyStringMacro(TreatmentMachineDescriptorFilePath);
   vtkMRMLCopyIntMacro(ApplicatorHolderVisibility);
   vtkMRMLCopyIntMacro(ElectronApplicatorVisibility);
   vtkMRMLCopyEndMacro(); 
@@ -198,7 +198,7 @@ void vtkMRMLRoomsEyeViewNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintFloatMacro(AdditionalModelLongitudinalDisplacement);
   vtkMRMLPrintFloatMacro(AdditionalModelLateralDisplacement);
   vtkMRMLPrintStringMacro(PatientBodySegmentID);
-  vtkMRMLPrintStringMacro(TreatmentMachineType);
+  vtkMRMLPrintStringMacro(TreatmentMachineDescriptorFilePath);
   vtkMRMLPrintIntMacro(ApplicatorHolderVisibility);
   vtkMRMLPrintIntMacro(ElectronApplicatorVisibility);
   vtkMRMLPrintEndMacro(); 

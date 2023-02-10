@@ -5,6 +5,7 @@
 set(MACHINE_NAME VarianTrueBeamSTx)
 
 set(MACHINE_MODELS
+  VarianTrueBeamSTx.json
   Collimator.stl
   Gantry.stl
   ImagingPanelLeft.stl

@@ -127,10 +127,10 @@ public:
   /// Set patient body segment ID
   vtkSetStringMacro(PatientBodySegmentID);
 
-  /// Get treatment machine type name
-  vtkGetStringMacro(TreatmentMachineType);
-  /// Set treatment machine type name
-  vtkSetStringMacro(TreatmentMachineType);
+  /// Get path to the treatment machine descriptor JSON file
+  vtkGetStringMacro(TreatmentMachineDescriptorFilePath);
+  /// Set path to the treatment machine descriptor JSON file
+  vtkSetStringMacro(TreatmentMachineDescriptorFilePath);
 
   vtkGetMacro(CollisionDetectionEnabled, bool);
   vtkSetMacro(CollisionDetectionEnabled, bool);
@@ -182,8 +182,8 @@ protected:
   /// Patient body segment ID in selected segmentation node
   char* PatientBodySegmentID;
 
-  /// Name of treatment machine used (must match folder name where the models can be found)
-  char* TreatmentMachineType;
+  /// Path to the treatment machine descriptor JSON file
+  char* TreatmentMachineDescriptorFilePath;
 
   bool CollisionDetectionEnabled;
 

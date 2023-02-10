@@ -54,6 +54,8 @@
 
 // Qt includes
 #include <QDebug>
+#include <QDir>
+#include <QFileDialog>
 
 // CTK includes
 #include <ctkSliderWidget.h>
@@ -273,10 +275,11 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
   // Add treatment machine options
   d->TreatmentMachineComboBox->addItem("Varian TrueBeam STx", "VarianTrueBeamSTx");
   d->TreatmentMachineComboBox->addItem("Siemens Artiste", "SiemensArtiste");
+  d->TreatmentMachineComboBox->addItem("From file...", "FromFile");
 
   //
   // Make connections
-  connect(d->LoadTreatmentMachineModelsButton, SIGNAL(clicked()), this, SLOT(onLoadTreatmentMachineModelsButtonClicked()));
+  connect(d->LoadTreatmentMachineButton, SIGNAL(clicked()), this, SLOT(onLoadTreatmentMachineButtonClicked()));
 
   // Treatment machine components
   connect(d->CollimatorRotationSlider, SIGNAL(valueChanged(double)), this, SLOT(onCollimatorRotationSliderValueChanged(double)));
@@ -426,7 +429,7 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientBodySegmentChanged(QString segmen
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineModelsButtonClicked()
+void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
@@ -442,18 +445,27 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineModelsButtonClicked(
     return;
   }
 
-  // Load and setup models
+  // Get treatment machine descriptor file path
   QString treatmentMachineType(d->TreatmentMachineComboBox->currentData().toString());
-  paramNode->SetTreatmentMachineType(treatmentMachineType.toUtf8().constData());
-  d->logic()->LoadTreatmentMachineModels(paramNode);
+  QString descriptorFilePath;
+  if (!treatmentMachineType.compare("FromFile"))
+  {
+    // Ask user for descriptor JSON file if load from file option is selected
+    descriptorFilePath = QFileDialog::getOpenFileName( this, "Select treatment machine descriptor JSON file...",
+      QString(), "Json files (*.json);; All files (*)" ); 
+  }
+  else //TODO: Currently support two default types in addition to loading file. Need to rethink the module
+  {
+    QString relativeFilePath = QString("%1/%2.json").arg(treatmentMachineType).arg(treatmentMachineType);
+    descriptorFilePath = QDir(d->logic()->GetModuleShareDirectory().c_str()).filePath(relativeFilePath);
+  }
 
-  // Reset camera
-  qSlicerApplication* slicerApplication = qSlicerApplication::application();
-  qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
-  qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
-  threeDView->resetCamera();
+  // Load and setup models
+  paramNode->SetTreatmentMachineDescriptorFilePath(descriptorFilePath.toUtf8().constData());
 
-  // Set treatment machine dependent properties
+  d->logic()->LoadTreatmentMachine(paramNode);
+
+  // Set treatment machine dependent properties  //TODO: Use degrees of freedom from JSON
   if (!treatmentMachineType.compare("VarianTrueBeamSTx"))
   {
     d->LateralTableTopDisplacementSlider->setMinimum(-230.0);
@@ -464,6 +476,13 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineModelsButtonClicked(
     d->LateralTableTopDisplacementSlider->setMinimum(-250.0);
     d->LateralTableTopDisplacementSlider->setMaximum(250.0);
   }
+
+  // Reset camera
+  qSlicerApplication* slicerApplication = qSlicerApplication::application();
+  qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
+  qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
+  threeDView->resetCamera();
+
 
   // Set orientation marker
   //TODO: Add new option 'Treatment room' to orientation marker choices and merged model with actual colors (surface scalars?)
@@ -877,6 +896,7 @@ void qSlicerRoomsEyeViewModuleWidget::checkForCollisions()
 void qSlicerRoomsEyeViewModuleWidget::updateTreatmentOrientationMarker()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
 
   // Get 3D view node
   qSlicerApplication* slicerApplication = qSlicerApplication::application();
@@ -887,7 +907,7 @@ void qSlicerRoomsEyeViewModuleWidget::updateTreatmentOrientationMarker()
   // Update orientation marker if shown
   if (viewNode->GetOrientationMarkerType() == vtkMRMLViewNode::OrientationMarkerTypeHuman)
   {  
-    vtkMRMLModelNode* orientationMarkerModel = d->logic()->UpdateTreatmentOrientationMarker();
+    vtkMRMLModelNode* orientationMarkerModel = d->logic()->UpdateTreatmentOrientationMarker(paramNode);
     if (!orientationMarkerModel)
     {
       qCritical() << Q_FUNC_INFO << ": Failed to create orientation marker model";
