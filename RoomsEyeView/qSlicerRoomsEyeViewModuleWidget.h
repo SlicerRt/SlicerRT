@@ -55,7 +55,7 @@ public slots:
   void updateWidgetFromMRML();
 
 protected slots:
-	void onLoadTreatmentMachineModelsButtonClicked();
+	void onLoadTreatmentMachineButtonClicked();
 
   void onCollimatorRotationSliderValueChanged(double);
   void onGantryRotationSliderValueChanged(double);

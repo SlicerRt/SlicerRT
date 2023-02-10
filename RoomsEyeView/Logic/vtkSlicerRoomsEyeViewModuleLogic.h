@@ -32,28 +32,36 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 #include <vtkSlicerModuleLogic.h>
 
 class vtkCollisionDetectionFilter;
-class vtkSlicerIECTransformLogic;
+class vtkMatrix4x4;
+class vtkPolyData;
+
 class vtkMRMLRoomsEyeViewNode;
 class vtkMRMLModelNode;
-class vtkPolyData;
+class vtkSlicerIECTransformLogic;
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
 class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic :
   public vtkSlicerModuleLogic
 {
 public:
-  static const char* COLLIMATOR_MODEL_NAME;
-  static const char* GANTRY_MODEL_NAME;
-  static const char* PATIENTSUPPORT_MODEL_NAME;
-  static const char* TABLETOP_MODEL_NAME;
+  /// Treatment machine part types
+  /// \sa LastComputationResult, GetLastComputationResult(),
+  /// GetLastComputationResultAsString()
+  enum TreatmentMachinePartType
+    {
+    Collimator,
+    Gantry,
+    PatientSupport,
+    TableTop,
+    Body,
+    ImagingPanelLeft,
+    ImagingPanelRight,
+    FlatPanel,
+    ApplicatorHolder,
+    ElectronApplicator,
+    LastPartType
+    }; 
 
-  static const char* LINACBODY_MODEL_NAME;
-  static const char* IMAGINGPANELLEFT_MODEL_NAME;
-  static const char* IMAGINGPANELRIGHT_MODEL_NAME;
-  static const char* FLATPANEL_MODEL_NAME;
-
-  static const char* APPLICATORHOLDER_MODEL_NAME;
-  static const char* ELECTRONAPPLICATOR_MODEL_NAME;
   static const char* ORIENTATION_MARKER_MODEL_NODE_NAME;
 
 public:
@@ -62,12 +70,11 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
 public:
-  /// Load pre-defined components of the treatment machine into the scene
-  /// \param parameterNode Parameter node contains the type of treatment machine
-  ///        (must match folder name where the models can be found)
-  void LoadTreatmentMachineModels(vtkMRMLRoomsEyeViewNode* parameterNode);
+  /// Load and setup components of the treatment machine into the scene based on its description.
+  /// \param parameterNode Parameter node contains the treatment machine descriptor file path.
+  void LoadTreatmentMachine(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Set up the IEC transforms and model properties on the treatment machine models
-  void SetupTreatmentMachineModels();
+  void SetupTreatmentMachineModels(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Create or get transforms taking part in the IEC logic and additional devices, and build the transform hierarchy
   void BuildRoomsEyeViewTransformHierarchy();
 
@@ -97,7 +104,7 @@ public:
   void UpdateTableTopToTableTopEccentricRotationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
  
   /// Update orientation marker based on the current transforms
-  vtkMRMLModelNode* UpdateTreatmentOrientationMarker();
+  vtkMRMLModelNode* UpdateTreatmentOrientationMarker(vtkMRMLRoomsEyeViewNode* parameterNode);
 
   /// Check for collisions between pieces of linac model using vtkCollisionDetectionFilter
   /// \return string indicating whether collision occurred
@@ -116,8 +123,25 @@ public:
   ///TODO:
   void UpdateAdditionalDevicesVisibility(vtkMRMLRoomsEyeViewNode* parameterNode);
 
+// Get treatment machine properties from descriptor file
+public:
+  /// Get part name for part type in the currently loaded treatment machine description
+  std::string GetNameForPartType(std::string partType);
+  /// Get relative file path for part type in the currently loaded treatment machine description
+  std::string GetFilePathForPartType(std::string partType);
+  /// Get part name for part type in the currently loaded treatment machine description
+  /// \return Success flag
+  bool GetFileToPartTransformMatrixPartType(std::string partType, vtkMatrix4x4* fileToPartTransformMatrix);
+  /// Get part name for part type in the currently loaded treatment machine description
+  int* GetColorForPartType(std::string partType);
+  /// Get part name for part type in the currently loaded treatment machine description
+  bool GetEnabledStateForPartType(std::string partType);
+
 // Set/get methods
 public:
+  /// Get part type as string
+  const char* GetTreatmentMachinePartTypeAsString(TreatmentMachinePartType type);
+
   vtkGetObjectMacro(IECLogic, vtkSlicerIECTransformLogic);
 
   vtkGetObjectMacro(GantryPatientCollisionDetection, vtkCollisionDetectionFilter);
@@ -157,6 +181,10 @@ protected:
 private:
   vtkSlicerRoomsEyeViewModuleLogic(const vtkSlicerRoomsEyeViewModuleLogic&) = delete;
   void operator=(const vtkSlicerRoomsEyeViewModuleLogic&) = delete;
+
+  class vtkInternal;
+  vtkInternal* Internal;
+  friend class vtkInternal;
 };
 
 #endif
