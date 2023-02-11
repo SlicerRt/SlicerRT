@@ -34,6 +34,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 class vtkCollisionDetectionFilter;
 class vtkMatrix4x4;
 class vtkPolyData;
+class vtkVector3d;
 
 class vtkMRMLRoomsEyeViewNode;
 class vtkMRMLModelNode;
@@ -45,11 +46,10 @@ class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic :
 {
 public:
   /// Treatment machine part types
-  /// \sa LastComputationResult, GetLastComputationResult(),
-  /// GetLastComputationResultAsString()
+  /// \sa GetTreatmentMachinePartTypeAsString()
   enum TreatmentMachinePartType
     {
-    Collimator,
+    Collimator = 0,
     Gantry,
     PatientSupport,
     TableTop,
@@ -133,7 +133,7 @@ public:
   /// \return Success flag
   bool GetFileToPartTransformMatrixPartType(std::string partType, vtkMatrix4x4* fileToPartTransformMatrix);
   /// Get part name for part type in the currently loaded treatment machine description
-  int* GetColorForPartType(std::string partType);
+  vtkVector3d GetColorForPartType(std::string partType);
   /// Get part name for part type in the currently loaded treatment machine description
   bool GetEnabledStateForPartType(std::string partType);
 
@@ -188,4 +188,3 @@ private:
 };
 
 #endif
-
