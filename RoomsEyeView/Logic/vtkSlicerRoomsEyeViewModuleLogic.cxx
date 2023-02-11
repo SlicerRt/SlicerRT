@@ -53,6 +53,7 @@
 #include <vtkTransform.h>
 #include <vtkTransformFilter.h>
 #include <vtkTransformPolyDataFilter.h>
+#include <vtkVector.h>
 
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
@@ -140,8 +141,7 @@ rapidjson::Value& vtkSlicerRoomsEyeViewModuleLogic::vtkInternal::GetTreatmentMac
   rapidjson::Value& partsArray = partsIt->value;
 
   // Traverse parts and try to find the element with the given part type
-  rapidjson::SizeType index = 0;
-  while (index < partsArray.Size())
+  for (rapidjson::SizeType index=0; index < partsArray.Size(); ++index)
   {
     rapidjson::Value& currentObject = partsArray[index];
     if (currentObject.IsObject())
@@ -152,7 +152,6 @@ rapidjson::Value& vtkSlicerRoomsEyeViewModuleLogic::vtkInternal::GetTreatmentMac
         return currentObject;
       }
     }
-    ++index;
   }
 
   // Not found
@@ -488,7 +487,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachine(vtkMRMLRoomsEyeViewN
   std::string subjectHierarchyFolderName = machineType + std::string("_Components");
   vtkIdType rootFolderItem = shNode->CreateFolderItem(shNode->GetSceneItemID(), subjectHierarchyFolderName);
 
-  //
   // Load treatment machine models
 
   // Collimator - mandatory
@@ -522,125 +520,93 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsE
     return;
   }
 
-  //TODO: Store treatment machine component color and other properties in JSON
-
-  // Display all pieces of the treatment room and sets each piece a color to provide realistic representation
-
-  // Collimator - mandatory
-  vtkMRMLModelNode* collimatorModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, Collimator);
-  if (!collimatorModel)
+  for (int partIdx=0; partIdx<LastPartType; ++partIdx)
   {
-    vtkErrorMacro("SetupTreatmentMachineModels: Unable to access collimator model");
-    return;
+    std::string partType = this->GetTreatmentMachinePartTypeAsString((TreatmentMachinePartType)partIdx);
+    vtkMRMLModelNode* partModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, (TreatmentMachinePartType)partIdx);
+    if (!partModel)
+    {
+      switch (partIdx)
+      {
+        case Collimator: case Gantry: case PatientSupport: case TableTop:
+          vtkErrorMacro("SetupTreatmentMachineModels: Unable to access " << partType << " model");
+      }
+      continue;
+    }
+
+    // Set color
+    vtkVector3d partColor(this->GetColorForPartType(partType));
+    partModel->CreateDefaultDisplayNodes();
+    partModel->GetDisplayNode()->SetColor((double)partColor[0] / 255.0, (double)partColor[1] / 255.0, (double)partColor[2] / 255.0);
+
+    // Setup transforms and collision detection
+    if (partIdx == Collimator)
+    {
+      vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
+        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
+      partModel->SetAndObserveTransformNodeID(collimatorToGantryTransformNode->GetID());
+      this->CollimatorTableTopCollisionDetection->SetInputData(0, partModel->GetPolyData());
+      // Patient model is set when calculating collisions, as it can be changed dynamically
+      this->CollimatorPatientCollisionDetection->SetInputData(0, partModel->GetPolyData());
+    }
+    else if (partIdx == Gantry)
+    {
+      vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode =
+        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
+      partModel->SetAndObserveTransformNodeID(gantryToFixedReferenceTransformNode->GetID());
+      this->GantryTableTopCollisionDetection->SetInputData(0, partModel->GetPolyData());
+      this->GantryPatientSupportCollisionDetection->SetInputData(0, partModel->GetPolyData());
+      // Patient model is set when calculating collisions, as it can be changed dynamically
+      this->GantryPatientCollisionDetection->SetInputData(0, partModel->GetPolyData());
+    }
+    else if (partIdx == PatientSupport)
+    {
+      vtkMRMLLinearTransformNode* patientSupportToPatientSupportRotationTransformNode =
+        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
+      partModel->SetAndObserveTransformNodeID(patientSupportToPatientSupportRotationTransformNode->GetID());
+      this->GantryPatientSupportCollisionDetection->SetInputData(1, partModel->GetPolyData());
+    }
+    else if (partIdx == TableTop)
+    {
+      vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode =
+        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+      partModel->SetAndObserveTransformNodeID(tableTopToTableTopEccentricRotationTransformNode->GetID());
+      this->GantryTableTopCollisionDetection->SetInputData(1, partModel->GetPolyData());
+      this->CollimatorTableTopCollisionDetection->SetInputData(1, partModel->GetPolyData());
+    }
+    else if (partIdx == Body)
+    {
+      vtkMRMLLinearTransformNode* fixedReferenceToRasTransformNode =
+        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS);
+      partModel->SetAndObserveTransformNodeID(fixedReferenceToRasTransformNode->GetID());
+    }
+    else if (partIdx == ImagingPanelLeft)
+    {
+      vtkMRMLLinearTransformNode* leftImagingPanelToGantryTransformNode =
+        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
+      partModel->SetAndObserveTransformNodeID(leftImagingPanelToGantryTransformNode->GetID());
+    }
+    else if (partIdx == ImagingPanelRight)
+    {
+      vtkMRMLLinearTransformNode* rightImagingPanelToGantryTransformNode =
+        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
+      partModel->SetAndObserveTransformNodeID(rightImagingPanelToGantryTransformNode->GetID());
+    }
+    else if (partIdx == FlatPanel)
+    {
+      vtkMRMLLinearTransformNode* flatPanelToGantryTransformNode =
+        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FlatPanel, vtkSlicerIECTransformLogic::Gantry);
+      partModel->SetAndObserveTransformNodeID(flatPanelToGantryTransformNode->GetID());
+    }
+    //TODO: ApplicatorHolder, ElectronApplicator?
   }
-  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
-  collimatorModel->SetAndObserveTransformNodeID(collimatorToGantryTransformNode->GetID());
-  collimatorModel->CreateDefaultDisplayNodes();
-  collimatorModel->GetDisplayNode()->SetColor(0.7, 0.7, 0.95);
-
-  // Gantry - mandatory
-  vtkMRMLModelNode* gantryModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, Gantry);
-  if (!gantryModel)
-  {
-    vtkErrorMacro("SetupTreatmentMachineModels: Unable to access gantry model");
-    return;
-  }
-  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
-  gantryModel->SetAndObserveTransformNodeID(gantryToFixedReferenceTransformNode->GetID());
-  gantryModel->CreateDefaultDisplayNodes();
-  gantryModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
-
-  // Patient support - mandatory
-  vtkMRMLModelNode* patientSupportModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, PatientSupport);
-  if (!patientSupportModel)
-  {
-    vtkErrorMacro("SetupTreatmentMachineModels: Unable to access patient support model");
-    return;
-  }
-  vtkMRMLLinearTransformNode* patientSupportToPatientSupportRotationTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
-  patientSupportModel->SetAndObserveTransformNodeID(patientSupportToPatientSupportRotationTransformNode->GetID());
-  patientSupportModel->CreateDefaultDisplayNodes();
-  patientSupportModel->GetDisplayNode()->SetColor(0.85, 0.85, 0.85);
-
-  // Table top - mandatory
-  vtkMRMLModelNode* tableTopModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, TableTop);
-  if (!tableTopModel)
-  {
-    vtkErrorMacro("SetupTreatmentMachineModels: Unable to access table top model");
-    return;
-  }
-  vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
-  tableTopModel->SetAndObserveTransformNodeID(tableTopToTableTopEccentricRotationTransformNode->GetID());
-  tableTopModel->CreateDefaultDisplayNodes();
-  tableTopModel->GetDisplayNode()->SetColor(0, 0, 0);
-
-  // Linac body - optional
-  vtkMRMLModelNode* linacBodyModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, Body);
-  if (linacBodyModel)
-  {
-    vtkMRMLLinearTransformNode* fixedReferenceToRasTransformNode =
-      this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS);
-    linacBodyModel->SetAndObserveTransformNodeID(fixedReferenceToRasTransformNode->GetID());
-    linacBodyModel->CreateDefaultDisplayNodes();
-    linacBodyModel->GetDisplayNode()->SetColor(0.9, 0.9, 0.9);
-  }
-
-  // Imaging panel left - optional
-  vtkMRMLModelNode* leftImagingPanelModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, ImagingPanelLeft);
-  if (leftImagingPanelModel)
-  {
-    vtkMRMLLinearTransformNode* leftImagingPanelToGantryTransformNode =
-      this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
-    leftImagingPanelModel->SetAndObserveTransformNodeID(leftImagingPanelToGantryTransformNode->GetID());
-    leftImagingPanelModel->CreateDefaultDisplayNodes();
-    leftImagingPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
-  }
-
-  // Imaging panel right - optional
-  vtkMRMLModelNode* rightImagingPanelModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, ImagingPanelRight);
-  if (rightImagingPanelModel)
-  {
-    vtkMRMLLinearTransformNode* rightImagingPanelToGantryTransformNode =
-      this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
-    rightImagingPanelModel->SetAndObserveTransformNodeID(rightImagingPanelToGantryTransformNode->GetID());
-    rightImagingPanelModel->CreateDefaultDisplayNodes();
-    rightImagingPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
-  }
-
-  // Flat panel - optional
-  vtkMRMLModelNode* flatPanelModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, FlatPanel);
-  if (flatPanelModel)
-  {
-    vtkMRMLLinearTransformNode* flatPanelToGantryTransformNode =
-      this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FlatPanel, vtkSlicerIECTransformLogic::Gantry);
-    flatPanelModel->SetAndObserveTransformNodeID(flatPanelToGantryTransformNode->GetID());
-    flatPanelModel->CreateDefaultDisplayNodes();
-    flatPanelModel->GetDisplayNode()->SetColor(0.95, 0.95, 0.95);
-  }
-
-  //
-  // Set up collision detection between components
-  this->GantryTableTopCollisionDetection->SetInputData(0, gantryModel->GetPolyData());
-  this->GantryTableTopCollisionDetection->SetInputData(1, tableTopModel->GetPolyData());
-
-  this->GantryPatientSupportCollisionDetection->SetInputData(0, gantryModel->GetPolyData());
-  this->GantryPatientSupportCollisionDetection->SetInputData(1, patientSupportModel->GetPolyData());
-
-  this->CollimatorTableTopCollisionDetection->SetInputData(0, collimatorModel->GetPolyData());
-  this->CollimatorTableTopCollisionDetection->SetInputData(1, tableTopModel->GetPolyData());
 
   //TODO: Whole patient (segmentation, CT) will need to be transformed when the table top is transformed
   //vtkMRMLLinearTransformNode* patientModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
   //  this->GetMRMLScene()->GetFirstNodeByName("TableTopEccentricRotationToPatientSupportTransform"));
   //patientModel->SetAndObserveTransformNodeID(patientModelTransforms->GetID());
+  //TODO: Instead of this make the tableTop the fixed part in RAS
 
-  // Patient model is set when calculating collisions, as it can be changed dynamically
-  this->GantryPatientCollisionDetection->SetInputData(0, gantryModel->GetPolyData());
-  this->CollimatorPatientCollisionDetection->SetInputData(0, collimatorModel->GetPolyData());
   // Set identity transform for patient (parent transform is taken into account when getting poly data from segmentation)
   vtkNew<vtkTransform> identityTransform;
   identityTransform->Identity();
@@ -657,6 +623,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadBasicCollimatorMountedDevices()
     return;
   }
   //TODO:
+  //
+  // Create a JSON file for this just as if it would be a treatment machine and use the same functions as for those.
+  //
   /*
   std::string moduleShareDirectory = this->GetModuleShareDirectory();
   std::string additionalDevicesDirectory = moduleShareDirectory + "/" + "AdditionalTreatmentModels";
@@ -1468,7 +1437,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
 const char* vtkSlicerRoomsEyeViewModuleLogic::GetTreatmentMachinePartTypeAsString(TreatmentMachinePartType type)
 {
   switch (type)
-    {
+  {
     case Collimator: return "Collimator";
     case Gantry: return "Gantry";
     case PatientSupport: return "PatientSupport";
@@ -1482,7 +1451,7 @@ const char* vtkSlicerRoomsEyeViewModuleLogic::GetTreatmentMachinePartTypeAsStrin
     default:
       // invalid type
       return "";
-    }
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -1533,10 +1502,25 @@ bool vtkSlicerRoomsEyeViewModuleLogic::GetFileToPartTransformMatrixPartType(std:
 }
 
 //---------------------------------------------------------------------------
-int* vtkSlicerRoomsEyeViewModuleLogic::GetColorForPartType(std::string partType)
+vtkVector3d vtkSlicerRoomsEyeViewModuleLogic::GetColorForPartType(std::string partType)
 {
-  //TODO:
-  return nullptr;
+  rapidjson::Value& partObject = this->Internal->GetTreatmentMachinePart(partType);
+  if (partObject.IsNull())
+  {
+    // The part may not have been included in the description
+    return vtkVector3d(255, 255, 255);
+  }
+
+  rapidjson::Value& colorArray = partObject["Color"];
+  if (!colorArray.IsArray() || colorArray.Size() != 3 || !colorArray[0].IsInt())
+  {
+    vtkErrorMacro("GetFilePathForPartType: Invalid treatment machine color for part " << partType);
+    return vtkVector3d(255, 255, 255);
+  }
+
+  return vtkVector3d( (unsigned char)colorArray[0].GetInt(),
+                      (unsigned char)colorArray[1].GetInt(),
+                      (unsigned char)colorArray[2].GetInt() );
 }
 
 //---------------------------------------------------------------------------
