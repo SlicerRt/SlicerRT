@@ -8,7 +8,7 @@
       "Type": "Collimator",
       "Name": "Collimator",
       "FilePath": "Collimator.stl",
-      "FileToPartTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "FileToRASTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
       "Color": [179, 179, 244],
       "State": "Active"
     },
@@ -16,7 +16,7 @@
       "Type": "Gantry",
       "Name": "Gantry",
       "FilePath": "Gantry.stl",
-      "FileToPartTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "FileToRASTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
       "Color": [244, 244, 244],
       "State": "Active"
     },
@@ -24,7 +24,7 @@
       "Type": "ImagingPanelLeft",
       "Name": "Left imaging panel",
       "FilePath": "ImagingPanelLeft.stl",
-      "FileToPartTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "FileToRASTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
       "Color": [244, 244, 244],
       "State": "Active"
     },
@@ -32,7 +32,7 @@
       "Type": "ImagingPanelRight",
       "Name": "Right imaging panel",
       "FilePath": "ImagingPanelRight.stl",
-      "FileToPartTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "FileToRASTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
       "Color": [244, 244, 244],
       "State": "Active"
     },
@@ -40,7 +40,7 @@
       "Type": "Body",
       "Name": "Linac body",
       "FilePath": "LinacBody.stl",
-      "FileToPartTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "FileToRASTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
       "Color": [230, 230, 230],
       "State": "Active"
     },
@@ -48,7 +48,7 @@
       "Type": "PatientSupport",
       "Name": "Patient support",
       "FilePath": "PatientSupport.stl",
-      "FileToPartTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "FileToRASTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
       "Color": [217, 217, 217],
       "State": "Active"
     },
@@ -56,7 +56,7 @@
       "Type": "TableTop",
       "Name": "Table top",
       "FilePath": "TableTop.stl",
-      "FileToPartTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "FileToRASTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
       "Color": [0, 0, 0],
       "State": "Active"
     }

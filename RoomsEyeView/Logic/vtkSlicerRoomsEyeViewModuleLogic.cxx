@@ -539,6 +539,25 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsE
     partModel->CreateDefaultDisplayNodes();
     partModel->GetDisplayNode()->SetColor((double)partColor[0] / 255.0, (double)partColor[1] / 255.0, (double)partColor[2] / 255.0);
 
+    // Apply file to RAS transform matrix
+    vtkNew<vtkMatrix4x4> fileToRASTransformMatrix;
+    if (this->GetFileToRASTransformMatrixForPartType(partType, fileToRASTransformMatrix))
+    {
+      vtkNew<vtkTransform> fileToRASTransform;
+      fileToRASTransform->SetMatrix(fileToRASTransformMatrix);
+      vtkNew<vtkTransformPolyDataFilter> transformPolyDataFilter;
+      transformPolyDataFilter->SetInputConnection(partModel->GetPolyDataConnection());
+      transformPolyDataFilter->SetTransform(fileToRASTransform);
+      transformPolyDataFilter->Update();
+      vtkNew<vtkPolyData> partPolyDataRAS;
+      partPolyDataRAS->DeepCopy(transformPolyDataFilter->GetOutput());
+      partModel->SetAndObservePolyData(partPolyDataRAS);
+    }
+    else
+    {
+      vtkErrorMacro("SetupTreatmentMachineModels: Failed to set file to RAS matrix for treatment machine part " << partType);
+    }
+
     // Setup transforms and collision detection
     if (partIdx == Collimator)
     {
@@ -1495,9 +1514,44 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::GetFilePathForPartType(std::string
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerRoomsEyeViewModuleLogic::GetFileToPartTransformMatrixPartType(std::string partType, vtkMatrix4x4* fileToPartTransformMatrix)
+bool vtkSlicerRoomsEyeViewModuleLogic::GetFileToRASTransformMatrixForPartType(std::string partType, vtkMatrix4x4* fileToPartTransformMatrix)
 {
-  //TODO:
+  if (!fileToPartTransformMatrix)
+  {
+    vtkErrorMacro("GetFileToRASTransformMatrixForPartType: Invalid treatment machine file to RAS matrix for part " << partType);
+    return false;
+  }
+
+  fileToPartTransformMatrix->Identity();
+
+  rapidjson::Value& partObject = this->Internal->GetTreatmentMachinePart(partType);
+  if (partObject.IsNull())
+  {
+    // The part may not have been included in the description
+    return false;
+  }
+
+  rapidjson::Value& columnsArray = partObject["FileToRASTransformMatrix"];
+  if (!columnsArray.IsArray() || columnsArray.Size() != 4)
+  {
+    vtkErrorMacro("GetFileToRASTransformMatrixForPartType: Invalid treatment machine file to RAS matrix for part " << partType);
+    return false;
+  }
+
+  for (int i=0; i<columnsArray.Size(); ++i)
+  {
+    if (!columnsArray[i].IsArray() || columnsArray[i].Size() != 4)
+    {
+      vtkErrorMacro("GetFileToRASTransformMatrixForPartType: Invalid treatment machine file to RAS matrix for part " << partType
+        << " (problem in row " << i << ")");
+      return false;
+    }
+    for (int j=0; j<4; ++j)
+    {
+      fileToPartTransformMatrix->SetElement(i, j, columnsArray[i][j].GetDouble());
+    }
+  }
+
   return true;
 }
 
