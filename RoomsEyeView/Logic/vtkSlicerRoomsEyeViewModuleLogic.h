@@ -129,9 +129,10 @@ public:
   std::string GetNameForPartType(std::string partType);
   /// Get relative file path for part type in the currently loaded treatment machine description
   std::string GetFilePathForPartType(std::string partType);
-  /// Get part name for part type in the currently loaded treatment machine description
+  /// Get transform matrix between loaded part file and RAS for part type in the currently loaded treatment machine description
+  /// \param fileToPartTransformMatrix Output file to RAS
   /// \return Success flag
-  bool GetFileToPartTransformMatrixPartType(std::string partType, vtkMatrix4x4* fileToPartTransformMatrix);
+  bool GetFileToRASTransformMatrixForPartType(std::string partType, vtkMatrix4x4* fileToPartTransformMatrix);
   /// Get part name for part type in the currently loaded treatment machine description
   vtkVector3d GetColorForPartType(std::string partType);
   /// Get part name for part type in the currently loaded treatment machine description
