@@ -1,0 +1,40 @@
+{
+  "TreatmentMachineName": "Siemens Artiste",
+  "Author": "Eduardo Meilán Bermejo",
+  "Date":"2018",
+  "$schema": "https://raw.githubusercontent.com/???/???-schema.json#",
+  "Part": [
+    {
+      "Type": "Collimator",
+      "Name": "Collimator",
+      "FilePath": "Collimator.stl",
+      "FileToRASTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "Color": [179, 179, 244],
+      "State": "Active"
+    },
+    {
+      "Type": "Gantry",
+      "Name": "Gantry",
+      "FilePath": "Gantry.stl",
+      "FileToRASTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "Color": [244, 244, 244],
+      "State": "Active"
+    },
+    {
+      "Type": "PatientSupport",
+      "Name": "Patient support",
+      "FilePath": "PatientSupport.stl",
+      "FileToRASTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "Color": [217, 217, 217],
+      "State": "Active"
+    },
+    {
+      "Type": "TableTop",
+      "Name": "Table top",
+      "FilePath": "TableTop.stl",
+      "FileToRASTransformMatrix": [ [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1] ],
+      "Color": [0, 0, 0],
+      "State": "Active"
+    }
+  ]
+}
