@@ -307,6 +307,9 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
   connect(d->SegmentSelectorWidget_PatientBody, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onPatientBodySegmentationNodeChanged(vtkMRMLNode*)));
   connect(d->SegmentSelectorWidget_PatientBody, SIGNAL(currentSegmentChanged(QString)), this, SLOT(onPatientBodySegmentChanged(QString)));
 
+  //TODO: Hide additional device models section until reinstated
+  d->AdditionalTreatmentModelsCollapsibleButton->setVisible(false);
+
   // Handle scene change event if occurs
   qvtkConnect(d->logic(), vtkCommand::ModifiedEvent, this, SLOT(onLogicModified()));
 }
