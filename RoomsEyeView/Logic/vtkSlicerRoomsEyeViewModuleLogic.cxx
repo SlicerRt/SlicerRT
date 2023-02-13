@@ -252,15 +252,23 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::vtkInternal::EnsureTreatment
 
   std::string partName = this->GetTreatmentMachinePartModelName(parameterNode, partType);
   vtkMRMLModelNode* partModelNode = this->GetTreatmentMachinePartModelNode(parameterNode, partType);
-  if (partModelNode && !partModelNode->GetPolyData())
-  {
-    //TODO: Block added for old singleton case, remove if never called
-    // Remove node if contains empty polydata (e.g. after closing scene), so that it can be loaded again
-    scene->RemoveNode(partModelNode);
-    partModelNode = nullptr;
-  }
   if (!partModelNode)
   {
+    // Skip model if state is disabled and part is optional
+    std::string state = this->External->GetStateForPartType(this->External->GetTreatmentMachinePartTypeAsString(partType));
+    if (state == "Disabled")
+    {
+      if (optional)
+      {
+        return nullptr;
+      }
+      else
+      {
+        vtkWarningWithObjectMacro(this->External, "LoadTreatmentMachine: State for part "
+          << partName << " is set to Disabled but the part is mandatory. Loading anyway.");
+      }
+    }     
+    // Get model file path
     std::string partModelFilePath = this->External->GetFilePathForPartType(
       this->External->GetTreatmentMachinePartTypeAsString(partType));
     if (partModelFilePath == "")
@@ -272,6 +280,7 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::vtkInternal::EnsureTreatment
       }
       return nullptr;
     }
+    // Load model from file
     partModelFilePath = this->GetTreatmentMachinePartFullFilePath(parameterNode, partModelFilePath);
     if (vtksys::SystemTools::FileExists(partModelFilePath))
     {
@@ -498,7 +507,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachine(vtkMRMLRoomsEyeViewN
   // Table top - mandatory
   this->Internal->EnsureTreatmentMachinePartModelNode(parameterNode, TableTop);
   // Linac body - optional
-  this->Internal->EnsureTreatmentMachinePartModelNode(parameterNode, Body);
+  this->Internal->EnsureTreatmentMachinePartModelNode(parameterNode, Body, true);
   // Imaging panel left - optional
   this->Internal->EnsureTreatmentMachinePartModelNode(parameterNode, ImagingPanelLeft, true);
   // Imaging panel right - optional
@@ -1389,30 +1398,45 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
     return statusString;
   }
 
+  // Get states of the treatment machine parts involved
+  std::string collimatorState = this->GetStateForPartType(this->GetTreatmentMachinePartTypeAsString(Collimator));
+  std::string gantryState = this->GetStateForPartType(this->GetTreatmentMachinePartTypeAsString(Gantry));
+  std::string patientSupportState = this->GetStateForPartType(this->GetTreatmentMachinePartTypeAsString(PatientSupport));
+  std::string tableTopState = this->GetStateForPartType(this->GetTreatmentMachinePartTypeAsString(TableTop));
+
   // If number of contacts between pieces of treatment room is greater than 0, the collision between which pieces
   // will be set to the output string and returned by the function.
-  this->GantryTableTopCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(gantryToRasTransform));
-  this->GantryTableTopCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(tableTopToRasTransform));
-  this->GantryTableTopCollisionDetection->Update();
-  if (this->GantryTableTopCollisionDetection->GetNumberOfContacts() > 0)
+  if (gantryState == "Active" && tableTopState == "Active")
   {
-    statusString = statusString + "Collision between gantry and table top\n";
+    this->GantryTableTopCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(gantryToRasTransform));
+    this->GantryTableTopCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(tableTopToRasTransform));
+    this->GantryTableTopCollisionDetection->Update();
+    if (this->GantryTableTopCollisionDetection->GetNumberOfContacts() > 0)
+    {
+      statusString = statusString + "Collision between gantry and table top\n";
+    }
   }
 
-  this->GantryPatientSupportCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(gantryToRasTransform));
-  this->GantryPatientSupportCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(patientSupportToRasTransform));
-  this->GantryPatientSupportCollisionDetection->Update();
-  if (this->GantryPatientSupportCollisionDetection->GetNumberOfContacts() > 0)
+  if (gantryState == "Active" && patientSupportState == "Active")
   {
-    statusString = statusString + "Collision between gantry and patient support\n";
+    this->GantryPatientSupportCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(gantryToRasTransform));
+    this->GantryPatientSupportCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(patientSupportToRasTransform));
+    this->GantryPatientSupportCollisionDetection->Update();
+    if (this->GantryPatientSupportCollisionDetection->GetNumberOfContacts() > 0)
+    {
+      statusString = statusString + "Collision between gantry and patient support\n";
+    }
   }
 
-  this->CollimatorTableTopCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(collimatorToRasTransform));
-  this->CollimatorTableTopCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(tableTopToRasTransform));
-  this->CollimatorTableTopCollisionDetection->Update();
-  if (this->CollimatorTableTopCollisionDetection->GetNumberOfContacts() > 0)
+  if (collimatorState == "Active" && tableTopState == "Active")
   {
-    statusString = statusString + "Collision between collimator and table top\n";
+    this->CollimatorTableTopCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(collimatorToRasTransform));
+    this->CollimatorTableTopCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(tableTopToRasTransform));
+    this->CollimatorTableTopCollisionDetection->Update();
+    if (this->CollimatorTableTopCollisionDetection->GetNumberOfContacts() > 0)
+    {
+      statusString = statusString + "Collision between collimator and table top\n";
+    }
   }
 
   //TODO: Collision detection is disabled for additional devices, see SetupTreatmentMachineModels
@@ -1432,20 +1456,26 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
   vtkNew<vtkPolyData> patientBodyPolyData;
   if (this->GetPatientBodyPolyData(parameterNode, patientBodyPolyData))
   {
-    this->GantryPatientCollisionDetection->SetInputData(1, patientBodyPolyData);
-    this->GantryPatientCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(gantryToRasTransform));
-    this->GantryPatientCollisionDetection->Update();
-    if (this->GantryPatientCollisionDetection->GetNumberOfContacts() > 0)
+    if (gantryState == "Active")
     {
-      statusString = statusString + "Collision between gantry and patient\n";
+      this->GantryPatientCollisionDetection->SetInputData(1, patientBodyPolyData);
+      this->GantryPatientCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(gantryToRasTransform));
+      this->GantryPatientCollisionDetection->Update();
+      if (this->GantryPatientCollisionDetection->GetNumberOfContacts() > 0)
+      {
+        statusString = statusString + "Collision between gantry and patient\n";
+      }
     }
 
-    this->CollimatorPatientCollisionDetection->SetInputData(1, patientBodyPolyData);
-    this->CollimatorPatientCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(collimatorToRasTransform));
-    this->CollimatorPatientCollisionDetection->Update();
-    if (this->CollimatorPatientCollisionDetection->GetNumberOfContacts() > 0)
+    if (collimatorState == "Active")
     {
-      statusString = statusString + "Collision between collimator and patient\n";
+      this->CollimatorPatientCollisionDetection->SetInputData(1, patientBodyPolyData);
+      this->CollimatorPatientCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(collimatorToRasTransform));
+      this->CollimatorPatientCollisionDetection->Update();
+      if (this->CollimatorPatientCollisionDetection->GetNumberOfContacts() > 0)
+      {
+        statusString = statusString + "Collision between collimator and patient\n";
+      }
     }
   }
 
@@ -1578,7 +1608,7 @@ vtkVector3d vtkSlicerRoomsEyeViewModuleLogic::GetColorForPartType(std::string pa
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerRoomsEyeViewModuleLogic::GetEnabledStateForPartType(std::string partType)
+std::string vtkSlicerRoomsEyeViewModuleLogic::GetStateForPartType(std::string partType)
 {
   rapidjson::Value& partObject = this->Internal->GetTreatmentMachinePart(partType);
   if (partObject.IsNull())
@@ -1587,12 +1617,20 @@ bool vtkSlicerRoomsEyeViewModuleLogic::GetEnabledStateForPartType(std::string pa
     return "";
   }
 
-  rapidjson::Value& enabled = partObject["Enabled"];
-  if (!enabled.IsBool())
+  rapidjson::Value& state = partObject["State"];
+  if (!state.IsString())
   {
-    vtkErrorMacro("GetEnabledStateForPartType: Invalid treatment machine enabled state for part " << partType);
+    vtkErrorMacro("GetStateForPartType: Invalid treatment machine state value type for part " << partType);
     return "";
   }
 
-  return enabled.GetBool();
+  std::string stateStr(state.GetString());
+  if (state != "Disabled" && state != "Active" && state != "Passive")
+  {
+    vtkErrorMacro("GetStateForPartType: Invalid treatment machine state for part " << partType
+      << ". Valid states are Disabled, Active, or Passive.");
+    return "";
+  }
+
+  return stateStr;
 }
