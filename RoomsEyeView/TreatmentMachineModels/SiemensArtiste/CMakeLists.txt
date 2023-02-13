@@ -5,6 +5,7 @@
 set(MACHINE_NAME SiemensArtiste)
 
 set(MACHINE_MODELS
+  SiemensArtiste.json
   Collimator.stl
   PatientSupport.stl
   FlatPanel.stl
