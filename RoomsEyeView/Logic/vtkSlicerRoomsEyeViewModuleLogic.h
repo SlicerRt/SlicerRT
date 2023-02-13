@@ -133,10 +133,11 @@ public:
   /// \param fileToPartTransformMatrix Output file to RAS
   /// \return Success flag
   bool GetFileToRASTransformMatrixForPartType(std::string partType, vtkMatrix4x4* fileToPartTransformMatrix);
-  /// Get part name for part type in the currently loaded treatment machine description
+  /// Get color for part type in the currently loaded treatment machine description
   vtkVector3d GetColorForPartType(std::string partType);
-  /// Get part name for part type in the currently loaded treatment machine description
-  bool GetEnabledStateForPartType(std::string partType);
+  /// Get state for part type in the currently loaded treatment machine description.
+  /// Valid states are "Disabled" (not loaded), "Active" (loaded and collisions computed), "Passive" (loaded but no collisions).
+  std::string GetStateForPartType(std::string partType);
 
 // Set/get methods
 public:
