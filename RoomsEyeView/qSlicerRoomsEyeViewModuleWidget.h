@@ -16,6 +16,10 @@
   and was supported through the Applied Cancer Research Unit program of Cancer Care
   Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
+  The collision detection module was partly supported by Conselleria de
+  Educación, Investigación, Cultura y Deporte (Generalitat Valenciana), Spain
+  under grant number CDEIGENT/2019/011.
+
 ==============================================================================*/
 
 #ifndef __qSlicerRoomsEyeViewModuleWidget_h
