@@ -100,7 +100,7 @@ QStringList qSlicerRoomsEyeViewModule::contributors()const
   QStringList moduleContributors;
   moduleContributors << QString("Csaba Pinter (Queen's, Ebatinca)");
   moduleContributors << QString("Vinith Suriyakumar (Queen's)");
-  moduleContributors << QString("Fernando Hueso (Univeritat de Valencia)");
+  moduleContributors << QString("Fernando Hueso-González (CSIC - Universitat de València)");
   return moduleContributors;
 }
 
