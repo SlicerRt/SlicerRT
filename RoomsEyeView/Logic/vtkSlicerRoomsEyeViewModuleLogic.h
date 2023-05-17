@@ -78,6 +78,9 @@ public:
   /// Create or get transforms taking part in the IEC logic and additional devices, and build the transform hierarchy
   void BuildRoomsEyeViewTransformHierarchy();
 
+  /// Update FixedReferenceToRAS transform, making sure the patient stays fixed on the table top
+  void UpdateFixedReferenceToRASTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+
   /// Update GantryToFixedReference transform based on gantry angle from UI slider
   void UpdateGantryToFixedReferenceTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 

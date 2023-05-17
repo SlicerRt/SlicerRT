@@ -955,20 +955,27 @@ bool vtkSlicerRoomsEyeViewModuleLogic::GetPatientBodyPolyData(vtkMRMLRoomsEyeVie
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateFixedReferenceToRASTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
   if (!parameterNode)
   {
-    vtkErrorMacro("UpdateFixedReferenceIsocenterToCollimatorRotatedTransform: Invalid parameter set node");
+    vtkErrorMacro("UpdateFixedReferenceToRASTransform: Invalid parameter set node");
     return;
   }
 
-  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
+  vtkMRMLLinearTransformNode* fixedReferenceToRasTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS);
 
-  vtkNew<vtkTransform> collimatorToGantryTransform;
-  collimatorToGantryTransform->RotateZ(parameterNode->GetCollimatorRotationAngle());
-  collimatorToGantryTransformNode->SetAndObserveTransformToParent(collimatorToGantryTransform);
+  vtkMRMLLinearTransformNode* patientSupportRotationToFixedReferenceTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference);
+  vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+
+  vtkNew<vtkTransform> fixedReferenceToRASTransform;
+  fixedReferenceToRASTransform->Concatenate(vtkTransform::SafeDownCast(tableTopToTableTopEccentricRotationTransformNode->GetTransformFromParent()));
+  fixedReferenceToRASTransform->Concatenate(vtkTransform::SafeDownCast(patientSupportRotationToFixedReferenceTransformNode->GetTransformFromParent()));
+
+  fixedReferenceToRasTransformNode->SetAndObserveTransformToParent(fixedReferenceToRASTransform);
 }
 
 //----------------------------------------------------------------------------
@@ -986,6 +993,23 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateGantryToFixedReferenceTransform(vtk
   vtkNew<vtkTransform> gantryToFixedReferenceTransform;
   gantryToFixedReferenceTransform->RotateY(parameterNode->GetGantryRotationAngle());
   gantryToFixedReferenceTransformNode->SetAndObserveTransformToParent(gantryToFixedReferenceTransform);
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRMLRoomsEyeViewNode* parameterNode)
+{
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateFixedReferenceIsocenterToCollimatorRotatedTransform: Invalid parameter set node");
+    return;
+  }
+
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
+    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
+
+  vtkNew<vtkTransform> collimatorToGantryTransform;
+  collimatorToGantryTransform->RotateZ(parameterNode->GetCollimatorRotationAngle());
+  collimatorToGantryTransformNode->SetAndObserveTransformToParent(collimatorToGantryTransform);
 }
 
 //-----------------------------------------------------------------------------
@@ -1192,52 +1216,38 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToPatientSupportRotat
   std::string machineType = this->Internal->GetTreatmentMachineFileNameWithoutExtension(parameterNode);
 
   vtkMRMLModelNode* patientSupportModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, PatientSupport);
-  if (!patientSupportModel)
+  vtkMRMLModelNode* tableTopModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, TableTop);
+  if (!patientSupportModel || !patientSupportModel->GetPolyData() || !tableTopModel || !tableTopModel->GetPolyData())
   {
-    vtkErrorMacro("UpdatePatientSupportToPatientSupportRotationTransform: Invalid MRML model node");
+    vtkErrorMacro("UpdatePatientSupportToPatientSupportRotationTransform: Failed to access treatment machine part models");
     return;
   }
-  vtkPolyData* patientSupportModelPolyData = patientSupportModel->GetPolyData();
+
+  // Get bounds of parts involved in computation
   double patientSupportModelBounds[6] = { 0, 0, 0, 0, 0, 0 };
-  patientSupportModelPolyData->GetBounds(patientSupportModelBounds);
+  patientSupportModel->GetPolyData()->GetBounds(patientSupportModelBounds);
+  double tableTopModelBounds[6] = { 0, 0, 0, 0, 0, 0 };
+  tableTopModel->GetPolyData()->GetBounds(tableTopModelBounds);
 
   // Translation to origin for in-place vertical scaling
-  vtkNew<vtkTransform> patientSupportRotationToRasTransform;
-  double patientSupportTranslationToOrigin[3] = { 0, 0, (-1.0) * patientSupportModelBounds[4]}; //TODO: Subtract [1]?
-  patientSupportRotationToRasTransform->Translate(patientSupportTranslationToOrigin);
+  vtkNew<vtkTransform> patientSupportScalingTransform;
+  patientSupportScalingTransform->PostMultiply();
+  double patientSupportTranslationToOrigin[3] = { 0, 0, (-1.0) * patientSupportModelBounds[4]};
+  patientSupportScalingTransform->Translate(patientSupportTranslationToOrigin);
 
-  // Vertical scaling
+  // Apply patient support vertical scale
   double tableTopDisplacement = parameterNode->GetVerticalTableTopDisplacement();
-  double tableTopDisplacementScaling = 1.0;
-  //TODO: Support this from the descriptor JSON file
-  //char* treatmentMachineType = parameterNode->GetTreatmentMachineType();
-  //if (treatmentMachineType && !strcmp(treatmentMachineType, "VarianTrueBeamSTx"))
-  //{
-    tableTopDisplacementScaling = 0.525;
-  //}
-  //else if (treatmentMachineType && !strcmp(treatmentMachineType, "SiemensArtiste"))
-  //{
-  //  tableTopDisplacementScaling = 0.095;
-  //}
-  vtkNew<vtkTransform> rasToScaledRasTransform;
-  rasToScaledRasTransform->Scale(1, 1,
-    ( ( fabs(patientSupportModelBounds[5]) + tableTopDisplacement*tableTopDisplacementScaling)
-      / fabs(patientSupportModelBounds[5]) ) ); //TODO: Subtract [2]?
+  double newPatientSupportHeight = /*tableTopModelBounds[4] + */patientSupportModelBounds[5] + tableTopDisplacement - patientSupportModelBounds[4];
+  double originalPatientSupportHeight = patientSupportModelBounds[5] - patientSupportModelBounds[4];
+  patientSupportScalingTransform->Scale(1.0, 1.0, newPatientSupportHeight / originalPatientSupportHeight);
 
-  // Translation back from origin after in-place scaling
-  vtkNew<vtkTransform> scaledRasToFixedReferenceTransform;
-  double patientSupportTranslationFromOrigin[3] = { 0, 0, patientSupportModelBounds[4] }; //TODO: Subtract [1]?
-  scaledRasToFixedReferenceTransform->Translate(patientSupportTranslationFromOrigin);
+  // Translate back so that the patient support base is at the same height
+  double patientSupportTranslationFromOrigin[3] = { 0, 0, patientSupportModelBounds[4]};
+  patientSupportScalingTransform->Translate(patientSupportTranslationFromOrigin);
 
-  // Assemble transform and update node
   vtkMRMLLinearTransformNode* patientSupportToPatientSupportRotationTransformNode =
     this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
-  vtkNew<vtkTransform> patientSupportToFixedReferenceTransform;
-  patientSupportToFixedReferenceTransform->PostMultiply();
-  patientSupportToFixedReferenceTransform->Concatenate(patientSupportRotationToRasTransform);
-  patientSupportToFixedReferenceTransform->Concatenate(rasToScaledRasTransform);
-  patientSupportToFixedReferenceTransform->Concatenate(scaledRasToFixedReferenceTransform);
-  patientSupportToPatientSupportRotationTransformNode->SetAndObserveTransformToParent(patientSupportToFixedReferenceTransform);
+  patientSupportToPatientSupportRotationTransformNode->SetAndObserveTransformToParent(patientSupportScalingTransform);
 }
 
 //-----------------------------------------------------------------------------

@@ -589,6 +589,7 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientSupportRotationSliderValueChanged
 
   // Update IEC transform
   d->logic()->UpdatePatientSupportRotationToFixedReferenceTransform(paramNode);
+  d->logic()->UpdateFixedReferenceToRASTransform(paramNode);
 
   // Update beam parameter
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(paramNode->GetBeamNode());
@@ -618,6 +619,7 @@ void qSlicerRoomsEyeViewModuleWidget::onVerticalTableTopDisplacementSliderValueC
 
   d->logic()->UpdatePatientSupportToPatientSupportRotationTransform(paramNode);
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
+  d->logic()->UpdateFixedReferenceToRASTransform(paramNode);
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -639,6 +641,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLongitudinalTableTopDisplacementSliderVa
   paramNode->DisableModifiedEventOff();
 
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
+  d->logic()->UpdateFixedReferenceToRASTransform(paramNode);
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -662,6 +665,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLateralTableTopDisplacementSliderValueCh
   paramNode->DisableModifiedEventOff();
 
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
+  d->logic()->UpdateFixedReferenceToRASTransform(paramNode);
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
