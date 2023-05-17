@@ -83,7 +83,7 @@ QStringList qSlicerRoomsEyeViewModule::dependencies()const
 QString qSlicerRoomsEyeViewModule::helpText()const
 {
   QString help = 
-    "This module displays and handles beam geometry models created from the loaded isocenter and source fiducials. "
+    "This module loads and visualizes treatment machines, and calculates collisions between its parts and the patient."
     "For more information see <a href=\"%1/Documentation/%2.%3/Modules/RoomsEyeView\">%1/Documentation/%2.%3/Modules/RoomsEyeView</a><br>";
   return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
 }
@@ -91,15 +91,16 @@ QString qSlicerRoomsEyeViewModule::helpText()const
 //-----------------------------------------------------------------------------
 QString qSlicerRoomsEyeViewModule::acknowledgementText()const
 {
-  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
+  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).\n\nThe collision detection module was partly supported by Conselleria de Educación, Investigación, Cultura y Deporte (Generalitat Valenciana), Spain under grant number CDEIGENT/2019/011.";
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerRoomsEyeViewModule::contributors()const
 {
   QStringList moduleContributors;
+  moduleContributors << QString("Csaba Pinter (Queen's, Ebatinca)");
   moduleContributors << QString("Vinith Suriyakumar (Queen's)");
-  moduleContributors << QString("Csaba Pinter (Queen's)");
+  moduleContributors << QString("Fernando Hueso (Univeritat de Valencia)");
   return moduleContributors;
 }
 
