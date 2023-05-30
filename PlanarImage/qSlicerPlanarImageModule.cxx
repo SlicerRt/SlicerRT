@@ -74,7 +74,7 @@ QString qSlicerPlanarImageModule::helpText()const
   QString help = 
     "This module displays and handles planar images (single-slice volumes) as textured models. "
     "For more information see <a href=\"%1/Documentation/%2.%3/Modules/PlanarImage\">%1/Documentation/%2.%3/Modules/PlanarImage</a><br>";
-  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
+  return help.arg(this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
 }
 
 //-----------------------------------------------------------------------------

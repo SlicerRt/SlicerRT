@@ -18,6 +18,9 @@
 
 ==============================================================================*/
 
+// Slicer includes
+#include <qSlicerCoreApplication.h>
+
 // SegmentComparison Logic includes
 #include <vtkSlicerSegmentComparisonModuleLogic.h>
 
@@ -64,7 +67,7 @@ QString qSlicerSegmentComparisonModule::helpText()const
   QString help = 
     "This module computes segment similarity metrics. "
     "For more information see <a href=\"%1/Documentation/%2.%3/Modules/SegmentComparison\">%1/Documentation/%2.%3/Modules/SegmentComparison</a><br>";
-  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
+  return help.arg(this->slicerWikiUrl()).arg(this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
 }
 
 //-----------------------------------------------------------------------------
