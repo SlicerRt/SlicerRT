@@ -85,7 +85,7 @@ QString qSlicerRoomsEyeViewModule::helpText()const
   QString help = 
     "This module loads and visualizes treatment machines, and calculates collisions between its parts and the patient."
     "For more information see <a href=\"%1/Documentation/%2.%3/Modules/RoomsEyeView\">%1/Documentation/%2.%3/Modules/RoomsEyeView</a><br>";
-  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
+  return help.arg(this->slicerWikiUrl()).arg(this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
 }
 
 //-----------------------------------------------------------------------------

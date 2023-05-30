@@ -18,6 +18,9 @@
 
 ==============================================================================*/
 
+// Slicer includes
+#include <qSlicerCoreApplication.h>
+
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyGammaPlugin.h"
@@ -68,7 +71,7 @@ QString qSlicerDoseComparisonModule::helpText()const
   QString help = 
     "This module computes and displays dose comparison metrics. "
     "For more information see <a href=\"%1/Documentation/%2.%3/Modules/DoseComparison\">%1/Documentation/%2.%3/Modules/DoseComparison</a><br>";
-  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
+  return help.arg(this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
 }
 
 //-----------------------------------------------------------------------------

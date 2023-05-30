@@ -80,7 +80,7 @@ QString qSlicerDicomRtImportExportModule::helpText()const
   QString help = 
     "The DicomRtImportExport module enables importing and loading DICOM RT files into the Slicer DICOM database and the Slicer scene, and exporting MRML nodes into DICOM-RT files"
     "For more information see <a href=\"%1/Documentation/%2.%3/Modules/DicomRtImportExport\">%1/Documentation/%2.%3/Modules/Models</a><br>";
-  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
+  return help.arg(this->slicerWikiUrl()).arg(this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
 }
 
 //-----------------------------------------------------------------------------
