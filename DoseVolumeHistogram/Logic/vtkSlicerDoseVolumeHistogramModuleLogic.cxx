@@ -78,7 +78,7 @@
 #include <set>
 
 // Slicer includes
-#include <vtkSlicerVersionConfigure.h>
+#include <vtkSlicerVersionConfigureMinimal.h>
 
 //----------------------------------------------------------------------------
 const std::string vtkSlicerDoseVolumeHistogramModuleLogic::DVH_DVH_IDENTIFIER_ATTRIBUTE_NAME = vtkMRMLDoseVolumeHistogramNode::DVH_ATTRIBUTE_PREFIX + "DVH"; // Identifier

@@ -22,7 +22,7 @@
 #define __vtkPlanarContourToClosedSurfaceConversionRule_h
 
 // Slicer include
-#include <vtkSlicerVersionConfigure.h>
+#include <vtkSlicerVersionConfigureMinimal.h>
 
 // SegmentationCore includes
 #include "vtkSegmentationConverterRule.h"
