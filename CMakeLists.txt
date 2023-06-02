@@ -23,6 +23,31 @@ set(EXTENSION_BUILD_SUBDIRECTORY inner-build)
 
 set(SUPERBUILD_TOPLEVEL_PROJECT inner)
 
+# Prevent unnecessary re-linking on Linux
+#
+# See https://discourse.slicer.org/t/build-when-git-commit-is-changed/29607/12
+#
+# For example, on Linux, after modifying one implementation file
+#
+# $ touch ../../SlicerRT/SlicerRtCommon/vtkSlicerRtCommon.cxx
+#
+# We can observe that beside the rebuilding of libvtkSlicerRtCommon.so no relinking
+# happen for any of the dependencies:
+#
+# $ make
+# [...]
+# [  1%] Building CXX object SlicerRtCommon/CMakeFiles/vtkSlicerRtCommon.dir/vtkSlicerRtCommon.cxx.o
+# [  1%] Linking CXX shared library ../lib/Slicer-5.3/qt-loadable-modules/libvtkSlicerRtCommon.so
+# [  2%] Built target vtkSlicerRtCommon
+# [  2%] Built target vtkSlicerRtCommonHierarchy
+# [  4%] Built target vtkSlicerRtCommonPython
+# [...]
+# [100%] Built target CompileIGRTWorkflow_SelfTestPythonFiles
+#
+if(NOT DEFINED CMAKE_LINK_DEPENDS_NO_SHARED AND UNIX AND NOT APPLE)
+  set(CMAKE_LINK_DEPENDS_NO_SHARED ON)
+endif()
+
 #-----------------------------------------------------------------------------
 # Extension dependencies
 find_package(Slicer COMPONENTS ConfigurePrerequisites REQUIRED)
