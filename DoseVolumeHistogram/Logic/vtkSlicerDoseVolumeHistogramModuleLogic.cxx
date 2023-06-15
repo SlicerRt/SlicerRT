@@ -223,7 +223,11 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
 
   // Temporarily duplicate selected segments to contain binary labelmap of a different geometry (tied to dose volume)
   vtkSmartPointer<vtkSegmentation> segmentationCopy = vtkSmartPointer<vtkSegmentation>::New();
+#if Slicer_VERSION_MAJOR >= 5 && Slicer_VERSION_MINOR >= 3
+  segmentationCopy->SetSourceRepresentationName(selectedSegmentation->GetSourceRepresentationName());
+#else
   segmentationCopy->SetMasterRepresentationName(selectedSegmentation->GetMasterRepresentationName());
+#endif
   segmentationCopy->CopyConversionParameters(selectedSegmentation);
   for (std::vector<std::string>::iterator segmentIt = segmentIDs.begin(); segmentIt != segmentIDs.end(); ++segmentIt)
   {

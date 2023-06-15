@@ -60,6 +60,7 @@
 
 // SlicerBase includes
 #include "vtkSlicerApplicationLogic.h"
+#include <vtkSlicerVersionConfigure.h>
 
 //---------------------------------------------------------------------------
 const char* vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME = "DoseComparison.GammaVolume"; // Identifier
@@ -218,10 +219,14 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
       vtkErrorMacro("ComputeGammaDoseDifference: " << errorMessage);
       return errorMessage;
     }
-
     // Temporarily duplicate selected segments to contain binary labelmap of a different geometry (tied to dose volume)
     vtkSmartPointer<vtkSegmentation> segmentationCopy = vtkSmartPointer<vtkSegmentation>::New();
+#if Slicer_VERSION_MAJOR >= 5 && Slicer_VERSION_MINOR >= 3
+    segmentationCopy->SetSourceRepresentationName(maskSegmentation->GetSourceRepresentationName());
+#else
     segmentationCopy->SetMasterRepresentationName(maskSegmentation->GetMasterRepresentationName());
+
+#endif
     segmentationCopy->CopyConversionParameters(maskSegmentation);
     segmentationCopy->CopySegmentFromSegmentation(maskSegmentation, maskSegmentID);
     if (!segmentationCopy->CreateRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
