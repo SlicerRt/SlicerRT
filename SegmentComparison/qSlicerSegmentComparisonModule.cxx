@@ -64,10 +64,9 @@ qSlicerSegmentComparisonModule::~qSlicerSegmentComparisonModule() = default;
 //-----------------------------------------------------------------------------
 QString qSlicerSegmentComparisonModule::helpText()const
 {
-  QString help = 
-    "This module computes segment similarity metrics. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/SegmentComparison\">%1/Documentation/%2.%3/Modules/SegmentComparison</a><br>";
-  return help.arg(this->slicerWikiUrl()).arg(this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
+  return QString("This module computes segment similarity metrics. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/SegmentComparison\">%1/Documentation/%2.%3/Modules/SegmentComparison</a><br>").arg(
+    this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
 }
 
 //-----------------------------------------------------------------------------
