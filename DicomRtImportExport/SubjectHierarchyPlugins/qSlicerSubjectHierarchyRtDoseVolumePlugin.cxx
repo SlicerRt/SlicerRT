@@ -35,6 +35,7 @@
 #include <vtkMRMLNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLRTPlanNode.h>
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -330,6 +331,30 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   }
   std::string doseUnitNameInStudy = shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME);
   std::string doseUnitValueInStudy = shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME);
+
+  bool referencedInstanceIsSet = false;
+  std::vector< vtkIdType > studyChildrenIDs;
+  shNode->GetItemChildren(studyItemID, studyChildrenIDs);
+  // find RTPlan node and get InstanceUID of that plan to use it as ReferencedInstanceUID for converted RTDose
+  for (int childItemID : studyChildrenIDs)
+  {
+    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(shNode->GetItemDataNode(childItemID));
+    if (planNode)
+    {
+      std::string planInstanceUID = shNode->GetItemUID(childItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMInstanceUIDName());
+      if (!planInstanceUID.empty())
+      {
+        shNode->SetItemAttribute(currentItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(), planInstanceUID.c_str());
+        referencedInstanceIsSet = true;
+      }
+    }
+  }
+  // no RTPlan Instance UID, use Study series instance UID instead
+  if (!referencedInstanceIsSet)
+  {
+    std::string studyInstanceUID = shNode->GetItemAttribute(studyItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMStudyInstanceUIDAttributeName());
+    shNode->SetItemAttribute(currentItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(), studyInstanceUID.c_str());
+  }
 
   // Show dialogs asking about dose unit name and value
   bool ok;
