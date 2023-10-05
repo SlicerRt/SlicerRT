@@ -364,8 +364,8 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamNodeChanged(vtkMRMLNode* node)
   for (std::vector<vtkMRMLNode*>::iterator beamIt=beamNodes.begin(); beamIt!=beamNodes.end(); ++beamIt)
   {
     vtkMRMLRTBeamNode* currentBeamNode = vtkMRMLRTBeamNode::SafeDownCast(*beamIt);
-    shNode->SetDisplayVisibilityForBranch(
-      shNode->GetItemByDataNode(currentBeamNode), (currentBeamNode==beamNode ? 1 : 0) );
+    shNode->SetItemDisplayVisibility(
+      shNode->GetItemByDataNode(currentBeamNode), (currentBeamNode == beamNode ? 1 : 0) );
   }
 
   // Select patient segmentation
@@ -411,8 +411,8 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientBodySegmentationNodeChanged(vtkMR
   for (std::vector<vtkMRMLNode*>::iterator segIt=segmentationNodes.begin(); segIt!=segmentationNodes.end(); ++segIt)
   {
     vtkMRMLSegmentationNode* currentSegmentationNode = vtkMRMLSegmentationNode::SafeDownCast(*segIt);
-    shNode->SetDisplayVisibilityForBranch(
-      shNode->GetItemByDataNode(currentSegmentationNode), (currentSegmentationNode==node ? 1 : 0) );
+    shNode->SetItemDisplayVisibility(
+      shNode->GetItemByDataNode(currentSegmentationNode), (currentSegmentationNode == node ? 1 : 0) );
   }
 }
 

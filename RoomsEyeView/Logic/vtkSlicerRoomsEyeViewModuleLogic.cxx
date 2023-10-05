@@ -1005,7 +1005,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRML
 {
   if (!parameterNode)
   {
-    vtkErrorMacro("UpdateFixedReferenceIsocenterToCollimatorRotatedTransform: Invalid parameter set node");
+    vtkErrorMacro("UpdateCollimatorToGantryTransform: Invalid parameter set node");
     return;
   }
 
