@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>449</width>
+    <width>379</width>
     <height>538</height>
    </rect>
   </property>
@@ -102,10 +102,10 @@
       <item row="0" column="1">
        <widget class="ctkSliderWidget" name="GantryRotationSlider">
         <property name="minimum">
-         <double>0.000000000000000</double>
+         <double>-180.000000000000000</double>
         </property>
         <property name="maximum">
-         <double>359.000000000000000</double>
+         <double>179.000000000000000</double>
         </property>
         <property name="suffix">
          <string>deg</string>
@@ -488,6 +488,7 @@
    <class>qMRMLSegmentSelectorWidget</class>
    <extends>qMRMLWidget</extends>
    <header>qMRMLSegmentSelectorWidget.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>ctkCollapsibleButton</class>
