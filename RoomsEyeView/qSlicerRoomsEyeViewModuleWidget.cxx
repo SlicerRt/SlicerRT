@@ -40,6 +40,8 @@
 #include <qSlicerIOManager.h>
 #include <qSlicerDataDialog.h>
 #include <qSlicerSaveDataDialog.h>
+#include <qSlicerSubjectHierarchyFolderPlugin.h>
+#include <qSlicerSubjectHierarchyPluginHandler.h>
 #include <qMRMLSliceWidget.h>
 #include <qMRMLThreeDWidget.h>
 #include <qMRMLThreeDView.h>
@@ -62,6 +64,7 @@
 #include <QFileDialog>
 
 // CTK includes
+#include <ctkMessageBox.h>
 #include <ctkSliderWidget.h>
 
 // VTK includes
@@ -452,6 +455,54 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
     return;
   }
 
+  // Check if there is a machine already loaded and ask user what to do if so
+  vtkMRMLSubjectHierarchyNode* shNode = this->mrmlScene()->GetSubjectHierarchyNode();
+  std::vector<vtkIdType> allItemIDs;
+  shNode->GetItemChildren(shNode->GetSceneItemID(), allItemIDs, true);
+  std::vector<vtkIdType> machineFolderItemIDs;
+  std::vector<vtkIdType>::iterator itemIt;
+  for (itemIt=allItemIDs.begin(); itemIt!=allItemIDs.end(); ++itemIt)
+    {
+    std::string machineFolderAttValue = shNode->GetItemAttribute(*itemIt, vtkSlicerRoomsEyeViewModuleLogic::TREATMENT_MACHINE_FOLDER_ITEM_ATTRIBUTE_NAME);
+    if (!machineFolderAttValue.compare("1"))
+      {
+      machineFolderItemIDs.push_back(*itemIt);
+      }
+    }
+
+  if (machineFolderItemIDs.size() > 0)
+    {
+    ctkMessageBox* existingMachineMsgBox = new ctkMessageBox(this);
+    existingMachineMsgBox->setWindowTitle(tr("Other machines loaded"));
+    existingMachineMsgBox->setText(tr("There is another treatment machine loaded in the scene. Would you like to hide or delete it?"));
+
+    existingMachineMsgBox->addButton(tr("Hide"), QMessageBox::AcceptRole);
+    existingMachineMsgBox->addButton(tr("Delete"), QMessageBox::DestructiveRole);
+    existingMachineMsgBox->addButton(tr("No action"), QMessageBox::RejectRole);
+
+    existingMachineMsgBox->setDontShowAgainVisible(true);
+    existingMachineMsgBox->setDontShowAgainSettingsKey("SlicerRT/DontAskOnMultipleTreatmentMachines");
+    existingMachineMsgBox->setIcon(QMessageBox::Question);
+    existingMachineMsgBox->exec();
+    int resultCode = existingMachineMsgBox->buttonRole(existingMachineMsgBox->clickedButton());
+    if (resultCode == QMessageBox::AcceptRole)
+      {
+      qSlicerSubjectHierarchyFolderPlugin* folderPlugin = qobject_cast<qSlicerSubjectHierarchyFolderPlugin*>(
+        qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Folder") );
+      for (itemIt=machineFolderItemIDs.begin(); itemIt!=machineFolderItemIDs.end(); ++itemIt)
+        {
+        folderPlugin->setDisplayVisibility(*itemIt, false);
+        }
+      }
+    else if (resultCode == QMessageBox::DestructiveRole)
+      {
+      for (itemIt=machineFolderItemIDs.begin(); itemIt!=machineFolderItemIDs.end(); ++itemIt)
+        {
+        shNode->RemoveItem(*itemIt);
+        }
+      }
+    }
+  
   // Get treatment machine descriptor file path
   QString treatmentMachineType(d->TreatmentMachineComboBox->currentData().toString());
   QString descriptorFilePath;
