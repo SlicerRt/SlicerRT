@@ -85,6 +85,8 @@ public:
   ~qSlicerRoomsEyeViewModuleWidgetPrivate()  = default;
   vtkSmartPointer<vtkSlicerRoomsEyeViewModuleLogic> logic() const;
 
+  vtkMRMLRTPlanNode* currentPlanNode(vtkMRMLRoomsEyeViewNode* paramNode);
+
   bool ModuleWindowInitialized;
 };
 
@@ -105,6 +107,49 @@ vtkSmartPointer<vtkSlicerRoomsEyeViewModuleLogic> qSlicerRoomsEyeViewModuleWidge
   return vtkSlicerRoomsEyeViewModuleLogic::SafeDownCast(q->logic());
 }
 
+//-----------------------------------------------------------------------------
+vtkMRMLRTPlanNode* qSlicerRoomsEyeViewModuleWidgetPrivate::currentPlanNode(vtkMRMLRoomsEyeViewNode* paramNode)
+{
+  if (!paramNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid parameter node given";
+    return nullptr;
+  }
+
+  vtkMRMLRTBeamNode* beamNode = paramNode->GetBeamNode();
+  if (beamNode)
+  {
+    return beamNode->GetParentPlanNode();
+  }
+
+  vtkMRMLSegmentationNode* segmentationNode = paramNode->GetPatientBodySegmentationNode();
+  if (segmentationNode)
+  {
+    // Try to get the plan from the same study
+    vtkMRMLScene* scene = segmentationNode->GetScene();
+    vtkMRMLSubjectHierarchyNode* shNode = scene->GetSubjectHierarchyNode();
+    vtkIdType segmentationItemID = shNode->GetItemByDataNode(segmentationNode);
+    vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(segmentationItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+    if (studyItemID == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+      qCritical() << Q_FUNC_INFO << ": Failed to find current plan, because there is no beam in the parameter node, and the patient segmentation is not in a study";
+      return nullptr;
+    }
+    std::vector<vtkIdType> studyItemIDs;
+    shNode->GetItemChildren(shNode->GetSceneItemID(), studyItemIDs, true);
+    std::vector<vtkIdType>::iterator itemIt;
+    for (itemIt=studyItemIDs.begin(); itemIt!=studyItemIDs.end(); ++itemIt)
+    {
+      vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(shNode->GetItemDataNode(*itemIt));
+      if (planNode)
+      {
+        return planNode;
+      }
+    }
+  }
+
+  return nullptr;
+}
 
 //-----------------------------------------------------------------------------
 // qSlicerRoomsEyeViewModuleWidget methods
@@ -477,22 +522,22 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
   std::vector<vtkIdType> machineFolderItemIDs;
   std::vector<vtkIdType>::iterator itemIt;
   for (itemIt=allItemIDs.begin(); itemIt!=allItemIDs.end(); ++itemIt)
-    {
+  {
     std::string machineDescriptorFilePath = shNode->GetItemAttribute(*itemIt,
       vtkSlicerRoomsEyeViewModuleLogic::TREATMENT_MACHINE_DESCRIPTOR_FILE_PATH_ATTRIBUTE_NAME);
     if (!machineDescriptorFilePath.compare(descriptorFilePath.toUtf8().constData()))
-      {
+    {
       QMessageBox::warning(this, tr("Machine already loaded"), tr("This treatment machine is already loaded."));
       return;
-      }
-    if (!machineDescriptorFilePath.empty())
-      {
-      machineFolderItemIDs.push_back(*itemIt);
-      }
     }
+    if (!machineDescriptorFilePath.empty())
+    {
+      machineFolderItemIDs.push_back(*itemIt);
+    }
+  }
 
   if (machineFolderItemIDs.size() > 0)
-    {
+  {
     ctkMessageBox* existingMachineMsgBox = new ctkMessageBox(this);
     existingMachineMsgBox->setWindowTitle(tr("Other machines loaded"));
     existingMachineMsgBox->setText(tr("There is another treatment machine loaded in the scene. Would you like to hide or delete it?"));
@@ -507,22 +552,22 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
     existingMachineMsgBox->exec();
     int resultCode = existingMachineMsgBox->buttonRole(existingMachineMsgBox->clickedButton());
     if (resultCode == QMessageBox::AcceptRole)
-      {
+    {
       qSlicerSubjectHierarchyFolderPlugin* folderPlugin = qobject_cast<qSlicerSubjectHierarchyFolderPlugin*>(
         qSlicerSubjectHierarchyPluginHandler::instance()->pluginByName("Folder") );
       for (itemIt=machineFolderItemIDs.begin(); itemIt!=machineFolderItemIDs.end(); ++itemIt)
-        {
-        folderPlugin->setDisplayVisibility(*itemIt, false);
-        }
-      }
-    else if (resultCode == QMessageBox::DestructiveRole)
       {
-      for (itemIt=machineFolderItemIDs.begin(); itemIt!=machineFolderItemIDs.end(); ++itemIt)
-        {
-        shNode->RemoveItem(*itemIt);
-        }
+        folderPlugin->setDisplayVisibility(*itemIt, false);
       }
     }
+    else if (resultCode == QMessageBox::DestructiveRole)
+    {
+      for (itemIt=machineFolderItemIDs.begin(); itemIt!=machineFolderItemIDs.end(); ++itemIt)
+      {
+        shNode->RemoveItem(*itemIt);
+      }
+    }
+  }
   
   // Load and setup models
   paramNode->SetTreatmentMachineDescriptorFilePath(descriptorFilePath.toUtf8().constData());
@@ -650,7 +695,7 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientSupportRotationSliderValueChanged
 
   // Update IEC transform
   d->logic()->UpdatePatientSupportRotationToFixedReferenceTransform(paramNode);
-  d->logic()->UpdateFixedReferenceToRASTransform(paramNode);
+  d->logic()->GetIECLogic()->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
 
   // Update beam parameter
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(paramNode->GetBeamNode());
@@ -680,7 +725,7 @@ void qSlicerRoomsEyeViewModuleWidget::onVerticalTableTopDisplacementSliderValueC
 
   d->logic()->UpdatePatientSupportToPatientSupportRotationTransform(paramNode);
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  d->logic()->UpdateFixedReferenceToRASTransform(paramNode);
+  d->logic()->GetIECLogic()->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -702,7 +747,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLongitudinalTableTopDisplacementSliderVa
   paramNode->DisableModifiedEventOff();
 
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  d->logic()->UpdateFixedReferenceToRASTransform(paramNode);
+  d->logic()->GetIECLogic()->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -726,7 +771,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLateralTableTopDisplacementSliderValueCh
   paramNode->DisableModifiedEventOff();
 
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  d->logic()->UpdateFixedReferenceToRASTransform(paramNode);
+  d->logic()->GetIECLogic()->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();

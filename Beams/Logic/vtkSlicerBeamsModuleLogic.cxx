@@ -188,7 +188,7 @@ void vtkSlicerBeamsModuleLogic::UpdateTransformForBeam(vtkMRMLRTBeamNode* beamNo
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerBeamsModuleLogic::UpdateTransformForBeam( vtkMRMLScene* beamSequenceScene, 
+void vtkSlicerBeamsModuleLogic::UpdateTransformForBeam(vtkMRMLScene* beamSequenceScene, 
   vtkMRMLRTBeamNode* beamNode, vtkMRMLLinearTransformNode* beamTransformNode, double* isocenter)
 {
   if (!beamNode)
@@ -211,7 +211,7 @@ void vtkSlicerBeamsModuleLogic::UpdateTransformForBeam( vtkMRMLScene* beamSequen
   //TODO: Use one IEC logic in a private scene for all beam transform updates?
   vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
   iecLogic->SetMRMLScene(beamSequenceScene);
-  iecLogic->UpdateBeamTransform( beamNode, beamTransformNode, isocenter);
+  iecLogic->UpdateBeamTransform(beamNode, beamTransformNode, isocenter);
 }
 
 //----------------------------------------------------------------------------

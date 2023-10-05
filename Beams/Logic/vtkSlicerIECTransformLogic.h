@@ -34,6 +34,7 @@
 
 class vtkGeneralTransform;
 class vtkMRMLRTBeamNode;
+class vtkMRMLRTPlanNode;
 class vtkMRMLLinearTransformNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
@@ -45,7 +46,7 @@ class vtkMRMLLinearTransformNode;
 /// system to another by simply inputting the coordinate systems. The logic can observe an
 /// RT beam node to get the geometrical parameters defining the state of the objects involved.
 /// Image describing these coordinate frames:
-/// http://perk.cs.queensu.ca/sites/perkd7.cs.queensu.ca/files/Project/IEC_Transformations.PNG
+/// https://github.com/SlicerRt/SlicerRtDoc/blob/master/technical/IEC%2061217-2002_CoordinateSystemsDiagram_HiRes.png
 ///
 
 /*
@@ -143,10 +144,13 @@ public:
   void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode);
   /// Update parent transform node of a given beam from the IEC transform hierarchy and the beam parameters
   /// \warning This method is used only in vtkSlicerBeamsModuleLogic::UpdateTransformForBeam
-  void UpdateBeamTransform( vtkMRMLRTBeamNode* beamNode, vtkMRMLLinearTransformNode* beamTransformNode, double* isocenter);
+  void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode, vtkMRMLLinearTransformNode* beamTransformNode, double* isocenter);
 
   /// Update IEC transforms according to beam node
-  void UpdateIECTransformsFromBeam( vtkMRMLRTBeamNode* beamNode, double* isocenter = nullptr);
+  void UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* beamNode, double* isocenter = nullptr);
+
+  /// Update fixed reference to RAS transform based on isocenter and patient support transforms
+  void UpdateFixedReferenceToRASTransform(vtkMRMLRTPlanNode* planNode, double* isocenter = nullptr);
 
 protected:
   /// Get name of transform node between two coordinate systems
