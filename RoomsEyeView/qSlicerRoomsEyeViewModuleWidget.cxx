@@ -455,6 +455,21 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
     return;
   }
 
+  // Get treatment machine descriptor file path
+  QString treatmentMachineType(d->TreatmentMachineComboBox->currentData().toString());
+  QString descriptorFilePath;
+  if (!treatmentMachineType.compare("FromFile"))
+  {
+    // Ask user for descriptor JSON file if load from file option is selected
+    descriptorFilePath = QFileDialog::getOpenFileName( this, "Select treatment machine descriptor JSON file...",
+      QString(), "Json files (*.json);; All files (*)" ); 
+  }
+  else //TODO: Currently support two default types in addition to loading file. Need to rethink the module
+  {
+    QString relativeFilePath = QString("%1/%2.json").arg(treatmentMachineType).arg(treatmentMachineType);
+    descriptorFilePath = QDir(d->logic()->GetModuleShareDirectory().c_str()).filePath(relativeFilePath);
+  }
+
   // Check if there is a machine already loaded and ask user what to do if so
   vtkMRMLSubjectHierarchyNode* shNode = this->mrmlScene()->GetSubjectHierarchyNode();
   std::vector<vtkIdType> allItemIDs;
@@ -463,8 +478,14 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
   std::vector<vtkIdType>::iterator itemIt;
   for (itemIt=allItemIDs.begin(); itemIt!=allItemIDs.end(); ++itemIt)
     {
-    std::string machineFolderAttValue = shNode->GetItemAttribute(*itemIt, vtkSlicerRoomsEyeViewModuleLogic::TREATMENT_MACHINE_FOLDER_ITEM_ATTRIBUTE_NAME);
-    if (!machineFolderAttValue.compare("1"))
+    std::string machineDescriptorFilePath = shNode->GetItemAttribute(*itemIt,
+      vtkSlicerRoomsEyeViewModuleLogic::TREATMENT_MACHINE_DESCRIPTOR_FILE_PATH_ATTRIBUTE_NAME);
+    if (!machineDescriptorFilePath.compare(descriptorFilePath.toUtf8().constData()))
+      {
+      QMessageBox::warning(this, tr("Machine already loaded"), tr("This treatment machine is already loaded."));
+      return;
+      }
+    if (!machineDescriptorFilePath.empty())
       {
       machineFolderItemIDs.push_back(*itemIt);
       }
@@ -503,21 +524,6 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
       }
     }
   
-  // Get treatment machine descriptor file path
-  QString treatmentMachineType(d->TreatmentMachineComboBox->currentData().toString());
-  QString descriptorFilePath;
-  if (!treatmentMachineType.compare("FromFile"))
-  {
-    // Ask user for descriptor JSON file if load from file option is selected
-    descriptorFilePath = QFileDialog::getOpenFileName( this, "Select treatment machine descriptor JSON file...",
-      QString(), "Json files (*.json);; All files (*)" ); 
-  }
-  else //TODO: Currently support two default types in addition to loading file. Need to rethink the module
-  {
-    QString relativeFilePath = QString("%1/%2.json").arg(treatmentMachineType).arg(treatmentMachineType);
-    descriptorFilePath = QDir(d->logic()->GetModuleShareDirectory().c_str()).filePath(relativeFilePath);
-  }
-
   // Load and setup models
   paramNode->SetTreatmentMachineDescriptorFilePath(descriptorFilePath.toUtf8().constData());
 

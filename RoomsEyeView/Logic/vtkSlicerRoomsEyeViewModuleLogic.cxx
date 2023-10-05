@@ -69,7 +69,7 @@
 
 // Constants
 const char* vtkSlicerRoomsEyeViewModuleLogic::ORIENTATION_MARKER_MODEL_NODE_NAME = "RoomsEyeViewOrientationMarker";
-const char* vtkSlicerRoomsEyeViewModuleLogic::TREATMENT_MACHINE_FOLDER_ITEM_ATTRIBUTE_NAME = "TreatmentMachineFolder";
+const char* vtkSlicerRoomsEyeViewModuleLogic::TREATMENT_MACHINE_DESCRIPTOR_FILE_PATH_ATTRIBUTE_NAME = "TreatmentMachineDescriptorFilePath";
 //TODO: Add this dynamically to the IEC transform map
 static const char* ADDITIONALCOLLIMATORMOUNTEDDEVICES_TO_COLLIMATOR_TRANSFORM_NODE_NAME = "AdditionalCollimatorDevicesToCollimatorTransform";
 static rapidjson::Value JSON_EMPTY_VALUE;
@@ -499,7 +499,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachine(vtkMRMLRoomsEyeViewN
   // Create subject hierarchy folder so that the treatment machine can be shown/hidden easily
   std::string subjectHierarchyFolderName = machineType + std::string("_Components");
   vtkIdType rootFolderItem = shNode->CreateFolderItem(shNode->GetSceneItemID(), subjectHierarchyFolderName);
-  shNode->SetItemAttribute(rootFolderItem, TREATMENT_MACHINE_FOLDER_ITEM_ATTRIBUTE_NAME, "1");
+  shNode->SetItemAttribute(rootFolderItem, TREATMENT_MACHINE_DESCRIPTOR_FILE_PATH_ATTRIBUTE_NAME, descriptorFilePath);
 
   // Load treatment machine models
 

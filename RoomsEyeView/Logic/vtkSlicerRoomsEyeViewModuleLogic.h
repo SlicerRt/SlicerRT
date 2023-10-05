@@ -67,7 +67,7 @@ public:
     }; 
 
   static const char* ORIENTATION_MARKER_MODEL_NODE_NAME;
-  static const char* TREATMENT_MACHINE_FOLDER_ITEM_ATTRIBUTE_NAME;
+  static const char* TREATMENT_MACHINE_DESCRIPTOR_FILE_PATH_ATTRIBUTE_NAME;
 
 public:
   static vtkSlicerRoomsEyeViewModuleLogic *New();
