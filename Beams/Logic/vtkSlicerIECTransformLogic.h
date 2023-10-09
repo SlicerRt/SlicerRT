@@ -135,7 +135,7 @@ public:
   /// @param toFrame - proceed transformation to frame
   /// @param outputTransform - General (linear) transform matrix fromFrame -> toFrame. Matrix is correct if return flag is true.  
   /// @param transformForBeam - calculate dynamic transformation for beam model or other models
-  /// (e.g. transformation from Patient RAS frame to Collimation frame: RAS -> Patient -> TableTop -> Eccentric -> Patient Support -> Fixed reference -> Gantry -> Collimator)
+  /// (e.g. transformation from Patient RAS frame to Collimation frame: RAS -> Patient -> TableTop -> Eccentric -> Patient Support -> Fixed reference -> Gantry -> Collimator)  //TODO: Deprecated
   /// \return Success flag (false on any error)
   bool GetTransformBetween(CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame, 
     vtkGeneralTransform* outputTransform, bool transformForBeam = true);
@@ -144,13 +144,20 @@ public:
   void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode);
   /// Update parent transform node of a given beam from the IEC transform hierarchy and the beam parameters
   /// \warning This method is used only in vtkSlicerBeamsModuleLogic::UpdateTransformForBeam
-  void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode, vtkMRMLLinearTransformNode* beamTransformNode, double* isocenter);
+  void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode, vtkMRMLLinearTransformNode* beamTransformNode, double* isocenter=nullptr);
 
   /// Update IEC transforms according to beam node
   void UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* beamNode, double* isocenter = nullptr);
 
   /// Update fixed reference to RAS transform based on isocenter and patient support transforms
   void UpdateFixedReferenceToRASTransform(vtkMRMLRTPlanNode* planNode, double* isocenter = nullptr);
+
+  /// Update GantryToFixedReference transform based on gantry angle parameter
+  void UpdateGantryToFixedReferenceTransform(double gantryRotationAngleDeg);
+  /// Update CollimatorToGantry transform based on collimator angle parameter
+  void UpdateCollimatorToGantryTransform(double collimatorRotationAngleDeg);
+  /// Update PatientSupportRotrationToFixedReference transform based on patient support rotation parameter
+  void UpdatePatientSupportRotationToFixedReferenceTransform(double patientSupportRotationAngleDeg);
 
 protected:
   /// Get name of transform node between two coordinate systems

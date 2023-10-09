@@ -199,47 +199,17 @@ void vtkSlicerIECTransformLogic::UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode
     return;
   }
 
-  // Update transforms in IEC logic from beam node parameters
-  this->UpdateIECTransformsFromBeam(beamNode);
-
-  // Dynamic transform from Collimator to RAS
-  // Transformation path:
-  // Collimator -> Gantry -> FixedReference -> PatientSupport -> TableTopEccentricRotation -> TableTop -> Patient -> RAS
-  vtkSmartPointer<vtkGeneralTransform> beamGeneralTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-  if (this->GetTransformBetween(Collimator, RAS, beamGeneralTransform))
-  {
-    // Convert general transform to linear
-    // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
-    vtkSmartPointer<vtkTransform> beamLinearTransform = vtkSmartPointer<vtkTransform>::New();
-    if (!vtkMRMLTransformNode::IsGeneralTransformLinear(beamGeneralTransform, beamLinearTransform))
-    {
-      vtkErrorMacro("UpdateBeamTransform: Unable to set transform with non-linear components to beam " << beamNode->GetName());
-      return;
-    }
-
-    // Set transform to beam node
-    beamTransformNode->SetAndObserveTransformToParent(beamLinearTransform);
-
-    // Update the name of the transform node too
-    // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
-    std::string transformName = std::string(beamNode->GetName()) + vtkMRMLRTBeamNode::BEAM_TRANSFORM_NODE_NAME_POSTFIX;
-  }
+  this->UpdateBeamTransform(beamNode, beamTransformNode);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerIECTransformLogic::UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode, vtkMRMLLinearTransformNode* beamTransformNode, double* isocenter)
+void vtkSlicerIECTransformLogic::UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode, vtkMRMLLinearTransformNode* beamTransformNode, double* isocenter/*=nullptr*/)
 {
-  //TODO: Observe beam node's geometry modified event (vtkMRMLRTBeamNode::BeamGeometryModified)
-  // and its parent plan's POI markups fiducial's point modified event (vtkMRMLMarkupsNode::PointModifiedEvent)
-  // so that UpdateTransformsFromBeamGeometry is called. It may be needed to change the signature of the
-  // update function. It may be also needed to store a reference to the beam node (see defined nodes in SlicerRT)
-
   if (!beamNode)
   {
     vtkErrorMacro("UpdateBeamTransform: Invalid beam node");
     return;
   }
-
   if (!beamTransformNode)
   {
     vtkErrorMacro("UpdateBeamTransform: Invalid beam transform node");
@@ -249,28 +219,22 @@ void vtkSlicerIECTransformLogic::UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode
   // Update transforms in IEC logic from beam node parameters
   this->UpdateIECTransformsFromBeam(beamNode, isocenter);
 
-  // Dynamic transform from Collimator to RAS
-  // Transformation path:
-  // Collimator -> Gantry -> FixedReference -> PatientSupport -> TableTopEccentricRotation -> TableTop -> Patient -> RAS
-  vtkSmartPointer<vtkGeneralTransform> beamGeneralTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-  if (this->GetTransformBetween(Collimator, RAS, beamGeneralTransform))
+  // Dynamic transform from Collimator to World
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = this->GetTransformNodeBetween(Collimator, Gantry);
+  vtkNew<vtkGeneralTransform> beamGeneralTransform;
+  collimatorToGantryTransformNode->GetTransformToWorld(beamGeneralTransform);
+
+  // Convert general transform to linear
+  // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
+  vtkNew<vtkTransform> beamLinearTransform;
+  if (!vtkMRMLTransformNode::IsGeneralTransformLinear(beamGeneralTransform, beamLinearTransform))
   {
-    // Convert general transform to linear
-    // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
-    vtkSmartPointer<vtkTransform> beamLinearTransform = vtkSmartPointer<vtkTransform>::New();
-    if (!vtkMRMLTransformNode::IsGeneralTransformLinear(beamGeneralTransform, beamLinearTransform))
-    {
-      vtkErrorMacro("UpdateBeamTransform: Unable to set transform with non-linear components to beam " << beamNode->GetName());
-      return;
-    }
-
-    // Set transform to beam node
-    beamTransformNode->SetAndObserveTransformToParent(beamLinearTransform);
-
-    // Update the name of the transform node too
-    // (the user may have renamed the beam, but it's very expensive to update the transform name on every beam modified event)
-    std::string transformName = std::string(beamNode->GetName()) + vtkMRMLRTBeamNode::BEAM_TRANSFORM_NODE_NAME_POSTFIX;
+    vtkErrorMacro("UpdateBeamTransform: Unable to set transform with non-linear components to beam " << beamNode->GetName());
+    return;
   }
+
+  // Set transform to beam node
+  beamTransformNode->SetAndObserveTransformToParent(beamLinearTransform);
 }
 
 //-----------------------------------------------------------------------------
@@ -294,27 +258,9 @@ void vtkSlicerIECTransformLogic::UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* 
   // Make sure the transform hierarchy is set up
   this->BuildIECTransformHierarchy();
 
-  //TODO: Code duplication (RevLogic::Update...)
-  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode =
-    this->GetTransformNodeBetween(Gantry, FixedReference);
-  vtkTransform* gantryToFixedReferenceTransform = vtkTransform::SafeDownCast(gantryToFixedReferenceTransformNode->GetTransformToParent());
-  gantryToFixedReferenceTransform->Identity();
-  gantryToFixedReferenceTransform->RotateY(beamNode->GetGantryAngle());
-  gantryToFixedReferenceTransform->Modified();
-
-  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
-    this->GetTransformNodeBetween(Collimator, Gantry);
-  vtkTransform* collimatorToGantryTransform = vtkTransform::SafeDownCast(collimatorToGantryTransformNode->GetTransformToParent());
-  collimatorToGantryTransform->Identity();
-  collimatorToGantryTransform->RotateZ(beamNode->GetCollimatorAngle());
-  collimatorToGantryTransform->Modified();
-
-  vtkMRMLLinearTransformNode* patientSupportRotationToFixedReferenceTransformNode =
-    this->GetTransformNodeBetween(PatientSupportRotation, FixedReference);
-  vtkTransform* patientSupportToFixedReferenceTransform = vtkTransform::SafeDownCast(patientSupportRotationToFixedReferenceTransformNode->GetTransformToParent());
-  patientSupportToFixedReferenceTransform->Identity();
-  patientSupportToFixedReferenceTransform->RotateZ(-1. * beamNode->GetCouchAngle());
-  patientSupportToFixedReferenceTransform->Modified();
+  this->UpdateGantryToFixedReferenceTransform(beamNode->GetGantryAngle());
+  this->UpdateCollimatorToGantryTransform(beamNode->GetCollimatorAngle());
+  this->UpdatePatientSupportRotationToFixedReferenceTransform(-1.0 * beamNode->GetCouchAngle());
 
   // Update IEC Patient to RAS transform based on the isocenter defined in the beam's parent plan
   vtkMRMLLinearTransformNode* rasToPatientReferenceTransformNode =
@@ -405,6 +351,39 @@ void vtkSlicerIECTransformLogic::UpdateFixedReferenceToRASTransform(vtkMRMLRTPla
   fixedReferenceToRASTransform->Concatenate(vtkTransform::SafeDownCast(patientSupportRotationToFixedReferenceTransformNode->GetTransformFromParent()));
 
   fixedReferenceToRasTransformNode->SetAndObserveTransformToParent(fixedReferenceToRASTransform);
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerIECTransformLogic::UpdateGantryToFixedReferenceTransform(double gantryRotationAngleDeg)
+{
+  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode =
+    this->GetTransformNodeBetween(Gantry, FixedReference);
+
+  vtkNew<vtkTransform> gantryToFixedReferenceTransform;
+  gantryToFixedReferenceTransform->RotateY(gantryRotationAngleDeg);
+  gantryToFixedReferenceTransformNode->SetAndObserveTransformToParent(gantryToFixedReferenceTransform);
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerIECTransformLogic::UpdateCollimatorToGantryTransform(double collimatorRotationAngleDeg)
+{
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
+    this->GetTransformNodeBetween(Collimator, Gantry);
+
+  vtkNew<vtkTransform> collimatorToGantryTransform;
+  collimatorToGantryTransform->RotateZ(collimatorRotationAngleDeg);
+  collimatorToGantryTransformNode->SetAndObserveTransformToParent(collimatorToGantryTransform);
+}
+
+//-----------------------------------------------------------------------------
+void vtkSlicerIECTransformLogic::UpdatePatientSupportRotationToFixedReferenceTransform(double patientSupportRotationAngleDeg)
+{
+  vtkMRMLLinearTransformNode* patientSupportRotationToFixedReferenceTransformNode =
+    this->GetTransformNodeBetween(PatientSupportRotation, FixedReference);
+
+  vtkNew<vtkTransform> patientSupportToRotatedPatientSupportTransform;
+  patientSupportToRotatedPatientSupportTransform->RotateZ(patientSupportRotationAngleDeg);
+  patientSupportRotationToFixedReferenceTransformNode->SetAndObserveTransformToParent(patientSupportToRotatedPatientSupportTransform);
 }
 
 //-----------------------------------------------------------------------------

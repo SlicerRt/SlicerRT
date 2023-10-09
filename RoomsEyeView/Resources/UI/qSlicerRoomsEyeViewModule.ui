@@ -409,7 +409,11 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="qMRMLSegmentSelectorWidget" name="SegmentSelectorWidget_PatientBody"/>
+       <widget class="qMRMLSegmentSelectorWidget" name="SegmentSelectorWidget_PatientBody">
+        <property name="noneEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

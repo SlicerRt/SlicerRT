@@ -968,12 +968,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateGantryToFixedReferenceTransform(vtk
     return;
   }
 
-  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
-
-  vtkNew<vtkTransform> gantryToFixedReferenceTransform;
-  gantryToFixedReferenceTransform->RotateY(parameterNode->GetGantryRotationAngle());
-  gantryToFixedReferenceTransformNode->SetAndObserveTransformToParent(gantryToFixedReferenceTransform);
+  this->IECLogic->UpdateGantryToFixedReferenceTransform(parameterNode->GetGantryRotationAngle());
 }
 
 //----------------------------------------------------------------------------
@@ -985,12 +980,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRML
     return;
   }
 
-  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
-
-  vtkNew<vtkTransform> collimatorToGantryTransform;
-  collimatorToGantryTransform->RotateZ(parameterNode->GetCollimatorRotationAngle());
-  collimatorToGantryTransformNode->SetAndObserveTransformToParent(collimatorToGantryTransform);
+  this->IECLogic->UpdateCollimatorToGantryTransform(parameterNode->GetCollimatorRotationAngle());
 }
 
 //-----------------------------------------------------------------------------
@@ -1171,13 +1161,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportRotationToFixedRefere
     return;
   }
 
-  vtkMRMLLinearTransformNode* patientSupportRotationToFixedReferenceTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference);
-
-  double rotationAngle = parameterNode->GetPatientSupportRotationAngle();
-  vtkNew<vtkTransform> patientSupportToRotatedPatientSupportTransform;
-  patientSupportToRotatedPatientSupportTransform->RotateZ(rotationAngle);
-  patientSupportRotationToFixedReferenceTransformNode->SetAndObserveTransformToParent(patientSupportToRotatedPatientSupportTransform);
+  this->IECLogic->UpdatePatientSupportRotationToFixedReferenceTransform(parameterNode->GetPatientSupportRotationAngle());
 }
 
 //-----------------------------------------------------------------------------
