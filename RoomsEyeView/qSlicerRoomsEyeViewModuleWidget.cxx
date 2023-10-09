@@ -400,9 +400,6 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamNodeChanged(vtkMRMLNode* node)
   paramNode->SetAndObserveBeamNode(beamNode);
   paramNode->DisableModifiedEventOff();
 
-  // Trigger update of transforms based on selected beam
-  beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
-
   // Show only selected beam, hide others
   std::vector<vtkMRMLNode*> beamNodes;
   this->mrmlScene()->GetNodesByClass("vtkMRMLRTBeamNode", beamNodes);
@@ -412,6 +409,14 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamNodeChanged(vtkMRMLNode* node)
     shNode->SetItemDisplayVisibility(
       shNode->GetItemByDataNode(currentBeamNode), (currentBeamNode == beamNode ? 1 : 0) );
   }
+
+  if (!beamNode)
+  {
+    return;
+  }
+
+  // Trigger update of transforms based on selected beam
+  beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
 
   // Select patient segmentation
   vtkMRMLRTPlanNode* planNode = beamNode->GetParentPlanNode();
