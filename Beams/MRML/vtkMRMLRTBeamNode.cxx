@@ -79,6 +79,8 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->SourceToJawsDistanceX = 500.;
   this->SourceToJawsDistanceY = 500.;
   this->SourceToMultiLeafCollimatorDistance = 400.;
+
+  this->Selectable = false;
 }
 
 //----------------------------------------------------------------------------

@@ -147,7 +147,7 @@ void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
   for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
   {
     vtkMRMLRTBeamNode* beamNode = (*beamIt);
-    vtkSmartPointer<vtkMRMLRTBeamNode> beamNodeCopy = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
+    vtkNew<vtkMRMLRTBeamNode> beamNodeCopy;
     this->GetScene()->AddNode(beamNodeCopy);
     beamNodeCopy->Copy(beamNode);
   }
