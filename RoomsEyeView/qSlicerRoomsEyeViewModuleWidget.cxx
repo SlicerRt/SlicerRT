@@ -359,6 +359,15 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
   connect(d->SegmentSelectorWidget_PatientBody, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onPatientBodySegmentationNodeChanged(vtkMRMLNode*)));
   connect(d->SegmentSelectorWidget_PatientBody, SIGNAL(currentSegmentChanged(QString)), this, SLOT(onPatientBodySegmentChanged(QString)));
 
+  // Disable treatment machine geometry controls until a machine is loaded
+  d->GantryRotationSlider->setEnabled(false);
+  d->CollimatorRotationSlider->setEnabled(false);
+  d->PatientSupportRotationSlider->setEnabled(false);
+  d->VerticalTableTopDisplacementSlider->setEnabled(false);
+  d->LongitudinalTableTopDisplacementSlider->setEnabled(false);
+  d->LateralTableTopDisplacementSlider->setEnabled(false);
+  d->ImagingPanelMovementSlider->setEnabled(false);
+
   //TODO: Hide additional device models section until reinstated
   d->AdditionalTreatmentModelsCollapsibleButton->setVisible(false);
 
@@ -577,7 +586,8 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
   // Load and setup models
   paramNode->SetTreatmentMachineDescriptorFilePath(descriptorFilePath.toUtf8().constData());
 
-  d->logic()->LoadTreatmentMachine(paramNode);
+  std::vector<vtkSlicerRoomsEyeViewModuleLogic::TreatmentMachinePartType> loadedParts =
+    d->logic()->LoadTreatmentMachine(paramNode);
 
   // Set treatment machine dependent properties  //TODO: Use degrees of freedom from JSON
   if (!treatmentMachineType.compare("VarianTrueBeamSTx"))
@@ -597,6 +607,20 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
   qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
   threeDView->resetCamera();
 
+  // Enable treatment machine geometry controls
+  d->GantryRotationSlider->setEnabled(true);
+  d->CollimatorRotationSlider->setEnabled(true);
+  d->PatientSupportRotationSlider->setEnabled(true);
+  d->VerticalTableTopDisplacementSlider->setEnabled(true);
+  d->LongitudinalTableTopDisplacementSlider->setEnabled(true);
+  d->LateralTableTopDisplacementSlider->setEnabled(true);
+  d->ImagingPanelMovementSlider->setEnabled(true);
+
+  // Hide controls that do not have corresponding parts loaded
+  bool imagingPanelsLoaded = (std::find(loadedParts.begin(), loadedParts.end(), vtkSlicerRoomsEyeViewModuleLogic::ImagingPanelLeft) != loadedParts.end() ||
+      std::find(loadedParts.begin(), loadedParts.end(), vtkSlicerRoomsEyeViewModuleLogic::ImagingPanelRight) != loadedParts.end());
+  d->labelImagingPanel->setVisible(imagingPanelsLoaded);
+  d->ImagingPanelMovementSlider->setVisible(imagingPanelsLoaded);
 
   // Set orientation marker
   //TODO: Add new option 'Treatment room' to orientation marker choices and merged model with actual colors (surface scalars?)

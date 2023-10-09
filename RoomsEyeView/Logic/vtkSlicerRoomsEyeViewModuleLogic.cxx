@@ -452,24 +452,25 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachine(vtkMRMLRoomsEyeViewNode* parameterNode)
+std::vector<vtkSlicerRoomsEyeViewModuleLogic::TreatmentMachinePartType>
+vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachine(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
   vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("LoadTreatmentMachine: Invalid scene");
-    return;
+    return std::vector<TreatmentMachinePartType>();
   }
   vtkMRMLSubjectHierarchyNode* shNode = scene->GetSubjectHierarchyNode();
   if (!shNode)
   {
     vtkErrorMacro("LoadTreatmentMachine: Failed to access subject hierarchy node");
-    return;
+    return std::vector<TreatmentMachinePartType>();
   }
   if (!parameterNode || !parameterNode->GetTreatmentMachineDescriptorFilePath())
   {
     vtkErrorMacro("LoadTreatmentMachine: Invalid parameter node");
-    return;
+    return std::vector<TreatmentMachinePartType>();
   }
 
   // Make sure the transform hierarchy is in place
@@ -484,7 +485,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachine(vtkMRMLRoomsEyeViewN
   if (!fp)
     {
     vtkErrorMacro("LoadTreatmentMachine: Failed to load treatment machine descriptor file '" << descriptorFilePath << "'");
-    return;
+    return std::vector<TreatmentMachinePartType>();
     }
   char buffer[4096];
   rapidjson::FileReadStream fs(fp, buffer, sizeof(buffer));
@@ -492,7 +493,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachine(vtkMRMLRoomsEyeViewN
     {
     vtkErrorMacro("LoadTreatmentMachine: Failed to load treatment machine descriptor file '" << descriptorFilePath << "'");
     fclose(fp);
-    return;
+    return std::vector<TreatmentMachinePartType>();
     }
   fclose(fp);
 
@@ -521,19 +522,21 @@ void vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachine(vtkMRMLRoomsEyeViewN
   this->Internal->EnsureTreatmentMachinePartModelNode(parameterNode, FlatPanel, true);
 
   // Setup treatment machine model display and transforms
-  this->SetupTreatmentMachineModels(parameterNode);
+  return this->SetupTreatmentMachineModels(parameterNode);
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsEyeViewNode* parameterNode)
+std::vector<vtkSlicerRoomsEyeViewModuleLogic::TreatmentMachinePartType>
+vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsEyeViewNode* parameterNode)
 {
   vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("SetupTreatmentMachineModels: Invalid scene");
-    return;
+    return std::vector<TreatmentMachinePartType>();
   }
 
+  std::vector<TreatmentMachinePartType> loadedParts;
   for (int partIdx=0; partIdx<LastPartType; ++partIdx)
   {
     std::string partType = this->GetTreatmentMachinePartTypeAsString((TreatmentMachinePartType)partIdx);
@@ -547,6 +550,8 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsE
       }
       continue;
     }
+
+    loadedParts.push_back((TreatmentMachinePartType)partIdx);
 
     // Set color
     vtkVector3d partColor(this->GetColorForPartType(partType));
@@ -634,17 +639,13 @@ void vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsE
     //TODO: ApplicatorHolder, ElectronApplicator?
   }
 
-  //TODO: Whole patient (segmentation, CT) will need to be transformed when the table top is transformed
-  //vtkMRMLLinearTransformNode* patientModelTransforms = vtkMRMLLinearTransformNode::SafeDownCast(
-  //  this->GetMRMLScene()->GetFirstNodeByName("TableTopEccentricRotationToPatientSupportTransform"));
-  //patientModel->SetAndObserveTransformNodeID(patientModelTransforms->GetID());
-  //TODO: Instead of this make the tableTop the fixed part in RAS
-
   // Set identity transform for patient (parent transform is taken into account when getting poly data from segmentation)
   vtkNew<vtkTransform> identityTransform;
   identityTransform->Identity();
   this->GantryPatientCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(identityTransform));
   this->CollimatorPatientCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(identityTransform));
+
+  return loadedParts;
 }
 
 //----------------------------------------------------------------------------

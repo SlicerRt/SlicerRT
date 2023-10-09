@@ -77,9 +77,11 @@ public:
 public:
   /// Load and setup components of the treatment machine into the scene based on its description.
   /// \param parameterNode Parameter node contains the treatment machine descriptor file path.
-  void LoadTreatmentMachine(vtkMRMLRoomsEyeViewNode* parameterNode);
-  /// Set up the IEC transforms and model properties on the treatment machine models
-  void SetupTreatmentMachineModels(vtkMRMLRoomsEyeViewNode* parameterNode);
+  /// \return List of parts that were successfully set up.
+  std::vector<TreatmentMachinePartType> LoadTreatmentMachine(vtkMRMLRoomsEyeViewNode* parameterNode);
+  /// Set up the IEC transforms and model properties on the treatment machine models.
+  /// \return List of parts that were successfully set up.
+  std::vector<TreatmentMachinePartType> SetupTreatmentMachineModels(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Create or get transforms taking part in the IEC logic and additional devices, and build the transform hierarchy
   void BuildRoomsEyeViewTransformHierarchy();
 
