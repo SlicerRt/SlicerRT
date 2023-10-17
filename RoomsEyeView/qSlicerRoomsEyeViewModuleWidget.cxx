@@ -592,7 +592,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
 
   // Warn the user if collision detection is disabled for certain part pairs
   QString disabledCollisionDetectionMessage(
-    "Collision detection has been disabled for the following part pairs due to high triangle numbers:\n\n");
+    tr("Collision detection for the following part pairs may take very long due to high triangle numbers:\n\n"));
   bool collisionDetectionDisabled = false;
   if (d->logic()->GetGantryTableTopCollisionDetection()->GetInputData(0) == nullptr)
   {
@@ -609,9 +609,22 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
     disabledCollisionDetectionMessage.append("Collimator-TableTop\n");
     collisionDetectionDisabled = true;
   }
+  disabledCollisionDetectionMessage.append(tr("\nWhat would you like to do?"));
   if (collisionDetectionDisabled)
   {
-    QMessageBox::warning(this, tr("Collision detection disabled"), disabledCollisionDetectionMessage);
+    ctkMessageBox* existingMachineMsgBox = new ctkMessageBox(this);
+    existingMachineMsgBox->setWindowTitle(tr("Collision detection might take too long"));
+    existingMachineMsgBox->setText(disabledCollisionDetectionMessage);
+    existingMachineMsgBox->addButton(tr("Disable on these part pairs"), QMessageBox::AcceptRole);
+    existingMachineMsgBox->addButton(tr("Calculate anyway"), QMessageBox::RejectRole);
+    existingMachineMsgBox->setIcon(QMessageBox::Warning);
+    existingMachineMsgBox->exec();
+    int resultCode = existingMachineMsgBox->buttonRole(existingMachineMsgBox->clickedButton());
+    if (resultCode == QMessageBox::RejectRole)
+    {
+      // Set up treatment machine models again but make sure collision detection is not disabled between any parts
+      d->logic()->SetupTreatmentMachineModels(paramNode, true);
+    }
   }
 
   // Set treatment machine dependent properties  //TODO: Use degrees of freedom from JSON
@@ -1058,7 +1071,14 @@ void qSlicerRoomsEyeViewModuleWidget::checkForCollisions()
   }
   else
   {
-    d->CollisionDetectionStatusLabel->setText(QString::fromStdString("No collisions detected"));
+    QString noCollisionsMessage(tr("No collisions detected"));
+    if (d->logic()->GetGantryTableTopCollisionDetection()->GetInputData(0) == nullptr
+     || d->logic()->GetGantryPatientSupportCollisionDetection()->GetInputData(0) == nullptr
+     || d->logic()->GetCollimatorTableTopCollisionDetection()->GetInputData(0) == nullptr)
+    {
+      noCollisionsMessage.append(tr(" (excluding certain parts)"));
+    }
+    d->CollisionDetectionStatusLabel->setText(noCollisionsMessage);
     d->CollisionDetectionStatusLabel->setStyleSheet("color: green");
   }
 }

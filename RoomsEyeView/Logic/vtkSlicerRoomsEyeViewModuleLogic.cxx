@@ -534,7 +534,7 @@ vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachine(vtkMRMLRoomsEyeViewNode* 
 
 //----------------------------------------------------------------------------
 std::vector<vtkSlicerRoomsEyeViewModuleLogic::TreatmentMachinePartType>
-vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsEyeViewNode* parameterNode)
+vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsEyeViewNode* parameterNode, bool forceEnableCollisionDetection/*=false*/)
 {
   vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
@@ -649,24 +649,24 @@ vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsEyeVie
   }
 
   // Disable collision detection if product of number of triangles of the two models is above threshold
-  if (loadedPartsNumTriangles[Gantry] * loadedPartsNumTriangles[TableTop] > MAX_TRIANGLE_NUMBER_PRODUCT_FOR_COLLISIONS)
+  if (loadedPartsNumTriangles[Gantry] * loadedPartsNumTriangles[TableTop] > MAX_TRIANGLE_NUMBER_PRODUCT_FOR_COLLISIONS && !forceEnableCollisionDetection)
   {
-    vtkWarningMacro("Collision detection between gantry and table top is disabled due to too many combined triangles (product = "
-      << loadedPartsNumTriangles[Gantry] * loadedPartsNumTriangles[TableTop] << ")");
+    vtkWarningMacro("Too many combined triangles (product = " << loadedPartsNumTriangles[Gantry] * loadedPartsNumTriangles[TableTop]
+      << ") detected between gantry and table top. Collision detection may take a very long time.");
     this->GantryTableTopCollisionDetection->SetInputData(0, nullptr);
     this->GantryTableTopCollisionDetection->SetInputData(1, nullptr);
   }
-  if (loadedPartsNumTriangles[Gantry] * loadedPartsNumTriangles[PatientSupport] > MAX_TRIANGLE_NUMBER_PRODUCT_FOR_COLLISIONS)
+  if (loadedPartsNumTriangles[Gantry] * loadedPartsNumTriangles[PatientSupport] > MAX_TRIANGLE_NUMBER_PRODUCT_FOR_COLLISIONS && !forceEnableCollisionDetection)
   {
-    vtkWarningMacro("Collision detection between gantry and patient support is disabled due to too many combined triangles (product = "
-      << loadedPartsNumTriangles[Gantry] * loadedPartsNumTriangles[PatientSupport] << ")");
+    vtkWarningMacro("Too many combined triangles (product = " << loadedPartsNumTriangles[Gantry] * loadedPartsNumTriangles[PatientSupport]
+      << ") detected between gantry and patient support. Collision detection may take a very long time.");
     this->GantryPatientSupportCollisionDetection->SetInputData(0, nullptr);
     this->GantryPatientSupportCollisionDetection->SetInputData(1, nullptr);
   }
-  if (loadedPartsNumTriangles[Collimator] * loadedPartsNumTriangles[TableTop] > MAX_TRIANGLE_NUMBER_PRODUCT_FOR_COLLISIONS)
+  if (loadedPartsNumTriangles[Collimator] * loadedPartsNumTriangles[TableTop] > MAX_TRIANGLE_NUMBER_PRODUCT_FOR_COLLISIONS && !forceEnableCollisionDetection)
   {
-    vtkWarningMacro("Collision detection between collimator and table top is disabled due to too many combined triangles (product = "
-      << loadedPartsNumTriangles[Collimator] * loadedPartsNumTriangles[TableTop] << ")");
+    vtkWarningMacro("Too many combined triangles (product = " << loadedPartsNumTriangles[Collimator] * loadedPartsNumTriangles[TableTop]
+      << ") detected between collimator and table top. Collision detection may take a very long time.");
     this->CollimatorTableTopCollisionDetection->SetInputData(0, nullptr);
     this->CollimatorTableTopCollisionDetection->SetInputData(1, nullptr);
   }
