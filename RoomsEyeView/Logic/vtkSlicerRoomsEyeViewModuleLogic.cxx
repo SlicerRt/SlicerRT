@@ -28,7 +28,6 @@
 #include "vtkSlicerIECTransformLogic.h"
 
 // SlicerRT includes
-#include "vtkCollisionDetectionFilter.h"
 #include "vtkMRMLRTBeamNode.h"
 
 // MRML includes
@@ -49,6 +48,7 @@
 
 // VTK includes
 #include <vtkAppendPolyData.h>
+#include "vtkCollisionDetectionFilter.h"
 #include <vtkGeneralTransform.h>
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
@@ -66,10 +66,10 @@
 #include "rapidjson/document.h"     // rapidjson's DOM-style API
 #include "rapidjson/filereadstream.h"
 
-
 // Constants
 const char* vtkSlicerRoomsEyeViewModuleLogic::ORIENTATION_MARKER_MODEL_NODE_NAME = "RoomsEyeViewOrientationMarker";
 const char* vtkSlicerRoomsEyeViewModuleLogic::TREATMENT_MACHINE_DESCRIPTOR_FILE_PATH_ATTRIBUTE_NAME = "TreatmentMachineDescriptorFilePath";
+unsigned int vtkSlicerRoomsEyeViewModuleLogic::MAX_TRIANGLE_NUMBER_PRODUCT_FOR_COLLISIONS = 1e10;
 //TODO: Add this dynamically to the IEC transform map
 static const char* ADDITIONALCOLLIMATORMOUNTEDDEVICES_TO_COLLIMATOR_TRANSFORM_NODE_NAME = "AdditionalCollimatorDevicesToCollimatorTransform";
 static rapidjson::Value JSON_EMPTY_VALUE;
@@ -324,12 +324,19 @@ vtkSlicerRoomsEyeViewModuleLogic::vtkSlicerRoomsEyeViewModuleLogic()
   this->IECLogic = vtkSlicerIECTransformLogic::New();
 
   this->GantryPatientCollisionDetection = vtkCollisionDetectionFilter::New();
+  this->GantryPatientCollisionDetection->SetCollisionModeToFirstContact();
   this->GantryTableTopCollisionDetection = vtkCollisionDetectionFilter::New();
+  this->GantryTableTopCollisionDetection->SetCollisionModeToFirstContact();
   this->GantryPatientSupportCollisionDetection = vtkCollisionDetectionFilter::New();
+  this->GantryPatientSupportCollisionDetection->SetCollisionModeToFirstContact();
   this->CollimatorPatientCollisionDetection = vtkCollisionDetectionFilter::New();
+  this->CollimatorPatientCollisionDetection->SetCollisionModeToFirstContact();
   this->CollimatorTableTopCollisionDetection = vtkCollisionDetectionFilter::New();
+  this->CollimatorTableTopCollisionDetection->SetCollisionModeToFirstContact();
   this->AdditionalModelsTableTopCollisionDetection = vtkCollisionDetectionFilter::New();
+  this->AdditionalModelsTableTopCollisionDetection->SetCollisionModeToFirstContact();
   this->AdditionalModelsPatientSupportCollisionDetection = vtkCollisionDetectionFilter::New();
+  this->AdditionalModelsPatientSupportCollisionDetection->SetCollisionModeToFirstContact();
 }
 
 //----------------------------------------------------------------------------
@@ -537,11 +544,12 @@ vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsEyeVie
   }
 
   std::vector<TreatmentMachinePartType> loadedParts;
+  std::map<TreatmentMachinePartType, unsigned int> loadedPartsNumTriangles;
   for (int partIdx=0; partIdx<LastPartType; ++partIdx)
   {
     std::string partType = this->GetTreatmentMachinePartTypeAsString((TreatmentMachinePartType)partIdx);
     vtkMRMLModelNode* partModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, (TreatmentMachinePartType)partIdx);
-    if (!partModel)
+    if (!partModel || !partModel->GetPolyData())
     {
       switch (partIdx)
       {
@@ -552,6 +560,7 @@ vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsEyeVie
     }
 
     loadedParts.push_back((TreatmentMachinePartType)partIdx);
+    loadedPartsNumTriangles[(TreatmentMachinePartType)partIdx] = partModel->GetPolyData()->GetNumberOfCells();
 
     // Set color
     vtkVector3d partColor(this->GetColorForPartType(partType));
@@ -637,6 +646,29 @@ vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsEyeVie
       partModel->SetAndObserveTransformNodeID(flatPanelToGantryTransformNode->GetID());
     }
     //TODO: ApplicatorHolder, ElectronApplicator?
+  }
+
+  // Disable collision detection if product of number of triangles of the two models is above threshold
+  if (loadedPartsNumTriangles[Gantry] * loadedPartsNumTriangles[TableTop] > MAX_TRIANGLE_NUMBER_PRODUCT_FOR_COLLISIONS)
+  {
+    vtkWarningMacro("Collision detection between gantry and table top is disabled due to too many combined triangles (product = "
+      << loadedPartsNumTriangles[Gantry] * loadedPartsNumTriangles[TableTop] << ")");
+    this->GantryTableTopCollisionDetection->SetInputData(0, nullptr);
+    this->GantryTableTopCollisionDetection->SetInputData(1, nullptr);
+  }
+  if (loadedPartsNumTriangles[Gantry] * loadedPartsNumTriangles[PatientSupport] > MAX_TRIANGLE_NUMBER_PRODUCT_FOR_COLLISIONS)
+  {
+    vtkWarningMacro("Collision detection between gantry and patient support is disabled due to too many combined triangles (product = "
+      << loadedPartsNumTriangles[Gantry] * loadedPartsNumTriangles[PatientSupport] << ")");
+    this->GantryPatientSupportCollisionDetection->SetInputData(0, nullptr);
+    this->GantryPatientSupportCollisionDetection->SetInputData(1, nullptr);
+  }
+  if (loadedPartsNumTriangles[Collimator] * loadedPartsNumTriangles[TableTop] > MAX_TRIANGLE_NUMBER_PRODUCT_FOR_COLLISIONS)
+  {
+    vtkWarningMacro("Collision detection between collimator and table top is disabled due to too many combined triangles (product = "
+      << loadedPartsNumTriangles[Collimator] * loadedPartsNumTriangles[TableTop] << ")");
+    this->CollimatorTableTopCollisionDetection->SetInputData(0, nullptr);
+    this->CollimatorTableTopCollisionDetection->SetInputData(1, nullptr);
   }
 
   // Set identity transform for patient (parent transform is taken into account when getting poly data from segmentation)
@@ -1382,7 +1414,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
 
   // If number of contacts between pieces of treatment room is greater than 0, the collision between which pieces
   // will be set to the output string and returned by the function.
-  if (gantryState == "Active" && tableTopState == "Active")
+  if (gantryState == "Active" && tableTopState == "Active" && this->GantryTableTopCollisionDetection->GetInputData(0))
   {
     this->GantryTableTopCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(gantryToRasTransform));
     this->GantryTableTopCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(tableTopToRasTransform));
@@ -1393,7 +1425,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
     }
   }
 
-  if (gantryState == "Active" && patientSupportState == "Active")
+  if (gantryState == "Active" && patientSupportState == "Active" && this->GantryTableTopCollisionDetection->GetInputData(0))
   {
     this->GantryPatientSupportCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(gantryToRasTransform));
     this->GantryPatientSupportCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(patientSupportToRasTransform));
@@ -1404,7 +1436,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
     }
   }
 
-  if (collimatorState == "Active" && tableTopState == "Active")
+  if (collimatorState == "Active" && tableTopState == "Active" && this->CollimatorTableTopCollisionDetection->GetInputData(0))
   {
     this->CollimatorTableTopCollisionDetection->SetTransform(0, vtkLinearTransform::SafeDownCast(collimatorToRasTransform));
     this->CollimatorTableTopCollisionDetection->SetTransform(1, vtkLinearTransform::SafeDownCast(tableTopToRasTransform));

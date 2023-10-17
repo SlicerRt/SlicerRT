@@ -69,6 +69,7 @@
 
 // VTK includes
 #include <vtkCamera.h>
+#include "vtkCollisionDetectionFilter.h"
 #include <vtkPolyData.h>
 #include <vtkMatrix4x4.h>
 #include <vtkTransform.h>
@@ -588,6 +589,30 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
 
   std::vector<vtkSlicerRoomsEyeViewModuleLogic::TreatmentMachinePartType> loadedParts =
     d->logic()->LoadTreatmentMachine(paramNode);
+
+  // Warn the user if collision detection is disabled for certain part pairs
+  QString disabledCollisionDetectionMessage(
+    "Collision detection has been disabled for the following part pairs due to high triangle numbers:\n\n");
+  bool collisionDetectionDisabled = false;
+  if (d->logic()->GetGantryTableTopCollisionDetection()->GetInputData(0) == nullptr)
+  {
+    disabledCollisionDetectionMessage.append("Gantry-TableTop\n");
+    collisionDetectionDisabled = true;
+  }
+  if (d->logic()->GetGantryPatientSupportCollisionDetection()->GetInputData(0) == nullptr)
+  {
+    disabledCollisionDetectionMessage.append("Gantry-PatientSupport\n");
+    collisionDetectionDisabled = true;
+  }
+  if (d->logic()->GetCollimatorTableTopCollisionDetection()->GetInputData(0) == nullptr)
+  {
+    disabledCollisionDetectionMessage.append("Collimator-TableTop\n");
+    collisionDetectionDisabled = true;
+  }
+  if (collisionDetectionDisabled)
+  {
+    QMessageBox::warning(this, tr("Collision detection disabled"), disabledCollisionDetectionMessage);
+  }
 
   // Set treatment machine dependent properties  //TODO: Use degrees of freedom from JSON
   if (!treatmentMachineType.compare("VarianTrueBeamSTx"))

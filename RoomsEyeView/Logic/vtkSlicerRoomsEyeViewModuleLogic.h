@@ -68,6 +68,7 @@ public:
 
   static const char* ORIENTATION_MARKER_MODEL_NODE_NAME;
   static const char* TREATMENT_MACHINE_DESCRIPTOR_FILE_PATH_ATTRIBUTE_NAME;
+  static unsigned int MAX_TRIANGLE_NUMBER_PRODUCT_FOR_COLLISIONS;
 
 public:
   static vtkSlicerRoomsEyeViewModuleLogic *New();
