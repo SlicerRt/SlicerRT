@@ -333,10 +333,10 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   std::string doseUnitValueInStudy = shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_VALUE_ATTRIBUTE_NAME);
 
   bool referencedInstanceIsSet = false;
-  std::vector< vtkIdType > studyChildrenIDs;
+  std::vector<vtkIdType> studyChildrenIDs;
   shNode->GetItemChildren(studyItemID, studyChildrenIDs);
   // find RTPlan node and get InstanceUID of that plan to use it as ReferencedInstanceUID for converted RTDose
-  for (int childItemID : studyChildrenIDs)
+  for (vtkIdType childItemID : studyChildrenIDs)
   {
     vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(shNode->GetItemDataNode(childItemID));
     if (planNode)
@@ -346,6 +346,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
       {
         shNode->SetItemAttribute(currentItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMReferencedInstanceUIDsAttributeName(), planInstanceUID.c_str());
         referencedInstanceIsSet = true;
+        break;
       }
     }
   }
