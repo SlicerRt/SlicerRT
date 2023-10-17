@@ -1020,17 +1020,21 @@ void qSlicerRoomsEyeViewModuleWidget::checkForCollisions()
     return;
   }
 
+  d->CollisionDetectionStatusLabel->setText(QString::fromStdString("Calculating collisions..."));
+  d->CollisionDetectionStatusLabel->setStyleSheet("color: black");
+  QApplication::processEvents();
+
   std::string collisionString = d->logic()->CheckForCollisions(paramNode);
 
   if (collisionString.length() > 0)
   {
-    d->CollisionsDetected->setText(QString::fromStdString(collisionString));
-    d->CollisionsDetected->setStyleSheet("color: red");
+    d->CollisionDetectionStatusLabel->setText(QString::fromStdString(collisionString));
+    d->CollisionDetectionStatusLabel->setStyleSheet("color: red");
   }
   else
   {
-    d->CollisionsDetected->setText(QString::fromStdString("No collisions detected"));
-    d->CollisionsDetected->setStyleSheet("color: green");
+    d->CollisionDetectionStatusLabel->setText(QString::fromStdString("No collisions detected"));
+    d->CollisionDetectionStatusLabel->setStyleSheet("color: green");
   }
 }
 

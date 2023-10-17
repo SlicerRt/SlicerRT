@@ -379,7 +379,7 @@
        <number>4</number>
       </property>
       <item row="2" column="0" colspan="3">
-       <widget class="QLabel" name="CollisionsDetected">
+       <widget class="QLabel" name="CollisionDetectionStatusLabel">
         <property name="text">
          <string>No collisions detected.</string>
         </property>
