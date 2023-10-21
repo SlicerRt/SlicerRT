@@ -260,7 +260,7 @@ void vtkSlicerIECTransformLogic::UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* 
 
   this->UpdateGantryToFixedReferenceTransform(beamNode->GetGantryAngle());
   this->UpdateCollimatorToGantryTransform(beamNode->GetCollimatorAngle());
-  this->UpdatePatientSupportRotationToFixedReferenceTransform(-1.0 * beamNode->GetCouchAngle());
+  this->UpdatePatientSupportRotationToFixedReferenceTransform(beamNode->GetCouchAngle());
 
   // Update IEC Patient to RAS transform based on the isocenter defined in the beam's parent plan
   vtkMRMLLinearTransformNode* rasToPatientReferenceTransformNode =
