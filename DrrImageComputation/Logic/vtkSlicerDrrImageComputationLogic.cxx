@@ -79,6 +79,38 @@ const char* vtkSlicerDrrImageComputationLogic::NORMAL_VECTOR_MARKUPS_NODE_NAME =
 const char* vtkSlicerDrrImageComputationLogic::VUP_VECTOR_MARKUPS_NODE_NAME = "VupVector"; // line
 
 const char* vtkSlicerDrrImageComputationLogic::RTIMAGE_TRANSFORM_NODE_NAME = "DrrImageComputationTransform";
+const char* vtkSlicerDrrImageComputationLogic::VOLUME_TO_LPS_TRANSFORM_NODE_NAME = "DrrVolumeToLpsTransform";
+
+namespace {
+
+bool IsMatrixTransformsRasToLps(vtkMatrix4x4* mat)
+{
+  if (!mat)
+  {
+    return false;
+  }
+//  constexpr double local_epsilon = std::numeric_limits< double >::epsilon();
+  constexpr double local_epsilon = EPSILON;
+  bool result = bool(fabs(mat->GetElement(0, 0) + 1.) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(1, 1) + 1.) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(2, 2) - 1.) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(3, 3) - 1.) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(1, 0)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(2, 0)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(2, 1)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(3, 0)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(3, 1)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(3, 2)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(0, 1)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(0, 2)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(1, 2)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(0, 3)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(1, 3)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(2, 3)) <= local_epsilon);
+  return result;
+}
+
+}
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDrrImageComputationLogic);
@@ -1004,7 +1036,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerDrrImageComputationLogic::ComputePlastimatchDR
 
   std::stringstream isocenterStream;
   double isocenter[3] = {};
-  parameterNode->GetIsocenterPositionLPS(isocenter);
+  parameterNode->GetIsocenterPositionRAS(isocenter);
   isocenterStream << isocenter[0] << "," << isocenter[1] << "," << isocenter[2];
   cmdNode->SetParameterAsString( "isocenterPosition", isocenterStream.str());
   
@@ -1234,8 +1266,18 @@ bool vtkSlicerDrrImageComputationLogic::SetupGeometry( vtkMRMLDrrImageComputatio
 
   vtkNew<vtkTransform> rtImageCenterToCornerTransform;
   rtImageCenterToCornerTransform->Identity();
-  rtImageCenterToCornerTransform->Translate( -1. * rtImagePosition[0], 0.0, rtImagePosition[1]);
+  vtkMRMLScalarVolumeNode* ctVolumeNode = parameterNode->GetReferenceVolumeNode();
+  vtkNew< vtkMatrix4x4 > ijkToRasDirectionMatrix;
+  ctVolumeNode->GetIJKToRASDirectionMatrix(ijkToRasDirectionMatrix);
 
+  if (!IsMatrixTransformsRasToLps(ijkToRasDirectionMatrix))
+  {
+    rtImageCenterToCornerTransform->Translate( rtImagePosition[0], 0.0, rtImagePosition[1]);
+  }
+  else
+  {
+    rtImageCenterToCornerTransform->Translate( -1. * rtImagePosition[0], 0.0, rtImagePosition[1]);
+  }
   // Create isocenter to RAS transform
   // The transformation below is based section C.8.8 in DICOM standard volume 3:
   // "Note: IEC document 62C/269/CDV 'Amendment to IEC 61217: Radiotherapy Equipment -
@@ -1659,6 +1701,8 @@ vtkMRMLLinearTransformNode* vtkSlicerDrrImageComputationLogic::UpdateImageTransf
 
   // Update transforms in IEC logic from beam node parameters
   iecLogic->UpdateIECTransformsFromBeam(beamNode);
+  // (a BUG?) For RT Image correct orientation PatientSupport -> Fixed Reference MUST have a negative sign
+  iecLogic->UpdatePatientSupportRotationToFixedReferenceTransform(-1. * beamNode->GetCouchAngle());
 
   // Dynamic transform from Gantry to RAS
   // Transformation path:
@@ -1701,6 +1745,8 @@ bool vtkSlicerDrrImageComputationLogic::GetRtImageTransformMatrixFromBeam(vtkMRM
 
   // Update transforms in IEC logic from beam node parameters
   iecLogic->UpdateIECTransformsFromBeam(beamNode);
+  // (a BUG?) For RT Image correct orientation PatientSupport -> Fixed Reference MUST have a negative sign
+  iecLogic->UpdatePatientSupportRotationToFixedReferenceTransform(-1. * beamNode->GetCouchAngle());
 
   // Dynamic transform from Gantry to RAS
   // Transformation path:
@@ -1747,11 +1793,29 @@ void vtkSlicerDrrImageComputationLogic::UpdateNormalAndVupVectors(vtkMRMLDrrImag
     return;
   }
 
+  vtkMRMLLinearTransformNode* volumeToLpsTransformNode = this->UpdateVolumeToLPSTransform(parameterNode);
+  if (volumeToLpsTransformNode)
+  {
+    vtkTransform* volumeToLpsTransform = vtkTransform::SafeDownCast(volumeToLpsTransformNode->GetTransformToParent());
+    if (!volumeToLpsTransform)
+    {
+      return;
+    }
+  }
+  else
+  {
+    return;
+  }
+
   vtkMRMLTransformNode* beamTransformNode = nullptr;
   if (vtkMRMLNode* node = scene->GetFirstNodeByName(RTIMAGE_TRANSFORM_NODE_NAME))
   {
     beamTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
   }
+
+  vtkMRMLScalarVolumeNode* volumeNode = parameterNode->GetReferenceVolumeNode();
+  vtkNew<vtkMatrix4x4> ijkToRasDirectionMatrix;
+  volumeNode->GetIJKToRASDirectionMatrix(ijkToRasDirectionMatrix);
 
   vtkTransform* beamTransform = nullptr;
   vtkNew<vtkMatrix4x4> mat; // DICOM beam transform matrix
@@ -1760,18 +1824,37 @@ void vtkSlicerDrrImageComputationLogic::UpdateNormalAndVupVectors(vtkMRMLDrrImag
   if (beamTransformNode)
   {
     beamTransform = vtkTransform::SafeDownCast(beamTransformNode->GetTransformToParent());
+    ijkToRasDirectionMatrix->Invert();
 
     vtkNew<vtkTransform> rasToLpsTransform;
     rasToLpsTransform->Identity();
     rasToLpsTransform->RotateZ(180.0);
-    
-    vtkNew<vtkTransform> dicomBeamTransform;
-    dicomBeamTransform->Identity();
-    dicomBeamTransform->PreMultiply();
-    dicomBeamTransform->Concatenate(rasToLpsTransform);
-    dicomBeamTransform->Concatenate(beamTransform);
 
-    dicomBeamTransform->GetMatrix(mat);
+    vtkNew<vtkTransform> ijkToLpsDirectionMatrix;
+    ijkToLpsDirectionMatrix->Identity();
+    ijkToLpsDirectionMatrix->PreMultiply();
+    ijkToLpsDirectionMatrix->Concatenate(ijkToRasDirectionMatrix);
+    ijkToLpsDirectionMatrix->Concatenate(rasToLpsTransform);
+    ijkToLpsDirectionMatrix->Update();
+
+    if (!IsMatrixTransformsRasToLps(ijkToRasDirectionMatrix))
+    {
+      vtkNew<vtkTransform> dicomBeamTransform;
+      dicomBeamTransform->Identity();
+      dicomBeamTransform->PreMultiply();
+      dicomBeamTransform->Concatenate(ijkToLpsDirectionMatrix);
+      dicomBeamTransform->Concatenate(beamTransform);
+      dicomBeamTransform->GetMatrix(mat);
+    }
+    else
+    {
+      vtkNew<vtkTransform> dicomBeamTransform;
+      dicomBeamTransform->Identity();
+      dicomBeamTransform->PreMultiply();
+      dicomBeamTransform->Concatenate(rasToLpsTransform);
+      dicomBeamTransform->Concatenate(beamTransform);
+      dicomBeamTransform->GetMatrix(mat);
+    }
   }
   else
   {
@@ -1779,12 +1862,22 @@ void vtkSlicerDrrImageComputationLogic::UpdateNormalAndVupVectors(vtkMRMLDrrImag
   }
 
   double n[4], vup[4];
-  const double normalVector[4] = { 0., 0., 1., 0. }; // beam positive Z-axis
-  const double viewUpVector[4] = { -1., 0., 0., 0. }; // beam negative X-axis
+  if (!IsMatrixTransformsRasToLps(ijkToRasDirectionMatrix))
+  {
+    const double normalVector[4] = { 0., 0., -1., 0. }; // beam negative Z-axis
+    const double viewUpVector[4] = { -1., 0., 0., 0. }; // beam negative X-axis
 
-  mat->MultiplyPoint( normalVector, n);
-  mat->MultiplyPoint( viewUpVector, vup);
+    mat->MultiplyPoint( normalVector, n);
+    mat->MultiplyPoint( viewUpVector, vup);
+  }
+  else
+  {
+    const double normalVector[4] = { 0., 0., 1., 0. }; // beam positive Z-axis
+    const double viewUpVector[4] = { -1., 0., 0., 0. }; // beam negative X-axis
 
+    mat->MultiplyPoint( normalVector, n);
+    mat->MultiplyPoint( viewUpVector, vup);
+  }
   parameterNode->SetNormalVector(n);
   parameterNode->SetViewUpVector(vup);
 }
@@ -2061,6 +2154,136 @@ vtkMRMLTableNode* vtkSlicerDrrImageComputationLogic::CreateProjectionsTableNode(
   table->AddColumn(statusString);
 
   return tableNode;
+}
+
+//------------------------------------------------------------------------------
+vtkMRMLLinearTransformNode* vtkSlicerDrrImageComputationLogic::UpdateVolumeToLPSTransform(vtkMRMLDrrImageComputationNode* parameterNode)
+{
+  if (!parameterNode)
+  {
+    vtkErrorMacro("UpdateVolumeToLPSTransform: Invalid parameter node");
+    return nullptr;
+  }
+
+  vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode();
+  if (!beamNode)
+  {
+    vtkErrorMacro("UpdateVolumeToLPSTransform: Invalid RT Beam node");
+    return nullptr;
+  }
+  // Get RT plan for beam
+  vtkMRMLRTPlanNode *planNode = beamNode->GetParentPlanNode();
+  if (!planNode)
+  {
+    vtkErrorMacro("UpdateVolumeToLPSTransform: Failed to retrieve valid plan node for beam '" << beamNode->GetName() << "'");
+    return nullptr;
+  }
+  vtkMRMLScalarVolumeNode* refNode = planNode->GetReferenceVolumeNode();
+  if (!refNode)
+  {
+    vtkErrorMacro("UpdateVolumeToLPSTransform: Failed to retrieve reference volume node from plan '" << planNode->GetName() << "'");
+    return nullptr;
+  }
+  return this->UpdateVolumeToLPSTransform(refNode); 
+}
+
+//------------------------------------------------------------------------------
+vtkMRMLLinearTransformNode* vtkSlicerDrrImageComputationLogic::UpdateVolumeToLPSTransform(vtkMRMLScalarVolumeNode* ctInputVolume)
+{
+  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  if (!scene)
+  {
+    vtkErrorMacro("UpdateVolumeToLPSTransform: Invalid MRML scene");
+    return nullptr;
+  }
+
+  vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode;
+  if (!scene->GetFirstNodeByName(VOLUME_TO_LPS_TRANSFORM_NODE_NAME))
+  {
+    transformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
+    transformNode->SetName(VOLUME_TO_LPS_TRANSFORM_NODE_NAME);
+    transformNode->SetHideFromEditors(1);
+    transformNode->SetSingletonTag("VolumeToLPS_Transform");
+    scene->AddNode(transformNode);
+  }
+  else
+  {
+    transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+      scene->GetFirstNodeByName(VOLUME_TO_LPS_TRANSFORM_NODE_NAME));
+  }
+
+  vtkNew<vtkMatrix4x4> matrix;
+  if (transformNode)
+  {
+    ctInputVolume->GetIJKToRASDirectionMatrix(matrix);
+    vtkNew<vtkTransform> transform;
+    vtkNew<vtkTransform> rasToLpsTransform;
+    rasToLpsTransform->Identity();
+    rasToLpsTransform->RotateZ(180.0);
+
+    matrix->Invert();
+    transform->Identity();
+    transform->PostMultiply();
+    transform->Concatenate(matrix); // RAS -> IJK
+    transform->Concatenate(rasToLpsTransform); // RAS -> LPS
+    transform->Update();
+
+    transformNode->SetAndObserveTransformToParent(transform);
+    return transformNode;
+  }
+  return nullptr;
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerDrrImageComputationLogic::GetVolumeToLPSTransformMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* matrix)
+{
+  if (!parameterNode)
+  {
+    vtkErrorMacro("GetVolumeToLPSTransform: Invalid parameter node");
+    return;
+  }
+  if (!matrix)
+  {
+    vtkErrorMacro("GetVolumeToLPSTransform: Invalid matrix");
+    return;
+  }
+  vtkMRMLTransformNode* transformNode = this->UpdateVolumeToLPSTransform(parameterNode);
+  if (!transformNode)
+  {
+    vtkErrorMacro("GetVolumeToLPSTransform: Invalid volume to LPS transfrom node");
+    return;
+  }
+  vtkLinearTransform* linearTransform = vtkLinearTransform::SafeDownCast(transformNode->GetTransformToParent());
+  if (linearTransform)
+  {
+    linearTransform->GetMatrix(matrix);
+  }
+}
+
+//------------------------------------------------------------------------------
+void vtkSlicerDrrImageComputationLogic::GetVolumeToLPSTransformMatrix(vtkMRMLScalarVolumeNode* ctVolumeNode, vtkMatrix4x4* matrix)
+{
+  if (!ctVolumeNode)
+  {
+    vtkErrorMacro("GetVolumeToLPSTransform: Invalid CT volume node");
+    return;
+  }
+  if (!matrix)
+  {
+    vtkErrorMacro("GetVolumeToLPSTransform: Invalid matrix");
+    return;
+  }
+  vtkMRMLTransformNode* transformNode = this->UpdateVolumeToLPSTransform(ctVolumeNode);
+  if (!transformNode)
+  {
+    vtkErrorMacro("GetVolumeToLPSTransform: Invalid volume to LPS transfrom node");
+    return;
+  }
+  vtkLinearTransform* linearTransform = vtkLinearTransform::SafeDownCast(transformNode->GetTransformToParent());
+  if (linearTransform)
+  {
+    linearTransform->GetMatrix(matrix);
+  }
 }
 
 //------------------------------------------------------------------------------

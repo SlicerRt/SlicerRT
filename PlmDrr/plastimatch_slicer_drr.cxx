@@ -22,10 +22,15 @@
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 #include <itkMetaImageIO.h>
+#include <itkVersor.h>
+#include <itkChangeInformationImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
 #include <itkInvertIntensityImageFilter.h>
 #include <itkThresholdImageFilter.h>
 #include <itkPluginUtilities.h>
+#include <itkTransform.h>
+#include <itkAffineTransform.h>
+#include <itkFlipImageFilter.h>
 
 // Plastimatch includes
 #include <plmreconstruct_config.h>
@@ -183,6 +188,45 @@ int DoIt( int argc, char * argv[], Drr_options& options, TPixel )
 
   // Apply threshold filter if HU thresholdBelow is higher than -1000
   typename InputImageType::Pointer inputImagePointer = inputReader->GetOutput();
+  typename InputImageType::PointType origin = inputImagePointer->GetOrigin();
+  typename InputImageType::DirectionType originalDirection = inputImagePointer->GetDirection();
+
+  // Transform origin and orientation into LPS
+  using FilterType = itk::ChangeInformationImageFilter<InputImageType>;
+  auto filter = FilterType::New();
+  filter->SetInput(inputImagePointer);
+
+  typename InputImageType::DirectionType direction = inputImagePointer->GetDirection().GetInverse();
+
+  using AffineTransformType = itk::AffineTransform<double, Dimension>;
+  auto transform = AffineTransformType::New();
+  transform->SetMatrix(direction);
+
+  typename InputImageType::PointType originLPS = transform->TransformPoint(origin);
+  options.isocenter[0] *= -1.;
+  options.isocenter[1] *= -1.;
+  typename InputImageType::PointType isocenterLPS = transform->TransformPoint(options.isocenter);
+  options.isocenter[0] = isocenterLPS[0];
+  options.isocenter[1] = isocenterLPS[1];
+  options.isocenter[2] = isocenterLPS[2];
+
+  transform->SetIdentity();
+  typename InputImageType::DirectionType identity = transform->GetMatrix(); // RAI orientation, unity matrix
+
+  filter->SetOutputOrigin(originLPS);
+  filter->ChangeOriginOn();
+  filter->SetOutputDirection(identity);
+  filter->ChangeDirectionOn();
+  try
+  {
+    filter->UpdateOutputInformation();
+    inputImagePointer = filter->GetOutput();
+  }
+  catch ( itk::ExceptionObject& excep )
+  {
+    throw;
+  }
+
   using ThresholdFilterType = itk::ThresholdImageFilter< InputImageType >;
   typename ThresholdFilterType::Pointer thresholdFilter = ThresholdFilterType::New();
 
@@ -305,6 +349,32 @@ int DoIt( int argc, char * argv[], Drr_options& options, TPixel )
     rescale->SetOutputMaximum(options.autoscale_range[1]);
     rescale->SetInput(drrReader->GetOutput());
 
+    // flip image data in case of original image direction (orientation) isn't LPS
+    typename InputImageType::DirectionType identity;
+    identity.SetIdentity();
+    
+    using FlipImageFilterType = itk::FlipImageFilter< PlmDrrImageType >;
+    FlipImageFilterType::FlipAxesArrayType flipAxes;
+    auto flipFilter = FlipImageFilterType::New();
+    
+    if (originalDirection != identity)
+    {
+      flipAxes[0] = false;
+      flipAxes[1] = true;
+      flipFilter->SetFlipAxes(flipAxes);
+      flipFilter->SetInput(rescale->GetOutput());
+      std::cout << "Original volume orientation isn't LPS" << std::endl;
+
+      try
+      {
+        flipFilter->Update();
+      }
+      catch ( itk::ExceptionObject& excep )
+      {
+        throw;
+      }
+    }
+  
     // write data into Slicer
     using WriterType = itk::ImageFileWriter< PlmDrrImageType >;
     WriterType::Pointer writer = WriterType::New();
@@ -316,7 +386,14 @@ int DoIt( int argc, char * argv[], Drr_options& options, TPixel )
       // invert
       using InvertFilterType = itk::InvertIntensityImageFilter< PlmDrrImageType, PlmDrrImageType >;
       InvertFilterType::Pointer invert = InvertFilterType::New();
-      invert->SetInput(rescale->GetOutput());
+      if (originalDirection != identity) // Flip image filter if original volume orientation isn't LPS
+      {
+        invert->SetInput( flipFilter->GetOutput() );
+      }
+      else
+      {
+        invert->SetInput( rescale->GetOutput() );
+      }
       invert->SetMaximum(options.autoscale_range[0]);
 
       // inverted input
@@ -333,7 +410,14 @@ int DoIt( int argc, char * argv[], Drr_options& options, TPixel )
     }
     else
     {
-      writer->SetInput( rescale->GetOutput() );
+      if (originalDirection != identity) // Flip image filter if original volume orientation isn't LPS
+      {
+        writer->SetInput( flipFilter->GetOutput() );
+      }
+      else
+      {
+        writer->SetInput( rescale->GetOutput() );
+      }
 
       try
       {

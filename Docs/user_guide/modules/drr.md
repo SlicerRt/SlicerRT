@@ -50,24 +50,56 @@ based on [plastimatch drr](http://www.plastimatch.org/drr.html) ones.
 
 ### Graphical User Interface loadable module (GUI)
 
-![image](https://user-images.githubusercontent.com/3785912/118298680-726b9e80-b4e8-11eb-8a39-c5e607459e62.png)
+![image](https://private-user-images.githubusercontent.com/3785912/294439297-c315f0db-9ab7-4a91-9eaa-10a4698d7cd8.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDQ0NDQ3NzMsIm5iZiI6MTcwNDQ0NDQ3MywicGF0aCI6Ii8zNzg1OTEyLzI5NDQzOTI5Ny1jMzE1ZjBkYi05YWI3LTRhOTEtOWVhYS0xMGE0Njk4ZDdjZDgucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDEwNSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMDVUMDg0NzUzWiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9MmYyNGIzYmNmYjM2ZDI0YWU0NGFiM2RiYjg0ZGE4ZDQ3NGIyMjFiYWNkMmQ2Y2Y4MzlmY2I2OWI0MGUzZDI3YyZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.J_kchHVITj00Qsd6Z84Wujp8kEXvknmQYZ9SoiWgqbA)
 
 Loadable GUI module "DRR Image Computation" uses CLI module's logic and nodes data to calculate
 and visualize DRR image. It also shows basic detector elements such as: detector boundary,
 detector normal vector, detector view-up vector, detector image origin (0,0) pixel,
 image subwindow boundary as markups data on a slice and 3D views.
 
-Markups data is only for WYSIWYG purpose.
+This module _partially_ supports calculation of DRR for orientated CT volumes,
+if IJKToRASDirection matrix of the volume isn't as below.
+
+| -1  0 0 0 |
+|  0 -1 0 0 |
+|  0  0 1 0 |
+|  0  0 0 1 |
+
+The markups data is only for WYSIWYG purpose.
 
 #### Reference input nodes
 
-![image](https://user-images.githubusercontent.com/3785912/118298709-7e576080-b4e8-11eb-8c2b-b1a4f8222eba.png)
+![image](https://private-user-images.githubusercontent.com/3785912/294439383-a0718f87-81bf-4a9f-880b-34876a6152ed.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDQ0NDQ3NzMsIm5iZiI6MTcwNDQ0NDQ3MywicGF0aCI6Ii8zNzg1OTEyLzI5NDQzOTM4My1hMDcxOGY4Ny04MWJmLTRhOWYtODgwYi0zNDg3NmE2MTUyZWQucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDEwNSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMDVUMDg0NzUzWiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9NzNlYWI1MDk2M2Q0MzQ3NWQ5MzZhMWNiMzlmNmVmNmQ0NzFkNDQ5Y2U1YjBmNDE5NzZlNTYzM2E1NGEyYjY3NSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.ZrUVivDARk6G1kLMgdk36E3r-z0UzOV7SLK2OUBZzbg)
 
 1. **CT volume**: Input CT data
 2. **RT beam**: Input RT beam (vtkMRMLRTBeamNode) for source and detector orientation parameters
 2. **Camera**: Camera node (vtkMRMLCameraNode) to update if needed beam geometry and transformation
 3. **Update beam**: Update beam geometry and transformation using camera node data 
-4. **Show DRR markups**: Show or hide detector markups
+4. **Volume direction to LPS transform matrix**: The matrix widget shows elements of the transformation matrix R
+    The volume direction to LPS transform matrix _R_
+    can be applied to the volume, to make IJKToRASDirectionMatrix of the volume a LPS orientated
+    after hardening the transform.
+
+    If IJKToRASDirection matrix _A_ isn't LPS transform
+
+          | a11 a12 a13 a14 |    | -1  0 0 0 |
+    _A_ = | a21 a22 a23 a24 | != |  0 -1 0 0 |
+          | a31 a32 a33 a34 |    |  0  0 1 0 |
+          | a41 a42 a43 a44 |    |  0  0 0 1 |
+
+    the volume direction to LPS transform matrix _R_ can be applied to the volume,
+    by clicking on `Apply transform to volume` button, to make
+    the IJKToRASDirection matrix a LPS orientated after hardening the transform.
+    the matrix transformation:
+
+                   | -1  0 0 0 |
+    _R_ = _A_^-1 * |  0 -1 0 0 |
+                   |  0  0 1 0 |
+                   |  0  0 0 1 |
+
+    if matrix _A_ is LPS orientated => matrix _R_ is an identity matrix. 
+
+5. **Show DRR markups**: Show or hide detector markups
 
 CT data is represented by vtkMRMLScalarVolumeNode object. RT beam data is
 represented by vtkMRMLRTBeamNode object. Camera data is represented by vtkMRMLCameraNode object.
@@ -76,27 +108,33 @@ represented by vtkMRMLRTBeamNode object. Camera data is represented by vtkMRMLCa
 
 ![image](https://user-images.githubusercontent.com/3785912/107616499-40d00680-6c5f-11eb-9d45-c6cccc9e12cd.png)
 
-4. **Isocenter to imager distance**: Distance from isocenter to detector center in mm
-5. **Imager resolution (columns, rows)**: Detector resolution in pixels
-6. **Imager spacing in mm (columns, rows)**: Detector spacing in mm
-7. **Image window parameters**:  Use and setup image subwindow or a whole detector
+6. **Isocenter to imager distance**: Distance from isocenter to detector center in mm
+7. **Imager resolution (columns, rows)**: Detector resolution in pixels
+8. **Imager spacing in mm (columns, rows)**: Detector spacing in mm
+9. **Image window parameters**:  Use and setup image subwindow or a whole detector
 
 #### Image Window Parameters
-8. **Columns**: Number of image columns in subwindow 
-9. **Rows**: Number of image rows in subwindow
+10. **Columns**: Number of image columns in subwindow 
+11. **Rows**: Number of image rows in subwindow
+
+#### Markups perspective projection on the imager plane
+
+![image](https://private-user-images.githubusercontent.com/3785912/294439414-d1bbb6ac-4838-47a7-88fc-9ec76bfe19b2.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDQ0NDQ3NzMsIm5iZiI6MTcwNDQ0NDQ3MywicGF0aCI6Ii8zNzg1OTEyLzI5NDQzOTQxNC1kMWJiYjZhYy00ODM4LTQ3YTctODhmYy05ZWM3NmJmZTE5YjIucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDEwNSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDAxMDVUMDg0NzUzWiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9M2I4NzQ3ZWU0ZWFlOTExZTllZTM1YTMzZjE0OTI2N2VkOWQ0MWEwOTdmYzQ0MGFhMTU0MWFiY2Y0NjdmYTRkNSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.yUYlwYdj9JdqD7CUyS-zFfZ4tV0Yezux__UI35jEUlg)
+
+Calculates projection of fiducial markups points in imager plane.
 
 #### Plastimatch DRR image processing
 
 ![image](https://user-images.githubusercontent.com/3785912/107617306-b38db180-6c60-11eb-9dd1-b2751b23a314.png)
 
-10. **Use exponential mapping**: Apply exponential mapping of output values
-11. **Autoscale**: Automatically rescale intensity
-12. **Invert**: Invert image intensity
-13. **Range**: Range intensity in form (min, max)
-14. **Reconstruction algorithm**: Type of reconstruction algorithm (Type of exposure algorithm in CLI module)
-15. **Hounsfield units conversion**: Type of Hounsfield Units conversion during computation
-16. **Threading**: Type of parallelism of computation
-17. **Hounsfield units threshold**: HU values below threshold are counted as -1000 (Air value)
+12. **Use exponential mapping**: Apply exponential mapping of output values
+13. **Autoscale**: Automatically rescale intensity
+14. **Invert**: Invert image intensity
+15. **Range**: Range intensity in form (min, max)
+16. **Reconstruction algorithm**: Type of reconstruction algorithm (Type of exposure algorithm in CLI module)
+17. **Hounsfield units conversion**: Type of Hounsfield Units conversion during computation
+18. **Threading**: Type of parallelism of computation
+19. **Hounsfield units threshold**: HU values below threshold are counted as -1000 (Air value)
 
 #### Plastimatch DRR command arguments (read only)
 
