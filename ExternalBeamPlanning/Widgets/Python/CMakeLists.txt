@@ -11,6 +11,7 @@ set(DoseEngines_PYTHON_SCRIPTS
   # EGSnrcUtil
   # OrthovoltageDoseEngineUtil
   # OrthovoltageDoseEngine
+  pyRadPlanEngine
   )
 
 set(DoseEngines_PYTHON_RESOURCES
