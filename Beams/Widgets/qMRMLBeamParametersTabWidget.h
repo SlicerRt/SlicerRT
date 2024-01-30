@@ -99,6 +99,19 @@ public:
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, QStringList options, int defaultIndex );
 
+
+  /// Update existing combo box of multiple choice beam parameter in the beam parameters widget
+  /// \param tabName Name of the tab in the beam parameters widget the parameter is updated in
+  /// \param parameterName Name of the beam parameter. This is prefixed with the dose engine name
+  ///   and added to the beam node as attribute
+  /// \param parameterLabel Text to be shown in the beam parameters widget in the left column
+  /// \param tooltip Tooltip describing the beam parameter that pop up on the parameter widget
+  /// \param options List of options in the combobox. Their order defines the index for \sa defaultIndex
+  /// \param defaultIndex Default selection in the combobox
+  void updateBeamParameterComboBox(
+    QString tabName, QString parameterName, QString parameterLabel,
+    QString tooltip, QStringList options, int defaultIndex);
+
   /// Add new boolean type beam parameter to beam parameters widget as a check box
   /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
   /// \param parameterName Name of the beam parameter. This is prefixed with the dose engine name

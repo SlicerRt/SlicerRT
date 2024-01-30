@@ -23,10 +23,9 @@
 #ifndef __qSlicerScriptedDoseEngine_h
 #define __qSlicerScriptedDoseEngine_h
 
-// Dose engines includes
-#include "qSlicerAbstractDoseEngine.h"
-
+// ExternalBeamPlanning includes
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
+#include "qSlicerAbstractDoseEngine.h"
 
 // Forward Declare PyObject*
 #ifndef PyObject_HEAD
@@ -41,7 +40,7 @@ class qSlicerScriptedDoseEnginePrivate;
 /// This class provides an interface to engines implemented in python.
 /// USAGE: Subclass AbstractScriptedDoseEngine in Python subfolder,
 ///   and register engine by creating this class and setting python source to implemented
-///   engine subclass. One example is the MockScriptedDoseEngine.
+///   engine subclass.
 ///
 class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerScriptedDoseEngine
   : public qSlicerAbstractDoseEngine
@@ -66,6 +65,14 @@ public:
   /// \sa name
   void setName(QString name) override;
 
+  /// Set the inverse planning capability bool
+  /// \sa isInverse
+  void setIsInverse(bool isInverse) override;
+
+  /// Set the ion plan capability bool
+  /// \sa canDoIonPlan
+  void setCanDoIonPlan(bool isInverse) override;
+
 // Dose calculation related functions (API functions to call from the subclass)
 protected:
   /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic
@@ -79,9 +86,21 @@ protected:
     vtkMRMLRTBeamNode* beamNode,
     vtkMRMLScalarVolumeNode* resultDoseVolumeNode );
 
+  /// Calculate dose influence matrix for a single beam. Called by \sa CalculateDoseInfluenceMatrix that performs actions generic
+  /// to any dose engine before and after calculation.
+  /// This is the method that needs to be implemented in an engine if dose influence matrix calculation is supported.
+  ///
+  /// \param beamNode Beam for which the dose is calculated. Each beam has a parent plan from which the
+  ///   plan-specific parameters are got
+  /// \param resultDoseVolumeNode Output volume node for the result dose. It is created by \sa CalculateDoseInfluenceMatrix
+  virtual QString calculateDoseInfluenceMatrixUsingEngine(
+      vtkMRMLRTBeamNode* beamNode);
+
   /// Define engine-specific beam parameters.
   /// This is the method that needs to be implemented in each engine.
   void defineBeamParameters() override;
+
+  void updateBeamParametersForIonPlan(bool isIonPlanActive) override;
 
 protected:
   QScopedPointer<qSlicerScriptedDoseEnginePrivate> d_ptr;

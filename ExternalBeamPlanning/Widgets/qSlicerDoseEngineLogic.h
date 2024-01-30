@@ -21,6 +21,7 @@
 #ifndef __qSlicerDoseEngineLogic_h
 #define __qSlicerDoseEngineLogic_h
 
+// ExternalBeamPlanning includes
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
 // SlicerQt includes
@@ -60,6 +61,9 @@ public:
 
   /// Calculate dose for a plan
   Q_INVOKABLE QString calculateDose(vtkMRMLRTPlanNode* planNode);
+
+  /// Calculate dose influence matrix for a plan
+  Q_INVOKABLE QString calculateDoseInfluenceMatrix(vtkMRMLRTPlanNode* planNode);
 
   /// Accumulate per-beam dose volumes for each beam under given plan. The accumulated
   /// total dose is

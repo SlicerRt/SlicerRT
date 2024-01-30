@@ -1,0 +1,258 @@
+/*==============================================================================
+
+  Copyright (c) German Cancer Research Center (DKFZ),
+  Heidelberg, Germany. All Rights Reserved.
+
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  This file was originally developed by Lina Bucher, German Cancer
+  Research Center (DKFZ) and Institute for Biomedical Engineering (IBT),
+  Karlsruhe Institute of Technology (KIT).
+
+==============================================================================*/
+
+// ExternalBeamPlanning includes
+#include "qSlicerMockPlanOptimizer.h"
+#include "qSlicerSquaredDeviationObjective.h"
+
+// Beams includes
+#include "vtkMRMLRTPlanNode.h"
+#include "vtkMRMLRTBeamNode.h"
+
+// MRML includes
+#include "vtkMRMLScalarVolumeNode.h"
+#include <vtkMRMLRTObjectiveNode.h>
+
+// VTK includes
+#include <vtkSmartPointer.h>
+#include <vtkImageData.h>
+
+// Slicer includes
+#include <vtkImageReslice.h>
+
+// Qt includes
+#include <QDebug>
+
+
+//----------------------------------------------------------------------------
+qSlicerMockPlanOptimizer::qSlicerMockPlanOptimizer(QObject* parent)
+  : qSlicerAbstractPlanOptimizer(parent)
+{
+  this->m_Name = QString("Mock Optimizer");
+}
+
+//----------------------------------------------------------------------------
+qSlicerMockPlanOptimizer::~qSlicerMockPlanOptimizer() = default;
+
+//---------------------------------------------------------------------------  
+QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode)  
+{  
+  // Get reference Volume  
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();  
+  if (!planNode || !referenceVolumeNode || !resultOptimizationVolumeNode)  
+  {  
+    QString errorMessage("Unable to access reference volume");  
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;  
+    return errorMessage;  
+  }  
+
+  // Create total dose image data from reference volume
+  vtkNew<vtkImageData> totalDoseImageData;
+  totalDoseImageData->CopyStructure(referenceVolumeNode->GetImageData());
+  totalDoseImageData->AllocateScalars(VTK_FLOAT, 1);
+
+  // Get beam names
+  int numberOfBeams = planNode->GetNumberOfBeams();
+  std::vector<std::string> beamNames;  
+  int tried_beam_index = 0;  
+  while (beamNames.size() < numberOfBeams)
+  {  
+    vtkMRMLRTBeamNode* beam = planNode->GetBeamByNumber(tried_beam_index);  
+    if (beam != nullptr)
+    {  
+      beamNames.push_back(beam->GetName());  
+    }  
+    tried_beam_index++;  
+  }
+
+  // Calculate dose for each beamNode and add to total dose
+  for (int i = 0; i < planNode->GetNumberOfBeams(); i++)  
+  {  
+    // Update progress
+    QString info = "Beam " + QString::number(i+1) + "/" + QString::number(planNode->GetNumberOfBeams());
+    this->progressInfoUpdated(info);
+    
+    vtkMRMLRTBeamNode* beamNode = planNode->GetBeamByName(beamNames[i]);  
+    if (!beamNode)
+    {
+      QString errorMessage("Invalid beam node");
+      qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+      return errorMessage;
+    }
+    vtkMRMLRTBeamNode::DoseInfluenceMatrixType doseInfluenceMatrix = beamNode->GetDoseInfluenceMatrix();  
+    if (doseInfluenceMatrix.rows() == 0 || doseInfluenceMatrix.cols() == 0)  
+    {  
+      QString errorMessage("Dose influence matrix is empty");  
+      qCritical() << Q_FUNC_INFO << ": " << errorMessage;  
+      return errorMessage;  
+    }  
+
+    // Multipy dose influence matrix with uniform fluence
+    Eigen::VectorXd vector = Eigen::VectorXd::Ones(doseInfluenceMatrix.rows());  
+    Eigen::VectorXd dose = doseInfluenceMatrix * vector;
+
+    // Get dose grid dimensions & spacing
+    int doseGridDim[3];
+    beamNode->GetDoseGridDim(doseGridDim);
+
+    double doseGridSpacing[3];
+    beamNode->GetDoseGridSpacing(doseGridSpacing);
+
+    bool resample = true;
+    if (doseGridDim[0] <= 0 || doseGridDim[1] <= 0 || doseGridDim[2] <= 0)
+    {
+      // If dose grid dimensions are not set, use reference volume dimensions
+      qWarning() << Q_FUNC_INFO << ": Dose grid dimensions are not set for beam" << beamNode->GetName();
+      qWarning() << Q_FUNC_INFO << ": Using reference volume dimensions instead.";
+      doseGridDim[0] = referenceVolumeNode->GetImageData()->GetDimensions()[0];
+      doseGridDim[1] = referenceVolumeNode->GetImageData()->GetDimensions()[1];
+      doseGridDim[2] = referenceVolumeNode->GetImageData()->GetDimensions()[2];
+      resample = false;
+    }
+
+    if (doseGridSpacing[0] <= 0 || doseGridSpacing[1] <= 0 || doseGridSpacing[2] <= 0)
+    {
+      // If dose grid spacing is not set, use reference volume spacing
+      qWarning() << Q_FUNC_INFO << ": Dose grid spacing not set for beam" << beamNode->GetName();
+      qWarning() << Q_FUNC_INFO << ": Using reference volume spacing instead.";
+      referenceVolumeNode->GetImageData()->GetSpacing(doseGridSpacing);
+      resample = false;
+    }
+
+    // Set new dose grid spacing in planNode if necessary
+    if (doseGridSpacing != planNode->GetDoseGridSpacing())
+    {
+      planNode->SetDoseGridSpacing(doseGridSpacing);
+    }
+
+    // Create volumeNode for dose of beam
+    int N_x = static_cast<int>(doseGridDim[0]);
+    int N_y = static_cast<int>(doseGridDim[1]);
+    int N_z = static_cast<int>(doseGridDim[2]);
+    vtkNew<vtkImageData> doseImageData;
+    doseImageData->SetDimensions(N_x, N_y, N_z);
+    doseImageData->SetSpacing(reinterpret_cast<double*>(doseGridSpacing));
+    doseImageData->AllocateScalars(VTK_FLOAT, 1);
+          
+    // Fill with dose (according to doseGridDim)
+    float* vtkPtr = static_cast<float*>(doseImageData->GetScalarPointer());
+    for (int i = 0; i < dose.size(); ++i)
+    {
+      vtkPtr[i] = static_cast<float>(dose[i]);
+    }
+
+    // Resample image if necessary and get dosPtr
+    float* dosePtr;
+    if (resample)
+    {
+      // Create reslice filter for interpolation
+      vtkNew<vtkImageReslice> resliceFilter;
+      resliceFilter->SetInputData(doseImageData);
+      resliceFilter->SetOutputSpacing(referenceVolumeNode->GetSpacing());
+      resliceFilter->SetOutputExtent(referenceVolumeNode->GetImageData()->GetExtent());
+      resliceFilter->SetInterpolationModeToLinear();
+      resliceFilter->Update();
+
+      // Get resampled dose image
+      vtkNew<vtkImageData> resampledDoseImageData;
+      resampledDoseImageData->DeepCopy(resliceFilter->GetOutput());
+      if (!resampledDoseImageData || resampledDoseImageData->GetNumberOfPoints() == 0)
+      {
+        QString errorMessage("Dose resampling failed or resulted in empty data");
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+      }
+      if (resampledDoseImageData->GetNumberOfPoints() != totalDoseImageData->GetNumberOfPoints())
+      {
+        QString errorMessage("Number of points in resampled dose and total dose don't match! (Should match referenceVolume.)");
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+      }
+      // Add resampled dose to total dose
+      float* totalDosePtr = static_cast<float*>(totalDoseImageData->GetScalarPointer());
+      float* dosePtr = static_cast<float*>(resampledDoseImageData->GetScalarPointer());
+      if (!totalDosePtr || !dosePtr)
+      {
+        QString errorMessage("Invalid pointer in total or resampled beam dose data!");
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+      }
+      for (int i = 0; i < totalDoseImageData->GetNumberOfPoints(); ++i)
+      {
+        totalDosePtr[i] += dosePtr[i];
+      }
+    }
+    else
+    {
+      // No resampling needed, use original dose image data
+      if (doseImageData->GetNumberOfPoints() != totalDoseImageData->GetNumberOfPoints())
+      {
+        QString errorMessage("Number of points in dose and total dose don't match! (Should match referenceVolume.)");
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+      }
+      // Add dose to total dose
+      float* totalDosePtr = static_cast<float*>(totalDoseImageData->GetScalarPointer());
+      float* dosePtr = static_cast<float*>(doseImageData->GetScalarPointer());
+      if (!totalDosePtr || !dosePtr)
+      {
+        QString errorMessage("Invalid pointer in total dose or beam dose data!");
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+      }
+      for (int i = 0; i < totalDoseImageData->GetNumberOfPoints(); ++i)
+      {
+        totalDosePtr[i] += dosePtr[i];
+      }
+    }
+  }
+   
+  // Set image
+  resultOptimizationVolumeNode->SetAndObserveImageData(totalDoseImageData);
+  resultOptimizationVolumeNode->CopyOrientation(referenceVolumeNode);
+
+  std::string randomDoseNodeName = std::string(planNode->GetName()) + "_MockOptimizer";
+  resultOptimizationVolumeNode->SetName(randomDoseNodeName.c_str());
+
+  return QString();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerMockPlanOptimizer::setAvailableObjectives()
+{
+  // Example procedure to pass C++ objective (only name and parameters) to optimizer (& therefore to objective table)
+  // NOT used yet in optimization!
+  
+  // Get objective
+  qSlicerSquaredDeviationObjective* squaredDeviationObjective1 = new qSlicerSquaredDeviationObjective();
+
+  // Create objectiveStruct
+  qSlicerAbstractPlanOptimizer::ObjectiveStruct* objectiveStruct1 = new qSlicerAbstractPlanOptimizer::ObjectiveStruct();
+    
+  // Fill objectiveStruct with name and parameters from objective
+  objectiveStruct1->name = squaredDeviationObjective1->name();
+  objectiveStruct1->parameters = squaredDeviationObjective1->getObjectiveParameters();
+
+  // Create vector of objectives
+  std::vector<qSlicerAbstractPlanOptimizer::ObjectiveStruct> objectiveStructs;
+  objectiveStructs.push_back(*objectiveStruct1);
+
+  this->availableObjectives = objectiveStructs;
+}

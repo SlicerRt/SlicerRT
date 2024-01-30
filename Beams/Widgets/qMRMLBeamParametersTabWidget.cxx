@@ -569,6 +569,70 @@ void qMRMLBeamParametersTabWidget::addBeamParameterComboBox(
 }
 
 //-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::updateBeamParameterComboBox(
+  QString tabName, QString parameterName, QString parameterLabel,  
+  QString tooltip, QStringList options, int defaultIndex)  
+{
+  /// needed e.g. to update radiation mode in pyRadPlan's beam parameters when IonPlan checkbox toggled
+  
+  // Get tab to which the combo box belongs  
+  QWidget* tabWidget = this->beamParametersTab(tabName);
+  if (!tabWidget)
+  {
+    qCritical() << Q_FUNC_INFO << ": Unable to access widget for beam parameters tab named " << tabName;
+    return;
+  }
+  
+  QFormLayout* tabLayout = qobject_cast<QFormLayout*>(tabWidget->layout());
+  if (!tabLayout)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid layout in beam parameters tab named " << tabName;
+    return;
+  }
+  
+  // Go through the layout rows to find the parameter  
+  for (int currentRow = 0; currentRow < tabLayout->rowCount(); ++currentRow)
+  {
+    QWidget* currentParameterFieldWidget = tabLayout->itemAt(currentRow, QFormLayout::FieldRole)->widget();
+    if (parameterName == currentParameterFieldWidget->property(BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY).toString())
+    {
+      // check that the widget is a combo box
+      QComboBox* comboBox = qobject_cast<QComboBox*>(currentParameterFieldWidget);
+      if (!comboBox)
+      {
+        qCritical() << Q_FUNC_INFO << ": Invalid combo box in beam parameters tab named " << tabName;
+        return;
+      }
+      
+      QObject::disconnect(comboBox, SIGNAL(currentIndexChanged(int)), nullptr, nullptr);
+      
+      // Clear existing items and add new options
+      comboBox->clear();
+      foreach(QString option, options)
+      {
+        comboBox->addItem(option);
+      }
+      comboBox->setToolTip(tooltip);
+      comboBox->setCurrentIndex(defaultIndex);
+      comboBox->setProperty(BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY, parameterName);
+      connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(integerBeamParameterChanged(int)));
+      
+      // update parameter label (shown in left column of beam parameters tab)
+      QWidget* currentParameterLabelWidget = tabLayout->itemAt(currentRow, QFormLayout::LabelRole)->widget();
+      if (currentParameterLabelWidget)
+      {
+        QLabel* label = qobject_cast<QLabel*>(currentParameterLabelWidget);
+        if (label)
+        {
+          label->setText(parameterLabel);
+        }
+      }
+      break;
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
 void qMRMLBeamParametersTabWidget::addBeamParameterCheckBox(
   QString tabName, QString parameterName, QString parameterLabel,
   QString tooltip, bool defaultValue, QStringList dependentParameterNames/*=QStringList()*/ )

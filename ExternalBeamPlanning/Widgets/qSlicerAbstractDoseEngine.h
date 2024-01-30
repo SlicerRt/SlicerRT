@@ -21,6 +21,7 @@
 #ifndef __qSlicerAbstractDoseEngine_h
 #define __qSlicerAbstractDoseEngine_h
 
+// ExternalBeamPlanning includes
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
 // Qt includes
@@ -45,6 +46,8 @@ class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerAbstractDoseEng
   /// Cannot be empty.
   /// \sa name(), \sa setName()
   Q_PROPERTY(QString name READ name WRITE setName)
+  Q_PROPERTY(bool isInverse READ isInverse WRITE setIsInverse)
+  Q_PROPERTY(bool canDoIonPlan READ canDoIonPlan WRITE setCanDoIonPlan)
 
 public:
   /// Maximum Gray value for visualization window/level of the newly created per-beam dose volumes
@@ -63,12 +66,30 @@ public:
   /// NOTE: name must be defined in constructor in C++ engines, this can only be used in python scripted ones
   virtual void setName(QString name);
 
+  /// Inverse dose calculation capabilities
+  bool isInverse()const;
+
+  /// Set inverse capabilities
+  /// NOTE: this can only be used in python scripted ones
+  virtual void setIsInverse(bool isInverse);
+
+  /// Ion plan capabilities
+  bool canDoIonPlan()const;
+
+  /// Set ion planing capabilities
+  virtual void setCanDoIonPlan(bool canDoIonPlan);
+
 // Dose calculation related functions
 public:
   /// Perform dose calculation for a single beam
   /// \param Beam node for which the dose is calculated
   /// \return Error message. Empty string on success
   QString calculateDose(vtkMRMLRTBeamNode* beamNode);
+
+  /// Perform dose influence matrix calculation for a single beam
+  /// \param Beam node for which the dose is calculated
+  /// \return Error message. Empty string on success
+  QString calculateDoseInfluenceMatrix(vtkMRMLRTBeamNode* beamNode);
 
   /// Get result per-beam dose volume for given beam
   vtkMRMLScalarVolumeNode* getResultDoseForBeam(vtkMRMLRTBeamNode* beamNode);
@@ -92,9 +113,22 @@ protected:
     vtkMRMLRTBeamNode* beamNode,
     vtkMRMLScalarVolumeNode* resultDoseVolumeNode ) = 0;
 
+  /// Calculate dose influence matrix for a single beam. Called by \sa CalculateDoseInfluenceMatrix that performs actions generic
+  /// to any dose engine before and after calculation.
+  /// This is the method that needs to be implemented in an engine if dose influence matrix calculation is supported.
+  ///
+  /// \param beamNode Beam for which the dose is calculated. Each beam has a parent plan from which the
+  ///   plan-specific parameters are got
+  /// \param resultDoseVolumeNode Output volume node for the result dose. It is created by \sa CalculateDose
+  virtual QString calculateDoseInfluenceMatrixUsingEngine(
+      vtkMRMLRTBeamNode* beamNode);
+
   /// Define engine-specific beam parameters.
   /// This is the method that needs to be implemented in each engine.
   virtual void defineBeamParameters() = 0;
+
+  /// Update beam parameters for engine according to ion plan flag.
+  virtual void updateBeamParametersForIonPlan(bool ionPlanFlag);
 
 // Dose calculation related functions (functions to call from the subclass).
 // Public so that they can be called from python.
@@ -157,6 +191,17 @@ public:
   Q_INVOKABLE void addBeamParameterComboBox(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, QStringList options, int defaultIndex );
+
+  /// Update existing beam parameter combo box in the beam parameters widget
+  /// \param tabName Name of the tab in the beam parameters widget the parameter is updated in
+  /// \param parameterName Name of the beam parameter that is updated.
+  /// \param parameterLabel Text to be shown in the beam parameters widget in the left column
+  /// \param tooltip Tooltip describing the beam parameter that pop up on the parameter widget
+  /// \param options List of options in the combobox. Their order defines the index for \sa defaultIndex
+  /// \param defaultIndex Default selection in the combobox
+  Q_INVOKABLE void updateBeamParameterComboBox(
+    QString tabName, QString parameterName, QString parameterLabel,
+    QString tooltip, QStringList options, int defaultIndex);
 
   /// Add new boolean type beam parameter to beam parameters widget as a check box
   /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
@@ -236,6 +281,14 @@ private:
 protected:
   /// Name of the engine. Must be set in dose engine constructor
   QString m_Name;
+  
+  /// Is the dose engine inverse? (i.e. it is able to calculate a beamlet dose matrix for optimization)
+  /// Is false by default, but can be set in the dose engine constructor
+  bool m_IsInverse = false;
+
+  /// Can the dose engine do ion plan? (i.e. it is able to calculate a dose for ion beams)
+  /// Is false by default, but can be set in the dose engine constructor
+  bool m_CanDoIonPlan = false;
 
   /// List of registered tab widgets. Static so that it is common to all engines.
   static QSet<qMRMLBeamParametersTabWidget*> m_BeamParametersTabWidgets;

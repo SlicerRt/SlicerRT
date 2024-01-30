@@ -12,7 +12,8 @@ import importlib
 import traceback
 engineNames = [
   # "MockPythonDoseEngine",
-  # "OrthovoltageDoseEngine"
+  # "OrthovoltageDoseEngine",
+  "pyRadPlanEngine"
   ]
 for engineName in engineNames:
   try:
