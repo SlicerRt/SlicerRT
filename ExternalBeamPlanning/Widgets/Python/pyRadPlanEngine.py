@@ -211,7 +211,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
                 'y': referenceVolumeNode.GetSpacing()[1],
                 'z': referenceVolumeNode.GetSpacing()[2]
                 },
-            'cubeDim': referenceVolumeNode.GetImageData().GetDimensions(),
+            'cubeDim': referenceVolumeNode.GetImageData().GetDimensions(), #Matlab stores everything as double, but this should probably be handled internally
             'numOfCtScen': 1,
             'cubeHU': cubeHU
         }
@@ -223,9 +223,9 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         origin = ijkToRASDirections @ origin
 
         
-        ct['x'] =  ct['resolution']['x']*np.arange(0,ct['cubeDim'][1]).astype(np.double) - ct['resolution']['x']/2.0 - abs(origin[0])
-        ct['y'] =  ct['resolution']['y']*np.arange(0,ct['cubeDim'][0]).astype(np.double) - ct['resolution']['y']/2.0 - abs(origin[1])
-        ct['z'] =  ct['resolution']['z']*np.arange(0,ct['cubeDim'][2]).astype(np.double) - ct['resolution']['z']/2.0 - abs(origin[2])
+        ct['x'] =  ct['resolution']['x']*np.arange(0,ct['cubeDim'][1]).astype(np.double) - ct['resolution']['x']/2.0 + origin[0]
+        ct['y'] =  ct['resolution']['y']*np.arange(0,ct['cubeDim'][0]).astype(np.double) - ct['resolution']['y']/2.0 + origin[1]
+        ct['z'] =  ct['resolution']['z']*np.arange(0,ct['cubeDim'][2]).astype(np.double) - ct['resolution']['z']/2.0 + origin[2]
 
         #ct['SliceThickness'] = np.ones(ct['cubeDim'][2])*ct['resolution']['z'] # ???? data.SliceThickness = ct['resolution']['z']
         ct['number_of_voxels'] = np.prod(ct['cubeDim'])
@@ -286,7 +286,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
             index += 1
 
 
-        # MATLAB format (needed at the moment to run Matlab functions)
+        # MATLAB format (needed at the moment to run Matlab functions) - should be handled internally by pyRadPlan
         cstForMat = np.empty((len(cst),6), dtype=object)
         
 
@@ -295,10 +295,10 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
             cellArrayIndices = np.empty((1,1), dtype=object)
             cellArrayDose = np.empty((1,1), dtype=object)
             cellArrayDoseParameters = np.empty((1,1), dtype=object)
-            print('Converting segmentation: ' + id + ' into matRad/pyRadPlan cst format')
+            # print('Converting segmentation: ' + id + ' into matRad/pyRadPlan cst format')
             cellArrayIndices[0][0] = np.double(cst[id]['raw_indices']).reshape(-1,1) #???
 
-            print('Number of voxels in Segmentation: ' + str(len(cellArrayIndices[0][0])))
+            # print('Number of voxels in Segmentation: ' + str(len(cellArrayIndices[0][0])))
             
             cellArrayDoseParameters[0][0] = cst[id]['doseConstraint'][0]
             cellArrayDose[0][0] = {'className' : 'DoseObjectives.matRad_'+cst[id]['doseObjective'],
@@ -337,7 +337,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
         isocenter = [0]*3
         parentPlanNode.GetIsocenterPosition(isocenter)
-        isocenter = ijkToRASDirections @ np.array(isocenter) - np.array(origin)
+        isocenter = ijkToRASDirections @ np.array(isocenter) - np.array(origin) + np.array(referenceVolumeNode.GetSpacing())/2.0
 
         pln = {
             "radiationMode": ['photons','proton','carbon'][int(self.scriptedEngine.doubleParameter(beamNode,'radiationMode'))],
