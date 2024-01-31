@@ -193,6 +193,12 @@ void qSlicerScriptedDoseEngine::setName(QString name)
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerScriptedDoseEngine::setIsInverse(bool isInverse)
+{
+  this->m_IsInverse = isInverse;
+}
+
+//-----------------------------------------------------------------------------
 QString qSlicerScriptedDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode)
 {
   Q_D(const qSlicerScriptedDoseEngine);

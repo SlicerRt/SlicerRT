@@ -66,6 +66,10 @@ public:
   /// \sa name
   void setName(QString name) override;
 
+  /// Set the inverse planning capability bool
+  /// \sa isInverse
+  void setIsInverse(bool isInverse) override;
+
 // Dose calculation related functions (API functions to call from the subclass)
 protected:
   /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic

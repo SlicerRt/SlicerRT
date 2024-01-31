@@ -12,6 +12,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
     def __init__(self, scriptedEngine):
         scriptedEngine.name = 'pyRadPlan'
+        scriptedEngine.isInverse = True #pyRadPlan has Inverse planning capabilities, i.e., it can compute a dose influence matrix
         AbstractScriptedDoseEngine.__init__(self, scriptedEngine)
 
         temp_path = slicer.app.temporaryPath + '/pyRadPlan/'
