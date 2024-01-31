@@ -45,6 +45,7 @@ class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerAbstractDoseEng
   /// Cannot be empty.
   /// \sa name(), \sa setName()
   Q_PROPERTY(QString name READ name WRITE setName)
+  Q_PROPERTY(bool isInverse READ isInverse WRITE setIsInverse)
 
 public:
   /// Maximum Gray value for visualization window/level of the newly created per-beam dose volumes

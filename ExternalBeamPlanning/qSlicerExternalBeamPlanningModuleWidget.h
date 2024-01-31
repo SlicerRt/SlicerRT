@@ -76,6 +76,8 @@ protected slots:
   void isocenterCoordinatesChanged(double* isocenterCoordinates);
   void centerViewToIsocenterClicked();
 
+  void inversePlanningCheckboxStateChanged(int state);
+
   /// Update isocenter controls from isocenter markups fiducial
   void updateIsocenterPosition();
 
