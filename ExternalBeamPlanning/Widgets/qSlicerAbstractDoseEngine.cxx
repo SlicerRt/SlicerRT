@@ -136,6 +136,18 @@ void qSlicerAbstractDoseEngine::registerBeamParametersTabWidget(qMRMLBeamParamet
 }
 
 //----------------------------------------------------------------------------
+bool qSlicerAbstractDoseEngine::isInverse() const
+{
+    return this->m_IsInverse;
+}
+
+void qSlicerAbstractDoseEngine::setIsInverse(bool isInverse)
+{
+    // TODO: is this correct to avoid setting the value except for Python engines?
+    qCritical() << Q_FUNC_INFO << ": Cannot set dose engine name by method, only in constructor";
+}
+
+//----------------------------------------------------------------------------
 QString qSlicerAbstractDoseEngine::calculateDose(vtkMRMLRTBeamNode* beamNode)
 {
   if (!beamNode)
@@ -686,6 +698,7 @@ QString qSlicerAbstractDoseEngine::assembleEngineParameterName(QString parameter
 qMRMLBeamParametersTabWidget* qSlicerAbstractDoseEngine::beamParametersTabWidgetFromBeamsModule()
 {
   // Get tab widget from beams module widget
+  //TODO: Kind of a hack, a direct way of accessing it would be nicer, for example through a MRML node
   qSlicerAbstractCoreModule* module = qSlicerApplication::application()->moduleManager()->module("Beams");
   if (!module)
   {
