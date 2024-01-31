@@ -76,8 +76,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         choose between MatRadEngineOctave or MatRadEngineMatlab
         '''
         eng = engine.MatRadEngineMatlab('matRad')
-        matRadV = eng.engine.matRad_version()
-        print('pyRadPlan uses matRad version: ' + matRadV)
+        engine.setEngine(eng)
 
         # Prepare the ct
         ct = self.prepareCt(beamNode)
@@ -338,7 +337,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
         isocenter = [0]*3
         parentPlanNode.GetIsocenterPosition(isocenter)
-        isocenter = ijkToRASDirections @ np.array(isocenter) - np.array(origin) + np.array(referenceVolumeNode.GetSpacing())/2.0
+        isocenter = ijkToRASDirections @ np.array(isocenter) - np.array(origin)#  + np.array(referenceVolumeNode.GetSpacing())/2.0
 
         pln = {
             "radiationMode": ['photons','proton','carbon'][int(self.scriptedEngine.doubleParameter(beamNode,'radiationMode'))],
@@ -374,7 +373,3 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         matRadIO.save(self.temp_path, 'pln.mat', {'pln': pln})
 
         return pln
-
-
-        
-        
