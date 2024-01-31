@@ -237,6 +237,8 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   connect( d->MRMLSegmentSelectorWidget_TargetStructure, SIGNAL(currentSegmentChanged(QString)), this, SLOT(targetSegmentChanged(const QString&)) );
   connect( d->checkBox_IsocenterAtTargetCenter, SIGNAL(stateChanged(int)), this, SLOT(isocenterAtTargetCenterCheckboxStateChanged(int)));
 
+  connect( d->checkBox_InversePlanning, SIGNAL(stateChanged(int)), this, SLOT(inversePlanningCheckboxStateChanged(int)));
+
   connect( d->comboBox_DoseEngine, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(doseEngineChanged(const QString&)) );
   connect( d->doubleSpinBox_RxDose, SIGNAL(valueChanged(double)), this, SLOT(rxDoseChanged(double)) );
 
@@ -781,6 +783,17 @@ void qSlicerExternalBeamPlanningModuleWidget::updateIsocenterPosition()
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::inversePlanningCheckboxStateChanged(int state)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  //TODO: should we write the inverse planning flag to the plan node?
+
+  // Update dose engines
+  this->updateDoseEngines();
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
@@ -792,9 +805,13 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
     return;
   }
 
+  //Check if Inverse Planning is selected
+  bool inversePlanning = d->checkBox_InversePlanning->isChecked();
+  
+  //Skip update if inverse planning is not active and all registered engines are already in the combobox
   qSlicerDoseEnginePluginHandler::DoseEngineListType engines =
     qSlicerDoseEnginePluginHandler::instance()->registeredDoseEngines();
-  if (engines.size() == d->comboBox_DoseEngine->count())
+  if (!inversePlanning && engines.size() == d->comboBox_DoseEngine->count())
   {
     return;
   }
@@ -805,8 +822,25 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
   for (qSlicerDoseEnginePluginHandler::DoseEngineListType::iterator engineIt = engines.begin();
     engineIt != engines.end(); ++engineIt)
   {
+    // Check if inverse planning is active and if yes skip engines that can't do it  
+    if (inversePlanning && !(*engineIt)->isInverse())
+	{
+	  continue;
+	}
     d->comboBox_DoseEngine->addItem((*engineIt)->name());
   }
+
+  //TODO: Refine sanity handling of the case when no engines are available?
+  if (d->comboBox_DoseEngine->count() == 0)
+  {
+      //qCritical() << Q_FUNC_INFO << ": No dose engines available";
+      d->comboBox_DoseEngine->addItem("No dose engines available");
+      d->comboBox_DoseEngine->setCurrentIndex(0);
+      d->comboBox_DoseEngine->setDisabled(true);
+      return;
+  }
+  else
+      d->comboBox_DoseEngine->setDisabled(false);
 
   // Select previously selected engine
   QString selectedEngineName(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "");
