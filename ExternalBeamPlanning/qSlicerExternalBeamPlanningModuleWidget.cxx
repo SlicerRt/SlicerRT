@@ -49,6 +49,11 @@
 #include "qSlicerAbstractDoseEngine.h"
 #include "qSlicerDoseEngineLogic.h"
 
+// Optimization Engine includes
+#include "qSlicerPlanOptimizerPluginHandler.h"
+#include "qSlicerAbstractPlanOptimizer.h"
+#include "qSlicerPlanOptimizerLogic.h"
+
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
@@ -83,6 +88,8 @@ public:
   bool ModuleWindowInitialized;
   /// Dose engine logic for dose calculation related functions
   qSlicerDoseEngineLogic* DoseEngineLogic;
+  /// Optimization engine logic for optimization related functions
+  qSlicerPlanOptimizerLogic* PlanOptimizerLogic;
 };
 
 //-----------------------------------------------------------------------------
@@ -93,8 +100,10 @@ qSlicerExternalBeamPlanningModuleWidgetPrivate::qSlicerExternalBeamPlanningModul
   : q_ptr(&object)
   , ModuleWindowInitialized(false)
   , DoseEngineLogic(nullptr)
+  , PlanOptimizerLogic(nullptr)
 {
   this->DoseEngineLogic = new qSlicerDoseEngineLogic(&object);
+  this->PlanOptimizerLogic = new qSlicerPlanOptimizerLogic(&object);
 }
 
 //-----------------------------------------------------------------------------
@@ -140,6 +149,9 @@ void qSlicerExternalBeamPlanningModuleWidget::setMRMLScene(vtkMRMLScene* scene)
 
   // Set scene to dose engine logic
   d->DoseEngineLogic->setMRMLScene(scene);
+
+  // Set scene to optimization engine logic
+  d->PlanOptimizerLogic->setMRMLScene(scene);
 
   // Find a plan node and select it if there is one in the scene
   if (scene && d->MRMLNodeComboBox_RtPlan->currentNode())
@@ -257,6 +269,10 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   connect( d->pushButton_CalculateWED, SIGNAL(clicked()), this, SLOT(calculateWEDClicked()) );
   connect( d->pushButton_ClearDose, SIGNAL(clicked()), this, SLOT(clearDoseClicked()) );
 
+  // Plan Optimization
+  connect( d->comboBox_PlanOptimizer, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(PlanOptimizerChanged(const QString&)));
+  connect( d->pushButton_OptimizePlan, SIGNAL(clicked()), this, SLOT(optimizePlanClicked()));
+
   // Connect to progress event
   connect( d->DoseEngineLogic, SIGNAL(progressUpdated(double)), this, SLOT(onProgressUpdated(double)) );
 
@@ -325,6 +341,9 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
 
   // Populate dose engines combobox and make selection
   this->updateDoseEngines();
+
+  // Populate optimiization engines combobox
+  this->updatePlanOptimizers();
 
   // Set prescription
   d->doubleSpinBox_RxDose->setValue(planNode->GetRxDose());
@@ -791,6 +810,14 @@ void qSlicerExternalBeamPlanningModuleWidget::inversePlanningCheckboxStateChange
 
   // Update dose engines
   this->updateDoseEngines();
+
+  // Update Optimization engines
+  this->updatePlanOptimizers();
+
+  if (d->checkBox_InversePlanning->isChecked())
+    d->pushButton_OptimizePlan->setEnabled(true);
+  else
+    d->pushButton_OptimizePlan->setEnabled(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -862,6 +889,71 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
   d->DoseEngineLogic->applyDoseEngineInPlan(planNode);
 
   d->comboBox_DoseEngine->blockSignals(false);
+}
+
+void qSlicerExternalBeamPlanningModuleWidget::updatePlanOptimizers()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!planNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
+    return;
+  }
+
+  //Check if Inverse Planning is selected
+  bool inversePlanning = d->checkBox_InversePlanning->isChecked();
+
+  //Skip update if inverse planning is not active and all registered engines are already in the combobox
+  qSlicerPlanOptimizerPluginHandler::PlanOptimizerListType engines =
+    qSlicerPlanOptimizerPluginHandler::instance()->registeredPlanOptimizers();
+  if (!inversePlanning && engines.size() == d->comboBox_PlanOptimizer->count())
+  {
+    return;
+  }
+
+  d->comboBox_PlanOptimizer->blockSignals(true);
+  d->comboBox_PlanOptimizer->clear();
+
+  for (qSlicerPlanOptimizerPluginHandler::PlanOptimizerListType::iterator engineIt = engines.begin();
+    engineIt != engines.end(); ++engineIt)
+  {
+    d->comboBox_PlanOptimizer->addItem((*engineIt)->name());
+  }
+
+  //TODO: Refine sanity handling of the case when no engines are available?
+  if (d->comboBox_PlanOptimizer->count() == 0)
+  {
+    //qCritical() << Q_FUNC_INFO << ": No dose engines available";
+    d->comboBox_PlanOptimizer->addItem("No optimizers available");
+    d->comboBox_PlanOptimizer->setCurrentIndex(0);
+    d->comboBox_PlanOptimizer->setDisabled(true);
+    return;
+  }
+  else
+    d->comboBox_PlanOptimizer->setDisabled(false);
+
+  // Select previously selected engine
+  QString selectedEngineName(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "");
+  int index = d->comboBox_PlanOptimizer->findText(selectedEngineName);
+  if (index != -1)
+  {
+    d->comboBox_PlanOptimizer->setCurrentIndex(index);
+  }
+  // If previous selection not found (e.g. no selection has been made yet), then select first engine
+  else
+  {
+    d->comboBox_PlanOptimizer->setCurrentIndex(0);
+  }
+  // Apply engine selection (signals are blocked, plus if first index has been selected and it has
+  // not been applied, then it needs to be done now)
+  this->PlanOptimizerChanged(d->comboBox_PlanOptimizer->currentText());
+
+  // Update beam parameter tab visibility
+  //d->PlanOptimizerLogic->applyDoseEngineInPlan(planNode);
+
+  d->comboBox_PlanOptimizer->blockSignals(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -1104,6 +1196,48 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   }
 
   QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::optimizePlanClicked()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::PlanOptimizerChanged(const QString& text)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!planNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
+    return;
+  }
+
+  /**/
+  if (planNode->GetPlanOptimizerName() && !text.compare(planNode->GetPlanOptimizerName()))
+  {
+    return;
+  }
+
+  // Get newly selected dose engine
+  qSlicerAbstractPlanOptimizer* selectedEngine =
+    qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(text.toUtf8().constData());
+  if (!selectedEngine)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access optimization engine with name" << text;
+    return;
+  }
+
+  qDebug() << "Optimization engine selection changed to " << text;
+  planNode->DisableModifiedEventOn();
+  planNode->SetPlanOptimizerName(selectedEngine->name().toUtf8().constData());
+  planNode->DisableModifiedEventOff();
+  
 }
 
 //-----------------------------------------------------------------------------
