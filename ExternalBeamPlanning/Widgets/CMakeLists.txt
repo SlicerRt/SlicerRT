@@ -24,6 +24,14 @@ set(${KIT}_SRCS
   qSlicerMockDoseEngine.h
   qSlicerScriptedDoseEngine.cxx
   qSlicerScriptedDoseEngine.h
+  qSlicerAbstractPlanOptimizer.cxx
+  qSlicerAbstractPlanOptimizer.h
+  qSlicerPlanOptimizerPluginHandler.cxx
+  qSlicerPlanOptimizerPluginHandler.h
+  qSlicerPlanOptimizerLogic.cxx
+  qSlicerPlanOptimizerLogic.h
+  qSlicerScriptedPlanOptimizer.cxx
+  qSlicerScriptedPlanOptimizer.h
   )
 
 set(${KIT}_UI_SRCS
@@ -33,6 +41,7 @@ set(${KIT}_UI_SRCS
 # classes deriving from pure abstract class and remaining abstract pure
 set_source_files_properties(
   qSlicerAbstractDoseEngine.h
+  qSlicerAbstractPlanOptimizer.h
   WRAP_EXCLUDE
   )
 
@@ -42,6 +51,10 @@ set(${KIT}_MOC_SRCS
   qSlicerDoseEngineLogic.h
   qSlicerMockDoseEngine.h
   qSlicerScriptedDoseEngine.h
+  qSlicerAbstractPlanOptimizer.h
+  qSlicerPlanOptimizerPluginHandler.h
+  qSlicerPlanOptimizerLogic.h
+  qSlicerScriptedPlanOptimizer.h
 )
 
 set(${KIT}_RESOURCES

@@ -62,7 +62,9 @@ public:
     /// Fired if beam is removed
     BeamRemoved,
     /// Fired if dose engine is changed
-    DoseEngineChanged
+    DoseEngineChanged,
+    /// Fired if optimization engine is changed
+    PlanOptimizerChanged
   };
 
 public:
@@ -193,6 +195,11 @@ public:
   /// Set dose engine name (and invoke setting the default beam parameters for the new engine)
   void SetDoseEngineName(const char* engineName);
 
+  // Get optimization engine name
+  vtkGetStringMacro(PlanOptimizerName);
+  /// Set optimization engine name
+  void SetPlanOptimizerName(const char* engineName);
+
   /// Get prescription dose
   vtkGetMacro(RxDose, double);
   /// Set prescription dose
@@ -240,6 +247,9 @@ protected:
 
   /// Name of the selected dose engine
   char* DoseEngineName{ nullptr };
+
+  /// Name of the selected optimization engine
+  char* PlanOptimizerName;
 
   ///TODO: Allow user to specify dose volume resolution different from reference volume
   /// (currently output dose volume has the same spacing as the reference anatomy)

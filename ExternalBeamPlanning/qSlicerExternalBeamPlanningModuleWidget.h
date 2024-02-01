@@ -94,6 +94,10 @@ protected slots:
   void calculateWEDClicked();
   void clearDoseClicked();
 
+  // Dose Optimization buttons
+  void PlanOptimizerChanged(const QString&);
+  void optimizePlanClicked();
+
   // Beams section
   void addBeamClicked();
   void removeBeamClicked();
@@ -109,6 +113,9 @@ protected:
 
   // Populate dose engines combobox from registered dose engines
   void updateDoseEngines();
+
+  // Populate optimization engine combobox
+  void updatePlanOptimizers();
 
 protected:
   QScopedPointer<qSlicerExternalBeamPlanningModuleWidgetPrivate> d_ptr;
