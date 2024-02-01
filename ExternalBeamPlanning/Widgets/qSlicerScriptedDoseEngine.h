@@ -83,6 +83,16 @@ protected:
     vtkMRMLRTBeamNode* beamNode,
     vtkMRMLScalarVolumeNode* resultDoseVolumeNode );
 
+  /// Calculate dose influence matrix for a single beam. Called by \sa CalculateDoseInfluenceMatrix that performs actions generic
+  /// to any dose engine before and after calculation.
+  /// This is the method that needs to be implemented in an engine if dose influence matrix calculation is supported.
+  ///
+  /// \param beamNode Beam for which the dose is calculated. Each beam has a parent plan from which the
+  ///   plan-specific parameters are got
+  /// \param resultDoseVolumeNode Output volume node for the result dose. It is created by \sa CalculateDoseInfluenceMatrix
+  virtual QString calculateDoseInfluenceMatrixUsingEngine(
+      vtkMRMLRTBeamNode* beamNode);
+
   /// Define engine-specific beam parameters.
   /// This is the method that needs to be implemented in each engine.
   void defineBeamParameters() override;

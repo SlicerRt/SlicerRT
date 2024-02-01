@@ -78,6 +78,11 @@ public:
   /// \return Error message. Empty string on success
   QString calculateDose(vtkMRMLRTBeamNode* beamNode);
 
+  /// Perform dose influence matrix calculation for a single beam
+  /// \param Beam node for which the dose is calculated
+  /// \return Error message. Empty string on success
+  QString calculateDoseInfluenceMatrix(vtkMRMLRTBeamNode* beamNode);
+
   /// Get result per-beam dose volume for given beam
   vtkMRMLScalarVolumeNode* getResultDoseForBeam(vtkMRMLRTBeamNode* beamNode);
 
@@ -99,6 +104,16 @@ protected:
   virtual QString calculateDoseUsingEngine(
     vtkMRMLRTBeamNode* beamNode,
     vtkMRMLScalarVolumeNode* resultDoseVolumeNode ) = 0;
+
+  /// Calculate dose influence matrix for a single beam. Called by \sa CalculateDoseInfluenceMatrix that performs actions generic
+  /// to any dose engine before and after calculation.
+  /// This is the method that needs to be implemented in an engine if dose influence matrix calculation is supported.
+  ///
+  /// \param beamNode Beam for which the dose is calculated. Each beam has a parent plan from which the
+  ///   plan-specific parameters are got
+  /// \param resultDoseVolumeNode Output volume node for the result dose. It is created by \sa CalculateDose
+  virtual QString calculateDoseInfluenceMatrixUsingEngine(
+      vtkMRMLRTBeamNode* beamNode);
 
   /// Define engine-specific beam parameters.
   /// This is the method that needs to be implemented in each engine.

@@ -218,6 +218,93 @@ QString qSlicerAbstractDoseEngine::calculateDose(vtkMRMLRTBeamNode* beamNode)
   return errorMessage;
 }
 
+//----------------------------------------------------------------------------
+QString qSlicerAbstractDoseEngine::calculateDoseInfluenceMatrix(vtkMRMLRTBeamNode* beamNode)
+{
+    if (!this->isInverse())
+    {
+		QString errorMessage("Dose engine is lacks functionality for calculating a dose influence matrix for inverse planning");
+		qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+		return errorMessage;
+    }
+    
+    if (!beamNode)
+    {
+        QString errorMessage("Invalid beam node");
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+    }
+    vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
+    if (!parentPlanNode)
+    {
+        QString errorMessage = QString("Unable to access parent node for beam %1").arg(beamNode->GetName());
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+    }
+
+    // Add RT plan to the same branch where the reference volume is
+    /*
+    vtkMRMLScalarVolumeNode* referenceVolumeNode = parentPlanNode->GetReferenceVolumeNode();
+    if (!referenceVolumeNode)
+    {
+        QString errorMessage("Unable to access reference volume");
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+    }
+    
+    vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(beamNode->GetScene());
+    if (!shNode)
+    {
+        QString errorMessage("Failed to access subject hierarchy node");
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+    }
+    vtkIdType referenceVolumeShItemID = shNode->GetItemByDataNode(referenceVolumeNode);
+    if (referenceVolumeShItemID)
+    {
+        vtkIdType planShItemID = parentPlanNode->GetPlanSubjectHierarchyItemID();
+        if (planShItemID)
+        {
+            shNode->SetItemParent(planShItemID, shNode->GetItemParent(referenceVolumeShItemID));
+        }
+        else
+        {
+            qCritical() << Q_FUNC_INFO << ": Failed to access RT plan subject hierarchy item, although it should always be available";
+        }
+    }
+    else
+    {
+        qCritical() << Q_FUNC_INFO << ": Failed to access reference volume subject hierarchy item";
+    }
+    */
+
+    // Remove past intermediate results for beam before calculating dose again
+    this->removeIntermediateResults(beamNode);
+
+    // Create output dose volume for beam
+    vtkSmartPointer<vtkMRMLScalarVolumeNode> resultDoseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+    beamNode->GetScene()->AddNode(resultDoseVolumeNode);
+    // Give default name for result node (engine can give it a more meaningful name)
+    std::string resultDoseNodeName = std::string(beamNode->GetName()) + "_Dose";
+    resultDoseVolumeNode->SetName(resultDoseNodeName.c_str());
+
+    // Calculate dose
+    QString errorMessage = this->calculateDoseInfluenceMatrixUsingEngine(beamNode);
+    if (errorMessage.isEmpty())
+    {
+        // Add result dose volume to beam
+        //this->addResultDose(resultDoseVolumeNode, beamNode);
+    }
+
+    return errorMessage;
+}
+
+//---------------------------------------------------------------------------
+QString qSlicerAbstractDoseEngine::calculateDoseInfluenceMatrixUsingEngine(vtkMRMLRTBeamNode* beamNode)
+{
+	qCritical() << Q_FUNC_INFO << ": Inverse dose calculation not implemented";
+	return QString();
+}
 //---------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::addIntermediateResult(vtkMRMLNode* result, vtkMRMLRTBeamNode* beamNode)
 {
