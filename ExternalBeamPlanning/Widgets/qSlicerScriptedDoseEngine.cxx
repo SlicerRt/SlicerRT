@@ -56,6 +56,7 @@ public:
   enum {
     DefineBeamParametersMethod = 0,
     CalculateDoseUsingEngineMethod,
+    CalculateDoseInfluenceMatrixUsingEngineMethod
     };
 
   mutable qSlicerPythonCppAPI PythonCppAPI;
@@ -71,6 +72,7 @@ qSlicerScriptedDoseEnginePrivate::qSlicerScriptedDoseEnginePrivate()
 {
   this->PythonCppAPI.declareMethod(Self::DefineBeamParametersMethod, "defineBeamParameters");
   this->PythonCppAPI.declareMethod(Self::CalculateDoseUsingEngineMethod, "calculateDoseUsingEngine");
+  this->PythonCppAPI.declareMethod(Self::CalculateDoseInfluenceMatrixUsingEngineMethod, "calculateDoseInfluenceMatrixUsingEngine");
 }
 
 //-----------------------------------------------------------------------------
@@ -205,6 +207,7 @@ QString qSlicerScriptedDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* b
   PyObject* arguments = PyTuple_New(2);
   PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer(beamNode));
   PyTuple_SET_ITEM(arguments, 1, vtkPythonUtil::GetObjectFromPointer(resultDoseVolumeNode));
+  qDebug() << d->PythonSource << ": Calling calculateDoseUsingEngine from Python dose engine";
   PyObject* result = d->PythonCppAPI.callMethod(d->CalculateDoseUsingEngineMethod, arguments);
   Py_DECREF(arguments);
   if (!result)
@@ -221,6 +224,31 @@ QString qSlicerScriptedDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* b
     }
 
   return PyString_AsString(result);
+}
+
+QString qSlicerScriptedDoseEngine::calculateDoseInfluenceMatrixUsingEngine(vtkMRMLRTBeamNode* beamNode)
+{
+    Q_D(const qSlicerScriptedDoseEngine);
+    PyObject* arguments = PyTuple_New(1);
+    PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer(beamNode));
+    //PyTuple_SET_ITEM(arguments, 1, vtkPythonUtil::GetObjectFromPointer(resultDoseVolumeNode));
+    qDebug() << d->PythonSource << ": Calling calculateDoseInfluenceMatrixUsingEngine from Python dose engine";
+    PyObject* result = d->PythonCppAPI.callMethod(d->CalculateDoseInfluenceMatrixUsingEngineMethod, arguments);
+    Py_DECREF(arguments);
+    if (!result)
+    {
+        qCritical() << d->PythonSource << ": clone: Failed to call mandatory calculateDoseInfluenceMatrixUsingEngine method! If it is implemented, please see python output for errors.";
+        return QString();
+    }
+
+    // Parse result
+    if (!PyFloat_Check(result))
+    {
+        qWarning() << d->PythonSource << ": qSlicerScriptedDoseEngine: Function 'calculateDoseInfluenceMatrixUsingEngine' is expected to return a string!";
+        return QString();
+    }
+
+    return PyString_AsString(result);
 }
 
 //-----------------------------------------------------------------------------

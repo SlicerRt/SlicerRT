@@ -1022,9 +1022,9 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
   }
-
+  
   // Create and select output dose volume if missing
-  if (!planNode->GetOutputTotalDoseVolumeNode())
+  if (!d->checkBox_InversePlanning->isChecked() && !planNode->GetOutputTotalDoseVolumeNode())
   {
     vtkIdType planShItemID = shNode->GetItemByDataNode(planNode);
     if (!planShItemID)
@@ -1065,8 +1065,30 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
   }
+
+  // If inverse planning is selected, we do a sanity check for the dose engine capabilities
+  if (d->checkBox_InversePlanning->isChecked() && !selectedEngine->isInverse())
+  {
+    QString errorString = QString("Selected Dose Engine %1 can't do dose influence matrix calculation!").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
+    d->label_CalculateDoseStatus->setText(errorString);
+    qCritical() << Q_FUNC_INFO << ": " << errorString;
+    return;
+  }
+
   // Calculate dose
-  QString errorMessage = d->DoseEngineLogic->calculateDose(planNode);
+  QString errorMessage;
+  if (d->checkBox_InversePlanning->isChecked())
+  {
+    QString message = QString("Starting dose influence matrix calculation...");
+    qDebug() << Q_FUNC_INFO << ": " << message;
+    errorMessage = d->DoseEngineLogic->calculateDoseInfluenceMatrix(planNode);
+  }
+  else
+  {
+    QString message = QString("Starting forward dose calculation...");
+    qDebug() << Q_FUNC_INFO << ": " << message;
+    errorMessage = d->DoseEngineLogic->calculateDose(planNode);
+  }
 
   if (errorMessage.isEmpty())
   {
@@ -1090,7 +1112,11 @@ void qSlicerExternalBeamPlanningModuleWidget::onProgressUpdated(double progress)
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   int progressPercent = (int)(progress * 100.0);
-  QString progressMessage = QString("Dose calculation in progress: %1 %").arg(progressPercent);
+  QString progressMessage;
+  if (d->checkBox_InversePlanning->isChecked())
+    progressMessage = QString("Dose influence matrix calculation in progress: %1 %").arg(progressPercent);
+  else
+    progressMessage = QString("Dose calculation in progress: %1 %").arg(progressPercent);
   d->label_CalculateDoseStatus->setText(progressMessage);
   QApplication::processEvents();
 }
