@@ -187,7 +187,6 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         resultDoseVolumeNode.SetIJKToRASDirections(ijkToRASDirections)
         resultDoseVolumeNode.SetAndObserveImageData(imageData)
 
-
         # Set name
         # DoseNodeName = str(beamNode.GetName())+"_pyRadDose"
         # resultDoseVolumeNode.SetName(DoseNodeName)
@@ -210,7 +209,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         from pyRadPlan.optimization._fluenceOptimizer import FluenceOptimizer
         from pyRadPlan.patients._patient_loader import PatientLoader
         from pymatreader import read_mat
-        from scipy.sparse import csr_matrix
+        from scipy.sparse import coo_matrix
         import matplotlib.pyplot as plt
 
         from pyRadPlan.optimization.components.objectives import (SquaredDeviation, SquaredOverdosing)
@@ -280,7 +279,10 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
         dose_path = os.path.join(self.temp_path,'dij.mat')
         dij_mat = read_mat(dose_path)  # keeping read_mat here for now
-        dose_matrix = csr_matrix(dij_mat['dij']['physicalDose'])
+
+        # optimize storage such that we don't have multiple instances in memory
+        # we use a coo matrix here as it is the most efficient way to get the matrix into slicer
+        dose_matrix = coo_matrix(dij_mat['dij']['physicalDose'])
 
         dose_information = {
             "resolution": {"x": 3.0,
@@ -305,6 +307,10 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
                 + dose_information['resolution'][dimension],
                 dose_information['resolution'][dimension])
             
+        beamNode.SetDoseInfluenceMatrixFromTriplets(dose_matrix.shape[0], dose_matrix.shape[1],dose_matrix.row, dose_matrix.col, dose_matrix.data)
+
+        print(beamNode.GetDoseInfluenceMatrixSparsity())
+
         return str() #return empty string to indicate success
 
     def prepareCt(self, beamNode):
