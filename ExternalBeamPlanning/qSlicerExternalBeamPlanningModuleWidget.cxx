@@ -435,6 +435,14 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
       planNode->SetDoseEngineName(d->comboBox_DoseEngine->currentText().toUtf8().constData());
     }
 
+
+    // Set optimizer if not specified in plan
+    if (!planNode->GetPlanOptimizerName() )
+    {
+      planNode->SetPlanOptimizerName(d->comboBox_PlanOptimizer->currentText().toUtf8().constData());
+    }
+
+
     // Trigger update of IEC logic based on the first beam
     if (planNode->GetNumberOfBeams() > 0)
     {
@@ -447,6 +455,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
 
     // Clear instructions text
     d->label_CalculateDoseStatus->setText("");
+    d->label_OptimizationStatus->setText("");
   }
 
   this->updateWidgetFromMRML();
