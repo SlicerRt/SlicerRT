@@ -220,19 +220,19 @@ void vtkMRMLRTPlanNode::SetDoseEngineName(const char* engineName)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::SetPlanOptimizerName(const char* engineName)
+void vtkMRMLRTPlanNode::SetPlanOptimizerName(const char* optimizerName)
 {
-  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting PlanOptimizerName to " << (engineName ? engineName : "(null)"));
-  if (this->PlanOptimizerName == nullptr && engineName == nullptr) { return; }
-  if (this->PlanOptimizerName && engineName && (!strcmp(this->PlanOptimizerName, engineName))) { return; }
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting PlanOptimizerName to " << (optimizerName ? engineName : "(null)"));
+  if (this->PlanOptimizerName == nullptr && optimizerName == nullptr) { return; }
+  if (this->PlanOptimizerName && optimizerName && (!strcmp(this->PlanOptimizerName, optimizerName))) { return; }
 
   // Set dose engine name
   delete[] this->PlanOptimizerName;
-  if (engineName)
+  if (optimizerName)
   {
-    size_t n = strlen(engineName) + 1;
+    size_t n = strlen(optimizerName) + 1;
     this->PlanOptimizerName = new char[n];
-    strcpy(this->PlanOptimizerName, engineName);
+    strcpy(this->PlanOptimizerName, optimizerName);
   }
   else
   {

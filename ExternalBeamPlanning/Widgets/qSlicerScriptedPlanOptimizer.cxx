@@ -51,7 +51,7 @@ public:
   virtual ~qSlicerScriptedPlanOptimizerPrivate();
 
   enum {
-    optimizePlanUsingOptimizerMethod = 0
+    OptimizePlanUsingOptimizerMethod = 0
     };
 
   mutable qSlicerPythonCppAPI PythonCppAPI;
@@ -65,7 +65,7 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerScriptedPlanOptimizerPrivate::qSlicerScriptedPlanOptimizerPrivate()
 {
-  this->PythonCppAPI.declareMethod(Self::optimizePlanUsingOptimizerMethod, "optimizePlanUsingOptimizer");
+  this->PythonCppAPI.declareMethod(Self::OptimizePlanUsingOptimizerMethod, "optimizePlanUsingOptimizer");
 }
 
 //-----------------------------------------------------------------------------
@@ -195,7 +195,7 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
   PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer(planNode));
   PyTuple_SET_ITEM(arguments, 1, vtkPythonUtil::GetObjectFromPointer(resultOptimizationVolumeNode));
   qDebug() << d->PythonSource << ": Calling optimizePlanUsingOptimizer from Python Plan Optimizer";
-  PyObject* result = d->PythonCppAPI.callMethod(d->optimizePlanUsingOptimizerMethod, arguments);
+  PyObject* result = d->PythonCppAPI.callMethod(d->OptimizePlanUsingOptimizerMethod, arguments);
   Py_DECREF(arguments);
   if (!result)
     {
