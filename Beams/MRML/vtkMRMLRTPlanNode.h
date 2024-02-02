@@ -198,7 +198,7 @@ public:
   // Get optimization engine name
   vtkGetStringMacro(PlanOptimizerName);
   /// Set optimization engine name
-  void SetPlanOptimizerName(const char* engineName);
+  void SetPlanOptimizerName(const char* optimizerName);
 
   /// Get prescription dose
   vtkGetMacro(RxDose, double);
