@@ -975,7 +975,7 @@ void vtkMRMLRTBeamNode::SetDoseInfluenceMatrixFromTriplets(int numRows, int numC
     tripletList.push_back(T(rows[i], columns[i], values[i]));
   }
 
-  this->DoseInfluenceMatrix = DoseInfluenceMatrixType(rows.size(), columns.size());
+  this->DoseInfluenceMatrix = DoseInfluenceMatrixType(numRows, numCols);
   this->DoseInfluenceMatrix.setFromTriplets(tripletList.begin(), tripletList.end());
 }
 
