@@ -71,7 +71,7 @@ protected:
   ///
   /// \param planNode Plan which is optimized. 
   /// \param resultOptimizationVolumeNode Output volume node for the Optimization result. It is created by \sa optimizePlan
-  virtual QString optimizePlanUsingEngine(
+  virtual QString optimizePlanUsingOptimizer(
     vtkMRMLRTPlanNode* planNode,
     vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode );
 
