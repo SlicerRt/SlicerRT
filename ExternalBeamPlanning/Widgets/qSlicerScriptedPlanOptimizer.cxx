@@ -51,7 +51,7 @@ public:
   virtual ~qSlicerScriptedPlanOptimizerPrivate();
 
   enum {
-    OptimizePlanUsingEngineMethod = 0
+    optimizePlanUsingOptimizerMethod = 0
     };
 
   mutable qSlicerPythonCppAPI PythonCppAPI;
@@ -65,7 +65,7 @@ public:
 //-----------------------------------------------------------------------------
 qSlicerScriptedPlanOptimizerPrivate::qSlicerScriptedPlanOptimizerPrivate()
 {
-  this->PythonCppAPI.declareMethod(Self::OptimizePlanUsingEngineMethod, "optimizePlanUsingEngine");
+  this->PythonCppAPI.declareMethod(Self::optimizePlanUsingOptimizerMethod, "optimizePlanUsingOptimizer");
 }
 
 //-----------------------------------------------------------------------------
@@ -188,25 +188,25 @@ void qSlicerScriptedPlanOptimizer::setName(QString name)
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerScriptedPlanOptimizer::optimizePlanUsingEngine(vtkMRMLRTPlanNode* planNode, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode)
+QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode)
 {
   Q_D(const qSlicerScriptedPlanOptimizer);
   PyObject* arguments = PyTuple_New(2);
   PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer(planNode));
   PyTuple_SET_ITEM(arguments, 1, vtkPythonUtil::GetObjectFromPointer(resultOptimizationVolumeNode));
-  qDebug() << d->PythonSource << ": Calling optimizePlanUsingEngine from Python Plan Optimizer";
-  PyObject* result = d->PythonCppAPI.callMethod(d->OptimizePlanUsingEngineMethod, arguments);
+  qDebug() << d->PythonSource << ": Calling optimizePlanUsingOptimizer from Python Plan Optimizer";
+  PyObject* result = d->PythonCppAPI.callMethod(d->optimizePlanUsingOptimizerMethod, arguments);
   Py_DECREF(arguments);
   if (!result)
     {
-    qCritical() << d->PythonSource << ": clone: Failed to call mandatory optimizePlanUsingEngine method! If it is implemented, please see python output for errors.";
+    qCritical() << d->PythonSource << ": clone: Failed to call mandatory optimizePlanUsingOptimizer method! If it is implemented, please see python output for errors.";
     return QString();
     }
 
   // Parse result
   if (!PyFloat_Check(result))
     {
-    qWarning() << d->PythonSource << ": qSlicerScriptedPlanOptimizer: Function 'optimizePlanUsingEngine' is expected to return a string!";
+    qWarning() << d->PythonSource << ": qSlicerScriptedPlanOptimizer: Function 'optimizePlanUsingOptimizer' is expected to return a string!";
     return QString();
     }
 

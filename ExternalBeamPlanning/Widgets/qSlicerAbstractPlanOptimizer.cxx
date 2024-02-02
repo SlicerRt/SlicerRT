@@ -147,7 +147,7 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
   resultOptimizationVolumeNode->SetName(resultOptimizationNodeName.c_str());
 
   // Optimize
-  QString errorMessage = this->optimizePlanUsingEngine(planNode, resultOptimizationVolumeNode);
+  QString errorMessage = this->optimizePlanUsingOptimizer(planNode, resultOptimizationVolumeNode);
   
   return errorMessage;
 }
