@@ -28,6 +28,8 @@
 // MRML includes
 #include <vtkMRMLModelNode.h>
 
+#include <itkeigen/Eigen/SparseCore>
+
 class vtkPolyData;
 class vtkMRMLScene;
 class vtkMRMLTableNode;
@@ -53,6 +55,11 @@ public:
     /// External Beam Planning logic processes the event if exists
     CloningRequested
   };
+
+  /// Value and index vector to create dose influence matrix
+  typedef std::vector<double> DoseInfluenceMatrixValueVector;
+  typedef std::vector<int> DoseInfluenceMatrixIndexVector;
+  typedef Eigen::SparseMatrix<double, Eigen::ColMajor, int> DoseInfluenceMatrixType;
 
 public:
   static vtkMRMLRTBeamNode *New();
@@ -219,6 +226,18 @@ public:
   void SetIsocenterPosition(double isocenterPosition[3]);
   void SetIsocenterPosition(const std::array< double, 3 >& isocenterPosition);
 
+  /// Get Dose influence matrix
+  vtkGetMacro(DoseInfluenceMatrix, DoseInfluenceMatrixType);
+
+  /// Get dose influence matrix dimensions
+  int GetDoseInfluenceMatrixRows();
+  int GetDoseInfluenceMatrixColumns();
+  int GetDoseInfluenceMatrixNumberOfNonZeroElements();
+  double GetDoseInfluenceMatrixSparsity();
+
+  /// Set Dose influence matrix from triplets
+  void SetDoseInfluenceMatrixFromTriplets(int numRows, int numCols, DoseInfluenceMatrixIndexVector& rows, DoseInfluenceMatrixIndexVector& columns, DoseInfluenceMatrixValueVector& values);
+
 protected:
   /// Create beam model from beam parameters, supporting MLC leaves
   /// \param beamModelPolyData Output polydata. If none given then the beam node's own polydata is used
@@ -271,6 +290,9 @@ protected:
   bool IsocenterPositionFlag;
   /// Control point isocenter position
   double IsocenterPosition[3];
+
+  /// Dose influence matrix
+  DoseInfluenceMatrixType DoseInfluenceMatrix;
 
 protected:
   /// Visible multi-leaf collimator points

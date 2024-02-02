@@ -960,3 +960,36 @@ void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder(double jawBegin,
   }
   side12.push_back(side2.back());
 }
+
+//---------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetDoseInfluenceMatrixFromTriplets(int numRows, int numCols, DoseInfluenceMatrixIndexVector& rows, DoseInfluenceMatrixIndexVector& columns, DoseInfluenceMatrixValueVector& values)
+{
+  typedef Eigen::Triplet<double> T;
+  std::vector<T> tripletList;
+  tripletList.reserve(values.size());
+  
+  for (size_t i = 0; i < values.size(); ++i)
+  {
+    tripletList.push_back(T(rows[i], columns[i], values[i]));
+  }
+
+  this->DoseInfluenceMatrix = DoseInfluenceMatrixType(rows.size(), columns.size());
+  this->DoseInfluenceMatrix.setFromTriplets(tripletList.begin(), tripletList.end());
+}
+
+int vtkMRMLRTBeamNode::GetDoseInfluenceMatrixRows()
+{
+  return this->DoseInfluenceMatrix.rows();
+}
+int vtkMRMLRTBeamNode::GetDoseInfluenceMatrixColumns()
+{
+  return this->DoseInfluenceMatrix.cols();
+}
+int vtkMRMLRTBeamNode::GetDoseInfluenceMatrixNumberOfNonZeroElements()
+{
+  return this->DoseInfluenceMatrix.nonZeros();
+}
+double vtkMRMLRTBeamNode::GetDoseInfluenceMatrixSparsity()
+{
+  return this->DoseInfluenceMatrix.nonZeros() / (this->DoseInfluenceMatrix.rows() * this->DoseInfluenceMatrix.cols());
+}
