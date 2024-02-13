@@ -34,6 +34,8 @@
 // Widgets includes
 #include "qSlicerDoseEnginePluginHandler.h"
 #include "qSlicerMockDoseEngine.h"
+#include "qSlicerPlanOptimizerPluginHandler.h"
+#include "qSlicerMockPlanOptimizer.h"
 
 // SlicerRT includes
 #include "vtkSlicerBeamsModuleLogic.h"

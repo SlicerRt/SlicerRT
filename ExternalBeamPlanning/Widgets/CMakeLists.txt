@@ -30,6 +30,8 @@ set(${KIT}_SRCS
   qSlicerPlanOptimizerPluginHandler.h
   qSlicerPlanOptimizerLogic.cxx
   qSlicerPlanOptimizerLogic.h
+  qSlicerMockPlanOptimizer.cxx
+  qSlicerMockPlanOptimizer.h
   qSlicerScriptedPlanOptimizer.cxx
   qSlicerScriptedPlanOptimizer.h
   )
@@ -54,6 +56,7 @@ set(${KIT}_MOC_SRCS
   qSlicerAbstractPlanOptimizer.h
   qSlicerPlanOptimizerPluginHandler.h
   qSlicerPlanOptimizerLogic.h
+  qSlicerMockPlanOptimizer.h
   qSlicerScriptedPlanOptimizer.h
 )
 
