@@ -18,6 +18,7 @@
 
 // Beams includes
 #include <vtkMRMLRTBeamNode.h>
+#include <vtkMRMLRTPlanNode.h>
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -84,7 +85,7 @@ vtkMRMLDrrImageComputationNode::vtkMRMLDrrImageComputationNode()
   InvertIntensityFlag = true;
 
   IsocenterImagerDistance = 300.;
-  HUThresholdBelow = -1000;
+  HUThresholdBelow = 150;
 
   // Observe RTBeam node events (like change of transform or geometry)
   vtkNew<vtkIntArray> nodeEvents;
@@ -395,6 +396,20 @@ void vtkMRMLDrrImageComputationNode::SetThreading(int threading)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLDrrImageComputationNode::GetIsocenterPositionRAS(double isocenterPosition[3])
+{
+  vtkMRMLRTBeamNode* beamNode = this->GetBeamNode();
+  if (!beamNode)
+  {
+    vtkErrorMacro("GetIsocenterPositionLPS: RT Beam node is invalid");
+    return;
+  }
+
+  // Isocenter RAS position, for plastimatch isocenter MUST BE in LPS system
+  beamNode->GetPlanIsocenterPosition(isocenterPosition);
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLDrrImageComputationNode::GetIsocenterPositionLPS(double isocenterPosition[3])
 {
   vtkMRMLRTBeamNode* beamNode = this->GetBeamNode();
@@ -435,4 +450,29 @@ void vtkMRMLDrrImageComputationNode::GetImageCenter(double imageCenter[2])
   image_center[0] = static_cast<int>(imageCenter[0]);
   image_center[1] = static_cast<int>(imageCenter[1]);
   this->SetImageCenter(image_center);
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkMRMLDrrImageComputationNode::GetReferenceVolumeNode()
+{
+  vtkMRMLRTBeamNode* beamNode = this->GetBeamNode();
+  if (!beamNode)
+  {
+    vtkErrorMacro("GetReferenceVolumeNode: Invalid RT Beam node");
+    return nullptr;
+  }
+  // Get RT plan for beam
+  vtkMRMLRTPlanNode *planNode = beamNode->GetParentPlanNode();
+  if (!planNode)
+  {
+    vtkErrorMacro("GetReferenceVolumeNode: Failed to retrieve valid plan node for beam '" << beamNode->GetName() << "'");
+    return nullptr;
+  }
+  vtkMRMLScalarVolumeNode* refNode = planNode->GetReferenceVolumeNode();
+  if (!refNode)
+  {
+    vtkErrorMacro("GetReferenceVolumeNode: Failed to retrieve reference volume node from plan '" << planNode->GetName() << "'");
+    return nullptr;
+  }
+  return refNode;
 }

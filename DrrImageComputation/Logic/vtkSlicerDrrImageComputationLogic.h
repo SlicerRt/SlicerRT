@@ -50,6 +50,7 @@ class vtkSlicerBeamsModuleLogic;
 class vtkSlicerPlanarImageModuleLogic;
 class vtkSlicerCLIModuleLogic;
 
+class vtkTransform;
 class vtkMatrix4x4;
 
 /// \ingroup Slicer_QtModules_DrrImageComputation
@@ -62,7 +63,8 @@ public:
   static const char* FIDUCIALS_MARKUPS_NODE_NAME; // fiducial
   static const char* NORMAL_VECTOR_MARKUPS_NODE_NAME; // line
   static const char* VUP_VECTOR_MARKUPS_NODE_NAME; // line
-  static const char* RTIMAGE_TRANSFORM_NODE_NAME;
+  static const char* RTIMAGE_TRANSFORM_NODE_NAME; // RtImage transform node name
+  static const char* VOLUME_TO_LPS_TRANSFORM_NODE_NAME; // CT Volume to LPS transform node name
 
   static vtkSlicerDrrImageComputationLogic *New();
   vtkTypeMacro(vtkSlicerDrrImageComputationLogic, vtkSlicerModuleLogic);
@@ -70,6 +72,16 @@ public:
 
   /// Update normal and view up vectors of RT Image
   void UpdateNormalAndVupVectors(vtkMRMLDrrImageComputationNode* parameterNode);
+
+  /// Update volume RAS to LPS transform node
+  /// @param parameterNode - input CT volume node
+  vtkMRMLLinearTransformNode* UpdateVolumeToLPSTransform(vtkMRMLScalarVolumeNode* ctVolumeNode);
+  /// Update volume RAS to LPS transform node
+  /// @param parameterNode - input parameter node
+  vtkMRMLLinearTransformNode* UpdateVolumeToLPSTransform(vtkMRMLDrrImageComputationNode* parameterNode);
+  /// Get volume RAS to LPS transform matrix
+  void GetVolumeToLPSTransformMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* matrix);
+  void GetVolumeToLPSTransformMatrix(vtkMRMLScalarVolumeNode* ctVolumeNode, vtkMatrix4x4* matrix);
 
   /// Create markups nodes for visualization
   void CreateMarkupsNodes(vtkMRMLDrrImageComputationNode* parameterNode);

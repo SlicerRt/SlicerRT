@@ -70,6 +70,7 @@ public slots:
 
   void onProjectMarkupsControlPointsClicked();
   void onClearProjectedTableClicked();
+  void onApplyVolumeToLpsTransformToVolumeClicked();
 
   /// Update widget GUI from RT Image parameters node
   void updateWidgetFromMRML();
