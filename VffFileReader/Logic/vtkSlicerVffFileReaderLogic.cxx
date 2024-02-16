@@ -365,11 +365,6 @@ vtkMRMLScalarVolumeNode* vtkSlicerVffFileReaderLogic::LoadVffFile(char* filename
     origin[0] = numbersFromParsedStringOrigin[0];
     origin[1] = numbersFromParsedStringOrigin[1];
     origin[2] = numbersFromParsedStringOrigin[2];
-    if (origin[0] < 0 || origin[1] <0 || origin[2] < 0)
-    {
-      vtkErrorMacro("LoadVffFile: The values for the origin must each be greater than or equal to 0.");
-      parameterInvalidValue = true;
-    }
   }          
 
   std::vector<int> numberFromParsedStringRawsize = this->ParseNumberOfNumbersFromString<int>(parameterList["rawsize"], 1);
