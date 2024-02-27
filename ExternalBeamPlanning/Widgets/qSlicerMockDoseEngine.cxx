@@ -49,6 +49,8 @@ qSlicerMockDoseEngine::qSlicerMockDoseEngine(QObject* parent)
   : qSlicerAbstractDoseEngine(parent)
 {
   this->m_Name = QString("Mock random");
+
+  this->m_IsInverse = true;
 }
 
 //----------------------------------------------------------------------------
@@ -144,4 +146,32 @@ QString qSlicerMockDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamN
   resultDoseVolumeNode->SetName(randomDoseNodeName.c_str());
 
   return QString();
+}
+
+
+QString qSlicerMockDoseEngine::calculateDoseInfluenceMatrixUsingEngine(vtkMRMLRTBeamNode* beamNode)
+{
+
+    // get number of Voxels from reference Volume
+    vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
+    vtkMRMLScalarVolumeNode* referenceVolumeNode = parentPlanNode->GetReferenceVolumeNode();
+    int dimensions[3];
+    referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
+    //vtkIdType numberOfVoxels = referenceVolumeNode->GetImageData()->GetNumberOfPoints();
+
+    int numberOfVoxels = 10; // dimensions[0] * dimensions[1] * dimensions[2];
+
+    // set Dose Influence Matrix
+    int numRows = numberOfVoxels;
+    int numCols = 1;
+    std::vector<int> rows(numberOfVoxels); // create vector of size matching number of Voxels
+    std::iota(rows.begin(), rows.end(), 0); // fill with indices
+    std::vector<int> columns(1,0); // indices of columnn
+    std::vector<double> values(numberOfVoxels,1);
+
+
+    // beamNode->SetDoseInfluenceMatrixFromTriplets(numRows, numCols, rows, columns, values);
+    // !!!crashes when trying to call this function!!!
+
+    return QString();
 }

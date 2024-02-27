@@ -49,6 +49,8 @@ public:
   /// \param resultDoseVolumeNode Output volume node for the result dose. It is created by \sa CalculateDose
   Q_INVOKABLE QString calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode);
 
+  Q_INVOKABLE QString calculateDoseInfluenceMatrixUsingEngine(vtkMRMLRTBeamNode* beamNode);
+
   /// Define engine-specific beam parameters
   void defineBeamParameters();
 
