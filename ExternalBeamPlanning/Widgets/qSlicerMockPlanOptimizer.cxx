@@ -43,6 +43,18 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
 {
     // TODO: access dose matrix from planNode --> multiply by vector (filled with ones)
 
+    int numberOfBeams = planNode->GetNumberOfBeams();
+
+    std::cout << "Number of Beams : " << numberOfBeams << std::endl;
+
+
+    for (int i = 1; i < numberOfBeams; i++) {
+        vtkMRMLRTBeamNode* beamNode = planNode->GetBeamByNumber(1);
+        std::cout << beamNode->GetName() << std::endl;
+    }
+    
+    // doesn't seem to be called when optimizing (button)
+
   return QString();
 }
 
