@@ -43,8 +43,8 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
     def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):
         
         # TODO: Avoid Hardcoded Information here
-        os.chdir('D:/Python/pyRadPlan')
-        sys.path.append('D:/Python/pyRadPlan')
+        os.chdir('C:/D/pyRadPlan')
+        sys.path.append('C:/D/pyRadPlan')
 
         import pyRadPlan.io.matRad as matRadIO
         import pyRadPlan.matRad.engine as engine
