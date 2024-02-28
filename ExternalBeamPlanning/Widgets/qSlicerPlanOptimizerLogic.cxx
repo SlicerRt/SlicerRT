@@ -19,8 +19,8 @@
 // Dose engines includes
 #include "qSlicerPlanOptimizerLogic.h"
 
-//include "qSlicerDoseEnginePluginHandler.h"
-//#include "qSlicerAbstractDoseEngine.h"
+#include "qSlicerPlanOptimizerPluginHandler.h"
+#include "qSlicerAbstractPlanOptimizer.h"
 
 // Beams includes
 #include "vtkMRMLRTBeamNode.h"
@@ -99,7 +99,32 @@ qSlicerPlanOptimizerLogic::~qSlicerPlanOptimizerLogic() = default;
 //-----------------------------------------------------------------------------
 QString qSlicerPlanOptimizerLogic::optimizePlan(vtkMRMLRTPlanNode* planNode)
 {
-  return QString("");
+    QString errorMessage("");
+    if (!planNode || !planNode->GetScene())
+    {
+        errorMessage = QString("Invalid MRML scene or RT plan node");
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+    }
+
+    // Get selected plan optimizer
+    qSlicerAbstractPlanOptimizer* selectedEngine =
+        qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
+    if (!selectedEngine)
+    {
+        QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
+        qCritical() << Q_FUNC_INFO << ": " << errorString;
+        return errorMessage;
+    }
+
+    errorMessage = selectedEngine->optimizePlan(planNode);
+    if (!errorMessage.isEmpty())
+    {
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+    }
+
+  return QString();
 }
 
 //-----------------------------------------------------------------------------
