@@ -16,7 +16,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         AbstractScriptedDoseEngine.__init__(self, scriptedEngine)
 
         temp_path = slicer.app.temporaryPath + '/pyRadPlan/'
-        temp_path = os.path.normpath(temp_path)
+        #temp_path = os.path.normpath(temp_path)
 
         isExist = os.path.exists(temp_path)
 
@@ -195,8 +195,8 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
     
     def calculateDoseInfluenceMatrixUsingEngine(self, beamNode):
         # TODO: Avoid Hardcoded Information here
-        os.chdir('D:/Python/pyRadPlan')
-        sys.path.append('D:/Python/pyRadPlan')
+        os.chdir('C:/D/pyRadPlan')
+        sys.path.append('C:/D/pyRadPlan')
 
         import pyRadPlan.io.matRad as matRadIO
         import pyRadPlan.matRad.engine as engine
