@@ -45,6 +45,16 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
     // ToDo: check if pyRadPlanEngine's dose calculation works with mock optimizer
 
 
+    // get reference Volume
+    vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();
+    if (!planNode || !referenceVolumeNode || !resultOptimizationVolumeNode)
+    {
+        QString errorMessage("Unable to access reference volume"); // needed? checked by abstract engine?
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+    }
+
+
     Eigen::VectorXd totalDose;
 
     // calculate dose for each beamNode and add to to total dose
@@ -53,7 +63,20 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
  
         // get dose influence matrix
         vtkMRMLRTBeamNode* beamNode = planNode->GetBeamByNumber(i);
+        if (!beamNode)
+        {
+            QString errorMessage("Invalid beam node");
+            qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+            return errorMessage;
+        }
         vtkMRMLRTBeamNode::DoseInfluenceMatrixType doseInfluenceMatrix = beamNode->GetDoseInfluenceMatrix();
+        if (doseInfluenceMatrix.rows() == 0 || doseInfluenceMatrix.cols() == 0)
+        {
+            QString errorMessage("Dose influence matrix is empty");
+            qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+            return errorMessage;
+        }
+
 
         // multiply Dose matrix with vector (filled with ones)
         Eigen::VectorXd vector = Eigen::VectorXd::Ones(doseInfluenceMatrix.rows()); // sparse: column-major -> vector length: number of rows in sparse (= number of voxels)
@@ -66,18 +89,38 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
         }
 
         totalDose += dose;
+
+
+        //std::cout << "DOSE INFO:" << std::endl;
+        //std::cout << "size total dose: " << totalDose.size() << std::endl;
+        //std::cout << "number of rows: " << doseInfluenceMatrix.rows() << std::endl;
+        //std::cout << "number of cols: " << doseInfluenceMatrix.cols() << std::endl;
     }
 
-    // get reference Volume
-    vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();
+    
 
-    // fill voxels with total dose
+    
     vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
     imageData->SetExtent(referenceVolumeNode->GetImageData()->GetExtent());
     imageData->SetSpacing(referenceVolumeNode->GetImageData()->GetSpacing());
     imageData->SetOrigin(referenceVolumeNode->GetImageData()->GetOrigin());
     imageData->AllocateScalars(VTK_FLOAT, 1);
 
+
+    //std::cout << "\nnumber of Points in reference Volume: " << imageData->GetNumberOfPoints() << std::endl;
+
+
+    if (imageData->GetNumberOfPoints() != totalDose.size())
+    {
+        QString errorMessage("Geometrical discrepancy between reference volume and dose");
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+    }
+
+
+    // HOW TO DETERMINE THE IMAGE DIMENSIONS??? (totalDose size != number of voxels (in referenceVolume))
+
+    // fill voxels with total dose
     float* floatPtr = (float*)imageData->GetScalarPointer();
 
     for (int i = 0; i < imageData->GetNumberOfPoints(); ++i)
@@ -92,11 +135,6 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
 
     std::string randomDoseNodeName = std::string(planNode->GetName()) + "_MockOptimizer";
     resultOptimizationVolumeNode->SetName(randomDoseNodeName.c_str());
-
-
-    // ERRORs to include:
-    // - dose size doesn't match
-
 
   return QString();
 }
