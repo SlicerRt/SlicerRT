@@ -255,6 +255,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
                                                             'rays': np.array([[stf[j]['ray'][i] for i in range(len(stf[j]['ray']))]
                                                                             for j in range(len(stf))], dtype=object)})#'ray':[stf[0]['ray'][i] for i in range(len(stf[0]['ray']))]})
 
+
         # This is required to properly load all the structs that are inside stf_with_separate_rays.mat
         eng.engine.IO_stf(self.temp_path)
 
@@ -476,9 +477,9 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
             },
 
             # dose calculation settings
-            "propDoseCalc": {"doseGrid": {"resolution": {"x": 3.0,#parentPlanNode.GetDoseGrid()[0],
-                                                        "y": 3.0,#parentPlanNode.GetDoseGrid()[1],
-                                                        "z": 3.0,#parentPlanNode.GetDoseGrid()[2],
+            "propDoseCalc": {"doseGrid": {"resolution": {"x": referenceVolumeNode.GetSpacing()[0], # 3.0,
+                                                        "y": referenceVolumeNode.GetSpacing()[1], # 3.0,
+                                                        "z": referenceVolumeNode.GetSpacing()[2], # 3.0,
                                                         },
                                         },
                             },
