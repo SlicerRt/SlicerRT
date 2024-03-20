@@ -993,3 +993,20 @@ double vtkMRMLRTBeamNode::GetDoseInfluenceMatrixSparsity()
 {
   return this->DoseInfluenceMatrix.nonZeros() / (this->DoseInfluenceMatrix.rows() * this->DoseInfluenceMatrix.cols());
 }
+
+vtkMRMLRTBeamNode::DoseInfluenceMatrixForPythonType vtkMRMLRTBeamNode::GetDoseInfluenceMatrixTriplets()
+{
+    vtkMRMLRTBeamNode::DoseInfluenceMatrixForPythonType triplets = vtkMRMLRTBeamNode::DoseInfluenceMatrixForPythonType::New();
+    triplets->SetNumberOfComponents(3); // each triplet has 3 components: row, col, value
+
+    for (int k = 0; k < this->DoseInfluenceMatrix.outerSize(); ++k)
+    {
+        for (Eigen::SparseMatrix<double, Eigen::ColMajor, int>::InnerIterator it(this->DoseInfluenceMatrix, k); it; ++it)
+        {
+            double triplet[3] = { static_cast<double>(it.row()), static_cast<double>(it.col()), it.value() };
+            triplets->InsertNextTuple(triplet);
+        }
+    }
+
+    return triplets;
+}
