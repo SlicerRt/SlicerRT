@@ -60,6 +60,7 @@ public:
   typedef std::vector<double> DoseInfluenceMatrixValueVector;
   typedef std::vector<int> DoseInfluenceMatrixIndexVector;
   typedef Eigen::SparseMatrix<double, Eigen::ColMajor, int> DoseInfluenceMatrixType;
+  typedef vtkSmartPointer<vtkDoubleArray> DoseInfluenceMatrixForPythonType;
 
 public:
   static vtkMRMLRTBeamNode *New();
@@ -237,6 +238,9 @@ public:
 
   /// Set Dose influence matrix from triplets
   void SetDoseInfluenceMatrixFromTriplets(int numRows, int numCols, DoseInfluenceMatrixIndexVector& rows, DoseInfluenceMatrixIndexVector& columns, DoseInfluenceMatrixValueVector& values);
+
+  /// Get Dose InfluenMatrix Triplets
+  vtkMRMLRTBeamNode::DoseInfluenceMatrixForPythonType GetDoseInfluenceMatrixTriplets();
 
 protected:
   /// Create beam model from beam parameters, supporting MLC leaves
