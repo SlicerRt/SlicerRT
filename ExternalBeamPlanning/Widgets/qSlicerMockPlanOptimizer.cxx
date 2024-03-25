@@ -79,7 +79,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
 
 
         // multiply Dose matrix with vector (filled with ones)
-        Eigen::VectorXd vector = Eigen::VectorXd::Ones(doseInfluenceMatrix.rows()); // sparse: column-major -> vector length: number of rows in sparse (= number of voxels)
+        Eigen::VectorXd vector = Eigen::VectorXd::Ones(doseInfluenceMatrix.rows());
         Eigen::VectorXd dose = doseInfluenceMatrix * vector;
 
         // resize total Dose vector to 
