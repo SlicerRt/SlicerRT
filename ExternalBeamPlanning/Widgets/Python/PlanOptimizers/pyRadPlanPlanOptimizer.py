@@ -5,6 +5,7 @@ import numpy as np
 import logging
 import random
 from scipy.sparse import coo_matrix
+import vtk.util.numpy_support as numpy_support
 from PlanOptimizers import *
 
 class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
@@ -33,7 +34,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     def optimizePlanUsingOptimizer(self, planNode, resultOptimizationVolumeNode):
         print('pyRadPlan Optimizer is called')
 
-        # get number of voxels
+        referenceVolumeNode = planNode.GetReferenceVolumeNode()
         numberOfVoxels = referenceVolumeNode.GetImageData().GetNumberOfPoints()
 
         totalDose = 0
@@ -46,30 +47,30 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             # Get the dose influence matrix
             triplets = beamNode.GetDoseInfluenceMatrixTriplets()
 
-            # Convert the triplets to a scipy.sparse.coo_matrix
-            data = np.array([triplets.GetTuple(i) for i in range(triplets.GetNumberOfTuples())])
+            data = numpy_support.vtk_to_numpy(triplets)
             rows = data[:, 0].astype(int)
             cols = data[:, 1].astype(int)
             values = data[:, 2]
+
             dose_influence_matrix = coo_matrix((values, (rows, cols)), shape=(numberOfVoxels, max(cols)+1)) # shape important to include zeros in last indices (rows must be as long as number of voxels)
 
+
             # multipy dose influence matrix with weights
-            weights = np.ones(numberOfVoxels) #len(cols) = number of rows
-            dose = np.dot(dose_influence_matrix, weights)
+            weights = np.ones(max(cols)+1)
+            dose = dose_influence_matrix.dot(weights)
 
             totalDose += dose
 
+
         print('Total Dose Size: ', totalDose.size)
 
-        import vtk.util.numpy_support as numpy_support
-
-        flat_data_array = totalDose.flatten()
-        vtk_data = numpy_support.numpy_to_vtk(num_array=flat_data_array, deep=True, array_type=vtk.VTK_FLOAT)
+        # insert total dose into volumee node
+        vtk_data = numpy_support.numpy_to_vtk(num_array=totalDose, deep=True, array_type=vtk.VTK_FLOAT)
 
         imageData = vtk.vtkImageData()
         imageData.DeepCopy(referenceVolumeNode.GetImageData())
         imageData.GetPointData().SetScalars(vtk_data)
-    
+            
         resultOptimizationVolumeNode.SetOrigin(referenceVolumeNode.GetOrigin())
         resultOptimizationVolumeNode.SetSpacing(referenceVolumeNode.GetSpacing())
         ijkToRASDirections = np.eye(3)
