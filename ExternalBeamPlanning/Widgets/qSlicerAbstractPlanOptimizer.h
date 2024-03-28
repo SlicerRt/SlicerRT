@@ -45,6 +45,10 @@ class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerAbstractPlanOpt
   Q_PROPERTY(QString name READ name WRITE setName)
 
 public:
+    /// Maximum Gray value for visualization window/level of the newly created per-beam dose volumes
+    static double DEFAULT_DOSE_VOLUME_WINDOW_LEVEL_MAXIMUM;
+
+public:
   typedef QObject Superclass;
   /// Constructor
   explicit qSlicerAbstractPlanOptimizer(QObject* parent=nullptr);
@@ -89,6 +93,14 @@ private:
   friend class qSlicerPlanOptimizerPluginHandler;
   friend class qSlicerPlanOptimizerLogic;
   friend class qSlicerExternalBeamPlanningModuleWidget;
+
+
+public:
+    /// Add result per-beam dose volume to beam
+    /// \param resultDose Dose volume to add to beam as result
+    /// \param beamNode Beam node to add dose as result to
+    /// \param replace Remove referenced dose volume if already exists. True by default
+    Q_INVOKABLE void addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTPlanNode* planNode, bool replace = true);
 };
 
 #endif
