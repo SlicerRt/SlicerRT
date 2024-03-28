@@ -28,7 +28,15 @@
 // MRML includes
 #include <vtkMRMLModelNode.h>
 
+// Eigen includes
 #include <itkeigen/Eigen/SparseCore>
+
+// VTK includes
+#include <vtkObject.h>
+#include <vtkSmartPointer.h>
+#include <vtkDoubleArray.h>
+#include <vtkIntArray.h>
+#include <vtkTable.h>
 
 class vtkPolyData;
 class vtkMRMLScene;
@@ -37,6 +45,7 @@ class vtkMRMLRTPlanNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
 class vtkMRMLLinearTransformNode;
+
 
 /// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLModelNode
@@ -60,7 +69,19 @@ public:
   typedef std::vector<double> DoseInfluenceMatrixValueVector;
   typedef std::vector<int> DoseInfluenceMatrixIndexVector;
   typedef Eigen::SparseMatrix<double, Eigen::ColMajor, int> DoseInfluenceMatrixType;
-  typedef vtkSmartPointer<vtkDoubleArray> DoseInfluenceMatrixForPythonType;
+
+
+   //class DoseInfluenceMatrixStruct : public vtkObject
+   //{
+   //public:
+   //  vtkTypeMacro(DoseInfluenceMatrixStruct, vtkObject);
+   //  static DoseInfluenceMatrixStruct *New();
+
+   //  vtkSmartPointer<vtkDoubleArray> Data;
+   //  vtkSmartPointer<vtkIntArray> Indices;
+   //  vtkSmartPointer<vtkIntArray> Indptr;
+   //};
+
 
 public:
   static vtkMRMLRTBeamNode *New();
@@ -239,8 +260,18 @@ public:
   /// Set Dose influence matrix from triplets
   void SetDoseInfluenceMatrixFromTriplets(int numRows, int numCols, DoseInfluenceMatrixIndexVector& rows, DoseInfluenceMatrixIndexVector& columns, DoseInfluenceMatrixValueVector& values);
 
-  /// Get Dose InfluenMatrix Triplets
-  vtkMRMLRTBeamNode::DoseInfluenceMatrixForPythonType GetDoseInfluenceMatrixTriplets();
+  /// Get Dose Influence Matrix Triplets
+  vtkSmartPointer<vtkDoubleArray> GetDoseInfluenceMatrixTriplets();
+
+  /// Get Dose Influence Matrix CSC Matrix
+  vtkSmartPointer<vtkDoubleArray> GetDoseInfluenceMatrixData();
+  vtkSmartPointer<vtkIntArray> GetDoseInfluenceMatrixIndices();
+  vtkSmartPointer<vtkIntArray> GetDoseInfluenceMatrixIndptr();
+
+  /*csc_matrix_vectors GetDoseInfluenceMatrixStruct();*/
+  /*vtkSmartPointer<DoseInfluenceMatrixStruct> GetDoseInfluenceMatrixCSCMatrix();*/
+
+  vtkSmartPointer<vtkTable> GetDoseInfluenceMatrixTable();
 
 protected:
   /// Create beam model from beam parameters, supporting MLC leaves

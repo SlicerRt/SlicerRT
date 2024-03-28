@@ -4,7 +4,7 @@ import vtk, qt, ctk, slicer
 import numpy as np
 import logging
 import random
-from scipy.sparse import coo_matrix
+from scipy.sparse import csc_matrix
 import vtk.util.numpy_support as numpy_support
 from PlanOptimizers import *
 
@@ -44,21 +44,17 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             beamNode = planNode.GetBeamByNumber(beamNumber)
             print('current beam: ', beamNode.GetName())
 
-            # Get the dose influence matrix
-            triplets = beamNode.GetDoseInfluenceMatrixTriplets()
+            data = beamNode.GetDoseInfluenceMatrixData()
+            indices = beamNode.GetDoseInfluenceMatrixIndices()
+            indptr = beamNode.GetDoseInfluenceMatrixIndptr()
 
-            data = numpy_support.vtk_to_numpy(triplets)
-            rows = data[:, 0].astype(int)
-            cols = data[:, 1].astype(int)
-            values = data[:, 2]
+            numOfCols =  indptr.GetSize()-1
 
-            dose_influence_matrix = coo_matrix((values, (rows, cols)), shape=(numberOfVoxels, max(cols)+1)) # shape important to include zeros in last indices (rows must be as long as number of voxels)
-
+            dose_influence_matrix = csc_matrix((np.array(data), np.array(indices), np.array(indptr)), shape=(numberOfVoxels, numOfCols)) # shape important to include zeros in last indices (rows must be as long as number of voxels)
 
             # multipy dose influence matrix with weights
-            weights = np.ones(max(cols)+1)
+            weights = np.ones(numOfCols) #len(cols) = number of rows
             dose = dose_influence_matrix.dot(weights)
-
             totalDose += dose
 
 

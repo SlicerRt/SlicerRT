@@ -996,19 +996,90 @@ double vtkMRMLRTBeamNode::GetDoseInfluenceMatrixSparsity()
   return this->DoseInfluenceMatrix.nonZeros() / (this->DoseInfluenceMatrix.rows() * this->DoseInfluenceMatrix.cols());
 }
 
-vtkMRMLRTBeamNode::DoseInfluenceMatrixForPythonType vtkMRMLRTBeamNode::GetDoseInfluenceMatrixTriplets()
+vtkSmartPointer<vtkDoubleArray> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixTriplets()
 {
-    vtkMRMLRTBeamNode::DoseInfluenceMatrixForPythonType triplets = vtkMRMLRTBeamNode::DoseInfluenceMatrixForPythonType::New();
-    triplets->SetNumberOfComponents(3); // each triplet has 3 components: row, col, value
+  vtkSmartPointer<vtkDoubleArray> triplets = vtkSmartPointer<vtkDoubleArray>::New();
+  triplets->SetNumberOfComponents(3); // each triplet has 3 components: row, col, value
 
-    for (int k = 0; k < this->DoseInfluenceMatrix.outerSize(); ++k)
-    {
-        for (Eigen::SparseMatrix<double, Eigen::ColMajor, int>::InnerIterator it(this->DoseInfluenceMatrix, k); it; ++it)
-        {
-            double triplet[3] = { static_cast<double>(it.row()), static_cast<double>(it.col()), it.value() };
-            triplets->InsertNextTuple(triplet);
-        }
-    }
+  for (int k = 0; k < this->DoseInfluenceMatrix.outerSize(); ++k)
+  {
+      for (Eigen::SparseMatrix<double, Eigen::ColMajor, int>::InnerIterator it(this->DoseInfluenceMatrix, k); it; ++it)
+      {
+          double triplet[3] = { static_cast<double>(it.row()), static_cast<double>(it.col()), it.value() };
+          triplets->InsertNextTuple(triplet);
+      }
+  }
 
-    return triplets;
+  return triplets;
+}
+
+//vtkMRMLRTBeamNode::csc_matrix_vectors vtkMRMLRTBeamNode::GetDoseInfluenceMatrixStruct()
+//{
+//  vtkMRMLRTBeamNode::csc_matrix_vectors result;
+//  result.data = this->GetDoseInfluenceMatrixData();
+//  result.indices = this->GetDoseInfluenceMatrixIndices();
+//  result.indptr = this->GetDoseInfluenceMatrixIndptr();
+//  return result;
+//}
+
+vtkSmartPointer<vtkDoubleArray> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixData()
+{
+  vtkSmartPointer<vtkDoubleArray> data = vtkSmartPointer<vtkDoubleArray>::New();
+  data->SetArray(this->DoseInfluenceMatrix.valuePtr(), this->DoseInfluenceMatrix.nonZeros(), 1);
+  return data;
+}
+
+vtkSmartPointer<vtkIntArray> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixIndices()
+{
+  vtkSmartPointer<vtkIntArray> indices = vtkSmartPointer<vtkIntArray>::New();
+  indices->SetArray(this->DoseInfluenceMatrix.innerIndexPtr(), this->DoseInfluenceMatrix.nonZeros(), 1);
+  return indices;
+}
+
+vtkSmartPointer<vtkIntArray> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixIndptr()
+{
+  vtkSmartPointer<vtkIntArray> indptr = vtkSmartPointer<vtkIntArray>::New();
+  indptr->SetArray(this->DoseInfluenceMatrix.outerIndexPtr(), this->DoseInfluenceMatrix.outerSize() + 1, 1);
+  return indptr;
+}
+
+
+//vtkSmartPointer<vtkMRMLRTBeamNode::DoseInfluenceMatrixStruct> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixCSCMatrix()
+//{
+//  vtkSmartPointer<vtkMRMLRTBeamNode::DoseInfluenceMatrixStruct> matrix = vtkSmartPointer<vtkMRMLRTBeamNode::DoseInfluenceMatrixStruct>::New();
+//  //matrix->Data = vtkSmartPointer<vtkDoubleArray>::New();
+//  //matrix->Indices = vtkSmartPointer<vtkIntArray>::New();
+//  //matrix->Indptr = vtkSmartPointer<vtkIntArray>::New();
+//
+//  // Copy data from DoseInfluenceMatrix to matrix->Data, matrix->Indices, and matrix->Indptr
+//
+//  matrix->Data = this->GetDoseInfluenceMatrixData();
+//  matrix->Indices = this->GetDoseInfluenceMatrixIndices();
+//  matrix->Indptr = this->GetDoseInfluenceMatrixIndptr();
+//
+//  return matrix;
+//}
+
+vtkSmartPointer<vtkTable> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixTable()
+{
+  vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
+
+  vtkSmartPointer<vtkDoubleArray> dataColumn = vtkSmartPointer<vtkDoubleArray>::New();
+  dataColumn->SetName("Data");
+  dataColumn->SetArray(this->DoseInfluenceMatrix.valuePtr(), this->DoseInfluenceMatrix.nonZeros(), 1);
+  table->AddColumn(dataColumn);
+
+  vtkSmartPointer<vtkIntArray> indicesColumn = vtkSmartPointer<vtkIntArray>::New();
+  indicesColumn->SetName("Indices");
+  indicesColumn->SetArray(this->DoseInfluenceMatrix.innerIndexPtr(), this->DoseInfluenceMatrix.nonZeros(), 1);
+  table->AddColumn(indicesColumn);
+
+  vtkSmartPointer<vtkIntArray> indptrColumn = vtkSmartPointer<vtkIntArray>::New();
+  indptrColumn->SetName("Indptr");
+  vtkSmartPointer<vtkIntArray> tempArray = vtkSmartPointer<vtkIntArray>::New();
+  tempArray->SetArray(this->DoseInfluenceMatrix.outerIndexPtr(), this->DoseInfluenceMatrix.outerSize() + 1, 1);
+  indptrColumn->DeepCopy(tempArray);
+  table->AddColumn(indptrColumn);
+
+  return table;
 }
