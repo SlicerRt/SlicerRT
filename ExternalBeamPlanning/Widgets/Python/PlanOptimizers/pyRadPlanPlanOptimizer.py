@@ -44,13 +44,20 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             beamNode = planNode.GetBeamByNumber(beamNumber)
             print('current beam: ', beamNode.GetName())
 
-            data = beamNode.GetDoseInfluenceMatrixData()
-            indices = beamNode.GetDoseInfluenceMatrixIndices()
-            indptr = beamNode.GetDoseInfluenceMatrixIndptr()
+            fieldData = beamNode.GetDoseInfluenceMatrixFieldData()
+            # data = np.array(fieldData.GetArray('Data'))
+            # indices = np.array(fieldData.GetArray('Indices'))
+            # indptr = np.array(fieldData.GetArray('Indptr'))
 
-            numOfCols =  indptr.GetSize()-1
 
-            dose_influence_matrix = csc_matrix((np.array(data), np.array(indices), np.array(indptr)), shape=(numberOfVoxels, numOfCols)) # shape important to include zeros in last indices (rows must be as long as number of voxels)
+            numOfCols = fieldData.GetArray('Indptr').GetSize()-1
+
+            dose_influence_matrix = csc_matrix((np.array(fieldData.GetArray('Data')),
+                                                np.array(fieldData.GetArray('Indices')),
+                                                np.array(fieldData.GetArray('Indptr'))),
+                                                shape=(numberOfVoxels, numOfCols)) # shape important to include zeros in last indices (rows must be as long as number of voxels)
+
+            # dose_influence_matrix = csc_matrix((data, indices, indptr), shape=(numberOfVoxels, numOfCols))
 
             # multipy dose influence matrix with weights
             weights = np.ones(numOfCols) #len(cols) = number of rows
