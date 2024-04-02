@@ -36,7 +36,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkDoubleArray.h>
 #include <vtkIntArray.h>
-#include <vtkTable.h>
+#include <vtkFieldData.h>
 
 class vtkPolyData;
 class vtkMRMLScene;
@@ -69,18 +69,6 @@ public:
   typedef std::vector<double> DoseInfluenceMatrixValueVector;
   typedef std::vector<int> DoseInfluenceMatrixIndexVector;
   typedef Eigen::SparseMatrix<double, Eigen::ColMajor, int> DoseInfluenceMatrixType;
-
-
-   //class DoseInfluenceMatrixStruct : public vtkObject
-   //{
-   //public:
-   //  vtkTypeMacro(DoseInfluenceMatrixStruct, vtkObject);
-   //  static DoseInfluenceMatrixStruct *New();
-
-   //  vtkSmartPointer<vtkDoubleArray> Data;
-   //  vtkSmartPointer<vtkIntArray> Indices;
-   //  vtkSmartPointer<vtkIntArray> Indptr;
-   //};
 
 
 public:
@@ -260,18 +248,14 @@ public:
   /// Set Dose influence matrix from triplets
   void SetDoseInfluenceMatrixFromTriplets(int numRows, int numCols, DoseInfluenceMatrixIndexVector& rows, DoseInfluenceMatrixIndexVector& columns, DoseInfluenceMatrixValueVector& values);
 
-  /// Get Dose Influence Matrix Triplets
+  /// Get Dose Influence Matrix
   vtkSmartPointer<vtkDoubleArray> GetDoseInfluenceMatrixTriplets();
 
-  /// Get Dose Influence Matrix CSC Matrix
   vtkSmartPointer<vtkDoubleArray> GetDoseInfluenceMatrixData();
   vtkSmartPointer<vtkIntArray> GetDoseInfluenceMatrixIndices();
   vtkSmartPointer<vtkIntArray> GetDoseInfluenceMatrixIndptr();
 
-  /*csc_matrix_vectors GetDoseInfluenceMatrixStruct();*/
-  /*vtkSmartPointer<DoseInfluenceMatrixStruct> GetDoseInfluenceMatrixCSCMatrix();*/
-
-  vtkSmartPointer<vtkTable> GetDoseInfluenceMatrixTable();
+  vtkSmartPointer<vtkFieldData> GetDoseInfluenceMatrixFieldData();
 
 protected:
   /// Create beam model from beam parameters, supporting MLC leaves
