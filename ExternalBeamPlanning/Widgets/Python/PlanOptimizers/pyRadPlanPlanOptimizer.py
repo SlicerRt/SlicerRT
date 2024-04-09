@@ -68,7 +68,8 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
         print('Total Dose Size: ', totalDose.size)
 
         # insert total dose into volumee node
-        vtk_data = numpy_support.numpy_to_vtk(num_array=totalDose, deep=True, array_type=vtk.VTK_FLOAT)
+        flat_data_array = totalDose.swapaxes(0,2).swapaxes(2,1).flatten()
+        vtk_data = numpy_support.numpy_to_vtk(num_array=flat_data_array, deep=True, array_type=vtk.VTK_FLOAT)
 
         imageData = vtk.vtkImageData()
         imageData.DeepCopy(referenceVolumeNode.GetImageData())
