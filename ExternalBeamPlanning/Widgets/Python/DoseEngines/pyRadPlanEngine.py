@@ -46,8 +46,10 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         os.chdir('C:/D/pyRadPlan')
         sys.path.append('C:/D/pyRadPlan')
 
+        from pyRadPlan import stf
+
         import pyRadPlan.io.matRad as matRadIO
-        import pyRadPlan.matRad.engine as engine
+        import pyRadPlan.matRad as matRad
         #from pyRadPlan.GUI import matRadGUI
         #from pyRadPlan.stf.generate_stf import generateStf
         from pyRadPlan.dose.calcPhotonDose import calcPhotonDose, calcPhotonDoseMC
@@ -57,16 +59,18 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         from pyRadPlan.optimization._fluenceOptimizer import FluenceOptimizer
         from pyRadPlan.patients._patient_loader import PatientLoader
         from pymatreader import read_mat
-        from scipy.sparse import csr_matrix
+        from scipy.sparse import coo_matrix, csr_matrix
         import matplotlib.pyplot as plt
 
         from pyRadPlan.optimization.components.objectives import (SquaredDeviation, SquaredOverdosing)
 
-        from pyRadPlan.optimization import fluenceOptimization
-        import pymedphys as pymed
+        from pymatreader import read_mat
+        from scipy.sparse import csr_matrix
+        # import pymedphys as pymed
 
-        # path2pyRadPlan = os.getcwd()
-        # temp_path = path2pyRadPlan + '/pyRadPlan/temp_files/'
+        # Ignore deprication warnings
+        # np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarnin
+
 
         parentPlanNode = beamNode.GetParentPlanNode()
         referenceVolumeNode = parentPlanNode.GetReferenceVolumeNode()        
@@ -76,8 +80,9 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         matRad needs to be installed on the PC, and the engine initialization has to point to it
         choose between MatRadEngineOctave or MatRadEngineMatlab
         '''
-        eng = engine.MatRadEngineMatlab('matRad')
-        engine.setEngine(eng)
+        eng = matRad.MatRadEngineMatlab('matRad')
+        # eng = matRad.MatRadEngineOctave('matRad',octave_exec = "C:/Program Files/GNU Octave/Octave-8.4.0/mingw64/bin/octave-cli.exe")
+        matRad.setEngine(eng)
 
         # Prepare the ct
         ct = self.prepareCt(beamNode)
@@ -93,7 +98,13 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         matRad functions ending in py which are part of the functions seen below have been slightly edited to allow for calling 
         them with the matlab engine. A specific description of the changes can be found in the respective matRad functions.
         '''
-        stf = StfGenerator(ct, cst, pln)
+
+        # Used for the class-based implementation
+        # s = stf.photons.StfGeneratorPhotonBixel(ct, cst, pln, engine)
+        # stf = s.generate()
+
+        stf = StfGenerator(ct, cst, pln)  # This still calls the function from StfGenerator_temporary.py until the class-based
+        # stf = StfGenerator(ct,cst,pln,eng)
 
         # An elaborate way to save all the dictionaries into structs that can be loaded by matlab. This will not be necessary
         # once the dose calculation and optimization functions are set. It is there as a "place-holder" and a check if the
@@ -101,7 +112,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         # https://stackoverflow.com/questions/61542500/convert-multiple-python-dictionaries-to-matlab-structure-array-with-scipy-io-sav
         matRadIO.save(self.temp_path, 'stf_with_separate_rays.mat', {'stf': np.array([stf[i] for i in range(len(stf))], dtype=object),
                                                             'rays': np.array([[stf[j]['ray'][i] for i in range(len(stf[j]['ray']))]
-                                                                            for j in range(len(stf))], dtype=object)})#'ray':[stf[0]['ray'][i] for i in range(len(stf[0]['ray']))]})
+                                                                            for j in range(len(stf))], dtype=object)})
 
         # This is required to properly load all the structs that are inside stf_with_separate_rays.mat
         eng.engine.IO_stf(self.temp_path)
@@ -198,8 +209,10 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         os.chdir('C:/D/pyRadPlan')
         sys.path.append('C:/D/pyRadPlan')
 
+        from pyRadPlan import stf
+
         import pyRadPlan.io.matRad as matRadIO
-        import pyRadPlan.matRad.engine as engine
+        import pyRadPlan.matRad as matRad
         #from pyRadPlan.GUI import matRadGUI
         #from pyRadPlan.stf.generate_stf import generateStf
         from pyRadPlan.dose.calcPhotonDose import calcPhotonDose, calcPhotonDoseMC
@@ -209,27 +222,26 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         from pyRadPlan.optimization._fluenceOptimizer import FluenceOptimizer
         from pyRadPlan.patients._patient_loader import PatientLoader
         from pymatreader import read_mat
-        from scipy.sparse import coo_matrix
+        from scipy.sparse import coo_matrix, csr_matrix
         import matplotlib.pyplot as plt
 
         from pyRadPlan.optimization.components.objectives import (SquaredDeviation, SquaredOverdosing)
 
-        from pyRadPlan.optimization import fluenceOptimization
-        import pymedphys as pymed
+        from pymatreader import read_mat
+        from scipy.sparse import csr_matrix
+        # import pymedphys as pymed
 
-        # path2pyRadPlan = os.getcwd()
-        # temp_path = path2pyRadPlan + '/pyRadPlan/temp_files/'
-
-        parentPlanNode = beamNode.GetParentPlanNode()
-        # referenceVolumeNode = parentPlanNode.GetReferenceVolumeNode()        
+        # Ignore deprication warnings
+        # np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarnin
 
 
         '''
         matRad needs to be installed on the PC, and the engine initialization has to point to it
         choose between MatRadEngineOctave or MatRadEngineMatlab
         '''
-        eng = engine.MatRadEngineMatlab('matRad')
-        engine.setEngine(eng)
+        eng = matRad.MatRadEngineMatlab('matRad')
+        # eng = matRad.MatRadEngineOctave('matRad',octave_exec = "C:/Program Files/GNU Octave/Octave-8.4.0/mingw64/bin/octave-cli.exe")
+        matRad.setEngine(eng)
 
         # Prepare the ct
         ct = self.prepareCt(beamNode)
@@ -245,7 +257,13 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         matRad functions ending in py which are part of the functions seen below have been slightly edited to allow for calling 
         them with the matlab engine. A specific description of the changes can be found in the respective matRad functions.
         '''
-        stf = StfGenerator(ct, cst, pln)
+
+        # Used for the class-based implementation
+        # s = stf.photons.StfGeneratorPhotonBixel(ct, cst, pln, engine)
+        # stf = s.generate()
+
+        stf = StfGenerator(ct, cst, pln)  # This still calls the function from StfGenerator_temporary.py until the class-based
+        # stf = StfGenerator(ct,cst,pln,eng)
 
         # An elaborate way to save all the dictionaries into structs that can be loaded by matlab. This will not be necessary
         # once the dose calculation and optimization functions are set. It is there as a "place-holder" and a check if the
@@ -318,7 +336,6 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         import pyRadPlan.io.matRad as matRadIO
 
         # accessing nodes in Slicer
-        # beamNode = slicer.mrmlScene.GetNodeByID('vtkMRMLRTBeamNode1')
         parentPlanNode = beamNode.GetParentPlanNode()
         referenceVolumeNode = parentPlanNode.GetReferenceVolumeNode()
 
