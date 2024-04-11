@@ -44,10 +44,24 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
         totalDose = 0
 
-        for beamNumber in range(1,planNode.GetNumberOfBeams()+1):
+        numberOfBeams = planNode.GetNumberOfBeams()
+
+        # get beams in plan
+        beamNames = []
+        tried_beam_index = 0
+        while (len(beamNames) < numberOfBeams):
+            try:
+                beam = planNode.GetBeamByNumber(tried_beam_index)
+                beamNames.append(beam.GetName())
+                tried_beam_index += 1
+            except:
+                tried_beam_index += 1
             
-            beamNode = planNode.GetBeamByNumber(beamNumber)
-            print('current beam: ', beamNode.GetName())
+
+        for beamName in beamNames:
+            
+            beamNode = planNode.GetBeamByName(beamName)
+            print('current beam: ', beamName)
 
             # Prepare the ct
             ct = prepareCt(beamNode, self.temp_path)

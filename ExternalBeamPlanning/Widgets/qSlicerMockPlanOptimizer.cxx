@@ -57,12 +57,25 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
 
     Eigen::VectorXd totalDose;
 
+    int numberOfBeams = planNode->GetNumberOfBeams();
+
+    std::vector<std::string> beamNames;
+    int tried_beam_index = 0;
+
+    while (beamNames.size() < numberOfBeams) {
+        vtkMRMLRTBeamNode* beam = planNode->GetBeamByNumber(tried_beam_index);
+        if (beam != nullptr) {
+            beamNames.push_back(beam->GetName());
+        }
+        tried_beam_index++;
+    }
+
+
     // calculate dose for each beamNode and add to to total dose
-    for (int i = 1; i <= planNode->GetNumberOfBeams(); i++)
+    for (int i = 0; i < planNode->GetNumberOfBeams(); i++)
     {
- 
         // get dose influence matrix
-        vtkMRMLRTBeamNode* beamNode = planNode->GetBeamByNumber(i);
+        vtkMRMLRTBeamNode* beamNode = planNode->GetBeamByName(beamNames[i]);
         if (!beamNode)
         {
             QString errorMessage("Invalid beam node");
@@ -83,7 +96,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
         Eigen::VectorXd dose = doseInfluenceMatrix * vector;
 
         // resize total Dose vector to 
-        if (i == 1)
+        if (i == 0)
         {
             totalDose.resize(dose.size());
         }
