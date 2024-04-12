@@ -143,8 +143,12 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
         resultOptimizationVolumeNode.SetAndObserveImageData(imageData)
 
         # Set name
-        OptimizedDoseNodeName = str(beamNode.GetName())+"_pyRadOptimzedDose"
+        OptimizedDoseNodeName = str(planNode.GetName())+"_pyRadOptimzedDose"
         resultOptimizationVolumeNode.SetName(OptimizedDoseNodeName)
+
+        
+        slicer.util.setSliceViewerLayers(background=referenceVolumeNode, foreground=resultOptimizationVolumeNode)
+        slicer.util.setSliceViewerLayers(foregroundOpacity=1)
 
         return str()
     
