@@ -111,8 +111,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
     }
 
     
-
-    
+   
     vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
     imageData->SetExtent(referenceVolumeNode->GetImageData()->GetExtent());
     imageData->SetSpacing(referenceVolumeNode->GetImageData()->GetSpacing());
@@ -130,15 +129,22 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
         return errorMessage;
     }
 
-
-    // HOW TO DETERMINE THE IMAGE DIMENSIONS??? (totalDose size != number of voxels (in referenceVolume))
-
     // fill voxels with total dose
     float* floatPtr = (float*)imageData->GetScalarPointer();
 
+    int N_x = referenceVolumeNode->GetImageData()->GetDimensions()[0];
+    int N_y = referenceVolumeNode->GetImageData()->GetDimensions()[1];
+    int N_z = referenceVolumeNode->GetImageData()->GetDimensions()[2];
+
     for (int i = 0; i < imageData->GetNumberOfPoints(); ++i)
     {
-        (*floatPtr) = totalDose[i];
+        int x = i % N_x;
+        int y = (i / N_x) % N_y;
+        int z = i / (N_x * N_y);
+
+        int i_D = y + N_y * (x + N_x * z);
+
+        (*floatPtr) = totalDose[i_D];
         ++floatPtr;
     }
 
