@@ -62,6 +62,14 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       )
   endif()
 
+  if(APPLE)
+    # Disable OpenMP on macOS until a better solution can be found
+    # https://github.com/SlicerRt/SlicerRT/issues/242
+    list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
+      "-DPLM_CONFIG_ENABLE_OPENMP:BOOL=OFF"
+      )
+  endif()
+
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
     GIT_REPOSITORY "${${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY}"
@@ -110,4 +118,3 @@ else()
 endif()
 
 mark_as_superbuild(${proj}_DIR:PATH)
-
