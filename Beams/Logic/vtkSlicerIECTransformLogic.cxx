@@ -298,7 +298,7 @@ void vtkSlicerIECTransformLogic::UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* 
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerIECTransformLogic::UpdateFixedReferenceToRASTransform(vtkMRMLRTPlanNode* planNode, double* isocenter)
+void vtkSlicerIECTransformLogic::UpdateFixedReferenceToRASTransform(vtkMRMLRTPlanNode* planNode/*=nullptr*/, double* isocenter/*=nullptr*/)
 {
   if (!this->GetMRMLScene())
   {
