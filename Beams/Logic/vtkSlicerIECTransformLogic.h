@@ -147,10 +147,10 @@ public:
   void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode, vtkMRMLLinearTransformNode* beamTransformNode, double* isocenter=nullptr);
 
   /// Update IEC transforms according to beam node
-  void UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* beamNode, double* isocenter = nullptr);
+  void UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* beamNode, double* isocenter=nullptr);
 
   /// Update fixed reference to RAS transform based on isocenter and patient support transforms
-  void UpdateFixedReferenceToRASTransform(vtkMRMLRTPlanNode* planNode, double* isocenter = nullptr);
+  void UpdateFixedReferenceToRASTransform(vtkMRMLRTPlanNode* planNode=nullptr, double* isocenter=nullptr);
 
   /// Update GantryToFixedReference transform based on gantry angle parameter
   void UpdateGantryToFixedReferenceTransform(double gantryRotationAngleDeg);
