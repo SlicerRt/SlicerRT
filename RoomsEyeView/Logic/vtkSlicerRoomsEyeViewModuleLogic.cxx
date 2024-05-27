@@ -428,6 +428,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
   //TODO: Add the REV transform to the IEC transform map and use it for the GetTransform... functions
   this->IECLogic->BuildIECTransformHierarchy();
 
+  // Make sure the fixed reference to RAS is correct
+  this->IECLogic->UpdateFixedReferenceToRASTransform();
+
   // Create transform nodes if they do not exist
   vtkSmartPointer<vtkMRMLLinearTransformNode> additionalCollimatorDevicesToCollimatorTransformNode;
   if (!scene->GetFirstNodeByName(ADDITIONALCOLLIMATORMOUNTEDDEVICES_TO_COLLIMATOR_TRANSFORM_NODE_NAME))
