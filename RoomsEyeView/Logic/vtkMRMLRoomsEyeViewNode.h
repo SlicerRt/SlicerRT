@@ -157,21 +157,6 @@ public:
   vtkGetMacro(LateralTableTopDisplacement, double);
   vtkSetMacro(LateralTableTopDisplacement, double);
 
-  vtkGetMacro(AdditionalModelLongitudinalDisplacement, double);
-  vtkSetMacro(AdditionalModelLongitudinalDisplacement, double);
-
-  vtkGetMacro(AdditionalModelVerticalDisplacement, double);
-  vtkSetMacro(AdditionalModelVerticalDisplacement, double);
-
-  vtkGetMacro(AdditionalModelLateralDisplacement, double);
-  vtkSetMacro(AdditionalModelLateralDisplacement, double);
-
-  vtkGetMacro(ApplicatorHolderVisibility, int);
-  vtkSetMacro(ApplicatorHolderVisibility, int);
-
-  vtkGetMacro(ElectronApplicatorVisibility, int);
-  vtkSetMacro(ElectronApplicatorVisibility, int);
-
 protected:
   vtkMRMLRoomsEyeViewNode();
   ~vtkMRMLRoomsEyeViewNode();

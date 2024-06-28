@@ -33,12 +33,15 @@
 // Beams includes
 #include "vtkSlicerBeamsModuleLogicExport.h"
 #include "vtkMRMLRTBeamNode.h"
+#include "vtkSlicerIECTransformLogic.h"
+
+// VTK includes
+#include <vtkNew.h>
 
 class vtkSlicerMLCPositionLogic;
 
 /// \ingroup SlicerRt_QtModules_Beams
-class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkSlicerBeamsModuleLogic :
-  public vtkSlicerModuleLogic
+class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkSlicerBeamsModuleLogic : public vtkSlicerModuleLogic
 {
 public:
   static vtkSlicerBeamsModuleLogic *New();
@@ -48,8 +51,6 @@ public:
   /// Update parent transform of a given beam using its parameters and the IEC logic
   void UpdateTransformForBeam(vtkMRMLRTBeamNode* beamNode);
 
-  vtkGetObjectMacro(MLCPositionLogic, vtkSlicerMLCPositionLogic);
-
   /// Update parent transform of a given beam using its parameters and the IEC logic
   /// without using plan node (only isocenter position)
   /// @param beamSequenceScene - inner scene of the beam sequence node
@@ -57,8 +58,33 @@ public:
   /// @param beamTransformNode - parent transform of the beam according to the beam parameters and isocenter
   /// @param isocenter - isocenter position
   /// \warning This method is used only in vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequence
-  void UpdateTransformForBeam( vtkMRMLScene* beamSequenceScene, vtkMRMLRTBeamNode* beamNode, 
+  void UpdateTransformForBeam(vtkMRMLScene* beamSequenceScene, vtkMRMLRTBeamNode* beamNode, 
     vtkMRMLLinearTransformNode* beamTransformNode, double isocenter[3]);
+
+public:
+  /// Update parent transform node of a given beam from the IEC transform hierarchy and the beam parameters
+  void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode);
+  /// Update parent transform node of a given beam from the IEC transform hierarchy and the beam parameters
+  /// \warning This method is used only in vtkSlicerBeamsModuleLogic::UpdateTransformForBeam
+  void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode, vtkMRMLLinearTransformNode* beamTransformNode, double* isocenter = nullptr);
+
+  /// Update IEC transforms according to beam node. Function kept separate from \sa UpdateBeamTransform for usage in the DRR module
+  void UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* beamNode, double* isocenter=nullptr);
+
+public:
+  /// Update FixedReference to RAS and RAS to Patient transforms based on isocenter and patient support transforms.
+  /// \param iecLogic: IEC logic to use for the update. Useful if the Room's Eye View module wants to use this function with its own configuration.
+  /// \param planNode: Plan node to get the isocenter position from
+  /// \param isocenter: Option to set any isocenter for dynamic beams
+  /// \param transformForBeam: calculate dynamic transformation for beam model or other models. False by default.
+  void UpdateRASRelatedTransforms(vtkSlicerIECTransformLogic* iecLogic=nullptr, vtkMRMLRTPlanNode* planNode=nullptr, double* isocenter=nullptr, bool transformForBeam=false);
+
+public:
+  vtkGetObjectMacro(MLCPositionLogic, vtkSlicerMLCPositionLogic);
+  vtkGetObjectMacro(IECLogic, vtkSlicerIECTransformLogic);
+
+  /// Possibility to use an external IEC logic. This is useful for testing.
+  void SetIECLogic(vtkSlicerIECTransformLogic* iecLogic);
 
 protected:
   vtkSlicerBeamsModuleLogic();
@@ -80,7 +106,9 @@ private:
   void operator=(const vtkSlicerBeamsModuleLogic&) = delete;
   
   vtkSlicerMLCPositionLogic* MLCPositionLogic;
+
+private:
+  vtkSlicerIECTransformLogic* IECLogic;
 };
 
 #endif
-

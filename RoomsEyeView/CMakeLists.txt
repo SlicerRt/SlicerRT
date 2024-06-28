@@ -49,6 +49,7 @@ set(MODULE_TARGET_LIBRARIES
   qSlicerSegmentationsModuleWidgets
   qSlicerSubjectHierarchyModuleWidgets
   vtkSlicerBeamsModuleMRML
+  vtkSlicerBeamsModuleLogic
   qSlicerBeamsModuleWidgets
   )
 

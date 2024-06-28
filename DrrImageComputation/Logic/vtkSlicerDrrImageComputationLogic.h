@@ -27,7 +27,8 @@
 // Slicer includes
 #include <vtkSlicerModuleLogic.h>
 
-// MRML includes
+// SlicerRT includes
+#include <vtkSlicerRoomsEyeViewModuleLogic.h>
 
 // STD includes
 #include <cstdlib>
@@ -78,12 +79,8 @@ public:
   /// Show/hide markups
   void ShowMarkupsNodes(bool toggled = false);
 
-  /// Set Planar Image module logic
-  void SetPlanarImageLogic(vtkSlicerPlanarImageModuleLogic* planarImageLogic);
   /// Set Plastimatch DRR CLI module logic
   void SetDRRComputationLogic(vtkSlicerCLIModuleLogic* plastimatchDrrLogic);
-  /// Set Beams module logic
-  void SetBeamsLogic(vtkSlicerBeamsModuleLogic* beamsLogic);
 
   /// Compute DRR image
   /// \param parameterNode - parameters of DRR image computation

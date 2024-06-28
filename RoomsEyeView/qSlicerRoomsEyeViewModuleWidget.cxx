@@ -266,9 +266,6 @@ void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
     {
       paramNode->SetPatientBodySegmentID(d->SegmentSelectorWidget_PatientBody->currentSegmentID().toUtf8().constData());
     }
-
-    paramNode->SetApplicatorHolderVisibility(0);
-    paramNode->SetElectronApplicatorVisibility(0);
   }
 
   this->updateWidgetFromMRML();
@@ -299,15 +296,10 @@ void qSlicerRoomsEyeViewModuleWidget::updateWidgetFromMRML()
     d->GantryRotationSlider->setValue(paramNode->GetGantryRotationAngle());
     d->CollimatorRotationSlider->setValue(paramNode->GetCollimatorRotationAngle());
     d->PatientSupportRotationSlider->setValue(paramNode->GetPatientSupportRotationAngle());
-    d->ImagingPanelMovementSlider->setValue(paramNode->GetImagingPanelMovement());
     d->VerticalTableTopDisplacementSlider->setValue(paramNode->GetVerticalTableTopDisplacement());
-    d->LateralTableTopDisplacementSlider->setValue(paramNode->GetLateralTableTopDisplacement());
     d->LongitudinalTableTopDisplacementSlider->setValue(paramNode->GetLongitudinalTableTopDisplacement());
-    d->VerticalTranslationSliderWidget->setValue(paramNode->GetAdditionalModelVerticalDisplacement());
-    d->LongitudinalTranslationSliderWidget->setValue(paramNode->GetAdditionalModelLongitudinalDisplacement());
-    d->LateralTranslationSliderWidget->setValue(paramNode->GetAdditionalModelLateralDisplacement());
-    d->ApplicatorHolderCheckBox->setChecked(paramNode->GetApplicatorHolderVisibility());
-    d->ElectronApplicatorCheckBox->setChecked(paramNode->GetElectronApplicatorVisibility());
+    d->LateralTableTopDisplacementSlider->setValue(paramNode->GetLateralTableTopDisplacement());
+    d->ImagingPanelMovementSlider->setValue(paramNode->GetImagingPanelMovement());
   }
 }
 
@@ -343,17 +335,6 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
   connect(d->LongitudinalTableTopDisplacementSlider, SIGNAL(valueChanged(double)), this, SLOT(onLongitudinalTableTopDisplacementSliderValueChanged(double)));
   connect(d->LateralTableTopDisplacementSlider, SIGNAL(valueChanged(double)), this, SLOT(onLateralTableTopDisplacementSliderValueChanged(double)));
 
-  // Additional devices
-  connect(d->LoadBasicCollimatorMountedDeviceButton, SIGNAL(clicked()), this, SLOT(onLoadBasicCollimatorMountedDeviceButtonClicked()));
-  connect(d->LoadCustomCollimatorMountedDeviceButton, SIGNAL(clicked()), this, SLOT(onLoadCustomCollimatorMountedDeviceButtonClicked()));
-  //TODO:
-  //connect(d->ApplicatorHolderCheckBox, SIGNAL(stateChanged(int)), this, SLOT(onAdditionalCollimatorMountedDevicesChecked(int)));
-  //connect(d->ElectronApplicatorCheckBox, SIGNAL(stateChanged(int)), this, SLOT(onAdditionalCollimatorMountedDevicesChecked(int)));
-  //TODO: BrainLabSRSCheckBox
-  connect(d->LateralTranslationSliderWidget, SIGNAL(valueChanged(double)), this, SLOT(onAdditionalModelLateralDisplacementSliderValueChanged(double)));
-  connect(d->LongitudinalTranslationSliderWidget, SIGNAL(valueChanged(double)), this, SLOT(onAdditionalModelLongitudinalDisplacementSliderValueChanged(double)));
-  connect(d->VerticalTranslationSliderWidget, SIGNAL(valueChanged(double)), this, SLOT(onAdditionalModelVerticalDisplacementSliderValueChanged(double)));
-  
   connect(d->BeamsEyeViewButton, SIGNAL(clicked()), this, SLOT(onBeamsEyeViewButtonClicked()));
 
   connect(d->MRMLNodeComboBox_Beam, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onBeamNodeChanged(vtkMRMLNode*)));
@@ -368,9 +349,6 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
   d->LongitudinalTableTopDisplacementSlider->setEnabled(false);
   d->LateralTableTopDisplacementSlider->setEnabled(false);
   d->ImagingPanelMovementSlider->setEnabled(false);
-
-  //TODO: Hide additional device models section until reinstated
-  d->AdditionalTreatmentModelsCollapsibleButton->setVisible(false);
 
   // Handle scene change event if occurs
   qvtkConnect(d->logic(), vtkCommand::ModifiedEvent, this, SLOT(onLogicModified()));
@@ -755,6 +733,11 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientSupportRotationSliderValueChanged
   {
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(d->logic()->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    return;
+  }
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetPatientSupportRotationAngle(value);
@@ -762,7 +745,7 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientSupportRotationSliderValueChanged
 
   // Update IEC transform
   d->logic()->UpdatePatientSupportRotationToFixedReferenceTransform(paramNode);
-  d->logic()->GetIECLogic()->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
+  beamsLogic->UpdateRASRelatedTransforms(d->logic()->GetIECLogic(), d->currentPlanNode(paramNode));
 
   // Update beam parameter
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(paramNode->GetBeamNode());
@@ -785,6 +768,11 @@ void qSlicerRoomsEyeViewModuleWidget::onVerticalTableTopDisplacementSliderValueC
   {
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(d->logic()->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    return;
+  }
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetVerticalTableTopDisplacement(value);
@@ -792,7 +780,7 @@ void qSlicerRoomsEyeViewModuleWidget::onVerticalTableTopDisplacementSliderValueC
 
   d->logic()->UpdatePatientSupportToPatientSupportRotationTransform(paramNode);
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  d->logic()->GetIECLogic()->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
+  beamsLogic->UpdateRASRelatedTransforms(d->logic()->GetIECLogic(), d->currentPlanNode(paramNode));
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -808,13 +796,18 @@ void qSlicerRoomsEyeViewModuleWidget::onLongitudinalTableTopDisplacementSliderVa
   {
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(d->logic()->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    return;
+  }
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetLongitudinalTableTopDisplacement(value);
   paramNode->DisableModifiedEventOff();
 
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  d->logic()->GetIECLogic()->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
+  beamsLogic->UpdateRASRelatedTransforms(d->logic()->GetIECLogic(), d->currentPlanNode(paramNode));
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -832,125 +825,18 @@ void qSlicerRoomsEyeViewModuleWidget::onLateralTableTopDisplacementSliderValueCh
   {
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(d->logic()->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    return;
+  }
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetLateralTableTopDisplacement(d->LateralTableTopDisplacementSlider->value());
   paramNode->DisableModifiedEventOff();
 
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  d->logic()->GetIECLogic()->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
-
-  this->checkForCollisions();
-  this->updateTreatmentOrientationMarker();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::onLoadBasicCollimatorMountedDeviceButtonClicked()
-{
-  Q_D(qSlicerRoomsEyeViewModuleWidget);
-
-  d->logic()->LoadBasicCollimatorMountedDevices();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::onLoadCustomCollimatorMountedDeviceButtonClicked()
-{
-  Q_D(qSlicerRoomsEyeViewModuleWidget);
-
-  qSlicerIOManager* ioManager = qSlicerApplication::application()->ioManager();
-  vtkSmartPointer<vtkCollection> loadedModelsCollection = vtkSmartPointer<vtkCollection>::New();
-  ioManager->openDialog("ModelFile", qSlicerDataDialog::Read, qSlicerIO::IOProperties(), loadedModelsCollection);
-  
-  for (int modelIndex=0; modelIndex<loadedModelsCollection->GetNumberOfItems(); ++modelIndex)
-  {
-    vtkMRMLModelNode* loadedModelNode = vtkMRMLModelNode::SafeDownCast(
-      loadedModelsCollection->GetItemAsObject(modelIndex) );
-    vtkMRMLLinearTransformNode* collimatorModelTransforms = d->logic()->GetIECLogic()->GetTransformNodeBetween(
-      vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry );
-    loadedModelNode->SetAndObserveTransformNodeID(collimatorModelTransforms->GetID());
-  }
-
-  //TODO: Add function UpdateTreatmentOrientationMarker that merges the treatment machine components into a model that can be set as orientation marker,
-  //TODO: Add new option 'Treatment room' to orientation marker choices and merged model with actual colors (surface scalars?)
-  /**qSlicerApplication* slicerApplication = qSlicerApplication::application();
-  qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
-  qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
-  vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
-  viewNode->SetOrientationMarkerHumanModelNodeID(this->mrmlScene()->GetFirstNodeByName("EBRTOrientationMarkerModel")->GetID());**/
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::onAdditionalCollimatorMountedDevicesChecked(int state)
-{
-  
-  Q_D(qSlicerRoomsEyeViewModuleWidget);
-  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
-  if (!paramNode || !d->ModuleWindowInitialized)
-  {
-    return;
-  }
-  paramNode->SetApplicatorHolderVisibility(state);
-  paramNode->SetElectronApplicatorVisibility(state);
-  d->logic()->UpdateAdditionalDevicesVisibility(paramNode);
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::onAdditionalModelLateralDisplacementSliderValueChanged(double value)
-{
-  Q_D(qSlicerRoomsEyeViewModuleWidget);
-
-  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
-  if (!paramNode || !d->ModuleWindowInitialized)
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetAdditionalModelLateralDisplacement(value);
-  paramNode->DisableModifiedEventOff();
-
-  d->logic()->UpdateAdditionalCollimatorDevicesToCollimatorTransforms(paramNode);
-
-  this->checkForCollisions();
-  this->updateTreatmentOrientationMarker();
-}
-
-//-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::onAdditionalModelLongitudinalDisplacementSliderValueChanged(double value)
-{
-  Q_D(qSlicerRoomsEyeViewModuleWidget);
-
-  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
-  if (!paramNode || !d->ModuleWindowInitialized)
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetAdditionalModelLongitudinalDisplacement(value);
-  paramNode->DisableModifiedEventOff();
-
-  d->logic()->UpdateAdditionalCollimatorDevicesToCollimatorTransforms(paramNode);
-
-  this->checkForCollisions();
-  this->updateTreatmentOrientationMarker();
-}
-//-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::onAdditionalModelVerticalDisplacementSliderValueChanged(double value)
-{
-  Q_D(qSlicerRoomsEyeViewModuleWidget);
-
-  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
-  if (!paramNode || !d->ModuleWindowInitialized)
-  {
-    return;
-  }
-
-  paramNode->DisableModifiedEventOn();
-  paramNode->SetAdditionalModelVerticalDisplacement(value);
-  paramNode->DisableModifiedEventOff();
-
-  d->logic()->UpdateAdditionalCollimatorDevicesToCollimatorTransforms(paramNode);
+  beamsLogic->UpdateRASRelatedTransforms(d->logic()->GetIECLogic(), d->currentPlanNode(paramNode));
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();

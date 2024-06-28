@@ -80,11 +80,6 @@ vtkMRMLRoomsEyeViewNode::vtkMRMLRoomsEyeViewNode()
   , VerticalTableTopDisplacement(0.0)
   , LongitudinalTableTopDisplacement(0.0)
   , LateralTableTopDisplacement(0.0)
-  , AdditionalModelVerticalDisplacement(0.0)
-  , AdditionalModelLongitudinalDisplacement(0.0)
-  , AdditionalModelLateralDisplacement(0.0)
-  , ApplicatorHolderVisibility(0)
-  , ElectronApplicatorVisibility(0)
 {
   this->SetSingletonTag("IEC");
 }
@@ -111,13 +106,8 @@ void vtkMRMLRoomsEyeViewNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLFloatMacro(VerticalTableTopDisplacement, VerticalTableTopDisplacement);
   vtkMRMLWriteXMLFloatMacro(LongitudinalTableTopDisplacement, LongitudinalTableTopDisplacement);
   vtkMRMLWriteXMLFloatMacro(LateralTableTopDisplacement, LateralTableTopDisplacement);
-  vtkMRMLWriteXMLFloatMacro(AdditionalModelVerticalDisplacement, AdditionalModelVerticalDisplacement);
-  vtkMRMLWriteXMLFloatMacro(AdditionalModelLongitudinalDisplacement, AdditionalModelLongitudinalDisplacement);
-  vtkMRMLWriteXMLFloatMacro(AdditionalModelLateralDisplacement, AdditionalModelLateralDisplacement);
   vtkMRMLWriteXMLStringMacro(PatientBodySegmentID, PatientBodySegmentID);
   vtkMRMLWriteXMLStringMacro(TreatmentMachineDescriptorFilePath, TreatmentMachineDescriptorFilePath);
-  vtkMRMLWriteXMLIntMacro(ApplicatorHolderVisibility, ApplicatorHolderVisibility);
-  vtkMRMLWriteXMLIntMacro(ElectronApplicatorVisibility, ElectronApplicatorVisibility);
   vtkMRMLWriteXMLEndMacro(); 
 }
 
@@ -136,13 +126,8 @@ void vtkMRMLRoomsEyeViewNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLFloatMacro(VerticalTableTopDisplacement, VerticalTableTopDisplacement);
   vtkMRMLReadXMLFloatMacro(LongitudinalTableTopDisplacement, LongitudinalTableTopDisplacement);
   vtkMRMLReadXMLFloatMacro(LateralTableTopDisplacement, LateralTableTopDisplacement);
-  vtkMRMLReadXMLFloatMacro(AdditionalModelVerticalDisplacement, AdditionalModelVerticalDisplacement);
-  vtkMRMLReadXMLFloatMacro(AdditionalModelLongitudinalDisplacement, AdditionalModelLongitudinalDisplacement);
-  vtkMRMLReadXMLFloatMacro(AdditionalModelLateralDisplacement, AdditionalModelLateralDisplacement);
   vtkMRMLReadXMLStringMacro(PatientBodySegmentID, PatientBodySegmentID);
   vtkMRMLReadXMLStringMacro(TreatmentMachineDescriptorFilePath, TreatmentMachineDescriptorFilePath);
-  vtkMRMLReadXMLIntMacro(ApplicatorHolderVisibility, ApplicatorHolderVisibility);
-  vtkMRMLReadXMLIntMacro(ElectronApplicatorVisibility, ElectronApplicatorVisibility);
   vtkMRMLReadXMLEndMacro(); 
 
   this->EndModify(disabledModify);
@@ -168,13 +153,8 @@ void vtkMRMLRoomsEyeViewNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyFloatMacro(VerticalTableTopDisplacement);
   vtkMRMLCopyFloatMacro(LongitudinalTableTopDisplacement);
   vtkMRMLCopyFloatMacro(LateralTableTopDisplacement);
-  vtkMRMLCopyFloatMacro(AdditionalModelVerticalDisplacement);
-  vtkMRMLCopyFloatMacro(AdditionalModelLongitudinalDisplacement);
-  vtkMRMLCopyFloatMacro(AdditionalModelLateralDisplacement);
   vtkMRMLCopyStringMacro(PatientBodySegmentID);
   vtkMRMLCopyStringMacro(TreatmentMachineDescriptorFilePath);
-  vtkMRMLCopyIntMacro(ApplicatorHolderVisibility);
-  vtkMRMLCopyIntMacro(ElectronApplicatorVisibility);
   vtkMRMLCopyEndMacro(); 
 
   this->EndModify(disabledModify);
@@ -194,13 +174,8 @@ void vtkMRMLRoomsEyeViewNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintFloatMacro(VerticalTableTopDisplacement);
   vtkMRMLPrintFloatMacro(LongitudinalTableTopDisplacement);
   vtkMRMLPrintFloatMacro(LateralTableTopDisplacement);
-  vtkMRMLPrintFloatMacro(AdditionalModelVerticalDisplacement);
-  vtkMRMLPrintFloatMacro(AdditionalModelLongitudinalDisplacement);
-  vtkMRMLPrintFloatMacro(AdditionalModelLateralDisplacement);
   vtkMRMLPrintStringMacro(PatientBodySegmentID);
   vtkMRMLPrintStringMacro(TreatmentMachineDescriptorFilePath);
-  vtkMRMLPrintIntMacro(ApplicatorHolderVisibility);
-  vtkMRMLPrintIntMacro(ElectronApplicatorVisibility);
   vtkMRMLPrintEndMacro(); 
 }
 
@@ -214,10 +189,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetGantryToFixedReferenceTr
 void vtkMRMLRoomsEyeViewNode::SetAndObserveGantryToFixedReferenceTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(GANTRY_TO_FIXEDREFERENCE_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -232,10 +207,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetCollimatorToFixedReferen
 void vtkMRMLRoomsEyeViewNode::SetAndObserveCollimatorToFixedReferenceIsocenterTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(COLLIMATOR_TO_FIXEDREFERENCEISOCENTER_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -250,10 +225,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetFixedReferenceIsocenterT
 void vtkMRMLRoomsEyeViewNode::SetAndObserveFixedReferenceIsocenterToCollimatorRotatedTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(FIXEDREFERENCEISOCENTER_TO_COLLIMATORROTATED_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -268,10 +243,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetCollimatorToGantryTransf
 void vtkMRMLRoomsEyeViewNode::SetAndObserveCollimatorToGantryTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(COLLIMATOR_TO_GANTRY_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -285,10 +260,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetAdditionalCollimatorDevi
 void vtkMRMLRoomsEyeViewNode::SetAndObserveAdditionalCollimatorDevicesToCollimatorTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(ADDITIONALCOLLIMATORDEVICES_TO_COLLIMATOR_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -303,10 +278,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetLeftImagingPanelToLeftIm
 void vtkMRMLRoomsEyeViewNode::SetAndObserveLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(LEFTIMAGINGPANEL_TO_LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -321,10 +296,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetLeftImagingPanelFixedRef
 void vtkMRMLRoomsEyeViewNode::SetAndObserveLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(LEFTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_LEFTIMAGINGPANELROTATED_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -339,10 +314,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetLeftImagingPanelRotatedT
 void vtkMRMLRoomsEyeViewNode::SetAndObserveLeftImagingPanelRotatedToGantryTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(LEFTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -356,10 +331,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetLeftImagingPanelTranslat
 void vtkMRMLRoomsEyeViewNode::SetAndObserveLeftImagingPanelTranslationTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(LEFTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -374,10 +349,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetRightImagingPanelToRight
 void vtkMRMLRoomsEyeViewNode::SetAndObserveRightImagingPanelToRightImagingPanelFixedReferenceIsocenterTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(RIGHTIMAGINGPANEL_TO_RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -392,10 +367,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetRightImagingPanelFixedRe
 void vtkMRMLRoomsEyeViewNode::SetAndObserveRightImagingPanelFixedReferenceIsocenterToRightImagingPanelRotatedTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(RIGHTIMAGINGPANELFIXEDREFERENCEISOCENTER_TO_RIGHTIMAGINGPANELROTATED_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -410,10 +385,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetRightImagingPanelRotated
 void vtkMRMLRoomsEyeViewNode::SetAndObserveRightImagingPanelRotatedToGantryTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(RIGHTIMAGINGPANELROTATED_TO_GANTRY_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -428,10 +403,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetRightImagingPanelTransla
 void vtkMRMLRoomsEyeViewNode::SetAndObserveRightImagingPanelTranslationTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(RIGHTIMAGINGPANELTRANSLATION_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -446,10 +421,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetPatientSupportToFixedRef
 void vtkMRMLRoomsEyeViewNode::SetAndObservePatientSupportToFixedReferenceTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(PATIENTSUPPORT_TO_FIXEDREFERENCE_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -464,10 +439,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetPatientSupportScaledByTa
 void vtkMRMLRoomsEyeViewNode::SetAndObservePatientSupportScaledByTableTopVerticalMovementTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(PATIENTSUPPORTSCALEDBYTABLETOPVERTICALMOVEMENT_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -482,10 +457,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetPatientSupportPositiveVe
 void vtkMRMLRoomsEyeViewNode::SetAndObservePatientSupportPositiveVerticalTranslationTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(PATIENTSUPPORTPOSITIVEVERTICALTRANSLATION_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -500,10 +475,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetPatientSupportScaledTran
 void vtkMRMLRoomsEyeViewNode::SetAndObservePatientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(PATIENTSUPPORTSCALEDTRANSLATED_TO_TABLETOPVERTICALTRANSLATION_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -518,10 +493,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetTableTopToTableTopEccent
 void vtkMRMLRoomsEyeViewNode::SetAndObserveTableTopToTableTopEccentricRotationTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(TABLETOP_TO_TABLETOPECCENTRICROTATION_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -536,10 +511,10 @@ vtkMRMLLinearTransformNode* vtkMRMLRoomsEyeViewNode::GetTableTopEccentricRotatio
 void vtkMRMLRoomsEyeViewNode::SetAndObserveTableTopEccentricRotationToPatientSupportTransformNode(vtkMRMLLinearTransformNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -554,10 +529,10 @@ vtkMRMLSegmentationNode* vtkMRMLRoomsEyeViewNode::GetPatientBodySegmentationNode
 void vtkMRMLRoomsEyeViewNode::SetAndObservePatientBodySegmentationNode(vtkMRMLSegmentationNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(PATIENT_BODY_SEGMENTATION_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
@@ -572,10 +547,10 @@ vtkMRMLRTBeamNode* vtkMRMLRoomsEyeViewNode::GetBeamNode()
 void vtkMRMLRoomsEyeViewNode::SetAndObserveBeamNode(vtkMRMLRTBeamNode* node)
 {
   if (node && this->Scene != node->GetScene())
-    {
+  {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
-    }
+  }
 
   this->SetNodeReferenceID(BEAM_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }

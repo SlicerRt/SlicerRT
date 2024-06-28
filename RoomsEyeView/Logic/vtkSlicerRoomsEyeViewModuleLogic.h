@@ -35,6 +35,9 @@
 // Slicer includes
 #include <vtkSlicerModuleLogic.h>
 
+// Beams includes
+#include "vtkSlicerBeamsModuleLogic.h"
+
 class vtkCollisionDetectionFilter;
 class vtkMatrix4x4;
 class vtkPolyData;
@@ -42,11 +45,9 @@ class vtkVector3d;
 
 class vtkMRMLRoomsEyeViewNode;
 class vtkMRMLModelNode;
-class vtkSlicerIECTransformLogic;
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
-class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic :
-  public vtkSlicerModuleLogic
+class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic : public vtkSlicerModuleLogic
 {
 public:
   /// Treatment machine part types
@@ -121,19 +122,6 @@ public:
   /// \return string indicating whether collision occurred
   std::string CheckForCollisions(vtkMRMLRoomsEyeViewNode* parameterNode);
 
-// Additional device related methods
-public:
-  /// Load basic additional devices (deployed with SlicerRT)
-  void LoadBasicCollimatorMountedDevices();
-  /// Set up the IEC transforms and model properties on the basic additional device models
-  void SetupBasicCollimatorMountedDeviceModels();
-
-  ///TODO:
-  void UpdateAdditionalCollimatorDevicesToCollimatorTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);
-
-  ///TODO:
-  void UpdateAdditionalDevicesVisibility(vtkMRMLRoomsEyeViewNode* parameterNode);
-
 // Get treatment machine properties from descriptor file
 public:
   /// Get part name for part type in the currently loaded treatment machine description
@@ -157,20 +145,34 @@ public:
 
   vtkGetObjectMacro(IECLogic, vtkSlicerIECTransformLogic);
 
+  /// Possibility to set Beams logic externally. This allows automated tests to run, when we do not have the whole application
+  vtkSetObjectMacro(BeamsLogic, vtkSlicerBeamsModuleLogic);
+
   vtkGetObjectMacro(GantryPatientCollisionDetection, vtkCollisionDetectionFilter);
   vtkGetObjectMacro(GantryTableTopCollisionDetection, vtkCollisionDetectionFilter);
   vtkGetObjectMacro(GantryPatientSupportCollisionDetection, vtkCollisionDetectionFilter);
   vtkGetObjectMacro(CollimatorPatientCollisionDetection, vtkCollisionDetectionFilter);
   vtkGetObjectMacro(CollimatorTableTopCollisionDetection, vtkCollisionDetectionFilter);
-  vtkGetObjectMacro(AdditionalModelsTableTopCollisionDetection, vtkCollisionDetectionFilter);
-  vtkGetObjectMacro(AdditionalModelsPatientSupportCollisionDetection, vtkCollisionDetectionFilter);
+
+public:
+  /// Get transform node between two coordinate systems is exists
+  /// \param fromFrame - start transformation from frame
+  /// \param toFrame - proceed transformation to frame
+  /// \return Transform node if there is a direct transform between the specified coordinate frames, nullptr otherwise
+  ///   Note: If IEC does not specify a transform between the given coordinate frames, then there will be no node with the returned name.
+  vtkMRMLLinearTransformNode* GetTransformNodeBetween(
+    vtkSlicerIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkSlicerIECTransformLogic::CoordinateSystemIdentifier toFrame);
 
 protected:
   /// Get patient body closed surface poly data from segmentation node and segment selection in the parameter node
   bool GetPatientBodyPolyData(vtkMRMLRoomsEyeViewNode* parameterNode, vtkPolyData* patientBodyPolyData);
 
+  /// Get Beams logic from the application if possible, otherwise return the externally set Beams logic (e.g. when running test)
+  vtkSlicerBeamsModuleLogic* GetBeamsLogic();
+
 protected:
   vtkSlicerIECTransformLogic* IECLogic;
+  vtkSlicerBeamsModuleLogic* BeamsLogic{nullptr};
 
   vtkCollisionDetectionFilter* GantryPatientCollisionDetection;
   vtkCollisionDetectionFilter* GantryTableTopCollisionDetection;
@@ -178,9 +180,6 @@ protected:
 
   vtkCollisionDetectionFilter* CollimatorPatientCollisionDetection;
   vtkCollisionDetectionFilter* CollimatorTableTopCollisionDetection;
-
-  vtkCollisionDetectionFilter* AdditionalModelsTableTopCollisionDetection;
-  vtkCollisionDetectionFilter* AdditionalModelsPatientSupportCollisionDetection;
 
 protected:
   vtkSlicerRoomsEyeViewModuleLogic();

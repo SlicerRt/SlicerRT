@@ -132,9 +132,6 @@
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerDicomRtImportExportModuleLogic);
-vtkCxxSetObjectMacro(vtkSlicerDicomRtImportExportModuleLogic, IsodoseLogic, vtkSlicerIsodoseModuleLogic);
-vtkCxxSetObjectMacro(vtkSlicerDicomRtImportExportModuleLogic, PlanarImageLogic, vtkSlicerPlanarImageModuleLogic);
-vtkCxxSetObjectMacro(vtkSlicerDicomRtImportExportModuleLogic, BeamsLogic, vtkSlicerBeamsModuleLogic);
 
 namespace
 {
@@ -1254,7 +1251,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
     vtkMRMLLinearTransformNode* transformNode = beamNode->CreateBeamTransformNode(scene);
     if (transformNode)
     {
-      if (this->External->BeamsLogic)
+      vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->External->GetModuleLogic("Beams"));
+      if (beamsLogic)
       {
         double* isocenter = rtReader->GetBeamControlPointIsocenterPositionRas( dicomBeamNumber, controlPointIndex);
         if (!isocenter)
@@ -1263,7 +1261,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
         }
 
         // Update beam transform without translation to isocenter
-        this->External->BeamsLogic->UpdateTransformForBeam( beamSequenceNode->GetSequenceScene(), beamNode, transformNode, isocenter);
+        beamsLogic->UpdateTransformForBeam( beamSequenceNode->GetSequenceScene(), beamNode, transformNode, isocenter);
 
         vtkTransform* transform = vtkTransform::SafeDownCast(transformNode->GetTransformToParent());
         if (isocenter)
@@ -1809,7 +1807,7 @@ vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMu
     table->SetValue( size, 1, 0.); // side "1" set last unused value to zero
     table->SetValue( size, 2, 0.); // side "2" set last unused value to zero
 
-    tableNode->SetUseColumnNameAsColumnHeader(true);
+    tableNode->SetUseColumnTitleAsColumnHeader(true);
     tableNode->SetColumnDescription( "Boundary", "Leaf pair boundary");
     tableNode->SetColumnDescription( "1", "Leaf position on the side \"1\"");
     tableNode->SetColumnDescription( "2", "Leaf position on the side \"2\"");
@@ -1865,7 +1863,7 @@ vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateSc
       table->SetValue( row, 1, positions[2 * row + 1]);
       table->SetValue( row, 2, weights[row]);
     }
-    tableNode->SetUseColumnNameAsColumnHeader(true);
+    tableNode->SetUseColumnTitleAsColumnHeader(true);
     tableNode->SetColumnDescription( "X", "Scan spot positions X");
     tableNode->SetColumnDescription( "Y", "Scan spot positions Y");
     tableNode->SetColumnDescription( "Weight", "Scan spot meterset weights");
@@ -1890,6 +1888,12 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::SetupRtImageGeometry(
   if (!shNode)
   {
     vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Failed to access subject hierarchy node");
+    return;
+  }
+  vtkSlicerPlanarImageModuleLogic* planarImageLogic = vtkSlicerPlanarImageModuleLogic::SafeDownCast(this->External->GetModuleLogic("PlanarImage"));
+  if (!planarImageLogic)
+  {
+    vtkErrorWithObjectMacro(this->External, "SetupRtImageGeometry: Planar image logic cannot be accessed");
     return;
   }
 
@@ -2142,7 +2146,7 @@ void vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::SetupRtImageGeometry(
   planarImageParameterSetNode->SetAndObserveDisplayedModelNode(displayedModelNode);
 
   // Create planar image model for the RT image
-  this->External->PlanarImageLogic->CreateModelForPlanarImage(planarImageParameterSetNode);
+  planarImageLogic->CreateModelForPlanarImage(planarImageParameterSetNode);
 
   // Hide the displayed planar image model by default
   displayedModelNode->SetDisplayVisibility(0);
@@ -2192,20 +2196,12 @@ vtkSlicerDicomRtImportExportModuleLogic::vtkSlicerDicomRtImportExportModuleLogic
 {
   this->Internal = new vtkInternal(this);
 
-  this->IsodoseLogic = nullptr;
-  this->PlanarImageLogic = nullptr;
-  this->BeamsLogic = nullptr;
-
   this->BeamModelsInSeparateBranch = true;
 }
 
 //----------------------------------------------------------------------------
 vtkSlicerDicomRtImportExportModuleLogic::~vtkSlicerDicomRtImportExportModuleLogic()
 {
-  this->SetIsodoseLogic(nullptr);
-  this->SetPlanarImageLogic(nullptr);
-  this->SetBeamsLogic(nullptr);
-
   if (this->Internal)
   {
     delete this->Internal;

@@ -69,13 +69,6 @@ protected slots:
   void onLongitudinalTableTopDisplacementSliderValueChanged(double);
   void onLateralTableTopDisplacementSliderValueChanged(double);
 
-  void onLoadBasicCollimatorMountedDeviceButtonClicked();
-  void onLoadCustomCollimatorMountedDeviceButtonClicked();
-  void onAdditionalCollimatorMountedDevicesChecked(int);
-  void onAdditionalModelLateralDisplacementSliderValueChanged(double);
-  void onAdditionalModelLongitudinalDisplacementSliderValueChanged(double);
-  void onAdditionalModelVerticalDisplacementSliderValueChanged(double);
-
   void onBeamsEyeViewButtonClicked();
   
   void onBeamNodeChanged(vtkMRMLNode*);
