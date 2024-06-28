@@ -25,10 +25,10 @@
 // RoomsEyeView includes
 #include "vtkSlicerRoomsEyeViewModuleLogic.h"
 #include "vtkMRMLRoomsEyeViewNode.h"
-#include "vtkSlicerIECTransformLogic.h"
 
 // SlicerRT includes
 #include "vtkMRMLRTBeamNode.h"
+#include "vtkSlicerBeamsModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLDisplayNode.h>
@@ -389,6 +389,28 @@ vtkSlicerRoomsEyeViewModuleLogic::~vtkSlicerRoomsEyeViewModuleLogic()
 void vtkSlicerRoomsEyeViewModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+
+  // Transforms
+  os << indent << "Transforms:" << std::endl;
+  vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  for (auto& transformPair : IECLogic->vtkSlicerIECTransformLogic::GetIecTransforms())
+  {
+    std::string transformName = IECLogic->GetTransformNameBetween(transformPair.first, transformPair.second);
+    vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+      this->GetMRMLScene()->GetFirstNodeByName(transformName.c_str()));
+
+    os << indent.GetNextIndent() << transformName << std::endl;
+    transformNode->GetMatrixTransformToParent(matrix);
+    for (int i = 0; i < 4; i++)
+    {
+      os << indent.GetNextIndent() << indent.GetNextIndent();
+      for (int j = 0; j < 4; j++)
+      {
+        os << matrix->GetElement(i, j) << " ";
+      }
+      os << std::endl;
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -410,8 +432,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::RegisterNodes()
 void vtkSlicerRoomsEyeViewModuleLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
 {
   this->Superclass::SetMRMLSceneInternal(newScene);
-
-  this->IECLogic->SetMRMLScene(newScene);
 }
 
 //---------------------------------------------------------------------------
@@ -423,13 +443,162 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
     vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Invalid MRML scene");
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Beams logic cannot be accessed");
+    return;
+  }
 
   // Build IEC hierarchy
   //TODO: Add the REV transform to the IEC transform map and use it for the GetTransform... functions
-  this->IECLogic->BuildIECTransformHierarchy();
+
+  // Create transform nodes if they do not exist
+  for (auto& transformPair : this->IECLogic->GetIecTransforms())
+  {
+    std::string transformNodeName = this->IECLogic->GetTransformNameBetween(transformPair.first, transformPair.second);
+    if (!this->GetMRMLScene()->GetFirstNodeByName(transformNodeName.c_str()))
+    {
+      vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode = vtkSmartPointer<vtkMRMLLinearTransformNode>::New();
+      transformNode->SetName(transformNodeName.c_str());
+      transformNode->SetHideFromEditors(1);
+      std::string singletonTag = std::string("IEC_") + transformNodeName;
+      transformNode->SetSingletonTag(singletonTag.c_str());
+      this->GetMRMLScene()->AddNode(transformNode);
+    }
+  }
+
+  // Organize transform nodes into hierarchy based on IEC Standard 61217 (duplicate IEC logic in MRML).
+  // Set and observe individual transforms from IEC logic to the MRML nodes.
+  vtkMRMLLinearTransformNode* fixedReferenceToRASTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS);
+  if (fixedReferenceToRASTransformNode == nullptr)
+  {
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access Fixed reference to RAS transform");
+    return;
+  }
+
+  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
+  if (gantryToFixedReferenceTransformNode == nullptr)
+  {
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access Gantry to Fixed reference transform");
+    return;
+  }
+  gantryToFixedReferenceTransformNode->SetAndObserveTransformToParent(this->IECLogic->GetGantryToFixedReferenceTransform());
+  gantryToFixedReferenceTransformNode->SetAndObserveTransformNodeID(fixedReferenceToRASTransformNode->GetID());
+
+
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
+  if (collimatorToGantryTransformNode == nullptr)
+  {
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access Collimator to Gantry transform");
+    return;
+  }
+  collimatorToGantryTransformNode->SetAndObserveTransformToParent(this->IECLogic->GetCollimatorToGantryTransform());
+  collimatorToGantryTransformNode->SetAndObserveTransformNodeID(gantryToFixedReferenceTransformNode->GetID());
+
+
+  vtkMRMLLinearTransformNode* wedgeFilterToCollimatorTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::WedgeFilter, vtkSlicerIECTransformLogic::Collimator);
+  if (wedgeFilterToCollimatorTransformNode == nullptr)
+  {
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access Wedge filter to Collimator transform");
+    return;
+  }
+  wedgeFilterToCollimatorTransformNode->SetAndObserveTransformToParent(this->IECLogic->GetWedgeFilterToCollimatorTransform());
+  wedgeFilterToCollimatorTransformNode->SetAndObserveTransformNodeID(collimatorToGantryTransformNode->GetID());
+
+
+  vtkMRMLLinearTransformNode* leftImagingPanelToGantryTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
+  if (leftImagingPanelToGantryTransformNode == nullptr)
+  {
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access Left imaging panel to Gantry transform");
+    return;
+  }
+  leftImagingPanelToGantryTransformNode->SetAndObserveTransformToParent(this->IECLogic->GetLeftImagingPanelToGantryTransform());
+  leftImagingPanelToGantryTransformNode->SetAndObserveTransformNodeID(gantryToFixedReferenceTransformNode->GetID());
+
+
+  vtkMRMLLinearTransformNode* rightImagingPanelToGantryTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
+  if (rightImagingPanelToGantryTransformNode == nullptr)
+  {
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access Right imaging panel to Gantry transform");
+    return;
+  }
+  rightImagingPanelToGantryTransformNode->SetAndObserveTransformToParent(this->IECLogic->GetRightImagingPanelToGantryTransform());
+  rightImagingPanelToGantryTransformNode->SetAndObserveTransformNodeID(gantryToFixedReferenceTransformNode->GetID());
+
+
+  vtkMRMLLinearTransformNode* flatPanelToGantryTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FlatPanel, vtkSlicerIECTransformLogic::Gantry);
+  if (flatPanelToGantryTransformNode == nullptr)
+  {
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access Flat panel to Gantry transform");
+    return;
+  }
+  flatPanelToGantryTransformNode->SetAndObserveTransformToParent(this->IECLogic->GetFlatPanelToGantryTransform());
+  flatPanelToGantryTransformNode->SetAndObserveTransformNodeID(gantryToFixedReferenceTransformNode->GetID());
+
+
+  vtkMRMLLinearTransformNode* patientSupportRotationToFixedReferenceTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference);
+  if (patientSupportRotationToFixedReferenceTransformNode == nullptr)
+  {
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access Patient support rotation to Fixed reference transform");
+    return;
+  }
+  patientSupportRotationToFixedReferenceTransformNode->SetAndObserveTransformToParent(this->IECLogic->GetPatientSupportRotationToFixedReferenceTransform());
+  patientSupportRotationToFixedReferenceTransformNode->SetAndObserveTransformNodeID(fixedReferenceToRASTransformNode->GetID());
+
+
+  vtkMRMLLinearTransformNode* patientSupportToPatientSupportRotationTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
+  if (patientSupportToPatientSupportRotationTransformNode == nullptr)
+  {
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access Patient support to Patient support rotation transform");
+    return;
+  }
+  patientSupportToPatientSupportRotationTransformNode->SetAndObserveTransformToParent(this->IECLogic->GetPatientSupportToPatientSupportRotationTransform());
+  patientSupportToPatientSupportRotationTransformNode->SetAndObserveTransformNodeID(patientSupportRotationToFixedReferenceTransformNode->GetID());
+
+
+  vtkMRMLLinearTransformNode* tableTopEccentricRotationToPatientSupportRotationTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTopEccentricRotation, vtkSlicerIECTransformLogic::PatientSupportRotation);
+  if (tableTopEccentricRotationToPatientSupportRotationTransformNode == nullptr)
+  {
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access Table top eccentric rotation to Patient support rotation transform");
+    return;
+  }
+  tableTopEccentricRotationToPatientSupportRotationTransformNode->SetAndObserveTransformToParent(this->IECLogic->GetTableTopEccentricRotationToPatientSupportRotationTransform());
+  tableTopEccentricRotationToPatientSupportRotationTransformNode->SetAndObserveTransformNodeID(patientSupportRotationToFixedReferenceTransformNode->GetID());
+
+
+  vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+  if (tableTopToTableTopEccentricRotationTransformNode == nullptr)
+  {
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access Table top to Table top eccentric rotation transform");
+    return;
+  }
+  tableTopToTableTopEccentricRotationTransformNode->SetAndObserveTransformToParent(this->IECLogic->GetTableTopToTableTopEccentricRotationTransform());
+  tableTopToTableTopEccentricRotationTransformNode->SetAndObserveTransformNodeID(tableTopEccentricRotationToPatientSupportRotationTransformNode->GetID());
+
+
+  vtkMRMLLinearTransformNode* patientToTableTopTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Patient, vtkSlicerIECTransformLogic::TableTop);
+  if (patientToTableTopTransformNode == nullptr)
+  {
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access Patient to Table top transform");
+    return;
+  }
+  patientToTableTopTransformNode->SetAndObserveTransformToParent(this->IECLogic->GetPatientToTableTopTransform());
+  patientToTableTopTransformNode->SetAndObserveTransformNodeID(tableTopToTableTopEccentricRotationTransformNode->GetID());
+
+
+  vtkMRMLLinearTransformNode* rasToPatientTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RAS, vtkSlicerIECTransformLogic::Patient);
+  if (rasToPatientTransformNode == nullptr)
+  {
+    vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access RAS to Patient transform");
+    return;
+  }
+  rasToPatientTransformNode->SetAndObserveTransformToParent(this->IECLogic->GetRasToPatientTransform());
+  rasToPatientTransformNode->SetAndObserveTransformNodeID(patientToTableTopTransformNode->GetID());
+
 
   // Make sure the fixed reference to RAS is correct
-  this->IECLogic->UpdateFixedReferenceToRASTransform();
+  beamsLogic->UpdateFixedReferenceToRASTransform();
 
   // Create transform nodes if they do not exist
   vtkSmartPointer<vtkMRMLLinearTransformNode> additionalCollimatorDevicesToCollimatorTransformNode;
@@ -449,8 +618,6 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
   }
 
   // Get IEC transform nodes that are used below
-  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
   if (!collimatorToGantryTransformNode)
   {
     vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Failed to access collimatorToGantryTransformNode");
@@ -494,16 +661,16 @@ vtkSlicerRoomsEyeViewModuleLogic::LoadTreatmentMachine(vtkMRMLRoomsEyeViewNode* 
   FILE *fp = fopen(descriptorFilePath.c_str(), "r");
   if (!fp)
     {
-    vtkErrorMacro("LoadTreatmentMachine: Failed to load treatment machine descriptor file '" << descriptorFilePath << "'");
-    return std::vector<TreatmentMachinePartType>();
+      vtkErrorMacro("LoadTreatmentMachine: Failed to load treatment machine descriptor file '" << descriptorFilePath << "'");
+      return std::vector<TreatmentMachinePartType>();
     }
   char buffer[4096];
   rapidjson::FileReadStream fs(fp, buffer, sizeof(buffer));
   if (this->Internal->CurrentTreatmentMachineDescription->ParseStream(fs).HasParseError())
     {
-    vtkErrorMacro("LoadTreatmentMachine: Failed to load treatment machine descriptor file '" << descriptorFilePath << "'");
-    fclose(fp);
-    return std::vector<TreatmentMachinePartType>();
+      vtkErrorMacro("LoadTreatmentMachine: Failed to load treatment machine descriptor file '" << descriptorFilePath << "'");
+      fclose(fp);
+      return std::vector<TreatmentMachinePartType>();
     }
   fclose(fp);
 
@@ -543,6 +710,12 @@ vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsEyeVie
   if (!scene)
   {
     vtkErrorMacro("SetupTreatmentMachineModels: Invalid scene");
+    return std::vector<TreatmentMachinePartType>();
+  }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("SetupTreatmentMachineModels: Beams logic cannot be accessed");
     return std::vector<TreatmentMachinePartType>();
   }
 
@@ -593,7 +766,7 @@ vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsEyeVie
     if (partIdx == Collimator)
     {
       vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
-        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
+        beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
       partModel->SetAndObserveTransformNodeID(collimatorToGantryTransformNode->GetID());
       this->CollimatorTableTopCollisionDetection->SetInputData(0, partModel->GetPolyData());
       // Patient model is set when calculating collisions, as it can be changed dynamically
@@ -602,7 +775,7 @@ vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsEyeVie
     else if (partIdx == Gantry)
     {
       vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode =
-        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
+        beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
       partModel->SetAndObserveTransformNodeID(gantryToFixedReferenceTransformNode->GetID());
       this->GantryTableTopCollisionDetection->SetInputData(0, partModel->GetPolyData());
       this->GantryPatientSupportCollisionDetection->SetInputData(0, partModel->GetPolyData());
@@ -612,14 +785,14 @@ vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsEyeVie
     else if (partIdx == PatientSupport)
     {
       vtkMRMLLinearTransformNode* patientSupportToPatientSupportRotationTransformNode =
-        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
+        beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
       partModel->SetAndObserveTransformNodeID(patientSupportToPatientSupportRotationTransformNode->GetID());
       this->GantryPatientSupportCollisionDetection->SetInputData(1, partModel->GetPolyData());
     }
     else if (partIdx == TableTop)
     {
       vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode =
-        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+        beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
       partModel->SetAndObserveTransformNodeID(tableTopToTableTopEccentricRotationTransformNode->GetID());
       this->GantryTableTopCollisionDetection->SetInputData(1, partModel->GetPolyData());
       this->CollimatorTableTopCollisionDetection->SetInputData(1, partModel->GetPolyData());
@@ -627,25 +800,25 @@ vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsEyeVie
     else if (partIdx == Body)
     {
       vtkMRMLLinearTransformNode* fixedReferenceToRasTransformNode =
-        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS);
+        beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS);
       partModel->SetAndObserveTransformNodeID(fixedReferenceToRasTransformNode->GetID());
     }
     else if (partIdx == ImagingPanelLeft)
     {
       vtkMRMLLinearTransformNode* leftImagingPanelToGantryTransformNode =
-        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
+        beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
       partModel->SetAndObserveTransformNodeID(leftImagingPanelToGantryTransformNode->GetID());
     }
     else if (partIdx == ImagingPanelRight)
     {
       vtkMRMLLinearTransformNode* rightImagingPanelToGantryTransformNode =
-        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
+        beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
       partModel->SetAndObserveTransformNodeID(rightImagingPanelToGantryTransformNode->GetID());
     }
     else if (partIdx == FlatPanel)
     {
       vtkMRMLLinearTransformNode* flatPanelToGantryTransformNode =
-        this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FlatPanel, vtkSlicerIECTransformLogic::Gantry);
+        beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FlatPanel, vtkSlicerIECTransformLogic::Gantry);
       partModel->SetAndObserveTransformNodeID(flatPanelToGantryTransformNode->GetID());
     }
     //TODO: ApplicatorHolder, ElectronApplicator?
@@ -808,6 +981,13 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
     vtkErrorMacro("UpdateTreatmentOrientationMarker: Invalid scene");
     return nullptr;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdateTreatmentOrientationMarker: Beams logic cannot be accessed");
+    return nullptr;
+  }
+
   std::string machineType = this->Internal->GetTreatmentMachineFileNameWithoutExtension(parameterNode);
 
   vtkNew<vtkAppendPolyData> appendFilter;
@@ -832,7 +1012,7 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
   gantryModelPolyData->DeepCopy(gantryModel->GetPolyData());
 
   vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
   vtkNew<vtkTransformFilter> gantryTransformFilter;
   gantryTransformFilter->SetInputData(gantryModelPolyData);
   vtkNew<vtkGeneralTransform> gantryToFixedReferenceTransform;
@@ -848,7 +1028,7 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
   collimatorModelPolyData->DeepCopy(collimatorModel->GetPolyData());
 
   vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
   vtkNew<vtkTransformFilter> collimatorTransformFilter;
   collimatorTransformFilter->SetInputData(collimatorModelPolyData);
   vtkNew<vtkGeneralTransform> collimatorToGantryTransform;
@@ -864,7 +1044,7 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
   patientSupportModelPolyData->DeepCopy(patientSupportModel->GetPolyData());
 
   vtkMRMLLinearTransformNode* patientSupportToPatientSupportRotationTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
   vtkNew<vtkTransformFilter> patientSupportTransformFilter;
   patientSupportTransformFilter->SetInputData(patientSupportModelPolyData);
   vtkNew<vtkGeneralTransform> patientSupportToPatientSupportRotationTransform;
@@ -880,7 +1060,7 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
   tableTopModelPolyData->DeepCopy(tableTopModel->GetPolyData());
 
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
   vtkNew<vtkTransformFilter> tableTopTransformFilter;
   tableTopTransformFilter->SetInputData(tableTopModelPolyData);
   vtkNew<vtkGeneralTransform> tableTopModelTransform;
@@ -899,7 +1079,7 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
     leftImagingPanelModelPolyData->DeepCopy(imagingPanelLeftModel->GetPolyData());
 
     vtkMRMLLinearTransformNode* leftImagingPanelToGantryTransformNode =
-      this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
+      beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
     vtkNew<vtkTransformFilter> leftImagingPanelTransformFilter;
     leftImagingPanelTransformFilter->SetInputData(leftImagingPanelModelPolyData);
     vtkNew<vtkGeneralTransform> leftImagingPanelToGantryTransform;
@@ -918,7 +1098,7 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
     rightImagingPanelModelPolyData->DeepCopy(imagingPanelRightModel->GetPolyData());
 
     vtkMRMLLinearTransformNode* rightImagingPanelToGantryTransformNode =
-      this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
+      beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
     vtkNew<vtkTransformFilter> rightImagingPanelTransformFilter;
     rightImagingPanelTransformFilter->SetInputData(rightImagingPanelModelPolyData);
     vtkNew<vtkGeneralTransform> rightImagingPanelToGantryTransform;
@@ -937,7 +1117,7 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
     flatPanelModelPolyData->DeepCopy(flatPanelModel->GetPolyData());
 
     vtkMRMLLinearTransformNode* flatPanelToGantryTransformNode =
-      this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FlatPanel, vtkSlicerIECTransformLogic::Gantry);
+      beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FlatPanel, vtkSlicerIECTransformLogic::Gantry);
     vtkNew<vtkTransformFilter> flatPanelTransformFilter;
     flatPanelTransformFilter->SetInputData(flatPanelModelPolyData);
     vtkNew<vtkGeneralTransform> flatPanelToGantryTransform;
@@ -1003,8 +1183,16 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateGantryToFixedReferenceTransform(vtk
     vtkErrorMacro("UpdateGantryToFixedReferenceTransform: Invalid parameter set node");
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdateGantryToFixedReferenceTransform: Beams logic cannot be accessed");
+    return;
+  }
 
   this->IECLogic->UpdateGantryToFixedReferenceTransform(parameterNode->GetGantryRotationAngle());
+  vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
+  gantryToFixedReferenceTransformNode->Modified();
 }
 
 //----------------------------------------------------------------------------
@@ -1015,8 +1203,16 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRML
     vtkErrorMacro("UpdateCollimatorToGantryTransform: Invalid parameter set node");
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdateCollimatorToGantryTransform: Beams logic cannot be accessed");
+    return;
+  }
 
   this->IECLogic->UpdateCollimatorToGantryTransform(parameterNode->GetCollimatorRotationAngle());
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
+  collimatorToGantryTransformNode->Modified();
 }
 
 //-----------------------------------------------------------------------------
@@ -1027,12 +1223,13 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelToGantryTransform(v
     vtkErrorMacro("UpdateLeftImagingPanelToGantryTransform: Invalid parameter set node");
     return;
   }
-  vtkMRMLScene* scene = this->GetMRMLScene();
-  if (!scene)
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
   {
-    vtkErrorMacro("UpdateLeftImagingPanelToGantryTransform: Invalid scene");
+    vtkErrorMacro("UpdateLeftImagingPanelToGantryTransform: Beams logic cannot be accessed");
     return;
   }
+
   std::string machineType = this->Internal->GetTreatmentMachineFileNameWithoutExtension(parameterNode);
 
   vtkMRMLModelNode* imagingPanelLeftModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, ImagingPanelLeft);
@@ -1088,7 +1285,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelToGantryTransform(v
 
   // Assemble transform and update node
   vtkMRMLLinearTransformNode* leftImagingPanelToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::LeftImagingPanel, vtkSlicerIECTransformLogic::Gantry);
   vtkNew<vtkTransform> leftImagingPanelToGantryTransform;
   leftImagingPanelToGantryTransform->PostMultiply();
   leftImagingPanelToGantryTransform->Concatenate(leftImagingPanelToRasTransform);
@@ -1106,12 +1303,13 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelToGantryTransform(
     vtkErrorMacro("UpdateRightImagingPanelToGantryTransform: Invalid parameter set node");
     return;
   }
-  vtkMRMLScene* scene = this->GetMRMLScene();
-  if (!scene)
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
   {
-    vtkErrorMacro("UpdateRightImagingPanelToGantryTransform: Invalid scene");
+    vtkErrorMacro("UpdateRightImagingPanelToGantryTransform: Beams logic cannot be accessed");
     return;
   }
+
   std::string machineType = this->Internal->GetTreatmentMachineFileNameWithoutExtension(parameterNode);
 
   vtkMRMLModelNode* imagingPanelRightModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, ImagingPanelRight);
@@ -1165,7 +1363,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelToGantryTransform(
 
   // Assemble transform and update node
   vtkMRMLLinearTransformNode* rightImagingPanelToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RightImagingPanel, vtkSlicerIECTransformLogic::Gantry);
   vtkNew<vtkTransform> rightImagingPanelToGantryTransform;
   rightImagingPanelToGantryTransform->PostMultiply();
   rightImagingPanelToGantryTransform->Concatenate(rightImagingPanelToRasTransform);
@@ -1196,8 +1394,16 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportRotationToFixedRefere
     vtkErrorMacro("UpdatePatientSupportRotationToFixedReferenceTransform: Invalid parameter set node");
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdatePatientSupportRotationToFixedReferenceTransform: Beams logic cannot be accessed");
+    return;
+  }
 
   this->IECLogic->UpdatePatientSupportRotationToFixedReferenceTransform(parameterNode->GetPatientSupportRotationAngle());
+  vtkMRMLLinearTransformNode* patientSupportRotationToFixedReferenceTransformNode = beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference);
+  patientSupportRotationToFixedReferenceTransformNode->Modified();
 }
 
 //-----------------------------------------------------------------------------
@@ -1208,12 +1414,13 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToPatientSupportRotat
     vtkErrorMacro("UpdatePatientSupportToPatientSupportRotationTransform: Invalid parameter set node");
     return;
   }
-  vtkMRMLScene* scene = this->GetMRMLScene();
-  if (!scene)
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
   {
-    vtkErrorMacro("UpdatePatientSupportToPatientSupportRotationTransform: Invalid scene");
+    vtkErrorMacro("UpdatePatientSupportToPatientSupportRotationTransform: Beams logic cannot be accessed");
     return;
   }
+
   std::string machineType = this->Internal->GetTreatmentMachineFileNameWithoutExtension(parameterNode);
 
   vtkMRMLModelNode* patientSupportModel = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, PatientSupport);
@@ -1247,8 +1454,9 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToPatientSupportRotat
   patientSupportScalingTransform->Translate(patientSupportTranslationFromOrigin);
 
   vtkMRMLLinearTransformNode* patientSupportToPatientSupportRotationTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
   patientSupportToPatientSupportRotationTransformNode->SetAndObserveTransformToParent(patientSupportScalingTransform);
+  patientSupportToPatientSupportRotationTransformNode->Modified();
 }
 
 //-----------------------------------------------------------------------------
@@ -1265,9 +1473,15 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateTableTopToTableTopEccentricRotation
     vtkErrorMacro("UpdateTableTopToTableTopEccentricRotationTransform: Invalid parameter set node");
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdateTableTopToTableTopEccentricRotationTransform: Beams logic cannot be accessed");
+    return;
+  }
 
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform = vtkTransform::SafeDownCast(
     tableTopToTableTopEccentricRotationTransformNode->GetTransformToParent() );
 
@@ -1357,6 +1571,13 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
     vtkErrorMacro("CheckForCollisions: Invalid parameter set node");
     return "Invalid parameters";
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("CheckForCollisions: Beams logic cannot be accessed");
+    return "No Beams module";
+  }
+
   if (!parameterNode->GetCollisionDetectionEnabled())
   {
     return "";
@@ -1366,13 +1587,13 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
 
   // Get transforms used in the collision detection filters
   vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
   vtkMRMLLinearTransformNode* patientSupportToPatientSupportRotationTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
   vtkMRMLLinearTransformNode* collimatorToGantryTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode =
-    this->IECLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
 
   if ( !gantryToFixedReferenceTransformNode || !patientSupportToPatientSupportRotationTransformNode
     || !collimatorToGantryTransformNode || !tableTopToTableTopEccentricRotationTransformNode )
@@ -1644,4 +1865,168 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::GetStateForPartType(std::string pa
   }
 
   return stateStr;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerRoomsEyeViewModuleLogic::GetTransformNodeBetween(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkSlicerIECTransformLogic::CoordinateSystemIdentifier toFrame,
+  vtkGeneralTransform* outputTransform, bool transformForBeam/* = true*/)
+{
+  if (!outputTransform)
+  {
+    vtkErrorMacro("GetTransformBetween: Invalid output transform node");
+    return false;
+  }
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("GetTransformBetween: Invalid MRML scene");
+    return false;
+  }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("GetTransformBetween: Beams logic cannot be accessed");
+    return false;
+  }
+
+  vtkSlicerIECTransformLogic::CoordinateSystemsList fromFramePath, toFramePath;
+  if (this->GetPathToRoot(fromFrame, fromFramePath) && this->GetPathFromRoot(toFrame, toFramePath))
+  {
+    std::vector< vtkSlicerIECTransformLogic::CoordinateSystemIdentifier > toFrameVector(toFramePath.size());
+    std::vector< vtkSlicerIECTransformLogic::CoordinateSystemIdentifier > fromFrameVector(fromFramePath.size());
+
+    std::copy(toFramePath.begin(), toFramePath.end(), toFrameVector.begin());
+    std::copy(fromFramePath.begin(), fromFramePath.end(), fromFrameVector.begin());
+
+    outputTransform->Identity();
+    outputTransform->PostMultiply();
+    for (size_t i = 0; i < fromFrameVector.size() - 1; ++i)
+    {
+      vtkSlicerIECTransformLogic::CoordinateSystemIdentifier parent, child;
+      child = fromFrameVector[i];
+      parent = fromFrameVector[i + 1];
+
+      if (child == parent)
+      {
+        continue;
+      }
+
+      vtkMRMLLinearTransformNode* fromTransform = beamsLogic->GetTransformNodeBetween(child, parent);
+      if (fromTransform)
+      {
+        vtkNew<vtkMatrix4x4> mat;
+        fromTransform->GetMatrixTransformToParent(mat);
+        outputTransform->Concatenate(mat);
+
+        vtkDebugMacro("GetTransformBetween: Transform node \"" << fromTransform->GetName() << "\" is valid");
+      }
+      else
+      {
+        vtkErrorMacro("GetTransformBetween: Transform node is invalid");
+        return false;
+      }
+    }
+
+    for (size_t i = 0; i < toFrameVector.size() - 1; ++i)
+    {
+      vtkSlicerIECTransformLogic::CoordinateSystemIdentifier parent, child;
+      parent = toFrameVector[i];
+      child = toFrameVector[i + 1];
+
+      if (child == parent)
+      {
+        continue;
+      }
+
+      vtkMRMLLinearTransformNode* toTransform = beamsLogic->GetTransformNodeBetween(child, parent);
+      if (toTransform)
+      {
+        vtkNew<vtkMatrix4x4> mat;
+        if (transformForBeam) // calculation for beam transformation
+        {
+          toTransform->GetMatrixTransformFromParent(mat);
+        }
+        else // calculation for a treatment room models transformations
+        {
+          toTransform->GetMatrixTransformToParent(mat);
+        }
+        mat->Invert();
+        outputTransform->Concatenate(mat);
+
+        vtkDebugMacro("GetTransformBetween: Transform node \"" << toTransform->GetName() << "\" is valid");
+      }
+      else
+      {
+        vtkErrorMacro("GetTransformBetween: Transform node is invalid");
+        return false;
+      }
+    }
+
+    outputTransform->Modified();
+    return true;
+  }
+
+  vtkErrorMacro("GetTransformBetween: Failed to get transform " << this->IECLogic->GetTransformNameBetween(fromFrame, toFrame));
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerRoomsEyeViewModuleLogic::GetPathToRoot(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier frame, vtkSlicerIECTransformLogic::CoordinateSystemsList& path)
+{
+  if (frame == vtkSlicerIECTransformLogic::CoordinateSystemIdentifier::FixedReference)
+  {
+    path.push_back(vtkSlicerIECTransformLogic::FixedReference);
+    return true;
+  }
+
+  bool found = false;
+  do
+  {
+    for (auto& pair : this->IECLogic->GetCoordinateSystemsHierarchy())
+    {
+      vtkSlicerIECTransformLogic::CoordinateSystemIdentifier parent = pair.first;
+
+      auto& children = pair.second;
+      auto iter = std::find(children.begin(), children.end(), frame);
+      if (iter != children.end())
+      {
+        vtkSlicerIECTransformLogic::CoordinateSystemIdentifier id = *iter;
+
+        vtkDebugMacro("GetPathToRoot: Checking affine transformation "
+          << "\"" << this->IECLogic->GetCoordinateSystemsMap()[id] << "\" -> "
+          << "\"" << this->IECLogic->GetCoordinateSystemsMap()[parent] << "\"");
+
+        frame = parent;
+        path.push_back(id);
+        if (frame != vtkSlicerIECTransformLogic::FixedReference)
+        {
+          found = true;
+          break;
+        }
+        else
+        {
+          path.push_back(vtkSlicerIECTransformLogic::FixedReference);
+        }
+      }
+      else
+      {
+        found = false;
+      }
+    }
+  } while (found);
+
+  return (path.size() > 0);
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerRoomsEyeViewModuleLogic::GetPathFromRoot(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier frame, vtkSlicerIECTransformLogic::CoordinateSystemsList& path)
+{
+  if (this->GetPathToRoot(frame, path))
+  {
+    std::reverse(path.begin(), path.end());
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }

@@ -182,9 +182,8 @@ void vtkSlicerBeamsModuleLogic::UpdateTransformForBeam(vtkMRMLRTBeamNode* beamNo
   }
 
   //TODO: Use one IEC logic in a private scene for all beam transform updates?
-  vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
-  iecLogic->SetMRMLScene(scene);
-  iecLogic->UpdateBeamTransform(beamNode);
+  
+  this->UpdateBeamTransform(beamNode);
 }
 
 //---------------------------------------------------------------------------
@@ -209,9 +208,7 @@ void vtkSlicerBeamsModuleLogic::UpdateTransformForBeam(vtkMRMLScene* beamSequenc
   }
 
   //TODO: Use one IEC logic in a private scene for all beam transform updates?
-  vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
-  iecLogic->SetMRMLScene(beamSequenceScene);
-  iecLogic->UpdateBeamTransform(beamNode, beamTransformNode, isocenter);
+  this->UpdateBeamTransform(beamNode, beamTransformNode, isocenter);
 }
 
 //----------------------------------------------------------------------------
@@ -298,4 +295,196 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
       }
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+void vtkSlicerBeamsModuleLogic::UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode)
+{
+  //TODO: Observe beam node's geometry modified event (vtkMRMLRTBeamNode::BeamGeometryModified)
+  // and its parent plan's POI markups fiducial's point modified event (vtkMRMLMarkupsNode::PointModifiedEvent)
+  // so that UpdateTransformsFromBeamGeometry is called. It may be needed to change the signature of the
+  // update function. It may be also needed to store a reference to the beam node (see defined nodes in SlicerRT)
+
+  if (!beamNode)
+  {
+    vtkErrorMacro("UpdateBeamTransform: Invalid beam node");
+    return;
+  }
+
+  // Make sure transform node exists
+  beamNode->CreateDefaultTransformNode();
+
+  // Update transform for beam
+  vtkMRMLLinearTransformNode* beamTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(
+    beamNode->GetParentTransformNode());
+  if (!beamTransformNode)
+  {
+    vtkErrorMacro("UpdateBeamTransform: Failed to access transform node of beam " << beamNode->GetName());
+    return;
+  }
+
+  this->UpdateBeamTransform(beamNode, beamTransformNode);
+}
+
+//-----------------------------------------------------------------------------
+void vtkSlicerBeamsModuleLogic::UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode, vtkMRMLLinearTransformNode* beamTransformNode, double* isocenter/*=nullptr*/)
+{
+  if (!beamNode)
+  {
+    vtkErrorMacro("UpdateBeamTransform: Invalid beam node");
+    return;
+  }
+  if (!beamTransformNode)
+  {
+    vtkErrorMacro("UpdateBeamTransform: Invalid beam transform node");
+    return;
+  }
+
+  // Update transforms in IEC logic from beam node parameters
+  this->UpdateIECTransformsFromBeam(beamNode, isocenter);
+
+  // Dynamic transform from Collimator to World
+  vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = this->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
+  vtkNew<vtkGeneralTransform> beamGeneralTransform;
+  collimatorToGantryTransformNode->GetTransformToWorld(beamGeneralTransform);
+
+  // Convert general transform to linear
+  // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
+  vtkNew<vtkTransform> beamLinearTransform;
+  if (!vtkMRMLTransformNode::IsGeneralTransformLinear(beamGeneralTransform, beamLinearTransform))
+  {
+    vtkErrorMacro("UpdateBeamTransform: Unable to set transform with non-linear components to beam " << beamNode->GetName());
+    return;
+  }
+
+  // Set transform to beam node
+  beamTransformNode->SetAndObserveTransformToParent(beamLinearTransform);
+}
+//-----------------------------------------------------------------------------
+vtkMRMLLinearTransformNode* vtkSlicerBeamsModuleLogic::GetTransformNodeBetween(
+  vtkSlicerIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkSlicerIECTransformLogic::CoordinateSystemIdentifier toFrame)
+{
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("GetTransformNodeBetween: Invalid MRML scene");
+    return nullptr;
+  }
+
+  return vtkMRMLLinearTransformNode::SafeDownCast(
+    this->GetMRMLScene()->GetFirstNodeByName(this->IecLogic->GetTransformNameBetween(fromFrame, toFrame).c_str()));
+}
+//-----------------------------------------------------------------------------
+void vtkSlicerBeamsModuleLogic::UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* beamNode, double* isocenter)
+{
+  if (!beamNode)
+  {
+    vtkErrorMacro("UpdateIECTransformsFromBeam: Invalid beam node");
+    return;
+  }
+  if (!isocenter)
+  {
+    vtkMRMLScene* scene = beamNode->GetScene();
+    if (!scene || this->GetMRMLScene() != scene)
+    {
+      vtkErrorMacro("UpdateIECTransformsFromBeam: Invalid MRML scene");
+      return;
+    }
+  }
+
+  // Make sure the transform hierarchy is set up
+  this->IecLogic->BuildIECTransformHierarchy();
+
+  this->IecLogic->UpdateGantryToFixedReferenceTransform(beamNode->GetGantryAngle());
+  this->IecLogic->UpdateCollimatorToGantryTransform(beamNode->GetCollimatorAngle());
+  this->IecLogic->UpdatePatientSupportRotationToFixedReferenceTransform(beamNode->GetCouchAngle());
+
+  // Update IEC Patient to RAS transform based on the isocenter defined in the beam's parent plan
+  vtkMRMLLinearTransformNode* rasToPatientReferenceTransformNode =
+    this->GetTransformNodeBetween(vtkSlicerIECTransformLogic::RAS, vtkSlicerIECTransformLogic::Patient);
+  vtkTransform* rasToPatientReferenceTransform = vtkTransform::SafeDownCast(rasToPatientReferenceTransformNode->GetTransformToParent());
+  rasToPatientReferenceTransform->Identity();
+  // Apply isocenter translation
+  std::array<double, 3> isocenterPosition = { 0.0, 0.0, 0.0 };
+  if (isocenter)
+  {
+    // This is dirty hack for dynamic beams, the actual translation 
+    // will be in vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequence method  
+    rasToPatientReferenceTransform->Translate(isocenterPosition[0], isocenterPosition[1], isocenterPosition[2]);
+  }
+  else
+  {
+    // translation for a static beam
+    if (beamNode->GetPlanIsocenterPosition(isocenterPosition.data()))
+    {
+      rasToPatientReferenceTransform->Translate(isocenterPosition[0], isocenterPosition[1], isocenterPosition[2]);
+    }
+    else
+    {
+      vtkErrorMacro("UpdateIECTransformsFromBeam: Failed to get isocenter position for beam " << beamNode->GetName());
+    }
+  }
+
+  rasToPatientReferenceTransform->RotateX(-90.0);
+  rasToPatientReferenceTransform->RotateZ(180.0);
+  rasToPatientReferenceTransform->Modified();
+
+  // Update fixed reference to RAS transform as well
+  vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
+  this->UpdateFixedReferenceToRASTransform(parentPlanNode, isocenter);
+}
+
+//-----------------------------------------------------------------------------
+void vtkSlicerBeamsModuleLogic::UpdateFixedReferenceToRASTransform(vtkMRMLRTPlanNode* planNode/*=nullptr*/, double* isocenter/*=nullptr*/)
+{
+  if (!this->GetMRMLScene())
+  {
+    vtkErrorMacro("UpdateFixedReferenceToRasTransform: Invalid MRML scene");
+    return;
+  }
+
+  // Update IEC FixedReference to RAS transform based on the isocenter defined in the beam's parent plan
+  vtkMRMLLinearTransformNode* fixedReferenceToRasTransformNode = this->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS);
+
+  // Apply isocenter translation
+  vtkNew<vtkTransform> fixedReferenceToRASTransformBeamComponent;
+  if (planNode)
+  {
+    std::array<double, 3> isocenterPosition = { 0.0, 0.0, 0.0 };
+    if (isocenter)
+    {
+      // Once again the dirty hack for dynamic beams, the actual translation 
+      // will be in vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequence method  
+      fixedReferenceToRASTransformBeamComponent->Translate(isocenterPosition[0], isocenterPosition[1], isocenterPosition[2]);
+    }
+    else
+    {
+      // translation for a static beam
+      if (planNode->GetIsocenterPosition(isocenterPosition.data()))
+      {
+        fixedReferenceToRASTransformBeamComponent->Translate(isocenterPosition[0], isocenterPosition[1], isocenterPosition[2]);
+      }
+      else
+      {
+        vtkErrorMacro("UpdateFixedReferenceToRasTransform: Failed to get isocenter position for plan " << planNode->GetName());
+      }
+    }
+  }
+
+  // The "S" direction in RAS is the "A" direction in FixedReference
+  fixedReferenceToRASTransformBeamComponent->RotateX(-90.0);
+  // The "S" direction to be toward the gantry (head first position) by default
+  fixedReferenceToRASTransformBeamComponent->RotateZ(180.0);
+  fixedReferenceToRASTransformBeamComponent->Modified();
+
+  vtkMRMLLinearTransformNode* patientSupportRotationToFixedReferenceTransformNode =
+    this->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference);
+  vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode =
+    this->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+
+  vtkNew<vtkTransform> fixedReferenceToRASTransform;
+  fixedReferenceToRASTransform->Concatenate(fixedReferenceToRASTransformBeamComponent);
+  fixedReferenceToRASTransform->Concatenate(vtkTransform::SafeDownCast(tableTopToTableTopEccentricRotationTransformNode->GetTransformFromParent()));
+  fixedReferenceToRASTransform->Concatenate(vtkTransform::SafeDownCast(patientSupportRotationToFixedReferenceTransformNode->GetTransformFromParent()));
+
+  fixedReferenceToRasTransformNode->SetAndObserveTransformToParent(fixedReferenceToRASTransform);
 }

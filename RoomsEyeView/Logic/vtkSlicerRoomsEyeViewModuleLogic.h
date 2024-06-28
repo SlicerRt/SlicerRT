@@ -34,6 +34,8 @@
 
 // Slicer includes
 #include <vtkSlicerModuleLogic.h>
+#include <vtkSlicerIECTransformLogic.h>
+#include <vtkSlicerBeamsModuleLogic.h>
 
 class vtkCollisionDetectionFilter;
 class vtkMatrix4x4;
@@ -43,10 +45,10 @@ class vtkVector3d;
 class vtkMRMLRoomsEyeViewNode;
 class vtkMRMLModelNode;
 class vtkSlicerIECTransformLogic;
+class vtkSlicerBeamsModuleLogic;
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
-class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic :
-  public vtkSlicerModuleLogic
+class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic : public vtkSlicerModuleLogic
 {
 public:
   /// Treatment machine part types
@@ -165,6 +167,17 @@ public:
   vtkGetObjectMacro(AdditionalModelsTableTopCollisionDetection, vtkCollisionDetectionFilter);
   vtkGetObjectMacro(AdditionalModelsPatientSupportCollisionDetection, vtkCollisionDetectionFilter);
 
+public:
+  /// Get transform from one coordinate frame to another
+  /// @param fromFrame - start transformation from frame
+  /// @param toFrame - proceed transformation to frame
+  /// @param outputTransform - General (linear) transform matrix fromFrame -> toFrame. Matrix is correct if return flag is true.  
+  /// @param transformForBeam - calculate dynamic transformation for beam model or other models
+  /// (e.g. transformation from Patient RAS frame to Collimation frame: RAS -> Patient -> TableTop -> Eccentric -> Patient Support -> Fixed reference -> Gantry -> Collimator)  //TODO: Deprecated
+  /// \return Success flag (false on any error)
+  bool GetTransformNodeBetween(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkSlicerIECTransformLogic::CoordinateSystemIdentifier toFrame,
+    vtkGeneralTransform* outputTransform, bool transformForBeam = true);
+
 protected:
   /// Get patient body closed surface poly data from segmentation node and segment selection in the parameter node
   bool GetPatientBodyPolyData(vtkMRMLRoomsEyeViewNode* parameterNode, vtkPolyData* patientBodyPolyData);
@@ -181,6 +194,15 @@ protected:
 
   vtkCollisionDetectionFilter* AdditionalModelsTableTopCollisionDetection;
   vtkCollisionDetectionFilter* AdditionalModelsPatientSupportCollisionDetection;
+
+protected:
+  /// @brief Get coordinate system identifiers from frame system up to root system
+  /// Root system = FixedReference system, see IEC 61217:2011 hierarchy
+  bool GetPathToRoot(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier frame, vtkSlicerIECTransformLogic::CoordinateSystemsList& path);
+
+  /// @brief Get coordinate system identifiers from root system down to frame system
+  /// Root system = FixedReference system, see IEC 61217:2011 hierarchy
+  bool GetPathFromRoot(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier frame, vtkSlicerIECTransformLogic::CoordinateSystemsList& path);
 
 protected:
   vtkSlicerRoomsEyeViewModuleLogic();

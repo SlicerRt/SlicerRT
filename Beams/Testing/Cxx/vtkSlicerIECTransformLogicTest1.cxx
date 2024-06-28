@@ -58,7 +58,6 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Create and set up logic classes
   vtkSmartPointer<vtkSlicerIECTransformLogic> iecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
-  iecLogic->SetMRMLScene(mrmlScene);
   iecLogic->BuildIECTransformHierarchy();
   vtkSmartPointer<vtkSlicerBeamsModuleLogic> beamsLogic = vtkSmartPointer<vtkSlicerBeamsModuleLogic>::New();
   beamsLogic->SetMRMLScene(mrmlScene);
@@ -115,7 +114,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedFixedReferenceToRasTransform_Origin_MatrixElements[16] =
     {  -1, 0, 0, 0,   0, 0, 1, 0,   0, 1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS),
+      beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS),
       expectedFixedReferenceToRasTransform_Origin_MatrixElements ) )
   {
     std::cerr << __LINE__ << ": FixedReferenceToRasTransform transform does not match baseline for origin" << std::endl;
@@ -134,12 +133,12 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Isocenter position, translated
   double isocenter[3] = {1000.0, 200.0, 0.0};
   planNode->SetIsocenterPosition(isocenter);
-  iecLogic->UpdateBeamTransform(beamNode);
+  beamsLogic->UpdateBeamTransform(beamNode);
 
   double expectedFixedReferenceToRasTransform_Translated_MatrixElements[16] =
     {  -1, 0, 0, 1000,   0, 0, 1, 200,   0, 1, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS),
+      beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS),
       expectedFixedReferenceToRasTransform_Translated_MatrixElements ) )
   {
     std::cerr << __LINE__ << ": FixedReferenceToRasTransform transform does not match baseline for translated isocenter" << std::endl;
@@ -157,7 +156,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Gantry angle, -1 degree
   beamNode->SetGantryAngle(-1.0);
-  iecLogic->UpdateBeamTransform(beamNode);
+  beamsLogic->UpdateBeamTransform(beamNode);
   expectedNumOfNonIdentityTransforms = 3;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
   {
@@ -167,7 +166,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedGantryToFixedReferenceTransformMinus1_MatrixElements[16] =
     { 0.999848, 0, -0.0174524, 0,   0, 1, 0, 0,   0.0174524, 0, 0.999848, 0,   0, 0, 0, 1 };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference),
     expectedGantryToFixedReferenceTransformMinus1_MatrixElements))
   {
     std::cerr << __LINE__ << ": GantryToFixedReferenceTransform does not match baseline for '-1' degree angle" << std::endl;
@@ -185,11 +184,11 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Gantry angle, 1 degree
   beamNode->SetGantryAngle(1.0);
-  iecLogic->UpdateBeamTransform(beamNode);
+  beamsLogic->UpdateBeamTransform(beamNode);
   double expectedGantryToFixedReferenceTransform_1_MatrixElements[16] =
     {  0.999848, 0, 0.0174524, 0,   0, 1, 0, 0,   -0.0174524, 0, 0.999848, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference),
+      beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference),
       expectedGantryToFixedReferenceTransform_1_MatrixElements ) )
   {
     std::cerr << __LINE__ << ": GantryToFixedReferenceTransform does not match baseline for 1 degree angle" << std::endl;
@@ -207,11 +206,11 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Gantry angle, -90 degrees
   beamNode->SetGantryAngle(-90.0);
-  iecLogic->UpdateBeamTransform(beamNode);
+  beamsLogic->UpdateBeamTransform(beamNode);
   double expectedGantryToFixedReference_Minus90_MatrixElements[16] =
     { 0, 0, -1, 0,   0, 1, 0, 0,   1, 0, 0, 0,   0, 0, 0, 1 };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference),
     expectedGantryToFixedReference_Minus90_MatrixElements))
   {
     std::cerr << __LINE__ << ": GantryToFixedReferenceTransform does not match baseline for '-90' degrees angle" << std::endl;
@@ -229,11 +228,11 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Gantry angle, 90 degrees
   beamNode->SetGantryAngle(90.0);
-  iecLogic->UpdateBeamTransform(beamNode);
+  beamsLogic->UpdateBeamTransform(beamNode);
   double expectedGantryToFixedReference_90_MatrixElements[16] =
     {  0, 0, 1, 0,   0, 1, 0, 0,   -1, 0, 0, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference),
+      beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference),
       expectedGantryToFixedReference_90_MatrixElements ) )
   {
     std::cerr << __LINE__ << ": GantryToFixedReferenceTransform does not match baseline for 90 degrees angle" << std::endl;
@@ -251,7 +250,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Collimator angle, -1 degree
   beamNode->SetCollimatorAngle(-1.0);
-  iecLogic->UpdateBeamTransform(beamNode);
+  beamsLogic->UpdateBeamTransform(beamNode);
   expectedNumOfNonIdentityTransforms = 4;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
   {
@@ -262,7 +261,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedCollimatorToGantryTransform_Minus1_MatrixElements[16] =
     { 0.999848, 0.0174524, 0, 0,   -0.0174524, 0.999848, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1 };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry),
     expectedCollimatorToGantryTransform_Minus1_MatrixElements))
   {
     std::cerr << __LINE__ << ": CollimatorToGantry does not match baseline" << std::endl;
@@ -280,7 +279,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Collimator angle, 1 degree
   beamNode->SetCollimatorAngle(1.0);
-  iecLogic->UpdateBeamTransform(beamNode);
+  beamsLogic->UpdateBeamTransform(beamNode);
   expectedNumOfNonIdentityTransforms = 4;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
   {
@@ -291,7 +290,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedCollimatorToGantryTransform_1_MatrixElements[16] =
     {  0.999848, -0.0174524, 0, 0,   0.0174524, 0.999848, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry),
+      beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry),
       expectedCollimatorToGantryTransform_1_MatrixElements ) )
   {
     std::cerr << __LINE__ << ": CollimatorToGantry does not match baseline" << std::endl;
@@ -309,11 +308,11 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Collimator angle, -90 degrees
   beamNode->SetCollimatorAngle(-90.0);
-  iecLogic->UpdateBeamTransform(beamNode);
+  beamsLogic->UpdateBeamTransform(beamNode);
   double expectedCollimatorToGantryTransform_Minus90_MatrixElements[16] =
     { 0, 1, 0, 0,   -1, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1 };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry),
     expectedCollimatorToGantryTransform_Minus90_MatrixElements))
   {
     std::cerr << __LINE__ << ": CollimatorToGantry does not match baseline" << std::endl;
@@ -331,11 +330,11 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Collimator angle, 90 degrees
   beamNode->SetCollimatorAngle(90.0);
-  iecLogic->UpdateBeamTransform(beamNode);
+  beamsLogic->UpdateBeamTransform(beamNode);
   double expectedCollimatorToGantryTransform_90_MatrixElements[16] =
     {  0, -1, 0, 0,   1, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry),
+      beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry),
       expectedCollimatorToGantryTransform_90_MatrixElements ) )
   {
     std::cerr << __LINE__ << ": CollimatorToGantry does not match baseline" << std::endl;
@@ -353,7 +352,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Patient support angle, -1 degree
   beamNode->SetCouchAngle(-1.0);
-  iecLogic->UpdateBeamTransform(beamNode);
+  beamsLogic->UpdateBeamTransform(beamNode);
   expectedNumOfNonIdentityTransforms = 5;
   if ((numOfNonIdentityTransforms = GetNumberOfNonIdentityIECTransforms(mrmlScene)) != expectedNumOfNonIdentityTransforms)
   {
@@ -363,7 +362,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedPatientSupportRotationToFixedReferenceTransformMinus1_MatrixElements[16] =
     { 0.999848, 0.0174524, 0, 0,   -0.0174524, 0.999848, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1 };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference),
     expectedPatientSupportRotationToFixedReferenceTransformMinus1_MatrixElements))
   {
     std:cerr << __LINE__ << ": PatientSupportRotationToFixedReference does not match baseline" << std::endl;
@@ -381,11 +380,11 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Patient support angle, 1 degree
   beamNode->SetCouchAngle(1.0);
-  iecLogic->UpdateBeamTransform(beamNode);
+  beamsLogic->UpdateBeamTransform(beamNode);
   double expectedPatientSupportRotationToFixedReferenceTransform1_MatrixElements[16] =
     { 0.999848, -0.0174524, 0, 0,   0.0174524, 0.999848, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1 };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference),
+      beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference),
       expectedPatientSupportRotationToFixedReferenceTransform1_MatrixElements ) )
   {
     std::cerr << __LINE__ << ": PatientSupportRotationToFixedReference does not match baseline" << std::endl;
@@ -403,11 +402,11 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Patient support angle, -90 degrees
   beamNode->SetCouchAngle(-90.0);
-  iecLogic->UpdateBeamTransform(beamNode);
+  beamsLogic->UpdateBeamTransform(beamNode);
   double expectedPatientSupportRotationToFixedReferenceTransformMinus90_MatrixElements[16] =
     { 0, 1, 0, 0,   -1, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1 };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference),
     expectedPatientSupportRotationToFixedReferenceTransformMinus90_MatrixElements))
   {
     std::cerr << __LINE__ << ": PatientSupportRotationToFixedReference does not match baseline" << std::endl;
@@ -425,11 +424,11 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Patient support angle, 90 degrees
   beamNode->SetCouchAngle(90.0);
-  iecLogic->UpdateBeamTransform(beamNode);
+  beamsLogic->UpdateBeamTransform(beamNode);
   double expectedPatientSupportRotationToFixedReferenceTransform90_MatrixElements[16] =
     {  0, -1, 0, 0,   1, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if ( !IsTransformMatrixEqualTo(mrmlScene,
-      iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference),
+      beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference),
       expectedPatientSupportRotationToFixedReferenceTransform90_MatrixElements ) )
   {
     std::cerr << __LINE__ << ": PatientSupportRotationToFixedReference does not match baseline" << std::endl;
@@ -447,7 +446,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Table Top (vertical), 1.0mm
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode_Vertical1 =
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform_Vertical1 = vtkTransform::SafeDownCast(
     tableTopToTableTopEccentricRotationTransformNode_Vertical1->GetTransformToParent());
 
@@ -465,7 +464,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedTableTopToTableTop_Vertical1_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 1, 1,   0, 0, 0, 1  };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
     expectedTableTopToTableTop_Vertical1_MatrixElements))
   {
     std::cerr << __LINE__ << ": PatientToTableTopTransform (vertical) does not match baseline" << std::endl;
@@ -474,7 +473,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Table Top (vertical), -1.0mm
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode_Vertical_Minus1 =
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform_Vertical_Minus1 = vtkTransform::SafeDownCast(
     tableTopToTableTopEccentricRotationTransformNode_Vertical_Minus1->GetTransformToParent());
 
@@ -489,7 +488,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedTableTopToTableTop_Vertical_Minus1_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 1, -1,   0, 0, 0, 1  };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
     expectedTableTopToTableTop_Vertical_Minus1_MatrixElements))
   {
     std::cerr << __LINE__ << ": PatientToTableTopTransform (vertical) does not match baseline" << std::endl;
@@ -499,7 +498,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Table Top (vertical), 299.0mm
   // This is the max value for the default Varian machine in this case
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode_Vertical_299 =
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform_Vertical_299 = vtkTransform::SafeDownCast(
     tableTopToTableTopEccentricRotationTransformNode_Vertical_299->GetTransformToParent());
 
@@ -514,7 +513,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedTableTopToTableTop_Vertical_299_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 1, 299,   0, 0, 0, 1  };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
     expectedTableTopToTableTop_Vertical_299_MatrixElements))
   {
     std::cerr << __LINE__ << ": PatientToTableTopTransform (vertical) does not match baseline" << std::endl;
@@ -524,7 +523,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Table Top (vertical), -500.0mm
   // This is the min value for the default Varian machine in this case
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode_Vertical_Minus500 =
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform_Vertical_Minus500 = vtkTransform::SafeDownCast(
     tableTopToTableTopEccentricRotationTransformNode_Vertical_Minus500->GetTransformToParent());
 
@@ -539,7 +538,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedTableTopToTableTop_Vertical_Minus500_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 1, 0, 0,   0, 0, 1, -500,   0, 0, 0, 1  };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
     expectedTableTopToTableTop_Vertical_Minus500_MatrixElements))
   {
     std::cerr << __LINE__ << ": PatientToTableTopTransform (vertical) does not match baseline" << std::endl;
@@ -548,7 +547,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Table Top (longitudinal), 1.0mm
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode_Longitudinal_1 =
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform_Longitudinal_1 = vtkTransform::SafeDownCast(
     tableTopToTableTopEccentricRotationTransformNode_Longitudinal_1->GetTransformToParent());
 
@@ -563,7 +562,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedTableTopToTableTop_Longitudinal_1_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 1, 0, 1,   0, 0, 1, 0,   0, 0, 0, 1  };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
     expectedTableTopToTableTop_Longitudinal_1_MatrixElements))
   {
     std::cerr << __LINE__ << ": PatientToTableTopTransform (longitudinal) does not match baseline" << std::endl;
@@ -572,7 +571,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Table Top (longitudinal), -1.0mm
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode_Longitudinal_Minus1 =
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform_Longitudinal_Minus1 = vtkTransform::SafeDownCast(
     tableTopToTableTopEccentricRotationTransformNode_Longitudinal_Minus1->GetTransformToParent());
 
@@ -587,7 +586,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedTableTopToTableTop_Longitudinal_Minus1_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 1, 0, -1,   0, 0, 1, 0,   0, 0, 0, 1  };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
     expectedTableTopToTableTop_Longitudinal_Minus1_MatrixElements))
   {
     std::cerr << __LINE__ << ": PatientToTableTopTransform (longitudinal) does not match baseline" << std::endl;
@@ -596,7 +595,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Table Top (longitudinal), 90.0mm
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode_Longitudinal_90 =
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform_Longitudinal_90 = vtkTransform::SafeDownCast(
     tableTopToTableTopEccentricRotationTransformNode_Longitudinal_90->GetTransformToParent());
 
@@ -611,7 +610,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedTableTopToTableTop_Longitudinal_90_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 1, 0, 90,   0, 0, 1, 0,   0, 0, 0, 1  };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
     expectedTableTopToTableTop_Longitudinal_90_MatrixElements))
   {
     std::cerr << __LINE__ << ": PatientToTableTopTransform (longitudinal) does not match baseline" << std::endl;
@@ -621,7 +620,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Table Top (longitudinal), 1000.0mm
   // This is the max value for the default Varian machine in this case
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode_Longitudinal_1000 =
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform_Longitudinal_1000 = vtkTransform::SafeDownCast(
     tableTopToTableTopEccentricRotationTransformNode_Longitudinal_1000->GetTransformToParent());
 
@@ -636,7 +635,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedTableTopToTableTop_Longitudinal_1000_MatrixElements[16] =
     {  1, 0, 0, 0,   0, 1, 0, 1000,   0, 0, 1, 0,   0, 0, 0, 1  };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
     expectedTableTopToTableTop_Longitudinal_1000_MatrixElements))
   {
     std::cerr << __LINE__ << ": PatientToTableTopTransform (longitudinal) does not match baseline" << std::endl;
@@ -645,7 +644,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
 
   // Table Top (lateral), 1.0mm
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode_Lateral_1 =
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform_Lateral_1 = vtkTransform::SafeDownCast(
     tableTopToTableTopEccentricRotationTransformNode_Lateral_1->GetTransformToParent());
 
@@ -660,7 +659,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedTableTopToTableTop_Lateral_1_MatrixElements[16] =
     {  1, 0, 0, 1,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
     expectedTableTopToTableTop_Lateral_1_MatrixElements))
   {
     std::cerr << __LINE__ << ": PatientToTableTopTransform (lateral) does not match baseline" << std::endl;
@@ -670,7 +669,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Table Top (lateral), 230.0mm
   // This is the max value for the default Varian machine in this case
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode_Lateral_230 =
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform_Lateral_230 = vtkTransform::SafeDownCast(
     tableTopToTableTopEccentricRotationTransformNode_Lateral_230->GetTransformToParent());
 
@@ -685,7 +684,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedTableTopToTableTop_Lateral_230_MatrixElements[16] =
     {  1, 0, 0, 230,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
     expectedTableTopToTableTop_Lateral_230_MatrixElements))
   {
     std::cerr << __LINE__ << ": PatientToTableTopTransform (lateral) does not match baseline" << std::endl;
@@ -695,7 +694,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   // Table Top (lateral), -230.0mm
   // This is the min value for the default Varian machine in this case
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode_Lateral_Minus230 =
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
   vtkTransform* tableTopEccentricRotationToPatientSupportTransform_Lateral_Minus230 = vtkTransform::SafeDownCast(
     tableTopToTableTopEccentricRotationTransformNode_Lateral_Minus230->GetTransformToParent());
 
@@ -710,7 +709,7 @@ int vtkSlicerIECTransformLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   double expectedTableTopToTableTop_Lateral_Minus230_MatrixElements[16] =
     {  1, 0, 0, -230,   0, 1, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1  };
   if (!IsTransformMatrixEqualTo(mrmlScene,
-    iecLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
+    beamsLogic->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation),
     expectedTableTopToTableTop_Lateral_Minus230_MatrixElements))
   {
     std::cerr << __LINE__ << ": PatientToTableTopTransform (lateral) does not match baseline" << std::endl;

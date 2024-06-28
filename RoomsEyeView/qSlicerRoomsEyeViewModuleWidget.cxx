@@ -755,6 +755,11 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientSupportRotationSliderValueChanged
   {
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(d->logic()->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    return;
+  }
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetPatientSupportRotationAngle(value);
@@ -762,7 +767,7 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientSupportRotationSliderValueChanged
 
   // Update IEC transform
   d->logic()->UpdatePatientSupportRotationToFixedReferenceTransform(paramNode);
-  d->logic()->GetIECLogic()->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
+  beamsLogic->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
 
   // Update beam parameter
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(paramNode->GetBeamNode());
@@ -785,6 +790,11 @@ void qSlicerRoomsEyeViewModuleWidget::onVerticalTableTopDisplacementSliderValueC
   {
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(d->logic()->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    return;
+  }
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetVerticalTableTopDisplacement(value);
@@ -792,7 +802,7 @@ void qSlicerRoomsEyeViewModuleWidget::onVerticalTableTopDisplacementSliderValueC
 
   d->logic()->UpdatePatientSupportToPatientSupportRotationTransform(paramNode);
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  d->logic()->GetIECLogic()->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
+  beamsLogic->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -808,13 +818,18 @@ void qSlicerRoomsEyeViewModuleWidget::onLongitudinalTableTopDisplacementSliderVa
   {
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(d->logic()->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    return;
+  }
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetLongitudinalTableTopDisplacement(value);
   paramNode->DisableModifiedEventOff();
 
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  d->logic()->GetIECLogic()->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
+  beamsLogic->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -832,13 +847,18 @@ void qSlicerRoomsEyeViewModuleWidget::onLateralTableTopDisplacementSliderValueCh
   {
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(d->logic()->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    return;
+  }
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetLateralTableTopDisplacement(d->LateralTableTopDisplacementSlider->value());
   paramNode->DisableModifiedEventOff();
 
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  d->logic()->GetIECLogic()->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
+  beamsLogic->UpdateFixedReferenceToRASTransform(d->currentPlanNode(paramNode));
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -857,6 +877,12 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadCustomCollimatorMountedDeviceButtonC
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(d->logic()->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    return;
+  }
+
   qSlicerIOManager* ioManager = qSlicerApplication::application()->ioManager();
   vtkSmartPointer<vtkCollection> loadedModelsCollection = vtkSmartPointer<vtkCollection>::New();
   ioManager->openDialog("ModelFile", qSlicerDataDialog::Read, qSlicerIO::IOProperties(), loadedModelsCollection);
@@ -865,7 +891,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadCustomCollimatorMountedDeviceButtonC
   {
     vtkMRMLModelNode* loadedModelNode = vtkMRMLModelNode::SafeDownCast(
       loadedModelsCollection->GetItemAsObject(modelIndex) );
-    vtkMRMLLinearTransformNode* collimatorModelTransforms = d->logic()->GetIECLogic()->GetTransformNodeBetween(
+    vtkMRMLLinearTransformNode* collimatorModelTransforms = beamsLogic->GetTransformNodeBetween(
       vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry );
     loadedModelNode->SetAndObserveTransformNodeID(collimatorModelTransforms->GetID());
   }

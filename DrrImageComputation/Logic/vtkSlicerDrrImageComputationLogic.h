@@ -33,6 +33,7 @@
 #include <cstdlib>
 
 #include "vtkSlicerDrrImageComputationModuleLogicExport.h"
+#include <vtkSlicerRoomsEyeViewModuleLogic.h>
 
 class vtkMRMLVolumeNode;
 class vtkMRMLScalarVolumeNode;
@@ -198,6 +199,8 @@ private:
   vtkSlicerCLIModuleLogic* PlastimatchDRRComputationLogic;
   /// Beams logic instance
   vtkSlicerBeamsModuleLogic* BeamsLogic;
+  /// Rooms eye view logic instance
+  vtkSlicerRoomsEyeViewModuleLogic* REVLogic;
 };
 
 #endif
