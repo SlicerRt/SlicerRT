@@ -29,10 +29,14 @@
 
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
+#include <vtkSlicerIECTransformLogic.h>
 
 // Beams includes
 #include "vtkSlicerBeamsModuleLogicExport.h"
 #include "vtkMRMLRTBeamNode.h"
+
+// VTK includes
+#include <vtkNew.h>
 
 class vtkSlicerMLCPositionLogic;
 
@@ -60,6 +64,27 @@ public:
   void UpdateTransformForBeam( vtkMRMLScene* beamSequenceScene, vtkMRMLRTBeamNode* beamNode, 
     vtkMRMLLinearTransformNode* beamTransformNode, double isocenter[3]);
 
+public:
+  /// Update parent transform node of a given beam from the IEC transform hierarchy and the beam parameters
+  void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode);
+  /// Update parent transform node of a given beam from the IEC transform hierarchy and the beam parameters
+  /// \warning This method is used only in vtkSlicerBeamsModuleLogic::UpdateTransformForBeam
+  void UpdateBeamTransform(vtkMRMLRTBeamNode* beamNode, vtkMRMLLinearTransformNode* beamTransformNode, double* isocenter = nullptr);
+
+public:
+  /// Get transform node between two coordinate systems is exists
+  /// \return Transform node if there is a direct transform between the specified coordinate frames, nullptr otherwise
+  ///   Note: If IEC does not specify a transform between the given coordinate frames, then there will be no node with the returned name.
+  vtkMRMLLinearTransformNode* GetTransformNodeBetween(
+    vtkSlicerIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkSlicerIECTransformLogic::CoordinateSystemIdentifier toFrame);
+
+public:
+  /// Update IEC transforms according to beam node
+  void UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* beamNode, double* isocenter = nullptr);
+
+  /// Update fixed reference to RAS transform based on isocenter and patient support transforms
+  void UpdateFixedReferenceToRASTransform(vtkMRMLRTPlanNode* planNode = nullptr, double* isocenter = nullptr);
+
 protected:
   vtkSlicerBeamsModuleLogic();
   ~vtkSlicerBeamsModuleLogic() override;
@@ -80,6 +105,9 @@ private:
   void operator=(const vtkSlicerBeamsModuleLogic&) = delete;
   
   vtkSlicerMLCPositionLogic* MLCPositionLogic;
+
+private:
+  vtkSmartPointer<vtkSlicerIECTransformLogic> IecLogic = vtkSmartPointer<vtkSlicerIECTransformLogic>::New();
 };
 
 #endif

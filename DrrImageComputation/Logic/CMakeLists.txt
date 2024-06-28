@@ -20,6 +20,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleMRML
   vtkSlicerBeamsModuleLogic
   vtkSlicerPlanarImageModuleLogic
+  vtkSlicerRoomsEyeViewModuleLogic
   vtkSlicerMarkupsModuleMRML
   vtkSlicerRtCommon
   vtkPlmCommon
