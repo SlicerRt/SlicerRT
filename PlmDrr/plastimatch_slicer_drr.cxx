@@ -43,7 +43,7 @@
 namespace
 {
 
-int DoSetupDRR( int argc, char * argv[], Drr_options& options ) throw( std::string )
+int DoSetupDRR( int argc, char * argv[], Drr_options& options )
 {
   PARSE_ARGS;
 
@@ -166,7 +166,7 @@ int DoSetupDRR( int argc, char * argv[], Drr_options& options ) throw( std::stri
 }
 
 template <typename TPixel>
-int DoIt( int argc, char * argv[], Drr_options& options, TPixel ) throw( std::string, itk::ExceptionObject )
+int DoIt( int argc, char * argv[], Drr_options& options, TPixel )
 {
   PARSE_ARGS;
 
@@ -217,6 +217,18 @@ int DoIt( int argc, char * argv[], Drr_options& options, TPixel ) throw( std::st
     options.output_file = tmpDir + "outputVolume.raw";
     mhdFilename = tmpDir + "outputVolume.mhd";
   }
+  else if (found < inputVolume.size() && options.output_format == OUTPUT_FORMAT_PFM)
+  {
+    std::string tmpDir = inputVolume.substr( 0, found + 1);
+    options.input_file = tmpDir + "inputVolume.mha";
+    options.output_file = tmpDir + "outputVolume.pfm";
+  }
+  else if (found < inputVolume.size() && options.output_format == OUTPUT_FORMAT_PGM)
+  {
+    std::string tmpDir = inputVolume.substr( 0, found + 1);
+    options.input_file = tmpDir + "inputVolume.mha";
+    options.output_file = tmpDir + "outputVolume.pgm";
+  }
   else if (found == inputVolume.size() || found == std::string::npos)
   {
     throw std::string("Unable to find directory name");
@@ -237,7 +249,7 @@ int DoIt( int argc, char * argv[], Drr_options& options, TPixel ) throw( std::st
   drr_compute(&options);
 
   // Create mhd file for raw file loading
-  if (!mhdFilename.empty())
+  if (!mhdFilename.empty() && options.output_format == OUTPUT_FORMAT_RAW)
   {
     // Plastimatch DRR pixel type (float)
     typedef float PlmDrrPixelType;

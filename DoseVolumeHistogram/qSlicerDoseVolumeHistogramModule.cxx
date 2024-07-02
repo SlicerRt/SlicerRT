@@ -69,10 +69,9 @@ qSlicerDoseVolumeHistogramModule::~qSlicerDoseVolumeHistogramModule() = default;
 //-----------------------------------------------------------------------------
 QString qSlicerDoseVolumeHistogramModule::helpText()const
 {
-  QString help = 
-    "This module computes dose volume histogram (DVH) and metrics from a dose map and segmentation. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/DoseVolumeHistogram\">%1/Documentation/%2.%3/Modules/DoseVolumeHistogram</a><br>";
-  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
+  return QString("This module computes dose volume histogram (DVH) and metrics from a dose map and segmentation. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/DoseVolumeHistogram\">%1/Documentation/%2.%3/Modules/DoseVolumeHistogram</a><br>").arg(
+    this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
 }
 
 //-----------------------------------------------------------------------------

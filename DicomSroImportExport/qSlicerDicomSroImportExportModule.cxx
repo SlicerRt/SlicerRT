@@ -69,10 +69,9 @@ qSlicerDicomSroImportExportModule::~qSlicerDicomSroImportExportModule() = defaul
 //-----------------------------------------------------------------------------
 QString qSlicerDicomSroImportExportModule::helpText()const
 {
-  QString help = 
-    "The DicomSroImportExport module enables importing and loading DICOM Spatial Registration Objects into the Slicer DICOM database and the Slicer scene, and exporting transformations as DICOM SROs. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/DicomSroImport\">%1/Documentation/%2.%3/Modules/Models</a><br>";
-  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
+  return QString("The DicomSroImportExport module enables importing and loading DICOM Spatial Registration Objects into the Slicer DICOM database and the Slicer scene, and exporting transformations as DICOM SROs. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/DicomSroImport\">%1/Documentation/%2.%3/Modules/Models</a><br>").arg(
+    this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
 }
 
 //-----------------------------------------------------------------------------

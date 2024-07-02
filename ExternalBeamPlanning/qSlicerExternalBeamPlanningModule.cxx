@@ -77,10 +77,9 @@ qSlicerExternalBeamPlanningModule::~qSlicerExternalBeamPlanningModule() = defaul
 //-----------------------------------------------------------------------------
 QString qSlicerExternalBeamPlanningModule::helpText()const
 {
-  QString help =
-    "The External Beam Planning module facilitates basic EBRT planning. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/ExternalBeamPlanning\">%1/Documentation/%2.%3/Modules/ExternalBeamPlanning</a><br>";
-  return help.arg(this->slicerWikiUrl()).arg(Slicer_VERSION_MAJOR).arg(Slicer_VERSION_MINOR);
+  return QString("The External Beam Planning module facilitates basic EBRT planning. "
+    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/ExternalBeamPlanning\">%1/Documentation/%2.%3/Modules/ExternalBeamPlanning</a><br>").arg(
+    this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
 }
 
 //-----------------------------------------------------------------------------
