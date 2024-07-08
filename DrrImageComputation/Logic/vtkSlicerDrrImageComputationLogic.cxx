@@ -85,10 +85,7 @@ vtkStandardNewMacro(vtkSlicerDrrImageComputationLogic);
 
 //----------------------------------------------------------------------------
 vtkSlicerDrrImageComputationLogic::vtkSlicerDrrImageComputationLogic()
-  :
-  PlanarImageLogic(nullptr),
-  PlastimatchDRRComputationLogic(nullptr),
-  BeamsLogic(nullptr)
+  : PlastimatchDRRComputationLogic(nullptr)
 {
 }
 
@@ -1168,6 +1165,13 @@ bool vtkSlicerDrrImageComputationLogic::SetupDisplayAndSubjectHierarchyNodes( vt
 //------------------------------------------------------------------------------
 bool vtkSlicerDrrImageComputationLogic::SetupGeometry( vtkMRMLDrrImageComputationNode* parameterNode, vtkMRMLScalarVolumeNode* drrVolumeNode)
 {
+  vtkSlicerPlanarImageModuleLogic* planarImageLogic = vtkSlicerPlanarImageModuleLogic::SafeDownCast(this->GetModuleLogic("PlanarImage"));
+  if (!planarImageLogic)
+  {
+    vtkErrorMacro("SetupGeometry: Planar image logic cannot be accessed");
+    return false;
+  }
+
   vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode();
 
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
@@ -1280,7 +1284,7 @@ bool vtkSlicerDrrImageComputationLogic::SetupGeometry( vtkMRMLDrrImageComputatio
   parameterNode->SetAndObserveDisplayedModelNode(displayedModelNode);
 
   // Create planar image model for the RT Image
-  this->PlanarImageLogic->CreateModelForPlanarImage(parameterNode);
+  planarImageLogic->CreateModelForPlanarImage(parameterNode);
 
   // Show the displayed planar image model by default
   displayedModelNode->SetDisplayVisibility(1);
@@ -1638,6 +1642,12 @@ vtkMRMLLinearTransformNode* vtkSlicerDrrImageComputationLogic::UpdateImageTransf
     vtkErrorMacro("UpdateImageTransformFromBeam: Invalid MRML scene");
     return nullptr;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdateImageTransformFromBeam: Beams logic cannot be accessed");
+    return nullptr;
+  }
 
   vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode;
   if (!scene->GetFirstNodeByName(RTIMAGE_TRANSFORM_NODE_NAME))
@@ -1657,8 +1667,9 @@ vtkMRMLLinearTransformNode* vtkSlicerDrrImageComputationLogic::UpdateImageTransf
   vtkNew<vtkSlicerIECTransformLogic> iecLogic;
 
   // Update transforms in IEC logic from beam node parameters
-  BeamsLogic->UpdateIECTransformsFromBeam(beamNode);
-  // (a BUG?) For RT Image correct orientation PatientSupport -> Fixed Reference MUST have a negative sign
+  beamsLogic->UpdateIECTransformsFromBeam(beamNode);
+
+  //TODO: (a BUG?) For RT Image correct orientation PatientSupport -> Fixed Reference MUST have a negative sign
   iecLogic->UpdatePatientSupportRotationToFixedReferenceTransform(-1. * beamNode->GetCouchAngle());
 
   // Dynamic transform from Gantry to RAS
@@ -1666,7 +1677,7 @@ vtkMRMLLinearTransformNode* vtkSlicerDrrImageComputationLogic::UpdateImageTransf
   // Gantry -> FixedReference -> PatientSupport -> TableTopEccentricRotation -> TableTop -> Patient -> RAS
   using IEC = vtkSlicerIECTransformLogic::CoordinateSystemIdentifier;
   vtkNew<vtkGeneralTransform> generalTransform;
-  if (REVLogic->GetTransformNodeBetween( IEC::Gantry, IEC::RAS, generalTransform))
+  if (iecLogic->GetTransformBetween(IEC::Gantry, IEC::RAS, generalTransform))
   {
     // Convert general transform to linear
     // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
@@ -1696,12 +1707,19 @@ bool vtkSlicerDrrImageComputationLogic::GetRtImageTransformMatrixFromBeam(vtkMRM
     vtkErrorMacro("GetRtImageTransformMatrixFromBeam: Invalid MRML scene");
     return false;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("GetRtImageTransformMatrixFromBeam: Beams logic cannot be accessed");
+    return false;
+  }
 
   vtkNew<vtkSlicerIECTransformLogic> iecLogic;
 
   // Update transforms in IEC logic from beam node parameters
-  BeamsLogic->UpdateIECTransformsFromBeam(beamNode);
-  // (a BUG?) For RT Image correct orientation PatientSupport -> Fixed Reference MUST have a negative sign
+  beamsLogic->UpdateIECTransformsFromBeam(beamNode);
+
+  //TODO: (a BUG?) For RT Image correct orientation PatientSupport -> Fixed Reference MUST have a negative sign
   iecLogic->UpdatePatientSupportRotationToFixedReferenceTransform(-1. * beamNode->GetCouchAngle());
 
   // Dynamic transform from Gantry to RAS
@@ -1709,7 +1727,7 @@ bool vtkSlicerDrrImageComputationLogic::GetRtImageTransformMatrixFromBeam(vtkMRM
   // Gantry -> FixedReference -> PatientSupport -> TableTopEccentricRotation -> TableTop -> Patient -> RAS
   using IEC = vtkSlicerIECTransformLogic::CoordinateSystemIdentifier;
   vtkNew<vtkGeneralTransform> generalTransform;
-  if (REVLogic->GetTransformNodeBetween( IEC::Gantry, IEC::RAS, generalTransform))
+  if (iecLogic->GetTransformBetween(IEC::Gantry, IEC::RAS, generalTransform))
   {
     // Convert general transform to linear
     // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
@@ -2066,19 +2084,7 @@ vtkMRMLTableNode* vtkSlicerDrrImageComputationLogic::CreateProjectionsTableNode(
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerDrrImageComputationLogic::SetPlanarImageLogic(vtkSlicerPlanarImageModuleLogic* planarImageLogic)
-{
-  this->PlanarImageLogic = planarImageLogic;
-}
-
-//------------------------------------------------------------------------------
 void vtkSlicerDrrImageComputationLogic::SetDRRComputationLogic(vtkSlicerCLIModuleLogic* plastimatchDrrLogic)
 {
   this->PlastimatchDRRComputationLogic = plastimatchDrrLogic;
-}
-
-//------------------------------------------------------------------------------
-void vtkSlicerDrrImageComputationLogic::SetBeamsLogic(vtkSlicerBeamsModuleLogic* beamsLogic)
-{
-  this->BeamsLogic = beamsLogic;
 }

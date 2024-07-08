@@ -123,19 +123,6 @@ public:
   /// \return string indicating whether collision occurred
   std::string CheckForCollisions(vtkMRMLRoomsEyeViewNode* parameterNode);
 
-// Additional device related methods
-public:
-  /// Load basic additional devices (deployed with SlicerRT)
-  void LoadBasicCollimatorMountedDevices();
-  /// Set up the IEC transforms and model properties on the basic additional device models
-  void SetupBasicCollimatorMountedDeviceModels();
-
-  ///TODO:
-  void UpdateAdditionalCollimatorDevicesToCollimatorTransforms(vtkMRMLRoomsEyeViewNode* parameterNode);
-
-  ///TODO:
-  void UpdateAdditionalDevicesVisibility(vtkMRMLRoomsEyeViewNode* parameterNode);
-
 // Get treatment machine properties from descriptor file
 public:
   /// Get part name for part type in the currently loaded treatment machine description
@@ -164,19 +151,17 @@ public:
   vtkGetObjectMacro(GantryPatientSupportCollisionDetection, vtkCollisionDetectionFilter);
   vtkGetObjectMacro(CollimatorPatientCollisionDetection, vtkCollisionDetectionFilter);
   vtkGetObjectMacro(CollimatorTableTopCollisionDetection, vtkCollisionDetectionFilter);
-  vtkGetObjectMacro(AdditionalModelsTableTopCollisionDetection, vtkCollisionDetectionFilter);
-  vtkGetObjectMacro(AdditionalModelsPatientSupportCollisionDetection, vtkCollisionDetectionFilter);
 
 public:
-  /// Get transform from one coordinate frame to another
-  /// @param fromFrame - start transformation from frame
-  /// @param toFrame - proceed transformation to frame
-  /// @param outputTransform - General (linear) transform matrix fromFrame -> toFrame. Matrix is correct if return flag is true.  
-  /// @param transformForBeam - calculate dynamic transformation for beam model or other models
-  /// (e.g. transformation from Patient RAS frame to Collimation frame: RAS -> Patient -> TableTop -> Eccentric -> Patient Support -> Fixed reference -> Gantry -> Collimator)  //TODO: Deprecated
-  /// \return Success flag (false on any error)
-  bool GetTransformNodeBetween(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkSlicerIECTransformLogic::CoordinateSystemIdentifier toFrame,
-    vtkGeneralTransform* outputTransform, bool transformForBeam = true);
+  ///// Get transform from one coordinate frame to another
+  ///// @param fromFrame - start transformation from frame
+  ///// @param toFrame - proceed transformation to frame
+  ///// @param outputTransform - General (linear) transform matrix fromFrame -> toFrame. Matrix is correct if return flag is true.  
+  ///// @param transformForBeam - calculate dynamic transformation for beam model or other models
+  ///// (e.g. transformation from Patient RAS frame to Collimation frame: RAS -> Patient -> TableTop -> Eccentric -> Patient Support -> Fixed reference -> Gantry -> Collimator)  //TODO: Deprecated
+  ///// \return Success flag (false on any error)
+  //bool GetTransformNodeBetween(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkSlicerIECTransformLogic::CoordinateSystemIdentifier toFrame,
+  //  vtkGeneralTransform* outputTransform, bool transformForBeam = true);
 
 protected:
   /// Get patient body closed surface poly data from segmentation node and segment selection in the parameter node
@@ -191,18 +176,6 @@ protected:
 
   vtkCollisionDetectionFilter* CollimatorPatientCollisionDetection;
   vtkCollisionDetectionFilter* CollimatorTableTopCollisionDetection;
-
-  vtkCollisionDetectionFilter* AdditionalModelsTableTopCollisionDetection;
-  vtkCollisionDetectionFilter* AdditionalModelsPatientSupportCollisionDetection;
-
-protected:
-  /// @brief Get coordinate system identifiers from frame system up to root system
-  /// Root system = FixedReference system, see IEC 61217:2011 hierarchy
-  bool GetPathToRoot(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier frame, vtkSlicerIECTransformLogic::CoordinateSystemsList& path);
-
-  /// @brief Get coordinate system identifiers from root system down to frame system
-  /// Root system = FixedReference system, see IEC 61217:2011 hierarchy
-  bool GetPathFromRoot(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier frame, vtkSlicerIECTransformLogic::CoordinateSystemsList& path);
 
 protected:
   vtkSlicerRoomsEyeViewModuleLogic();

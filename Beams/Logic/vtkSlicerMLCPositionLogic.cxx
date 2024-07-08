@@ -312,7 +312,7 @@ vtkMRMLTableNode* vtkSlicerMLCPositionLogic::CreateMultiLeafCollimatorTableNodeB
   table->SetValue( nofLeafPairs, 1, 0.); // side "1" set last unused value to zero
   table->SetValue( nofLeafPairs, 2, 0.); // side "2" set last unused value to zero
 
-  tableNode->SetUseColumnNameAsColumnHeader(true);
+  tableNode->SetUseColumnTitleAsColumnHeader(true);
   tableNode->SetColumnDescription( "Boundary", "Leaf pair boundary");
   tableNode->SetColumnDescription( "1", "Leaf position on the side \"1\"");
   tableNode->SetColumnDescription( "2", "Leaf position on the side \"2\"");
@@ -430,7 +430,7 @@ bool vtkSlicerMLCPositionLogic::UpdateMultiLeafCollimatorTableNodeBoundaryData( 
   table->SetValue( nofLeafPairs, 1, 0.); // side "1" set last unused value to zero
   table->SetValue( nofLeafPairs, 2, 0.); // side "2" set last unused value to zero
 
-  mlcTable->SetUseColumnNameAsColumnHeader(true);
+  mlcTable->SetUseColumnTitleAsColumnHeader(true);
   mlcTable->SetColumnDescription( "Boundary", "Leaf pair boundary");
   mlcTable->SetColumnDescription( "1", "Leaf position on the side \"1\"");
   mlcTable->SetColumnDescription( "2", "Leaf position on the side \"2\"");

@@ -378,7 +378,7 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics(vtkMRML
   vtkMRMLTableNode* tableNode = parameterNode->GetDiceTableNode();
   if (tableNode)
   {
-    tableNode->SetUseColumnNameAsColumnHeader(true);
+    tableNode->SetUseColumnTitleAsColumnHeader(true);
     tableNode->RemoveAllColumns();
     vtkStringArray* header = vtkStringArray::SafeDownCast(tableNode->AddColumn());
     header->SetName("Metric name");
@@ -500,7 +500,7 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeHausdorffDistances(vtk
   vtkMRMLTableNode* tableNode = parameterNode->GetHausdorffTableNode();
   if (tableNode)
   {
-    tableNode->SetUseColumnNameAsColumnHeader(true);
+    tableNode->SetUseColumnTitleAsColumnHeader(true);
     tableNode->RemoveAllColumns();
     vtkStringArray* header = vtkStringArray::SafeDownCast(tableNode->AddColumn());
     header->SetName("Metric name");

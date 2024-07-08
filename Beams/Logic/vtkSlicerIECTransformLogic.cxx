@@ -31,8 +31,6 @@
 // STD includes
 #include <array>
 
-
-
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerIECTransformLogic);
 
@@ -55,21 +53,52 @@ vtkSlicerIECTransformLogic::vtkSlicerIECTransformLogic()
   this->CoordinateSystemsMap[WedgeFilter] = "WedgeFilter";
   this->CoordinateSystemsMap[Patient] = "Patient";
 
-  this->IecTransforms.clear();
-  this->IecTransforms.push_back(std::make_pair(FixedReference, RAS));
-  this->IecTransforms.push_back(std::make_pair(Gantry, FixedReference));
-  this->IecTransforms.push_back(std::make_pair(Collimator, Gantry));
-  this->IecTransforms.push_back(std::make_pair(WedgeFilter, Collimator));
-  this->IecTransforms.push_back(std::make_pair(LeftImagingPanel, Gantry));
-  this->IecTransforms.push_back(std::make_pair(RightImagingPanel, Gantry));
-  this->IecTransforms.push_back(std::make_pair(PatientSupportRotation, FixedReference)); // Rotation component of patient support transform
-  this->IecTransforms.push_back(std::make_pair(PatientSupport, PatientSupportRotation)); // Scaling component of patient support transform
-  this->IecTransforms.push_back(std::make_pair(TableTopEccentricRotation, PatientSupportRotation)); // NOTE: Currently not supported by REV
-  this->IecTransforms.push_back(std::make_pair(TableTop, TableTopEccentricRotation));
-  this->IecTransforms.push_back(std::make_pair(Patient, TableTop));
-  this->IecTransforms.push_back(std::make_pair(RAS, Patient));
-  this->IecTransforms.push_back(std::make_pair(FlatPanel, Gantry));
+  this->IECTransforms.clear();
+  this->IECTransforms.push_back(std::make_pair(FixedReference, RAS));
+  this->IECTransforms.push_back(std::make_pair(Gantry, FixedReference));
+  this->IECTransforms.push_back(std::make_pair(Collimator, Gantry));
+  this->IECTransforms.push_back(std::make_pair(WedgeFilter, Collimator));
+  this->IECTransforms.push_back(std::make_pair(LeftImagingPanel, Gantry));
+  this->IECTransforms.push_back(std::make_pair(RightImagingPanel, Gantry));
+  this->IECTransforms.push_back(std::make_pair(PatientSupportRotation, FixedReference)); // Rotation component of patient support transform
+  this->IECTransforms.push_back(std::make_pair(PatientSupport, PatientSupportRotation)); // Scaling component of patient support transform
+  this->IECTransforms.push_back(std::make_pair(TableTopEccentricRotation, PatientSupportRotation)); // NOTE: Currently not supported by REV
+  this->IECTransforms.push_back(std::make_pair(TableTop, TableTopEccentricRotation));
+  this->IECTransforms.push_back(std::make_pair(Patient, TableTop));
+  this->IECTransforms.push_back(std::make_pair(RAS, Patient));
+  this->IECTransforms.push_back(std::make_pair(FlatPanel, Gantry));
 
+  // Set names for elementary transforms for discovery
+  this->FixedReferenceToRasTransform->SetObjectName(this->GetTransformNameBetween(FixedReference, RAS).c_str());
+  this->GantryToFixedReferenceTransform->SetObjectName(this->GetTransformNameBetween(Gantry, FixedReference).c_str());
+  this->CollimatorToGantryTransform->SetObjectName(this->GetTransformNameBetween(Collimator, Gantry).c_str());
+  this->WedgeFilterToCollimatorTransform->SetObjectName(this->GetTransformNameBetween(WedgeFilter, Collimator).c_str());
+  this->LeftImagingPanelToGantryTransform->SetObjectName(this->GetTransformNameBetween(LeftImagingPanel, Gantry).c_str());
+  this->RightImagingPanelToGantryTransform->SetObjectName(this->GetTransformNameBetween(RightImagingPanel, Gantry).c_str());
+  this->PatientSupportRotationToFixedReferenceTransform->SetObjectName(this->GetTransformNameBetween(PatientSupportRotation, FixedReference).c_str());
+  this->PatientSupportToPatientSupportRotationTransform->SetObjectName(this->GetTransformNameBetween(PatientSupport, PatientSupportRotation).c_str());
+  this->TableTopEccentricRotationToPatientSupportRotationTransform->SetObjectName(this->GetTransformNameBetween(TableTopEccentricRotation, PatientSupportRotation).c_str());
+  this->TableTopToTableTopEccentricRotationTransform->SetObjectName(this->GetTransformNameBetween(TableTop, TableTopEccentricRotation).c_str());
+  this->PatientToTableTopTransform->SetObjectName(this->GetTransformNameBetween(Patient, TableTop).c_str());
+  this->RasToPatientTransform->SetObjectName(this->GetTransformNameBetween(RAS, Patient).c_str());
+  this->FlatPanelToGantryTransform->SetObjectName(this->GetTransformNameBetween(FlatPanel, Gantry).c_str());
+
+  // Build list of elementary transforms for discovery by name
+  this->ElementaryTransforms.push_back(this->FixedReferenceToRasTransform);
+  this->ElementaryTransforms.push_back(this->GantryToFixedReferenceTransform);
+  this->ElementaryTransforms.push_back(this->CollimatorToGantryTransform);
+  this->ElementaryTransforms.push_back(this->WedgeFilterToCollimatorTransform);
+  this->ElementaryTransforms.push_back(this->LeftImagingPanelToGantryTransform);
+  this->ElementaryTransforms.push_back(this->RightImagingPanelToGantryTransform);
+  this->ElementaryTransforms.push_back(this->PatientSupportRotationToFixedReferenceTransform);
+  this->ElementaryTransforms.push_back(this->PatientSupportToPatientSupportRotationTransform);
+  this->ElementaryTransforms.push_back(this->TableTopEccentricRotationToPatientSupportRotationTransform);
+  this->ElementaryTransforms.push_back(this->TableTopToTableTopEccentricRotationTransform);
+  this->ElementaryTransforms.push_back(this->PatientToTableTopTransform);
+  this->ElementaryTransforms.push_back(this->RasToPatientTransform);
+  this->ElementaryTransforms.push_back(this->FlatPanelToGantryTransform);
+
+  // Define the transform hierarchy
   this->CoordinateSystemsHierarchy.clear();
   // key - parent, value - children
   this->CoordinateSystemsHierarchy[FixedReference] = { Gantry, PatientSupportRotation };
@@ -79,13 +108,53 @@ vtkSlicerIECTransformLogic::vtkSlicerIECTransformLogic()
   this->CoordinateSystemsHierarchy[TableTopEccentricRotation] = { TableTop };
   this->CoordinateSystemsHierarchy[TableTop] = { Patient };
   this->CoordinateSystemsHierarchy[Patient] = { RAS };
+
+  //
+  // Build concatenated transform hierarchy
+  // 
+  this->GantryToFixedReferenceConcatenatedTransform->Concatenate(this->FixedReferenceToRasTransform);
+  this->GantryToFixedReferenceConcatenatedTransform->Concatenate(this->GantryToFixedReferenceTransform);
+
+  this->CollimatorToGantryConcatenatedTransform->Concatenate(this->GantryToFixedReferenceConcatenatedTransform);
+  this->CollimatorToGantryConcatenatedTransform->Concatenate(this->CollimatorToGantryTransform);
+
+  this->WedgeFilterToCollimatorConcatenatedTransform->Concatenate(this->CollimatorToGantryConcatenatedTransform);
+  this->WedgeFilterToCollimatorConcatenatedTransform->Concatenate(this->WedgeFilterToCollimatorTransform);
+    
+  this->LeftImagingPanelToGantryConcatenatedTransform->Concatenate(this->CollimatorToGantryConcatenatedTransform);
+  this->LeftImagingPanelToGantryConcatenatedTransform->Concatenate(this->LeftImagingPanelToGantryTransform);
+
+  this->RightImagingPanelToGantryConcatenatedTransform->Concatenate(this->CollimatorToGantryConcatenatedTransform);
+  this->RightImagingPanelToGantryConcatenatedTransform->Concatenate(this->RightImagingPanelToGantryTransform);
+
+  this->FlatPanelToGantryConcatenatedTransform->Concatenate(this->CollimatorToGantryConcatenatedTransform);
+  this->FlatPanelToGantryConcatenatedTransform->Concatenate(this->FlatPanelToGantryTransform);
+
+  this->PatientSupportRotationToFixedReferenceConcatenatedTransform->Concatenate(this->FixedReferenceToRasTransform);
+  this->PatientSupportRotationToFixedReferenceConcatenatedTransform->Concatenate(this->PatientSupportRotationToFixedReferenceTransform);
+
+  this->PatientSupportToPatientSupportRotationConcatenatedTransform->Concatenate(this->PatientSupportRotationToFixedReferenceConcatenatedTransform);
+  this->PatientSupportToPatientSupportRotationConcatenatedTransform->Concatenate(this->PatientSupportToPatientSupportRotationTransform);
+
+  this->TableTopEccentricRotationToPatientSupportRotationConcatenatedTransform->Concatenate(this->PatientSupportRotationToFixedReferenceConcatenatedTransform);
+  this->TableTopEccentricRotationToPatientSupportRotationConcatenatedTransform->Concatenate(this->TableTopEccentricRotationToPatientSupportRotationTransform);
+
+  this->TableTopToTableEccentricRotationConcatenatedTransform->Concatenate(this->TableTopEccentricRotationToPatientSupportRotationConcatenatedTransform);
+  this->TableTopToTableEccentricRotationConcatenatedTransform->Concatenate(this->TableTopToTableTopEccentricRotationTransform);
+
+  this->PatientToTableTopConcatenatedTransform->Concatenate(this->TableTopToTableEccentricRotationConcatenatedTransform);
+  this->PatientToTableTopConcatenatedTransform->Concatenate(this->PatientToTableTopTransform);
+
+  this->RasToPatientConcatenatedTransform->Concatenate(this->PatientToTableTopConcatenatedTransform);
+  this->RasToPatientConcatenatedTransform->Concatenate(this->RasToPatientTransform);
 }
 
 //-----------------------------------------------------------------------------
 vtkSlicerIECTransformLogic::~vtkSlicerIECTransformLogic()
 {
   this->CoordinateSystemsMap.clear();
-  this->IecTransforms.clear();
+  this->IECTransforms.clear();
+  this->ElementaryTransforms.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -93,77 +162,34 @@ void vtkSlicerIECTransformLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 
-  os << indent << "Transforms:" << std::endl;
-  os << indent << "FixedReferenceToRasTransform: " << FixedReferenceToRasTransform << std::endl;
-  os << indent << "GantryToFixedReferenceTransform: " << GantryToFixedReferenceTransform << std::endl;
-  os << indent << "Concatenated GantryToFixedReferenceTransform: " << transformGantryToFixedReferenceConcatenated << std::endl;
-  os << indent << "CollimatorToGantryTransform: " << CollimatorToGantryTransform << std::endl;
-  os << indent << "Concatenated CollimatorToGantryTransform: " << transformCollimatorToGantryConcatenated << std::endl;
-  os << indent << "WedgeFilterToCollimatorTransform: " << WedgeFilterToCollimatorTransform << std::endl;
-  os << indent << "Concatenated WedgeFilterToCollimatorTransform: " << transformWedgeFilterToCollimatorConcatenated << std::endl;
-  os << indent << "AdditionalCollimatorDevicesToCollimatorTransform: " << AdditionalCollimatorDevicesToCollimatorTransform << std::endl;
-  os << indent << "Concatenated AdditionalCollimatorDevicesToCollimatorTransform: " << transformAdditionalCollimatorDevicesToCollimatorConcatenated << std::endl;
-  os << indent << "LeftImagingPanelToGantryTransform: " << LeftImagingPanelToGantryTransform << std::endl;
-  os << indent << "Concatenated LeftImagingPanelToGantryTransform: " << transformLeftImagingPanelToGantryConcatenated << std::endl;
-  os << indent << "RightImagingPanelToGantryTransform: " << RightImagingPanelToGantryTransform << std::endl;
-  os << indent << "Concatenated RightImagingPanelToGantryTransform: " << transformRightImagingPanelToGantryConcatenated << std::endl;
-  os << indent << "FlatPanelToGantryTransform: " << FlatPanelToGantryTransform << std::endl;
-  os << indent << "Concatenated FlatPanelToGantryTransform: " << transformFlatPanelToGantryConcatenated << std::endl;
-  os << indent << "PatientSupportRotationToFixedReferenceTransform: " << PatientSupportRotationToFixedReferenceTransform << std::endl;
-  os << indent << "Concatenated PatientSupportRotationToFixedReferenceTransform: " << transformPatientSupportRotationToFixedReferenceConcatenated << std::endl;
-  os << indent << "PatientSupportToPatientSupportRotationTransform: " << PatientSupportToPatientSupportRotationTransform << std::endl;
-  os << indent << "Concatenated PatientSupportToPatientSupportRotationTransform: " << transformPatientSupportToPatientSupportRotationConcatenated << std::endl;
-  os << indent << "TableTopEccentricRotationToPatientSupportRotationTransform: " << TableTopEccentricRotationToPatientSupportRotationTransform << std::endl;
-  os << indent << "Concatenated TableTopEccentricRotationToPatientSupportRotationTransform: " << transformTableTopEccentricRotationToPatientSupportRotationConcatenated << std::endl;
-  os << indent << "TableTopToTableTopEccentricRotationTransform: " << TableTopToTableTopEccentricRotationTransform << std::endl;
-  os << indent << "Concatenated TableTopToTableTopEccentricRotationTransform: " << transformTableTopToTableEccentricRotationConcatenated << std::endl;
-  os << indent << "PatientToTableTopTransform: " << PatientToTableTopTransform << std::endl;
-  os << indent << "Concatenated PatientToTableTopTransform: " << transformPatientToTableTopConcatenated << std::endl;
-  os << indent << "RasToPatientTransform: " << RasToPatientTransform << std::endl;
-  os << indent << "Concatenated RasToPatientTransform: " << transformRasToPatientConcatenated << std::endl;
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerIECTransformLogic::BuildIECTransformHierarchy()
-{
-  transformGantryToFixedReferenceConcatenated->Concatenate(FixedReferenceToRasTransform);
-  transformGantryToFixedReferenceConcatenated->Concatenate(GantryToFixedReferenceTransform);
-
-  transformCollimatorToGantryConcatenated->Concatenate(transformGantryToFixedReferenceConcatenated);
-  transformCollimatorToGantryConcatenated->Concatenate(CollimatorToGantryTransform);
-
-  transformWedgeFilterToCollimatorConcatenated->Concatenate(transformCollimatorToGantryConcatenated);
-  transformWedgeFilterToCollimatorConcatenated->Concatenate(WedgeFilterToCollimatorTransform);
+  os << indent << std::endl << "Elementary tansforms:" << std::endl;
+  os << indent << "FixedReferenceToRasTransform: " << this->FixedReferenceToRasTransform << std::endl;
+  os << indent << "GantryToFixedReferenceTransform: " << this->GantryToFixedReferenceTransform << std::endl;
+  os << indent << "CollimatorToGantryTransform: " << this->CollimatorToGantryTransform << std::endl;
+  os << indent << "WedgeFilterToCollimatorTransform: " << this->WedgeFilterToCollimatorTransform << std::endl;
+  os << indent << "LeftImagingPanelToGantryTransform: " << this->LeftImagingPanelToGantryTransform << std::endl;
+  os << indent << "RightImagingPanelToGantryTransform: " << this->RightImagingPanelToGantryTransform << std::endl;
+  os << indent << "FlatPanelToGantryTransform: " << this->FlatPanelToGantryTransform << std::endl;
+  os << indent << "PatientSupportRotationToFixedReferenceTransform: " << this->PatientSupportRotationToFixedReferenceTransform << std::endl;
+  os << indent << "PatientSupportToPatientSupportRotationTransform: " << this->PatientSupportToPatientSupportRotationTransform << std::endl;
+  os << indent << "TableTopEccentricRotationToPatientSupportRotationTransform: " << this->TableTopEccentricRotationToPatientSupportRotationTransform << std::endl;
+  os << indent << "TableTopToTableTopEccentricRotationTransform: " << this->TableTopToTableTopEccentricRotationTransform << std::endl;
+  os << indent << "PatientToTableTopTransform: " << this->PatientToTableTopTransform << std::endl;
+  os << indent << "RasToPatientTransform: " << this->RasToPatientTransform << std::endl;
   
-  transformAdditionalCollimatorDevicesToCollimatorConcatenated->Concatenate(transformWedgeFilterToCollimatorConcatenated);
-  transformAdditionalCollimatorDevicesToCollimatorConcatenated->Concatenate(AdditionalCollimatorDevicesToCollimatorTransform);
-  
-  transformLeftImagingPanelToGantryConcatenated->Concatenate(transformCollimatorToGantryConcatenated);
-  transformLeftImagingPanelToGantryConcatenated->Concatenate(LeftImagingPanelToGantryTransform);
-
-  transformRightImagingPanelToGantryConcatenated->Concatenate(transformCollimatorToGantryConcatenated);
-  transformRightImagingPanelToGantryConcatenated->Concatenate(RightImagingPanelToGantryTransform);
-
-  transformFlatPanelToGantryConcatenated->Concatenate(transformCollimatorToGantryConcatenated);
-  transformFlatPanelToGantryConcatenated->Concatenate(FlatPanelToGantryTransform);
-
-  transformPatientSupportRotationToFixedReferenceConcatenated->Concatenate(FixedReferenceToRasTransform);
-  transformPatientSupportRotationToFixedReferenceConcatenated->Concatenate(PatientSupportRotationToFixedReferenceTransform);
-
-  transformPatientSupportToPatientSupportRotationConcatenated->Concatenate(transformPatientSupportRotationToFixedReferenceConcatenated);
-  transformPatientSupportToPatientSupportRotationConcatenated->Concatenate(PatientSupportToPatientSupportRotationTransform);
-
-  transformTableTopEccentricRotationToPatientSupportRotationConcatenated->Concatenate(transformPatientSupportRotationToFixedReferenceConcatenated);
-  transformTableTopEccentricRotationToPatientSupportRotationConcatenated->Concatenate(TableTopEccentricRotationToPatientSupportRotationTransform);
-
-  transformTableTopToTableEccentricRotationConcatenated->Concatenate(transformTableTopEccentricRotationToPatientSupportRotationConcatenated);
-  transformTableTopToTableEccentricRotationConcatenated->Concatenate(TableTopToTableTopEccentricRotationTransform);
-
-  transformPatientToTableTopConcatenated->Concatenate(transformTableTopToTableEccentricRotationConcatenated);
-  transformPatientToTableTopConcatenated->Concatenate(PatientToTableTopTransform);
-
-  transformRasToPatientConcatenated->Concatenate(transformPatientToTableTopConcatenated);
-  transformRasToPatientConcatenated->Concatenate(RasToPatientTransform);
+  os << indent << std::endl << "Concatenated transforms:" << std::endl;
+  os << indent << "GantryToFixedReferenceConcatenatedTransform: " << this->GantryToFixedReferenceConcatenatedTransform << std::endl;
+  os << indent << "CollimatorToGantryConcatenatedTransform: " << this->CollimatorToGantryConcatenatedTransform << std::endl;
+  os << indent << "WedgeFilterToCollimatorConcatenatedTransform: " << this->WedgeFilterToCollimatorConcatenatedTransform << std::endl;
+  os << indent << "LeftImagingPanelToGantryConcatenatedTransform: " << this->LeftImagingPanelToGantryConcatenatedTransform << std::endl;
+  os << indent << "RightImagingPanelToGantryConcatenatedTransform: " << this->RightImagingPanelToGantryConcatenatedTransform << std::endl;
+  os << indent << "FlatPanelToGantryConcatenatedTransform: " << this->FlatPanelToGantryConcatenatedTransform << std::endl;
+  os << indent << "PatientSupportRotationToFixedReferenceConcatenatedTransform: " << this->PatientSupportRotationToFixedReferenceConcatenatedTransform << std::endl;
+  os << indent << "PatientSupportToPatientSupportRotationConcatenatedTransform: " << this->PatientSupportToPatientSupportRotationConcatenatedTransform << std::endl;
+  os << indent << "TableTopEccentricRotationToPatientSupportRotationConcatenatedTransform: " << this->TableTopEccentricRotationToPatientSupportRotationConcatenatedTransform << std::endl;
+  os << indent << "TableTopToTableTopEccentricRotationConcatenatedTransform: " << this->TableTopToTableEccentricRotationConcatenatedTransform << std::endl;
+  os << indent << "PatientToTableTopConcatenatedTransform: " << this->PatientToTableTopConcatenatedTransform << std::endl;
+  os << indent << "RasToPatientConcatenatedTransform: " << this->RasToPatientConcatenatedTransform << std::endl;
 }
 
 //----------------------------------------------------------------------------
@@ -188,8 +214,169 @@ void vtkSlicerIECTransformLogic::UpdatePatientSupportRotationToFixedReferenceTra
 }
 
 //-----------------------------------------------------------------------------
+vtkTransform* vtkSlicerIECTransformLogic::GetElementaryTransformBetween(
+  CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame)
+{
+  std::string requestedTransformName = this->GetTransformNameBetween(fromFrame, toFrame);
+  for (auto& transform : this->ElementaryTransforms)
+  {
+    std::string currentTransformName(transform->GetObjectName());
+    if (currentTransformName == requestedTransformName)
+    {
+      return transform;
+    }
+  }
+
+  vtkErrorMacro("GetElementaryTransformBetween: Elementary transform not found: " << requestedTransformName);
+  return nullptr;
+}
+
+//-----------------------------------------------------------------------------
 std::string vtkSlicerIECTransformLogic::GetTransformNameBetween(
   CoordinateSystemIdentifier fromFrame, CoordinateSystemIdentifier toFrame)
 {
-  return this->GetCoordinateSystemsMap()[fromFrame] + "To" + this->GetCoordinateSystemsMap()[toFrame] + "Transform";
+  return this->CoordinateSystemsMap[fromFrame] + "To" + this->CoordinateSystemsMap[toFrame] + "Transform";
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerIECTransformLogic::GetTransformBetween(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkSlicerIECTransformLogic::CoordinateSystemIdentifier toFrame,
+  vtkGeneralTransform* outputTransform, bool transformForBeam/* = true*/)
+{
+  if (!outputTransform)
+  {
+    vtkErrorMacro("GetTransformBetween: Invalid output transform node");
+    return false;
+  }
+
+  vtkSlicerIECTransformLogic::CoordinateSystemsList fromFramePath, toFramePath;
+  if (this->GetPathToRoot(fromFrame, fromFramePath) && this->GetPathFromRoot(toFrame, toFramePath))
+  {
+    std::vector< vtkSlicerIECTransformLogic::CoordinateSystemIdentifier > toFrameVector(toFramePath.size());
+    std::vector< vtkSlicerIECTransformLogic::CoordinateSystemIdentifier > fromFrameVector(fromFramePath.size());
+
+    std::copy(toFramePath.begin(), toFramePath.end(), toFrameVector.begin());
+    std::copy(fromFramePath.begin(), fromFramePath.end(), fromFrameVector.begin());
+
+    outputTransform->Identity();
+    outputTransform->PostMultiply();
+    for (size_t i = 0; i < fromFrameVector.size() - 1; ++i)
+    {
+      vtkSlicerIECTransformLogic::CoordinateSystemIdentifier parent, child;
+      child = fromFrameVector[i];
+      parent = fromFrameVector[i + 1];
+
+      if (child == parent)
+      {
+        continue;
+      }
+
+      vtkTransform* fromTransform = this->GetElementaryTransformBetween(child, parent);
+      if (fromTransform)
+      {
+        outputTransform->Concatenate(fromTransform->GetMatrix());
+      }
+      else
+      {
+        vtkErrorMacro("GetTransformBetween: Transform node is invalid");
+        return false;
+      }
+    }
+
+    for (size_t i = 0; i < toFrameVector.size() - 1; ++i)
+    {
+      vtkSlicerIECTransformLogic::CoordinateSystemIdentifier parent, child;
+      parent = toFrameVector[i];
+      child = toFrameVector[i + 1];
+
+      if (child == parent)
+      {
+        continue;
+      }
+
+      vtkTransform* toTransform = this->GetElementaryTransformBetween(child, parent);
+      if (toTransform)
+      {
+        vtkNew<vtkMatrix4x4> mat;
+        toTransform->GetMatrix(mat);
+        if (!transformForBeam) // Do not invert for beam transformation
+        {
+          mat->Invert();
+        }
+        outputTransform->Concatenate(mat);
+      }
+      else
+      {
+        vtkErrorMacro("GetTransformBetween: Transform node is invalid");
+        return false;
+      }
+    }
+
+    outputTransform->Modified();
+    return true;
+  }
+
+  vtkErrorMacro("GetTransformBetween: Failed to get transform " << this->GetTransformNameBetween(fromFrame, toFrame));
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerIECTransformLogic::GetPathToRoot(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier frame, vtkSlicerIECTransformLogic::CoordinateSystemsList& path)
+{
+  if (frame == vtkSlicerIECTransformLogic::CoordinateSystemIdentifier::FixedReference)
+  {
+    path.push_back(vtkSlicerIECTransformLogic::FixedReference);
+    return true;
+  }
+
+  bool found = false;
+  do
+  {
+    for (auto& pair : this->CoordinateSystemsHierarchy)
+    {
+      vtkSlicerIECTransformLogic::CoordinateSystemIdentifier parent = pair.first;
+
+      auto& children = pair.second;
+      auto iter = std::find(children.begin(), children.end(), frame);
+      if (iter != children.end())
+      {
+        vtkSlicerIECTransformLogic::CoordinateSystemIdentifier id = *iter;
+
+        vtkDebugMacro("GetPathToRoot: Checking affine transformation "
+          << "\"" << this->CoordinateSystemsMap[id] << "\" -> "
+          << "\"" << this->CoordinateSystemsMap[parent] << "\"");
+
+        frame = parent;
+        path.push_back(id);
+        if (frame != vtkSlicerIECTransformLogic::FixedReference)
+        {
+          found = true;
+          break;
+        }
+        else
+        {
+          path.push_back(vtkSlicerIECTransformLogic::FixedReference);
+        }
+      }
+      else
+      {
+        found = false;
+      }
+    }
+  } while (found);
+
+  return (path.size() > 0);
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerIECTransformLogic::GetPathFromRoot(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier frame, vtkSlicerIECTransformLogic::CoordinateSystemsList& path)
+{
+  if (this->GetPathToRoot(frame, path))
+  {
+    std::reverse(path.begin(), path.end());
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
