@@ -272,20 +272,6 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
   }
 }
 
-//-----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkSlicerBeamsModuleLogic::GetTransformNodeBetween(
-  vtkSlicerIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkSlicerIECTransformLogic::CoordinateSystemIdentifier toFrame)
-{
-  if (!this->GetMRMLScene())
-  {
-    vtkErrorMacro("GetTransformNodeBetween: Invalid MRML scene");
-    return nullptr;
-  }
-
-  return vtkMRMLLinearTransformNode::SafeDownCast(
-    this->GetMRMLScene()->GetFirstNodeByName(this->IECLogic->GetTransformNameBetween(fromFrame, toFrame).c_str()));
-}
-
 //---------------------------------------------------------------------------
 void vtkSlicerBeamsModuleLogic::UpdateTransformForBeam(vtkMRMLRTBeamNode* beamNode)
 {
@@ -433,11 +419,10 @@ void vtkSlicerBeamsModuleLogic::UpdateRASRelatedTransforms(vtkSlicerIECTransform
 
   // Update IEC FixedReference to RAS transform based on the isocenter defined in the beam's parent plan.
   // Do the same for the RAS to Patient transform as well.
-  vtkTransform* fixedReferenceToRASTransformBeamComponent = iecLogic->GetElementaryTransformBetween(
-    vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS);
+  vtkNew<vtkTransform> fixedReferenceToRASTransformBeamComponent;
   vtkTransform* rasToPatientReferenceTransform = iecLogic->GetElementaryTransformBetween(
     vtkSlicerIECTransformLogic::RAS, vtkSlicerIECTransformLogic::Patient);
-  if (fixedReferenceToRASTransformBeamComponent == nullptr || rasToPatientReferenceTransform == nullptr)
+  if (rasToPatientReferenceTransform == nullptr)
   {
     vtkErrorMacro("UpdateRASRelatedTransforms: Failed to find RAS related transforms in the IEC logic");
     return;
@@ -447,7 +432,7 @@ void vtkSlicerBeamsModuleLogic::UpdateRASRelatedTransforms(vtkSlicerIECTransform
   fixedReferenceToRASTransformBeamComponent->Identity();
   rasToPatientReferenceTransform->Identity();
 
-  // Apply isocenter translation
+  // Apply isocenter translation if requested for both transforms
   if (planNode)
   {
     if (isocenter)
@@ -473,12 +458,22 @@ void vtkSlicerBeamsModuleLogic::UpdateRASRelatedTransforms(vtkSlicerIECTransform
     }
   }
 
+  // Set up RAS to Patient transform
+  rasToPatientReferenceTransform->RotateX(-90.0);
+  rasToPatientReferenceTransform->RotateZ(180.0);
+  rasToPatientReferenceTransform->Modified();
+
+  //
+  // Set up fixed reference to RAS transform. It keeps the table top stationary so that it is fixed relative to the patient.
+  //
+
   // The "S" direction in RAS is the "A" direction in FixedReference
   fixedReferenceToRASTransformBeamComponent->RotateX(-90.0);
   // The "S" direction to be toward the gantry (head first position) by default
   fixedReferenceToRASTransformBeamComponent->RotateZ(180.0);
   fixedReferenceToRASTransformBeamComponent->Modified();
 
+  // Set up concatenation for final fixed reference to RAS transform
   vtkNew<vtkGeneralTransform> tableTopToTableTopEccentricRotationGeneralTransform;
   iecLogic->GetTransformBetween(
     vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation, tableTopToTableTopEccentricRotationGeneralTransform, true);
@@ -499,21 +494,14 @@ void vtkSlicerBeamsModuleLogic::UpdateRASRelatedTransforms(vtkSlicerIECTransform
     return;
   }
 
-  vtkNew<vtkTransform> fixedReferenceToRASTransform;
-  fixedReferenceToRASTransform->Concatenate(fixedReferenceToRASTransformBeamComponent);
+  vtkNew<vtkTransform> fixedReferenceToRASTransformNew;
+  fixedReferenceToRASTransformNew->Concatenate(fixedReferenceToRASTransformBeamComponent);
   tableTopToTableTopEccentricRotationLinearTransform->Inverse();
-  fixedReferenceToRASTransform->Concatenate(tableTopToTableTopEccentricRotationLinearTransform);
-  patientSupportRotationToFixedReferenceLinearTransform->Inverse();
-  fixedReferenceToRASTransform->Concatenate(patientSupportRotationToFixedReferenceLinearTransform);
+  fixedReferenceToRASTransformNew->Concatenate(tableTopToTableTopEccentricRotationLinearTransform);
+  fixedReferenceToRASTransformNew->Concatenate(patientSupportRotationToFixedReferenceLinearTransform);
 
-  vtkMRMLLinearTransformNode* fixedReferenceToRASTransformNode = this->GetTransformNodeBetween(vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS);
-  if (fixedReferenceToRASTransformNode != nullptr)
-  {
-    fixedReferenceToRASTransformNode->SetAndObserveTransformToParent(fixedReferenceToRASTransform);
-  }
-
-  // Set up RAS to Patient transform as well
-  rasToPatientReferenceTransform->RotateX(-90.0);
-  rasToPatientReferenceTransform->RotateZ(180.0);
-  rasToPatientReferenceTransform->Modified();
+  // Update fixed reference to RAS transform in IEC logic
+  vtkTransform* fixedReferenceToRASTransform = iecLogic->GetElementaryTransformBetween(
+    vtkSlicerIECTransformLogic::FixedReference, vtkSlicerIECTransformLogic::RAS);
+  fixedReferenceToRASTransform->DeepCopy(fixedReferenceToRASTransformNew);
 }

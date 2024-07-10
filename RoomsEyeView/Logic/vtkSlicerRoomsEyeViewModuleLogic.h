@@ -153,15 +153,13 @@ public:
   vtkGetObjectMacro(CollimatorTableTopCollisionDetection, vtkCollisionDetectionFilter);
 
 public:
-  ///// Get transform from one coordinate frame to another
-  ///// @param fromFrame - start transformation from frame
-  ///// @param toFrame - proceed transformation to frame
-  ///// @param outputTransform - General (linear) transform matrix fromFrame -> toFrame. Matrix is correct if return flag is true.  
-  ///// @param transformForBeam - calculate dynamic transformation for beam model or other models
-  ///// (e.g. transformation from Patient RAS frame to Collimation frame: RAS -> Patient -> TableTop -> Eccentric -> Patient Support -> Fixed reference -> Gantry -> Collimator)  //TODO: Deprecated
-  ///// \return Success flag (false on any error)
-  //bool GetTransformNodeBetween(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkSlicerIECTransformLogic::CoordinateSystemIdentifier toFrame,
-  //  vtkGeneralTransform* outputTransform, bool transformForBeam = true);
+  /// Get transform node between two coordinate systems is exists
+  /// \param fromFrame - start transformation from frame
+  /// \param toFrame - proceed transformation to frame
+  /// \return Transform node if there is a direct transform between the specified coordinate frames, nullptr otherwise
+  ///   Note: If IEC does not specify a transform between the given coordinate frames, then there will be no node with the returned name.
+  vtkMRMLLinearTransformNode* GetTransformNodeBetween(
+    vtkSlicerIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkSlicerIECTransformLogic::CoordinateSystemIdentifier toFrame);
 
 protected:
   /// Get patient body closed surface poly data from segmentation node and segment selection in the parameter node
