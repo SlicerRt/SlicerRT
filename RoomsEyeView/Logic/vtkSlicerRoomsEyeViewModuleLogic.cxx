@@ -580,7 +580,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
 
 
   // Make sure the fixed reference to RAS is correct
-  beamsLogic->UpdateRASRelatedTransforms();
+  beamsLogic->UpdateRASRelatedTransforms(this->IECLogic);
 }
 
 //----------------------------------------------------------------------------

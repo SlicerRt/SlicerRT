@@ -41,8 +41,7 @@
 class vtkSlicerMLCPositionLogic;
 
 /// \ingroup SlicerRt_QtModules_Beams
-class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkSlicerBeamsModuleLogic :
-  public vtkSlicerModuleLogic
+class VTK_SLICER_BEAMS_LOGIC_EXPORT vtkSlicerBeamsModuleLogic : public vtkSlicerModuleLogic
 {
 public:
   static vtkSlicerBeamsModuleLogic *New();
@@ -80,9 +79,10 @@ public:
 
 public:
   /// Update FixedReference to RAS and RAS to Patient transforms based on isocenter and patient support transforms.
+  /// \param iecLogic: IEC logic to use for the update. Useful if the Room's Eye View module wants to use this function with its own configuration.
   /// \param planNode: Plan node to get the isocenter position from
   /// \param isocenter: Option to set any isocenter for dynamic beams
-  void UpdateRASRelatedTransforms(vtkMRMLRTPlanNode* planNode=nullptr, double* isocenter=nullptr);
+  void UpdateRASRelatedTransforms(vtkSlicerIECTransformLogic* iecLogic=nullptr, vtkMRMLRTPlanNode* planNode=nullptr, double* isocenter=nullptr);
 
 public:
   vtkGetObjectMacro(MLCPositionLogic, vtkSlicerMLCPositionLogic);
