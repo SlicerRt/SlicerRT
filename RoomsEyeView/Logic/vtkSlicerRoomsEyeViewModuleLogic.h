@@ -44,8 +44,6 @@ class vtkVector3d;
 
 class vtkMRMLRoomsEyeViewNode;
 class vtkMRMLModelNode;
-class vtkSlicerIECTransformLogic;
-class vtkSlicerBeamsModuleLogic;
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
 class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic : public vtkSlicerModuleLogic
@@ -146,6 +144,9 @@ public:
 
   vtkGetObjectMacro(IECLogic, vtkSlicerIECTransformLogic);
 
+  /// Possibility to set Beams logic externally. This allows automated tests to run, when we do not have the whole application
+  vtkSetObjectMacro(BeamsLogic, vtkSlicerBeamsModuleLogic);
+
   vtkGetObjectMacro(GantryPatientCollisionDetection, vtkCollisionDetectionFilter);
   vtkGetObjectMacro(GantryTableTopCollisionDetection, vtkCollisionDetectionFilter);
   vtkGetObjectMacro(GantryPatientSupportCollisionDetection, vtkCollisionDetectionFilter);
@@ -165,8 +166,12 @@ protected:
   /// Get patient body closed surface poly data from segmentation node and segment selection in the parameter node
   bool GetPatientBodyPolyData(vtkMRMLRoomsEyeViewNode* parameterNode, vtkPolyData* patientBodyPolyData);
 
+  /// Get Beams logic from the application if possible, otherwise return the externally set Beams logic (e.g. when running test)
+  vtkSlicerBeamsModuleLogic* GetBeamsLogic();
+
 protected:
   vtkSlicerIECTransformLogic* IECLogic;
+  vtkSlicerBeamsModuleLogic* BeamsLogic{nullptr};
 
   vtkCollisionDetectionFilter* GantryPatientCollisionDetection;
   vtkCollisionDetectionFilter* GantryTableTopCollisionDetection;

@@ -432,6 +432,24 @@ vtkMRMLLinearTransformNode* vtkSlicerRoomsEyeViewModuleLogic::GetTransformNodeBe
 }
 
 //---------------------------------------------------------------------------
+vtkSlicerBeamsModuleLogic* vtkSlicerRoomsEyeViewModuleLogic::GetBeamsLogic()
+{
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (beamsLogic)
+  {
+    return beamsLogic;
+  }
+
+  if (this->BeamsLogic != nullptr)
+  {
+    return this->BeamsLogic;
+  }
+
+  vtkErrorMacro("GetBeamsLogic: Beams logic cannot be accessed from the application and is not set externally either");
+  return nullptr;
+}
+
+//---------------------------------------------------------------------------
 void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
 {
   vtkMRMLScene* scene = this->GetMRMLScene();
@@ -440,7 +458,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::BuildRoomsEyeViewTransformHierarchy()
     vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Invalid MRML scene");
     return;
   }
-  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  vtkSlicerBeamsModuleLogic* beamsLogic = this->GetBeamsLogic();
   if (!beamsLogic)
   {
     vtkErrorMacro("BuildRoomsEyeViewTransformHierarchy: Beams logic cannot be accessed");
@@ -682,6 +700,12 @@ vtkSlicerRoomsEyeViewModuleLogic::SetupTreatmentMachineModels(vtkMRMLRoomsEyeVie
     vtkErrorMacro("SetupTreatmentMachineModels: Invalid scene");
     return std::vector<TreatmentMachinePartType>();
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = this->GetBeamsLogic();
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("SetupTreatmentMachineModels: Beams logic cannot be accessed");
+    return std::vector<TreatmentMachinePartType>();
+  }
 
   std::vector<TreatmentMachinePartType> loadedParts;
   std::map<TreatmentMachinePartType, unsigned int> loadedPartsNumTriangles;
@@ -827,6 +851,12 @@ vtkMRMLModelNode* vtkSlicerRoomsEyeViewModuleLogic::UpdateTreatmentOrientationMa
   if (!scene)
   {
     vtkErrorMacro("UpdateTreatmentOrientationMarker: Invalid scene");
+    return nullptr;
+  }
+  vtkSlicerBeamsModuleLogic* beamsLogic = this->GetBeamsLogic();
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdateTreatmentOrientationMarker: Beams logic cannot be accessed");
     return nullptr;
   }
 
@@ -1025,10 +1055,16 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateGantryToFixedReferenceTransform(vtk
     vtkErrorMacro("UpdateGantryToFixedReferenceTransform: Invalid parameter set node");
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = this->GetBeamsLogic();
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdateGantryToFixedReferenceTransform: Beams logic cannot be accessed");
+    return;
+  }
 
   this->IECLogic->UpdateGantryToFixedReferenceTransform(parameterNode->GetGantryRotationAngle());
   vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = this->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Gantry, vtkSlicerIECTransformLogic::FixedReference);
-  gantryToFixedReferenceTransformNode->Modified();
+  gantryToFixedReferenceTransformNode->Modified(); // Modified call is needed because it does not update display in app
 }
 
 //----------------------------------------------------------------------------
@@ -1039,10 +1075,16 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRML
     vtkErrorMacro("UpdateCollimatorToGantryTransform: Invalid parameter set node");
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = this->GetBeamsLogic();
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdateCollimatorToGantryTransform: Beams logic cannot be accessed");
+    return;
+  }
 
   this->IECLogic->UpdateCollimatorToGantryTransform(parameterNode->GetCollimatorRotationAngle());
   vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = this->GetTransformNodeBetween(vtkSlicerIECTransformLogic::Collimator, vtkSlicerIECTransformLogic::Gantry);
-  collimatorToGantryTransformNode->Modified();
+  collimatorToGantryTransformNode->Modified(); // Modified call is needed because it does not update display in app
 }
 
 //-----------------------------------------------------------------------------
@@ -1051,6 +1093,12 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateLeftImagingPanelToGantryTransform(v
   if (!parameterNode)
   {
     vtkErrorMacro("UpdateLeftImagingPanelToGantryTransform: Invalid parameter set node");
+    return;
+  }
+  vtkSlicerBeamsModuleLogic* beamsLogic = this->GetBeamsLogic();
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdateLeftImagingPanelToGantryTransform: Beams logic cannot be accessed");
     return;
   }
 
@@ -1125,6 +1173,12 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateRightImagingPanelToGantryTransform(
   if (!parameterNode)
   {
     vtkErrorMacro("UpdateRightImagingPanelToGantryTransform: Invalid parameter set node");
+    return;
+  }
+  vtkSlicerBeamsModuleLogic* beamsLogic = this->GetBeamsLogic();
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdateRightImagingPanelToGantryTransform: Beams logic cannot be accessed");
     return;
   }
 
@@ -1212,10 +1266,16 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportRotationToFixedRefere
     vtkErrorMacro("UpdatePatientSupportRotationToFixedReferenceTransform: Invalid parameter set node");
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = this->GetBeamsLogic();
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdatePatientSupportRotationToFixedReferenceTransform: Beams logic cannot be accessed");
+    return;
+  }
 
   this->IECLogic->UpdatePatientSupportRotationToFixedReferenceTransform(parameterNode->GetPatientSupportRotationAngle());
   vtkMRMLLinearTransformNode* patientSupportRotationToFixedReferenceTransformNode = this->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupportRotation, vtkSlicerIECTransformLogic::FixedReference);
-  patientSupportRotationToFixedReferenceTransformNode->Modified();
+  patientSupportRotationToFixedReferenceTransformNode->Modified(); // Modified call is needed because it does not update display in app
 }
 
 //-----------------------------------------------------------------------------
@@ -1224,6 +1284,12 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToPatientSupportRotat
   if (!parameterNode)
   {
     vtkErrorMacro("UpdatePatientSupportToPatientSupportRotationTransform: Invalid parameter set node");
+    return;
+  }
+  vtkSlicerBeamsModuleLogic* beamsLogic = this->GetBeamsLogic();
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdatePatientSupportToPatientSupportRotationTransform: Beams logic cannot be accessed");
     return;
   }
 
@@ -1262,7 +1328,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToPatientSupportRotat
   vtkMRMLLinearTransformNode* patientSupportToPatientSupportRotationTransformNode =
     this->GetTransformNodeBetween(vtkSlicerIECTransformLogic::PatientSupport, vtkSlicerIECTransformLogic::PatientSupportRotation);
   patientSupportToPatientSupportRotationTransformNode->SetAndObserveTransformToParent(patientSupportScalingTransform);
-  patientSupportToPatientSupportRotationTransformNode->Modified();
+  patientSupportToPatientSupportRotationTransformNode->Modified(); // Modified call is needed because it does not update display in app
 }
 
 //-----------------------------------------------------------------------------
@@ -1279,6 +1345,12 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateTableTopToTableTopEccentricRotation
     vtkErrorMacro("UpdateTableTopToTableTopEccentricRotationTransform: Invalid parameter set node");
     return;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = this->GetBeamsLogic();
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdateTableTopToTableTopEccentricRotationTransform: Beams logic cannot be accessed");
+    return;
+  }
 
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode =
     this->GetTransformNodeBetween(vtkSlicerIECTransformLogic::TableTop, vtkSlicerIECTransformLogic::TableTopEccentricRotation);
@@ -1293,7 +1365,7 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateTableTopToTableTopEccentricRotation
   tableTopEccentricRotationToPatientSupportMatrix->SetElement(1,3, translationArray[1]);
   tableTopEccentricRotationToPatientSupportMatrix->SetElement(2,3, translationArray[2]);
   tableTopEccentricRotationToPatientSupportTransform->SetMatrix(tableTopEccentricRotationToPatientSupportMatrix);
-  tableTopEccentricRotationToPatientSupportTransform->Modified();
+  tableTopEccentricRotationToPatientSupportTransform->Modified(); // Modified call is needed because it does not update display in app
 }
 
 //-----------------------------------------------------------------------------
@@ -1303,6 +1375,12 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
   {
     vtkErrorMacro("CheckForCollisions: Invalid parameter set node");
     return "Invalid parameters";
+  }
+  vtkSlicerBeamsModuleLogic* beamsLogic = this->GetBeamsLogic();
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("CheckForCollisions: Beams logic cannot be accessed");
+    return "No Beams module";
   }
 
   if (!parameterNode->GetCollisionDetectionEnabled())
