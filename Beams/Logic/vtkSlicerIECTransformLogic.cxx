@@ -240,7 +240,7 @@ std::string vtkSlicerIECTransformLogic::GetTransformNameBetween(
 
 //-----------------------------------------------------------------------------
 bool vtkSlicerIECTransformLogic::GetTransformBetween(vtkSlicerIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkSlicerIECTransformLogic::CoordinateSystemIdentifier toFrame,
-  vtkGeneralTransform* outputTransform, bool transformForBeam/* = true*/)
+  vtkGeneralTransform* outputTransform, bool transformForBeam/*=false*/)
 {
   if (!outputTransform)
   {

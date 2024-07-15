@@ -1677,7 +1677,7 @@ vtkMRMLLinearTransformNode* vtkSlicerDrrImageComputationLogic::UpdateImageTransf
   // Gantry -> FixedReference -> PatientSupport -> TableTopEccentricRotation -> TableTop -> Patient -> RAS
   using IEC = vtkSlicerIECTransformLogic::CoordinateSystemIdentifier;
   vtkNew<vtkGeneralTransform> generalTransform;
-  if (iecLogic->GetTransformBetween(IEC::Gantry, IEC::RAS, generalTransform))
+  if (iecLogic->GetTransformBetween(IEC::Gantry, IEC::RAS, generalTransform, true))
   {
     // Convert general transform to linear
     // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
@@ -1727,7 +1727,7 @@ bool vtkSlicerDrrImageComputationLogic::GetRtImageTransformMatrixFromBeam(vtkMRM
   // Gantry -> FixedReference -> PatientSupport -> TableTopEccentricRotation -> TableTop -> Patient -> RAS
   using IEC = vtkSlicerIECTransformLogic::CoordinateSystemIdentifier;
   vtkNew<vtkGeneralTransform> generalTransform;
-  if (iecLogic->GetTransformBetween(IEC::Gantry, IEC::RAS, generalTransform))
+  if (iecLogic->GetTransformBetween(IEC::Gantry, IEC::RAS, generalTransform, true))
   {
     // Convert general transform to linear
     // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change

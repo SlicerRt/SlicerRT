@@ -76,10 +76,12 @@ public:
   /// \param iecLogic: IEC logic to use for the update. Useful if the Room's Eye View module wants to use this function with its own configuration.
   /// \param planNode: Plan node to get the isocenter position from
   /// \param isocenter: Option to set any isocenter for dynamic beams
-  void UpdateRASRelatedTransforms(vtkSlicerIECTransformLogic* iecLogic=nullptr, vtkMRMLRTPlanNode* planNode=nullptr, double* isocenter=nullptr);
+  /// \param transformForBeam: calculate dynamic transformation for beam model or other models. False by default.
+  void UpdateRASRelatedTransforms(vtkSlicerIECTransformLogic* iecLogic=nullptr, vtkMRMLRTPlanNode* planNode=nullptr, double* isocenter=nullptr, bool transformForBeam=false);
 
 public:
   vtkGetObjectMacro(MLCPositionLogic, vtkSlicerMLCPositionLogic);
+  vtkGetObjectMacro(IECLogic, vtkSlicerIECTransformLogic);
 
   /// Possibility to use an external IEC logic. This is useful for testing.
   void SetIECLogic(vtkSlicerIECTransformLogic* iecLogic);
