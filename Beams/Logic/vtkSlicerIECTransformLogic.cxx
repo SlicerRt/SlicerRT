@@ -30,6 +30,8 @@
 
 // STD includes
 #include <array>
+#include <algorithm>
+
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerIECTransformLogic);
