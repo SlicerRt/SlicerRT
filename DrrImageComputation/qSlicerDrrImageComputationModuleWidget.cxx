@@ -30,10 +30,14 @@
 #include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLCameraNode.h>
 #include <vtkMRMLTableNode.h>
+#include <vtkMRMLLinearTransformNode.h>
 
 // SlicerRT MRML Beams includes
 #include <vtkMRMLRTBeamNode.h>
 #include <vtkMRMLRTIonBeamNode.h>
+
+// SlicerRT includes
+#include <vtkSlicerRtCommon.h>
 
 // SlicerRT MRML DrrImageComputation includes
 #include "vtkMRMLDrrImageComputationNode.h"
@@ -42,6 +46,7 @@
 #include "vtkSlicerDrrImageComputationLogic.h"
 
 // VTK includes
+#include <vtkTransform.h>
 #include <vtkMatrix4x4.h>
 #include <vtkCamera.h>
 #include <vtkTable.h>
@@ -58,6 +63,33 @@ constexpr int PROJECTED_POINT_COLUMN_COLUMN = 6;
 constexpr int PROJECTED_POINT_ROW_COLUMN = 7;
 constexpr int PROJECTED_POINT_STATUS_COLUMN = 8;
 constexpr int PROJECTED_POINT_COLUMNS = 9;
+
+bool IsIdentityMatrix(vtkMatrix4x4* mat)
+{
+  if (!mat)
+  {
+    return false;
+  }
+//  constexpr double local_epsilon = std::numeric_limits< double >::epsilon();
+  constexpr double local_epsilon = EPSILON;
+  bool result = bool(fabs(mat->GetElement(0, 0) - 1.) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(1, 1) - 1.) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(2, 2) - 1.) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(3, 3) - 1.) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(1, 0)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(2, 0)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(2, 1)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(3, 0)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(3, 1)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(3, 2)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(0, 1)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(0, 2)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(1, 2)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(0, 3)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(1, 3)) <= local_epsilon);
+  result &= bool(fabs(mat->GetElement(2, 3)) <= local_epsilon);
+  return result;
+}
 
 };
 
@@ -217,6 +249,7 @@ void qSlicerDrrImageComputationModuleWidget::setup()
   connect( d->PushButton_UpdateBeamFromCamera, SIGNAL(clicked()), this, SLOT(onUpdateBeamFromCameraClicked()));
   connect( d->PushButton_ProjectControlPoints, SIGNAL(clicked()), this, SLOT(onProjectMarkupsControlPointsClicked()));
   connect( d->PushButton_ClearProjectedTableWidget, SIGNAL(clicked()), this, SLOT(onClearProjectedTableClicked()));
+  connect( d->PushButton_ApplyToVolumeTransform, SIGNAL(clicked()), this, SLOT(onApplyVolumeToLpsTransformToVolumeClicked()));
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT(onLogicModified()));
@@ -373,6 +406,19 @@ void qSlicerDrrImageComputationModuleWidget::updateWidgetFromMRML()
   res = d->logic()->GetPlastimatchProjectionMatrix(parameterNode, mat);
   d->PlastimatchParametersWidget->setEnabled(res);
   d->PlastimatchParametersWidget->setProjectionMatrix(mat);
+  // Volume IJKtoRAS to LPS direction matrix transform
+  mat->Identity();
+  d->logic()->GetVolumeToLPSTransformMatrix(parameterNode, mat);
+
+  for (int i = 0; i < 4; i++)
+  {
+    for (int j = 0; j < 4; j++)
+    {
+      double v = mat->GetElement( i, j );
+      d->MatrixWidget_VolumeDirectionToLpsTransformMatrix->setValue( i, j, v );
+    }
+  }
+  d->PushButton_ApplyToVolumeTransform->setEnabled(!IsIdentityMatrix(mat));
 }
 
 //-----------------------------------------------------------------------------
@@ -454,6 +500,21 @@ void qSlicerDrrImageComputationModuleWidget::onCtVolumeNodeChanged(vtkMRMLNode* 
     qCritical() << Q_FUNC_INFO << ": Invalid reference CT volume node";
     return;
   }
+
+  // Volume IJKtoRAS to LPS direction matrix transform
+  vtkNew<vtkMatrix4x4> mat;
+  mat->Identity();
+  d->logic()->GetVolumeToLPSTransformMatrix(volumeNode, mat);
+
+  for (int i = 0; i < 4; i++)
+  {
+    for (int j = 0; j < 4; j++)
+    {
+      double v = mat->GetElement( i, j );
+      d->MatrixWidget_VolumeDirectionToLpsTransformMatrix->setValue( i, j, v );
+    }
+  }
+  d->PushButton_ApplyToVolumeTransform->setEnabled(!IsIdentityMatrix(mat));
 }
 
 //-----------------------------------------------------------------------------
@@ -696,6 +757,41 @@ void qSlicerDrrImageComputationModuleWidget::onUseImageWindowToggled(bool value)
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerDrrImageComputationModuleWidget::onApplyVolumeToLpsTransformToVolumeClicked()
+{
+  Q_D(qSlicerDrrImageComputationModuleWidget);
+  vtkMRMLDrrImageComputationNode* parameterNode = vtkMRMLDrrImageComputationNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  vtkMRMLScalarVolumeNode* ctVolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(d->MRMLNodeComboBox_CtVolume->currentNode());
+
+  if (!parameterNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid parameter node";
+    return;
+  }
+
+  if (!ctVolumeNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid CT volume node";
+    return;
+  }
+  vtkMRMLLinearTransformNode* transformNode = d->logic()->UpdateVolumeToLPSTransform(ctVolumeNode);
+  if (transformNode)
+  {
+    vtkNew< vtkMatrix4x4 > mat;
+    mat->Identity();
+    vtkLinearTransform* linearTransform = vtkLinearTransform::SafeDownCast(transformNode->GetTransformToParent());
+    if (linearTransform)
+    {
+      linearTransform->GetMatrix(mat);
+    }
+    if (!mat->IsIdentity())
+    {
+      ctVolumeNode->SetAndObserveTransformNodeID(transformNode->GetID());
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerDrrImageComputationModuleWidget::onComputeDrrClicked()
 {
   Q_D(qSlicerDrrImageComputationModuleWidget);
@@ -721,7 +817,13 @@ void qSlicerDrrImageComputationModuleWidget::onComputeDrrClicked()
   }
   
   QApplication::setOverrideCursor(Qt::WaitCursor);
-
+/*
+  vtkNew<vtkTransform> transform;
+  if (d->logic()->GetVolumeToLPSTransform(parameterNode, transform, ctVolumeNode))
+  {
+    qDebug() << Q_FUNC_INFO << "Harden the transform";
+  }
+*/
   vtkMRMLScalarVolumeNode* drrImageNode = d->logic()->ComputePlastimatchDRR( parameterNode, ctVolumeNode);
   if (drrImageNode)
   {
@@ -729,6 +831,7 @@ void qSlicerDrrImageComputationModuleWidget::onComputeDrrClicked()
     QApplication::restoreOverrideCursor();
     return;
   }
+
   QApplication::restoreOverrideCursor();
 }
 
