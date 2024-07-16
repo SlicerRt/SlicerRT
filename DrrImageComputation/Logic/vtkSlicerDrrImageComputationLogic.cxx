@@ -1664,20 +1664,15 @@ vtkMRMLLinearTransformNode* vtkSlicerDrrImageComputationLogic::UpdateImageTransf
       scene->GetFirstNodeByName(RTIMAGE_TRANSFORM_NODE_NAME));
   }
 
-  vtkNew<vtkSlicerIECTransformLogic> iecLogic;
-
   // Update transforms in IEC logic from beam node parameters
   beamsLogic->UpdateIECTransformsFromBeam(beamNode);
-
-  //TODO: (a BUG?) For RT Image correct orientation PatientSupport -> Fixed Reference MUST have a negative sign
-  iecLogic->UpdatePatientSupportRotationToFixedReferenceTransform(-1. * beamNode->GetCouchAngle());
 
   // Dynamic transform from Gantry to RAS
   // Transformation path:
   // Gantry -> FixedReference -> PatientSupport -> TableTopEccentricRotation -> TableTop -> Patient -> RAS
   using IEC = vtkSlicerIECTransformLogic::CoordinateSystemIdentifier;
   vtkNew<vtkGeneralTransform> generalTransform;
-  if (iecLogic->GetTransformBetween(IEC::Gantry, IEC::RAS, generalTransform, true))
+  if (beamsLogic->GetIECLogic()->GetTransformBetween(IEC::Gantry, IEC::RAS, generalTransform, true))
   {
     // Convert general transform to linear
     // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
