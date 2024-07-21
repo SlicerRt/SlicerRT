@@ -74,6 +74,8 @@ protected:
   virtual QString optimizePlanUsingOptimizer(
     vtkMRMLRTPlanNode* planNode,
     vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode );
+  
+  virtual std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getAvailableObjectives();
 
 protected:
   QScopedPointer<qSlicerScriptedPlanOptimizerPrivate> d_ptr;

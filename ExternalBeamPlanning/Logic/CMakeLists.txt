@@ -19,9 +19,14 @@ SET (${KIT}_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
 set(${KIT}_TARGET_LIBRARIES
   vtkPlmCommon
   vtkSlicerRtCommon
+  vtkSlicerExternalBeamPlanningModuleMRML
   vtkSlicerMarkupsModuleMRML
   vtkSlicerBeamsModuleMRML
   vtkSlicerBeamsModuleLogic
+  vtkSlicer${MODULE_NAME}ModuleMRML
+  MRMLCore
+  ${ITK_LIBRARIES}
+  ${VTK_LIBRARIES}
   )
 
 #-----------------------------------------------------------------------------

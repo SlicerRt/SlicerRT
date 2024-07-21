@@ -9,6 +9,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${Slicer_Base_INCLUDE_DIRS}
   ${MRMLCore_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerExternalBeamPlanningModuleLogic_INCLUDE_DIRS}
   )
 
 # --------------------------------------------------------------------------
@@ -29,6 +30,7 @@ SET (${KIT}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerExternalBeamPlanningModuleLogic_INCLUDE_DIRS}
   ${Slicer_Base_INCLUDE_DIRS}
   ${MRMLCore_INCLUDE_DIRS}
   CACHE INTERNAL "" FORCE)
@@ -41,6 +43,8 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSegmentationCore
   vtkSlicerSegmentationsModuleMRML
   vtkSlicerSegmentationsModuleLogic
+  vtkSlicerExternalBeamPlanningModuleMRML
+  vtkSlicerExternalBeamPlanningModuleLogic
   MRMLCore
   vtkSlicerMarkupsModuleMRML
   )
