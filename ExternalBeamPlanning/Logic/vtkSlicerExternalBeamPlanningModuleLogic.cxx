@@ -30,6 +30,7 @@
 //#include <vtkMRMLMarkupsFiducialNode.h> //TODO: Includes commented out due to obsolete methods, see below
 //#include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLObjectiveNode.h>
 //#include <vtkMRMLScalarVolumeDisplayNode.h>
 //#include <vtkMRMLDoubleArrayNode.h>
 //#include <vtkMRMLSliceLogic.h>

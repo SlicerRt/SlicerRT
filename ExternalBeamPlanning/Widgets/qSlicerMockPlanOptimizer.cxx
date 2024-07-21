@@ -15,6 +15,7 @@
 
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"
+#include <vtkMRMLObjectiveNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -156,4 +157,15 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
     resultOptimizationVolumeNode->SetName(randomDoseNodeName.c_str());
 
   return QString();
+}
+
+
+//-----------------------------------------------------------------------------
+std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> qSlicerMockPlanOptimizer::getAvailableObjectives()
+{
+    std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives;
+    //objectives.push_back("AnotherObjective1");
+    //objectives.push_back("AnotherObjective2");
+    //// Add more specific objectives as needed
+    return objectives;
 }

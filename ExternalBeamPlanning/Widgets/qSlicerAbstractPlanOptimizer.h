@@ -12,7 +12,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Niklas Wahl, German Cancer Research Center (DKFZ)
+  This file was originally developed by ...
 
 ==============================================================================*/
 
@@ -25,12 +25,16 @@
 #include <QObject>
 #include <QStringList>
 
+// vtk includes
+#include <vtkSmartPointer.h>
+
 class qSlicerAbstractPlanOptimizerPrivate;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLNode;
 class qMRMLBeamParametersTabWidget;
+class vtkMRMLObjectiveNode;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 /// \brief Abstract Optimization calculation algorithm that can be used in the
@@ -68,6 +72,8 @@ public:
   /// \return Error message. Empty string on success
   QString optimizePlan(vtkMRMLRTPlanNode* planNode);
 
+
+
 // API functions to implement in the subclass
 protected:
   /// Calculate Optimization for a single beam. Called by \sa CalculateOptimization that performs actions generic
@@ -80,9 +86,13 @@ protected:
     vtkMRMLRTPlanNode* planNode,
     vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode ) = 0;
 
+  virtual std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getAvailableObjectives() = 0;
+
 protected:
   /// Name of the engine. Must be set in Optimization engine constructor
   QString m_Name;
+
+
 
 protected:
   QScopedPointer<qSlicerAbstractPlanOptimizerPrivate> d_ptr;
@@ -101,6 +111,7 @@ public:
     /// \param beamNode Beam node to add dose as result to
     /// \param replace Remove referenced dose volume if already exists. True by default
     Q_INVOKABLE void addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTPlanNode* planNode, bool replace = true);
+    void updatePlanNodeObjectives(vtkMRMLRTPlanNode* planNode);
 };
 
 #endif
