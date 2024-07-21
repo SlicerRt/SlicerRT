@@ -43,6 +43,7 @@
 
 // ExternalBeamPlanning
 #include "vtkSlicerExternalBeamPlanningModuleLogic.h"
+#include "vtkMRMLObjectiveNode.h"
 
 // DoseEngines includes
 #include "qSlicerDoseEnginePluginHandler.h"
@@ -70,6 +71,7 @@
 #include <QTime>
 #include <QItemSelection>
 #include <QMessageBox>
+#include <QDir>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
@@ -175,7 +177,6 @@ void qSlicerExternalBeamPlanningModuleWidget::enter()
   this->onEnter();
   this->Superclass::enter();
 }
-
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::onEnter()
 {
@@ -272,6 +273,12 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   // Plan Optimization
   connect( d->comboBox_PlanOptimizer, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(PlanOptimizerChanged(const QString&)));
   connect( d->pushButton_OptimizePlan, SIGNAL(clicked()), this, SLOT(optimizePlanClicked()));
+
+  // Optimization Segment Assignement
+  connect(d->pushButton_AssignValueToSegment, SIGNAL(clicked()), this, SLOT(assignValueToSegmentClicked()) );
+  connect(d->pushButton_GetAvailableObjectives, SIGNAL(clicked()), this, SLOT(getAvailableObjectivesClicked()) );
+  connect(d->pushButton_AddObjective, SIGNAL(clicked()), this, SLOT(addObjectiveClicked()));
+  connect(d->pushButton_RemoveObjective, SIGNAL(clicked()), this, SLOT(removeObjectiveClicked()));
 
   // Connect to progress event
   connect( d->DoseEngineLogic, SIGNAL(progressUpdated(double)), this, SLOT(onProgressUpdated(double)) );
@@ -1348,7 +1355,13 @@ void qSlicerExternalBeamPlanningModuleWidget::PlanOptimizerChanged(const QString
   planNode->DisableModifiedEventOn();
   planNode->SetPlanOptimizerName(selectedEngine->name().toUtf8().constData());
   planNode->DisableModifiedEventOff();
-  
+  planNode->SetPlanOptimizerAvailableObjectives(selectedEngine->getAvailableObjectives());
+
+  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives = planNode->GetPlanOptimizerAvailableObjectives();
+
+  for (vtkMRMLObjectiveNode* objective : objectives) {
+      std::cout << objective->GetName() << std::endl;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1432,4 +1445,86 @@ bool qSlicerExternalBeamPlanningModuleWidget::setEditedNode(vtkMRMLNode* node, Q
     return true;
   }
   return false;
+}
+
+
+
+
+//------------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::assignValueToSegmentClicked()
+{
+    Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+    if (!this->mrmlScene())
+    {
+        qCritical() << Q_FUNC_INFO << "Invalid scene";
+        return;
+    }
+
+    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+    if (!planNode)
+    {
+        qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
+        return;
+    }
+
+    vtkMRMLSegmentationNode* segmentationNode = planNode->GetSegmentationNode();
+
+    // Get table view
+    qMRMLSegmentsTableView* tableView = d->SegmentsTableView;
+
+    tableView->setSegmentationNode(segmentationNode);
+}
+
+//------------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::getAvailableObjectivesClicked()
+{
+  QString currentDirectory = QDir::currentPath();
+  QString pythonFilePath = currentDirectory + "/getAvailableObjectives.py";
+  
+  // Run the Python file using subprocess
+  QProcess process;
+  process.start("python", QStringList() << pythonFilePath);
+  process.waitForFinished(-1);
+  
+  // Get the output of the Python file
+  QString output = process.readAllStandardOutput();
+  
+  // Do something with the output
+  qDebug() << "Python file output:" << output;
+}
+
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::addObjectiveClicked()
+{
+    Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+    d->ObjectivesTableWidget->onObjectiveAdded();
+
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::removeObjectiveClicked()
+{
+    Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+    d->ObjectivesTableWidget->onObjectiveRemoved();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::saveAvailableObjectives()
+{
+    Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+    // get planNode
+    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+
+    // get selected optimizer
+    qSlicerAbstractPlanOptimizer* selectedEngine =
+        qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
+
+    // set objectives
+    //vtkMRMLObjectiveNode* objectiveNode = 
+    
 }

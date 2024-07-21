@@ -11,6 +11,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSlicerDoseAccumulationModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
   ${qSlicerBeamsModuleWidgets_INCLUDE_DIRS}
+
   )
 
 set(${KIT}_SRCS
@@ -34,6 +35,8 @@ set(${KIT}_SRCS
   qSlicerMockPlanOptimizer.h
   qSlicerScriptedPlanOptimizer.cxx
   qSlicerScriptedPlanOptimizer.h
+  qMRMLObjectivesTableWidget.cxx
+  qMRMLObjectivesTableWidget.h
   )
 
 set(${KIT}_UI_SRCS
@@ -58,7 +61,12 @@ set(${KIT}_MOC_SRCS
   qSlicerPlanOptimizerLogic.h
   qSlicerMockPlanOptimizer.h
   qSlicerScriptedPlanOptimizer.h
+  qMRMLObjectivesTableWidget.h
 )
+
+set(${KIT}_UI_SRCS
+  UI/qMRMLObjectivesTableWidget.ui
+  )
 
 set(${KIT}_RESOURCES
   # Resources/${KIT}.qrc
@@ -101,4 +109,5 @@ SlicerMacroBuildModuleWidgets(
 #-----------------------------------------------------------------------------
 if(Slicer_USE_PYTHONQT)
   add_subdirectory(Python)
+  #add_subdirectory(Plugins)
 endif()
