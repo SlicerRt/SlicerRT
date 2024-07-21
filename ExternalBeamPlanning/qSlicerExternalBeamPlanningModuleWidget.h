@@ -102,6 +102,13 @@ protected slots:
   void addBeamClicked();
   void removeBeamClicked();
 
+  // Optimization Segment Table
+  void assignValueToSegmentClicked();
+  void getAvailableObjectivesClicked();
+  void addObjectiveClicked();
+  void removeObjectiveClicked();
+  void saveAvailableObjectives();
+
   // Update functions
   void onLogicModified();
   void onProgressUpdated(double progress);

@@ -261,3 +261,17 @@ void qSlicerAbstractPlanOptimizer::addResultDose(vtkMRMLScalarVolumeNode* result
         qWarning() << Q_FUNC_INFO << ": Display node is not available for dose volume node. The default color table will be used.";
     }
 }
+
+
+//----------------------------------------------------------------------------
+void qSlicerAbstractPlanOptimizer::updatePlanNodeObjectives(vtkMRMLRTPlanNode* planNode)
+{
+  if (!planNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid plan node";
+    return;
+  }
+
+  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives = this->getAvailableObjectives();
+  planNode->SetPlanOptimizerAvailableObjectives(objectives);
+}
