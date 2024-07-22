@@ -32,12 +32,15 @@
 // SegmentationCore includes
 #include "vtkOrientedImageData.h"
 
+#include <vtkSmartPointer.h>
+
 class vtkCollection;
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
 class vtkMRMLTableNode;
+//class vtkMRMLObjectiveNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
 /// \brief Base class of folder display node, so that it behaves as folder in Subject Hierarchy
@@ -200,10 +203,10 @@ public:
   /// Set optimization engine name
   void SetPlanOptimizerName(const char* optimizerName);
 
-  /// Get available objectives
-  vtkGetMacro(PlanOptimizerAvailableObjectives, std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>>);
-  /// Set available objectives from selected optimizer
-  void SetPlanOptimizerAvailableObjectives(std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives);
+  // Get available objectives
+  //vtkGetMacro(PlanOptimizerAvailableObjectives, std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>>);
+  // Set available objectives from selected optimizer
+  //void SetPlanOptimizerAvailableObjectives(std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives);
 
   /// Get prescription dose
   vtkGetMacro(RxDose, double);

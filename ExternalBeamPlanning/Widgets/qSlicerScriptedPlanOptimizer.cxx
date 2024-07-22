@@ -217,23 +217,26 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
 
 //-----------------------------------------------------------------------------
 std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> qSlicerScriptedPlanOptimizer::getAvailableObjectives()
- {
-    std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives;
+{
+   std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives;
 
-    // Example of fetching or creating vtkMRMLObjectiveNode instances
-    vtkSmartPointer<vtkMRMLObjectiveNode> objective1 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
-    vtkSmartPointer<vtkMRMLObjectiveNode> objective2 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
+   //vtkSmartPointer<vtkMRMLObjectiveNode> objective1 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
+   //vtkSmartPointer<vtkMRMLObjectiveNode> objective2 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
 
-    objective1->SetName("Objective 1");
-    objective2->SetName("Objective 2");
+   //objective1->SetName("Objective 1");
+   //objective2->SetName("Objective 2");
 
-    if (objective1) {
-        objectives.push_back(objective1);
-    }
-    if (objective2) {
-        objectives.push_back(objective2);
-    }
+   //if (objective1) {
+   //    objectives.push_back(objective1);
+   //}
+   //if (objective2) {
+   //    objectives.push_back(objective2);
+   //}
 
-    // Add more specific objectives as needed
-    return objectives;
- }
+   return objectives;
+}
+//
+//void qSlicerScriptedPlanOptimizer::setAvailableObjectives(std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives)
+//{
+//    
+//}

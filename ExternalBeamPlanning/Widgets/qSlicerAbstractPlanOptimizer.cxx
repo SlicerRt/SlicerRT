@@ -164,6 +164,11 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
   return errorMessage;
 }
 
+std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> qSlicerAbstractPlanOptimizer::getAvailableObjectives()
+{
+    return std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>>();
+}
+
 
 void qSlicerAbstractPlanOptimizer::addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTPlanNode* planNode, bool replace/*=true*/)
 {    
@@ -262,16 +267,3 @@ void qSlicerAbstractPlanOptimizer::addResultDose(vtkMRMLScalarVolumeNode* result
     }
 }
 
-
-//----------------------------------------------------------------------------
-void qSlicerAbstractPlanOptimizer::updatePlanNodeObjectives(vtkMRMLRTPlanNode* planNode)
-{
-  if (!planNode)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid plan node";
-    return;
-  }
-
-  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives = this->getAvailableObjectives();
-  planNode->SetPlanOptimizerAvailableObjectives(objectives);
-}

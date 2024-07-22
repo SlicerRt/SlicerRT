@@ -25,6 +25,10 @@
 
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
+#include <vtkSmartPointer.h>
+
+#include <vtkMRMLObjectiveNode.h>
+
 // Forward Declare PyObject*
 #ifndef PyObject_HEAD
 struct _object;
@@ -63,6 +67,11 @@ public:
   /// \sa name
   void setName(QString name) override;
 
+  /// Get the available objectives for the optimizer
+  virtual std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getAvailableObjectives();
+  /// Set the available objectives for the optimizer
+  //virtual void setAvailableObjectives(std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives);
+
 // Optimization related functions (API functions to call from the subclass)
 protected:
   /// Optimize Treatment Plan Called by \sa optimizePlan that performs actions generic
@@ -74,8 +83,7 @@ protected:
   virtual QString optimizePlanUsingOptimizer(
     vtkMRMLRTPlanNode* planNode,
     vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode );
-  
-  virtual std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getAvailableObjectives();
+
 
 protected:
   QScopedPointer<qSlicerScriptedPlanOptimizerPrivate> d_ptr;
@@ -83,6 +91,8 @@ protected:
 private:
   Q_DECLARE_PRIVATE(qSlicerScriptedPlanOptimizer);
   Q_DISABLE_COPY(qSlicerScriptedPlanOptimizer);
+
+  //std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives;
 };
 
 #endif

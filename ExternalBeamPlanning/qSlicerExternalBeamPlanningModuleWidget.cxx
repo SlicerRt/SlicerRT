@@ -1355,13 +1355,12 @@ void qSlicerExternalBeamPlanningModuleWidget::PlanOptimizerChanged(const QString
   planNode->DisableModifiedEventOn();
   planNode->SetPlanOptimizerName(selectedEngine->name().toUtf8().constData());
   planNode->DisableModifiedEventOff();
-  planNode->SetPlanOptimizerAvailableObjectives(selectedEngine->getAvailableObjectives());
+  
 
-  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives = planNode->GetPlanOptimizerAvailableObjectives();
-
-  for (vtkMRMLObjectiveNode* objective : objectives) {
-      std::cout << objective->GetName() << std::endl;
-  }
+  //std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives = selectedEngine->getAvailableObjectives();
+  //for (vtkMRMLObjectiveNode* objective : objectives) {
+  //    std::cout << objective->GetName() << std::endl;
+  //}
 }
 
 //-----------------------------------------------------------------------------

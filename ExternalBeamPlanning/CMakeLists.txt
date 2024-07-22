@@ -25,6 +25,8 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${CMAKE_CURRENT_BINARY_DIR}/MRML
   ${CMAKE_CURRENT_SOURCE_DIR}/Logic
   ${CMAKE_CURRENT_BINARY_DIR}/Logic
+  ${CMAKE_CURRENT_SOURCE_DIR}/Widgets
+  ${CMAKE_CURRENT_BINARY_DIR}/Widgets
   ${qSlicerExternalBeamPlanningModuleWidgets_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
