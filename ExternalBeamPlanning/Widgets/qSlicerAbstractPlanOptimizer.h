@@ -72,7 +72,8 @@ public:
   /// \return Error message. Empty string on success
   QString optimizePlan(vtkMRMLRTPlanNode* planNode);
 
-
+  /// Get available objectives for the Optimization engine
+  virtual std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getAvailableObjectives();
 
 // API functions to implement in the subclass
 protected:
@@ -86,7 +87,9 @@ protected:
     vtkMRMLRTPlanNode* planNode,
     vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode ) = 0;
 
-  virtual std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getAvailableObjectives() = 0;
+
+  /// Set available objectives for the Optimization engine
+  //virtual void setAvailableObjectives(std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives) = 0;
 
 protected:
   /// Name of the engine. Must be set in Optimization engine constructor
@@ -96,6 +99,7 @@ protected:
 
 protected:
   QScopedPointer<qSlicerAbstractPlanOptimizerPrivate> d_ptr;
+
 
 private:
   Q_DECLARE_PRIVATE(qSlicerAbstractPlanOptimizer);
@@ -111,7 +115,6 @@ public:
     /// \param beamNode Beam node to add dose as result to
     /// \param replace Remove referenced dose volume if already exists. True by default
     Q_INVOKABLE void addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTPlanNode* planNode, bool replace = true);
-    void updatePlanNodeObjectives(vtkMRMLRTPlanNode* planNode);
 };
 
 #endif

@@ -5,12 +5,9 @@ set(KIT ${PROJECT_NAME})
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_MRML_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_BINARY_DIR}
-  ${MRML_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
   ${Slicer_Base_INCLUDE_DIRS}
-  ${MRMLCore_INCLUDE_DIRS}
+  ${MRML_INCLUDE_DIRS}
   )
 
 # --------------------------------------------------------------------------
@@ -21,12 +18,21 @@ set(${KIT}_SRCS
   vtkMRMLObjectiveNode.h
   )
 
+SET (${KIT}_INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${Slicer_Base_INCLUDE_DIRS}
+  ${MRMLCore_INCLUDE_DIRS}
+  CACHE INTERNAL "" FORCE)
 
 # --------------------------------------------------------------------------
 # Build the library
 
 set(${KIT}_TARGET_LIBRARIES
+  vtkSlicerRtCommon
   ${MRML_LIBRARIES}
+  MRMLCore
+  vtkSlicerMarkupsModuleMRML
   )
 
 SlicerMacroBuildModuleMRML(

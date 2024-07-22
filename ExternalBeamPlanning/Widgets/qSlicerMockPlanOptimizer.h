@@ -7,6 +7,7 @@
 #include "qSlicerAbstractPlanOptimizer.h"
 
 
+#include <vtkSmartPointer.h>
 
 class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerMockPlanOptimizer : public qSlicerAbstractPlanOptimizer
 {
@@ -27,7 +28,6 @@ public:
   /// \param resultOptimizationVolumeNode Output volume node for the result Optimization. It is created by \sa optimizePlan
   Q_INVOKABLE QString optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode);
   
-protected:
   virtual std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getAvailableObjectives();
 
 private:

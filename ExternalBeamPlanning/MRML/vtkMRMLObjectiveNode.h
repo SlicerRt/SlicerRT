@@ -20,10 +20,12 @@
 #define __vtkMRMLObjectiveNode_h
 
 // MRML includes
-#include <vtkMRMLNode.h>
+#include "vtkMRMLNode.h"
 
 #include "vtkSlicerExternalBeamPlanningModuleMRMLExport.h"
 
+#include <vector>
+#include <vtkSmartPointer.h>
 
 class  VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLObjectiveNode : public vtkMRMLNode
 {
@@ -32,7 +34,6 @@ public:
   vtkTypeMacro(vtkMRMLObjectiveNode, vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  /// Create instance of a GAD node. 
   vtkMRMLNode* CreateNodeInstance() override;
 
   /// Set node attributes from name/value pairs 

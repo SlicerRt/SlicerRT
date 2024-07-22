@@ -15,7 +15,7 @@
 
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"
-#include <vtkMRMLObjectiveNode.h>
+//#include <vtkMRMLObjectiveNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>

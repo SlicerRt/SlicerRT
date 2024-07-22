@@ -32,6 +32,7 @@
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLObjectiveNode);
 
+
 //----------------------------------------------------------------------------
 vtkMRMLObjectiveNode::vtkMRMLObjectiveNode()
 {
@@ -39,7 +40,13 @@ vtkMRMLObjectiveNode::vtkMRMLObjectiveNode()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLObjectiveNode::~vtkMRMLObjectiveNode() = default;
+vtkMRMLObjectiveNode::~vtkMRMLObjectiveNode() {
+	if (this->Name)
+	{
+		delete[] this->Name;
+		this->Name = nullptr;
+	}
+}
 
 //----------------------------------------------------------------------------
 void vtkMRMLObjectiveNode::WriteXML(ostream& of, int nIndent)
@@ -90,3 +97,8 @@ void vtkMRMLObjectiveNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintStringMacro(Name)
   vtkMRMLPrintEndMacro();
 }
+
+//vtkMRMLNode* vtkMRMLObjectiveNode::CreateNodeInstance()
+//{
+//	return vtkMRMLObjectiveNode::New();
+//}
