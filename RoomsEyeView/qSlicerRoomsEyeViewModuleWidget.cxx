@@ -85,6 +85,8 @@ public:
   qSlicerRoomsEyeViewModuleWidgetPrivate(qSlicerRoomsEyeViewModuleWidget& object);
   ~qSlicerRoomsEyeViewModuleWidgetPrivate()  = default;
   vtkSmartPointer<vtkSlicerRoomsEyeViewModuleLogic> logic() const;
+  vtkMRMLCameraNode* get3DViewCameraNode() const;
+  qMRMLLayoutManager* getLayoutManager() const;
 
   vtkMRMLRTPlanNode* currentPlanNode(vtkMRMLRoomsEyeViewNode* paramNode);
 
@@ -150,6 +152,52 @@ vtkMRMLRTPlanNode* qSlicerRoomsEyeViewModuleWidgetPrivate::currentPlanNode(vtkMR
   }
 
   return nullptr;
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLCameraNode* qSlicerRoomsEyeViewModuleWidgetPrivate::get3DViewCameraNode() const
+{
+  Q_Q(const qSlicerRoomsEyeViewModuleWidget);
+
+  // Get 3D view node
+  qSlicerApplication* slicerApplication = qSlicerApplication::application();
+  qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
+  if (!layoutManager->threeDViewCount())
+  {
+    return nullptr;
+  }
+
+  qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
+  vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
+
+  // Get camera node for view
+  vtkCollection* cameras = q->mrmlScene()->GetNodesByClass("vtkMRMLCameraNode");
+  vtkMRMLCameraNode* cameraNode = nullptr;
+  for (int i = 0; i < cameras->GetNumberOfItems(); i++)
+  {
+    cameraNode = vtkMRMLCameraNode::SafeDownCast(cameras->GetItemAsObject(i));
+    std::string viewUniqueName = std::string(viewNode->GetNodeTagName()) + cameraNode->GetLayoutName();
+    if (viewUniqueName == viewNode->GetID())
+    {
+      break;
+    }
+  }
+  if (!cameraNode)
+  {
+    qCritical() << Q_FUNC_INFO << "Failed to find camera for view " << (viewNode ? viewNode->GetID() : "(null)");
+  }
+  cameras->Delete();
+  return cameraNode;
+}
+
+//-----------------------------------------------------------------------------
+qMRMLLayoutManager* qSlicerRoomsEyeViewModuleWidgetPrivate::getLayoutManager() const
+{
+  Q_Q(const qSlicerRoomsEyeViewModuleWidget);
+
+  // Get 3D view node
+  qSlicerApplication* slicerApplication = qSlicerApplication::application();
+  return slicerApplication->layoutManager();
 }
 
 //-----------------------------------------------------------------------------
@@ -340,6 +388,9 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
   connect(d->MRMLNodeComboBox_Beam, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onBeamNodeChanged(vtkMRMLNode*)));
   connect(d->SegmentSelectorWidget_PatientBody, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(onPatientBodySegmentationNodeChanged(vtkMRMLNode*)));
   connect(d->SegmentSelectorWidget_PatientBody, SIGNAL(currentSegmentChanged(QString)), this, SLOT(onPatientBodySegmentChanged(QString)));
+
+  // 3D camera control
+  connect(d->FixedCameraCheckBox, SIGNAL(toggled(bool)), this, SLOT(onFixedReferenceCameraToggled(bool)));
 
   // Disable treatment machine geometry controls until a machine is loaded
   d->GantryRotationSlider->setEnabled(false);
@@ -654,6 +705,7 @@ void qSlicerRoomsEyeViewModuleWidget::onCollimatorRotationSliderValueChanged(dou
   {
     return;
   }
+  d->getLayoutManager()->pauseRender();
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetCollimatorRotationAngle(value);
@@ -671,6 +723,7 @@ void qSlicerRoomsEyeViewModuleWidget::onCollimatorRotationSliderValueChanged(dou
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
+  d->getLayoutManager()->resumeRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -683,6 +736,7 @@ void qSlicerRoomsEyeViewModuleWidget::onGantryRotationSliderValueChanged(double 
   {
     return;
   }
+  d->getLayoutManager()->pauseRender();
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetGantryRotationAngle(value);
@@ -700,6 +754,7 @@ void qSlicerRoomsEyeViewModuleWidget::onGantryRotationSliderValueChanged(double 
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
+  d->getLayoutManager()->resumeRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -712,6 +767,7 @@ void qSlicerRoomsEyeViewModuleWidget::onImagingPanelMovementSliderValueChanged(d
   {
     return;
   }
+  d->getLayoutManager()->pauseRender();
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetImagingPanelMovement(value);
@@ -721,6 +777,7 @@ void qSlicerRoomsEyeViewModuleWidget::onImagingPanelMovementSliderValueChanged(d
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
+  d->getLayoutManager()->resumeRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -738,6 +795,7 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientSupportRotationSliderValueChanged
   {
     return;
   }
+  d->getLayoutManager()->pauseRender();
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetPatientSupportRotationAngle(value);
@@ -756,6 +814,7 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientSupportRotationSliderValueChanged
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
+  d->getLayoutManager()->resumeRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -773,6 +832,7 @@ void qSlicerRoomsEyeViewModuleWidget::onVerticalTableTopDisplacementSliderValueC
   {
     return;
   }
+  d->getLayoutManager()->pauseRender();
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetVerticalTableTopDisplacement(value);
@@ -784,6 +844,7 @@ void qSlicerRoomsEyeViewModuleWidget::onVerticalTableTopDisplacementSliderValueC
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
+  d->getLayoutManager()->resumeRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -801,6 +862,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLongitudinalTableTopDisplacementSliderVa
   {
     return;
   }
+  d->getLayoutManager()->pauseRender();
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetLongitudinalTableTopDisplacement(value);
@@ -811,6 +873,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLongitudinalTableTopDisplacementSliderVa
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
+  d->getLayoutManager()->resumeRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -830,6 +893,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLateralTableTopDisplacementSliderValueCh
   {
     return;
   }
+  d->getLayoutManager()->pauseRender();
 
   paramNode->DisableModifiedEventOn();
   paramNode->SetLateralTableTopDisplacement(d->LateralTableTopDisplacementSlider->value());
@@ -840,6 +904,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLateralTableTopDisplacementSliderValueCh
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
+  d->getLayoutManager()->resumeRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -849,29 +914,10 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
 
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  // Get 3D view node
-  qSlicerApplication* slicerApplication = qSlicerApplication::application();
-  qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
-  qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
-  vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
-  //vtkCamera* beamsEyeCamera = vtkSmartPointer<vtkCamera>::New();
-
-  // Get camera node for view
-  vtkCollection* cameras = this->mrmlScene()->GetNodesByClass("vtkMRMLCameraNode");
-  vtkMRMLCameraNode* cameraNode = nullptr;
-  for (int i = 0; i < cameras->GetNumberOfItems(); i++)
-  {
-    cameraNode = vtkMRMLCameraNode::SafeDownCast(cameras->GetItemAsObject(i));
-    std::string viewUniqueName = std::string(viewNode->GetNodeTagName()) + cameraNode->GetLayoutName();
-    if (viewUniqueName == viewNode->GetID())
-    {
-      break;
-    }
-  }
+  // Get 3D view node camera
+  vtkMRMLCameraNode* cameraNode = d->get3DViewCameraNode();
   if (!cameraNode)
   {
-    qCritical() << Q_FUNC_INFO << "Failed to find camera for view " << (viewNode ? viewNode->GetID() : "(null)");
-    cameras->Delete();
     return;
   }
 
@@ -894,7 +940,6 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
     else
     {
       qCritical() << Q_FUNC_INFO << "Beam transform node is invalid";
-      cameras->Delete();
       return;
     }
 
@@ -923,7 +968,6 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
   }
   
   cameraNode->GetCamera()->Elevation(-(d->GantryRotationSlider->value()));
-  cameras->Delete();
 
   //TODO: Oblique slice updating real-time based on beam geometry
   //vtkMRMLSliceNode* redSliceNode = redSliceWidget->mrmlSliceNode();
@@ -995,4 +1039,36 @@ void qSlicerRoomsEyeViewModuleWidget::updateTreatmentOrientationMarker()
     viewNode->SetOrientationMarkerHumanModelNodeID(orientationMarkerModel->GetID());
     viewNode->Modified();
   }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerRoomsEyeViewModuleWidget::onFixedReferenceCameraToggled(bool toggled)
+{
+  Q_D(qSlicerRoomsEyeViewModuleWidget);
+
+  // Get 3D view node camera
+  vtkMRMLCameraNode* cameraNode = d->get3DViewCameraNode();
+  if (!cameraNode)
+  {
+    return;
+  }
+
+  // Get FixedReference -> RAS transform node
+  vtkMRMLLinearTransformNode* fixedReferenceToRasTransformNode = d->logic()->GetTransformNodeBetween(
+    vtkSlicerIECTransformLogic::FixedReference,
+    vtkSlicerIECTransformLogic::RAS);
+
+  vtkNew<vtkMatrix4x4> fixedReferenceToRasTransformMatrix;
+  fixedReferenceToRasTransformMatrix->Identity();
+  if (toggled && fixedReferenceToRasTransformNode)
+  {
+    // Get FixedReference -> RAS transform matrix
+    fixedReferenceToRasTransformNode->GetMatrixTransformToParent(fixedReferenceToRasTransformMatrix);
+    // Apply FixedReference -> RAS transform matrix to the camera node
+    cameraNode->SetAppliedTransform(fixedReferenceToRasTransformMatrix);
+    // Observe FixedReference -> RAS transform node by the camera node
+    cameraNode->SetAndObserveTransformNodeID(fixedReferenceToRasTransformNode->GetID());
+    return;
+  }
+  cameraNode->SetAndObserveTransformNodeID(nullptr);
 }

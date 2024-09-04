@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>306</width>
+    <width>345</width>
     <height>490</height>
    </rect>
   </property>
@@ -32,7 +32,23 @@
    <property name="spacing">
     <number>4</number>
    </property>
-   <item row="6" column="0">
+   <item row="7" column="0">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Expanding</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="5" column="0">
     <widget class="ctkCollapsibleButton" name="TransformsCollapsibleButton">
      <property name="text">
       <string>Transforms</string>
@@ -211,7 +227,14 @@
      </layout>
     </widget>
    </item>
-   <item row="5" column="0">
+   <item row="6" column="0">
+    <widget class="QPushButton" name="BeamsEyeViewButton">
+     <property name="text">
+      <string>Beam's eye view</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
     <widget class="ctkCollapsibleButton" name="CollisionDetectionCollapsibleButton">
      <property name="text">
       <string>Collision detection</string>
@@ -263,8 +286,8 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="qMRMLSegmentSelectorWidget" name="SegmentSelectorWidget_PatientBody">
-        <property name="noneEnabled">
+       <widget class="qMRMLSegmentSelectorWidget" name="SegmentSelectorWidget_PatientBody" native="true">
+        <property name="noneEnabled" stdset="0">
          <bool>true</bool>
         </property>
        </widget>
@@ -272,47 +295,30 @@
      </layout>
     </widget>
    </item>
-   <item row="8" column="0">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Expanding</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="7" column="0">
-    <widget class="QPushButton" name="BeamsEyeViewButton">
-     <property name="text">
-      <string>Beam's eye view</string>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="0">
     <layout class="QGridLayout" name="gridLayout_5">
      <property name="leftMargin">
       <number>4</number>
      </property>
+     <item row="1" column="1">
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Beam" native="true">
+       <property name="nodeTypes" stdset="0">
+        <stringlist>
+         <string>vtkMRMLRTBeamNode</string>
+        </stringlist>
+       </property>
+       <property name="noneEnabled" stdset="0">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QComboBox" name="TreatmentMachineComboBox"/>
+     </item>
      <item row="0" column="0">
       <widget class="QLabel" name="label_2">
        <property name="text">
         <string>Parameter set:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
-       <property name="nodeTypes">
-        <stringlist>
-         <string>vtkMRMLRoomsEyeViewNode</string>
-        </stringlist>
        </property>
       </widget>
      </item>
@@ -323,15 +329,12 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Beam">
-       <property name="nodeTypes">
+     <item row="0" column="1">
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet" native="true">
+       <property name="nodeTypes" stdset="0">
         <stringlist>
-         <string>vtkMRMLRTBeamNode</string>
+         <string>vtkMRMLRoomsEyeViewNode</string>
         </stringlist>
-       </property>
-       <property name="noneEnabled">
-        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -342,14 +345,29 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QComboBox" name="TreatmentMachineComboBox"/>
+     <item row="3" column="0" colspan="2">
+      <widget class="QCheckBox" name="FixedCameraCheckBox">
+       <property name="text">
+        <string>Fix 3D camera in FixedReference frame</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkSliderWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkSliderWidget.h</header>
+  </customwidget>
   <customwidget>
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
@@ -373,17 +391,6 @@
    <extends>qMRMLWidget</extends>
    <header>qMRMLSegmentSelectorWidget.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ctkCollapsibleButton</class>
-   <extends>QWidget</extends>
-   <header>ctkCollapsibleButton.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ctkSliderWidget</class>
-   <extends>QWidget</extends>
-   <header>ctkSliderWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

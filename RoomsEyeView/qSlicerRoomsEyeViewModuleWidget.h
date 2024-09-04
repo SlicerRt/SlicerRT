@@ -50,16 +50,16 @@ public:
   void checkForCollisions();
 
 public slots:
-	virtual void setMRMLScene(vtkMRMLScene*);
+  virtual void setMRMLScene(vtkMRMLScene*);
   void setParameterNode(vtkMRMLNode*);
-	void onSceneImportedEvent();
-	void onSceneClosedEvent();
+  void onSceneImportedEvent();
+  void onSceneClosedEvent();
 
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
 
 protected slots:
-	void onLoadTreatmentMachineButtonClicked();
+  void onLoadTreatmentMachineButtonClicked();
 
   void onCollimatorRotationSliderValueChanged(double);
   void onGantryRotationSliderValueChanged(double);
@@ -68,6 +68,7 @@ protected slots:
   void onVerticalTableTopDisplacementSliderValueChanged(double);
   void onLongitudinalTableTopDisplacementSliderValueChanged(double);
   void onLateralTableTopDisplacementSliderValueChanged(double);
+  void onFixedReferenceCameraToggled(bool);
 
   void onBeamsEyeViewButtonClicked();
   
