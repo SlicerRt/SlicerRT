@@ -30,10 +30,12 @@
 // Slicer includes
 #include "vtkSlicerModuleLogic.h"
 
+// IEC Logic include
+#include <vtkIECTransformLogic.h>
+
 // Beams includes
 #include "vtkSlicerBeamsModuleLogicExport.h"
 #include "vtkMRMLRTBeamNode.h"
-#include "vtkSlicerIECTransformLogic.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -77,14 +79,14 @@ public:
   /// \param planNode: Plan node to get the isocenter position from
   /// \param isocenter: Option to set any isocenter for dynamic beams
   /// \param transformForBeam: calculate dynamic transformation for beam model or other models. False by default.
-  void UpdateRASRelatedTransforms(vtkSlicerIECTransformLogic* iecLogic=nullptr, vtkMRMLRTPlanNode* planNode=nullptr, double* isocenter=nullptr, bool transformForBeam=false);
+  void UpdateRASRelatedTransforms(vtkIECTransformLogic* iecLogic=nullptr, vtkMRMLRTPlanNode* planNode=nullptr, double* isocenter=nullptr, bool transformForBeam=false);
 
 public:
   vtkGetObjectMacro(MLCPositionLogic, vtkSlicerMLCPositionLogic);
-  vtkGetObjectMacro(IECLogic, vtkSlicerIECTransformLogic);
+  vtkGetObjectMacro(IECLogic, vtkIECTransformLogic);
 
   /// Possibility to use an external IEC logic. This is useful for testing.
-  void SetIECLogic(vtkSlicerIECTransformLogic* iecLogic);
+  void SetIECLogic(vtkIECTransformLogic* iecLogic);
 
 protected:
   vtkSlicerBeamsModuleLogic();
@@ -108,7 +110,7 @@ private:
   vtkSlicerMLCPositionLogic* MLCPositionLogic;
 
 private:
-  vtkSlicerIECTransformLogic* IECLogic;
+  vtkIECTransformLogic* IECLogic;
 };
 
 #endif

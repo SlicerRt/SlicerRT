@@ -27,13 +27,12 @@
 // Slicer includes
 #include <vtkSlicerModuleLogic.h>
 
-// SlicerRT includes
-#include <vtkSlicerRoomsEyeViewModuleLogic.h>
-
 // STD includes
 #include <cstdlib>
 
+// SlicerRT includes
 #include "vtkSlicerDrrImageComputationModuleLogicExport.h"
+#include <vtkSlicerRoomsEyeViewModuleLogic.h>
 
 class vtkMRMLVolumeNode;
 class vtkMRMLScalarVolumeNode;
@@ -85,7 +84,7 @@ public:
   /// Compute DRR image
   /// \param parameterNode - parameters of DRR image computation
   /// \param ctInputVolume - CT volume
-  /// \return valid computed DRR volume node or nullptr otherwise 
+  /// \return valid computed DRR volume node or nullptr otherwise
   vtkMRMLScalarVolumeNode* ComputePlastimatchDRR(vtkMRMLDrrImageComputationNode* parameterNode, vtkMRMLScalarVolumeNode* ctInputVolume);
 
   /// Update Beam node from 3D view camera position
@@ -96,31 +95,31 @@ public:
   /// Get transformation matrix for RT-Image
   /// \param parameterNode - parameters of DRR image computation
   /// \param mat - linear transformation matrix
-  /// \return - true if matrix is valid, false otherwise 
+  /// \return - true if matrix is valid, false otherwise
   bool GetRtImageTransformMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat);
 
   /// Get plastimatch intrinsic matrix component
   /// \param parameterNode - parameters of DRR image computation
   /// \param mat - linear transformation matrix
-  /// \return - true if matrix is valid, false otherwise 
+  /// \return - true if matrix is valid, false otherwise
   bool GetPlastimatchIntrinsicMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat);
 
   /// Get plastimatch extrinsic matrix component
   /// \param parameterNode - parameters of DRR image computation
   /// \param mat - linear transformation matrix
-  /// \return - true if matrix is valid, false otherwise 
+  /// \return - true if matrix is valid, false otherwise
   bool GetPlastimatchExtrinsicMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat);
 
   /// Get plastimatch projection matrix
   /// \param parameterNode - parameters of DRR image computation
   /// \param mat - linear transformation matrix
-  /// \return - true if matrix is valid, false otherwise 
+  /// \return - true if matrix is valid, false otherwise
   bool GetPlastimatchProjectionMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat);
 
   /// Get plastimatch projection matrix
   /// \param parameterNode - parameters of DRR image computation
   /// \param mat - linear transformation matrix
-  /// \return - true if matrix is valid, false otherwise 
+  /// \return - true if matrix is valid, false otherwise
   bool GetPointOffsetFromImagerOrigin(vtkMRMLDrrImageComputationNode* parameterNode, const double pointRAS[3],
     double offsetWidthHeight[2], double offsetColumnRow[2]);
 
@@ -130,7 +129,7 @@ public:
   /// \param parameterNode - parameters of DRR image computation
   /// \param point - second ray point coordinates in RAS
   /// \param pointIntersect - intersection coordinates of point ray and imager plane in RAS
-  /// \return - true if there is an intersection, false otherwise 
+  /// \return - true if there is an intersection, false otherwise
   bool GetRayIntersectWithImagerPlane(vtkMRMLDrrImageComputationNode* parameterNode,
     const double pointRAS[3], double pointIntersectRAS[3]);
 
@@ -168,7 +167,7 @@ private:
   vtkSlicerDrrImageComputationLogic(const vtkSlicerDrrImageComputationLogic&) = delete; // Not implemented
   void operator=(const vtkSlicerDrrImageComputationLogic&) = delete; // Not implemented
 
-  /// Create markups for imager normal vector 
+  /// Create markups for imager normal vector
   vtkMRMLMarkupsLineNode* CreateImagerNormal(vtkMRMLDrrImageComputationNode* node); // n
   /// Create markups for view up normal vector
   vtkMRMLMarkupsLineNode* CreateImagerVUP(vtkMRMLDrrImageComputationNode* node); // vup

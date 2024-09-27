@@ -34,9 +34,10 @@
 
 // Slicer includes
 #include <vtkSlicerModuleLogic.h>
+#include <vtkSlicerBeamsModuleLogic.h>
 
-// Beams includes
-#include "vtkSlicerBeamsModuleLogic.h"
+// IEC Logic include
+#include <vtkIECTransformLogic.h>
 
 class vtkCollisionDetectionFilter;
 class vtkMatrix4x4;
@@ -143,7 +144,7 @@ public:
   /// Get part type as string
   const char* GetTreatmentMachinePartTypeAsString(TreatmentMachinePartType type);
 
-  vtkGetObjectMacro(IECLogic, vtkSlicerIECTransformLogic);
+  vtkGetObjectMacro(IECLogic, vtkIECTransformLogic);
 
   /// Possibility to set Beams logic externally. This allows automated tests to run, when we do not have the whole application
   vtkSetObjectMacro(BeamsLogic, vtkSlicerBeamsModuleLogic);
@@ -161,7 +162,7 @@ public:
   /// \return Transform node if there is a direct transform between the specified coordinate frames, nullptr otherwise
   ///   Note: If IEC does not specify a transform between the given coordinate frames, then there will be no node with the returned name.
   vtkMRMLLinearTransformNode* GetTransformNodeBetween(
-    vtkSlicerIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkSlicerIECTransformLogic::CoordinateSystemIdentifier toFrame);
+    vtkIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkIECTransformLogic::CoordinateSystemIdentifier toFrame);
 
 protected:
   /// Get patient body closed surface poly data from segmentation node and segment selection in the parameter node
@@ -171,7 +172,7 @@ protected:
   vtkSlicerBeamsModuleLogic* GetBeamsLogic();
 
 protected:
-  vtkSlicerIECTransformLogic* IECLogic;
+  vtkIECTransformLogic* IECLogic;
   vtkSlicerBeamsModuleLogic* BeamsLogic{nullptr};
 
   vtkCollisionDetectionFilter* GantryPatientCollisionDetection;
