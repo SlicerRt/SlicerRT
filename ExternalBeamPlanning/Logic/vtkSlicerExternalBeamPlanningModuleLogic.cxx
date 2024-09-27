@@ -25,7 +25,7 @@
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkSlicerBeamsModuleLogic.h"
-#include "vtkSlicerIECTransformLogic.h"
+#include "vtkIECTransformLogic.h"
 
 // MRML includes
 //#include <vtkMRMLMarkupsFiducialNode.h> //TODO: Includes commented out due to obsolete methods, see below

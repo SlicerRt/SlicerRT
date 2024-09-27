@@ -7,6 +7,7 @@ set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_LOGIC_EXPORT
 set(${KIT}_INCLUDE_DIRECTORIES
   ${PlmCommon_INCLUDE_DIRS}
   ${SlicerRtCommon_INCLUDE_DIRS}
+  ${vtkIECTransformLogic_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -22,6 +23,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerMarkupsModuleMRML
   vtkSlicerBeamsModuleMRML
   vtkSlicerBeamsModuleLogic
+  ${vtkIECTransformLogic_LIBRARIES}
   )
 
 #-----------------------------------------------------------------------------

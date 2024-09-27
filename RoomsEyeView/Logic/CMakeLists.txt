@@ -10,6 +10,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSlicerBeamsModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   ${RapidJSON_INCLUDE_DIR}
+  ${vtkIECTransformLogic_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
