@@ -182,7 +182,7 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
 {
   Q_D(qMRMLBeamParametersTabWidget);
 
-  if (!d->BeamNode)
+  if (d->BeamNode == nullptr)
   {
     return;
   }
@@ -755,7 +755,6 @@ void qMRMLBeamParametersTabWidget::mlcBoundaryAndPositionTableNodeChanged(vtkMRM
   else
   {
     d->BeamNode->SetAndObserveMultiLeafCollimatorTableNode(nullptr);
-    qCritical() << Q_FUNC_INFO << ": MLC boundary and position table node is invalid, set nullptr value by default!";
   }
   d->BeamNode->UpdateGeometry();
 
