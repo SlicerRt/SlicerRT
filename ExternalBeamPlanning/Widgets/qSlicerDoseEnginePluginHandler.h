@@ -43,8 +43,8 @@ public:
   /// \return Instance object
   Q_INVOKABLE static qSlicerDoseEnginePluginHandler* instance();
 
-  /// Allows cleanup of the singleton at application exit
-  static void setInstance(qSlicerDoseEnginePluginHandler* instance);
+  /// Cleanup of the singleton at application exit
+  static void cleanup();
 
 public:
   /// Add a dose engine.

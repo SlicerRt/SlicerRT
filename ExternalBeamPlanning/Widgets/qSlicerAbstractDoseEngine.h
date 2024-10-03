@@ -25,6 +25,7 @@
 
 // Qt includes
 #include <QObject>
+#include <QSet> 
 #include <QStringList>
 
 class qSlicerAbstractDoseEnginePrivate;
@@ -74,6 +75,9 @@ public:
 
   /// Remove intermediate nodes created by the dose engine for a certain beam
   Q_INVOKABLE void removeIntermediateResults(vtkMRMLRTBeamNode* beamNode);
+
+  /// Register beam parameters tab widget. All updates related to engine changes will be propagated to these widgets.
+  Q_INVOKABLE static void registerBeamParametersTabWidget(qMRMLBeamParametersTabWidget* tabWidget);
 
 // API functions to implement in the subclass
 protected:
@@ -178,6 +182,9 @@ public:
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, QString defaultValue );
 
+  /// Add all engine-specific beam parameters to given beam node (do not override value if parameter exists)
+  Q_INVOKABLE void addBeamParameterAttributesToBeamNode(vtkMRMLRTBeamNode* beamNode);
+
 // Beam parameter get/set functions
 public:
   /// Get beam parameter from beam node
@@ -218,21 +225,20 @@ private:
   /// This prefixed parameter name will be the attribute name for the beam parameter in the beam nodes.
   QString assembleEngineParameterName(QString parameterName);
 
-  /// Get beam parameters tab widget from beams module widget
-  /// TODO: Kind of a hack, a direct way of accessing it would be nicer, for example through a MRML node
-  /// \param tabName Name of the tab to return
-  /// \return Tab widget with given name
-  qMRMLBeamParametersTabWidget* beamParametersTabWidgetFromBeamsModule();
+  /// Convenience function for getting beam parameters tab widget from beams module widget.
+  /// Kept as a convenience function to register this widget, which is always available in SlicerRT.
+  /// \return Beam parameters tab widget
+  static qMRMLBeamParametersTabWidget* beamParametersTabWidgetFromBeamsModule();
 
   /// Show/hide all engine-specific beam parameters in the beam parameters tab widget in Beams module
   void setBeamParametersVisible(bool visible);
 
-  /// Add all engine-specific beam parameters to given beam node (do not override value if parameter exists)
-  void addBeamParameterAttributesToBeamNode(vtkMRMLRTBeamNode* beamNode);
-
 protected:
   /// Name of the engine. Must be set in dose engine constructor
   QString m_Name;
+
+  /// List of registered tab widgets. Static so that it is common to all engines.
+  static QSet<qMRMLBeamParametersTabWidget*> m_BeamParametersTabWidgets;
 
 protected:
   QScopedPointer<qSlicerAbstractDoseEnginePrivate> d_ptr;

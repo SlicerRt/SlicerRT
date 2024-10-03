@@ -267,6 +267,9 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   // Set status text to initial instruction
   d->label_CalculateDoseStatus->setText("Add plan and beam to start planning");
 
+  // Register the Beams module's beam parameters tab widget to the dose engines (do it here because of how the dependencies are set)
+  qSlicerAbstractDoseEngine::registerBeamParametersTabWidget(qSlicerAbstractDoseEngine::beamParametersTabWidgetFromBeamsModule());
+
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
 }

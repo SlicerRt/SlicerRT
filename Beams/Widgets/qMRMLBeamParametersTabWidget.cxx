@@ -661,8 +661,7 @@ bool qMRMLBeamParametersTabWidget::setBeamParameterVisible(QString parameterName
     for (int currentRow=0; currentRow<currentLayout->rowCount(); ++currentRow)
     {
       QWidget* currentParameterFieldWidget = currentLayout->itemAt(currentRow, QFormLayout::FieldRole)->widget();
-      if ( parameterName ==
-        currentParameterFieldWidget->property(BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY).toString() )
+      if (parameterName == currentParameterFieldWidget->property(BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY).toString())
       {
         // Widget for parameter found. Set visibility for that and the label
         currentParameterFieldWidget->setVisible(visible);

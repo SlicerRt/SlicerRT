@@ -66,6 +66,7 @@ set(${KIT}_INCLUDE_DIRS
   ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerDoseAccumulationModuleLogic_INCLUDE_DIRS}
+  ${qSlicerBeamsModuleWidgets_INCLUDE_DIRS}
   CACHE INTERNAL "" FORCE)
 
 #-----------------------------------------------------------------------------
