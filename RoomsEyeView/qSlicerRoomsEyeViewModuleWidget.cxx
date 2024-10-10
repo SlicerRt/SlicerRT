@@ -809,7 +809,16 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientSupportRotationSliderValueChanged
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(paramNode->GetBeamNode());
   if (beamNode)
   {
-    beamNode->SetCouchAngle(value);
+    // since slider range [-180, 180], then negative patient support angles must be
+    // transformed into positive one
+    if (value < 0.)
+    {
+      beamNode->SetCouchAngle(360. + value);
+    }
+    else
+    {
+      beamNode->SetCouchAngle(value);
+    }
   }
 
   this->checkForCollisions();

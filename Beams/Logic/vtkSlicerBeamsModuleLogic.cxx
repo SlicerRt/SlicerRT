@@ -397,7 +397,9 @@ void vtkSlicerBeamsModuleLogic::UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* b
   // Set beam angles to IEC logic
   this->IECLogic->UpdateGantryToFixedReferenceTransform(beamNode->GetGantryAngle());
   this->IECLogic->UpdateCollimatorToGantryTransform(beamNode->GetCollimatorAngle());
-  this->IECLogic->UpdatePatientSupportRotationToFixedReferenceTransform(beamNode->GetCouchAngle());
+  // Set the inverse of the couch angle as now what moves is the room (treatment machine) around the patient,
+  // so the patient support table top (couch) always stays stationary in RAS.
+  this->IECLogic->UpdatePatientSupportRotationToFixedReferenceTransform(-1. * beamNode->GetCouchAngle());
 
   // Update fixed reference to RAS transform as well
   vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
