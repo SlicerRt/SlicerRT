@@ -194,10 +194,8 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
   d->SliderWidget_CollimatorAngle->setValue(d->BeamNode->GetCollimatorAngle());
   d->SliderWidget_GantryAngle->blockSignals(true);
   d->SliderWidget_GantryAngle->setValue(d->BeamNode->GetGantryAngle());
+  d->SliderWidget_CouchAngle->setValue(d->BeamNode->GetCouchAngle());
   d->SliderWidget_GantryAngle->blockSignals(false);
-  // Set the inverse of the couch angle as now what moves is the room (treatment machine) around the patient,
-  // so the patient support table top (couch) always stays stationary in RAS.
-  d->SliderWidget_CouchAngle->setValue(-d->BeamNode->GetCouchAngle());
 
   d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setMRMLScene(d->BeamNode->GetScene());
 
@@ -1002,10 +1000,7 @@ void qMRMLBeamParametersTabWidget::couchAngleChanged(double value)
   }
 
   // Do not disable modifier events as transforms need to be updated.
-
-  // Set the inverse of the couch angle as now what moves is the room (treatment machine) around the patient,
-  // so the patient support table top (couch) always stays stationary in RAS.
-  d->BeamNode->SetCouchAngle(-value);
+  d->BeamNode->SetCouchAngle(value);
 }
 
 //-----------------------------------------------------------------------------
