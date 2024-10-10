@@ -397,7 +397,7 @@ void vtkSlicerBeamsModuleLogic::UpdateIECTransformsFromBeam(vtkMRMLRTBeamNode* b
   // Set beam angles to IEC logic
   this->IECLogic->UpdateGantryToFixedReferenceTransform(beamNode->GetGantryAngle());
   this->IECLogic->UpdateCollimatorToGantryTransform(beamNode->GetCollimatorAngle());
-  this->IECLogic->UpdatePatientSupportRotationToFixedReferenceTransform(beamNode->GetCouchAngle());
+  this->IECLogic->UpdatePatientSupportRotationToFixedReferenceTransform(-1. * beamNode->GetCouchAngle());
 
   // Update fixed reference to RAS transform as well
   vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
