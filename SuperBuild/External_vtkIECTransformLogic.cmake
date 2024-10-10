@@ -23,7 +23,6 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
 
 
-  #message("CMAKE BINARY DIR ZZZZZZZZ: ${CMAKE_BINARY_DIR}")
   #message("Slicer_THIRDPARTY_LIB_DIR ZZZZZZZZ: ${Slicer_THIRDPARTY_LIB_DIR}")
 
   ExternalProject_Add(${proj}
