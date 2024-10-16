@@ -297,7 +297,7 @@ void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
 
   // Each time the node is modified, the UI widgets are updated
   qvtkReconnect(paramNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
-  
+
   // Set selected MRML nodes in comboboxes in the parameter set if it was nullptr there
   // (then in the meantime the comboboxes selected the first one from the scene and we have to set that)
   if (paramNode)
@@ -390,7 +390,7 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
   connect(d->SegmentSelectorWidget_PatientBody, SIGNAL(currentSegmentChanged(QString)), this, SLOT(onPatientBodySegmentChanged(QString)));
 
   // 3D camera control
-  connect(d->FixedCameraCheckBox, SIGNAL(toggled(bool)), this, SLOT(onFixedReferenceCameraToggled(bool)));
+  connect(d->FixedCameraCheckBox, SIGNAL(toggled(bool)), this, SLOT(setFixedReferenceCameraEnabled(bool)));
 
   // Disable treatment machine geometry controls until a machine is loaded
   d->GantryRotationSlider->setEnabled(false);
@@ -532,14 +532,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
-  if (!this->mrmlScene())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene";
-    return;
-  }
-
-  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
-  if (!paramNode || !d->ModuleWindowInitialized)
+  if (!d->ModuleWindowInitialized)
   {
     return;
   }
@@ -551,12 +544,32 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
   {
     // Ask user for descriptor JSON file if load from file option is selected
     descriptorFilePath = QFileDialog::getOpenFileName( this, "Select treatment machine descriptor JSON file...",
-      QString(), "Json files (*.json);; All files (*)" ); 
+      QString(), "Json files (*.json);; All files (*)" );
   }
   else //TODO: Currently support two default types in addition to loading file. Need to rethink the module
   {
     QString relativeFilePath = QString("%1/%2.json").arg(treatmentMachineType).arg(treatmentMachineType);
     descriptorFilePath = QDir(d->logic()->GetModuleShareDirectory().c_str()).filePath(relativeFilePath);
+  }
+
+  this->loadTreatmentMachineFromFile(descriptorFilePath);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerRoomsEyeViewModuleWidget::loadTreatmentMachineFromFile(QString descriptorFilePath, QString treatmentMachineType/*=""*/)
+{
+  Q_D(qSlicerRoomsEyeViewModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
+    return;
+  }
+
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  if (!paramNode)
+  {
+    return;
   }
 
   // Check if there is a machine already loaded and ask user what to do if so
@@ -580,6 +593,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
     }
   }
 
+  // Ask user what do to if a machine is already loaded
   if (machineFolderItemIDs.size() > 0)
   {
     ctkMessageBox* existingMachineMsgBox = new ctkMessageBox(this);
@@ -612,7 +626,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
       }
     }
   }
-  
+
   // Load and setup models
   paramNode->SetTreatmentMachineDescriptorFilePath(descriptorFilePath.toUtf8().constData());
 
@@ -670,9 +684,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
 
   // Reset camera
   qSlicerApplication* slicerApplication = qSlicerApplication::application();
-  qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
-  qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
-  threeDView->resetCamera();
+  slicerApplication->layoutManager()->resetThreeDViews();
 
   // Enable treatment machine geometry controls
   d->GantryRotationSlider->setEnabled(true);
@@ -710,7 +722,7 @@ void qSlicerRoomsEyeViewModuleWidget::onCollimatorRotationSliderValueChanged(dou
   paramNode->DisableModifiedEventOn();
   paramNode->SetCollimatorRotationAngle(value);
   paramNode->DisableModifiedEventOff();
-  
+
   // Update IEC transform
   d->logic()->UpdateCollimatorToGantryTransform(paramNode);
 
@@ -954,7 +966,7 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
 
     double viewUpVector[4] = { -1., 0., 0., 0. }; // beam negative X-axis
     double vup[4];
-  
+
     mat->MultiplyPoint( viewUpVector, vup);
     //vtkMRMLModelNode* collimatorModel = vtkMRMLModelNode::SafeDownCast(this->mrmlScene()->GetFirstNodeByName("CollimatorModel"));
     //vtkPolyData* collimatorModelPolyData = collimatorModel->GetPolyData();
@@ -975,7 +987,7 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
     }
     cameraNode->SetViewUp(vup);
   }
-  
+
   cameraNode->GetCamera()->Elevation(-(d->GantryRotationSlider->value()));
 
   //TODO: Oblique slice updating real-time based on beam geometry
@@ -1036,7 +1048,7 @@ void qSlicerRoomsEyeViewModuleWidget::updateTreatmentOrientationMarker()
 
   // Update orientation marker if shown
   if (viewNode->GetOrientationMarkerType() == vtkMRMLViewNode::OrientationMarkerTypeHuman)
-  {  
+  {
     vtkMRMLModelNode* orientationMarkerModel = d->logic()->UpdateTreatmentOrientationMarker(paramNode);
     if (!orientationMarkerModel)
     {
@@ -1051,7 +1063,7 @@ void qSlicerRoomsEyeViewModuleWidget::updateTreatmentOrientationMarker()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerRoomsEyeViewModuleWidget::onFixedReferenceCameraToggled(bool toggled)
+void qSlicerRoomsEyeViewModuleWidget::setFixedReferenceCameraEnabled(bool toggled)
 {
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 

@@ -46,9 +46,6 @@ public:
 
   void enter() override;
 
-  /// Check for collisions and update UI to indicate result
-  void checkForCollisions();
-
 public slots:
   virtual void setMRMLScene(vtkMRMLScene*);
   void setParameterNode(vtkMRMLNode*);
@@ -57,6 +54,20 @@ public slots:
 
   /// Update widget GUI from parameter node
   void updateWidgetFromMRML();
+
+  /// Load treatment machine by file
+  /// \param descriptorFilePath Descriptor JSON file full path
+  /// \param treatmentMachineType Treatment machine identifier string, can be omitted.
+  ///        Used for setting hard-coded machine specific motion ranges. The argument
+  ///        should be removed and the JSON file content used for this instead.
+  void loadTreatmentMachineFromFile(QString descriptorFilePath, QString treatmentMachineType="");
+
+  /// Check for collisions and update UI to indicate result
+  void checkForCollisions();
+
+  void updateTreatmentOrientationMarker();
+
+  void setFixedReferenceCameraEnabled(bool);
 
 protected slots:
   void onLoadTreatmentMachineButtonClicked();
@@ -68,18 +79,15 @@ protected slots:
   void onVerticalTableTopDisplacementSliderValueChanged(double);
   void onLongitudinalTableTopDisplacementSliderValueChanged(double);
   void onLateralTableTopDisplacementSliderValueChanged(double);
-  void onFixedReferenceCameraToggled(bool);
 
   void onBeamsEyeViewButtonClicked();
-  
+
   void onBeamNodeChanged(vtkMRMLNode*);
   void onPatientBodySegmentationNodeChanged(vtkMRMLNode*);
   void onPatientBodySegmentChanged(QString);
 
-  void updateTreatmentOrientationMarker();
-
   void onLogicModified();
-  
+
 protected:
   QScopedPointer<qSlicerRoomsEyeViewModuleWidgetPrivate> d_ptr;
 
