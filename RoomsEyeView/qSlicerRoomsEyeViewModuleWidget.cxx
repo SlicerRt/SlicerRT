@@ -30,7 +30,7 @@
 #include "vtkMRMLRoomsEyeViewNode.h"
 
 // Beams includes
-#include "vtkSlicerIECTransformLogic.h"
+#include "vtkIECTransformLogic.h"
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
 
@@ -1076,8 +1076,8 @@ void qSlicerRoomsEyeViewModuleWidget::setFixedReferenceCameraEnabled(bool toggle
 
   // Get FixedReference -> RAS transform node
   vtkMRMLLinearTransformNode* fixedReferenceToRasTransformNode = d->logic()->GetTransformNodeBetween(
-    vtkSlicerIECTransformLogic::FixedReference,
-    vtkSlicerIECTransformLogic::RAS);
+    vtkIECTransformLogic::FixedReference,
+    vtkIECTransformLogic::RAS);
 
   vtkNew<vtkMatrix4x4> fixedReferenceToRasTransformMatrix;
   fixedReferenceToRasTransformMatrix->Identity();
