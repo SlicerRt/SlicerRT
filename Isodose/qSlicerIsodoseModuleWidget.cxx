@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -95,7 +95,7 @@ vtkSlicerIsodoseModuleLogic* qSlicerIsodoseModuleWidgetPrivate::logic() const
 {
   Q_Q(const qSlicerIsodoseModuleWidget);
   return vtkSlicerIsodoseModuleLogic::SafeDownCast(q->logic());
-} 
+}
 
 //-----------------------------------------------------------------------------
 vtkSlicerColorLogic* qSlicerIsodoseModuleWidgetPrivate::colorLogic() const
@@ -135,7 +135,7 @@ void qSlicerIsodoseModuleWidget::setMRMLScene(vtkMRMLScene* scene)
     {
       this->setParameterNode(node);
     }
-    else 
+    else
     {
       vtkMRMLNode* newNode = this->mrmlScene()->AddNewNodeByClass("vtkMRMLIsodoseNode");
       this->setParameterNode(newNode);
@@ -189,7 +189,7 @@ void qSlicerIsodoseModuleWidget::onEnter()
     {
       this->setParameterNode(node);
     }
-    else 
+    else
     {
       vtkMRMLNode* newNode = this->mrmlScene()->AddNewNodeByClass("vtkMRMLIsodoseNode");
       if (newNode)
@@ -236,10 +236,9 @@ void qSlicerIsodoseModuleWidget::updateWidgetFromMRML()
       vtkMRMLColorLegendDisplayNode* clNode = d->colorLogic()->GetColorLegendDisplayNode(d->IsodoseNode->GetIsosurfacesModelNode());
       if (clNode)
       {
-        qvtkReconnect( clNode, d->ColorLegendNode, vtkCommand::ModifiedEvent,
-          this, SLOT(updateColorLegendFromMRML()));
+        qvtkReconnect( clNode, d->ColorLegendNode, vtkCommand::ModifiedEvent, this, SLOT(updateColorLegendFromMRML()));
         d->ColorLegendNode = clNode;
-        // Update color legend display widget 
+        // Update color legend display widget
         this->updateColorLegendFromMRML();
       }
       else
@@ -481,7 +480,7 @@ void qSlicerIsodoseModuleWidget::setNumberOfLevels(int newNumber)
 void qSlicerIsodoseModuleWidget::showDoseVolumesOnlyCheckboxChanged(int aState)
 {
   Q_D(qSlicerIsodoseModuleWidget);
-  
+
   if (!this->mrmlScene())
   {
     qCritical() << Q_FUNC_INFO << ": Invalid scene";
@@ -528,7 +527,7 @@ void qSlicerIsodoseModuleWidget::setRelativeIsolevelsFlag(bool useRelativeIsolev
   d->IsodoseNode->DisableModifiedEventOff();
 
   vtkMRMLIsodoseNode::DoseUnitsType doseUnits = d->IsodoseNode->GetDoseUnits();
-  
+
   // Get dose unit name and assemble scalar bar title
   QString labelHeaderTitle = QObject::tr("Label");
   switch (doseUnits)
@@ -554,10 +553,8 @@ void qSlicerIsodoseModuleWidget::setRelativeIsolevelsFlag(bool useRelativeIsolev
   d->tableView_IsodoseLevels->model()->setHeaderData( 1, Qt::Horizontal, labelHeaderTitle);
 
   // Make sure the dose volume has an associated isodose color table node
-  vtkMRMLColorTableNode* selectedColorNode = (useRelativeIsolevels) ? 
-    d->logic()->GetRelativeIsodoseColorTable(this->mrmlScene())
-    :
-    d->logic()->GetDefaultIsodoseColorTable(this->mrmlScene());
+  vtkMRMLColorTableNode* selectedColorNode =
+    useRelativeIsolevels ? d->logic()->GetRelativeIsodoseColorTable(this->mrmlScene()) : d->logic()->GetDefaultIsodoseColorTable(this->mrmlScene());
 
   // Show color table node associated to the dose volume
   d->IsodoseNode->DisableModifiedEventOn();
@@ -571,8 +568,7 @@ void qSlicerIsodoseModuleWidget::setRelativeIsolevelsFlag(bool useRelativeIsolev
   {
     d->spinBox_NumberOfLevels->setValue(selectedColorNode->GetNumberOfColors());
 
-    qvtkConnect(selectedColorNode, vtkCommand::ModifiedEvent,
-      this, SLOT(updateScalarBarsFromSelectedColorTable()));
+    qvtkConnect(selectedColorNode, vtkCommand::ModifiedEvent, this, SLOT(updateScalarBarsFromSelectedColorTable()));
     d->IsodoseColorTableNode = selectedColorNode;
   }
   else
@@ -713,9 +709,8 @@ void qSlicerIsodoseModuleWidget::applyClicked()
 
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-  // Compute the isodose surface for the selected dose volume
-  // and create color legend node if isosurfaces model node has been calculated
-  // successfully
+  // Compute the isodose surface for the selected dose volume and create color legend node if isosurfaces
+  // model node has been calculated successfully
   bool res = d->logic()->CreateIsodoseSurfaces(d->IsodoseNode);
   if (res && d->IsodoseNode->GetIsosurfacesModelNode())
   {
@@ -732,12 +727,10 @@ void qSlicerIsodoseModuleWidget::applyClicked()
       d->logic()->SetColorLegendDefaults(d->IsodoseNode);
     }
 
-    qvtkReconnect( clNode, d->ColorLegendNode, vtkCommand::ModifiedEvent,
-      this, SLOT(updateColorLegendFromMRML()));
+    qvtkReconnect( clNode, d->ColorLegendNode, vtkCommand::ModifiedEvent, this, SLOT(updateColorLegendFromMRML()));
     d->ColorLegendNode = clNode;
-    // Update color legend display widget 
+    // Update color legend display widget
     this->updateColorLegendFromMRML();
-
   }
 
   QApplication::restoreOverrideCursor();
@@ -763,9 +756,9 @@ bool qSlicerIsodoseModuleWidget::setEditedNode(
   Q_UNUSED(context);
 
   if (!vtkSlicerRtCommon::IsDoseVolumeNode(node))
-    {
+  {
     return false;
-    }
+  }
 
   d->MRMLNodeComboBox_DoseVolume->setCurrentNode(node);
   return true;
@@ -784,7 +777,7 @@ void qSlicerIsodoseModuleWidget::updateScalarBarsFromSelectedColorTable()
   if (!d->IsodoseColorTableNode)
   {
     qDebug() << Q_FUNC_INFO << ": No color table node is selected";
-    
+
     return;
   }
 
@@ -803,7 +796,7 @@ void qSlicerIsodoseModuleWidget::updateScalarBarsFromSelectedColorTable()
 
   vtkMRMLIsodoseNode::DoseUnitsType doseUnits = d->IsodoseNode->GetDoseUnits();
   bool relativeRepresentation = d->IsodoseNode->GetRelativeRepresentationFlag();
-  
+
   // Get dose unit name and assemble scalar bar title
   std::string scalarBarTitle("Isolevels");
   switch (doseUnits)
