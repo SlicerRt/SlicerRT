@@ -49,7 +49,6 @@
 
 // VTK includes
 #include <vtkColorTransferFunction.h>
-#include <vtkDecimatePro.h>
 #include <vtkGeneralTransform.h>
 #include <vtkImageChangeInformation.h>
 #include <vtkImageData.h>
@@ -613,22 +612,11 @@ bool vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     return false;
   }
 
-  scene->StartState(vtkMRMLScene::BatchProcessState);
-
-  // Get subject hierarchy item for the dose volume
-  vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
-  if (!doseShItemID)
-  {
-    vtkErrorMacro("CreateIsodoseSurfaces: Failed to get subject hierarchy item for dose volume '" << doseVolumeNode->GetName() << "'");
-    return false;
-  }
-
   // Check if that absolute of relative values
   bool relativeFlag = false;
   vtkMRMLIsodoseNode::DoseUnitsType doseUnits = parameterNode->GetDoseUnits();
   if (parameterNode->GetRelativeRepresentationFlag()
-    && (doseUnits == vtkMRMLIsodoseNode::Gy
-    || doseUnits == vtkMRMLIsodoseNode::Unknown))
+    && (doseUnits == vtkMRMLIsodoseNode::Gy || doseUnits == vtkMRMLIsodoseNode::Unknown))
   {
     relativeFlag = true;
   }
@@ -661,7 +649,7 @@ bool vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
     break;
   }
 
-  // force percentage dose units for relative isodose representation
+  // Force percentage dose units for relative isodose representation
   if (relativeFlag)
   {
     doseUnitName = "%";
@@ -707,7 +695,10 @@ bool vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   // Report progress
   ++currentProgressStep;
   double progress = (double)(currentProgressStep) / (double)progressStepCount;
-  this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progress);
+  if (!parameterNode->GetRealTime())
+  {
+    this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progress);
+  }
 
   // reference value for relative representation
   double referenceValue = parameterNode->GetReferenceDoseValue();
@@ -718,7 +709,6 @@ bool vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
   colors->SetNumberOfComponents(1);
   colors->SetName("isolevels");
 
-  bool res = true;
   for (int i = 0; i < colorTableNode->GetNumberOfColors(); i++)
   {
     const char* strIsoLevel = colorTableNode->GetColorName(i);
@@ -748,18 +738,9 @@ bool vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
       triangleFilter->SetInputData(marchingCubes->GetOutput());
       triangleFilter->Update();
 
-      vtkNew<vtkDecimatePro> decimate;
-      decimate->SetInputData(triangleFilter->GetOutput());
-      decimate->SetTargetReduction(0.6);
-      decimate->SetFeatureAngle(60);
-      decimate->SplittingOff();
-      decimate->PreserveTopologyOn();
-      decimate->SetMaximumError(1);
-      decimate->Update();
-
       vtkNew<vtkWindowedSincPolyDataFilter> smootherSinc;
       smootherSinc->SetPassBand(0.1);
-      smootherSinc->SetInputData(decimate->GetOutput() );
+      smootherSinc->SetInputData(triangleFilter->GetOutput());
       smootherSinc->SetNumberOfIterations(2);
       smootherSinc->FeatureEdgeSmoothingOff();
       smootherSinc->BoundarySmoothingOff();
@@ -785,75 +766,84 @@ bool vtkSlicerIsodoseModuleLogic::CreateIsodoseSurfaces(vtkMRMLIsodoseNode* para
       {
         colors->InsertNextTuple1(static_cast<float>(isoLevel));
       }
+
       append->AddInputData(isoSurface);
     }
 
     // Report progress
     ++currentProgressStep;
     progress = (double)(currentProgressStep) / (double)progressStepCount;
-    this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progress);
+    if (!parameterNode->GetRealTime())
+    {
+      this->InvokeEvent(vtkSlicerRtCommon::ProgressUpdated, (void*)&progress);
+    }
   } // For all isodose levels
 
-  // update appended isosurfaces
+  // Create or update isodose model node
   append->Update();
-
-  // create or update display node
   vtkPolyData* isoSurfaces = append->GetOutput();
-  if (isoSurfaces)
+  vtkMRMLModelNode* isodoseModelNode = parameterNode->GetIsosurfacesModelNode();
+  if (isoSurfaces != nullptr && isoSurfaces->GetNumberOfPoints() > 0)
   {
-    isoSurfaces->GetPointData()->SetScalars(colors);
-
-    std::string tempname = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_POSTFIX;
-    std::string uniqueName = scene->GenerateUniqueName(tempname.c_str());
-    vtkMRMLModelNode* isodoseModelNode = vtkMRMLModelNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLModelNode", uniqueName));
     if (!isodoseModelNode)
     {
-      vtkErrorMacro("CreateIsodoseSurfaces: Failed to create isodose lines model node");
-      return false;
+      // Create and setup isodose model node if not created yet
+      std::string baseName = std::string(doseVolumeNode->GetName()) + vtkSlicerIsodoseModuleLogic::ISODOSE_MODEL_NODE_NAME_POSTFIX;
+      std::string uniqueName = scene->GenerateUniqueName(baseName.c_str());
+      isodoseModelNode = vtkMRMLModelNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLModelNode", uniqueName));
+      isodoseModelNode->SetSelectable(1);
+      isodoseModelNode->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1"); // The attribute above distinguishes isodoses from regular models
+      isodoseModelNode->CreateDefaultDisplayNodes();
+
+      // Add the new node as a child of dose volume
+      vtkIdType isodoseModelItemID = shNode->GetItemByDataNode(isodoseModelNode);
+      if (isodoseModelItemID) // There is no automatic SH creation in automatic tests
+      {
+        // Get subject hierarchy item for the dose volume
+        vtkIdType doseShItemID = shNode->GetItemByDataNode(doseVolumeNode);
+        if (doseShItemID)
+        {
+          shNode->SetItemParent(isodoseModelItemID, doseShItemID);
+        }
+      }
+
+      vtkMRMLModelDisplayNode* displayNode = isodoseModelNode->GetModelDisplayNode();
+      displayNode->SetBackfaceCulling(0); // Disable backface culling to make the back side of the model visible as well
+      displayNode->Visibility2DOn();
+      displayNode->VisibilityOn();
+      displayNode->SetActiveScalarName("isolevels");
+      displayNode->SetAutoScalarRange(true);
+      displayNode->SetAndObserveColorNodeID(colorTableNode->GetID());
+      displayNode->SetScalarVisibility(true);
+
+      // Set and observe a newly created isosurfaces node
+      parameterNode->SetAndObserveIsosurfacesModelNode(isodoseModelNode);
     }
-    // Set and observe a newly created isosurfaces node
-    parameterNode->SetAndObserveIsosurfacesModelNode(isodoseModelNode);
 
-    vtkMRMLModelDisplayNode* displayNode = vtkMRMLModelDisplayNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLModelDisplayNode"));
-    if (!displayNode)
-    {
-      vtkErrorMacro("CreateIsodoseSurfaces: Failed to create isodose lines model display node");
-      return false;
-    }
-    isodoseModelNode->SetAndObserveDisplayNodeID(displayNode->GetID());
-
-    // Disable backface culling to make the back side of the model visible as well
-    displayNode->SetBackfaceCulling(0);
-
-    displayNode->Visibility2DOn();
-    displayNode->VisibilityOn();
-    displayNode->SetActiveScalarName("isolevels");
-    displayNode->SetAutoScalarRange(true);
-    displayNode->SetAndObserveColorNodeID(colorTableNode->GetID());
-    displayNode->SetScalarVisibility(true);
-
-    isodoseModelNode->SetSelectable(1);
-    isodoseModelNode->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_ISODOSE_MODEL_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1"); // The attribute above distinguishes isodoses from regular models
+    isoSurfaces->GetPointData()->SetScalars(colors);
     isodoseModelNode->SetAndObservePolyData(isoSurfaces);
 
-    // Put the new node as a child of dose volume
-    vtkIdType isodoseModelItemID = shNode->GetItemByDataNode(isodoseModelNode);
-    if (isodoseModelItemID) // There is no automatic SH creation in automatic tests 
-    {
-      shNode->SetItemParent(isodoseModelItemID, doseShItemID);
-    }
-
     // Update dose color table based on isodose
-    this->UpdateDoseColorTableFromIsodose(parameterNode);
+    if (!parameterNode->GetRealTime())
+    {
+      this->UpdateDoseColorTableFromIsodose(parameterNode);
+    }
   }
-  else
+  else // Appended isosurfaces polydata is null or empty
   {
-    vtkErrorMacro("CreateIsodoseSurfaces: Failed to create isosurfaces for dose volume " << doseVolumeNode->GetName());
-    res = false;
+    if (isodoseModelNode != nullptr)
+    {
+      vtkNew<vtkPolyData> emptyPolyData;
+      isodoseModelNode->SetAndObservePolyData(emptyPolyData);
+    }
+    if (!parameterNode->GetRealTime())
+    {
+      vtkErrorMacro("CreateIsodoseSurfaces: Failed to create isosurfaces for dose volume " << doseVolumeNode->GetName());
+    }
+    return false;
   }
 
-  scene->EndState(vtkMRMLScene::BatchProcessState);
-  return res;
+  return true;
 }
 
 //---------------------------------------------------------------------------

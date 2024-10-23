@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -44,19 +44,19 @@ public:
   vtkTypeMacro(vtkMRMLIsodoseNode, vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  /// Create instance of a GAD node. 
+  /// Create instance of a GAD node.
   vtkMRMLNode* CreateNodeInstance() override;
 
-  /// Set node attributes from name/value pairs 
+  /// Set node attributes from name/value pairs
   void ReadXMLAttributes(const char** atts) override;
 
-  /// Write this node's information to a MRML file in XML format. 
+  /// Write this node's information to a MRML file in XML format.
   void WriteXML(ostream& of, int indent) override;
 
-  /// Copy the node's attributes to this object 
+  /// Copy the node's attributes to this object
   void Copy(vtkMRMLNode *node) override;
 
-  /// Get unique node XML tag name (like Volume, Model) 
+  /// Get unique node XML tag name (like Volume, Model)
   const char* GetNodeTagName() override { return "Isodose"; };
 
 public:
@@ -79,29 +79,47 @@ public:
   vtkGetMacro(ShowIsodoseLines, bool);
   vtkSetMacro(ShowIsodoseLines, bool);
   vtkBooleanMacro(ShowIsodoseLines, bool);
+  //@}
 
+  //@{
   /// Get/Set show isodose surfaces checkbox state
   vtkGetMacro(ShowIsodoseSurfaces, bool);
   vtkSetMacro(ShowIsodoseSurfaces, bool);
   vtkBooleanMacro(ShowIsodoseSurfaces, bool);
+  //@}
 
+  //@{
   /// Get/Set show dose volumes only checkbox state
   vtkGetMacro(ShowDoseVolumesOnly, bool);
   vtkSetMacro(ShowDoseVolumesOnly, bool);
   vtkBooleanMacro(ShowDoseVolumesOnly, bool);
+  //@}
 
+  //@{
   /// Get/Set reference dose value
   vtkGetMacro(ReferenceDoseValue, double);
   vtkSetMacro(ReferenceDoseValue, double);
+  //@}
 
+  //@{
   /// Get/Set dose units type
   vtkGetMacro(DoseUnits, DoseUnitsType);
   vtkSetMacro(DoseUnits, DoseUnitsType);
+  //@}
 
+  //@{
   /// Get/Set relative representation flag
   vtkGetMacro(RelativeRepresentationFlag, bool);
   vtkSetMacro(RelativeRepresentationFlag, bool);
   vtkBooleanMacro(RelativeRepresentationFlag, bool);
+  //@}
+
+  //@{
+  /// Get/Set real time flag
+  vtkGetMacro(RealTime, bool);
+  vtkSetMacro(RealTime, bool);
+  vtkBooleanMacro(RealTime, bool);
+  //@}
 
 protected:
   vtkMRMLIsodoseNode();
@@ -114,23 +132,30 @@ protected:
   void SetDoseUnits(int id);
 
   /// State of Show isodose lines checkbox
-  bool ShowIsodoseLines;
+  bool ShowIsodoseLines{true};
 
   /// State of Show isodose surfaces checkbox
-  bool ShowIsodoseSurfaces;
+  bool ShowIsodoseSurfaces{true};
 
   /// State of Show dose volumes only checkbox
-  bool ShowDoseVolumesOnly;
+  bool ShowDoseVolumesOnly{true};
 
   /// Type of dose units
-  DoseUnitsType DoseUnits;
+  DoseUnitsType DoseUnits{DoseUnitsType::Unknown};
 
   /// Reference dose value
-  double ReferenceDoseValue;
+  double ReferenceDoseValue{-1.};
 
   /// Whether use relative isolevels representation
   /// for absolute dose (Gy) and unknown units or not
-  bool RelativeRepresentationFlag;
+  bool RelativeRepresentationFlag{false};
+
+  /// Flag supporting real time applications, when there is strictly one set of isodose surfaces.
+  /// When this flag is enabled, the following functions are prevented: use of subject hierarchy to organize the isodose
+  /// model nodes, reporting of progress, batch processing, and update of dose color table from the isodose one.
+  /// Instead, top-level isodose model nodes are re-used (by node name) at every computation. It is useful when isodose is needed
+  /// to be computed on-the-fly for streamed dose data, when one set of isodose surfaces is all that is needed to be kept and displayed.
+  bool RealTime{false};
 };
 
 #endif
