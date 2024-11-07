@@ -22,7 +22,16 @@
 #include "qMRMLObjectivesTableWidget.h"
 #include "ui_qMRMLObjectivesTableWidget.h"
 
+// Optimization Engine includes
+#include "qSlicerPlanOptimizerPluginHandler.h"
+#include "qSlicerAbstractPlanOptimizer.h"
+#include "qSlicerPlanOptimizerLogic.h"
+
+// Beams includes
 #include "vtkMRMLRTPlanNode.h"
+
+// MRML includes
+#include <vtkMRMLObjectiveNode.h>
 
 // VTK includes
 #include <vtkWeakPointer.h>
@@ -55,12 +64,14 @@ class qMRMLObjectivesTableWidgetPrivate: public Ui_qMRMLObjectivesTableWidget
    int columnIndex(QString label);
 
  public:
-   /// RT plan MRML node containing shown beams
+   /// RT plan MRML node
    vtkWeakPointer<vtkMRMLRTPlanNode> PlanNode;
 
  private:
    QStringList ColumnLabels;
 };
+
+
 
 //-----------------------------------------------------------------------------
 qMRMLObjectivesTableWidgetPrivate::qMRMLObjectivesTableWidgetPrivate(qMRMLObjectivesTableWidget& object)
@@ -140,6 +151,43 @@ qMRMLObjectivesTableWidget::qMRMLObjectivesTableWidget(QWidget* _parent) //const
 qMRMLObjectivesTableWidget::~qMRMLObjectivesTableWidget() = default;
 
 
+//-----------------------------------------------------------------------------
+void qMRMLObjectivesTableWidget::setPlanNode(vtkMRMLNode* node)
+{
+    Q_D(qMRMLObjectivesTableWidget);
+
+    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(node);
+
+    // Connect plan modified events to population of the table
+    qvtkReconnect(d->PlanNode, planNode, vtkCommand::ModifiedEvent, this, SLOT(updateObjectivesTable()));
+
+    if (planNode)
+    {
+        //// Connect beam added and removed events
+        //qvtkReconnect(d->PlanNode, planNode, vtkMRMLRTPlanNode::BeamAdded, this, SLOT(onBeamAdded(vtkObject*, void*)));
+        //qvtkReconnect(d->PlanNode, planNode, vtkMRMLRTPlanNode::BeamRemoved, this, SLOT(onBeamRemoved(vtkObject*, void*)));
+
+        //// Connect modified events of contained beam nodes to update table
+        //std::vector<vtkMRMLRTBeamNode*> beams;
+        //planNode->GetBeams(beams);
+        //for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
+        //{
+        //    vtkMRMLRTBeamNode* beamNode = (*beamIt);
+        //    qvtkConnect(beamNode, vtkCommand::ModifiedEvent, this, SLOT(updateBeamTable()));
+        //}
+    }
+
+    d->PlanNode = planNode;
+    this->updateObjectivesTable();
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLNode* qMRMLObjectivesTableWidget::planNode()
+{
+    Q_D(qMRMLObjectivesTableWidget);
+
+    return d->PlanNode;
+}
 
 //------------------------------------------------------------------------------
 void qMRMLObjectivesTableWidget::onObjectiveAdded()
@@ -149,20 +197,27 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
     int row = d->ObjectivesTable->rowCount();
     d->ObjectivesTable->insertRow(row);
 
-    // call available objectives
-    
-
-
     // TODO: adjust numbers when row removed
     // Create index for new row
     QTableWidgetItem* numberItem = new QTableWidgetItem(QString::number(row + 1));
     d->ObjectivesTable->setItem(row, d->columnIndex("Number"), numberItem);
 
+
+    // call available objectives
+    vtkMRMLRTPlanNode* planNode = d->PlanNode;
+    qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
+    std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives = selectedEngine->getAvailableObjectives();
+
     // Objectives (dropdown menu)
     QComboBox* objectivesDropdown = new QComboBox();
-    QStringList objectives = {"Objective 1", "Objective 2", "Objective 3"}; // Example objectives
+    QStringList objectives;
+    for (auto objective : availableObjectives)
+    {
+        objectives.push_back(objective->GetName());
+    }
     objectivesDropdown->addItems(objectives);
     d->ObjectivesTable->setCellWidget(row, 1, objectivesDropdown);
+
 
     // Edit button
     QPushButton* editButton = new QPushButton("Edit");
@@ -233,6 +288,10 @@ void qMRMLObjectivesTableWidget::adjustRowLayout(int index, int row)
     default:
       break;
   }
+}
+
+void qMRMLObjectivesTableWidget::updateObjectivesTable()
+{
 }
 
 //------------------------------------------------------------------------------

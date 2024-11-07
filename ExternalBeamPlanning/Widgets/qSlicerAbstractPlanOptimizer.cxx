@@ -166,7 +166,12 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
 
 std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> qSlicerAbstractPlanOptimizer::getAvailableObjectives()
 {
-    return std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>>();
+    return this->availableObjectives;
+}
+
+void qSlicerAbstractPlanOptimizer::setAvailableObjectives()
+{
+    qCritical() << Q_FUNC_INFO << ": no available Objectives ";
 }
 
 

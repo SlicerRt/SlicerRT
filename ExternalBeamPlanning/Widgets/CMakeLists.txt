@@ -10,8 +10,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerDoseAccumulationModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerSegmentationsModuleLogic_INCLUDE_DIRS}
+  ${vtkSlicerExternalBeamPlanningModuleLogic_INCLUDE_DIRS}
   ${qSlicerBeamsModuleWidgets_INCLUDE_DIRS}
-
   )
 
 set(${KIT}_SRCS
@@ -80,6 +80,8 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerSegmentationsModuleLogic
   vtkSlicerIsodoseModuleLogic
   vtkSlicerDoseAccumulationModuleLogic
+  vtkSlicerExternalBeamPlanningModuleLogic
+  vtkSlicerExternalBeamPlanningModuleMRML
   qSlicerBeamsModuleWidgets
   )
 
@@ -91,6 +93,7 @@ set(${KIT}_INCLUDE_DIRS
   ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerDoseAccumulationModuleLogic_INCLUDE_DIRS}
   ${qSlicerBeamsModuleWidgets_INCLUDE_DIRS}
+  ${vtkSlicerExternalBeamPlanningModuleLogic_INCLUDE_DIRS}
   CACHE INTERNAL "" FORCE)
 
 #-----------------------------------------------------------------------------

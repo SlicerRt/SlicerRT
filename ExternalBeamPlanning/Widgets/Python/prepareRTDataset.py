@@ -1,5 +1,6 @@
 import numpy as np
 import slicer
+from pyRadPlan.ct import validate_ct
 
 
 def prepareCt(beamNode, temp_path):
@@ -14,6 +15,8 @@ def prepareCt(beamNode, temp_path):
     cubeHU = np.empty((1, 1), dtype=object)
     cubeHU[0,0] = np.double(np.transpose(slicer.util.arrayFromVolume(referenceVolumeNode),(1,2,0)))
 
+
+
     ct = {
         'resolution':{
             'x': referenceVolumeNode.GetSpacing()[0],
@@ -24,6 +27,8 @@ def prepareCt(beamNode, temp_path):
         'numOfCtScen': 1,
         'cubeHU': cubeHU
     }
+
+    
 
     origin=referenceVolumeNode.GetOrigin()
 
