@@ -25,6 +25,8 @@
 
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
+
+
 #include <vtkSmartPointer.h>
 
 #include <vtkMRMLObjectiveNode.h>
@@ -68,7 +70,7 @@ public:
   void setName(QString name) override;
 
   /// Get the available objectives for the optimizer
-  virtual std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getAvailableObjectives();
+  virtual void setAvailableObjectives();
   /// Set the available objectives for the optimizer
   //virtual void setAvailableObjectives(std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives);
 

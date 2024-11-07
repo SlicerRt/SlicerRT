@@ -73,7 +73,9 @@ public:
   QString optimizePlan(vtkMRMLRTPlanNode* planNode);
 
   /// Get available objectives for the Optimization engine
-  virtual std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getAvailableObjectives();
+  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getAvailableObjectives();
+  /// Set available objectives for the Optimization engine
+  virtual void setAvailableObjectives();
 
 // API functions to implement in the subclass
 protected:
@@ -99,6 +101,8 @@ protected:
 
 protected:
   QScopedPointer<qSlicerAbstractPlanOptimizerPrivate> d_ptr;
+
+  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives;
 
 
 private:

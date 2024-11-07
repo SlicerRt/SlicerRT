@@ -383,6 +383,9 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
   // Set plan node in beams table
   d->BeamsTableView->setPlanNode(planNode);
 
+  // Set plan node in objectives table
+  d->ObjectivesTableWidget->setPlanNode(planNode);
+
   // Each time the node is modified, the qt widgets are updated
   qvtkReconnect(planNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
   qvtkReconnect(planNode, vtkMRMLRTPlanNode::IsocenterModifiedEvent, this, SLOT(updateIsocenterPosition()));
@@ -1356,11 +1359,7 @@ void qSlicerExternalBeamPlanningModuleWidget::PlanOptimizerChanged(const QString
   planNode->SetPlanOptimizerName(selectedEngine->name().toUtf8().constData());
   planNode->DisableModifiedEventOff();
   
-
-  //std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives = selectedEngine->getAvailableObjectives();
-  //for (vtkMRMLObjectiveNode* objective : objectives) {
-  //    std::cout << objective->GetName() << std::endl;
-  //}
+  selectedEngine->setAvailableObjectives();
 }
 
 //-----------------------------------------------------------------------------

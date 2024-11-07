@@ -38,6 +38,7 @@
 // VTK includes
 #include <vtkSmartPointer.h>
 #include <vtkPythonUtil.h>
+#include <vtkCollection.h>
 
 // Qt includes
 #include <QDebug>
@@ -216,24 +217,24 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
 
 
 //-----------------------------------------------------------------------------
-std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> qSlicerScriptedPlanOptimizer::getAvailableObjectives()
+void qSlicerScriptedPlanOptimizer::setAvailableObjectives()
 {
    std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives;
 
-   //vtkSmartPointer<vtkMRMLObjectiveNode> objective1 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
-   //vtkSmartPointer<vtkMRMLObjectiveNode> objective2 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
+   vtkSmartPointer<vtkMRMLObjectiveNode> objective1 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
+   vtkSmartPointer<vtkMRMLObjectiveNode> objective2 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
 
-   //objective1->SetName("Objective 1");
-   //objective2->SetName("Objective 2");
+   objective1->SetName("pyRad objective 1");
+   objective2->SetName("pyRad objective 2");
 
-   //if (objective1) {
-   //    objectives.push_back(objective1);
-   //}
-   //if (objective2) {
-   //    objectives.push_back(objective2);
-   //}
+   if (objective1) {
+       objectives.push_back(objective1);
+   }
+   if (objective2) {
+       objectives.push_back(objective2);
+   }
 
-   return objectives;
+   this->availableObjectives = objectives;
 }
 //
 //void qSlicerScriptedPlanOptimizer::setAvailableObjectives(std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives)

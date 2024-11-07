@@ -29,6 +29,10 @@
 // MRMLWidgets includes
 #include "qMRMLWidget.h"
 
+// CTK includes
+//#include <ctkPimpl.h>
+#include <ctkVTKObject.h>
+
 class qMRMLObjectivesTableWidgetPrivate;
 class vtkMRMLNode;
 //class QTableWidget;
@@ -38,6 +42,7 @@ class QItemSelection;
 class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qMRMLObjectivesTableWidget : public qMRMLWidget
 {
   Q_OBJECT
+  QVTK_OBJECT
 
 public:
   typedef qMRMLWidget Superclass;
@@ -46,9 +51,14 @@ public:
   /// Destructor
   ~qMRMLObjectivesTableWidget() override;
 
-  // Public methods for interacting with the widget
+  /// Get plan MRML node
+  Q_INVOKABLE vtkMRMLNode* planNode();
+
 
 public slots:
+  /// Set plan MRML node
+  Q_INVOKABLE void setPlanNode(vtkMRMLNode* node);
+
   /// Called when objective is added in an observed plan node
   void onObjectiveAdded();
 
@@ -63,6 +73,9 @@ public slots:
 protected slots:
   /// Handle edit button click. Switches to Beams module and selects beam
   void onEditButtonClicked();
+
+  /// Update beam table according to the plan node
+  void updateObjectivesTable();
 
 
 protected:
