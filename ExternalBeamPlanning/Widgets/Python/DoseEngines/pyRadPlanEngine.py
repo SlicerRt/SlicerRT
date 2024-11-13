@@ -43,7 +43,8 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         self.scriptedEngine.addBeamParameterComboBox('pyRadPlan parameters','machine','machine','comment',['generic'],0)      
 
     def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):
-        
+
+        ############################### SLICER: change os path to pyRadPlan ####################################
         # TODO: Avoid Hardcoded Information here
         os.chdir('C:/l868r/pyRadPlan')
         sys.path.append('C:/l868r/pyRadPlan')
@@ -155,9 +156,14 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
     
     def calculateDoseInfluenceMatrixUsingEngine(self, beamNode):
+
+        ########################## SLICER: change os path to pyRadPlan & imports #############ä#################
         # TODO: Avoid Hardcoded Information here
         os.chdir('C:/l868r/pyRadPlan')
         sys.path.append('C:/l868r/pyRadPlan')
+
+        import coo_matrix
+        import read_mat
 
 
         ##################################### PYRAD: import libraries ##########################################
@@ -230,7 +236,13 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         # Once the run is finished, loading all the .mat files generated (cst, ct, pln, resultGUI, stf)
         # in Matlab will allow the user to run the function matRadGUI and visualize the plan.
 
-            
+
+        ############################## SLICER: load optimized dose to Slicer ####################################
+
+        # optimize storage such that we don't have multiple instances in memory
+        # we use a coo matrix here as it is the most efficient way to get the matrix into slicer
+        dose_matrix = coo_matrix(optimizer.dOpt)
+
         beamNode.SetDoseInfluenceMatrixFromTriplets(dose_matrix.shape[0], dose_matrix.shape[1],dose_matrix.row, dose_matrix.col, dose_matrix.data)
 
         return str() #return empty string to indicate success
