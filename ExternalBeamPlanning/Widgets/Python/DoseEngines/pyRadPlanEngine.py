@@ -59,6 +59,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         import pyRadPlan.dose as dose
         from pyRadPlan.optimization._fluenceOptimizer import FluenceOptimizer
         from pyRadPlan.patients._patient_loader import PatientLoader
+        from pyRadPlan.stf import StfGeneratorIMPT
 
         # Ignore deprication warnings
         # np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
@@ -83,7 +84,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         ct = prepareCt(beamNode, self.temp_path)
 
         # Prepare the cst (segmentations)
-        cst = prepareCst(beamNode, self.temp_path)
+        cst = prepareCst(beamNode, ct, self.temp_path)
 
         # Prepare the plan configuration
         pln = preparePln(beamNode, self.temp_path)
@@ -103,8 +104,8 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         # changes can be found in the respective matRad functions.
 
         # Used for the class-based implementation
-        s = stf.photons.StfGeneratorPhotonBixel(ct, cst, pln)
-        stf = s.generate()
+        stfgen = StfGeneratorIMPT(pln)
+        stf = stfgen.generate(ct, cst)
 
         # doseInit = dose.calcDoseInit(ct, cst, stf, pln)  # Testing native dose engine
 
@@ -162,8 +163,8 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         os.chdir('C:/l868r/pyRadPlan')
         sys.path.append('C:/l868r/pyRadPlan')
 
-        import coo_matrix
-        import read_mat
+        from scipy.sparse import coo_matrix
+        from scipy.io import loadmat as read_mat
 
 
         ##################################### PYRAD: import libraries ##########################################
@@ -176,6 +177,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         import pyRadPlan.dose as dose
         from pyRadPlan.optimization._fluenceOptimizer import FluenceOptimizer
         from pyRadPlan.patients._patient_loader import PatientLoader
+        from pyRadPlan.stf import StfGeneratorIMPT
 
         # Ignore deprication warnings
         # np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
@@ -194,13 +196,13 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         ct = prepareCt(beamNode, self.temp_path)
 
         # Prepare the cst (segmentations)
-        cst = prepareCst(beamNode, self.temp_path)
+        cst = prepareCst(beamNode, ct,  self.temp_path)
 
         # Prepare the plan configuration
         pln = preparePln(beamNode, self.temp_path)
 
 
-        ##################################### PYRAD: generate stf ###############################################
+        ############################ PYRAD: validate ct, cst , pln & generate stf ################################
 
         # Creates a validated pln pydantic dataclass from the dictionary
         pln = create_pln(pln)
@@ -214,8 +216,8 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         # changes can be found in the respective matRad functions.
 
         # Used for the class-based implementation
-        s = stf.photons.StfGeneratorPhotonBixel(ct, cst, pln)
-        stf = s.generate()
+        stfgen = StfGeneratorIMPT(pln)
+        stf = stfgen.generate(ct, cst)
 
         # doseInit = dose.calcDoseInit(ct, cst, stf, pln)  # Testing native dose engine
 
@@ -228,21 +230,17 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         elif pln["radiationMode"] == "protons" or pln["radiationMode"] == "carbon":
             dose.calcParticleDose(ct, stf, pln, cst)
 
-        optimizer = FluenceOptimizer(cst, ct, pln)
-        optimizer.solve()
 
-        matRadIO.save(os.path.join(self.temp_path, "physicalDose.mat"), {"physicalDose": optimizer.dOpt})
+        ################################ SLICER: load dose to beamNode #######################################
 
-        # Once the run is finished, loading all the .mat files generated (cst, ct, pln, resultGUI, stf)
-        # in Matlab will allow the user to run the function matRadGUI and visualize the plan.
-
-
-        ############################## SLICER: load optimized dose to Slicer ####################################
+        dose_path = os.path.join(self.temp_path,'dij.mat')
+        dij_mat = read_mat(dose_path)  # keeping read_mat here for now
 
         # optimize storage such that we don't have multiple instances in memory
         # we use a coo matrix here as it is the most efficient way to get the matrix into slicer
-        dose_matrix = coo_matrix(optimizer.dOpt)
+        dose_matrix = coo_matrix(dij_mat['dij']['physicalDose'])
 
         beamNode.SetDoseInfluenceMatrixFromTriplets(dose_matrix.shape[0], dose_matrix.shape[1],dose_matrix.row, dose_matrix.col, dose_matrix.data)
 
         return str() #return empty string to indicate success
+    
