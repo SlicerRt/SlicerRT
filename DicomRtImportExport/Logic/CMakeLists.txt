@@ -37,7 +37,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerIsodoseModuleLogic
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
-  ${DCMTK_LIBRARIES}
+#  ${DCMTK_LIBRARIES}
   vtkSlicerVolumesModuleLogic
   vtkSlicerBeamsModuleLogic
   vtkSlicerPlanarImageModuleLogic
