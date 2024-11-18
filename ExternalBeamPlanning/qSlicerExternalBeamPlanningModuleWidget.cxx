@@ -707,14 +707,7 @@ void qSlicerExternalBeamPlanningModuleWidget::isocenterCoordinatesChanged(double
   // If isocenter specification is CenterOfTarget, then reset it to previous isocenter
   if (planNode->GetIsocenterSpecification() == vtkMRMLRTPlanNode::CenterOfTarget)
   {
-    double isocenter[3] = {0.0,0.0,0.0};
-    if (!planNode->GetIsocenterPosition(isocenter))
-    {
-      qCritical() << Q_FUNC_INFO << ": Failed to get plan isocenter for plan " << planNode->GetName();
-    }
-    d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(true);
-    d->MRMLCoordinatesWidget_IsocenterCoordinates->setCoordinates(isocenter);
-    d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(false);
+    this->updateIsocenterPosition();
   }
   else // Otherwise (if ArbitraryPoint) set coordinates as isocenter position
   {

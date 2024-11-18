@@ -42,7 +42,6 @@
 #include <vtkMRMLSubjectHierarchyNode.h>
 
 // SlicerRT MRML includes
-#include <vtkMRMLRTPlanNode.h>
 #include <vtkMRMLRTBeamNode.h>
 #include <vtkMRMLRTIonBeamNode.h>
 
@@ -109,10 +108,10 @@ vtkSlicerMLCPositionLogic::~vtkSlicerMLCPositionLogic()
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerMLCPositionLogic::PrintSelf( ostream& os, vtkIndent indent)
+void vtkSlicerMLCPositionLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   os << indent << "vtkSlicerModuleLogic:     " << this->GetClassName() << "\n";
-  this->Superclass::PrintSelf( os, indent);
+  this->Superclass::PrintSelf(os, indent);
 }
 
 //---------------------------------------------------------------------------
@@ -123,7 +122,7 @@ void vtkSlicerMLCPositionLogic::SetMRMLSceneInternal(vtkMRMLScene* newScene)
   events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::EndBatchProcessEvent);
   events->InsertNextValue(vtkMRMLScene::EndCloseEvent);
-  this->SetAndObserveMRMLSceneEventsInternal( newScene, events.GetPointer());
+  this->SetAndObserveMRMLSceneEventsInternal(newScene, events.GetPointer());
 }
 
 //-----------------------------------------------------------------------------
@@ -154,7 +153,7 @@ void vtkSlicerMLCPositionLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* vtkNotUsed(nod
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLMarkupsCurveNode* vtkSlicerMLCPositionLogic::CalculatePositionConvexHullCurve( 
+vtkMRMLMarkupsCurveNode* vtkSlicerMLCPositionLogic::CalculatePositionConvexHullCurve(
   vtkMRMLRTBeamNode* beamNode, vtkPolyData* targetPoly, bool parallelBeam)
 {
   if (!beamNode)
@@ -198,36 +197,36 @@ vtkMRMLMarkupsCurveNode* vtkSlicerMLCPositionLogic::CalculatePositionConvexHullC
 
   if (parallelBeam)
   {
-    for( vtkIdType i = 0; i < targetPolyBeamFrame->GetNumberOfPoints(); i++)
+    for (vtkIdType i = 0; i < targetPolyBeamFrame->GetNumberOfPoints(); i++)
     {
       double projectedPoint[4] = {}; // projected point in isocenter plane coordinates
 
-      targetPolyBeamFrame->GetPoint( i, projectedPoint);
+      targetPolyBeamFrame->GetPoint(i, projectedPoint);
 
       // projection on XY plane of BEAM LIMITING DEVICE frame
-      points->InsertPoint( i, projectedPoint[0], projectedPoint[1], 0.0);
+      points->InsertPoint(i, projectedPoint[0], projectedPoint[1], 0.0);
     }
   }
   else
   {
     vtkNew<vtkPlane> projectionPlane;
-    projectionPlane->SetOrigin( 0., 0., 0.);
-    projectionPlane->SetNormal( 0., 0., 1.);
-    for( vtkIdType i = 0; i < targetPolyBeamFrame->GetNumberOfPoints(); i++)
+    projectionPlane->SetOrigin(0., 0., 0.);
+    projectionPlane->SetNormal(0., 0., 1.);
+    for (vtkIdType i = 0; i < targetPolyBeamFrame->GetNumberOfPoints(); i++)
     {
       double beamFramePoint[4] = {}; // target region point in beam frame coordinates
       double t = 0.0001;
       double projectedPoint[3]; // target region point projected on plane
 
-      targetPolyBeamFrame->GetPoint( i, beamFramePoint);
+      targetPolyBeamFrame->GetPoint(i, beamFramePoint);
       
       double sourcePoint[3] = { 0., 0., -1. * beamNode->GetSAD() };
       double targetPoint[3] = { beamFramePoint[0], beamFramePoint[1], projectedPoint[2] };
 
-      if (projectionPlane->IntersectWithLine( sourcePoint, targetPoint, t, projectedPoint))
+      if (projectionPlane->IntersectWithLine(sourcePoint, targetPoint, t, projectedPoint))
       {
         // projection on XY plane of BEAM LIMITING DEVICE coordinate system
-        points->InsertPoint( i, projectedPoint[0], projectedPoint[1], 0.0);
+        points->InsertPoint(i, projectedPoint[0], projectedPoint[1], 0.0);
       }
     }
   }
@@ -237,14 +236,14 @@ vtkMRMLMarkupsCurveNode* vtkSlicerMLCPositionLogic::CalculatePositionConvexHullC
   if (zSize >= 3)
   {
     double* xyCoordinates = new double[zSize * 2]; // x and y coordinates buffer
-    points->GetCCWHullZ( xyCoordinates, zSize); // get points of convex hull on the plane
+    points->GetCCWHullZ(xyCoordinates, zSize); // get points of convex hull on the plane
 
-    for( int i = 0; i < zSize; i++)
+    for (int i = 0; i < zSize; i++)
     {
       double xval = xyCoordinates[2 * i]; // x coordinate
       double yval = xyCoordinates[2 * i + 1]; // y coordinate
 
-      vtkVector3d point( xval, yval, 0.0);
+      vtkVector3d point(xval, yval, 0.0);
       curveNode->AddControlPoint(point); // add point to the closed curve
     }
 
@@ -263,14 +262,13 @@ vtkMRMLMarkupsCurveNode* vtkSlicerMLCPositionLogic::CalculatePositionConvexHullC
 vtkMRMLTableNode* vtkSlicerMLCPositionLogic::CreateMultiLeafCollimatorTableNodeBoundaryData(
   bool mlcType, unsigned int nofLeafPairs, double leafPairSize, double isocenterOffset)
 {
-  vtkNew<vtkMRMLTableNode> tableNode;
-  this->GetMRMLScene()->AddNode(tableNode);
   const char* name = mlcType ? MLCX_BOUNDARYANDPOSITION : MLCY_BOUNDARYANDPOSITION;
-  tableNode->SetName(name);
+  vtkMRMLTableNode* tableNode = vtkMRMLTableNode::SafeDownCast(
+    this->GetMRMLScene()->AddNewNodeByClass("vtkMRMLTableNode", name));
 
   std::vector<double> leafPairsBoundary(nofLeafPairs + 1);
   double middle = leafPairSize * nofLeafPairs / 2.;
-  for( auto iter = leafPairsBoundary.begin(); iter != leafPairsBoundary.end(); ++iter)
+  for (auto iter = leafPairsBoundary.begin(); iter != leafPairsBoundary.end(); ++iter)
   {
     size_t pos = iter - leafPairsBoundary.begin();
     *iter = -middle + isocenterOffset + pos * leafPairSize;
@@ -299,28 +297,29 @@ vtkMRMLTableNode* vtkSlicerMLCPositionLogic::CreateMultiLeafCollimatorTableNodeB
   table->AddColumn(pos2Array);
 
   table->SetNumberOfRows(leafPairsBoundary.size());
-  for ( size_t row = 0; row < leafPairsBoundary.size(); ++row)
+  for (size_t row = 0; row < leafPairsBoundary.size(); ++row)
   {
-    table->SetValue( row, 0, leafPairsBoundary[row]);
+    table->SetValue(row, 0, leafPairsBoundary[row]);
   }
 
-  for ( unsigned int row = 0; row < nofLeafPairs; ++row)
+  for (unsigned int row = 0; row < nofLeafPairs; ++row)
   {
-    table->SetValue( row, 1, -20.0); // default meaningful value for side "1"
-    table->SetValue( row, 2, -20.0); // default meaningful value for side "2"
+    table->SetValue(row, 1, -20.0); // default meaningful value for side "1"
+    table->SetValue(row, 2, -20.0); // default meaningful value for side "2"
   }
-  table->SetValue( nofLeafPairs, 1, 0.); // side "1" set last unused value to zero
-  table->SetValue( nofLeafPairs, 2, 0.); // side "2" set last unused value to zero
+  table->SetValue(nofLeafPairs, 1, 0.); // side "1" set last unused value to zero
+  table->SetValue(nofLeafPairs, 2, 0.); // side "2" set last unused value to zero
 
   tableNode->SetUseColumnTitleAsColumnHeader(true);
-  tableNode->SetColumnDescription( "Boundary", "Leaf pair boundary");
-  tableNode->SetColumnDescription( "1", "Leaf position on the side \"1\"");
-  tableNode->SetColumnDescription( "2", "Leaf position on the side \"2\"");
+  tableNode->SetColumnDescription("Boundary", "Leaf pair boundary");
+  tableNode->SetColumnDescription("1", "Leaf position on the side \"1\"");
+  tableNode->SetColumnDescription("2", "Leaf position on the side \"2\"");
+
   return tableNode;
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerMLCPositionLogic::CalculateLeavesProjection( vtkMRMLRTBeamNode* beamNode, vtkMRMLTableNode* mlcTableNode)
+bool vtkSlicerMLCPositionLogic::CalculateLeavesProjection(vtkMRMLRTBeamNode* beamNode, vtkMRMLTableNode* mlcTableNode)
 {
   if (!beamNode || !mlcTableNode)
   {
@@ -345,16 +344,16 @@ bool vtkSlicerMLCPositionLogic::CalculateLeavesProjection( vtkMRMLRTBeamNode* be
   }
 
   const char* mlcName = mlcTableNode->GetName();
-  bool typeMLCY = !strncmp( "MLCY", mlcName, strlen("MLCY"));
-  bool typeMLCX = !strncmp( "MLCX", mlcName, strlen("MLCX"));
+  bool typeMLCY = !strncmp("MLCY", mlcName, strlen("MLCY"));
+  bool typeMLCX = !strncmp("MLCX", mlcName, strlen("MLCX"));
   if (typeMLCY && !typeMLCX)
   {
     typeMLCX = false;
   }
 
-  for ( int row = 0; row < mlcTable->GetNumberOfRows(); ++row)
+  for (int row = 0; row < mlcTable->GetNumberOfRows(); ++row)
   {
-    double leafBoundary = mlcTable->GetValue( row, 0).ToDouble();
+    double leafBoundary = mlcTable->GetValue(row, 0).ToDouble();
 
     vtkMRMLRTIonBeamNode* ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(beamNode);
     if (beamNode && !ionBeamNode)
@@ -369,7 +368,7 @@ bool vtkSlicerMLCPositionLogic::CalculateLeavesProjection( vtkMRMLRTBeamNode* be
       double coeff = vsad / (vsad - isocenterToMLC);
       leafBoundary *= coeff;
     }
-    mlcTable->SetValue( row, 0, leafBoundary);
+    mlcTable->SetValue(row, 0, leafBoundary);
   }
   return true;
 }
@@ -394,7 +393,7 @@ bool vtkSlicerMLCPositionLogic::UpdateMultiLeafCollimatorTableNodeBoundaryData( 
   // number of MLC boundary data = number of MLC leaf pairs + 1, see DICOM RT standard
   std::vector<double> leafPairsBoundary(nofLeafPairs + 1);
   double middle = leafPairSize * nofLeafPairs / 2.;
-  for( auto iter = leafPairsBoundary.begin(); iter != leafPairsBoundary.end(); ++iter)
+  for (auto iter = leafPairsBoundary.begin(); iter != leafPairsBoundary.end(); ++iter)
   {
     size_t pos = iter - leafPairsBoundary.begin();
     *iter = -middle + isocenterOffset + pos * leafPairSize;
@@ -418,22 +417,22 @@ bool vtkSlicerMLCPositionLogic::UpdateMultiLeafCollimatorTableNodeBoundaryData( 
   pos2Array->SetName("2");
 
   table->SetNumberOfRows(leafPairsBoundary.size()); // number of rows for MLC boundary data
-  for ( size_t row = 0; row < leafPairsBoundary.size(); ++row)
+  for (size_t row = 0; row < leafPairsBoundary.size(); ++row)
   {
-    table->SetValue( row, 0, leafPairsBoundary[row]);
+    table->SetValue(row, 0, leafPairsBoundary[row]);
   }
-  for ( unsigned int row = 0; row < nofLeafPairs; ++row)
+  for (unsigned int row = 0; row < nofLeafPairs; ++row)
   {
-    table->SetValue( row, 1, -20.0); // default meaningful value for side "1"
-    table->SetValue( row, 2, -20.0); // default meaningful value for side "2"
+    table->SetValue(row, 1, -20.0); // default meaningful value for side "1"
+    table->SetValue(row, 2, -20.0); // default meaningful value for side "2"
   }
-  table->SetValue( nofLeafPairs, 1, 0.); // side "1" set last unused value to zero
-  table->SetValue( nofLeafPairs, 2, 0.); // side "2" set last unused value to zero
+  table->SetValue(nofLeafPairs, 1, 0.); // side "1" set last unused value to zero
+  table->SetValue(nofLeafPairs, 2, 0.); // side "2" set last unused value to zero
 
   mlcTable->SetUseColumnTitleAsColumnHeader(true);
-  mlcTable->SetColumnDescription( "Boundary", "Leaf pair boundary");
-  mlcTable->SetColumnDescription( "1", "Leaf position on the side \"1\"");
-  mlcTable->SetColumnDescription( "2", "Leaf position on the side \"2\"");
+  mlcTable->SetColumnDescription("Boundary", "Leaf pair boundary");
+  mlcTable->SetColumnDescription("1", "Leaf position on the side \"1\"");
+  mlcTable->SetColumnDescription("2", "Leaf position on the side \"2\"");
   return true;
 }
 
@@ -458,7 +457,7 @@ bool vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPosition( vtkMRMLTab
   }
 
   double curveBounds[4] = {};
-  if (!nofLeafPairs || !CalculateCurveBoundary( curveNode, curveBounds))
+  if (!nofLeafPairs || !CalculateCurveBoundary(curveNode, curveBounds))
   {
     vtkErrorMacro("CalculateMultiLeafCollimatorPosition: Number of leaf pairs is zero or unable to calculate curve boundary");
     return false;
@@ -467,7 +466,7 @@ bool vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPosition( vtkMRMLTab
   vtkTable* mlcTable = mlcTableNode->GetTable();
 
   int leafPairStart = -1, leafPairEnd = -1;
-  FindLeafPairRangeIndexes( curveBounds, mlcTable, leafPairStart, leafPairEnd);
+  FindLeafPairRangeIndexes(curveBounds, mlcTable, leafPairStart, leafPairEnd);
   if (leafPairStart == -1 || leafPairEnd == -1)
   {
     vtkErrorMacro("CalculateMultiLeafCollimatorPosition: Unable to find leaves range");
@@ -483,16 +482,16 @@ bool vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPosition( vtkMRMLTab
     leafPairEnd += 1;
   }
 
-  for ( int leafPairIndex = leafPairStart; leafPairIndex <= leafPairEnd; ++leafPairIndex)
+  for (int leafPairIndex = leafPairStart; leafPairIndex <= leafPairEnd; ++leafPairIndex)
   {
     double side1 = 0.0, side2 = 0.0;
     size_t leafIndex = leafPairIndex;
 
-    if (mlcTable && FindLeafPairPositions( curveNode, mlcTableNode, leafIndex, side1, side2))
+    if (mlcTable && FindLeafPairPositions(curveNode, mlcTableNode, leafIndex, side1, side2))
     {
       // positions found
-      mlcTable->SetValue( leafIndex, 1, side1);
-      mlcTable->SetValue( leafIndex, 2, side2);
+      mlcTable->SetValue(leafIndex, 1, side1);
+      mlcTable->SetValue(leafIndex, 2, side2);
     }
   }
 
@@ -524,13 +523,13 @@ bool vtkSlicerMLCPositionLogic::CalculateCurveBoundary( vtkMRMLMarkupsCurveNode*
   double xmax = controlPoints->front()->Position[0];
   double ymin = controlPoints->front()->Position[1];
   double ymax = controlPoints->front()->Position[1];
-  for ( auto it = controlPoints->begin(); it != controlPoints->end(); ++it)
+  for (auto it = controlPoints->begin(); it != controlPoints->end(); ++it)
   {
     vtkMRMLMarkupsNode::ControlPoint* point = *it;
-    xmin = std::min( xmin, point->Position[0]);
-    xmax = std::max( xmax, point->Position[0]);
-    ymin = std::min( ymin, point->Position[1]);
-    ymax = std::max( ymax, point->Position[1]);
+    xmin = std::min(xmin, point->Position[0]);
+    xmax = std::max(xmax, point->Position[0]);
+    ymin = std::min(ymin, point->Position[1]);
+    ymax = std::max(ymax, point->Position[1]);
   }
   curveBound[0] = xmin;
   curveBound[1] = xmax;
@@ -547,10 +546,10 @@ void vtkSlicerMLCPositionLogic::FindLeafPairRangeIndexes( double* curveBound,
   leafIndexLast = -1;
   int nofLeafPairs = mlcTable->GetNumberOfRows() - 1;
 
-  for ( int leafPair = 0; leafPair < nofLeafPairs; ++leafPair)
+  for (int leafPair = 0; leafPair < nofLeafPairs; ++leafPair)
   {
-    double boundBegin = mlcTable->GetValue( leafPair, 0).ToDouble();
-    double boundEnd = mlcTable->GetValue( leafPair + 1, 0).ToDouble();
+    double boundBegin = mlcTable->GetValue(leafPair, 0).ToDouble();
+    double boundEnd = mlcTable->GetValue(leafPair + 1, 0).ToDouble();
 
     if (curveBound[0] >= boundBegin && curveBound[0] <= boundEnd)
     {
@@ -564,7 +563,7 @@ void vtkSlicerMLCPositionLogic::FindLeafPairRangeIndexes( double* curveBound,
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerMLCPositionLogic::FindLeafPairRangeIndexes( 
+void vtkSlicerMLCPositionLogic::FindLeafPairRangeIndexes(
   vtkMRMLRTBeamNode* beamNode, vtkMRMLTableNode* mlcTableNode, 
   int& leafIndexFirst, int& leafIndexLast)
 {
@@ -584,8 +583,8 @@ void vtkSlicerMLCPositionLogic::FindLeafPairRangeIndexes(
   }
 
   const char* mlcName = mlcTableNode->GetName();
-  bool typeMLCY = !strncmp( "MLCY", mlcName, strlen("MLCY"));
-  bool typeMLCX = !strncmp( "MLCX", mlcName, strlen("MLCX"));
+  bool typeMLCY = !strncmp("MLCY", mlcName, strlen("MLCY"));
+  bool typeMLCX = !strncmp("MLCX", mlcName, strlen("MLCX"));
   if (typeMLCY && !typeMLCX)
   {
     typeMLCX = false;
@@ -608,10 +607,10 @@ void vtkSlicerMLCPositionLogic::FindLeafPairRangeIndexes(
     jawEnd = beamNode->GetX2Jaw();
   }
 
-  for ( int leafPair = 0; leafPair < nofLeafPairs; ++leafPair)
+  for (int leafPair = 0; leafPair < nofLeafPairs; ++leafPair)
   {
-    double boundBegin = mlcTable->GetValue( leafPair, 0).ToDouble();
-    double boundEnd = mlcTable->GetValue( leafPair + 1, 0).ToDouble();
+    double boundBegin = mlcTable->GetValue(leafPair, 0).ToDouble();
+    double boundEnd = mlcTable->GetValue(leafPair + 1, 0).ToDouble();
 
     if (jawBegin >= boundBegin && jawBegin <= boundEnd)
     {
@@ -625,7 +624,7 @@ void vtkSlicerMLCPositionLogic::FindLeafPairRangeIndexes(
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerMLCPositionLogic::FindLeafPairPositions( 
+bool vtkSlicerMLCPositionLogic::FindLeafPairPositions(
   vtkMRMLMarkupsCurveNode* curveNode, vtkMRMLTableNode* mlcTableNode, 
   size_t leafPairIndex, 
   double& side1, double& side2, 
@@ -640,13 +639,13 @@ bool vtkSlicerMLCPositionLogic::FindLeafPairPositions(
   }
 
   const char* mlcName = mlcTableNode->GetName();
-  bool typeMLCY = !strncmp( "MLCY", mlcName, strlen("MLCY"));
-  bool typeMLCX = !strncmp( "MLCX", mlcName, strlen("MLCX"));
+  bool typeMLCY = !strncmp("MLCY", mlcName, strlen("MLCY"));
+  bool typeMLCX = !strncmp("MLCX", mlcName, strlen("MLCX"));
 
   vtkTable* mlcTable = mlcTableNode->GetTable();
 
-  double leafStart = mlcTable->GetValue( leafPairIndex, 0).ToDouble();
-  double leafEnd = mlcTable->GetValue( leafPairIndex + 1, 0).ToDouble();
+  double leafStart = mlcTable->GetValue(leafPairIndex, 0).ToDouble();
+  double leafEnd = mlcTable->GetValue(leafPairIndex + 1, 0).ToDouble();
 
   vtkPolyData* curvePoly = curveNode->GetCurveWorld();
   if (!curvePoly)
@@ -679,7 +678,7 @@ bool vtkSlicerMLCPositionLogic::FindLeafPairPositions(
 
   int subId = -1;
   double t = 0., xyz[3] = {}, pcoords[3] = {};
-  for ( double c = -1. * maxPositionDistance; c <= maxPositionDistance; c += positionStep)
+  for (double c = -1. * maxPositionDistance; c <= maxPositionDistance; c += positionStep)
   {
     if (typeMLCX)
     {
@@ -692,7 +691,7 @@ bool vtkSlicerMLCPositionLogic::FindLeafPairPositions(
       pEnd[1] = c;
     }
 
-    if (cellLocator->IntersectWithLine( pStart, pEnd, 0.0001, t, xyz, pcoords, subId))
+    if (cellLocator->IntersectWithLine(pStart, pEnd, 0.0001, t, xyz, pcoords, subId))
     {
       side1Flag = true;
       // xyz values
@@ -710,7 +709,7 @@ bool vtkSlicerMLCPositionLogic::FindLeafPairPositions(
 
   // intersection with side2
   bool side2Flag = false;
-  for ( double c = maxPositionDistance; c >= -1. * maxPositionDistance; c -= positionStep)
+  for (double c = maxPositionDistance; c >= -1. * maxPositionDistance; c -= positionStep)
   {
     if (typeMLCX)
     {
@@ -723,7 +722,7 @@ bool vtkSlicerMLCPositionLogic::FindLeafPairPositions(
       pEnd[1] = c;
     }
 
-    if (cellLocator->IntersectWithLine( pStart, pEnd, 0.0001, t, xyz, pcoords, subId))
+    if (cellLocator->IntersectWithLine(pStart, pEnd, 0.0001, t, xyz, pcoords, subId))
     {
       side2Flag = true;
       // xyz values
@@ -742,8 +741,7 @@ bool vtkSlicerMLCPositionLogic::FindLeafPairPositions(
 }
 
 //---------------------------------------------------------------------------
-double vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPositionArea( 
-  vtkMRMLRTBeamNode* beamNode)
+double vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPositionArea(vtkMRMLRTBeamNode* beamNode)
 {
   if (!beamNode)
   {
@@ -764,15 +762,15 @@ double vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPositionArea(
   if ((nofLeafPairs > 0) && (mlcTableNode->GetNumberOfColumns() == 3))
   {
     area = 0.;
-    for ( size_t leafPair = 0; leafPair < size_t(nofLeafPairs); ++leafPair)
+    for (size_t leafPair = 0; leafPair < size_t(nofLeafPairs); ++leafPair)
     {
       vtkTable* mlcTable = mlcTableNode->GetTable();
 
       double boundBegin = mlcTable->GetValue(leafPair, 0).ToDouble();
       double boundEnd = mlcTable->GetValue(leafPair + 1, 0).ToDouble();
 
-      double side1 = mlcTable->GetValue( leafPair, 1).ToDouble();
-      double side2 = mlcTable->GetValue( leafPair, 2).ToDouble();
+      double side1 = mlcTable->GetValue(leafPair, 1).ToDouble();
+      double side2 = mlcTable->GetValue(leafPair, 2).ToDouble();
 //      area += (fabs(side1) + fabs(side2)) * fabs(boundEnd - boundBegin);
       area += fabs(side2 - side1) * fabs(boundEnd - boundBegin);
     }
@@ -794,16 +792,16 @@ double vtkSlicerMLCPositionLogic::CalculateCurvePolygonArea(vtkMRMLMarkupsCurveN
   // Setup points
   vtkNew<vtkPoints> points;
 
-  for ( auto it = controlPoints->begin(); it != controlPoints->end(); ++it)
+  for (auto it = controlPoints->begin(); it != controlPoints->end(); ++it)
   {
     vtkMRMLMarkupsNode::ControlPoint* point = *it;
     double x = point->Position[0];
     double y = point->Position[1];
-    points->InsertNextPoint( x, y, 0.0);
+    points->InsertNextPoint(x, y, 0.0);
   }
 
   double normal[3] = { 1, 0, 0};
-  return vtkPolygon::ComputeArea( points, controlPoints->size(), nullptr, normal);
+  return vtkPolygon::ComputeArea(points, controlPoints->size(), nullptr, normal);
 }
 
 //---------------------------------------------------------------------------
@@ -836,12 +834,15 @@ void vtkSlicerMLCPositionLogic::SetParentForMultiLeafCollimatorTableNode(vtkMRML
   if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
     mlcTableShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    shNode->SetItemParent( mlcTableShId, beamShId);
+    shNode->SetItemParent(mlcTableShId, beamShId);
+
+    //// Keep parent beam collapsed by default to prevent clutter in SH
+    //shNode->SetItemExpanded(beamShId, false);
   }
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerMLCPositionLogic::SetParentForMultiLeafCollimatorCurve( vtkMRMLRTBeamNode* beamNode, 
+void vtkSlicerMLCPositionLogic::SetParentForMultiLeafCollimatorCurve(vtkMRMLRTBeamNode* beamNode, 
   vtkMRMLMarkupsCurveNode* curveNode)
 {
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
@@ -870,12 +871,12 @@ void vtkSlicerMLCPositionLogic::SetParentForMultiLeafCollimatorCurve( vtkMRMLRTB
   if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
     mlcCurveShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
-    shNode->SetItemParent( mlcCurveShId, beamShId);
+    shNode->SetItemParent(mlcCurveShId, beamShId);
   }
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPosition( vtkMRMLRTBeamNode* beamNode, 
+bool vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPosition(vtkMRMLRTBeamNode* beamNode, 
   vtkMRMLTableNode* mlcTableNode, vtkPolyData* targetPoly)
 {
   if (!beamNode)
@@ -921,8 +922,8 @@ bool vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPosition( vtkMRMLRTB
   }
 
   const char* mlcName = mlcTableNode->GetName();
-  bool typeMLCX = !strncmp( "MLCX", mlcName, strlen("MLCX")); // MLCX by default
-  bool typeMLCY = !strncmp( "MLCY", mlcName, strlen("MLCY"));
+  bool typeMLCX = !strncmp("MLCX", mlcName, strlen("MLCX")); // MLCX by default
+  bool typeMLCY = !strncmp("MLCY", mlcName, strlen("MLCY"));
   // if MLCX then typeMLCX = true, if MLCY then typeMLCX = false
   if (typeMLCY && !typeMLCX)
   {
@@ -933,20 +934,20 @@ bool vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPosition( vtkMRMLRTB
   vtkNew<vtkCubeSource> leaf1; // leaf on side 1
   vtkNew<vtkCubeSource> leaf2; // leaf on side 2
 
-  for ( vtkIdType leafPair = 0; leafPair < nofLeafPairs; leafPair++)
+  for (vtkIdType leafPair = 0; leafPair < nofLeafPairs; leafPair++)
   { // leaf pair for cycle begins
 
     vtkTable* table = mlcTableNode->GetTable();
-    double InitialPos1 = table->GetValue( leafPair, 1).ToDouble();
-    double InitialPos2 = table->GetValue( leafPair, 2).ToDouble();
+    double InitialPos1 = table->GetValue(leafPair, 1).ToDouble();
+    double InitialPos2 = table->GetValue(leafPair, 2).ToDouble();
 
-    if (vtkSlicerRtCommon::AreEqualWithTolerance( InitialPos1, InitialPos2))
+    if (vtkSlicerRtCommon::AreEqualWithTolerance(InitialPos1, InitialPos2))
     {
       continue;
     }
 
-    double boundBegin = table->GetValue( leafPair, 0).ToDouble();
-    double boundEnd = table->GetValue( leafPair + 1, 0).ToDouble();
+    double boundBegin = table->GetValue(leafPair, 0).ToDouble();
+    double boundEnd = table->GetValue(leafPair + 1, 0).ToDouble();
 
     double mlcLeafLength = 200.; // meaningful leaf side of MLC leaf in mm
 
@@ -955,14 +956,14 @@ bool vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPosition( vtkMRMLRTB
     {
       leaf1->SetBounds(-1. * mlcLeafLength, 0., boundBegin, boundEnd, 
         -1. * isocenterToMLCDistance, isocenterToMLCDistance);
-      leaf2->SetBounds( 0., mlcLeafLength, boundBegin, boundEnd, 
+      leaf2->SetBounds(0., mlcLeafLength, boundBegin, boundEnd, 
         -1. * isocenterToMLCDistance, isocenterToMLCDistance);
     }
     else // MLCY
     {
-      leaf1->SetBounds( boundBegin, boundEnd, -1. * mlcLeafLength, 0.0, 
+      leaf1->SetBounds(boundBegin, boundEnd, -1. * mlcLeafLength, 0.0, 
         -1. * isocenterToMLCDistance, isocenterToMLCDistance);
-      leaf2->SetBounds( boundBegin, boundEnd, 0.0, mlcLeafLength, 
+      leaf2->SetBounds(boundBegin, boundEnd, 0.0, mlcLeafLength, 
         -1. * isocenterToMLCDistance, isocenterToMLCDistance);
     }
 
@@ -979,10 +980,10 @@ bool vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPosition( vtkMRMLRTB
 
     double side1 = 0.0;
     // find a collition between moving leaf and stationaty target on side "1"
-    if (FindLeafAndTargetCollision( beamNode, leaf1PolyData, targetPolyData,
+    if (FindLeafAndTargetCollision(beamNode, leaf1PolyData, targetPolyData,
       side1, InitialPos1 - 1., 1, typeMLCX))
     {
-      table->SetValue( leafPair, 1, side1);
+      table->SetValue(leafPair, 1, side1);
     }
     else
     {
@@ -991,10 +992,10 @@ bool vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPosition( vtkMRMLRTB
 
     double side2 = 0.0;
     // find a collition between moving leaf and stationaty target on side "2"
-    if (FindLeafAndTargetCollision( beamNode, leaf2PolyData, targetPolyData,
+    if (FindLeafAndTargetCollision(beamNode, leaf2PolyData, targetPolyData,
       side2, InitialPos2 + 1., 2, typeMLCX))
     {
-      table->SetValue( leafPair, 2, side2);
+      table->SetValue(leafPair, 2, side2);
     }
     else
     {
@@ -1005,7 +1006,7 @@ bool vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPosition( vtkMRMLRTB
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerMLCPositionLogic::FindLeafAndTargetCollision( vtkMRMLRTBeamNode* vtkNotUsed(beamNode), 
+bool vtkSlicerMLCPositionLogic::FindLeafAndTargetCollision(vtkMRMLRTBeamNode* vtkNotUsed(beamNode), 
   vtkPolyData* leafPolyData, vtkPolyData* targetPolyData,
   double& sidePos, double initialPosition, int sideType, bool mlcType, 
   double maxPositionDistance, double positionStep)
@@ -1016,10 +1017,10 @@ bool vtkSlicerMLCPositionLogic::FindLeafAndTargetCollision( vtkMRMLRTBeamNode* v
   vtkNew<vtkTransform> leafTransform; // moving leaf transform
   leafTransform->Identity();
   vtkNew<vtkCollisionDetectionFilter> collide;
-  collide->SetInputData( 0, leafPolyData); // moving leaf polydata
-  collide->SetTransform( 0, leafTransform);
-  collide->SetInputData( 1, targetPolyData); // stationary target polydata
-  collide->SetMatrix( 1, targetMatrix);
+  collide->SetInputData(0, leafPolyData); // moving leaf polydata
+  collide->SetTransform(0, leafTransform);
+  collide->SetInputData(1, targetPolyData); // stationary target polydata
+  collide->SetMatrix(1, targetMatrix);
   collide->SetBoxTolerance(0.0);
   collide->SetCellTolerance(0.0);
   collide->SetNumberOfCellsPerNode(2);
@@ -1042,22 +1043,22 @@ bool vtkSlicerMLCPositionLogic::FindLeafAndTargetCollision( vtkMRMLRTBeamNode* v
   {
     if (mlcType) // MLCX
     {
-      leafTransform->Translate( initialPosition, 0.0, 0.0);
+      leafTransform->Translate(initialPosition, 0.0, 0.0);
     }
     else // MLCY
     {
-      leafTransform->Translate( 0., initialPosition, 0.0);
+      leafTransform->Translate(0., initialPosition, 0.0);
     }
   }
   else // leaf situated on side "2"
   {
     if (mlcType) // MLCX
     {
-      leafTransform->Translate( initialPosition, 0.0, 0.0);
+      leafTransform->Translate(initialPosition, 0.0, 0.0);
     }
     else // MLCY
     {
-      leafTransform->Translate( 0., initialPosition, 0.0);
+      leafTransform->Translate(0., initialPosition, 0.0);
     }
   }
 
@@ -1071,22 +1072,22 @@ bool vtkSlicerMLCPositionLogic::FindLeafAndTargetCollision( vtkMRMLRTBeamNode* v
     {
       if (mlcType) // MLCX
       {
-        leafTransform->Translate( positionStep, 0.0, 0.0);
+        leafTransform->Translate(positionStep, 0.0, 0.0);
       }
       else // MLCY
       {
-        leafTransform->Translate( 0.0, positionStep, 0.0);
+        leafTransform->Translate(0.0, positionStep, 0.0);
       }
     }
     else // leaf situated on side "2"
     {
       if (mlcType) // MLCX
       {
-        leafTransform->Translate( -1. * positionStep, 0.0, 0.0);
+        leafTransform->Translate(-1. * positionStep, 0.0, 0.0);
       }
       else // MLCY
       {
-        leafTransform->Translate( 0.0, -1. * positionStep, 0.0);
+        leafTransform->Translate(0.0, -1. * positionStep, 0.0);
       }
     }
     
@@ -1101,7 +1102,7 @@ bool vtkSlicerMLCPositionLogic::FindLeafAndTargetCollision( vtkMRMLRTBeamNode* v
       vtkPolyData* contacts = collide->GetContactsOutput();
       vtkIdType nofCells = contacts->GetNumberOfCells();
 
-      for ( vtkIdType i = 0; i < nofCells; ++i)
+      for (vtkIdType i = 0; i < nofCells; ++i)
       {
         vtkCell* cell = contacts->GetCell(i);
         if (cell)
@@ -1109,9 +1110,9 @@ bool vtkSlicerMLCPositionLogic::FindLeafAndTargetCollision( vtkMRMLRTBeamNode* v
           vtkPoints* points = cell->GetPoints();
           if (points)
           {
-            for ( vtkIdType j = 0; j < points->GetNumberOfPoints(); ++j)
+            for (vtkIdType j = 0; j < points->GetNumberOfPoints(); ++j)
             {
-              points->GetPoint( j, p);
+              points->GetPoint(j, p);
               if (mlcType) // MLCX
               {
                 sidePos = p[0];
