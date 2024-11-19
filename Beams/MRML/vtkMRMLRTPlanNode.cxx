@@ -57,21 +57,8 @@ vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 {
-  this->RxDose = 1.0;
-
-  this->TargetSegmentID = nullptr;
-
-  this->IsocenterSpecification = vtkMRMLRTPlanNode::CenterOfTarget;
-
-  this->NextBeamNumber = 1;
-
-  this->DoseEngineName = nullptr;
-
-  this->DoseGrid[0] = 0;
-  this->DoseGrid[1] = 0;
-  this->DoseGrid[2] = 0;
-
-  this->IonPlanFlag = false;
+  // Ensure the node shows up in subject hierarchy. Otherwise there is a crash.
+  this->HideFromEditorsOff();
 }
 
 //----------------------------------------------------------------------------
