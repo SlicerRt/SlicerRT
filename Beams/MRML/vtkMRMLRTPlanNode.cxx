@@ -224,7 +224,6 @@ void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
 
   if (!this->Scene)
   {
-    vtkErrorMacro("ProcessMRMLEvents: Invalid MRML scene");
     return;
   }
   if (this->Scene->IsBatchProcessing())

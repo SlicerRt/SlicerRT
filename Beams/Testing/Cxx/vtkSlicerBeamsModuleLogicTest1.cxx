@@ -101,8 +101,6 @@ int vtkSlicerBeamsModuleLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[
   beamNode->SetGantryAngle(-1.0);
   beamsLogic->UpdateBeamTransform(beamNode);
 
-  PrintLinearTransformNodeMatrices(mrmlScene, false, true);
-
   double expectedBeamTransform_GantryMinus1_MatrixElements[16] =
     { -0.999848, -1.22465e-16, 0.0174524, 1000,   0.0174524, 0, 0.999848, 200,   -1.22446e-16, 1, 2.1373e-18, 0,   0, 0, 0, 1 };
   if (!IsTransformMatrixEqualTo(mrmlScene,
@@ -208,12 +206,11 @@ int vtkSlicerBeamsModuleLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[
   beamsLogic->UpdateBeamTransform(beamNode);
   
   double expectedBeamTransform_PatientSupportMinus1_MatrixElements[16] =
-    { -0.0174524, 0, -0.999848, 1000,   0, 1, 0, 200,   0.999848, 0, -0.0174524, 0,   0, 0, 0, 1 };
+    { 0.0174524, 0, -0.999848, 1000,   0, 1, 0, 200,   0.999848, 0, 0.0174524, 0,   0, 0, 0, 1 };
   if (!IsTransformMatrixEqualTo(mrmlScene,
     beamTransformNode, expectedBeamTransform_PatientSupportMinus1_MatrixElements))
   {
     std::cerr << __LINE__ << ": Beam transform does not match baseline for patient support '-1' degree angle" << std::endl;
-    PrintLinearTransformNodeMatrices(mrmlScene, true, true);
     return EXIT_FAILURE;
   }
 
@@ -222,7 +219,7 @@ int vtkSlicerBeamsModuleLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[
   beamsLogic->UpdateBeamTransform(beamNode);
 
   double expectedBeamTransform_PatientSupport1_MatrixElements[16] =
-    { 0.0174524, 0, -0.999848, 1000,   0, 1, 0, 200,   0.999848, 0, 0.0174524, 0,   0, 0, 0, 1  };
+    { -0.0174524, 0, -0.999848, 1000,   0, 1, 0, 200,   0.999848, 0, -0.0174524, 0,   0, 0, 0, 1 };
   if (!IsTransformMatrixEqualTo(mrmlScene,
     beamTransformNode, expectedBeamTransform_PatientSupport1_MatrixElements))
   {
@@ -235,7 +232,7 @@ int vtkSlicerBeamsModuleLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[
   beamsLogic->UpdateBeamTransform(beamNode);
   
   double expectedBeamTransform_PatientSupportMinus90_MatrixElements[16] =
-    {  -1, 0, 1.22465e-16, 1000,   0, 1, 0, 200,   -1.22465e-16, 0, -1, 0,   0, 0, 0, 1  };
+    {  1, 0, -1.22465e-16, 1000,   0, 1, 0, 200,   1.22465e-16, 0, 1, 0,   0, 0, 0, 1  };
   if (!IsTransformMatrixEqualTo(mrmlScene,
     beamTransformNode, expectedBeamTransform_PatientSupportMinus90_MatrixElements))
   {
@@ -248,7 +245,7 @@ int vtkSlicerBeamsModuleLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)[
   beamsLogic->UpdateBeamTransform(beamNode);
 
   double expectedBeamTransform_PatientSupport90_MatrixElements[16] =
-    {  1, 0, 1.22465e-16, 1000,   0, 1, 0, 200,   1.22465e-16, 0, 1, 0,   0, 0, 0, 1  };
+    {  -1, 0, 1.22465e-16, 1000,   0, 1, 0, 200,   -1.22465e-16, 0, -1, 0,   0, 0, 0, 1  };
   if (!IsTransformMatrixEqualTo(mrmlScene,
     beamTransformNode, expectedBeamTransform_PatientSupport90_MatrixElements))
   {
