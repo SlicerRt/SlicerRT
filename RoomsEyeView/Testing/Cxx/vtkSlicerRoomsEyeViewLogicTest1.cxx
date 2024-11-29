@@ -279,12 +279,12 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
     return EXIT_FAILURE;
   }
   double expectedPatientSupportRotationToFixedReferenceTransformMinus1_MatrixElements[16] =
-    { 0.999848, 0.0174524, 0, 0,   -0.0174524, 0.999848, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1 };
+    { 0.999848, -0.0174524, 0, 0,   0.0174524, 0.999848, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1 };
   if (!IsTransformMatrixEqualTo(mrmlScene,
     revLogic->GetTransformNodeBetween(vtkIECTransformLogic::PatientSupportRotation, vtkIECTransformLogic::FixedReference),
     expectedPatientSupportRotationToFixedReferenceTransformMinus1_MatrixElements))
   {
-  std:cerr << __LINE__ << ": PatientSupportRotationToFixedReference does not match baseline for -1 degree angle" << std::endl;
+    std:cerr << __LINE__ << ": PatientSupportRotationToFixedReference does not match baseline for -1 degree angle" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -292,7 +292,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   beamNode->SetCouchAngle(1.0);
   beamsLogic->UpdateBeamTransform(beamNode);
   double expectedPatientSupportRotationToFixedReferenceTransform1_MatrixElements[16] =
-    { 0.999848, -0.0174524, 0, 0,   0.0174524, 0.999848, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1 };
+    { 0.999848, 0.0174524, 0, 0,   -0.0174524, 0.999848, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1 };
   if (!IsTransformMatrixEqualTo(mrmlScene,
     revLogic->GetTransformNodeBetween(vtkIECTransformLogic::PatientSupportRotation, vtkIECTransformLogic::FixedReference),
     expectedPatientSupportRotationToFixedReferenceTransform1_MatrixElements))
@@ -305,7 +305,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   beamNode->SetCouchAngle(-90.0);
   beamsLogic->UpdateBeamTransform(beamNode);
   double expectedPatientSupportRotationToFixedReferenceTransformMinus90_MatrixElements[16] =
-    { 0, 1, 0, 0,   -1, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1 };
+    { 0, -1, 0, 0,   1, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1 };
   if (!IsTransformMatrixEqualTo(mrmlScene,
     revLogic->GetTransformNodeBetween(vtkIECTransformLogic::PatientSupportRotation, vtkIECTransformLogic::FixedReference),
     expectedPatientSupportRotationToFixedReferenceTransformMinus90_MatrixElements))
@@ -318,7 +318,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   beamNode->SetCouchAngle(90.0);
   beamsLogic->UpdateBeamTransform(beamNode);
   double expectedPatientSupportRotationToFixedReferenceTransform90_MatrixElements[16] =
-    { 0, -1, 0, 0,   1, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1 };
+    { 0, 1, 0, 0,   -1, 0, 0, 0,   0, 0, 1, 0,   0, 0, 0, 1 };
   if (!IsTransformMatrixEqualTo(mrmlScene,
     revLogic->GetTransformNodeBetween(vtkIECTransformLogic::PatientSupportRotation, vtkIECTransformLogic::FixedReference),
     expectedPatientSupportRotationToFixedReferenceTransform90_MatrixElements))
