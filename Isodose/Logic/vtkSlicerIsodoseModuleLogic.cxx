@@ -248,7 +248,6 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::GetDefaultIsodoseColorTable(
   colorTableNode->SetSingletonTag(DEFAULT_ISODOSE_COLOR_TABLE_NODE_NAME);
   //colorTableNode->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
 
-  colorTableNode->NamesInitialisedOn();
   colorTableNode->SetNumberOfColors(7);
   colorTableNode->GetLookupTable()->SetTableRange(0,6);
   colorTableNode->AddColor("5", 0., 1., 0., 1.);
@@ -294,7 +293,6 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::GetRelativeIsodoseColorTable
   colorTableNode->SetSingletonTag(RELATIVE_ISODOSE_COLOR_TABLE_NODE_NAME);
   //colorTableNode->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
 
-  colorTableNode->NamesInitialisedOn();
   colorTableNode->SetNumberOfColors(5);
   colorTableNode->GetLookupTable()->SetTableRange(0,4);
 
@@ -330,7 +328,6 @@ vtkMRMLColorTableNode* vtkSlicerIsodoseModuleLogic::LoadDefaultIsodoseColorTable
     colorTableNode->SetName(DEFAULT_ISODOSE_COLOR_TABLE_NODE_NAME);
     colorTableNode->SetSingletonTag(DEFAULT_ISODOSE_COLOR_TABLE_NODE_NAME);
     //colorTableNode->SetAttribute("Category", vtkSlicerRtCommon::SLICERRT_EXTENSION_NAME);
-    colorTableNode->NamesInitialisedOn();
     colorTableNode->SetNumberOfColors(tempLookupTable->GetNumberOfColors());
     colorTableNode->SetLookupTable(tempLookupTable);
     colorTableNode->SaveWithSceneOff();
