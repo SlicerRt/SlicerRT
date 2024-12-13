@@ -32,6 +32,7 @@
 
 // MRML includes
 #include <vtkMRMLObjectiveNode.h>
+#include <vtkMRMLSegmentationNode.h>
 
 // VTK includes
 #include <vtkWeakPointer.h>
@@ -42,6 +43,9 @@
 #include <QStringList>
 #include <QPushButton>
 #include <QComboBox>
+#include <QListWidget>
+#include <QCheckBox>
+#include <QLineEdit>
 
 // SlicerQt includes
 #include "qSlicerApplication.h"
@@ -190,25 +194,57 @@ vtkMRMLNode* qMRMLObjectivesTableWidget::planNode()
 }
 
 //------------------------------------------------------------------------------
+//void qMRMLObjectivesTableWidget::onObjectiveAdded()
+//{
+//    Q_D(qMRMLObjectivesTableWidget);
+//    // Assuming this->ObjectivesTable is your QTableWidget
+//    int row = d->ObjectivesTable->rowCount();
+//    d->ObjectivesTable->insertRow(row);
+//
+//    // TODO: adjust numbers when row removed
+//    // Create index for new row
+//    QTableWidgetItem* numberItem = new QTableWidgetItem(QString::number(row + 1));
+//    d->ObjectivesTable->setItem(row, d->columnIndex("Number"), numberItem);
+//
+//
+//    // call available objectives
+//    vtkMRMLRTPlanNode* planNode = d->PlanNode;
+//    qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
+//    selectedEngine->setAvailableObjectives();
+//    std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives = selectedEngine->getAvailableObjectives();
+//
+//    // Objectives (dropdown menu)
+//    QComboBox* objectivesDropdown = new QComboBox();
+//    QStringList objectives;
+//    for (auto objective : availableObjectives)
+//    {
+//        objectives.push_back(objective->GetName());
+//    }
+//    objectivesDropdown->addItems(objectives);
+//    d->ObjectivesTable->setCellWidget(row, 1, objectivesDropdown);
+
+
+    //// Edit button
+    //QPushButton* editButton = new QPushButton("Edit");
+    //editButton->setMaximumWidth(52);
+    //connect(editButton, SIGNAL(clicked()), this, SLOT(onEditButtonClicked()));
+    //d->ObjectivesTable->setCellWidget(row, 2, editButton);
+
+    
 void qMRMLObjectivesTableWidget::onObjectiveAdded()
 {
     Q_D(qMRMLObjectivesTableWidget);
-    // Assuming this->ObjectivesTable is your QTableWidget
     int row = d->ObjectivesTable->rowCount();
     d->ObjectivesTable->insertRow(row);
 
-    // TODO: adjust numbers when row removed
-    // Create index for new row
     QTableWidgetItem* numberItem = new QTableWidgetItem(QString::number(row + 1));
     d->ObjectivesTable->setItem(row, d->columnIndex("Number"), numberItem);
 
-
-    // call available objectives
     vtkMRMLRTPlanNode* planNode = d->PlanNode;
     qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
+    selectedEngine->setAvailableObjectives();
     std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives = selectedEngine->getAvailableObjectives();
 
-    // Objectives (dropdown menu)
     QComboBox* objectivesDropdown = new QComboBox();
     QStringList objectives;
     for (auto objective : availableObjectives)
@@ -219,17 +255,35 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
     d->ObjectivesTable->setCellWidget(row, 1, objectivesDropdown);
 
 
-    // Edit button
-    QPushButton* editButton = new QPushButton("Edit");
-    editButton->setMaximumWidth(52);
-    connect(editButton, SIGNAL(clicked()), this, SLOT(onEditButtonClicked()));
-    d->ObjectivesTable->setCellWidget(row, 2, editButton);
+	// Segmentations (list widget)
+    QListWidget* segmentationsListWidget = new QListWidget();
+    segmentationsListWidget->setSelectionMode(QAbstractItemView::MultiSelection);
+
+    vtkMRMLSegmentationNode* segmentationNode = planNode->GetSegmentationNode();
+    vtkSegmentation* segmentation = segmentationNode->GetSegmentation();
+    std::vector<std::string> segmentIDs;
+    segmentationNode->GetSegmentation()->GetSegmentIDs(segmentIDs);
+
+    for (const std::string& segmentID : segmentIDs)
+    {
+        vtkSegment* segment = segmentation->GetSegment(segmentID);
+        if (segment)
+        {
+            QListWidgetItem* item = new QListWidgetItem(segment->GetName());
+            segmentationsListWidget->addItem(item);
+        }
+    }
+
+    d->ObjectivesTable->setCellWidget(row, 2, segmentationsListWidget);
 
     //int rowNumber = row;
     //connect(objectivesDropdown, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [this, row](int index){
     //this->adjustRowLayout(index, row);
     //});
 }
+
+
+    
 
 //------------------------------------------------------------------------------
 void qMRMLObjectivesTableWidget::onObjectiveRemoved()
