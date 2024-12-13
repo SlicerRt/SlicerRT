@@ -64,6 +64,9 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
         from pyRadPlan.optimization.components.objectives import (SquaredDeviation, SquaredOverdosing)
 
+        from pyRadPlan.plan import create_pln
+        import pyRadPlan.dose as dose
+
         from pymatreader import read_mat
         from scipy.sparse import csr_matrix
         # import pymedphys as pymed
@@ -103,14 +106,14 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         # s = stf.photons.StfGeneratorPhotonBixel(ct, cst, pln, engine)
         # stf = s.generate()
 
-        stf = StfGenerator(ct, cst, pln)  # This still calls the function from StfGenerator_temporary.py until the class-based
-        # stf = StfGenerator(ct,cst,pln,eng)
+        s = stf.photons.StfGeneratorPhotonBixel(ct, cst, pln)
+        stf = s.generate()
 
         # An elaborate way to save all the dictionaries into structs that can be loaded by matlab. This will not be necessary
         # once the dose calculation and optimization functions are set. It is there as a "place-holder" and a check if the
         # stf generation works
         # https://stackoverflow.com/questions/61542500/convert-multiple-python-dictionaries-to-matlab-structure-array-with-scipy-io-sav
-        matRadIO.save(self.temp_path, 'stf_with_separate_rays.mat', {'stf': np.array([stf[i] for i in range(len(stf))], dtype=object),
+        matRadIO.save(os.path.join(self.temp_path, 'stf_with_separate_rays.mat'), {'stf': np.array([stf[i] for i in range(len(stf))], dtype=object),
                                                             'rays': np.array([[stf[j]['ray'][i] for i in range(len(stf[j]['ray']))]
                                                                             for j in range(len(stf))], dtype=object)})
 
@@ -129,57 +132,20 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         # Setting up the plan configuration for the optimization algorithm. Only the RBE is necessary. We will get it from the
         # previously defined pln dictionary
 
-        if pln['radiationMode'] == 'photons':
-            pln_optim = {'RBE': 1.0}
-        elif pln['radiationMode'] == 'protons':
-            pln_optim = {'RBE': 1.1}
+        if pln["radiationMode"] == "photons":
+            dose.calcPhotonDose(ct, stf, pln, cst)
+            # dose.calcPhotonDoseMC(ct, stf, pln, cst, 10)
+        elif pln["radiationMode"] == "protons" or pln["radiationMode"] == "carbon":
+            dose.calcParticleDose(ct, stf, pln, cst)
 
-        ''' Preparing dose information for optimization '''
+        optimizer = FluenceOptimizer(cst, ct, pln)
+        optimizer.solve()
 
-        dose_path = os.path.join(self.temp_path,'dij.mat')
-        dij_mat = read_mat(dose_path)  # keeping read_mat here for now
-        dose_matrix = csr_matrix(dij_mat['dij']['physicalDose'])
-
-        dose_information = {
-            "resolution": {"x": 3.0,
-                        "y": 3.0,
-                        "z": 3.0},
-
-            'cubeDim': tuple(dij_mat['dij']['doseGrid']['dimensions']),
-
-            'numOfVoxels': np.prod(tuple(dij_mat['dij']['doseGrid']['dimensions'])),
-
-            'numOfFractions': pln['numOfFractions'],
-
-            'physicalDose': dose_matrix,  # dose influence matrix
-
-            'totalNumOfBixels': dose_matrix.shape[1]  # dof
-        }
-
-        for dimension in ('x', 'y', 'z'):
-            dose_information[dimension] = np.arange(
-                ct[dimension][0],
-                ct[dimension][-1]
-                + dose_information['resolution'][dimension],
-                dose_information['resolution'][dimension])
-
-        ''' Preparing the constraints and objectives as they are not read with loadmat '''
-
-        # Loading objectives and constraints from the patient cst
-        for i in cst:
-            cst[i]['doseObjective'] = locals()[cst[i]['doseObjective']](cst, dose_information,
-                                                                        cst[i]['doseConstraint'][0],
-                                                                        cst[i]['doseConstraint'][1])
-            cst[i]['doseConstraint'] = None
-
-        a = FluenceOptimizer(cst, ct, pln_optim, dose_information)
-        a.solve()
-
-        matRadIO.save(self.temp_path, 'physicalDose.mat', {'physicalDose': a.dOpt})
+        matRadIO.save(os.path.join(self.temp_path, 'physicalDose.mat'), {'physicalDose': a.dOpt})
 
         ''' load to slicer'''
 
-        data = a.dOpt
+        data = optimizer.dOpt
 
         import vtk.util.numpy_support as numpy_support
 
@@ -227,6 +193,9 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
         from pyRadPlan.optimization.components.objectives import (SquaredDeviation, SquaredOverdosing)
 
+        from pyRadPlan.plan import create_pln
+        import pyRadPlan.dose as dose
+
         from pymatreader import read_mat
         from scipy.sparse import csr_matrix
         # import pymedphys as pymed
@@ -252,6 +221,12 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         # Prepare the plan configuration
         pln = preparePln(beamNode, self.temp_path)
 
+        # Creates a validated pln pydantic dataclass from the dictionary
+        pln = create_pln(pln)
+
+        # For now we dump the model again as we ahve not implemented plan management down the road
+        pln = pln.to_matrad_dict()
+
         # Generate the stf (inverse planning irradiation geommetry like beamlet positions, etc.)
         '''
         matRad functions ending in py which are part of the functions seen below have been slightly edited to allow for calling 
@@ -262,14 +237,14 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         # s = stf.photons.StfGeneratorPhotonBixel(ct, cst, pln, engine)
         # stf = s.generate()
 
-        stf = StfGenerator(ct, cst, pln)  # This still calls the function from StfGenerator_temporary.py until the class-based
-        # stf = StfGenerator(ct,cst,pln,eng)
+        s = stf.photons.StfGeneratorPhotonBixel(ct, cst, pln)
+        stf = s.generate()
 
         # An elaborate way to save all the dictionaries into structs that can be loaded by matlab. This will not be necessary
         # once the dose calculation and optimization functions are set. It is there as a "place-holder" and a check if the
         # stf generation works
         # https://stackoverflow.com/questions/61542500/convert-multiple-python-dictionaries-to-matlab-structure-array-with-scipy-io-sav
-        matRadIO.save(self.temp_path, 'stf_with_separate_rays.mat', {'stf': np.array([stf[i] for i in range(len(stf))], dtype=object),
+        matRadIO.save(os.path.join(self.temp_path, 'stf_with_separate_rays.mat'), {'stf': np.array([stf[i] for i in range(len(stf))], dtype=object),
                                                             'rays': np.array([[stf[j]['ray'][i] for i in range(len(stf[j]['ray']))]
                                                                             for j in range(len(stf))], dtype=object)})#'ray':[stf[0]['ray'][i] for i in range(len(stf[0]['ray']))]})
 
@@ -280,21 +255,14 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
         # Calculate the photon dose using a matRad function called matRad_calcPhotonDose
         # Only pencil beam implemented so far
-        if pln['radiationMode']=='photons':
-            calcPhotonDose('ct.mat', 'stf.mat', 'pln.mat', 'cst.mat', in_path=self.temp_path, out_path=self.temp_path)
-            #calcPhotonDoseMC('ct.mat', 'stf.mat', 'pln.mat', 'cst.mat', in_path=temp_path, out_path=temp_path)
-        elif pln['radiationMode']=='protons' or pln['radiationMode']=='carbon':
-            calcParticleDose('ct.mat', 'stf.mat', 'pln.mat', 'cst.mat', in_path=self.temp_path, out_path=self.temp_path)
+        if pln["radiationMode"] == "photons":
+            dose.calcPhotonDose(ct, stf, pln, cst,self.temp_path)
+            # dose.calcPhotonDoseMC(ct, stf, pln, cst, 10)
+        elif pln["radiationMode"] == "protons" or pln["radiationMode"] == "carbon":
+            dose.calcParticleDose(ct, stf, pln, cst)
 
         # Setting up the plan configuration for the optimization algorithm. Only the RBE is necessary. We will get it from the
         # previously defined pln dictionary
-
-        if pln['radiationMode'] == 'photons':
-            pln_optim = {'RBE': 1.0}
-        elif pln['radiationMode'] == 'protons':
-            pln_optim = {'RBE': 1.1}
-
-        ''' Preparing dose information for optimization '''
 
         dose_path = os.path.join(self.temp_path,'dij.mat')
         dij_mat = read_mat(dose_path)  # keeping read_mat here for now
@@ -303,29 +271,6 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         # we use a coo matrix here as it is the most efficient way to get the matrix into slicer
         dose_matrix = coo_matrix(dij_mat['dij']['physicalDose'])
 
-        dose_information = {
-            "resolution": {"x": 3.0,
-                        "y": 3.0,
-                        "z": 3.0},
-
-            'cubeDim': tuple(dij_mat['dij']['doseGrid']['dimensions']),
-
-            'numOfVoxels': np.prod(tuple(dij_mat['dij']['doseGrid']['dimensions'])),
-
-            'numOfFractions': pln['numOfFractions'],
-
-            'physicalDose': dose_matrix,  # dose influence matrix
-
-            'totalNumOfBixels': dose_matrix.shape[1]  # dof
-        }
-
-        for dimension in ('x', 'y', 'z'):
-            dose_information[dimension] = np.arange(
-                ct[dimension][0],
-                ct[dimension][-1]
-                + dose_information['resolution'][dimension],
-                dose_information['resolution'][dimension])
-            
         beamNode.SetDoseInfluenceMatrixFromTriplets(dose_matrix.shape[0], dose_matrix.shape[1],dose_matrix.row, dose_matrix.col, dose_matrix.data)
 
         return str() #return empty string to indicate success
