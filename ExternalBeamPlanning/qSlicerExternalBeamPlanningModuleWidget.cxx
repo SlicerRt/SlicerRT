@@ -274,8 +274,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   connect( d->comboBox_PlanOptimizer, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(PlanOptimizerChanged(const QString&)));
   connect( d->pushButton_OptimizePlan, SIGNAL(clicked()), this, SLOT(optimizePlanClicked()));
 
-  // Optimization Segment Assignement
-  connect(d->pushButton_AssignValueToSegment, SIGNAL(clicked()), this, SLOT(assignValueToSegmentClicked()) );
+  // Objective Table
   connect(d->pushButton_GetAvailableObjectives, SIGNAL(clicked()), this, SLOT(getAvailableObjectivesClicked()) );
   connect(d->pushButton_AddObjective, SIGNAL(clicked()), this, SLOT(addObjectiveClicked()));
   connect(d->pushButton_RemoveObjective, SIGNAL(clicked()), this, SLOT(removeObjectiveClicked()));
@@ -1443,35 +1442,6 @@ bool qSlicerExternalBeamPlanningModuleWidget::setEditedNode(vtkMRMLNode* node, Q
     return true;
   }
   return false;
-}
-
-
-
-
-//------------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::assignValueToSegmentClicked()
-{
-    Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-    if (!this->mrmlScene())
-    {
-        qCritical() << Q_FUNC_INFO << "Invalid scene";
-        return;
-    }
-
-    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
-    if (!planNode)
-    {
-        qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
-        return;
-    }
-
-    vtkMRMLSegmentationNode* segmentationNode = planNode->GetSegmentationNode();
-
-    // Get table view
-    qMRMLSegmentsTableView* tableView = d->SegmentsTableView;
-
-    tableView->setSegmentationNode(segmentationNode);
 }
 
 //------------------------------------------------------------------------------
