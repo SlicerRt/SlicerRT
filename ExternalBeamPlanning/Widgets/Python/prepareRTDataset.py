@@ -1,6 +1,6 @@
+import os
 import numpy as np
 import slicer
-from pyRadPlan.ct import validate_ct
 
 
 def prepareCt(beamNode, temp_path):
@@ -45,7 +45,7 @@ def prepareCt(beamNode, temp_path):
     ct['number_of_voxels'] = np.prod(ct['cubeDim'])
 
     #Saving the ct dictionary as a .mat file
-    matRadIO.save(temp_path, 'ct.mat', {'ct': ct})
+    matRadIO.save(os.path.join(temp_path, 'ct.mat'), {'ct': ct})
 
     # convert ct back to PYTHON format
     ct['cubeHU'] = np.transpose(slicer.util.arrayFromVolume(referenceVolumeNode),(1,2,0))
@@ -132,7 +132,7 @@ def prepareCst(beamNode, temp_path):
         index += 1
 
     #Saving the cst dictionary as a .mat file
-    matRadIO.save(temp_path, 'cst.mat', {'cst': cstForMat})
+    matRadIO.save(os.path.join(temp_path, 'cst.mat'), {'cst': cstForMat})
 
     return cst
 
@@ -187,6 +187,6 @@ def preparePln(beamNode, temp_path):
     }
 
     #Saving the pln dictionary as a .mat file
-    matRadIO.save(temp_path, 'pln.mat', {'pln': pln})
+    matRadIO.save(os.path.join(temp_path, 'pln.mat'), {'pln': pln})
 
     return pln
