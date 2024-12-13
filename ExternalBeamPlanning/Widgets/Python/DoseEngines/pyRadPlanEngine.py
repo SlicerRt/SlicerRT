@@ -59,7 +59,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         import pyRadPlan.dose as dose
         from pyRadPlan.optimization._fluenceOptimizer import FluenceOptimizer
         from pyRadPlan.patients._patient_loader import PatientLoader
-        from pyRadPlan.stf import StfGeneratorIMPT
+        from pyRadPlan.stf import StfGeneratorIMPT, StfGeneratorPhotonIMRT
 
         # Ignore deprication warnings
         # np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
@@ -102,7 +102,11 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         # changes can be found in the respective matRad functions.
 
         # Used for the class-based implementation
-        stfgen = StfGeneratorIMPT(pln)
+        if pln.radiation_mode in ['photons']:
+            stfgen = StfGeneratorPhotonIMRT(pln)
+        elif pln.radiation_mode in ['protons', 'carbon']:    
+            stfgen = StfGeneratorIMPT(pln)
+            
         stfgen.bixel_width = 5.0
         stfgen.gantry_angles = [0.0]
 
