@@ -22,8 +22,6 @@
 // MRMLObjective includes
 #include "vtkMRMLObjectiveNode.h"
 
-
-
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
@@ -98,7 +96,51 @@ void vtkMRMLObjectiveNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintEndMacro();
 }
 
-//vtkMRMLNode* vtkMRMLObjectiveNode::CreateNodeInstance()
-//{
-//	return vtkMRMLObjectiveNode::New();
-//}
+//----------------------------------------------------------------------------
+void vtkMRMLObjectiveNode::AddSegmentation(const std::string& segmentation)
+{
+    // Debug statement to check if 'this' is valid
+    if (this == nullptr)
+    {
+        std::cerr << "Error: 'this' is a null pointer in AddSegmentation." << std::endl;
+        return;
+    }
+
+    // Check if segmentation already exists in objective
+    if (std::find(this->Segmentations.begin(), this->Segmentations.end(), segmentation) != this->Segmentations.end())
+    {
+        std::cerr << "Warning: Segmentation already exists in AddSegmentation." << std::endl;
+        return;
+    }
+	else
+	{
+		this->Segmentations.push_back(segmentation);
+	}  
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLObjectiveNode::RemoveSegmentation(const std::string& segmentation)
+{
+	// Debug statement to check if 'this' is valid
+	if (this == nullptr)
+	{
+		std::cerr << "Error: 'this' is a null pointer in RemoveSegmentation." << std::endl;
+		return;
+	}
+
+	auto it = std::find(this->Segmentations.begin(), this->Segmentations.end(), segmentation);
+	if (it != this->Segmentations.end())
+	{
+		this->Segmentations.erase(it);
+	}
+	else
+	{
+		std::cerr << "Error: Segmentation not found in RemoveSegmentation." << std::endl;
+	}
+}
+
+//----------------------------------------------------------------------------
+const std::vector<std::string>& vtkMRMLObjectiveNode::GetSegmentations() const
+{
+	return this->Segmentations;
+}

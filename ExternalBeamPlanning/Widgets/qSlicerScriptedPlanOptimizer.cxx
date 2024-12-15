@@ -236,8 +236,3 @@ void qSlicerScriptedPlanOptimizer::setAvailableObjectives()
 
    this->availableObjectives = objectives;
 }
-//
-//void qSlicerScriptedPlanOptimizer::setAvailableObjectives(std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives)
-//{
-//    
-//}
