@@ -52,6 +52,13 @@ public:
   vtkGetStringMacro(Name);
   vtkSetStringMacro(Name);
 
+  /// Add a segmentation to the list
+  void AddSegmentation(const std::string& segmentation);
+
+  void RemoveSegmentation(const std::string& segmentation);
+
+  /// Get the list of segmentations
+  const std::vector<std::string>& GetSegmentations() const;
 
 protected:
   vtkMRMLObjectiveNode();
@@ -60,6 +67,7 @@ protected:
   void operator=(const vtkMRMLObjectiveNode&);
 
   char* Name;
+  std::vector<std::string> Segmentations;
 
 };
 

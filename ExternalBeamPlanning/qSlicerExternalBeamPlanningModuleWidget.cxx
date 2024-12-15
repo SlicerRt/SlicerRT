@@ -1444,22 +1444,36 @@ bool qSlicerExternalBeamPlanningModuleWidget::setEditedNode(vtkMRMLNode* node, Q
   return false;
 }
 
+//#include <iostream>
+//#include "ObjectiveTableWidget.h"
 //------------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::getAvailableObjectivesClicked()
 {
-  QString currentDirectory = QDir::currentPath();
-  QString pythonFilePath = currentDirectory + "/getAvailableObjectives.py";
-  
-  // Run the Python file using subprocess
-  QProcess process;
-  process.start("python", QStringList() << pythonFilePath);
-  process.waitForFinished(-1);
-  
-  // Get the output of the Python file
-  QString output = process.readAllStandardOutput();
-  
-  // Do something with the output
-  qDebug() << "Python file output:" << output;
+	Q_D(qSlicerExternalBeamPlanningModuleWidget);
+    d->ObjectivesTableWidget->checkSegmentationsForObjectives();
+	//QTableWidgetItem* item = d->ObjectivesTableWidget->
+
+ //   for (int row = 0; row < rowCount(); ++row) {
+ //       for (int col = 0; col < columnCount(); ++col) {
+ //           QTableWidgetItem* item = item(row, col);
+ //           if (item && item->isSelected()) {
+ //               std::cout << "Objective: " << row << ", Segmentation: " << col << " - " << item->text().toStdString() << std::endl;
+ //           }
+ //       }
+	//}
+  //QString currentDirectory = QDir::currentPath();
+  //QString pythonFilePath = currentDirectory + "/getAvailableObjectives.py";
+  //
+  //// Run the Python file using subprocess
+  //QProcess process;
+  //process.start("python", QStringList() << pythonFilePath);
+  //process.waitForFinished(-1);
+  //
+  //// Get the output of the Python file
+  //QString output = process.readAllStandardOutput();
+  //
+  //// Do something with the output
+  //qDebug() << "Python file output:" << output;
 }
 
 

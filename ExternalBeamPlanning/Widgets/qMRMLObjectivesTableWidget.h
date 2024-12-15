@@ -28,6 +28,7 @@
 
 // MRMLWidgets includes
 #include "qMRMLWidget.h"
+#include <qlistwidget.h>
 
 // CTK includes
 //#include <ctkPimpl.h>
@@ -62,18 +63,17 @@ public slots:
   /// Called when objective is added in an observed plan node
   void onObjectiveAdded();
 
+  void onSegmentationItemChanged(QListWidgetItem* item, int row);
+
+  void checkSegmentationsForObjectives();
+
   /// Called when objective is removed in an observed plan node
   void onObjectiveRemoved();
-
-  void adjustRowLayout(int index, int row);
 
 //signals:
 //
 //
 protected slots:
-  /// Handle edit button click. Switches to Beams module and selects beam
-  void onEditButtonClicked();
-
   /// Update beam table according to the plan node
   void updateObjectivesTable();
 
