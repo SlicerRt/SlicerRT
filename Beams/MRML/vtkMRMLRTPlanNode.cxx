@@ -817,7 +817,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetTargetOrientedImageD
     targetOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
     targetOrientedImageData->DeepCopy(vtkOrientedImageData::SafeDownCast(
         segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName())));
-#endif 
+#endif
   }
   else
   {
@@ -853,55 +853,22 @@ bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double center[3])
     vtkErrorMacro("ComputeTargetVolumeCenter: Invalid MRML scene");
     return false;
   }
-
-  // Get a labelmap for the target
-  vtkSmartPointer<vtkOrientedImageData> targetLabelmap = this->GetTargetOrientedImageData();
-  if (targetLabelmap.GetPointer() == nullptr)
+  vtkMRMLSegmentationNode* segmentationNode = this->GetSegmentationNode();
+  if (!segmentationNode)
   {
+    vtkErrorMacro("ComputeTargetVolumeCenter: Failed to get target segmentation node");
+    return false;
+  }
+  if (!this->TargetSegmentID)
+  {
+    vtkErrorMacro("ComputeTargetVolumeCenter: No target segment specified");
     return false;
   }
 
-  // Compute image center
-  int extent[6] = {0,-1,0,-1,0,-1};
-  targetLabelmap->GetExtent(extent);
-  unsigned long numOfNonZeroVoxels = 0;
-  unsigned long sumX = 0;
-  unsigned long sumY = 0;
-  unsigned long sumZ = 0;
-  for (int z=extent[4]; z<extent[5]; ++z)
-  {
-    for (int y=extent[2]; y<extent[3]; ++y)
-    {
-      for (int x=extent[0]; x<extent[1]; ++x)
-      {
-        unsigned char value = targetLabelmap->GetScalarComponentAsDouble(x, y, z, 0);
-        if (value)
-        {
-          numOfNonZeroVoxels++;
-          sumX += x;
-          sumY += y;
-          sumZ += z;
-        }
-      }
-    }
-  }
-  double centerIjk[4] = {0.0};
-  if (numOfNonZeroVoxels > 0)
-  {
-    centerIjk[0] = (double)sumX / (double)numOfNonZeroVoxels;
-    centerIjk[1] = (double)sumY / (double)numOfNonZeroVoxels;
-    centerIjk[2] = (double)sumZ / (double)numOfNonZeroVoxels;
-    centerIjk[3] = 1.0;
-
-    vtkNew<vtkMatrix4x4> imageToWorldMatrix;
-    targetLabelmap->GetImageToWorldMatrix(imageToWorldMatrix);
-    double centerRas[4] = {0.0};
-    imageToWorldMatrix->MultiplyPoint(centerIjk, centerRas);
-
-    center[0] = centerRas[0];
-    center[1] = centerRas[1];
-    center[2] = centerRas[2];
-  }
+  double* centerRas = segmentationNode->GetSegmentCenterRAS(this->TargetSegmentID);
+  center[0] = centerRas[0];
+  center[1] = centerRas[1];
+  center[2] = centerRas[2];
 
   return true;
 }
