@@ -34,6 +34,9 @@
 //#include <ctkPimpl.h>
 #include <ctkVTKObject.h>
 
+// MRML includes
+#include <vtkMRMLObjectiveNode.h>
+
 class qMRMLObjectivesTableWidgetPrivate;
 class vtkMRMLNode;
 //class QTableWidget;
@@ -69,6 +72,8 @@ public slots:
 
   /// Called when objective is removed in an observed plan node
   void onObjectiveRemoved();
+
+  bool isSegmentSelectedElswhere(const QString& segementName, vtkMRMLObjectiveNode* objectiveNode, int currentRow);
 
 //signals:
 //

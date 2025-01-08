@@ -276,7 +276,6 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
     });
 }
 
-//-----------------------------------------------------------------------------
 void qMRMLObjectivesTableWidget::onSegmentationItemChanged(QListWidgetItem* item, int row)
 {
     Q_D(qMRMLObjectivesTableWidget);
@@ -299,7 +298,15 @@ void qMRMLObjectivesTableWidget::onSegmentationItemChanged(QListWidgetItem* item
     else
     {
         // The checkbox was unchecked
-        objectiveNode->RemoveSegmentation(item->text().toStdString());
+        // check if segment selected in another row with the same objective
+        if (!isSegmentSelectedElswhere(item->text(), objectiveNode, row))
+        {
+            objectiveNode->RemoveSegmentation(item->text().toStdString());
+        }
+        else
+        {
+            qWarning() << Q_FUNC_INFO << ": Segment" << item->text() << "is still selected in another row for the same objective";
+        }
     }
 }
 
@@ -323,20 +330,85 @@ void qMRMLObjectivesTableWidget::checkSegmentationsForObjectives()
 //------------------------------------------------------------------------------
 void qMRMLObjectivesTableWidget::onObjectiveRemoved()
 {
-  Q_D(qMRMLObjectivesTableWidget);
-  // Get the selected row(s)
-  QList<QTableWidgetItem*> selectedItems = d->ObjectivesTable->selectedItems();
-  QList<int> selectedRows;
-  for (QTableWidgetItem* item : selectedItems) {
-    int row = item->row();
-    if (!selectedRows.contains(row)) {
-    selectedRows.append(row);
-    d->ObjectivesTable->removeRow(row);
+    Q_D(qMRMLObjectivesTableWidget);
+
+    // Get the selected row(s)
+    QList<QTableWidgetItem*> selectedItems = d->ObjectivesTable->selectedItems();
+    QList<int> selectedRows;
+    for (QTableWidgetItem* item : selectedItems) {
+        int row = item->row();
+
+        if (!selectedRows.contains(row)) {
+            selectedRows.append(row);
+        }
     }
-  }
-  //TODO: delete segments in objective Node
+
+	// Remove the selected rows and the selected segments from the objectives
+    for (int row : selectedRows) {
+        QComboBox* objectivesDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("ObjectiveName")));
+        vtkMRMLObjectiveNode* objectiveNode = static_cast<vtkMRMLObjectiveNode*>(objectivesDropdown->currentData().value<void*>());
+        if (!objectiveNode)
+        {
+            qCritical() << Q_FUNC_INFO << ": Failed to retrieve objective node";
+            continue;
+        }
+        QListWidget* segmentationsListWidget = qobject_cast<QListWidget*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Parameter")));
+        if (!segmentationsListWidget)
+        {
+            qCritical() << Q_FUNC_INFO << ": Failed to retrieve segmentations list widget";
+            continue;
+        }
+        for (int i = 0; i < segmentationsListWidget->count(); ++i)
+        {
+            QListWidgetItem* segmentItem = segmentationsListWidget->item(i);
+            if (segmentItem->checkState() == Qt::Checked)
+            {
+				// if segment is not selected in another row, remove from objective
+                if (!isSegmentSelectedElswhere(segmentItem->text(), objectiveNode, row))
+                {
+                    objectiveNode->RemoveSegmentation(segmentItem->text().toStdString());
+                }
+            }
+        }
+
+        // remove the row
+        d->ObjectivesTable->removeRow(row);
+    }
 }
 
+//-----------------------------------------------------------------------------
+bool qMRMLObjectivesTableWidget::isSegmentSelectedElswhere(const QString& segementName, vtkMRMLObjectiveNode* objectiveNode, int currentRow)
+{
+	Q_D(qMRMLObjectivesTableWidget);
+
+	for (int otherRow = 0; otherRow < d->ObjectivesTable->rowCount(); ++otherRow)
+	{
+		// only itereate through other rows
+		if (otherRow == currentRow)
+		{
+			continue;
+		}
+		// select rows with the same objective
+		QComboBox* otherObjectivesDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(otherRow, d->columnIndex("ObjectiveName")));
+		vtkMRMLObjectiveNode* otherObjectiveNode = static_cast<vtkMRMLObjectiveNode*>(otherObjectivesDropdown->currentData().value<void*>());
+		if (otherObjectiveNode == objectiveNode)
+		{
+			// check if the segment is selected in the other row
+			QListWidget* otherSegmentationsListWidget = qobject_cast<QListWidget*>(d->ObjectivesTable->cellWidget(otherRow, d->columnIndex("Parameter")));
+			for (int j = 0; j < otherSegmentationsListWidget->count(); ++j)
+			{
+				QListWidgetItem* otherSegmentItem = otherSegmentationsListWidget->item(j);
+				if (otherSegmentItem->text() == segementName && otherSegmentItem->checkState() == Qt::Checked)
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+//-----------------------------------------------------------------------------
 void qMRMLObjectivesTableWidget::updateObjectivesTable()
 {
 }
