@@ -75,6 +75,8 @@ public slots:
 
   bool isSegmentSelectedElswhere(const QString& segementName, vtkMRMLObjectiveNode* objectiveNode, int currentRow);
 
+  void deleteObjectivesTable();
+
 //signals:
 //
 //
