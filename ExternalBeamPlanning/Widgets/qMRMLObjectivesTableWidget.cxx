@@ -106,9 +106,9 @@ void qMRMLObjectivesTableWidgetPrivate::init()
    this->setMessage(QString());
 
    // Set table header properties
-   this->ColumnLabels << "Number" << "ObjectiveName" << "Parameter";
+   this->ColumnLabels << "Number" << "ObjectiveName" << "Segments";
    this->ObjectivesTable->setHorizontalHeaderLabels(
-     QStringList() << "#" << "Objective" << "Parameter");
+     QStringList() << "#" << "Objective" << "Segments");
    this->ObjectivesTable->setColumnCount(this->ColumnLabels.size());
 
  #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
@@ -241,8 +241,6 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
     }
     d->ObjectivesTable->setCellWidget(row, d->columnIndex("ObjectiveName"), objectivesDropdown);
 
-    // TODO: Signal for change of objective Node (--> delete selected segments from old objective, but keep when still selected in other row)
-
 
     // Segmentations (List Widget with multi-select)
     QListWidget* segmentationsListWidget = new QListWidget();
@@ -269,7 +267,16 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
             segmentationsListWidget->addItem(item);
         }
     }
-    d->ObjectivesTable->setCellWidget(row, d->columnIndex("Parameter"), segmentationsListWidget);
+    d->ObjectivesTable->setCellWidget(row, d->columnIndex("Segments"), segmentationsListWidget);
+
+	// Adjust row height based on number of segments
+	int numVisibleSegments = segmentationsListWidget->count();
+	if (numVisibleSegments > 3)
+	{
+		numVisibleSegments = 3;
+	}
+	int rowHeight = segmentationsListWidget->sizeHintForRow(0) * numVisibleSegments;
+    d->ObjectivesTable->setRowHeight(row, rowHeight);
 
     connect(segmentationsListWidget, &QListWidget::itemChanged, this, [this, row](QListWidgetItem* item) {
         this->onSegmentationItemChanged(item, row);
@@ -352,7 +359,7 @@ void qMRMLObjectivesTableWidget::onObjectiveRemoved()
             qCritical() << Q_FUNC_INFO << ": Failed to retrieve objective node";
             continue;
         }
-        QListWidget* segmentationsListWidget = qobject_cast<QListWidget*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Parameter")));
+        QListWidget* segmentationsListWidget = qobject_cast<QListWidget*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
         if (!segmentationsListWidget)
         {
             qCritical() << Q_FUNC_INFO << ": Failed to retrieve segmentations list widget";
@@ -394,7 +401,7 @@ bool qMRMLObjectivesTableWidget::isSegmentSelectedElswhere(const QString& segeme
 		if (otherObjectiveNode == objectiveNode)
 		{
 			// check if the segment is selected in the other row
-			QListWidget* otherSegmentationsListWidget = qobject_cast<QListWidget*>(d->ObjectivesTable->cellWidget(otherRow, d->columnIndex("Parameter")));
+			QListWidget* otherSegmentationsListWidget = qobject_cast<QListWidget*>(d->ObjectivesTable->cellWidget(otherRow, d->columnIndex("Segments")));
 			for (int j = 0; j < otherSegmentationsListWidget->count(); ++j)
 			{
 				QListWidgetItem* otherSegmentItem = otherSegmentationsListWidget->item(j);
@@ -411,4 +418,17 @@ bool qMRMLObjectivesTableWidget::isSegmentSelectedElswhere(const QString& segeme
 //-----------------------------------------------------------------------------
 void qMRMLObjectivesTableWidget::updateObjectivesTable()
 {
+	//ToDo: load objectives from plan node
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLObjectivesTableWidget::deleteObjectivesTable()
+{
+	Q_D(qMRMLObjectivesTableWidget);
+
+	// Remove all rows
+	while (d->ObjectivesTable->rowCount() > 0)
+	{
+		d->ObjectivesTable->removeRow(0);
+	}
 }

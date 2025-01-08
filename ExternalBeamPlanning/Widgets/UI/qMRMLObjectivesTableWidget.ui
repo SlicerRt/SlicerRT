@@ -90,24 +90,21 @@
       <property name="text">
        <string>#</string>
       </property>
-      <property name="toolTip">
-       <string>Some Text</string>
-      </property>
      </column>
      <column>
       <property name="text">
        <string>Objective</string>
       </property>
       <property name="toolTip">
-       <string>Some Text</string>
+       <string>available objectives for the optimizer</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>Parameter</string>
+       <string>Segments</string>
       </property>
       <property name="toolTip">
-       <string>Some Text</string>
+       <string>segments to apply the objective to</string>
       </property>
      </column>
     </widget>
