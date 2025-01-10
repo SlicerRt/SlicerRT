@@ -103,7 +103,6 @@ protected slots:
   void removeBeamClicked();
 
   // ObjectiveTable
-  void getAvailableObjectivesClicked();
   void addObjectiveClicked();
   void removeObjectiveClicked();
   void saveAvailableObjectives();
