@@ -240,7 +240,9 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
         objectivesDropdown->addItem(objective->GetName(), var);
     }
     d->ObjectivesTable->setCellWidget(row, d->columnIndex("ObjectiveName"), objectivesDropdown);
-
+    connect(objectivesDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this]{
+		this->updateObjectives();
+    });
 
     // Segmentations (List Widget with multi-select)
     QListWidget* segmentationsListWidget = new QListWidget();
@@ -268,21 +270,21 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
         }
     }
     d->ObjectivesTable->setCellWidget(row, d->columnIndex("Segments"), segmentationsListWidget);
-
-	// Adjust row height based on number of segments
-	int numVisibleSegments = segmentationsListWidget->count();
-	if (numVisibleSegments > 3)
-	{
-		numVisibleSegments = 3;
-	}
-	int rowHeight = segmentationsListWidget->sizeHintForRow(0) * numVisibleSegments;
-    d->ObjectivesTable->setRowHeight(row, rowHeight);
-
     connect(segmentationsListWidget, &QListWidget::itemChanged, this, [this, row](QListWidgetItem* item) {
         this->onSegmentationItemChanged(item, row);
     });
+
+    // Adjust row height based on number of segments
+    int numVisibleSegments = segmentationsListWidget->count();
+    if (numVisibleSegments > 3)
+    {
+        numVisibleSegments = 3;
+    }
+    int rowHeight = segmentationsListWidget->sizeHintForRow(0) * numVisibleSegments;
+    d->ObjectivesTable->setRowHeight(row, rowHeight);
 }
 
+//-----------------------------------------------------------------------------
 void qMRMLObjectivesTableWidget::onSegmentationItemChanged(QListWidgetItem* item, int row)
 {
     Q_D(qMRMLObjectivesTableWidget);
@@ -338,8 +340,6 @@ void qMRMLObjectivesTableWidget::checkSegmentationsForObjectives()
 void qMRMLObjectivesTableWidget::onObjectiveRemoved()
 {
     Q_D(qMRMLObjectivesTableWidget);
-
-    // Get the selected row(s)
     QList<QTableWidgetItem*> selectedItems = d->ObjectivesTable->selectedItems();
     QList<int> selectedRows;
     for (QTableWidgetItem* item : selectedItems) {
@@ -349,38 +349,10 @@ void qMRMLObjectivesTableWidget::onObjectiveRemoved()
             selectedRows.append(row);
         }
     }
-
-	// Remove the selected rows and the selected segments from the objectives
     for (int row : selectedRows) {
-        QComboBox* objectivesDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("ObjectiveName")));
-        vtkMRMLObjectiveNode* objectiveNode = static_cast<vtkMRMLObjectiveNode*>(objectivesDropdown->currentData().value<void*>());
-        if (!objectiveNode)
-        {
-            qCritical() << Q_FUNC_INFO << ": Failed to retrieve objective node";
-            continue;
-        }
-        QListWidget* segmentationsListWidget = qobject_cast<QListWidget*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
-        if (!segmentationsListWidget)
-        {
-            qCritical() << Q_FUNC_INFO << ": Failed to retrieve segmentations list widget";
-            continue;
-        }
-        for (int i = 0; i < segmentationsListWidget->count(); ++i)
-        {
-            QListWidgetItem* segmentItem = segmentationsListWidget->item(i);
-            if (segmentItem->checkState() == Qt::Checked)
-            {
-				// if segment is not selected in another row, remove from objective
-                if (!isSegmentSelectedElswhere(segmentItem->text(), objectiveNode, row))
-                {
-                    objectiveNode->RemoveSegmentation(segmentItem->text().toStdString());
-                }
-            }
-        }
-
-        // remove the row
         d->ObjectivesTable->removeRow(row);
     }
+	this->updateObjectives();
 }
 
 //-----------------------------------------------------------------------------
@@ -413,6 +385,49 @@ bool qMRMLObjectivesTableWidget::isSegmentSelectedElswhere(const QString& segeme
 		}
 	}
 	return false;
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLObjectivesTableWidget::updateObjectives()
+{
+	Q_D(qMRMLObjectivesTableWidget);
+    vtkMRMLRTPlanNode* planNode = d->PlanNode;
+    if (!planNode)
+    {
+        qCritical() << Q_FUNC_INFO << ": Invalid plan node";
+        return;
+    }
+
+    // remove all segments from objectiveNodes
+    qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
+    selectedEngine->removeSegmentsFromObjectives();
+
+	// iterate through all rows and add segments to objectiveNodes
+	for (int row = 0; row < d->ObjectivesTable->rowCount(); ++row)
+	{
+		QComboBox* objectivesDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("ObjectiveName")));
+		vtkMRMLObjectiveNode* objectiveNode = static_cast<vtkMRMLObjectiveNode*>(objectivesDropdown->currentData().value<void*>());
+		if (!objectiveNode)
+		{
+			qCritical() << Q_FUNC_INFO << ": Failed to retrieve objective node";
+			continue;
+		}
+		QListWidget* segmentationsListWidget = qobject_cast<QListWidget*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
+		if (!segmentationsListWidget)
+		{
+			qCritical() << Q_FUNC_INFO << ": Failed to retrieve segmentations list widget";
+			continue;
+		}
+		for (int i = 0; i < segmentationsListWidget->count(); ++i)
+		{
+			QListWidgetItem* segmentItem = segmentationsListWidget->item(i);
+			if (segmentItem->checkState() == Qt::Checked)
+			{
+				objectiveNode->AddSegmentation(segmentItem->text().toStdString());
+			}
+		}
+	}
+    
 }
 
 //-----------------------------------------------------------------------------

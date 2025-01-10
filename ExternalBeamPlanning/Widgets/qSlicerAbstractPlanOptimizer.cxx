@@ -33,6 +33,7 @@ This file was originally developed by Niklas Wahl, German Cancer Research Center
 #include <vtkMRMLSubjectHierarchyNode.h>
 #include <vtkMRMLSubjectHierarchyConstants.h>
 #include <vtkMRMLColorTableNode.h>
+#include "vtkMRMLObjectiveNode.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -175,6 +176,24 @@ std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> qSlicerAbstractPlanOptimizer:
 void qSlicerAbstractPlanOptimizer::setAvailableObjectives()
 {
     qCritical() << Q_FUNC_INFO << ": no available Objectives ";
+}
+
+void qSlicerAbstractPlanOptimizer::removeSegmentsFromObjectives()
+{
+    std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives = this->getAvailableObjectives();
+    if (availableObjectives.empty())
+    {
+        qCritical() << Q_FUNC_INFO << ": No objectives available for the selected optimizer";
+        return;
+    }
+	for (size_t i = 0; i < availableObjectives.size(); i++)
+	{
+        vtkMRMLObjectiveNode* objective = availableObjectives[i];
+        if (objective)
+        {
+            objective->RemoveAllSegments();
+        }
+    }
 }
 
 

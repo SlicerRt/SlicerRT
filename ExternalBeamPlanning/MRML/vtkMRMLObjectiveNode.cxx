@@ -139,6 +139,13 @@ void vtkMRMLObjectiveNode::RemoveSegmentation(const std::string& segmentation)
 	}
 }
 
+//-------
+void vtkMRMLObjectiveNode::RemoveAllSegments()
+{
+	this->Segmentations.clear();
+}
+
+
 //----------------------------------------------------------------------------
 const std::vector<std::string>& vtkMRMLObjectiveNode::GetSegmentations() const
 {

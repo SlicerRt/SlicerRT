@@ -77,6 +77,8 @@ public:
   /// Set available objectives for the Optimization engine
   virtual void setAvailableObjectives();
 
+  void removeSegmentsFromObjectives();
+
 // API functions to implement in the subclass
 protected:
   /// Calculate Optimization for a single beam. Called by \sa CalculateOptimization that performs actions generic
