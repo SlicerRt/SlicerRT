@@ -146,6 +146,9 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
     qCritical() << Q_FUNC_INFO << ": Failed to access reference volume subject hierarchy item";
   }
 
+  // Get available objectives
+  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives = this->getAvailableObjectives();
+
   // Create output Optimization volume for beam
   vtkSmartPointer<vtkMRMLScalarVolumeNode> resultOptimizationVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   planNode->GetScene()->AddNode(resultOptimizationVolumeNode);
@@ -154,7 +157,7 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
   resultOptimizationVolumeNode->SetName(resultOptimizationNodeName.c_str());
 
   // Optimize
-  QString errorMessage = this->optimizePlanUsingOptimizer(planNode, resultOptimizationVolumeNode);
+  QString errorMessage = this->optimizePlanUsingOptimizer(planNode, objectives, resultOptimizationVolumeNode);
   
   if (errorMessage.isEmpty())
   {

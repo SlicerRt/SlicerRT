@@ -190,12 +190,33 @@ void qSlicerScriptedPlanOptimizer::setName(QString name)
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode)
+QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode)
 {
   Q_D(const qSlicerScriptedPlanOptimizer);
-  PyObject* arguments = PyTuple_New(2);
+  // transform objectives to python list
+  PyObject* pyList = PyList_New(objectives.size());
+  for (size_t i = 0; i < objectives.size(); i++)
+  {
+	  vtkMRMLObjectiveNode* objectiveNode = objectives[i];
+      if (objectiveNode)
+      {
+          PyObject* pyDict = PyDict_New();
+          PyDict_SetItemString(pyDict, "Objective", Py_BuildValue("s", objectiveNode->GetName()));
+          std::vector<std::string> segments = objectiveNode->GetSegmentations();
+          PyObject* pySegmentsList = PyList_New(segments.size());
+          for (size_t j = 0; j < segments.size(); j++)
+          {
+              PyList_SetItem(pySegmentsList, j, Py_BuildValue("s", segments[j].c_str()));
+          }
+          PyDict_SetItemString(pyDict, "Segments", pySegmentsList);
+          PyList_SetItem(pyList, i, pyDict);
+      }
+  }
+  
+  PyObject* arguments = PyTuple_New(3);
   PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer(planNode));
-  PyTuple_SET_ITEM(arguments, 1, vtkPythonUtil::GetObjectFromPointer(resultOptimizationVolumeNode));
+  PyTuple_SET_ITEM(arguments, 1, pyList);
+  PyTuple_SET_ITEM(arguments, 2, vtkPythonUtil::GetObjectFromPointer(resultOptimizationVolumeNode));
   qDebug() << d->PythonSource << ": Calling optimizePlanUsingOptimizer from Python Plan Optimizer";
   PyObject* result = d->PythonCppAPI.callMethod(d->OptimizePlanUsingOptimizerMethod, arguments);
   Py_DECREF(arguments);

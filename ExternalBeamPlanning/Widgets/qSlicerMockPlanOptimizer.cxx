@@ -40,7 +40,7 @@ qSlicerMockPlanOptimizer::qSlicerMockPlanOptimizer(QObject* parent)
 qSlicerMockPlanOptimizer::~qSlicerMockPlanOptimizer() = default;
 
 //---------------------------------------------------------------------------
-QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode)
+QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode)
 {
 
     // ToDo: check if pyRadPlanEngine's dose calculation works with mock optimizer

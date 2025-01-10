@@ -84,6 +84,7 @@ protected:
   /// \param resultOptimizationVolumeNode Output volume node for the Optimization result. It is created by \sa optimizePlan
   virtual QString optimizePlanUsingOptimizer(
     vtkMRMLRTPlanNode* planNode,
+    std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives,
     vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode );
 
 
