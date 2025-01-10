@@ -68,8 +68,6 @@ public slots:
 
   void onSegmentationItemChanged(QListWidgetItem* item, int row);
 
-  void checkSegmentationsForObjectives();
-
   /// Called when objective is removed in an observed plan node
   void onObjectiveRemoved();
 

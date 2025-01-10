@@ -317,24 +317,7 @@ void qMRMLObjectivesTableWidget::onSegmentationItemChanged(QListWidgetItem* item
             qWarning() << Q_FUNC_INFO << ": Segment" << item->text() << "is still selected in another row for the same objective";
         }
     }
-}
-
-//-----------------------------------------------------------------------------
-void qMRMLObjectivesTableWidget::checkSegmentationsForObjectives()
-{
-    Q_D(qMRMLObjectivesTableWidget);
-
-    vtkMRMLRTPlanNode* planNode = d->PlanNode;
-    qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
-    std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives = selectedEngine->getAvailableObjectives();
-
-    for (auto objective : availableObjectives)
-    {
-        qDebug() << "Objective:" << QString::fromStdString(objective->GetName()) << "has segmentations:" << objective->GetSegmentations();
-    }
-}
-
-    
+}    
 
 //------------------------------------------------------------------------------
 void qMRMLObjectivesTableWidget::onObjectiveRemoved()
