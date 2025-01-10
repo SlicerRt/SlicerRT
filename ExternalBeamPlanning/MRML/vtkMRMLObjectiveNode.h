@@ -57,6 +57,8 @@ public:
 
   void RemoveSegmentation(const std::string& segmentation);
 
+  void RemoveAllSegments();
+
   /// Get the list of segmentations
   const std::vector<std::string>& GetSegmentations() const;
 
