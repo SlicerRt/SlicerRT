@@ -71,7 +71,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       -DCMAKE_LIBRARY_OUTPUT_DIRECTORY:PATH=${CMAKE_BINARY_DIR}/${Slicer_THIRDPARTY_LIB_DIR}
       -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}
       # Install directories
-      # NA
+      -DvtkIECTransformLogic_INSTALL_LIB_DIR:PATH=${Slicer_THIRDPARTY_LIB_DIR}
       # Dependencies (satisfied by Slicer)
       -DVTK_DIR:STRING=${VTK_DIR}
       # Options
