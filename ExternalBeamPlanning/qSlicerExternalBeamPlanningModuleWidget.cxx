@@ -55,6 +55,11 @@
 #include "qSlicerAbstractPlanOptimizer.h"
 #include "qSlicerPlanOptimizerLogic.h"
 
+// Objectives includes
+#include "qSlicerObjectivePluginHandler.h"
+#include "qSlicerAbstractObjective.h"
+#include "qSlicerObjectiveLogic.h"
+
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>

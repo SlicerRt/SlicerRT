@@ -27,6 +27,13 @@
 #include <vector>
 #include <vtkSmartPointer.h>
 
+#include <QString>
+#include <QMap>
+#include <QVariant>
+
+// Eigen includes
+#include <itkeigen/Eigen/SparseCore>
+
 class  VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLObjectiveNode : public vtkMRMLNode
 {
 public:
@@ -49,6 +56,10 @@ public:
   const char* GetNodeTagName() override { return "Objective"; };
 
 public:
+	using DoseType = Eigen::VectorXd;
+	using ObjectivesType = QMap<QString, QVariant>;
+
+public:
   vtkGetStringMacro(Name);
   vtkSetStringMacro(Name);
 
@@ -62,6 +73,12 @@ public:
   /// Get the list of segmentations
   const std::vector<std::string>& GetSegmentations() const;
 
+  void SetObjectiveFunction(std::function<QString(const DoseType&, const ObjectivesType&)> func);
+  void SetObjectiveGradient(std::function<QString(const DoseType&, const ObjectivesType&)> func);
+  std::function<QString(const DoseType&, const ObjectivesType&)> GetObjectiveFunction();
+  std::function<QString(const DoseType&, const ObjectivesType&)> GetObjectiveGradient();
+
+
 protected:
   vtkMRMLObjectiveNode();
   ~vtkMRMLObjectiveNode() override;
@@ -70,7 +87,8 @@ protected:
 
   char* Name;
   std::vector<std::string> Segmentations;
-
+  std::function<QString(const DoseType&, const ObjectivesType&)> ObjectiveFunction;
+  std::function<QString(const DoseType&, const ObjectivesType&)> ObjectiveGradient;
 };
 
 #endif

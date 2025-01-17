@@ -23,6 +23,7 @@ set(${KIT}_SRCS
   qSlicerDoseEngineLogic.h
   qSlicerMockDoseEngine.cxx
   qSlicerMockDoseEngine.h
+
   qSlicerScriptedDoseEngine.cxx
   qSlicerScriptedDoseEngine.h
   qSlicerAbstractPlanOptimizer.cxx
@@ -35,6 +36,16 @@ set(${KIT}_SRCS
   qSlicerMockPlanOptimizer.h
   qSlicerScriptedPlanOptimizer.cxx
   qSlicerScriptedPlanOptimizer.h
+  
+  qSlicerAbstractObjective.cxx
+  qSlicerAbstractObjective.h
+  qSlicerObjectivePluginHandler.cxx
+  qSlicerObjectivePluginHandler.h
+  qSlicerObjectiveLogic.cxx
+  qSlicerObjectiveLogic.h
+  qSlicerSquaredDeviationObjective.cxx
+  qSlicerSquaredDeviationObjective.h
+
   qMRMLObjectivesTableWidget.cxx
   qMRMLObjectivesTableWidget.h
   )
@@ -47,6 +58,7 @@ set(${KIT}_UI_SRCS
 set_source_files_properties(
   qSlicerAbstractDoseEngine.h
   qSlicerAbstractPlanOptimizer.h
+  qSlicerAbstractObjective.h
   WRAP_EXCLUDE
   )
 
@@ -61,6 +73,10 @@ set(${KIT}_MOC_SRCS
   qSlicerPlanOptimizerLogic.h
   qSlicerMockPlanOptimizer.h
   qSlicerScriptedPlanOptimizer.h
+  qSlicerAbstractObjective.h
+  qSlicerObjectivePluginHandler.h
+  qSlicerObjectiveLogic.h
+  qSlicerSquaredDeviationObjective.h
   qMRMLObjectivesTableWidget.h
 )
 
