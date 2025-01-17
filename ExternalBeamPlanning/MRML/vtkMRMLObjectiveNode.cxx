@@ -151,3 +151,27 @@ const std::vector<std::string>& vtkMRMLObjectiveNode::GetSegmentations() const
 {
 	return this->Segmentations;
 }
+
+// ----------------------------------------------------------------------------
+void vtkMRMLObjectiveNode::SetObjectiveFunction(std::function<QString(const DoseType&, const ObjectivesType&)> func)
+{
+	this->ObjectiveFunction = func;
+}
+
+// ----------------------------------------------------------------------------
+void vtkMRMLObjectiveNode::SetObjectiveGradient(std::function<QString(const DoseType&, const ObjectivesType&)> func)
+{
+	this->ObjectiveGradient = func;
+}
+
+// ----------------------------------------------------------------------------
+std::function<QString(const vtkMRMLObjectiveNode::DoseType&, const vtkMRMLObjectiveNode::ObjectivesType&)> vtkMRMLObjectiveNode::GetObjectiveFunction()
+{
+	return this->ObjectiveFunction;
+}
+
+// ----------------------------------------------------------------------------
+std::function<QString(const vtkMRMLObjectiveNode::DoseType&, const vtkMRMLObjectiveNode::ObjectivesType&)> vtkMRMLObjectiveNode::GetObjectiveGradient()
+{
+	return this->ObjectiveGradient;
+}

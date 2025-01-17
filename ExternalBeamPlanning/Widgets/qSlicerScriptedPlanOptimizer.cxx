@@ -23,6 +23,9 @@
 // Beams includes
 #include "vtkMRMLRTPlanNode.h"
 
+// Objectives includes
+#include "qSlicerSquaredDeviationObjective.h"
+
 // SlicerQt includes
 #include "qSlicerScriptedUtils_p.h"
 
@@ -245,8 +248,17 @@ void qSlicerScriptedPlanOptimizer::setAvailableObjectives()
    vtkSmartPointer<vtkMRMLObjectiveNode> objective1 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
    vtkSmartPointer<vtkMRMLObjectiveNode> objective2 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
 
+   // set names
    objective1->SetName("pyRad objective 1");
    objective2->SetName("pyRad objective 2");
+
+
+   // set objective function
+   qSlicerSquaredDeviationObjective* squaredDeviationObjective = new qSlicerSquaredDeviationObjective();
+   std::function<QString(const vtkMRMLObjectiveNode::DoseType&, const vtkMRMLObjectiveNode::ObjectivesType&)> computedObjectiveFunction = squaredDeviationObjective->computeDoseObjectiveFunction();
+   objective1->SetObjectiveFunction(computedObjectiveFunction);
+   objective2->SetObjectiveFunction(computedObjectiveFunction);
+
 
    if (objective1) {
        objectives.push_back(objective1);
@@ -257,3 +269,6 @@ void qSlicerScriptedPlanOptimizer::setAvailableObjectives()
 
    this->availableObjectives = objectives;
 }
+
+
+// execute objective: objectiveNode->GetObjectiveFunction()();
