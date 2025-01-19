@@ -33,10 +33,14 @@ set(DOXYGEN_EXECUTABLE ${DOXYGEN_EXECUTABLE} CACHE STRING "Path to custom doxyge
 #list(APPEND CMAKE_MODULE_PATH "/opt/doxygen") # Uncomment this if you have a custom installation of Doxygen in /opt/
 find_package(Doxygen 1.9.1 REQUIRED dot) # OPTIONAL_COMPONENTS dot
 
+if(builtin_docu)
+    set (SLICERRT_GIT_VERSION ${SLICERRT_VERSION})
+else()
 if(GIT_DESCRIBE_ALL)
     set (SLICERRT_GIT_VERSION ${GIT_DESCRIBE_ALL})
 else()
     message(STATUS "Cannot determine git tag.")
+endif()
 endif()
 
 #execute_process(COMMAND find ../ -type d -name dictpch -prune -o -type d -name inc OUTPUT_VARIABLE INC_FOLDERS OUTPUT_STRIP_TRAILING_WHITESPACE WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
