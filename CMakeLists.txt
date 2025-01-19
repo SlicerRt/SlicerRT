@@ -61,6 +61,9 @@ option(SLICERRT_ENABLE_EXPERIMENTAL_MODULES "Enable the building of work-in-prog
 mark_as_superbuild(SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
 
 #-----------------------------------------------------------------------------
+option(SLICERRT_DOCUMENTATION "Enable the building of the SlicerRt documentation via doxygen." OFF)
+
+#-----------------------------------------------------------------------------
 # SuperBuild setup
 option(${EXTENSION_NAME}_SUPERBUILD "Build ${EXTENSION_NAME} and the projects it depends on." ON)
 mark_as_advanced(${EXTENSION_NAME}_SUPERBUILD)
@@ -116,6 +119,10 @@ endif()
 
 if(BUILD_TESTING)
   add_subdirectory(Testing)
+endif()
+
+if (SLICERRT_DOCUMENTATION)
+  add_subdirectory(Docs)
 endif()
 
 #-----------------------------------------------------------------------------
