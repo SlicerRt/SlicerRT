@@ -13,9 +13,12 @@
 #include "vtkSlicerSegmentationsModuleLogic.h"
 #include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
 
+// Objectives includes
+#include "qSlicerSquaredDeviationObjective.h"
+
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"
-//#include <vtkMRMLObjectiveNode.h>
+#include <vtkMRMLObjectiveNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -111,6 +114,21 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
         //std::cout << "number of cols: " << doseInfluenceMatrix.cols() << std::endl;
     }
 
+	//std::cout << "total dose:" << totalDose << std::endl;
+
+    // create objectives dict for squared deviation (QMap<QString, QVariant>)
+	vtkMRMLObjectiveNode::ObjectivesType obj_squaredDeviation;
+    obj_squaredDeviation["preferredDose"] = 0.5;
+
+    // compute objective function
+	vtkMRMLObjectiveNode* objectiveNode = objectives[0];
+    if (objectiveNode)
+    {
+        std::function<float(const vtkMRMLObjectiveNode::DoseType&, const vtkMRMLObjectiveNode::ObjectivesType&)> computedObjectiveFunction = objectiveNode->GetObjectiveFunction();
+        std::function<vtkMRMLObjectiveNode::DoseType& (const vtkMRMLObjectiveNode::DoseType&, const vtkMRMLObjectiveNode::ObjectivesType&)> computedObjectiveGradient = objectiveNode->GetObjectiveGradient();
+        float objectiveValue = computedObjectiveFunction(totalDose, obj_squaredDeviation);
+        std::cout << "Objective Value: " << objectiveValue << std::endl;
+    }
     
    
     vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
@@ -159,13 +177,32 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
   return QString();
 }
 
-
 //-----------------------------------------------------------------------------
-std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> qSlicerMockPlanOptimizer::getAvailableObjectives()
+void qSlicerMockPlanOptimizer::setAvailableObjectives()
 {
     std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives;
-    //objectives.push_back("AnotherObjective1");
-    //objectives.push_back("AnotherObjective2");
-    //// Add more specific objectives as needed
-    return objectives;
+
+    vtkSmartPointer<vtkMRMLObjectiveNode> objective1 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
+    vtkSmartPointer<vtkMRMLObjectiveNode> objective2 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
+
+    // set names
+    objective1->SetName("mock objective 1");
+    objective2->SetName("mock objective 2");
+
+
+    // set objective function
+    qSlicerSquaredDeviationObjective* squaredDeviationObjective = new qSlicerSquaredDeviationObjective();
+    qSlicerSquaredDeviationObjective::ObjectiveFunctionAndGradient computedDoseObjectiveFunctionAndGradient = squaredDeviationObjective->computeDoseObjectiveFunctionAndGradient();
+    objective1->SetDoseObjectiveFunctionAndGradient(computedDoseObjectiveFunctionAndGradient);
+    objective2->SetDoseObjectiveFunctionAndGradient(computedDoseObjectiveFunctionAndGradient);
+
+
+    if (objective1) {
+        objectives.push_back(objective1);
+    }
+    if (objective2) {
+        objectives.push_back(objective2);
+    }
+
+    this->availableObjectives = objectives;
 }

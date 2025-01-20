@@ -95,3 +95,18 @@ void qSlicerAbstractObjective::setName(QString name)
   Q_UNUSED(name);
   qCritical() << Q_FUNC_INFO << ": Cannot set Optimization engine name by method, only in constructor";
 }
+
+//----------------------------------------------------------------------------
+qSlicerAbstractObjective::ObjectiveFunctionAndGradient qSlicerAbstractObjective::computeDoseObjectiveFunctionAndGradient()
+{
+	qSlicerAbstractObjective::ObjectiveFunctionAndGradient functions;
+	functions.objectiveFunction = [this](const DoseType& dose, const ObjectivesType& objectives) -> float
+	{
+		return this->computeDoseObjectiveFunction(dose, objectives);
+	};
+	functions.objectiveGradient = [this](const DoseType& dose, const ObjectivesType& objectives)->DoseType &
+	{
+		return this->computeDoseObjectiveGradient(dose, objectives);
+	};
+    return functions;
+}

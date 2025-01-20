@@ -27,8 +27,8 @@ public:
   /// \param planNode Plan for which the Optimization is carried out.
   /// \param resultOptimizationVolumeNode Output volume node for the result Optimization. It is created by \sa optimizePlan
   Q_INVOKABLE QString optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode);
-  
-  virtual std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getAvailableObjectives();
+
+  void setAvailableObjectives();
 
 private:
   Q_DISABLE_COPY(qSlicerMockPlanOptimizer);
