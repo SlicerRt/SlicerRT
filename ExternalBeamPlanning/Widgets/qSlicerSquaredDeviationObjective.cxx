@@ -1,14 +1,12 @@
 
 
 
-// Optimizer includes
+// Objective includes
 #include "qSlicerSquaredDeviationObjective.h"
-
 #include "qSlicerAbstractObjective.h"
 
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"
-//#include <vtkMRMLObjectiveNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -32,20 +30,33 @@ qSlicerSquaredDeviationObjective::qSlicerSquaredDeviationObjective(QObject* pare
 //----------------------------------------------------------------------------
 qSlicerSquaredDeviationObjective::~qSlicerSquaredDeviationObjective() = default;
 
+//
+
 //---------------------------------------------------------------------------
-std::function<QString(const qSlicerAbstractObjective::DoseType&, const qSlicerAbstractObjective::ObjectivesType&)> qSlicerSquaredDeviationObjective::computeDoseObjectiveFunction()
+float qSlicerSquaredDeviationObjective::computeDoseObjectiveFunction(const DoseType& doseMatrix, const ObjectivesType& objectives)
 {
-	return [this](const DoseType& doseMatrix, const ObjectivesType& objectives) -> QString
-	{
-		return QString("Squared Deviation Objective Function");
-	};
+	// Get the preferred dose from the objectives
+	float preferredDose = objectives["preferredDose"].toFloat();
+	DoseType preferredDoseVector = DoseType::Constant(doseMatrix.size(), preferredDose);
+			
+		
+	// Compute the squared deviation
+	DoseType deviation = doseMatrix - preferredDoseVector;
+	float squaredDeviation = deviation.squaredNorm() / doseMatrix.size();
+
+	return squaredDeviation;
 }
 
 //---------------------------------------------------------------------------
-std::function<QString(const qSlicerAbstractObjective::DoseType&, const qSlicerAbstractObjective::ObjectivesType&)> qSlicerSquaredDeviationObjective::computeDoseObjectiveGradient()
+qSlicerAbstractObjective::DoseType& qSlicerSquaredDeviationObjective::computeDoseObjectiveGradient(const DoseType& doseMatrix, const ObjectivesType& objectives)
 {
-	return [](const DoseType& doseMatrix, const ObjectivesType& objectives) -> QString
-	{
-		return QString("Squared Deviation Objective Gradient");
-	};
+	// Get the preferred dose from the objectives
+	float preferredDose = objectives["preferredDose"].toFloat();
+	DoseType preferredDoseVector = DoseType::Constant(doseMatrix.size(), preferredDose);
+
+	// Compute gradient
+	DoseType deviation = doseMatrix - preferredDoseVector;
+	DoseType gradient = 2 * deviation / doseMatrix.size();
+
+	return gradient;
 }

@@ -255,9 +255,9 @@ void qSlicerScriptedPlanOptimizer::setAvailableObjectives()
 
    // set objective function
    qSlicerSquaredDeviationObjective* squaredDeviationObjective = new qSlicerSquaredDeviationObjective();
-   std::function<QString(const vtkMRMLObjectiveNode::DoseType&, const vtkMRMLObjectiveNode::ObjectivesType&)> computedObjectiveFunction = squaredDeviationObjective->computeDoseObjectiveFunction();
-   objective1->SetObjectiveFunction(computedObjectiveFunction);
-   objective2->SetObjectiveFunction(computedObjectiveFunction);
+   qSlicerSquaredDeviationObjective::ObjectiveFunctionAndGradient computedDoseObjectiveFunctionAndGradient = squaredDeviationObjective->computeDoseObjectiveFunctionAndGradient();
+   objective1->SetDoseObjectiveFunctionAndGradient(computedDoseObjectiveFunctionAndGradient);
+   objective2->SetDoseObjectiveFunctionAndGradient(computedDoseObjectiveFunctionAndGradient);
 
 
    if (objective1) {

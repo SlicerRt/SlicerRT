@@ -59,6 +59,7 @@ public:
     /// Type definitions for dose and objectives
     using DoseType = vtkMRMLObjectiveNode::DoseType;
     using ObjectivesType = vtkMRMLObjectiveNode::ObjectivesType;
+	using ObjectiveFunctionAndGradient = vtkMRMLObjectiveNode::ObjectiveFunctionAndGradient;
 
 public:
   typedef QObject Superclass;
@@ -73,7 +74,7 @@ public:
   /// NOTE: name must be defined in constructor in C++ engines, this can only be used in python scripted ones
   virtual void setName(QString name);
 
-// Optimization calculation related functions
+  virtual ObjectiveFunctionAndGradient computeDoseObjectiveFunctionAndGradient();
 
 protected:
   /// Name of the engine. Must be set in Optimization engine constructor
@@ -93,9 +94,13 @@ private:
   friend class qSlicerExternalBeamPlanningModuleWidget;
 
 protected:
-    virtual std::function<QString(const DoseType&, const ObjectivesType&)> computeDoseObjectiveFunction() = 0;
-    virtual std::function<QString(const DoseType&, const ObjectivesType&)> computeDoseObjectiveGradient() = 0;
+    virtual float computeDoseObjectiveFunction(const DoseType&, const ObjectivesType&) = 0;
+    virtual DoseType& computeDoseObjectiveGradient(const DoseType&, const ObjectivesType&) = 0;
+    
 
 };
+
+Q_DECLARE_METATYPE(qSlicerAbstractObjective::DoseType)
+Q_DECLARE_METATYPE(qSlicerAbstractObjective::ObjectivesType)
 
 #endif

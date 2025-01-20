@@ -58,6 +58,11 @@ public:
 public:
 	using DoseType = Eigen::VectorXd;
 	using ObjectivesType = QMap<QString, QVariant>;
+    struct ObjectiveFunctionAndGradient
+    {
+        std::function<float(const DoseType&, const ObjectivesType&)> objectiveFunction;
+        std::function<DoseType& (const DoseType&, const ObjectivesType&)> objectiveGradient;
+    };
 
 public:
   vtkGetStringMacro(Name);
@@ -73,10 +78,9 @@ public:
   /// Get the list of segmentations
   const std::vector<std::string>& GetSegmentations() const;
 
-  void SetObjectiveFunction(std::function<QString(const DoseType&, const ObjectivesType&)> func);
-  void SetObjectiveGradient(std::function<QString(const DoseType&, const ObjectivesType&)> func);
-  std::function<QString(const DoseType&, const ObjectivesType&)> GetObjectiveFunction();
-  std::function<QString(const DoseType&, const ObjectivesType&)> GetObjectiveGradient();
+  void SetDoseObjectiveFunctionAndGradient(ObjectiveFunctionAndGradient functions);
+  std::function<float(const DoseType&, const ObjectivesType&)> GetObjectiveFunction();
+  std::function<DoseType&(const DoseType&, const ObjectivesType&)> GetObjectiveGradient();
 
 
 protected:
@@ -87,8 +91,8 @@ protected:
 
   char* Name;
   std::vector<std::string> Segmentations;
-  std::function<QString(const DoseType&, const ObjectivesType&)> ObjectiveFunction;
-  std::function<QString(const DoseType&, const ObjectivesType&)> ObjectiveGradient;
+  std::function<float(const DoseType&, const ObjectivesType&)> ObjectiveFunction;
+  std::function<DoseType&(const DoseType&, const ObjectivesType&)> ObjectiveGradient;
 };
 
 #endif
