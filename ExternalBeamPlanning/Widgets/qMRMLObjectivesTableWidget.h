@@ -66,15 +66,13 @@ public slots:
   /// Called when objective is added in an observed plan node
   void onObjectiveAdded();
 
-  void onSegmentationItemChanged(QListWidgetItem* item, int row);
-
   /// Called when objective is removed in an observed plan node
   void onObjectiveRemoved();
 
-  bool isSegmentSelectedElswhere(const QString& segementName, vtkMRMLObjectiveNode* objectiveNode, int currentRow);
-
+  /// called when objective or segmentation selection is changed
   void updateObjectives();
 
+  /// delete objectives Table and removes all objectives from plan optimizer
   void deleteObjectivesTable();
 
 //signals:

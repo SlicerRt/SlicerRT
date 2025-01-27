@@ -57,9 +57,12 @@ public:
     /// Maximum Gray value for visualization window/level of the newly created per-beam dose volumes
     static double DEFAULT_DOSE_VOLUME_WINDOW_LEVEL_MAXIMUM;
     /// Type definitions for dose and objectives
-    using DoseType = vtkMRMLObjectiveNode::DoseType;
-    using ObjectivesType = vtkMRMLObjectiveNode::ObjectivesType;
-	using ObjectiveFunctionAndGradient = vtkMRMLObjectiveNode::ObjectiveFunctionAndGradient;
+    using DoseType = Eigen::VectorXd;
+    struct ObjectiveFunctionAndGradient
+    {
+        std::function<float(const DoseType&)> objectiveFunction;
+        std::function<DoseType& (const DoseType&)> objectiveGradient;
+    };
 
 public:
   typedef QObject Superclass;
@@ -68,18 +71,23 @@ public:
   /// Destructor
   ~qSlicerAbstractObjective() override;
 
-  /// Get Optimization engine name
+  /// Get Objective name
   virtual QString name()const;
-  /// Set the name of the Optimization engine
+  /// Set the name of the Objective
   /// NOTE: name must be defined in constructor in C++ engines, this can only be used in python scripted ones
   virtual void setName(QString name);
 
-  virtual ObjectiveFunctionAndGradient computeDoseObjectiveFunctionAndGradient();
+  /// Get Objective parameters
+  virtual QMap<QString, QVariant> getObjectiveParameters() const;
+  /// Set Objective parameters
+  virtual void setObjectiveParameters(QMap<QString, QVariant> parameters);
+
+  ObjectiveFunctionAndGradient computeDoseObjectiveFunctionAndGradient();
 
 protected:
-  /// Name of the engine. Must be set in Optimization engine constructor
+  /// Name of the engine. Must be set in Objective constructor
   QString m_Name;
-
+  QMap<QString, QVariant> objectivesParameters;
 
 
 protected:
@@ -93,14 +101,13 @@ private:
   friend class qSlicerObjectiveLogic;
   friend class qSlicerExternalBeamPlanningModuleWidget;
 
-protected:
-    virtual float computeDoseObjectiveFunction(const DoseType&, const ObjectivesType&) = 0;
-    virtual DoseType& computeDoseObjectiveGradient(const DoseType&, const ObjectivesType&) = 0;
+public:
+    Q_INVOKABLE virtual float computeDoseObjectiveFunction(const DoseType&) = 0;
+    Q_INVOKABLE virtual DoseType& computeDoseObjectiveGradient(const DoseType&) = 0;
     
 
 };
 
 Q_DECLARE_METATYPE(qSlicerAbstractObjective::DoseType)
-Q_DECLARE_METATYPE(qSlicerAbstractObjective::ObjectivesType)
 
 #endif

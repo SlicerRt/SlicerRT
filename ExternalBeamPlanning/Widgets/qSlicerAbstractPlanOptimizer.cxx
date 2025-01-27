@@ -147,8 +147,8 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
     qCritical() << Q_FUNC_INFO << ": Failed to access reference volume subject hierarchy item";
   }
 
-  // Get available objectives
-  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives = this->getAvailableObjectives();
+  // Get saved objectives
+  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives = this->getSavedObjectives();
 
   // Create output Optimization volume for beam
   vtkSmartPointer<vtkMRMLScalarVolumeNode> resultOptimizationVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
@@ -168,7 +168,7 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
   return errorMessage;
 }
 
-std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> qSlicerAbstractPlanOptimizer::getAvailableObjectives()
+std::vector<qSlicerAbstractPlanOptimizer::ObjectiveStruct> qSlicerAbstractPlanOptimizer::getAvailableObjectives()
 {
     return this->availableObjectives;
 }
@@ -178,23 +178,21 @@ void qSlicerAbstractPlanOptimizer::setAvailableObjectives()
     qCritical() << Q_FUNC_INFO << ": no available Objectives ";
 }
 
-void qSlicerAbstractPlanOptimizer::removeSegmentsFromObjectives()
+std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> qSlicerAbstractPlanOptimizer::getSavedObjectives()
 {
-    std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives = this->getAvailableObjectives();
-    if (availableObjectives.empty())
-    {
-        qCritical() << Q_FUNC_INFO << ": No objectives available for the selected optimizer";
-        return;
-    }
-	for (size_t i = 0; i < availableObjectives.size(); i++)
-	{
-        vtkMRMLObjectiveNode* objective = availableObjectives[i];
-        if (objective)
-        {
-            objective->RemoveAllSegments();
-        }
-    }
+    return this->savedObjectives;
 }
+
+void qSlicerAbstractPlanOptimizer::saveObjectiveInOptimizer(vtkSmartPointer<vtkMRMLObjectiveNode> objective)
+{
+	this->savedObjectives.push_back(objective);
+}
+
+void qSlicerAbstractPlanOptimizer::removeAllObjectives()
+{
+	this->savedObjectives.clear();
+}
+
 
 
 void qSlicerAbstractPlanOptimizer::addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTPlanNode* planNode, bool replace/*=true*/)

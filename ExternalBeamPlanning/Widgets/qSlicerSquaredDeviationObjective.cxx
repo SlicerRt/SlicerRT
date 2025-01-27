@@ -33,10 +33,11 @@ qSlicerSquaredDeviationObjective::~qSlicerSquaredDeviationObjective() = default;
 //
 
 //---------------------------------------------------------------------------
-float qSlicerSquaredDeviationObjective::computeDoseObjectiveFunction(const DoseType& doseMatrix, const ObjectivesType& objectives)
+float qSlicerSquaredDeviationObjective::computeDoseObjectiveFunction(const DoseType& doseMatrix)
 {
 	// Get the preferred dose from the objectives
-	float preferredDose = objectives["preferredDose"].toFloat();
+	QMap<QString, QVariant> parameters = this->getObjectiveParameters();
+	float preferredDose = parameters["preferredDose"].toFloat();
 	DoseType preferredDoseVector = DoseType::Constant(doseMatrix.size(), preferredDose);
 			
 		
@@ -48,10 +49,11 @@ float qSlicerSquaredDeviationObjective::computeDoseObjectiveFunction(const DoseT
 }
 
 //---------------------------------------------------------------------------
-qSlicerAbstractObjective::DoseType& qSlicerSquaredDeviationObjective::computeDoseObjectiveGradient(const DoseType& doseMatrix, const ObjectivesType& objectives)
+qSlicerAbstractObjective::DoseType& qSlicerSquaredDeviationObjective::computeDoseObjectiveGradient(const DoseType& doseMatrix)
 {
 	// Get the preferred dose from the objectives
-	float preferredDose = objectives["preferredDose"].toFloat();
+	QMap<QString, QVariant> parameters = this->getObjectiveParameters();
+	float preferredDose = parameters["preferredDose"].toFloat();
 	DoseType preferredDoseVector = DoseType::Constant(doseMatrix.size(), preferredDose);
 
 	// Compute gradient
