@@ -56,31 +56,14 @@ public:
   const char* GetNodeTagName() override { return "Objective"; };
 
 public:
-	using DoseType = Eigen::VectorXd;
-	using ObjectivesType = QMap<QString, QVariant>;
-    struct ObjectiveFunctionAndGradient
-    {
-        std::function<float(const DoseType&, const ObjectivesType&)> objectiveFunction;
-        std::function<DoseType& (const DoseType&, const ObjectivesType&)> objectiveGradient;
-    };
-
-public:
   vtkGetStringMacro(Name);
   vtkSetStringMacro(Name);
 
-  /// Add a segmentation to the list
-  void AddSegmentation(const std::string& segmentation);
+  void SetSegmentation(std::string segmentationName);
+  std::string GetSegmentation();
 
-  void RemoveSegmentation(const std::string& segmentation);
 
-  void RemoveAllSegments();
-
-  /// Get the list of segmentations
-  const std::vector<std::string>& GetSegmentations() const;
-
-  void SetDoseObjectiveFunctionAndGradient(ObjectiveFunctionAndGradient functions);
-  std::function<float(const DoseType&, const ObjectivesType&)> GetObjectiveFunction();
-  std::function<DoseType&(const DoseType&, const ObjectivesType&)> GetObjectiveGradient();
+  //void SetDoseObjectiveFunctionAndGradient(ObjectiveFunctionAndGradient functions);
 
 
 protected:
@@ -90,9 +73,13 @@ protected:
   void operator=(const vtkMRMLObjectiveNode&);
 
   char* Name;
-  std::vector<std::string> Segmentations;
-  std::function<float(const DoseType&, const ObjectivesType&)> ObjectiveFunction;
-  std::function<DoseType&(const DoseType&, const ObjectivesType&)> ObjectiveGradient;
+  std::string Segmentation;
+
+  //std::function<float(const DoseType&)> ObjectiveFunction;
+  //std::function<DoseType&(const DoseType&)> ObjectiveGradient;
+
+  // ToDo: set pointer to objective functions
+  // ToDo: get parameters from objectives table (match needed parameters for functions)
 };
 
 #endif

@@ -18,10 +18,9 @@ explicit qSlicerSquaredDeviationObjective(QObject* parent=nullptr);
 ~qSlicerSquaredDeviationObjective() override;
 
 
-private:
-  float computeDoseObjectiveFunction(const DoseType&, const ObjectivesType&);
-
-  DoseType& computeDoseObjectiveGradient(const DoseType&, const ObjectivesType&);
+public:
+	Q_INVOKABLE float computeDoseObjectiveFunction(const DoseType&);
+	Q_INVOKABLE DoseType& computeDoseObjectiveGradient(const DoseType&);
 
 private:
   Q_DISABLE_COPY(qSlicerSquaredDeviationObjective);

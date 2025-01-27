@@ -24,6 +24,8 @@
 // Qt includes
 #include <QObject>
 #include <QStringList>
+#include <QVariant>
+#include <QMap>
 
 // vtk includes
 #include <vtkSmartPointer.h>
@@ -35,6 +37,12 @@ class vtkMRMLRTPlanNode;
 class vtkMRMLNode;
 class qMRMLBeamParametersTabWidget;
 class vtkMRMLObjectiveNode;
+
+struct ObjectiveStruct
+{
+    QString name;
+    std::map<QString, QVariant> parameters;
+};
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 /// \brief Abstract Optimization calculation algorithm that can be used in the
@@ -65,6 +73,13 @@ public:
   /// NOTE: name must be defined in constructor in C++ engines, this can only be used in python scripted ones
   virtual void setName(QString name);
 
+public:
+    struct ObjectiveStruct
+    {
+        QString name;
+        QMap<QString, QVariant> parameters;
+    };
+
 // Optimization calculation related functions
 public:
   /// Perform Optimization calculation for a single beam
@@ -73,11 +88,15 @@ public:
   QString optimizePlan(vtkMRMLRTPlanNode* planNode);
 
   /// Get available objectives for the Optimization engine
-  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getAvailableObjectives();
+  //std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getAvailableObjectives();
+  std::vector<ObjectiveStruct> getAvailableObjectives();
   /// Set available objectives for the Optimization engine
   virtual void setAvailableObjectives();
 
-  void removeSegmentsFromObjectives();
+  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getSavedObjectives();
+  void saveObjectiveInOptimizer(vtkSmartPointer<vtkMRMLObjectiveNode> objective);
+
+  void removeAllObjectives();
 
 // API functions to implement in the subclass
 protected:
@@ -105,7 +124,9 @@ protected:
 protected:
   QScopedPointer<qSlicerAbstractPlanOptimizerPrivate> d_ptr;
 
-  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives;
+  //std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives;
+  std::vector<ObjectiveStruct> availableObjectives;
+  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> savedObjectives;
 
 
 private:
@@ -123,5 +144,6 @@ public:
     /// \param replace Remove referenced dose volume if already exists. True by default
     Q_INVOKABLE void addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTPlanNode* planNode, bool replace = true);
 };
+Q_DECLARE_METATYPE(qSlicerAbstractPlanOptimizer::ObjectiveStruct)
 
 #endif

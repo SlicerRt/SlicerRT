@@ -96,77 +96,89 @@ void vtkMRMLObjectiveNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintEndMacro();
 }
 
-//----------------------------------------------------------------------------
-void vtkMRMLObjectiveNode::AddSegmentation(const std::string& segmentation)
+//---------------------------------------------------------------------------
+void vtkMRMLObjectiveNode::SetSegmentation(std::string segmentationName)
 {
-    // Debug statement to check if 'this' is valid
-    if (this == nullptr)
-    {
-        std::cerr << "Error: 'this' is a null pointer in AddSegmentation." << std::endl;
-        return;
-    }
-
-    // Check if segmentation already exists in objective
-    if (std::find(this->Segmentations.begin(), this->Segmentations.end(), segmentation) != this->Segmentations.end())
-    {
-        std::cerr << "Warning: Segmentation already exists in AddSegmentation." << std::endl;
-        return;
-    }
-	else
-	{
-		this->Segmentations.push_back(segmentation);
-	}  
+	this->Segmentation = segmentationName;
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLObjectiveNode::RemoveSegmentation(const std::string& segmentation)
+std::string vtkMRMLObjectiveNode::GetSegmentation()
 {
-	// Debug statement to check if 'this' is valid
-	if (this == nullptr)
-	{
-		std::cerr << "Error: 'this' is a null pointer in RemoveSegmentation." << std::endl;
-		return;
-	}
-
-	auto it = std::find(this->Segmentations.begin(), this->Segmentations.end(), segmentation);
-	if (it != this->Segmentations.end())
-	{
-		this->Segmentations.erase(it);
-	}
-	else
-	{
-		std::cerr << "Error: Segmentation not found in RemoveSegmentation." << std::endl;
-	}
+	return this->Segmentation;
 }
 
-//-------
-void vtkMRMLObjectiveNode::RemoveAllSegments()
-{
-	this->Segmentations.clear();
-}
+////----------------------------------------------------------------------------
+//void vtkMRMLObjectiveNode::AddSegmentation(const std::string& segmentation)
+//{
+//    // Debug statement to check if 'this' is valid
+//    if (this == nullptr)
+//    {
+//        std::cerr << "Error: 'this' is a null pointer in AddSegmentation." << std::endl;
+//        return;
+//    }
+//
+//    // Check if segmentation already exists in objective
+//    if (std::find(this->Segmentations.begin(), this->Segmentations.end(), segmentation) != this->Segmentations.end())
+//    {
+//        std::cerr << "Warning: Segmentation already exists in AddSegmentation." << std::endl;
+//        return;
+//    }
+//	else
+//	{
+//		this->Segmentations.push_back(segmentation);
+//	}  
+//}
+//
+////----------------------------------------------------------------------------
+//void vtkMRMLObjectiveNode::RemoveSegmentation(const std::string& segmentation)
+//{
+//	// Debug statement to check if 'this' is valid
+//	if (this == nullptr)
+//	{
+//		std::cerr << "Error: 'this' is a null pointer in RemoveSegmentation." << std::endl;
+//		return;
+//	}
+//
+//	auto it = std::find(this->Segmentations.begin(), this->Segmentations.end(), segmentation);
+//	if (it != this->Segmentations.end())
+//	{
+//		this->Segmentations.erase(it);
+//	}
+//	else
+//	{
+//		std::cerr << "Error: Segmentation not found in RemoveSegmentation." << std::endl;
+//	}
+//}
+//
+////-------
+//void vtkMRMLObjectiveNode::RemoveAllSegments()
+//{
+//	this->Segmentations.clear();
+//}
+//
+//
+////----------------------------------------------------------------------------
+//const std::vector<std::string>& vtkMRMLObjectiveNode::GetSegmentations() const
+//{
+//	return this->Segmentations;
+//}
 
-
-//----------------------------------------------------------------------------
-const std::vector<std::string>& vtkMRMLObjectiveNode::GetSegmentations() const
-{
-	return this->Segmentations;
-}
-
-// ----------------------------------------------------------------------------
-void vtkMRMLObjectiveNode::SetDoseObjectiveFunctionAndGradient(ObjectiveFunctionAndGradient functions)
-{
-	this->ObjectiveFunction = functions.objectiveFunction;
-	this->ObjectiveGradient = functions.objectiveGradient;
-}
-
-// ----------------------------------------------------------------------------
-std::function<float(const vtkMRMLObjectiveNode::DoseType&, const vtkMRMLObjectiveNode::ObjectivesType&)> vtkMRMLObjectiveNode::GetObjectiveFunction()
-{
-	return this->ObjectiveFunction;
-}
-
-// ----------------------------------------------------------------------------
-std::function<vtkMRMLObjectiveNode::DoseType&(const vtkMRMLObjectiveNode::DoseType&, const vtkMRMLObjectiveNode::ObjectivesType&)> vtkMRMLObjectiveNode::GetObjectiveGradient()
-{
-	return this->ObjectiveGradient;
-}
+//// ----------------------------------------------------------------------------
+//void vtkMRMLObjectiveNode::SetDoseObjectiveFunctionAndGradient(ObjectiveFunctionAndGradient functions)
+//{
+//	this->ObjectiveFunction = functions.objectiveFunction;
+//	this->ObjectiveGradient = functions.objectiveGradient;
+//}
+//
+//// ----------------------------------------------------------------------------
+//std::function<float(const vtkMRMLObjectiveNode::DoseType&)> vtkMRMLObjectiveNode::GetObjectiveFunction()
+//{
+//	return this->ObjectiveFunction;
+//}
+//
+//// ----------------------------------------------------------------------------
+//std::function<vtkMRMLObjectiveNode::DoseType&(const vtkMRMLObjectiveNode::DoseType&)> vtkMRMLObjectiveNode::GetObjectiveGradient()
+//{
+//	return this->ObjectiveGradient;
+//}

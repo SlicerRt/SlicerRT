@@ -205,13 +205,14 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
       {
           PyObject* pyDict = PyDict_New();
           PyDict_SetItemString(pyDict, "Objective", Py_BuildValue("s", objectiveNode->GetName()));
-          std::vector<std::string> segments = objectiveNode->GetSegmentations();
-          PyObject* pySegmentsList = PyList_New(segments.size());
-          for (size_t j = 0; j < segments.size(); j++)
-          {
-              PyList_SetItem(pySegmentsList, j, Py_BuildValue("s", segments[j].c_str()));
-          }
-          PyDict_SetItemString(pyDict, "Segments", pySegmentsList);
+          std::string segment = objectiveNode->GetSegmentation();
+          //PyObject* pySegmentsList = PyList_New(segments.size());
+          //for (size_t j = 0; j < segments.size(); j++)
+          //{
+          //    PyList_SetItem(pySegmentsList, j, Py_BuildValue("s", segments[j].c_str()));
+          //}
+          //PyDict_SetItemString(pyDict, "Segments", pySegmentsList);
+          PyDict_SetItemString(pyDict, "Segment", Py_BuildValue("s", segment.c_str()));
           PyList_SetItem(pyList, i, pyDict);
       }
   }
@@ -243,31 +244,35 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
 //-----------------------------------------------------------------------------
 void qSlicerScriptedPlanOptimizer::setAvailableObjectives()
 {
-   std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives;
+   //std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives;
 
-   vtkSmartPointer<vtkMRMLObjectiveNode> objective1 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
-   vtkSmartPointer<vtkMRMLObjectiveNode> objective2 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
+   //vtkSmartPointer<vtkMRMLObjectiveNode> objective1 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
+   //vtkSmartPointer<vtkMRMLObjectiveNode> objective2 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
 
-   // set names
-   objective1->SetName("pyRad objective 1");
-   objective2->SetName("pyRad objective 2");
-
-
-   // set objective function
-   qSlicerSquaredDeviationObjective* squaredDeviationObjective = new qSlicerSquaredDeviationObjective();
-   qSlicerSquaredDeviationObjective::ObjectiveFunctionAndGradient computedDoseObjectiveFunctionAndGradient = squaredDeviationObjective->computeDoseObjectiveFunctionAndGradient();
-   objective1->SetDoseObjectiveFunctionAndGradient(computedDoseObjectiveFunctionAndGradient);
-   objective2->SetDoseObjectiveFunctionAndGradient(computedDoseObjectiveFunctionAndGradient);
+   //// set names
+   //objective1->SetName("pyRad objective 1");
+   //objective2->SetName("pyRad objective 2");
 
 
-   if (objective1) {
-       objectives.push_back(objective1);
-   }
-   if (objective2) {
-       objectives.push_back(objective2);
-   }
+   //// set objective function
+   //qSlicerSquaredDeviationObjective* squaredDeviationObjective = new qSlicerSquaredDeviationObjective();
+   //qSlicerSquaredDeviationObjective::ObjectiveFunctionAndGradient computedDoseObjectiveFunctionAndGradient = squaredDeviationObjective->computeDoseObjectiveFunctionAndGradient();
+   //objective1->SetDoseObjectiveFunctionAndGradient(computedDoseObjectiveFunctionAndGradient);
+   //objective2->SetDoseObjectiveFunctionAndGradient(computedDoseObjectiveFunctionAndGradient);
 
-   this->availableObjectives = objectives;
+
+   //if (objective1) {
+   //    objectives.push_back(objective1);
+   //}
+   //if (objective2) {
+   //    objectives.push_back(objective2);
+   //}
+
+   //std::vector<QString> objectives;
+   //objectives.push_back("pyRad objective 1");
+   //objectives.push_back("pyRad objective 2");
+
+   //this->availableObjectives = objectives;
 }
 
 
