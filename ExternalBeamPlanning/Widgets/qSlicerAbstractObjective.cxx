@@ -31,7 +31,7 @@ This file was originally developed by Niklas Wahl, German Cancer Research Center
 #include <vtkMRMLSubjectHierarchyNode.h>
 #include <vtkMRMLSubjectHierarchyConstants.h>
 #include <vtkMRMLColorTableNode.h>
-#include "vtkMRMLObjectiveNode.h"
+#include "vtkMRMLRTObjectiveNode.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -44,6 +44,7 @@ This file was originally developed by Niklas Wahl, German Cancer Research Center
 
 // Qt includes
 #include <QDebug>
+#include <QFileInfo>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
@@ -106,19 +107,4 @@ QMap<QString, QVariant> qSlicerAbstractObjective::getObjectiveParameters() const
 void qSlicerAbstractObjective::setObjectiveParameters(QMap<QString, QVariant> parameters)
 {
 	this->objectivesParameters = parameters;
-}
-
-//----------------------------------------------------------------------------
-qSlicerAbstractObjective::ObjectiveFunctionAndGradient qSlicerAbstractObjective::computeDoseObjectiveFunctionAndGradient()
-{
-	qSlicerAbstractObjective::ObjectiveFunctionAndGradient functions;
-	functions.objectiveFunction = [this](const DoseType& dose) -> float
-	{
-		return this->computeDoseObjectiveFunction(dose);
-	};
-	functions.objectiveGradient = [this](const DoseType& dose)->DoseType &
-	{
-		return this->computeDoseObjectiveGradient(dose);
-	};
-    return functions;
 }

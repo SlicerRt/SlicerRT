@@ -29,7 +29,7 @@
 
 #include <vtkSmartPointer.h>
 
-#include <vtkMRMLObjectiveNode.h>
+#include <vtkMRMLRTObjectiveNode.h>
 
 // Forward Declare PyObject*
 #ifndef PyObject_HEAD
@@ -72,7 +72,7 @@ public:
   /// Get the available objectives for the optimizer
   virtual void setAvailableObjectives();
   /// Set the available objectives for the optimizer
-  //virtual void setAvailableObjectives(std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives);
+  //virtual void setAvailableObjectives(std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives);
 
 // Optimization related functions (API functions to call from the subclass)
 protected:
@@ -84,7 +84,7 @@ protected:
   /// \param resultOptimizationVolumeNode Output volume node for the Optimization result. It is created by \sa optimizePlan
   virtual QString optimizePlanUsingOptimizer(
     vtkMRMLRTPlanNode* planNode,
-    std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives,
+    std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives,
     vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode );
 
 
@@ -95,7 +95,7 @@ private:
   Q_DECLARE_PRIVATE(qSlicerScriptedPlanOptimizer);
   Q_DISABLE_COPY(qSlicerScriptedPlanOptimizer);
 
-  //std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives;
+  //std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> availableObjectives;
 };
 
 #endif

@@ -18,7 +18,7 @@
 
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"
-#include <vtkMRMLObjectiveNode.h>
+#include <vtkMRMLRTObjectiveNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -43,7 +43,7 @@ qSlicerMockPlanOptimizer::qSlicerMockPlanOptimizer(QObject* parent)
 qSlicerMockPlanOptimizer::~qSlicerMockPlanOptimizer() = default;
 
 //---------------------------------------------------------------------------
-QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode)
+QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode)
 {
 
     // ToDo: check if pyRadPlanEngine's dose calculation works with mock optimizer
@@ -153,9 +153,21 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
 
 
 
-    
-
-
+  // print the objectives and parameters saved in optimzer
+  //objectives = this->savedObjectives;
+  //
+  //for (int i = 0; i < objectives.size(); i++) {
+	 // qDebug() << "Objective: " << objectives[i]->GetName();
+	 // QMap parameters = objectives[i]->GetParameters();
+  //    for (auto item = parameters.cbegin(); item != parameters.cend(); ++item)
+  //    {
+		//  qDebug() << "Parameter: " << item.key() << " Value: " << item.value();
+	 // }
+  //    
+  //    qSlicerAbstractObjective* obj_class = objectives[i]->GetObjectiveFunctionClass();
+	 // float obj_value = obj_class->computeDoseObjectiveFunction(Eigen::VectorXd::Ones(10));
+	 // qDebug() << "Objective value: " << obj_value;
+  //}
 
   return QString();
 }
@@ -163,41 +175,13 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
 //-----------------------------------------------------------------------------
 void qSlicerMockPlanOptimizer::setAvailableObjectives()
 {
-    //std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives;
+ //   qSlicerSquaredDeviationObjective* squaredDeviationObjective1 = new qSlicerSquaredDeviationObjective();
+	//qSlicerSquaredDeviationObjective* squaredDeviationObjective2 = new qSlicerSquaredDeviationObjective();
 
-    //vtkSmartPointer<vtkMRMLObjectiveNode> objective1 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
-    //vtkSmartPointer<vtkMRMLObjectiveNode> objective2 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
+	//std::vector<qSlicerAbstractObjective*> objectives;
 
-    //// set names
-    //objective1->SetName("mock objective 1");
-    //objective2->SetName("mock objective 2");
+	//objectives.push_back(squaredDeviationObjective1);
+	//objectives.push_back(squaredDeviationObjective2);
 
-
-    //// set objective function
-    //qSlicerSquaredDeviationObjective* squaredDeviationObjective = new qSlicerSquaredDeviationObjective();
-    //qSlicerSquaredDeviationObjective::ObjectiveFunctionAndGradient computedDoseObjectiveFunctionAndGradient = squaredDeviationObjective->computeDoseObjectiveFunctionAndGradient();
-    //objective1->SetDoseObjectiveFunctionAndGradient(computedDoseObjectiveFunctionAndGradient);
-    //objective2->SetDoseObjectiveFunctionAndGradient(computedDoseObjectiveFunctionAndGradient);
-
-    //if (objective1) {
-    //    objectives.push_back(objective1);
-    //}
-    //if (objective2) {
-    //    objectives.push_back(objective2);
-    //}
-
-    std::vector<ObjectiveStruct> objectives;
-
-	ObjectiveStruct objective1;
-	objective1.name = "mock objective 1";
-    objective1.parameters = { {"parameter 1", 0.5}, {"parameter 2",1} };
-
-	ObjectiveStruct objective2;
-	objective2.name = "mock objective 2";
-    objective2.parameters = { {"parameter 1", 0.5}, {"parameter 2",1}, {"Parameter 3", 2} };
-
-	objectives.push_back(objective1);
-	objectives.push_back(objective2);
-
-	this->availableObjectives = objectives;
+	//this->availableObjectives = objectives;
 }

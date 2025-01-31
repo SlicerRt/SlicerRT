@@ -26,7 +26,7 @@ public:
   /// to any Optimization engine before and after calculation.
   /// \param planNode Plan for which the Optimization is carried out.
   /// \param resultOptimizationVolumeNode Output volume node for the result Optimization. It is created by \sa optimizePlan
-  Q_INVOKABLE QString optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode);
+  Q_INVOKABLE QString optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode);
 
   void setAvailableObjectives();
 

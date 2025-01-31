@@ -33,7 +33,7 @@ This file was originally developed by Niklas Wahl, German Cancer Research Center
 #include <vtkMRMLSubjectHierarchyNode.h>
 #include <vtkMRMLSubjectHierarchyConstants.h>
 #include <vtkMRMLColorTableNode.h>
-#include "vtkMRMLObjectiveNode.h"
+#include "vtkMRMLRTObjectiveNode.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -148,7 +148,7 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
   }
 
   // Get saved objectives
-  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives = this->getSavedObjectives();
+  std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives = this->getSavedObjectives();
 
   // Create output Optimization volume for beam
   vtkSmartPointer<vtkMRMLScalarVolumeNode> resultOptimizationVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
@@ -178,19 +178,33 @@ void qSlicerAbstractPlanOptimizer::setAvailableObjectives()
     qCritical() << Q_FUNC_INFO << ": no available Objectives ";
 }
 
-std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> qSlicerAbstractPlanOptimizer::getSavedObjectives()
+std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> qSlicerAbstractPlanOptimizer::getSavedObjectives()
 {
     return this->savedObjectives;
 }
 
-void qSlicerAbstractPlanOptimizer::saveObjectiveInOptimizer(vtkSmartPointer<vtkMRMLObjectiveNode> objective)
+void qSlicerAbstractPlanOptimizer::saveObjectiveInOptimizer(vtkSmartPointer<vtkMRMLRTObjectiveNode> objective)
 {
 	this->savedObjectives.push_back(objective);
 }
 
 void qSlicerAbstractPlanOptimizer::removeAllObjectives()
 {
-	this->savedObjectives.clear();
+    vtkMRMLScene* scene = nullptr;
+    if (!this->savedObjectives.empty())
+    {
+        scene = this->savedObjectives[0]->GetScene();
+    }
+
+    for (auto& objective : this->savedObjectives)
+    {
+        if (scene)
+        {
+            scene->RemoveNode(objective);
+        }
+    }
+
+    this->savedObjectives.clear();
 }
 
 
