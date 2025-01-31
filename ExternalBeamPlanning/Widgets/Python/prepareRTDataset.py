@@ -22,15 +22,21 @@ def prepareCst(beamNode, ct):
     for id in segNode.GetSegmentIDs():
         segmentArray = slicer.util.arrayFromSegmentBinaryLabelmap(node, id, referenceVolumeNode)
         segmentArray = np.uint8(segmentArray)
+        segmentName = segNode.GetSegment(id).GetName()
         voi_type = 'TARGET' if id==parentPlanNode.GetTargetSegmentID() else 'OAR'
-        voi = create_voi(voi_type=voi_type, name=id, ct_image=ct, mask=segmentArray)
+        voi = create_voi(voi_type=voi_type, name=segmentName, ct_image=ct, mask=segmentArray)
         vois.append(voi)
-    cst = StructureSet(vois=[voi], ct_image=ct)
-    return validate_cst(cst, ct=ct)
+    cst = StructureSet(vois=vois, ct_image=ct)
+    return cst
 
 
-def preparePln(beamNode):
+def preparePln(beamNode, ct):
     from pyRadPlan.plan import IonPlan, create_pln
+    
+    ##################### temp #####################
+    dose_grid = ct.grid
+    dose_grid.resolution = {"x": 5, "y": 5, "z": 5}
+    ##################### temp #####################
 
     '''
     All values in the pln dictionary need to be floats. INCLUDING the numOfFractions.
@@ -48,32 +54,26 @@ def preparePln(beamNode):
     isocenter = ijkToRASDirections @ np.array(isocenter) - np.array(origin)#  + np.array(referenceVolumeNode.GetSpacing())/2.0
 
     pln = {
-        "radiationMode": ['photons','protons','carbon'][slicer.pyRadPlanEngine.scriptedEngine.integerParameter(beamNode, 'radiationMode')],
+        "radiation_mode": ['photons','protons','carbon'][slicer.pyRadPlanEngine.scriptedEngine.integerParameter(beamNode, 'radiationMode')],
         "machine": ['Generic'][slicer.pyRadPlanEngine.scriptedEngine.integerParameter(beamNode, 'machine')],
-        "numOfFractions": slicer.pyRadPlanEngine.scriptedEngine.doubleParameter(beamNode, 'numOfFractions'),
-        "propStf": {
+        # "num_of_fractions": slicer.pyRadPlanEngine.scriptedEngine.doubleParameter(beamNode, 'numOfFractions'),
+        "prop_stf": {
             # beam geometry settings
-            "bixelWidth": 5.0,
-            "gantryAngles": [beamNode.GetGantryAngle()],
-            "couchAngles": [beamNode.GetCouchAngle()],
-            "numOfBeams": 1.0,
-            "isoCenter": [isocenter]
+            "bixel_width": 5.0,
+            "gantry_angles": [beamNode.GetGantryAngle()],
+            "couch_angles": [beamNode.GetCouchAngle()],
+            "iso_center": isocenter
         },
 
         # dose calculation settings
-        "propDoseCalc": {"doseGrid": {"resolution": {"x": referenceVolumeNode.GetSpacing()[0],
-                                                    "y": referenceVolumeNode.GetSpacing()[1],
-                                                    "z": referenceVolumeNode.GetSpacing()[2],
-                                                    },
-                                    },
-                        },
+        "prop_dose_calc": {"dose_grid": dose_grid}#ct.grid}
 
-        # optimization settings
-        "propOpt": {"optimizer": 'IPOPT',
-                    "bioOptimization": 'none',
-                    "runDAO": False,
-                    "runSequencing": True
-                    },
+        # # optimization settings
+        # "prop_opt": {"optimizer": 'IPOPT',
+        #             "bio_optimization": 'none',
+        #             "run_dAO": False,
+        #             "run_sequencing": True
+        #             },
     }
     return create_pln(pln)
 

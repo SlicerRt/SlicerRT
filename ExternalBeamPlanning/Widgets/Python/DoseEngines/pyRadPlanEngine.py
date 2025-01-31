@@ -163,79 +163,68 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
     
     def calculateDoseInfluenceMatrixUsingEngine(self, beamNode):
 
-        ########################## SLICER: change os path to pyRadPlan & imports #############ä#################
-        # TODO: Avoid Hardcoded Information here
-        os.chdir('C:/l868r/pyRadPlan')
-        sys.path.append('C:/l868r/pyRadPlan')
+        ##################################### PYRAD: import libraries ##########################################
+        from importlib import resources
+        import logging
+        import numpy as np
+        import SimpleITK as sitk
+        import pymatreader
+        import matplotlib.pyplot as plt
 
         from scipy.sparse import coo_matrix
-        from scipy.io import loadmat as read_mat
+
+        import time
+
+        # import pyRadPlan
+
+        from pyRadPlan import (
+            # PhotonPlan,
+            # validate_ct,
+            # validate_cst,
+            generate_stf,
+            calc_dose_influence
+        )
+
+        logging.basicConfig(level=logging.INFO)
 
 
-        ##################################### PYRAD: import libraries ##########################################
-        from pyRadPlan.stf import StfGeneratorIMPT, create_stf
-        import pyRadPlan.io.matRad as matRadIO
-        import pyRadPlan.matRad as matRad
-        import pyRadPlan.dose as dose
-
-        # Ignore deprication warnings
-        # np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
-
-
-        ##################################### PYRAD: prepare engine ############################################
-        # matRad needs to be installed on the PC, and the engine initialization has to point to it.
-        # Choose between MatRadEngineOctave or MatRadEngineMatlab
-        eng = matRad.MatRadEngineMatlab("matRad")
-        # eng = matRad.MatRadEngineOctave('matRad',
-        #     octave_exec = "C:/Program Files/GNU Octave/Octave-8.4.0/mingw64/bin/octave-cli.exe")
-        matRad.setEngine(eng)
-
-
+        # ##################################### PYRAD: prepare data structures ##########################################
         # Prepare the ct
+        t_start = time.time()
         ct = prepareCt(beamNode)
+        t_end = time.time()
+        print(f"Time to prepare CT: {t_end - t_start}")
 
         # Prepare the cst (segmentations)
+        t_start = time.time()
         cst = prepareCst(beamNode, ct)
+        t_end = time.time()
+        print(f"Time to prepare CST: {t_end - t_start}")
 
         # Prepare the plan configuration
-        pln = preparePln(beamNode)
+        t_start = time.time()
+        pln = preparePln(beamNode, ct)
+        t_end = time.time()
+        print(f"Time to prepare PLN: {t_end - t_start}")
 
-        #Saving the ct, cst and pln dictionaries as a .mat file
-        matRadIO.save(os.path.join(self.temp_path,'ct.mat'), {'ct': ct.to_matrad()})
-        matRadIO.save(os.path.join(self.temp_path,'cst.mat'), {'cst': cst.to_matrad()})
-        matRadIO.save(os.path.join(self.temp_path,'ct.mat'), {'pln': pln.to_matrad()})
+        # Generate Steering Geometry ("stf")
+        t_start = time.time()
+        stf = generate_stf(ct, cst, pln)
+        t_end = time.time()
+        print(f"Time to generate STF: {t_end - t_start}")
 
-
-        ############################ PYRAD: validate ct, cst , pln & generate stf ################################
-
-        # We use the StfGeneratorIMPT to create a simple beam configuration
-        # with a single beam at 0 degrees
-        stfgen = StfGeneratorIMPT(pln)
-        stf = stfgen.generate(ct, cst)
-        
-        stf = create_stf(stf)
-
-
-        # doseInit = dose.calcDoseInit(ct, cst, stf, pln)  # Testing native dose engine
-
-        # Calculate the photon dose using a matRad function called matRad_calcPhotonDose
-        # Only pencil beam implemented so far
-        # This can also be moved behind the curtains
-        if pln.radiation_mode == "photons":
-            dose.calcPhotonDose(ct, stf, pln, cst)
-            # dose.calcPhotonDoseMC(ct, stf, pln, cst, 10)
-        elif pln.radiation_mode == "protons" or pln.radiation_mode == "carbon":
-            dose.calcParticleDose(ct, stf, pln, cst)
+        # Calculate Dose Influence Matrix ("dij")
+        t_start = time.time()
+        dij = calc_dose_influence(ct, cst, stf, pln)
+        t_end = time.time()
+        print(f"Time to calculate Dij: {t_end - t_start}")
 
 
-        ################################ SLICER: load dose to beamNode #######################################
-
-        dose_path = os.path.join(self.temp_path,'dij.mat')
-        dij_mat = read_mat(dose_path)  # keeping read_mat here for now
+        # ################################ SLICER: load dose to beamNode #######################################
 
         # optimize storage such that we don't have multiple instances in memory
         # we use a coo matrix here as it is the most efficient way to get the matrix into slicer
-        dose_matrix = coo_matrix(dij_mat['dij']['physicalDose'])
+        dose_matrix = coo_matrix(dij.physical_dose.flat[0])
 
         beamNode.SetDoseInfluenceMatrixFromTriplets(dose_matrix.shape[0], dose_matrix.shape[1],dose_matrix.row, dose_matrix.col, dose_matrix.data)
 

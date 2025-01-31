@@ -33,15 +33,37 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
         return "Not implemented yet!"
 
 
-    def optimizePlanUsingOptimizer(self, planNode, resultOptimizationVolumeNode):
-        from pyRadPlan.optimization._fluenceOptimizer import FluenceOptimizer
-        from pyRadPlan.optimization.components.objectives import (SquaredDeviation, SquaredOverdosing)
-        
-        print('pyRadPlan Optimizer is called')
+    def optimizePlanUsingOptimizer(self, planNode, objectives, resultOptimizationVolumeNode):
 
+        import SimpleITK as sitk
+        import sitkUtils
+        from pyRadPlan import (
+            generate_stf,
+            fluence_optimization,
+        )
+        from pyRadPlan.dij import Dij, compose_beam_dijs
+        from pyRadPlan.optimization.objectives import get_objective
+
+        # create dict with objectives for segmentation from Slicer obejctives table 
+        objectives_dict = {} 
+        for node_dict in objectives:
+            objective_node = node_dict['ObjectiveNode']
+            segmentation = objective_node.GetSegmentation()
+            objective_info = {
+            'objectiveName': objective_node.GetName(),
+            'parameters': {name: objective_node.GetAttribute(name) for name in objective_node.GetAttributeNames()}
+            }
+            if segmentation not in objectives_dict:
+                objectives_dict[segmentation] = [objective_info]
+            else:
+                objectives_dict[segmentation].append(objective_info)
+
+
+        # get reference volume node
         referenceVolumeNode = planNode.GetReferenceVolumeNode()
         numberOfVoxels = referenceVolumeNode.GetImageData().GetNumberOfPoints()
 
+        # total dose summed over all beams
         totalDose = 0
 
         numberOfBeams = planNode.GetNumberOfBeams()
@@ -58,24 +80,23 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
                 tried_beam_index += 1
             
 
+        dij_list = []
         for beamName in beamNames:
             
             beamNode = planNode.GetBeamByName(beamName)
             print('current beam: ', beamName)
 
             # Prepare the ct
-            ct = prepareCt(beamNode, self.temp_path)
+            ct = prepareCt(beamNode)
 
             # Prepare the cst (segmentations)
-            cst = prepareCst(beamNode, self.temp_path)
+            cst = prepareCst(beamNode, ct)
 
             # Prepare the plan configuration
-            pln = preparePln(beamNode, self.temp_path)
+            pln = preparePln(beamNode, ct)
 
-            if pln['radiationMode'] == 'photons':
-                pln_optim = {'RBE': 1.0}
-            elif pln['radiationMode'] == 'protons':
-                pln_optim = {'RBE': 1.1}
+            # Generate Steering Geometry ("stf")
+            stf = generate_stf(ct, cst, pln)
 
             # Get Dose Influence Matrix
             fieldData = beamNode.GetDoseInfluenceMatrixFieldData()
@@ -87,67 +108,75 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
             dose_influence_matrix = csc_matrix((data, indices, indptr), shape=(numberOfVoxels, numOfCols)) # shape important to include zeros in last indices (rows must be as long as number of voxels)
 
+            #################### temp #######################
+            dose_grid = ct.grid
+            dose_grid.resolution = {"x": 5, "y": 5, "z": 5}
+            #################### temp #######################
+
+
+            dij = Dij(
+                dose_grid=ct.grid,
+                ct_grid=ct.grid,
+                physical_dose=dose_influence_matrix,
+                num_of_beams = 1,
+                beam_num=stf.bixel_beam_index_map,
+                ray_num=stf.bixel_ray_index_per_beam_map,
+                bixel_num=stf.bixel_index_per_beam_map
+                )
             
-            dose_information = {
-            "resolution": {"x": 3.0,
-                        "y": 3.0,
-                        "z": 3.0},
+            dij_list.append(dij)
 
-            'cubeDim': tuple(referenceVolumeNode.GetImageData().GetDimensions()),
-
-            'numOfVoxels': np.prod(referenceVolumeNode.GetImageData().GetDimensions()),
-
-            'numOfFractions': pln['numOfFractions'],
-
-            'physicalDose': dose_influence_matrix,  # dose influence matrix
-
-            'totalNumOfBixels': dose_influence_matrix.shape[1]  # dof
-            }
-
-            for dimension in ('x', 'y', 'z'):
-                dose_information[dimension] = np.arange(
-                    ct[dimension][0],
-                    ct[dimension][-1]
-                    + dose_information['resolution'][dimension],
-                    dose_information['resolution'][dimension])
+        if len(dij_list) > 1:
+            dij = compose_beam_dijs(dij_list)
+        else:
+            dij = dij_list[0]
 
 
-            for i in cst:
-                cst[i]['doseObjective'] = locals()[cst[i]['doseObjective']](cst, dose_information,
-                                                                            cst[i]['doseConstraint'][0],
-                                                                            cst[i]['doseConstraint'][1])
-                cst[i]['doseConstraint'] = None
+        print(dij.physical_dose.flat[0].nnz)
+        print(dij.physical_dose.flat[0].data.shape)
+        print(dij.physical_dose.flat[0].max())
 
+        # Optimize
+        for voi in cst.vois:
+            if voi.name in objectives_dict:
+                voi.objectives = []
+                for i in range(len(objectives_dict[voi.name])):
+                    objective_name = objectives_dict[voi.name][i]['objectiveName']
+                    print('objective_name: ', objective_name)
+                    voi.objectives.append(get_objective(objective_name))#, objective['parameters']))
+    
+        # VOIS
+        # fluence = fluence_optimization(ct, cst, stf, dij, pln)
+        fluence = np.ones((dij.total_num_of_bixels,),dtype=np.float32)
 
-            print('calling FluenceOptimizer')
-            a = FluenceOptimizer(cst, ct, pln_optim, dose_information)
-            a.solve()
-
-            dose = a.dOpt
-            totalDose += dose
-
-
-        # insert total dose into volume node
-        flat_data_array = totalDose.swapaxes(0,2).swapaxes(2,1).flatten()
-        vtk_data = numpy_support.numpy_to_vtk(num_array=flat_data_array, deep=True, array_type=vtk.VTK_FLOAT)
-
-        imageData = vtk.vtkImageData()
-        imageData.DeepCopy(referenceVolumeNode.GetImageData())
-        imageData.GetPointData().SetScalars(vtk_data)
+        # Result
+        result = dij.compute_result_ct_grid(fluence)
             
-        resultOptimizationVolumeNode.SetOrigin(referenceVolumeNode.GetOrigin())
-        resultOptimizationVolumeNode.SetSpacing(referenceVolumeNode.GetSpacing())
-        ijkToRASDirections = np.eye(3)
-        referenceVolumeNode.GetIJKToRASDirections(ijkToRASDirections)
-        resultOptimizationVolumeNode.SetIJKToRASDirections(ijkToRASDirections)
-        resultOptimizationVolumeNode.SetAndObserveImageData(imageData)
+        totalDose = result["physical_dose"]
+
+
+        # # insert total dose into volume node
+        # flat_data_array = totalDose.swapaxes(0,2).swapaxes(2,1).flatten()
+        # vtk_data = numpy_support.numpy_to_vtk(num_array=flat_data_array, deep=True, array_type=vtk.VTK_FLOAT)
+
+        # imageData = vtk.vtkImageData()
+        # imageData.DeepCopy(referenceVolumeNode.GetImageData())
+        # imageData.GetPointData().SetScalars(vtk_data)
+            
+        # resultOptimizationVolumeNode.SetOrigin(referenceVolumeNode.GetOrigin())
+        # resultOptimizationVolumeNode.SetSpacing(referenceVolumeNode.GetSpacing())
+        # ijkToRASDirections = np.eye(3)
+        # referenceVolumeNode.GetIJKToRASDirections(ijkToRASDirections)
+        # resultOptimizationVolumeNode.SetIJKToRASDirections(ijkToRASDirections)
+        # resultOptimizationVolumeNode.SetAndObserveImageData(imageData)
+        resultNode = sitkUtils.PushVolumeToSlicer(totalDose, targetNode = resultOptimizationVolumeNode, className="vtkMRMLScalarVolumeNode")
 
         # Set name
         OptimizedDoseNodeName = str(planNode.GetName())+"_pyRadOptimzedDose"
         resultOptimizationVolumeNode.SetName(OptimizedDoseNodeName)
 
         
-        slicer.util.setSliceViewerLayers(background=referenceVolumeNode, foreground=resultOptimizationVolumeNode)
+        slicer.util.setSliceViewerLayers(background=referenceVolumeNode, foreground=resultNode)
         slicer.util.setSliceViewerLayers(foregroundOpacity=1)
 
         return str()
