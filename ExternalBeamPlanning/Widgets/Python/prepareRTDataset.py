@@ -13,7 +13,7 @@ def prepareCt(beamNode):
 
 
 def prepareCst(beamNode, ct):
-    from pyRadPlan.cst import StructureSet, validate_cst, create_voi
+    from pyRadPlan.cst import StructureSet, create_voi
     parentPlanNode = beamNode.GetParentPlanNode()
     referenceVolumeNode = parentPlanNode.GetReferenceVolumeNode()
     node = parentPlanNode.GetSegmentationNode()
@@ -51,7 +51,7 @@ def preparePln(beamNode, ct):
 
     isocenter = [0]*3
     parentPlanNode.GetIsocenterPosition(isocenter)
-    isocenter = ijkToRASDirections @ np.array(isocenter) - np.array(origin)#  + np.array(referenceVolumeNode.GetSpacing())/2.0
+    isocenter = ijkToRASDirections @ np.array(isocenter)
 
     pln = {
         "radiation_mode": ['photons','protons','carbon'][slicer.pyRadPlanEngine.scriptedEngine.integerParameter(beamNode, 'radiationMode')],

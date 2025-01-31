@@ -258,37 +258,40 @@ void qSlicerScriptedPlanOptimizer::setAvailableObjectives()
 
 	ObjectiveStruct eud;
 	eud.name = "EUD";
-	eud.parameters["parameter 1"] = "1.0";
+	eud.parameters["k"] = "0.0";
+	eud.parameters["eud_ref"] = "0.0";
 	objectives.push_back(eud);
 
     ObjectiveStruct MaxDVH;
 	MaxDVH.name = "Max DVH";
-	MaxDVH.parameters["parameter 1"] = "1.0";
+	MaxDVH.parameters["d"] = "0.0";
+	MaxDVH.parameters["v_max"] = "0.0";
 	objectives.push_back(MaxDVH);
 
 	ObjectiveStruct MeanDose;
 	MeanDose.name = "Mean Dose";
-	MeanDose.parameters["parameter 1"] = "1.0";
+	MeanDose.parameters["d_ref"] = "0.0";
 	objectives.push_back(MeanDose);
 
 	ObjectiveStruct MinDVH;
 	MinDVH.name = "Min DVH";
-	MinDVH.parameters["parameter 1"] = "1.0";
+	MinDVH.parameters["d"] = "0.0";
+	MinDVH.parameters["v_min"] = "0.0";
 	objectives.push_back(MinDVH);
 
 	ObjectiveStruct SquaredDeviation;
 	SquaredDeviation.name = "Squared Deviation";
-	SquaredDeviation.parameters["parameter 1"] = "1.0";
+	SquaredDeviation.parameters["d_ref"] = "0.0";
 	objectives.push_back(SquaredDeviation);
 
 	ObjectiveStruct SquaredOverdosing;
 	SquaredOverdosing.name = "Squared Overdosing";
-	SquaredOverdosing.parameters["parameter 1"] = "1.0";
+	SquaredOverdosing.parameters["d_max"] = "0.0";
 	objectives.push_back(SquaredOverdosing);
 
 	ObjectiveStruct SquaredUnderdosing;
 	SquaredUnderdosing.name = "Squared Underdosing";
-	SquaredUnderdosing.parameters["parameter 1"] = "1.0";
+	SquaredUnderdosing.parameters["d_min"] = "0.0";
 	objectives.push_back(SquaredUnderdosing);
 
     this->availableObjectives = objectives;
