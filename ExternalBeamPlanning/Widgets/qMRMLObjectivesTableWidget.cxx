@@ -364,6 +364,9 @@ void qMRMLObjectivesTableWidget::onParameterChanged(std::string name, std::strin
 {
     Q_D(qMRMLObjectivesTableWidget);
 
+	// ToDo: save parameters even when changing segment or adding objective
+    // (currently reset to default values as all objectives are recreated)
+
     // update the attribute value
 	objectiveNode->RemoveAttribute(name.c_str());
 	objectiveNode->SetAttribute(name.c_str(), value.c_str());

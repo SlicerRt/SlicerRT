@@ -34,8 +34,6 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
 
     def optimizePlanUsingOptimizer(self, planNode, objectives, resultOptimizationVolumeNode):
-
-        import SimpleITK as sitk
         import sitkUtils
         from pyRadPlan import (
             generate_stf,
@@ -115,7 +113,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
 
             dij = Dij(
-                dose_grid=ct.grid,
+                dose_grid=dose_grid,
                 ct_grid=ct.grid,
                 physical_dose=dose_influence_matrix,
                 num_of_beams = 1,
@@ -131,23 +129,26 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
         else:
             dij = dij_list[0]
 
-
-        print(dij.physical_dose.flat[0].nnz)
-        print(dij.physical_dose.flat[0].data.shape)
-        print(dij.physical_dose.flat[0].max())
-
         # Optimize
         for voi in cst.vois:
             if voi.name in objectives_dict:
                 voi.objectives = []
                 for i in range(len(objectives_dict[voi.name])):
                     objective_name = objectives_dict[voi.name][i]['objectiveName']
-                    print('objective_name: ', objective_name)
-                    voi.objectives.append(get_objective(objective_name))#, objective['parameters']))
+                    objective_parameters = objectives_dict[voi.name][i]['parameters']
+                    objective_instance = get_objective(objective_name)
+                    for parameter in objective_instance.parameter_names:
+                        if parameter in objective_parameters:
+                            # TODO: type check
+                            setattr(objective_instance, parameter, objective_parameters[parameter])
+                        else:
+                            print(f"Parameter {parameter} not found in objectives table.")
+                            print(f"Using default value: {getattr(objective_instance, parameter)}")
+                    voi.objectives.append(objective_instance)
     
         # VOIS
-        # fluence = fluence_optimization(ct, cst, stf, dij, pln)
-        fluence = np.ones((dij.total_num_of_bixels,),dtype=np.float32)
+        fluence = fluence_optimization(ct, cst, stf, dij, pln)
+        # fluence = np.ones((dij.total_num_of_bixels,), dtype=np.float64)
 
         # Result
         result = dij.compute_result_ct_grid(fluence)
@@ -155,20 +156,6 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
         totalDose = result["physical_dose"]
 
 
-        # # insert total dose into volume node
-        # flat_data_array = totalDose.swapaxes(0,2).swapaxes(2,1).flatten()
-        # vtk_data = numpy_support.numpy_to_vtk(num_array=flat_data_array, deep=True, array_type=vtk.VTK_FLOAT)
-
-        # imageData = vtk.vtkImageData()
-        # imageData.DeepCopy(referenceVolumeNode.GetImageData())
-        # imageData.GetPointData().SetScalars(vtk_data)
-            
-        # resultOptimizationVolumeNode.SetOrigin(referenceVolumeNode.GetOrigin())
-        # resultOptimizationVolumeNode.SetSpacing(referenceVolumeNode.GetSpacing())
-        # ijkToRASDirections = np.eye(3)
-        # referenceVolumeNode.GetIJKToRASDirections(ijkToRASDirections)
-        # resultOptimizationVolumeNode.SetIJKToRASDirections(ijkToRASDirections)
-        # resultOptimizationVolumeNode.SetAndObserveImageData(imageData)
         resultNode = sitkUtils.PushVolumeToSlicer(totalDose, targetNode = resultOptimizationVolumeNode, className="vtkMRMLScalarVolumeNode")
 
         # Set name
