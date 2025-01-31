@@ -24,12 +24,11 @@
 // Qt includes
 #include <QObject>
 #include <QStringList>
+#include <QMap>
+#include <QVariant>
 
 // vtk includes
 #include <vtkSmartPointer.h>
-
-// MRML includes
-#include <vtkMRMLObjectiveNode.h>
 
 // Eigen includes
 #include <itkeigen/Eigen/SparseCore>
@@ -39,7 +38,7 @@ class qSlicerAbstractObjectivePrivate;
 // class vtkMRMLScalarVolumeNode;
 class vtkMRMLNode;
 // class qMRMLBeamParametersTabWidget;
-class vtkMRMLObjectiveNode;
+class vtkMRMLRTObjectiveNode;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 /// \brief Abstract Optimization calculation algorithm that can be used in the
@@ -48,7 +47,7 @@ class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerAbstractObjecti
 {
   Q_OBJECT
 
-  /// This property stores the name of the Optimization engine.
+  /// This property stores the name of the OObjective.
   /// Cannot be empty.
   /// \sa name(), \sa setName()
   Q_PROPERTY(QString name READ name WRITE setName)
@@ -58,11 +57,6 @@ public:
     static double DEFAULT_DOSE_VOLUME_WINDOW_LEVEL_MAXIMUM;
     /// Type definitions for dose and objectives
     using DoseType = Eigen::VectorXd;
-    struct ObjectiveFunctionAndGradient
-    {
-        std::function<float(const DoseType&)> objectiveFunction;
-        std::function<DoseType& (const DoseType&)> objectiveGradient;
-    };
 
 public:
   typedef QObject Superclass;
@@ -78,17 +72,18 @@ public:
   virtual void setName(QString name);
 
   /// Get Objective parameters
-  virtual QMap<QString, QVariant> getObjectiveParameters() const;
+  Q_INVOKABLE QMap<QString, QVariant> getObjectiveParameters() const;
   /// Set Objective parameters
-  virtual void setObjectiveParameters(QMap<QString, QVariant> parameters);
+  void setObjectiveParameters(QMap<QString, QVariant> parameters);
 
-  ObjectiveFunctionAndGradient computeDoseObjectiveFunctionAndGradient();
 
 protected:
   /// Name of the engine. Must be set in Objective constructor
   QString m_Name;
   QMap<QString, QVariant> objectivesParameters;
 
+  /// Pure virtual method to initialize parameters, must be implemented by subclasses
+  virtual void initializeParameters() = 0;
 
 protected:
   QScopedPointer<qSlicerAbstractObjectivePrivate> d_ptr;
@@ -103,9 +98,7 @@ private:
 
 public:
     Q_INVOKABLE virtual float computeDoseObjectiveFunction(const DoseType&) = 0;
-    Q_INVOKABLE virtual DoseType& computeDoseObjectiveGradient(const DoseType&) = 0;
-    
-
+    Q_INVOKABLE virtual DoseType computeDoseObjectiveGradient(const DoseType&) = 0;
 };
 
 Q_DECLARE_METATYPE(qSlicerAbstractObjective::DoseType)

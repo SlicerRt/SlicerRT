@@ -25,12 +25,17 @@ qSlicerSquaredDeviationObjective::qSlicerSquaredDeviationObjective(QObject* pare
     : qSlicerAbstractObjective(parent)
 {
     this->m_Name = QString("Squared Deviation");
+	this->initializeParameters();
 }
 
 //----------------------------------------------------------------------------
 qSlicerSquaredDeviationObjective::~qSlicerSquaredDeviationObjective() = default;
 
-//
+//----------------------------------------------------------------------------
+void qSlicerSquaredDeviationObjective::initializeParameters()
+{
+	this->objectivesParameters["preferredDose"] = 0.0;
+}
 
 //---------------------------------------------------------------------------
 float qSlicerSquaredDeviationObjective::computeDoseObjectiveFunction(const DoseType& doseMatrix)
@@ -49,7 +54,7 @@ float qSlicerSquaredDeviationObjective::computeDoseObjectiveFunction(const DoseT
 }
 
 //---------------------------------------------------------------------------
-qSlicerAbstractObjective::DoseType& qSlicerSquaredDeviationObjective::computeDoseObjectiveGradient(const DoseType& doseMatrix)
+qSlicerAbstractObjective::DoseType qSlicerSquaredDeviationObjective::computeDoseObjectiveGradient(const DoseType& doseMatrix)
 {
 	// Get the preferred dose from the objectives
 	QMap<QString, QVariant> parameters = this->getObjectiveParameters();

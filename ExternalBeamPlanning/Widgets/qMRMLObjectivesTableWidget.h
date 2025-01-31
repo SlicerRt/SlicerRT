@@ -35,7 +35,7 @@
 #include <ctkVTKObject.h>
 
 // MRML includes
-#include <vtkMRMLObjectiveNode.h>
+#include <vtkMRMLRTObjectiveNode.h>
 
 class qMRMLObjectivesTableWidgetPrivate;
 class vtkMRMLNode;
@@ -71,6 +71,8 @@ public slots:
 
   /// called when objective or segmentation selection is changed
   void updateObjectives();
+
+  void onParameterChanged(std::string name, std::string value, vtkMRMLRTObjectiveNode* objectiveNode);
 
   /// delete objectives Table and removes all objectives from plan optimizer
   void deleteObjectivesTable();

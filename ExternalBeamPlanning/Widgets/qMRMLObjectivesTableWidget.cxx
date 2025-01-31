@@ -1,3 +1,4 @@
+#include "qMRMLObjectivesTableWidget.h"
 /*==============================================================================
 
   Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
@@ -22,6 +23,8 @@
 #include "qMRMLObjectivesTableWidget.h"
 #include "ui_qMRMLObjectivesTableWidget.h"
 
+#include "qSlicerAbstractObjective.h"
+
 // Optimization Engine includes
 #include "qSlicerPlanOptimizerPluginHandler.h"
 #include "qSlicerAbstractPlanOptimizer.h"
@@ -31,7 +34,7 @@
 #include "vtkMRMLRTPlanNode.h"
 
 // MRML includes
-#include <vtkMRMLObjectiveNode.h>
+#include <vtkMRMLRTObjectiveNode.h>
 #include <vtkMRMLSegmentationNode.h>
 
 // VTK includes
@@ -52,11 +55,11 @@
 #include "qSlicerApplication.h"
 
 #include <QMetaType>
-#include <vtkMRMLObjectiveNode.h>
+#include <vtkMRMLRTObjectiveNode.h>
 
-// Register vtkSmartPointer<vtkMRMLObjectiveNode> with Qt's meta-object system
-Q_DECLARE_METATYPE(vtkSmartPointer<vtkMRMLObjectiveNode>)
-Q_DECLARE_METATYPE(vtkMRMLObjectiveNode*)
+// Register vtkSmartPointer<vtkMRMLRTObjectiveNode> with Qt's meta-object system
+Q_DECLARE_METATYPE(vtkSmartPointer<vtkMRMLRTObjectiveNode>)
+Q_DECLARE_METATYPE(vtkMRMLRTObjectiveNode*)
 
 inline QDebug operator<<(QDebug debug, const std::string& str)
 {
@@ -238,7 +241,7 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
     {
         QVariant var;
         var.setValue(objective);
-		objectivesDropdown->addItem(objective.name, var);
+		objectivesDropdown->addItem(objective.name.c_str(), var);
     }
     d->ObjectivesTable->setCellWidget(row, d->columnIndex("ObjectiveName"), objectivesDropdown);
     connect(objectivesDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this] {
@@ -274,15 +277,12 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
         this->updateObjectives();
     });
 
-
-
 	this->updateObjectives();
     }
  
-//-----------------------------------------------------------------------------
 void qMRMLObjectivesTableWidget::updateObjectives()
 {
-	Q_D(qMRMLObjectivesTableWidget);
+    Q_D(qMRMLObjectivesTableWidget);
     vtkMRMLRTPlanNode* planNode = d->PlanNode;
     if (!planNode)
     {
@@ -290,46 +290,56 @@ void qMRMLObjectivesTableWidget::updateObjectives()
         return;
     }
 
-    // remove all segments from objectiveNodes
+    // remove all objectiveNodes from optimizer
     qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
     selectedEngine->removeAllObjectives();
 
-	// iterate through all rows and add segments to objectiveNodes
-	for (int row = 0; row < d->ObjectivesTable->rowCount(); ++row)
-	{
+    // iterate through all rows and add segments to objectiveNodes
+    for (int row = 0; row < d->ObjectivesTable->rowCount(); ++row)
+    {
         // get selected objective & segment
         QComboBox* objectivesDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("ObjectiveName")));
         QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
 
-        qSlicerAbstractPlanOptimizer::ObjectiveStruct objective = objectivesDropdown->currentData().value<qSlicerAbstractPlanOptimizer::ObjectiveStruct>();
+		qSlicerAbstractPlanOptimizer::ObjectiveStruct objective = objectivesDropdown->currentData().value<qSlicerAbstractPlanOptimizer::ObjectiveStruct>();
 
         // create new objective node and save in optimizer
-        vtkMRMLObjectiveNode* objectiveNode = vtkMRMLObjectiveNode::New();
-		objectiveNode->SetName(objective.name.toStdString().c_str());
+        vtkMRMLRTObjectiveNode* objectiveNode = vtkMRMLRTObjectiveNode::New();
+		objectiveNode->SetName(objective.name.c_str());
         objectiveNode->SetSegmentation(segmentationsDropdown->currentText().toStdString().c_str());
-        selectedEngine->saveObjectiveInOptimizer(objectiveNode);
+
 
         // Create a widget to hold multiple QLineEdit boxes for parameters
         QWidget* parameterWidget = new QWidget();
         QHBoxLayout* layout = new QHBoxLayout(parameterWidget);
         layout->setContentsMargins(0, 0, 0, 0);
 
-        QMap parameters = objective.parameters;
+		// Add a QLineEdit box for each parameter and add to objectiveNode attributes
+        std::map<std::string, std::string> parameters = objective.parameters;
         for (auto item = parameters.cbegin(); item != parameters.cend(); ++item)
         {
-            QString parameterName = item.key();
-            QString parameterValue = item.value().toString();
+            // get paramters set in objectiveFunction
+            std::string parameterName = item->first;
+			std::string parameterValue = item->second;
 
-            QLabel* parameterLabel = new QLabel(parameterName);
+            // add parameter as attribute to objectiveNode
+			objectiveNode->SetAttribute(parameterName.c_str(), parameterValue.c_str());
+
+			// create QLineEdit box for parameter
+			QLabel* parameterLabel = new QLabel(parameterName.c_str());
             QLineEdit* parameterLineEdit = new QLineEdit();
-            parameterLineEdit->setText(parameterValue);
+            parameterLineEdit->setText(parameterValue.c_str());
+
+            connect(parameterLineEdit, &QLineEdit::textChanged, this, [this, parameterName, objectiveNode](const QString& newValue) {
+                this->onParameterChanged(parameterName, newValue.toStdString(), objectiveNode);
+            });
 
             layout->addWidget(parameterLabel);
             layout->addWidget(parameterLineEdit);
         }
-
         parameterWidget->setLayout(layout);
 
+        // Add the parameter widget to the table
         int columnIndex = d->columnIndex("Parameters");
         if (columnIndex == -1)
         {
@@ -339,9 +349,24 @@ void qMRMLObjectivesTableWidget::updateObjectives()
             d->ObjectivesTable->setHorizontalHeaderItem(columnIndex, new QTableWidgetItem("Parameters"));
             d->ColumnLabels << "Parameters";
         }
-
         d->ObjectivesTable->setCellWidget(row, columnIndex, parameterWidget);
-    }   
+
+        // save objective in optimizer
+        selectedEngine->saveObjectiveInOptimizer(objectiveNode);
+
+        // Add the objective node to the slicer scene
+        qSlicerApplication::application()->mrmlScene()->AddNode(objectiveNode);
+    }
+}
+
+//------------------------------------------------------------------------------
+void qMRMLObjectivesTableWidget::onParameterChanged(std::string name, std::string value, vtkMRMLRTObjectiveNode* objectiveNode)
+{
+    Q_D(qMRMLObjectivesTableWidget);
+
+    // update the attribute value
+	objectiveNode->RemoveAttribute(name.c_str());
+	objectiveNode->SetAttribute(name.c_str(), value.c_str());
 }
 
 //------------------------------------------------------------------------------
@@ -375,20 +400,19 @@ void qMRMLObjectivesTableWidget::deleteObjectivesTable()
 {
 	Q_D(qMRMLObjectivesTableWidget);
 
+    // delete all objectives from optimizer
+    vtkMRMLRTPlanNode* planNode = d->PlanNode;
+    if (!planNode)
+    {
+        qCritical() << Q_FUNC_INFO << ": Invalid plan node";
+        return;
+    }
+    qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
+    selectedEngine->removeAllObjectives();
+
 	// Remove all rows
 	while (d->ObjectivesTable->rowCount() > 0)
 	{
 		d->ObjectivesTable->removeRow(0);
 	}
-
-	// delete all objectives from optimizer
-	vtkMRMLRTPlanNode* planNode = d->PlanNode;
-	if (!planNode)
-	{
-		qCritical() << Q_FUNC_INFO << ": Invalid plan node";
-		return;
-	}
-    // optimizer
-	qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
-	selectedEngine->removeAllObjectives();
 }

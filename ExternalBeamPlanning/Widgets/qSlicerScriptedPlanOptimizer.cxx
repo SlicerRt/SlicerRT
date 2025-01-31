@@ -36,7 +36,7 @@
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLObjectiveNode.h>
+#include <vtkMRMLRTObjectiveNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -193,27 +193,25 @@ void qSlicerScriptedPlanOptimizer::setName(QString name)
 }
 
 //-----------------------------------------------------------------------------
-QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode)
+QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode)
 {
   Q_D(const qSlicerScriptedPlanOptimizer);
   // transform objectives to python list
   PyObject* pyList = PyList_New(objectives.size());
   for (size_t i = 0; i < objectives.size(); i++)
   {
-	  vtkMRMLObjectiveNode* objectiveNode = objectives[i];
+	  vtkMRMLRTObjectiveNode* objectiveNode = objectives[i];
       if (objectiveNode)
       {
           PyObject* pyDict = PyDict_New();
-          PyDict_SetItemString(pyDict, "Objective", Py_BuildValue("s", objectiveNode->GetName()));
-          std::string segment = objectiveNode->GetSegmentation();
-          //PyObject* pySegmentsList = PyList_New(segments.size());
-          //for (size_t j = 0; j < segments.size(); j++)
-          //{
-          //    PyList_SetItem(pySegmentsList, j, Py_BuildValue("s", segments[j].c_str()));
-          //}
-          //PyDict_SetItemString(pyDict, "Segments", pySegmentsList);
-          PyDict_SetItemString(pyDict, "Segment", Py_BuildValue("s", segment.c_str()));
+          //PyDict_SetItemString(pyDict, "Objective", Py_BuildValue("s", objectiveNode->GetName()));
+          //std::string segment = objectiveNode->GetSegmentation();
+          //PyDict_SetItemString(pyDict, "Segment", Py_BuildValue("s", segment.c_str()));
+          //PyList_SetItem(pyList, i, pyDict);
+          PyObject* pyObjectiveNode = vtkPythonUtil::GetObjectFromPointer(objectiveNode);
+          PyDict_SetItemString(pyDict, "ObjectiveNode", pyObjectiveNode);
           PyList_SetItem(pyList, i, pyDict);
+
       }
   }
   
@@ -244,36 +242,54 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
 //-----------------------------------------------------------------------------
 void qSlicerScriptedPlanOptimizer::setAvailableObjectives()
 {
-   //std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives;
+    //available Objectives:
+    //[
+    //	"DoseUniformity",
+    //		"EUD",
+    //		"MaxDVH",
+    //		"MeanDose",
+    //		"MinDVH",
+    //		"SquaredDeviation",
+    //		"SquaredOverdosing",
+    //		"SquaredUnderdosing",
+    //]
+	// mock objectives
+	std::vector<ObjectiveStruct> objectives;
 
-   //vtkSmartPointer<vtkMRMLObjectiveNode> objective1 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
-   //vtkSmartPointer<vtkMRMLObjectiveNode> objective2 = vtkSmartPointer<vtkMRMLObjectiveNode>::New();
+	ObjectiveStruct eud;
+	eud.name = "EUD";
+	eud.parameters["parameter 1"] = "1.0";
+	objectives.push_back(eud);
 
-   //// set names
-   //objective1->SetName("pyRad objective 1");
-   //objective2->SetName("pyRad objective 2");
+    ObjectiveStruct MaxDVH;
+	MaxDVH.name = "Max DVH";
+	MaxDVH.parameters["parameter 1"] = "1.0";
+	objectives.push_back(MaxDVH);
 
+	ObjectiveStruct MeanDose;
+	MeanDose.name = "Mean Dose";
+	MeanDose.parameters["parameter 1"] = "1.0";
+	objectives.push_back(MeanDose);
 
-   //// set objective function
-   //qSlicerSquaredDeviationObjective* squaredDeviationObjective = new qSlicerSquaredDeviationObjective();
-   //qSlicerSquaredDeviationObjective::ObjectiveFunctionAndGradient computedDoseObjectiveFunctionAndGradient = squaredDeviationObjective->computeDoseObjectiveFunctionAndGradient();
-   //objective1->SetDoseObjectiveFunctionAndGradient(computedDoseObjectiveFunctionAndGradient);
-   //objective2->SetDoseObjectiveFunctionAndGradient(computedDoseObjectiveFunctionAndGradient);
+	ObjectiveStruct MinDVH;
+	MinDVH.name = "Min DVH";
+	MinDVH.parameters["parameter 1"] = "1.0";
+	objectives.push_back(MinDVH);
 
+	ObjectiveStruct SquaredDeviation;
+	SquaredDeviation.name = "Squared Deviation";
+	SquaredDeviation.parameters["parameter 1"] = "1.0";
+	objectives.push_back(SquaredDeviation);
 
-   //if (objective1) {
-   //    objectives.push_back(objective1);
-   //}
-   //if (objective2) {
-   //    objectives.push_back(objective2);
-   //}
+	ObjectiveStruct SquaredOverdosing;
+	SquaredOverdosing.name = "Squared Overdosing";
+	SquaredOverdosing.parameters["parameter 1"] = "1.0";
+	objectives.push_back(SquaredOverdosing);
 
-   //std::vector<QString> objectives;
-   //objectives.push_back("pyRad objective 1");
-   //objectives.push_back("pyRad objective 2");
+	ObjectiveStruct SquaredUnderdosing;
+	SquaredUnderdosing.name = "Squared Underdosing";
+	SquaredUnderdosing.parameters["parameter 1"] = "1.0";
+	objectives.push_back(SquaredUnderdosing);
 
-   //this->availableObjectives = objectives;
+    this->availableObjectives = objectives;
 }
-
-
-// execute objective: objectiveNode->GetObjectiveFunction()();

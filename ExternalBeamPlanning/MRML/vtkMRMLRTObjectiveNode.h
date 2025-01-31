@@ -16,13 +16,13 @@
 ==============================================================================*/
 
 
-#ifndef __vtkMRMLObjectiveNode_h
-#define __vtkMRMLObjectiveNode_h
+#ifndef __vtkMRMLRTObjectiveNode_h
+#define __vtkMRMLRTObjectiveNode_h
+
+#include "vtkSlicerExternalBeamPlanningModuleMRMLExport.h"
 
 // MRML includes
 #include "vtkMRMLNode.h"
-
-#include "vtkSlicerExternalBeamPlanningModuleMRMLExport.h"
 
 #include <vector>
 #include <vtkSmartPointer.h>
@@ -34,11 +34,13 @@
 // Eigen includes
 #include <itkeigen/Eigen/SparseCore>
 
-class  VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLObjectiveNode : public vtkMRMLNode
+using DoseType = Eigen::VectorXd;
+
+class  VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTObjectiveNode : public vtkMRMLNode
 {
 public:
-  static vtkMRMLObjectiveNode *New();
-  vtkTypeMacro(vtkMRMLObjectiveNode, vtkMRMLNode);
+  static vtkMRMLRTObjectiveNode *New();
+  vtkTypeMacro(vtkMRMLRTObjectiveNode, vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   vtkMRMLNode* CreateNodeInstance() override;
@@ -62,24 +64,20 @@ public:
   void SetSegmentation(std::string segmentationName);
   std::string GetSegmentation();
 
-
-  //void SetDoseObjectiveFunctionAndGradient(ObjectiveFunctionAndGradient functions);
+  //void SetParameters(std::map<std::string, std::string> parameters);
+  //std::map<std::string, std::string> GetParameters();
 
 
 protected:
-  vtkMRMLObjectiveNode();
-  ~vtkMRMLObjectiveNode() override;
-  vtkMRMLObjectiveNode(const vtkMRMLObjectiveNode&);
-  void operator=(const vtkMRMLObjectiveNode&);
+  vtkMRMLRTObjectiveNode();
+  ~vtkMRMLRTObjectiveNode() override;
+  vtkMRMLRTObjectiveNode(const vtkMRMLRTObjectiveNode&);
+  void operator=(const vtkMRMLRTObjectiveNode&);
 
   char* Name;
   std::string Segmentation;
+  //std::map<std::string, std::string> parameters;
 
-  //std::function<float(const DoseType&)> ObjectiveFunction;
-  //std::function<DoseType&(const DoseType&)> ObjectiveGradient;
-
-  // ToDo: set pointer to objective functions
-  // ToDo: get parameters from objectives table (match needed parameters for functions)
 };
 
 #endif

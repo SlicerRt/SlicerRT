@@ -14,8 +14,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
 # Sources
 
 set(${KIT}_SRCS
-  vtkMRMLObjectiveNode.cxx
-  vtkMRMLObjectiveNode.h
+  vtkMRMLRTObjectiveNode.cxx
+  vtkMRMLRTObjectiveNode.h
   )
 
 SET (${KIT}_INCLUDE_DIRS

@@ -21,6 +21,9 @@
 
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
+// Objectives includes
+#include "qSlicerAbstractObjective.h"
+
 // Qt includes
 #include <QObject>
 #include <QStringList>
@@ -36,13 +39,7 @@ class vtkMRMLRTBeamNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLNode;
 class qMRMLBeamParametersTabWidget;
-class vtkMRMLObjectiveNode;
-
-struct ObjectiveStruct
-{
-    QString name;
-    std::map<QString, QVariant> parameters;
-};
+class vtkMRMLRTObjectiveNode;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 /// \brief Abstract Optimization calculation algorithm that can be used in the
@@ -76,8 +73,8 @@ public:
 public:
     struct ObjectiveStruct
     {
-        QString name;
-        QMap<QString, QVariant> parameters;
+        std::string name;
+        std::map<std::string, std::string> parameters;
     };
 
 // Optimization calculation related functions
@@ -88,13 +85,13 @@ public:
   QString optimizePlan(vtkMRMLRTPlanNode* planNode);
 
   /// Get available objectives for the Optimization engine
-  //std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getAvailableObjectives();
   std::vector<ObjectiveStruct> getAvailableObjectives();
   /// Set available objectives for the Optimization engine
   virtual void setAvailableObjectives();
 
-  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> getSavedObjectives();
-  void saveObjectiveInOptimizer(vtkSmartPointer<vtkMRMLObjectiveNode> objective);
+  /// Get saved objectives for the Optimization engine
+  std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> getSavedObjectives();
+  void saveObjectiveInOptimizer(vtkSmartPointer<vtkMRMLRTObjectiveNode> objective);
 
   void removeAllObjectives();
 
@@ -108,12 +105,9 @@ protected:
   /// \param resultOptimizationVolumeNode Output volume node for the result Optimization. It is created by \sa optimizePlan
     virtual QString optimizePlanUsingOptimizer(
         vtkMRMLRTPlanNode* planNode,
-        std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives,
+        std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives,
         vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode ) = 0;
 
-
-  /// Set available objectives for the Optimization engine
-  //virtual void setAvailableObjectives(std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> objectives) = 0;
 
 protected:
   /// Name of the engine. Must be set in Optimization engine constructor
@@ -124,9 +118,8 @@ protected:
 protected:
   QScopedPointer<qSlicerAbstractPlanOptimizerPrivate> d_ptr;
 
-  //std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives;
   std::vector<ObjectiveStruct> availableObjectives;
-  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> savedObjectives;
+  std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> savedObjectives;
 
 
 private:
