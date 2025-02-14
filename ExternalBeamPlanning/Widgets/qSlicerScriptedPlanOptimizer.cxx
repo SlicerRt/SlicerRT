@@ -242,57 +242,88 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
 //-----------------------------------------------------------------------------
 void qSlicerScriptedPlanOptimizer::setAvailableObjectives()
 {
-    //available Objectives:
-    //[
-    //	"DoseUniformity",
-    //		"EUD",
-    //		"MaxDVH",
-    //		"MeanDose",
-    //		"MinDVH",
-    //		"SquaredDeviation",
-    //		"SquaredOverdosing",
-    //		"SquaredUnderdosing",
-    //]
-	// mock objectives
-	std::vector<ObjectiveStruct> objectives;
+    if (!Py_IsInitialized())
+    {
+        qCritical() << "Python is not initialized!";
+        return;
+    }
 
-	ObjectiveStruct eud;
-	eud.name = "EUD";
-	eud.parameters["k"] = "0.0";
-	eud.parameters["eud_ref"] = "0.0";
-	objectives.push_back(eud);
+    // requires pyRadPlan being installed
+    PyObject* pName = PyUnicode_DecodeFSDefault("pyRadPlan.optimization.objectives");
+    PyObject* pModule = PyImport_Import(pName);
+    Py_DECREF(pName);
 
-    ObjectiveStruct MaxDVH;
-	MaxDVH.name = "Max DVH";
-	MaxDVH.parameters["d"] = "0.0";
-	MaxDVH.parameters["v_max"] = "0.0";
-	objectives.push_back(MaxDVH);
+    std::vector<ObjectiveStruct> objectives;
+    if (pModule != nullptr)
+    {
+        // Get the function from the module
+        PyObject* pFunc = PyObject_GetAttrString(pModule, "get_available_objectives");
+        if (pFunc && PyCallable_Check(pFunc))
+        {
+            // Call the function
+            PyObject* pValue = PyObject_CallObject(pFunc, nullptr);
+            if (pValue != nullptr)
+            {
+                // Assuming the function returns a dictionary-like object
+                if (PyMapping_Check(pValue))
+                {
+                    PyObject* pKeys = PyMapping_Keys(pValue);
+                    if (pKeys && PyList_Check(pKeys))
+                    {
+                        Py_ssize_t numKeys = PyList_Size(pKeys);
+                        for (Py_ssize_t i = 0; i < numKeys; ++i)
+                        {
+                            PyObject* pKey = PyList_GetItem(pKeys, i);
+                            if (PyUnicode_Check(pKey))
+                            {
+                                const char* keyStr = PyUnicode_AsUTF8(pKey);
+                                ObjectiveStruct objective;
+                                objective.name = keyStr;
 
-	ObjectiveStruct MeanDose;
-	MeanDose.name = "Mean Dose";
-	MeanDose.parameters["d_ref"] = "0.0";
-	objectives.push_back(MeanDose);
+                                PyObject* pVal = PyMapping_GetItemString(pValue, keyStr);
+                                // Check if pVal has __annotations__
+                                if (PyObject_HasAttrString(pVal, "__annotations__"))
+                                {
+                                    PyObject* pAnnotations = PyObject_GetAttrString(pVal, "__annotations__");
+                                    if (PyMapping_Check(pAnnotations))
+                                    {
+                                        // Print all keys in pAnnotations
+                                        PyObject* pAnnotationsKeys = PyMapping_Keys(pAnnotations);
+                                        if (pAnnotationsKeys && PyList_Check(pAnnotationsKeys))
+                                        {
+                                            Py_ssize_t numKeys = PyList_Size(pAnnotationsKeys);
+                                            for (Py_ssize_t j = 0; j < numKeys; ++j)
+                                            {
+                                                PyObject* pKey = PyList_GetItem(pAnnotationsKeys, j);
+                                                if (PyUnicode_Check(pKey))
+                                                {
+                                                    const char* paramName = PyUnicode_AsUTF8(pKey);
+                                                    objective.parameters[std::string(paramName)] = "0.0";
 
-	ObjectiveStruct MinDVH;
-	MinDVH.name = "Min DVH";
-	MinDVH.parameters["d"] = "0.0";
-	MinDVH.parameters["v_min"] = "0.0";
-	objectives.push_back(MinDVH);
+													//TODO: check default values & types
+                                                }
+                                            }
+                                            Py_DECREF(pAnnotationsKeys);
+                                        }
+                                    }
 
-	ObjectiveStruct SquaredDeviation;
-	SquaredDeviation.name = "Squared Deviation";
-	SquaredDeviation.parameters["d_ref"] = "0.0";
-	objectives.push_back(SquaredDeviation);
-
-	ObjectiveStruct SquaredOverdosing;
-	SquaredOverdosing.name = "Squared Overdosing";
-	SquaredOverdosing.parameters["d_max"] = "0.0";
-	objectives.push_back(SquaredOverdosing);
-
-	ObjectiveStruct SquaredUnderdosing;
-	SquaredUnderdosing.name = "Squared Underdosing";
-	SquaredUnderdosing.parameters["d_min"] = "0.0";
-	objectives.push_back(SquaredUnderdosing);
+                                }
+								objectives.push_back(objective);
+                            }
+                        }
+                        Py_DECREF(pKeys);
+                    }
+                }
+                Py_DECREF(pValue);
+            }
+        }
+        Py_XDECREF(pFunc);
+        Py_DECREF(pModule);
+    }
+    else
+    {
+        qCritical() << "Failed to import pyRadPlan.optimization.objectives module!";
+    }
 
     this->availableObjectives = objectives;
 }
