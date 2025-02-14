@@ -1,11 +1,3 @@
-import os
-import sys
-sys.path.append('C:/l868r/pyRadPlan')
-
-import vtk, qt, ctk, slicer
-import numpy as np
-import logging
-import random
 from DoseEngines import *
 from Python.prepareRTDataset import prepareCt, prepareCst, preparePln
 
@@ -17,17 +9,6 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         scriptedEngine.name = 'pyRadPlan'
         scriptedEngine.isInverse = True #pyRadPlan has Inverse planning capabilities, i.e., it can compute a dose influence matrix
         AbstractScriptedDoseEngine.__init__(self, scriptedEngine)
-
-        temp_path = slicer.app.temporaryPath + '/pyRadPlan/'
-        #temp_path = os.path.normpath(temp_path)
-
-        isExist = os.path.exists(temp_path)
-
-        if not isExist:
-            os.makedirs(temp_path)
-
-        self.temp_path = temp_path
-
 
 
     def defineBeamParameters(self):
@@ -42,33 +23,14 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
         self.scriptedEngine.addBeamParameterComboBox('pyRadPlan parameters','machine','machine','comment',['generic'],0)      
 
+
     def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):
 
         ##################################### PYRAD: import libraries ##########################################
-        from importlib import resources
         import logging
-        import numpy as np
-        import SimpleITK as sitk
-        import sitkUtils
-
-        from pyRadPlan import (
-            generate_stf,
-            fluence_optimization,
-        )
-        from pyRadPlan.dij import Dij, compose_beam_dijs
-        from pyRadPlan.optimization.objectives import get_objective
-
-
-        from scipy.sparse import coo_matrix
-
         import time
 
-        # import pyRadPlan
-
         from pyRadPlan import (
-            # PhotonPlan,
-            # validate_ct,
-            # validate_cst,
             generate_stf,
             calc_dose_influence
         )
@@ -106,10 +68,9 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         dij = calc_dose_influence(ct, cst, stf, pln)
         t_end = time.time()
         print(f"Time to calculate Dij: {t_end - t_start}")
-
-
-        #resultNode = sitkUtils.PushVolumeToSlicer(dij.physical_dose, targetNode = resultDoseVolumeNode, className="vtkMRMLScalarVolumeNode")
         
+        #TODO: visualization of dose
+
         return str() #return empty string to indicate success
     
 
@@ -121,12 +82,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         from scipy.sparse import coo_matrix
         import time
 
-        # import pyRadPlan
-
         from pyRadPlan import (
-            # PhotonPlan,
-            # validate_ct,
-            # validate_cst,
             generate_stf,
             calc_dose_influence
         )

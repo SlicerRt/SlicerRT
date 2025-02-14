@@ -1,11 +1,6 @@
-import os
-import sys
-import vtk, qt, ctk, slicer
+import slicer
 import numpy as np
-import logging
-import random
 from scipy.sparse import csc_matrix
-import vtk.util.numpy_support as numpy_support
 from PlanOptimizers import *
 from Python.prepareRTDataset import prepareCt, prepareCst, preparePln
 
@@ -16,16 +11,6 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     def __init__(self, scriptedEngine):
         scriptedEngine.name = 'pyRadPlan'
         AbstractScriptedPlanOptimizer.__init__(self, scriptedEngine)
-
-        temp_path = slicer.app.temporaryPath + '/pyRadPlan/'
-        temp_path = os.path.normpath(temp_path)
-
-        isExist = os.path.exists(temp_path)
-
-        if not isExist:
-            os.makedirs(temp_path)
-
-        self.temp_path = temp_path
 
 
     def optimizePlanUsingEngine(self, beamNode, resultDoseVolumeNode):
@@ -148,7 +133,6 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     
         # VOIS
         fluence = fluence_optimization(ct, cst, stf, dij, pln)
-        # fluence = np.ones((dij.total_num_of_bixels,), dtype=np.float64)
 
         # Result
         result = dij.compute_result_ct_grid(fluence)
