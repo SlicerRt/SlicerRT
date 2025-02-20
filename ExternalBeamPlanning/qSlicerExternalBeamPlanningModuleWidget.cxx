@@ -78,6 +78,9 @@
 #include <QMessageBox>
 #include <QDir>
 
+// PythonQt includes
+#include "PythonQt.h"
+
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class qSlicerExternalBeamPlanningModuleWidgetPrivate: public Ui_qSlicerExternalBeamPlanningModule
@@ -216,6 +219,18 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
 
   // This is not used?
   d->ModuleWindowInitialized = true;
+
+  // Run Python script to check and install pyRadPlan if needed
+  PythonQt::init();
+  PythonQtObjectPtr context = PythonQt::self()->getMainModule();
+  context.evalScript(QString(
+      "try:\n"
+      "    import pyRadPlan\n"
+      "except ImportError:\n"
+      "    if slicer.util.confirmOkCancelDisplay("
+      "        'This module requires pyRadPlan. Click OK to install it now.'"
+      "    ):\n"
+      "        slicer.util.pip_install('pyRadPlan')\n") );
 }
 
 //-----------------------------------------------------------------------------
@@ -837,9 +852,15 @@ void qSlicerExternalBeamPlanningModuleWidget::inversePlanningCheckboxStateChange
   this->updatePlanOptimizers();
 
   if (d->checkBox_InversePlanning->isChecked())
-    d->pushButton_OptimizePlan->setEnabled(true);
+  {
+      d->pushButton_OptimizePlan->setEnabled(true);
+	  d->CollapsibleButton_Objectives->setEnabled(true);
+  }
   else
-    d->pushButton_OptimizePlan->setEnabled(false);
+  {
+      d->pushButton_OptimizePlan->setEnabled(false);
+	  d->CollapsibleButton_Objectives->setEnabled(false);
+  }
 }
 
 //-----------------------------------------------------------------------------
