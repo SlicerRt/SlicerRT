@@ -69,17 +69,25 @@ public slots:
   /// Called when objective is removed in an observed plan node
   void onObjectiveRemoved();
 
+  void removeRowFromRowIndex(int row);
+
   /// called when objective or segmentation selection is changed
-  void updateObjectives();
+  //void updateObjectives();
+
+  void onObjectiveChanged(int row);
+
+  void onSegmentChanged(int row);
+
+  void setObjectivesInPlanOptimizer();
 
   void onParameterChanged(std::string name, std::string value, vtkMRMLRTObjectiveNode* objectiveNode);
 
   /// delete objectives Table and removes all objectives from plan optimizer
   void deleteObjectivesTable();
 
-//signals:
-//
-//
+protected:
+  std::vector<vtkMRMLRTObjectiveNode*> currentObjectiveNodes;
+
 protected slots:
   /// Update beam table according to the plan node
   void updateObjectivesTable();
