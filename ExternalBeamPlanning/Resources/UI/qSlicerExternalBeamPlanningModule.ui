@@ -493,7 +493,10 @@
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_Beams" native="true">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_Objectives" native="true">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="text" stdset="0">
       <string>Objectives</string>
      </property>
