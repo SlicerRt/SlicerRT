@@ -199,7 +199,6 @@ void qMRMLObjectivesTableWidget::setPlanNode(vtkMRMLNode* node)
     }
 
     d->PlanNode = planNode;
-    this->updateObjectivesTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -244,8 +243,8 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
 		objectivesDropdown->addItem(objective.name.c_str(), var);
     }
     d->ObjectivesTable->setCellWidget(row, d->columnIndex("ObjectiveName"), objectivesDropdown);
-    connect(objectivesDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this] {
-        this->updateObjectives();
+    connect(objectivesDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, row] {
+        this->onObjectiveChanged(row);
     });
 
     // Segmentations (ComboBox)
@@ -273,14 +272,133 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
         }
     }
     d->ObjectivesTable->setCellWidget(row, d->columnIndex("Segments"), segmentationsDropdown);
-    connect(segmentationsDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this] {
-        this->updateObjectives();
+    connect(segmentationsDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, row] {
+        this->onSegmentChanged(row);
     });
 
-	this->updateObjectives();
+    this->onObjectiveChanged(row);
+}
+
+//------------------------------------------------------------------------------
+void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
+{
+    Q_D(qMRMLObjectivesTableWidget);
+
+    if (row < 0 || row >= d->ObjectivesTable->rowCount())
+    {
+        qCritical() << Q_FUNC_INFO << ": Invalid row index!";
+        return;
     }
- 
-void qMRMLObjectivesTableWidget::updateObjectives()
+
+    // get selected objective & segment
+    QComboBox* objectivesDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("ObjectiveName")));
+    QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
+
+    qSlicerAbstractPlanOptimizer::ObjectiveStruct objectiveStruct = objectivesDropdown->currentData().value<qSlicerAbstractPlanOptimizer::ObjectiveStruct>();
+
+	// create new objective node
+    vtkMRMLRTObjectiveNode* objectiveNode = vtkMRMLRTObjectiveNode::New();
+	objectiveNode->SetName(objectiveStruct.name.c_str());
+    objectiveNode->SetSegmentation(segmentationsDropdown->currentText().toStdString().c_str());
+
+    // Create a widget to hold multiple QLineEdit boxes for parameters
+    QWidget* parameterWidget = new QWidget();
+    QHBoxLayout* layout = new QHBoxLayout(parameterWidget);
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    // Add a QLineEdit box for each parameter and add to objectiveNode attributes
+    std::map<std::string, std::string> parameters = objectiveStruct.parameters;
+    for (auto item = parameters.cbegin(); item != parameters.cend(); ++item)
+    {
+        // get paramters set in objectiveFunction
+        std::string parameterName = item->first;
+        std::string parameterValue = item->second;
+
+        // add parameter as attribute to objectiveNode
+        objectiveNode->SetAttribute(parameterName.c_str(), parameterValue.c_str());
+
+        // create QLineEdit box for parameter
+        QLabel* parameterLabel = new QLabel(parameterName.c_str());
+        QLineEdit* parameterLineEdit = new QLineEdit();
+        parameterLineEdit->setText(parameterValue.c_str());
+
+        connect(parameterLineEdit, &QLineEdit::textChanged, this, [this, parameterName, objectiveNode](const QString& newValue) {
+            this->onParameterChanged(parameterName, newValue.toStdString(), objectiveNode);
+        });
+
+        layout->addWidget(parameterLabel);
+        layout->addWidget(parameterLineEdit);
+    }
+    parameterWidget->setLayout(layout);
+
+    // Add the parameter widget to the table
+    int columnIndex = d->columnIndex("Parameters");
+    if (columnIndex == -1)
+    {
+        // Add a new column for the parameters if it doesn't exist
+        columnIndex = d->ObjectivesTable->columnCount();
+        d->ObjectivesTable->insertColumn(columnIndex);
+        d->ObjectivesTable->setHorizontalHeaderItem(columnIndex, new QTableWidgetItem("Parameters"));
+        d->ColumnLabels << "Parameters";
+    }
+    d->ObjectivesTable->setCellWidget(row, columnIndex, parameterWidget);
+
+    // get scene
+	vtkMRMLScene* scene = d->PlanNode->GetScene();
+	if (!scene)
+	{
+		qCritical() << Q_FUNC_INFO << ": Invalid scene";
+	}
+
+	if (this->currentObjectiveNodes.size() <= row || this->currentObjectiveNodes.empty())
+	{
+		// Add the new objective node
+		this->currentObjectiveNodes.push_back(objectiveNode);
+	}
+	else
+    {
+		// update objective node in slicer scene
+    	scene->RemoveNode(this->currentObjectiveNodes[row]);
+		// replace objective node in currentObjectiveNodes
+		this->currentObjectiveNodes[row]->Delete();
+		this->currentObjectiveNodes[row] = objectiveNode;
+	}
+
+
+	// add objective node to slicer scene
+	scene->AddNode(objectiveNode);
+
+	// update objectives in optimizer
+	this->setObjectivesInPlanOptimizer();
+}
+
+//------------------------------------------------------------------------------
+void qMRMLObjectivesTableWidget::onParameterChanged(std::string name, std::string value, vtkMRMLRTObjectiveNode* objectiveNode)
+{
+    Q_D(qMRMLObjectivesTableWidget);
+
+    // update the attribute value
+    objectiveNode->RemoveAttribute(name.c_str());
+    objectiveNode->SetAttribute(name.c_str(), value.c_str());
+}
+
+//------------------------------------------------------------------------------
+void qMRMLObjectivesTableWidget::onSegmentChanged(int row)
+{
+	Q_D(qMRMLObjectivesTableWidget);
+
+    // get newly selected segmentation
+	QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
+
+	// set segmentation in objectiveNode
+	this->currentObjectiveNodes[row]->SetSegmentation(segmentationsDropdown->currentText().toStdString().c_str());
+
+	// update objectives in optimizer
+	this->setObjectivesInPlanOptimizer();
+}
+
+//------------------------------------------------------------------------------
+void qMRMLObjectivesTableWidget::setObjectivesInPlanOptimizer()
 {
     Q_D(qMRMLObjectivesTableWidget);
     vtkMRMLRTPlanNode* planNode = d->PlanNode;
@@ -294,82 +412,12 @@ void qMRMLObjectivesTableWidget::updateObjectives()
     qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
     selectedEngine->removeAllObjectives();
 
-    // iterate through all rows and add segments to objectiveNodes
-    for (int row = 0; row < d->ObjectivesTable->rowCount(); ++row)
-    {
-        // get selected objective & segment
-        QComboBox* objectivesDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("ObjectiveName")));
-        QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
-
-		qSlicerAbstractPlanOptimizer::ObjectiveStruct objective = objectivesDropdown->currentData().value<qSlicerAbstractPlanOptimizer::ObjectiveStruct>();
-
-        // create new objective node and save in optimizer
-        vtkMRMLRTObjectiveNode* objectiveNode = vtkMRMLRTObjectiveNode::New();
-		objectiveNode->SetName(objective.name.c_str());
-        objectiveNode->SetSegmentation(segmentationsDropdown->currentText().toStdString().c_str());
-
-
-        // Create a widget to hold multiple QLineEdit boxes for parameters
-        QWidget* parameterWidget = new QWidget();
-        QHBoxLayout* layout = new QHBoxLayout(parameterWidget);
-        layout->setContentsMargins(0, 0, 0, 0);
-
-		// Add a QLineEdit box for each parameter and add to objectiveNode attributes
-        std::map<std::string, std::string> parameters = objective.parameters;
-        for (auto item = parameters.cbegin(); item != parameters.cend(); ++item)
-        {
-            // get paramters set in objectiveFunction
-            std::string parameterName = item->first;
-			std::string parameterValue = item->second;
-
-            // add parameter as attribute to objectiveNode
-			objectiveNode->SetAttribute(parameterName.c_str(), parameterValue.c_str());
-
-			// create QLineEdit box for parameter
-			QLabel* parameterLabel = new QLabel(parameterName.c_str());
-            QLineEdit* parameterLineEdit = new QLineEdit();
-            parameterLineEdit->setText(parameterValue.c_str());
-
-            connect(parameterLineEdit, &QLineEdit::textChanged, this, [this, parameterName, objectiveNode](const QString& newValue) {
-                this->onParameterChanged(parameterName, newValue.toStdString(), objectiveNode);
-            });
-
-            layout->addWidget(parameterLabel);
-            layout->addWidget(parameterLineEdit);
-        }
-        parameterWidget->setLayout(layout);
-
-        // Add the parameter widget to the table
-        int columnIndex = d->columnIndex("Parameters");
-        if (columnIndex == -1)
-        {
-            // Add a new column for the parameters if it doesn't exist
-            columnIndex = d->ObjectivesTable->columnCount();
-            d->ObjectivesTable->insertColumn(columnIndex);
-            d->ObjectivesTable->setHorizontalHeaderItem(columnIndex, new QTableWidgetItem("Parameters"));
-            d->ColumnLabels << "Parameters";
-        }
-        d->ObjectivesTable->setCellWidget(row, columnIndex, parameterWidget);
-
-        // save objective in optimizer
-        selectedEngine->saveObjectiveInOptimizer(objectiveNode);
-
-        // Add the objective node to the slicer scene
-        qSlicerApplication::application()->mrmlScene()->AddNode(objectiveNode);
-    }
-}
-
-//------------------------------------------------------------------------------
-void qMRMLObjectivesTableWidget::onParameterChanged(std::string name, std::string value, vtkMRMLRTObjectiveNode* objectiveNode)
-{
-    Q_D(qMRMLObjectivesTableWidget);
-
-	// ToDo: save parameters even when changing segment or adding objective
-    // (currently reset to default values as all objectives are recreated)
-
-    // update the attribute value
-	objectiveNode->RemoveAttribute(name.c_str());
-	objectiveNode->SetAttribute(name.c_str(), value.c_str());
+	// iterate through objectives in currentObjectiveNodes and add to optimizer
+	for (int i = 0; i < this->currentObjectiveNodes.size(); i++)
+	{
+		vtkMRMLRTObjectiveNode* objectiveNode = this->currentObjectiveNodes[i];
+		selectedEngine->saveObjectiveInOptimizer(objectiveNode);
+	}
 }
 
 //------------------------------------------------------------------------------
@@ -385,10 +433,66 @@ void qMRMLObjectivesTableWidget::onObjectiveRemoved()
             selectedRows.append(row);
         }
     }
+
     for (int row : selectedRows) {
-        d->ObjectivesTable->removeRow(row);
+        this->removeRowFromRowIndex(row);
     }
-    this->updateObjectives();
+
+    // Update the row numbers in the table
+    for (int i = 0; i < d->ObjectivesTable->rowCount(); ++i)
+    {
+        QTableWidgetItem* numberItem = d->ObjectivesTable->item(i, d->columnIndex("Number"));
+        if (numberItem)
+        {
+            numberItem->setText(QString::number(i + 1));
+        }
+
+        // Reconnect signals for dropdowns to the correct row index
+        QComboBox* objectivesDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(i, d->columnIndex("ObjectiveName")));
+        if (objectivesDropdown)
+        {
+            disconnect(objectivesDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged), nullptr, nullptr);
+            connect(objectivesDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, i] {
+                this->onObjectiveChanged(i);
+            });
+        }
+
+        QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(i, d->columnIndex("Segments")));
+        if (segmentationsDropdown)
+        {
+            disconnect(segmentationsDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged), nullptr, nullptr);
+            connect(segmentationsDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, i] {
+                this->onSegmentChanged(i);
+            });
+        }
+    }
+
+    // update objectives in optimizer
+    this->setObjectivesInPlanOptimizer();
+}
+
+//------------------------------------------------------------------------------
+void qMRMLObjectivesTableWidget::removeRowFromRowIndex(int row)
+{
+	Q_D(qMRMLObjectivesTableWidget);
+
+	// get scene
+	vtkMRMLScene* scene = d->PlanNode->GetScene();
+    if (!scene)
+    {
+        qCritical() << Q_FUNC_INFO << ": Invalid scene";
+    }
+
+    // Remove the objective node from scene & currentObjectiveNodes
+    if (row < this->currentObjectiveNodes.size())
+    {
+        scene->RemoveNode(this->currentObjectiveNodes[row]);
+        this->currentObjectiveNodes[row]->Delete();
+        this->currentObjectiveNodes.erase(this->currentObjectiveNodes.begin() + row);
+    }
+
+    // remove row from table
+    d->ObjectivesTable->removeRow(row);
 }
 
 
@@ -413,9 +517,9 @@ void qMRMLObjectivesTableWidget::deleteObjectivesTable()
     qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
     selectedEngine->removeAllObjectives();
 
-	// Remove all rows
+	// Remove all rows & delete all objective nodes
 	while (d->ObjectivesTable->rowCount() > 0)
 	{
-		d->ObjectivesTable->removeRow(0);
+		this->removeRowFromRowIndex(0);
 	}
 }
