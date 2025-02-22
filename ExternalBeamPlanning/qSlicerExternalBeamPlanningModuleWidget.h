@@ -87,7 +87,11 @@ protected slots:
   // Output section
   void doseVolumeNodeChanged(vtkMRMLNode*);
   void doseROINodeChanged(vtkMRMLNode*);
-  void doseGridSpacingChanged(const QString &);
+  void doseGridChangedInCoordinate(int index, double value);
+  void doseGridXChanged(double value);
+  void doseGridYChanged(double value);
+  void doseGridZChanged(double value);
+  void useCTGridForDoseGridClicked();
   
   // Calculation buttons
   void calculateDoseClicked();
