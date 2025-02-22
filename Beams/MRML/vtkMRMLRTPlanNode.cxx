@@ -60,6 +60,21 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 {
   // Ensure the node shows up in subject hierarchy. Otherwise there is a crash.
   this->HideFromEditorsOff();
+  this->RxDose = 1.0;
+
+  this->TargetSegmentID = nullptr;
+
+  this->IsocenterSpecification = vtkMRMLRTPlanNode::CenterOfTarget;
+
+  this->NextBeamNumber = 1;
+
+  this->DoseEngineName = nullptr;
+
+  this->DoseGrid[0] = 5.0;
+  this->DoseGrid[1] = 5.0;
+  this->DoseGrid[2] = 5.0;
+
+  this->IonPlanFlag = false;
 }
 
 //----------------------------------------------------------------------------
@@ -263,6 +278,7 @@ void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
 
   if (!this->Scene)
   {
+    vtkErrorMacro("ProcessMRMLEvents: Invalid MRML scene");
     return;
   }
   if (this->Scene->IsBatchProcessing())
@@ -910,22 +926,86 @@ bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double center[3])
     vtkErrorMacro("ComputeTargetVolumeCenter: Invalid MRML scene");
     return false;
   }
-  vtkMRMLSegmentationNode* segmentationNode = this->GetSegmentationNode();
-  if (!segmentationNode)
+
+  // Get a labelmap for the target
+  vtkSmartPointer<vtkOrientedImageData> targetLabelmap = this->GetTargetOrientedImageData();
+  if (targetLabelmap.GetPointer() == nullptr)
   {
     vtkErrorMacro("ComputeTargetVolumeCenter: Failed to get target segmentation node");
     return false;
   }
-  if (!this->TargetSegmentID)
-  {
-    vtkErrorMacro("ComputeTargetVolumeCenter: No target segment specified");
-    return false;
-  }
 
-  double* centerRas = segmentationNode->GetSegmentCenterRAS(this->TargetSegmentID);
+  // Compute image center
+  int extent[6] = {0,-1,0,-1,0,-1};
+  targetLabelmap->GetExtent(extent);
+  unsigned long numOfNonZeroVoxels = 0;
+  unsigned long sumX = 0;
+  unsigned long sumY = 0;
+  unsigned long sumZ = 0;
+  for (int z=extent[4]; z<extent[5]; ++z)
+  {
+    for (int y=extent[2]; y<extent[3]; ++y)
+    {
+      for (int x=extent[0]; x<extent[1]; ++x)
+      {
+        unsigned char value = targetLabelmap->GetScalarComponentAsDouble(x, y, z, 0);
+        if (value)
+        {
+          numOfNonZeroVoxels++;
+          sumX += x;
+          sumY += y;
+          sumZ += z;
+  }
+      }
+    }
+  }
+  double centerIjk[4] = {0.0};
+  if (numOfNonZeroVoxels > 0)
+  {
+    centerIjk[0] = (double)sumX / (double)numOfNonZeroVoxels;
+    centerIjk[1] = (double)sumY / (double)numOfNonZeroVoxels;
+    centerIjk[2] = (double)sumZ / (double)numOfNonZeroVoxels;
+    centerIjk[3] = 1.0;
+
+    vtkNew<vtkMatrix4x4> imageToWorldMatrix;
+    targetLabelmap->GetImageToWorldMatrix(imageToWorldMatrix);
+    double centerRas[4] = {0.0};
+    imageToWorldMatrix->MultiplyPoint(centerIjk, centerRas);
+
   center[0] = centerRas[0];
   center[1] = centerRas[1];
   center[2] = centerRas[2];
+  }
 
   return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::setDoseGridInCoordinate(int index, double value)
+{
+    if (index < 0 || index > 2)
+    {
+        vtkErrorMacro("setDoseGridInCoordinate: Invalid index");
+        return;
+    }
+
+    this->DoseGrid[index] = value;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::setDoseGridToCTGrid()
+{
+    vtkMRMLScalarVolumeNode* referenceVolumeNode = this->GetReferenceVolumeNode();
+    if (!referenceVolumeNode)
+    {
+        vtkErrorMacro("setDoseGridToCTGrid: Invalid reference volume node");
+        return;
+    }
+
+	double spacing[3] = { 0.0, 0.0, 0.0 };
+    referenceVolumeNode->GetImageData()->GetSpacing(spacing);
+
+    this->setDoseGridInCoordinate(0, spacing[0]);
+    this->setDoseGridInCoordinate(1, spacing[1]);
+    this->setDoseGridInCoordinate(2, spacing[2]);
 }

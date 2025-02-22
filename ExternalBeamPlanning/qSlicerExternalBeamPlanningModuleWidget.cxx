@@ -278,7 +278,10 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   // Output section
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(doseVolumeNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_DoseROI, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(doseROINodeChanged(vtkMRMLNode*)) );
-  connect( d->lineEdit_DoseGridSpacing, SIGNAL(textChanged(const QString&)), this, SLOT(doseGridSpacingChanged(const QString&)) );
+  connect(d->doubleSpinBox_DoseGridX, SIGNAL(valueChanged(double)), this, SLOT(doseGridXChanged(double)));
+  connect(d->doubleSpinBox_DoseGridY, SIGNAL(valueChanged(double)), this, SLOT(doseGridYChanged(double)));
+  connect(d->doubleSpinBox_DoseGridZ, SIGNAL(valueChanged(double)), this, SLOT(doseGridZChanged(double)));  
+  connect(d->pushButton_UseCTGridForDoseGrid, SIGNAL(clicked()), this, SLOT(useCTGridForDoseGridClicked()));
 
   // Beams section
   //connect( d->BeamsTableView, SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(beamSelectionChanged(QItemSelection,QItemSelection) ) );
@@ -304,8 +307,6 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   // Hide non-functional items //TODO:
   d->label_DoseROI->setVisible(false);
   d->MRMLNodeComboBox_DoseROI->setVisible(false);
-  d->label_DoseGridSpacing->setVisible(false);
-  d->lineEdit_DoseGridSpacing->setVisible(false);
 
   // Set status text to initial instruction
   d->label_CalculateDoseStatus->setText("Add plan and beam to start planning");
@@ -363,6 +364,11 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
   d->checkBox_IsocenterAtTargetCenter->setChecked(planNode->GetIsocenterSpecification() == vtkMRMLRTPlanNode::CenterOfTarget);
   // Update isocenter controls based on plan isocenter position
   this->updateIsocenterPosition();
+
+  // Update Dose Grid Spacing
+  d->doubleSpinBox_DoseGridX->setValue(planNode->GetDoseGrid()[0]);
+  d->doubleSpinBox_DoseGridY->setValue(planNode->GetDoseGrid()[1]);
+  d->doubleSpinBox_DoseGridZ->setValue(planNode->GetDoseGrid()[2]);
 
   // Populate dose engines combobox and make selection
   this->updateDoseEngines();
@@ -669,28 +675,96 @@ void qSlicerExternalBeamPlanningModuleWidget::doseROINodeChanged(vtkMRMLNode* no
   // planNode->DisableModifiedEventOff();
 }
 
+////-----------------------------------------------------------------------------
+//void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingChanged(const QString &text)
+//{
+//  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+//  UNUSED_VARIABLE(text);
+//
+//  if (!this->mrmlScene())
+//  {
+//    qCritical() << Q_FUNC_INFO << ": Invalid scene";
+//    return;
+//  }
+//
+//  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+//  if (!planNode)
+//  {
+//    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
+//    return;
+//  }
+//
+//  qWarning() << Q_FUNC_INFO << ": Not implemented";
+//
+//  // TODO: to be implemented
+//}
+
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingChanged(const QString &text)
+void qSlicerExternalBeamPlanningModuleWidget::doseGridChangedInCoordinate(int index, double value)
 {
-  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-  UNUSED_VARIABLE(text);
+    Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  if (!this->mrmlScene())
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid scene";
-    return;
-  }
+    if (!this->mrmlScene())
+    {
+        qCritical() << Q_FUNC_INFO << ": Invalid scene";
+        return;
+    }
 
-  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
-  if (!planNode)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
-    return;
-  }
+    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+    if (!planNode)
+    {
+        qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
+        return;
+    }
 
-  qWarning() << Q_FUNC_INFO << ": Not implemented";
+    planNode->DisableModifiedEventOn();
+    planNode->setDoseGridInCoordinate(index, value);
+    planNode->DisableModifiedEventOff();
+}
 
-  // TODO: to be implemented
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::doseGridXChanged(double value)
+{
+	this->doseGridChangedInCoordinate(0, value);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::doseGridYChanged(double value)
+{
+    this->doseGridChangedInCoordinate(1, value);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::doseGridZChanged(double value)
+{
+    this->doseGridChangedInCoordinate(2, value);
+}
+
+//----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::useCTGridForDoseGridClicked()
+{
+	Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+	if (!this->mrmlScene())
+	{
+		qCritical() << Q_FUNC_INFO << ": Invalid scene";
+		return;
+	}
+
+	vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+	if (!planNode)
+	{
+		qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
+		return;
+	}
+
+
+	planNode->DisableModifiedEventOn();
+	planNode->setDoseGridToCTGrid();
+	planNode->DisableModifiedEventOff();
+
+	// Update GUI
+	this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------

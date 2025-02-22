@@ -91,10 +91,8 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
             dose_influence_matrix = csc_matrix((data, indices, indptr), shape=(numberOfVoxels, numOfCols)) # shape important to include zeros in last indices (rows must be as long as number of voxels)
 
-            #################### temp #######################
             dose_grid = ct.grid
-            dose_grid.resolution = {"x": 5, "y": 5, "z": 5}
-            #################### temp #######################
+            dose_grid.resolution = {"x": planNode.GetDoseGrid()[0], "y": planNode.GetDoseGrid()[0], "z": planNode.GetDoseGrid()[0]}
 
 
             dij = Dij(
@@ -140,14 +138,14 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
         totalDose = result["physical_dose"]
 
 
-        resultNode = sitkUtils.PushVolumeToSlicer(totalDose, targetNode = resultOptimizationVolumeNode, className="vtkMRMLScalarVolumeNode")
+        sitkUtils.PushVolumeToSlicer(totalDose, targetNode = resultOptimizationVolumeNode)#, className="vtkMRMLScalarVolumeNode")
 
         # Set name
         OptimizedDoseNodeName = str(planNode.GetName())+"_pyRadOptimzedDose"
         resultOptimizationVolumeNode.SetName(OptimizedDoseNodeName)
 
         
-        slicer.util.setSliceViewerLayers(background=referenceVolumeNode, foreground=resultNode)
+        slicer.util.setSliceViewerLayers(background=referenceVolumeNode, foreground=resultOptimizationVolumeNode)
         slicer.util.setSliceViewerLayers(foregroundOpacity=1)
 
         return str()
