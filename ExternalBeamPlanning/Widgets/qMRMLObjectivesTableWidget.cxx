@@ -125,14 +125,9 @@ void qMRMLObjectivesTableWidgetPrivate::init()
    // Select rows
    this->ObjectivesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-   //// Make connections
-   //QObject::connect(this->ObjectivesTable, SIGNAL(itemChanged(QTableWidgetItem*)),
-   //                 q, SLOT(onObjectiveTableItemChanged(QTableWidgetItem*)));
-   //QObject::connect(this->ObjectivesTable->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-   //                 q, SIGNAL(selectionChanged(QItemSelection,QItemSelection)));
-
    this->ObjectivesTable->installEventFilter(q);
 }
+
 
 //-----------------------------------------------------------------------------
 int qMRMLObjectivesTableWidgetPrivate::columnIndex(QString label)
@@ -165,7 +160,7 @@ qMRMLObjectivesTableWidget::qMRMLObjectivesTableWidget(QWidget* _parent) //const
 {
   Q_D(qMRMLObjectivesTableWidget);
   d->init();
-  // this->updateBeamTable();
+  this->updateObjectivesTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -199,6 +194,7 @@ void qMRMLObjectivesTableWidget::setPlanNode(vtkMRMLNode* node)
     }
 
     d->PlanNode = planNode;
+    this->updateObjectivesTable();
 }
 
 //-----------------------------------------------------------------------------
@@ -207,6 +203,46 @@ vtkMRMLNode* qMRMLObjectivesTableWidget::planNode()
     Q_D(qMRMLObjectivesTableWidget);
 
     return d->PlanNode;
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLObjectivesTableWidget::updateObjectivesTable()
+{
+    Q_D(qMRMLObjectivesTableWidget);
+
+    d->setMessage(QString());
+
+    d->ObjectivesTable->update();
+    d->ObjectivesTable->repaint();
+}
+
+//------------------------------------------------------------------------------
+bool qMRMLObjectivesTableWidget::eventFilter(QObject* target, QEvent* event)
+{
+    Q_D(qMRMLObjectivesTableWidget);
+    if (target == d->ObjectivesTable)
+    {
+        // Prevent giving the focus to the previous/next widget if arrow keys are used
+        // at the edge of the table (without this: if the current cell is in the top
+        // row and user press the Up key, the focus goes from the table to the previous
+        // widget in the tab order)
+        if (event->type() == QEvent::KeyPress)
+        {
+            QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+            QAbstractItemModel* model = d->ObjectivesTable->model();
+            QModelIndex currentIndex = d->ObjectivesTable->currentIndex();
+
+            if (model && (
+                (keyEvent->key() == Qt::Key_Left && currentIndex.column() == 0)
+                || (keyEvent->key() == Qt::Key_Up && currentIndex.row() == 0)
+                || (keyEvent->key() == Qt::Key_Right && currentIndex.column() == model->columnCount() - 1)
+                || (keyEvent->key() == Qt::Key_Down && currentIndex.row() == model->rowCount() - 1)))
+            {
+                return true;
+            }
+        }
+    }
+    return this->QWidget::eventFilter(target, event);
 }
 
 //-----------------------------------------------------------------------------    
@@ -277,6 +313,8 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
     });
 
     this->onObjectiveChanged(row);
+
+    this->updateObjectivesTable();
 }
 
 //------------------------------------------------------------------------------
@@ -493,13 +531,6 @@ void qMRMLObjectivesTableWidget::removeRowFromRowIndex(int row)
 
     // remove row from table
     d->ObjectivesTable->removeRow(row);
-}
-
-
-//-----------------------------------------------------------------------------
-void qMRMLObjectivesTableWidget::updateObjectivesTable()
-{
-	//ToDo: load objectives from plan node
 }
 
 //-----------------------------------------------------------------------------
