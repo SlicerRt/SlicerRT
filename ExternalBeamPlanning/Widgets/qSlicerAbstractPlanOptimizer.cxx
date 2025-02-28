@@ -285,7 +285,7 @@ void qSlicerAbstractPlanOptimizer::addResultDose(vtkMRMLScalarVolumeNode* result
         }
         else
         {
-            doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeRainbow");
+            doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLPETProceduralColorNodePET-Rainbow2");
             qCritical() << Q_FUNC_INFO << ": Failed to get default dose color table";
         }
 
