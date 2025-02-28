@@ -204,10 +204,6 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
       if (objectiveNode)
       {
           PyObject* pyDict = PyDict_New();
-          //PyDict_SetItemString(pyDict, "Objective", Py_BuildValue("s", objectiveNode->GetName()));
-          //std::string segment = objectiveNode->GetSegmentation();
-          //PyDict_SetItemString(pyDict, "Segment", Py_BuildValue("s", segment.c_str()));
-          //PyList_SetItem(pyList, i, pyDict);
           PyObject* pyObjectiveNode = vtkPythonUtil::GetObjectFromPointer(objectiveNode);
           PyDict_SetItemString(pyDict, "ObjectiveNode", pyObjectiveNode);
           PyList_SetItem(pyList, i, pyDict);
@@ -298,9 +294,7 @@ void qSlicerScriptedPlanOptimizer::setAvailableObjectives()
                                                 if (PyUnicode_Check(pKey))
                                                 {
                                                     const char* paramName = PyUnicode_AsUTF8(pKey);
-                                                    objective.parameters[std::string(paramName)] = "0.0";
-
-													//TODO: check default values & types
+                                                    objective.parameters[std::string(paramName)] = "";
                                                 }
                                             }
                                             Py_DECREF(pAnnotationsKeys);
@@ -311,14 +305,14 @@ void qSlicerScriptedPlanOptimizer::setAvailableObjectives()
 								objectives.push_back(objective);
                             }
                         }
-                        Py_DECREF(pKeys);
+                        Py_DECREF(pKeys); // free memory
                     }
                 }
-                Py_DECREF(pValue);
+				Py_DECREF(pValue); // free memory
             }
         }
-        Py_XDECREF(pFunc);
-        Py_DECREF(pModule);
+		Py_XDECREF(pFunc); // free memory
+		Py_DECREF(pModule); // free memory
     }
     else
     {
