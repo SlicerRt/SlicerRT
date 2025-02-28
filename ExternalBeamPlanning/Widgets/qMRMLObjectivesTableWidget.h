@@ -63,6 +63,8 @@ public slots:
   /// Set plan MRML node
   Q_INVOKABLE void setPlanNode(vtkMRMLNode* node);
 
+  bool eventFilter(QObject* target, QEvent* event);
+
   /// Called when objective is added in an observed plan node
   void onObjectiveAdded();
 
