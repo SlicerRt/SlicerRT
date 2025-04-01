@@ -156,7 +156,7 @@ public:
   vtkGetObjectMacro(CollimatorTableTopCollisionDetection, vtkCollisionDetectionFilter);
 
 public:
-  /// Get transform node between two coordinate systems is exists
+  /// Get transform node between two coordinate systems if exists
   /// \param fromFrame - start transformation from frame
   /// \param toFrame - proceed transformation to frame
   /// \return Transform node if there is a direct transform between the specified coordinate frames, nullptr otherwise
