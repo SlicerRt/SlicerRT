@@ -111,7 +111,7 @@ public:
   void UpdatePatientSupportToPatientSupportRotationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 
   /// Update TableTopEccentricRotationToPatientSupportRotation based on table top eccentric rotation parameter
-  /// NOTE: This rotation is currently not supported (only rotate table top on the patient support)
+  /// \note This rotation is currently not supported (only rotate table top on the patient support)
   void UpdateTableTopEccentricRotationToPatientSupportRotationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Update TableTopToTableTopEccentricRotation based on all three table top translations
   void UpdateTableTopToTableTopEccentricRotationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
@@ -160,7 +160,7 @@ public:
   /// \param fromFrame - start transformation from frame
   /// \param toFrame - proceed transformation to frame
   /// \return Transform node if there is a direct transform between the specified coordinate frames, nullptr otherwise
-  ///   Note: If IEC does not specify a transform between the given coordinate frames, then there will be no node with the returned name.
+  /// \note If IEC does not specify a transform between the given coordinate frames, then there will be no node with the returned name.
   vtkMRMLLinearTransformNode* GetTransformNodeBetween(
     vtkIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkIECTransformLogic::CoordinateSystemIdentifier toFrame);
 
