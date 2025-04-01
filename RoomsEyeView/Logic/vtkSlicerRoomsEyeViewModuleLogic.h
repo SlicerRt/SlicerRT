@@ -17,7 +17,7 @@
   Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
   The collision detection module was partly supported by Conselleria de
-  Educación, Investigación, Cultura y Deporte (Generalitat Valenciana), Spain
+  EducaciÃ³n, InvestigaciÃ³n, Cultura y Deporte (Generalitat Valenciana), Spain
   under grant number CDEIGENT/2019/011.
 
 ==============================================================================*/
@@ -70,7 +70,7 @@ public:
 
   static const char* ORIENTATION_MARKER_MODEL_NODE_NAME;
   static const char* TREATMENT_MACHINE_DESCRIPTOR_FILE_PATH_ATTRIBUTE_NAME;
-  static unsigned int MAX_TRIANGLE_NUMBER_PRODUCT_FOR_COLLISIONS;
+  static unsigned long MAX_TRIANGLE_NUMBER_PRODUCT_FOR_COLLISIONS;
 
 public:
   static vtkSlicerRoomsEyeViewModuleLogic *New();
