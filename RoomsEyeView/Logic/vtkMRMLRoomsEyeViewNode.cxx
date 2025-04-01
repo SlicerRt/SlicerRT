@@ -72,7 +72,7 @@ vtkMRMLNodeNewMacro(vtkMRMLRoomsEyeViewNode);
 vtkMRMLRoomsEyeViewNode::vtkMRMLRoomsEyeViewNode()
   : PatientBodySegmentID(nullptr)
   , TreatmentMachineDescriptorFilePath(nullptr)
-  , CollisionDetectionEnabled(true)
+  , CollisionDetectionEnabled(false)
   , GantryRotationAngle(0.0)
   , CollimatorRotationAngle(0.0)
   , ImagingPanelMovement(-68.50)
