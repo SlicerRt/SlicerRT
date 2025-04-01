@@ -84,7 +84,7 @@ public:
   std::vector<TreatmentMachinePartType> LoadTreatmentMachine(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Set up the IEC transforms and model properties on the treatment machine models.
   /// \param forceEnableCollisionDetection Enable collision detection between parts even if calculation is potentially
-  ///        lengthy absed on the number of triangles of the parts.
+  ///        lengthy based on the number of triangles of the parts.
   /// \return List of parts that were successfully set up.
   std::vector<TreatmentMachinePartType> SetupTreatmentMachineModels(
     vtkMRMLRoomsEyeViewNode* parameterNode, bool forceEnableCollisionDetection=false);
