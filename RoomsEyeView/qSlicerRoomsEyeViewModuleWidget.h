@@ -68,6 +68,7 @@ public slots:
   void updateTreatmentOrientationMarker();
 
   void setFixedReferenceCameraEnabled(bool);
+  void setCollisionComputationEnabled(bool);
 
 protected slots:
   void onLoadTreatmentMachineButtonClicked();

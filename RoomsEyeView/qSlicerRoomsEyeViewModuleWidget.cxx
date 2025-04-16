@@ -392,6 +392,9 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
   // 3D camera control
   connect(d->FixedCameraCheckBox, SIGNAL(toggled(bool)), this, SLOT(setFixedReferenceCameraEnabled(bool)));
 
+  // Collision detection control
+  connect(d->ActivateCollisionComputationCheckBox, SIGNAL(toggled(bool)), this, SLOT(setCollisionComputationEnabled(bool)));
+
   // Disable treatment machine geometry controls until a machine is loaded
   d->GantryRotationSlider->setEnabled(false);
   d->CollimatorRotationSlider->setEnabled(false);
@@ -1004,7 +1007,7 @@ void qSlicerRoomsEyeViewModuleWidget::checkForCollisions()
   Q_D(qSlicerRoomsEyeViewModuleWidget);
 
   vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
-  if (!paramNode || !d->ModuleWindowInitialized)
+  if (!paramNode || !d->ModuleWindowInitialized|| !paramNode->GetCollisionDetectionEnabled())
   {
     return;
   }
@@ -1092,4 +1095,15 @@ void qSlicerRoomsEyeViewModuleWidget::setFixedReferenceCameraEnabled(bool toggle
     return;
   }
   cameraNode->SetAndObserveTransformNodeID(nullptr);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerRoomsEyeViewModuleWidget::setCollisionComputationEnabled(bool toggled)
+{
+  Q_D(qSlicerRoomsEyeViewModuleWidget);
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  paramNode->SetCollisionDetectionEnabled(toggled);
+  QString collisionsMessage(toggled ? tr("Collision computation enabled") : tr("Collision computation disabled"));
+  d->CollisionDetectionStatusLabel->setText(collisionsMessage);
+  d->CollisionDetectionStatusLabel->setStyleSheet("color: black");
 }
