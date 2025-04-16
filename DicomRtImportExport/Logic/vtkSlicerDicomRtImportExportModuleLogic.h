@@ -41,11 +41,8 @@ class vtkCollection;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLScene;
 class vtkMRMLSegmentationNode;
-class vtkSlicerBeamsModuleLogic;
 class vtkSlicerDICOMLoadable;
 class vtkSlicerDicomReaderBase;
-class vtkSlicerIsodoseModuleLogic;
-class vtkSlicerPlanarImageModuleLogic;
 class vtkStringArray;
 
 /// \ingroup SlicerRt_QtModules_DicomRtImport
@@ -78,14 +75,6 @@ public:
   static void InsertSeriesInSubjectHierarchy(vtkSlicerDicomReaderBase* reader, vtkMRMLScene* scene);
 
 public:
-  /// Set Isodose module logic
-  void SetIsodoseLogic(vtkSlicerIsodoseModuleLogic* isodoseLogic);
-  /// Set Planar Image module logic
-  void SetPlanarImageLogic(vtkSlicerPlanarImageModuleLogic* planarImageLogic);
-  /// Set Beams module logic
-  void SetBeamsLogic(vtkSlicerBeamsModuleLogic* beamsLogic);
-
-public:
   vtkSetMacro(BeamModelsInSeparateBranch, bool);
   vtkGetMacro(BeamModelsInSeparateBranch, bool);
   vtkBooleanMacro(BeamModelsInSeparateBranch, bool);
@@ -109,15 +98,6 @@ private:
   friend class vtkInternal; // For access from the callback function
 
 private:
-  /// Isodose logic instance
-  vtkSlicerIsodoseModuleLogic* IsodoseLogic;
-
-  /// Planar Image logic instance
-  vtkSlicerPlanarImageModuleLogic* PlanarImageLogic;
-
-  /// Beams module logic instance
-  vtkSlicerBeamsModuleLogic* BeamsLogic;
-
   /// Flag determining whether the generated beam models are arranged in a separate subject hierarchy
   /// branch, or each beam model is added under its corresponding isocenter fiducial
   bool BeamModelsInSeparateBranch;

@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -49,13 +49,6 @@ vtkMRMLNodeNewMacro(vtkMRMLIsodoseNode);
 //----------------------------------------------------------------------------
 vtkMRMLIsodoseNode::vtkMRMLIsodoseNode()
 {
-  this->ShowIsodoseLines = true;
-  this->ShowIsodoseSurfaces = true;
-  this->ShowDoseVolumesOnly = true;
-  this->DoseUnits = DoseUnitsType::Unknown;
-  this->ReferenceDoseValue = -1.;
-  this->RelativeRepresentationFlag = false;
-
   this->HideFromEditors = false;
 }
 
@@ -75,8 +68,9 @@ void vtkMRMLIsodoseNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLEnumMacro(DoseUnits, DoseUnits);
   vtkMRMLWriteXMLFloatMacro(ReferenceDoseValue, ReferenceDoseValue);
   vtkMRMLWriteXMLBooleanMacro(RelativeRepresentationFlag, RelativeRepresentationFlag);
+  vtkMRMLWriteXMLBooleanMacro(RealTime, RealTime);
 
-  vtkMRMLWriteXMLEndMacro(); 
+  vtkMRMLWriteXMLEndMacro();
 }
 
 //----------------------------------------------------------------------------
@@ -92,6 +86,7 @@ void vtkMRMLIsodoseNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLEnumMacro(DoseUnits, DoseUnits);
   vtkMRMLReadXMLFloatMacro(ReferenceDoseValue, ReferenceDoseValue);
   vtkMRMLReadXMLBooleanMacro(RelativeRepresentationFlag, RelativeRepresentationFlag);
+  vtkMRMLReadXMLBooleanMacro(RealTime, RealTime);
   vtkMRMLReadXMLEndMacro();
 
   this->EndModify(disabledModify);
@@ -113,6 +108,7 @@ void vtkMRMLIsodoseNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyEnumMacro(DoseUnits);
   vtkMRMLCopyFloatMacro(ReferenceDoseValue);
   vtkMRMLCopyBooleanMacro(RelativeRepresentationFlag);
+  vtkMRMLCopyBooleanMacro(RealTime);
   vtkMRMLCopyEndMacro();
 
   this->EndModify(disabledModify);
@@ -130,6 +126,7 @@ void vtkMRMLIsodoseNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintEnumMacro(DoseUnits);
   vtkMRMLPrintFloatMacro(ReferenceDoseValue);
   vtkMRMLPrintBooleanMacro(RelativeRepresentationFlag);
+  vtkMRMLPrintBooleanMacro(RealTime);
   vtkMRMLPrintEndMacro();
 }
 

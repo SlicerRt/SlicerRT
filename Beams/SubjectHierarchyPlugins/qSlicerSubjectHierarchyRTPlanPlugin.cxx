@@ -102,7 +102,7 @@ double qSlicerSubjectHierarchyRTPlanPlugin::canAddNodeToSubjectHierarchy(vtkMRML
   }
   else if (node->IsA("vtkMRMLRTPlanNode"))
   {
-    return 1.0;
+    return 1.1;  // The folder plugin claims it at 1.0
   }
   return 0.0;
 }
@@ -126,7 +126,7 @@ double qSlicerSubjectHierarchyRTPlanPlugin::canOwnSubjectHierarchyItem(vtkIdType
   vtkMRMLNode* associatedNode = shNode->GetItemDataNode(itemID);
   if ( associatedNode && associatedNode->IsA("vtkMRMLRTPlanNode") )
   {
-    return 1.0;
+    return 1.1;
   }
 
   // Isocenter for RT Plan

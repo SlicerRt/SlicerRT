@@ -39,7 +39,7 @@ public:
   {
     if (qSlicerDoseEnginePluginHandler::m_Instance)
     {
-      qSlicerDoseEnginePluginHandler::setInstance(nullptr);
+      qSlicerDoseEnginePluginHandler::cleanup();
     }
   }
 };
@@ -50,33 +50,20 @@ qSlicerDoseEnginePluginHandler* qSlicerDoseEnginePluginHandler::instance()
 {
   if(!qSlicerDoseEnginePluginHandler::m_Instance)
   {
-    if(!qSlicerDoseEnginePluginHandler::m_Instance)
-    {
-      qSlicerDoseEnginePluginHandlerCleanupGlobal.use();
-
-      qSlicerDoseEnginePluginHandler::m_Instance = new qSlicerDoseEnginePluginHandler();
-    }
+    qSlicerDoseEnginePluginHandlerCleanupGlobal.use();
+    qSlicerDoseEnginePluginHandler::m_Instance = new qSlicerDoseEnginePluginHandler();
   }
   // Return the instance
   return qSlicerDoseEnginePluginHandler::m_Instance;
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerDoseEnginePluginHandler::setInstance(qSlicerDoseEnginePluginHandler* instance)
+void qSlicerDoseEnginePluginHandler::cleanup()
 {
-  if (qSlicerDoseEnginePluginHandler::m_Instance==instance)
-  {
-    return;
-  }
-  // Preferably this will be nullptr
   if (qSlicerDoseEnginePluginHandler::m_Instance)
   {
     delete qSlicerDoseEnginePluginHandler::m_Instance;
-  }
-  qSlicerDoseEnginePluginHandler::m_Instance = instance;
-  if (!instance)
-  {
-    return;
+    qSlicerDoseEnginePluginHandler::m_Instance = nullptr;
   }
 }
 
@@ -120,12 +107,8 @@ bool qSlicerDoseEnginePluginHandler::registerDoseEngine(qSlicerAbstractDoseEngin
       return false;
     }
   }
-
   // Add the engine to the list
   this->m_RegisteredDoseEngines << engineToRegister;
-
-  // Define beam parameters specified by engine
-  engineToRegister->defineBeamParameters();
 
   return true;
 }

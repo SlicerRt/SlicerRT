@@ -39,7 +39,7 @@
 #include <vtkPolyData.h>
 
 // Slicer includes
-#include <vtkSlicerVersionConfigure.h>
+#include <vtkSlicerVersionConfigureMinimal.h>
 
 // Qt includes
 #include <QDebug>

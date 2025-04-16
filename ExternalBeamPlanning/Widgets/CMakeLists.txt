@@ -109,6 +109,7 @@ set(${KIT}_INCLUDE_DIRS
   ${vtkSlicerIsodoseModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerDoseAccumulationModuleLogic_INCLUDE_DIRS}
   ${vtkSlicerExternalBeamPlanningModuleLogic_INCLUDE_DIRS}
+  ${qSlicerBeamsModuleWidgets_INCLUDE_DIRS}
   CACHE INTERNAL "" FORCE)
 
 #-----------------------------------------------------------------------------

@@ -27,7 +27,7 @@
 #include "vtkSlicerBeamsModuleMRMLExport.h"
 
 // MRML includes
-#include <vtkMRMLNode.h>
+#include <vtkMRMLFolderDisplayNode.h>
 #include <vtkMRMLScene.h>
 
 // SegmentationCore includes
@@ -43,7 +43,8 @@ class vtkMRMLSegmentationNode;
 //class vtkMRMLObjectiveNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
-class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTPlanNode : public vtkMRMLNode
+/// \brief Base class of folder display node, so that it behaves as folder in Subject Hierarchy
+class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTPlanNode : public vtkMRMLFolderDisplayNode
 {
 public:
   enum IsocenterSpecificationType
@@ -71,7 +72,7 @@ public:
 
 public:
   static vtkMRMLRTPlanNode *New();
-  vtkTypeMacro(vtkMRMLRTPlanNode,vtkMRMLNode);
+  vtkTypeMacro(vtkMRMLRTPlanNode, vtkMRMLFolderDisplayNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Create instance of a GAD node. 
@@ -237,20 +238,20 @@ protected:
   void SetIsocenterSpecification(int isocenterSpec);
 
   /// Prescription dose (Gy)
-  double RxDose;
+  double RxDose{ 1.0 };
 
   /// Target segment ID in target segmentation node
-  char* TargetSegmentID;
+  char* TargetSegmentID{ nullptr };
 
   /// Isocenter specification determining whether it can be an arbitrary point or
   /// always calculated to be at the center of the target structure
-  IsocenterSpecificationType IsocenterSpecification;
+  IsocenterSpecificationType IsocenterSpecification{ vtkMRMLRTPlanNode::CenterOfTarget };
 
   /// Number of the next beam to be created. Incremented on each new beam addition
-  int NextBeamNumber;
+  int NextBeamNumber{ 1 };
 
   /// Name of the selected dose engine
-  char* DoseEngineName;
+  char* DoseEngineName{ nullptr };
 
   /// Name of the selected optimization engine
   char* PlanOptimizerName;
@@ -259,7 +260,7 @@ protected:
   double DoseGrid[3];
 
   /// Flag, indicates that a plan node is an ion plan node
-  bool IonPlanFlag;
+  bool IonPlanFlag{ false };
 };
 
 #endif // __vtkMRMLRTPlanNode_h

@@ -45,7 +45,9 @@
 
 // SlicerRT Beams Logic includes
 #include <vtkSlicerBeamsModuleLogic.h>
-#include <vtkSlicerIECTransformLogic.h>
+
+// IEC Logic include
+#include <vtkIECTransformLogic.h>
 
 // SubjectHierarchy includes
 #include <vtkMRMLSubjectHierarchyConstants.h>
@@ -85,10 +87,7 @@ vtkStandardNewMacro(vtkSlicerDrrImageComputationLogic);
 
 //----------------------------------------------------------------------------
 vtkSlicerDrrImageComputationLogic::vtkSlicerDrrImageComputationLogic()
-  :
-  PlanarImageLogic(nullptr),
-  PlastimatchDRRComputationLogic(nullptr),
-  BeamsLogic(nullptr)
+  : PlastimatchDRRComputationLogic(nullptr)
 {
 }
 
@@ -117,7 +116,7 @@ void vtkSlicerDrrImageComputationLogic::SetMRMLSceneInternal(vtkMRMLScene * newS
 //-----------------------------------------------------------------------------
 void vtkSlicerDrrImageComputationLogic::RegisterNodes()
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("RegisterNodes: Invalid MRML scene");
@@ -226,7 +225,7 @@ void vtkSlicerDrrImageComputationLogic::ProcessMRMLNodesEvents(vtkObject* caller
 //----------------------------------------------------------------------------
 void vtkSlicerDrrImageComputationLogic::CreateMarkupsNodes(vtkMRMLDrrImageComputationNode* parameterNode)
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("CreateMarkupsNodes: Invalid MRML scene");
@@ -337,7 +336,7 @@ void vtkSlicerDrrImageComputationLogic::CreateMarkupsNodes(vtkMRMLDrrImageComput
 //----------------------------------------------------------------------------
 void vtkSlicerDrrImageComputationLogic::UpdateMarkupsNodes(vtkMRMLDrrImageComputationNode* parameterNode)
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("UpdateMarkupsNodes: Invalid MRML scene");
@@ -360,7 +359,7 @@ void vtkSlicerDrrImageComputationLogic::UpdateMarkupsNodes(vtkMRMLDrrImageComput
   vtkMRMLTransformNode* transformNode = this->UpdateImageTransformFromBeam(beamNode);
 
   double distance = parameterNode->GetIsocenterImagerDistance();
-    
+
   double spacing[2] = {};
   parameterNode->GetImagerSpacing(spacing);
 
@@ -391,7 +390,7 @@ void vtkSlicerDrrImageComputationLogic::UpdateMarkupsNodes(vtkMRMLDrrImageComput
     imagerMarkupsNode->SetPlaneBounds( -1. * y, y, -1. * x, x);
     imagerMarkupsNode->SetSize( 2. * y, 2. * x);
 
-    // Update imager boundary markups transform node if it's changed    
+    // Update imager boundary markups transform node if it's changed
     vtkMRMLTransformNode* markupsTransformNode = imagerMarkupsNode->GetParentTransformNode();
 
     if (markupsTransformNode)
@@ -423,7 +422,7 @@ void vtkSlicerDrrImageComputationLogic::UpdateMarkupsNodes(vtkMRMLDrrImageComput
     imageWindowMarkupsNode->SetPlaneBounds( -1. * (r2 - r1) / 2., (r2 - r1) / 2., -1. * (c2 - c1) / 2., (c2 - c1) / 2.);
     imageWindowMarkupsNode->SetSize( r2 - r1, c2 - c1);
 
-    // Update image window markups transform node if it's changed    
+    // Update image window markups transform node if it's changed
     vtkMRMLTransformNode* markupsTransformNode = imageWindowMarkupsNode->GetParentTransformNode();
 
     if (markupsTransformNode)
@@ -451,7 +450,7 @@ void vtkSlicerDrrImageComputationLogic::UpdateMarkupsNodes(vtkMRMLDrrImageComput
     {
       vectorMarkupsNode->AddControlPoint(p0);
     }
-    
+
     p = vectorMarkupsNode->GetNthControlPointPosition(1);
     if (p)
     {
@@ -462,7 +461,7 @@ void vtkSlicerDrrImageComputationLogic::UpdateMarkupsNodes(vtkMRMLDrrImageComput
       vectorMarkupsNode->AddControlPoint(p1);
     }
 
-    // Update imager normal vector markups transform node if it's changed    
+    // Update imager normal vector markups transform node if it's changed
     vtkMRMLTransformNode* markupsTransformNode = vectorMarkupsNode->GetParentTransformNode();
 
     if (markupsTransformNode)
@@ -490,7 +489,7 @@ void vtkSlicerDrrImageComputationLogic::UpdateMarkupsNodes(vtkMRMLDrrImageComput
     {
       vectorMarkupsNode->AddControlPoint(p0);
     }
-    
+
     p = vectorMarkupsNode->GetNthControlPointPosition(1);
     if (p)
     {
@@ -501,7 +500,7 @@ void vtkSlicerDrrImageComputationLogic::UpdateMarkupsNodes(vtkMRMLDrrImageComput
       vectorMarkupsNode->AddControlPoint(p1);
     }
 
-    // Update VUP VECTOR markups transform node if it's changed    
+    // Update VUP VECTOR markups transform node if it's changed
     vtkMRMLTransformNode* markupsTransformNode = vectorMarkupsNode->GetParentTransformNode();
 
     if (markupsTransformNode)
@@ -531,7 +530,7 @@ void vtkSlicerDrrImageComputationLogic::UpdateMarkupsNodes(vtkMRMLDrrImageComput
     {
       pointsMarkupsNode->AddControlPoint(p0);
     }
-    
+
     p = pointsMarkupsNode->GetNthControlPointPosition(1);
     if (p)
     {
@@ -541,7 +540,7 @@ void vtkSlicerDrrImageComputationLogic::UpdateMarkupsNodes(vtkMRMLDrrImageComput
     {
       pointsMarkupsNode->AddControlPoint(p1);
     }
-    
+
     p = pointsMarkupsNode->GetNthControlPointPosition(2);
     if (p)
     {
@@ -551,7 +550,7 @@ void vtkSlicerDrrImageComputationLogic::UpdateMarkupsNodes(vtkMRMLDrrImageComput
     {
       pointsMarkupsNode->AddControlPoint(p2);
     }
-    
+
     p = pointsMarkupsNode->GetNthControlPointPosition(3);
     if (p)
     {
@@ -562,7 +561,7 @@ void vtkSlicerDrrImageComputationLogic::UpdateMarkupsNodes(vtkMRMLDrrImageComput
       pointsMarkupsNode->AddControlPoint(p3);
     }
 
-    // Update fiducials markups transform node if it's changed    
+    // Update fiducials markups transform node if it's changed
     vtkMRMLTransformNode* markupsTransformNode = pointsMarkupsNode->GetParentTransformNode();
 
     if (markupsTransformNode)
@@ -576,7 +575,7 @@ void vtkSlicerDrrImageComputationLogic::UpdateMarkupsNodes(vtkMRMLDrrImageComput
 //----------------------------------------------------------------------------
 void vtkSlicerDrrImageComputationLogic::ShowMarkupsNodes(bool toggled)
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("ShowMarkupsNodes: Invalid MRML scene");
@@ -627,7 +626,7 @@ void vtkSlicerDrrImageComputationLogic::ShowMarkupsNodes(bool toggled)
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsPlaneNode* vtkSlicerDrrImageComputationLogic::CreateImagerBoundary(vtkMRMLDrrImageComputationNode* parameterNode)
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("CreateImagerBoundary: Invalid MRML scene");
@@ -650,7 +649,7 @@ vtkMRMLMarkupsPlaneNode* vtkSlicerDrrImageComputationLogic::CreateImagerBoundary
   if (parameterNode)
   {
     double distance = parameterNode->GetIsocenterImagerDistance();
-     
+
     double spacing[2] = {};
     parameterNode->GetImagerSpacing(spacing);
 
@@ -692,7 +691,7 @@ vtkMRMLMarkupsPlaneNode* vtkSlicerDrrImageComputationLogic::CreateImagerBoundary
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsPlaneNode* vtkSlicerDrrImageComputationLogic::CreateImageWindow(vtkMRMLDrrImageComputationNode* parameterNode)
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("CreateImageWindow: Invalid MRML scene");
@@ -715,7 +714,7 @@ vtkMRMLMarkupsPlaneNode* vtkSlicerDrrImageComputationLogic::CreateImageWindow(vt
   if (parameterNode)
   {
     double distance = parameterNode->GetIsocenterImagerDistance();
-     
+
     double spacing[2] = {};
     parameterNode->GetImagerSpacing(spacing);
 
@@ -768,7 +767,7 @@ vtkMRMLMarkupsPlaneNode* vtkSlicerDrrImageComputationLogic::CreateImageWindow(vt
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsLineNode* vtkSlicerDrrImageComputationLogic::CreateImagerNormal(vtkMRMLDrrImageComputationNode* parameterNode)
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("CreateImagerNormal: Invalid MRML scene");
@@ -815,7 +814,7 @@ vtkMRMLMarkupsLineNode* vtkSlicerDrrImageComputationLogic::CreateImagerNormal(vt
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsLineNode* vtkSlicerDrrImageComputationLogic::CreateImagerVUP(vtkMRMLDrrImageComputationNode* parameterNode)
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("CreateImagerVUP: Invalid MRML scene");
@@ -838,7 +837,7 @@ vtkMRMLMarkupsLineNode* vtkSlicerDrrImageComputationLogic::CreateImagerVUP(vtkMR
   if (parameterNode)
   {
     double distance = parameterNode->GetIsocenterImagerDistance();
-     
+
     double spacing[2] = {};
     parameterNode->GetImagerSpacing(spacing);
 
@@ -874,7 +873,7 @@ vtkMRMLMarkupsLineNode* vtkSlicerDrrImageComputationLogic::CreateImagerVUP(vtkMR
 //----------------------------------------------------------------------------
 vtkMRMLMarkupsFiducialNode* vtkSlicerDrrImageComputationLogic::CreateFiducials(vtkMRMLDrrImageComputationNode* parameterNode)
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("CreateFiducials: Invalid MRML scene");
@@ -897,7 +896,7 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDrrImageComputationLogic::CreateFiducials(v
   if (parameterNode)
   {
     double distance = parameterNode->GetIsocenterImagerDistance();
-     
+
     double spacing[2] = {};
     parameterNode->GetImagerSpacing(spacing);
 
@@ -938,10 +937,10 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDrrImageComputationLogic::CreateFiducials(v
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode* vtkSlicerDrrImageComputationLogic::ComputePlastimatchDRR( vtkMRMLDrrImageComputationNode* parameterNode, 
+vtkMRMLScalarVolumeNode* vtkSlicerDrrImageComputationLogic::ComputePlastimatchDRR( vtkMRMLDrrImageComputationNode* parameterNode,
   vtkMRMLScalarVolumeNode* ctVolumeNode)
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("ComputePlastimatchDRR: Invalid MRML scene");
@@ -1007,7 +1006,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerDrrImageComputationLogic::ComputePlastimatchDR
   parameterNode->GetIsocenterPositionLPS(isocenter);
   isocenterStream << isocenter[0] << "," << isocenter[1] << "," << isocenter[2];
   cmdNode->SetParameterAsString( "isocenterPosition", isocenterStream.str());
-  
+
   std::stringstream imagerResolutionStream;
   int imagerResolution[2] = { 1024, 768 };
   parameterNode->GetImagerResolution(imagerResolution);
@@ -1031,7 +1030,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerDrrImageComputationLogic::ComputePlastimatchDR
   }
 
   cmdNode->SetParameterAsBool( "autoscale", parameterNode->GetAutoscaleFlag());
-  
+
   std::stringstream autoscaleRangeStream;
   float autoscaleRange[2] = { 0., 255. };
   parameterNode->GetAutoscaleRange(autoscaleRange);
@@ -1040,7 +1039,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerDrrImageComputationLogic::ComputePlastimatchDR
 
   cmdNode->SetParameterAsBool( "exponentialMapping", parameterNode->GetExponentialMappingFlag());
   cmdNode->SetParameterAsInt( "thresholdBelow", parameterNode->GetHUThresholdBelow());
-  
+
   std::string threadingString = "cpu";
   switch (parameterNode->GetThreading())
   {
@@ -1117,7 +1116,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerDrrImageComputationLogic::ComputePlastimatchDR
 }
 
 //------------------------------------------------------------------------------
-bool vtkSlicerDrrImageComputationLogic::SetupDisplayAndSubjectHierarchyNodes( vtkMRMLDrrImageComputationNode* parameterNode, 
+bool vtkSlicerDrrImageComputationLogic::SetupDisplayAndSubjectHierarchyNodes( vtkMRMLDrrImageComputationNode* parameterNode,
   vtkMRMLScalarVolumeNode* drrVolumeNode)
 {
   vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode();
@@ -1136,7 +1135,7 @@ bool vtkSlicerDrrImageComputationLogic::SetupDisplayAndSubjectHierarchyNodes( vt
 
   float autoscaleRange[2] = { 0.f, 255.f };
   parameterNode->GetAutoscaleRange(autoscaleRange);
-  
+
   // TODO: add manual level setting
   volumeDisplayNode->AutoWindowLevelOn();
 
@@ -1161,13 +1160,20 @@ bool vtkSlicerDrrImageComputationLogic::SetupDisplayAndSubjectHierarchyNodes( vt
   std::string rtImagePositionString = std::to_string(rtImagePosition[0]) + std::string(" ") + std::to_string(rtImagePosition[1]);
   shNode->SetItemAttribute(rtImageVolumeShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_RTIMAGE_POSITION_ATTRIBUTE_NAME, rtImagePositionString);
 
-  // Compute and set RT image geometry. Uses the referenced beam 
+  // Compute and set RT image geometry. Uses the referenced beam
   return this->SetupGeometry( parameterNode, drrVolumeNode);
 }
 
 //------------------------------------------------------------------------------
 bool vtkSlicerDrrImageComputationLogic::SetupGeometry( vtkMRMLDrrImageComputationNode* parameterNode, vtkMRMLScalarVolumeNode* drrVolumeNode)
 {
+  vtkSlicerPlanarImageModuleLogic* planarImageLogic = vtkSlicerPlanarImageModuleLogic::SafeDownCast(this->GetModuleLogic("PlanarImage"));
+  if (!planarImageLogic)
+  {
+    vtkErrorMacro("SetupGeometry: Planar image logic cannot be accessed");
+    return false;
+  }
+
   vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode();
 
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
@@ -1280,7 +1286,7 @@ bool vtkSlicerDrrImageComputationLogic::SetupGeometry( vtkMRMLDrrImageComputatio
   parameterNode->SetAndObserveDisplayedModelNode(displayedModelNode);
 
   // Create planar image model for the RT Image
-  this->PlanarImageLogic->CreateModelForPlanarImage(parameterNode);
+  planarImageLogic->CreateModelForPlanarImage(parameterNode);
 
   // Show the displayed planar image model by default
   displayedModelNode->SetDisplayVisibility(1);
@@ -1291,7 +1297,7 @@ bool vtkSlicerDrrImageComputationLogic::SetupGeometry( vtkMRMLDrrImageComputatio
 //------------------------------------------------------------------------------
 bool vtkSlicerDrrImageComputationLogic::GetRtImageIJKToRASMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat)
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("GetRtImageIJKToRASMatrix: Invalid MRML scene");
@@ -1390,7 +1396,7 @@ bool vtkSlicerDrrImageComputationLogic::GetRtImageIJKToRASMatrix(vtkMRMLDrrImage
 bool vtkSlicerDrrImageComputationLogic::GetRayIntersectWithImagerPlane(vtkMRMLDrrImageComputationNode* parameterNode,
   const double point[3], double pointIntersect[3])
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("GetRayIntersectWithImagerPlane: Invalid MRML scene");
@@ -1411,7 +1417,7 @@ bool vtkSlicerDrrImageComputationLogic::GetRayIntersectWithImagerPlane(vtkMRMLDr
   }
 
   double distance = parameterNode->GetIsocenterImagerDistance();
-     
+
   double spacing[2] = {};
   parameterNode->GetImagerSpacing(spacing);
 
@@ -1507,7 +1513,7 @@ bool vtkSlicerDrrImageComputationLogic::GetRtImageTransformMatrix(vtkMRMLDrrImag
 //------------------------------------------------------------------------------
 bool vtkSlicerDrrImageComputationLogic::GetPlastimatchIntrinsicMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat)
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("GetPlastimatchIntrinsicMatrix: Invalid MRML scene");
@@ -1540,7 +1546,7 @@ bool vtkSlicerDrrImageComputationLogic::GetPlastimatchIntrinsicMatrix(vtkMRMLDrr
 //------------------------------------------------------------------------------
 bool vtkSlicerDrrImageComputationLogic::GetPlastimatchExtrinsicMatrix(vtkMRMLDrrImageComputationNode* parameterNode, vtkMatrix4x4* mat)
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("GetPlastimatchExtrinsicMatrix: Invalid MRML scene");
@@ -1638,6 +1644,12 @@ vtkMRMLLinearTransformNode* vtkSlicerDrrImageComputationLogic::UpdateImageTransf
     vtkErrorMacro("UpdateImageTransformFromBeam: Invalid MRML scene");
     return nullptr;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("UpdateImageTransformFromBeam: Beams logic cannot be accessed");
+    return nullptr;
+  }
 
   vtkSmartPointer<vtkMRMLLinearTransformNode> transformNode;
   if (!scene->GetFirstNodeByName(RTIMAGE_TRANSFORM_NODE_NAME))
@@ -1654,20 +1666,15 @@ vtkMRMLLinearTransformNode* vtkSlicerDrrImageComputationLogic::UpdateImageTransf
       scene->GetFirstNodeByName(RTIMAGE_TRANSFORM_NODE_NAME));
   }
 
-  vtkNew<vtkSlicerIECTransformLogic> iecLogic;
-  iecLogic->SetMRMLScene(scene);
-
   // Update transforms in IEC logic from beam node parameters
-  iecLogic->UpdateIECTransformsFromBeam(beamNode);
-  // (a BUG?) For RT Image correct orientation PatientSupport -> Fixed Reference MUST have a negative sign
-  iecLogic->UpdatePatientSupportRotationToFixedReferenceTransform(-1. * beamNode->GetCouchAngle());
+  beamsLogic->UpdateIECTransformsFromBeam(beamNode);
 
   // Dynamic transform from Gantry to RAS
   // Transformation path:
   // Gantry -> FixedReference -> PatientSupport -> TableTopEccentricRotation -> TableTop -> Patient -> RAS
-  using IEC = vtkSlicerIECTransformLogic::CoordinateSystemIdentifier;
+  using IEC = vtkIECTransformLogic::CoordinateSystemIdentifier;
   vtkNew<vtkGeneralTransform> generalTransform;
-  if (iecLogic->GetTransformBetween( IEC::Gantry, IEC::RAS, generalTransform))
+  if (beamsLogic->GetIECLogic()->GetTransformBetween(IEC::Gantry, IEC::RAS, generalTransform, true))
   {
     // Convert general transform to linear
     // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
@@ -1697,21 +1704,27 @@ bool vtkSlicerDrrImageComputationLogic::GetRtImageTransformMatrixFromBeam(vtkMRM
     vtkErrorMacro("GetRtImageTransformMatrixFromBeam: Invalid MRML scene");
     return false;
   }
+  vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(this->GetModuleLogic("Beams"));
+  if (!beamsLogic)
+  {
+    vtkErrorMacro("GetRtImageTransformMatrixFromBeam: Beams logic cannot be accessed");
+    return false;
+  }
 
-  vtkNew<vtkSlicerIECTransformLogic> iecLogic;
-  iecLogic->SetMRMLScene(scene);
+  vtkNew<vtkIECTransformLogic> iecLogic;
 
   // Update transforms in IEC logic from beam node parameters
-  iecLogic->UpdateIECTransformsFromBeam(beamNode);
-  // (a BUG?) For RT Image correct orientation PatientSupport -> Fixed Reference MUST have a negative sign
+  beamsLogic->UpdateIECTransformsFromBeam(beamNode);
+
+  //TODO: (a BUG?) For RT Image correct orientation PatientSupport -> Fixed Reference MUST have a negative sign
   iecLogic->UpdatePatientSupportRotationToFixedReferenceTransform(-1. * beamNode->GetCouchAngle());
 
   // Dynamic transform from Gantry to RAS
   // Transformation path:
   // Gantry -> FixedReference -> PatientSupport -> TableTopEccentricRotation -> TableTop -> Patient -> RAS
-  using IEC = vtkSlicerIECTransformLogic::CoordinateSystemIdentifier;
+  using IEC = vtkIECTransformLogic::CoordinateSystemIdentifier;
   vtkNew<vtkGeneralTransform> generalTransform;
-  if (iecLogic->GetTransformBetween( IEC::Gantry, IEC::RAS, generalTransform))
+  if (iecLogic->GetTransformBetween(IEC::Gantry, IEC::RAS, generalTransform, true))
   {
     // Convert general transform to linear
     // This call also makes hard copy of the transform so that it doesn't change when other beam transforms change
@@ -1768,7 +1781,7 @@ void vtkSlicerDrrImageComputationLogic::UpdateNormalAndVupVectors(vtkMRMLDrrImag
     vtkNew<vtkTransform> rasToLpsTransform;
     rasToLpsTransform->Identity();
     rasToLpsTransform->RotateZ(180.0);
-    
+
     vtkNew<vtkTransform> dicomBeamTransform;
     dicomBeamTransform->Identity();
     dicomBeamTransform->PreMultiply();
@@ -1819,7 +1832,7 @@ bool vtkSlicerDrrImageComputationLogic::UpdateBeamFromCamera(vtkMRMLDrrImageComp
     return false;
   }
 
-  // Transform RAS to IEC Patient 
+  // Transform RAS to IEC Patient
   vtkNew<vtkTransform> rasToPatientTransform;
   rasToPatientTransform->Identity();
   rasToPatientTransform->RotateX(-90.);
@@ -1873,7 +1886,7 @@ bool vtkSlicerDrrImageComputationLogic::UpdateBeamFromCamera(vtkMRMLDrrImageComp
 //------------------------------------------------------------------------------
 bool vtkSlicerDrrImageComputationLogic::GetRtImagerOriginPosition(vtkMRMLDrrImageComputationNode* parameterNode, double originPositionRAS[3])
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("GetRayIntersectWithImagerPlane: Invalid MRML scene");
@@ -1894,7 +1907,7 @@ bool vtkSlicerDrrImageComputationLogic::GetRtImagerOriginPosition(vtkMRMLDrrImag
   }
 
   double distance = parameterNode->GetIsocenterImagerDistance();
-     
+
   double spacing[2] = {};
   parameterNode->GetImagerSpacing(spacing);
 
@@ -1931,7 +1944,7 @@ bool vtkSlicerDrrImageComputationLogic::GetPointOffsetFromImagerOrigin(
   vtkMRMLDrrImageComputationNode* parameterNode, const double pointRAS[3],
   double widthHeightOffset[2], double columnRowOffset[2])
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("GetPointOffsetFromImagerOrigin: Invalid MRML scene");
@@ -1950,7 +1963,7 @@ bool vtkSlicerDrrImageComputationLogic::GetPointOffsetFromImagerOrigin(
     vtkErrorMacro("GetPointOffsetFromImagerOrigin: Invalid RT Beam node");
     return false;
   }
-  
+
   vtkNew<vtkMatrix4x4> rtImageTransformMatrix;
   if (!this->GetRtImageTransformMatrixFromBeam(beamNode, rtImageTransformMatrix))
   {
@@ -1990,7 +2003,7 @@ bool vtkSlicerDrrImageComputationLogic::GetPointOffsetFromImagerOrigin(
 vtkMRMLTableNode* vtkSlicerDrrImageComputationLogic::CreateProjectionsTableNode(
   vtkMRMLDrrImageComputationNode* parameterNode, vtkMRMLScalarVolumeNode* ctInputVolume)
 {
-  vtkMRMLScene* scene = this->GetMRMLScene(); 
+  vtkMRMLScene* scene = this->GetMRMLScene();
   if (!scene)
   {
     vtkErrorMacro("CreateProjectionsTableNode: Invalid MRML scene");
@@ -2068,19 +2081,7 @@ vtkMRMLTableNode* vtkSlicerDrrImageComputationLogic::CreateProjectionsTableNode(
 }
 
 //------------------------------------------------------------------------------
-void vtkSlicerDrrImageComputationLogic::SetPlanarImageLogic(vtkSlicerPlanarImageModuleLogic* planarImageLogic)
-{
-  this->PlanarImageLogic = planarImageLogic;
-}
-
-//------------------------------------------------------------------------------
 void vtkSlicerDrrImageComputationLogic::SetDRRComputationLogic(vtkSlicerCLIModuleLogic* plastimatchDrrLogic)
 {
   this->PlastimatchDRRComputationLogic = plastimatchDrrLogic;
-}
-
-//------------------------------------------------------------------------------
-void vtkSlicerDrrImageComputationLogic::SetBeamsLogic(vtkSlicerBeamsModuleLogic* beamsLogic)
-{
-  this->BeamsLogic = beamsLogic;
 }

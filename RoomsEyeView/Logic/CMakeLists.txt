@@ -1,5 +1,7 @@
 project(vtkSlicer${MODULE_NAME}ModuleLogic)
 
+find_package(vtkIECTransformLogic REQUIRED)
+
 set(KIT ${PROJECT_NAME})
 
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_LOGIC_EXPORT")
@@ -10,6 +12,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSlicerBeamsModuleMRML_INCLUDE_DIRS}
   ${vtkSlicerBeamsModuleLogic_INCLUDE_DIRS}
   ${RapidJSON_INCLUDE_DIR}
+  ${vtkIECTransformLogic_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
@@ -27,6 +30,7 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerBeamsModuleLogic
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
+  vtkIECTransformLogic
   )
 
 #-----------------------------------------------------------------------------
@@ -37,4 +41,4 @@ SlicerMacroBuildModuleLogic(
   SRCS ${${KIT}_SRCS}
   TARGET_LIBRARIES ${${KIT}_TARGET_LIBRARIES}
   )
-  
+

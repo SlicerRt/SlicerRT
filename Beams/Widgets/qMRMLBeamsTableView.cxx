@@ -187,7 +187,7 @@ void qMRMLBeamsTableView::setPlanNode(vtkMRMLNode* node)
     for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
     {
       vtkMRMLRTBeamNode* beamNode = (*beamIt);
-      qvtkConnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( updateBeamTable() ) );
+      qvtkConnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( onBeamModified(vtkObject*,void*) ) );
     }
   }
 
@@ -470,7 +470,7 @@ void qMRMLBeamsTableView::onBeamAdded(vtkObject* caller, void* callData)
   if (d->PlanNode)
   {
     vtkMRMLNode* beamNode = d->PlanNode->GetScene()->GetNodeByID(beamNodeId);
-    qvtkConnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( updateBeamTable() ) );
+    qvtkConnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( onBeamModified(vtkObject*,void*) ) );
   }
 }
 
@@ -489,6 +489,41 @@ void qMRMLBeamsTableView::onBeamRemoved(vtkObject* caller, void* callData)
   if (d->PlanNode)
   {
     vtkMRMLNode* beamNode = d->PlanNode->GetScene()->GetNodeByID(beamNodeId);
-    qvtkDisconnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( updateBeamTable() ) );
+    qvtkDisconnect( beamNode, vtkCommand::ModifiedEvent, this, SLOT( onBeamModified(vtkObject*,void*) ) );
   }
+}
+
+//------------------------------------------------------------------------------
+void qMRMLBeamsTableView::onBeamModified(vtkObject* caller, void* callData)
+{
+  Q_D(qMRMLBeamsTableView);
+  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(caller);
+  if (beamNode == nullptr)
+  {
+    return;
+  }
+
+  // Get row index by beam number
+  int beamNumber = beamNode->GetBeamNumber();
+  int foundRow = -1;
+  for (int row=0; row < d->BeamsTable->rowCount(); ++row)
+  {
+    QString beamNodeID = d->BeamsTable->item(row, d->columnIndex("Number"))->data(IDRole).toString();
+    vtkMRMLRTBeamNode* currentBeamNode = vtkMRMLRTBeamNode::SafeDownCast(beamNode->GetScene()->GetNodeByID(beamNodeID.toLatin1().constData()));
+    if (beamNumber == currentBeamNode->GetBeamNumber())
+    {
+      foundRow = row;
+      break;
+    }
+  }
+  if (foundRow < 0)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to find beams table row by beam number " << beamNumber;
+    return;
+  }
+
+  // Do not update beam number as it is used to identify the table row
+  d->BeamsTable->item(foundRow, d->columnIndex("Name"))->setText(QString(beamNode->GetName()));
+  d->BeamsTable->item(foundRow, d->columnIndex("Gantry"))->setText(QString::number(beamNode->GetGantryAngle()));
+  d->BeamsTable->item(foundRow, d->columnIndex("Weight"))->setText(QString::number(beamNode->GetBeamWeight()));
 }

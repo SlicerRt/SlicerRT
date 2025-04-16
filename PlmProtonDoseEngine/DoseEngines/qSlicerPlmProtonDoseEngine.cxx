@@ -202,14 +202,17 @@ QString qSlicerPlmProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* 
   isocenter[0] = -isocenter[0];
   isocenter[1] = -isocenter[1];
 
-  // Calculate sourcePosition position
+  // Calculate source position
   double sourcePosition[3] = {0.0, 0.0, 0.0};
-  if (!beamNode->GetSourcePosition(sourcePosition))
-  {
-    QString errorMessage("Failed to calculate source position");
-    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
-    return errorMessage;
-  }
+  //if (!beamNode->GetSourcePosition(sourcePosition))
+  //{
+  //  QString errorMessage("Failed to calculate source position");
+  //  qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+  //  return errorMessage;
+  //}
+  //TODO: Source position seems to be used incorrectly in Plastimatch. Creating it on the other side of the isocenter so that the dose engine works as expected.
+  double sourcePosition_Beam[3] = {0.0, 0.0, -1. * beamNode->GetSAD()}; 
+  beamNode->TransformPointToWorld(sourcePosition_Beam, sourcePosition);
 
   // Convert reference volume to Plastimatch image
   //TODO: Cache it so that it does not need to be reconverted every time

@@ -117,42 +117,6 @@ void qSlicerDicomRtImportExportModule::setup()
 
   vtkSlicerDicomRtImportExportModuleLogic* dicomRtImportExportLogic = vtkSlicerDicomRtImportExportModuleLogic::SafeDownCast(this->logic());
 
-  // Set isodose logic to the logic
-  qSlicerAbstractCoreModule* isodoseModule = qSlicerCoreApplication::application()->moduleManager()->module("Isodose");
-  if (isodoseModule)
-  {
-    vtkSlicerIsodoseModuleLogic* isodoseLogic = vtkSlicerIsodoseModuleLogic::SafeDownCast(isodoseModule->logic());
-    dicomRtImportExportLogic->SetIsodoseLogic(isodoseLogic);
-  }
-  else
-  {
-    qCritical() << Q_FUNC_INFO << ": Isodose module is not found";
-  } 
-
-  // Set planar image logic to the logic
-  qSlicerAbstractCoreModule* planarImageModule = qSlicerCoreApplication::application()->moduleManager()->module("PlanarImage");
-  if (planarImageModule)
-  {
-    vtkSlicerPlanarImageModuleLogic* planarImageLogic = vtkSlicerPlanarImageModuleLogic::SafeDownCast(planarImageModule->logic());
-    dicomRtImportExportLogic->SetPlanarImageLogic(planarImageLogic);
-  }
-  else
-  {
-    qCritical() << Q_FUNC_INFO << ": Planar Image module is not found";
-  } 
-
-  // Set beams logic to the logic
-  qSlicerAbstractCoreModule* beamsModule = qSlicerCoreApplication::application()->moduleManager()->module("Beams");
-  if (beamsModule)
-  {
-    vtkSlicerBeamsModuleLogic* beamsLogic = vtkSlicerBeamsModuleLogic::SafeDownCast(beamsModule->logic());
-    dicomRtImportExportLogic->SetBeamsLogic(beamsLogic);
-  }
-  else
-  {
-    qCritical() << Q_FUNC_INFO << ": Beams module is not found";
-  } 
-
   // Register Subject Hierarchy plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtImagePlugin());
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtDoseVolumePlugin());

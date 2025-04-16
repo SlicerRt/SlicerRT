@@ -33,7 +33,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "436aebba99f2405deadec4d9186a6bee91a7bf10" # Fix to prevent compilation error after recent ITK and VTK update
+    "c2f802812ea9914894efde50fee1e99bdc98455f" # Branch slicerrt-1.10.0-2024.10.30-5036f97b
     QUIET
     )
 
@@ -59,6 +59,14 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     # http://www.na-mic.org/Bug/view.php?id=3823
     list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
       "-DPLM_CONFIG_NOMANIFEST:BOOL=ON"  # Internally set PLM_LINK_FLAGS to build without manifest on windows
+      )
+  endif()
+
+  if(APPLE)
+    # Disable OpenMP on macOS until a better solution can be found
+    # https://github.com/SlicerRt/SlicerRT/issues/242
+    list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
+      "-DPLM_CONFIG_ENABLE_OPENMP:BOOL=OFF"
       )
   endif()
 
@@ -97,6 +105,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       -DPLMLIB_CONFIG_ENABLE_REGISTER:BOOL=TRUE
       -DPLMLIB_CONFIG_ENABLE_RECONSTRUCT:BOOL=TRUE
       -DPLMLIB_CONFIG_ENABLE_DOSE:BOOL=TRUE
+      -DPLMLIB_CONFIG_ENABLE_QT:BOOL=FALSE
       ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS}
       ${PYTHON_VARS}
     INSTALL_COMMAND ""
@@ -110,4 +119,3 @@ else()
 endif()
 
 mark_as_superbuild(${proj}_DIR:PATH)
-

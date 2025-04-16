@@ -67,7 +67,7 @@ public:
   /// If no tab of the specified name exists, a new one is created with that name
   /// \param tabName Name of the tab to return
   /// \return Tab widget with given name
-  QWidget* beamParametersTab(QString tabName);
+  Q_INVOKABLE QWidget* beamParametersTab(QString tabName);
 
   /// Add floating point parameter to the given tab of the beam parameters widget
   /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
@@ -128,7 +128,7 @@ public:
   bool setBeamParameterVisible(QString parameterName, bool visible);
 
   /// Hide tabs where all parameters are hidden, and show tabs that contain visible parameters
-  void updateTabVisibility();
+  Q_INVOKABLE void updateTabVisibility();
 
 public slots:
   /// Set RT beam MRML node

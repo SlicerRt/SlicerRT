@@ -182,7 +182,7 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
 {
   Q_D(qMRMLBeamParametersTabWidget);
 
-  if (!d->BeamNode)
+  if (d->BeamNode == nullptr)
   {
     return;
   }
@@ -194,8 +194,8 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
   d->SliderWidget_CollimatorAngle->setValue(d->BeamNode->GetCollimatorAngle());
   d->SliderWidget_GantryAngle->blockSignals(true);
   d->SliderWidget_GantryAngle->setValue(d->BeamNode->GetGantryAngle());
-  d->SliderWidget_GantryAngle->blockSignals(false);
   d->SliderWidget_CouchAngle->setValue(d->BeamNode->GetCouchAngle());
+  d->SliderWidget_GantryAngle->blockSignals(false);
 
   d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setMRMLScene(d->BeamNode->GetScene());
 
@@ -659,8 +659,7 @@ bool qMRMLBeamParametersTabWidget::setBeamParameterVisible(QString parameterName
     for (int currentRow=0; currentRow<currentLayout->rowCount(); ++currentRow)
     {
       QWidget* currentParameterFieldWidget = currentLayout->itemAt(currentRow, QFormLayout::FieldRole)->widget();
-      if ( parameterName ==
-        currentParameterFieldWidget->property(BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY).toString() )
+      if (parameterName == currentParameterFieldWidget->property(BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY).toString())
       {
         // Widget for parameter found. Set visibility for that and the label
         currentParameterFieldWidget->setVisible(visible);
@@ -753,7 +752,6 @@ void qMRMLBeamParametersTabWidget::mlcBoundaryAndPositionTableNodeChanged(vtkMRM
   else
   {
     d->BeamNode->SetAndObserveMultiLeafCollimatorTableNode(nullptr);
-    qCritical() << Q_FUNC_INFO << ": MLC boundary and position table node is invalid, set nullptr value by default!";
   }
   d->BeamNode->UpdateGeometry();
 
@@ -1001,7 +999,7 @@ void qMRMLBeamParametersTabWidget::couchAngleChanged(double value)
     return;
   }
 
-  // Do not disable modifier events as transforms need to be updated
+  // Do not disable modifier events as transforms need to be updated.
   d->BeamNode->SetCouchAngle(value);
 }
 

@@ -84,6 +84,9 @@ protected slots:
   /// Handle changing of values in a cell
   void onBeamTableItemChanged(QTableWidgetItem* changedItem);
 
+  /// Update beam parameters in the table
+  void onBeamModified(vtkObject* caller, void* callData);
+
   /// Handle edit button click. Switches to Beams module and selects beam
   void onEditButtonClicked();
 
