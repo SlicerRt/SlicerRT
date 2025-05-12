@@ -64,10 +64,6 @@ public:
   void SetSegmentation(std::string segmentationName);
   std::string GetSegmentation();
 
-  //void SetParameters(std::map<std::string, std::string> parameters);
-  //std::map<std::string, std::string> GetParameters();
-
-
 protected:
   vtkMRMLRTObjectiveNode();
   ~vtkMRMLRTObjectiveNode() override;
@@ -76,7 +72,6 @@ protected:
 
   char* Name;
   std::string Segmentation;
-  //std::map<std::string, std::string> parameters;
 
 };
 
