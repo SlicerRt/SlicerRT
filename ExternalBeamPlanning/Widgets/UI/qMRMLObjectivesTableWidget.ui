@@ -78,7 +78,7 @@
       <bool>true</bool>
      </property>
      <property name="columnCount">
-      <number>4</number>
+      <number>5</number>
      </property>
      <attribute name="horizontalHeaderDefaultSectionSize">
       <number>64</number>
@@ -105,6 +105,14 @@
       </property>
       <property name="toolTip">
        <string>segments to apply the objective to</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Priority</string>
+      </property>
+      <property name="toolTip">
+       <string>priorites for objective</string>
       </property>
      </column>
      <column>

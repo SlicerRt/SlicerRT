@@ -107,16 +107,3 @@ std::string vtkMRMLRTObjectiveNode::GetSegmentation()
 {
 	return this->Segmentation;
 }
-
-
-//void vtkMRMLRTObjectiveNode::SetParameters(std::map<std::string, std::string> parameters)
-//{
-//	this->parameters = parameters;
-//}
-//
-//std::map<std::string, std::string> vtkMRMLRTObjectiveNode::GetParameters()
-//{
-//	return this->parameters;
-//}
-
-

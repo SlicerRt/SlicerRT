@@ -49,6 +49,7 @@
 #include <QListWidget>
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QSpinBox>
 #include <QMap>
 
 // SlicerQt includes
@@ -339,6 +340,16 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
 	objectiveNode->SetName(objectiveStruct.name.c_str());
     objectiveNode->SetSegmentation(segmentationsDropdown->currentText().toStdString().c_str());
 
+	// create priority SpinBox
+    QSpinBox* prioritySpinBox = new QSpinBox();
+    prioritySpinBox->setValue(1);
+    prioritySpinBox->setMinimum(0); // Set minimum value (optional)
+    prioritySpinBox->setMaximum(10000); // Set maximum value (optional)
+	objectiveNode->SetAttribute("Priority", std::to_string(prioritySpinBox->value()).c_str());
+    connect(prioritySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, [this, objectiveNode](int newValue) {
+		this->onPriorityChanged(newValue, objectiveNode);
+	});
+
     // Create a widget to hold multiple QLineEdit boxes for parameters
     QWidget* parameterWidget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(parameterWidget);
@@ -369,17 +380,21 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
     }
     parameterWidget->setLayout(layout);
 
-    // Add the parameter widget to the table
-    int columnIndex = d->columnIndex("Parameters");
+    // Add priority widget and the parameter widget to the table
+    int columnIndex = d->columnIndex("Priority");
     if (columnIndex == -1)
     {
-        // Add a new column for the parameters if it doesn't exist
+		// Add new columns for priority & parameters if they don't exist
         columnIndex = d->ObjectivesTable->columnCount();
         d->ObjectivesTable->insertColumn(columnIndex);
-        d->ObjectivesTable->setHorizontalHeaderItem(columnIndex, new QTableWidgetItem("Parameters"));
+		d->ObjectivesTable->setHorizontalHeaderItem(columnIndex, new QTableWidgetItem("Priority"));
+		d->ColumnLabels << "Priority";
+        d->ObjectivesTable->insertColumn(columnIndex+1);
+        d->ObjectivesTable->setHorizontalHeaderItem(columnIndex+1, new QTableWidgetItem("Parameters"));
         d->ColumnLabels << "Parameters";
     }
-    d->ObjectivesTable->setCellWidget(row, columnIndex, parameterWidget);
+	d->ObjectivesTable->setCellWidget(row, columnIndex, prioritySpinBox);
+    d->ObjectivesTable->setCellWidget(row, columnIndex+1, parameterWidget);
 
     // get scene
 	vtkMRMLScene* scene = d->PlanNode->GetScene();
@@ -408,6 +423,15 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
 
 	// update objectives in optimizer
 	this->setObjectivesInPlanOptimizer();
+}
+
+//------------------------------------------------------------------------------
+void qMRMLObjectivesTableWidget::onPriorityChanged(int newValue, vtkMRMLRTObjectiveNode* objectiveNode)
+{
+	Q_D(qMRMLObjectivesTableWidget);
+
+	// update the priority value
+	objectiveNode->SetAttribute("Priority", std::to_string(newValue).c_str());
 }
 
 //------------------------------------------------------------------------------

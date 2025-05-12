@@ -34,7 +34,8 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             segmentation = objective_node.GetSegmentation()
             objective_info = {
             'objectiveName': objective_node.GetName(),
-            'parameters': {name: objective_node.GetAttribute(name) for name in objective_node.GetAttributeNames()}
+            'priority': objective_node.GetAttribute('Priority'),
+            'parameters': {name: objective_node.GetAttribute(name) for name in objective_node.GetAttributeNames() if name != 'Priority'}
             }
             if segmentation not in objectives_dict:
                 objectives_dict[segmentation] = [objective_info]
@@ -120,6 +121,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
                     objective_name = objectives_dict[voi.name][i]['objectiveName']
                     objective_parameters = objectives_dict[voi.name][i]['parameters']
                     objective_instance = get_objective(objective_name)
+                    objective_instance.priority = objectives_dict[voi.name][i]['priority']
                     for parameter in objective_instance.parameter_names:
                         if parameter in objective_parameters:
                             # TODO: type check

@@ -82,6 +82,8 @@ public slots:
 
   void setObjectivesInPlanOptimizer();
 
+  void onPriorityChanged(int newValue, vtkMRMLRTObjectiveNode* objectiveNode);
+
   void onParameterChanged(std::string name, std::string value, vtkMRMLRTObjectiveNode* objectiveNode);
 
   /// delete objectives Table and removes all objectives from plan optimizer
