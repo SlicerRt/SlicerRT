@@ -277,23 +277,14 @@ void qSlicerAbstractPlanOptimizer::addResultDose(vtkMRMLScalarVolumeNode* result
     {
         vtkMRMLScalarVolumeDisplayNode* doseScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(resultDose->GetVolumeDisplayNode());
 
-        // Set colormap to dose
-        vtkMRMLColorTableNode* defaultDoseColorTable = vtkSlicerIsodoseModuleLogic::CreateDefaultDoseColorTable(resultDose->GetScene());
-        if (defaultDoseColorTable)
-        {
-            doseScalarVolumeDisplayNode->SetAndObserveColorNodeID(defaultDoseColorTable->GetID());
-        }
-        else
-        {
-            doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLPETProceduralColorNodePET-Rainbow2");
-            qCritical() << Q_FUNC_INFO << ": Failed to get default dose color table";
-        }
-
+        doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeDose_ColorTable_Relative");
 
         // Set window level based on prescription dose
         double rxDose = planNode->GetRxDose();
-        doseScalarVolumeDisplayNode->AutoWindowLevelOff();
-        doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, rxDose * 1.1);
+		doseScalarVolumeDisplayNode->AutoWindowLevelOn();
+        //doseScalarVolumeDisplayNode->AutoWindowLevelOff();
+        //doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, rxDose * 1.1);
+
 
         // Set threshold to hide very low dose values
         doseScalarVolumeDisplayNode->SetLowerThreshold(0.05 * rxDose);
