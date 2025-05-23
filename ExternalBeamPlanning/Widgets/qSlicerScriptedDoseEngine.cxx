@@ -56,7 +56,8 @@ public:
   enum {
     DefineBeamParametersMethod = 0,
     CalculateDoseUsingEngineMethod,
-    CalculateDoseInfluenceMatrixUsingEngineMethod
+    CalculateDoseInfluenceMatrixUsingEngineMethod,
+    UpdateBeamParametersForIonPlan
     };
 
   mutable qSlicerPythonCppAPI PythonCppAPI;
@@ -73,6 +74,7 @@ qSlicerScriptedDoseEnginePrivate::qSlicerScriptedDoseEnginePrivate()
   this->PythonCppAPI.declareMethod(Self::DefineBeamParametersMethod, "defineBeamParameters");
   this->PythonCppAPI.declareMethod(Self::CalculateDoseUsingEngineMethod, "calculateDoseUsingEngine");
   this->PythonCppAPI.declareMethod(Self::CalculateDoseInfluenceMatrixUsingEngineMethod, "calculateDoseInfluenceMatrixUsingEngine");
+  this->PythonCppAPI.declareMethod(Self::UpdateBeamParametersForIonPlan, "updateBeamParametersForIonPlan");
 }
 
 //-----------------------------------------------------------------------------
@@ -201,6 +203,12 @@ void qSlicerScriptedDoseEngine::setIsInverse(bool isInverse)
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerScriptedDoseEngine::setCanDoIonPlan(bool canDoIonPlan)
+{
+	this->m_CanDoIonPlan = canDoIonPlan;
+}
+
+//-----------------------------------------------------------------------------
 QString qSlicerScriptedDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode)
 {
   Q_D(const qSlicerScriptedDoseEngine);
@@ -256,4 +264,14 @@ void qSlicerScriptedDoseEngine::defineBeamParameters()
 {
   Q_D(const qSlicerScriptedDoseEngine);
   d->PythonCppAPI.callMethod(d->DefineBeamParametersMethod);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerScriptedDoseEngine::updateBeamParametersForIonPlan(bool isIonPlanActive)
+{
+	Q_D(const qSlicerScriptedDoseEngine);
+
+	PyObject* arguments = PyTuple_New(1);
+	PyTuple_SET_ITEM(arguments, 0, PyBool_FromLong(isIonPlanActive));
+	d->PythonCppAPI.callMethod(d->UpdateBeamParametersForIonPlan, arguments);
 }

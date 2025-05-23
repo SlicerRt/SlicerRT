@@ -76,6 +76,7 @@ protected slots:
   void isocenterCoordinatesChanged(double* isocenterCoordinates);
   void centerViewToIsocenterClicked();
 
+  void ionPlanFlagCheckboxStateChanged(int state);
   void inversePlanningCheckboxStateChanged(int state);
 
   /// Update isocenter controls from isocenter markups fiducial
