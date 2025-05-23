@@ -293,12 +293,12 @@ QString qSlicerAbstractDoseEngine::calculateDoseInfluenceMatrix(vtkMRMLRTBeamNod
     // Remove past intermediate results for beam before calculating dose again
     this->removeIntermediateResults(beamNode);
 
-    // Create output dose volume for beam
-    vtkSmartPointer<vtkMRMLScalarVolumeNode> resultDoseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-    beamNode->GetScene()->AddNode(resultDoseVolumeNode);
-    // Give default name for result node (engine can give it a more meaningful name)
-    std::string resultDoseNodeName = std::string(beamNode->GetName()) + "_Dose";
-    resultDoseVolumeNode->SetName(resultDoseNodeName.c_str());
+    //// Create output dose volume for beam
+    //vtkSmartPointer<vtkMRMLScalarVolumeNode> resultDoseVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+    //beamNode->GetScene()->AddNode(resultDoseVolumeNode);
+    //// Give default name for result node (engine can give it a more meaningful name)
+    //std::string resultDoseNodeName = std::string(beamNode->GetName()) + "_Dose";
+    //resultDoseVolumeNode->SetName(resultDoseNodeName.c_str());
 
     // Calculate dose
     QString errorMessage = this->calculateDoseInfluenceMatrixUsingEngine(beamNode);
