@@ -46,6 +46,7 @@ class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerAbstractDoseEng
   /// \sa name(), \sa setName()
   Q_PROPERTY(QString name READ name WRITE setName)
   Q_PROPERTY(bool isInverse READ isInverse WRITE setIsInverse)
+  Q_PROPERTY(bool canDoIonPlan READ canDoIonPlan WRITE setCanDoIonPlan)
 
 public:
   /// Maximum Gray value for visualization window/level of the newly created per-beam dose volumes
@@ -70,6 +71,11 @@ public:
   /// set inverse capabilities
   /// NOTE: this can only be used in python scripted ones
   virtual void setIsInverse(bool isInverse);
+
+  /// Ion plan capabilities
+  bool canDoIonPlan()const;
+
+  virtual void setCanDoIonPlan(bool canDoIonPlan);
 
 // Dose calculation related functions
 public:
@@ -118,6 +124,8 @@ protected:
   /// Define engine-specific beam parameters.
   /// This is the method that needs to be implemented in each engine.
   virtual void defineBeamParameters() = 0;
+
+  virtual void updateBeamParametersForIonPlan(bool ionPlanFlag);
 
 // Dose calculation related functions (functions to call from the subclass).
 // Public so that they can be called from python.
@@ -190,6 +198,9 @@ public:
   /// \param defaultValue Default parameter value (on/off)
   /// \param dependentParameterNames Names of parameters (full names including engine prefix) that
   ///   are to be enabled/disabled based on the checked state of the created checkbox
+
+  Q_INVOKABLE void updateBeamParameterComboBox(QString tabName, QString parameterName, QString parameterLabel, QString tooltip, QStringList options, int defaultIndex);
+
   Q_INVOKABLE void addBeamParameterCheckBox(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, bool defaultValue, QStringList dependentParameterNames=QStringList() );
@@ -204,6 +215,8 @@ public:
   Q_INVOKABLE void addBeamParameterLineEdit(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, QString defaultValue );
+
+  Q_INVOKABLE void removeParameter(QString tabName, QString parameterName);
 
   /// Add all engine-specific beam parameters to given beam node (do not override value if parameter exists)
   Q_INVOKABLE void addBeamParameterAttributesToBeamNode(vtkMRMLRTBeamNode* beamNode);
@@ -263,6 +276,8 @@ protected:
   /// Is the dose engine inverse? (i.e. it is able to calculate a beamlet dose matrix for optimization)
   /// Is false by default, but can be set in the dose engine constructor
   bool m_IsInverse = false;
+
+  bool m_CanDoIonPlan = false;
 
   /// List of registered tab widgets. Static so that it is common to all engines.
   static QSet<qMRMLBeamParametersTabWidget*> m_BeamParametersTabWidgets;

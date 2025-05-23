@@ -31,30 +31,36 @@ def prepareCst(beamNode, ct):
 
 
 def preparePln(beamNode, ct):
-    from pyRadPlan.plan import IonPlan, create_pln
+    from pyRadPlan.plan import create_pln
     
-    '''
-    All values in the pln dictionary need to be floats. INCLUDING the numOfFractions.
-    '''
+    # get information from Slicer
     planNode = beamNode.GetParentPlanNode()
     referenceVolumeNode = planNode.GetReferenceVolumeNode()
 
-    origin=referenceVolumeNode.GetOrigin()
     ijkToRASDirections = np.eye(3)
     referenceVolumeNode.GetIJKToRASDirections(ijkToRASDirections)
-    origin = ijkToRASDirections @ origin
 
     isocenter = [0]*3
     planNode.GetIsocenterPosition(isocenter)
     isocenter = ijkToRASDirections @ np.array(isocenter)
 
-    dose_grid = ct.grid
-    dose_grid.resolution = {"x": planNode.GetDoseGrid()[0], "y": planNode.GetDoseGrid()[0], "z": planNode.GetDoseGrid()[0]}
+    dose_grid = ct.grid.copy().resample(target_resolution=planNode.GetDoseGrid())
 
+    if not planNode.ion_plan_flag:
+        available_radiation_modes = ['photons', 'protons', 'carbons']
+    else:
+        available_radiation_modes = ['protons', 'carbons']
+
+    radiation_mode = slicer.pyRadPlanEngine.scriptedEngine.integerParameter(beamNode, 'radiationMode')
+
+
+    '''
+    All values in the pln dictionary need to be floats. INCLUDING the numOfFractions.
+    '''
     pln = {
-        "radiation_mode": ['photons','protons','carbon'][slicer.pyRadPlanEngine.scriptedEngine.integerParameter(beamNode, 'radiationMode')],
+        "radiation_mode": available_radiation_modes[radiation_mode],
         "machine": ['Generic'][slicer.pyRadPlanEngine.scriptedEngine.integerParameter(beamNode, 'machine')],
-        # "num_of_fractions": slicer.pyRadPlanEngine.scriptedEngine.doubleParameter(beamNode, 'numOfFractions'),
+        "num_of_fractions": slicer.pyRadPlanEngine.scriptedEngine.doubleParameter(beamNode, 'numOfFractions'),
         "prop_stf": {
             # beam geometry settings
             "bixel_width": 5.0,
@@ -64,15 +70,20 @@ def preparePln(beamNode, ct):
         },
 
         # dose calculation settings
-        "prop_dose_calc": {"dose_grid": dose_grid}#ct.grid}
+        "prop_dose_calc": {"dose_grid": dose_grid},
 
-        # # optimization settings
+        # optimization settings
+        "prop_opt": {},
         # "prop_opt": {"optimizer": 'IPOPT',
         #             "bio_optimization": 'none',
         #             "run_dAO": False,
         #             "run_sequencing": True
         #             },
     }
+
+    if pln["radiation_mode"] == "protons":
+        pln["prop_opt"] = {"solver": "scipy"}
+
     return create_pln(pln)
 
 

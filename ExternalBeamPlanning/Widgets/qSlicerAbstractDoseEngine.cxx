@@ -134,6 +134,18 @@ void qSlicerAbstractDoseEngine::setIsInverse(bool isInverse)
 }
 
 //----------------------------------------------------------------------------
+bool qSlicerAbstractDoseEngine::canDoIonPlan() const
+{
+	return this->m_CanDoIonPlan;
+}
+
+void qSlicerAbstractDoseEngine::setCanDoIonPlan(bool canDoIonPlan)
+{
+	qCritical() << Q_FUNC_INFO << ": Cannot set dose engine name by method, only in constructor";
+}
+
+
+//----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::registerBeamParametersTabWidget(qMRMLBeamParametersTabWidget* tabWidget)
 {
   qSlicerAbstractDoseEngine::m_BeamParametersTabWidgets.insert(tabWidget);
@@ -539,6 +551,25 @@ void qSlicerAbstractDoseEngine::addBeamParameterComboBox(
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::updateBeamParameterComboBox(
+    QString tabName, QString parameterName, QString parameterLabel,
+    QString tooltip, QStringList options, int defaultIndex)
+{
+    Q_D(qSlicerAbstractDoseEngine);
+
+    // Add parameter to container
+    d->BeamParameters[parameterName] = QVariant(defaultIndex);
+
+    for (auto beamParametersTabWidget : m_BeamParametersTabWidgets)
+    {
+        // Update beam parameter in tab widget
+        beamParametersTabWidget->updateBeamParameterComboBox(
+            tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
+            tooltip, options, defaultIndex);
+    }
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::addBeamParameterCheckBox(
   QString tabName, QString parameterName, QString parameterLabel,
   QString tooltip, bool defaultValue, QStringList dependentParameterNames/*=QStringList()*/)
@@ -581,6 +612,17 @@ void qSlicerAbstractDoseEngine::addBeamParameterLineEdit(
       tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
       tooltip, defaultValue );
   }
+}
+
+//----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::removeParameter(QString tabName, QString parameterName)
+{
+    for (auto beamParametersTabWidget : m_BeamParametersTabWidgets)
+    {
+        // Remove beam parameter from tab widget
+        beamParametersTabWidget->removeBeamParameter(
+            tabName, this->assembleEngineParameterName(parameterName));
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -806,3 +848,9 @@ void qSlicerAbstractDoseEngine::setDoseEngineTypeToBeam(vtkMRMLRTBeamNode* beamN
   qCritical() << Q_FUNC_INFO << ": Not implemented";
 }
 */
+
+//-----------------------------------------------------------------------------
+void  qSlicerAbstractDoseEngine::updateBeamParametersForIonPlan(bool isIonPlanActive)
+{
+    qCritical() << Q_FUNC_INFO << ": updateBeamParamtersForIonPlan not implemented";
+}
