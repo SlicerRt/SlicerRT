@@ -84,8 +84,25 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         dij = calc_dose_influence(ct, cst, stf, pln)
         t_end = time.time()
         print(f"Time to calculate Dij: {t_end - t_start}")
+
+        fluence = np.ones(dij.total_num_of_bixels)
+
+        result = dij.compute_result_ct_grid(fluence)
+
+        totalDose = result["physical_dose"]
+
+        planNode = beamNode.GetParentPlanNode()
+        referenceVolumeNode = planNode.GetReferenceVolumeNode()
+
+        sitkUtils.PushVolumeToSlicer(totalDose, targetNode = resultDoseVolumeNode)#, className="vtkMRMLScalarVolumeNode")
+
+        # Set name
+        resultDoseNodeName = str(planNode.GetName())+"_pyRadDose_" + beamNode.GetName()
+        resultDoseVolumeNode.SetName(resultDoseNodeName)
+
         
-        #TODO: visualization of dose
+        slicer.util.setSliceViewerLayers(background=referenceVolumeNode, foreground=resultDoseVolumeNode)
+        slicer.util.setSliceViewerLayers(foregroundOpacity=1)
 
         return str() #return empty string to indicate success
     
