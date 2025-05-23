@@ -45,7 +45,6 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
         # get reference volume node
         referenceVolumeNode = planNode.GetReferenceVolumeNode()
-        numberOfVoxels = referenceVolumeNode.GetImageData().GetNumberOfPoints()
 
         # total dose summed over all beams
         totalDose = 0
@@ -84,20 +83,17 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
             # Get Dose Influence Matrix
             fieldData = beamNode.GetDoseInfluenceMatrixFieldData()
-            data = np.array(fieldData.GetArray('Data'))
-            indices = np.array(fieldData.GetArray('Indices'))
-            indptr = np.array(fieldData.GetArray('Indptr'))
+            data = np.array(fieldData.GetArray('Data'), dtype=np.float32)
+            indices = np.array(fieldData.GetArray('Indices'), dtype=np.int32)
+            indptr = np.array(fieldData.GetArray('Indptr'), dtype=np.int32)
 
-            numOfCols = fieldData.GetArray('Indptr').GetSize()-1
+            numOfCols = len(indptr) - 1
 
+            numberOfVoxels = pln.prop_dose_calc['dose_grid'].num_voxels
             dose_influence_matrix = csc_matrix((data, indices, indptr), shape=(numberOfVoxels, numOfCols)) # shape important to include zeros in last indices (rows must be as long as number of voxels)
 
-            dose_grid = ct.grid
-            dose_grid.resolution = {"x": planNode.GetDoseGrid()[0], "y": planNode.GetDoseGrid()[0], "z": planNode.GetDoseGrid()[0]}
-
-
             dij = Dij(
-                dose_grid=dose_grid,
+                dose_grid=pln.prop_dose_calc['dose_grid'],
                 ct_grid=ct.grid,
                 physical_dose=dose_influence_matrix,
                 num_of_beams = 1,
