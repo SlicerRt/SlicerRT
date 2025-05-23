@@ -8,6 +8,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
     def __init__(self, scriptedEngine):
         scriptedEngine.name = 'pyRadPlan'
         scriptedEngine.isInverse = True #pyRadPlan has Inverse planning capabilities, i.e., it can compute a dose influence matrix
+        scriptedEngine.canDoIonPlan = True
         AbstractScriptedDoseEngine.__init__(self, scriptedEngine)
 
 
@@ -24,11 +25,26 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         self.scriptedEngine.addBeamParameterComboBox('pyRadPlan parameters','machine','machine','comment',['generic'],0)      
 
 
+    def updateBeamParametersForIonPlan(self, isIonPlanActive):
+        if isIonPlanActive:
+            available_radiation_modes = ["protons", "carbons"]
+        else:
+            available_radiation_modes = ["photons", "protons", "carbons"]
+
+        self.scriptedEngine.updateBeamParameterComboBox(
+        "pyRadPlan parameters", "radiationMode", "radiation mode",
+        "comment", available_radiation_modes, 0)
+
+
     def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):
 
         ##################################### PYRAD: import libraries ##########################################
         import logging
         import time
+
+        import numpy as np
+        import sitkUtils
+        import slicer
 
         from pyRadPlan import (
             generate_stf,

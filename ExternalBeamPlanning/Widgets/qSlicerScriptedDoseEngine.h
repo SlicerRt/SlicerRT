@@ -70,6 +70,10 @@ public:
   /// \sa isInverse
   void setIsInverse(bool isInverse) override;
 
+  /// Set the ion plan capability bool
+  /// \sa canDoIonPlan
+  void setCanDoIonPlan(bool isInverse) override;
+
 // Dose calculation related functions (API functions to call from the subclass)
 protected:
   /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic
@@ -96,6 +100,8 @@ protected:
   /// Define engine-specific beam parameters.
   /// This is the method that needs to be implemented in each engine.
   void defineBeamParameters() override;
+
+  void updateBeamParametersForIonPlan(bool isIonPlanActive) override;
 
 protected:
   QScopedPointer<qSlicerScriptedDoseEnginePrivate> d_ptr;

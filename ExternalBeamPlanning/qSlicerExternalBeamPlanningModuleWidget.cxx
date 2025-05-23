@@ -261,6 +261,8 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   connect( d->MRMLNodeComboBox_RtPlan, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setPlanNode(vtkMRMLNode*)) );
 
   // Plan parameters section
+  connect(d->checkBox_IonPlanFlag, SIGNAL(stateChanged(int)), this, SLOT(ionPlanFlagCheckboxStateChanged(int)));
+
   connect( d->MRMLNodeComboBox_ReferenceVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(referenceVolumeNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_PlanSegmentation, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(segmentationNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_PlanPOIs, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(poisMarkupsNodeChanged(vtkMRMLNode*)) );
@@ -913,6 +915,43 @@ void qSlicerExternalBeamPlanningModuleWidget::updateIsocenterPosition()
   d->MRMLCoordinatesWidget_IsocenterCoordinates->blockSignals(false);
 }
 
+//------------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::ionPlanFlagCheckboxStateChanged(int state)
+{
+    Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+    if (!planNode)
+    {
+        qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
+        return;
+    }
+    
+	// delete all beams
+    planNode->RemoveAllBeams();
+
+	// update beam parameters for ion plan
+    qSlicerDoseEnginePluginHandler::DoseEngineListType engines =
+        qSlicerDoseEnginePluginHandler::instance()->registeredDoseEngines();
+
+    for (qSlicerDoseEnginePluginHandler::DoseEngineListType::iterator engineIt = engines.begin();
+        engineIt != engines.end(); ++engineIt)
+    {
+        if ((*engineIt)->canDoIonPlan())
+        {
+            (*engineIt)->updateBeamParametersForIonPlan(state);
+        }
+    }
+
+    this->updateDoseEngines();
+
+    // set ion plan flag in plan
+    //TODO: Throws error if any beam in the plan is not fully initialized (e.g., missing ScanSpotTableNode).
+    //      Calling SetIonPlanFlag(state) triggers beam visualization (CreateBeamPolyData), which fails if setup is incomplete.
+    //      Ensure all beams are fully configured before setting this flag to true.
+    planNode->SetIonPlanFlag(state);
+}
+
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::inversePlanningCheckboxStateChanged(int state)
 {
@@ -950,13 +989,16 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
     return;
   }
 
+  //Check if Ion Plan is selected
+  bool ionPlan = d->checkBox_IonPlanFlag->isChecked();
+
   //Check if Inverse Planning is selected
   bool inversePlanning = d->checkBox_InversePlanning->isChecked();
   
   //Skip update if inverse planning is not active and all registered engines are already in the combobox
   qSlicerDoseEnginePluginHandler::DoseEngineListType engines =
     qSlicerDoseEnginePluginHandler::instance()->registeredDoseEngines();
-  if (!inversePlanning && engines.size() == d->comboBox_DoseEngine->count())
+  if (!ionPlan && !inversePlanning && engines.size() == d->comboBox_DoseEngine->count())
   {
     return;
   }
@@ -967,11 +1009,11 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
   for (qSlicerDoseEnginePluginHandler::DoseEngineListType::iterator engineIt = engines.begin();
     engineIt != engines.end(); ++engineIt)
   {
-    // Check if inverse planning is active and if yes skip engines that can't do it  
-    if (inversePlanning && !(*engineIt)->isInverse())
-	{
-	  continue;
-	}
+    // Check if ion plan or inverse planning is active and if yes skip engines that can't do it  
+    if ((ionPlan && !(*engineIt)->canDoIonPlan()) || (inversePlanning && !(*engineIt)->isInverse()))
+    {
+        continue;
+    }
     d->comboBox_DoseEngine->addItem((*engineIt)->name());
   }
 
