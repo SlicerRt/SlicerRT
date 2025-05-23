@@ -569,6 +569,57 @@ void qMRMLBeamParametersTabWidget::addBeamParameterComboBox(
 }
 
 //-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::updateBeamParameterComboBox(  
+   QString tabName, QString parameterName, QString parameterLabel,  
+   QString tooltip, QStringList options, int defaultIndex)  
+{  
+    // Get tab to which the combo box belongs  
+    QWidget* tabWidget = this->beamParametersTab(tabName);
+    if (!tabWidget)
+    {
+        qCritical() << Q_FUNC_INFO << ": Unable to access widget for beam parameters tab named " << tabName;
+        return;
+    }
+
+    QFormLayout* tabLayout = qobject_cast<QFormLayout*>(tabWidget->layout());
+    if (!tabLayout)
+    {
+        qCritical() << Q_FUNC_INFO << ": Invalid layout in beam parameters tab named " << tabName;
+        return;
+    }
+
+    // Go through the layout rows to find the parameter  
+    for (int currentRow = 0; currentRow < tabLayout->rowCount(); ++currentRow)
+    {
+        QWidget* currentParameterFieldWidget = tabLayout->itemAt(currentRow, QFormLayout::FieldRole)->widget();
+        if (parameterName == currentParameterFieldWidget->property(BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY).toString())
+        {
+			// check that the widget is a combo box
+			QComboBox* comboBox = qobject_cast<QComboBox*>(currentParameterFieldWidget);
+			if (!comboBox)
+			{
+				qCritical() << Q_FUNC_INFO << ": Invalid combo box in beam parameters tab named " << tabName;
+				return;
+			}
+
+            QObject::disconnect(comboBox, SIGNAL(currentIndexChanged(int)), nullptr, nullptr);
+
+			comboBox->clear();
+            foreach(QString option, options)
+            {
+                comboBox->addItem(option);
+            }
+            comboBox->setToolTip(tooltip);
+            comboBox->setCurrentIndex(defaultIndex);
+            comboBox->setProperty(BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY, parameterName);
+            connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(integerBeamParameterChanged(int)));
+
+            break;
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
 void qMRMLBeamParametersTabWidget::addBeamParameterCheckBox(
   QString tabName, QString parameterName, QString parameterLabel,
   QString tooltip, bool defaultValue, QStringList dependentParameterNames/*=QStringList()*/ )
@@ -707,6 +758,37 @@ void qMRMLBeamParametersTabWidget::stringBeamParameterChanged(QString newValue)
     attributeName.toUtf8().constData(),
     newValue.toUtf8().constData() );
   d->BeamNode->DisableModifiedEventOff();
+}
+
+//-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::removeBeamParameter(
+    QString tabName, QString parameterName)
+{
+    // Get tab to which the spin box needs to be added
+    QWidget* tabWidget = this->beamParametersTab(tabName);
+    if (!tabWidget)
+    {
+        qCritical() << Q_FUNC_INFO << ": Unable to access widget for beam parameters tab named " << tabName;
+        return;
+    }
+    QFormLayout* tabLayout = qobject_cast<QFormLayout*>(tabWidget->layout());
+    if (!tabLayout)
+    {
+        qCritical() << Q_FUNC_INFO << ": Invalid layout in beam parameters tab named " << tabName;
+        return;
+    }
+
+    // Go through the layout rows to find the parameter
+    for (int currentRow = 0; currentRow < tabLayout->rowCount(); ++currentRow)
+    {
+        QWidget* currentParameterFieldWidget = tabLayout->itemAt(currentRow, QFormLayout::FieldRole)->widget();
+        if (parameterName == currentParameterFieldWidget->property(BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY).toString())
+        {
+            // Remove parameter from layout
+            tabLayout->removeRow(currentRow);
+            break;
+        }
+    }
 }
 
 //-----------------------------------------------------------------------------
