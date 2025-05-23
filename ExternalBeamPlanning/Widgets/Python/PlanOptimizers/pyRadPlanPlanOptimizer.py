@@ -135,6 +135,30 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             
         totalDose = result["physical_dose"]
 
+        # TODO: directly get dose per beam from overlay=result.beam_quantities["physical_dose"][0].distribution (once reult_gui is merged)
+        # Now: manually get dose per beam and create a new volume node for each beam
+        for i in range(planNode.GetNumberOfBeams()):
+            mask = (dij.beam_num == i)
+            fluence_for_beam = np.zeros_like(fluence)
+            fluence_for_beam[mask] = fluence[mask]
+            result_for_beam = dij.compute_result_ct_grid(fluence_for_beam)
+            dose_per_beam = result_for_beam["physical_dose"]
+            
+            # create a new volume node for each beam
+            beamDoseVolumeNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeNode", "BeamDose")
+            beamDoseVolumeNode.SetName(planNode.GetName()+"_pyRadOptimzedDose_Beam"+str(i+1))
+            beamDoseVolumeNode.SetSpacing(referenceVolumeNode.GetSpacing())
+            beamDoseVolumeNode.SetOrigin(referenceVolumeNode.GetOrigin())
+
+            #set colormap
+            rxDose = planNode.GetRxDose()
+            # displayNode = beamDoseVolumeNode.GetDisplayNode()
+            # displayNode.GetColorNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeDose_ColorTable_Relative")
+            # displayNode.AutoWindowLevelOn()
+            # displayNode.SetLowerThreshold(0.05*rxDose)
+            # displayNode.ApplyThresholdOn()
+
+            sitkUtils.PushVolumeToSlicer(dose_per_beam, targetNode = beamDoseVolumeNode)
 
         sitkUtils.PushVolumeToSlicer(totalDose, targetNode = resultOptimizationVolumeNode)#, className="vtkMRMLScalarVolumeNode")
 
@@ -142,7 +166,6 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
         OptimizedDoseNodeName = str(planNode.GetName())+"_pyRadOptimzedDose"
         resultOptimizationVolumeNode.SetName(OptimizedDoseNodeName)
 
-        
         slicer.util.setSliceViewerLayers(background=referenceVolumeNode, foreground=resultOptimizationVolumeNode)
         slicer.util.setSliceViewerLayers(foregroundOpacity=1)
 
