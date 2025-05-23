@@ -20,6 +20,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
     def optimizePlanUsingOptimizer(self, planNode, objectives, resultOptimizationVolumeNode):
         import sitkUtils
+        import SimpleITK as sitk
         from pyRadPlan import (
             generate_stf,
             fluence_optimization,
@@ -145,26 +146,25 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             dose_per_beam = result_for_beam["physical_dose"]
             
             # create a new volume node for each beam
-            beamDoseVolumeNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeNode", "BeamDose")
-            beamDoseVolumeNode.SetName(planNode.GetName()+"_pyRadOptimzedDose_Beam"+str(i+1))
-            beamDoseVolumeNode.SetSpacing(referenceVolumeNode.GetSpacing())
-            beamDoseVolumeNode.SetOrigin(referenceVolumeNode.GetOrigin())
+            beamDoseVolumeNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeNode", str(planNode.GetName())+"_pyRadOptimzedDose_Beam_"+str(i+1))
+            displayNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeDisplayNode")
+            beamDoseVolumeNode.SetAndObserveDisplayNodeID(displayNode.GetID())
+
+            sitkUtils.PushVolumeToSlicer(dose_per_beam, beamDoseVolumeNode)
 
             #set colormap
             rxDose = planNode.GetRxDose()
-            # displayNode = beamDoseVolumeNode.GetDisplayNode()
-            # displayNode.GetColorNode().SetAndObserveColorNodeID("vtkMRMLColorTableNodeDose_ColorTable_Relative")
-            # displayNode.AutoWindowLevelOn()
-            # displayNode.SetLowerThreshold(0.05*rxDose)
-            # displayNode.ApplyThresholdOn()
+            displayNode = beamDoseVolumeNode.GetDisplayNode()
+            displayNode.SetAndObserveColorNodeID("vtkMRMLColorTableNodeDose_ColorTable_Relative")
+            displayNode.AutoWindowLevelOn()
+            displayNode.SetLowerThreshold(0.05*rxDose)
+            displayNode.ApplyThresholdOn()
+            
 
-            sitkUtils.PushVolumeToSlicer(dose_per_beam, targetNode = beamDoseVolumeNode)
+        # total dose to Slicer
+        sitkUtils.PushVolumeToSlicer(totalDose, targetNode = resultOptimizationVolumeNode)
 
-        sitkUtils.PushVolumeToSlicer(totalDose, targetNode = resultOptimizationVolumeNode)#, className="vtkMRMLScalarVolumeNode")
-
-        # Set name
-        OptimizedDoseNodeName = str(planNode.GetName())+"_pyRadOptimzedDose"
-        resultOptimizationVolumeNode.SetName(OptimizedDoseNodeName)
+        resultOptimizationVolumeNode.SetName(str(planNode.GetName())+"_pyRadOptimzedDose")
 
         slicer.util.setSliceViewerLayers(background=referenceVolumeNode, foreground=resultOptimizationVolumeNode)
         slicer.util.setSliceViewerLayers(foregroundOpacity=1)
