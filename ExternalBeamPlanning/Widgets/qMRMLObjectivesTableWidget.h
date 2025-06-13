@@ -80,11 +80,13 @@ public slots:
 
   void onSegmentChanged(int row);
 
-  void setObjectivesInPlanOptimizer();
+  void onOverlapPriorityChanged(int newValue, vtkMRMLRTObjectiveNode* objectiveNode);
 
-  void onPriorityChanged(int newValue, vtkMRMLRTObjectiveNode* objectiveNode);
+  void onPenaltyChanged(int newValue, vtkMRMLRTObjectiveNode* objectiveNode);
 
   void onParameterChanged(std::string name, std::string value, vtkMRMLRTObjectiveNode* objectiveNode);
+
+  void setObjectivesInPlanOptimizer();
 
   /// delete objectives Table and removes all objectives from plan optimizer
   void deleteObjectivesTable();

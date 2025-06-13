@@ -111,9 +111,9 @@ void qMRMLObjectivesTableWidgetPrivate::init()
    this->setMessage(QString());
 
    // Set table header properties
-   this->ColumnLabels << "Number" << "ObjectiveName" << "Segments";
+   this->ColumnLabels << "Number" << "ObjectiveName" << "Segments" << "OverlapPriority" << "Penalty" << "Parameters";
    this->ObjectivesTable->setHorizontalHeaderLabels(
-     QStringList() << "#" << "Objective" << "Segments");
+     QStringList() << "#" << "Objective" << "Segments" << "OP" << "p" << "Parameters");
    this->ObjectivesTable->setColumnCount(this->ColumnLabels.size());
 
  #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
@@ -340,14 +340,24 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
 	objectiveNode->SetName(objectiveStruct.name.c_str());
     objectiveNode->SetSegmentation(segmentationsDropdown->currentText().toStdString().c_str());
 
-	// create priority SpinBox
-    QSpinBox* prioritySpinBox = new QSpinBox();
-    prioritySpinBox->setValue(1);
-    prioritySpinBox->setMinimum(0); // Set minimum value (optional)
-    prioritySpinBox->setMaximum(10000); // Set maximum value (optional)
-	objectiveNode->SetAttribute("Priority", std::to_string(prioritySpinBox->value()).c_str());
-    connect(prioritySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, [this, objectiveNode](int newValue) {
-		this->onPriorityChanged(newValue, objectiveNode);
+    // create overlap priority SpinBox
+    QSpinBox* overlapPrioritySpinBox = new QSpinBox();
+    overlapPrioritySpinBox->setValue(1);
+    overlapPrioritySpinBox->setMinimum(0); // Set minimum value (optional)
+    overlapPrioritySpinBox->setMaximum(10000); // Set maximum value (optional)
+    objectiveNode->SetAttribute("overlapPriority", std::to_string(overlapPrioritySpinBox->value()).c_str());
+    connect(overlapPrioritySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, [this, objectiveNode](int newValue) {
+        this->onOverlapPriorityChanged(newValue, objectiveNode);
+    });
+
+	// create penalty SpinBox
+    QSpinBox* penaltySpinBox = new QSpinBox();
+    penaltySpinBox->setValue(1);
+    penaltySpinBox->setMinimum(0); // Set minimum value (optional)
+    penaltySpinBox->setMaximum(10000); // Set maximum value (optional)
+	objectiveNode->SetAttribute("penalty", std::to_string(penaltySpinBox->value()).c_str());
+    connect(penaltySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, [this, objectiveNode](int newValue) {
+		this->onPenaltyChanged(newValue, objectiveNode);
 	});
 
     // Create a widget to hold multiple QLineEdit boxes for parameters
@@ -380,21 +390,10 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
     }
     parameterWidget->setLayout(layout);
 
-    // Add priority widget and the parameter widget to the table
-    int columnIndex = d->columnIndex("Priority");
-    if (columnIndex == -1)
-    {
-		// Add new columns for priority & parameters if they don't exist
-        columnIndex = d->ObjectivesTable->columnCount();
-        d->ObjectivesTable->insertColumn(columnIndex);
-		d->ObjectivesTable->setHorizontalHeaderItem(columnIndex, new QTableWidgetItem("Priority"));
-		d->ColumnLabels << "Priority";
-        d->ObjectivesTable->insertColumn(columnIndex+1);
-        d->ObjectivesTable->setHorizontalHeaderItem(columnIndex+1, new QTableWidgetItem("Parameters"));
-        d->ColumnLabels << "Parameters";
-    }
-	d->ObjectivesTable->setCellWidget(row, columnIndex, prioritySpinBox);
-    d->ObjectivesTable->setCellWidget(row, columnIndex+1, parameterWidget);
+    // Add overlap priority, penalty & parameter widgets to the table
+    d->ObjectivesTable->setCellWidget(row, d->columnIndex("OverlapPriority"), overlapPrioritySpinBox);
+	d->ObjectivesTable->setCellWidget(row, d->columnIndex("Penalty"), penaltySpinBox);
+    d->ObjectivesTable->setCellWidget(row, d->columnIndex("Parameters"), parameterWidget);
 
     // get scene
 	vtkMRMLScene* scene = d->PlanNode->GetScene();
@@ -426,12 +425,36 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
 }
 
 //------------------------------------------------------------------------------
-void qMRMLObjectivesTableWidget::onPriorityChanged(int newValue, vtkMRMLRTObjectiveNode* objectiveNode)
+void qMRMLObjectivesTableWidget::onSegmentChanged(int row)
+{
+    Q_D(qMRMLObjectivesTableWidget);
+
+    // get newly selected segmentation
+    QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
+
+    // set segmentation in objectiveNode
+    this->currentObjectiveNodes[row]->SetSegmentation(segmentationsDropdown->currentText().toStdString().c_str());
+
+    // update objectives in optimizer
+    this->setObjectivesInPlanOptimizer();
+}
+
+//------------------------------------------------------------------------------
+void qMRMLObjectivesTableWidget::onOverlapPriorityChanged(int newValue, vtkMRMLRTObjectiveNode* objectiveNode)
+{
+    Q_D(qMRMLObjectivesTableWidget);
+
+    // update the overlap priority value
+    objectiveNode->SetAttribute("overlapPriority", std::to_string(newValue).c_str());
+}
+
+//------------------------------------------------------------------------------
+void qMRMLObjectivesTableWidget::onPenaltyChanged(int newValue, vtkMRMLRTObjectiveNode* objectiveNode)
 {
 	Q_D(qMRMLObjectivesTableWidget);
 
-	// update the priority value
-	objectiveNode->SetAttribute("Priority", std::to_string(newValue).c_str());
+	// update the penalty value
+	objectiveNode->SetAttribute("penalty", std::to_string(newValue).c_str());
 }
 
 //------------------------------------------------------------------------------
@@ -442,21 +465,6 @@ void qMRMLObjectivesTableWidget::onParameterChanged(std::string name, std::strin
     // update the attribute value
     objectiveNode->RemoveAttribute(name.c_str());
     objectiveNode->SetAttribute(name.c_str(), value.c_str());
-}
-
-//------------------------------------------------------------------------------
-void qMRMLObjectivesTableWidget::onSegmentChanged(int row)
-{
-	Q_D(qMRMLObjectivesTableWidget);
-
-    // get newly selected segmentation
-	QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
-
-	// set segmentation in objectiveNode
-	this->currentObjectiveNodes[row]->SetSegmentation(segmentationsDropdown->currentText().toStdString().c_str());
-
-	// update objectives in optimizer
-	this->setObjectivesInPlanOptimizer();
 }
 
 //------------------------------------------------------------------------------
