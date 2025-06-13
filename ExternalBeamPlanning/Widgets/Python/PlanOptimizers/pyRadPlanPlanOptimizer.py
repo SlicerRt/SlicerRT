@@ -35,14 +35,14 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             segmentation = objective_node.GetSegmentation()
             objective_info = {
             'objectiveName': objective_node.GetName(),
-            'priority': objective_node.GetAttribute('Priority'),
-            'parameters': {name: objective_node.GetAttribute(name) for name in objective_node.GetAttributeNames() if name != 'Priority'}
+            'overlapPriority': objective_node.GetAttribute('overlapPriority'),
+            'penalty': objective_node.GetAttribute('penalty'),
+            'parameters': {name: objective_node.GetAttribute(name) for name in objective_node.GetAttributeNames() if name != 'overlapPriority' and name != 'penalty'}
             }
             if segmentation not in objectives_dict:
                 objectives_dict[segmentation] = [objective_info]
             else:
                 objectives_dict[segmentation].append(objective_info)
-
 
         # get reference volume node
         referenceVolumeNode = planNode.GetReferenceVolumeNode()
@@ -114,11 +114,14 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
         for voi in cst.vois:
             if voi.name in objectives_dict:
                 voi.objectives = []
+                # TEMPORARY: set overlap from first objective
+                voi.overlap_priority = objectives_dict[voi.name][0]['overlapPriority']
+
                 for i in range(len(objectives_dict[voi.name])):
                     objective_name = objectives_dict[voi.name][i]['objectiveName']
                     objective_parameters = objectives_dict[voi.name][i]['parameters']
                     objective_instance = get_objective(objective_name)
-                    objective_instance.priority = objectives_dict[voi.name][i]['priority']
+                    objective_instance.priority = objectives_dict[voi.name][i]['penalty']
                     for parameter in objective_instance.parameter_names:
                         if parameter in objective_parameters:
                             # TODO: type check

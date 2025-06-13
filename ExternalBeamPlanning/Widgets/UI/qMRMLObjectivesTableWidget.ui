@@ -78,7 +78,7 @@
       <bool>true</bool>
      </property>
      <property name="columnCount">
-      <number>5</number>
+      <number>6</number>
      </property>
      <attribute name="horizontalHeaderDefaultSectionSize">
       <number>64</number>
@@ -109,10 +109,18 @@
      </column>
      <column>
       <property name="text">
-       <string>Priority</string>
+       <string>OP</string>
       </property>
       <property name="toolTip">
-       <string>priorites for objective</string>
+       <string>Overlap Priority (Smaller number overlaps higher number)</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>p</string>
+      </property>
+      <property name="toolTip">
+       <string>optimization penalty</string>
       </property>
      </column>
      <column>
