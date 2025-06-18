@@ -44,6 +44,15 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             else:
                 objectives_dict[segmentation].append(objective_info)
 
+        # get overlap priority from objectives (throw error if not matching)
+        overlap_priority_dict = {}
+        for voi_name, objectives_list in objectives_dict.items():
+            overlap_priority = objectives_list[0]['overlapPriority']
+            overlap_priority_dict[voi_name] = overlap_priority
+            for objective in objectives_list:
+                if objective['overlapPriority'] != overlap_priority:
+                    raise ValueError(f"Overlap priorities do not match for VOI '{voi_name}' in objectives table. All objectives for a VOI must have the same overlap priority.")
+    
         # get reference volume node
         referenceVolumeNode = planNode.GetReferenceVolumeNode()
 
@@ -114,9 +123,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
         for voi in cst.vois:
             if voi.name in objectives_dict:
                 voi.objectives = []
-                # TEMPORARY: set overlap from first objective
-                voi.overlap_priority = objectives_dict[voi.name][0]['overlapPriority']
-
+                voi.overlap_priority = overlap_priority_dict[voi.name]
                 for i in range(len(objectives_dict[voi.name])):
                     objective_name = objectives_dict[voi.name][i]['objectiveName']
                     objective_parameters = objectives_dict[voi.name][i]['parameters']

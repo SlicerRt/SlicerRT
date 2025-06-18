@@ -86,6 +86,10 @@ public slots:
 
   void onParameterChanged(std::string name, std::string value, vtkMRMLRTObjectiveNode* objectiveNode);
 
+  int findOverlapPriorityValueOfSegment(int row);
+
+  void updateOverlapPriorityForSegment(const QString& segmentName, int newValue);
+
   void setObjectivesInPlanOptimizer();
 
   /// delete objectives Table and removes all objectives from plan optimizer

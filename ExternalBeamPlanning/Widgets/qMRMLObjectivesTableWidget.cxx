@@ -313,6 +313,7 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
         this->onSegmentChanged(row);
     });
 
+
     this->onObjectiveChanged(row);
 
     this->updateObjectivesTable();
@@ -333,28 +334,36 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
     QComboBox* objectivesDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("ObjectiveName")));
     QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
 
+    QString segmentName = segmentationsDropdown->currentText();
+    if (segmentName.isEmpty())
+    {
+        qCritical() << Q_FUNC_INFO << ": Invalid segment name!";
+        return;
+    }
+
     qSlicerAbstractPlanOptimizer::ObjectiveStruct objectiveStruct = objectivesDropdown->currentData().value<qSlicerAbstractPlanOptimizer::ObjectiveStruct>();
 
 	// create new objective node
     vtkMRMLRTObjectiveNode* objectiveNode = vtkMRMLRTObjectiveNode::New();
 	objectiveNode->SetName(objectiveStruct.name.c_str());
-    objectiveNode->SetSegmentation(segmentationsDropdown->currentText().toStdString().c_str());
+    objectiveNode->SetSegmentation(segmentName.toStdString());
 
     // create overlap priority SpinBox
+    int overlapPriorityValue = this->findOverlapPriorityValueOfSegment(row);
     QSpinBox* overlapPrioritySpinBox = new QSpinBox();
-    overlapPrioritySpinBox->setValue(1);
-    overlapPrioritySpinBox->setMinimum(0); // Set minimum value (optional)
-    overlapPrioritySpinBox->setMaximum(10000); // Set maximum value (optional)
-    objectiveNode->SetAttribute("overlapPriority", std::to_string(overlapPrioritySpinBox->value()).c_str());
+    overlapPrioritySpinBox->setValue(overlapPriorityValue);
+    overlapPrioritySpinBox->setMinimum(0);
+    overlapPrioritySpinBox->setMaximum(10000);
+	objectiveNode->SetAttribute("overlapPriority", std::to_string(overlapPrioritySpinBox->value()).c_str());
     connect(overlapPrioritySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, [this, objectiveNode](int newValue) {
         this->onOverlapPriorityChanged(newValue, objectiveNode);
     });
-
+    
 	// create penalty SpinBox
     QSpinBox* penaltySpinBox = new QSpinBox();
-    penaltySpinBox->setValue(1);
-    penaltySpinBox->setMinimum(0); // Set minimum value (optional)
-    penaltySpinBox->setMaximum(10000); // Set maximum value (optional)
+	penaltySpinBox->setValue(0);
+    penaltySpinBox->setMinimum(0);
+    penaltySpinBox->setMaximum(10000);
 	objectiveNode->SetAttribute("penalty", std::to_string(penaltySpinBox->value()).c_str());
     connect(penaltySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, [this, objectiveNode](int newValue) {
 		this->onPenaltyChanged(newValue, objectiveNode);
@@ -431,12 +440,17 @@ void qMRMLObjectivesTableWidget::onSegmentChanged(int row)
 
     // get newly selected segmentation
     QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
+	QString segmentName = segmentationsDropdown->currentText();
 
     // set segmentation in objectiveNode
-    this->currentObjectiveNodes[row]->SetSegmentation(segmentationsDropdown->currentText().toStdString().c_str());
+    this->currentObjectiveNodes[row]->SetSegmentation(segmentName.toStdString().c_str());
 
     // update objectives in optimizer
     this->setObjectivesInPlanOptimizer();
+
+	// find other rows with the same segment and update their overlap priority
+    int newValue = this->findOverlapPriorityValueOfSegment(row);
+    this->updateOverlapPriorityForSegment(segmentName, newValue);
 }
 
 //------------------------------------------------------------------------------
@@ -444,8 +458,9 @@ void qMRMLObjectivesTableWidget::onOverlapPriorityChanged(int newValue, vtkMRMLR
 {
     Q_D(qMRMLObjectivesTableWidget);
 
-    // update the overlap priority value
-    objectiveNode->SetAttribute("overlapPriority", std::to_string(newValue).c_str());
+	objectiveNode->SetAttribute("overlapPriority", std::to_string(newValue).c_str());
+
+	this->updateOverlapPriorityForSegment(objectiveNode->GetSegmentation().c_str(), newValue);
 }
 
 //------------------------------------------------------------------------------
@@ -465,6 +480,70 @@ void qMRMLObjectivesTableWidget::onParameterChanged(std::string name, std::strin
     // update the attribute value
     objectiveNode->RemoveAttribute(name.c_str());
     objectiveNode->SetAttribute(name.c_str(), value.c_str());
+}
+
+//--------------------------------------------------------------------------------
+int qMRMLObjectivesTableWidget::findOverlapPriorityValueOfSegment(int row)
+{
+    Q_D(qMRMLObjectivesTableWidget);
+    QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
+    QString segmentName = segmentationsDropdown->currentText();
+
+    // get default value from segmentation
+	vtkSegmentation* segmentation = d->PlanNode->GetSegmentationNode()->GetSegmentation();
+	int newValue = segmentation->GetSegmentIndex(segmentation->GetSegmentIdBySegmentName(segmentName.toStdString()));
+
+    // get overlap priority of first segment with same name
+    for (int i = 0; i < d->ObjectivesTable->rowCount(); ++i)
+    {
+        if (i == row)
+        {
+            continue;
+        }
+        else
+        {
+            QComboBox* currentSegmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(i, d->columnIndex("Segments")));
+            if (currentSegmentationsDropdown && currentSegmentationsDropdown->currentText() == segmentName)
+            {
+                newValue = qobject_cast<QSpinBox*>(d->ObjectivesTable->cellWidget(i, d->columnIndex("OverlapPriority")))->value();
+                break;
+            }
+        }
+    }
+    return newValue;
+}
+
+//------------------------------------------------------------------------------
+void qMRMLObjectivesTableWidget::updateOverlapPriorityForSegment(const QString& segmentName, int newValue)
+{
+    Q_D(qMRMLObjectivesTableWidget);
+
+    for (int row = 0; row < d->ObjectivesTable->rowCount(); ++row)
+    {
+        QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
+        if (segmentationsDropdown && segmentationsDropdown->currentText() == segmentName)
+        {
+            QSpinBox* spinBox = qobject_cast<QSpinBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("OverlapPriority")));
+            if (spinBox && spinBox->value() != newValue)
+            {
+                spinBox->blockSignals(true);
+                spinBox->setValue(newValue);
+                spinBox->blockSignals(false);
+            }
+
+			// Update the objective node's overlap priority attribute
+			vtkMRMLRTObjectiveNode* objectiveNode = this->currentObjectiveNodes[row];
+			if (objectiveNode)
+			{
+				objectiveNode->SetAttribute("overlapPriority", std::to_string(newValue).c_str());
+			}
+			else
+			{
+				qCritical() << Q_FUNC_INFO << ": Invalid objective node at row" << row;
+			}
+        }
+    }
+
 }
 
 //------------------------------------------------------------------------------
