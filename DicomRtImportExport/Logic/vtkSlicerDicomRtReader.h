@@ -40,6 +40,7 @@
 #include <array>
 
 class vtkPolyData;
+class vtkTable;
 
 /// \ingroup SlicerRt_QtModules_DicomRtImport
 class VTK_SLICER_DICOMRTIMPORTEXPORT_LOGIC_EXPORT vtkSlicerDicomRtReader : public vtkSlicerDicomReaderBase
@@ -82,6 +83,10 @@ public:
   /// Get number of control points for a given beams
   /// \result >= 2 if number of control points are valid, 0 otherwise
   unsigned int GetBeamNumberOfControlPoints(unsigned int beamNumber);
+  /// Get number of blocks for a given beam
+  unsigned int GetBeamNumberOfBlocks(unsigned int beamNumber);
+  /// Get number of range shifters for a given beam
+  unsigned int GetBeamNumberOfRangeShifters(unsigned int beamNumber);
 
   /// Get beam number (as defined in DICOM) for a beam index (that is between 0 and numberOfBeams-1)
   unsigned int GetBeamNumberForIndex(unsigned int index);
@@ -97,6 +102,8 @@ public:
 
   /// Get radiation type (primary particle) for a given beam
   const char* GetBeamRadiationType(unsigned int beamNumber);
+  /// Get snout ID for a given beam
+  const char* GetBeamSnoutID( unsigned int beamNumber);
 
   /// Get isocenter for a given control point of a beam
   double* GetBeamControlPointIsocenterPositionRas( unsigned int beamNumber, 
@@ -104,6 +111,9 @@ public:
 
   /// Get nominal beam energy for a given control point of a beam
   double GetBeamControlPointNominalBeamEnergy( unsigned int beamNumber, 
+    unsigned int controlPoint);
+  /// Get snout position for a given control point of a beam
+  double GetBeamControlPointSnoutPosition( unsigned int beamNumber, 
     unsigned int controlPoint);
 
   /// Get source axis distance for a given beam
@@ -175,6 +185,51 @@ public:
     unsigned int controlPoint, std::vector<double>& pairBoundaries, 
     std::vector<double>& leafPositions);
 
+  /// Get range shifter ID for a given beam and range shifter index of RTIonPlan
+  /// \param beamNumber - number of a beam
+  /// \param rangeShifterIndex - range shifter index (that is between 0 and numberOfRangeShifters-1)
+  /// \return range shifter ID or nullptr otherwise
+  const char* GetBeamRangeShifterID(unsigned int beamNumber, unsigned int rangeShifterIndex);
+  /// Get range shifter type
+  /// \param beamNumber - number of a beam
+  /// \param rangeShifterIndex - range shifter index (that is between 0 and numberOfRangeShifters-1)
+  /// \return range shifter type or nullptr otherwise
+  const char* GetBeamRangeShifterType(unsigned int beamNumber, unsigned int rangeShifterIndex);
+  /// Get range shifter number
+  /// \param beamNumber - number of a beam
+  /// \param rangeShifterIndex - range shifter index (that is between 0 and numberOfRangeShifters-1)
+  /// \return range shifter number
+  int GetBeamRangeShifterNumber(unsigned int beamNumber, unsigned int rangeShifterIndex);
+  /// Get range shifter accessory code
+  /// \param beamNumber - number of a beam
+  /// \param rangeShifterIndex - range shifter index (that is between 0 and numberOfRangeShifters-1)
+  /// \return range shifter accessory code or nullptr otherwise
+  const char* GetBeamRangeShifterAccessoryCode(unsigned int beamNumber, unsigned int rangeShifterIndex);
+  /// Get range shifter description
+  /// \param beamNumber - number of a beam
+  /// \param rangeShifterIndex - range shifter index (that is between 0 and numberOfRangeShifters-1)
+  /// \return range shifter description or nullptr otherwise
+  const char* GetBeamRangeShifterDescription(unsigned int beamNumber, unsigned int rangeShifterIndex);
+  /// Get range shifter material id
+  /// \param beamNumber - number of a beam
+  /// \param rangeShifterIndex - range shifter index (that is between 0 and numberOfRangeShifters-1)
+  /// \return range shifter material id or nullptr otherwise
+  const char* GetBeamRangeShifterMaterialID(unsigned int beamNumber, unsigned int rangeShifterIndex);
+  /// Get range shifter material density
+  /// \param beamNumber - number of a beam
+  /// \param rangeShifterIndex - range shifter index (that is between 0 and numberOfRangeShifters-1)
+  /// \return range shifter material density or negative number otherwise
+  double GetBeamRangeShifterMaterialDensity(unsigned int beamNumber, unsigned int rangeShifterIndex);
+
+  /// Get referenced range shifter number for a given control point of a beam
+  int GetBeamControlPointReferencedRangeShifterNumber(unsigned int beamNumber, unsigned int controlPointIndex);
+  /// Get range shifter setting for a given control point of a beam
+  const char* GetBeamControlPointRangeShifterSetting(unsigned int beamNumber, unsigned int controlPointIndex);
+  /// Get isocenter to range shifter distance for a given control point of a beam
+  double GetBeamControlPointIsocenterToRangeShifterDistance(unsigned int beamNumber, unsigned int controlPointIndex);
+  /// Get isocenter to range shifter WET for a given control point of a beam
+  double GetBeamControlPointRangeShifterWET(unsigned int beamNumber, unsigned int controlPointIndex);
+
   /// Get number of channels
   int GetNumberOfChannels();
 
@@ -184,6 +239,10 @@ public:
   /// Get number of control points in channel
   bool GetChannelControlPoint(unsigned int channelNumber, unsigned int controlPointNumber, double controlPointPosition[3]);
 
+  /// Get number of dose references
+  int GetNumberOfDoseReferences();
+  /// Get Dose references as a vtkTable
+  vtkTable* GetDoseReferenceTable();
 
   /// Get referenced SOP instance UID list for the loaded structure set
   vtkGetStringMacro(RTStructureSetReferencedSOPInstanceUIDs);
@@ -290,6 +349,11 @@ public:
   /// Get load image successful flag
   vtkGetMacro(LoadRTImageSuccessful, bool);
 
+  /// Get prescription description
+  vtkGetStringMacro(PrescriptionDescription);
+  /// Set prescription description
+  vtkSetStringMacro(PrescriptionDescription);
+
 protected:
   /// Set pixel spacing for dose volume
   vtkSetVector2Macro(PixelSpacing, double);
@@ -370,6 +434,9 @@ protected:
 
   /// Flag indicating if RT Image has been successfully read from the input dataset
   bool LoadRTImageSuccessful;
+
+  /// Prescription Description from RTPrescription module in RTPlan or RTIonPlan 
+  char* PrescriptionDescription;
 
 protected:
   vtkSlicerDicomRtReader();

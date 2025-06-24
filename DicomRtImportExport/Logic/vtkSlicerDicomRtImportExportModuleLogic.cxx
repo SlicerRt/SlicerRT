@@ -56,6 +56,7 @@
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTIonBeamNode.h"
+#include "vtkMRMLRTIonRangeShifterNode.h"
 #include "vtkSlicerBeamsModuleLogic.h"
 
 // Segmentations includes
@@ -184,7 +185,12 @@ public:
   bool LoadDynamicBeamSequence(vtkSlicerDicomRtReader* rtReader, const char* seriesName, 
     vtkMRMLRTPlanNode* planNode, int beamIndex, vtkMRMLRTBeamNode* proxyBeamNode, 
     vtkMRMLLinearTransformNode* proxyTransformNode, 
-    vtkMRMLTableNode* mlcTableNode, vtkMRMLTableNode* scanSpotTableNode);
+    vtkMRMLTableNode* mlcTableNode, vtkMRMLTableNode* scanSpotTableNode,
+    vtkMRMLRTIonRangeShifterNode* rangeShifterNode);
+
+  /// Load range shifter for a beam, only one range shifter is supported 
+  vtkMRMLRTIonRangeShifterNode* LoadRangeShifter(vtkSlicerDicomRtReader* rtReader, const char* seriesName,
+    vtkMRMLRTPlanNode* planNode, int beamIndex, vtkMRMLScene* scene = nullptr);
 
   /// Load brachytherapy plan (called from \sa LoadRtPlan)
   bool LoadBrachyPlan(vtkSlicerDicomRtReader* rtReader, const char* seriesName, vtkMRMLRTPlanNode* planNode);
@@ -680,6 +686,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
   // Create plan node
   vtkSmartPointer<vtkMRMLRTPlanNode> planNode = vtkSmartPointer<vtkMRMLRTPlanNode>::New();
   planNode->SetName(seriesName);
+  planNode->SetIonPlanFlag(rtReader->GetLoadRTIonPlanSuccessful());
   scene->AddNode(planNode);
 
   // Set up plan subject hierarchy node
@@ -768,6 +775,43 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
     }
   }
 
+  // RT Prescription module dose table
+  if (vtkTable* table = rtReader->GetDoseReferenceTable())
+  {
+    vtkNew< vtkMRMLTableNode > doseReferencesTableNode;
+    std::ostringstream name;
+    name << seriesName << ": Dose reference Table";
+    if (rtReader->GetPrescriptionDescription())
+    {
+      name << " [" << rtReader->GetPrescriptionDescription() << ']';
+    }
+    std::string tableName = name.str();
+    doseReferencesTableNode->SetName(tableName.c_str());
+    scene->AddNode(doseReferencesTableNode);
+
+    doseReferencesTableNode->SetUseColumnTitleAsColumnHeader(true);
+    doseReferencesTableNode->SetColumnDescription("Description", "Dose Reference Description");
+    doseReferencesTableNode->SetColumnDescription("Structure Type", "Dose Reference Structure Type");
+    doseReferencesTableNode->SetColumnDescription("Reference Type", "Dose Reference Type");
+    doseReferencesTableNode->SetColumnDescription("Target Min. Dose", "Target/Organ Minimum Dose (in Gy)");
+    doseReferencesTableNode->SetColumnDescription("Target Prescription Dose", "Target Prescription Dose (in Gy)");
+    doseReferencesTableNode->SetColumnDescription("Target Max. Dose", "Target/Organ Maximum Dose (in Gy)");
+    doseReferencesTableNode->SetColumnDescription("Target Underdose Frac.", "Target Underdose Volume Fraction (in %)");
+    doseReferencesTableNode->SetColumnDescription("Weight", "Constraint Weight");
+    doseReferencesTableNode->SetColumnDescription("Organ Max. Dose", "Organ at Risk Maximum Dose (in Gy)");
+    doseReferencesTableNode->SetColumnDescription("Organ Overdose Frac.", "Organ at Risk Overdose Volume Fraction (in %)");
+
+    vtkSmartPointer< vtkTable > doseTable = vtkSmartPointer< vtkTable >::Take(table);
+    doseReferencesTableNode->SetAndObserveTable(doseTable);
+
+    planNode->SetAndObserveDoseReferenceTableNode(doseReferencesTableNode);
+    vtkIdType doseReferencesShId = shNode->GetItemByDataNode(doseReferencesTableNode);
+    if (doseReferencesShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+      shNode->SetItemParent(doseReferencesShId, planShItemID);
+    }
+  }
+
   return true;
 }
 
@@ -794,6 +838,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
     unsigned int dicomBeamNumber = rtReader->GetBeamNumberForIndex(beamIndex);
     const char* beamName = rtReader->GetBeamName(dicomBeamNumber);
     unsigned int nofCointrolPoints = rtReader->GetBeamNumberOfControlPoints(dicomBeamNumber);
+    unsigned int nofRangeShifters = rtReader->GetBeamNumberOfRangeShifters(dicomBeamNumber);
+    unsigned int nofBlocks = rtReader->GetBeamNumberOfBlocks(dicomBeamNumber);
     const char* beamType = rtReader->GetBeamType(dicomBeamNumber);
     const char* treatmentDeliveryType = rtReader->GetBeamTreatmentDeliveryType(dicomBeamNumber);
     bool singleBeam = false;
@@ -814,13 +860,14 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
     vtkMRMLLinearTransformNode* beamTransformNode = nullptr;
     vtkMRMLTableNode* mlcTableNode = nullptr;
     vtkMRMLTableNode* scanSpotTableNode = nullptr;
+    vtkMRMLRTIonRangeShifterNode* rangeShifterNode = nullptr;
     if (singleBeam && (beamNode = this->LoadStaticBeam(rtReader, seriesName, 
       planNode, beamIndex, mlcTableNode, scanSpotTableNode)))
     {
-      ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(beamNode);
     }
     else if (!singleBeam && this->LoadDynamicBeamSequence(rtReader, seriesName, 
-      planNode, beamIndex, beamNode, beamTransformNode, mlcTableNode, scanSpotTableNode))
+      planNode, beamIndex, beamNode, beamTransformNode, mlcTableNode, scanSpotTableNode,
+      rangeShifterNode))
     {
     }
     else
@@ -853,6 +900,7 @@ vtkMRMLRTBeamNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadSta
   // Create the beam node for each control point
   vtkSmartPointer<vtkMRMLRTBeamNode> beamNode; // for RTPlan
   vtkSmartPointer<vtkMRMLRTIonBeamNode> ionBeamNode; // for RTIonPlan
+  vtkMRMLRTIonRangeShifterNode* rangeShifterNode = nullptr; // for IonRangeShifter
   if (rtReader->GetLoadRTPlanSuccessful())
   {
     beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
@@ -900,6 +948,20 @@ vtkMRMLRTBeamNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadSta
     {
       ionBeamNode->SetScanningSpotSize(ScanSpotSize);
     }
+
+    // add range shifter if any to the ion beam node
+    rangeShifterNode = this->LoadRangeShifter(rtReader, seriesName, planNode, beamIndex);
+    if (rangeShifterNode)
+    {
+      // load range shifter setting to the ion beam node
+      ionBeamNode->SetReferencedRangeShifterNumber(rtReader->GetBeamControlPointReferencedRangeShifterNumber(dicomBeamNumber, 0));
+      ionBeamNode->SetRangeShifterSetting(rtReader->GetBeamControlPointRangeShifterSetting(dicomBeamNumber, 0));
+      ionBeamNode->SetRangeShifterWET(rtReader->GetBeamControlPointRangeShifterWET(dicomBeamNumber, 0));
+      ionBeamNode->SetIsocenterToRangeShifterDistance(rtReader->GetBeamControlPointIsocenterToRangeShifterDistance(dicomBeamNumber, 0));
+    }
+    // snout data
+    ionBeamNode->SetSnoutID(rtReader->GetBeamSnoutID(dicomBeamNumber));
+    ionBeamNode->SetSnoutPosition(rtReader->GetBeamControlPointSnoutPosition(dicomBeamNumber, 0));
   }
 
   // Set isocenter to parent plan
@@ -977,10 +1039,19 @@ vtkMRMLRTBeamNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadSta
   }
   if (ionBeamNode)
   {
+    vtkMRMLLinearTransformNode* beamTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(ionBeamNode->GetParentTransformNode());
     // Add scan spot to ion beam
     if (scanSpotTableNode)
     {
       ionBeamNode->SetAndObserveScanSpotTableNode(scanSpotTableNode);
+    }
+    // Add range shifter to ion beam, and trigger geometry update
+    if (rangeShifterNode)
+    {
+      ionBeamNode->SetAndObserveRangeShifterNode(rangeShifterNode);
+      rangeShifterNode->SetAndObserveParentBeamNode(ionBeamNode);
+      rangeShifterNode->SetAndObserveTransformNodeID(beamTransformNode->GetID());
+      ionBeamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
     }
   }
 
@@ -1008,21 +1079,30 @@ vtkMRMLRTBeamNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadSta
   }
 
   // put observed scan spot data under ion beam node parent
+  // put observed range shifter under ion beam node parent
   if (ionBeamNode)
   {
     vtkIdType scanSpotShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
+    vtkIdType rangeShifterShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
     if (scanSpotTableNode)
     {
       scanSpotShId = shNode->GetItemByDataNode(scanSpotTableNode);
     }
-
+    if (rangeShifterNode)
+    {
+      rangeShifterShId = shNode->GetItemByDataNode(rangeShifterNode);
+    }
     if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
       scanSpotShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
       shNode->SetItemParent(scanSpotShId, beamShId);
     }
+    if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
+      rangeShifterShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+      shNode->SetItemParent(rangeShifterShId, beamShId);
+    }
   }
-
   return beamNode;
 }
 
@@ -1031,7 +1111,8 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
   vtkSlicerDicomRtReader* rtReader, const char* seriesName, 
   vtkMRMLRTPlanNode* planNode, int beamIndex, vtkMRMLRTBeamNode* proxyBeamNode, 
   vtkMRMLLinearTransformNode* proxyTransformNode, 
-  vtkMRMLTableNode* proxyMlcTableNode, vtkMRMLTableNode* proxyScanSpotTableNode)
+  vtkMRMLTableNode* proxyMlcTableNode, vtkMRMLTableNode* proxyScanSpotTableNode,
+  vtkMRMLRTIonRangeShifterNode* proxyRangeShifterNode)
 {
   vtkMRMLScene* scene = planNode->GetScene();
 
@@ -1068,6 +1149,11 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
   mlcTableSequenceNode->SetIndexUnit("index");
   mlcTableSequenceNode->SetIndexType(vtkMRMLSequenceNode::NumericIndex);
 
+  vtkNew<vtkMRMLSequenceNode> rsSequenceNode;
+  rsSequenceNode->SetIndexName("Control point");
+  rsSequenceNode->SetIndexUnit("index");
+  rsSequenceNode->SetIndexType(vtkMRMLSequenceNode::NumericIndex);
+
   std::vector<double> dummy1, dummy2;
   const char* mlcName = rtReader->GetBeamControlPointMultiLeafCollimatorPositions(
     dicomBeamNumber, 0, dummy1, dummy2);
@@ -1085,6 +1171,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
 
   // Add sequence nodes to the scene
   scene->AddNode(beamSequenceNode);
+  scene->AddNode(rsSequenceNode);
   scene->AddNode(transformSequenceNode);
   scene->AddNode(mlcTableSequenceNode);
   scene->AddNode(beamSequenceBrowserNode);
@@ -1122,11 +1209,12 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
     // Create the beam node for each control point
     vtkSmartPointer<vtkMRMLRTBeamNode> beamNode; // for RTPlan
     vtkSmartPointer<vtkMRMLRTIonBeamNode> ionBeamNode; // for RTIonPlan
-    if (rtReader->GetLoadRTPlanSuccessful())
+    vtkMRMLRTIonRangeShifterNode* rangeShifterNode = nullptr; // for IonRangeShifter
+    if (rtReader->GetLoadRTPlanSuccessful() && !rtReader->GetLoadRTIonPlanSuccessful())
     {
       beamNode = vtkSmartPointer<vtkMRMLRTBeamNode>::New();
     }
-    else if (rtReader->GetLoadRTIonPlanSuccessful())
+    else if (!rtReader->GetLoadRTPlanSuccessful() && rtReader->GetLoadRTIonPlanSuccessful())
     {
       beamNode = ionBeamNode = vtkSmartPointer<vtkMRMLRTIonBeamNode>::New();
     }
@@ -1141,6 +1229,34 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
 
     std::string newBeamName = nameStream.str();
     beamNode->SetName(newBeamName.c_str());
+
+    double* cpIsocenter = rtReader->GetBeamControlPointIsocenterPositionRas(dicomBeamNumber, controlPointIndex);
+    if (cpIsocenter)
+    {
+      beamNode->SetIsocenterPositionFlag(true);
+      beamNode->SetIsocenterPosition(cpIsocenter);
+    }
+
+    if (ionBeamNode)
+    {
+      // snout data
+      ionBeamNode->SetSnoutID(rtReader->GetBeamSnoutID(dicomBeamNumber));
+      ionBeamNode->SetSnoutPosition(rtReader->GetBeamControlPointSnoutPosition(dicomBeamNumber, controlPointIndex));
+      // add range shifter if any to the ion beam node
+      rangeShifterNode = this->LoadRangeShifter(rtReader, seriesName, planNode, beamIndex, rsSequenceNode->GetSequenceScene());
+      if (rangeShifterNode)
+      {
+        // load range shifter setting to the ion beam node
+        ionBeamNode->SetReferencedRangeShifterNumber(
+          rtReader->GetBeamControlPointReferencedRangeShifterNumber(dicomBeamNumber, controlPointIndex));
+        ionBeamNode->SetRangeShifterSetting(
+          rtReader->GetBeamControlPointRangeShifterSetting(dicomBeamNumber, controlPointIndex));
+        ionBeamNode->SetRangeShifterWET(
+          rtReader->GetBeamControlPointRangeShifterWET(dicomBeamNumber, controlPointIndex));
+        ionBeamNode->SetIsocenterToRangeShifterDistance(
+          rtReader->GetBeamControlPointIsocenterToRangeShifterDistance(dicomBeamNumber, controlPointIndex));
+      }
+    }
 
     // Set beam geometry parameters from DICOM
     double jawPositions[2][2] = {{0.0, 0.0},{0.0, 0.0}};
@@ -1165,7 +1281,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
       beamNode->SetSourceToMultiLeafCollimatorDistance(rtReader->GetBeamSourceToMultiLeafCollimatorDistance(dicomBeamNumber));
     }
     // VSAD for RTIonPlan
-    // isocenter to beam limiting devices (Jaws, MLC), scanning spot size for ion beams  
+    // isocenter to beam limiting devices (Jaws, MLC), nominal energy, scanning spot size for ion beams
     else if (ionBeamNode)
     {
       std::array< float, 2 > ScanSpotSize;
@@ -1173,6 +1289,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
       ionBeamNode->SetIsocenterToJawsDistanceX(rtReader->GetBeamIsocenterToJawsDistanceX(dicomBeamNumber));
       ionBeamNode->SetIsocenterToJawsDistanceY(rtReader->GetBeamIsocenterToJawsDistanceY(dicomBeamNumber));
       ionBeamNode->SetIsocenterToMultiLeafCollimatorDistance(rtReader->GetBeamIsocenterToMultiLeafCollimatorDistance(dicomBeamNumber));
+      ionBeamNode->SetBeamEnergy(rtReader->GetBeamControlPointNominalBeamEnergy(dicomBeamNumber, controlPointIndex));
       bool res = rtReader->GetBeamControlPointScanningSpotSize(dicomBeamNumber, controlPointIndex, ScanSpotSize);
       if (res)
       {
@@ -1278,6 +1395,10 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
     {
       mlcTableSequenceNode->SetDataNodeAtValue(scanSpotTableNode, std::to_string(controlPointIndex));
     }
+    if (rangeShifterNode)
+    {
+      rsSequenceNode->SetDataNodeAtValue(rangeShifterNode, std::to_string(controlPointIndex));
+    }
   } // end of a control point
 
   // if IonRTBeam, then set table sequence node name as scan spot
@@ -1291,6 +1412,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
   beamSequenceBrowserNode->SetAndObserveMasterSequenceNodeID(beamSequenceNode->GetID());
   beamSequenceBrowserNode->AddSynchronizedSequenceNode(transformSequenceNode);
   beamSequenceBrowserNode->AddSynchronizedSequenceNode(mlcTableSequenceNode);
+  beamSequenceBrowserNode->AddSynchronizedSequenceNode(rsSequenceNode);
 
   // Get proxy beam node
   vtkMRMLNode* node = beamSequenceBrowserNode->GetProxyNode(beamSequenceNode);
@@ -1318,6 +1440,13 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
 
   proxyMlcTableNode = vtkMRMLTableNode::SafeDownCast(beamSequenceBrowserNode->GetProxyNode(mlcTableSequenceNode));
   proxyScanSpotTableNode = vtkMRMLTableNode::SafeDownCast(beamSequenceBrowserNode->GetProxyNode(mlcTableSequenceNode));
+  proxyRangeShifterNode = vtkMRMLRTIonRangeShifterNode::SafeDownCast(beamSequenceBrowserNode->GetProxyNode(rsSequenceNode));
+
+  // apply proxy transform to proxy range shifter
+  if (proxyRangeShifterNode && proxyTransformNode)
+  {
+    proxyRangeShifterNode->SetAndObserveTransformNodeID(proxyTransformNode->GetID());
+  }
 
   // Set beam node as a parent for observed nodes
   vtkIdType beamShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
@@ -1336,9 +1465,9 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
     shNode->SetItemParent(mlcTableShId, beamShId);
   }
 
-  // put observed scan spot data under ion beam node parent
   if (proxyIonBeamNode)
   {
+    // put observed scan spot data under ion beam node parent
     vtkIdType scanSpotShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
 
     if (proxyScanSpotTableNode)
@@ -1353,8 +1482,23 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
     {
       shNode->SetItemParent(scanSpotShId, beamShId);
     }
-  }
 
+    // put observed range shifter under ion beam node parent
+    vtkIdType rsShId = vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID;
+
+    if (proxyRangeShifterNode)
+    {
+      proxyIonBeamNode->SetAndObserveRangeShifterNode(proxyRangeShifterNode);
+      proxyRangeShifterNode->SetAndObserveParentBeamNode(proxyIonBeamNode);
+      rsShId = shNode->GetItemByDataNode(proxyRangeShifterNode);
+    }
+
+    if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
+      rsShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+    {
+      shNode->SetItemParent(rsShId, beamShId);
+    }
+  }
   return true;
 }
 
@@ -1754,6 +1898,78 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal
   markupsNode->SetDisplayVisibility(0);
 
   return markupsNode;
+}
+
+//---------------------------------------------------------------------------
+vtkMRMLRTIonRangeShifterNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRangeShifter(
+  vtkSlicerDicomRtReader* rtReader, const char* seriesName, vtkMRMLRTPlanNode* planNode, 
+  int beamIndex,  vtkMRMLScene* scene)
+{
+  unsigned int dicomBeamNumber = rtReader->GetBeamNumberForIndex(beamIndex);
+  const char* beamName = rtReader->GetBeamName(dicomBeamNumber);
+  unsigned int nofRangeShifters = rtReader->GetBeamNumberOfRangeShifters(dicomBeamNumber);
+  if (!rtReader->GetLoadRTIonPlanSuccessful())
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadRangeShifter: Not a RTIonPlan");
+    return nullptr;
+  }
+  if (nofRangeShifters <= 0)
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadRangeShifter: Number of beam's range shifters is less than one");
+    return nullptr;
+  }
+
+  vtkNew<vtkMRMLRTIonRangeShifterNode> rangeShifterNode;
+
+  // Get range shifter data
+  rangeShifterNode->SetNumber(rtReader->GetBeamRangeShifterNumber(dicomBeamNumber, 0));
+  rangeShifterNode->SetRangeShifterID(rtReader->GetBeamRangeShifterID(dicomBeamNumber, 0));
+  const char* rsType = rtReader->GetBeamRangeShifterType(dicomBeamNumber, 0);
+  if (rsType)
+  {
+    if (!std::strcmp(rsType, "ANALOG"))
+    {
+      rangeShifterNode->SetType(vtkMRMLRTIonRangeShifterNode::ANALOG);
+    }
+    else if (!std::strcmp(rsType, "BINARY"))
+    {
+      rangeShifterNode->SetType(vtkMRMLRTIonRangeShifterNode::BINARY);
+    }
+  }
+
+  rangeShifterNode->SetAccessoryCode(rtReader->GetBeamRangeShifterAccessoryCode(dicomBeamNumber, 0));
+  rangeShifterNode->SetDescription(rtReader->GetBeamRangeShifterDescription(dicomBeamNumber, 0));
+  rangeShifterNode->SetMaterialID(rtReader->GetBeamRangeShifterMaterialID(dicomBeamNumber, 0));
+  rangeShifterNode->SetMaterialDensity(rtReader->GetBeamRangeShifterMaterialDensity(dicomBeamNumber, 0));
+
+  // Add ion range shifter (only one)
+  // Unique ion range shifter name
+  std::stringstream sstream;
+
+  sstream << "RS" << ' ' << rangeShifterNode->GetRangeShifterID();
+  if (!rangeShifterNode->GetDescription())
+  {
+    sstream << " : [ " << rangeShifterNode->GetDescription() << " ]";
+  }
+  if (!rangeShifterNode->GetMaterialID())
+  {
+    sstream << " : ( " << rangeShifterNode->GetMaterialID() << " )";
+  }
+  std::string name = sstream.str();
+
+  std::string uniqName = this->External->GetMRMLScene()->GenerateUniqueName(name);
+  rangeShifterNode->SetName(uniqName.c_str());
+  
+  if (scene) // sequence scene
+  {
+    scene->AddNode(rangeShifterNode);
+  }
+  else
+  {
+    this->External->GetMRMLScene()->AddNode(rangeShifterNode);
+  }
+
+  return rangeShifterNode.GetPointer();
 }
 
 //---------------------------------------------------------------------------

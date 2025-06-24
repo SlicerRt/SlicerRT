@@ -31,6 +31,7 @@
 #include <vtkMRMLSegmentationNode.h>
 #include <vtkSlicerSegmentationsModuleLogic.h>
 #include <vtkMRMLScalarVolumeNode.h>
+#include <vtkMRMLTableNode.h>
 
 // VTK includes
 #include <vtkCollection.h>
@@ -50,6 +51,7 @@ static const char* REFERENCE_VOLUME_REFERENCE_ROLE = "referenceVolumeRef";
 static const char* SEGMENTATION_REFERENCE_ROLE = "segmentationRef";
 static const char* POIS_MARKUPS_REFERENCE_ROLE = "posMarkupsRef";
 static const char* OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE = "outputTotalDoseVolumeRef";
+static const char* DOSE_REFERENCE_TABLE_ROLE = "doseReferenceTableRef";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
@@ -434,6 +436,24 @@ void vtkMRMLRTPlanNode::SetAndObserveOutputTotalDoseVolumeNode(vtkMRMLScalarVolu
     }
 
   this->SetNodeReferenceID(OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLTableNode* vtkMRMLRTPlanNode::GetDoseReferenceTableNode()
+{
+  return vtkMRMLTableNode::SafeDownCast(this->GetNodeReference(DOSE_REFERENCE_TABLE_ROLE));
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::SetAndObserveDoseReferenceTableNode(vtkMRMLTableNode* node)
+{
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
+  this->SetNodeReferenceID(DOSE_REFERENCE_TABLE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //---------------------------------------------------------------------------

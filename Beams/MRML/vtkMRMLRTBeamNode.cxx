@@ -64,6 +64,7 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->BeamNumber = -1;
   this->BeamDescription = nullptr;
   this->BeamWeight = 1.0;
+  this->BeamEnergy = -1.0;
 
   this->X1Jaw = -100.0;
   this->X2Jaw = 100.0;
@@ -79,6 +80,12 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->SourceToJawsDistanceX = 500.;
   this->SourceToJawsDistanceY = 500.;
   this->SourceToMultiLeafCollimatorDistance = 400.;
+
+  // control point isocenter
+  this->IsocenterPositionFlag = false;
+  this->IsocenterPosition[0] = 0.;
+  this->IsocenterPosition[1] = 0.;
+  this->IsocenterPosition[2] = 0.;
 
   this->Selectable = false;
 }
@@ -99,6 +106,7 @@ void vtkMRMLRTBeamNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLIntMacro(BeamNumber, BeamNumber);
   vtkMRMLWriteXMLStringMacro(BeamDescription, BeamDescription);
   vtkMRMLWriteXMLFloatMacro(BeamWeight, BeamWeight);
+  vtkMRMLWriteXMLFloatMacro(BeamEnergy, BeamEnergy);
   vtkMRMLWriteXMLFloatMacro(X1Jaw, X1Jaw);
   vtkMRMLWriteXMLFloatMacro(X2Jaw, X2Jaw);
   vtkMRMLWriteXMLFloatMacro(Y1Jaw, Y1Jaw);
@@ -110,6 +118,8 @@ void vtkMRMLRTBeamNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLFloatMacro(GantryAngle, GantryAngle);
   vtkMRMLWriteXMLFloatMacro(CollimatorAngle, CollimatorAngle);
   vtkMRMLWriteXMLFloatMacro(CouchAngle, CouchAngle);
+  vtkMRMLWriteXMLBooleanMacro(IsocenterPositionFlag, IsocenterPositionFlag);
+  vtkMRMLWriteXMLVectorMacro( IsocenterPosition, IsocenterPosition, double, 3);
   vtkMRMLWriteXMLEndMacro();
 }
 
@@ -123,6 +133,7 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLIntMacro(BeamNumber, BeamNumber);
   vtkMRMLReadXMLStringMacro(BeamDescription, BeamDescription);
   vtkMRMLReadXMLFloatMacro(BeamWeight, BeamWeight);
+  vtkMRMLReadXMLFloatMacro(BeamEnergy, BeamEnergy);
   vtkMRMLReadXMLFloatMacro(X1Jaw, X1Jaw);
   vtkMRMLReadXMLFloatMacro(X2Jaw, X2Jaw);
   vtkMRMLReadXMLFloatMacro(Y1Jaw, Y1Jaw);
@@ -134,6 +145,8 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLFloatMacro(GantryAngle, GantryAngle);
   vtkMRMLReadXMLFloatMacro(CollimatorAngle, CollimatorAngle);
   vtkMRMLReadXMLFloatMacro(CouchAngle, CouchAngle);
+  vtkMRMLReadXMLBooleanMacro(IsocenterPositionFlag, IsocenterPositionFlag);
+  vtkMRMLReadXMLVectorMacro( IsocenterPosition, IsocenterPosition, double, 3);
   vtkMRMLReadXMLEndMacro();
 }
 
@@ -170,6 +183,7 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyIntMacro(BeamNumber);
   vtkMRMLCopyStringMacro(BeamDescription);
   vtkMRMLCopyFloatMacro(BeamWeight);
+  vtkMRMLCopyFloatMacro(BeamEnergy);
   vtkMRMLCopyFloatMacro(X1Jaw);
   vtkMRMLCopyFloatMacro(X2Jaw);
   vtkMRMLCopyFloatMacro(Y1Jaw);
@@ -180,6 +194,8 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyFloatMacro(GantryAngle);
   vtkMRMLCopyFloatMacro(CollimatorAngle);
   vtkMRMLCopyFloatMacro(CouchAngle);
+  vtkMRMLCopyBooleanMacro(IsocenterPositionFlag);
+  vtkMRMLCopyVectorMacro(IsocenterPosition, double, 3);
   vtkMRMLCopyEndMacro();
 
   this->EndModify(disabledModify);
@@ -203,6 +219,7 @@ void vtkMRMLRTBeamNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*/)
   vtkMRMLCopyIntMacro(BeamNumber);
   vtkMRMLCopyStringMacro(BeamDescription);
   vtkMRMLCopyFloatMacro(BeamWeight);
+  vtkMRMLCopyFloatMacro(BeamEnergy);
   vtkMRMLCopyFloatMacro(X1Jaw);
   vtkMRMLCopyFloatMacro(X2Jaw);
   vtkMRMLCopyFloatMacro(Y1Jaw);
@@ -213,6 +230,8 @@ void vtkMRMLRTBeamNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*/)
   vtkMRMLCopyFloatMacro(GantryAngle);
   vtkMRMLCopyFloatMacro(CollimatorAngle);
   vtkMRMLCopyFloatMacro(CouchAngle);
+  vtkMRMLCopyBooleanMacro(IsocenterPositionFlag);
+  vtkMRMLCopyVectorMacro(IsocenterPosition, double, 3);
   vtkMRMLCopyEndMacro();
 }
 
@@ -245,6 +264,7 @@ void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintIntMacro(BeamNumber);
   vtkMRMLPrintStringMacro(BeamDescription);
   vtkMRMLPrintFloatMacro(BeamWeight);
+  vtkMRMLPrintFloatMacro(BeamEnergy);
   vtkMRMLPrintFloatMacro(X1Jaw);
   vtkMRMLPrintFloatMacro(X2Jaw);
   vtkMRMLPrintFloatMacro(Y1Jaw);
@@ -256,6 +276,8 @@ void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintFloatMacro(GantryAngle);
   vtkMRMLPrintFloatMacro(CollimatorAngle);
   vtkMRMLPrintFloatMacro(CouchAngle);
+  vtkMRMLPrintBooleanMacro(IsocenterPositionFlag);
+  vtkMRMLPrintVectorMacro(IsocenterPosition, double, 3);
   vtkMRMLPrintEndMacro();
 }
 
@@ -505,6 +527,28 @@ void vtkMRMLRTBeamNode::SetSAD(double sad)
   this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
 }
 
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetIsocenterPositionFlag(bool isocenterIsPresent)
+{
+  this->IsocenterPositionFlag = isocenterIsPresent;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetIsocenterPosition(double isocenterPosition[3])
+{
+  this->IsocenterPosition[0] = isocenterPosition[0];
+  this->IsocenterPosition[1] = isocenterPosition[1];
+  this->IsocenterPosition[2] = isocenterPosition[2];
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTBeamNode::SetIsocenterPosition(const std::array< double, 3 >& isocenterPosition)
+{
+  this->IsocenterPosition[0] = isocenterPosition[0];
+  this->IsocenterPosition[1] = isocenterPosition[1];
+  this->IsocenterPosition[2] = isocenterPosition[2];
+}
+
 //---------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::UpdateGeometry()
 {
@@ -662,7 +706,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
 
     if (!sections.size()) // no visible sections
     {
-      vtkErrorMacro("CreateBeamPolyData: Unable to calculate MLC visible data");
+      vtkWarningMacro("CreateBeamPolyData: Unable to calculate MLC visible data");
       return;
     }
 

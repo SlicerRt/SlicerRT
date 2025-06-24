@@ -34,6 +34,10 @@
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
+#include <vtkTable.h>
+#include <vtkStringArray.h>
+#include <vtkDoubleArray.h>
+#include <vtkVariant.h>
 
 // STD includes
 #include <array>
@@ -52,6 +56,8 @@
 #include <dcmtk/dcmrt/drttreat.h>
 #include <dcmtk/dcmrt/drtionpl.h>
 #include <dcmtk/dcmrt/drtiontr.h>
+#include <dcmtk/dcmrt/seq/drticps.h>
+#include <dcmtk/dcmrt/seq/drtrshs1.h>
 
 // Qt includes
 #include <QSettings>
@@ -100,11 +106,13 @@ public:
       Type("BINARY")
     {
     }
-    int Number;
+    unsigned int Number;
     std::string ID;
     std::string AccessoryCode;
     std::string Type; // "ANALOG", "BINARY"
     std::string Description;
+    std::string MaterialID;
+    double MaterialDensity;
   };
 
   //TODO: Add support of compensators
@@ -123,8 +131,11 @@ public:
   {
   public:
     BlockEntry()
+      :
+      IsocenterToBlockTrayDistance(-1.)
     {
     }
+    double IsocenterToBlockTrayDistance;
   };
 
   /// Structure storing a ROI of an RT structure set
@@ -199,6 +210,7 @@ public:
     ControlPointEntry& operator=(const ControlPointEntry& src);
 
     unsigned int Index;
+    bool IsocenterPositionFlag;
     std::array< double, 3 > IsocenterPositionRas;
     
     //TODO:
@@ -219,11 +231,11 @@ public:
     std::string MultiLeafCollimatorType; // "MLCX" or "MLCY"
     /// MLC positions: Raw DICOM values
     std::vector<double> LeafPositions;
-
+    // Range shifter settings (only one settings for only one range shifter is supported)
     int ReferencedRangeShifterNumber;
     std::string RangeShifterSetting;
     double IsocenterToRangeShifterDistance;
-    double RangeShifterWaterEquivalentThickness;
+    double RangeShifterWET; // WaterEquivalentThickness
 
     // Parameters taken from plastimatch (for future use)
     std::string GantryRotationDirection;
@@ -239,7 +251,9 @@ public:
     unsigned int NumberOfPaintings;
     std::array< float, 2 > ScanningSpotSize;
     std::string PatientSupportRotationDirection;
-    
+    float SnoutPosition;
+    float IsocenterToBlockTrayDistance;
+
     float TableTopPitchAngle;
     std::string TableTopPitchRotationDirection;
     float TableTopRollAngle;
@@ -308,6 +322,7 @@ public:
     double FinalCumulativeMetersetWeight;
     /// Scan mode type;
     std::string ScanMode; // MODULATED, NONE, UNIFORM
+    std::string SnoutID;
     // Parameters taken from plastimatch (for future use)
     std::string TreatmentMachineName;
     std::string TreatmentDeliveryType;
@@ -343,6 +358,37 @@ public:
   /// List of loaded channels from brachytherapy plan
   std::vector<ChannelEntry> ChannelSequenceVector;
 
+  /// Structure storing an RT Dose Prescription, Dose reference
+  class DoseReferenceEntry
+  {
+  public:
+    DoseReferenceEntry()
+    {
+      Number = -1;
+      TargetMinimumDose = -1.;
+      TargetPrescriptionDose = -1.;
+      TargetMaximumDose = -1.;
+      ConstraintWeight = -1.;
+      OrganAtRiskMaxDose = -1.;
+      TargetUnderdoseVolumeFraction = -1.;
+      OrganAtRiskOverdoseVolumeFraction = -1.;
+    }
+    unsigned int Number;
+    std::string StructureType;
+    double TargetMinimumDose;
+    double TargetPrescriptionDose;
+    double TargetMaximumDose;
+    double TargetUnderdoseVolumeFraction;
+    double ConstraintWeight;
+    double OrganAtRiskMaxDose;
+    double OrganAtRiskOverdoseVolumeFraction;
+    std::string Description;
+    std::string ReferenceType;
+  };
+
+  /// List of dose references from external beam plan
+  std::vector<DoseReferenceEntry> DoseReferenceSequenceVector;
+
 public:
   /// Load RT Dose
   void LoadRTDose(DcmDataset* dataset);
@@ -351,14 +397,18 @@ public:
   void LoadRTPlan(DcmDataset* dataset);
   /// Load RT Ion Plan
   void LoadRTIonPlan(DcmDataset* dataset);
+  /// Load RT Prescription from RT Plan or RT Ion Plan
+  void LoadRTPrescription(DcmDataset* dataset);
 
   /// Load RT Structure Set
   void LoadRTStructureSet(DcmDataset* dataset);
   /// Load contours from a structure sequence
   void LoadContoursFromRoiSequence(DRTStructureSetROISequence* roiSequence);
+  /// Load dose references from a dose reference sequence
+  void LoadDoseReferencesFromSequence(DRTDoseReferenceSequence& doseReferenceSequence);
+
   /// Load individual contour from RT Structure Set
   vtkSlicerDicomRtReader::vtkInternal::RoiEntry* LoadContour(DRTROIContourSequence::Item &roiObject, DRTStructureSetIOD* rtStructureSet);
-
   /// Load RT Image
   void LoadRTImage(DcmDataset* dataset);
 
@@ -371,6 +421,13 @@ public:
 
   /// Find and return a channel entry according to its channel number
   ChannelEntry* FindChannelByNumber(unsigned int channelNumber);
+
+  /// Find and return a range shifter entry according to its range shifter number
+  /// for a particular beam number
+  RangeShifterEntry* FindRangeShifterByNumber(unsigned int beamNumber, unsigned int rangeShifterNumber);
+  /// Find and return a range shifter index according to its range shifter number
+  /// for a particular beam number
+  unsigned int FindRangeShifterIndexByNumber(unsigned int beamNumber, unsigned int rangeShifterNumber);
 
   /// Get frame of reference for an SOP instance
   DRTRTReferencedSeriesSequence* GetReferencedSeriesSequence(DRTStructureSetIOD* rtStructureSet);
@@ -395,6 +452,7 @@ vtkSlicerDicomRtReader::vtkInternal::vtkInternal(vtkSlicerDicomRtReader* externa
   this->RoiSequenceVector.clear();
   this->BeamSequenceVector.clear();
   this->ChannelSequenceVector.clear();
+  this->DoseReferenceSequenceVector.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -403,6 +461,7 @@ vtkSlicerDicomRtReader::vtkInternal::~vtkInternal()
   this->RoiSequenceVector.clear();
   this->BeamSequenceVector.clear();
   this->ChannelSequenceVector.clear();
+  this->DoseReferenceSequenceVector.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -472,6 +531,7 @@ void vtkSlicerDicomRtReader::vtkInternal::RoiEntry::SetPolyData(vtkPolyData* roi
 vtkSlicerDicomRtReader::vtkInternal::ControlPointEntry::ControlPointEntry()
   :
   Index(0),
+  IsocenterPositionFlag(false),
   IsocenterPositionRas({ 0.0, 0.0, 0.0 }),
   CumulativeMetersetWeight(-1.0),
   GantryAngle(0.0),
@@ -479,7 +539,8 @@ vtkSlicerDicomRtReader::vtkInternal::ControlPointEntry::ControlPointEntry()
   BeamLimitingDeviceAngle(0.0),
   NominalBeamEnergy(0.0),
   MetersetRate(0.0),
-  JawPositions({ -100.0, 100.0, -100.0, 100.0 })
+  JawPositions({ -100.0, 100.0, -100.0, 100.0 }),
+  SnoutPosition(-1.)
 {
 }
 
@@ -499,7 +560,7 @@ vtkSlicerDicomRtReader::vtkInternal::ControlPointEntry::ControlPointEntry(const 
   ReferencedRangeShifterNumber(src.ReferencedRangeShifterNumber),
   RangeShifterSetting(src.RangeShifterSetting),
   IsocenterToRangeShifterDistance(src.IsocenterToRangeShifterDistance),
-  RangeShifterWaterEquivalentThickness(src.RangeShifterWaterEquivalentThickness),
+  RangeShifterWET(src.RangeShifterWET),
   GantryRotationDirection(src.GantryRotationDirection),
   GantryPitchAngle(src.GantryPitchAngle),
   GantryPitchRotationDirection(src.GantryPitchRotationDirection),
@@ -512,6 +573,7 @@ vtkSlicerDicomRtReader::vtkInternal::ControlPointEntry::ControlPointEntry(const 
   NumberOfPaintings(src.NumberOfPaintings),
   ScanningSpotSize(src.ScanningSpotSize),
   PatientSupportRotationDirection(src.PatientSupportRotationDirection),
+  SnoutPosition(src.SnoutPosition),
   TableTopPitchAngle(src.TableTopPitchAngle),
   TableTopPitchRotationDirection(src.TableTopPitchRotationDirection),
   TableTopRollAngle(src.TableTopRollAngle),
@@ -544,7 +606,7 @@ vtkSlicerDicomRtReader::vtkInternal::ControlPointEntry::operator=(const ControlP
   this->ReferencedRangeShifterNumber = src.ReferencedRangeShifterNumber;
   this->RangeShifterSetting = src.RangeShifterSetting;
   this->IsocenterToRangeShifterDistance = src.IsocenterToRangeShifterDistance;
-  this->RangeShifterWaterEquivalentThickness = src.RangeShifterWaterEquivalentThickness;
+  this->RangeShifterWET = src.RangeShifterWET;
 
   this->GantryRotationDirection = src.GantryRotationDirection;
   this->GantryPitchAngle = src.GantryPitchAngle;
@@ -552,6 +614,7 @@ vtkSlicerDicomRtReader::vtkInternal::ControlPointEntry::operator=(const ControlP
   this->BeamLimitingDeviceRotationDirection = src.BeamLimitingDeviceRotationDirection;
 
   this->ScanSpotTuneId = src.ScanSpotTuneId;
+  this->SnoutPosition = src.SnoutPosition;
   this->NumberOfScanSpotPositions = src.NumberOfScanSpotPositions;
   this->ScanSpotReorderingAllowed = src.ScanSpotReorderingAllowed;
   this->ScanSpotPositionMap = src.ScanSpotPositionMap;
@@ -805,48 +868,77 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
   bool hasFractionSchemeModule = true;
   if (rtPlan.isRTFractionSchemeModulePresent(OFTrue) == OFTrue)
   {
-    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: Fraction Scheme is correct");
+    vtkDebugWithObjectMacro(this->External, "LoadRTPlan: Fraction Scheme is correct");
   }
   else if (rtPlan.isRTFractionSchemeModulePresent() == OFTrue)
   {
-    vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Fraction Scheme is partially correct");
+    vtkWarningWithObjectMacro(this->External, "LoadRTPlan: Fraction Scheme is partially correct");
   }
   else
   {
-    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: Fraction Scheme is absent");
+    vtkDebugWithObjectMacro(this->External, "LoadRTPlan: Fraction Scheme is absent");
     hasFractionSchemeModule = false;
+  }
+
+  bool hasRTPrescriptionModule = true;
+  if (rtPlan.isRTPrescriptionModulePresent(OFTrue) == OFTrue)
+  {
+    vtkDebugWithObjectMacro(this->External, "LoadRTPlan: RT Prescription module is correct");
+  }
+  else if (rtPlan.isRTPrescriptionModulePresent() == OFTrue)
+  {
+    vtkWarningWithObjectMacro(this->External, "LoadRTPlan: RT Prescription module is partially correct");
+  }
+  else
+  {
+    vtkDebugWithObjectMacro(this->External, "LoadRTPlan: RT Prescription module is absent");
+    hasRTPrescriptionModule = false;
   }
 
   // Check beams module
   bool hasBeamsModule = true, hasBrachyApplicationSetupsModule = true;
   if (rtPlan.isRTBeamsModulePresent(OFTrue) == OFTrue)
   {
-    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: Beams module is correct");
+    vtkDebugWithObjectMacro(this->External, "LoadRTPlan: Beams module is correct");
     
   }
   else if (rtPlan.isRTBeamsModulePresent() == OFTrue)
   {
-    vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Beams module is partially correct");
+    vtkWarningWithObjectMacro(this->External, "LoadRTPlan: Beams module is partially correct");
   }
   else
   {
-    vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Beams module is absent");
+    vtkWarningWithObjectMacro(this->External, "LoadRTPlan: Beams module is absent");
     hasBeamsModule = false;
   }
 
   // Check brachy setups module
   if (rtPlan.isRTBrachyApplicationSetupsModulePresent(OFTrue) == OFTrue)
   {
-    vtkDebugWithObjectMacro( this->External, "LoadRTPlan: Brachy application setups module is correct");
+    vtkDebugWithObjectMacro(this->External, "LoadRTPlan: Brachy application setups module is correct");
   }
   else if (rtPlan.isRTBrachyApplicationSetupsModulePresent() == OFTrue)
   {
-    vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Brachy application setups module is partially correct");
+    vtkWarningWithObjectMacro(this->External, "LoadRTPlan: Brachy application setups module is partially correct");
   }
   else
   {
-    vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Brachy application setups module is absent");
+    vtkWarningWithObjectMacro(this->External, "LoadRTPlan: Brachy application setups module is absent");
     hasBrachyApplicationSetupsModule = false;
+  }
+
+  // RTPlan dose reference sequence
+  if (hasRTPrescriptionModule)
+  {
+    OFCondition cond;
+    OFString prescDescr;
+    cond = rtPlan.getPrescriptionDescription(prescDescr);
+    if (cond.good() && !prescDescr.empty())
+    {
+      this->External->SetPrescriptionDescription(prescDescr.c_str());
+    }
+    DRTDoseReferenceSequence& rtDoseReferenceSequence = rtPlan.getDoseReferenceSequence();
+    this->LoadDoseReferencesFromSequence(rtDoseReferenceSequence);
   }
 
   bool haveBeams = false, haveBrachy = false;
@@ -856,7 +948,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
   {
     do
     {
-      DRTFractionGroupSequence::Item &fractionSequenceItem = rtPlanFractionsSequence.getCurrentItem();
+      DRTFractionGroupSequence::Item& fractionSequenceItem = rtPlanFractionsSequence.getCurrentItem();
       if (!fractionSequenceItem.isValid())
       {
         // possibly reach the end of the sequence
@@ -907,14 +999,14 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
     return;
   }
 
-  DRTBeamSequence &rtPlanBeamSequence = rtPlan.getBeamSequence();
-  DRTApplicationSetupSequence &rtPlanApplicationSetupSequence = rtPlan.getApplicationSetupSequence();
+  DRTBeamSequence& rtPlanBeamSequence = rtPlan.getBeamSequence();
+  DRTApplicationSetupSequence& rtPlanApplicationSetupSequence = rtPlan.getApplicationSetupSequence();
   // RTPlan beam sequence (external beam plan)
   if (rtPlanBeamSequence.isValid() && rtPlanBeamSequence.gotoFirstItem().good())
   {
     do
     {
-      DRTBeamSequence::Item &currentBeamSequenceItem = rtPlanBeamSequence.getCurrentItem();
+      DRTBeamSequence::Item& currentBeamSequenceItem = rtPlanBeamSequence.getCurrentItem();
       if (!currentBeamSequenceItem.isValid())
       {
         // possibly reach the end of the sequence
@@ -968,7 +1060,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
       {
         do
         {
-          DRTBeamLimitingDeviceSequenceInRTBeamsModule::Item &collimatorItem =
+          DRTBeamLimitingDeviceSequenceInRTBeamsModule::Item& collimatorItem =
             rtBeamLimitingDeviceSequence.getCurrentItem();
           if (collimatorItem.isValid())
           {
@@ -1014,14 +1106,13 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
           }
         }
         while (rtBeamLimitingDeviceSequence.gotoNextItem().good());
-
       }
 
       Sint32 beamNumberOfControlPoints = -1;
       currentBeamSequenceItem.getNumberOfControlPoints(beamNumberOfControlPoints);
       beamEntry.NumberOfControlPoints = beamNumberOfControlPoints;
 
-      DRTControlPointSequence &rtControlPointSequence = currentBeamSequenceItem.getControlPointSequence();
+      DRTControlPointSequence& rtControlPointSequence = currentBeamSequenceItem.getControlPointSequence();
       if (!rtControlPointSequence.isValid() || !rtControlPointSequence.gotoFirstItem().good())
       {
         vtkWarningWithObjectMacro( this->External, "LoadRTPlan: Found an invalid RT control point sequence in dataset");
@@ -1038,7 +1129,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
     
       do
       {
-        DRTControlPointSequence::Item &controlPointItem = rtControlPointSequence.getCurrentItem();
+        DRTControlPointSequence::Item& controlPointItem = rtControlPointSequence.getCurrentItem();
 
         if (!controlPointItem.isValid())
         {
@@ -1084,9 +1175,14 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
         if (!isocenterStringX.empty() && !isocenterStringY.empty() && !isocenterStringZ.empty())
         {
           // Convert from DICOM LPS -> Slicer RAS
+          controlPoint.IsocenterPositionFlag = true;
           controlPoint.IsocenterPositionRas[0] = -isocenterPositionDataLps[0];
           controlPoint.IsocenterPositionRas[1] = -isocenterPositionDataLps[1];
           controlPoint.IsocenterPositionRas[2] = isocenterPositionDataLps[2];
+        }
+        else
+        {
+          controlPoint.IsocenterPositionFlag = false;
         }
 
         Float64 nominalBeamEnergy = 0.0;
@@ -1194,6 +1290,7 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTPlan(DcmDataset* dataset)
           while (currentCollimatorPositionSequence.gotoNextItem().good());
  
         }
+
         ++controlPointCount;
       }
       while (rtControlPointSequence.gotoNextItem().good());
@@ -1381,38 +1478,68 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
   DRTIonPlanIOD ionPlan;
   if (ionPlan.read(*dataset).bad())
   {
-    vtkErrorWithObjectMacro( this->External, "LoadRTIonPlan: Failed to read RT Ion Plan object!");
+    vtkErrorWithObjectMacro(this->External, "LoadRTIonPlan: Failed to read RT Ion Plan object!");
     return;
   }
 
-  vtkDebugWithObjectMacro( this->External, "LoadRTIonPlan: Load RT Ion Plan object");
+  vtkDebugWithObjectMacro(this->External, "LoadRTIonPlan: Load RT Ion Plan object");
   if (ionPlan.isRTFractionSchemeModulePresent(OFTrue) == OFTrue)
   {
-    vtkDebugWithObjectMacro( this->External, "LoadRTIonPlan: Fraction Scheme is correct");
+    vtkDebugWithObjectMacro(this->External, "LoadRTIonPlan: Fraction Scheme is correct");
   }
   else if (ionPlan.isRTFractionSchemeModulePresent() == OFTrue)
   {
-    vtkWarningWithObjectMacro( this->External, "LoadRTIonPlan: Fraction Scheme is partially correct");
+    vtkWarningWithObjectMacro(this->External, "LoadRTIonPlan: Fraction Scheme is partially correct");
   }
   else
   {
-    vtkErrorWithObjectMacro( this->External, "LoadRTIonPlan: Fraction Scheme is absent");
+    vtkErrorWithObjectMacro(this->External, "LoadRTIonPlan: Fraction Scheme is absent");
     return;
+  }
+
+  bool hasRTPrescriptionModule = true;
+  if (ionPlan.isRTPrescriptionModulePresent(OFTrue) == OFTrue)
+  {
+    vtkDebugWithObjectMacro(this->External, "LoadRTIonPlan: RT Prescription module is correct");
+  }
+  else if (ionPlan.isRTPrescriptionModulePresent() == OFTrue)
+  {
+    vtkWarningWithObjectMacro(this->External, "LoadRTIonPlan: RT Prescription module is partially correct");
+  }
+  else
+  {
+    vtkDebugWithObjectMacro(this->External, "LoadRTIonPlan: RT Prescription module is absent");
+    hasRTPrescriptionModule = false;
   }
 
   bool hasBeamsModule = true;
   if (ionPlan.isRTIonBeamsModulePresent(OFTrue) == OFTrue)
   {
-    vtkDebugWithObjectMacro( this->External, "LoadRTIonPlan: Ion beams module is correct");
+    vtkDebugWithObjectMacro(this->External, "LoadRTIonPlan: Ion beams module is correct");
   }
   else if (ionPlan.isRTIonBeamsModulePresent() == OFTrue)
   {
-    vtkWarningWithObjectMacro( this->External, "LoadRTIonPlan: Ion beams module is partially correct");
+    vtkWarningWithObjectMacro(this->External, "LoadRTIonPlan: Ion beams module is partially correct");
   }
   else
   {
-    vtkErrorWithObjectMacro( this->External, "LoadRTIonPlan: Ion beams module is absent");
+    vtkErrorWithObjectMacro(this->External, "LoadRTIonPlan: Ion beams module is absent");
     hasBeamsModule = false;
+  }
+
+  // RTPlan dose reference sequence
+  if (hasRTPrescriptionModule)
+  {
+    OFCondition cond;
+    OFString prescDescr;
+    vtkWarningWithObjectMacro(this->External, "LoadRTIonPlan: Has module");
+    cond = ionPlan.getPrescriptionDescription(prescDescr);
+    if (cond.good() && !prescDescr.empty())
+    {
+      this->External->SetPrescriptionDescription(prescDescr.c_str());
+    }
+    DRTDoseReferenceSequence& rtDoseReferenceSequence = ionPlan.getDoseReferenceSequence();
+    this->LoadDoseReferencesFromSequence(rtDoseReferenceSequence);
   }
 
   bool haveBeams = false;
@@ -1503,6 +1630,23 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
       OFString scanMode("");
       currentIonBeamSequenceItem.getScanMode(scanMode);
       beamEntry.ScanMode = scanMode.c_str();
+      // snout id, acc code (unused)
+      DRTSnoutSequence& rtSnoutSequence = currentIonBeamSequenceItem.getSnoutSequence();
+      if (rtSnoutSequence.isValid() && rtSnoutSequence.gotoFirstItem().good())
+      {
+        do
+        {
+          DRTSnoutSequence::Item &snoutItem = rtSnoutSequence.getCurrentItem();
+          if (snoutItem.isValid())
+          {
+            OFString snoutID("");
+            OFString accessoryCode("");
+            OFCondition cond = snoutItem.getSnoutID(snoutID);
+            beamEntry.SnoutID = snoutID.c_str();
+            cond = snoutItem.getAccessoryCode(accessoryCode);
+          }
+        } while (rtSnoutSequence.gotoNextItem().good());
+      }
 
       OFString radiationType("");
       currentIonBeamSequenceItem.getRadiationType(radiationType);
@@ -1583,11 +1727,90 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
         } while (rtIonBeamLimitingDeviceSequence.gotoNextItem().good());
       }
 
+      // Ion block sequence
+      Sint32 numberOfBlocks = -1;
+      currentIonBeamSequenceItem.getNumberOfBlocks(numberOfBlocks);
+      beamEntry.NumberOfBlocks = numberOfBlocks;
+
+      DRTIonBlockSequence& rtIonBlockSequence = currentIonBeamSequenceItem.getIonBlockSequence();
+      if (numberOfBlocks > 0 && rtIonBlockSequence.isValid() && 
+        rtIonBlockSequence.gotoFirstItem().good())
+      {
+        do
+        {
+          DRTIonBlockSequence::Item& ionBlockItem = rtIonBlockSequence.getCurrentItem();
+          BlockEntry blockEntry;
+          if (ionBlockItem.isValid())
+          {
+            Float32 distance = -1.;
+
+            OFCondition cond = ionBlockItem.getIsocenterToBlockTrayDistance(distance);
+            if (cond.good())
+            {
+              blockEntry.IsocenterToBlockTrayDistance = distance;
+            }
+          }
+          beamEntry.BlockSequenceVector.push_back(blockEntry);
+        } while (rtIonBlockSequence.gotoNextItem().good());
+      }
+
+      // Range shifter sequence
+      Sint32 numberOfRangeShifters = -1;
+      currentIonBeamSequenceItem.getNumberOfRangeShifters(numberOfRangeShifters);
+      beamEntry.NumberOfRangeShifters = numberOfRangeShifters;
+
+      DRTRangeShifterSequence& rtRangeShifterSequence = currentIonBeamSequenceItem.getRangeShifterSequence();
+      if (numberOfRangeShifters > 0 && rtRangeShifterSequence.isValid() && 
+        rtRangeShifterSequence.gotoFirstItem().good())
+      {
+        do
+        {
+          DRTRangeShifterSequence::Item& rangeShifterItem = rtRangeShifterSequence.getCurrentItem();
+          RangeShifterEntry rangeShifterEntry;
+          if (rangeShifterItem.isValid())
+          {
+            OFString rangeShifterID;
+            OFString rangeShifterType;
+            OFString rangeShifterDescription;
+            OFString rangeShifterAccessoryCode;
+            OFString rangeShifterMaterialID;
+            OFString rangeShifterMaterialDensity;
+            Sint32 rangeShifterNumber = -1;
+
+            OFCondition cond = rangeShifterItem.getRangeShifterID(rangeShifterID);
+            if (cond.good())
+            {
+              rangeShifterEntry.ID = rangeShifterID.c_str();
+            }
+            cond = rangeShifterItem.getRangeShifterType(rangeShifterType);
+            if (cond.good() && (!rangeShifterType.compare("ANALOG") || !rangeShifterType.compare("BINARY")))
+            {
+              rangeShifterEntry.Type = rangeShifterType.c_str();
+            }
+            cond = rangeShifterItem.getRangeShifterNumber(rangeShifterNumber);
+            if (cond.good())
+            {
+              rangeShifterEntry.Number = rangeShifterNumber;
+            }
+            cond = rangeShifterItem.getRangeShifterDescription(rangeShifterDescription);
+            rangeShifterEntry.Description = rangeShifterDescription.c_str();
+            cond = rangeShifterItem.getAccessoryCode(rangeShifterAccessoryCode);
+            rangeShifterEntry.AccessoryCode = rangeShifterAccessoryCode.c_str();
+//            cond = rangeShifterItem.getRangeShifterMaterialID(rangeShifterMaterialID);
+//            rangeShifterEntry.MaterialID = rangeShifterMaterialID.c_str();
+//            cond = rangeShifterItem.getRangeShifterMaterialDensity(rangeShifterMaterialDensity);
+//            rangeShifterEntry.MaterialDensity = rangeShifterMaterialDensity;
+          }
+          beamEntry.RangeShifterSequenceVector.push_back(rangeShifterEntry);
+        } while (rtRangeShifterSequence.gotoNextItem().good());
+      }
+
+      // control point sequence
       Sint32 beamNumberOfControlPoints = -1;
       currentIonBeamSequenceItem.getNumberOfControlPoints(beamNumberOfControlPoints);
       beamEntry.NumberOfControlPoints = beamNumberOfControlPoints;
 
-      DRTIonControlPointSequence &rtIonControlPointSequence = currentIonBeamSequenceItem.getIonControlPointSequence();
+      DRTIonControlPointSequence& rtIonControlPointSequence = currentIonBeamSequenceItem.getIonControlPointSequence();
       if (!rtIonControlPointSequence.isValid() || !rtIonControlPointSequence.gotoFirstItem().good())
       {
         vtkWarningWithObjectMacro( this->External, "LoadRTIonPlan: Found an invalid RT ion control point sequence in dataset");
@@ -1648,9 +1871,14 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
         if (!isocenterStringX.empty() && !isocenterStringY.empty() && !isocenterStringZ.empty())
         {
           // Convert from DICOM LPS -> Slicer RAS
+          controlPoint.IsocenterPositionFlag = true;
           controlPoint.IsocenterPositionRas[0] = -isocenterPositionDataLps[0];
           controlPoint.IsocenterPositionRas[1] = -isocenterPositionDataLps[1];
           controlPoint.IsocenterPositionRas[2] = isocenterPositionDataLps[2];
+        }
+        else
+        {
+          controlPoint.IsocenterPositionFlag = false;
         }
 
         OFCondition dataCondition;
@@ -1670,7 +1898,12 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
         }
         else if (beamEnergyString.empty() && !kvpString.empty())
         {
-          // Do something with KVP value
+          Float64 kvp = 0.0;
+          dataCondition = controlPointItem.getKVP(kvp);
+          if (dataCondition.good())
+          {
+            controlPoint.NominalBeamEnergy = kvp;
+          }
         }
 
         Float64 gantryAngle = 0.0;
@@ -1699,6 +1932,14 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
         if (dataCondition.good())
         {
           controlPoint.CumulativeMetersetWeight = cumulativeMetersetWeight;
+        }
+
+        Float32 snoutPosition = -1.;
+        dataCondition = controlPointItem.getSnoutPosition(snoutPosition);
+        if (dataCondition.good())
+        {
+          vtkErrorWithObjectMacro( this->External, "Snout position " << snoutPosition);
+          controlPoint.SnoutPosition = snoutPosition;
         }
 
         if (!scanMode.compare("MODULATED") || !scanMode.compare("MODULATED_SPEC"))
@@ -1839,6 +2080,47 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTIonPlan(DcmDataset* dataset)
           while (currentCollimatorPositionSequence.gotoNextItem().good());
 
         }
+
+        // range shifter settings sequence in control point
+        DRTRangeShifterSettingsSequenceInRTIonBeamsModule& rangeShifterSettingsSequence =
+          controlPointItem.getRangeShifterSettingsSequence();
+        if (rangeShifterSettingsSequence.isValid() && 
+          rangeShifterSettingsSequence.gotoFirstItem().good())
+        {
+          do
+          {
+            DRTRangeShifterSettingsSequenceInRTIonBeamsModule::Item& rangeShifterSettingsItem =
+              rangeShifterSettingsSequence.getCurrentItem();
+            if (rangeShifterSettingsItem.isValid())
+            {
+              Sint32 refRangeShifterNumber = -1;
+              OFCondition cond = rangeShifterSettingsItem.getReferencedRangeShifterNumber(refRangeShifterNumber);
+              if (cond.good())
+              {
+                controlPoint.ReferencedRangeShifterNumber = refRangeShifterNumber;
+              }
+              OFString rangeShifterSetting;
+              cond = rangeShifterSettingsItem.getRangeShifterSetting(rangeShifterSetting);
+              if (cond.good())
+              {
+                controlPoint.RangeShifterSetting = rangeShifterSetting.c_str();
+              }
+              Float32 isoToRsDistance = -1.;
+              cond = rangeShifterSettingsItem.getIsocenterToRangeShifterDistance(isoToRsDistance);
+              if (cond.good())
+              {
+                controlPoint.IsocenterToRangeShifterDistance = isoToRsDistance;
+              }
+              Float32 wet = -1.;
+              cond = rangeShifterSettingsItem.getRangeShifterWaterEquivalentThickness(wet);
+              if (cond.good())
+              {
+                controlPoint.RangeShifterWET = wet;
+              }
+            }
+          }
+          while (rangeShifterSettingsSequence.gotoNextItem().good());
+        }
         ++controlPointCount;
       }
       while (rtIonControlPointSequence.gotoNextItem().good());
@@ -1972,6 +2254,104 @@ void vtkSlicerDicomRtReader::vtkInternal::LoadRTStructureSet(DcmDataset* dataset
 
   this->External->LoadRTStructureSetSuccessful = true;
   delete rtStructureSet;
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerDicomRtReader::vtkInternal::LoadDoseReferencesFromSequence(DRTDoseReferenceSequence& rtDoseReferenceSequence)
+{
+  if (!rtDoseReferenceSequence.gotoFirstItem().good())
+  {
+    vtkErrorWithObjectMacro(this->External, "LoadDoseReferencesFromSequence: No dose references were found");
+    return;
+  }
+  do
+  {
+    DRTDoseReferenceSequence::Item &doseReferenceItem = rtDoseReferenceSequence.getCurrentItem();
+    if (!doseReferenceItem.isValid())
+    {
+      continue;
+    }
+    DoseReferenceEntry doseReferenceEntry;
+    OFCondition cond;
+
+    Sint32 refNumber = -1;
+    cond = doseReferenceItem.getDoseReferenceNumber(refNumber);
+    if (cond.good())
+    {
+      doseReferenceEntry.Number = refNumber;
+    }
+
+    OFString structType;
+    cond = doseReferenceItem.getDoseReferenceStructureType(structType);
+    if (cond.good() && !structType.empty())
+    {
+      doseReferenceEntry.StructureType = structType.c_str();
+    }
+
+    OFString referenceType;
+    cond = doseReferenceItem.getDoseReferenceType(referenceType);
+    if (cond.good() && !referenceType.empty())
+    {
+      doseReferenceEntry.ReferenceType = referenceType.c_str();
+    }
+
+    if (referenceType == "TARGET")
+    {
+      Float64 dose = -1.;
+      cond = doseReferenceItem.getTargetMinimumDose(dose);
+      if (cond.good())
+      {
+        doseReferenceEntry.TargetMinimumDose = dose;
+      }
+      cond = doseReferenceItem.getTargetPrescriptionDose(dose);
+      if (cond.good())
+      {
+        doseReferenceEntry.TargetPrescriptionDose = dose;
+      }
+      cond = doseReferenceItem.getTargetMaximumDose(dose);
+      if (cond.good())
+      {
+        doseReferenceEntry.TargetMaximumDose = dose;
+      }
+      cond = doseReferenceItem.getTargetUnderdoseVolumeFraction(dose);
+      if (cond.good())
+      {
+        doseReferenceEntry.TargetUnderdoseVolumeFraction = dose;
+      }
+    }
+    else if (referenceType == "ORGAN_AT_RISK" && structType == "VOLUME")
+    {
+      Float64 dose = -1.;
+      cond = doseReferenceItem.getOrganAtRiskMaximumDose(dose);
+      if (cond.good())
+      {
+        doseReferenceEntry.OrganAtRiskMaxDose = dose;
+      }
+      cond = doseReferenceItem.getOrganAtRiskOverdoseVolumeFraction(dose);
+      if (cond.good())
+      {
+        doseReferenceEntry.OrganAtRiskOverdoseVolumeFraction = dose;
+      }
+    }
+
+    Float64 weight = -1.;
+    cond = doseReferenceItem.getConstraintWeight(weight);
+    if (cond.good())
+    {
+      doseReferenceEntry.ConstraintWeight = weight;
+    }
+
+    OFString descr;
+    cond = doseReferenceItem.getDoseReferenceDescription(descr);
+    if (cond.good() && !descr.empty())
+    {
+      doseReferenceEntry.Description = descr.c_str();
+    }
+
+    // Save to vector          
+    this->DoseReferenceSequenceVector.push_back(doseReferenceEntry);
+  }
+  while (rtDoseReferenceSequence.gotoNextItem().good());
 }
 
 //----------------------------------------------------------------------------
@@ -2466,6 +2846,7 @@ vtkSlicerDicomRtReader::vtkSlicerDicomRtReader()
   this->LoadRTPlanSuccessful = false;
   this->LoadRTIonPlanSuccessful = false;
   this->LoadRTImageSuccessful = false;
+  this->PrescriptionDescription = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -2627,12 +3008,168 @@ int vtkSlicerDicomRtReader::GetNumberOfBeams()
 }
 
 //----------------------------------------------------------------------------
+int vtkSlicerDicomRtReader::GetNumberOfDoseReferences()
+{
+  return this->Internal->DoseReferenceSequenceVector.size();
+}
+
+//----------------------------------------------------------------------------
+vtkTable* vtkSlicerDicomRtReader::GetDoseReferenceTable()
+{
+  vtkTable* table = nullptr;
+  if (this->Internal->DoseReferenceSequenceVector.size() > 0)
+  {
+    table = vtkTable::New();
+  }
+  if (table)
+  {
+    // Column 0; Description
+    vtkNew<vtkStringArray> description;
+    description->SetName("Description");
+    table->AddColumn(description);
+
+    // Column 1; StructureType
+    vtkNew<vtkStringArray> structType;
+    structType->SetName("Structure Type");
+    table->AddColumn(structType);
+  
+    // Column 2; ReferenceType
+    vtkNew<vtkStringArray> refType;
+    refType->SetName("Reference Type");
+    table->AddColumn(refType);
+
+    // Column 3; MinDose
+    vtkNew<vtkStringArray> minDose;
+    minDose->SetName("Target Min. Dose");
+    table->AddColumn(minDose);
+
+    // Column 4; PrescriptionDose
+    vtkNew<vtkStringArray> prescDose;
+    prescDose->SetName("Target Prescription Dose");
+    table->AddColumn(prescDose);
+
+    // Column 5; MaxDose
+    vtkNew<vtkStringArray> maxDose;
+    maxDose->SetName("Target Max. Dose");
+    table->AddColumn(maxDose);
+
+    // Column 6; underdoseVolumeFraction
+    vtkNew<vtkStringArray> underDose;
+    underDose->SetName("Target Underdose Frac.");
+    table->AddColumn(underDose);
+
+    // Column 7; ConstraintWeight
+    vtkNew<vtkStringArray> weight;
+    weight->SetName("Weight");
+    table->AddColumn(weight);
+
+    // Column 8; OrganAtRiskMaximumDose
+    vtkNew<vtkStringArray> organMaxDose;
+    organMaxDose->SetName("Organ Max. Dose");
+    table->AddColumn(organMaxDose);
+
+    // Column 9; OrganAtRiskOverdoseVolumeFraction
+    vtkNew<vtkStringArray> organOverdose;
+    organOverdose->SetName("Organ Overdose Frac.");
+    table->AddColumn(organOverdose);
+
+    table->SetNumberOfRows(this->Internal->DoseReferenceSequenceVector.size());
+    vtkIdType row = 0;
+    for(auto& doseRefEntry : this->Internal->DoseReferenceSequenceVector)
+    {
+      table->SetValue(row, 0, doseRefEntry.Description.c_str());
+      table->SetValue(row, 1, doseRefEntry.StructureType.c_str());
+      table->SetValue(row, 2, doseRefEntry.ReferenceType.c_str());
+      if (doseRefEntry.TargetMinimumDose > 0.)
+      {
+        table->SetValue(row, 3, vtkVariant(doseRefEntry.TargetMinimumDose).ToString());
+      }
+      else
+      {
+        table->SetValue(row, 3, "");
+      }
+      if (doseRefEntry.TargetPrescriptionDose > 0.)
+      {
+        table->SetValue(row, 4, vtkVariant(doseRefEntry.TargetPrescriptionDose).ToString());
+      }
+      else
+      {
+        table->SetValue(row, 4, "");
+      }
+      if (doseRefEntry.TargetMaximumDose > 0.)
+      {
+        table->SetValue(row, 5, vtkVariant(doseRefEntry.TargetMaximumDose).ToString());
+      }
+      else
+      {
+        table->SetValue(row, 5, "");
+      }
+      if (doseRefEntry.TargetUnderdoseVolumeFraction > 0.)
+      {
+        table->SetValue(row, 6, vtkVariant(doseRefEntry.TargetUnderdoseVolumeFraction).ToString());
+      }
+      else
+      {
+        table->SetValue(row, 6, "");
+      }
+      if (doseRefEntry.ConstraintWeight > 0.)
+      {
+        table->SetValue(row, 7, vtkVariant(doseRefEntry.ConstraintWeight).ToString());
+      }
+      else
+      {
+        table->SetValue(row, 7, "");
+      }
+      if (doseRefEntry.OrganAtRiskMaxDose > 0.)
+      {
+        table->SetValue(row, 8, vtkVariant(doseRefEntry.OrganAtRiskMaxDose).ToString());
+      }
+      else
+      {
+        table->SetValue(row, 8, "");
+      }
+      if (doseRefEntry.OrganAtRiskOverdoseVolumeFraction > 0.)
+      {
+        table->SetValue(row, 9, vtkVariant(doseRefEntry.OrganAtRiskOverdoseVolumeFraction).ToString());
+      }
+      else
+      {
+        table->SetValue(row, 9, "");
+      }
+      row++;
+    }
+  }
+  return table;
+}
+//----------------------------------------------------------------------------
 unsigned int vtkSlicerDicomRtReader::GetBeamNumberOfControlPoints(unsigned int beamNumber)
 {
   vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
   if (beam)
   {
-    return (beam->ControlPointSequenceVector.size() > 1) ? beam->ControlPointSequenceVector.size() : 0;
+    return (beam->NumberOfControlPoints) ? beam->ControlPointSequenceVector.size() : 0;
+  }
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+unsigned int vtkSlicerDicomRtReader::GetBeamNumberOfRangeShifters(unsigned int beamNumber)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam)
+  {
+    return beam->NumberOfRangeShifters;
+  }
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+unsigned int vtkSlicerDicomRtReader::GetBeamNumberOfBlocks(unsigned int beamNumber)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam)
+  {
+    return beam->NumberOfBlocks;
   }
   return 0;
 }
@@ -2688,6 +3225,17 @@ const char* vtkSlicerDicomRtReader::GetBeamRadiationType(unsigned int beamNumber
 }
 
 //----------------------------------------------------------------------------
+const char* vtkSlicerDicomRtReader::GetBeamSnoutID(unsigned int beamNumber)
+{
+  vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
+  if (!beam)
+  {
+    return nullptr;
+  }
+  return beam->SnoutID.c_str();
+}
+
+//----------------------------------------------------------------------------
 double vtkSlicerDicomRtReader::GetBeamControlPointNominalBeamEnergy( unsigned int beamNumber, 
   unsigned int controlPointIndex)
 {
@@ -2696,6 +3244,19 @@ double vtkSlicerDicomRtReader::GetBeamControlPointNominalBeamEnergy( unsigned in
   {
     vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
     return controlPoint.NominalBeamEnergy;
+  }
+  return 0.;
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamControlPointSnoutPosition( unsigned int beamNumber, 
+  unsigned int controlPointIndex)
+{
+  vtkInternal::BeamEntry* beam=this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (controlPointIndex < beam->ControlPointSequenceVector.size()))
+  {
+    vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
+    return controlPoint.SnoutPosition;
   }
   return 0.;
 }
@@ -2961,6 +3522,145 @@ bool vtkSlicerDicomRtReader::GetBeamControlPointScanningSpotSize( unsigned int b
      "No control point sequence data for current beam: " << beam->Name);
   }
   return false;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkSlicerDicomRtReader::GetBeamRangeShifterID( unsigned int beamNumber, 
+  unsigned int rangeShifterIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (rangeShifterIndex < beam->RangeShifterSequenceVector.size()))
+  {
+    vtkInternal::RangeShifterEntry& rangeShifter = beam->RangeShifterSequenceVector.at(rangeShifterIndex);
+    return rangeShifter.ID.c_str();
+  }
+  return nullptr;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkSlicerDicomRtReader::GetBeamRangeShifterType( unsigned int beamNumber, 
+  unsigned int rangeShifterIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (rangeShifterIndex < beam->RangeShifterSequenceVector.size()))
+  {
+    vtkInternal::RangeShifterEntry& rangeShifter = beam->RangeShifterSequenceVector.at(rangeShifterIndex);
+    return rangeShifter.Type.c_str();
+  }
+  return nullptr;
+}
+
+//----------------------------------------------------------------------------
+int vtkSlicerDicomRtReader::GetBeamRangeShifterNumber( unsigned int beamNumber, 
+  unsigned int rangeShifterIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (rangeShifterIndex < beam->RangeShifterSequenceVector.size()))
+  {
+    vtkInternal::RangeShifterEntry& rangeShifter = beam->RangeShifterSequenceVector.at(rangeShifterIndex);
+    return static_cast< int >(rangeShifter.Number);
+  }
+  return -1;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkSlicerDicomRtReader::GetBeamRangeShifterDescription( unsigned int beamNumber, 
+  unsigned int rangeShifterIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (rangeShifterIndex < beam->RangeShifterSequenceVector.size()))
+  {
+    vtkInternal::RangeShifterEntry& rangeShifter = beam->RangeShifterSequenceVector.at(rangeShifterIndex);
+    return rangeShifter.Description.c_str();
+  }
+  return nullptr;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkSlicerDicomRtReader::GetBeamRangeShifterMaterialID( unsigned int beamNumber, 
+  unsigned int rangeShifterIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (rangeShifterIndex < beam->RangeShifterSequenceVector.size()))
+  {
+    vtkInternal::RangeShifterEntry& rangeShifter = beam->RangeShifterSequenceVector.at(rangeShifterIndex);
+    return rangeShifter.MaterialID.c_str();
+  }
+  return nullptr;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkSlicerDicomRtReader::GetBeamRangeShifterAccessoryCode( unsigned int beamNumber, 
+  unsigned int rangeShifterIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (rangeShifterIndex < beam->RangeShifterSequenceVector.size()))
+  {
+    vtkInternal::RangeShifterEntry& rangeShifter = beam->RangeShifterSequenceVector.at(rangeShifterIndex);
+    return rangeShifter.AccessoryCode.c_str();
+  }
+  return nullptr;
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamRangeShifterMaterialDensity( unsigned int beamNumber, 
+  unsigned int rangeShifterIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (rangeShifterIndex < beam->RangeShifterSequenceVector.size()))
+  {
+    vtkInternal::RangeShifterEntry& rangeShifter = beam->RangeShifterSequenceVector.at(rangeShifterIndex);
+    return rangeShifter.MaterialDensity;
+  }
+  return -1.;
+}
+
+//----------------------------------------------------------------------------
+int vtkSlicerDicomRtReader::GetBeamControlPointReferencedRangeShifterNumber(unsigned int beamNumber, unsigned int controlPointIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (controlPointIndex < beam->ControlPointSequenceVector.size()))
+  {
+    vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
+    return controlPoint.ReferencedRangeShifterNumber;
+  }
+  return -1.0;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkSlicerDicomRtReader::GetBeamControlPointRangeShifterSetting(unsigned int beamNumber, unsigned int controlPointIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (controlPointIndex < beam->ControlPointSequenceVector.size()))
+  {
+    vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
+    return controlPoint.RangeShifterSetting.c_str();
+  }
+  return nullptr;
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamControlPointIsocenterToRangeShifterDistance(unsigned int beamNumber, unsigned int controlPointIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (controlPointIndex < beam->ControlPointSequenceVector.size()))
+  {
+    vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
+    return controlPoint.IsocenterToRangeShifterDistance;
+  }
+  return -1.;
+}
+
+//----------------------------------------------------------------------------
+double vtkSlicerDicomRtReader::GetBeamControlPointRangeShifterWET(unsigned int beamNumber, unsigned int controlPointIndex)
+{
+  vtkInternal::BeamEntry* beam = this->Internal->FindBeamByNumber(beamNumber);
+  if (beam && (controlPointIndex < beam->ControlPointSequenceVector.size()))
+  {
+    vtkInternal::ControlPointEntry& controlPoint = beam->ControlPointSequenceVector.at(controlPointIndex);
+    return controlPoint.RangeShifterWET;
+  }
+  return -1.;
 }
 
 //----------------------------------------------------------------------------

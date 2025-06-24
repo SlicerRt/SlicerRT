@@ -188,6 +188,11 @@ public:
   /// Set beam weight
   vtkSetMacro(BeamWeight, double);
 
+  /// Get beam energy
+  vtkGetMacro(BeamEnergy, double);
+  /// Set beam energy
+  vtkSetMacro(BeamEnergy, double);
+
   /// Get source to jaws X distance
   vtkGetMacro(SourceToJawsDistanceX, double);
   /// Set source to jaws X distance. Triggers \sa BeamTransformModified event and re-generation of beam model
@@ -202,6 +207,17 @@ public:
   vtkGetMacro(SourceToMultiLeafCollimatorDistance, double);
   /// Set source to multi-leaf collimator distance. Triggers \sa BeamTransformModified event and re-generation of beam model
   void SetSourceToMultiLeafCollimatorDistance(double distance);
+
+  /// Get control point isocenter position flag
+  vtkGetMacro(IsocenterPositionFlag, bool);
+  /// Set control point isocenter position flag
+  void SetIsocenterPositionFlag(bool isocenterIsPresent);
+
+  /// Get control point isocenter position in RAS
+  vtkGetVector3Macro(IsocenterPosition, double);
+  /// Set control point isocenter position in RAS
+  void SetIsocenterPosition(double isocenterPosition[3]);
+  void SetIsocenterPosition(const std::array< double, 3 >& isocenterPosition);
 
 protected:
   /// Create beam model from beam parameters, supporting MLC leaves
@@ -222,6 +238,8 @@ protected:
   char* BeamDescription;
   /// Beam weight, taken into account when accumulating per-beam doses
   double BeamWeight;
+  /// Beam energy
+  double BeamEnergy;
 
   /// X1 jaw position
   double X1Jaw;
@@ -247,6 +265,12 @@ protected:
   double CollimatorAngle;
   /// Couch angle
   double CouchAngle;
+
+  /// Isocenter position flag
+  /// true if control point isocenter position is present, false otherwise
+  bool IsocenterPositionFlag;
+  /// Control point isocenter position
+  double IsocenterPosition[3];
 
 protected:
   /// Visible multi-leaf collimator points
