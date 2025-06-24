@@ -21,6 +21,7 @@
 
 // Beams includes
 #include "vtkMRMLRTIonBeamNode.h"
+#include "vtkMRMLRTIonRangeShifterNode.h"
 #include "vtkMRMLRTPlanNode.h"
 
 // SlicerRT includes
@@ -45,14 +46,19 @@
 #include <vtkDoubleArray.h>
 #include <vtkTable.h>
 #include <vtkCellArray.h>
+#include <vtkCellData.h>
 #include <vtkAppendPolyData.h>
+#include <vtkLine.h>
+#include <vtkAssignAttribute.h>
 
 //------------------------------------------------------------------------------
 namespace
 {
 
 const char* const SCANSPOT_REFERENCE_ROLE = "ScanSpotRef";
-double FWHM_TO_SIGMA = 1. / (2. * sqrt(2. * log(2.)));
+static const char* RANGE_SHIFTER_REFERENCE_ROLE = "RangeShifterRef";
+constexpr double FWHM_TO_SIGMA = 1. / (2. * sqrt(2. * log(2.)));
+constexpr int POINTS_PER_SCANSPOT = 60;
 
 } // namespace
 
@@ -66,8 +72,7 @@ vtkMRMLRTIonBeamNode::vtkMRMLRTIonBeamNode()
   VSADx(vtkMRMLRTBeamNode::SAD),
   IsocenterToJawsDistanceX(vtkMRMLRTBeamNode::SourceToJawsDistanceX),
   IsocenterToJawsDistanceY(vtkMRMLRTBeamNode::SourceToJawsDistanceY),
-  IsocenterToMultiLeafCollimatorDistance(vtkMRMLRTBeamNode::SourceToMultiLeafCollimatorDistance),
-  IsocenterToRangeShifterDistance(4000.)
+  IsocenterToMultiLeafCollimatorDistance(vtkMRMLRTBeamNode::SourceToMultiLeafCollimatorDistance)
 {
   this->VSADx = 6500.0;
   this->VSADy = 6500.0;
@@ -76,6 +81,13 @@ vtkMRMLRTIonBeamNode::vtkMRMLRTIonBeamNode()
   this->IsocenterToMultiLeafCollimatorDistance = 2500.;
   this->ScanningSpotSize[0] = 15.0f;
   this->ScanningSpotSize[1] = 15.0f;
+  this->ReferencedRangeShifterNumber = -1;
+  this->RangeShifterSetting = nullptr;
+  this->IsocenterToRangeShifterDistance = 4000.;
+  this->RangeShifterWET = -1.;
+  this->IsocenterToBlockTrayDistance = -1.;
+  this->SnoutID = nullptr;
+  this->SnoutPosition = -1.;
 }
 
 //----------------------------------------------------------------------------
@@ -91,13 +103,19 @@ void vtkMRMLRTIonBeamNode::WriteXML(ostream& of, int nIndent)
 
   vtkMRMLWriteXMLBeginMacro(of);
   // Write all MRML node attributes into output stream
-  vtkMRMLWriteXMLFloatMacro( VSADx, VSADx);
-  vtkMRMLWriteXMLFloatMacro( VSADy, VSADy);
-  vtkMRMLWriteXMLFloatMacro( IsocenterToJawsDistanceX, IsocenterToJawsDistanceX);
-  vtkMRMLWriteXMLFloatMacro( IsocenterToJawsDistanceY, IsocenterToJawsDistanceY);
-  vtkMRMLWriteXMLFloatMacro( IsocenterToMultiLeafCollimatorDistance, IsocenterToMultiLeafCollimatorDistance);
-  vtkMRMLWriteXMLFloatMacro( IsocenterToRangeShifterDistance, IsocenterToRangeShifterDistance);
-  vtkMRMLWriteXMLVectorMacro( ScanningSpotSize, ScanningSpotSize, float, 2);
+  vtkMRMLWriteXMLFloatMacro(VSADx, VSADx);
+  vtkMRMLWriteXMLFloatMacro(VSADy, VSADy);
+  vtkMRMLWriteXMLFloatMacro(IsocenterToJawsDistanceX, IsocenterToJawsDistanceX);
+  vtkMRMLWriteXMLFloatMacro(IsocenterToJawsDistanceY, IsocenterToJawsDistanceY);
+  vtkMRMLWriteXMLFloatMacro(IsocenterToMultiLeafCollimatorDistance, IsocenterToMultiLeafCollimatorDistance);
+  vtkMRMLWriteXMLVectorMacro(ScanningSpotSize, ScanningSpotSize, float, 2);
+  vtkMRMLWriteXMLStringMacro(RangeShifterSetting, RangeShifterSetting);
+  vtkMRMLWriteXMLIntMacro(ReferencedRangeShifterNumber, ReferencedRangeShifterNumber);
+  vtkMRMLWriteXMLFloatMacro(IsocenterToRangeShifterDistance, IsocenterToRangeShifterDistance);
+  vtkMRMLWriteXMLFloatMacro(RangeShifterWET, RangeShifterWET);
+  vtkMRMLWriteXMLFloatMacro(IsocenterToBlockTrayDistance, IsocenterToBlockTrayDistance);
+  vtkMRMLWriteXMLStringMacro(SnoutID, SnoutID);
+  vtkMRMLWriteXMLFloatMacro(SnoutPosition, SnoutPosition);
   vtkMRMLWriteXMLEndMacro();
 }
 
@@ -107,13 +125,19 @@ void vtkMRMLRTIonBeamNode::ReadXMLAttributes(const char** atts)
   Superclass::ReadXMLAttributes(atts);
   
   vtkMRMLReadXMLBeginMacro(atts);
-  vtkMRMLReadXMLFloatMacro( VSADx, VSADx);
-  vtkMRMLReadXMLFloatMacro( VSADy, VSADy);
-  vtkMRMLReadXMLFloatMacro( IsocenterToJawsDistanceX, IsocenterToJawsDistanceX);
-  vtkMRMLReadXMLFloatMacro( IsocenterToJawsDistanceY, IsocenterToJawsDistanceY);
-  vtkMRMLReadXMLFloatMacro( IsocenterToMultiLeafCollimatorDistance, IsocenterToMultiLeafCollimatorDistance);
-  vtkMRMLReadXMLFloatMacro( IsocenterToRangeShifterDistance, IsocenterToRangeShifterDistance);
-  vtkMRMLReadXMLVectorMacro( ScanningSpotSize, ScanningSpotSize, float, 2);
+  vtkMRMLReadXMLFloatMacro(VSADx, VSADx);
+  vtkMRMLReadXMLFloatMacro(VSADy, VSADy);
+  vtkMRMLReadXMLFloatMacro(IsocenterToJawsDistanceX, IsocenterToJawsDistanceX);
+  vtkMRMLReadXMLFloatMacro(IsocenterToJawsDistanceY, IsocenterToJawsDistanceY);
+  vtkMRMLReadXMLFloatMacro(IsocenterToMultiLeafCollimatorDistance, IsocenterToMultiLeafCollimatorDistance);
+  vtkMRMLReadXMLVectorMacro(ScanningSpotSize, ScanningSpotSize, float, 2);
+  vtkMRMLReadXMLStringMacro(RangeShifterSetting, RangeShifterSetting);
+  vtkMRMLReadXMLIntMacro(ReferencedRangeShifterNumber, ReferencedRangeShifterNumber);
+  vtkMRMLReadXMLFloatMacro(IsocenterToRangeShifterDistance, IsocenterToRangeShifterDistance);
+  vtkMRMLReadXMLFloatMacro(RangeShifterWET, RangeShifterWET);
+  vtkMRMLReadXMLFloatMacro(IsocenterToBlockTrayDistance, IsocenterToBlockTrayDistance);
+  vtkMRMLReadXMLStringMacro(SnoutID, SnoutID);
+  vtkMRMLReadXMLFloatMacro(SnoutPosition, SnoutPosition);
   vtkMRMLReadXMLEndMacro();
 }
 
@@ -160,11 +184,17 @@ void vtkMRMLRTIonBeamNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyFloatMacro(IsocenterToJawsDistanceX);
   vtkMRMLCopyFloatMacro(IsocenterToJawsDistanceY);
   vtkMRMLCopyFloatMacro(IsocenterToMultiLeafCollimatorDistance);
-  vtkMRMLCopyFloatMacro(IsocenterToRangeShifterDistance);
   vtkMRMLCopyVectorMacro(ScanningSpotSize, float, 2);
   vtkMRMLCopyFloatMacro(GantryAngle);
   vtkMRMLCopyFloatMacro(CollimatorAngle);
   vtkMRMLCopyFloatMacro(CouchAngle);
+  vtkMRMLCopyStringMacro(RangeShifterSetting);
+  vtkMRMLCopyIntMacro(ReferencedRangeShifterNumber);
+  vtkMRMLCopyFloatMacro(IsocenterToRangeShifterDistance);
+  vtkMRMLCopyFloatMacro(RangeShifterWET);
+  vtkMRMLCopyFloatMacro(IsocenterToBlockTrayDistance);
+  vtkMRMLCopyStringMacro(SnoutID);
+  vtkMRMLCopyFloatMacro(SnoutPosition);
   vtkMRMLCopyEndMacro();
 
   this->EndModify(disabledModify);
@@ -197,11 +227,17 @@ void vtkMRMLRTIonBeamNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*
   vtkMRMLCopyFloatMacro(IsocenterToJawsDistanceX);
   vtkMRMLCopyFloatMacro(IsocenterToJawsDistanceY);
   vtkMRMLCopyFloatMacro(IsocenterToMultiLeafCollimatorDistance);
-  vtkMRMLCopyFloatMacro(IsocenterToRangeShifterDistance);
   vtkMRMLCopyVectorMacro(ScanningSpotSize, float, 2);
   vtkMRMLCopyFloatMacro(GantryAngle);
   vtkMRMLCopyFloatMacro(CollimatorAngle);
   vtkMRMLCopyFloatMacro(CouchAngle);
+  vtkMRMLCopyStringMacro(RangeShifterSetting);
+  vtkMRMLCopyIntMacro(ReferencedRangeShifterNumber);
+  vtkMRMLCopyFloatMacro(IsocenterToRangeShifterDistance);
+  vtkMRMLCopyFloatMacro(RangeShifterWET);
+  vtkMRMLCopyFloatMacro(IsocenterToBlockTrayDistance);
+  vtkMRMLCopyStringMacro(SnoutID);
+  vtkMRMLCopyFloatMacro(SnoutPosition);
   vtkMRMLCopyEndMacro();
 }
 
@@ -222,8 +258,14 @@ void vtkMRMLRTIonBeamNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintFloatMacro(IsocenterToJawsDistanceX);
   vtkMRMLPrintFloatMacro(IsocenterToJawsDistanceY);
   vtkMRMLPrintFloatMacro(IsocenterToMultiLeafCollimatorDistance);
+  vtkMRMLPrintVectorMacro(ScanningSpotSize, float, 2);
+  vtkMRMLPrintStringMacro(RangeShifterSetting);
+  vtkMRMLPrintIntMacro(ReferencedRangeShifterNumber);
   vtkMRMLPrintFloatMacro(IsocenterToRangeShifterDistance);
-  vtkMRMLPrintVectorMacro( ScanningSpotSize, float, 2);
+  vtkMRMLPrintFloatMacro(RangeShifterWET);
+  vtkMRMLPrintFloatMacro(IsocenterToBlockTrayDistance);
+  vtkMRMLPrintStringMacro(SnoutID);
+  vtkMRMLPrintFloatMacro(SnoutPosition);
   vtkMRMLPrintEndMacro();
 }
 
@@ -345,6 +387,13 @@ void vtkMRMLRTIonBeamNode::SetIsocenterToMultiLeafCollimatorDistance(double dist
   this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
 }
 
+//----------------------------------------------------------------------------
+void vtkMRMLRTIonBeamNode::UpdateScanSpotGeometry(vtkIntArray* highlightedScanSponRows)
+{
+  this->ScanSpotTableRows = vtkSmartPointer< vtkIntArray >::Take(highlightedScanSponRows);
+  this->CreateBeamPolyData();
+}
+
 //---------------------------------------------------------------------------
 void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=nullptr*/)
 {
@@ -369,7 +418,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
   }
   else
   {
-    vtkWarningMacro("CreateBeamPolyData: Invalid or absent table node with " \
+    vtkDebugMacro("CreateBeamPolyData: Invalid or absent table node with " \
       "scan spot parameters for a node " 
       << "\"" << this->GetName() << "\"");
   }
@@ -409,35 +458,28 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
   bool yOpened = !vtkSlicerRtCommon::AreEqualWithTolerance( this->Y2Jaw, this->Y1Jaw);
 
   // Scanning spot beam
-  if (scanSpotTableNode)
+  vtkTable* table = nullptr;
+  if (scanSpotTableNode && (table = scanSpotTableNode->GetTable()))
   {
-    std::vector<double> positionX, positionY;
-    vtkIdType rows = scanSpotTableNode->GetNumberOfRows();
-    positionX.resize(rows);
-    positionY.resize(rows);
-    // copy scan scot map data for processing
-    for (vtkIdType row = 0; row < rows; row++)
+    std::list< int > highlightedRows;
+    if (this->ScanSpotTableRows)
     {
-      vtkTable* table = scanSpotTableNode->GetTable();
-      positionX[row] = table->GetValue( row, 0).ToDouble();
-      positionY[row] = table->GetValue( row, 1).ToDouble();
+      for (vtkIdType i = 0; i < this->ScanSpotTableRows->GetSize(); ++i)
+      {
+        highlightedRows.push_back(static_cast<int>(this->ScanSpotTableRows->GetTuple1(i)));
+      }
     }
     double beamTopCap = std::min( this->VSADx, this->VSADy);
-    double beamBottomCap = -beamTopCap;
+    double beamBottomCap = -500.;//-1. * beamTopCap;
 
-    double M1x = (this->VSADx - beamTopCap) / this->VSADx;
-    double M1y = (this->VSADy - beamTopCap) / this->VSADy;
+    double M1x = 1.0;//(this->VSADx - beamTopCap) / this->VSADx;
+    double M1y = 1.0;//(this->VSADy - beamTopCap) / this->VSADy;
 
-    double M2x = (this->VSADx + beamTopCap) / this->VSADx;
-    double M2y = (this->VSADy + beamTopCap) / this->VSADy;
+    double M2x = 1.0;//(this->VSADx + beamTopCap) / this->VSADx;
+    double M2y = 1.0;//(this->VSADy + beamTopCap) / this->VSADy;
 
-    double sigmaX = this->ScanningSpotSize[0] * FWHM_TO_SIGMA;
-    double sigmaY = this->ScanningSpotSize[1] * FWHM_TO_SIGMA;
-
-    double borderMinX = *std::min_element( positionX.begin(), positionX.end());
-    double borderMaxX = *std::max_element( positionX.begin(), positionX.end());
-    double borderMinY = *std::min_element( positionY.begin(), positionY.end());
-    double borderMaxY = *std::max_element( positionY.begin(), positionY.end());
+    double sigmaX = this->ScanningSpotSize[0];
+    double sigmaY = this->ScanningSpotSize[1];
 
     double sigmaX1 = M1x * sigmaX;
     double sigmaY1 = M1y * sigmaY;
@@ -445,63 +487,146 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
     double sigmaX2 = M2x * sigmaX;
     double sigmaY2 = M2y * sigmaY;
 
-    // beam begin cap
-    points->InsertPoint( 0, borderMinX - sigmaX1, borderMinY - sigmaY1, beamTopCap);
-    points->InsertPoint( 1, borderMinX - sigmaX1, borderMaxY + sigmaY1, beamTopCap);
-    points->InsertPoint( 2, borderMaxX + sigmaX1, borderMaxY + sigmaY1, beamTopCap);
-    points->InsertPoint( 3, borderMaxX + sigmaX1, borderMinY - sigmaY1, beamTopCap);
+    vtkIdType rows = scanSpotTableNode->GetNumberOfRows();
+    vtkNew<vtkAppendPolyData> append;
+    bool polydataAppended = false;
+    // ScanSpot map data for processing
+    for (vtkIdType row = 0; row < rows; row++)
+    {
+      vtkNew<vtkPolyData> beamPolyData;
+      vtkNew<vtkPoints> points;
+      vtkNew<vtkCellArray> cellArray;
+      vtkNew<vtkUnsignedCharArray> selection;
+      selection->SetNumberOfComponents(1);
+      selection->SetName("selected");
+      
+      bool highlighCell = false;
+      if (std::find(highlightedRows.begin(), highlightedRows.end(), row) != highlightedRows.end())
+      {
+        highlighCell = true;
+      }
+      // Rainbow table node: green = 85, red = 0
+      // set color green for original, red for highlighted
+      unsigned char colorData = (highlighCell) ? 0 : 85;
 
-    // beam end cap
-    points->InsertPoint( 4, borderMinX - sigmaX2, borderMinY - sigmaY2, beamBottomCap);
-    points->InsertPoint( 5, borderMinX - sigmaX2, borderMaxY + sigmaY2, beamBottomCap);
-    points->InsertPoint( 6, borderMaxX + sigmaX2, borderMaxY + sigmaY2, beamBottomCap);
-    points->InsertPoint( 7, borderMaxX + sigmaX2, borderMinY - sigmaY2, beamBottomCap);
+      double positionX = table->GetValue( row, 0).ToDouble();
+      double positionY = table->GetValue( row, 1).ToDouble();
+      double weight = table->GetValue( row, 2).ToDouble();
 
-    // Add the cap to the top
-    cellArray->InsertNextCell(4);
-    cellArray->InsertCellPoint(0);
-    cellArray->InsertCellPoint(1);
-    cellArray->InsertCellPoint(2);
-    cellArray->InsertCellPoint(3);
+      double x1[POINTS_PER_SCANSPOT] = {};
+      double y1[POINTS_PER_SCANSPOT] = {};
+      double x2[POINTS_PER_SCANSPOT] = {};
+      double y2[POINTS_PER_SCANSPOT] = {};
 
-    // Side polygon 1
-    cellArray->InsertNextCell(4);
-    cellArray->InsertCellPoint(0);
-    cellArray->InsertCellPoint(4);
-    cellArray->InsertCellPoint(5);
-    cellArray->InsertCellPoint(1);
+      for (int i = 0; i < POINTS_PER_SCANSPOT; ++i)
+      {
+        double phi = 2. * vtkMath::Pi() * double(i) / double(POINTS_PER_SCANSPOT);
+        x1[i] = sigmaX1 * cos(phi);
+        y1[i] = sigmaY1 * sin(phi);
+        x2[i] = sigmaX2 * cos(phi);
+        y2[i] = sigmaY2 * sin(phi);
+      }
 
-    // Side polygon 2
-    cellArray->InsertNextCell(4);
-    cellArray->InsertCellPoint(1);
-    cellArray->InsertCellPoint(5);
-    cellArray->InsertCellPoint(6);
-    cellArray->InsertCellPoint(2);
+      for (int i = 0; i < POINTS_PER_SCANSPOT; ++i)
+      {
+        // beam begin cap points
+        points->InsertPoint( i, positionX - x1[i], positionY - y1[i], 
+          beamTopCap);
+      }
+      for (int i = 0; i < POINTS_PER_SCANSPOT; ++i)
+      {
+        // beam end cap points
+        points->InsertPoint( POINTS_PER_SCANSPOT + i, positionX - x2[i], 
+          positionY - y2[i], beamBottomCap);
+      }
+      // side cells
+      for (int i = 0; i < POINTS_PER_SCANSPOT - 1; ++i)
+      {
+        cellArray->InsertNextCell(4);
+        cellArray->InsertCellPoint(i);
+        cellArray->InsertCellPoint(POINTS_PER_SCANSPOT + i);
+        cellArray->InsertCellPoint(POINTS_PER_SCANSPOT + i + 1);
+        cellArray->InsertCellPoint(i + 1);
+      }
+      // last side cell
+      cellArray->InsertNextCell(4);
+      cellArray->InsertCellPoint(POINTS_PER_SCANSPOT - 1);
+      cellArray->InsertCellPoint(0);
+      cellArray->InsertCellPoint(POINTS_PER_SCANSPOT);
+      cellArray->InsertCellPoint(2 * POINTS_PER_SCANSPOT - 1);
+      
+      // beam begin cap
+      cellArray->InsertNextCell(POINTS_PER_SCANSPOT + 1);
+      for (int i = 0; i < POINTS_PER_SCANSPOT; ++i)
+      {
+        cellArray->InsertCellPoint(i);
+      }
+      cellArray->InsertCellPoint(0);
 
-    // Side polygon 3
-    cellArray->InsertNextCell(4);
-    cellArray->InsertCellPoint(2);
-    cellArray->InsertCellPoint(6);
-    cellArray->InsertCellPoint(7);
-    cellArray->InsertCellPoint(3);
+      // beam end cap
+      cellArray->InsertNextCell(POINTS_PER_SCANSPOT + 1);
+      for (int i = POINTS_PER_SCANSPOT; i < 2 * POINTS_PER_SCANSPOT; ++i)
+      {
+        cellArray->InsertCellPoint(i);
+      }
+      cellArray->InsertCellPoint(POINTS_PER_SCANSPOT);
 
-    // Side polygon 4
-    cellArray->InsertNextCell(4);
-    cellArray->InsertCellPoint(3);
-    cellArray->InsertCellPoint(7);
-    cellArray->InsertCellPoint(4);
-    cellArray->InsertCellPoint(0);
+      beamPolyData->SetPoints(points);
+      beamPolyData->SetPolys(cellArray);
 
-    // Add the cap to the bottom
-    cellArray->InsertNextCell(4);
-    cellArray->InsertCellPoint(4);
-    cellArray->InsertCellPoint(5);
-    cellArray->InsertCellPoint(6);
-    cellArray->InsertCellPoint(7);
+      // fill selection scalars: green for original, red for highlighted
+      for(int i = 0; i < cellArray->GetNumberOfCells(); ++i)
+      {        
+        selection->InsertNextTuple1(colorData);
+      }
+      // Add scalars to show highlighted scan spot
+      beamPolyData->GetCellData()->SetScalars(selection);
 
-    beamModelPolyData->SetPoints(points);
-    beamModelPolyData->SetPolys(cellArray);
-    return;
+      if (!vtkSlicerRtCommon::AreEqualWithTolerance( weight, 0.0))
+      {
+        append->AddInputData(beamPolyData);
+        polydataAppended = true;
+      }
+      else
+      {
+        vtkNew<vtkUnsignedCharArray> lineSelection;
+        lineSelection->SetNumberOfComponents(1);
+        lineSelection->SetName("selected");
+        // fill selection scalar: green for original, red for highlighted
+        lineSelection->InsertNextTuple1(colorData);
+
+        double p0[3] = {positionX, positionY, beamTopCap};
+        double p1[3] = {positionX, positionY, beamBottomCap};
+        // store points in vtkPoints
+        vtkNew<vtkPoints> linePoints;
+        linePoints->InsertNextPoint(p0);
+        linePoints->InsertNextPoint(p1);
+        vtkNew<vtkCellArray> lineCell;
+        // create a line cell
+        vtkNew<vtkLine> line;
+        line->GetPointIds()->SetId(0, 0);
+        line->GetPointIds()->SetId(1, 1);
+        lineCell->InsertNextCell(line);
+        // Create a polydata to store everything in
+        vtkNew<vtkPolyData> linesPolyData;
+        // Add the points to the dataset
+        linesPolyData->SetPoints(linePoints);
+        // Add the lines to the dataset
+        linesPolyData->SetLines(lineCell);
+        // Add scalar to show highlighted scan spot
+        beamPolyData->GetCellData()->SetScalars(lineSelection);
+        append->AddInputData(linesPolyData);
+        polydataAppended = true;
+      }
+    }
+
+    if (polydataAppended)
+    {
+      append->Update();
+      beamModelPolyData->DeepCopy(append->GetOutput());
+      vtkDebugMacro("CreateBeamPolyData: Beam \"" << this->GetName() << "\" with ScanSpot data has been created!");
+      return;
+    }
   }
   else if (mlcTableNode && xOpened && yOpened) // MLC with opened Jaws
   {
@@ -602,7 +727,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
 
     if (!sections.size()) // no visible sections
     {
-      vtkErrorMacro("CreateBeamPolyData: Unable to calculate MLC visible data");
+      vtkWarningMacro("CreateBeamPolyData: Unable to calculate MLC visible data");
       return;
     }
 
@@ -646,7 +771,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
 
           double x_ = x * cx1;
           double y_ = y * cy1;
-          points->InsertPoint( pointIds++, x_, y_, -this->IsocenterToMultiLeafCollimatorDistance);
+          points->InsertPoint( pointIds++, x_, y_, -500. /*-this->IsocenterToMultiLeafCollimatorDistance*/);
         }
         side12.clear(); // doesn't need anymore
 
@@ -699,7 +824,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
 
   // Default beam polydata (symmetric or asymmetric jaws, no ScanSpot, no MLC)
   double beamTopCap = std::min( IsocenterToJawsDistanceX, IsocenterToJawsDistanceY);
-  double beamBottomCap = -beamTopCap;
+  double beamBottomCap = -500.;//-beamTopCap;
 
   double Mx = (this->VSADx - beamTopCap) / this->VSADx;
   double My = (this->VSADy - beamTopCap) / this->VSADy;
@@ -762,4 +887,22 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
 
   beamModelPolyData->SetPoints(points);
   beamModelPolyData->SetPolys(cellArray);
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLRTIonRangeShifterNode* vtkMRMLRTIonBeamNode::GetRangeShifterNode()
+{
+  return vtkMRMLRTIonRangeShifterNode::SafeDownCast( this->GetNodeReference(RANGE_SHIFTER_REFERENCE_ROLE) );
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTIonBeamNode::SetAndObserveRangeShifterNode(vtkMRMLRTIonRangeShifterNode* node)
+{
+  if (node && this->Scene != node->GetScene())
+  {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+  }
+
+  this->SetNodeReferenceID(RANGE_SHIFTER_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }

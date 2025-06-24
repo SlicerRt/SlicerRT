@@ -28,6 +28,8 @@
 // MRML includes
 #include "vtkMRMLRTBeamNode.h"
 
+class vtkMRMLRTIonRangeShifterNode;
+
 /// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTIonBeamNode : public vtkMRMLRTBeamNode
 {
@@ -73,6 +75,10 @@ public:
   /// Always creates a new transform node.
   vtkMRMLLinearTransformNode* CreateBeamTransformNode(vtkMRMLScene*) override;
 
+  /// Update beam poly data based on beam geometry parameters (jaws, MLC)
+  /// \param highlightedScanSponRows IntArray of rows. If none given, then nothing to highlight 
+  virtual void UpdateScanSpotGeometry(vtkIntArray* highlightedScanSponRows=nullptr);
+
 public:
   /// Get VSAD distance x component
   vtkGetMacro( VSADx, double);
@@ -105,11 +111,6 @@ public:
   /// Set isocenter to jaws Y distance. Triggers \sa BeamTransformModified event and re-generation of beam model
   void SetIsocenterToJawsDistanceY(double distance);
 
-  /// Get isocenter to range shifter distance
-  vtkGetMacro(IsocenterToRangeShifterDistance, double);
-  /// Set isocenter to range shifter. Triggers \sa BeamTransformModified event and re-generation of beam model
-  void SetIsocenterToRangeShifterDistance(double distance);
-
   /// Get isocenter to multi-leaf collimator distance
   vtkGetMacro(IsocenterToMultiLeafCollimatorDistance, double);
   /// Set isocenter to multi-leaf collimator distance. Triggers \sa BeamTransformModified event and re-generation of beam model
@@ -121,6 +122,40 @@ public:
   /// Get scan spot position map & meterset weights table node
   vtkMRMLTableNode* GetScanSpotTableNode();
 
+  /// Set and observe range shifter node
+  void SetAndObserveRangeShifterNode(vtkMRMLRTIonRangeShifterNode* node);
+  /// Get range shifter node
+  vtkMRMLRTIonRangeShifterNode* GetRangeShifterNode();
+
+  /// Get ref range shifter num
+  vtkGetMacro(ReferencedRangeShifterNumber, int);
+  /// Set ref range shifter num
+  vtkSetMacro(ReferencedRangeShifterNumber, int);
+  /// Get range shifter setting
+  vtkGetStringMacro(RangeShifterSetting);
+  /// Set range shifter setting
+  vtkSetStringMacro(RangeShifterSetting);
+  /// Get range shifter WET
+  vtkGetMacro(RangeShifterWET, double);
+  /// Set range shifter WET
+  vtkSetMacro(RangeShifterWET, double);
+  /// Get isocenter to range shifter distance
+  vtkGetMacro(IsocenterToRangeShifterDistance, double);
+  /// Set isocenter to range shifter. Triggers \sa BeamTransformModified event and re-generation of beam model
+  void SetIsocenterToRangeShifterDistance(double distance);
+
+  /// Get isocenter to block tray distance
+  vtkGetMacro(IsocenterToBlockTrayDistance, double);
+  /// Set isocenter to block tray distance
+  vtkSetMacro(IsocenterToBlockTrayDistance, double);
+  /// Get snout ID
+  vtkGetStringMacro(SnoutID);
+  /// Set snout ID
+  vtkSetStringMacro(SnoutID);
+  /// Get snout position
+  vtkGetMacro(SnoutPosition, double);
+  /// Set snout position
+  vtkSetMacro(SnoutPosition, double);
 protected:
   /// Create beam model from beam parameters, supporting MLC leaves, jaws
   /// and scan spot map for modulated scan mode
@@ -149,10 +184,27 @@ protected:
   /// distance from isocenter to beam limiting device MLCX, MLCY
   // using SourceToMultiLeafCollimatorDistance to store value from vtkMRMLRTBeamNode
   double& IsocenterToMultiLeafCollimatorDistance;
+  /// size of the scan spot in mm
+  float ScanningSpotSize[2];
+  // Range Shifter Settings Sequence parameters
+  /// referenced range shifter number
+  int ReferencedRangeShifterNumber;
+  /// range shifter setting
+  char* RangeShifterSetting;
   /// distance from isocenter to range shifter device
   double IsocenterToRangeShifterDistance;
-
-  float ScanningSpotSize[2];
+  /// range shifter water equivalent thickness
+  double RangeShifterWET;
+  // MUST BE separated into IonBlockNode
+  /// isocenter to block tray distance
+  double IsocenterToBlockTrayDistance;
+  /// snout id
+  char* SnoutID;
+  /// snout position in mm
+  double SnoutPosition;
+private:
+  /// array of highlighted scan spot weight table rows
+  vtkSmartPointer< vtkIntArray > ScanSpotTableRows;
 };
 
 #endif // __vtkMRMLRTIonBeamNode_h

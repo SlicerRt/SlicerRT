@@ -32,6 +32,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 #include "vtkMRMLRTBeamNode.h"
 #include "vtkMRMLRTIonBeamNode.h"
+#include "vtkMRMLRTIonRangeShifterNode.h"
 #include "vtkMRMLRTPlanNode.h"
 
 // MRML includes
@@ -52,6 +53,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 // Qt includes
 #include <QDebug>
 #include <QLineEdit>
+#include <QSignalBlocker>
 
 //----------------------------------------------------------------------------
 const char* qMRMLBeamParametersTabWidget::BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY = "BeamParameterNodeAttribute";
@@ -113,6 +115,9 @@ void qMRMLBeamParametersTabWidgetPrivate::init()
   QObject::connect( this->pushButton_GenerateMLCBoundary, SIGNAL(clicked()), q, SLOT(generateMLCboundaryClicked()) );
   QObject::connect( this->pushButton_UpdateMLCBoundary, SIGNAL(clicked()), q, SLOT(updateMLCboundaryClicked()) );
   QObject::connect( this->pushButton_CalculateMLCPosition, SIGNAL(clicked()), q, SLOT(calculateMLCPositionClicked()) );
+
+  // Scan spot weights table page
+  QObject::connect( this->MRMLTableView_ScanSpotWeight, SIGNAL(selectionChanged()), q, SLOT(onScanSpotWeightSelectionChanged()) );
 
   // Load MLC position calculation logic
   qSlicerCoreApplication* app = qSlicerCoreApplication::application();
@@ -191,25 +196,54 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
   d->doubleSpinBox_SAD->setValue(d->BeamNode->GetSAD());
   d->RangeWidget_XJawsPosition->setValues(d->BeamNode->GetX1Jaw(), d->BeamNode->GetX2Jaw());
   d->RangeWidget_YJawsPosition->setValues(d->BeamNode->GetY1Jaw(), d->BeamNode->GetY2Jaw());
-  d->SliderWidget_CollimatorAngle->setValue(d->BeamNode->GetCollimatorAngle());
-  d->SliderWidget_GantryAngle->blockSignals(true);
-  d->SliderWidget_GantryAngle->setValue(d->BeamNode->GetGantryAngle());
-  d->SliderWidget_CouchAngle->setValue(d->BeamNode->GetCouchAngle());
-  d->SliderWidget_GantryAngle->blockSignals(false);
 
-  d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setMRMLScene(d->BeamNode->GetScene());
+  // prevent transform update
+  {
+    const QSignalBlocker blocker(d->SliderWidget_CollimatorAngle);
+    d->SliderWidget_CollimatorAngle->setValue(d->BeamNode->GetCollimatorAngle());
+  }
+  {
+    const QSignalBlocker blocker(d->SliderWidget_GantryAngle);
+    d->SliderWidget_GantryAngle->setValue(d->BeamNode->GetGantryAngle());
+  }
+  {
+    const QSignalBlocker blocker(d->SliderWidget_CouchAngle);
+    d->SliderWidget_CouchAngle->setValue(d->BeamNode->GetCouchAngle());
+  }
+
+  // Set control point isocenter (if absent set widget disabled and use plan's isocenter)
+  double isocenter[3] = {};
+  bool planIsocenterFlag = false;
+  if (d->BeamNode->GetIsocenterPositionFlag())
+  {
+    d->BeamNode->GetIsocenterPosition(isocenter);
+    d->CoordinatesWidget_Isocenter->setEnabled(true);
+  }
+  else
+  {
+    planIsocenterFlag = d->BeamNode->GetPlanIsocenterPosition(isocenter);
+  }
+  d->CoordinatesWidget_Isocenter->setCoordinates(isocenter);
+  if (planIsocenterFlag)
+  {
+    d->CoordinatesWidget_Isocenter->setEnabled(false);
+  }
 
   // Check for MLC table and enable combo box
   if (vtkMRMLTableNode* mlcTable = d->BeamNode->GetMultiLeafCollimatorTableNode())
   {
+    d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setMRMLScene(mlcTable->GetScene());
     d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setCurrentNode(mlcTable);
+    d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setEnabled(true);
     d->pushButton_UpdateMLCBoundary->setEnabled(true);
+    d->doubleSpinBox_DistanceMLC->setEnabled(true);
   }
   else
   {
     d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setCurrentNode(nullptr);
     d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setEnabled(false);
     d->pushButton_UpdateMLCBoundary->setEnabled(false);
+    d->doubleSpinBox_DistanceMLC->setEnabled(false);
   }
 
   // Update engine-specific values
@@ -241,34 +275,30 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
         QCheckBox* checkBox = qobject_cast<QCheckBox*>(currentParameterFieldWidget);
         if (lineEdit)
         {
-          lineEdit->blockSignals(true);
+          const QSignalBlocker blocker(lineEdit);
           lineEdit->setText(parameterValue);
-          lineEdit->blockSignals(false);
         }
         else if (slider)
         {
-          slider->blockSignals(true);
+          const QSignalBlocker blocker(slider);
           slider->setValue(parameterValue.toDouble());
-          slider->blockSignals(false);
         }
         else if (spinBox)
         {
-          spinBox->blockSignals(true);
+          const QSignalBlocker blocker(spinBox);
           spinBox->setValue(parameterValue.toDouble());
-          spinBox->blockSignals(false);
         }
         else if (comboBox)
         {
-          comboBox->blockSignals(true);
+          const QSignalBlocker blocker(comboBox);
           comboBox->setCurrentIndex(parameterValue.toInt());
-          comboBox->blockSignals(false);
         }
         else if (checkBox)
         {
-          checkBox->blockSignals(true);
-          checkBox->setChecked(QVariant(parameterValue).toBool());
-          checkBox->blockSignals(false);
-
+          {
+            const QSignalBlocker blocker(checkBox);
+            checkBox->setChecked(QVariant(parameterValue).toBool());
+          }
           // Enable/disable dependent parameters
           this->updateDependentParameterWidgetsForCheckbox(checkBox);
         }
@@ -297,6 +327,15 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
     // show widgets for rt beam
     d->doubleSpinBox_SAD->show();
     d->label_SAD->show();
+    {
+      const QSignalBlocker blocker(d->doubleSpinBox_SAD);
+      d->doubleSpinBox_SAD->setValue(d->BeamNode->GetSAD());
+    }
+
+    d->CollapsibleButton_RangeShifterParameters->setCollapsed(true);
+    d->CollapsibleButton_RangeShifterParameters->setEnabled(false);
+    d->CollapsibleButton_SnoutParameters->setCollapsed(true);
+    d->CollapsibleButton_SnoutParameters->setEnabled(false);
   }
   else if (ionBeamNode)
   {
@@ -307,7 +346,7 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
     // Check for ScanSpot table and enable combo box
     if (vtkMRMLTableNode* scanspotTable = ionBeamNode->GetScanSpotTableNode())
     {
-      d->MRMLNodeComboBox_ScanSpotParametersTable->setMRMLScene(d->BeamNode->GetScene());
+      d->MRMLNodeComboBox_ScanSpotParametersTable->setMRMLScene(scanspotTable->GetScene());
       d->MRMLNodeComboBox_ScanSpotParametersTable->setCurrentNode(scanspotTable);
     }
     else
@@ -330,6 +369,37 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
     d->doubleSpinBox_VSADy->show();
     d->label_ScanSpotParameters->show();
     d->MRMLNodeComboBox_ScanSpotParametersTable->show();
+    {
+      const QSignalBlocker blocker(d->doubleSpinBox_VSADx);
+      d->doubleSpinBox_VSADx->setValue(ionBeamNode->GetVSADx());
+    }
+    {
+      const QSignalBlocker blocker(d->doubleSpinBox_VSADy);
+      d->doubleSpinBox_VSADy->setValue(ionBeamNode->GetVSADy());
+    }
+    d->Label_SnoutID->setText(QString(ionBeamNode->GetSnoutID()));
+    d->Label_SnoutPosition->setText(tr("%1").arg(ionBeamNode->GetSnoutPosition()));
+    if (vtkMRMLRTIonRangeShifterNode* rsNode = ionBeamNode->GetRangeShifterNode())
+    {
+      d->CollapsibleButton_RangeShifterParameters->setEnabled(true);
+      d->Label_RangeShifterID->setText(QString(rsNode->GetRangeShifterID()));
+      d->Label_RangeShifterSetting->setText(QString(ionBeamNode->GetRangeShifterSetting()));
+      if (rsNode->GetType() == vtkMRMLRTIonRangeShifterNode::BINARY)
+      {
+        d->Label_RangeShifterType->setText(tr("BINARY"));
+      }
+      else if (rsNode->GetType() == vtkMRMLRTIonRangeShifterNode::ANALOG)
+      {
+        d->Label_RangeShifterType->setText(tr("ANALOG"));
+      }
+      d->Label_IsocenterToRangeShifterDistance->setText(tr("%1").arg(ionBeamNode->GetIsocenterToRangeShifterDistance()));
+      d->Label_RangeShifterWET->setText(tr("%1").arg(ionBeamNode->GetRangeShifterWET()));
+    }
+    else
+    {
+      d->CollapsibleButton_RangeShifterParameters->setCollapsed(true);
+      d->CollapsibleButton_RangeShifterParameters->setEnabled(false);
+    }
   }
 }
 
@@ -1147,3 +1217,31 @@ void qMRMLBeamParametersTabWidget::updateDRRClicked()
   //d->logic()->UpdateDRR(beamNode->GetName());
   qCritical() << Q_FUNC_INFO << ": Not implemented!";
 }
+
+//-----------------------------------------------------------------------------
+void qMRMLBeamParametersTabWidget::onScanSpotWeightSelectionChanged()
+{
+  Q_D(qMRMLBeamParametersTabWidget);
+  vtkMRMLTableNode* scanSpotTableNode = nullptr;
+  vtkIntArray* rowsArray = nullptr;
+  QItemSelectionModel* model = d->MRMLTableView_ScanSpotWeight->selectionModel();
+  if (model)
+  {
+    QModelIndexList rows = model->selectedRows();
+    if (rows.size() > 0)
+    {
+      rowsArray = vtkIntArray::New();
+      rowsArray->SetName("SelectedRows");
+    }
+    foreach (QModelIndex index, rows)
+    {
+      rowsArray->InsertNextValue(index.row());
+    }
+  }
+  scanSpotTableNode = vtkMRMLTableNode::SafeDownCast(d->MRMLNodeComboBox_ScanSpotParametersTable->currentNode());
+  if (scanSpotTableNode && rowsArray)
+  {
+    scanSpotTableNode->InvokeEvent(vtkCommand::ModifiedEvent, rowsArray);
+  }
+}
+

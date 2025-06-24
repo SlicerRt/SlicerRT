@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>427</width>
-    <height>425</height>
+    <width>383</width>
+    <height>505</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -57,7 +57,7 @@
     <item row="4" column="1">
      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_MLCBoundaryAndPositionTable">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="nodeTypes">
        <stringlist>
@@ -78,14 +78,14 @@
       </property>
      </widget>
     </item>
-    <item row="9" column="0">
+    <item row="10" column="0">
      <widget class="QLabel" name="label_XjawPosition">
       <property name="text">
        <string>X jaw positions (mm):</string>
       </property>
      </widget>
     </item>
-    <item row="9" column="1">
+    <item row="10" column="1">
      <widget class="ctkRangeWidget" name="RangeWidget_XJawsPosition">
       <property name="decimals">
        <number>0</number>
@@ -104,14 +104,14 @@
       </property>
      </widget>
     </item>
-    <item row="10" column="0">
+    <item row="11" column="0">
      <widget class="QLabel" name="label_YJawPosition">
       <property name="text">
        <string>Y jaw positions (mm):</string>
       </property>
      </widget>
     </item>
-    <item row="10" column="1">
+    <item row="11" column="1">
      <widget class="ctkRangeWidget" name="RangeWidget_YJawsPosition">
       <property name="decimals">
        <number>0</number>
@@ -130,14 +130,14 @@
       </property>
      </widget>
     </item>
-    <item row="11" column="0">
+    <item row="12" column="0">
      <widget class="QLabel" name="label_GantryAngle">
       <property name="text">
        <string>Gantry angle (°):</string>
       </property>
      </widget>
     </item>
-    <item row="11" column="1">
+    <item row="12" column="1">
      <widget class="ctkSliderWidget" name="SliderWidget_GantryAngle">
       <property name="decimals">
        <number>0</number>
@@ -147,14 +147,14 @@
       </property>
      </widget>
     </item>
-    <item row="12" column="0">
+    <item row="13" column="0">
      <widget class="QLabel" name="label_CollimatorAngle">
       <property name="text">
        <string>Collimator angle (°):</string>
       </property>
      </widget>
     </item>
-    <item row="12" column="1">
+    <item row="13" column="1">
      <widget class="ctkSliderWidget" name="SliderWidget_CollimatorAngle">
       <property name="decimals">
        <number>0</number>
@@ -164,14 +164,14 @@
       </property>
      </widget>
     </item>
-    <item row="13" column="0">
+    <item row="14" column="0">
      <widget class="QLabel" name="label_CouchAngle">
       <property name="text">
        <string>Couch angle (°):</string>
       </property>
      </widget>
     </item>
-    <item row="13" column="1">
+    <item row="14" column="1">
      <widget class="ctkSliderWidget" name="SliderWidget_CouchAngle">
       <property name="decimals">
        <number>0</number>
@@ -243,6 +243,150 @@
       <property name="value">
        <double>400.000000000000000</double>
       </property>
+     </widget>
+    </item>
+    <item row="9" column="0">
+     <widget class="QLabel" name="label_Isocenter">
+      <property name="text">
+       <string>Isocenter:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="1">
+     <widget class="ctkCoordinatesWidget" name="CoordinatesWidget_Isocenter">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="16" column="0" colspan="2">
+     <widget class="ctkCollapsibleButton" name="CollapsibleButton_RangeShifterParameters">
+      <property name="text">
+       <string>Range shifter parameters</string>
+      </property>
+      <property name="collapsed">
+       <bool>true</bool>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="0" column="0">
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>Isocenter to range shifter distance:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLabel" name="Label_IsocenterToRangeShifterDistance">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Setting:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLabel" name="Label_RangeShifterSetting">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="Label_RangeShifterType">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_1">
+           <property name="text">
+            <string>ID:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Type:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="Label_RangeShifterID">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>WET:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLabel" name="Label_RangeShifterWET">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="15" column="0" colspan="2">
+     <widget class="ctkCollapsibleButton" name="CollapsibleButton_SnoutParameters">
+      <property name="text">
+       <string>Snout parameters</string>
+      </property>
+      <property name="collapsed">
+       <bool>true</bool>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>ID</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="Label_SnoutID">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Position:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="Label_SnoutPosition">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>
@@ -445,6 +589,20 @@
     </item>
    </layout>
   </widget>
+  <widget class="QWidget" name="tabScanSpot">
+   <attribute name="title">
+    <string>Scan Spot Weight</string>
+   </attribute>
+   <layout class="QGridLayout" name="gridLayout_6">
+    <item row="0" column="0">
+     <widget class="qMRMLTableView" name="MRMLTableView_ScanSpotWeight">
+      <property name="selectionBehavior">
+       <enum>QAbstractItemView::SelectRows</enum>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>
@@ -452,6 +610,11 @@
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCoordinatesWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkCoordinatesWidget.h</header>
   </customwidget>
   <customwidget>
    <class>ctkRangeWidget</class>
@@ -469,11 +632,33 @@
    <header>qMRMLNodeComboBox.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>qMRMLTableView</class>
+   <extends>QTableView</extends>
+   <header>qMRMLTableView.h</header>
+  </customwidget>
  </customwidgets>
  <resources>
   <include location="../../../../DicomRtImportExport/SubjectHierarchyPlugins/Resources/qSlicerDicomRtImportExportSubjectHierarchyPlugins.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>MRMLNodeComboBox_ScanSpotParametersTable</sender>
+   <signal>currentNodeChanged(vtkMRMLNode*)</signal>
+   <receiver>MRMLTableView_ScanSpotWeight</receiver>
+   <slot>setMRMLTableNode(vtkMRMLNode*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>266</x>
+     <y>196</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>191</x>
+     <y>264</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
  <buttongroups>
   <buttongroup name="buttonGroup_MLCType"/>
  </buttongroups>

@@ -25,6 +25,7 @@
 // SlicerRT includes
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
+#include "vtkMRMLRTIonRangeShifterNode.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -215,8 +216,19 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
     {
       // Update beam model
       beamNode->UpdateGeometry();
+      vtkMRMLRTIonBeamNode* ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(beamNode);
+      if (ionBeamNode)
+      {
+        vtkMRMLRTIonRangeShifterNode* rsNode = ionBeamNode->GetRangeShifterNode();
+        if (rsNode)
+        {
+          // Update range shifter model
+          rsNode->UpdateGeometry();
+        }
+      }
     }
   }
+
   else if (caller->IsA("vtkMRMLRTPlanNode"))
   {
     vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(caller);
@@ -250,6 +262,8 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
   {
     if (event == vtkCommand::ModifiedEvent)
     {
+      vtkIntArray* array = static_cast< vtkIntArray* >(callData);
+
       // Iterate through all beam nodes
       std::vector<vtkMRMLNode*> beamNodes;
       mrmlScene->GetNodesByClass("vtkMRMLRTBeamNode", beamNodes);
@@ -259,12 +273,22 @@ void vtkSlicerBeamsModuleLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsign
         // if caller node and referenced table node is the same
         // update beam polydata
         vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(*beamIterator);
+        vtkMRMLRTIonBeamNode* ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(beamNode);
         vtkMRMLTableNode* beamMLCTableNode = beamNode->GetMultiLeafCollimatorTableNode();
         vtkMRMLTableNode* tableNode = vtkMRMLTableNode::SafeDownCast(caller);
-        if (beamMLCTableNode == tableNode)
+        if (beamMLCTableNode == tableNode) // update MLC for RTBeam and RTIonBeam
         {
           // Update beam model
           beamNode->UpdateGeometry();
+          return;
+        }
+        if (ionBeamNode) // update ScanSpot RTIonBeam
+        {
+          vtkMRMLTableNode* beamScanSpotTableNode = ionBeamNode->GetScanSpotTableNode();
+          if ((beamScanSpotTableNode == tableNode) && array) // ion beam with scan spot rows
+          {
+            ionBeamNode->UpdateScanSpotGeometry(array);
+          }
         }
       }
     }

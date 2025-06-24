@@ -147,6 +147,9 @@ public slots:
   /// Handle string parameter changes in engine-specific beam parameter widgets
   void stringBeamParameterChanged(QString);
 
+  /// Process selected items from ScanSpotWeightTable
+  void onScanSpotWeightSelectionChanged();
+
 protected slots:
   /// Update from beam node state
   void updateWidgetFromMRML();

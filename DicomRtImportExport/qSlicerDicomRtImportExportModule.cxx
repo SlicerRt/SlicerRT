@@ -116,6 +116,7 @@ void qSlicerDicomRtImportExportModule::setup()
   this->Superclass::setup();
 
   vtkSlicerDicomRtImportExportModuleLogic* dicomRtImportExportLogic = vtkSlicerDicomRtImportExportModuleLogic::SafeDownCast(this->logic());
+  Q_UNUSED(dicomRtImportExportLogic);
 
   // Register Subject Hierarchy plugins
   qSlicerSubjectHierarchyPluginHandler::instance()->registerPlugin(new qSlicerSubjectHierarchyRtImagePlugin());

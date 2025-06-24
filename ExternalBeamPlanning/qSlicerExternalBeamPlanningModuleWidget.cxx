@@ -296,6 +296,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
   }
 
   // Plan parameters section
+  d->checkBox_IonPlanFlag->setChecked(planNode->GetIonPlanFlag());
 
   // None is enabled for the reference volume and segmentation comboboxes, and invalid selection
   // in plan node is set to GUI so that the user needs to select nodes that are then set to the beams.
@@ -360,7 +361,11 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
 
   if (planNode)
   {
-    planNode->SetIonPlanFlag(d->checkBox_IonPlanFlag->isChecked());
+    // for a newly created plan add ion plan flag manually
+    if (d->checkBox_IonPlanFlag->isChecked() && !planNode->GetIonPlanFlag())
+    {
+      planNode->SetIonPlanFlag(true);
+    }
 
     // Set input segmentation and reference volume if specified by DICOM
     vtkIdType planShItemID = shNode->GetItemByDataNode(planNode);
