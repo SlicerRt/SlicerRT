@@ -614,6 +614,17 @@ void qMRMLBeamParametersTabWidget::updateBeamParameterComboBox(
             comboBox->setProperty(BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY, parameterName);
             connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(integerBeamParameterChanged(int)));
 
+			// ubdate parameter label (shown in left column of beam parameters tab)
+			QWidget* currentParameterLabelWidget = tabLayout->itemAt(currentRow, QFormLayout::LabelRole)->widget();
+			if (currentParameterLabelWidget)
+			{
+				QLabel* label = qobject_cast<QLabel*>(currentParameterLabelWidget);
+				if (label)
+				{
+					label->setText(parameterLabel);
+				}
+			}
+
             break;
         }
     }

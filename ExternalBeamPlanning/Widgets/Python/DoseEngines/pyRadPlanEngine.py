@@ -28,11 +28,13 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
     def updateBeamParametersForIonPlan(self, isIonPlanActive):
         if isIonPlanActive:
             available_radiation_modes = ["protons", "carbons"]
+            parameter_label = "radiation mode (ion)"
         else:
             available_radiation_modes = ["photons", "protons", "carbons"]
+            parameter_label = "radiation mode"
 
         self.scriptedEngine.updateBeamParameterComboBox(
-        "pyRadPlan parameters", "radiationMode", "radiation mode",
+        "pyRadPlan parameters", "radiationMode", parameter_label,
         "comment", available_radiation_modes, 0)
 
 
