@@ -614,17 +614,6 @@ void qSlicerAbstractDoseEngine::addBeamParameterLineEdit(
   }
 }
 
-//----------------------------------------------------------------------------
-void qSlicerAbstractDoseEngine::removeParameter(QString tabName, QString parameterName)
-{
-    for (auto beamParametersTabWidget : m_BeamParametersTabWidgets)
-    {
-        // Remove beam parameter from tab widget
-        beamParametersTabWidget->removeBeamParameter(
-            tabName, this->assembleEngineParameterName(parameterName));
-    }
-}
-
 //-----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::setBeamParametersVisible(bool visible)
 {

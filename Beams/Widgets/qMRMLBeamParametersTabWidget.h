@@ -103,8 +103,6 @@ public:
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, QStringList options, int defaultIndex);
 
-  void updateBeamParameterFromWidget(QString tabName, QString parameterName, QWidget* widget);
-
   /// Add new boolean type beam parameter to beam parameters widget as a check box
   /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
   /// \param parameterName Name of the beam parameter. This is prefixed with the dose engine name
@@ -128,9 +126,6 @@ public:
   void addBeamParameterLineEdit(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, QString defaultValue );
-
-  void removeBeamParameter(QString tabName, QString parameterName);
-
 
   /// Show/hide beam parameter with specified name.
   /// Removes tab if becomes empty after hiding parameter, and re-adds tab if needed after showing parameter
