@@ -22,11 +22,6 @@
 // MRMLObjective includes
 #include "vtkMRMLRTObjectiveNode.h"
 
-// VTK includes
-#include <vtkObjectFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkNew.h>
-
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLRTObjectiveNode);
 
