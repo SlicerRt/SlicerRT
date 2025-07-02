@@ -258,18 +258,6 @@ void vtkMRMLRTPlanNode::SetPlanOptimizerName(const char* optimizerName)
   this->InvokeEvent(vtkMRMLRTPlanNode::PlanOptimizerChanged, this);
 }
 
-////----------------------------------------------------------------------------
-//void vtkMRMLRTPlanNode::SetPlanOptimizerAvailableObjectives(std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives)
-//{
-//  if (!availableObjectives.empty())
-//  {
-//    this->PlanOptimizerAvailableObjectives = availableObjectives;
-//  }
-//  else
-//  {
-//    this->PlanOptimizerAvailableObjectives = std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>>();
-//  }
-//}
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData)
