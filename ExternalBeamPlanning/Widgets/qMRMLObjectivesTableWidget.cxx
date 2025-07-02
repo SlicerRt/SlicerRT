@@ -23,12 +23,9 @@
 #include "qMRMLObjectivesTableWidget.h"
 #include "ui_qMRMLObjectivesTableWidget.h"
 
-#include "qSlicerAbstractObjective.h"
-
 // Optimization Engine includes
 #include "qSlicerPlanOptimizerPluginHandler.h"
 #include "qSlicerAbstractPlanOptimizer.h"
-#include "qSlicerPlanOptimizerLogic.h"
 
 // Beams includes
 #include "vtkMRMLRTPlanNode.h"
@@ -44,19 +41,9 @@
 #include <QDebug>
 #include <QKeyEvent>
 #include <QStringList>
-#include <QPushButton>
 #include <QComboBox>
-#include <QListWidget>
-#include <QCheckBox>
 #include <QLineEdit>
 #include <QSpinBox>
-#include <QMap>
-
-// SlicerQt includes
-#include "qSlicerApplication.h"
-
-#include <QMetaType>
-#include <vtkMRMLRTObjectiveNode.h>
 
 // Register vtkSmartPointer<vtkMRMLRTObjectiveNode> with Qt's meta-object system
 Q_DECLARE_METATYPE(vtkSmartPointer<vtkMRMLRTObjectiveNode>)
@@ -177,22 +164,6 @@ void qMRMLObjectivesTableWidget::setPlanNode(vtkMRMLNode* node)
 
     // Connect plan modified events to population of the table
     qvtkReconnect(d->PlanNode, planNode, vtkCommand::ModifiedEvent, this, SLOT(updateObjectivesTable()));
-
-    if (planNode)
-    {
-        //// Connect beam added and removed events
-        //qvtkReconnect(d->PlanNode, planNode, vtkMRMLRTPlanNode::BeamAdded, this, SLOT(onBeamAdded(vtkObject*, void*)));
-        //qvtkReconnect(d->PlanNode, planNode, vtkMRMLRTPlanNode::BeamRemoved, this, SLOT(onBeamRemoved(vtkObject*, void*)));
-
-        //// Connect modified events of contained beam nodes to update table
-        //std::vector<vtkMRMLRTBeamNode*> beams;
-        //planNode->GetBeams(beams);
-        //for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt)
-        //{
-        //    vtkMRMLRTBeamNode* beamNode = (*beamIt);
-        //    qvtkConnect(beamNode, vtkCommand::ModifiedEvent, this, SLOT(updateBeamTable()));
-        //}
-    }
 
     d->PlanNode = planNode;
     this->updateObjectivesTable();
