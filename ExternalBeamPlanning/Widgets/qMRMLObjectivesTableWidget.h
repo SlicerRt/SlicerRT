@@ -28,10 +28,8 @@
 
 // MRMLWidgets includes
 #include "qMRMLWidget.h"
-#include <qlistwidget.h>
 
 // CTK includes
-//#include <ctkPimpl.h>
 #include <ctkVTKObject.h>
 
 // MRML includes
@@ -39,9 +37,6 @@
 
 class qMRMLObjectivesTableWidgetPrivate;
 class vtkMRMLNode;
-//class QTableWidget;
-class QTableWidgetItem;
-class QItemSelection;
 
 class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qMRMLObjectivesTableWidget : public qMRMLWidget
 {
@@ -72,9 +67,6 @@ public slots:
   void onObjectiveRemoved();
 
   void removeRowFromRowIndex(int row);
-
-  /// called when objective or segmentation selection is changed
-  //void updateObjectives();
 
   void onObjectiveChanged(int row);
 
