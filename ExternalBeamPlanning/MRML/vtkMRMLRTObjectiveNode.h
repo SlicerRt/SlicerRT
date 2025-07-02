@@ -24,18 +24,6 @@
 // MRML includes
 #include "vtkMRMLNode.h"
 
-#include <vector>
-#include <vtkSmartPointer.h>
-
-#include <QString>
-#include <QMap>
-#include <QVariant>
-
-// Eigen includes
-#include <itkeigen/Eigen/SparseCore>
-
-using DoseType = Eigen::VectorXd;
-
 class  VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTObjectiveNode : public vtkMRMLNode
 {
 public:
