@@ -216,8 +216,6 @@ public:
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, QString defaultValue );
 
-  Q_INVOKABLE void removeParameter(QString tabName, QString parameterName);
-
   /// Add all engine-specific beam parameters to given beam node (do not override value if parameter exists)
   Q_INVOKABLE void addBeamParameterAttributesToBeamNode(vtkMRMLRTBeamNode* beamNode);
 

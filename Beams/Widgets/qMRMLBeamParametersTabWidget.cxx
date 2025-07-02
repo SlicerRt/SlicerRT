@@ -761,37 +761,6 @@ void qMRMLBeamParametersTabWidget::stringBeamParameterChanged(QString newValue)
 }
 
 //-----------------------------------------------------------------------------
-void qMRMLBeamParametersTabWidget::removeBeamParameter(
-    QString tabName, QString parameterName)
-{
-    // Get tab to which the spin box needs to be added
-    QWidget* tabWidget = this->beamParametersTab(tabName);
-    if (!tabWidget)
-    {
-        qCritical() << Q_FUNC_INFO << ": Unable to access widget for beam parameters tab named " << tabName;
-        return;
-    }
-    QFormLayout* tabLayout = qobject_cast<QFormLayout*>(tabWidget->layout());
-    if (!tabLayout)
-    {
-        qCritical() << Q_FUNC_INFO << ": Invalid layout in beam parameters tab named " << tabName;
-        return;
-    }
-
-    // Go through the layout rows to find the parameter
-    for (int currentRow = 0; currentRow < tabLayout->rowCount(); ++currentRow)
-    {
-        QWidget* currentParameterFieldWidget = tabLayout->itemAt(currentRow, QFormLayout::FieldRole)->widget();
-        if (parameterName == currentParameterFieldWidget->property(BEAM_PARAMETER_NODE_ATTRIBUTE_PROPERTY).toString())
-        {
-            // Remove parameter from layout
-            tabLayout->removeRow(currentRow);
-            break;
-        }
-    }
-}
-
-//-----------------------------------------------------------------------------
 bool qMRMLBeamParametersTabWidget::setBeamParameterVisible(QString parameterName, bool visible)
 {
   Q_D(qMRMLBeamParametersTabWidget);
