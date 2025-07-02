@@ -923,6 +923,7 @@ void vtkMRMLRTPlanNode::setDoseGridInCoordinate(int index, double value)
     }
 
     this->DoseGrid[index] = value;
+	this->Modified();
 }
 
 //----------------------------------------------------------------------------
