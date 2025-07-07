@@ -28,10 +28,19 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
         from pyRadPlan.dij import Dij, compose_beam_dijs
         from pyRadPlan.optimization.objectives import get_objective
 
-        # create dict with objectives for segmentation from Slicer obejctives table 
-        objectives_dict = {} 
+
+        ########################### get objectives from Slicer objectives table ##############################
+        objectives_dict = {}
+        
+        # Loop through all objectives in the Slicer objectives table
         for node_dict in objectives:
+            
+            # Get objective node
             objective_node = node_dict['ObjectiveNode']
+            if not objective_node:
+                raise ValueError("Objective node is not set. Please select an objective node in the Slicer objectives table.")
+            
+            # Get segmentation and objective information
             segmentation = objective_node.GetSegmentation()
             objective_info = {
             'objectiveName': objective_node.GetName(),
@@ -39,45 +48,51 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             'penalty': objective_node.GetAttribute('penalty'),
             'parameters': {name: objective_node.GetAttribute(name) for name in objective_node.GetAttributeNames() if name != 'overlapPriority' and name != 'penalty'}
             }
+
+            # Save objectives for each segmentation
             if segmentation not in objectives_dict:
                 objectives_dict[segmentation] = [objective_info]
             else:
                 objectives_dict[segmentation].append(objective_info)
 
-        # get overlap priority from objectives (throw error if not matching)
+
+        ###################################### get overlap priorites #########################################
         overlap_priority_dict = {}
+
+        # Extract overlap priorities from objectives_dict (saved for each objective, but needed for each VOI)
         for voi_name, objectives_list in objectives_dict.items():
+
+            # Take first overlap priority for each VOI
             overlap_priority = objectives_list[0]['overlapPriority']
             overlap_priority_dict[voi_name] = overlap_priority
+
+            # Check if all objectives for this VOI have the same overlap priority
             for objective in objectives_list:
                 if objective['overlapPriority'] != overlap_priority:
                     raise ValueError(f"Overlap priorities do not match for VOI '{voi_name}' in objectives table. All objectives for a VOI must have the same overlap priority.")
     
-        # get reference volume node
+
+        ############################ get dose influence matrices from beam nodes #############################
         referenceVolumeNode = planNode.GetReferenceVolumeNode()
-
-        # total dose summed over all beams
-        totalDose = 0
-
+        
+        # Get beams in plan
         numberOfBeams = planNode.GetNumberOfBeams()
-
-        # get beams in plan
-        beamNames = []
+        beam_names = []
         tried_beam_index = 0
-        while (len(beamNames) < numberOfBeams):
+        while (len(beam_names) < numberOfBeams):
             try:
                 beam = planNode.GetBeamByNumber(tried_beam_index)
-                beamNames.append(beam.GetName())
+                beam_names.append(beam.GetName())
                 tried_beam_index += 1
             except:
                 tried_beam_index += 1
             
-
+        # Get dij of each beam
         dij_list = []
-        for beamName in beamNames:
+        for beam_name in beam_names:
             
-            beamNode = planNode.GetBeamByName(beamName)
-            print('current beam: ', beamName)
+            beamNode = planNode.GetBeamByName(beam_name)
+            print('current beam: ', beam_name)
 
             # Prepare the ct
             ct = prepareCt(beamNode)
@@ -91,17 +106,18 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             # Generate Steering Geometry ("stf")
             stf = generate_stf(ct, cst, pln)
 
-            # Get Dose Influence Matrix
-            fieldData = beamNode.GetDoseInfluenceMatrixFieldData()
-            data = np.array(fieldData.GetArray('Data'), dtype=np.float32)
-            indices = np.array(fieldData.GetArray('Indices'), dtype=np.int32)
-            indptr = np.array(fieldData.GetArray('Indptr'), dtype=np.int32)
+            # Get Dose Influence Matrix (coo_matrix)
+            field_data = beamNode.GetDoseInfluenceMatrixFieldData()
+            data = np.array(field_data.GetArray('Data'), dtype=np.float32)
+            indices = np.array(field_data.GetArray('Indices'), dtype=np.int32)
+            indptr = np.array(field_data.GetArray('Indptr'), dtype=np.int32)
 
-            numOfCols = len(indptr) - 1
+            # Convert to csc_matrix
+            num_of_cols = len(indptr) - 1
+            number_of_voxels = pln.prop_dose_calc['dose_grid'].num_voxels
+            dose_influence_matrix = csc_matrix((data, indices, indptr), shape=(number_of_voxels, num_of_cols))
 
-            numberOfVoxels = pln.prop_dose_calc['dose_grid'].num_voxels
-            dose_influence_matrix = csc_matrix((data, indices, indptr), shape=(numberOfVoxels, numOfCols)) # shape important to include zeros in last indices (rows must be as long as number of voxels)
-
+            # Create Dij object
             dij = Dij(
                 dose_grid=pln.prop_dose_calc['dose_grid'],
                 ct_grid=ct.grid,
@@ -114,21 +130,33 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             
             dij_list.append(dij)
 
+        # Compose dij from all beams
         if len(dij_list) > 1:
             dij = compose_beam_dijs(dij_list)
         else:
             dij = dij_list[0]
 
-        # Optimize
+        
+        ########################### update overlap priorities & objectives in cst ############################
         for voi in cst.vois:
+
             if voi.name in objectives_dict:
                 voi.objectives = []
+
+                # Set overlap priority for VOI
                 voi.overlap_priority = overlap_priority_dict[voi.name]
+                
                 for i in range(len(objectives_dict[voi.name])):
                     objective_name = objectives_dict[voi.name][i]['objectiveName']
                     objective_parameters = objectives_dict[voi.name][i]['parameters']
+
+                    # Get instance of objective function from pyRadPlan
                     objective_instance = get_objective(objective_name)
+
+                    # Set penalty (called "priority" in pyRadPlan) for objective function
                     objective_instance.priority = objectives_dict[voi.name][i]['penalty']
+
+                    # Set parameters for objective function
                     for parameter in objective_instance.parameter_names:
                         if parameter in objective_parameters:
                             # TODO: type check
@@ -138,15 +166,19 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
                             print(f"Using default value: {getattr(objective_instance, parameter)}")
                     voi.objectives.append(objective_instance)
     
-        # VOIS
+
+        ########################################## optimize dose #############################################
         fluence = fluence_optimization(ct, cst, stf, dij, pln)
 
         # Result
         result = dij.compute_result_ct_grid(fluence)
-            
-        totalDose = result["physical_dose"]
+        
 
-        # TODO: directly get dose per beam from overlay=result.beam_quantities["physical_dose"][0].distribution (once reult_gui is merged)
+        ##################################### visualize dose in Slicer #######################################
+        
+        total_dose = result["physical_dose"]
+
+        # TODO: directly get dose per beam from overlay=result.beam_quantities["physical_dose"][0].distribution (once result_gui is merged)
         # Now: manually get dose per beam and create a new volume node for each beam
         for i in range(planNode.GetNumberOfBeams()):
             mask = (dij.beam_num == i)
@@ -155,14 +187,14 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             result_for_beam = dij.compute_result_ct_grid(fluence_for_beam)
             dose_per_beam = result_for_beam["physical_dose"]
             
-            # create a new volume node for each beam
+            # Create a new volume node for each beam
             beamDoseVolumeNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeNode", str(planNode.GetName())+"_pyRadOptimzedDose_Beam_"+str(i+1))
             displayNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeDisplayNode")
             beamDoseVolumeNode.SetAndObserveDisplayNodeID(displayNode.GetID())
 
             sitkUtils.PushVolumeToSlicer(dose_per_beam, beamDoseVolumeNode)
 
-            #set colormap
+            # Set colormap
             rxDose = planNode.GetRxDose()
             displayNode = beamDoseVolumeNode.GetDisplayNode()
             displayNode.SetAndObserveColorNodeID("vtkMRMLColorTableNodeDose_ColorTable_Relative")
@@ -170,12 +202,9 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             displayNode.SetLowerThreshold(0.05*rxDose)
             displayNode.ApplyThresholdOn()
             
-
-        # total dose to Slicer
-        sitkUtils.PushVolumeToSlicer(totalDose, targetNode = resultOptimizationVolumeNode)
-
+        # Push total dose to volumeNode in Slicer, set name & overlay on CT
+        sitkUtils.PushVolumeToSlicer(total_dose, targetNode = resultOptimizationVolumeNode)
         resultOptimizationVolumeNode.SetName(str(planNode.GetName())+"_pyRadOptimzedDose")
-
         slicer.util.setSliceViewerLayers(background=referenceVolumeNode, foreground=resultOptimizationVolumeNode)
         slicer.util.setSliceViewerLayers(foregroundOpacity=1)
 

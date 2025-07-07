@@ -151,28 +151,27 @@ QString qSlicerMockDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamN
 
 QString qSlicerMockDoseEngine::calculateDoseInfluenceMatrixUsingEngine(vtkMRMLRTBeamNode* beamNode)
 {
-    // get number of Voxels from reference Volume
+    // Get number of Voxels from reference Volume
     vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
     vtkMRMLScalarVolumeNode* referenceVolumeNode = parentPlanNode->GetReferenceVolumeNode();
     int dimensions[3];
     referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
-    //vtkIdType numberOfVoxels = referenceVolumeNode->GetImageData()->GetNumberOfPoints();
 
     int numOfVoxels = dimensions[0] * dimensions[1] * dimensions[2];
 
 
-    // set Dose Influence Matrix
+    // Set Dose Influence Matrix
     int numRows = numOfVoxels;
     int numCols = 1;
 
-    // row indices
+    // Row indices
     int numOfEntries = 1000000;
     vtkMRMLRTBeamNode::DoseInfluenceMatrixIndexVector rows(numOfEntries);
 
-    // column indices
+    // Column indices
     vtkMRMLRTBeamNode::DoseInfluenceMatrixIndexVector columns(numOfEntries, 0);
 
-    // values (all 1)
+    // Values (all 1)
     vtkMRMLRTBeamNode::DoseInfluenceMatrixValueVector values(numOfEntries);
 
 
@@ -193,12 +192,12 @@ QString qSlicerMockDoseEngine::calculateDoseInfluenceMatrixUsingEngine(vtkMRMLRT
         return dis_values(mersenne_engine);
     };
 
-    // fill rows and values vectors with random numbers
+    // Fill rows and values vectors with random numbers
     generate(begin(rows), end(rows), gen_rows);
     generate(begin(values), end(values), gen_values);
 
 
-    // save dose influence matrix in beam node
+    // Save dose influence matrix in beam node
     beamNode->SetDoseInfluenceMatrixFromTriplets(numRows, numCols, rows, columns, values);
     
     return QString();

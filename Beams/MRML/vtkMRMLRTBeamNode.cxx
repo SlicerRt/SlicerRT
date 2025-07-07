@@ -975,14 +975,20 @@ int vtkMRMLRTBeamNode::GetDoseInfluenceMatrixRows()
 {
   return this->DoseInfluenceMatrix.rows();
 }
+
+//---------------------------------------------------------------------------
 int vtkMRMLRTBeamNode::GetDoseInfluenceMatrixColumns()
 {
   return this->DoseInfluenceMatrix.cols();
 }
+
+//---------------------------------------------------------------------------
 int vtkMRMLRTBeamNode::GetDoseInfluenceMatrixNumberOfNonZeroElements()
 {
   return this->DoseInfluenceMatrix.nonZeros();
 }
+
+//---------------------------------------------------------------------------
 double vtkMRMLRTBeamNode::GetDoseInfluenceMatrixSparsity()
 {
   return this->DoseInfluenceMatrix.nonZeros() / (this->DoseInfluenceMatrix.rows() * this->DoseInfluenceMatrix.cols());
@@ -1014,6 +1020,7 @@ vtkSmartPointer<vtkDoubleArray> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixData()
   return data;
 }
 
+//---------------------------------------------------------------------------
 vtkSmartPointer<vtkIntArray> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixIndices()
 {
   vtkSmartPointer<vtkIntArray> indices = vtkSmartPointer<vtkIntArray>::New();
@@ -1021,6 +1028,7 @@ vtkSmartPointer<vtkIntArray> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixIndices()
   return indices;
 }
 
+//---------------------------------------------------------------------------
 vtkSmartPointer<vtkIntArray> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixIndptr()
 {
   vtkSmartPointer<vtkIntArray> indptr = vtkSmartPointer<vtkIntArray>::New();
@@ -1031,6 +1039,7 @@ vtkSmartPointer<vtkIntArray> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixIndptr()
 //---------------------------------------------------------------------------
 vtkSmartPointer<vtkFieldData> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixFieldData()
 {
+  // allows calling dose influence matrix from python
   vtkSmartPointer<vtkFieldData> fieldData = vtkSmartPointer<vtkFieldData>::New();
 
   vtkSmartPointer<vtkDoubleArray> data = vtkSmartPointer<vtkDoubleArray>::New();

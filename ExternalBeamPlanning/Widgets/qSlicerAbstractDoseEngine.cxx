@@ -235,7 +235,7 @@ QString qSlicerAbstractDoseEngine::calculateDoseInfluenceMatrix(vtkMRMLRTBeamNod
 {
     if (!this->isInverse())
     {
-		QString errorMessage("Dose engine is lacks functionality for calculating a dose influence matrix for inverse planning");
+		QString errorMessage("Dose engine lacks functionality for calculating a dose influence matrix for inverse planning");
 		qCritical() << Q_FUNC_INFO << ": " << errorMessage;
 		return errorMessage;
     }
@@ -262,7 +262,6 @@ QString qSlicerAbstractDoseEngine::calculateDoseInfluenceMatrix(vtkMRMLRTBeamNod
         qCritical() << Q_FUNC_INFO << ": " << errorMessage;
         return errorMessage;
     }
-    
     vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(beamNode->GetScene());
     if (!shNode)
     {

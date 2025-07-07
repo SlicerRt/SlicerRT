@@ -23,7 +23,6 @@
 #define __vtkMRMLRTPlanNode_h
 
 // Beams includes
-
 #include "vtkSlicerBeamsModuleMRMLExport.h"
 
 // MRML includes
@@ -32,7 +31,6 @@
 
 // SegmentationCore includes
 #include "vtkOrientedImageData.h"
-
 #include <vtkSmartPointer.h>
 
 class vtkCollection;
@@ -40,7 +38,6 @@ class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
-//class vtkMRMLObjectiveNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
 /// \brief Base class of folder display node, so that it behaves as folder in Subject Hierarchy
@@ -204,8 +201,9 @@ public:
   vtkSetMacro(RxDose, double);
 
   /// Get dose grid size
-  vtkSetVector3Macro(DoseGrid, double);
   vtkGetVector3Macro(DoseGrid, double);
+  /// Set dose grid size
+  vtkSetVector3Macro(DoseGrid, double);
 
   /// Set dose grid in one coordinate
   void setDoseGridInCoordinate(int index, double value);

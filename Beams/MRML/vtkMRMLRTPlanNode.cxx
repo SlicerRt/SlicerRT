@@ -40,6 +40,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 #include <vtkVariant.h>
+
 //------------------------------------------------------------------------------
 const char* vtkMRMLRTPlanNode::ISOCENTER_FIDUCIAL_NAME = "Isocenter";
 const int vtkMRMLRTPlanNode::ISOCENTER_FIDUCIAL_INDEX = 0;
@@ -71,6 +72,7 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
   this->DoseGrid[2] = 5.0;
 
   this->IonPlanFlag = false;
+
   // Ensure the node shows up in subject hierarchy. Otherwise there is a crash.
   this->HideFromEditorsOff();
 }
@@ -238,7 +240,7 @@ void vtkMRMLRTPlanNode::SetPlanOptimizerName(const char* optimizerName)
   if (this->PlanOptimizerName == nullptr && optimizerName == nullptr) { return; }
   if (this->PlanOptimizerName && optimizerName && (!strcmp(this->PlanOptimizerName, optimizerName))) { return; }
 
-  // Set dose engine name
+  // Set plan optimizer name
   delete[] this->PlanOptimizerName;
   if (optimizerName)
   {

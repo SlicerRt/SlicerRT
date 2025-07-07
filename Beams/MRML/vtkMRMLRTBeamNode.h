@@ -46,7 +46,6 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
 class vtkMRMLLinearTransformNode;
 
-
 /// \ingroup SlicerRt_QtModules_Beams
 class VTK_SLICER_BEAMS_MODULE_MRML_EXPORT vtkMRMLRTBeamNode : public vtkMRMLModelNode
 {
@@ -220,13 +219,16 @@ public:
   /// Set source to multi-leaf collimator distance. Triggers \sa BeamTransformModified event and re-generation of beam model
   void SetSourceToMultiLeafCollimatorDistance(double distance);
 
-  /// Get Dose influence matrix
+  /// Get dose influence matrix (sparse matrix)
   vtkGetMacro(DoseInfluenceMatrix, DoseInfluenceMatrixType);
 
-  /// Get dose influence matrix dimensions
+  /// Get the number of rows in dose influence matrix
   int GetDoseInfluenceMatrixRows();
+  /// Get the number of columns in dose influence matrix
   int GetDoseInfluenceMatrixColumns();
+  /// Get the number of non-zero elements in dose influence matrix
   int GetDoseInfluenceMatrixNumberOfNonZeroElements();
+  /// Get dose influence matrix sparsity (number of non-zero elements divided by total number of elements)
   double GetDoseInfluenceMatrixSparsity();
 
   /// Get dose grid dimensions (on which the dose influence matrix is defined)
@@ -248,12 +250,17 @@ public:
       double* doseGridDim = nullptr,
       double* doseGridSpacing = nullptr
   );
+  /// Get dose influence matrix as triplets
   vtkSmartPointer<vtkDoubleArray> GetDoseInfluenceMatrixTriplets();
 
+  /// Get dose influence matrix Data
   vtkSmartPointer<vtkDoubleArray> GetDoseInfluenceMatrixData();
+  /// Get dose influence matrix Indices
   vtkSmartPointer<vtkIntArray> GetDoseInfluenceMatrixIndices();
+  /// Get dose influence matrix Indptr
   vtkSmartPointer<vtkIntArray> GetDoseInfluenceMatrixIndptr();
 
+  /// Get dose influence matrix field data (to call from Python)
   vtkSmartPointer<vtkFieldData> GetDoseInfluenceMatrixFieldData();
 
 protected:

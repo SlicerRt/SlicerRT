@@ -40,7 +40,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
     def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):
 
-        ##################################### PYRAD: import libraries ##########################################
+        #################################### import pyRadPlan libraries ######################################
         import logging
         import time
 
@@ -56,7 +56,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         logging.basicConfig(level=logging.INFO)
 
 
-        # ##################################### PYRAD: prepare data structures ##########################################
+        ##################################### prepare data structures ########################################
         # Prepare the ct
         t_start = time.time()
         ct = prepareCt(beamNode)
@@ -87,22 +87,20 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         t_end = time.time()
         print(f"Time to calculate Dij: {t_end - t_start}")
 
+
+        ##################################### visualize dose in Slicer #######################################
+        # TEMPORARY: use uniform fluence
         fluence = np.ones(dij.total_num_of_bixels)
-
         result = dij.compute_result_ct_grid(fluence)
-
         totalDose = result["physical_dose"]
 
         planNode = beamNode.GetParentPlanNode()
         referenceVolumeNode = planNode.GetReferenceVolumeNode()
 
-        sitkUtils.PushVolumeToSlicer(totalDose, targetNode = resultDoseVolumeNode)#, className="vtkMRMLScalarVolumeNode")
-
-        # Set name
+        # Push total dose to volumeNode in Slicer, set name & overlay on CT
+        sitkUtils.PushVolumeToSlicer(totalDose, targetNode = resultDoseVolumeNode)
         resultDoseNodeName = str(planNode.GetName())+"_pyRadDose_" + beamNode.GetName()
         resultDoseVolumeNode.SetName(resultDoseNodeName)
-
-        
         slicer.util.setSliceViewerLayers(background=referenceVolumeNode, foreground=resultDoseVolumeNode)
         slicer.util.setSliceViewerLayers(foregroundOpacity=1)
 
@@ -111,8 +109,8 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
     
     def calculateDoseInfluenceMatrixUsingEngine(self, beamNode):
-
-        ##################################### PYRAD: import libraries ##########################################
+        
+        #################################### import pyRadPlan libraries ######################################
         import logging
         from scipy.sparse import coo_matrix
         import time
@@ -124,8 +122,8 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
         logging.basicConfig(level=logging.INFO)
 
-
-        # ##################################### PYRAD: prepare data structures ##########################################
+        
+        ##################################### prepare data structures ########################################
         # Prepare the ct
         t_start = time.time()
         ct = prepareCt(beamNode)
@@ -156,10 +154,10 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         t_end = time.time()
         print(f"Time to calculate Dij: {t_end - t_start}")
 
+        
+        ###################################### load dose to beamNode #########################################
 
-        # ################################ SLICER: load dose to beamNode #######################################
-
-        # optimize storage such that we don't have multiple instances in memory
+        # Optimize storage such that we don't have multiple instances in memory
         # we use a coo matrix here as it is the most efficient way to get the matrix into slicer
         dose_matrix = coo_matrix(dij.physical_dose.flat[0])
 

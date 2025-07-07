@@ -308,18 +308,6 @@ QString qSlicerDoseEngineLogic::calculateDoseInfluenceMatrix(vtkMRMLRTPlanNode* 
   progress = (double)numberOfBeams / (numberOfBeams + 1);
   emit progressUpdated(progress);
 
-  // Accumulate calculated per-beam dose matrices into the total dose matrix
-  // TODO:
-  // errorMessage = this->createAccumulatedDose(planNode);
-  //if (!errorMessage.isEmpty())
-  //{
-  //    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
-  //    return errorMessage;
-  //}
-
-  progress = 1.0;
-  emit progressUpdated(progress);
-
   return QString();
 }
 
