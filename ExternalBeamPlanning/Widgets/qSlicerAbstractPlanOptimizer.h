@@ -27,7 +27,7 @@ This file was originally developed by Niklas Wahl, German Cancer Research Center
 // Qt includes
 #include <QObject>
 
-// vtk includes
+// VTK includes
 #include <vtkSmartPointer.h>
 
 class qSlicerAbstractPlanOptimizerPrivate;
