@@ -1,18 +1,20 @@
 /*==============================================================================
 
-  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
-  Queen's University, Kingston, ON, Canada. All Rights Reserved.
+Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
-  See COPYRIGHT.txt
-  or http://www.slicer.org/copyright/copyright.txt for details.
+See COPYRIGHT.txt
+or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
-  This file was originally developed by Niklas Wahl, German Cancer Research Center (DKFZ)
+This file was originally developed by Lina Bucher, Institut fuer Biomedizinische
+Technik am Karlsruher Institut fuer Technologie (IBT-KIT) and German Cancer
+Research Center (DKFZ)
 
 ==============================================================================*/
 
@@ -25,13 +27,11 @@
 #include "qSlicerObject.h"
 
 // CTK includes
-#include <ctkPimpl.h>
 #include <ctkVTKObject.h>
 
 // Qt includes
 #include <QObject>
 
-class vtkMRMLScene;
 class qSlicerObjectiveLogicPrivate;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
