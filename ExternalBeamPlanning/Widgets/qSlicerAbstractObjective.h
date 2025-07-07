@@ -27,9 +27,6 @@
 #include <QMap>
 #include <QVariant>
 
-// vtk includes
-#include <vtkSmartPointer.h>
-
 // Eigen includes
 #include <itkeigen/Eigen/SparseCore>
 
