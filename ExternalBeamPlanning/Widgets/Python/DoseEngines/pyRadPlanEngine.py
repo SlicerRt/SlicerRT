@@ -40,7 +40,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
     def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):
 
-        #################################### import pyRadPlan libraries ######################################
+        #################################### Import pyRadPlan libraries ######################################
         import logging
         import time
 
@@ -56,7 +56,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         logging.basicConfig(level=logging.INFO)
 
 
-        ##################################### prepare data structures ########################################
+        ##################################### Prepare data structures ########################################
         # Prepare the ct
         t_start = time.time()
         ct = prepareCt(beamNode)
@@ -88,7 +88,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         print(f"Time to calculate Dij: {t_end - t_start}")
 
 
-        ##################################### visualize dose in Slicer #######################################
+        ##################################### Visualize dose in Slicer #######################################
         # TEMPORARY: use uniform fluence
         fluence = np.ones(dij.total_num_of_bixels)
         result = dij.compute_result_ct_grid(fluence)
@@ -110,7 +110,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
     
     def calculateDoseInfluenceMatrixUsingEngine(self, beamNode):
         
-        #################################### import pyRadPlan libraries ######################################
+        #################################### Import pyRadPlan libraries ######################################
         import logging
         from scipy.sparse import coo_matrix
         import time
@@ -123,7 +123,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         logging.basicConfig(level=logging.INFO)
 
         
-        ##################################### prepare data structures ########################################
+        ##################################### Prepare data structures ########################################
         # Prepare the ct
         t_start = time.time()
         ct = prepareCt(beamNode)
@@ -154,8 +154,8 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         t_end = time.time()
         print(f"Time to calculate Dij: {t_end - t_start}")
 
-        
-        ###################################### load dose to beamNode #########################################
+
+        ###################################### Store dose in beamNode ########################################
 
         # Optimize storage such that we don't have multiple instances in memory
         # we use a coo matrix here as it is the most efficient way to get the matrix into slicer
