@@ -215,13 +215,28 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
 //-----------------------------------------------------------------------------
 void qSlicerMockPlanOptimizer::setAvailableObjectives()
 {
- //   qSlicerSquaredDeviationObjective* squaredDeviationObjective1 = new qSlicerSquaredDeviationObjective();
-	//qSlicerSquaredDeviationObjective* squaredDeviationObjective2 = new qSlicerSquaredDeviationObjective();
+    // Example procedure to pass C++ objective (only name and parameters) to optimizer (& therefore to objective table)
+    // NOT used yet in optimization!
 
-	//std::vector<qSlicerAbstractObjective*> objectives;
+    // Get objective
+    qSlicerSquaredDeviationObjective* squaredDeviationObjective1 = new qSlicerSquaredDeviationObjective();
 
-	//objectives.push_back(squaredDeviationObjective1);
-	//objectives.push_back(squaredDeviationObjective2);
+    // Create objectiveStruct
+    qSlicerAbstractPlanOptimizer::ObjectiveStruct* objectiveStruct1 = new qSlicerAbstractPlanOptimizer::ObjectiveStruct();
+    
+    // Fill objectiveStruct with name and parameters from objective
+    objectiveStruct1->name = squaredDeviationObjective1->name().toStdString();
+    std::map parameters = squaredDeviationObjective1->getObjectiveParameters().toStdMap();
+    for (const auto& pair : parameters)
+    {
+        std::string key = pair.first.toStdString();
+        std::string value = pair.second.toString().toStdString();
+        objectiveStruct1->parameters[key] = value;
+    }
 
-	//this->availableObjectives = objectives;
+    // Create vector of objectives
+	std::vector<qSlicerAbstractPlanOptimizer::ObjectiveStruct> objectiveStructs;
+    objectiveStructs.push_back(*objectiveStruct1);
+
+	this->availableObjectives = objectiveStructs;
 }
