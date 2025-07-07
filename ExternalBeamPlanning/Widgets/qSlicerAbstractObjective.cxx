@@ -12,39 +12,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-This file was originally developed by Niklas Wahl, German Cancer Research Center (DKFZ)
+This file was originally developed by Lina Bucher, Institut fuer Biomedizinische
+Technik am Karlsruher Institut fuer Technologie (IBT-KIT) and German Cancer
+Research Center (DKFZ)
 
 ==============================================================================*/
 
 // Optimization engines includes
 #include "qSlicerAbstractObjective.h"
 
-
-// SlicerRT includes
-#include "vtkSlicerRtCommon.h"
-#include "vtkSlicerIsodoseModuleLogic.h"
-
-// MRML includes
-#include <vtkMRMLScene.h>
-#include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLScalarVolumeDisplayNode.h>
-#include <vtkMRMLSubjectHierarchyNode.h>
-#include <vtkMRMLSubjectHierarchyConstants.h>
-#include <vtkMRMLColorTableNode.h>
-#include "vtkMRMLRTObjectiveNode.h"
-
-// VTK includes
-#include <vtkSmartPointer.h>
-
-// SlicerQt includes
-#include "qSlicerApplication.h"
-#include "qSlicerAbstractModule.h"
-#include "qSlicerModuleManager.h"
-#include "qSlicerAbstractModuleWidget.h"
-
 // Qt includes
 #include <QDebug>
-#include <QFileInfo>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
