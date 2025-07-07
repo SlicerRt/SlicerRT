@@ -24,7 +24,6 @@ This file was originally developed by Niklas Wahl, German Cancer Research Center
 
 // SlicerRT includes
 #include "vtkSlicerRtCommon.h"
-#include "vtkSlicerIsodoseModuleLogic.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -37,12 +36,6 @@ This file was originally developed by Niklas Wahl, German Cancer Research Center
 
 // VTK includes
 #include <vtkSmartPointer.h>
-
-// SlicerQt includes
-#include "qSlicerApplication.h"
-#include "qSlicerAbstractModule.h"
-#include "qSlicerModuleManager.h"
-#include "qSlicerAbstractModuleWidget.h"
 
 // Qt includes
 #include <QDebug>
@@ -148,9 +141,9 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
   }
 
   // Get saved objectives
-  std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives = this->getSavedObjectives();
+  std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives = this->getSavedObjectiveNodes();
 
-  // Create output Optimization volume for beam
+  // Create output Optimization volume for plan
   vtkSmartPointer<vtkMRMLScalarVolumeNode> resultOptimizationVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
   planNode->GetScene()->AddNode(resultOptimizationVolumeNode);
   // Give default name for result node (engine can give it a more meaningful name)
@@ -162,41 +155,46 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
   
   if (errorMessage.isEmpty())
   {
-      // Add result dose volume to beam
+	  // Add result dose volume to plan
       this->addResultDose(resultOptimizationVolumeNode, planNode);
   }
   return errorMessage;
 }
 
+//----------------------------------------------------------------------------
 std::vector<qSlicerAbstractPlanOptimizer::ObjectiveStruct> qSlicerAbstractPlanOptimizer::getAvailableObjectives()
 {
     return this->availableObjectives;
 }
 
+//----------------------------------------------------------------------------
 void qSlicerAbstractPlanOptimizer::setAvailableObjectives()
 {
     qCritical() << Q_FUNC_INFO << ": no available Objectives ";
 }
 
-std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> qSlicerAbstractPlanOptimizer::getSavedObjectives()
+//----------------------------------------------------------------------------
+std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> qSlicerAbstractPlanOptimizer::getSavedObjectiveNodes()
 {
-    return this->savedObjectives;
+    return this->savedObjectiveNodes;
 }
 
-void qSlicerAbstractPlanOptimizer::saveObjectiveInOptimizer(vtkSmartPointer<vtkMRMLRTObjectiveNode> objective)
+//----------------------------------------------------------------------------
+void qSlicerAbstractPlanOptimizer::saveObjectiveNodeInOptimizer(vtkSmartPointer<vtkMRMLRTObjectiveNode> objectiveNode)
 {
-	this->savedObjectives.push_back(objective);
+	this->savedObjectiveNodes.push_back(objectiveNode);
 }
 
-void qSlicerAbstractPlanOptimizer::removeAllObjectives()
+//----------------------------------------------------------------------------
+void qSlicerAbstractPlanOptimizer::removeAllObjectiveNodes()
 {
     vtkMRMLScene* scene = nullptr;
-    if (!this->savedObjectives.empty())
+    if (!this->savedObjectiveNodes.empty())
     {
-        scene = this->savedObjectives[0]->GetScene();
+        scene = this->savedObjectiveNodes[0]->GetScene();
     }
 
-    for (auto& objective : this->savedObjectives)
+    for (auto& objective : this->savedObjectiveNodes)
     {
         if (scene)
         {
@@ -204,11 +202,10 @@ void qSlicerAbstractPlanOptimizer::removeAllObjectives()
         }
     }
 
-    this->savedObjectives.clear();
+    this->savedObjectiveNodes.clear();
 }
 
-
-
+//-----------------------------------------------------------------------------
 void qSlicerAbstractPlanOptimizer::addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTPlanNode* planNode, bool replace/*=true*/)
 {    
     if (!resultDose)
@@ -234,42 +231,42 @@ void qSlicerAbstractPlanOptimizer::addResultDose(vtkMRMLScalarVolumeNode* result
         return;
     }
 
-    // // Remove already existing referenced dose volume if any
-    // if (replace)
-    // {
-    //     std::vector<const char*> referencedDoseNodeIds;
-    //     planNode->GetNodeReferenceIDs(RESULT_DOSE_REFERENCE_ROLE, referencedDoseNodeIds);
-    //     for (std::vector<const char*>::iterator refIt = referencedDoseNodeIds.begin(); refIt != referencedDoseNodeIds.end(); ++refIt)
-    //     {
-    //         vtkMRMLNode* node = scene->GetNodeByID(*refIt);
-    //         scene->RemoveNode(node);
-    //     }
-    // }
+     // Remove already existing referenced dose volume if any
+     if (replace)
+     {
+         std::vector<const char*> referencedDoseNodeIds;
+         planNode->GetNodeReferenceIDs(RESULT_DOSE_REFERENCE_ROLE, referencedDoseNodeIds);
+         for (std::vector<const char*>::iterator refIt = referencedDoseNodeIds.begin(); refIt != referencedDoseNodeIds.end(); ++refIt)
+         {
+             vtkMRMLNode* node = scene->GetNodeByID(*refIt);
+             scene->RemoveNode(node);
+         }
+     }
 
-    // // Add reference in beam to result dose for later access
-    // planNode->AddNodeReferenceID(RESULT_DOSE_REFERENCE_ROLE, resultDose->GetID());
+     // Add reference in beam to result dose for later access
+     planNode->AddNodeReferenceID(RESULT_DOSE_REFERENCE_ROLE, resultDose->GetID());
 
-    // // Set dose volume attribute so that it is identified as dose
-    // resultDose->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+     // Set dose volume attribute so that it is identified as dose
+     resultDose->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
-    // // Subject hierarchy related operations
-    // vtkIdType beamShItemID = shNode->GetItemByDataNode(planNode);
-    // if (beamShItemID)
-    // {
-    //     // Add result under beam in subject hierarchy
-    //     shNode->CreateItem(beamShItemID, resultDose);
+     // Subject hierarchy related operations
+     vtkIdType beamShItemID = shNode->GetItemByDataNode(planNode);
+     if (beamShItemID)
+     {
+         // Add result under beam in subject hierarchy
+         shNode->CreateItem(beamShItemID, resultDose);
 
-    //     // Set dose unit value to Gy if dose engine did not set it already (potentially to other unit)
-    //     vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(beamShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
-    //     if (!studyItemID)
-    //     {
-    //         qWarning() << Q_FUNC_INFO << ": Unable to find study item that contains the plan! Creating a study item and adding the reference dose and the plan under it is necessary in order for dose evaluation steps to work properly";
-    //     }
-    //     else if (shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME).empty())
-    //     {
-    //         shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, "Gy");
-    //     }
-    // }
+         // Set dose unit value to Gy if dose engine did not set it already (potentially to other unit)
+         vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(beamShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+         if (!studyItemID)
+         {
+             qWarning() << Q_FUNC_INFO << ": Unable to find study item that contains the plan! Creating a study item and adding the reference dose and the plan under it is necessary in order for dose evaluation steps to work properly";
+         }
+         else if (shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME).empty())
+         {
+             shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, "Gy");
+         }
+     }
 
     // Set up display for dose volume
     resultDose->CreateDefaultDisplayNodes(); // Make sure display node is present
@@ -282,9 +279,6 @@ void qSlicerAbstractPlanOptimizer::addResultDose(vtkMRMLScalarVolumeNode* result
         // Set window level based on prescription dose
         double rxDose = planNode->GetRxDose();
 		doseScalarVolumeDisplayNode->AutoWindowLevelOn();
-        //doseScalarVolumeDisplayNode->AutoWindowLevelOff();
-        //doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, rxDose * 1.1);
-
 
         // Set threshold to hide very low dose values
         doseScalarVolumeDisplayNode->SetLowerThreshold(0.05 * rxDose);
