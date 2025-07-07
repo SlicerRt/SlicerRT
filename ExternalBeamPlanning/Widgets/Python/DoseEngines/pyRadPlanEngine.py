@@ -163,7 +163,13 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
         # we use a coo matrix here as it is the most efficient way to get the matrix into slicer
         dose_matrix = coo_matrix(dij.physical_dose.flat[0])
 
-        beamNode.SetDoseInfluenceMatrixFromTriplets(dose_matrix.shape[0], dose_matrix.shape[1],dose_matrix.row, dose_matrix.col, dose_matrix.data)
+        beamNode.SetDoseInfluenceMatrixFromTriplets(
+            dose_matrix.shape[0], dose_matrix.shape[1],
+            dose_matrix.row,
+            dose_matrix.col,
+            dose_matrix.data,
+            dij.dose_grid.dimensions, #set dimensions of dose grid in beamNode for which the dose influence matrix is defined
+            dij.dose_grid.resolution_vector) #set spacing of dose grid in beamNode for which the dose influence matrix is defined
 
         return str() #return empty string to indicate success
     

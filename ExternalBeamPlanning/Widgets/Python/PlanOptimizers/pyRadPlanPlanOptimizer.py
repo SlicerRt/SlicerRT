@@ -86,7 +86,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             cst = prepareCst(beamNode, ct)
 
             # Prepare the plan configuration
-            pln = preparePln(beamNode, ct)
+            pln = preparePln(beamNode, ct, dose_grid_spacing_from_beamNode=True)
 
             # Generate Steering Geometry ("stf")
             stf = generate_stf(ct, cst, pln)
