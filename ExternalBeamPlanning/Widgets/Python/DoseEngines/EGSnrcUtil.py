@@ -69,7 +69,7 @@ def dcm2dosxyz(AngleGantry, AngleCouch, AngleCollimator, Method='Zhan'):
   Coordinate transformation from DICOM to DOSXYZnrc
   Input: gantry angle, couch angle and collimator angle from DICOM
   Output: theta, phi, phicol for DOSXYZnrc (using BEAMnrc phsp)
-  
+
   The default method is what proposed in the article
   Zhan, L., Jiang, R., & Osei, E. K. (2012). Beam coordinate transformations
   from DICOM to DOSXYZnrc. Physics in Medicine & Biology, 57(24), N513.
