@@ -231,17 +231,17 @@ void qSlicerAbstractPlanOptimizer::addResultDose(vtkMRMLScalarVolumeNode* result
         return;
     }
 
-     // Remove already existing referenced dose volume if any
-     if (replace)
-     {
-         std::vector<const char*> referencedDoseNodeIds;
-         planNode->GetNodeReferenceIDs(RESULT_DOSE_REFERENCE_ROLE, referencedDoseNodeIds);
-         for (std::vector<const char*>::iterator refIt = referencedDoseNodeIds.begin(); refIt != referencedDoseNodeIds.end(); ++refIt)
-         {
-             vtkMRMLNode* node = scene->GetNodeByID(*refIt);
-             scene->RemoveNode(node);
-         }
-     }
+     //// Remove already existing referenced dose volume if any
+     //if (replace)
+     //{
+     //    std::vector<const char*> referencedDoseNodeIds;
+     //    planNode->GetNodeReferenceIDs(RESULT_DOSE_REFERENCE_ROLE, referencedDoseNodeIds);
+     //    for (std::vector<const char*>::iterator refIt = referencedDoseNodeIds.begin(); refIt != referencedDoseNodeIds.end(); ++refIt)
+     //    {
+     //        vtkMRMLNode* node = scene->GetNodeByID(*refIt);
+     //        scene->RemoveNode(node);
+     //    }
+     //}
 
      // Add reference in beam to result dose for later access
      planNode->AddNodeReferenceID(RESULT_DOSE_REFERENCE_ROLE, resultDose->GetID());
