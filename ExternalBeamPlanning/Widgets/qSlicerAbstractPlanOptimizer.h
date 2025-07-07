@@ -1,18 +1,18 @@
 /*==============================================================================
 
-  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
-  Queen's University, Kingston, ON, Canada. All Rights Reserved.
+Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
-  See COPYRIGHT.txt
-  or http://www.slicer.org/copyright/copyright.txt for details.
+See COPYRIGHT.txt
+or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
-  This file was originally developed by ...
+This file was originally developed by Niklas Wahl, German Cancer Research Center (DKFZ)
 
 ==============================================================================*/
 
@@ -26,9 +26,6 @@
 
 // Qt includes
 #include <QObject>
-#include <QStringList>
-#include <QVariant>
-#include <QMap>
 
 // vtk includes
 #include <vtkSmartPointer.h>
@@ -38,7 +35,6 @@ class vtkMRMLScalarVolumeNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLRTPlanNode;
 class vtkMRMLNode;
-class qMRMLBeamParametersTabWidget;
 class vtkMRMLRTObjectiveNode;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
@@ -71,6 +67,7 @@ public:
   virtual void setName(QString name);
 
 public:
+    /// Structure to represent objective functions (only name and parameters)
     struct ObjectiveStruct
     {
         std::string name;
@@ -84,16 +81,19 @@ public:
   /// \return Error message. Empty string on success
   QString optimizePlan(vtkMRMLRTPlanNode* planNode);
 
-  /// Get available objectives for the Optimization engine
+  /// Get available objective functions (only name and parameters) for the Optimization engine
   std::vector<ObjectiveStruct> getAvailableObjectives();
-  /// Set available objectives for the Optimization engine
+  /// Set available objective functions (only name and parameters) for the Optimization engine 
   virtual void setAvailableObjectives();
 
   /// Get saved objectives for the Optimization engine
-  std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> getSavedObjectives();
-  void saveObjectiveInOptimizer(vtkSmartPointer<vtkMRMLRTObjectiveNode> objective);
+  std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> getSavedObjectiveNodes();
 
-  void removeAllObjectives();
+  /// Save objectiveNode in optimizer (in savedObjectiveNodes)
+  void saveObjectiveNodeInOptimizer(vtkSmartPointer<vtkMRMLRTObjectiveNode> objectiveNode);
+
+  /// Remove all objectiveNodes from optimizer (clear savedObjectiveNodes)
+  void removeAllObjectiveNodes();
 
 // API functions to implement in the subclass
 protected:
@@ -114,12 +114,14 @@ protected:
   QString m_Name;
 
 
-
 protected:
   QScopedPointer<qSlicerAbstractPlanOptimizerPrivate> d_ptr;
 
+  /// Available objective functions (only name and parameters)
   std::vector<ObjectiveStruct> availableObjectives;
-  std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> savedObjectives;
+
+  /// Saved objectiveNodes
+  std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> savedObjectiveNodes;
 
 
 private:
