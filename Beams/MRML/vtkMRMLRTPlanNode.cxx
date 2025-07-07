@@ -58,8 +58,6 @@ vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 {
-  // Ensure the node shows up in subject hierarchy. Otherwise there is a crash.
-  this->HideFromEditorsOff();
   this->RxDose = 1.0;
 
   this->TargetSegmentID = nullptr;
@@ -75,6 +73,8 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
   this->DoseGrid[2] = 5.0;
 
   this->IonPlanFlag = false;
+  // Ensure the node shows up in subject hierarchy. Otherwise there is a crash.
+  this->HideFromEditorsOff();
 }
 
 //----------------------------------------------------------------------------
@@ -240,7 +240,7 @@ void vtkMRMLRTPlanNode::SetPlanOptimizerName(const char* optimizerName)
   if (this->PlanOptimizerName == nullptr && optimizerName == nullptr) { return; }
   if (this->PlanOptimizerName && optimizerName && (!strcmp(this->PlanOptimizerName, optimizerName))) { return; }
 
-  // Set dose engine name
+  // Set plan optimizer name
   delete[] this->PlanOptimizerName;
   if (optimizerName)
   {
@@ -266,7 +266,6 @@ void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long event
 
   if (!this->Scene)
   {
-    vtkErrorMacro("ProcessMRMLEvents: Invalid MRML scene");
     return;
   }
   if (this->Scene->IsBatchProcessing())

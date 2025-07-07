@@ -236,13 +236,16 @@ public:
   void SetIsocenterPosition(double isocenterPosition[3]);
   void SetIsocenterPosition(const std::array< double, 3 >& isocenterPosition);
 
-  /// Get Dose influence matrix
+  /// Get Dose influence matrix (sparse matrix)
   vtkGetMacro(DoseInfluenceMatrix, DoseInfluenceMatrixType);
 
-  /// Get dose influence matrix dimensions
+  /// Get the number of rows in dose influence matrix
   int GetDoseInfluenceMatrixRows();
+  /// Get the number of columns in dose influence matrix
   int GetDoseInfluenceMatrixColumns();
+  /// Get the number of non-zero elements in dose influence matrix
   int GetDoseInfluenceMatrixNumberOfNonZeroElements();
+  /// Get dose influence matrix sparsity (number of non-zero elements divided by total number of elements)
   double GetDoseInfluenceMatrixSparsity();
 
   /// Get dose grid dimensions (on which the dose influence matrix is defined)
@@ -291,8 +294,6 @@ protected:
   char* BeamDescription;
   /// Beam weight, taken into account when accumulating per-beam doses
   double BeamWeight;
-  /// Beam energy
-  double BeamEnergy;
 
   /// X1 jaw position
   double X1Jaw;
@@ -334,6 +335,7 @@ protected:
   double DoseGridSpacing[3];
 
 protected:
+
   /// Visible multi-leaf collimator points
   typedef std::vector< std::pair< double, double > > MLCVisiblePointVector;
   /// Multi-leaf collimator boundary position parameters 

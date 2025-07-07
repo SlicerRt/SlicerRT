@@ -573,6 +573,8 @@ void qMRMLBeamParametersTabWidget::updateBeamParameterComboBox(
    QString tabName, QString parameterName, QString parameterLabel,  
    QString tooltip, QStringList options, int defaultIndex)  
 {  
+    /// needed e.g. to update radiation mode in pyRadPlan's beam parameters when IonPlan checkbox toggled
+    
     // Get tab to which the combo box belongs  
     QWidget* tabWidget = this->beamParametersTab(tabName);
     if (!tabWidget)
@@ -604,6 +606,7 @@ void qMRMLBeamParametersTabWidget::updateBeamParameterComboBox(
 
             QObject::disconnect(comboBox, SIGNAL(currentIndexChanged(int)), nullptr, nullptr);
 
+			// Clear existing items and add new options
 			comboBox->clear();
             foreach(QString option, options)
             {
