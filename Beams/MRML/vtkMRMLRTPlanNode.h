@@ -23,6 +23,7 @@
 #define __vtkMRMLRTPlanNode_h
 
 // Beams includes
+
 #include "vtkSlicerBeamsModuleMRMLExport.h"
 
 // MRML includes
@@ -213,8 +214,16 @@ public:
   /// Set prescription dose
   vtkSetMacro(RxDose, double);
 
-  vtkSetVector3Macro(DoseGrid, double);
+  /// Get dose grid size
   vtkGetVector3Macro(DoseGrid, double);
+  /// Set dose grid size
+  vtkSetVector3Macro(DoseGrid, double);
+
+  /// Set dose grid in one coordinate
+  void setDoseGridInCoordinate(int index, double value);
+
+  /// Set dose grid to ct grid
+  void setDoseGridToCTGrid();
 
   /// Get flag for ion plan
   vtkGetMacro( IonPlanFlag, bool);

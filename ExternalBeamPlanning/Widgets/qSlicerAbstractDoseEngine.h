@@ -125,6 +125,7 @@ protected:
   /// This is the method that needs to be implemented in each engine.
   virtual void defineBeamParameters() = 0;
 
+  /// Update beam parameters for engine according to ion plan flag.
   virtual void updateBeamParametersForIonPlan(bool ionPlanFlag);
 
 // Dose calculation related functions (functions to call from the subclass).
@@ -189,6 +190,17 @@ public:
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, QStringList options, int defaultIndex );
 
+  /// Update existing beam parameter combo box in the beam parameters widget
+  /// \param tabName Name of the tab in the beam parameters widget the parameter is updated in
+  /// \param parameterName Name of the beam parameter that is updated.
+  /// \param parameterLabel Text to be shown in the beam parameters widget in the left column
+  /// \param tooltip Tooltip describing the beam parameter that pop up on the parameter widget
+  /// \param options List of options in the combobox. Their order defines the index for \sa defaultIndex
+  /// \param defaultIndex Default selection in the combobox
+  Q_INVOKABLE void updateBeamParameterComboBox(
+    QString tabName, QString parameterName, QString parameterLabel,
+    QString tooltip, QStringList options, int defaultIndex);
+
   /// Add new boolean type beam parameter to beam parameters widget as a check box
   /// \param tabName Name of the tab in the beam parameters widget the parameter is added to
   /// \param parameterName Name of the beam parameter. This is prefixed with the dose engine name
@@ -198,9 +210,6 @@ public:
   /// \param defaultValue Default parameter value (on/off)
   /// \param dependentParameterNames Names of parameters (full names including engine prefix) that
   ///   are to be enabled/disabled based on the checked state of the created checkbox
-
-  Q_INVOKABLE void updateBeamParameterComboBox(QString tabName, QString parameterName, QString parameterLabel, QString tooltip, QStringList options, int defaultIndex);
-
   Q_INVOKABLE void addBeamParameterCheckBox(
     QString tabName, QString parameterName, QString parameterLabel,
     QString tooltip, bool defaultValue, QStringList dependentParameterNames=QStringList() );
@@ -275,6 +284,8 @@ protected:
   /// Is false by default, but can be set in the dose engine constructor
   bool m_IsInverse = false;
 
+  /// Can the dose engine do ion plan? (i.e. it is able to calculate a dose for ion beams)
+  /// Is false by default, but can be set in the dose engine constructor
   bool m_CanDoIonPlan = false;
 
   /// List of registered tab widgets. Static so that it is common to all engines.

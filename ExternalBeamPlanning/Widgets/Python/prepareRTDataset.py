@@ -6,26 +6,37 @@ import sitkUtils
 
 def prepareCt(beamNode):
     from pyRadPlan.ct import create_ct
+
+    # Get sitk image from Slicer
     planNode = beamNode.GetParentPlanNode()
     referenceVolumeNode = planNode.GetReferenceVolumeNode()
     image = sitkUtils.PullVolumeFromSlicer(referenceVolumeNode)
+
+    # Create ct object from sitk image
     return create_ct(cube_hu=image)
 
 
 def prepareCst(beamNode, ct):
     from pyRadPlan.cst import StructureSet, create_voi
+
+    # Get segmentations from Slicer
     planNode = beamNode.GetParentPlanNode()
     referenceVolumeNode = planNode.GetReferenceVolumeNode()
     node = planNode.GetSegmentationNode()
     segNode = node.GetSegmentation()
+
+    # Create VOI objects from segments
     vois = []
     for id in segNode.GetSegmentIDs():
         segmentArray = slicer.util.arrayFromSegmentBinaryLabelmap(node, id, referenceVolumeNode)
         segmentArray = np.uint8(segmentArray)
         segmentName = segNode.GetSegment(id).GetName()
+        # Set VOI type as 'TARGET' if segment is selected as target, otherwise 'OAR'
         voi_type = 'TARGET' if id==planNode.GetTargetSegmentID() else 'OAR'
         voi = create_voi(voi_type=voi_type, name=segmentName, ct_image=ct, mask=segmentArray)
         vois.append(voi)
+
+    # Create cst object from VOIs and ct
     cst = StructureSet(vois=vois, ct_image=ct)
     return cst
 
@@ -33,13 +44,11 @@ def prepareCst(beamNode, ct):
 def preparePln(beamNode, ct):
     from pyRadPlan.plan import create_pln
     
-    # get information from Slicer
+    # Get isocenter position in RAS coordinates from Slicer
     planNode = beamNode.GetParentPlanNode()
     referenceVolumeNode = planNode.GetReferenceVolumeNode()
-
     ijkToRASDirections = np.eye(3)
     referenceVolumeNode.GetIJKToRASDirections(ijkToRASDirections)
-
     isocenter = [0]*3
     planNode.GetIsocenterPosition(isocenter)
     isocenter = ijkToRASDirections @ np.array(isocenter)
@@ -63,11 +72,11 @@ def preparePln(beamNode, ct):
     else:
         dose_grid = ct.grid.copy().resample(target_resolution=planNode.GetDoseGrid())
 
+    # Get radiation mode from beamNode
     if not planNode.ion_plan_flag:
         available_radiation_modes = ['photons', 'protons', 'carbons']
     else:
         available_radiation_modes = ['protons', 'carbons']
-
     radiation_mode = slicer.pyRadPlanEngine.scriptedEngine.integerParameter(beamNode, 'radiationMode')
 
 
@@ -91,13 +100,9 @@ def preparePln(beamNode, ct):
 
         # optimization settings
         "prop_opt": {},
-        # "prop_opt": {"optimizer": 'IPOPT',
-        #             "bio_optimization": 'none',
-        #             "run_dAO": False,
-        #             "run_sequencing": True
-        #             },
     }
 
+    # Use scipy solver for protons
     if pln["radiation_mode"] == "protons":
         pln["prop_opt"] = {"solver": "scipy"}
 

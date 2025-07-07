@@ -50,8 +50,6 @@ class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerAbstractObjecti
   Q_PROPERTY(QString name READ name WRITE setName)
 
 public:
-    /// Maximum Gray value for visualization window/level of the newly created per-beam dose volumes
-    static double DEFAULT_DOSE_VOLUME_WINDOW_LEVEL_MAXIMUM;
     /// Type definitions for dose and objectives
     using DoseType = Eigen::VectorXd;
 
@@ -94,6 +92,7 @@ private:
   friend class qSlicerExternalBeamPlanningModuleWidget;
 
 public:
+	/// Compute objective & gradient value for the given dose matrix
     Q_INVOKABLE virtual float computeDoseObjectiveFunction(const DoseType&) = 0;
     Q_INVOKABLE virtual DoseType computeDoseObjectiveGradient(const DoseType&) = 0;
 };
