@@ -27,9 +27,12 @@
 
 // Slicer includes
 #include <vtkSlicerVersionConfigure.h>
+#include <vtkSlicerVolumesLogic.h>
+#include <vtkImageReslice.h>
 
 // Qt includes
 #include <QDebug>
+#include "qSlicerApplication.h"
 
 
 //----------------------------------------------------------------------------
@@ -42,134 +45,171 @@ qSlicerMockPlanOptimizer::qSlicerMockPlanOptimizer(QObject* parent)
 //----------------------------------------------------------------------------
 qSlicerMockPlanOptimizer::~qSlicerMockPlanOptimizer() = default;
 
-//---------------------------------------------------------------------------
-QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode)
-{
+//---------------------------------------------------------------------------  
+QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode)  
+{  
+   // Get reference Volume  
+   vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();  
+   if (!planNode || !referenceVolumeNode || !resultOptimizationVolumeNode)  
+   {  
+       QString errorMessage("Unable to access reference volume");  
+       qCritical() << Q_FUNC_INFO << ": " << errorMessage;  
+       return errorMessage;  
+   }  
 
-    // ToDo: check if pyRadPlanEngine's dose calculation works with mock optimizer
+   // Create total dose image data from reference volume
+   vtkImageData* totalDoseImageData = vtkImageData::New();
+   totalDoseImageData->CopyStructure(referenceVolumeNode->GetImageData());
+   totalDoseImageData->AllocateScalars(VTK_FLOAT, 1);
 
+   // Get beam names
+   int numberOfBeams = planNode->GetNumberOfBeams();
+   std::vector<std::string> beamNames;  
+   int tried_beam_index = 0;  
+   while (beamNames.size() < numberOfBeams) {  
+       vtkMRMLRTBeamNode* beam = planNode->GetBeamByNumber(tried_beam_index);  
+       if (beam != nullptr) {  
+           beamNames.push_back(beam->GetName());  
+       }  
+       tried_beam_index++;  
+   }  
 
-    //// get reference Volume
-    //vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();
-    //if (!planNode || !referenceVolumeNode || !resultOptimizationVolumeNode)
-    //{
-    //    QString errorMessage("Unable to access reference volume"); // needed? checked by abstract engine?
-    //    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
-    //    return errorMessage;
-    //}
+   // calculate dose for each beamNode and add to total dose
+   for (int i = 0; i < planNode->GetNumberOfBeams(); i++)  
+   {  
+       vtkMRMLRTBeamNode* beamNode = planNode->GetBeamByName(beamNames[i]);  
+       if (!beamNode)  
+       {  
+           QString errorMessage("Invalid beam node");  
+           qCritical() << Q_FUNC_INFO << ": " << errorMessage;  
+           return errorMessage;  
+       }  
+       vtkMRMLRTBeamNode::DoseInfluenceMatrixType doseInfluenceMatrix = beamNode->GetDoseInfluenceMatrix();  
+       if (doseInfluenceMatrix.rows() == 0 || doseInfluenceMatrix.cols() == 0)  
+       {  
+           QString errorMessage("Dose influence matrix is empty");  
+           qCritical() << Q_FUNC_INFO << ": " << errorMessage;  
+           return errorMessage;  
+       }  
 
+       // Multipy dose influence matrix with uniform fluence
+       Eigen::VectorXd vector = Eigen::VectorXd::Ones(doseInfluenceMatrix.rows());  
+       Eigen::VectorXd dose = doseInfluenceMatrix * vector;
 
-    //Eigen::VectorXd totalDose;
+       // Get dose grid dimensions & spacing
+       double doseGridDim[3];
+	   beamNode->GetDoseGridDim(doseGridDim);
 
-    //int numberOfBeams = planNode->GetNumberOfBeams();
+       double doseGridSpacing[3];
+       beamNode->GetDoseGridSpacing(doseGridSpacing);
 
-    //std::vector<std::string> beamNames;
-    //int tried_beam_index = 0;
+       bool resample = true;
+	   if (doseGridDim[0] <= 0 || doseGridDim[1] <= 0 || doseGridDim[2] <= 0) {
+		   // If dose grid dimensions are not set, use reference volume dimensions
+		   qWarning() << Q_FUNC_INFO << ": Dose grid dimensions are not set for beam" << beamNode->GetName();
+		   qWarning() << Q_FUNC_INFO << ": Using reference volume dimensions instead.";
+           doseGridDim[0] = referenceVolumeNode->GetImageData()->GetDimensions()[0];
+		   doseGridDim[1] = referenceVolumeNode->GetImageData()->GetDimensions()[1];
+		   doseGridDim[2] = referenceVolumeNode->GetImageData()->GetDimensions()[2];
+           resample = false;
+       }
 
-    //while (beamNames.size() < numberOfBeams) {
-    //    vtkMRMLRTBeamNode* beam = planNode->GetBeamByNumber(tried_beam_index);
-    //    if (beam != nullptr) {
-    //        beamNames.push_back(beam->GetName());
-    //    }
-    //    tried_beam_index++;
-    //}
+       if (doseGridSpacing[0] <= 0 || doseGridSpacing[1] <= 0 || doseGridSpacing[2] <= 0) {
+           // If dose grid spacing is not set, use reference volume spacing
+           qWarning() << Q_FUNC_INFO << ": Dose grid spacing not set for beam" << beamNode->GetName();
+           qWarning() << Q_FUNC_INFO << ": Using reference volume spacing instead.";
+           referenceVolumeNode->GetImageData()->GetSpacing(doseGridSpacing);
+           resample = false;
+       }
 
+       // Create volumeNode for dose of beam
+       int N_x = static_cast<int>(doseGridDim[0]);
+       int N_y = static_cast<int>(doseGridDim[1]);
+       int N_z = static_cast<int>(doseGridDim[2]);
+       vtkImageData* doseImageData = vtkImageData::New();
+       doseImageData->SetDimensions(N_x, N_y, N_z);
+       doseImageData->SetSpacing(doseGridSpacing);
+       doseImageData->AllocateScalars(VTK_FLOAT, 1);
+          
+       // Fill with dose (according to doseGridDim)
+       float* vtkPtr = static_cast<float*>(doseImageData->GetScalarPointer());
+       for (int i = 0; i < dose.size(); ++i) {
+	       vtkPtr[i] = static_cast<float>(dose[i]);
+       }
 
-    //// calculate dose for each beamNode and add to to total dose
-    //for (int i = 0; i < planNode->GetNumberOfBeams(); i++)
-    //{
-    //    // get dose influence matrix
-    //    vtkMRMLRTBeamNode* beamNode = planNode->GetBeamByName(beamNames[i]);
-    //    if (!beamNode)
-    //    {
-    //        QString errorMessage("Invalid beam node");
-    //        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
-    //        return errorMessage;
-    //    }
-    //    vtkMRMLRTBeamNode::DoseInfluenceMatrixType doseInfluenceMatrix = beamNode->GetDoseInfluenceMatrix();
-    //    if (doseInfluenceMatrix.rows() == 0 || doseInfluenceMatrix.cols() == 0)
-    //    {
-    //        QString errorMessage("Dose influence matrix is empty");
-    //        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
-    //        return errorMessage;
-    //    }
+	   // Resample image if necessary and get dosPtr
+       float* dosePtr;
+       if (resample) {
+           // Create reslice filter for interpolation
+           vtkSmartPointer<vtkImageReslice> resliceFilter = vtkSmartPointer<vtkImageReslice>::New();
+           resliceFilter->SetInputData(doseImageData);
+           resliceFilter->SetOutputSpacing(referenceVolumeNode->GetSpacing());
+           resliceFilter->SetOutputExtent(referenceVolumeNode->GetImageData()->GetExtent());
+           resliceFilter->SetInterpolationModeToLinear();
+           resliceFilter->Update();
 
+           // Get resampled dose image
+           vtkSmartPointer<vtkImageData> resampledDoseImageData = vtkSmartPointer<vtkImageData>::New();
+           resampledDoseImageData->DeepCopy(resliceFilter->GetOutput());
+           if (!resampledDoseImageData || resampledDoseImageData->GetNumberOfPoints() == 0)
+           {
+               QString errorMessage("Dose resampling failed or resulted in empty data");
+               qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+               return errorMessage;
+           }
+           if (resampledDoseImageData->GetNumberOfPoints() != totalDoseImageData->GetNumberOfPoints())
+           {
+               QString errorMessage("Number of points in resampled dose and total dose don't match! (Should match referenceVolume.)");
+               qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+               return errorMessage;
+           }
+           // Add resampled dose to total dose
+           float* totalDosePtr = static_cast<float*>(totalDoseImageData->GetScalarPointer());
+           float* dosePtr = static_cast<float*>(resampledDoseImageData->GetScalarPointer());
+           if (!totalDosePtr || !dosePtr)
+           {
+               QString errorMessage("Invalid pointer in total or resampled beam dose data!");
+               qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+               return errorMessage;
+           }
+           for (int i = 0; i < totalDoseImageData->GetNumberOfPoints(); ++i) {
+               totalDosePtr[i] += dosePtr[i];
+           }
+       }
+	   else {
+		   // No resampling needed, use original dose image data
+		   if (doseImageData->GetNumberOfPoints() != totalDoseImageData->GetNumberOfPoints())
+		   {
+			   QString errorMessage("Number of points in dose and total dose don't match! (Should match referenceVolume.)");
+			   qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+			   return errorMessage;
+		   }
+           // Add dose to total dose
+           float* totalDosePtr = static_cast<float*>(totalDoseImageData->GetScalarPointer());
+		   float* dosePtr = static_cast<float*>(doseImageData->GetScalarPointer());
+           if (!totalDosePtr || !dosePtr)
+           {
+               QString errorMessage("Invalid pointer in total dose or beam dose data!");
+               qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+               return errorMessage;
+           }
+           for (int i = 0; i < totalDoseImageData->GetNumberOfPoints(); ++i) {
+               totalDosePtr[i] += dosePtr[i];
+           }
+	   }
 
-    //    // multiply Dose matrix with vector (filled with ones)
-    //    Eigen::VectorXd vector = Eigen::VectorXd::Ones(doseInfluenceMatrix.rows());
-    //    Eigen::VectorXd dose = doseInfluenceMatrix * vector;
-
-    //    // resize total Dose vector to 
-    //    if (i == 0)
-    //    {
-    //        totalDose.resize(dose.size());
-    //    }
-
-    //    totalDose += dose;
-    //}
+	   // Clean up
+	   doseImageData->Delete();
+   }
    
-  //  vtkSmartPointer<vtkImageData> imageData = vtkSmartPointer<vtkImageData>::New();
-  //  imageData->SetExtent(referenceVolumeNode->GetImageData()->GetExtent());
-  //  imageData->SetSpacing(referenceVolumeNode->GetImageData()->GetSpacing());
-  //  imageData->SetOrigin(referenceVolumeNode->GetImageData()->GetOrigin());
-  //  imageData->AllocateScalars(VTK_FLOAT, 1);
+   // Set image
+   resultOptimizationVolumeNode->SetAndObserveImageData(totalDoseImageData);
+   resultOptimizationVolumeNode->CopyOrientation(referenceVolumeNode);
 
+   std::string randomDoseNodeName = std::string(planNode->GetName()) + "_MockOptimizer";
+   resultOptimizationVolumeNode->SetName(randomDoseNodeName.c_str());
 
-  //  //std::cout << "\nnumber of Points in reference Volume: " << imageData->GetNumberOfPoints() << std::endl;
-
-
-  //  if (imageData->GetNumberOfPoints() != totalDose.size())
-  //  {
-  //      QString errorMessage("Geometrical discrepancy between reference volume and dose");
-  //      qCritical() << Q_FUNC_INFO << ": " << errorMessage;
-  //      return errorMessage;
-  //  }
-
-  //  // fill voxels with total dose
-  //  float* floatPtr = (float*)imageData->GetScalarPointer();
-
-  //  int N_x = referenceVolumeNode->GetImageData()->GetDimensions()[0];
-  //  int N_y = referenceVolumeNode->GetImageData()->GetDimensions()[1];
-  //  int N_z = referenceVolumeNode->GetImageData()->GetDimensions()[2];
-
-  //  for (int i = 0; i < imageData->GetNumberOfPoints(); ++i)
-  //  {
-  //      int x = i % N_x;
-  //      int y = (i / N_x) % N_y;
-  //      int z = i / (N_x * N_y);
-
-  //      int i_D = y + N_y * (x + N_x * z);
-
-  //      (*floatPtr) = totalDose[i_D];
-  //      ++floatPtr;
-  //  }
-
-  //  // set image
-  //  resultOptimizationVolumeNode->SetAndObserveImageData(imageData);
-  //  resultOptimizationVolumeNode->CopyOrientation(referenceVolumeNode);
-
-  //  std::string randomDoseNodeName = std::string(planNode->GetName()) + "_MockOptimizer";
-  //  resultOptimizationVolumeNode->SetName(randomDoseNodeName.c_str());
-
-
-
-  // print the objectives and parameters saved in optimzer
-  //objectives = this->savedObjectives;
-  //
-  //for (int i = 0; i < objectives.size(); i++) {
-	 // qDebug() << "Objective: " << objectives[i]->GetName();
-	 // QMap parameters = objectives[i]->GetParameters();
-  //    for (auto item = parameters.cbegin(); item != parameters.cend(); ++item)
-  //    {
-		//  qDebug() << "Parameter: " << item.key() << " Value: " << item.value();
-	 // }
-  //    
-  //    qSlicerAbstractObjective* obj_class = objectives[i]->GetObjectiveFunctionClass();
-	 // float obj_value = obj_class->computeDoseObjectiveFunction(Eigen::VectorXd::Ones(10));
-	 // qDebug() << "Objective value: " << obj_value;
-  //}
-
-  return QString();
+   return QString();
 }
 
 //-----------------------------------------------------------------------------

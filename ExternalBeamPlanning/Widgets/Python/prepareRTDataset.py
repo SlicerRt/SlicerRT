@@ -44,7 +44,24 @@ def preparePln(beamNode, ct):
     planNode.GetIsocenterPosition(isocenter)
     isocenter = ijkToRASDirections @ np.array(isocenter)
 
-    dose_grid = ct.grid.copy().resample(target_resolution=planNode.GetDoseGrid())
+    # Get dose grid by resampling ct grid to resolution defined in beamNode or planNode
+    if dose_grid_spacing_from_beamNode:
+        # Get dose grid specs saved in beamNode (corresponding to saved dose influence matrix)
+        doseGridSpacing = beamNode.GetDoseGridSpacing()
+        doseGridDimensions = beamNode.GetDoseGridDim()
+        # Check if dose influence matrix is available in beamNode
+        if beamNode.GetDoseInfluenceMatrixFieldData() is None:
+            print("Warning: No dose influence matrix found in beamNode. Using planNode's dose grid spacing.")
+            doseGridSpacing = planNode.GetDoseGrid()
+        if doseGridSpacing[0] < 0 or doseGridSpacing[1] < 0 or doseGridSpacing[2] < 0 :
+            print("Warning: Dose grid spacing in beamNode is invalid. Using planNode's dose grid spacing.")
+            doseGridSpacing = planNode.GetDoseGrid()
+        dose_grid = ct.grid.copy().resample(target_resolution=doseGridSpacing)
+        # Check if dose grid dimensions match for doseGrid dimensions in beamNode
+        if (dose_grid.dimensions != doseGridDimensions):
+            print("Warning: Dose grid dimensions in beamNode do not match the calculated dose grid dimensions.")
+    else:
+        dose_grid = ct.grid.copy().resample(target_resolution=planNode.GetDoseGrid())
 
     if not planNode.ion_plan_flag:
         available_radiation_modes = ['photons', 'protons', 'carbons']

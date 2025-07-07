@@ -245,10 +245,25 @@ public:
   int GetDoseInfluenceMatrixNumberOfNonZeroElements();
   double GetDoseInfluenceMatrixSparsity();
 
-  /// Set Dose influence matrix from triplets
-  void SetDoseInfluenceMatrixFromTriplets(int numRows, int numCols, DoseInfluenceMatrixIndexVector& rows, DoseInfluenceMatrixIndexVector& columns, DoseInfluenceMatrixValueVector& values);
+  /// Get dose grid dimensions (on which the dose influence matrix is defined)
+  vtkGetVector3Macro(DoseGridDim, double);
+  /// Set dose grid dimensions (on which the dose influence matrix is defined)
+  vtkSetVector3Macro(DoseGridDim, double);
 
-  /// Get Dose Influence Matrix
+  /// Get dose grid dimensions (on which the dose influence matrix is defined)
+  vtkGetVector3Macro(DoseGridSpacing, double);
+  /// Set dose grid dimensions (on which the dose influence matrix is defined)
+  vtkSetVector3Macro(DoseGridSpacing, double);
+
+  /// Set dose influence matrix from triplets (optional setting of corresponding dose grid dimensions and spacing)
+  void SetDoseInfluenceMatrixFromTriplets(
+      int numRows, int numCols,
+      DoseInfluenceMatrixIndexVector& rows,
+      DoseInfluenceMatrixIndexVector& columns,
+      DoseInfluenceMatrixValueVector& values,
+      double* doseGridDim = nullptr,
+      double* doseGridSpacing = nullptr
+  );
   vtkSmartPointer<vtkDoubleArray> GetDoseInfluenceMatrixTriplets();
 
   vtkSmartPointer<vtkDoubleArray> GetDoseInfluenceMatrixData();
@@ -312,6 +327,11 @@ protected:
 
   /// Dose influence matrix
   DoseInfluenceMatrixType DoseInfluenceMatrix;
+
+  /// Dose grid dimensions (on which the dose influence matrix is defined)
+  double DoseGridDim[3];
+  /// Dose grid spaciing (on which the dose influence matrix is defined)
+  double DoseGridSpacing[3];
 
 protected:
   /// Visible multi-leaf collimator points

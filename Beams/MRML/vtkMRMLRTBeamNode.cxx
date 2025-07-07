@@ -75,6 +75,14 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->CollimatorAngle = 0.0;
   this->CouchAngle = 0.0;
 
+  this->DoseGridDim[0] = -1;
+  this->DoseGridDim[1] = -1;
+  this->DoseGridDim[2] = -1;
+
+  this->DoseGridSpacing[0] = -1;
+  this->DoseGridSpacing[1] = -1;
+  this->DoseGridSpacing[2] = -1;
+
   this->SAD = 2000.0;
 
   this->SourceToJawsDistanceX = 500.;
@@ -963,8 +971,14 @@ void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder(double jawBegin,
   side12.push_back(side2.back());
 }
 
-//---------------------------------------------------------------------------
-void vtkMRMLRTBeamNode::SetDoseInfluenceMatrixFromTriplets(int numRows, int numCols, DoseInfluenceMatrixIndexVector& rows, DoseInfluenceMatrixIndexVector& columns, DoseInfluenceMatrixValueVector& values)
+void vtkMRMLRTBeamNode::SetDoseInfluenceMatrixFromTriplets(
+    int numRows, int numCols,
+    DoseInfluenceMatrixIndexVector& rows,
+    DoseInfluenceMatrixIndexVector& columns,
+    DoseInfluenceMatrixValueVector& values,
+    double* doseGridDim,
+    double* doseGridSpacing
+)
 {
   typedef Eigen::Triplet<double> T;
   std::vector<T> tripletList;
@@ -977,6 +991,29 @@ void vtkMRMLRTBeamNode::SetDoseInfluenceMatrixFromTriplets(int numRows, int numC
 
   this->DoseInfluenceMatrix = DoseInfluenceMatrixType(numRows, numCols);
   this->DoseInfluenceMatrix.setFromTriplets(tripletList.begin(), tripletList.end());
+
+  // Store dose grid dimensions and spacing on which the dose influence matrix is defined
+  for (int i = 0; i < 3; ++i)
+  {
+	  if (doseGridDim == nullptr)
+	  {
+		  this->DoseGridDim[i] = -1;
+	  }
+      else
+	  {
+		  this->DoseGridDim[i] = doseGridDim[i];
+	  }
+
+	  if (doseGridSpacing == nullptr)
+	  {
+		  this->DoseGridSpacing[i] = -1;
+	  }
+      else
+      {
+          this->DoseGridSpacing[i] = doseGridSpacing[i];
+      }
+  }
+
 }
 
 //---------------------------------------------------------------------------
