@@ -41,7 +41,7 @@ def prepareCst(beamNode, ct):
     return cst
 
 
-def preparePln(beamNode, ct):
+def preparePln(beamNode, ct, dose_grid_spacing_from_beamNode=False):
     from pyRadPlan.plan import create_pln
     
     # Get isocenter position in RAS coordinates from Slicer
