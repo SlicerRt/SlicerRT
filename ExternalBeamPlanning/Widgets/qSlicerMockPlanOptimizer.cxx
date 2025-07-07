@@ -8,11 +8,6 @@
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
 
-// Segmentations includes
-#include "vtkOrientedImageData.h"
-#include "vtkSlicerSegmentationsModuleLogic.h"
-#include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
-
 // Objectives includes
 #include "qSlicerSquaredDeviationObjective.h"
 
@@ -23,16 +18,12 @@
 // VTK includes
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
-#include <vtkPolyData.h>
 
 // Slicer includes
-#include <vtkSlicerVersionConfigure.h>
-#include <vtkSlicerVolumesLogic.h>
 #include <vtkImageReslice.h>
 
 // Qt includes
 #include <QDebug>
-#include "qSlicerApplication.h"
 
 
 //----------------------------------------------------------------------------
@@ -74,7 +65,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
        tried_beam_index++;  
    }  
 
-   // calculate dose for each beamNode and add to total dose
+   // Calculate dose for each beamNode and add to total dose
    for (int i = 0; i < planNode->GetNumberOfBeams(); i++)  
    {  
        vtkMRMLRTBeamNode* beamNode = planNode->GetBeamByName(beamNames[i]);  
