@@ -134,10 +134,10 @@ private:
 
 public:
     /// Add result per-beam dose volume to beam
-    /// \param resultDose Dose volume to add to beam as result
+    /// \param resultOptimizedDose Dose volume to add to beam as result
     /// \param beamNode Beam node to add dose as result to
     /// \param replace Remove referenced dose volume if already exists. True by default
-    Q_INVOKABLE void addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTPlanNode* planNode, bool replace = true);
+    Q_INVOKABLE void addResultOptimizedDose(vtkMRMLScalarVolumeNode* resultOptimizedDose, vtkMRMLRTPlanNode* planNode, bool replace = true);
 };
 Q_DECLARE_METATYPE(qSlicerAbstractPlanOptimizer::ObjectiveStruct)
 
