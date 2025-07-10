@@ -43,9 +43,6 @@ This file was originally developed by Niklas Wahl, German Cancer Research Center
 //----------------------------------------------------------------------------
 double qSlicerAbstractPlanOptimizer::DEFAULT_DOSE_VOLUME_WINDOW_LEVEL_MAXIMUM = 16.0;
 
-//----------------------------------------------------------------------------
-static const char* RESULT_DOSE_REFERENCE_ROLE = "ResultDoseRef";
-
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 class qSlicerAbstractPlanOptimizerPrivate
@@ -143,20 +140,24 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
   // Get saved objectives
   std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives = this->getSavedObjectiveNodes();
 
-  // Create output Optimization volume for plan
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> resultOptimizationVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+  // Get or create output optimization volume for plan
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> resultOptimizationVolumeNode = planNode->GetOutputTotalDoseVolumeNode();
+  if (!resultOptimizationVolumeNode)
+  {
+	  resultOptimizationVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+      // Give default name for result node (engine can give it a more meaningful name)
+      std::string resultOptimizationNodeName = std::string(planNode->GetName()) + "_Optimization";
+      resultOptimizationVolumeNode->SetName(resultOptimizationNodeName.c_str());
+  }
   planNode->GetScene()->AddNode(resultOptimizationVolumeNode);
-  // Give default name for result node (engine can give it a more meaningful name)
-  std::string resultOptimizationNodeName = std::string(planNode->GetName()) + "_Optimization";
-  resultOptimizationVolumeNode->SetName(resultOptimizationNodeName.c_str());
 
   // Optimize
   QString errorMessage = this->optimizePlanUsingOptimizer(planNode, objectives, resultOptimizationVolumeNode);
-  
+
   if (errorMessage.isEmpty())
   {
 	  // Add result dose volume to plan
-      this->addResultDose(resultOptimizationVolumeNode, planNode);
+      this->addResultOptimizedDose(resultOptimizationVolumeNode, planNode);
   }
   return errorMessage;
 }
@@ -206,9 +207,9 @@ void qSlicerAbstractPlanOptimizer::removeAllObjectiveNodes()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerAbstractPlanOptimizer::addResultDose(vtkMRMLScalarVolumeNode* resultDose, vtkMRMLRTPlanNode* planNode, bool replace/*=true*/)
+void qSlicerAbstractPlanOptimizer::addResultOptimizedDose(vtkMRMLScalarVolumeNode* resultOptimizedDose, vtkMRMLRTPlanNode* planNode, bool replace/*=true*/)
 {    
-    if (!resultDose)
+    if (!resultOptimizedDose)
     {
         qCritical() << Q_FUNC_INFO << ": Invalid result dose";
         return;
@@ -231,30 +232,15 @@ void qSlicerAbstractPlanOptimizer::addResultDose(vtkMRMLScalarVolumeNode* result
         return;
     }
 
-     //// Remove already existing referenced dose volume if any
-     //if (replace)
-     //{
-     //    std::vector<const char*> referencedDoseNodeIds;
-     //    planNode->GetNodeReferenceIDs(RESULT_DOSE_REFERENCE_ROLE, referencedDoseNodeIds);
-     //    for (std::vector<const char*>::iterator refIt = referencedDoseNodeIds.begin(); refIt != referencedDoseNodeIds.end(); ++refIt)
-     //    {
-     //        vtkMRMLNode* node = scene->GetNodeByID(*refIt);
-     //        scene->RemoveNode(node);
-     //    }
-     //}
-
-     // Add reference in beam to result dose for later access
-     planNode->AddNodeReferenceID(RESULT_DOSE_REFERENCE_ROLE, resultDose->GetID());
-
-     // Set dose volume attribute so that it is identified as dose
-     resultDose->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+     // Set optimized dose volume attribute so that it is identified as dose
+     resultOptimizedDose->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
      // Subject hierarchy related operations
      vtkIdType beamShItemID = shNode->GetItemByDataNode(planNode);
      if (beamShItemID)
      {
          // Add result under beam in subject hierarchy
-         shNode->CreateItem(beamShItemID, resultDose);
+         shNode->CreateItem(beamShItemID, resultOptimizedDose);
 
          // Set dose unit value to Gy if dose engine did not set it already (potentially to other unit)
          vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(beamShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
@@ -269,10 +255,15 @@ void qSlicerAbstractPlanOptimizer::addResultDose(vtkMRMLScalarVolumeNode* result
      }
 
     // Set up display for dose volume
-    resultDose->CreateDefaultDisplayNodes(); // Make sure display node is present
-    if (resultDose->GetDisplayNode())
+    //if (!resultOptimizedDose->GetDisplayNode())
+    //{
+    //    resultOptimizedDose->CreateDefaultDisplayNodes(); // Make sure display node is present
+    //}
+    
+    resultOptimizedDose->CreateDefaultDisplayNodes(); // Make sure display node is present
+    if (resultOptimizedDose->GetDisplayNode())
     {
-        vtkMRMLScalarVolumeDisplayNode* doseScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(resultDose->GetVolumeDisplayNode());
+        vtkMRMLScalarVolumeDisplayNode* doseScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(resultOptimizedDose->GetVolumeDisplayNode());
 
         doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeDose_ColorTable_Relative");
 
