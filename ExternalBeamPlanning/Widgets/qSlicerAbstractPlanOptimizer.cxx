@@ -33,6 +33,11 @@ This file was originally developed by Niklas Wahl, German Cancer Research Center
 #include <vtkMRMLSubjectHierarchyConstants.h>
 #include <vtkMRMLColorTableNode.h>
 #include "vtkMRMLRTObjectiveNode.h"
+#include <vtkMRMLSelectionNode.h>
+
+// Slicer includes
+#include <qSlicerCoreApplication.h>
+#include "vtkSlicerApplicationLogic.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
@@ -219,6 +224,12 @@ void qSlicerAbstractPlanOptimizer::addResultOptimizedDose(vtkMRMLScalarVolumeNod
         qCritical() << Q_FUNC_INFO << ": Invalid plan node";
         return;
     }
+    vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();
+    if (!referenceVolumeNode)
+    {
+        qCritical() << Q_FUNC_INFO << ": " << "Unable to access reference volume";
+        return;
+    }
     vtkMRMLScene* scene = planNode->GetScene();
     if (!scene)
     {
@@ -279,6 +290,29 @@ void qSlicerAbstractPlanOptimizer::addResultOptimizedDose(vtkMRMLScalarVolumeNod
     else
     {
         qWarning() << Q_FUNC_INFO << ": Display node is not available for dose volume node. The default color table will be used.";
+    }
+
+    // Show total dose in foreground
+    vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
+    if (selectionNode)
+    {
+        // Make sure reference volume is shown in background
+        selectionNode->SetReferenceActiveVolumeID(referenceVolumeNode->GetID());
+        // Select as foreground volume
+        selectionNode->SetReferenceSecondaryVolumeID(resultOptimizedDose->GetID());
+        qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection(0);
+
+        // Set opacity so that volume is visible
+        vtkMRMLSliceCompositeNode* compositeNode = nullptr;
+        int numberOfCompositeNodes = planNode->GetScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
+        for (int i = 0; i < numberOfCompositeNodes; i++)
+        {
+            compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast(planNode->GetScene()->GetNthNodeByClass(i, "vtkMRMLSliceCompositeNode"));
+            if (compositeNode && compositeNode->GetForegroundOpacity() == 0.0)
+            {
+                compositeNode->SetForegroundOpacity(0.5);
+            }
+        }
     }
 }
 

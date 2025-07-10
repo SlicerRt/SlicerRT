@@ -213,9 +213,5 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             resultOptimizationVolumeNodeName = str(planNode.GetName())+"_pyRadOptimzedDose"
         resultOptimizationVolumeNode.SetName(resultOptimizationVolumeNodeName)
 
-        # Overlay result dose on reference volume in Slicer
-        slicer.util.setSliceViewerLayers(background=referenceVolumeNode, foreground=resultOptimizationVolumeNode)
-        slicer.util.setSliceViewerLayers(foregroundOpacity=1)
-
         return str()
     
