@@ -214,9 +214,9 @@ public:
   /// Set prescription dose
   vtkSetMacro(RxDose, double);
 
-  /// Get dose grid size
+  /// Get dose grid spacing
   vtkGetVector3Macro(DoseGrid, double);
-  /// Set dose grid size
+  /// Set dose grid spacing
   vtkSetVector3Macro(DoseGrid, double);
 
   /// Set dose grid in one coordinate

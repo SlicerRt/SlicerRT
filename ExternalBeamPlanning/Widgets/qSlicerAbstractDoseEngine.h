@@ -68,13 +68,14 @@ public:
   /// Inverse dose calculation capabilities
   bool isInverse()const;
 
-  /// set inverse capabilities
+  /// Set inverse capabilities
   /// NOTE: this can only be used in python scripted ones
   virtual void setIsInverse(bool isInverse);
 
   /// Ion plan capabilities
   bool canDoIonPlan()const;
 
+  /// Set ion planing capabilities
   virtual void setCanDoIonPlan(bool canDoIonPlan);
 
 // Dose calculation related functions
