@@ -96,7 +96,6 @@ private:
   Q_DECLARE_PRIVATE(qSlicerScriptedPlanOptimizer);
   Q_DISABLE_COPY(qSlicerScriptedPlanOptimizer);
 
-  //std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> availableObjectives;
 };
 
 #endif
