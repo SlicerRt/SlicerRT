@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 This file was originally developed by Lina Bucher, Institut fuer Biomedizinische
-Technik am Karlsruher Institut fuer Technologie (IBT-KIT) and German Cancer
+Technik at the Karlsruher Institut fuer Technologie (IBT-KIT) and German Cancer
 Research Center (DKFZ)
 
 ==============================================================================*/
@@ -95,8 +95,9 @@ private:
   friend class qSlicerExternalBeamPlanningModuleWidget;
 
 public:
-	/// Compute objective & gradient value for the given dose matrix
+	/// Compute objective value for the given dose matrix
     Q_INVOKABLE virtual float computeDoseObjectiveFunction(const DoseType&) = 0;
+	/// Compute gradient of the objective function for the given dose matrix
     Q_INVOKABLE virtual DoseType computeDoseObjectiveGradient(const DoseType&) = 0;
 };
 

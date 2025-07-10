@@ -253,9 +253,9 @@ public:
   /// Set dose grid dimensions (on which the dose influence matrix is defined)
   vtkSetVector3Macro(DoseGridDim, double);
 
-  /// Get dose grid dimensions (on which the dose influence matrix is defined)
+  /// Get dose grid spacing (on which the dose influence matrix is defined)
   vtkGetVector3Macro(DoseGridSpacing, double);
-  /// Set dose grid dimensions (on which the dose influence matrix is defined)
+  /// Set dose grid spacing (on which the dose influence matrix is defined)
   vtkSetVector3Macro(DoseGridSpacing, double);
 
   /// Set dose influence matrix from triplets (optional setting of corresponding dose grid dimensions and spacing)
