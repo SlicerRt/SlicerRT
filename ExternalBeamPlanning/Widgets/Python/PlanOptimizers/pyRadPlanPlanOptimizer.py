@@ -203,9 +203,17 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             displayNode.SetLowerThreshold(0.05*rxDose)
             displayNode.ApplyThresholdOn()
             
-        # Push total dose to volumeNode in Slicer, set name & overlay on CT
+        # Push total dose to volumeNode in Slicer
         sitkUtils.PushVolumeToSlicer(total_dose, targetNode = resultOptimizationVolumeNode)
-        resultOptimizationVolumeNode.SetName(str(planNode.GetName())+"_pyRadOptimzedDose")
+
+        # Set name of result volume node
+        try:
+            resultOptimizationVolumeNodeName = planNode.GetOutputTotalDoseVolumeNode().GetName()
+        except AttributeError:
+            resultOptimizationVolumeNodeName = str(planNode.GetName())+"_pyRadOptimzedDose"
+        resultOptimizationVolumeNode.SetName(resultOptimizationVolumeNodeName)
+
+        # Overlay result dose on reference volume in Slicer
         slicer.util.setSliceViewerLayers(background=referenceVolumeNode, foreground=resultOptimizationVolumeNode)
         slicer.util.setSliceViewerLayers(foregroundOpacity=1)
 
