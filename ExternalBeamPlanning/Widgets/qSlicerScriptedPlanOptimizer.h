@@ -23,12 +23,13 @@
 // Optimization engines includes
 #include "qSlicerAbstractPlanOptimizer.h"
 
+// ExternalBeamPlanning includes
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
-
-
+// VTK includes
 #include <vtkSmartPointer.h>
 
+// MRML includes
 #include <vtkMRMLRTObjectiveNode.h>
 
 // Forward Declare PyObject*
