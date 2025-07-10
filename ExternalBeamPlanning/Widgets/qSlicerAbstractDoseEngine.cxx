@@ -127,6 +127,7 @@ bool qSlicerAbstractDoseEngine::isInverse() const
     return this->m_IsInverse;
 }
 
+//-----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::setIsInverse(bool isInverse)
 {
     // TODO: is this correct to avoid setting the value except for Python engines?
@@ -139,11 +140,11 @@ bool qSlicerAbstractDoseEngine::canDoIonPlan() const
 	return this->m_CanDoIonPlan;
 }
 
+//-----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::setCanDoIonPlan(bool canDoIonPlan)
 {
 	qCritical() << Q_FUNC_INFO << ": Cannot set dose engine name by method, only in constructor";
 }
-
 
 //----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::registerBeamParametersTabWidget(qMRMLBeamParametersTabWidget* tabWidget)

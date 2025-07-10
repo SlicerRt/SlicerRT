@@ -80,25 +80,23 @@ def preparePln(beamNode, ct, dose_grid_spacing_from_beamNode=False):
     radiation_mode = slicer.pyRadPlanEngine.scriptedEngine.integerParameter(beamNode, 'radiationMode')
 
 
-    '''
-    All values in the pln dictionary need to be floats. INCLUDING the numOfFractions.
-    '''
+    # Create plan object from dictionary
     pln = {
         "radiation_mode": available_radiation_modes[radiation_mode],
         "machine": ['Generic'][slicer.pyRadPlanEngine.scriptedEngine.integerParameter(beamNode, 'machine')],
         "num_of_fractions": slicer.pyRadPlanEngine.scriptedEngine.doubleParameter(beamNode, 'numOfFractions'),
         "prop_stf": {
-            # beam geometry settings
+            # Beam geometry settings
             "bixel_width": 5.0,
             "gantry_angles": [beamNode.GetGantryAngle()],
             "couch_angles": [beamNode.GetCouchAngle()],
             "iso_center": isocenter
         },
 
-        # dose calculation settings
+        # Dose calculation settings
         "prop_dose_calc": {"dose_grid": dose_grid},
 
-        # optimization settings
+        # Optimization settings
         "prop_opt": {},
     }
 

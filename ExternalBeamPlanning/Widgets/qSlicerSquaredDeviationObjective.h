@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 This file was originally developed by Lina Bucher, Institut fuer Biomedizinische
-Technik am Karlsruher Institut fuer Technologie (IBT-KIT) and German Cancer
+Technik at the Karlsruher Institut fuer Technologie (IBT-KIT) and German Cancer
 Research Center (DKFZ)
 
 ==============================================================================*/

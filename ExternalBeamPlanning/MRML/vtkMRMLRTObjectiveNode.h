@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 This file was originally developed by Lina Bucher, Institut fuer Biomedizinische
-Technik am Karlsruher Institut fuer Technologie (IBT-KIT) and German Cancer
+Technik at the Karlsruher Institut fuer Technologie (IBT-KIT) and German Cancer
 Research Center (DKFZ)
 
 ==============================================================================*/
@@ -52,7 +52,9 @@ public:
   vtkGetStringMacro(Name);
   vtkSetStringMacro(Name);
 
+  /// Set name of segmentation assigned to this objective
   void SetSegmentation(std::string segmentationName);
+  /// Get name of segmentation assigned to this objective
   std::string GetSegmentation();
 
 protected:
@@ -62,6 +64,7 @@ protected:
   void operator=(const vtkMRMLRTObjectiveNode&);
 
   char* Name;
+  /// Name of the segmentation assigned to this objective
   std::string Segmentation;
 
 };
