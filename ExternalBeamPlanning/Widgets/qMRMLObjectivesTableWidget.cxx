@@ -331,7 +331,7 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
     
 	// Create penalty SpinBox
     QSpinBox* penaltySpinBox = new QSpinBox();
-	penaltySpinBox->setValue(0);
+	penaltySpinBox->setValue(10);
     penaltySpinBox->setMinimum(0);
     penaltySpinBox->setMaximum(10000);
 	objectiveNode->SetAttribute("penalty", std::to_string(penaltySpinBox->value()).c_str());
