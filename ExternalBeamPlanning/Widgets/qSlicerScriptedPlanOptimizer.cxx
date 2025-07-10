@@ -23,25 +23,19 @@
 // Beams includes
 #include "vtkMRMLRTPlanNode.h"
 
-// Objectives includes
-#include "qSlicerSquaredDeviationObjective.h"
-
 // SlicerQt includes
 #include "qSlicerScriptedUtils_p.h"
 
 // PythonQt includes
 #include <PythonQt.h>
-#include <PythonQtConversion.h>
 
 // MRML includes
-#include <vtkMRMLScene.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLRTObjectiveNode.h>
 
 // VTK includes
 #include <vtkSmartPointer.h>
 #include <vtkPythonUtil.h>
-#include <vtkCollection.h>
 
 // Qt includes
 #include <QDebug>
