@@ -231,7 +231,8 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
       "    if slicer.util.confirmOkCancelDisplay("
       "        'This module requires pyRadPlan. Click OK to install it now.'"
       "    ):\n"
-      "        slicer.util.pip_install('pyRadPlan==0.2.4')\n"));
+      "        slicer.util.pip_install('pyRadPlan==0.2.4')\n"
+      "        import pyRadPlan\n"));
 }
 
 //-----------------------------------------------------------------------------
