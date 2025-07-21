@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -101,9 +101,9 @@ void vtkSlicerDicomSroImportExportModuleLogic::ExamineForLoad(vtkStringArray* fi
     if (!dataset->findAndGetOFString(DCM_SOPClassUID, sopClass).good() || sopClass.empty())
     {
       continue; // Failed to parse this file, skip it
-    }    
-      
-    // DICOM parsing is successful, now check if the object is loadable 
+    }
+
+    // DICOM parsing is successful, now check if the object is loadable
     std::string name;
     double confidence=0.9; // Almost sure, it's not 1.0 to allow user modules to override this importer
 
@@ -123,11 +123,11 @@ void vtkSlicerDicomSroImportExportModuleLogic::ExamineForLoad(vtkStringArray* fi
       dataset->findAndGetOFString(DCM_SeriesDescription, seriesDescription);
       if (!seriesDescription.empty())
       {
-        name+=std::string(": ")+seriesDescription.c_str(); 
+        name+=std::string(": ")+seriesDescription.c_str();
       }
       if (!instanceNumber.empty())
       {
-        name+=std::string(" [")+instanceNumber.c_str()+"]"; 
+        name+=std::string(" [")+instanceNumber.c_str()+"]";
       }
     }
     else if (sopClass == UID_SpatialFiducialsStorage)
@@ -139,11 +139,11 @@ void vtkSlicerDicomSroImportExportModuleLogic::ExamineForLoad(vtkStringArray* fi
       dataset->findAndGetOFString(DCM_SeriesDescription, seriesDescription);
       if (!seriesDescription.empty())
       {
-        name+=std::string(": ")+seriesDescription.c_str(); 
+        name+=std::string(": ")+seriesDescription.c_str();
       }
       if (!instanceNumber.empty())
       {
-        name+=std::string(" [")+instanceNumber.c_str()+"]"; 
+        name+=std::string(" [")+instanceNumber.c_str()+"]";
       }
     }
     else if (sopClass == UID_DeformableSpatialRegistrationStorage)
@@ -155,11 +155,11 @@ void vtkSlicerDicomSroImportExportModuleLogic::ExamineForLoad(vtkStringArray* fi
       dataset->findAndGetOFString(DCM_SeriesDescription, seriesDescription);
       if (!seriesDescription.empty())
       {
-        name+=std::string(": ")+seriesDescription.c_str(); 
+        name+=std::string(": ")+seriesDescription.c_str();
       }
       if (!instanceNumber.empty())
       {
-        name+=std::string(" [")+instanceNumber.c_str()+"]"; 
+        name+=std::string(" [")+instanceNumber.c_str()+"]";
       }
     }
     else
@@ -193,7 +193,7 @@ bool vtkSlicerDicomSroImportExportModuleLogic::LoadDicomSro(vtkSlicerDICOMLoadab
     return false;
   }
 
-  const char* firstFileName = loadable->GetFiles()->GetValue(0);
+  const char* firstFileName = loadable->GetFiles()->GetValue(0).c_str();
 
   vtkDebugMacro("Loading series '" << loadable->GetName() << "' from file '" << firstFileName << "'");
 
@@ -371,7 +371,7 @@ vtkMRMLGridTransformNode* vtkSlicerDicomSroImportExportModuleLogic::LoadDeformab
   deformableRegistrationGridTransformNodeName = this->GetMRMLScene()->GenerateUniqueName(deformableRegistrationGridTransformNodeName+"_DeformableRegistrationGrid");
   deformableRegistrationGridTransformNode->SetName(deformableRegistrationGridTransformNodeName.c_str());
   deformableRegistrationGridTransformNode->HideFromEditorsOff();
-  deformableRegistrationGridTransformNode->SetAndObserveTransformToParent(gridTransform); 
+  deformableRegistrationGridTransformNode->SetAndObserveTransformToParent(gridTransform);
   deformableRegistrationGridTransformNode->SetDisableModifiedEvent(0);
   this->GetMRMLScene()->AddNode(deformableRegistrationGridTransformNode);
 

@@ -181,9 +181,9 @@ public:
 
   /// Load dynamic beam (called from \sa LoadExternalBeamPlan)
   /// Beam is dynamic or has multiple control points
-  bool LoadDynamicBeamSequence(vtkSlicerDicomRtReader* rtReader, const char* seriesName, 
-    vtkMRMLRTPlanNode* planNode, int beamIndex, vtkMRMLRTBeamNode* proxyBeamNode, 
-    vtkMRMLLinearTransformNode* proxyTransformNode, 
+  bool LoadDynamicBeamSequence(vtkSlicerDicomRtReader* rtReader, const char* seriesName,
+    vtkMRMLRTPlanNode* planNode, int beamIndex, vtkMRMLRTBeamNode* proxyBeamNode,
+    vtkMRMLLinearTransformNode* proxyTransformNode,
     vtkMRMLTableNode* mlcTableNode, vtkMRMLTableNode* scanSpotTableNode);
 
   /// Load brachytherapy plan (called from \sa LoadRtPlan)
@@ -205,13 +205,13 @@ public:
   ///  Column 0 - leaf pair boundary values
   ///  Column 1 - leaf positions on side 1
   ///  Column 2 - leaf positions on side 2
-  vtkMRMLTableNode* CreateMultiLeafCollimatorTableNode(const char* name, 
-    const std::vector<double>& mlcBoundary, 
+  vtkMRMLTableNode* CreateMultiLeafCollimatorTableNode(const char* name,
+    const std::vector<double>& mlcBoundary,
     const std::vector<double>& mlcPosition, vtkMRMLScene* scene = nullptr);
 
   /// Create table node for scan spot parameters of modulated ion beam
-  vtkMRMLTableNode* CreateScanSpotTableNode(const char* name, 
-    const std::vector<float>& positions, const std::vector<float>& weights, 
+  vtkMRMLTableNode* CreateScanSpotTableNode(const char* name,
+    const std::vector<float>& positions, const std::vector<float>& weights,
     vtkMRMLScene* scene = nullptr);
 
   /// Compute and set geometry of an RT image
@@ -493,7 +493,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtDose(vtkSlicerD
     return false;
   }
 
-  const char* fileName = loadable->GetFiles()->GetValue(0);
+  const char* fileName = loadable->GetFiles()->GetValue(0).c_str();
   const char* seriesName = loadable->GetName();
 
   // Load Volume
@@ -814,12 +814,12 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
     vtkMRMLLinearTransformNode* beamTransformNode = nullptr;
     vtkMRMLTableNode* mlcTableNode = nullptr;
     vtkMRMLTableNode* scanSpotTableNode = nullptr;
-    if (singleBeam && (beamNode = this->LoadStaticBeam(rtReader, seriesName, 
+    if (singleBeam && (beamNode = this->LoadStaticBeam(rtReader, seriesName,
       planNode, beamIndex, mlcTableNode, scanSpotTableNode)))
     {
       ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(beamNode);
     }
-    else if (!singleBeam && this->LoadDynamicBeamSequence(rtReader, seriesName, 
+    else if (!singleBeam && this->LoadDynamicBeamSequence(rtReader, seriesName,
       planNode, beamIndex, beamNode, beamTransformNode, mlcTableNode, scanSpotTableNode))
     {
     }
@@ -835,7 +835,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadExternalBeamPlan(
 
 //---------------------------------------------------------------------------
 vtkMRMLRTBeamNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadStaticBeam(
-  vtkSlicerDicomRtReader* rtReader, const char* seriesName, vtkMRMLRTPlanNode* planNode, 
+  vtkSlicerDicomRtReader* rtReader, const char* seriesName, vtkMRMLRTPlanNode* planNode,
   int beamIndex, vtkMRMLTableNode* mlcTableNode, vtkMRMLTableNode* scanSpotTableNode)
 {
   vtkMRMLScene* scene = planNode->GetScene();
@@ -887,7 +887,7 @@ vtkMRMLRTBeamNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadSta
     beamNode->SetSourceToMultiLeafCollimatorDistance(rtReader->GetBeamSourceToMultiLeafCollimatorDistance(dicomBeamNumber));
   }
   // VSAD for RTIonPlan
-  // isocenter to beam limiting devices (Jaws, MLC), scanning spot size for ion beams  
+  // isocenter to beam limiting devices (Jaws, MLC), scanning spot size for ion beams
   else if (ionBeamNode)
   {
     std::array< float, 2 > ScanSpotSize;
@@ -1001,7 +1001,7 @@ vtkMRMLRTBeamNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadSta
   {
     mlcTableShId = shNode->GetItemByDataNode(mlcTableNode);
   }
-  if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
+  if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID &&
     mlcTableShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
     shNode->SetItemParent(mlcTableShId, beamShId);
@@ -1016,7 +1016,7 @@ vtkMRMLRTBeamNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadSta
       scanSpotShId = shNode->GetItemByDataNode(scanSpotTableNode);
     }
 
-    if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
+    if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID &&
       scanSpotShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
       shNode->SetItemParent(scanSpotShId, beamShId);
@@ -1028,9 +1028,9 @@ vtkMRMLRTBeamNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadSta
 
 //---------------------------------------------------------------------------
 bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequence(
-  vtkSlicerDicomRtReader* rtReader, const char* seriesName, 
-  vtkMRMLRTPlanNode* planNode, int beamIndex, vtkMRMLRTBeamNode* proxyBeamNode, 
-  vtkMRMLLinearTransformNode* proxyTransformNode, 
+  vtkSlicerDicomRtReader* rtReader, const char* seriesName,
+  vtkMRMLRTPlanNode* planNode, int beamIndex, vtkMRMLRTBeamNode* proxyBeamNode,
+  vtkMRMLLinearTransformNode* proxyTransformNode,
   vtkMRMLTableNode* proxyMlcTableNode, vtkMRMLTableNode* proxyScanSpotTableNode)
 {
   vtkMRMLScene* scene = planNode->GetScene();
@@ -1165,7 +1165,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
       beamNode->SetSourceToMultiLeafCollimatorDistance(rtReader->GetBeamSourceToMultiLeafCollimatorDistance(dicomBeamNumber));
     }
     // VSAD for RTIonPlan
-    // isocenter to beam limiting devices (Jaws, MLC), scanning spot size for ion beams  
+    // isocenter to beam limiting devices (Jaws, MLC), scanning spot size for ion beams
     else if (ionBeamNode)
     {
       std::array< float, 2 > ScanSpotSize;
@@ -1215,7 +1215,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
         dicomBeamNumber, controlPointIndex, positions, weights);
       if (result)
       {
-        scanSpotTableNode = CreateScanSpotTableNode("ScanSpot_PositionMap_MetersetWeights", 
+        scanSpotTableNode = CreateScanSpotTableNode("ScanSpot_PositionMap_MetersetWeights",
           positions, weights, mlcTableSequenceNode->GetSequenceScene());
 
         std::ostringstream nameStream;
@@ -1264,7 +1264,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
           transform->Translate(isocenter[0], isocenter[1], isocenter[2]);
           transformNode->Modified();
         }
-    
+
         transformSequenceNode->SetDataNodeAtValue(transformNode, std::to_string(controlPointIndex));
       }
     }
@@ -1330,7 +1330,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
     proxyBeamNode->SetAndObserveMultiLeafCollimatorTableNode(proxyMlcTableNode);
     mlcTableShId = shNode->GetItemByDataNode(proxyMlcTableNode);
   }
-  if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
+  if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID &&
     mlcTableShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
   {
     shNode->SetItemParent(mlcTableShId, beamShId);
@@ -1348,7 +1348,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
       scanSpotShId = shNode->GetItemByDataNode(proxyScanSpotTableNode);
     }
 
-    if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID && 
+    if (beamShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID &&
       scanSpotShId != vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
     {
       shNode->SetItemParent(scanSpotShId, beamShId);
@@ -1445,7 +1445,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
   vtkSmartPointer<vtkMRMLSegmentationNode> segmentationNode;
   vtkSmartPointer<vtkMRMLSegmentationDisplayNode> segmentationDisplayNode;
 
-  const char* fileName = loadable->GetFiles()->GetValue(0);
+  const char* fileName = loadable->GetFiles()->GetValue(0).c_str();
   const char* seriesName = loadable->GetName();
   std::string structureSetReferencedSeriesUid("");
 
@@ -1643,7 +1643,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtImage(vtkSlicer
     return false;
   }
 
-  const char* fileName = loadable->GetFiles()->GetValue(0);
+  const char* fileName = loadable->GetFiles()->GetValue(0).c_str();
   const char* seriesName = loadable->GetName();
 
   // Load Volume
@@ -1754,7 +1754,7 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal
 
 //---------------------------------------------------------------------------
 vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMultiLeafCollimatorTableNode(
-  const char* name, const std::vector<double>& mlcBoundary, 
+  const char* name, const std::vector<double>& mlcBoundary,
   const std::vector<double>& mlcPosition, vtkMRMLScene* scene)
 {
   vtkSmartPointer<vtkMRMLTableNode> tableNode = vtkSmartPointer<vtkMRMLTableNode>::New();
@@ -1816,7 +1816,7 @@ vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMu
 
 //---------------------------------------------------------------------------
 vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateScanSpotTableNode(
-  const char* name, const std::vector<float>& positions, 
+  const char* name, const std::vector<float>& positions,
   const std::vector<float>& weights, vtkMRMLScene* scene)
 {
   vtkSmartPointer<vtkMRMLTableNode> tableNode = vtkSmartPointer<vtkMRMLTableNode>::New();
@@ -2166,7 +2166,7 @@ double vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CalculateSliceSpaci
   /// will not be found to be regular along the Series"
   gdcm::IPPSorter imageSorter = gdcm::IPPSorter();
   imageSorter.SetComputeZSpacing(true);
-  //imageSorter.SetZSpacingTolerance(0.000001); // 1e-6 is the default value for Z-spacing tolerance 
+  //imageSorter.SetZSpacingTolerance(0.000001); // 1e-6 is the default value for Z-spacing tolerance
   //imageSorter.SetDirectionCosinesTolerance(0); // 0 is the default value for direction cosine tolerance
   imageSorter.Sort(filesForSeries);
   sliceSpacing = imageSorter.GetZSpacing();
@@ -2342,7 +2342,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadDicomRT(vtkSlicerDICOMLoadable
     return loadSuccessful;
   }
 
-  const char* firstFileName = loadable->GetFiles()->GetValue(0);
+  const char* firstFileName = loadable->GetFiles()->GetValue(0).c_str();
 
   vtkDebugMacro("Loading series '" << loadable->GetName() << "' from file '" << firstFileName << "'");
 

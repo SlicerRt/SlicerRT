@@ -1591,7 +1591,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContourInterior(v
 
   // Triangulate the inside of the line
   vtkSmartPointer<vtkIdList> polygonIds = vtkSmartPointer<vtkIdList>::New();
-  polygon->Triangulate(polygonIds);
+  polygon->NonDegenerateTriangulate(polygonIds);
 
   // Loop through the polygons created by the polygon triangulation
   for (int currentPolygonIndex = 0; currentPolygonIndex < polygonIds->GetNumberOfIds(); currentPolygonIndex += 3)
