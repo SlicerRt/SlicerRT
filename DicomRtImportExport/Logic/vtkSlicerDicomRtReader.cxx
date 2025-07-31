@@ -234,7 +234,7 @@ public:
     // Range shifter settings (only one settings for only one range shifter is supported)
     int ReferencedRangeShifterNumber;
     std::string RangeShifterSetting;
-    double IsocenterToRangeShifterDistance;
+    double IsocenterToRangeShifterDistance{ 500. }; // 50. cm
     double RangeShifterWET; // WaterEquivalentThickness
 
     // Parameters taken from plastimatch (for future use)
