@@ -74,6 +74,14 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->CollimatorAngle = 0.0;
   this->CouchAngle = 0.0;
 
+  this->DoseGridDim[0] = -1;
+  this->DoseGridDim[1] = -1;
+  this->DoseGridDim[2] = -1;
+
+  this->DoseGridSpacing[0] = -1;
+  this->DoseGridSpacing[1] = -1;
+  this->DoseGridSpacing[2] = -1;
+
   this->SAD = 2000.0;
 
   this->SourceToJawsDistanceX = 500.;
@@ -915,4 +923,139 @@ void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder(double jawBegin,
     }
   }
   side12.push_back(side2.back());
+}
+
+void vtkMRMLRTBeamNode::SetDoseInfluenceMatrixFromTriplets(
+    int numRows, int numCols,
+    DoseInfluenceMatrixIndexVector& rows,
+    DoseInfluenceMatrixIndexVector& columns,
+    DoseInfluenceMatrixValueVector& values,
+    double* doseGridDim,
+    double* doseGridSpacing
+)
+{
+  typedef Eigen::Triplet<double> T;
+  std::vector<T> tripletList;
+  tripletList.reserve(values.size());
+  
+  for (size_t i = 0; i < values.size(); ++i)
+  {
+    tripletList.push_back(T(rows[i], columns[i], values[i]));
+  }
+
+  this->DoseInfluenceMatrix = DoseInfluenceMatrixType(numRows, numCols);
+  this->DoseInfluenceMatrix.setFromTriplets(tripletList.begin(), tripletList.end());
+
+  // Store dose grid dimensions and spacing on which the dose influence matrix is defined
+  for (int i = 0; i < 3; ++i)
+  {
+	  if (doseGridDim == nullptr)
+	  {
+		  this->DoseGridDim[i] = -1;
+	  }
+      else
+	  {
+		  this->DoseGridDim[i] = doseGridDim[i];
+	  }
+
+	  if (doseGridSpacing == nullptr)
+	  {
+		  this->DoseGridSpacing[i] = -1;
+	  }
+      else
+      {
+          this->DoseGridSpacing[i] = doseGridSpacing[i];
+      }
+  }
+
+}
+
+//---------------------------------------------------------------------------
+int vtkMRMLRTBeamNode::GetDoseInfluenceMatrixRows()
+{
+  return this->DoseInfluenceMatrix.rows();
+}
+
+//---------------------------------------------------------------------------
+int vtkMRMLRTBeamNode::GetDoseInfluenceMatrixColumns()
+{
+  return this->DoseInfluenceMatrix.cols();
+}
+
+//---------------------------------------------------------------------------
+int vtkMRMLRTBeamNode::GetDoseInfluenceMatrixNumberOfNonZeroElements()
+{
+  return this->DoseInfluenceMatrix.nonZeros();
+}
+
+//---------------------------------------------------------------------------
+double vtkMRMLRTBeamNode::GetDoseInfluenceMatrixSparsity()
+{
+  return this->DoseInfluenceMatrix.nonZeros() / (this->DoseInfluenceMatrix.rows() * this->DoseInfluenceMatrix.cols());
+}
+
+//---------------------------------------------------------------------------
+vtkSmartPointer<vtkDoubleArray> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixTriplets()
+{
+  vtkSmartPointer<vtkDoubleArray> triplets = vtkSmartPointer<vtkDoubleArray>::New();
+  triplets->SetNumberOfComponents(3); // each triplet has 3 components: row, col, value
+
+  for (int k = 0; k < this->DoseInfluenceMatrix.outerSize(); ++k)
+  {
+      for (Eigen::SparseMatrix<double, Eigen::ColMajor, int>::InnerIterator it(this->DoseInfluenceMatrix, k); it; ++it)
+      {
+          double triplet[3] = { static_cast<double>(it.row()), static_cast<double>(it.col()), it.value() };
+          triplets->InsertNextTuple(triplet);
+      }
+  }
+
+  return triplets;
+}
+
+//---------------------------------------------------------------------------
+vtkSmartPointer<vtkDoubleArray> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixData()
+{
+  vtkSmartPointer<vtkDoubleArray> data = vtkSmartPointer<vtkDoubleArray>::New();
+  data->SetArray(this->DoseInfluenceMatrix.valuePtr(), this->DoseInfluenceMatrix.nonZeros(), 1);
+  return data;
+}
+
+//---------------------------------------------------------------------------
+vtkSmartPointer<vtkIntArray> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixIndices()
+{
+  vtkSmartPointer<vtkIntArray> indices = vtkSmartPointer<vtkIntArray>::New();
+  indices->SetArray(this->DoseInfluenceMatrix.innerIndexPtr(), this->DoseInfluenceMatrix.nonZeros(), 1);
+  return indices;
+}
+
+//---------------------------------------------------------------------------
+vtkSmartPointer<vtkIntArray> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixIndptr()
+{
+  vtkSmartPointer<vtkIntArray> indptr = vtkSmartPointer<vtkIntArray>::New();
+  indptr->SetArray(this->DoseInfluenceMatrix.outerIndexPtr(), this->DoseInfluenceMatrix.outerSize() + 1, 1);
+  return indptr;
+}
+
+//---------------------------------------------------------------------------
+vtkSmartPointer<vtkFieldData> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixFieldData()
+{
+  // allows calling dose influence matrix from python
+  vtkSmartPointer<vtkFieldData> fieldData = vtkSmartPointer<vtkFieldData>::New();
+
+  vtkSmartPointer<vtkDoubleArray> data = vtkSmartPointer<vtkDoubleArray>::New();
+  data->SetName("Data");
+  data->SetArray(this->DoseInfluenceMatrix.valuePtr(), this->DoseInfluenceMatrix.nonZeros(), 1);
+  fieldData->AddArray(data);
+
+  vtkSmartPointer<vtkIntArray> indices = vtkSmartPointer<vtkIntArray>::New();
+  indices->SetName("Indices");
+  indices->SetArray(this->DoseInfluenceMatrix.innerIndexPtr(), this->DoseInfluenceMatrix.nonZeros(), 1);
+  fieldData->AddArray(indices);
+
+  vtkSmartPointer<vtkIntArray> indptr = vtkSmartPointer<vtkIntArray>::New();
+  indptr->SetName("Indptr");
+  indptr->SetArray(this->DoseInfluenceMatrix.outerIndexPtr(), this->DoseInfluenceMatrix.outerSize() + 1, 1);
+  fieldData->AddArray(indptr);
+
+  return fieldData;
 }

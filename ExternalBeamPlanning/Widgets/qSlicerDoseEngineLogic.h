@@ -61,6 +61,9 @@ public:
   /// Calculate dose for a plan
   Q_INVOKABLE QString calculateDose(vtkMRMLRTPlanNode* planNode);
 
+  /// Calculate dose influence matrix for a plan
+  Q_INVOKABLE QString calculateDoseInfluenceMatrix(vtkMRMLRTPlanNode* planNode);
+
   /// Accumulate per-beam dose volumes for each beam under given plan. The accumulated
   /// total dose is
   Q_INVOKABLE QString createAccumulatedDose(vtkMRMLRTPlanNode* planNode);

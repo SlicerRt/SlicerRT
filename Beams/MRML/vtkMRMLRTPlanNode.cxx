@@ -57,6 +57,22 @@ vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 {
+  this->RxDose = 1.0;
+
+  this->TargetSegmentID = nullptr;
+
+  this->IsocenterSpecification = vtkMRMLRTPlanNode::CenterOfTarget;
+
+  this->NextBeamNumber = 1;
+
+  this->DoseEngineName = nullptr;
+
+  this->DoseGrid[0] = 5.0;
+  this->DoseGrid[1] = 5.0;
+  this->DoseGrid[2] = 5.0;
+
+  this->IonPlanFlag = false;
+
   // Ensure the node shows up in subject hierarchy. Otherwise there is a crash.
   this->HideFromEditorsOff();
 }
@@ -216,6 +232,32 @@ void vtkMRMLRTPlanNode::SetDoseEngineName(const char* engineName)
   this->Modified();
   this->InvokeEvent(vtkMRMLRTPlanNode::DoseEngineChanged, this);
 }
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::SetPlanOptimizerName(const char* optimizerName)
+{
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting PlanOptimizerName to " << (optimizerName ? engineName : "(null)"));
+  if (this->PlanOptimizerName == nullptr && optimizerName == nullptr) { return; }
+  if (this->PlanOptimizerName && optimizerName && (!strcmp(this->PlanOptimizerName, optimizerName))) { return; }
+
+  // Set plan optimizer name
+  delete[] this->PlanOptimizerName;
+  if (optimizerName)
+  {
+    size_t n = strlen(optimizerName) + 1;
+    this->PlanOptimizerName = new char[n];
+    strcpy(this->PlanOptimizerName, optimizerName);
+  }
+  else
+  {
+    this->PlanOptimizerName = nullptr;
+  }
+
+  // Invoke events
+  this->Modified();
+  this->InvokeEvent(vtkMRMLRTPlanNode::PlanOptimizerChanged, this);
+}
+
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData)
@@ -871,4 +913,35 @@ bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double center[3])
   center[2] = centerRas[2];
 
   return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::setDoseGridInCoordinate(int index, double value)
+{
+    if (index < 0 || index > 2)
+    {
+        vtkErrorMacro("setDoseGridInCoordinate: Invalid index");
+        return;
+    }
+
+    this->DoseGrid[index] = value;
+	this->Modified();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::setDoseGridToCTGrid()
+{
+    vtkMRMLScalarVolumeNode* referenceVolumeNode = this->GetReferenceVolumeNode();
+    if (!referenceVolumeNode)
+    {
+        vtkErrorMacro("setDoseGridToCTGrid: Invalid reference volume node");
+        return;
+    }
+
+	double spacing[3] = { 0.0, 0.0, 0.0 };
+    referenceVolumeNode->GetSpacing(spacing);
+
+    this->setDoseGridInCoordinate(0, spacing[0]);
+    this->setDoseGridInCoordinate(1, spacing[1]);
+    this->setDoseGridInCoordinate(2, spacing[2]);
 }

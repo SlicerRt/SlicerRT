@@ -76,6 +76,9 @@ protected slots:
   void isocenterCoordinatesChanged(double* isocenterCoordinates);
   void centerViewToIsocenterClicked();
 
+  void ionPlanFlagCheckboxStateChanged(int state);
+  void inversePlanningCheckboxStateChanged(int state);
+
   /// Update isocenter controls from isocenter markups fiducial
   void updateIsocenterPosition();
 
@@ -85,20 +88,34 @@ protected slots:
   // Output section
   void doseVolumeNodeChanged(vtkMRMLNode*);
   void doseROINodeChanged(vtkMRMLNode*);
-  void doseGridSpacingChanged(const QString &);
+  void doseGridChangedInCoordinate(int index, double value);
+  void doseGridXChanged(double value);
+  void doseGridYChanged(double value);
+  void doseGridZChanged(double value);
+  void useCTGridForDoseGridClicked();
   
   // Calculation buttons
   void calculateDoseClicked();
   void calculateWEDClicked();
   void clearDoseClicked();
 
+  // Dose Optimization buttons
+  void PlanOptimizerChanged(const QString&);
+  void optimizePlanClicked();
+
   // Beams section
   void addBeamClicked();
   void removeBeamClicked();
 
+  // ObjectiveTable
+  void addObjectiveClicked();
+  void removeObjectiveClicked();
+  void saveAvailableObjectives();
+
   // Update functions
   void onLogicModified();
   void onProgressUpdated(double progress);
+  void onOptimizerProgressInfoUpdated(QString info);
 
 protected:
   void setup() override;
@@ -107,6 +124,9 @@ protected:
 
   // Populate dose engines combobox from registered dose engines
   void updateDoseEngines();
+
+  // Populate optimization engine combobox
+  void updatePlanOptimizers();
 
 protected:
   QScopedPointer<qSlicerExternalBeamPlanningModuleWidgetPrivate> d_ptr;

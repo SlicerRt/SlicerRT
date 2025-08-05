@@ -28,6 +28,16 @@
 // MRML includes
 #include <vtkMRMLModelNode.h>
 
+// Eigen includes
+#include <itkeigen/Eigen/SparseCore>
+
+// VTK includes
+#include <vtkObject.h>
+#include <vtkSmartPointer.h>
+#include <vtkDoubleArray.h>
+#include <vtkIntArray.h>
+#include <vtkFieldData.h>
+
 class vtkPolyData;
 class vtkMRMLScene;
 class vtkMRMLTableNode;
@@ -53,6 +63,12 @@ public:
     /// External Beam Planning logic processes the event if exists
     CloningRequested
   };
+
+  /// Value and index vector to create dose influence matrix
+  typedef std::vector<double> DoseInfluenceMatrixValueVector;
+  typedef std::vector<int> DoseInfluenceMatrixIndexVector;
+  typedef Eigen::SparseMatrix<double, Eigen::ColMajor, int> DoseInfluenceMatrixType;
+
 
 public:
   static vtkMRMLRTBeamNode *New();
@@ -203,6 +219,50 @@ public:
   /// Set source to multi-leaf collimator distance. Triggers \sa BeamTransformModified event and re-generation of beam model
   void SetSourceToMultiLeafCollimatorDistance(double distance);
 
+  /// Get dose influence matrix (sparse matrix)
+  vtkGetMacro(DoseInfluenceMatrix, DoseInfluenceMatrixType);
+
+  /// Get the number of rows in dose influence matrix
+  int GetDoseInfluenceMatrixRows();
+  /// Get the number of columns in dose influence matrix
+  int GetDoseInfluenceMatrixColumns();
+  /// Get the number of non-zero elements in dose influence matrix
+  int GetDoseInfluenceMatrixNumberOfNonZeroElements();
+  /// Get dose influence matrix sparsity (number of non-zero elements divided by total number of elements)
+  double GetDoseInfluenceMatrixSparsity();
+
+  /// Get dose grid dimensions (on which the dose influence matrix is defined)
+  vtkGetVector3Macro(DoseGridDim, double);
+  /// Set dose grid dimensions (on which the dose influence matrix is defined)
+  vtkSetVector3Macro(DoseGridDim, double);
+
+  /// Get dose grid spacing (on which the dose influence matrix is defined)
+  vtkGetVector3Macro(DoseGridSpacing, double);
+  /// Set dose grid spacing (on which the dose influence matrix is defined)
+  vtkSetVector3Macro(DoseGridSpacing, double);
+
+  /// Set dose influence matrix from triplets (optional setting of corresponding dose grid dimensions and spacing)
+  void SetDoseInfluenceMatrixFromTriplets(
+      int numRows, int numCols,
+      DoseInfluenceMatrixIndexVector& rows,
+      DoseInfluenceMatrixIndexVector& columns,
+      DoseInfluenceMatrixValueVector& values,
+      double* doseGridDim = nullptr,
+      double* doseGridSpacing = nullptr
+  );
+  /// Get dose influence matrix as triplets
+  vtkSmartPointer<vtkDoubleArray> GetDoseInfluenceMatrixTriplets();
+
+  /// Get dose influence matrix Data
+  vtkSmartPointer<vtkDoubleArray> GetDoseInfluenceMatrixData();
+  /// Get dose influence matrix Indices
+  vtkSmartPointer<vtkIntArray> GetDoseInfluenceMatrixIndices();
+  /// Get dose influence matrix Indptr
+  vtkSmartPointer<vtkIntArray> GetDoseInfluenceMatrixIndptr();
+
+  /// Get dose influence matrix field data (to call from Python)
+  vtkSmartPointer<vtkFieldData> GetDoseInfluenceMatrixFieldData();
+
 protected:
   /// Create beam model from beam parameters, supporting MLC leaves
   /// \param beamModelPolyData Output polydata. If none given then the beam node's own polydata is used
@@ -248,7 +308,16 @@ protected:
   /// Couch angle
   double CouchAngle;
 
+  /// Dose influence matrix
+  DoseInfluenceMatrixType DoseInfluenceMatrix;
+
+  /// Dose grid dimensions (on which the dose influence matrix is defined)
+  double DoseGridDim[3];
+  /// Dose grid spaciing (on which the dose influence matrix is defined)
+  double DoseGridSpacing[3];
+
 protected:
+
   /// Visible multi-leaf collimator points
   typedef std::vector< std::pair< double, double > > MLCVisiblePointVector;
   /// Multi-leaf collimator boundary position parameters 
