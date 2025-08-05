@@ -80,11 +80,15 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
            beamNames.push_back(beam->GetName());  
        }  
        tried_beam_index++;  
-   }  
+   }
 
    // Calculate dose for each beamNode and add to total dose
    for (int i = 0; i < planNode->GetNumberOfBeams(); i++)  
    {  
+       // Update progress
+       QString info = "Beam " + QString::number(i+1) + "/" + QString::number(planNode->GetNumberOfBeams());
+       this->progressInfoUpdated(info);
+
        vtkMRMLRTBeamNode* beamNode = planNode->GetBeamByName(beamNames[i]);  
        if (!beamNode)  
        {  
