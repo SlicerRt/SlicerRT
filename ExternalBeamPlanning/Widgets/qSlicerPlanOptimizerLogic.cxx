@@ -112,10 +112,14 @@ QString qSlicerPlanOptimizerLogic::optimizePlan(vtkMRMLRTPlanNode* planNode)
         qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
     if (!selectedEngine)
     {
-        QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
+        QString errorString = QString("Unable to access optimizer with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
         qCritical() << Q_FUNC_INFO << ": " << errorString;
         return errorMessage;
     }
+
+    connect(selectedEngine, SIGNAL(progressInfoUpdated(QString)), this, SIGNAL(progressInfoUpdated(QString)));
+
+    emit progressInfoUpdated("starting");
 
     errorMessage = selectedEngine->optimizePlan(planNode);
     if (!errorMessage.isEmpty())
@@ -123,6 +127,8 @@ QString qSlicerPlanOptimizerLogic::optimizePlan(vtkMRMLRTPlanNode* planNode)
         qCritical() << Q_FUNC_INFO << ": " << errorMessage;
         return errorMessage;
     }
+
+    disconnect(selectedEngine, SIGNAL(progressInfoUpdated(QString)), this, SIGNAL(progressInfoUpdated(QString)));
 
   return QString();
 }

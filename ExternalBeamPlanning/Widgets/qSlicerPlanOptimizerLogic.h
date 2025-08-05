@@ -61,12 +61,9 @@ public:
 
 
 signals:
-  /// Signals for dose calculation progress update
+  /// Signals for optimization progress update
   /// \param progress Value between 0 and 1
-  void progressUpdated(double progress);
-
-public slots:
-  
+  void progressInfoUpdated(QString info);
 
 protected slots:
   /// Called when a node is added to the scene

@@ -115,6 +115,7 @@ protected slots:
   // Update functions
   void onLogicModified();
   void onProgressUpdated(double progress);
+  void onOptimizerProgressInfoUpdated(QString info);
 
 protected:
   void setup() override;
