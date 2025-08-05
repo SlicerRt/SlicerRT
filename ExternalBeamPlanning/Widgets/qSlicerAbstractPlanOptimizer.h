@@ -74,6 +74,9 @@ public:
         std::map<std::string, std::string> parameters;
     };
 
+signals:
+    void progressInfoUpdated(QString info);
+
 // Optimization calculation related functions
 public:
   /// Perform Optimization calculation for a single beam

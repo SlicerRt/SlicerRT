@@ -73,6 +73,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     
 
         ############################ Get dose influence matrices from beam nodes #############################
+        self.scriptedPlanOptimizer.progressInfoUpdated("get dijs")
         referenceVolumeNode = planNode.GetReferenceVolumeNode()
         
         # Get beams in plan
@@ -89,7 +90,11 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             
         # Get dij of each beam
         dij_list = []
+        beam_index = 0
         for beam_name in beam_names:
+
+            beam_index += 1
+            self.scriptedPlanOptimizer.progressInfoUpdated("get dijs ("+ str(beam_index) + "/" + str(numberOfBeams) + ")")
             
             beamNode = planNode.GetBeamByName(beam_name)
             print('current beam: ', beam_name)
@@ -168,6 +173,8 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     
 
         ########################################## Optimize dose #############################################
+        self.scriptedPlanOptimizer.progressInfoUpdated("optimize fluence")
+
         fluence = fluence_optimization(ct, cst, stf, dij, pln)
 
         # Result
@@ -175,6 +182,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
         
 
         ##################################### Visualize dose in Slicer #######################################
+        self.scriptedPlanOptimizer.progressInfoUpdated("visualize dose")
         
         total_dose = result["physical_dose"]
 

@@ -307,6 +307,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
 
   // Connect to progress event
   connect( d->DoseEngineLogic, SIGNAL(progressUpdated(double)), this, SLOT(onProgressUpdated(double)) );
+  connect( d->PlanOptimizerLogic, SIGNAL(progressInfoUpdated(QString)), this, SLOT(onOptimizerProgressInfoUpdated(QString)) );
 
   // Hide non-functional items //TODO:
   d->label_DoseROI->setVisible(false);
@@ -1530,6 +1531,17 @@ void qSlicerExternalBeamPlanningModuleWidget::clearDoseClicked()
 
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   d->DoseEngineLogic->removeIntermediateResults(planNode);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::onOptimizerProgressInfoUpdated(QString info)
+{
+    Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+    QString progressMessage;
+    progressMessage = QString("Optimization in progress: ") + info;
+    d->label_OptimizationStatus->setText(progressMessage);
+    QApplication::processEvents();
 }
 
 //-----------------------------------------------------------------------------
