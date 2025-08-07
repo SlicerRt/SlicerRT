@@ -258,7 +258,7 @@
       <item row="2" column="0" colspan="3">
        <widget class="QLabel" name="CollisionDetectionStatusLabel">
         <property name="text">
-         <string>Collision computation disabled</string>
+         <string>Collision computation enabled</string>
         </property>
        </widget>
       </item>
@@ -282,6 +282,9 @@
        <widget class="QCheckBox" name="ActivateCollisionComputationCheckBox">
         <property name="text">
          <string>Enable computation</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
