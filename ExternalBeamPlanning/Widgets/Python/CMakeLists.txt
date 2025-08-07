@@ -8,9 +8,9 @@ configure_file(
 set(DoseEngines_PYTHON_SCRIPTS
   AbstractScriptedDoseEngine
   # MockPythonDoseEngine
-  EGSnrcUtil
-  OrthovoltageDoseEngineUtil
-  OrthovoltageDoseEngine
+  # EGSnrcUtil
+  # OrthovoltageDoseEngineUtil
+  # OrthovoltageDoseEngine
   )
 
 set(DoseEngines_PYTHON_RESOURCES
