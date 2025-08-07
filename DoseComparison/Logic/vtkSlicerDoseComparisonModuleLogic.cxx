@@ -195,7 +195,7 @@ void vtkSlicerDoseComparisonModuleLogic::GammaProgressUpdated(float progress)
 //---------------------------------------------------------------------------
 std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMRMLDoseComparisonNode* parameterNode)
 {
-  vtkSmartPointer<vtkTimerLog> timer = vtkSmartPointer<vtkTimerLog>::New();
+  vtkNew<vtkTimerLog> timer;
   double checkpointStart = timer->GetUniversalTime();
 
   parameterNode->ResultsValidOff();
@@ -220,7 +220,8 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
       return errorMessage;
     }
     // Temporarily duplicate selected segments to contain binary labelmap of a different geometry (tied to dose volume)
-    vtkSmartPointer<vtkSegmentation> segmentationCopy = vtkSmartPointer<vtkSegmentation>::New();
+    vtkNew<vtkMRMLSegmentationNode> segmentationNodeCopy;
+    vtkSegmentation* segmentationCopy = segmentationNodeCopy->GetSegmentation();
 #if Slicer_VERSION_MAJOR >= 5 && Slicer_VERSION_MINOR >= 3
     segmentationCopy->SetSourceRepresentationName(maskSegmentation->GetSourceRepresentationName());
 #else
@@ -238,7 +239,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
     // Get segment binary labelmap
 #if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
     vtkNew<vtkOrientedImageData>  maskSegmentLabelmap;
-    maskSegmentationNode->GetBinaryLabelmapRepresentation(maskSegmentID, maskSegmentLabelmap);
+    segmentationNodeCopy->GetBinaryLabelmapRepresentation(maskSegmentID, maskSegmentLabelmap);
 #else
     vtkOrientedImageData* maskSegmentLabelmap = vtkOrientedImageData::SafeDownCast( segmentationCopy->GetSegment(maskSegmentID)->GetRepresentation(
       vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) );
