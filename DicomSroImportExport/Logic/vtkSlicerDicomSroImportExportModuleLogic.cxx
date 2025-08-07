@@ -193,7 +193,7 @@ bool vtkSlicerDicomSroImportExportModuleLogic::LoadDicomSro(vtkSlicerDICOMLoadab
     return false;
   }
 
-  const char* firstFileName = loadable->GetFiles()->GetValue(0);
+  const char* firstFileName = loadable->GetFiles()->GetValue(0).c_str();
 
   vtkDebugMacro("Loading series '" << loadable->GetName() << "' from file '" << firstFileName << "'");
 

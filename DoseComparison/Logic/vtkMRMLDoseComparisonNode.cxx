@@ -105,7 +105,7 @@ void vtkMRMLDoseComparisonNode::ReadXMLAttributes(const char** atts)
 
     if (!strcmp(attName, "MaskSegmentID"))
       {
-      this->SetMaskSegmentID(vtkVariant(attValue).ToString());
+      this->SetMaskSegmentID(vtkVariant(attValue).ToString().c_str());
       }
     else if (!strcmp(attName, "DtaDistanceToleranceMm"))
       {

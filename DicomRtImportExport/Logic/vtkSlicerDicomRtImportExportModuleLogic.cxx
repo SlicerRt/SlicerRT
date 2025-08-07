@@ -493,7 +493,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtDose(vtkSlicerD
     return false;
   }
 
-  const char* fileName = loadable->GetFiles()->GetValue(0);
+  const char* fileName = loadable->GetFiles()->GetValue(0).c_str();
   const char* seriesName = loadable->GetName();
 
   // Load Volume
@@ -1445,7 +1445,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
   vtkSmartPointer<vtkMRMLSegmentationNode> segmentationNode;
   vtkSmartPointer<vtkMRMLSegmentationDisplayNode> segmentationDisplayNode;
 
-  const char* fileName = loadable->GetFiles()->GetValue(0);
+  const char* fileName = loadable->GetFiles()->GetValue(0).c_str();
   const char* seriesName = loadable->GetName();
   std::string structureSetReferencedSeriesUid("");
 
@@ -1534,7 +1534,11 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtStructureSet(vt
         scene->AddNode(segmentationNode);
 
         // Set master representation to planar contour
+#if Slicer_VERSION_MAJOR >= 5 && Slicer_VERSION_MINOR >= 3
+        segmentationNode->GetSegmentation()->SetSourceRepresentationName(vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName());
+#else
         segmentationNode->GetSegmentation()->SetMasterRepresentationName(vtkSegmentationConverter::GetSegmentationPlanarContourRepresentationName());
+#endif
 
         double referencedVolumeSpacing[3] = { 0.0, 0.0, 0.0 };
 
@@ -1643,7 +1647,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtImage(vtkSlicer
     return false;
   }
 
-  const char* fileName = loadable->GetFiles()->GetValue(0);
+  const char* fileName = loadable->GetFiles()->GetValue(0).c_str();
   const char* seriesName = loadable->GetName();
 
   // Load Volume
@@ -2342,7 +2346,7 @@ bool vtkSlicerDicomRtImportExportModuleLogic::LoadDicomRT(vtkSlicerDICOMLoadable
     return loadSuccessful;
   }
 
-  const char* firstFileName = loadable->GetFiles()->GetValue(0);
+  const char* firstFileName = loadable->GetFiles()->GetValue(0).c_str();
 
   vtkDebugMacro("Loading series '" << loadable->GetName() << "' from file '" << firstFileName << "'");
 

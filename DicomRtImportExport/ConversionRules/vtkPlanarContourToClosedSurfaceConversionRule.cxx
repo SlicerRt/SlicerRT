@@ -38,6 +38,7 @@
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkUnstructuredGrid.h>
+#include <vtkVersion.h> // For VTK_VERSION_*
 
 // vtkAddon includes
 #include <vtkAddonMathUtilities.h>
@@ -147,7 +148,7 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
 #endif
   if (!planarContoursPolyData)
   {
-    vtkErrorMacro("Convert: Source representation is not a poly data!");
+    vtkErrorMacro("Convert: Source representation is not a poly data");
     return false;
   }
 #if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
@@ -157,7 +158,7 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
 #endif
   if (!closedSurfacePolyData)
   {
-    vtkErrorMacro("Convert: Target representation is not a poly data!");
+    vtkErrorMacro("Convert: Target representation is not a poly data");
     return false;
   }
 
@@ -346,19 +347,19 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateBetweenContours(v
 {
   if (!inputROIPoints)
   {
-    vtkErrorMacro("TriangulateBetweenContours: Invalid vtkPolyData!");
+    vtkErrorMacro("TriangulateBetweenContours: Invalid vtkPolyData");
     return;
   }
 
   if (!pointsInLine1)
   {
-    vtkErrorMacro("TriangulateBetweenContours: Invalid vtkIdList!");
+    vtkErrorMacro("TriangulateBetweenContours: Invalid vtkIdList");
     return;
   }
 
   if (!pointsInLine2)
   {
-    vtkErrorMacro("TriangulateBetweenContours: Invalid vtkIdList!");
+    vtkErrorMacro("TriangulateBetweenContours: Invalid vtkIdList");
     return;
   }
 
@@ -568,13 +569,13 @@ vtkIdType vtkPlanarContourToClosedSurfaceConversionRule::GetClosestPoint(vtkPoly
 {
   if (!inputROIPoints)
   {
-    vtkErrorMacro("inputROIPoints: Invalid vtkPolyData!");
+    vtkErrorMacro("inputROIPoints: Invalid vtkPolyData");
     return 0;
   }
 
   if (!linePointIds)
   {
-    vtkErrorMacro("GetClosestPoint: Invalid vtkIdList!");
+    vtkErrorMacro("GetClosestPoint: Invalid vtkIdList");
     return 0;
   }
 
@@ -607,7 +608,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SortContours(vtkPolyData* in
 {
   if (!inputROIPoints)
   {
-    vtkErrorMacro("inputROIPoints: Invalid vtkPolyData!");
+    vtkErrorMacro("inputROIPoints: Invalid vtkPolyData");
     return;
   }
   int numberOfLines = inputROIPoints->GetNumberOfLines();
@@ -646,7 +647,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixKeyholes(vtkPolyData* inp
 {
   if (!inputROIPoints)
   {
-    vtkErrorMacro("inputROIPoints: Invalid vtkPolyData!");
+    vtkErrorMacro("inputROIPoints: Invalid vtkPolyData");
     return;
   }
 
@@ -814,7 +815,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::SetLinesCounterClockwise(vtk
 {
   if (!inputROIPoints)
   {
-    vtkErrorMacro("inputROIPoints: Invalid vtkPolyData!");
+    vtkErrorMacro("inputROIPoints: Invalid vtkPolyData");
     return;
   }
 
@@ -863,13 +864,13 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::IsLineClockwise(vtkPolyData*
 {
   if (!inputROIPoints)
   {
-    vtkErrorMacro("IsLineClockwise: Invalid vtkPolyData!");
+    vtkErrorMacro("IsLineClockwise: Invalid vtkPolyData");
     return false;
   }
 
   if (!line)
   {
-    vtkErrorMacro("IsLineClockwise: Invalid vtkLine!");
+    vtkErrorMacro("IsLineClockwise: Invalid vtkLine");
     return false;
   }
 
@@ -899,13 +900,13 @@ void vtkPlanarContourToClosedSurfaceConversionRule::ReverseLine(vtkLine* origina
 {
   if (!originalLine)
   {
-    vtkErrorMacro("ReverseLine: Invalid vtkLine!");
+    vtkErrorMacro("ReverseLine: Invalid vtkLine");
     return;
   }
 
   if (!newLine)
   {
-    vtkErrorMacro("ReverseLine: Invalid vtkLine!");
+    vtkErrorMacro("ReverseLine: Invalid vtkLine");
     return;
   }
 
@@ -926,7 +927,7 @@ int vtkPlanarContourToClosedSurfaceConversionRule::GetNumberOfLinesOnPlane(vtkPo
 {
   if (!inputROIPoints)
   {
-    vtkErrorMacro("GetNumberOfLinesOnPlane: Invalid vtkPolyData!");
+    vtkErrorMacro("GetNumberOfLinesOnPlane: Invalid vtkPolyData");
     return 0;
   }
 
@@ -956,13 +957,13 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::DoLinesOverlap(vtkLine* line
 {
   if (!line1)
   {
-    vtkErrorMacro("DoLinesOverlap: Invalid vtkLine!");
+    vtkErrorMacro("DoLinesOverlap: Invalid vtkLine");
     return false;
   }
 
   if (!line2)
   {
-    vtkErrorMacro("DoLinesOverlap: Invalid vtkLine!");
+    vtkErrorMacro("DoLinesOverlap: Invalid vtkLine");
     return false;
   }
 
@@ -984,13 +985,13 @@ void vtkPlanarContourToClosedSurfaceConversionRule::Branch(vtkPolyData* inputROI
 {
   if (!inputROIPoints)
   {
-    vtkErrorMacro("Branch: Invalid vtkPolyData!");
+    vtkErrorMacro("Branch: Invalid vtkPolyData");
     return;
   }
 
   if (!branchingLine)
   {
-    vtkErrorMacro("Branch: Invalid vtkLine!");
+    vtkErrorMacro("Branch: Invalid vtkLine");
     return;
   }
 
@@ -1049,7 +1050,7 @@ int vtkPlanarContourToClosedSurfaceConversionRule::GetClosestBranch(vtkPolyData*
 {
   if (!inputROIPoints)
   {
-    vtkErrorMacro("GetClosestBranch: Invalid vtkPolyData!");
+    vtkErrorMacro("GetClosestBranch: Invalid vtkPolyData");
   }
 
   // No need to check if there is only one overlapping line.
@@ -1084,13 +1085,13 @@ void vtkPlanarContourToClosedSurfaceConversionRule::EndCapping(vtkPolyData* inpu
 {
   if (!inputROIPoints)
   {
-    vtkErrorMacro("EndCapping: Invalid input ROI points!");
+    vtkErrorMacro("EndCapping: Invalid input ROI points");
     return;
   }
 
   if (!outputPolygons)
   {
-    vtkErrorMacro("EndCapping: Invalid output poly data!");
+    vtkErrorMacro("EndCapping: Invalid output poly data");
     return;
   }
 
@@ -1185,7 +1186,7 @@ double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtk
 
   if (!inputROIPoints)
   {
-    vtkErrorMacro("GetSpacingBetweenLines: Invalid vtkPolyData!");
+    vtkErrorMacro("GetSpacingBetweenLines: Invalid vtkPolyData");
     return defaultSliceThickness;
   }
   if (inputROIPoints->GetNumberOfCells() < 2)
@@ -1401,7 +1402,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::CreateSmoothEndCapContour(vt
   void* blankImagePtr = blankImage->GetScalarPointerForExtent(blankImage->GetExtent());
   if (!blankImagePtr)
   {
-    vtkErrorMacro("CreateExternalLine: Failed to allocate memory for output labelmap image!");
+    vtkErrorMacro("CreateExternalLine: Failed to allocate memory for output labelmap image");
     return;
   }
   else
@@ -1565,13 +1566,13 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContourInterior(v
 {
   if (!inputLine)
   {
-    vtkErrorMacro("TriangulateContourInterior: Invalid vtkLine!");
+    vtkErrorMacro("TriangulateContourInterior: Invalid vtkLine");
     return;
   }
 
   if (!outputPolys)
   {
-    vtkErrorMacro("TriangulateContourInterior: Invalid vtkCellArray!");
+    vtkErrorMacro("TriangulateContourInterior: Invalid vtkCellArray");
     return;
   }
 
@@ -1591,7 +1592,11 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateContourInterior(v
 
   // Triangulate the inside of the line
   vtkSmartPointer<vtkIdList> polygonIds = vtkSmartPointer<vtkIdList>::New();
+#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 3, 0))
+  polygon->EarCutTriangulation(polygonIds);
+#else
   polygon->Triangulate(polygonIds);
+#endif
 
   // Loop through the polygons created by the polygon triangulation
   for (int currentPolygonIndex = 0; currentPolygonIndex < polygonIds->GetNumberOfIds(); currentPolygonIndex += 3)
@@ -1651,13 +1656,13 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixLines(vtkPolyData* oldLin
 {
   if (!oldLines)
   {
-    vtkErrorMacro("FixLines: Invalid vtkPolyData!");
+    vtkErrorMacro("FixLines: Invalid vtkPolyData");
     return;
   }
 
   if (!newLines)
   {
-    vtkErrorMacro("FixLines: Invalid vtkPolyData!");
+    vtkErrorMacro("FixLines: Invalid vtkPolyData");
     return;
   }
 
@@ -1713,13 +1718,13 @@ void vtkPlanarContourToClosedSurfaceConversionRule::FixLine(vtkLine* oldLine, vt
 
   if (!oldLine)
   {
-    vtkErrorMacro("FixLine: Invalid vtkLine!");
+    vtkErrorMacro("FixLine: Invalid vtkLine");
     return;
   }
 
   if (!newLine)
   {
-    vtkErrorMacro("FixLine: Invalid vtkLine!");
+    vtkErrorMacro("FixLine: Invalid vtkLine");
     return;
   }
 
@@ -1752,7 +1757,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::DecimateLines(vtkPolyData* i
 
   if (!inputPolyData)
   {
-    vtkErrorMacro("DecimateLines: Invalid vtkPolyData!");
+    vtkErrorMacro("DecimateLines: Invalid vtkPolyData");
     return;
   }
 
@@ -1831,7 +1836,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::RemovePointDecimation(vtkIdL
 
   if (!originalIdList)
   {
-    vtkErrorMacro("RemovePointDecimation: Invalid vtkIdList!");
+    vtkErrorMacro("RemovePointDecimation: Invalid vtkIdList");
     return;
   }
 
@@ -1855,13 +1860,13 @@ double vtkPlanarContourToClosedSurfaceConversionRule::ComputeError(vtkPoints* po
 {
   if (!points)
   {
-    vtkErrorMacro("ComputeError: Invalid vtkPoints!");
+    vtkErrorMacro("ComputeError: Invalid vtkPoints");
     return 0.0;
   }
 
   if (!lineIds)
   {
-    vtkErrorMacro("ComputeError: Invalid vtkIdList!");
+    vtkErrorMacro("ComputeError: Invalid vtkIdList");
     return 0.0;
   }
 
