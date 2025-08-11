@@ -264,12 +264,6 @@ void qSlicerAbstractPlanOptimizer::addResultOptimizedDose(vtkMRMLScalarVolumeNod
       shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, "Gy");
     }
   }
-
-  // Set up display for dose volume
-  //if (!resultOptimizedDose->GetDisplayNode())
-  //{
-  //    resultOptimizedDose->CreateDefaultDisplayNodes(); // Make sure display node is present
-  //}
     
   resultOptimizedDose->CreateDefaultDisplayNodes(); // Make sure display node is present
   if (resultOptimizedDose->GetDisplayNode())

@@ -41,7 +41,7 @@ class qSlicerScriptedDoseEnginePrivate;
 /// This class provides an interface to engines implemented in python.
 /// USAGE: Subclass AbstractScriptedDoseEngine in Python subfolder,
 ///   and register engine by creating this class and setting python source to implemented
-///   engine subclass. One example is the MockScriptedDoseEngine.
+///   engine subclass.
 ///
 class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerScriptedDoseEngine
   : public qSlicerAbstractDoseEngine

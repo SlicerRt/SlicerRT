@@ -133,11 +133,6 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     else:
       dij = dij_list[0]
 
-    def optimizePlanUsingEngine(self, beamNode, resultDoseVolumeNode):
-        print('pyRadPlan Optimizer is called')
-        return "Not implemented yet!"
-
-
     
     ########################### Update overlap priorities & objectives in cst ############################
     for voi in cst.vois:
