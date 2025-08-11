@@ -57,7 +57,7 @@ namespace
 
 const char* const SCANSPOT_REFERENCE_ROLE = "ScanSpotRef";
 static const char* RANGE_SHIFTER_REFERENCE_ROLE = "RangeShifterRef";
-constexpr double FWHM_TO_SIGMA = 1. / (2. * sqrt(2. * log(2.)));
+constexpr double FWHM_TO_SIGMA = 0.42466090014400953; // 1 / (2 * sqrt(2 * log(2)))
 constexpr int POINTS_PER_SCANSPOT = 60;
 
 } // namespace
@@ -123,7 +123,7 @@ void vtkMRMLRTIonBeamNode::WriteXML(ostream& of, int nIndent)
 void vtkMRMLRTIonBeamNode::ReadXMLAttributes(const char** atts)
 {
   Superclass::ReadXMLAttributes(atts);
-  
+
   vtkMRMLReadXMLBeginMacro(atts);
   vtkMRMLReadXMLFloatMacro(VSADx, VSADx);
   vtkMRMLReadXMLFloatMacro(VSADy, VSADy);
@@ -198,7 +198,7 @@ void vtkMRMLRTIonBeamNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyEndMacro();
 
   this->EndModify(disabledModify);
-  
+
   this->InvokePendingModifiedEvent();
 }
 
@@ -419,7 +419,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
   else
   {
     vtkDebugMacro("CreateBeamPolyData: Invalid or absent table node with " \
-      "scan spot parameters for a node " 
+      "scan spot parameters for a node "
       << "\"" << this->GetName() << "\"");
   }
 
@@ -499,7 +499,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
       vtkNew<vtkUnsignedCharArray> selection;
       selection->SetNumberOfComponents(1);
       selection->SetName("selected");
-      
+
       bool highlighCell = false;
       if (std::find(highlightedRows.begin(), highlightedRows.end(), row) != highlightedRows.end())
       {
@@ -530,13 +530,13 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
       for (int i = 0; i < POINTS_PER_SCANSPOT; ++i)
       {
         // beam begin cap points
-        points->InsertPoint( i, positionX - x1[i], positionY - y1[i], 
+        points->InsertPoint( i, positionX - x1[i], positionY - y1[i],
           beamTopCap);
       }
       for (int i = 0; i < POINTS_PER_SCANSPOT; ++i)
       {
         // beam end cap points
-        points->InsertPoint( POINTS_PER_SCANSPOT + i, positionX - x2[i], 
+        points->InsertPoint( POINTS_PER_SCANSPOT + i, positionX - x2[i],
           positionY - y2[i], beamBottomCap);
       }
       // side cells
@@ -554,7 +554,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
       cellArray->InsertCellPoint(0);
       cellArray->InsertCellPoint(POINTS_PER_SCANSPOT);
       cellArray->InsertCellPoint(2 * POINTS_PER_SCANSPOT - 1);
-      
+
       // beam begin cap
       cellArray->InsertNextCell(POINTS_PER_SCANSPOT + 1);
       for (int i = 0; i < POINTS_PER_SCANSPOT; ++i)
@@ -576,7 +576,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
 
       // fill selection scalars: green for original, red for highlighted
       for(int i = 0; i < cellArray->GetNumberOfCells(); ++i)
-      {        
+      {
         selection->InsertNextTuple1(colorData);
       }
       // Add scalars to show highlighted scan spot
@@ -649,7 +649,7 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
       double boundEnd = table->GetValue( leafPair + 1, 0).ToDouble();
       double pos1 = table->GetValue( leafPair, 1).ToDouble();
       double pos2 = table->GetValue( leafPair, 2).ToDouble();
-      
+
       mlc.push_back({ boundBegin, boundEnd, pos1, pos2 });
     }
 
@@ -682,18 +682,18 @@ void vtkMRMLRTIonBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=n
       bool withinJaw = false;
       if (typeMLCX) // MLCX
       {
-        withinJaw = ((pos1 < this->X1Jaw && pos2 >= this->X1Jaw && pos2 <= this->X2Jaw) || 
-          (pos1 >= this->X1Jaw && pos1 <= this->X2Jaw && pos2 > this->X2Jaw) || 
-          (pos1 <= this->X1Jaw && pos2 >= this->X2Jaw) || 
-          (pos1 >= this->X1Jaw && pos1 <= this->X2Jaw && 
+        withinJaw = ((pos1 < this->X1Jaw && pos2 >= this->X1Jaw && pos2 <= this->X2Jaw) ||
+          (pos1 >= this->X1Jaw && pos1 <= this->X2Jaw && pos2 > this->X2Jaw) ||
+          (pos1 <= this->X1Jaw && pos2 >= this->X2Jaw) ||
+          (pos1 >= this->X1Jaw && pos1 <= this->X2Jaw &&
             pos2 >= this->X1Jaw && pos2 <= this->X2Jaw));
       }
       else // MLCY
       {
-        withinJaw = ((pos1 < this->Y1Jaw && pos2 >= this->Y1Jaw && pos2 <= this->Y2Jaw) || 
-          (pos1 >= this->Y1Jaw && pos1 <= this->Y2Jaw && pos2 > this->Y2Jaw) || 
-          (pos1 <= this->Y1Jaw && pos2 >= this->Y2Jaw) || 
-          (pos1 >= this->Y1Jaw && pos1 <= this->Y2Jaw && 
+        withinJaw = ((pos1 < this->Y1Jaw && pos2 >= this->Y1Jaw && pos2 <= this->Y2Jaw) ||
+          (pos1 >= this->Y1Jaw && pos1 <= this->Y2Jaw && pos2 > this->Y2Jaw) ||
+          (pos1 <= this->Y1Jaw && pos2 >= this->Y2Jaw) ||
+          (pos1 >= this->Y1Jaw && pos1 <= this->Y2Jaw &&
             pos2 >= this->Y1Jaw && pos2 <= this->Y2Jaw));
       }
 
