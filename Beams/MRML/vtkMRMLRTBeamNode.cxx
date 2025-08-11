@@ -972,12 +972,12 @@ void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder(double jawBegin,
 }
 
 void vtkMRMLRTBeamNode::SetDoseInfluenceMatrixFromTriplets(
-    int numRows, int numCols,
-    DoseInfluenceMatrixIndexVector& rows,
-    DoseInfluenceMatrixIndexVector& columns,
-    DoseInfluenceMatrixValueVector& values,
-    double* doseGridDim,
-    double* doseGridSpacing
+  int numRows, int numCols,
+  DoseInfluenceMatrixIndexVector& rows,
+  DoseInfluenceMatrixIndexVector& columns,
+  DoseInfluenceMatrixValueVector& values,
+  double* doseGridDim,
+  double* doseGridSpacing
 )
 {
   typedef Eigen::Triplet<double> T;
@@ -995,25 +995,24 @@ void vtkMRMLRTBeamNode::SetDoseInfluenceMatrixFromTriplets(
   // Store dose grid dimensions and spacing on which the dose influence matrix is defined
   for (int i = 0; i < 3; ++i)
   {
-	  if (doseGridDim == nullptr)
-	  {
-		  this->DoseGridDim[i] = -1;
-	  }
-      else
-	  {
-		  this->DoseGridDim[i] = doseGridDim[i];
-	  }
+    if (doseGridDim == nullptr)
+	   {
+		    this->DoseGridDim[i] = -1;
+	   }
+    else
+	   {
+		    this->DoseGridDim[i] = doseGridDim[i];
+	   }
 
-	  if (doseGridSpacing == nullptr)
-	  {
-		  this->DoseGridSpacing[i] = -1;
-	  }
-      else
-      {
-          this->DoseGridSpacing[i] = doseGridSpacing[i];
-      }
+	   if (doseGridSpacing == nullptr)
+	   {
+		    this->DoseGridSpacing[i] = -1;
+	   }
+    else
+    {
+      this->DoseGridSpacing[i] = doseGridSpacing[i];
+    }
   }
-
 }
 
 //---------------------------------------------------------------------------
@@ -1048,11 +1047,11 @@ vtkSmartPointer<vtkDoubleArray> vtkMRMLRTBeamNode::GetDoseInfluenceMatrixTriplet
 
   for (int k = 0; k < this->DoseInfluenceMatrix.outerSize(); ++k)
   {
-      for (Eigen::SparseMatrix<double, Eigen::ColMajor, int>::InnerIterator it(this->DoseInfluenceMatrix, k); it; ++it)
-      {
-          double triplet[3] = { static_cast<double>(it.row()), static_cast<double>(it.col()), it.value() };
-          triplets->InsertNextTuple(triplet);
-      }
+    for (Eigen::SparseMatrix<double, Eigen::ColMajor, int>::InnerIterator it(this->DoseInfluenceMatrix, k); it; ++it)
+    {
+      double triplet[3] = { static_cast<double>(it.row()), static_cast<double>(it.col()), it.value() };
+      triplets->InsertNextTuple(triplet);
+    }
   }
 
   return triplets;

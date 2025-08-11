@@ -283,26 +283,26 @@ QString qSlicerDoseEngineLogic::calculateDoseInfluenceMatrix(vtkMRMLRTPlanNode* 
 
   for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt, ++currentBeamIndex)
   {
-      vtkMRMLRTBeamNode* beamNode = (*beamIt);
-      if (beamNode)
-      {
-          progress = (double)currentBeamIndex / (numberOfBeams + 1);
-          emit progressUpdated(progress);
+    vtkMRMLRTBeamNode* beamNode = (*beamIt);
+    if (beamNode)
+    {
+      progress = (double)currentBeamIndex / (numberOfBeams + 1);
+      emit progressUpdated(progress);
 
-          // Calculate dose for current beam
-          errorMessage = selectedEngine->calculateDoseInfluenceMatrix(beamNode);
-          if (!errorMessage.isEmpty())
-          {
-              qCritical() << Q_FUNC_INFO << ": " << errorMessage;
-              return errorMessage;
-          }
-      }
-      else
+      // Calculate dose for current beam
+      errorMessage = selectedEngine->calculateDoseInfluenceMatrix(beamNode);
+      if (!errorMessage.isEmpty())
       {
-          errorMessage = QString("Invalid beam!");
-          qCritical() << Q_FUNC_INFO << ": " << errorMessage;
-          return errorMessage;
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
       }
+    }
+    else
+    {
+      errorMessage = QString("Invalid beam!");
+      qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+      return errorMessage;
+    }
   }
 
   progress = (double)numberOfBeams / (numberOfBeams + 1);
