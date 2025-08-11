@@ -128,5 +128,4 @@ SlicerMacroBuildModuleWidgets(
 #-----------------------------------------------------------------------------
 if(Slicer_USE_PYTHONQT)
   add_subdirectory(Python)
-  #add_subdirectory(Plugins)
 endif()
