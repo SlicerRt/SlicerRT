@@ -78,11 +78,11 @@ void qSlicerAbstractObjective::setName(QString name)
 //-----------------------------------------------------------------------------
 QMap<QString, QVariant> qSlicerAbstractObjective::getObjectiveParameters() const
 {
-	return this->objectivesParameters;
+  return this->objectivesParameters;
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerAbstractObjective::setObjectiveParameters(QMap<QString, QVariant> parameters)
 {
-	this->objectivesParameters = parameters;
+  this->objectivesParameters = parameters;
 }

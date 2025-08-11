@@ -224,15 +224,15 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
   PythonQt::init();
   PythonQtObjectPtr context = PythonQt::self()->getMainModule();
   context.evalScript(QString(
-      "try:\n"
-      "    import pyRadPlan\n"
-      "    assert pyRadPlan.__version__ == '0.2.4'\n"
-      "except (ImportError, AttributeError, AssertionError):\n"
-      "    if slicer.util.confirmOkCancelDisplay("
-      "        'This module requires pyRadPlan. Click OK to install it now.'"
-      "    ):\n"
-      "        slicer.util.pip_install('pyRadPlan==0.2.4')\n"
-      "        import pyRadPlan\n"));
+    "try:\n"
+    " import pyRadPlan\n"
+    " assert pyRadPlan.__version__ == '0.2.4'\n"
+    "except (ImportError, AttributeError, AssertionError):\n"
+    " if slicer.util.confirmOkCancelDisplay("
+    "   'This module requires pyRadPlan. Click OK to install it now.'"
+    " ):\n"
+    "   slicer.util.pip_install('pyRadPlan==0.2.4')\n"
+    "   import pyRadPlan\n"));
 }
 
 //-----------------------------------------------------------------------------
@@ -707,69 +707,69 @@ void qSlicerExternalBeamPlanningModuleWidget::doseROINodeChanged(vtkMRMLNode* no
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::doseGridChangedInCoordinate(int index, double value)
 {
-    Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-    if (!this->mrmlScene())
-    {
-        qCritical() << Q_FUNC_INFO << ": Invalid scene";
-        return;
-    }
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
+    return;
+  }
 
-    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
-    if (!planNode)
-    {
-        qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
-        return;
-    }
+  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!planNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
+    return;
+  }
 
-    planNode->DisableModifiedEventOn();
-    planNode->setDoseGridInCoordinate(index, value);
-    planNode->DisableModifiedEventOff();
+  planNode->DisableModifiedEventOn();
+  planNode->setDoseGridInCoordinate(index, value);
+  planNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::doseGridXChanged(double value)
 {
-	this->doseGridChangedInCoordinate(0, value);
+	 this->doseGridChangedInCoordinate(0, value);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::doseGridYChanged(double value)
 {
-    this->doseGridChangedInCoordinate(1, value);
+  this->doseGridChangedInCoordinate(1, value);
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::doseGridZChanged(double value)
 {
-    this->doseGridChangedInCoordinate(2, value);
+  this->doseGridChangedInCoordinate(2, value);
 }
 
 //----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::useCTGridForDoseGridClicked()
 {
-	Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-	if (!this->mrmlScene())
-	{
-		qCritical() << Q_FUNC_INFO << ": Invalid scene";
-		return;
-	}
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
+    return;
+  }
 
-	vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
-	if (!planNode)
-	{
-		qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
-		return;
-	}
+	 vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+	 if (!planNode)
+	 {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
+    return;
+	 }
 
 
-	planNode->DisableModifiedEventOn();
-	planNode->setDoseGridToCTGrid();
-	planNode->DisableModifiedEventOff();
+	 planNode->DisableModifiedEventOn();
+	 planNode->setDoseGridToCTGrid();
+	 planNode->DisableModifiedEventOff();
 
-	// Update GUI
-	this->updateWidgetFromMRML();
+	 // Update GUI
+	 this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -920,38 +920,38 @@ void qSlicerExternalBeamPlanningModuleWidget::updateIsocenterPosition()
 //------------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::ionPlanFlagCheckboxStateChanged(int state)
 {
-    Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
-    if (!planNode)
-    {
-        qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
-        return;
-    }
+  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!planNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
+    return;
+  }
     
-	// delete all beams
-    planNode->RemoveAllBeams();
+	 // delete all beams
+  planNode->RemoveAllBeams();
 
-	// update beam parameters for ion plan
-    qSlicerDoseEnginePluginHandler::DoseEngineListType engines =
-        qSlicerDoseEnginePluginHandler::instance()->registeredDoseEngines();
+	 // update beam parameters for ion plan
+  qSlicerDoseEnginePluginHandler::DoseEngineListType engines =
+    qSlicerDoseEnginePluginHandler::instance()->registeredDoseEngines();
 
-    for (qSlicerDoseEnginePluginHandler::DoseEngineListType::iterator engineIt = engines.begin();
-        engineIt != engines.end(); ++engineIt)
+  for (qSlicerDoseEnginePluginHandler::DoseEngineListType::iterator engineIt = engines.begin();
+    engineIt != engines.end(); ++engineIt)
+  {
+    if ((*engineIt)->canDoIonPlan())
     {
-        if ((*engineIt)->canDoIonPlan())
-        {
-            (*engineIt)->updateBeamParametersForIonPlan(state);
-        }
+      (*engineIt)->updateBeamParametersForIonPlan(state);
     }
+  }
+  
+  this->updateDoseEngines();
 
-    this->updateDoseEngines();
-
-    // set ion plan flag in plan
-    //TODO: Throws error if any beam in the plan is not fully initialized (e.g., missing ScanSpotTableNode).
-    //      Calling SetIonPlanFlag(state) triggers beam visualization (CreateBeamPolyData), which fails if setup is incomplete.
-    //      Ensure all beams are fully configured before setting this flag to true.
-    planNode->SetIonPlanFlag(state);
+  // set ion plan flag in plan
+  //TODO: Throws error if any beam in the plan is not fully initialized (e.g., missing ScanSpotTableNode).
+  //      Calling SetIonPlanFlag(state) triggers beam visualization (CreateBeamPolyData), which fails if setup is incomplete.
+  //      Ensure all beams are fully configured before setting this flag to true.
+  planNode->SetIonPlanFlag(state);
 }
 
 //-----------------------------------------------------------------------------
@@ -1363,31 +1363,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::optimizePlanClicked()
 {
-    Q_D(qSlicerExternalBeamPlanningModuleWidget);
-
-    d->label_OptimizationStatus->setText("Starting optimization...");
-
-    if (!this->mrmlScene())
-    {
-        qCritical() << Q_FUNC_INFO << ": Invalid scene";
-        return;
-    }
-    vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->mrmlScene());
-    if (!shNode)
-    {
-        qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
-        return;
-    }
-
-    //??? needed? --> button only shows when inverse clicked in Plan
-    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
-    if (!planNode)
-    {
-        QString errorString("No RT plan node selected");
-        d->label_OptimizationStatus->setText(errorString);
-        qCritical() << Q_FUNC_INFO << ": " << errorString;
-        return;
-    }
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
     //// Create and select output dose volume if missing
     //if (!d->checkBox_InversePlanning->isChecked() && !planNode->GetOutputTotalDoseVolumeNode())
@@ -1414,26 +1390,36 @@ void qSlicerExternalBeamPlanningModuleWidget::optimizePlanClicked()
     //    d->MRMLNodeComboBox_DoseVolume->setCurrentNode(newDoseVolume);
     //    d->MRMLNodeComboBox_DoseVolume->blockSignals(wasBlocked);
     //}
+  d->label_OptimizationStatus->setText("Starting optimization...");
 
-    // Start timer
-    QTime time;
-    time.start();
-    // Set busy cursor
-    QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
+    return;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->mrmlScene());
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+  }
 
-    // Get selected optimizer engine
-    qSlicerAbstractPlanOptimizer* selectedEngine =
-        qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
-    if (!selectedEngine)
-    {
-        QString errorString = QString("Unable to access plan optimizer with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
-        d->label_OptimizationStatus->setText(errorString);
-        qCritical() << Q_FUNC_INFO << ": " << errorString;
-        return;
-    }
+  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!planNode)
+  {
+    QString errorString("No RT plan node selected");
+    d->label_OptimizationStatus->setText(errorString);
+    qCritical() << Q_FUNC_INFO << ": " << errorString;
+    return;
+  }
 
     // ???
     // not needed beacause only selectable when inverse?
+  // Start timer
+  QTime time;
+  time.start();
+  // Set busy cursor
+  QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
     //// If inverse planning is selected, we do a sanity check for the dose engine capabilities
     //if (d->checkBox_InversePlanning->isChecked() && !selectedEngine->isInverse())
@@ -1443,31 +1429,41 @@ void qSlicerExternalBeamPlanningModuleWidget::optimizePlanClicked()
     //    qCritical() << Q_FUNC_INFO << ": " << errorString;
     //    return;
     //}
+  // Get selected optimizer engine
+  qSlicerAbstractPlanOptimizer* selectedEngine =
+    qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
+  if (!selectedEngine)
+  {
+    QString errorString = QString("Unable to access plan optimizer with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
+    d->label_OptimizationStatus->setText(errorString);
+    qCritical() << Q_FUNC_INFO << ": " << errorString;
+    return;
+  }
 
-    // Optimize
-    QString errorMessage;
+  // Optimize
+  QString errorMessage;
 
-    if (d->checkBox_InversePlanning->isChecked())
-    {
-        QString message = QString("Starting optimization...");
-        qDebug() << Q_FUNC_INFO << ": " << message;
-        errorMessage = d->PlanOptimizerLogic->optimizePlan(planNode);
-    }
+  if (d->checkBox_InversePlanning->isChecked())
+  {
+    QString message = QString("Starting optimization...");
+    qDebug() << Q_FUNC_INFO << ": " << message;
+    errorMessage = d->PlanOptimizerLogic->optimizePlan(planNode);
+  }
 
-    if (errorMessage.isEmpty())
-    {
-        QString message = QString("Optimization calculated successfully in %1 s").arg(time.elapsed() / 1000.0);
-        qDebug() << Q_FUNC_INFO << ": " << message;
-        d->label_OptimizationStatus->setText(message);
-    }
-    else
-    {
-        QString message = QString("ERROR: %1").arg(errorMessage);
-        qCritical() << Q_FUNC_INFO << ": " << message;
-        d->label_OptimizationStatus->setText(message);
-    }
+  if (errorMessage.isEmpty())
+  {
+    QString message = QString("Optimization calculated successfully in %1 s").arg(time.elapsed() / 1000.0);
+    qDebug() << Q_FUNC_INFO << ": " << message;
+    d->label_OptimizationStatus->setText(message);
+  }
+  else
+  {
+    QString message = QString("ERROR: %1").arg(errorMessage);
+    qCritical() << Q_FUNC_INFO << ": " << message;
+    d->label_OptimizationStatus->setText(message);
+  }
 
-    QApplication::restoreOverrideCursor();
+  QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------
@@ -1503,9 +1499,6 @@ void qSlicerExternalBeamPlanningModuleWidget::PlanOptimizerChanged(const QString
   planNode->DisableModifiedEventOff();
   
   selectedEngine->setAvailableObjectives();
-
-  //d->ObjectivesTableWidget->setAvailableObjectives(selectedEngine->availableObjectives());
-  //objectivesTableWidget->updateObjectivesTable();
   d->ObjectivesTableWidget->deleteObjectivesTable();
 }
 
@@ -1536,12 +1529,12 @@ void qSlicerExternalBeamPlanningModuleWidget::clearDoseClicked()
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::onOptimizerProgressInfoUpdated(QString info)
 {
-    Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-    QString progressMessage;
-    progressMessage = QString("Optimization in progress: ") + info;
-    d->label_OptimizationStatus->setText(progressMessage);
-    QApplication::processEvents();
+  QString progressMessage;
+  progressMessage = QString("Optimization in progress: ") + info;
+  d->label_OptimizationStatus->setText(progressMessage);
+  QApplication::processEvents();
 }
 
 //-----------------------------------------------------------------------------
@@ -1607,33 +1600,28 @@ bool qSlicerExternalBeamPlanningModuleWidget::setEditedNode(vtkMRMLNode* node, Q
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::addObjectiveClicked()
 {
-    Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-    d->ObjectivesTableWidget->onObjectiveAdded();
-
+  d->ObjectivesTableWidget->onObjectiveAdded();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::removeObjectiveClicked()
 {
-    Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-    d->ObjectivesTableWidget->onObjectiveRemoved();
+  d->ObjectivesTableWidget->onObjectiveRemoved();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::saveAvailableObjectives()
 {
-    Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-    // get planNode
-    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  // get planNode
+  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
 
-    // get selected optimizer
-    qSlicerAbstractPlanOptimizer* selectedEngine =
-        qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
-
-    // set objectives
-    //vtkMRMLObjectiveNode* objectiveNode = 
-    
+  // get selected optimizer
+  qSlicerAbstractPlanOptimizer* selectedEngine =
+    qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
 }

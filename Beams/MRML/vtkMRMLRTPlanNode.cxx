@@ -41,6 +41,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 #include <vtkVariant.h>
+
 //------------------------------------------------------------------------------
 const char* vtkMRMLRTPlanNode::ISOCENTER_FIDUCIAL_NAME = "Isocenter";
 const int vtkMRMLRTPlanNode::ISOCENTER_FIDUCIAL_INDEX = 0;
@@ -73,6 +74,7 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
   this->DoseGrid[2] = 5.0;
 
   this->IonPlanFlag = false;
+
   // Ensure the node shows up in subject hierarchy. Otherwise there is a crash.
   this->HideFromEditorsOff();
 }

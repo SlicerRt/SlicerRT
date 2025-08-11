@@ -260,12 +260,12 @@ public:
 
   /// Set dose influence matrix from triplets (optional setting of corresponding dose grid dimensions and spacing)
   void SetDoseInfluenceMatrixFromTriplets(
-      int numRows, int numCols,
-      DoseInfluenceMatrixIndexVector& rows,
-      DoseInfluenceMatrixIndexVector& columns,
-      DoseInfluenceMatrixValueVector& values,
-      double* doseGridDim = nullptr,
-      double* doseGridSpacing = nullptr
+    int numRows, int numCols,
+    DoseInfluenceMatrixIndexVector& rows,
+    DoseInfluenceMatrixIndexVector& columns,
+    DoseInfluenceMatrixValueVector& values,
+    double* doseGridDim = nullptr,
+    double* doseGridSpacing = nullptr
   );
   vtkSmartPointer<vtkDoubleArray> GetDoseInfluenceMatrixTriplets();
 

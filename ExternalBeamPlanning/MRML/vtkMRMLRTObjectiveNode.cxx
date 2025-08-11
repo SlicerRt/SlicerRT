@@ -28,40 +28,41 @@ vtkMRMLNodeNewMacro(vtkMRMLRTObjectiveNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTObjectiveNode::vtkMRMLRTObjectiveNode()
 {
-	this->Name = nullptr;
+		this->Name = nullptr;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLRTObjectiveNode::~vtkMRMLRTObjectiveNode() {
-	if (this->Name)
-	{
-		delete[] this->Name;
-		this->Name = nullptr;
-	}
+vtkMRMLRTObjectiveNode::~vtkMRMLRTObjectiveNode()
+{
+		if (this->Name)
+		{
+				delete[] this->Name;
+				this->Name = nullptr;
+		}
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTObjectiveNode::WriteXML(ostream& of, int nIndent)
 {
-	Superclass::WriteXML(of, nIndent);
+		Superclass::WriteXML(of, nIndent);
+		
+		// Write all MRML node attributes into output stream
+		vtkMRMLWriteXMLBeginMacro(of);
 
-	// Write all MRML node attributes into output stream
-	vtkMRMLWriteXMLBeginMacro(of);
-
-	vtkMRMLWriteXMLEndMacro();
+		vtkMRMLWriteXMLEndMacro();
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTObjectiveNode::ReadXMLAttributes(const char** atts)
 {
-	int disabledModify = this->StartModify();
-	vtkMRMLNode::ReadXMLAttributes(atts);
+		int disabledModify = this->StartModify();
+		vtkMRMLNode::ReadXMLAttributes(atts);
 
-	vtkMRMLReadXMLBeginMacro(atts);
+		vtkMRMLReadXMLBeginMacro(atts);
 	
-	vtkMRMLReadXMLEndMacro();
+		vtkMRMLReadXMLEndMacro();
 
-	this->EndModify(disabledModify);
+		this->EndModify(disabledModify);
 }
 
 //----------------------------------------------------------------------------
@@ -69,21 +70,21 @@ void vtkMRMLRTObjectiveNode::ReadXMLAttributes(const char** atts)
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLRTObjectiveNode::Copy(vtkMRMLNode* anode)
 {
-	int disabledModify = this->StartModify();
+		int disabledModify = this->StartModify();
 
-	Superclass::Copy(anode);
+		Superclass::Copy(anode);
 
-	vtkMRMLCopyBeginMacro(anode);
+		vtkMRMLCopyBeginMacro(anode);
 
-	vtkMRMLCopyEndMacro();
+		vtkMRMLCopyEndMacro();
 
-	this->EndModify(disabledModify);
+		this->EndModify(disabledModify);
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTObjectiveNode::PrintSelf(ostream& os, vtkIndent indent)
 {
-  Superclass::PrintSelf(os, indent);
+		Superclass::PrintSelf(os, indent);
 
   vtkMRMLPrintBeginMacro(os, indent);
   vtkMRMLPrintStringMacro(Name)
@@ -93,11 +94,11 @@ void vtkMRMLRTObjectiveNode::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 void vtkMRMLRTObjectiveNode::SetSegmentation(std::string segmentationName)
 {
-	this->Segmentation = segmentationName;
+		this->Segmentation = segmentationName;
 }
 
 //----------------------------------------------------------------------------
 std::string vtkMRMLRTObjectiveNode::GetSegmentation()
 {
-	return this->Segmentation;
+		return this->Segmentation;
 }
