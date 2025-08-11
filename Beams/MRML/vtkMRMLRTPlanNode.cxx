@@ -918,30 +918,30 @@ bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double center[3])
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::setDoseGridInCoordinate(int index, double value)
 {
-    if (index < 0 || index > 2)
-    {
-        vtkErrorMacro("setDoseGridInCoordinate: Invalid index");
-        return;
-    }
+  if (index < 0 || index > 2)
+  {
+    vtkErrorMacro("setDoseGridInCoordinate: Invalid index");
+    return;
+  }
 
-    this->DoseGrid[index] = value;
-	this->Modified();
+  this->DoseGrid[index] = value;
+  this->Modified();
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::setDoseGridToCTGrid()
 {
-    vtkMRMLScalarVolumeNode* referenceVolumeNode = this->GetReferenceVolumeNode();
-    if (!referenceVolumeNode)
-    {
-        vtkErrorMacro("setDoseGridToCTGrid: Invalid reference volume node");
-        return;
-    }
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->GetReferenceVolumeNode();
+  if (!referenceVolumeNode)
+  {
+    vtkErrorMacro("setDoseGridToCTGrid: Invalid reference volume node");
+    return;
+  }
+  
+  double spacing[3] = { 0.0, 0.0, 0.0 };
+  referenceVolumeNode->GetSpacing(spacing);
 
-	double spacing[3] = { 0.0, 0.0, 0.0 };
-    referenceVolumeNode->GetSpacing(spacing);
-
-    this->setDoseGridInCoordinate(0, spacing[0]);
-    this->setDoseGridInCoordinate(1, spacing[1]);
-    this->setDoseGridInCoordinate(2, spacing[2]);
+  this->setDoseGridInCoordinate(0, spacing[0]);
+  this->setDoseGridInCoordinate(1, spacing[1]);
+  this->setDoseGridInCoordinate(2, spacing[2]);
 }

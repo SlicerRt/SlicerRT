@@ -236,27 +236,27 @@ QString qSlicerScriptedDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* b
 
 QString qSlicerScriptedDoseEngine::calculateDoseInfluenceMatrixUsingEngine(vtkMRMLRTBeamNode* beamNode)
 {
-    Q_D(const qSlicerScriptedDoseEngine);
-    PyObject* arguments = PyTuple_New(1);
-    PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer(beamNode));
-    //PyTuple_SET_ITEM(arguments, 1, vtkPythonUtil::GetObjectFromPointer(resultDoseVolumeNode));
-    qDebug() << d->PythonSource << ": Calling calculateDoseInfluenceMatrixUsingEngine from Python dose engine";
-    PyObject* result = d->PythonCppAPI.callMethod(d->CalculateDoseInfluenceMatrixUsingEngineMethod, arguments);
-    Py_DECREF(arguments);
-    if (!result)
-    {
-        qCritical() << d->PythonSource << ": clone: Failed to call mandatory calculateDoseInfluenceMatrixUsingEngine method! If it is implemented, please see python output for errors.";
-        return QString();
-    }
+  Q_D(const qSlicerScriptedDoseEngine);
+  PyObject* arguments = PyTuple_New(1);
+  PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer(beamNode));
+  //PyTuple_SET_ITEM(arguments, 1, vtkPythonUtil::GetObjectFromPointer(resultDoseVolumeNode));
+  qDebug() << d->PythonSource << ": Calling calculateDoseInfluenceMatrixUsingEngine from Python dose engine";
+  PyObject* result = d->PythonCppAPI.callMethod(d->CalculateDoseInfluenceMatrixUsingEngineMethod, arguments);
+  Py_DECREF(arguments);
+  if (!result)
+  {
+    qCritical() << d->PythonSource << ": clone: Failed to call mandatory calculateDoseInfluenceMatrixUsingEngine method! If it is implemented, please see python output for errors.";
+    return QString();
+  }
 
-    // Parse result
-    if (!PyFloat_Check(result))
-    {
-        qWarning() << d->PythonSource << ": qSlicerScriptedDoseEngine: Function 'calculateDoseInfluenceMatrixUsingEngine' is expected to return a string!";
-        return QString();
-    }
+  // Parse result
+  if (!PyFloat_Check(result))
+  {
+    qWarning() << d->PythonSource << ": qSlicerScriptedDoseEngine: Function 'calculateDoseInfluenceMatrixUsingEngine' is expected to return a string!";
+    return QString();
+  }
 
-    return PyString_AsString(result);
+  return PyString_AsString(result);
 }
 
 //-----------------------------------------------------------------------------
@@ -269,9 +269,9 @@ void qSlicerScriptedDoseEngine::defineBeamParameters()
 //-----------------------------------------------------------------------------
 void qSlicerScriptedDoseEngine::updateBeamParametersForIonPlan(bool isIonPlanActive)
 {
-	Q_D(const qSlicerScriptedDoseEngine);
+  Q_D(const qSlicerScriptedDoseEngine);
 
-	PyObject* arguments = PyTuple_New(1);
-	PyTuple_SET_ITEM(arguments, 0, PyBool_FromLong(isIonPlanActive));
-	d->PythonCppAPI.callMethod(d->UpdateBeamParametersForIonPlan, arguments);
+  PyObject* arguments = PyTuple_New(1);
+	 PyTuple_SET_ITEM(arguments, 0, PyBool_FromLong(isIonPlanActive));
+	 d->PythonCppAPI.callMethod(d->UpdateBeamParametersForIonPlan, arguments);
 }

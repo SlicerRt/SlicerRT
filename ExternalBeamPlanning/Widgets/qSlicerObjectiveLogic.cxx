@@ -58,4 +58,3 @@ qSlicerObjectiveLogic::qSlicerObjectiveLogic(QObject* parent)
 
 //----------------------------------------------------------------------------
 qSlicerObjectiveLogic::~qSlicerObjectiveLogic() = default;
-

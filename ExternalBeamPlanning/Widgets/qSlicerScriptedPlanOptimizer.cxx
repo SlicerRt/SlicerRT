@@ -194,15 +194,14 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
   PyObject* pyList = PyList_New(objectives.size());
   for (size_t i = 0; i < objectives.size(); i++)
   {
-	  vtkMRMLRTObjectiveNode* objectiveNode = objectives[i];
-      if (objectiveNode)
-      {
-          PyObject* pyDict = PyDict_New();
-          PyObject* pyObjectiveNode = vtkPythonUtil::GetObjectFromPointer(objectiveNode);
-          PyDict_SetItemString(pyDict, "ObjectiveNode", pyObjectiveNode);
-          PyList_SetItem(pyList, i, pyDict);
-
-      }
+	   vtkMRMLRTObjectiveNode* objectiveNode = objectives[i];
+    if (objectiveNode)
+    {
+      PyObject* pyDict = PyDict_New();
+      PyObject* pyObjectiveNode = vtkPythonUtil::GetObjectFromPointer(objectiveNode);
+      PyDict_SetItemString(pyDict, "ObjectiveNode", pyObjectiveNode);
+      PyList_SetItem(pyList, i, pyDict);
+    }
   }
   
   PyObject* arguments = PyTuple_New(3);
@@ -213,17 +212,17 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
   PyObject* result = d->PythonCppAPI.callMethod(d->OptimizePlanUsingOptimizerMethod, arguments);
   Py_DECREF(arguments);
   if (!result)
-    {
+  {
     qCritical() << d->PythonSource << ": clone: Failed to call mandatory optimizePlanUsingOptimizer method! If it is implemented, please see python output for errors.";
     return QString();
-    }
+  }
 
   // Parse result
   if (!PyFloat_Check(result))
-    {
+  {
     qWarning() << d->PythonSource << ": qSlicerScriptedPlanOptimizer: Function 'optimizePlanUsingOptimizer' is expected to return a string!";
     return QString();
-    }
+  }
 
   return PyString_AsString(result);
 }
@@ -232,86 +231,85 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
 //-----------------------------------------------------------------------------
 void qSlicerScriptedPlanOptimizer::setAvailableObjectives()
 {
-    if (!Py_IsInitialized())
-    {
-        qCritical() << "Python is not initialized!";
-        return;
-    }
+  if (!Py_IsInitialized())
+  {
+    qCritical() << "Python is not initialized!";
+    return;
+  }
 
-    // requires pyRadPlan being installed
-    PyObject* pName = PyUnicode_DecodeFSDefault("pyRadPlan.optimization.objectives");
-    PyObject* pModule = PyImport_Import(pName);
-    Py_DECREF(pName);
+  // requires pyRadPlan being installed
+  PyObject* pName = PyUnicode_DecodeFSDefault("pyRadPlan.optimization.objectives");
+  PyObject* pModule = PyImport_Import(pName);
+  Py_DECREF(pName);
 
-    std::vector<ObjectiveStruct> objectives;
-    if (pModule != nullptr)
+  std::vector<ObjectiveStruct> objectives;
+  if (pModule != nullptr)
+  {
+    // Get the function from the module
+    PyObject* pFunc = PyObject_GetAttrString(pModule, "get_available_objectives");
+    if (pFunc && PyCallable_Check(pFunc))
     {
-        // Get the function from the module
-        PyObject* pFunc = PyObject_GetAttrString(pModule, "get_available_objectives");
-        if (pFunc && PyCallable_Check(pFunc))
+      // Call the function
+      PyObject* pValue = PyObject_CallObject(pFunc, nullptr);
+      if (pValue != nullptr)
+      {
+        // Assuming the function returns a dictionary-like object
+        if (PyMapping_Check(pValue))
         {
-            // Call the function
-            PyObject* pValue = PyObject_CallObject(pFunc, nullptr);
-            if (pValue != nullptr)
+          PyObject* pKeys = PyMapping_Keys(pValue);
+          if (pKeys && PyList_Check(pKeys))
+          {
+            Py_ssize_t numKeys = PyList_Size(pKeys);
+            for (Py_ssize_t i = 0; i < numKeys; ++i)
             {
-                // Assuming the function returns a dictionary-like object
-                if (PyMapping_Check(pValue))
+              PyObject* pKey = PyList_GetItem(pKeys, i);
+              if (PyUnicode_Check(pKey))
+              {
+                const char* keyStr = PyUnicode_AsUTF8(pKey);
+                ObjectiveStruct objective;
+                objective.name = keyStr;
+
+                PyObject* pVal = PyMapping_GetItemString(pValue, keyStr);
+                // Check if pVal has __annotations__
+                if (PyObject_HasAttrString(pVal, "__annotations__"))
                 {
-                    PyObject* pKeys = PyMapping_Keys(pValue);
-                    if (pKeys && PyList_Check(pKeys))
+                  PyObject* pAnnotations = PyObject_GetAttrString(pVal, "__annotations__");
+                  if (PyMapping_Check(pAnnotations))
+                  {
+                    // Print all keys in pAnnotations
+                    PyObject* pAnnotationsKeys = PyMapping_Keys(pAnnotations);
+                    if (pAnnotationsKeys && PyList_Check(pAnnotationsKeys))
                     {
-                        Py_ssize_t numKeys = PyList_Size(pKeys);
-                        for (Py_ssize_t i = 0; i < numKeys; ++i)
+                      Py_ssize_t numKeys = PyList_Size(pAnnotationsKeys);
+                      for (Py_ssize_t j = 0; j < numKeys; ++j)
+                      {
+                        PyObject* pKey = PyList_GetItem(pAnnotationsKeys, j);
+                        if (PyUnicode_Check(pKey))
                         {
-                            PyObject* pKey = PyList_GetItem(pKeys, i);
-                            if (PyUnicode_Check(pKey))
-                            {
-                                const char* keyStr = PyUnicode_AsUTF8(pKey);
-                                ObjectiveStruct objective;
-                                objective.name = keyStr;
-
-                                PyObject* pVal = PyMapping_GetItemString(pValue, keyStr);
-                                // Check if pVal has __annotations__
-                                if (PyObject_HasAttrString(pVal, "__annotations__"))
-                                {
-                                    PyObject* pAnnotations = PyObject_GetAttrString(pVal, "__annotations__");
-                                    if (PyMapping_Check(pAnnotations))
-                                    {
-                                        // Print all keys in pAnnotations
-                                        PyObject* pAnnotationsKeys = PyMapping_Keys(pAnnotations);
-                                        if (pAnnotationsKeys && PyList_Check(pAnnotationsKeys))
-                                        {
-                                            Py_ssize_t numKeys = PyList_Size(pAnnotationsKeys);
-                                            for (Py_ssize_t j = 0; j < numKeys; ++j)
-                                            {
-                                                PyObject* pKey = PyList_GetItem(pAnnotationsKeys, j);
-                                                if (PyUnicode_Check(pKey))
-                                                {
-                                                    const char* paramName = PyUnicode_AsUTF8(pKey);
-                                                    objective.parameters[std::string(paramName)] = "";
-                                                }
-                                            }
-                                            Py_DECREF(pAnnotationsKeys);
-                                        }
-                                    }
-
-                                }
-								objectives.push_back(objective);
-                            }
+                          const char* paramName = PyUnicode_AsUTF8(pKey);
+                          objective.parameters[std::string(paramName)] = "";
                         }
-                        Py_DECREF(pKeys); // free memory
+                      }
+                      Py_DECREF(pAnnotationsKeys);
                     }
+                  }
                 }
-				Py_DECREF(pValue); // free memory
+                objectives.push_back(objective);
+              }
             }
+            Py_DECREF(pKeys); // free memory
+          }
         }
-		Py_XDECREF(pFunc); // free memory
-		Py_DECREF(pModule); // free memory
+        Py_DECREF(pValue); // free memory
+      }
     }
-    else
-    {
-        qCritical() << "Failed to import pyRadPlan.optimization.objectives module!";
-    }
+    Py_XDECREF(pFunc); // free memory
+    Py_DECREF(pModule); // free memory
+  }
+  else
+  {
+    qCritical() << "Failed to import pyRadPlan.optimization.objectives module!";
+  }
 
-    this->availableObjectives = objectives;
+  this->availableObjectives = objectives;
 }

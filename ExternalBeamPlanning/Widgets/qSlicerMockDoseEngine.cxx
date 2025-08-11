@@ -151,54 +151,56 @@ QString qSlicerMockDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamN
 
 QString qSlicerMockDoseEngine::calculateDoseInfluenceMatrixUsingEngine(vtkMRMLRTBeamNode* beamNode)
 {
-    // Get number of Voxels from reference Volume
-    vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
-    vtkMRMLScalarVolumeNode* referenceVolumeNode = parentPlanNode->GetReferenceVolumeNode();
-    int dimensions[3];
-    referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
+  // Get number of Voxels from reference Volume
+  vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = parentPlanNode->GetReferenceVolumeNode();
+  int dimensions[3];
+  referenceVolumeNode->GetImageData()->GetDimensions(dimensions);
 
-    int numOfVoxels = dimensions[0] * dimensions[1] * dimensions[2];
-
-
-    // Set Dose Influence Matrix
-    int numRows = numOfVoxels;
-    int numCols = 1;
-
-    // Row indices
-    int numOfEntries = 1000000;
-    vtkMRMLRTBeamNode::DoseInfluenceMatrixIndexVector rows(numOfEntries);
-
-    // Column indices
-    vtkMRMLRTBeamNode::DoseInfluenceMatrixIndexVector columns(numOfEntries, 0);
-
-    // Values (all 1)
-    vtkMRMLRTBeamNode::DoseInfluenceMatrixValueVector values(numOfEntries);
+  int numOfVoxels = dimensions[0] * dimensions[1] * dimensions[2];
 
 
-    // Create random number generators
-    #include <random>
-    #include <algorithm>
-    #include <iterator>
-    #include <iostream>
-    #include <vector>
-    std::random_device rd;
-    std::mt19937 mersenne_engine{ rd() };
-    std::uniform_int_distribution<> dis_rows{ 0, numOfVoxels - 1 }; // indices go from 0 to number of Voxels
-    std::uniform_int_distribution<> dis_values{ 0, 10 };
-    auto gen_rows = [&dis_rows, &mersenne_engine](){
-        return dis_rows(mersenne_engine);
-    };
-    auto gen_values = [&dis_values, &mersenne_engine]() {
-        return dis_values(mersenne_engine);
-    };
+  // Set Dose Influence Matrix
+  int numRows = numOfVoxels;
+  int numCols = 1;
 
-    // Fill rows and values vectors with random numbers
-    generate(begin(rows), end(rows), gen_rows);
-    generate(begin(values), end(values), gen_values);
+  // Row indices
+  int numOfEntries = 1000000;
+  vtkMRMLRTBeamNode::DoseInfluenceMatrixIndexVector rows(numOfEntries);
+
+  // Column indices
+  vtkMRMLRTBeamNode::DoseInfluenceMatrixIndexVector columns(numOfEntries, 0);
+
+  // Values (all 1)
+  vtkMRMLRTBeamNode::DoseInfluenceMatrixValueVector values(numOfEntries);
 
 
-    // Save dose influence matrix in beam node
-    beamNode->SetDoseInfluenceMatrixFromTriplets(numRows, numCols, rows, columns, values);
+  // Create random number generators
+  #include <random>
+  #include <algorithm>
+  #include <iterator>
+  #include <iostream>
+  #include <vector>
+  std::random_device rd;
+  std::mt19937 mersenne_engine{ rd() };
+  std::uniform_int_distribution<> dis_rows{ 0, numOfVoxels - 1 }; // indices go from 0 to number of Voxels
+  std::uniform_int_distribution<> dis_values{ 0, 10 };
+  auto gen_rows = [&dis_rows, &mersenne_engine]()
+  {
+    return dis_rows(mersenne_engine);
+  };
+  auto gen_values = [&dis_values, &mersenne_engine]()
+  {
+    return dis_values(mersenne_engine);
+  };
+
+  // Fill rows and values vectors with random numbers
+  generate(begin(rows), end(rows), gen_rows);
+  generate(begin(values), end(values), gen_values);
+
+
+  // Save dose influence matrix in beam node
+  beamNode->SetDoseInfluenceMatrixFromTriplets(numRows, numCols, rows, columns, values);
     
-    return QString();
+  return QString();
 }

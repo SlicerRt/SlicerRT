@@ -50,8 +50,8 @@ class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerAbstractPlanOpt
   Q_PROPERTY(QString name READ name WRITE setName)
 
 public:
-    /// Maximum Gray value for visualization window/level of the newly created per-beam dose volumes
-    static double DEFAULT_DOSE_VOLUME_WINDOW_LEVEL_MAXIMUM;
+  /// Maximum Gray value for visualization window/level of the newly created per-beam dose volumes
+  static double DEFAULT_DOSE_VOLUME_WINDOW_LEVEL_MAXIMUM;
 
 public:
   typedef QObject Superclass;
@@ -67,15 +67,15 @@ public:
   virtual void setName(QString name);
 
 public:
-    /// Structure to represent objective functions (only name and parameters)
-    struct ObjectiveStruct
-    {
-        std::string name;
-        std::map<std::string, std::string> parameters;
-    };
+  /// Structure to represent objective functions (only name and parameters)
+  struct ObjectiveStruct
+  {
+    std::string name;
+    std::map<std::string, std::string> parameters;
+  };
 
 signals:
-    void progressInfoUpdated(QString info);
+  void progressInfoUpdated(QString info);
 
 // Optimization calculation related functions
 public:
@@ -106,10 +106,11 @@ protected:
   ///
   /// \param planNode Plan for which the Optimization is carried out. 
   /// \param resultOptimizationVolumeNode Output volume node for the result Optimization. It is created by \sa optimizePlan
-    virtual QString optimizePlanUsingOptimizer(
-        vtkMRMLRTPlanNode* planNode,
-        std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives,
-        vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode ) = 0;
+  
+  virtual QString optimizePlanUsingOptimizer(
+    vtkMRMLRTPlanNode* planNode,
+    std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives,
+    vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode ) = 0;
 
 
 protected:
@@ -136,11 +137,11 @@ private:
 
 
 public:
-    /// Add result per-beam dose volume to beam
-    /// \param resultOptimizedDose Dose volume to add to beam as result
-    /// \param beamNode Beam node to add dose as result to
-    /// \param replace Remove referenced dose volume if already exists. True by default
-    Q_INVOKABLE void addResultOptimizedDose(vtkMRMLScalarVolumeNode* resultOptimizedDose, vtkMRMLRTPlanNode* planNode, bool replace = true);
+  /// Add result per-beam dose volume to beam
+  /// \param resultOptimizedDose Dose volume to add to beam as result
+  /// \param beamNode Beam node to add dose as result to
+  /// \param replace Remove referenced dose volume if already exists. True by default
+  Q_INVOKABLE void addResultOptimizedDose(vtkMRMLScalarVolumeNode* resultOptimizedDose, vtkMRMLRTPlanNode* planNode, bool replace = true);
 };
 Q_DECLARE_METATYPE(qSlicerAbstractPlanOptimizer::ObjectiveStruct)
 

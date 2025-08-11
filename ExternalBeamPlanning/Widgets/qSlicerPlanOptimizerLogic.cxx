@@ -99,36 +99,36 @@ qSlicerPlanOptimizerLogic::~qSlicerPlanOptimizerLogic() = default;
 //-----------------------------------------------------------------------------
 QString qSlicerPlanOptimizerLogic::optimizePlan(vtkMRMLRTPlanNode* planNode)
 {
-    QString errorMessage("");
-    if (!planNode || !planNode->GetScene())
-    {
-        errorMessage = QString("Invalid MRML scene or RT plan node");
-        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
-        return errorMessage;
-    }
+  QString errorMessage("");
+  if (!planNode || !planNode->GetScene())
+  {
+    errorMessage = QString("Invalid MRML scene or RT plan node");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+    return errorMessage;
+  }
 
-    // Get selected plan optimizer
-    qSlicerAbstractPlanOptimizer* selectedEngine =
-        qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
-    if (!selectedEngine)
-    {
-        QString errorString = QString("Unable to access optimizer with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
-        qCritical() << Q_FUNC_INFO << ": " << errorString;
-        return errorMessage;
-    }
+  // Get selected plan optimizer
+  qSlicerAbstractPlanOptimizer* selectedEngine =
+    qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
+  if (!selectedEngine)
+  {
+    QString errorString = QString("Unable to access optimizer with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
+    qCritical() << Q_FUNC_INFO << ": " << errorString;
+    return errorMessage;
+  }
 
-    connect(selectedEngine, SIGNAL(progressInfoUpdated(QString)), this, SIGNAL(progressInfoUpdated(QString)));
+  connect(selectedEngine, SIGNAL(progressInfoUpdated(QString)), this, SIGNAL(progressInfoUpdated(QString)));
 
-    emit progressInfoUpdated("starting");
+  emit progressInfoUpdated("starting");
 
-    errorMessage = selectedEngine->optimizePlan(planNode);
-    if (!errorMessage.isEmpty())
-    {
-        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
-        return errorMessage;
-    }
+  errorMessage = selectedEngine->optimizePlan(planNode);
+  if (!errorMessage.isEmpty())
+  {
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+    return errorMessage;
+  }
 
-    disconnect(selectedEngine, SIGNAL(progressInfoUpdated(QString)), this, SIGNAL(progressInfoUpdated(QString)));
+  disconnect(selectedEngine, SIGNAL(progressInfoUpdated(QString)), this, SIGNAL(progressInfoUpdated(QString)));
 
   return QString();
 }
@@ -183,6 +183,3 @@ void qSlicerPlanOptimizerLogic::onSceneImportEnded(vtkObject* sceneObject)
   }
   */
 }
-
-
-

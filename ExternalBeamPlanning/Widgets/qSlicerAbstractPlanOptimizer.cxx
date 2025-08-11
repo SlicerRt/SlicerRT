@@ -170,149 +170,147 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
 //----------------------------------------------------------------------------
 std::vector<qSlicerAbstractPlanOptimizer::ObjectiveStruct> qSlicerAbstractPlanOptimizer::getAvailableObjectives()
 {
-    return this->availableObjectives;
+  return this->availableObjectives;
 }
 
 //----------------------------------------------------------------------------
 void qSlicerAbstractPlanOptimizer::setAvailableObjectives()
 {
-    qCritical() << Q_FUNC_INFO << ": no available Objectives ";
+  qCritical() << Q_FUNC_INFO << ": no available Objectives ";
 }
 
 //----------------------------------------------------------------------------
 std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> qSlicerAbstractPlanOptimizer::getSavedObjectiveNodes()
 {
-    return this->savedObjectiveNodes;
+  return this->savedObjectiveNodes;
 }
 
 //----------------------------------------------------------------------------
 void qSlicerAbstractPlanOptimizer::saveObjectiveNodeInOptimizer(vtkSmartPointer<vtkMRMLRTObjectiveNode> objectiveNode)
 {
-	this->savedObjectiveNodes.push_back(objectiveNode);
+  this->savedObjectiveNodes.push_back(objectiveNode);
 }
 
 //----------------------------------------------------------------------------
 void qSlicerAbstractPlanOptimizer::removeAllObjectiveNodes()
 {
-    vtkMRMLScene* scene = nullptr;
-    if (!this->savedObjectiveNodes.empty())
-    {
-        scene = this->savedObjectiveNodes[0]->GetScene();
-    }
+  vtkMRMLScene* scene = nullptr;
+  if (!this->savedObjectiveNodes.empty())
+  {
+    scene = this->savedObjectiveNodes[0]->GetScene();
+  }
 
-    for (auto& objective : this->savedObjectiveNodes)
+  for (auto& objective : this->savedObjectiveNodes)
+  {
+    if (scene)
     {
-        if (scene)
-        {
-            scene->RemoveNode(objective);
-        }
+      scene->RemoveNode(objective);
     }
+  }
 
-    this->savedObjectiveNodes.clear();
+  this->savedObjectiveNodes.clear();
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerAbstractPlanOptimizer::addResultOptimizedDose(vtkMRMLScalarVolumeNode* resultOptimizedDose, vtkMRMLRTPlanNode* planNode, bool replace/*=true*/)
 {    
-    if (!resultOptimizedDose)
-    {
-        qCritical() << Q_FUNC_INFO << ": Invalid result dose";
-        return;
-    }
-    if (!planNode)
-    {
-        qCritical() << Q_FUNC_INFO << ": Invalid plan node";
-        return;
-    }
-    vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();
-    if (!referenceVolumeNode)
-    {
-        qCritical() << Q_FUNC_INFO << ": " << "Unable to access reference volume";
-        return;
-    }
-    vtkMRMLScene* scene = planNode->GetScene();
-    if (!scene)
-    {
-        qCritical() << Q_FUNC_INFO << ": Invalid MRML scene";
-        return;
-    }
-    vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
-    if (!shNode)
-    {
-        qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
-        return;
-    }
+  if (!resultOptimizedDose)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid result dose";
+    return;
+  }
+  if (!planNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid plan node";
+    return;
+  }
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();
+  if (!referenceVolumeNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": " << "Unable to access reference volume";
+    return;
+  }
+  vtkMRMLScene* scene = planNode->GetScene();
+  if (!scene)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid MRML scene";
+    return;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(scene);
+  if (!shNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access subject hierarchy node";
+    return;
+  }
 
-     // Set optimized dose volume attribute so that it is identified as dose
-     resultOptimizedDose->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
+  // Set optimized dose volume attribute so that it is identified as dose
+  resultOptimizedDose->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
-     // Subject hierarchy related operations
-     vtkIdType beamShItemID = shNode->GetItemByDataNode(planNode);
-     if (beamShItemID)
-     {
-         // Add result under beam in subject hierarchy
-         shNode->CreateItem(beamShItemID, resultOptimizedDose);
+  // Subject hierarchy related operations
+  vtkIdType beamShItemID = shNode->GetItemByDataNode(planNode);
+  if (beamShItemID)
+  {
+    // Add result under beam in subject hierarchy
+    shNode->CreateItem(beamShItemID, resultOptimizedDose);
 
-         // Set dose unit value to Gy if dose engine did not set it already (potentially to other unit)
-         vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(beamShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
-         if (!studyItemID)
-         {
-             qWarning() << Q_FUNC_INFO << ": Unable to find study item that contains the plan! Creating a study item and adding the reference dose and the plan under it is necessary in order for dose evaluation steps to work properly";
-         }
-         else if (shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME).empty())
-         {
-             shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, "Gy");
-         }
-     }
+    // Set dose unit value to Gy if dose engine did not set it already (potentially to other unit)
+    vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(beamShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+    if (!studyItemID)
+    {
+      qWarning() << Q_FUNC_INFO << ": Unable to find study item that contains the plan! Creating a study item and adding the reference dose and the plan under it is necessary in order for dose evaluation steps to work properly";
+    }
+    else if (shNode->GetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME).empty())
+    {
+      shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, "Gy");
+    }
+  }
 
-    // Set up display for dose volume
-    //if (!resultOptimizedDose->GetDisplayNode())
-    //{
-    //    resultOptimizedDose->CreateDefaultDisplayNodes(); // Make sure display node is present
-    //}
+  // Set up display for dose volume
+  //if (!resultOptimizedDose->GetDisplayNode())
+  //{
+  //    resultOptimizedDose->CreateDefaultDisplayNodes(); // Make sure display node is present
+  //}
     
-    resultOptimizedDose->CreateDefaultDisplayNodes(); // Make sure display node is present
-    if (resultOptimizedDose->GetDisplayNode())
+  resultOptimizedDose->CreateDefaultDisplayNodes(); // Make sure display node is present
+  if (resultOptimizedDose->GetDisplayNode())
+  {
+    vtkMRMLScalarVolumeDisplayNode* doseScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(resultOptimizedDose->GetVolumeDisplayNode());
+
+    doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeDose_ColorTable_Relative");
+
+    // Set window level based on prescription dose
+    double rxDose = planNode->GetRxDose();
+		  doseScalarVolumeDisplayNode->AutoWindowLevelOn();
+
+    // Set threshold to hide very low dose values
+    doseScalarVolumeDisplayNode->SetLowerThreshold(0.05 * rxDose);
+    doseScalarVolumeDisplayNode->ApplyThresholdOn();
+  }
+  else
+  {
+    qWarning() << Q_FUNC_INFO << ": Display node is not available for dose volume node. The default color table will be used.";
+  }
+
+  // Show total dose in foreground
+  vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
+  if (selectionNode)
+  {
+    // Make sure reference volume is shown in background
+    selectionNode->SetReferenceActiveVolumeID(referenceVolumeNode->GetID());
+    // Select as foreground volume
+    selectionNode->SetReferenceSecondaryVolumeID(resultOptimizedDose->GetID());
+    qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection(0);
+    
+    // Set opacity so that volume is visible
+    vtkMRMLSliceCompositeNode* compositeNode = nullptr;
+    int numberOfCompositeNodes = planNode->GetScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
+    for (int i = 0; i < numberOfCompositeNodes; i++)
     {
-        vtkMRMLScalarVolumeDisplayNode* doseScalarVolumeDisplayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(resultOptimizedDose->GetVolumeDisplayNode());
-
-        doseScalarVolumeDisplayNode->SetAndObserveColorNodeID("vtkMRMLColorTableNodeDose_ColorTable_Relative");
-
-        // Set window level based on prescription dose
-        double rxDose = planNode->GetRxDose();
-		doseScalarVolumeDisplayNode->AutoWindowLevelOn();
-
-        // Set threshold to hide very low dose values
-        doseScalarVolumeDisplayNode->SetLowerThreshold(0.05 * rxDose);
-        doseScalarVolumeDisplayNode->ApplyThresholdOn();
-
+      compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast(planNode->GetScene()->GetNthNodeByClass(i, "vtkMRMLSliceCompositeNode"));
+      if (compositeNode && compositeNode->GetForegroundOpacity() == 0.0)
+      {
+        compositeNode->SetForegroundOpacity(0.5);
+      }
     }
-    else
-    {
-        qWarning() << Q_FUNC_INFO << ": Display node is not available for dose volume node. The default color table will be used.";
-    }
-
-    // Show total dose in foreground
-    vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
-    if (selectionNode)
-    {
-        // Make sure reference volume is shown in background
-        selectionNode->SetReferenceActiveVolumeID(referenceVolumeNode->GetID());
-        // Select as foreground volume
-        selectionNode->SetReferenceSecondaryVolumeID(resultOptimizedDose->GetID());
-        qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection(0);
-
-        // Set opacity so that volume is visible
-        vtkMRMLSliceCompositeNode* compositeNode = nullptr;
-        int numberOfCompositeNodes = planNode->GetScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");
-        for (int i = 0; i < numberOfCompositeNodes; i++)
-        {
-            compositeNode = vtkMRMLSliceCompositeNode::SafeDownCast(planNode->GetScene()->GetNthNodeByClass(i, "vtkMRMLSliceCompositeNode"));
-            if (compositeNode && compositeNode->GetForegroundOpacity() == 0.0)
-            {
-                compositeNode->SetForegroundOpacity(0.5);
-            }
-        }
-    }
+  }
 }
-
