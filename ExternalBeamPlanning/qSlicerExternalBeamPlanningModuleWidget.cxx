@@ -680,30 +680,6 @@ void qSlicerExternalBeamPlanningModuleWidget::doseROINodeChanged(vtkMRMLNode* no
   // planNode->DisableModifiedEventOff();
 }
 
-////-----------------------------------------------------------------------------
-//void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingChanged(const QString &text)
-//{
-//  Q_D(qSlicerExternalBeamPlanningModuleWidget);
-//  UNUSED_VARIABLE(text);
-//
-//  if (!this->mrmlScene())
-//  {
-//    qCritical() << Q_FUNC_INFO << ": Invalid scene";
-//    return;
-//  }
-//
-//  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
-//  if (!planNode)
-//  {
-//    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
-//    return;
-//  }
-//
-//  qWarning() << Q_FUNC_INFO << ": Not implemented";
-//
-//  // TODO: to be implemented
-//}
-
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::doseGridChangedInCoordinate(int index, double value)
 {
@@ -1365,31 +1341,6 @@ void qSlicerExternalBeamPlanningModuleWidget::optimizePlanClicked()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-    //// Create and select output dose volume if missing
-    //if (!d->checkBox_InversePlanning->isChecked() && !planNode->GetOutputTotalDoseVolumeNode())
-    //{
-    //    vtkIdType planShItemID = shNode->GetItemByDataNode(planNode);
-    //    if (!planShItemID)
-    //    {
-    //        qCritical() << Q_FUNC_INFO << ": Invalid subject hierarchy item for plan " << planNode->GetName();
-    //        return;
-    //    }
-    //    vtkSmartPointer<vtkMRMLScalarVolumeNode> newDoseVolume = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-    //    std::string newDoseVolumeName = std::string(planNode->GetName()) + "_TotalDose";
-    //    newDoseVolume->SetName(newDoseVolumeName.c_str());
-    //    this->mrmlScene()->AddNode(newDoseVolume);
-
-    //    // Move total dose volume under study (same branch as plan)
-    //    shNode->SetItemParent(shNode->GetItemByDataNode(newDoseVolume), shNode->GetItemParent(planShItemID));
-
-    //    // Set volume to plan
-    //    planNode->SetAndObserveOutputTotalDoseVolumeNode(newDoseVolume);
-
-    //    // Set also on UI
-    //    bool wasBlocked = d->MRMLNodeComboBox_DoseVolume->blockSignals(true);
-    //    d->MRMLNodeComboBox_DoseVolume->setCurrentNode(newDoseVolume);
-    //    d->MRMLNodeComboBox_DoseVolume->blockSignals(wasBlocked);
-    //}
   d->label_OptimizationStatus->setText("Starting optimization...");
 
   if (!this->mrmlScene())
@@ -1413,22 +1364,12 @@ void qSlicerExternalBeamPlanningModuleWidget::optimizePlanClicked()
     return;
   }
 
-    // ???
-    // not needed beacause only selectable when inverse?
   // Start timer
   QTime time;
   time.start();
   // Set busy cursor
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
-    //// If inverse planning is selected, we do a sanity check for the dose engine capabilities
-    //if (d->checkBox_InversePlanning->isChecked() && !selectedEngine->isInverse())
-    //{
-    //    QString errorString = QString("Selected Dose Engine %1 can't do dose influence matrix calculation!").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
-    //    d->label_OptimizationStatus->setText(errorString);
-    //    qCritical() << Q_FUNC_INFO << ": " << errorString;
-    //    return;
-    //}
   // Get selected optimizer engine
   qSlicerAbstractPlanOptimizer* selectedEngine =
     qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
