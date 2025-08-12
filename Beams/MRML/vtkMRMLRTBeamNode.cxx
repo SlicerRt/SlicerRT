@@ -75,14 +75,6 @@ vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
   this->CollimatorAngle = 0.0;
   this->CouchAngle = 0.0;
 
-  this->DoseGridDim[0] = -1;
-  this->DoseGridDim[1] = -1;
-  this->DoseGridDim[2] = -1;
-
-  this->DoseGridSpacing[0] = -1;
-  this->DoseGridSpacing[1] = -1;
-  this->DoseGridSpacing[2] = -1;
-
   this->SAD = 2000.0;
 
   this->SourceToJawsDistanceX = 500.;
@@ -976,7 +968,7 @@ void vtkMRMLRTBeamNode::SetDoseInfluenceMatrixFromTriplets(
   DoseInfluenceMatrixIndexVector& rows,
   DoseInfluenceMatrixIndexVector& columns,
   DoseInfluenceMatrixValueVector& values,
-  double* doseGridDim,
+  int* doseGridDim,
   double* doseGridSpacing
 )
 {
