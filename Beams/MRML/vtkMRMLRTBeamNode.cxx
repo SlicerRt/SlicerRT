@@ -970,13 +970,13 @@ void vtkMRMLRTBeamNode::SetDoseInfluenceMatrixFromTriplets(
 }
 
 //---------------------------------------------------------------------------
-int vtkMRMLRTBeamNode::GetDoseInfluenceMatrixRows()
+int vtkMRMLRTBeamNode::GetDoseInfluenceMatrixRowCount()
 {
   return this->DoseInfluenceMatrix.rows();
 }
 
 //---------------------------------------------------------------------------
-int vtkMRMLRTBeamNode::GetDoseInfluenceMatrixColumns()
+int vtkMRMLRTBeamNode::GetDoseInfluenceMatrixColumnCount()
 {
   return this->DoseInfluenceMatrix.cols();
 }
