@@ -2,7 +2,7 @@ import slicer
 import numpy as np
 from scipy.sparse import csc_matrix
 from PlanOptimizers import *
-from Python.prepareRTDataset import prepareCt, prepareCst, preparePln
+from Python.PyRadPlanUtils import prepareCt, prepareCst, preparePln
 
 class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
   """ pyRadPlan Optimizer for SlicerRT External Beam Planning Module.
