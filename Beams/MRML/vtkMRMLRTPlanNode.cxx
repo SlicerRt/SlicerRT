@@ -913,7 +913,7 @@ void vtkMRMLRTPlanNode::SetDoseGridSpacingComponent(int index, double value)
 {
   if (index < 0 || index > 2)
   {
-    vtkErrorMacro("setDoseGridSpacingensionComponent: Invalid index");
+    vtkErrorMacro("SetDoseGridSpacingComponent: Invalid index");
     return;
   }
 
