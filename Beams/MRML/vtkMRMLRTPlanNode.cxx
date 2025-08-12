@@ -260,7 +260,6 @@ void vtkMRMLRTPlanNode::SetPlanOptimizerName(const char* optimizerName)
   this->InvokeEvent(vtkMRMLRTPlanNode::PlanOptimizerChanged, this);
 }
 
-
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData)
 {
@@ -918,11 +917,11 @@ bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double center[3])
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::setDoseGridInCoordinate(int index, double value)
+void vtkMRMLRTPlanNode::SetDoseGridSpacingComponent(int index, double value)
 {
   if (index < 0 || index > 2)
   {
-    vtkErrorMacro("setDoseGridInCoordinate: Invalid index");
+    vtkErrorMacro("setDoseGridSpacingensionComponent: Invalid index");
     return;
   }
 
