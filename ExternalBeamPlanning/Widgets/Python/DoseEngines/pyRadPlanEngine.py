@@ -1,5 +1,5 @@
 from DoseEngines import *
-from Python.prepareRTDataset import prepareCt, prepareCst, preparePln
+from Python.PyRadPlanUtils import prepareCt, prepareCst, preparePln
 
 class pyRadPlanEngine(AbstractScriptedDoseEngine):
   """ Mock python dose engine to test python interface for External Beam Planning

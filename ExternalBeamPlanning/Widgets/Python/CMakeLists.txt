@@ -3,7 +3,7 @@ add_subdirectory(PlanOptimizers)
 
 #-----------------------------------------------------------------------------
 set(Python_PYTHON_SCRIPTS
-  prepareRTDataset.py
+  PyRadPlanUtils.py
   )
 
 ctkMacroCompilePythonScript(
