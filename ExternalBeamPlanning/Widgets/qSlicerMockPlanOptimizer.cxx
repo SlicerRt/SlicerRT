@@ -111,7 +111,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
     Eigen::VectorXd dose = doseInfluenceMatrix * vector;
 
     // Get dose grid dimensions & spacing
-    double doseGridDim[3];
+    int doseGridDim[3];
 	   beamNode->GetDoseGridDim(doseGridDim);
 
     double doseGridSpacing[3];
@@ -138,13 +138,19 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
       resample = false;
     }
 
+				// Set new dose grid spacing in planNode if necessary
+    if (doseGridSpacing != planNode->GetDoseGridSpacing())
+    {
+      planNode->SetDoseGridSpacing(doseGridSpacing);
+    }
+
     // Create volumeNode for dose of beam
     int N_x = static_cast<int>(doseGridDim[0]);
     int N_y = static_cast<int>(doseGridDim[1]);
     int N_z = static_cast<int>(doseGridDim[2]);
     vtkImageData* doseImageData = vtkImageData::New();
     doseImageData->SetDimensions(N_x, N_y, N_z);
-    doseImageData->SetSpacing(doseGridSpacing);
+    doseImageData->SetSpacing(reinterpret_cast<double*>(doseGridSpacing));
     doseImageData->AllocateScalars(VTK_FLOAT, 1);
           
     // Fill with dose (according to doseGridDim)

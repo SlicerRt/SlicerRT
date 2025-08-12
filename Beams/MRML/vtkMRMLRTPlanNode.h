@@ -201,15 +201,15 @@ public:
   vtkSetMacro(RxDose, double);
 
   /// Get dose grid spacing
-  vtkGetVector3Macro(DoseGrid, double);
+  vtkGetVector3Macro(DoseGridSpacing, double);
   /// Set dose grid spacing
-  vtkSetVector3Macro(DoseGrid, double);
+  vtkSetVector3Macro(DoseGridSpacing, double);
 
   /// Set dose grid in one coordinate
-  void setDoseGridInCoordinate(int index, double value);
+  void SetDoseGridSpacingComponent(int index, double value);
 
   /// Set dose grid to ct grid
-  void setDoseGridToCTGrid();
+  void SetDoseGridSpacingToCTGridSpacing();
 
   /// Get flag for ion plan
   vtkGetMacro( IonPlanFlag, bool);
@@ -255,7 +255,7 @@ protected:
   char* PlanOptimizerName;
 
   /// Allows user to specify dose volume resolution different from reference volume
-  double DoseGrid[3];
+  double DoseGridSpacing[3]{ 5.0,5.0,5.0 };
 
   /// Flag, indicates that a plan node is an ion plan node
   bool IonPlanFlag{ false };

@@ -67,10 +67,6 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 
   this->DoseEngineName = nullptr;
 
-  this->DoseGrid[0] = 5.0;
-  this->DoseGrid[1] = 5.0;
-  this->DoseGrid[2] = 5.0;
-
   this->IonPlanFlag = false;
 
   // Ensure the node shows up in subject hierarchy. Otherwise there is a crash.
@@ -96,7 +92,7 @@ void vtkMRMLRTPlanNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLStringMacro(DoseEngineName, DoseEngineName);
   vtkMRMLWriteXMLFloatMacro(RxDose, RxDose);
   vtkMRMLWriteXMLIntMacro(IsocenterSpecification, IsocenterSpecification);
-  vtkMRMLWriteXMLVectorMacro(DoseGrid, DoseGrid, double, 3);
+  vtkMRMLWriteXMLVectorMacro(DoseGridSpacing, DoseGridSpacing, double, 3);
   vtkMRMLWriteXMLBooleanMacro(IonPlanFlag, IonPlanFlag);
   vtkMRMLWriteXMLEndMacro();
 }
@@ -113,7 +109,7 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLStringMacro(DoseEngineName, DoseEngineName);
   vtkMRMLReadXMLFloatMacro(RxDose, RxDose);
   vtkMRMLReadXMLIntMacro(IsocenterSpecification, IsocenterSpecification);
-  vtkMRMLReadXMLVectorMacro(DoseGrid, DoseGrid, double, 3);
+  vtkMRMLReadXMLVectorMacro(DoseGridSpacing, DoseGridSpacing, double, 3);
   vtkMRMLReadXMLBooleanMacro(IonPlanFlag, IonPlanFlag);
   vtkMRMLReadXMLEndMacro();
 }
@@ -138,7 +134,7 @@ void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyIntMacro(IsocenterSpecification);
   vtkMRMLCopyIntMacro(NextBeamNumber);
   vtkMRMLCopyStringMacro(DoseEngineName);
-  vtkMRMLCopyVectorMacro(DoseGrid, double, 3);
+  vtkMRMLCopyVectorMacro(DoseGridSpacing, double, 3);
   vtkMRMLCopyBooleanMacro(IonPlanFlag);
   vtkMRMLCopyEndMacro();
 
@@ -177,7 +173,7 @@ void vtkMRMLRTPlanNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*/)
   vtkMRMLCopyIntMacro(IsocenterSpecification);
   vtkMRMLCopyIntMacro(NextBeamNumber);
   vtkMRMLCopyStringMacro(DoseEngineName);
-  vtkMRMLCopyVectorMacro(DoseGrid, double, 3);
+  vtkMRMLCopyVectorMacro(DoseGridSpacing, double, 3);
   vtkMRMLCopyBooleanMacro(IonPlanFlag);
   vtkMRMLCopyEndMacro();
 }
@@ -193,7 +189,7 @@ void vtkMRMLRTPlanNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintStringMacro(DoseEngineName);
   vtkMRMLPrintFloatMacro(RxDose);
   vtkMRMLPrintIntMacro(IsocenterSpecification);
-  vtkMRMLPrintVectorMacro(DoseGrid, double, 3);
+  vtkMRMLPrintVectorMacro(DoseGridSpacing, double, 3);
   vtkMRMLPrintBooleanMacro(IonPlanFlag);
 
   // Beams
@@ -916,32 +912,32 @@ bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double center[3])
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::setDoseGridInCoordinate(int index, double value)
+void vtkMRMLRTPlanNode::SetDoseGridSpacingComponent(int index, double value)
 {
   if (index < 0 || index > 2)
   {
-    vtkErrorMacro("setDoseGridInCoordinate: Invalid index");
+    vtkErrorMacro("setDoseGridSpacingensionComponent: Invalid index");
     return;
   }
 
-  this->DoseGrid[index] = value;
+  this->DoseGridSpacing[index] = value;
   this->Modified();
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::setDoseGridToCTGrid()
+void vtkMRMLRTPlanNode::SetDoseGridSpacingToCTGridSpacing()
 {
   vtkMRMLScalarVolumeNode* referenceVolumeNode = this->GetReferenceVolumeNode();
   if (!referenceVolumeNode)
   {
-    vtkErrorMacro("setDoseGridToCTGrid: Invalid reference volume node");
+    vtkErrorMacro("SetDoseGridSpacingToCTGridDim: Invalid reference volume node");
     return;
   }
   
   double spacing[3] = { 0.0, 0.0, 0.0 };
   referenceVolumeNode->GetSpacing(spacing);
 
-  this->setDoseGridInCoordinate(0, spacing[0]);
-  this->setDoseGridInCoordinate(1, spacing[1]);
-  this->setDoseGridInCoordinate(2, spacing[2]);
+  this->SetDoseGridSpacingComponent(0, spacing[0]);
+  this->SetDoseGridSpacingComponent(1, spacing[1]);
+  this->SetDoseGridSpacingComponent(2, spacing[2]);
 }

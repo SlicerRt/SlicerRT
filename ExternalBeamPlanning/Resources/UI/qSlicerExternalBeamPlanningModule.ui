@@ -573,7 +573,7 @@
       <item row="2" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_DoseGrid">
         <item>
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridX">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridSpacingX">
           <property name="value">
             <number>5</number>
           </property>
@@ -586,7 +586,7 @@
           </widget>
         </item>
         <item>
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridY">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridSpacingY">
           <property name="value">
             <number>5</number>
           </property>
@@ -599,7 +599,7 @@
           </widget>
         </item>
         <item>
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridZ">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridSpacingZ">
           <property name="value">
             <number>5</number>
           </property>
@@ -612,9 +612,9 @@
           </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_UseCTGridForDoseGrid">
+         <widget class="QPushButton" name="pushButton_UseCTGridForDoseGridSpacing">
           <property name="toolTip">
-           <string>Navigate slice views to slices where the isocenter is visible</string>
+           <string>Uses CT grid spacing for dose grid spacing</string>
           </property>
           <property name="text">
            <string>use ct grid</string>

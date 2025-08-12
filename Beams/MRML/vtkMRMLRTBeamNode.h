@@ -232,9 +232,9 @@ public:
   double GetDoseInfluenceMatrixSparsity();
 
   /// Get dose grid dimensions (on which the dose influence matrix is defined)
-  vtkGetVector3Macro(DoseGridDim, double);
+  vtkGetVector3Macro(DoseGridDim, int);
   /// Set dose grid dimensions (on which the dose influence matrix is defined)
-  vtkSetVector3Macro(DoseGridDim, double);
+  vtkSetVector3Macro(DoseGridDim, int);
 
   /// Get dose grid spacing (on which the dose influence matrix is defined)
   vtkGetVector3Macro(DoseGridSpacing, double);
@@ -247,7 +247,7 @@ public:
     DoseInfluenceMatrixIndexVector& rows,
     DoseInfluenceMatrixIndexVector& columns,
     DoseInfluenceMatrixValueVector& values,
-    double* doseGridDim = nullptr,
+    int* doseGridDim = nullptr,
     double* doseGridSpacing = nullptr
   );
   /// Get dose influence matrix as triplets
@@ -312,9 +312,9 @@ protected:
   DoseInfluenceMatrixType DoseInfluenceMatrix;
 
   /// Dose grid dimensions (on which the dose influence matrix is defined)
-  double DoseGridDim[3];
+  int DoseGridDim[3]{ -1,-1,-1 };
   /// Dose grid spaciing (on which the dose influence matrix is defined)
-  double DoseGridSpacing[3];
+  double DoseGridSpacing[3]{ -1,-1,-1 };
 
 protected:
 
