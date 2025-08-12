@@ -282,10 +282,10 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   // Output section
   connect( d->MRMLNodeComboBox_DoseVolume, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(doseVolumeNodeChanged(vtkMRMLNode*)) );
   connect( d->MRMLNodeComboBox_DoseROI, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(doseROINodeChanged(vtkMRMLNode*)) );
-  connect(d->doubleSpinBox_DoseGridX, SIGNAL(valueChanged(double)), this, SLOT(doseGridXChanged(double)));
-  connect(d->doubleSpinBox_DoseGridY, SIGNAL(valueChanged(double)), this, SLOT(doseGridYChanged(double)));
-  connect(d->doubleSpinBox_DoseGridZ, SIGNAL(valueChanged(double)), this, SLOT(doseGridZChanged(double)));  
-  connect(d->pushButton_UseCTGridForDoseGrid, SIGNAL(clicked()), this, SLOT(useCTGridForDoseGridClicked()));
+  connect(d->doubleSpinBox_DoseGridSpacingX, SIGNAL(valueChanged(double)), this, SLOT(doseGridSpacingXComponentChanged(double)));
+  connect(d->doubleSpinBox_DoseGridSpacingY, SIGNAL(valueChanged(double)), this, SLOT(doseGridSpacingYComponentChanged(double)));
+  connect(d->doubleSpinBox_DoseGridSpacingZ, SIGNAL(valueChanged(double)), this, SLOT(doseGridSpacingZComponentChanged(double)));
+  connect(d->pushButton_UseCTGridForDoseGridSpacing, SIGNAL(clicked()), this, SLOT(useCTGridForDoseGridSpacingClicked()));
 
   // Beams section
   //connect( d->BeamsTableView, SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(beamSelectionChanged(QItemSelection,QItemSelection) ) );
@@ -371,9 +371,9 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
   this->updateIsocenterPosition();
 
   // Update Dose Grid Spacing
-  d->doubleSpinBox_DoseGridX->setValue(planNode->GetDoseGrid()[0]);
-  d->doubleSpinBox_DoseGridY->setValue(planNode->GetDoseGrid()[1]);
-  d->doubleSpinBox_DoseGridZ->setValue(planNode->GetDoseGrid()[2]);
+  d->doubleSpinBox_DoseGridSpacingX->setValue(planNode->GetDoseGridSpacing()[0]);
+  d->doubleSpinBox_DoseGridSpacingY->setValue(planNode->GetDoseGridSpacing()[1]);
+  d->doubleSpinBox_DoseGridSpacingZ->setValue(planNode->GetDoseGridSpacing()[2]);
 
   // Populate dose engines combobox and make selection
   this->updateDoseEngines();
@@ -681,7 +681,7 @@ void qSlicerExternalBeamPlanningModuleWidget::doseROINodeChanged(vtkMRMLNode* no
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::doseGridChangedInCoordinate(int index, double value)
+void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingComponentChanged(int index, double value)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -699,30 +699,30 @@ void qSlicerExternalBeamPlanningModuleWidget::doseGridChangedInCoordinate(int in
   }
 
   planNode->DisableModifiedEventOn();
-  planNode->setDoseGridInCoordinate(index, value);
+  planNode->SetDoseGridSpacingComponent(index, value);
   planNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::doseGridXChanged(double value)
+void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingXComponentChanged(double value)
 {
-	 this->doseGridChangedInCoordinate(0, value);
+	 this->doseGridSpacingComponentChanged(0, value);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::doseGridYChanged(double value)
+void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingYComponentChanged(double value)
 {
-  this->doseGridChangedInCoordinate(1, value);
+  this->doseGridSpacingComponentChanged(1, value);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::doseGridZChanged(double value)
+void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingZComponentChanged(double value)
 {
-  this->doseGridChangedInCoordinate(2, value);
+  this->doseGridSpacingComponentChanged(2, value);
 }
 
 //----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::useCTGridForDoseGridClicked()
+void qSlicerExternalBeamPlanningModuleWidget::useCTGridForDoseGridSpacingClicked()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -741,7 +741,7 @@ void qSlicerExternalBeamPlanningModuleWidget::useCTGridForDoseGridClicked()
 
 
 	 planNode->DisableModifiedEventOn();
-	 planNode->setDoseGridToCTGrid();
+	 planNode->SetDoseGridSpacingToCTGridSpacing();
 	 planNode->DisableModifiedEventOff();
 
 	 // Update GUI

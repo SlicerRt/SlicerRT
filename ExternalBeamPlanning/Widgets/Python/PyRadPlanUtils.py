@@ -41,7 +41,7 @@ def prepareCst(beamNode, ct):
   return cst
 
 
-def preparePln(beamNode, ct, dose_grid_spacing_from_beamNode=False):
+def preparePln(beamNode, ct, dose_grid_from_beamNode=False):
   from pyRadPlan.plan import create_pln
   
   # Get isocenter position in RAS coordinates from Slicer
@@ -54,23 +54,27 @@ def preparePln(beamNode, ct, dose_grid_spacing_from_beamNode=False):
   isocenter = ijkToRASDirections @ np.array(isocenter)
 
   # Get dose grid by resampling ct grid to resolution defined in beamNode or planNode
-  if dose_grid_spacing_from_beamNode:
+  if dose_grid_from_beamNode:
     # Get dose grid specs saved in beamNode (corresponding to saved dose influence matrix)
     doseGridSpacing = beamNode.GetDoseGridSpacing()
     doseGridDimensions = beamNode.GetDoseGridDim()
     # Check if dose influence matrix is available in beamNode
     if beamNode.GetDoseInfluenceMatrixFieldData() is None:
       print("Warning: No dose influence matrix found in beamNode. Using planNode's dose grid spacing.")
-      doseGridSpacing = planNode.GetDoseGrid()
+      doseGridSpacing = planNode.GetDoseGridSpacing()
+    # Check if dose grid spacing was set in beamNode (default: {-1, -1, -1})
     if doseGridSpacing[0] < 0 or doseGridSpacing[1] < 0 or doseGridSpacing[2] < 0 :
       print("Warning: Dose grid spacing in beamNode is invalid. Using planNode's dose grid spacing.")
-      doseGridSpacing = planNode.GetDoseGrid()
+      doseGridSpacing = planNode.GetDoseGridSpacing()
     dose_grid = ct.grid.copy().resample(target_resolution=doseGridSpacing)
+    # Set new dose grid spacing in planNode if necessary
+    if doseGridSpacing != planNode.GetDoseGridSpacing():
+      planNode.SetDoseGridSpacing(doseGridSpacing)
     # Check if dose grid dimensions match for doseGrid dimensions in beamNode
     if (dose_grid.dimensions != doseGridDimensions):
       print("Warning: Dose grid dimensions in beamNode do not match the calculated dose grid dimensions.")
   else:
-    dose_grid = ct.grid.copy().resample(target_resolution=planNode.GetDoseGrid())
+    dose_grid = ct.grid.copy().resample(target_resolution=planNode.GetDoseGridSpacing())
 
   # Get radiation mode from beamNode
   if not planNode.ion_plan_flag:

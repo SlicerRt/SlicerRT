@@ -23,7 +23,6 @@
 #define __vtkMRMLRTPlanNode_h
 
 // Beams includes
-
 #include "vtkSlicerBeamsModuleMRMLExport.h"
 
 // MRML includes
@@ -32,7 +31,6 @@
 
 // SegmentationCore includes
 #include "vtkOrientedImageData.h"
-
 #include <vtkSmartPointer.h>
 
 class vtkCollection;
@@ -40,8 +38,6 @@ class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
-class vtkMRMLTableNode;
-//class vtkMRMLObjectiveNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
 /// \brief Base class of folder display node, so that it behaves as folder in Subject Hierarchy
@@ -189,11 +185,6 @@ public:
   /// Set output total dose volume node
   void SetAndObserveOutputTotalDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
 
-  /// Get dose reference table node
-  vtkMRMLTableNode* GetDoseReferenceTableNode();
-  /// Set dose reference table node
-  void SetAndObserveDoseReferenceTableNode(vtkMRMLTableNode* node);
-
   /// Get dose engine name
   vtkGetStringMacro(DoseEngineName);
   /// Set dose engine name (and invoke setting the default beam parameters for the new engine)
@@ -204,26 +195,21 @@ public:
   /// Set optimization engine name
   void SetPlanOptimizerName(const char* optimizerName);
 
-  // Get available objectives
-  //vtkGetMacro(PlanOptimizerAvailableObjectives, std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>>);
-  // Set available objectives from selected optimizer
-  //void SetPlanOptimizerAvailableObjectives(std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> availableObjectives);
-
   /// Get prescription dose
   vtkGetMacro(RxDose, double);
   /// Set prescription dose
   vtkSetMacro(RxDose, double);
 
   /// Get dose grid spacing
-  vtkGetVector3Macro(DoseGrid, double);
+  vtkGetVector3Macro(DoseGridSpacing, double);
   /// Set dose grid spacing
-  vtkSetVector3Macro(DoseGrid, double);
+  vtkSetVector3Macro(DoseGridSpacing, double);
 
   /// Set dose grid in one coordinate
-  void setDoseGridInCoordinate(int index, double value);
+  void SetDoseGridSpacingComponent(int index, double value);
 
   /// Set dose grid to ct grid
-  void setDoseGridToCTGrid();
+  void SetDoseGridSpacingToCTGridSpacing();
 
   /// Get flag for ion plan
   vtkGetMacro( IonPlanFlag, bool);
@@ -271,9 +257,8 @@ protected:
   /// Get available Objectives
   std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> PlanOptimizerAvailableObjectives;
 
-  ///TODO: Allow user to specify dose volume resolution different from reference volume
-  /// (currently output dose volume has the same spacing as the reference anatomy)
-  double DoseGrid[3]{ 0, 0, 0 };
+  /// Allows user to specify dose volume resolution different from reference volume
+  double DoseGridSpacing[3]{ 5.0,5.0,5.0 };
 
   /// Flag, indicates that a plan node is an ion plan node
   bool IonPlanFlag{ false };

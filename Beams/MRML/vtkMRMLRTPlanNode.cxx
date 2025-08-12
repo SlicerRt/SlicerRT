@@ -98,7 +98,7 @@ void vtkMRMLRTPlanNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLStringMacro(DoseEngineName, DoseEngineName);
   vtkMRMLWriteXMLFloatMacro(RxDose, RxDose);
   vtkMRMLWriteXMLIntMacro(IsocenterSpecification, IsocenterSpecification);
-  vtkMRMLWriteXMLVectorMacro(DoseGrid, DoseGrid, double, 3);
+  vtkMRMLWriteXMLVectorMacro(DoseGridSpacing, DoseGridSpacing, double, 3);
   vtkMRMLWriteXMLBooleanMacro(IonPlanFlag, IonPlanFlag);
   vtkMRMLWriteXMLEndMacro();
 }
@@ -115,7 +115,7 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLStringMacro(DoseEngineName, DoseEngineName);
   vtkMRMLReadXMLFloatMacro(RxDose, RxDose);
   vtkMRMLReadXMLIntMacro(IsocenterSpecification, IsocenterSpecification);
-  vtkMRMLReadXMLVectorMacro(DoseGrid, DoseGrid, double, 3);
+  vtkMRMLReadXMLVectorMacro(DoseGridSpacing, DoseGridSpacing, double, 3);
   vtkMRMLReadXMLBooleanMacro(IonPlanFlag, IonPlanFlag);
   vtkMRMLReadXMLEndMacro();
 }
@@ -140,7 +140,7 @@ void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyIntMacro(IsocenterSpecification);
   vtkMRMLCopyIntMacro(NextBeamNumber);
   vtkMRMLCopyStringMacro(DoseEngineName);
-  vtkMRMLCopyVectorMacro(DoseGrid, double, 3);
+  vtkMRMLCopyVectorMacro(DoseGridSpacing, double, 3);
   vtkMRMLCopyBooleanMacro(IonPlanFlag);
   vtkMRMLCopyEndMacro();
 
@@ -179,7 +179,7 @@ void vtkMRMLRTPlanNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*/)
   vtkMRMLCopyIntMacro(IsocenterSpecification);
   vtkMRMLCopyIntMacro(NextBeamNumber);
   vtkMRMLCopyStringMacro(DoseEngineName);
-  vtkMRMLCopyVectorMacro(DoseGrid, double, 3);
+  vtkMRMLCopyVectorMacro(DoseGridSpacing, double, 3);
   vtkMRMLCopyBooleanMacro(IonPlanFlag);
   vtkMRMLCopyEndMacro();
 }
@@ -195,7 +195,7 @@ void vtkMRMLRTPlanNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintStringMacro(DoseEngineName);
   vtkMRMLPrintFloatMacro(RxDose);
   vtkMRMLPrintIntMacro(IsocenterSpecification);
-  vtkMRMLPrintVectorMacro(DoseGrid, double, 3);
+  vtkMRMLPrintVectorMacro(DoseGridSpacing, double, 3);
   vtkMRMLPrintBooleanMacro(IonPlanFlag);
 
   // Beams
@@ -478,24 +478,6 @@ void vtkMRMLRTPlanNode::SetAndObserveOutputTotalDoseVolumeNode(vtkMRMLScalarVolu
     }
 
   this->SetNodeReferenceID(OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
-}
-
-//----------------------------------------------------------------------------
-vtkMRMLTableNode* vtkMRMLRTPlanNode::GetDoseReferenceTableNode()
-{
-  return vtkMRMLTableNode::SafeDownCast(this->GetNodeReference(DOSE_REFERENCE_TABLE_ROLE));
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLRTPlanNode::SetAndObserveDoseReferenceTableNode(vtkMRMLTableNode* node)
-{
-  if (node && this->Scene != node->GetScene())
-    {
-    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
-    return;
-    }
-
-  this->SetNodeReferenceID(DOSE_REFERENCE_TABLE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //---------------------------------------------------------------------------
@@ -915,56 +897,22 @@ bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double center[3])
     vtkErrorMacro("ComputeTargetVolumeCenter: Invalid MRML scene");
     return false;
   }
-
-  // Get a labelmap for the target
-  vtkSmartPointer<vtkOrientedImageData> targetLabelmap = this->GetTargetOrientedImageData();
-  if (targetLabelmap.GetPointer() == nullptr)
+  vtkMRMLSegmentationNode* segmentationNode = this->GetSegmentationNode();
+  if (!segmentationNode)
   {
     vtkErrorMacro("ComputeTargetVolumeCenter: Failed to get target segmentation node");
     return false;
   }
-
-  // Compute image center
-  int extent[6] = {0,-1,0,-1,0,-1};
-  targetLabelmap->GetExtent(extent);
-  unsigned long numOfNonZeroVoxels = 0;
-  unsigned long sumX = 0;
-  unsigned long sumY = 0;
-  unsigned long sumZ = 0;
-  for (int z=extent[4]; z<extent[5]; ++z)
+  if (!this->TargetSegmentID)
   {
-    for (int y=extent[2]; y<extent[3]; ++y)
-    {
-      for (int x=extent[0]; x<extent[1]; ++x)
-      {
-        unsigned char value = targetLabelmap->GetScalarComponentAsDouble(x, y, z, 0);
-        if (value)
-        {
-          numOfNonZeroVoxels++;
-          sumX += x;
-          sumY += y;
-          sumZ += z;
+    vtkErrorMacro("ComputeTargetVolumeCenter: No target segment specified");
+    return false;
   }
-      }
-    }
-  }
-  double centerIjk[4] = {0.0};
-  if (numOfNonZeroVoxels > 0)
-  {
-    centerIjk[0] = (double)sumX / (double)numOfNonZeroVoxels;
-    centerIjk[1] = (double)sumY / (double)numOfNonZeroVoxels;
-    centerIjk[2] = (double)sumZ / (double)numOfNonZeroVoxels;
-    centerIjk[3] = 1.0;
 
-    vtkNew<vtkMatrix4x4> imageToWorldMatrix;
-    targetLabelmap->GetImageToWorldMatrix(imageToWorldMatrix);
-    double centerRas[4] = {0.0};
-    imageToWorldMatrix->MultiplyPoint(centerIjk, centerRas);
-
+  double* centerRas = segmentationNode->GetSegmentCenterRAS(this->TargetSegmentID);
   center[0] = centerRas[0];
   center[1] = centerRas[1];
   center[2] = centerRas[2];
-  }
 
   return true;
 }
@@ -972,30 +920,30 @@ bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double center[3])
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::setDoseGridInCoordinate(int index, double value)
 {
-    if (index < 0 || index > 2)
-    {
-        vtkErrorMacro("setDoseGridInCoordinate: Invalid index");
-        return;
-    }
+  if (index < 0 || index > 2)
+  {
+    vtkErrorMacro("setDoseGridInCoordinate: Invalid index");
+    return;
+  }
 
-    this->DoseGrid[index] = value;
-	this->Modified();
+  this->DoseGrid[index] = value;
+  this->Modified();
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::setDoseGridToCTGrid()
 {
-    vtkMRMLScalarVolumeNode* referenceVolumeNode = this->GetReferenceVolumeNode();
-    if (!referenceVolumeNode)
-    {
-        vtkErrorMacro("setDoseGridToCTGrid: Invalid reference volume node");
-        return;
-    }
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = this->GetReferenceVolumeNode();
+  if (!referenceVolumeNode)
+  {
+    vtkErrorMacro("setDoseGridToCTGrid: Invalid reference volume node");
+    return;
+  }
+  
+  double spacing[3] = { 0.0, 0.0, 0.0 };
+  referenceVolumeNode->GetSpacing(spacing);
 
-	double spacing[3] = { 0.0, 0.0, 0.0 };
-    referenceVolumeNode->GetSpacing(spacing);
-
-    this->setDoseGridInCoordinate(0, spacing[0]);
-    this->setDoseGridInCoordinate(1, spacing[1]);
-    this->setDoseGridInCoordinate(2, spacing[2]);
+  this->setDoseGridInCoordinate(0, spacing[0]);
+  this->setDoseGridInCoordinate(1, spacing[1]);
+  this->setDoseGridInCoordinate(2, spacing[2]);
 }
