@@ -240,9 +240,9 @@ public:
   vtkGetMacro(DoseInfluenceMatrix, DoseInfluenceMatrixType);
 
   /// Get the number of rows in dose influence matrix
-  int GetDoseInfluenceMatrixRows();
+  int GetDoseInfluenceMatrixRowCount();
   /// Get the number of columns in dose influence matrix
-  int GetDoseInfluenceMatrixColumns();
+  int GetDoseInfluenceMatrixColumnCount();
   /// Get the number of non-zero elements in dose influence matrix
   int GetDoseInfluenceMatrixNumberOfNonZeroElements();
   /// Get dose influence matrix sparsity (number of non-zero elements divided by total number of elements)
