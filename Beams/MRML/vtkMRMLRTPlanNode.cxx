@@ -67,8 +67,6 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 
   this->DoseEngineName = nullptr;
 
-  this->IonPlanFlag = false;
-
   // Ensure the node shows up in subject hierarchy. Otherwise there is a crash.
   this->HideFromEditorsOff();
 }
@@ -253,7 +251,6 @@ void vtkMRMLRTPlanNode::SetPlanOptimizerName(const char* optimizerName)
   this->Modified();
   this->InvokeEvent(vtkMRMLRTPlanNode::PlanOptimizerChanged, this);
 }
-
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::ProcessMRMLEvents(vtkObject *caller, unsigned long eventID, void *callData)
