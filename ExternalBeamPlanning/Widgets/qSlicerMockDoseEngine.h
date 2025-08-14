@@ -21,9 +21,8 @@
 #ifndef __qSlicerMockDoseEngine_h
 #define __qSlicerMockDoseEngine_h
 
-#include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
-
 // ExternalBeamPlanning includes
+#include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 #include "qSlicerAbstractDoseEngine.h"
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning

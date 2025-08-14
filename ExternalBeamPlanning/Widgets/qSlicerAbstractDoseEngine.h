@@ -21,6 +21,7 @@
 #ifndef __qSlicerAbstractDoseEngine_h
 #define __qSlicerAbstractDoseEngine_h
 
+// ExternalBeamPlanning includes
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
 // Qt includes

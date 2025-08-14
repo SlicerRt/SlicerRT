@@ -19,9 +19,8 @@ This file was originally developed by Niklas Wahl, German Cancer Research Center
 #ifndef __qSlicerAbstractPlanOptimizer_h
 #define __qSlicerAbstractPlanOptimizer_h
 
+// ExternalBeamPlanning includes
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
-
-// Objectives includes
 #include "qSlicerAbstractObjective.h"
 
 // Qt includes
