@@ -18,7 +18,7 @@
 
 ==============================================================================*/
 
-// Dose engines includes
+// ExternalBeamPlanning includes
 #include "qSlicerMockDoseEngine.h"
 
 // Beams includes

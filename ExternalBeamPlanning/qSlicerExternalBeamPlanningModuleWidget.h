@@ -22,10 +22,11 @@
 #ifndef __qSlicerExternalBeamPlanningModuleWidget_h
 #define __qSlicerExternalBeamPlanningModuleWidget_h
 
+// ExternalBeamPlanning includes
+#include "qSlicerExternalBeamPlanningModuleExport.h"
+
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
-
-#include "qSlicerExternalBeamPlanningModuleExport.h"
 
 class qSlicerExternalBeamPlanningModuleWidgetPrivate;
 class vtkMRMLNode;

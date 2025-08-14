@@ -23,10 +23,9 @@
 #ifndef __qSlicerScriptedDoseEngine_h
 #define __qSlicerScriptedDoseEngine_h
 
-// Dose engines includes
-#include "qSlicerAbstractDoseEngine.h"
-
+// ExternalBeamPlanning includes
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
+#include "qSlicerAbstractDoseEngine.h"
 
 // Forward Declare PyObject*
 #ifndef PyObject_HEAD

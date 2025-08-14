@@ -18,7 +18,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
-// Dose engines includes
+// ExternalBeamPlanning includes
 #include "qSlicerAbstractDoseEngine.h"
 
 // Beams includes

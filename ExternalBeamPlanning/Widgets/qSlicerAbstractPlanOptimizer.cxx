@@ -16,10 +16,10 @@ This file was originally developed by Niklas Wahl, German Cancer Research Center
 
 ==============================================================================*/
 
-// Optimization engines includes
+// ExternalBeamPlanning includes
 #include "qSlicerAbstractPlanOptimizer.h"
 
-// Plan
+// Beams includes
 #include "vtkMRMLRTPlanNode.h"
 
 // SlicerRT includes

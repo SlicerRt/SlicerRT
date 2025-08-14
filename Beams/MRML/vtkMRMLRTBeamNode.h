@@ -28,7 +28,7 @@
 // MRML includes
 #include <vtkMRMLModelNode.h>
 
-// Eigen includes
+// ITK includes
 #include <itkeigen/Eigen/SparseCore>
 
 // VTK includes

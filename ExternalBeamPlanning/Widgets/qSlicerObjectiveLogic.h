@@ -21,6 +21,7 @@ Research Center (DKFZ)
 #ifndef __qSlicerObjectiveLogic_h
 #define __qSlicerObjectiveLogic_h
 
+// ExternalBeamPlanning includes
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
 // SlicerQt includes

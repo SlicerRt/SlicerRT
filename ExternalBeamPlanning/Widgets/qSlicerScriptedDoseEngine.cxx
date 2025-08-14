@@ -20,7 +20,7 @@
 
 ==============================================================================*/
 
-// DoseEngines includes
+// ExternalBeamPlanning includes
 #include "qSlicerScriptedDoseEngine.h"
 
 // Beams includes

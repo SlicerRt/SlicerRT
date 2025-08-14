@@ -16,9 +16,8 @@
 
 ==============================================================================*/
 
-// Dose engines includes
+// ExternalBeamPlanning includes
 #include "qSlicerPlanOptimizerLogic.h"
-
 #include "qSlicerPlanOptimizerPluginHandler.h"
 #include "qSlicerAbstractPlanOptimizer.h"
 

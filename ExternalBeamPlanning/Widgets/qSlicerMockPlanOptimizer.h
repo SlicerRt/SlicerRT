@@ -21,9 +21,8 @@ Research Center (DKFZ)
 #ifndef __qSlicerMockPlanOptimizer_h
 #define __qSlicerMockPlanOptimizer_h
 
-#include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
-
 // ExternalBeamPlanning includes
+#include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 #include "qSlicerAbstractPlanOptimizer.h"
 
 // VTK includes

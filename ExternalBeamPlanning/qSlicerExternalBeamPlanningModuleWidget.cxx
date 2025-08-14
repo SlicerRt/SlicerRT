@@ -41,21 +41,15 @@
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkSlicerBeamsModuleLogic.h"
 
-// ExternalBeamPlanning
+// ExternalBeamPlanning includes
 #include "vtkSlicerExternalBeamPlanningModuleLogic.h"
 #include "vtkMRMLRTObjectiveNode.h"
-
-// DoseEngines includes
 #include "qSlicerDoseEnginePluginHandler.h"
 #include "qSlicerAbstractDoseEngine.h"
 #include "qSlicerDoseEngineLogic.h"
-
-// Optimization Engine includes
 #include "qSlicerPlanOptimizerPluginHandler.h"
 #include "qSlicerAbstractPlanOptimizer.h"
 #include "qSlicerPlanOptimizerLogic.h"
-
-// Objectives includes
 #include "qSlicerObjectivePluginHandler.h"
 #include "qSlicerAbstractObjective.h"
 #include "qSlicerObjectiveLogic.h"

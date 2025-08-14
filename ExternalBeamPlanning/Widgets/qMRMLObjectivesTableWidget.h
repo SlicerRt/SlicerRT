@@ -21,7 +21,7 @@ Research Center (DKFZ)
 #ifndef __qMRMLObjectivesTableWidget_h
 #define __qMRMLObjectivesTableWidget_h
 
-// External Beam Planning includes
+// ExternalBeamPlanning includes
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
 // MRMLWidgets includes

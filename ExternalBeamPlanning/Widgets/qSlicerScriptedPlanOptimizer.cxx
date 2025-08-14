@@ -17,7 +17,7 @@
   This file was originally developed by Niklas Wahl, German Cancer Research Center (DKFZ)
 ==============================================================================*/
 
-// PlanOptimizers includes
+// ExternalBeamPlanning includes
 #include "qSlicerScriptedPlanOptimizer.h"
 
 // Beams includes
