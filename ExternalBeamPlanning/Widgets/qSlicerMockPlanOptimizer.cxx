@@ -18,15 +18,13 @@ Research Center (DKFZ)
 
 ==============================================================================*/
 
-// Optimizer includes
+// ExternalBeamPlanning includes
 #include "qSlicerMockPlanOptimizer.h"
+#include "qSlicerSquaredDeviationObjective.h"
 
 // Beams includes
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
-
-// Objectives includes
-#include "qSlicerSquaredDeviationObjective.h"
 
 // MRML includes
 #include "vtkMRMLScalarVolumeNode.h"

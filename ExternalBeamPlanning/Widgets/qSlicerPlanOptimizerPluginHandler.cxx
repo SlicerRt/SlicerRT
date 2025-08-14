@@ -16,7 +16,7 @@
 
 ==============================================================================*/
 
-// PlanOptimizers includes
+// ExternalBeamPlanning includes
 #include "qSlicerPlanOptimizerPluginHandler.h"
 #include "qSlicerAbstractPlanOptimizer.h"
 

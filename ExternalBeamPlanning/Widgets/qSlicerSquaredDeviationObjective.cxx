@@ -18,7 +18,7 @@ Research Center (DKFZ)
 
 ==============================================================================*/
 
-// Objective includes
+// ExternalBeamPlanning includes
 #include "qSlicerSquaredDeviationObjective.h"
 #include "qSlicerAbstractObjective.h"
 

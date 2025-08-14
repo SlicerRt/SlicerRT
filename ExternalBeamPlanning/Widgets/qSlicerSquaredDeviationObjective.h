@@ -21,9 +21,8 @@ Research Center (DKFZ)
 #ifndef __qSlicerSquaredDeviationObjective_h
 #define __qSlicerSquaredDeviationObjective_h
 
-#include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
-
 // ExternalBeamPlanning includes
+#include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 #include "qSlicerAbstractObjective.h"
 
 class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerSquaredDeviationObjective : public qSlicerAbstractObjective

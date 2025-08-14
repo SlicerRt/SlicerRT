@@ -21,6 +21,7 @@ Research Center (DKFZ)
 #ifndef __qSlicerAbstractObjective_h
 #define __qSlicerAbstractObjective_h
 
+// ExternalBeamPlanning includes
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
 // Qt includes
@@ -29,13 +30,11 @@ Research Center (DKFZ)
 #include <QMap>
 #include <QVariant>
 
-// Eigen includes
+// ITK includes
 #include <itkeigen/Eigen/SparseCore>
 
 class qSlicerAbstractObjectivePrivate;
-// class vtkMRMLScalarVolumeNode;
 class vtkMRMLNode;
-// class qMRMLBeamParametersTabWidget;
 class vtkMRMLRTObjectiveNode;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning

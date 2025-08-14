@@ -19,6 +19,7 @@
 #ifndef __qSlicerPlanOptimizerLogic_h
 #define __qSlicerPlanOptimizerLogic_h
 
+// ExternalBeamPlanning includes
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
 
 // SlicerQt includes

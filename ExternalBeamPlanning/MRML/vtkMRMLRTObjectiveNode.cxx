@@ -18,7 +18,7 @@ Research Center (DKFZ)
 
 ==============================================================================*/
 
-// MRMLObjective includes
+// ExternalBeamPlanning includes
 #include "vtkMRMLRTObjectiveNode.h"
 
 //------------------------------------------------------------------------------

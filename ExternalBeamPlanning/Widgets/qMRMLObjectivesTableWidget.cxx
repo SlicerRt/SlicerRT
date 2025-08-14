@@ -18,11 +18,9 @@ Research Center (DKFZ)
 
 ==============================================================================*/
 
-// Objectives includes
+// ExternalBeamPlanning includes
 #include "qMRMLObjectivesTableWidget.h"
 #include "ui_qMRMLObjectivesTableWidget.h"
-
-// Optimization Engine includes
 #include "qSlicerPlanOptimizerPluginHandler.h"
 #include "qSlicerAbstractPlanOptimizer.h"
 

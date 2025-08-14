@@ -18,7 +18,7 @@ Research Center (DKFZ)
 
 ==============================================================================*/
 
-// Objectives includes
+// ExternalBeamPlanning includes
 #include "qSlicerObjectivePluginHandler.h"
 #include "qSlicerAbstractObjective.h"
 

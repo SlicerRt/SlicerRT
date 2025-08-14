@@ -22,6 +22,7 @@ Research Center (DKFZ)
 #ifndef __vtkMRMLRTObjectiveNode_h
 #define __vtkMRMLRTObjectiveNode_h
 
+// ExternalBeamPlanning includes
 #include "vtkSlicerExternalBeamPlanningModuleMRMLExport.h"
 
 // MRML includes

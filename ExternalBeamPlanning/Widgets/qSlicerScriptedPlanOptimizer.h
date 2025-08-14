@@ -20,11 +20,9 @@
 #ifndef __qSlicerScriptedPlanOptimizer_h
 #define __qSlicerScriptedPlanOptimizer_h
 
-// Optimization engines includes
-#include "qSlicerAbstractPlanOptimizer.h"
-
 // ExternalBeamPlanning includes
 #include "qSlicerExternalBeamPlanningModuleWidgetsExport.h"
+#include "qSlicerAbstractPlanOptimizer.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>

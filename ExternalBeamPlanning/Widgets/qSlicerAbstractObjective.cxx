@@ -18,7 +18,7 @@ Research Center (DKFZ)
 
 ==============================================================================*/
 
-// Optimization engines includes
+// ExternalBeamPlanning includes
 #include "qSlicerAbstractObjective.h"
 
 // Qt includes
