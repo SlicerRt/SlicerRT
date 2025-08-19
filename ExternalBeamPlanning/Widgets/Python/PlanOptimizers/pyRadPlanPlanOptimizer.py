@@ -33,8 +33,16 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
       if not objective_node:
         raise ValueError("Objective node is not set. Please select an objective node in the Slicer objectives table.")
       
-      # Get segmentation and objective information
-      segmentation = objective_node.GetSegmentation()
+      # Get segmentation 
+      segmentationNode = objective_node.GetSegmentationNode()
+      if not segmentationNode:
+        raise ValueError("Segmentation node is not set for objective node. Please select a segmentation node in the Slicer objectives table.")
+      segmentID = objective_node.GetSegmentID()
+      if not segmentID:
+        raise ValueError("Segment ID is not set for objective node. Please select a segment in the Slicer objectives table.")
+      segmentName = segmentationNode.GetSegmentation().GetSegment(segmentID).GetName()
+
+      # Get objective information
       objective_info = {
         'objectiveName': objective_node.GetName(),
         'overlapPriority': objective_node.GetAttribute('overlapPriority'),
@@ -43,10 +51,11 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
       }
 
       # Save objectives for each segmentation
-      if segmentation not in objectives_dict:
-        objectives_dict[segmentation] = [objective_info]
+      if segmentName not in objectives_dict:
+        objectives_dict[segmentName] = [objective_info]
       else:
-        objectives_dict[segmentation].append(objective_info)
+        objectives_dict[segmentName].append(objective_info)
+
 
     ###################################### Get overlap priorites #########################################
     overlap_priority_dict = {}
@@ -94,7 +103,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
       # Prepare the ct
       ct = prepareCt(beamNode)
 
-      # Prepare the cst (segmentations)
+      # Prepare the cst
       cst = prepareCst(beamNode, ct)
 
       # Prepare the plan configuration
