@@ -21,6 +21,12 @@ Research Center (DKFZ)
 // ExternalBeamPlanning includes
 #include "vtkMRMLRTObjectiveNode.h"
 
+// MRML includes
+#include <vtkMRMLSegmentationNode.h>
+
+// Qt includes
+#include <QDebug>
+
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLRTObjectiveNode);
 
@@ -91,14 +97,27 @@ void vtkMRMLRTObjectiveNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintEndMacro();
 }
 
-//---------------------------------------------------------------------------
-void vtkMRMLRTObjectiveNode::SetSegmentation(std::string segmentationName)
+//----------------------------------------------------------------------------
+vtkMRMLSegmentationNode* vtkMRMLRTObjectiveNode::GetSegmentationNode()
 {
-		this->Segmentation = segmentationName;
+		return this->SegmentationNode;
 }
 
 //----------------------------------------------------------------------------
-std::string vtkMRMLRTObjectiveNode::GetSegmentation()
+std::string vtkMRMLRTObjectiveNode::GetSegmentID()
 {
-		return this->Segmentation;
+		return this->SegmentID;
+}
+
+//---------------------------------------------------------------------------
+void vtkMRMLRTObjectiveNode::SetSegmentationAndSegmentID(vtkMRMLSegmentationNode* segmentationNode, std::string segmentID)
+{
+		if (!segmentationNode->GetSegmentation()->GetSegment(segmentID))
+		{
+				qCritical() << Q_FUNC_INFO << ": Segment with ID" << segmentID.c_str() << "not found in segmentation";
+				return;
+		}
+
+		this->SegmentationNode = segmentationNode;
+		this->SegmentID = segmentID;
 }

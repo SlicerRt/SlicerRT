@@ -28,6 +28,8 @@ Research Center (DKFZ)
 // MRML includes
 #include "vtkMRMLNode.h"
 
+class vtkMRMLSegmentationNode;
+
 class  VTK_SLICER_EXTERNALBEAMPLANNING_MODULE_MRML_EXPORT vtkMRMLRTObjectiveNode : public vtkMRMLNode
 {
 public:
@@ -53,10 +55,14 @@ public:
   vtkGetStringMacro(Name);
   vtkSetStringMacro(Name);
 
-  /// Set name of segmentation assigned to this objective
-  void SetSegmentation(std::string segmentationName);
-  /// Get name of segmentation assigned to this objective
-  std::string GetSegmentation();
+  /// Get node reference to segmentation
+  vtkMRMLSegmentationNode* GetSegmentationNode();
+
+		/// Set ID of segment assigned to this objective
+  std::string GetSegmentID();
+
+  /// Set node reference to segmentation
+  void SetSegmentationAndSegmentID(vtkMRMLSegmentationNode* segmentationNode, std::string segmentID);
 
 protected:
   vtkMRMLRTObjectiveNode();
@@ -65,8 +71,12 @@ protected:
   void operator=(const vtkMRMLRTObjectiveNode&);
 
   char* Name;
-  /// Name of the segmentation assigned to this objective
-  std::string Segmentation;
+
+		/// node reference to the segmentation containing the segment
+		vtkMRMLSegmentationNode* SegmentationNode;
+		/// ID of the segment assigned to this objective
+  std::string SegmentID;
+
 
 };
 
