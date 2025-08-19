@@ -240,7 +240,6 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
 
   // Objectives (Combo Box)
   QComboBox* objectivesDropdown = new QComboBox();
-  QStringList objectives;
   for (auto objective : availableObjectives)
   {
     QVariant var;
@@ -255,7 +254,6 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
 
   // Segmentations (ComboBox)
   QComboBox* segmentationsDropdown = new QComboBox();
-  QStringList segmentationsList;
 
   vtkMRMLSegmentationNode* segmentationNode = planNode->GetSegmentationNode();
   if (!segmentationNode)
@@ -267,16 +265,17 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
   std::vector<std::string> segmentIDs;
   segmentationNode->GetSegmentation()->GetSegmentIDs(segmentIDs);
 
-  for (const std::string& segmentID : segmentIDs)
-  {
-    vtkSegment* segment = segmentation->GetSegment(segmentID);
-    if (segment)
-    {
-      QVariant var;
-      var.setValue(static_cast<void*>(segment));
-      segmentationsDropdown->addItem(segment->GetName(), var);
-    }
+  for (const std::string& segmentID : segmentIDs)  
+  {  
+      vtkSegment* segment = segmentation->GetSegment(segmentID);  
+      if (segment)  
+      {  
+          QVariant var;  
+          var.setValue(QString::fromStdString(segmentID));
+          segmentationsDropdown->addItem(segment->GetName(), var);
+      }  
   }
+
   d->ObjectivesTable->setCellWidget(row, d->columnIndex("Segments"), segmentationsDropdown);
   connect(segmentationsDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, row]
   {
@@ -304,19 +303,25 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
   QComboBox* objectivesDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("ObjectiveName")));
   QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
 
-  QString segmentName = segmentationsDropdown->currentText();
-  if (segmentName.isEmpty())
+  QString segmentID = segmentationsDropdown->currentData().toString();
+  if (segmentID.isEmpty())
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid segment name!";
+    qCritical() << Q_FUNC_INFO << ": Segment ID is empty!";
     return;
   }
+		vtkMRMLSegmentationNode* segmentationNode = d->PlanNode->GetSegmentationNode();
+		if (!segmentationNode)
+		{
+				qCritical() << Q_FUNC_INFO << ": Invalid segmentation node";
+				return;
+		}
 
   qSlicerAbstractPlanOptimizer::ObjectiveStruct objectiveStruct = objectivesDropdown->currentData().value<qSlicerAbstractPlanOptimizer::ObjectiveStruct>();
-  
+
   // Create new objective node
   vtkMRMLRTObjectiveNode* objectiveNode = vtkMRMLRTObjectiveNode::New();
 	 objectiveNode->SetName(objectiveStruct.name.c_str());
-  objectiveNode->SetSegmentation(segmentName.toStdString());
+		objectiveNode->SetSegmentationAndSegmentID(segmentationNode, segmentID.toStdString());
 
   // Create overlap priority SpinBox
   int overlapPriorityValue = this->findOverlapPriorityValueOfSegment(row);
@@ -329,7 +334,7 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
   {
     this->onOverlapPriorityChanged(newValue, objectiveNode);
   });
-    
+
   // Create penalty SpinBox
   QSpinBox* penaltySpinBox = new QSpinBox();
 	 penaltySpinBox->setValue(10);
@@ -413,10 +418,28 @@ void qMRMLObjectivesTableWidget::onSegmentChanged(int row)
 
   // Get newly selected segmentation
   QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
-	 QString segmentName = segmentationsDropdown->currentText();
+  QString segmentID = segmentationsDropdown->currentData().toString();
+  if (segmentID.isEmpty())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid segment ID!";
+    return;
+  }
+  vtkMRMLSegmentationNode* segmentationNode = d->PlanNode->GetSegmentationNode();
+  if (!segmentationNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid segmentation node";
+    return;
+  }
+  vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(segmentID.toStdString());
+  if (!segment)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid segment!";
+    return;
+  }
+  QString segmentName = segment->GetName();
 
   // Set segmentation in objectiveNode
-  this->currentObjectiveNodes[row]->SetSegmentation(segmentName.toStdString().c_str());
+		this->currentObjectiveNodes[row]->SetSegmentationAndSegmentID(segmentationNode, segmentID.toStdString());
 
   // Update objectives in optimizer
   this->setObjectivesInPlanOptimizer();
@@ -433,7 +456,21 @@ void qMRMLObjectivesTableWidget::onOverlapPriorityChanged(int newValue, vtkMRMLR
   
   objectiveNode->SetAttribute("overlapPriority", std::to_string(newValue).c_str());
 
-	 this->updateOverlapPriorityForSegment(objectiveNode->GetSegmentation().c_str(), newValue);
+  vtkMRMLSegmentationNode* segmentationNode = objectiveNode->GetSegmentationNode();
+  if (!segmentationNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid segmentation node";
+    return;
+  }
+  vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(objectiveNode->GetSegmentID());
+  if (!segment)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid segment!";
+    return;
+  }
+  QString segmentName = segment->GetName();
+
+	 this->updateOverlapPriorityForSegment(segmentName, newValue);
 }
 
 //------------------------------------------------------------------------------

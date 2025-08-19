@@ -22,15 +22,15 @@ def prepareCst(beamNode, ct):
   # Get segmentations from Slicer
   planNode = beamNode.GetParentPlanNode()
   referenceVolumeNode = planNode.GetReferenceVolumeNode()
-  node = planNode.GetSegmentationNode()
-  segNode = node.GetSegmentation()
+  segmentationNode = planNode.GetSegmentationNode()
+  segmentation = segmentationNode.GetSegmentation()
 
   # Create VOI objects from segments
   vois = []
-  for id in segNode.GetSegmentIDs():
-    segmentArray = slicer.util.arrayFromSegmentBinaryLabelmap(node, id, referenceVolumeNode)
+  for id in segmentation.GetSegmentIDs():
+    segmentArray = slicer.util.arrayFromSegmentBinaryLabelmap(segmentationNode, id, referenceVolumeNode)
     segmentArray = np.uint8(segmentArray)
-    segmentName = segNode.GetSegment(id).GetName()
+    segmentName = segmentation.GetSegment(id).GetName()
     # Set VOI type as 'TARGET' if segment is selected as target, otherwise 'OAR'
     voi_type = 'TARGET' if id==planNode.GetTargetSegmentID() else 'OAR'
     voi = create_voi(voi_type=voi_type, name=segmentName, ct_image=ct, mask=segmentArray)
