@@ -1,7 +1,7 @@
 /*==============================================================================
 
-  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
-  Queen's University, Kingston, ON, Canada. All Rights Reserved.
+  Copyright (c) German Cancer Research Center (DKFZ),
+  Heidelberg, Germany. All Rights Reserved..
 
   See COPYRIGHT.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -12,7 +12,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-   This file was originally developed by Niklas Wahl, German Cancer Research Center (DKFZ)
+  This file was originally developed by Niklas Wahl, German Cancer Research Center (DKFZ).
 
 ==============================================================================*/
 
