@@ -298,6 +298,18 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
     qCritical() << Q_FUNC_INFO << ": Invalid row index!";
     return;
   }
+  vtkMRMLRTPlanNode* planNode = d->PlanNode;
+  if (!planNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid plan node";
+    return;
+  }
+  vtkMRMLScene* scene = planNode->GetScene();
+  if (!scene)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
+    return;
+  }
 
   // Get selected objective & segment
   QComboBox* objectivesDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("ObjectiveName")));
@@ -318,10 +330,27 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
 
   qSlicerAbstractPlanOptimizer::ObjectiveStruct objectiveStruct = objectivesDropdown->currentData().value<qSlicerAbstractPlanOptimizer::ObjectiveStruct>();
 
-  // Create new objective node
-  vtkMRMLRTObjectiveNode* objectiveNode = vtkMRMLRTObjectiveNode::New();
-	 objectiveNode->SetName(objectiveStruct.name.c_str());
-		objectiveNode->SetSegmentationAndSegmentID(segmentationNode, segmentID.toStdString());
+  // Create objectiveNode
+  vtkMRMLRTObjectiveNode* objectiveNode = nullptr;
+  if (row >= this->currentObjectiveNodes.size() || this->currentObjectiveNodes.empty())
+  {
+    // Create and add new objectiveNode
+    objectiveNode = vtkMRMLRTObjectiveNode::New();
+    scene->AddNode(objectiveNode);
+    this->currentObjectiveNodes.push_back(objectiveNode);
+  }
+  else
+  {
+    // Reuse existing objectiveNode and delete old attributes
+    objectiveNode = this->currentObjectiveNodes[row];
+    std::vector<std::string> attrNames = objectiveNode->GetAttributeNames();
+    for (const auto& name : attrNames)
+    {
+      objectiveNode->RemoveAttribute(name.c_str());
+    }
+  }
+  objectiveNode->SetName(objectiveStruct.name.c_str());
+  objectiveNode->SetSegmentationAndSegmentID(segmentationNode, segmentID.toStdString().c_str());
 
   // Create overlap priority SpinBox
   int overlapPriorityValue = this->findOverlapPriorityValueOfSegment(row);
@@ -355,11 +384,9 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
   std::map<std::string, std::string> parameters = objectiveStruct.parameters;
   for (auto item = parameters.cbegin(); item != parameters.cend(); ++item)
   {
-    // Get paramters set in objectiveFunction
+    // Get paramters set in objectiveStruct and add to objectiveNode attributes
     std::string parameterName = item->first;
     std::string parameterValue = item->second;
-
-    // Add parameter as attribute to objectiveNode
     objectiveNode->SetAttribute(parameterName.c_str(), parameterValue.c_str());
 
     // Create QLineEdit box for parameter
@@ -381,31 +408,6 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
   d->ObjectivesTable->setCellWidget(row, d->columnIndex("OverlapPriority"), overlapPrioritySpinBox);
 	 d->ObjectivesTable->setCellWidget(row, d->columnIndex("Penalty"), penaltySpinBox);
   d->ObjectivesTable->setCellWidget(row, d->columnIndex("Parameters"), parameterWidget);
-
-  // Get scene
-	 vtkMRMLScene* scene = d->PlanNode->GetScene();
-	 if (!scene)
-	 {
-		  qCritical() << Q_FUNC_INFO << ": Invalid scene";
-	 }
-
-  // Check if objective node already exists in currentObjectiveNodes
-	 if (this->currentObjectiveNodes.size() <= row || this->currentObjectiveNodes.empty())
-	 {
-    // Add the new objective node
-		  this->currentObjectiveNodes.push_back(objectiveNode);
-	 }
-	 else
-  {
-		  // Update objective node in slicer scene
-    scene->RemoveNode(this->currentObjectiveNodes[row]);
-		  // Replace objective node in currentObjectiveNodes
-		  this->currentObjectiveNodes[row]->Delete();
-		  this->currentObjectiveNodes[row] = objectiveNode;
-  }
-  
-  // Add objective node to slicer scene
-	 scene->AddNode(objectiveNode);
 
 	 // Update objectives in optimizer
 	 this->setObjectivesInPlanOptimizer();
@@ -439,7 +441,7 @@ void qMRMLObjectivesTableWidget::onSegmentChanged(int row)
   QString segmentName = segment->GetName();
 
   // Set segmentation in objectiveNode
-		this->currentObjectiveNodes[row]->SetSegmentationAndSegmentID(segmentationNode, segmentID.toStdString());
+		this->currentObjectiveNodes[row]->SetSegmentationAndSegmentID(segmentationNode, segmentID.toStdString().c_str());
 
   // Update objectives in optimizer
   this->setObjectivesInPlanOptimizer();

@@ -194,20 +194,6 @@ void qSlicerAbstractPlanOptimizer::saveObjectiveNodeInOptimizer(vtkSmartPointer<
 //----------------------------------------------------------------------------
 void qSlicerAbstractPlanOptimizer::removeAllObjectiveNodes()
 {
-  vtkMRMLScene* scene = nullptr;
-  if (!this->savedObjectiveNodes.empty())
-  {
-    scene = this->savedObjectiveNodes[0]->GetScene();
-  }
-
-  for (auto& objective : this->savedObjectiveNodes)
-  {
-    if (scene)
-    {
-      scene->RemoveNode(objective);
-    }
-  }
-
   this->savedObjectiveNodes.clear();
 }
 
