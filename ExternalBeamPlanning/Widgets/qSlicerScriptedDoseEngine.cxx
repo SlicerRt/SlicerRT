@@ -205,7 +205,7 @@ void qSlicerScriptedDoseEngine::setIsInverse(bool isInverse)
 //-----------------------------------------------------------------------------
 void qSlicerScriptedDoseEngine::setCanDoIonPlan(bool canDoIonPlan)
 {
-	this->m_CanDoIonPlan = canDoIonPlan;
+ this->m_CanDoIonPlan = canDoIonPlan;
 }
 
 //-----------------------------------------------------------------------------
@@ -272,6 +272,6 @@ void qSlicerScriptedDoseEngine::updateBeamParametersForIonPlan(bool isIonPlanAct
   Q_D(const qSlicerScriptedDoseEngine);
 
   PyObject* arguments = PyTuple_New(1);
-	 PyTuple_SET_ITEM(arguments, 0, PyBool_FromLong(isIonPlanActive));
-	 d->PythonCppAPI.callMethod(d->UpdateBeamParametersForIonPlan, arguments);
+  PyTuple_SET_ITEM(arguments, 0, PyBool_FromLong(isIonPlanActive));
+  d->PythonCppAPI.callMethod(d->UpdateBeamParametersForIonPlan, arguments);
 }

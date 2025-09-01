@@ -110,20 +110,20 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
 
     // Get dose grid dimensions & spacing
     int doseGridDim[3];
-	   beamNode->GetDoseGridDim(doseGridDim);
+    beamNode->GetDoseGridDim(doseGridDim);
 
     double doseGridSpacing[3];
     beamNode->GetDoseGridSpacing(doseGridSpacing);
 
     bool resample = true;
-	   if (doseGridDim[0] <= 0 || doseGridDim[1] <= 0 || doseGridDim[2] <= 0)
+    if (doseGridDim[0] <= 0 || doseGridDim[1] <= 0 || doseGridDim[2] <= 0)
     {
       // If dose grid dimensions are not set, use reference volume dimensions
-		    qWarning() << Q_FUNC_INFO << ": Dose grid dimensions are not set for beam" << beamNode->GetName();
-		    qWarning() << Q_FUNC_INFO << ": Using reference volume dimensions instead.";
+      qWarning() << Q_FUNC_INFO << ": Dose grid dimensions are not set for beam" << beamNode->GetName();
+      qWarning() << Q_FUNC_INFO << ": Using reference volume dimensions instead.";
       doseGridDim[0] = referenceVolumeNode->GetImageData()->GetDimensions()[0];
-		    doseGridDim[1] = referenceVolumeNode->GetImageData()->GetDimensions()[1];
-		    doseGridDim[2] = referenceVolumeNode->GetImageData()->GetDimensions()[2];
+      doseGridDim[1] = referenceVolumeNode->GetImageData()->GetDimensions()[1];
+      doseGridDim[2] = referenceVolumeNode->GetImageData()->GetDimensions()[2];
       resample = false;
     }
 
@@ -136,7 +136,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
       resample = false;
     }
 
-				// Set new dose grid spacing in planNode if necessary
+    // Set new dose grid spacing in planNode if necessary
     if (doseGridSpacing != planNode->GetDoseGridSpacing())
     {
       planNode->SetDoseGridSpacing(doseGridSpacing);
@@ -158,7 +158,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
       vtkPtr[i] = static_cast<float>(dose[i]);
     }
 
-	   // Resample image if necessary and get dosPtr
+    // Resample image if necessary and get dosPtr
     float* dosePtr;
     if (resample)
     {
@@ -199,18 +199,18 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
         totalDosePtr[i] += dosePtr[i];
       }
     }
-	   else
+    else
     {
       // No resampling needed, use original dose image data
-		    if (doseImageData->GetNumberOfPoints() != totalDoseImageData->GetNumberOfPoints())
-		    {
-			     QString errorMessage("Number of points in dose and total dose don't match! (Should match referenceVolume.)");
-			     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
-			     return errorMessage;
-		    }
+      if (doseImageData->GetNumberOfPoints() != totalDoseImageData->GetNumberOfPoints())
+      {
+        QString errorMessage("Number of points in dose and total dose don't match! (Should match referenceVolume.)");
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+      }
       // Add dose to total dose
       float* totalDosePtr = static_cast<float*>(totalDoseImageData->GetScalarPointer());
-		    float* dosePtr = static_cast<float*>(doseImageData->GetScalarPointer());
+      float* dosePtr = static_cast<float*>(doseImageData->GetScalarPointer());
       if (!totalDosePtr || !dosePtr)
       {
         QString errorMessage("Invalid pointer in total dose or beam dose data!");
@@ -260,8 +260,8 @@ void qSlicerMockPlanOptimizer::setAvailableObjectives()
   }
 
   // Create vector of objectives
-	 std::vector<qSlicerAbstractPlanOptimizer::ObjectiveStruct> objectiveStructs;
+  std::vector<qSlicerAbstractPlanOptimizer::ObjectiveStruct> objectiveStructs;
   objectiveStructs.push_back(*objectiveStruct1);
 
-	 this->availableObjectives = objectiveStructs;
+  this->availableObjectives = objectiveStructs;
 }

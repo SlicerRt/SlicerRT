@@ -94,9 +94,9 @@ private:
   friend class qSlicerExternalBeamPlanningModuleWidget;
 
 public:
-	/// Compute objective value for the given dose matrix
+ /// Compute objective value for the given dose matrix
     Q_INVOKABLE virtual float computeDoseObjectiveFunction(const DoseType&) = 0;
-	/// Compute gradient of the objective function for the given dose matrix
+ /// Compute gradient of the objective function for the given dose matrix
     Q_INVOKABLE virtual DoseType computeDoseObjectiveGradient(const DoseType&) = 0;
 };
 

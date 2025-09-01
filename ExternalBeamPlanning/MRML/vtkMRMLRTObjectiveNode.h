@@ -55,25 +55,25 @@ public:
   const char* GetNodeTagName() override { return "Objective"; };
 
 public:
-		/// Get name of the objective function
+  /// Get name of the objective function
   vtkGetStringMacro(Name);
-		/// Set name of the objective function
+  /// Set name of the objective function
   vtkSetStringMacro(Name);
 
   /// Get node reference to segmentation
   vtkMRMLSegmentationNode* GetSegmentationNode();
-		/// Set node reference to segmentation
-		void SetSegmentationNode(vtkMRMLSegmentationNode* segmentationNode);
+  /// Set node reference to segmentation
+  void SetSegmentationNode(vtkMRMLSegmentationNode* segmentationNode);
 
-		/// Get ID of segment assigned to this objective
-		vtkGetStringMacro(SegmentID);
+  /// Get ID of segment assigned to this objective
+  vtkGetStringMacro(SegmentID);
   /// Set ID of segment assigned to this objective
-		void SetSegmentID(const char* segmentID);
+  void SetSegmentID(const char* segmentID);
 
   /// Set node reference to segmentation
   void SetSegmentationAndSegmentID(vtkMRMLSegmentationNode* segmentationNode, const char* segmentID);
 
-		/// Check if the segment ID is valid in the given segmentation node
+  /// Check if the segment ID is valid in the given segmentation node
   bool IsSegmentIDValid(vtkMRMLSegmentationNode* segmentationNode, const char* segmentID);
 
 protected:
@@ -82,10 +82,10 @@ protected:
   vtkMRMLRTObjectiveNode(const vtkMRMLRTObjectiveNode&);
   void operator=(const vtkMRMLRTObjectiveNode&);
 
-		/// Name of the objective function
+  /// Name of the objective function
   char* Name;
 
-		/// ID of the segment assigned to this objective
+  /// ID of the segment assigned to this objective
   char* SegmentID;
 
 

@@ -321,12 +321,12 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
     qCritical() << Q_FUNC_INFO << ": Segment ID is empty!";
     return;
   }
-		vtkMRMLSegmentationNode* segmentationNode = d->PlanNode->GetSegmentationNode();
-		if (!segmentationNode)
-		{
-				qCritical() << Q_FUNC_INFO << ": Invalid segmentation node";
-				return;
-		}
+  vtkMRMLSegmentationNode* segmentationNode = d->PlanNode->GetSegmentationNode();
+  if (!segmentationNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid segmentation node";
+    return;
+  }
 
   qSlicerAbstractPlanOptimizer::ObjectiveStruct objectiveStruct = objectivesDropdown->currentData().value<qSlicerAbstractPlanOptimizer::ObjectiveStruct>();
 
@@ -366,14 +366,14 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
 
   // Create penalty SpinBox
   QSpinBox* penaltySpinBox = new QSpinBox();
-	 penaltySpinBox->setValue(10);
+  penaltySpinBox->setValue(10);
   penaltySpinBox->setMinimum(0);
   penaltySpinBox->setMaximum(10000);
-	 objectiveNode->SetAttribute("penalty", std::to_string(penaltySpinBox->value()).c_str());
+  objectiveNode->SetAttribute("penalty", std::to_string(penaltySpinBox->value()).c_str());
   connect(penaltySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, [this, objectiveNode](int newValue)
   {
     this->onPenaltyChanged(newValue, objectiveNode);
-	 });
+  });
   
   // Create a widget to hold multiple QLineEdit boxes for parameters
   QWidget* parameterWidget = new QWidget();
@@ -406,11 +406,11 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
 
   // Add overlap priority, penalty & parameter widgets to the table
   d->ObjectivesTable->setCellWidget(row, d->columnIndex("OverlapPriority"), overlapPrioritySpinBox);
-	 d->ObjectivesTable->setCellWidget(row, d->columnIndex("Penalty"), penaltySpinBox);
+  d->ObjectivesTable->setCellWidget(row, d->columnIndex("Penalty"), penaltySpinBox);
   d->ObjectivesTable->setCellWidget(row, d->columnIndex("Parameters"), parameterWidget);
 
-	 // Update objectives in optimizer
-	 this->setObjectivesInPlanOptimizer();
+  // Update objectives in optimizer
+  this->setObjectivesInPlanOptimizer();
 }
 
 //------------------------------------------------------------------------------
@@ -441,12 +441,12 @@ void qMRMLObjectivesTableWidget::onSegmentChanged(int row)
   QString segmentName = segment->GetName();
 
   // Set segmentation in objectiveNode
-		this->currentObjectiveNodes[row]->SetSegmentationAndSegmentID(segmentationNode, segmentID.toStdString().c_str());
+  this->currentObjectiveNodes[row]->SetSegmentationAndSegmentID(segmentationNode, segmentID.toStdString().c_str());
 
   // Update objectives in optimizer
   this->setObjectivesInPlanOptimizer();
 
-	 // Find other rows with the same segment and update their overlap priority
+  // Find other rows with the same segment and update their overlap priority
   int newValue = this->findOverlapPriorityValueOfSegment(row);
   this->updateOverlapPriorityForSegment(segmentName, newValue);
 }
@@ -472,7 +472,7 @@ void qMRMLObjectivesTableWidget::onOverlapPriorityChanged(int newValue, vtkMRMLR
   }
   QString segmentName = segment->GetName();
 
-	 this->updateOverlapPriorityForSegment(segmentName, newValue);
+  this->updateOverlapPriorityForSegment(segmentName, newValue);
 }
 
 //------------------------------------------------------------------------------
@@ -480,8 +480,8 @@ void qMRMLObjectivesTableWidget::onPenaltyChanged(int newValue, vtkMRMLRTObjecti
 {
   Q_D(qMRMLObjectivesTableWidget);
 
-	 // Update the penalty value
-	 objectiveNode->SetAttribute("penalty", std::to_string(newValue).c_str());
+  // Update the penalty value
+  objectiveNode->SetAttribute("penalty", std::to_string(newValue).c_str());
 }
 
 //------------------------------------------------------------------------------
@@ -502,8 +502,8 @@ int qMRMLObjectivesTableWidget::findOverlapPriorityValueOfSegment(int row)
   QString segmentName = segmentationsDropdown->currentText();
 
   // Get default value from segmentation
-	 vtkSegmentation* segmentation = d->PlanNode->GetSegmentationNode()->GetSegmentation();
-	 int newValue = segmentation->GetSegmentIndex(segmentation->GetSegmentIdBySegmentName(segmentName.toStdString()));
+  vtkSegmentation* segmentation = d->PlanNode->GetSegmentationNode()->GetSegmentation();
+  int newValue = segmentation->GetSegmentIndex(segmentation->GetSegmentIdBySegmentName(segmentName.toStdString()));
 
   // Get overlap priority of first segment with same name
   for (int i = 0; i < d->ObjectivesTable->rowCount(); ++i)
@@ -546,12 +546,12 @@ void qMRMLObjectivesTableWidget::updateOverlapPriorityForSegment(const QString& 
       // Update the objective node's overlap priority attribute
       vtkMRMLRTObjectiveNode* objectiveNode = this->currentObjectiveNodes[row];
       if (objectiveNode)
-			   {
-				    objectiveNode->SetAttribute("overlapPriority", std::to_string(newValue).c_str());
-			   }
+      {
+        objectiveNode->SetAttribute("overlapPriority", std::to_string(newValue).c_str());
+      }
       else
-			   {
-				    qCritical() << Q_FUNC_INFO << ": Invalid objective node at row" << row;
+      {
+        qCritical() << Q_FUNC_INFO << ": Invalid objective node at row" << row;
       }
     }
   }
@@ -572,12 +572,12 @@ void qMRMLObjectivesTableWidget::setObjectivesInPlanOptimizer()
   qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
   selectedEngine->removeAllObjectiveNodes();
 
-	 // Iterate through objectives in currentObjectiveNodes and add to optimizer
-	 for (int i = 0; i < this->currentObjectiveNodes.size(); i++)
-	 {
-		  vtkMRMLRTObjectiveNode* objectiveNode = this->currentObjectiveNodes[i];
-		  selectedEngine->saveObjectiveNodeInOptimizer(objectiveNode);
-	 }
+  // Iterate through objectives in currentObjectiveNodes and add to optimizer
+  for (int i = 0; i < this->currentObjectiveNodes.size(); i++)
+  {
+    vtkMRMLRTObjectiveNode* objectiveNode = this->currentObjectiveNodes[i];
+    selectedEngine->saveObjectiveNodeInOptimizer(objectiveNode);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -640,8 +640,8 @@ void qMRMLObjectivesTableWidget::removeRowFromRowIndex(int row)
 {
   Q_D(qMRMLObjectivesTableWidget);
 
-	 // Get scene
-	 vtkMRMLScene* scene = d->PlanNode->GetScene();
+  // Get scene
+  vtkMRMLScene* scene = d->PlanNode->GetScene();
   if (!scene)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid scene";
@@ -674,9 +674,9 @@ void qMRMLObjectivesTableWidget::deleteObjectivesTable()
   qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
   selectedEngine->removeAllObjectiveNodes();
 
-	 // Remove all rows & delete all objective nodes
-	 while (d->ObjectivesTable->rowCount() > 0)
-	 {
-		  this->removeRowFromRowIndex(0);
-	 }
+  // Remove all rows & delete all objective nodes
+  while (d->ObjectivesTable->rowCount() > 0)
+  {
+    this->removeRowFromRowIndex(0);
+  }
 }

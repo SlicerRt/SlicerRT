@@ -194,7 +194,7 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
   PyObject* pyList = PyList_New(objectives.size());
   for (size_t i = 0; i < objectives.size(); i++)
   {
-	   vtkMRMLRTObjectiveNode* objectiveNode = objectives[i];
+    vtkMRMLRTObjectiveNode* objectiveNode = objectives[i];
     if (objectiveNode)
     {
       PyObject* pyDict = PyDict_New();

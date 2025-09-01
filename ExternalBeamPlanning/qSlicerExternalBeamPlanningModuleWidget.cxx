@@ -700,7 +700,7 @@ void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingComponentChanged(in
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::doseGridSpacingXComponentChanged(double value)
 {
-	 this->doseGridSpacingComponentChanged(0, value);
+  this->doseGridSpacingComponentChanged(0, value);
 }
 
 //-----------------------------------------------------------------------------
@@ -726,20 +726,20 @@ void qSlicerExternalBeamPlanningModuleWidget::useCTGridForDoseGridSpacingClicked
     return;
   }
 
-	 vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
-	 if (!planNode)
-	 {
+  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!planNode)
+  {
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     return;
-	 }
+  }
 
 
-	 planNode->DisableModifiedEventOn();
-	 planNode->SetDoseGridSpacingToCTGridSpacing();
-	 planNode->DisableModifiedEventOff();
+  planNode->DisableModifiedEventOn();
+  planNode->SetDoseGridSpacingToCTGridSpacing();
+  planNode->DisableModifiedEventOff();
 
-	 // Update GUI
-	 this->updateWidgetFromMRML();
+  // Update GUI
+  this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
@@ -899,10 +899,10 @@ void qSlicerExternalBeamPlanningModuleWidget::ionPlanFlagCheckboxStateChanged(in
     return;
   }
     
-	 // delete all beams
+  // delete all beams
   planNode->RemoveAllBeams();
 
-	 // update beam parameters for ion plan
+  // update beam parameters for ion plan
   qSlicerDoseEnginePluginHandler::DoseEngineListType engines =
     qSlicerDoseEnginePluginHandler::instance()->registeredDoseEngines();
 
@@ -940,12 +940,12 @@ void qSlicerExternalBeamPlanningModuleWidget::inversePlanningCheckboxStateChange
   if (d->checkBox_InversePlanning->isChecked())
   {
       d->pushButton_OptimizePlan->setEnabled(true);
-	  d->CollapsibleButton_Objectives->setEnabled(true);
+   d->CollapsibleButton_Objectives->setEnabled(true);
   }
   else
   {
       d->pushButton_OptimizePlan->setEnabled(false);
-	  d->CollapsibleButton_Objectives->setEnabled(false);
+   d->CollapsibleButton_Objectives->setEnabled(false);
   }
 }
 

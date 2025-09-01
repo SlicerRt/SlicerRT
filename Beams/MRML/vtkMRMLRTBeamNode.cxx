@@ -988,18 +988,18 @@ void vtkMRMLRTBeamNode::SetDoseInfluenceMatrixFromTriplets(
   for (int i = 0; i < 3; ++i)
   {
     if (doseGridDim == nullptr)
-	   {
-		    this->DoseGridDim[i] = -1;
-	   }
+    {
+      this->DoseGridDim[i] = -1;
+    }
     else
-	   {
-		    this->DoseGridDim[i] = doseGridDim[i];
-	   }
+    {
+      this->DoseGridDim[i] = doseGridDim[i];
+    }
 
-	   if (doseGridSpacing == nullptr)
-	   {
-		    this->DoseGridSpacing[i] = -1;
-	   }
+    if (doseGridSpacing == nullptr)
+    {
+      this->DoseGridSpacing[i] = -1;
+    }
     else
     {
       this->DoseGridSpacing[i] = doseGridSpacing[i];
