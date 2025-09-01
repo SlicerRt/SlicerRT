@@ -48,21 +48,33 @@ public:
   /// Copy the node's attributes to this object 
   void Copy(vtkMRMLNode* node) override;
 
+  /// Copy node content (excludes basic data, such a name and node reference)
+  vtkMRMLCopyContentMacro(vtkMRMLRTObjectiveNode);
+
   /// Get unique node XML tag name (like Volume, Model) 
   const char* GetNodeTagName() override { return "Objective"; };
 
 public:
+		/// Get name of the objective function
   vtkGetStringMacro(Name);
+		/// Set name of the objective function
   vtkSetStringMacro(Name);
 
   /// Get node reference to segmentation
   vtkMRMLSegmentationNode* GetSegmentationNode();
+		/// Set node reference to segmentation
+		void SetSegmentationNode(vtkMRMLSegmentationNode* segmentationNode);
 
-		/// Set ID of segment assigned to this objective
-  std::string GetSegmentID();
+		/// Get ID of segment assigned to this objective
+		vtkGetStringMacro(SegmentID);
+  /// Set ID of segment assigned to this objective
+		void SetSegmentID(const char* segmentID);
 
   /// Set node reference to segmentation
-  void SetSegmentationAndSegmentID(vtkMRMLSegmentationNode* segmentationNode, std::string segmentID);
+  void SetSegmentationAndSegmentID(vtkMRMLSegmentationNode* segmentationNode, const char* segmentID);
+
+		/// Check if the segment ID is valid in the given segmentation node
+  bool IsSegmentIDValid(vtkMRMLSegmentationNode* segmentationNode, const char* segmentID);
 
 protected:
   vtkMRMLRTObjectiveNode();
@@ -70,12 +82,11 @@ protected:
   vtkMRMLRTObjectiveNode(const vtkMRMLRTObjectiveNode&);
   void operator=(const vtkMRMLRTObjectiveNode&);
 
+		/// Name of the objective function
   char* Name;
 
-		/// node reference to the segmentation containing the segment
-		vtkMRMLSegmentationNode* SegmentationNode;
 		/// ID of the segment assigned to this objective
-  std::string SegmentID;
+  char* SegmentID;
 
 
 };
