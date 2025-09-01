@@ -96,6 +96,7 @@ void vtkMRMLRTPlanNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLIntMacro(NextBeamNumber, NextBeamNumber);
   vtkMRMLWriteXMLStringMacro(TargetSegmentID, TargetSegmentID);
   vtkMRMLWriteXMLStringMacro(DoseEngineName, DoseEngineName);
+  vtkMRMLWriteXMLStringMacro(PlanOptimizerName, PlanOptimizerName);
   vtkMRMLWriteXMLFloatMacro(RxDose, RxDose);
   vtkMRMLWriteXMLIntMacro(IsocenterSpecification, IsocenterSpecification);
   vtkMRMLWriteXMLVectorMacro(DoseGridSpacing, DoseGridSpacing, double, 3);
@@ -113,6 +114,7 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLIntMacro(NextBeamNumber, NextBeamNumber);
   vtkMRMLReadXMLStringMacro(TargetSegmentID, TargetSegmentID);
   vtkMRMLReadXMLStringMacro(DoseEngineName, DoseEngineName);
+  vtkMRMLReadXMLStringMacro(PlanOptimizerName, PlanOptimizerName);
   vtkMRMLReadXMLFloatMacro(RxDose, RxDose);
   vtkMRMLReadXMLIntMacro(IsocenterSpecification, IsocenterSpecification);
   vtkMRMLReadXMLVectorMacro(DoseGridSpacing, DoseGridSpacing, double, 3);
