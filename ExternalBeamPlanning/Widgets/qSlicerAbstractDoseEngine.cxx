@@ -137,13 +137,13 @@ void qSlicerAbstractDoseEngine::setIsInverse(bool isInverse)
 //----------------------------------------------------------------------------
 bool qSlicerAbstractDoseEngine::canDoIonPlan() const
 {
-	 return this->m_CanDoIonPlan;
+  return this->m_CanDoIonPlan;
 }
 
 //-----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::setCanDoIonPlan(bool canDoIonPlan)
 {
-	 qCritical() << Q_FUNC_INFO << ": Cannot set dose engine name by method, only in constructor";
+  qCritical() << Q_FUNC_INFO << ": Cannot set dose engine name by method, only in constructor";
 }
 
 //----------------------------------------------------------------------------
@@ -236,9 +236,9 @@ QString qSlicerAbstractDoseEngine::calculateDoseInfluenceMatrix(vtkMRMLRTBeamNod
 {
   if (!this->isInverse())
   {
-		  QString errorMessage("Dose engine lacks functionality for calculating a dose influence matrix for inverse planning");
-		  qCritical() << Q_FUNC_INFO << ": " << errorMessage;
-		  return errorMessage;
+    QString errorMessage("Dose engine lacks functionality for calculating a dose influence matrix for inverse planning");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+    return errorMessage;
   }
     
   if (!beamNode)
@@ -300,7 +300,7 @@ QString qSlicerAbstractDoseEngine::calculateDoseInfluenceMatrix(vtkMRMLRTBeamNod
 //---------------------------------------------------------------------------
 QString qSlicerAbstractDoseEngine::calculateDoseInfluenceMatrixUsingEngine(vtkMRMLRTBeamNode* beamNode)
 {
-	 qCritical() << Q_FUNC_INFO << ": Inverse dose calculation not implemented";
+  qCritical() << Q_FUNC_INFO << ": Inverse dose calculation not implemented";
   return QString();
 }
 //---------------------------------------------------------------------------

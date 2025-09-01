@@ -105,11 +105,11 @@ protected slots:
 
 
 protected:
-   QScopedPointer<qMRMLObjectivesTableWidgetPrivate> d_ptr;
+  QScopedPointer<qMRMLObjectivesTableWidgetPrivate> d_ptr;
 
 private:
-   Q_DECLARE_PRIVATE(qMRMLObjectivesTableWidget);
-   Q_DISABLE_COPY(qMRMLObjectivesTableWidget);
+  Q_DECLARE_PRIVATE(qMRMLObjectivesTableWidget);
+  Q_DISABLE_COPY(qMRMLObjectivesTableWidget);
 };
 
 #endif

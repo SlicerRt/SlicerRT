@@ -149,7 +149,7 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
   vtkSmartPointer<vtkMRMLScalarVolumeNode> resultOptimizationVolumeNode = planNode->GetOutputTotalDoseVolumeNode();
   if (!resultOptimizationVolumeNode)
   {
-	  resultOptimizationVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
+   resultOptimizationVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
       // Give default name for result node (engine can give it a more meaningful name)
       std::string resultOptimizationNodeName = std::string(planNode->GetName()) + "_Optimization";
       resultOptimizationVolumeNode->SetName(resultOptimizationNodeName.c_str());
@@ -161,7 +161,7 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
 
   if (errorMessage.isEmpty())
   {
-	  // Add result dose volume to plan
+   // Add result dose volume to plan
       this->addResultOptimizedDose(resultOptimizationVolumeNode, planNode);
   }
   return errorMessage;
@@ -260,7 +260,7 @@ void qSlicerAbstractPlanOptimizer::addResultOptimizedDose(vtkMRMLScalarVolumeNod
 
     // Set window level based on prescription dose
     double rxDose = planNode->GetRxDose();
-		  doseScalarVolumeDisplayNode->AutoWindowLevelOn();
+    doseScalarVolumeDisplayNode->AutoWindowLevelOn();
 
     // Set threshold to hide very low dose values
     doseScalarVolumeDisplayNode->SetLowerThreshold(0.05 * rxDose);
