@@ -66,6 +66,10 @@ signals:
   /// \param progress Value between 0 and 1
   void progressInfoUpdated(QString info);
 
+public slots:
+  /// Called when the optimizer of a plan is changed.
+  void applyPlanOptimizerInPlan(vtkObject* nodeObject);
+
 protected slots:
   /// Called when a node is added to the scene
   void onNodeAdded(vtkObject* scene, vtkObject* nodeObject);

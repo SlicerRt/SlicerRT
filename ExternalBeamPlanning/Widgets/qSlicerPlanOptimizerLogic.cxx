@@ -154,10 +154,9 @@ void qSlicerPlanOptimizerLogic::onNodeAdded(vtkObject* sceneObject, vtkObject* n
 
   if (nodeObject->IsA("vtkMRMLRTPlanNode"))
   {
-    // Observe dose engine changed event so that default beam parameters
-    // can be added for the newly selected engine in the beams contained by the plan
-    //vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(nodeObject);
-    //qvtkConnect(planNode, vtkMRMLRTPlanNode::DoseEngineChanged, this, SLOT(applyDoseEngineInPlan(vtkObject*)));
+    // Observe plan optimizer changed event ...
+    vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(nodeObject);
+    qvtkConnect(planNode, vtkMRMLRTPlanNode::PlanOptimizerChanged, this, SLOT(applyPlanOptimizerInPlan(vtkObject*)));
   }
 }
 
@@ -170,15 +169,32 @@ void qSlicerPlanOptimizerLogic::onSceneImportEnded(vtkObject* sceneObject)
     return;
   }
 
-  // Traverse all plan nodes in the scene and observe dose engine changed event so that default
-  // beam parameters can be added for the newly selected engine in the beams contained by the plan
-  /*
+  // Traverse all plan nodes in the scene and observe plan optimizer changed event ...
   std::vector<vtkMRMLNode*> planNodes;
   scene->GetNodesByClass("vtkMRMLRTPlanNode", planNodes);
   for (std::vector<vtkMRMLNode*>::iterator planNodeIt = planNodes.begin(); planNodeIt != planNodes.end(); ++planNodeIt)
   {
     vtkMRMLNode* planNode = (*planNodeIt);
-    qvtkConnect(planNode, vtkMRMLRTPlanNode::DoseEngineChanged, this, SLOT(applyDoseEngineInPlan(vtkObject*)));
+    qvtkConnect(planNode, vtkMRMLRTPlanNode::PlanOptimizerChanged, this, SLOT(applyPlanOptimizerInPlan(vtkObject*)));
   }
-  */
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerPlanOptimizerLogic::applyPlanOptimizerInPlan(vtkObject* nodeObject)
+{
+  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(nodeObject);
+  if (!planNode)
+  {
+    return;
+  }
+
+  // Get newly selected plan optimizer
+  qSlicerAbstractPlanOptimizer* selectedEngine =
+    qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
+  if (!selectedEngine)
+  {
+    QString errorString = QString("Unable to access plan optimizer with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
+    qCritical() << Q_FUNC_INFO << ": " << errorString;
+    return;
+  }
 }
