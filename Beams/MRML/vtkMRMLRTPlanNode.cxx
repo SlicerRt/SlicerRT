@@ -69,6 +69,8 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 
   this->DoseEngineName = nullptr;
 
+  this->PlanOptimizerName = nullptr;
+
   this->DoseGrid[0] = 5.0;
   this->DoseGrid[1] = 5.0;
   this->DoseGrid[2] = 5.0;
@@ -84,6 +86,7 @@ vtkMRMLRTPlanNode::~vtkMRMLRTPlanNode()
 {
   this->SetTargetSegmentID(nullptr);
   this->SetDoseEngineName(nullptr);
+  this->SetPlanOptimizerName(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -142,6 +145,7 @@ void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyIntMacro(IsocenterSpecification);
   vtkMRMLCopyIntMacro(NextBeamNumber);
   vtkMRMLCopyStringMacro(DoseEngineName);
+  vtkMRMLCopyStringMacro(PlanOptimizerName);
   vtkMRMLCopyVectorMacro(DoseGridSpacing, double, 3);
   vtkMRMLCopyBooleanMacro(IonPlanFlag);
   vtkMRMLCopyEndMacro();
@@ -181,6 +185,7 @@ void vtkMRMLRTPlanNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*/)
   vtkMRMLCopyIntMacro(IsocenterSpecification);
   vtkMRMLCopyIntMacro(NextBeamNumber);
   vtkMRMLCopyStringMacro(DoseEngineName);
+  vtkMRMLCopyStringMacro(PlanOptimizerName);
   vtkMRMLCopyVectorMacro(DoseGridSpacing, double, 3);
   vtkMRMLCopyBooleanMacro(IonPlanFlag);
   vtkMRMLCopyEndMacro();
@@ -195,6 +200,7 @@ void vtkMRMLRTPlanNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintIntMacro(NextBeamNumber);
   vtkMRMLPrintStringMacro(TargetSegmentID);
   vtkMRMLPrintStringMacro(DoseEngineName);
+  vtkMRMLPrintStringMacro(PlanOptimizerName);
   vtkMRMLPrintFloatMacro(RxDose);
   vtkMRMLPrintIntMacro(IsocenterSpecification);
   vtkMRMLPrintVectorMacro(DoseGridSpacing, double, 3);
@@ -479,6 +485,24 @@ void vtkMRMLRTPlanNode::SetAndObserveOutputTotalDoseVolumeNode(vtkMRMLScalarVolu
     }
 
   this->SetNodeReferenceID(OUTPUT_TOTAL_DOSE_VOLUME_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLTableNode* vtkMRMLRTPlanNode::GetDoseReferenceTableNode()
+{
+  return vtkMRMLTableNode::SafeDownCast(this->GetNodeReference(DOSE_REFERENCE_TABLE_ROLE));
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::SetAndObserveDoseReferenceTableNode(vtkMRMLTableNode* node)
+{
+  if (node && this->Scene != node->GetScene())
+    {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+    }
+
+  this->SetNodeReferenceID(DOSE_REFERENCE_TABLE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //---------------------------------------------------------------------------
@@ -923,7 +947,7 @@ void vtkMRMLRTPlanNode::SetDoseGridSpacingComponent(int index, double value)
 {
   if (index < 0 || index > 2)
   {
-    vtkErrorMacro("setDoseGridSpacingensionComponent: Invalid index");
+    vtkErrorMacro("SetDoseGridSpacingComponent: Invalid index");
     return;
   }
 
