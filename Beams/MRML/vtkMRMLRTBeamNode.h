@@ -267,12 +267,17 @@ public:
     int* doseGridDim = nullptr,
     double* doseGridSpacing = nullptr
   );
+  /// Get dose influence matrix as triplets
   vtkSmartPointer<vtkDoubleArray> GetDoseInfluenceMatrixTriplets();
 
+  /// Get dose influence matrix Data
   vtkSmartPointer<vtkDoubleArray> GetDoseInfluenceMatrixData();
+  /// Get dose influence matrix Indices
   vtkSmartPointer<vtkIntArray> GetDoseInfluenceMatrixIndices();
+  /// Get dose influence matrix Indptr
   vtkSmartPointer<vtkIntArray> GetDoseInfluenceMatrixIndptr();
 
+  /// Get dose influence matrix field data (to call from Python)
   vtkSmartPointer<vtkFieldData> GetDoseInfluenceMatrixFieldData();
 
 protected:
@@ -294,6 +299,8 @@ protected:
   char* BeamDescription;
   /// Beam weight, taken into account when accumulating per-beam doses
   double BeamWeight;
+  /// Beam energy
+  double BeamEnergy;
 
   /// X1 jaw position
   double X1Jaw;
