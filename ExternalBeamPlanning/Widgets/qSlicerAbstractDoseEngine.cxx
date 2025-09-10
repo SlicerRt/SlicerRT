@@ -827,9 +827,5 @@ void qSlicerAbstractDoseEngine::setDoseEngineTypeToBeam(vtkMRMLRTBeamNode* beamN
 //-----------------------------------------------------------------------------
 void  qSlicerAbstractDoseEngine::updateBeamParametersForIonPlan(bool isIonPlanActive)
 {
-<<<<<<< HEAD
-    qCritical() << Q_FUNC_INFO << ": updateBeamParamtersForIonPlan not implemented";
-=======
   qCritical() << Q_FUNC_INFO << ": updateBeamParamtersForIonPlan not implemented";
->>>>>>> a0c435d3 (indentation changed to 2 spaces, empty lines at end of file & curved brackets moved to new line)
 }

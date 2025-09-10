@@ -38,6 +38,7 @@ class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLRTBeamNode;
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLSegmentationNode;
+class vtkMRMLTableNode;
 
 /// \ingroup SlicerRt_QtModules_Beams
 /// \brief Base class of folder display node, so that it behaves as folder in Subject Hierarchy
@@ -184,6 +185,11 @@ public:
   vtkMRMLScalarVolumeNode* GetOutputTotalDoseVolumeNode();
   /// Set output total dose volume node
   void SetAndObserveOutputTotalDoseVolumeNode(vtkMRMLScalarVolumeNode* node);
+
+  /// Get dose reference table node
+  vtkMRMLTableNode* GetDoseReferenceTableNode();
+  /// Set dose reference table node
+  void SetAndObserveDoseReferenceTableNode(vtkMRMLTableNode* node);
 
   /// Get dose engine name
   vtkGetStringMacro(DoseEngineName);

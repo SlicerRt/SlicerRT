@@ -6,6 +6,17 @@ set(Python_PYTHON_SCRIPTS
   PyRadPlanUtils.py
   )
 
+set(DoseEngines_PYTHON_SCRIPTS
+  AbstractScriptedDoseEngine
+  # MockPythonDoseEngine
+  # EGSnrcUtil
+  # OrthovoltageDoseEngineUtil
+  # OrthovoltageDoseEngine
+  )
+
+set(DoseEngines_PYTHON_RESOURCES
+  )
+
 ctkMacroCompilePythonScript(
 TARGET_NAME Python
 SCRIPTS "${Python_PYTHON_SCRIPTS}"
