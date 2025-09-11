@@ -238,7 +238,7 @@ void qSlicerDrrImageComputationModuleWidget::setMRMLScene(vtkMRMLScene* scene)
     {
       this->setParameterNode(d->MRMLNodeComboBox_ParameterSet->currentNode());
     }
-    else if (vtkMRMLNode* node = scene->GetNthNodeByClass( 0, "vtkMRMLDrrImageComputationNode"))
+    else if (vtkMRMLNode* node = scene->GetFirstNodeByClass("vtkMRMLDrrImageComputationNode"))
     {
       this->setParameterNode(node);
     }
