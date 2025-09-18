@@ -71,12 +71,6 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 
   this->PlanOptimizerName = nullptr;
 
-  this->DoseGrid[0] = 5.0;
-  this->DoseGrid[1] = 5.0;
-  this->DoseGrid[2] = 5.0;
-
-  this->IonPlanFlag = false;
-
   // Ensure the node shows up in subject hierarchy. Otherwise there is a crash.
   this->HideFromEditorsOff();
 }
