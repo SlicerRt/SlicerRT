@@ -260,9 +260,6 @@ protected:
   /// Name of the selected optimization engine
   char* PlanOptimizerName;
 
-  /// Get available Objectives
-  std::vector<vtkSmartPointer<vtkMRMLObjectiveNode>> PlanOptimizerAvailableObjectives;
-
   /// Allows user to specify dose volume resolution different from reference volume
   double DoseGridSpacing[3]{ 5.0,5.0,5.0 };
 
