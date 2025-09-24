@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -73,22 +73,22 @@ public:
   vtkTypeMacro(vtkMRMLRTPlanNode, vtkMRMLFolderDisplayNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  /// Create instance of a GAD node. 
+  /// Create instance of a GAD node.
   vtkMRMLNode* CreateNodeInstance() override;
 
-  /// Set node attributes from name/value pairs 
+  /// Set node attributes from name/value pairs
   void ReadXMLAttributes(const char** atts) override;
 
-  /// Write this node's information to a MRML file in XML format. 
+  /// Write this node's information to a MRML file in XML format.
   void WriteXML(ostream& of, int indent) override;
 
-  /// Copy the node's attributes to this object 
+  /// Copy the node's attributes to this object
   void Copy(vtkMRMLNode *node) override;
 
   /// Copy node content (excludes basic data, such a name and node reference)
   vtkMRMLCopyContentMacro(vtkMRMLRTPlanNode);
 
-  /// Get unique node XML tag name (like Volume, Model) 
+  /// Get unique node XML tag name (like Volume, Model)
   const char* GetNodeTagName() override { return "RTPlan"; };
 
   /// Handles events registered in the observer manager
@@ -261,7 +261,8 @@ protected:
   char* PlanOptimizerName;
 
   /// Allows user to specify dose volume resolution different from reference volume
-  double DoseGridSpacing[3]{ 5.0,5.0,5.0 };
+  //TODO: Explain here why this is defined in the plan node as well as the beam node
+  double DoseGridSpacing[3]{ 5.0, 5.0, 5.0 };
 
   /// Flag, indicates that a plan node is an ion plan node
   bool IonPlanFlag{ false };

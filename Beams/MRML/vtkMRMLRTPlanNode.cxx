@@ -59,18 +59,6 @@ vtkMRMLNodeNewMacro(vtkMRMLRTPlanNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 {
-  this->RxDose = 1.0;
-
-  this->TargetSegmentID = nullptr;
-
-  this->IsocenterSpecification = vtkMRMLRTPlanNode::CenterOfTarget;
-
-  this->NextBeamNumber = 1;
-
-  this->DoseEngineName = nullptr;
-
-  this->PlanOptimizerName = nullptr;
-
   // Ensure the node shows up in subject hierarchy. Otherwise there is a crash.
   this->HideFromEditorsOff();
 }
@@ -215,7 +203,7 @@ void vtkMRMLRTPlanNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::SetDoseEngineName(const char* engineName)
 {
-  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting DoseEngineName to " << (engineName?engineName:"(null)") );
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting DoseEngineName to " << (engineName ? engineName : "(null)"));
   if (this->DoseEngineName == nullptr && engineName == nullptr) { return;}
   if (this->DoseEngineName && engineName && (!strcmp(this->DoseEngineName,engineName))) { return;}
 
@@ -240,7 +228,7 @@ void vtkMRMLRTPlanNode::SetDoseEngineName(const char* engineName)
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::SetPlanOptimizerName(const char* optimizerName)
 {
-  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting PlanOptimizerName to " << (optimizerName ? engineName : "(null)"));
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting PlanOptimizerName to " << (optimizerName ? optimizerName : "(null)"));
   if (this->PlanOptimizerName == nullptr && optimizerName == nullptr) { return; }
   if (this->PlanOptimizerName && optimizerName && (!strcmp(this->PlanOptimizerName, optimizerName))) { return; }
 
@@ -958,7 +946,7 @@ void vtkMRMLRTPlanNode::SetDoseGridSpacingToCTGridSpacing()
     vtkErrorMacro("SetDoseGridSpacingToCTGridDim: Invalid reference volume node");
     return;
   }
-  
+
   double spacing[3] = { 0.0, 0.0, 0.0 };
   referenceVolumeNode->GetSpacing(spacing);
 

@@ -61,32 +61,6 @@ vtkMRMLNodeNewMacro(vtkMRMLRTBeamNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTBeamNode::vtkMRMLRTBeamNode()
 {
-  this->BeamNumber = -1;
-  this->BeamDescription = nullptr;
-  this->BeamWeight = 1.0;
-  this->BeamEnergy = -1.0;
-
-  this->X1Jaw = -100.0;
-  this->X2Jaw = 100.0;
-  this->Y1Jaw = -100.0;
-  this->Y2Jaw = 100.0;
-
-  this->GantryAngle = 0.0;
-  this->CollimatorAngle = 0.0;
-  this->CouchAngle = 0.0;
-
-  this->SAD = 2000.0;
-
-  this->SourceToJawsDistanceX = 500.;
-  this->SourceToJawsDistanceY = 500.;
-  this->SourceToMultiLeafCollimatorDistance = 400.;
-
-  // control point isocenter
-  this->IsocenterPositionFlag = false;
-  this->IsocenterPosition[0] = 0.;
-  this->IsocenterPosition[1] = 0.;
-  this->IsocenterPosition[2] = 0.;
-
   this->Selectable = false;
 }
 
@@ -119,7 +93,8 @@ void vtkMRMLRTBeamNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLFloatMacro(CollimatorAngle, CollimatorAngle);
   vtkMRMLWriteXMLFloatMacro(CouchAngle, CouchAngle);
   vtkMRMLWriteXMLBooleanMacro(IsocenterPositionFlag, IsocenterPositionFlag);
-  vtkMRMLWriteXMLVectorMacro( IsocenterPosition, IsocenterPosition, double, 3);
+  vtkMRMLWriteXMLVectorMacro(IsocenterPosition, IsocenterPosition, double, 3);
+  //TODO: Add new dose influence matrix parameters here
   vtkMRMLWriteXMLEndMacro();
 }
 
@@ -146,7 +121,8 @@ void vtkMRMLRTBeamNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLFloatMacro(CollimatorAngle, CollimatorAngle);
   vtkMRMLReadXMLFloatMacro(CouchAngle, CouchAngle);
   vtkMRMLReadXMLBooleanMacro(IsocenterPositionFlag, IsocenterPositionFlag);
-  vtkMRMLReadXMLVectorMacro( IsocenterPosition, IsocenterPosition, double, 3);
+  vtkMRMLReadXMLVectorMacro(IsocenterPosition, IsocenterPosition, double, 3);
+  //TODO: Add new dose influence matrix parameters here
   vtkMRMLReadXMLEndMacro();
 }
 
@@ -197,6 +173,7 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyFloatMacro(CouchAngle);
   vtkMRMLCopyBooleanMacro(IsocenterPositionFlag);
   vtkMRMLCopyVectorMacro(IsocenterPosition, double, 3);
+  //TODO: Add new dose influence matrix parameters here
   vtkMRMLCopyEndMacro();
 
   this->EndModify(disabledModify);
@@ -234,6 +211,7 @@ void vtkMRMLRTBeamNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*/)
   vtkMRMLCopyFloatMacro(CouchAngle);
   vtkMRMLCopyBooleanMacro(IsocenterPositionFlag);
   vtkMRMLCopyVectorMacro(IsocenterPosition, double, 3);
+  //TODO: Add new dose influence matrix parameters here
   vtkMRMLCopyEndMacro();
 }
 
@@ -246,7 +224,7 @@ void vtkMRMLRTBeamNode::SetScene(vtkMRMLScene* scene)
   {
     return;
   }
-  
+
   if (!this->GetPolyData())
   {
     // Create beam model
@@ -280,6 +258,7 @@ void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintFloatMacro(CouchAngle);
   vtkMRMLPrintBooleanMacro(IsocenterPositionFlag);
   vtkMRMLPrintVectorMacro(IsocenterPosition, double, 3);
+  //TODO: Add new dose influence matrix parameters here (maybe not the sparse matrix itself, but its dimensions and spacing)
   vtkMRMLPrintEndMacro();
 }
 
@@ -299,7 +278,6 @@ void vtkMRMLRTBeamNode::CreateDefaultDisplayNodes()
     displayNode->VisibilityOn();
     displayNode->Visibility2DOn();
   }
-
 }
 
 //----------------------------------------------------------------------------
@@ -630,7 +608,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       double boundEnd = table->GetValue(leafPair + 1, 0).ToDouble();
       double pos1 = table->GetValue(leafPair, 1).ToDouble();
       double pos2 = table->GetValue(leafPair, 2).ToDouble();
-      
+
       mlc.push_back({ boundBegin, boundEnd, pos1, pos2 });
     }
 
@@ -663,18 +641,18 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
       bool withinJaw = false;
       if (typeMLCX) // MLCX
       {
-        withinJaw = ((pos1 < this->X1Jaw && pos2 >= this->X1Jaw && pos2 <= this->X2Jaw) || 
-          (pos1 >= this->X1Jaw && pos1 <= this->X2Jaw && pos2 > this->X2Jaw) || 
-          (pos1 <= this->X1Jaw && pos2 >= this->X2Jaw) || 
-          (pos1 >= this->X1Jaw && pos1 <= this->X2Jaw && 
+        withinJaw = ((pos1 < this->X1Jaw && pos2 >= this->X1Jaw && pos2 <= this->X2Jaw) ||
+          (pos1 >= this->X1Jaw && pos1 <= this->X2Jaw && pos2 > this->X2Jaw) ||
+          (pos1 <= this->X1Jaw && pos2 >= this->X2Jaw) ||
+          (pos1 >= this->X1Jaw && pos1 <= this->X2Jaw &&
             pos2 >= this->X1Jaw && pos2 <= this->X2Jaw));
       }
       else // MLCY
       {
-        withinJaw = ((pos1 < this->Y1Jaw && pos2 >= this->Y1Jaw && pos2 <= this->Y2Jaw) || 
-          (pos1 >= this->Y1Jaw && pos1 <= this->Y2Jaw && pos2 > this->Y2Jaw) || 
-          (pos1 <= this->Y1Jaw && pos2 >= this->Y2Jaw) || 
-          (pos1 >= this->Y1Jaw && pos1 <= this->Y2Jaw && 
+        withinJaw = ((pos1 < this->Y1Jaw && pos2 >= this->Y1Jaw && pos2 <= this->Y2Jaw) ||
+          (pos1 >= this->Y1Jaw && pos1 <= this->Y2Jaw && pos2 > this->Y2Jaw) ||
+          (pos1 <= this->Y1Jaw && pos2 >= this->Y2Jaw) ||
+          (pos1 >= this->Y1Jaw && pos1 <= this->Y2Jaw &&
             pos2 >= this->Y1Jaw && pos2 <= this->Y2Jaw));
       }
 
@@ -780,7 +758,7 @@ void vtkMRMLRTBeamNode::CreateBeamPolyData(vtkPolyData* beamModelPolyData/*=null
     vtkDebugMacro("CreateBeamPolyData: Beam \"" << this->GetName() << "\" with MLC data has been created!");
     return;
   }
- 
+
   // Default beam polydata (no MLC)
   vtkNew<vtkPoints> points;
   vtkNew<vtkCellArray> cellArray;
@@ -836,7 +814,7 @@ void vtkMRMLRTBeamNode::RequestCloning()
 
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder(double jawBegin,
-  double jawEnd, bool typeMLCX, const MLCSectionVector::value_type& sectionBorder, 
+  double jawEnd, bool typeMLCX, const MLCSectionVector::value_type& sectionBorder,
   MLCVisiblePointVector& side12)
 {
   MLCVisiblePointVector side1, side2; // temporary vectors to save visible points
@@ -896,7 +874,7 @@ void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder(double jawBegin,
   }
 
   // intersection between Jaws and MLC boundary (logical AND) lambda
-  // typeMLCX true for MLCX, false for MLCY 
+  // typeMLCX true for MLCX, false for MLCY
   auto intersectJawsMLC = [ jawBegin, jawEnd, typeMLCX](MLCVisiblePointVector::value_type& point)
   {
     double leafBoundary = (typeMLCX) ? point.second : point.first;
@@ -937,7 +915,7 @@ void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder(double jawBegin,
   {
     double& pxNext = side1[i + 1].first; // x coordinate of next point
     double& pyNext = side1[i + 1].second; // y coordinate of next point
-    if (!vtkSlicerRtCommon::AreEqualWithTolerance(px, pxNext) && 
+    if (!vtkSlicerRtCommon::AreEqualWithTolerance(px, pxNext) &&
       !vtkSlicerRtCommon::AreEqualWithTolerance(py, pyNext))
     {
       p = side1[i];
@@ -953,7 +931,7 @@ void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder(double jawBegin,
   {
     double& pxNext = side2[i + 1].first;
     double& pyNext = side2[i + 1].second;
-    if (!vtkSlicerRtCommon::AreEqualWithTolerance(px, pxNext) && 
+    if (!vtkSlicerRtCommon::AreEqualWithTolerance(px, pxNext) &&
       !vtkSlicerRtCommon::AreEqualWithTolerance(py, pyNext))
     {
       p = side2[i];
@@ -963,6 +941,7 @@ void vtkMRMLRTBeamNode::CreateMLCPointsFromSectionBorder(double jawBegin,
   side12.push_back(side2.back());
 }
 
+//---------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetDoseInfluenceMatrixFromTriplets(
   int numRows, int numCols,
   DoseInfluenceMatrixIndexVector& rows,
@@ -975,7 +954,7 @@ void vtkMRMLRTBeamNode::SetDoseInfluenceMatrixFromTriplets(
   typedef Eigen::Triplet<double> T;
   std::vector<T> tripletList;
   tripletList.reserve(values.size());
-  
+
   for (size_t i = 0; i < values.size(); ++i)
   {
     tripletList.push_back(T(rows[i], columns[i], values[i]));
