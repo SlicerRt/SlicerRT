@@ -146,6 +146,8 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
   std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives = this->getSavedObjectiveNodes();
 
   // Get or create output optimization volume for plan
+  //TODO: Do not use smart pointer, because it is not created here.
+  // (Smart pointers are used to auto-delete references so that memory is freed, but it is not managed here)
   vtkSmartPointer<vtkMRMLScalarVolumeNode> resultOptimizationVolumeNode = planNode->GetOutputTotalDoseVolumeNode();
   if (!resultOptimizationVolumeNode)
   {
@@ -199,7 +201,7 @@ void qSlicerAbstractPlanOptimizer::removeAllObjectiveNodes()
 
 //-----------------------------------------------------------------------------
 void qSlicerAbstractPlanOptimizer::addResultOptimizedDose(vtkMRMLScalarVolumeNode* resultOptimizedDose, vtkMRMLRTPlanNode* planNode, bool replace/*=true*/)
-{    
+{
   if (!resultOptimizedDose)
   {
     qCritical() << Q_FUNC_INFO << ": Invalid result dose";
@@ -250,7 +252,7 @@ void qSlicerAbstractPlanOptimizer::addResultOptimizedDose(vtkMRMLScalarVolumeNod
       shNode->SetItemAttribute(studyItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, "Gy");
     }
   }
-    
+
   resultOptimizedDose->CreateDefaultDisplayNodes(); // Make sure display node is present
   if (resultOptimizedDose->GetDisplayNode())
   {
@@ -280,7 +282,7 @@ void qSlicerAbstractPlanOptimizer::addResultOptimizedDose(vtkMRMLScalarVolumeNod
     // Select as foreground volume
     selectionNode->SetReferenceSecondaryVolumeID(resultOptimizedDose->GetID());
     qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection(0);
-    
+
     // Set opacity so that volume is visible
     vtkMRMLSliceCompositeNode* compositeNode = nullptr;
     int numberOfCompositeNodes = planNode->GetScene()->GetNumberOfNodesByClass("vtkMRMLSliceCompositeNode");

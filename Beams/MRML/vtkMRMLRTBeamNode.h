@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -70,22 +70,21 @@ public:
   typedef std::vector<int> DoseInfluenceMatrixIndexVector;
   typedef Eigen::SparseMatrix<double, Eigen::ColMajor, int> DoseInfluenceMatrixType;
 
-
 public:
   static vtkMRMLRTBeamNode *New();
   vtkTypeMacro(vtkMRMLRTBeamNode,vtkMRMLModelNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  /// Create instance of a GAD node. 
+  /// Create instance of a GAD node.
   vtkMRMLNode* CreateNodeInstance() override;
 
-  /// Set node attributes from name/value pairs 
+  /// Set node attributes from name/value pairs
   void ReadXMLAttributes(const char** atts) override;
 
-  /// Write this node's information to a MRML file in XML format. 
+  /// Write this node's information to a MRML file in XML format.
   void WriteXML(ostream& of, int indent) override;
 
-  /// Copy the node's attributes to this object 
+  /// Copy the node's attributes to this object
   void Copy(vtkMRMLNode *node) override;
 
   /// Copy node content (excludes basic data, such a name and node reference)
@@ -94,7 +93,7 @@ public:
   /// Make sure display node and transform node are present and valid
   void SetScene(vtkMRMLScene* scene) override;
 
-  /// Get unique node XML tag name (like Volume, Model) 
+  /// Get unique node XML tag name (like Volume, Model)
   const char* GetNodeTagName() override { return "RTBeam"; };
 
   /// Create and observe default display node
@@ -294,66 +293,66 @@ protected:
 // Beam properties
 protected:
   /// Beam number
-  int  BeamNumber;
+  int  BeamNumber{ -1 };
   /// Beam description
-  char* BeamDescription;
+  char* BeamDescription{ nullptr };
   /// Beam weight, taken into account when accumulating per-beam doses
-  double BeamWeight;
+  double BeamWeight{ 1.0 };
   /// Beam energy
-  double BeamEnergy;
+  double BeamEnergy{ -1.0 };
 
   /// X1 jaw position
-  double X1Jaw;
+  double X1Jaw{ -100.0 };
   /// X2 jaw position
-  double X2Jaw;
+  double X2Jaw{ 100.0 };
   /// Y1 jaw position
-  double Y1Jaw;
+  double Y1Jaw{ -100.0 };
   /// Y2 jaw position
-  double Y2Jaw;
+  double Y2Jaw{ 100.0 };
   /// Source-axis distance
-  double SAD;
+  double SAD{ 2000.0 };
 
   /// distance from source to beam limiting device X, ASYMX
-  double SourceToJawsDistanceX;
+  double SourceToJawsDistanceX{ 500.0 };
   /// distance from source to beam limiting device Y, ASYMY
-  double SourceToJawsDistanceY;
+  double SourceToJawsDistanceY{ 500.0 };
   /// distance from source to beam limiting device MLCX, MLCY
-  double SourceToMultiLeafCollimatorDistance;
+  double SourceToMultiLeafCollimatorDistance{ 400.0 };
 
   /// Gantry angle
-  double GantryAngle;
+  double GantryAngle{ 0.0 };
   /// Collimator angle
-  double CollimatorAngle;
+  double CollimatorAngle{ 0.0 };
   /// Couch angle
-  double CouchAngle;
+  double CouchAngle{ 0.0 };
 
   /// Isocenter position flag
   /// true if control point isocenter position is present, false otherwise
-  bool IsocenterPositionFlag;
+  bool IsocenterPositionFlag{ false };
   /// Control point isocenter position
-  double IsocenterPosition[3];
+  double IsocenterPosition[3]{ 0.0, 0.0, 0.0 };
 
   /// Dose influence matrix
   DoseInfluenceMatrixType DoseInfluenceMatrix;
 
   /// Dose grid dimensions (on which the dose influence matrix is defined)
-  int DoseGridDim[3]{ -1,-1,-1 };
-  /// Dose grid spaciing (on which the dose influence matrix is defined)
-  double DoseGridSpacing[3]{ -1,-1,-1 };
+  int DoseGridDim[3]{ -1, -1, -1 };
+  /// Dose grid spacing (on which the dose influence matrix is defined)
+  double DoseGridSpacing[3]{ -1, -1, -1 };
 
 protected:
 
   /// Visible multi-leaf collimator points
   typedef std::vector< std::pair< double, double > > MLCVisiblePointVector;
-  /// Multi-leaf collimator boundary position parameters 
+  /// Multi-leaf collimator boundary position parameters
   typedef std::vector< std::array< double, 4 > > MLCBoundaryPositionVector;
   /// Start and stop border of multi-leaf collimator opened section
   typedef std::vector< std::pair< MLCBoundaryPositionVector::iterator, MLCBoundaryPositionVector::iterator > > MLCSectionVector;
 
-  /// \brief Create visible points of MLC enclosure (perimeter) 
+  /// \brief Create visible points of MLC enclosure (perimeter)
   ///  in IEC BEAM LIMITING DEVICE coordinate axis (isocenter plane)
-  void CreateMLCPointsFromSectionBorder( double jawBegin, double jawEnd, 
-    bool mlcType, const MLCSectionVector::value_type& sectionBorder, 
+  void CreateMLCPointsFromSectionBorder( double jawBegin, double jawEnd,
+    bool mlcType, const MLCSectionVector::value_type& sectionBorder,
     MLCVisiblePointVector& side12);
 };
 
