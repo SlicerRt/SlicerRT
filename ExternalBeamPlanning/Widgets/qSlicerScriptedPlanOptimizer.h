@@ -38,7 +38,7 @@ typedef _object PyObject;
 class qSlicerScriptedPlanOptimizerPrivate;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
-/// \brief Scripted abstract engine for implementing Optimization engines in python
+/// \brief Scripted abstract engine for implementing plan optimizers in python
 ///
 /// This class provides an interface to engines implemented in python.
 /// USAGE: Subclass AbstractScriptedPlanOptimizer in Python subfolder,
@@ -70,17 +70,17 @@ public:
 
   /// Get the available objectives for the optimizer
   virtual void setAvailableObjectives();
-  /// Set the available objectives for the optimizer
-  //virtual void setAvailableObjectives(std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives);
 
 // Optimization related functions (API functions to call from the subclass)
 protected:
-  /// Optimize Treatment Plan Called by \sa optimizePlan that performs actions generic
-  /// to any Optimization engine before and after optimization.
+  /// Optimize for a plan. Called by \sa CalculateOptimization that performs actions generic
+  /// to any plan optimizer before and after calculation.
   /// This is the method that needs to be implemented in each engine.
   ///
-  /// \param planNode Plan which is optimized. 
-  /// \param resultOptimizationVolumeNode Output volume node for the Optimization result. It is created by \sa optimizePlan
+  /// \param planNode Plan which is optimized.
+  /// \param objectives List of objective nodes defining the objectives for the plan optimization
+  /// \param resultOptimizationVolumeNode Output volume node for the result optimized dose. It is created by \sa optimizePlan
+
   virtual QString optimizePlanUsingOptimizer(
     vtkMRMLRTPlanNode* planNode,
     std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives,

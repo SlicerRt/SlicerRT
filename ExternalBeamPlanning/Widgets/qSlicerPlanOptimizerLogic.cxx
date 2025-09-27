@@ -79,7 +79,7 @@ qSlicerPlanOptimizerLogicPrivate::~qSlicerPlanOptimizerLogicPrivate() = default;
 //-----------------------------------------------------------------------------
 void qSlicerPlanOptimizerLogicPrivate::loadApplicationSettings()
 {
-  //TODO: Implement if there are application settings (such as default optimization engine)
+  //TODO: Implement if there are application settings (such as default plan optimizer)
   //      See qSlicerSubjectHierarchyPluginLogicPrivate::loadApplicationSettings
 }
 

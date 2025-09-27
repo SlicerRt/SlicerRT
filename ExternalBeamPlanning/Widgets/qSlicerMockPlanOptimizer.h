@@ -41,12 +41,20 @@ explicit qSlicerMockPlanOptimizer(QObject* parent=nullptr);
 
 
 public:
-  /// Calculate Optimization for a single beam. Called by \sa CalculateOptimization that performs actions generic
-  /// to any Optimization engine before and after calculation.
-  /// \param planNode Plan for which the Optimization is carried out.
-  /// \param resultOptimizationVolumeNode Output volume node for the result Optimization. It is created by \sa optimizePlan
-  Q_INVOKABLE QString optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* planNode, std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives, vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode);
+  /// Optimize for a plan. Called by \sa CalculateOptimization that performs actions generic
+  /// to any plan optimizer before and after calculation.
+  /// This is the method that needs to be implemented in each engine.
+  ///
+  /// \param planNode Plan which is optimized.
+  /// \param objectives List of objective nodes defining the objectives for the plan optimization
+  /// \param resultOptimizationVolumeNode Output volume node for the result optimized dose. It is created by \sa optimizePlan
 
+  Q_INVOKABLE QString optimizePlanUsingOptimizer(
+    vtkMRMLRTPlanNode* planNode,
+    std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives,
+    vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode);
+
+  /// Set available objective functions (only name and parameters) for the plan optimizer 
   void setAvailableObjectives();
 
 private:
