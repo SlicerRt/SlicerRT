@@ -250,14 +250,8 @@ void qSlicerMockPlanOptimizer::setAvailableObjectives()
   qSlicerAbstractPlanOptimizer::ObjectiveStruct* objectiveStruct1 = new qSlicerAbstractPlanOptimizer::ObjectiveStruct();
     
   // Fill objectiveStruct with name and parameters from objective
-  objectiveStruct1->name = squaredDeviationObjective1->name().toStdString();
-  std::map parameters = squaredDeviationObjective1->getObjectiveParameters().toStdMap();
-  for (const auto& pair : parameters)
-  {
-    std::string key = pair.first.toStdString();
-    std::string value = pair.second.toString().toStdString();
-    objectiveStruct1->parameters[key] = value;
-  }
+  objectiveStruct1->name = squaredDeviationObjective1->name();
+  objectiveStruct1->parameters = squaredDeviationObjective1->getObjectiveParameters();
 
   // Create vector of objectives
   std::vector<qSlicerAbstractPlanOptimizer::ObjectiveStruct> objectiveStructs;

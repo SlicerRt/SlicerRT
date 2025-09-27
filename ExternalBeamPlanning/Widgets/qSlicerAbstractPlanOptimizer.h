@@ -69,8 +69,8 @@ public:
   /// Structure to represent objective functions (only name and parameters)
   struct ObjectiveStruct
   {
-    std::string name;
-    std::map<std::string, std::string> parameters;
+    QString name;
+    QMap<QString, QVariant> parameters;
   };
 
 signals:

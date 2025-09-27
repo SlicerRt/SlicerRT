@@ -287,7 +287,7 @@ void qSlicerScriptedPlanOptimizer::setAvailableObjectives()
                         if (PyUnicode_Check(pKey))
                         {
                           const char* paramName = PyUnicode_AsUTF8(pKey);
-                          objective.parameters[std::string(paramName)] = "";
+                          objective.parameters[QString(paramName)] = "";
                         }
                       }
                       Py_DECREF(pAnnotationsKeys);

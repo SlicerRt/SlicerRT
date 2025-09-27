@@ -244,7 +244,7 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
   {
     QVariant var;
     var.setValue(objective);
-    objectivesDropdown->addItem(objective.name.c_str(), var);
+    objectivesDropdown->addItem(objective.name, var);
   }
   d->ObjectivesTable->setCellWidget(row, d->columnIndex("ObjectiveName"), objectivesDropdown);
   connect(objectivesDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, row]
@@ -349,7 +349,7 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
       objectiveNode->RemoveAttribute(name.c_str());
     }
   }
-  objectiveNode->SetName(objectiveStruct.name.c_str());
+  objectiveNode->SetName(objectiveStruct.name.toStdString().c_str());
   objectiveNode->SetSegmentationAndSegmentID(segmentationNode, segmentID.toStdString().c_str());
 
   // Create overlap priority SpinBox
@@ -381,12 +381,12 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
   layout->setContentsMargins(0, 0, 0, 0);
 
   // Add a QLineEdit box for each parameter and add to objectiveNode attributes
-  std::map<std::string, std::string> parameters = objectiveStruct.parameters;
+  QMap<QString, QVariant> parameters = objectiveStruct.parameters;
   for (auto item = parameters.cbegin(); item != parameters.cend(); ++item)
   {
     // Get paramters set in objectiveStruct and add to objectiveNode attributes
-    std::string parameterName = item->first;
-    std::string parameterValue = item->second;
+    std::string parameterName = item.key().toStdString();
+    std::string parameterValue = item.value().toString().toStdString();
     objectiveNode->SetAttribute(parameterName.c_str(), parameterValue.c_str());
 
     // Create QLineEdit box for parameter
