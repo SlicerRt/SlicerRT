@@ -57,7 +57,7 @@ public:
   /// Set the current MRML scene to the widget
   Q_INVOKABLE virtual void setMRMLScene(vtkMRMLScene* scene);
 
-  /// Calculate dose for a plan
+  /// Optimize dose for a plan
   Q_INVOKABLE QString optimizePlan(vtkMRMLRTPlanNode* planNode);
 
 

@@ -30,7 +30,7 @@ class qSlicerAbstractPlanOptimizer;
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 /// \class qSlicerPlanOptimizerPluginHandler
-/// \brief Singleton class managing Optimization engine plugins for external beam planning
+/// \brief Singleton class managing plan optimizer plugins for external beam planning
 class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerPlanOptimizerPluginHandler : public QObject
 {
   Q_OBJECT
@@ -46,15 +46,15 @@ public:
   static void setInstance(qSlicerPlanOptimizerPluginHandler* instance);
 
 public:
-  /// Add a Optimization engine.
-  /// The handler will keep a reference to this Optimization engine object,
+  /// Add a plan optimizer.
+  /// The handler will keep a reference to this plan optimizer object,
   /// and it will not be deleted until all these referring classes are deleted.
   Q_INVOKABLE bool registerPlanOptimizer(qSlicerAbstractPlanOptimizer* engine);
 
-  /// Get Optimization engine by its name
+  /// Get plan optimizer by its name
   Q_INVOKABLE qSlicerAbstractPlanOptimizer* PlanOptimizerByName(QString name);
 
-  /// Get all registered Optimization engines
+  /// Get all registered plan optimizers
   Q_INVOKABLE PlanOptimizerListType registeredPlanOptimizers();
 
 protected:

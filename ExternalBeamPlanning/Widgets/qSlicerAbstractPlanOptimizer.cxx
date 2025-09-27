@@ -87,7 +87,7 @@ QString qSlicerAbstractPlanOptimizer::name() const
 {
   if (m_Name.isEmpty())
   {
-    qCritical() << Q_FUNC_INFO << ": Empty Optimization engine name";
+    qCritical() << Q_FUNC_INFO << ": Empty plan optimizer name";
   }
   return this->m_Name;
 }
@@ -96,7 +96,7 @@ QString qSlicerAbstractPlanOptimizer::name() const
 void qSlicerAbstractPlanOptimizer::setName(QString name)
 {
   Q_UNUSED(name);
-  qCritical() << Q_FUNC_INFO << ": Cannot set Optimization engine name by method, only in constructor";
+  qCritical() << Q_FUNC_INFO << ": Cannot set plan optimizer name by method, only in constructor";
 }
 
 //----------------------------------------------------------------------------
@@ -163,7 +163,7 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
 
   if (errorMessage.isEmpty())
   {
-   // Add result dose volume to plan
+   // Add result optimized dose volume to plan
       this->addResultOptimizedDose(resultOptimizationVolumeNode, planNode);
   }
   return errorMessage;
@@ -235,14 +235,14 @@ void qSlicerAbstractPlanOptimizer::addResultOptimizedDose(vtkMRMLScalarVolumeNod
   resultOptimizedDose->SetAttribute(vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_VOLUME_IDENTIFIER_ATTRIBUTE_NAME.c_str(), "1");
 
   // Subject hierarchy related operations
-  vtkIdType beamShItemID = shNode->GetItemByDataNode(planNode);
-  if (beamShItemID)
+  vtkIdType planShItemID = shNode->GetItemByDataNode(planNode);
+  if (planShItemID)
   {
-    // Add result under beam in subject hierarchy
-    shNode->CreateItem(beamShItemID, resultOptimizedDose);
+    // Add result under plan in subject hierarchy
+    shNode->CreateItem(planShItemID, resultOptimizedDose);
 
-    // Set dose unit value to Gy if dose engine did not set it already (potentially to other unit)
-    vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(beamShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
+    // Set dose unit value to Gy if plan optimizer did not set it already (potentially to other unit)
+    vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(planShItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
     if (!studyItemID)
     {
       qWarning() << Q_FUNC_INFO << ": Unable to find study item that contains the plan! Creating a study item and adding the reference dose and the plan under it is necessary in order for dose evaluation steps to work properly";
@@ -273,13 +273,12 @@ void qSlicerAbstractPlanOptimizer::addResultOptimizedDose(vtkMRMLScalarVolumeNod
     qWarning() << Q_FUNC_INFO << ": Display node is not available for dose volume node. The default color table will be used.";
   }
 
-  // Show total dose in foreground
+  // Show result optimized dose in foreground
   vtkMRMLSelectionNode* selectionNode = qSlicerCoreApplication::application()->applicationLogic()->GetSelectionNode();
   if (selectionNode)
   {
-    // Make sure reference volume is shown in background
+    // Make sure reference volume is shown in background and result optimized dose in foreground
     selectionNode->SetReferenceActiveVolumeID(referenceVolumeNode->GetID());
-    // Select as foreground volume
     selectionNode->SetReferenceSecondaryVolumeID(resultOptimizedDose->GetID());
     qSlicerCoreApplication::application()->applicationLogic()->PropagateVolumeSelection(0);
 
