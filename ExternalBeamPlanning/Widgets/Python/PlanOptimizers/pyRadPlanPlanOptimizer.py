@@ -1,11 +1,12 @@
 import slicer
+import sitkUtils
 import numpy as np
 from scipy.sparse import csc_matrix
 from PlanOptimizers import *
 from Python.PyRadPlanUtils import prepareCt, prepareCst, preparePln
 
 class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
-  """ pyRadPlan Optimizer for SlicerRT External Beam Planning Module.
+  """ pyRadPlan plan optimizer for SlicerRT External Beam Planning Module.
   """
 
   def __init__(self, scriptedEngine):
@@ -13,8 +14,8 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     AbstractScriptedPlanOptimizer.__init__(self, scriptedEngine)
 
   def optimizePlanUsingOptimizer(self, planNode, objectives, resultOptimizationVolumeNode):
-    import sitkUtils
-    import SimpleITK as sitk
+
+    #################################### Import pyRadPlan libraries ######################################
     from pyRadPlan import (
       generate_stf,
       fluence_optimization,
