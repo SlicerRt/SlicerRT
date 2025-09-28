@@ -137,7 +137,7 @@ private:
 
 
 public:
-  /// Add result optimzed dose volume to plan
+  /// Add result optimized dose volume to plan
   /// \param resultOptimizedDose Dose volume to add to plan as result
   /// \param planNode Plan node to add dose as result to
   /// \param replace Remove referenced dose volume if already exists. True by default
