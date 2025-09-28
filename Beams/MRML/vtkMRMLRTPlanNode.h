@@ -257,8 +257,8 @@ protected:
   /// Name of the selected dose engine
   char* DoseEngineName{ nullptr };
 
-  /// Name of the selected optimization engine
-  char* PlanOptimizerName;
+  /// Name of the selected plan optimizer
+  char* PlanOptimizerName{ nullptr };
 
   /// Allows user to specify dose volume resolution different from reference volume
   //TODO: Explain here why this is defined in the plan node as well as the beam node
