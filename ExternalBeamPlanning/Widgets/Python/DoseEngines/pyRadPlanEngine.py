@@ -1,8 +1,14 @@
+import slicer
+import sitkUtils
+import numpy as np
+import logging
+import time
+from scipy.sparse import coo_matrix
 from DoseEngines import *
 from Python.PyRadPlanUtils import prepareCt, prepareCst, preparePln
 
 class pyRadPlanEngine(AbstractScriptedDoseEngine):
-  """ Mock python dose engine to test python interface for External Beam Planning
+  """ pyRadPlan dose engine for SlicerRT External Beam Planning Module.
   """
 
   def __init__(self, scriptedEngine):
@@ -42,13 +48,6 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
   def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):
 
     #################################### Import pyRadPlan libraries ######################################
-    import logging
-    import time
-
-    import numpy as np
-    import sitkUtils
-    import slicer
-
     from pyRadPlan import (
       generate_stf,
       calc_dose_influence
@@ -112,10 +111,6 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
   def calculateDoseInfluenceMatrixUsingEngine(self, beamNode):
         
     #################################### Import pyRadPlan libraries ######################################
-    import logging
-    from scipy.sparse import coo_matrix
-    import time
-
     from pyRadPlan import (
       generate_stf,
       calc_dose_influence
