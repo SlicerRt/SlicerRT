@@ -223,10 +223,10 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
     " assert pyRadPlan.__version__ == '0.2.4'\n"
     "except (ImportError, AttributeError, AssertionError):\n"
     " if slicer.util.confirmOkCancelDisplay("
-    "   'This module requires pyRadPlan. Click OK to install it now.'"
+    "   'This module requires pyRadPlan.\\nClick OK to install it now. Slicer will automatically restart.'\n"
     " ):\n"
     "   slicer.util.pip_install('pyRadPlan==0.2.4')\n"
-    "   import pyRadPlan\n"));
+    "   slicer.app.restart()\n"));
 }
 
 //-----------------------------------------------------------------------------
