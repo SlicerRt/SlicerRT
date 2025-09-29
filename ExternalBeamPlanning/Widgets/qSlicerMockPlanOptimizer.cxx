@@ -64,7 +64,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
   }  
 
   // Create total dose image data from reference volume
-  vtkImageData* totalDoseImageData = vtkImageData::New();
+  vtkSmartPointer<vtkImageData> totalDoseImageData = vtkSmartPointer<vtkImageData>::New();
   totalDoseImageData->CopyStructure(referenceVolumeNode->GetImageData());
   totalDoseImageData->AllocateScalars(VTK_FLOAT, 1);
 
@@ -146,7 +146,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
     int N_x = static_cast<int>(doseGridDim[0]);
     int N_y = static_cast<int>(doseGridDim[1]);
     int N_z = static_cast<int>(doseGridDim[2]);
-    vtkImageData* doseImageData = vtkImageData::New();
+    vtkNew<vtkImageData> doseImageData;
     doseImageData->SetDimensions(N_x, N_y, N_z);
     doseImageData->SetSpacing(reinterpret_cast<double*>(doseGridSpacing));
     doseImageData->AllocateScalars(VTK_FLOAT, 1);
@@ -163,7 +163,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
     if (resample)
     {
       // Create reslice filter for interpolation
-      vtkSmartPointer<vtkImageReslice> resliceFilter = vtkSmartPointer<vtkImageReslice>::New();
+      vtkNew<vtkImageReslice> resliceFilter;
       resliceFilter->SetInputData(doseImageData);
       resliceFilter->SetOutputSpacing(referenceVolumeNode->GetSpacing());
       resliceFilter->SetOutputExtent(referenceVolumeNode->GetImageData()->GetExtent());
@@ -171,7 +171,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
       resliceFilter->Update();
 
       // Get resampled dose image
-      vtkSmartPointer<vtkImageData> resampledDoseImageData = vtkSmartPointer<vtkImageData>::New();
+      vtkNew<vtkImageData> resampledDoseImageData;
       resampledDoseImageData->DeepCopy(resliceFilter->GetOutput());
       if (!resampledDoseImageData || resampledDoseImageData->GetNumberOfPoints() == 0)
       {
@@ -222,9 +222,6 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
         totalDosePtr[i] += dosePtr[i];
       }
     }
-
-    // Clean up
-    doseImageData->Delete();
   }
    
   // Set image
