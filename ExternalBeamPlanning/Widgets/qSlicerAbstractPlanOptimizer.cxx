@@ -146,15 +146,13 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
   std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives = this->getSavedObjectiveNodes();
 
   // Get or create output optimization volume for plan
-  //TODO: Do not use smart pointer, because it is not created here.
-  // (Smart pointers are used to auto-delete references so that memory is freed, but it is not managed here)
-  vtkSmartPointer<vtkMRMLScalarVolumeNode> resultOptimizationVolumeNode = planNode->GetOutputTotalDoseVolumeNode();
+  vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode = planNode->GetOutputTotalDoseVolumeNode();
   if (!resultOptimizationVolumeNode)
   {
-   resultOptimizationVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();
-      // Give default name for result node (engine can give it a more meaningful name)
-      std::string resultOptimizationNodeName = std::string(planNode->GetName()) + "_Optimization";
-      resultOptimizationVolumeNode->SetName(resultOptimizationNodeName.c_str());
+    resultOptimizationVolumeNode = vtkMRMLScalarVolumeNode::New();
+    // Give default name for result node (engine can give it a more meaningful name)
+    std::string resultOptimizationNodeName = std::string(planNode->GetName()) + "_Optimization";
+    resultOptimizationVolumeNode->SetName(resultOptimizationNodeName.c_str());
   }
   planNode->GetScene()->AddNode(resultOptimizationVolumeNode);
 
@@ -163,8 +161,8 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
 
   if (errorMessage.isEmpty())
   {
-   // Add result optimized dose volume to plan
-      this->addResultOptimizedDose(resultOptimizationVolumeNode, planNode);
+    // Add result optimized dose volume to plan
+    this->addResultOptimizedDose(resultOptimizationVolumeNode, planNode);
   }
   return errorMessage;
 }
