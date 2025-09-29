@@ -22,31 +22,7 @@
 #include "qSlicerAbstractPlanOptimizer.h"
 
 // Beams includes
-#include "vtkMRMLRTBeamNode.h"
-#include "vtkMRMLRTIonBeamNode.h"
 #include "vtkMRMLRTPlanNode.h"
-
-// SlicerRT includes
-#include "vtkMRMLDoseAccumulationNode.h"
-#include "vtkSlicerDoseAccumulationModuleLogic.h"
-#include "vtkSlicerIsodoseModuleLogic.h"
-
-// MRML includes
-#include <vtkMRMLScene.h>
-#include <vtkMRMLScalarVolumeNode.h>
-#include <vtkMRMLScalarVolumeDisplayNode.h>
-#include <vtkMRMLSubjectHierarchyNode.h>
-#include <vtkMRMLSubjectHierarchyConstants.h>
-#include <vtkMRMLColorTableNode.h>
-#include <vtkMRMLSliceCompositeNode.h>
-#include <vtkMRMLSelectionNode.h>
-
-// Slicer includes
-#include "qSlicerCoreApplication.h"
-#include "vtkSlicerApplicationLogic.h"
-
-// VTK includes
-#include <vtkSmartPointer.h>
 
 // Qt includes
 #include <QDebug>
