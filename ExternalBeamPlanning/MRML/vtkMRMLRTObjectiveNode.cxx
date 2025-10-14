@@ -164,6 +164,15 @@ void vtkMRMLRTObjectiveNode::SetSegmentationNode(vtkMRMLSegmentationNode* segmen
 //----------------------------------------------------------------------------
 void vtkMRMLRTObjectiveNode::SetSegmentID(const char* segmentID)
 {
+  if (segmentID == nullptr)
+  {
+    // Setting to null is always valid
+    delete[] this->SegmentID;
+    this->SegmentID = nullptr;
+    this->Modified();
+    return;
+  }
+
   vtkMRMLSegmentationNode* segmentationNode = this->GetSegmentationNode();
   if (!segmentationNode)
   {
