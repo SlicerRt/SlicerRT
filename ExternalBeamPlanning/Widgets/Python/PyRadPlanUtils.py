@@ -1,11 +1,11 @@
-import os
 import numpy as np
+import logging
 import slicer
-import SimpleITK as sitk
 import sitkUtils
 
 def prepareCt(beamNode):
   from pyRadPlan.ct import create_ct
+  logging.basicConfig(level=logging.INFO)
 
   # Get sitk image from Slicer
   planNode = beamNode.GetParentPlanNode()
@@ -18,6 +18,7 @@ def prepareCt(beamNode):
 
 def prepareCst(beamNode, ct):
   from pyRadPlan.cst import StructureSet, create_voi
+  logging.basicConfig(level=logging.INFO)
 
   # Get segmentations from Slicer
   planNode = beamNode.GetParentPlanNode()
@@ -43,6 +44,7 @@ def prepareCst(beamNode, ct):
 
 def preparePln(beamNode, ct, dose_grid_from_beamNode=False):
   from pyRadPlan.plan import create_pln
+  logging.basicConfig(level=logging.INFO)
   
   # Get isocenter position in RAS coordinates from Slicer
   planNode = beamNode.GetParentPlanNode()

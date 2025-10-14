@@ -1,5 +1,6 @@
 import slicer
 import numpy as np
+import logging
 from scipy.sparse import csc_matrix
 from PlanOptimizers import *
 from Python.PyRadPlanUtils import prepareCt, prepareCst, preparePln
@@ -21,6 +22,8 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     )
     from pyRadPlan.dij import Dij, compose_beam_dijs
     from pyRadPlan.optimization.objectives import get_objective
+
+    logging.basicConfig(level=logging.INFO)
 
     ########################### Get objectives from Slicer objectives table ##############################
     objectives_dict = {}
@@ -75,7 +78,6 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
     ############################ Get dose influence matrices from beam nodes #############################
     self.scriptedPlanOptimizer.progressInfoUpdated("get dijs")
-    referenceVolumeNode = planNode.GetReferenceVolumeNode()
 
     # Get beams in plan
     numberOfBeams = planNode.GetNumberOfBeams()
