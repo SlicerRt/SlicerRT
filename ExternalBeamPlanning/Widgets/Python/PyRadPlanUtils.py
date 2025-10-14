@@ -77,10 +77,10 @@ def preparePln(beamNode, ct, dose_grid_from_beamNode=False):
     dose_grid = ct.grid.copy().resample(target_resolution=planNode.GetDoseGridSpacing())
 
   # Get radiation mode from beamNode
-  if not planNode.ion_plan_flag:
-    available_radiation_modes = ['photons', 'protons', 'carbon']
-  else:
+  if planNode.GetIonPlanFlag():
     available_radiation_modes = ['protons', 'carbon']
+  else:
+    available_radiation_modes = ['photons', 'protons', 'carbon']
   radiation_mode = slicer.pyRadPlanEngine.scriptedEngine.integerParameter(beamNode, 'radiationMode')
 
 
