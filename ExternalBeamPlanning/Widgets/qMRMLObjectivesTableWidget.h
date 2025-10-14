@@ -51,12 +51,20 @@ public:
   /// Get plan MRML node
   Q_INVOKABLE vtkMRMLNode* planNode();
 
+  /// Get segmentation MRML node
+  Q_INVOKABLE vtkMRMLSegmentationNode* segmentationNode();
 
 public slots:
   /// Set plan MRML node
   Q_INVOKABLE void setPlanNode(vtkMRMLNode* node);
 
+  /// Set segmentation MRML node
+  Q_INVOKABLE void setSegmentationNode(vtkMRMLSegmentationNode* node);
+
   bool eventFilter(QObject* target, QEvent* event);
+
+  /// Called when plan node reference is modified in an observed plan node
+  void onPlanNodeReferenceModified();
 
   /// Called when objective is added in an observed plan node
   void onObjectiveAdded();
@@ -64,8 +72,14 @@ public slots:
   /// Called when objective is removed in an observed plan node
   void onObjectiveRemoved();
 
-  /// Removes row from table and its objective from currentObjectiveNodes and scene
-  void removeRowFromRowIndex(int row);
+  /// Called when segment is modified in an observed segmentation node
+  void onSegmentModified(vtkObject* caller, void* callData, unsigned long eventId, void* clientData);
+
+  /// Called when segment is added in an observed segmentation node
+  void onSegmentAdded(vtkObject* caller, void* callData, unsigned long eventId, void* clientData);
+
+  /// Called when segment is removed in an observed segmentation node
+  void onSegmentRemoved(vtkObject* caller, void* callData, unsigned long eventId, void* clientData);
 
   /// Called when objective is changed or newly added
   void onObjectiveChanged(int row);
@@ -92,7 +106,10 @@ public slots:
   /// Updates the objectiveNodes in the plan optimizer according to the current objectives in the table
   void setObjectivesInPlanOptimizer();
 
-  /// Deletes objectives Table and removes all objectives from plan optimizer
+  /// Removes row from table and its objective from currentObjectiveNodes and scene
+  void removeRowFromRowIndex(int row);
+
+  /// Deletes objectives table
   void deleteObjectivesTable();
 
 protected:

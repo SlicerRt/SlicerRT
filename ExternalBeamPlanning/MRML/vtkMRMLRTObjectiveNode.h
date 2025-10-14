@@ -87,7 +87,6 @@ protected:
 
   /// ID of the segment assigned to this objective
   char* SegmentID{ nullptr };
-
 };
 
 #endif
