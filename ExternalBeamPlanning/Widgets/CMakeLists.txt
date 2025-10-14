@@ -15,6 +15,7 @@ set(${KIT}_INCLUDE_DIRECTORIES
   )
 
 set(${KIT}_SRCS
+  # Dose engines
   qSlicerAbstractDoseEngine.cxx
   qSlicerAbstractDoseEngine.h
   qSlicerDoseEnginePluginHandler.cxx
@@ -23,9 +24,9 @@ set(${KIT}_SRCS
   qSlicerDoseEngineLogic.h
   qSlicerMockDoseEngine.cxx
   qSlicerMockDoseEngine.h
-
   qSlicerScriptedDoseEngine.cxx
   qSlicerScriptedDoseEngine.h
+  # Plan optimizers
   qSlicerAbstractPlanOptimizer.cxx
   qSlicerAbstractPlanOptimizer.h
   qSlicerPlanOptimizerPluginHandler.cxx
@@ -36,7 +37,7 @@ set(${KIT}_SRCS
   qSlicerMockPlanOptimizer.h
   qSlicerScriptedPlanOptimizer.cxx
   qSlicerScriptedPlanOptimizer.h
-  
+  # Objectives
   qSlicerAbstractObjective.cxx
   qSlicerAbstractObjective.h
   qSlicerObjectivePluginHandler.cxx
@@ -45,7 +46,7 @@ set(${KIT}_SRCS
   qSlicerObjectiveLogic.h
   qSlicerSquaredDeviationObjective.cxx
   qSlicerSquaredDeviationObjective.h
-
+  # Widgets
   qMRMLObjectivesTableWidget.cxx
   qMRMLObjectivesTableWidget.h
   )
