@@ -39,19 +39,19 @@ public:
 
   vtkMRMLNode* CreateNodeInstance() override;
 
-  /// Set node attributes from name/value pairs 
+  /// Set node attributes from name/value pairs
   void ReadXMLAttributes(const char** atts) override;
 
-  /// Write this node's information to a MRML file in XML format. 
+  /// Write this node's information to a MRML file in XML format.
   void WriteXML(ostream& of, int indent) override;
 
-  /// Copy the node's attributes to this object 
+  /// Copy the node's attributes to this object
   void Copy(vtkMRMLNode* node) override;
 
   /// Copy node content (excludes basic data, such a name and node reference)
   vtkMRMLCopyContentMacro(vtkMRMLRTObjectiveNode);
 
-  /// Get unique node XML tag name (like Volume, Model) 
+  /// Get unique node XML tag name (like Volume, Model)
   const char* GetNodeTagName() override { return "Objective"; };
 
 public:
@@ -83,11 +83,10 @@ protected:
   void operator=(const vtkMRMLRTObjectiveNode&);
 
   /// Name of the objective function
-  char* Name;
+  char* Name{ nullptr };
 
   /// ID of the segment assigned to this objective
-  char* SegmentID;
-
+  char* SegmentID{ nullptr };
 
 };
 

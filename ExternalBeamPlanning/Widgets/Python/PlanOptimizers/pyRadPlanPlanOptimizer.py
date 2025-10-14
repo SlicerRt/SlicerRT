@@ -1,12 +1,11 @@
 import slicer
-import sitkUtils
 import numpy as np
 from scipy.sparse import csc_matrix
 from PlanOptimizers import *
 from Python.PyRadPlanUtils import prepareCt, prepareCst, preparePln
 
 class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
-  """ pyRadPlan plan optimizer for SlicerRT External Beam Planning Module.
+  """ pyRadPlan Optimizer for SlicerRT External Beam Planning Module.
   """
 
   def __init__(self, scriptedEngine):
@@ -14,8 +13,8 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     AbstractScriptedPlanOptimizer.__init__(self, scriptedEngine)
 
   def optimizePlanUsingOptimizer(self, planNode, objectives, resultOptimizationVolumeNode):
-
-    #################################### Import pyRadPlan libraries ######################################
+    import sitkUtils
+    import SimpleITK as sitk
     from pyRadPlan import (
       generate_stf,
       fluence_optimization,
@@ -25,16 +24,16 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
     ########################### Get objectives from Slicer objectives table ##############################
     objectives_dict = {}
-    
+
     # Loop through all objectives in the Slicer objectives table
     for node_dict in objectives:
-      
+
       # Get objective node
       objective_node = node_dict['ObjectiveNode']
       if not objective_node:
         raise ValueError("Objective node is not set. Please select an objective node in the Slicer objectives table.")
-      
-      # Get segmentation 
+
+      # Get segmentation
       segmentationNode = objective_node.GetSegmentationNode()
       if not segmentationNode:
         raise ValueError("Segmentation node is not set for objective node. Please select a segmentation node in the Slicer objectives table.")
@@ -72,12 +71,12 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
       for objective in objectives_list:
         if objective['overlapPriority'] != overlap_priority:
           raise ValueError(f"Overlap priorities do not match for VOI '{voi_name}' in objectives table. All objectives for a VOI must have the same overlap priority.")
-  
+
 
     ############################ Get dose influence matrices from beam nodes #############################
     self.scriptedPlanOptimizer.progressInfoUpdated("get dijs")
     referenceVolumeNode = planNode.GetReferenceVolumeNode()
-    
+
     # Get beams in plan
     numberOfBeams = planNode.GetNumberOfBeams()
     beam_names = []
@@ -89,7 +88,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
         tried_beam_index += 1
       except:
         tried_beam_index += 1
-      
+
     # Get dij of each beam
     dij_list = []
     beam_index = 0
@@ -97,7 +96,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
       beam_index += 1
       self.scriptedPlanOptimizer.progressInfoUpdated("get dijs ("+ str(beam_index) + "/" + str(numberOfBeams) + ")")
-      
+
       beamNode = planNode.GetBeamByName(beam_name)
       print('current beam: ', beam_name)
 
@@ -134,7 +133,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
         ray_num=stf.bixel_ray_index_per_beam_map,
         bixel_num=stf.bixel_index_per_beam_map
       )
-      
+
       dij_list.append(dij)
 
     # Compose dij from all beams
@@ -143,7 +142,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     else:
       dij = dij_list[0]
 
-    
+
     ########################### Update overlap priorities & objectives in cst ############################
     for voi in cst.vois:
 
@@ -152,7 +151,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
         # Set overlap priority for VOI
         voi.overlap_priority = overlap_priority_dict[voi.name]
-        
+
         for i in range(len(objectives_dict[voi.name])):
           objective_name = objectives_dict[voi.name][i]['objectiveName']
           objective_parameters = objectives_dict[voi.name][i]['parameters']
@@ -172,7 +171,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
               print(f"Parameter {parameter} not found in objectives table.")
               print(f"Using default value: {getattr(objective_instance, parameter)}")
           voi.objectives.append(objective_instance)
-  
+
 
     ########################################## Optimize dose #############################################
     self.scriptedPlanOptimizer.progressInfoUpdated("optimize fluence")
@@ -181,11 +180,11 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
     # Result
     result = dij.compute_result_ct_grid(fluence)
-    
+
 
     ##################################### Visualize dose in Slicer #######################################
     self.scriptedPlanOptimizer.progressInfoUpdated("visualize dose")
-    
+
     total_dose = result["physical_dose"]
 
     # TODO: directly get dose per beam from overlay=result.beam_quantities["physical_dose"][0].distribution (once result_gui is merged)
@@ -196,9 +195,9 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
       fluence_for_beam[mask] = fluence[mask]
       result_for_beam = dij.compute_result_ct_grid(fluence_for_beam)
       dose_per_beam = result_for_beam["physical_dose"]
-      
+
       # Create a new volume node for each beam
-      beamDoseVolumeNodeName = str(planNode.GetName())+"_pyRadOptimzedDose_Beam_"+str(i+1)
+      beamDoseVolumeNodeName = f'{planNode.GetName()}_pyRadOptimizedDose_Beam_{i+1}'
       beamDoseVolumeNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeNode", beamDoseVolumeNodeName)
       displayNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeDisplayNode")
       beamDoseVolumeNode.SetAndObserveDisplayNodeID(displayNode.GetID())
@@ -212,7 +211,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
       displayNode.AutoWindowLevelOn()
       displayNode.SetLowerThreshold(0.05*rxDose)
       displayNode.ApplyThresholdOn()
-      
+
     # Push total dose to volumeNode in Slicer
     sitkUtils.PushVolumeToSlicer(total_dose, targetNode = resultOptimizationVolumeNode)
 
@@ -220,7 +219,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     try:
       resultOptimizationVolumeNodeName = planNode.GetOutputTotalDoseVolumeNode().GetName()
     except AttributeError:
-      resultOptimizationVolumeNodeName = str(planNode.GetName())+"_pyRadOptimzedDose"
+      resultOptimizationVolumeNodeName = str(planNode.GetName())+"_pyRadOptimizedDose"
     resultOptimizationVolumeNode.SetName(resultOptimizationVolumeNodeName)
 
     return str()

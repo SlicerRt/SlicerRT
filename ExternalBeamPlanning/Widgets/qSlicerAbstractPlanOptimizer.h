@@ -102,21 +102,17 @@ protected:
   /// Optimize for a plan. Called by \sa CalculateOptimization that performs actions generic
   /// to any plan optimizer before and after calculation.
   /// This is the method that needs to be implemented in each engine.
-  ///
   /// \param planNode Plan which is optimized.
   /// \param objectives List of objective nodes defining the objectives for the plan optimization
   /// \param resultOptimizationVolumeNode Output volume node for the result optimized dose. It is created by \sa optimizePlan
-  
   virtual QString optimizePlanUsingOptimizer(
     vtkMRMLRTPlanNode* planNode,
     std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectives,
     vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode ) = 0;
 
-
 protected:
   /// Name of the engine. Must be set in plan optimizer constructor
   QString m_Name;
-
 
 protected:
   QScopedPointer<qSlicerAbstractPlanOptimizerPrivate> d_ptr;
@@ -127,14 +123,12 @@ protected:
   /// Saved objectiveNodes
   std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> savedObjectiveNodes;
 
-
 private:
   Q_DECLARE_PRIVATE(qSlicerAbstractPlanOptimizer);
   Q_DISABLE_COPY(qSlicerAbstractPlanOptimizer);
   friend class qSlicerPlanOptimizerPluginHandler;
   friend class qSlicerPlanOptimizerLogic;
   friend class qSlicerExternalBeamPlanningModuleWidget;
-
 
 public:
   /// Add result optimized dose volume to plan

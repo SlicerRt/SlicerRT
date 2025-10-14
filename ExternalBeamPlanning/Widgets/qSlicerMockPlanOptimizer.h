@@ -33,12 +33,11 @@ class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerMockPlanOptimiz
   Q_OBJECT
 
 public:
-typedef qSlicerAbstractPlanOptimizer Superclass;
-/// Constructor
-explicit qSlicerMockPlanOptimizer(QObject* parent=nullptr);
-/// Destructor
-~qSlicerMockPlanOptimizer() override;
-
+  typedef qSlicerAbstractPlanOptimizer Superclass;
+  /// Constructor
+  explicit qSlicerMockPlanOptimizer(QObject* parent=nullptr);
+  /// Destructor
+  ~qSlicerMockPlanOptimizer() override;
 
 public:
   /// Optimize for a plan. Called by \sa CalculateOptimization that performs actions generic

@@ -35,8 +35,6 @@ vtkMRMLNodeNewMacro(vtkMRMLRTObjectiveNode);
 //----------------------------------------------------------------------------
 vtkMRMLRTObjectiveNode::vtkMRMLRTObjectiveNode()
 {
-  this->Name = nullptr;
-  this->SegmentID = nullptr;
   this->AddNodeReferenceRole(SEGMENTATION_REFERENCE_ROLE, "Segmentation");
 }
 
@@ -51,7 +49,7 @@ vtkMRMLRTObjectiveNode::~vtkMRMLRTObjectiveNode()
 void vtkMRMLRTObjectiveNode::WriteXML(ostream& of, int nIndent)
 {
   Superclass::WriteXML(of, nIndent);
-  
+
   // Write all MRML node attributes into output stream
   vtkMRMLWriteXMLBeginMacro(of);
   vtkMRMLWriteXMLStringMacro(Name, Name);
@@ -196,7 +194,7 @@ void vtkMRMLRTObjectiveNode::SetSegmentID(const char* segmentID)
     this->SegmentID = nullptr;
   }
 
-  //	Invoke modified event
+  // Invoke modified event
   this->Modified();
 }
 
