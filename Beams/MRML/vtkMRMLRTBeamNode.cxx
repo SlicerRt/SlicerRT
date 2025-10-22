@@ -188,6 +188,7 @@ void vtkMRMLRTBeamNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyFloatMacro(X2Jaw);
   vtkMRMLCopyFloatMacro(Y1Jaw);
   vtkMRMLCopyFloatMacro(Y2Jaw);
+  vtkMRMLCopyFloatMacro(SAD);
   vtkMRMLCopyFloatMacro(SourceToJawsDistanceX);
   vtkMRMLCopyFloatMacro(SourceToJawsDistanceY);
   vtkMRMLCopyFloatMacro(SourceToMultiLeafCollimatorDistance);
@@ -224,6 +225,7 @@ void vtkMRMLRTBeamNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*/)
   vtkMRMLCopyFloatMacro(X2Jaw);
   vtkMRMLCopyFloatMacro(Y1Jaw);
   vtkMRMLCopyFloatMacro(Y2Jaw);
+  vtkMRMLCopyFloatMacro(SAD);
   vtkMRMLCopyFloatMacro(SourceToJawsDistanceX);
   vtkMRMLCopyFloatMacro(SourceToJawsDistanceY);
   vtkMRMLCopyFloatMacro(SourceToMultiLeafCollimatorDistance);
