@@ -214,7 +214,7 @@ QString qSlicerScriptedDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* b
     return QString();
     }
 
-  return PyString_AsString(result);
+  return PyUnicode_AsUTF8(result);
 }
 
 //-----------------------------------------------------------------------------
