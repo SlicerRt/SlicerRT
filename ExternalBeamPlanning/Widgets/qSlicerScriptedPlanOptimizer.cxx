@@ -50,7 +50,8 @@ public:
   virtual ~qSlicerScriptedPlanOptimizerPrivate();
 
   enum {
-    OptimizePlanUsingOptimizerMethod = 0
+    OptimizePlanUsingOptimizerMethod = 0,
+    SetAvailableObjectivesMethod = 1,
     };
 
   mutable qSlicerPythonCppAPI PythonCppAPI;
@@ -65,6 +66,7 @@ public:
 qSlicerScriptedPlanOptimizerPrivate::qSlicerScriptedPlanOptimizerPrivate()
 {
   this->PythonCppAPI.declareMethod(Self::OptimizePlanUsingOptimizerMethod, "optimizePlanUsingOptimizer");
+  this->PythonCppAPI.declareMethod(Self::SetAvailableObjectivesMethod, "setAvailableObjectives");
 }
 
 //-----------------------------------------------------------------------------
@@ -227,89 +229,98 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
   return PyString_AsString(result);
 }
 
-
 //-----------------------------------------------------------------------------
 void qSlicerScriptedPlanOptimizer::setAvailableObjectives()
 {
-  if (!Py_IsInitialized())
-  {
-    qCritical() << "Python is not initialized!";
-    return;
-  }
+ Q_D(qSlicerScriptedPlanOptimizer);
 
-  // requires pyRadPlan being installed
-  PyObject* pName = PyUnicode_DecodeFSDefault("pyRadPlan.optimization.objectives");
-  PyObject* pModule = PyImport_Import(pName);
-  Py_DECREF(pName);
+ if (!Py_IsInitialized())
+ {
+   qCritical() << "Python is not initialized!";
+   return;
+ }
 
-  std::vector<ObjectiveStruct> objectives;
-  if (pModule != nullptr)
-  {
-    // Get the function from the module
-    PyObject* pFunc = PyObject_GetAttrString(pModule, "get_available_objectives");
-    if (pFunc && PyCallable_Check(pFunc))
-    {
-      // Call the function
-      PyObject* pValue = PyObject_CallObject(pFunc, nullptr);
-      if (pValue != nullptr)
-      {
-        // Assuming the function returns a dictionary-like object
-        if (PyMapping_Check(pValue))
-        {
-          PyObject* pKeys = PyMapping_Keys(pValue);
-          if (pKeys && PyList_Check(pKeys))
-          {
-            Py_ssize_t numKeys = PyList_Size(pKeys);
-            for (Py_ssize_t i = 0; i < numKeys; ++i)
-            {
-              PyObject* pKey = PyList_GetItem(pKeys, i);
-              if (PyUnicode_Check(pKey))
-              {
-                const char* keyStr = PyUnicode_AsUTF8(pKey);
-                ObjectiveStruct objective;
-                objective.name = keyStr;
+ // Call Python method `setAvailableObjectives
+ // Expect a dict: { 'Objective Name': { 'param1': {'default': value1}, 'param2': {'default': value2}, ... }, ... }
+ PyObject* result = d->PythonCppAPI.callMethod(d->SetAvailableObjectivesMethod);
+ if (!result)
+ {
+   qCritical() << d->PythonSource << ": Failed to call Python method 'setAvailableObjectives'.";
+   return;
+ }
 
-                PyObject* pVal = PyMapping_GetItemString(pValue, keyStr);
-                // Check if pVal has __annotations__
-                if (PyObject_HasAttrString(pVal, "__annotations__"))
-                {
-                  PyObject* pAnnotations = PyObject_GetAttrString(pVal, "__annotations__");
-                  if (PyMapping_Check(pAnnotations))
-                  {
-                    // Print all keys in pAnnotations
-                    PyObject* pAnnotationsKeys = PyMapping_Keys(pAnnotations);
-                    if (pAnnotationsKeys && PyList_Check(pAnnotationsKeys))
-                    {
-                      Py_ssize_t numKeys = PyList_Size(pAnnotationsKeys);
-                      for (Py_ssize_t j = 0; j < numKeys; ++j)
-                      {
-                        PyObject* pKey = PyList_GetItem(pAnnotationsKeys, j);
-                        if (PyUnicode_Check(pKey))
-                        {
-                          const char* paramName = PyUnicode_AsUTF8(pKey);
-                          objective.parameters[QString(paramName)] = "";
-                        }
-                      }
-                      Py_DECREF(pAnnotationsKeys);
-                    }
-                  }
-                }
-                objectives.push_back(objective);
-              }
-            }
-            Py_DECREF(pKeys); // free memory
-          }
-        }
-        Py_DECREF(pValue); // free memory
-      }
-    }
-    Py_XDECREF(pFunc); // free memory
-    Py_DECREF(pModule); // free memory
-  }
-  else
-  {
-    qCritical() << "Failed to import pyRadPlan.optimization.objectives module!";
-  }
+ // Iterate over the returned dict (result) and populate availableObjectives
+ std::vector<ObjectiveStruct> objectives;
+ if (PyMapping_Check(result))
+ {
+   // Get all keys (objective names)
+   PyObject* keys = PyMapping_Keys(result);
+   if (keys && PyList_Check(keys))
+   {
+     // Iterate over objective names
+     Py_ssize_t numKeys = PyList_Size(keys);
+     for (Py_ssize_t i = 0; i < numKeys; ++i)
+     {
+       PyObject* key = PyList_GetItem(keys, i);
+       if (PyUnicode_Check(key))
+       {
+         // Create an ObjectiveStruct for each objective
+         const char* keyStr = PyUnicode_AsUTF8(key);
+         ObjectiveStruct obj;
+         obj.name = keyStr;
 
-  this->availableObjectives = objectives;
+         // Create parameters dict for each objective
+         PyObject* paramsDict = PyMapping_GetItemString(result, keyStr);
+         if (paramsDict && PyMapping_Check(paramsDict))
+         {
+           // Iterate over parameter names
+           PyObject* paramKeys = PyMapping_Keys(paramsDict);
+           for (Py_ssize_t j = 0; j < PyList_Size(paramKeys); ++j)
+           {
+             PyObject* paramKey = PyList_GetItem(paramKeys, j);
+             if (PyUnicode_Check(paramKey))
+             {
+               const char* paramName = PyUnicode_AsUTF8(paramKey);
+
+               // Get default values for each parameter as strings from python dict (parameter: {'default': value, ...})
+               PyObject* paramInfoDict = PyMapping_GetItemString(paramsDict, paramName);
+               QString defaultValueStr;
+               if (paramInfoDict && PyMapping_Check(paramInfoDict))
+               {
+                 PyObject* defaultValueObj = PyMapping_GetItemString(paramInfoDict, "default");
+                 if (defaultValueObj)
+                 {
+                   PyObject* defaultValueRepr = PyObject_Repr(defaultValueObj);
+                   if (defaultValueRepr)
+                   {
+                     const char* reprStr = PyUnicode_AsUTF8(defaultValueRepr);
+                     if (reprStr)
+                       defaultValueStr = QString(reprStr);
+                     Py_DECREF(defaultValueRepr); // Free memory
+                   }
+                   Py_DECREF(defaultValueObj); // Free memory
+                 }
+               }
+               // Store parameter name and its default value string in the ObjectiveStruct
+               obj.parameters[QString(paramName)] = defaultValueStr;
+               Py_XDECREF(paramInfoDict); // Free memory
+             }
+           }
+           Py_XDECREF(paramKeys); // Free memory
+         }
+         Py_XDECREF(paramsDict); // Free memory
+         objectives.push_back(obj);
+       }
+     }
+     Py_XDECREF(keys); // Free memory
+   }
+ }
+ else
+ {
+   qWarning() << "Python setAvailableObjectives() did not return a dictionary!";
+ }
+
+ Py_XDECREF(result);
+
+ this->availableObjectives = objectives;
 }
