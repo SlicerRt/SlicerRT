@@ -9,10 +9,35 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
   """ pyRadPlan Optimizer for SlicerRT External Beam Planning Module.
   """
 
+  #------------------------------------------------------------------------------
   def __init__(self, scriptedEngine):
     scriptedEngine.name = 'pyRadPlan'
     AbstractScriptedPlanOptimizer.__init__(self, scriptedEngine)
 
+  #------------------------------------------------------------------------------
+  def setAvailableObjectives(self):
+    """
+    Return dict: { 'Objective Name': { 'param1': {'default': value1}, 'param2': {'default': value2}, ... }, ... }
+    This matches the structure your C++ expects.
+    """
+
+    from pyRadPlan.optimization.objectives import get_available_objectives
+    availableObjectives_dict = {}
+
+    for obj_name, obj_class in get_available_objectives().items():
+      obj_instance = obj_class()
+      parameter_dict = {}
+      parameterNames = obj_instance.parameter_names
+      parameterDefaultValues = obj_instance.parameters
+      for i in range(len(parameterNames)):
+          parameter_dict[parameterNames[i]] = {
+              "default": parameterDefaultValues[i],
+          }
+      availableObjectives_dict[obj_name] = parameter_dict
+
+    return availableObjectives_dict
+
+  #------------------------------------------------------------------------------
   def optimizePlanUsingOptimizer(self, planNode, objectives, resultOptimizationVolumeNode):
     import sitkUtils
     import SimpleITK as sitk
