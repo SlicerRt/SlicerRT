@@ -64,7 +64,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
   }  
 
   // Create total dose image data from reference volume
-  vtkSmartPointer<vtkImageData> totalDoseImageData = vtkSmartPointer<vtkImageData>::New();
+  vtkNew<vtkImageData> totalDoseImageData;
   totalDoseImageData->CopyStructure(referenceVolumeNode->GetImageData());
   totalDoseImageData->AllocateScalars(VTK_FLOAT, 1);
 

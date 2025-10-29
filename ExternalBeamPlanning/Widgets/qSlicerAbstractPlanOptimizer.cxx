@@ -149,12 +149,21 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
   vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode = planNode->GetOutputTotalDoseVolumeNode();
   if (!resultOptimizationVolumeNode)
   {
-    resultOptimizationVolumeNode = vtkMRMLScalarVolumeNode::New();
+    vtkNew<vtkMRMLScalarVolumeNode> newVolumeNode;
     // Give default name for result node (engine can give it a more meaningful name)
     std::string resultOptimizationNodeName = std::string(planNode->GetName()) + "_Optimization";
-    resultOptimizationVolumeNode->SetName(resultOptimizationNodeName.c_str());
+    newVolumeNode->SetName(resultOptimizationNodeName.c_str());
+    resultOptimizationVolumeNode = newVolumeNode.GetPointer();
+    planNode->GetScene()->AddNode(resultOptimizationVolumeNode);
   }
-  planNode->GetScene()->AddNode(resultOptimizationVolumeNode);
+  else
+  {
+    if (!resultOptimizationVolumeNode->GetScene())
+    {
+      qCritical() << Q_FUNC_INFO << ": Result optimization volume node is not in the scene. Adding it to the plan's scene.";
+      planNode->GetScene()->AddNode(resultOptimizationVolumeNode);
+    }
+  }
 
   // Optimize
   QString errorMessage = this->optimizePlanUsingOptimizer(planNode, objectives, resultOptimizationVolumeNode);
