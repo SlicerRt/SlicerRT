@@ -11,13 +11,14 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
   """ pyRadPlan dose engine for SlicerRT External Beam Planning Module.
   """
 
+  #------------------------------------------------------------------------------
   def __init__(self, scriptedEngine):
     scriptedEngine.name = 'pyRadPlan'
     scriptedEngine.isInverse = True #pyRadPlan has Inverse planning capabilities, i.e., it can compute a dose influence matrix
     scriptedEngine.canDoIonPlan = True
     AbstractScriptedDoseEngine.__init__(self, scriptedEngine)
 
-
+  #------------------------------------------------------------------------------
   def defineBeamParameters(self):
     self.scriptedEngine.addBeamParameterSpinBox(
     "pyRadPlan parameters", "numOfFractions", "number of fractions",
@@ -31,7 +32,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
     self.scriptedEngine.addBeamParameterComboBox(
     "pyRadPlan parameters","machine","machine","comment",["generic"],0)      
 
-
+  #------------------------------------------------------------------------------
   def updateBeamParametersForIonPlan(self, isIonPlanActive):
     if isIonPlanActive:
       available_radiation_modes = ["protons", "carbons"]
@@ -44,7 +45,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
     "pyRadPlan parameters", "radiationMode", parameter_label,
     "comment", available_radiation_modes, 0)
 
-
+  #------------------------------------------------------------------------------
   def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):
 
     #################################### Import pyRadPlan libraries ######################################
@@ -106,8 +107,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
     return str() #return empty string to indicate success
     
-
-    
+  #------------------------------------------------------------------------------
   def calculateDoseInfluenceMatrixUsingEngine(self, beamNode):
         
     #################################### Import pyRadPlan libraries ######################################
