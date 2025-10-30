@@ -251,7 +251,7 @@ void qMRMLObjectivesTableWidget::updateObjectivesTable()
     return;
   }
 
-		// Get saved objectives from optimizer and repopulate table
+  // Get saved objectives from optimizer and repopulate table
   std::vector<vtkSmartPointer<vtkMRMLRTObjectiveNode>> objectiveNodes = selectedEngine->getSavedObjectiveNodes();
   for (int row = 0; row < objectiveNodes.size(); ++row)
   {

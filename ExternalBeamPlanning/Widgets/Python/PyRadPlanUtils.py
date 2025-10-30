@@ -3,6 +3,7 @@ import logging
 import slicer
 import sitkUtils
 
+#------------------------------------------------------------------------------
 def prepareCt(beamNode):
   from pyRadPlan.ct import create_ct
   logging.basicConfig(level=logging.INFO)
@@ -15,7 +16,7 @@ def prepareCt(beamNode):
   # Create ct object from sitk image
   return create_ct(cube_hu=image)
 
-
+#------------------------------------------------------------------------------
 def prepareCst(beamNode, ct):
   from pyRadPlan.cst import StructureSet, create_voi
   logging.basicConfig(level=logging.INFO)
@@ -41,7 +42,7 @@ def prepareCst(beamNode, ct):
   cst = StructureSet(vois=vois, ct_image=ct)
   return cst
 
-
+#------------------------------------------------------------------------------
 def preparePln(beamNode, ct, dose_grid_from_beamNode=False):
   from pyRadPlan.plan import create_pln
   logging.basicConfig(level=logging.INFO)

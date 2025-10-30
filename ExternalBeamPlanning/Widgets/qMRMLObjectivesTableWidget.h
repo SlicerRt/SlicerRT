@@ -81,20 +81,20 @@ public slots:
   /// Called when segment is removed in an observed segmentation node
   void onSegmentRemoved(vtkObject* caller, void* callData, unsigned long eventId, void* clientData);
 
-  /// Called when objective is changed or newly added
+  /// Called when selected objective is changed or newly added to the table
   void onObjectiveChanged(int row);
 
-  /// Called when segment is changed and updates segment name in objectiveNode
+  /// Called when selected segment is changed in the table and updates segment name in objectiveNode
   void onSegmentChanged(int row);
 
-  /// Called when overlap priority is changed, updates value in objectiveNode's attributes
+  /// Called when overlap priority is changed in the table, updates value in objectiveNode's attributes
   /// and calls updateOverlapPriorityForSegment
   void onOverlapPriorityChanged(int newValue, vtkMRMLRTObjectiveNode* objectiveNode);
 
-  /// Called when penalty is changed and updates value in objectiveNode's attributes
+  /// Called when penalty is changed in table and updates value in objectiveNode's attributes
   void onPenaltyChanged(int newValue, vtkMRMLRTObjectiveNode* objectiveNode);
 
-  /// Called when parameter is changed and updates value in objectiveNode's attributes
+  /// Called when parameter is changed in table and updates value in objectiveNode's attributes
   void onParameterChanged(std::string name, std::string value, vtkMRMLRTObjectiveNode* objectiveNode);
 
   /// Finds overlap priority of the same segment already present in the table and otherwise uses segment index
