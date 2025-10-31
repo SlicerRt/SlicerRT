@@ -18,7 +18,7 @@ Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care
 
 ==============================================================================*/
 
-// Dose engines includes
+// ExternalBeamPlanning includes
 #include "qSlicerAbstractDoseEngine.h"
 
 // Beams includes
@@ -122,6 +122,31 @@ void qSlicerAbstractDoseEngine::setName(QString name)
 }
 
 //----------------------------------------------------------------------------
+bool qSlicerAbstractDoseEngine::isInverse() const
+{
+  return this->m_IsInverse;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::setIsInverse(bool isInverse)
+{
+  // TODO: is this correct to avoid setting the value except for Python engines?
+  qCritical() << Q_FUNC_INFO << ": Cannot set dose engine name by method, only in constructor";
+}
+
+//----------------------------------------------------------------------------
+bool qSlicerAbstractDoseEngine::canDoIonPlan() const
+{
+  return this->m_CanDoIonPlan;
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::setCanDoIonPlan(bool canDoIonPlan)
+{
+  qCritical() << Q_FUNC_INFO << ": Cannot set dose engine name by method, only in constructor";
+}
+
+//----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::registerBeamParametersTabWidget(qMRMLBeamParametersTabWidget* tabWidget)
 {
   qSlicerAbstractDoseEngine::m_BeamParametersTabWidgets.insert(tabWidget);
@@ -206,6 +231,78 @@ QString qSlicerAbstractDoseEngine::calculateDose(vtkMRMLRTBeamNode* beamNode)
   return errorMessage;
 }
 
+//----------------------------------------------------------------------------
+QString qSlicerAbstractDoseEngine::calculateDoseInfluenceMatrix(vtkMRMLRTBeamNode* beamNode)
+{
+  if (!this->isInverse())
+  {
+    QString errorMessage("Dose engine lacks functionality for calculating a dose influence matrix for inverse planning");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+    return errorMessage;
+  }
+    
+  if (!beamNode)
+  {
+    QString errorMessage("Invalid beam node");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+    return errorMessage;
+  }
+  vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
+  if (!parentPlanNode)
+  {
+    QString errorMessage = QString("Unable to access parent node for beam %1").arg(beamNode->GetName());
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+    return errorMessage;
+  }
+
+  // Add RT plan to the same branch where the reference volume is
+  vtkMRMLScalarVolumeNode* referenceVolumeNode = parentPlanNode->GetReferenceVolumeNode();
+  if (!referenceVolumeNode)
+  {
+    QString errorMessage("Unable to access reference volume");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+    return errorMessage;
+  }
+  vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(beamNode->GetScene());
+  if (!shNode)
+  {
+    QString errorMessage("Failed to access subject hierarchy node");
+    qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+    return errorMessage;
+  }
+  vtkIdType referenceVolumeShItemID = shNode->GetItemByDataNode(referenceVolumeNode);
+  if (referenceVolumeShItemID)
+  {
+    vtkIdType planShItemID = parentPlanNode->GetPlanSubjectHierarchyItemID();
+    if (planShItemID)
+    {
+      shNode->SetItemParent(planShItemID, shNode->GetItemParent(referenceVolumeShItemID));
+      }
+    else
+    {
+      qCritical() << Q_FUNC_INFO << ": Failed to access RT plan subject hierarchy item, although it should always be available";
+    }
+  }
+  else
+  {
+    qCritical() << Q_FUNC_INFO << ": Failed to access reference volume subject hierarchy item";
+  }
+    
+  // Remove past intermediate results for beam before calculating dose again
+  this->removeIntermediateResults(beamNode);
+
+  // Calculate dose
+  QString errorMessage = this->calculateDoseInfluenceMatrixUsingEngine(beamNode);
+  
+  return errorMessage;
+}
+
+//---------------------------------------------------------------------------
+QString qSlicerAbstractDoseEngine::calculateDoseInfluenceMatrixUsingEngine(vtkMRMLRTBeamNode* beamNode)
+{
+  qCritical() << Q_FUNC_INFO << ": Inverse dose calculation not implemented";
+  return QString();
+}
 //---------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::addIntermediateResult(vtkMRMLNode* result, vtkMRMLRTBeamNode* beamNode)
 {
@@ -436,6 +533,25 @@ void qSlicerAbstractDoseEngine::addBeamParameterComboBox(
     beamParametersTabWidget->addBeamParameterComboBox(
       tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
       tooltip, options, defaultIndex );
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerAbstractDoseEngine::updateBeamParameterComboBox(
+  QString tabName, QString parameterName, QString parameterLabel,
+  QString tooltip, QStringList options, int defaultIndex)
+{
+  Q_D(qSlicerAbstractDoseEngine);
+
+  // Add parameter to container
+  d->BeamParameters[parameterName] = QVariant(defaultIndex);
+
+  for (auto beamParametersTabWidget : m_BeamParametersTabWidgets)
+  {
+    // Update beam parameter in tab widget
+    beamParametersTabWidget->updateBeamParameterComboBox(
+      tabName, this->assembleEngineParameterName(parameterName), parameterLabel,
+      tooltip, options, defaultIndex);
   }
 }
 
@@ -707,3 +823,9 @@ void qSlicerAbstractDoseEngine::setDoseEngineTypeToBeam(vtkMRMLRTBeamNode* beamN
   qCritical() << Q_FUNC_INFO << ": Not implemented";
 }
 */
+
+//-----------------------------------------------------------------------------
+void  qSlicerAbstractDoseEngine::updateBeamParametersForIonPlan(bool isIonPlanActive)
+{
+  qCritical() << Q_FUNC_INFO << ": updateBeamParamtersForIonPlan not implemented";
+}

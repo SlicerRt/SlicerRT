@@ -12,6 +12,7 @@ if(NOT Plastimatch_FOUND)
 endif()
 
 #-----------------------------------------------------------------------------
+add_subdirectory(MRML)
 add_subdirectory(Logic)
 add_subdirectory(Widgets)
 
@@ -25,6 +26,7 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${vtkSlicerSegmentationsModuleMRML_INCLUDE_DIRS}
   ${qSlicerSegmentationsModuleWidgets_INCLUDE_DIRS}
   ${qSlicerSubjectHierarchyModuleWidgets_INCLUDE_DIRS}
+  ${vtkSlicerExternalBeamPlanningModuleMRML_INCLUDE_DIRS}
   ${qSlicerBeamsSubjectHierarchyPlugins_INCLUDE_DIRS}
   ${qSlicerBeamsModuleWidgets_INCLUDE_DIRS}
   )
@@ -54,6 +56,7 @@ set(MODULE_TARGET_LIBRARIES
   qSlicerBeamsModuleWidgets
   vtkSlicer${MODULE_NAME}ModuleLogic
   qSlicer${MODULE_NAME}ModuleWidgets
+  vtkSlicer${MODULE_NAME}ModuleMRML
   )
 
 set(MODULE_RESOURCES

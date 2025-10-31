@@ -42,8 +42,8 @@
       </widget>
      </item>
      <item>
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RtPlan">
-       <property name="nodeTypes">
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_RtPlan" native="true">
+       <property name="nodeTypes" stdset="0">
         <stringlist>
          <string>vtkMRMLRTPlanNode</string>
         </stringlist>
@@ -63,8 +63,8 @@
     </layout>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_PlanParameters">
-     <property name="text">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_PlanParameters" native="true">
+     <property name="text" stdset="0">
       <string>Plan parameters</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
@@ -83,17 +83,106 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_ReferenceVolume">
-        <property name="text">
-         <string>Reference volume:</string>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_Isocenter">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
         </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        <property name="text">
+         <string>Isocenter:</string>
         </property>
        </widget>
       </item>
-      <item row="8" column="0" colspan="2">
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_PlanSegmentation">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>Structure set:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_IsocenterCoordinates" native="true">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_CenterViewToIsocenter">
+          <property name="toolTip">
+           <string>Navigate slice views to slices where the isocenter is visible</string>
+          </property>
+          <property name="text">
+           <string>Center views</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../../../Beams/SubjectHierarchyPlugins/Resources/qSlicerBeamsSubjectHierarchyPlugins.qrc">
+            <normaloff>:/Icons/Isocenter.png</normaloff>:/Icons/Isocenter.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume" native="true">
+        <property name="nodeTypes" stdset="0">
+         <stringlist>
+          <string>vtkMRMLScalarVolumeNode</string>
+         </stringlist>
+        </property>
+        <property name="showChildNodeTypes" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="noneEnabled" stdset="0">
+         <bool>true</bool>
+        </property>
+        <property name="addEnabled" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="removeEnabled" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="noneDisplay" stdset="0">
+         <string>Please select node</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanPOIs" native="true">
+        <property name="nodeTypes" stdset="0">
+         <stringlist>
+          <string>vtkMRMLMarkupsFiducialNode</string>
+         </stringlist>
+        </property>
+        <property name="addEnabled" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="removeEnabled" stdset="0">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanSegmentation" native="true">
+        <property name="nodeTypes" stdset="0">
+         <stringlist>
+          <string>vtkMRMLSegmentationNode</string>
+         </stringlist>
+        </property>
+        <property name="noneEnabled" stdset="0">
+         <bool>true</bool>
+        </property>
+        <property name="noneDisplay" stdset="0">
+         <string>Please select node</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0" colspan="2">
        <layout class="QGridLayout" name="gridLayout_4">
         <property name="horizontalSpacing">
          <number>12</number>
@@ -178,7 +267,7 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
-             <widget class="qMRMLSegmentSelectorWidget" name="MRMLSegmentSelectorWidget_TargetStructure">
+             <widget class="qMRMLSegmentSelectorWidget" name="MRMLSegmentSelectorWidget_TargetStructure" native="true">
               <property name="sizePolicy">
                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -209,33 +298,13 @@
         </item>
        </layout>
       </item>
-      <item row="2" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanSegmentation">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLSegmentationNode</string>
-         </stringlist>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_ReferenceVolume">
+        <property name="text">
+         <string>Reference volume:</string>
         </property>
-        <property name="noneEnabled">
-         <bool>true</bool>
-        </property>
-        <property name="noneDisplay">
-         <string>Please select node</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanPOIs">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLMarkupsFiducialNode</string>
-         </stringlist>
-        </property>
-        <property name="addEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="removeEnabled">
-         <bool>false</bool>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
@@ -246,72 +315,10 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_IsocenterCoordinates">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_CenterViewToIsocenter">
-          <property name="toolTip">
-           <string>Navigate slice views to slices where the isocenter is visible</string>
-          </property>
-          <property name="text">
-           <string>Center views</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../../../Beams/SubjectHierarchyPlugins/Resources/qSlicerBeamsSubjectHierarchyPlugins.qrc">
-            <normaloff>:/Icons/Isocenter.png</normaloff>:/Icons/Isocenter.png</iconset>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="1" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume">
-        <property name="nodeTypes">
-         <stringlist>
-          <string>vtkMRMLScalarVolumeNode</string>
-         </stringlist>
-        </property>
-        <property name="showChildNodeTypes">
-         <bool>false</bool>
-        </property>
-        <property name="noneEnabled">
-         <bool>true</bool>
-        </property>
-        <property name="addEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="removeEnabled">
-         <bool>false</bool>
-        </property>
-        <property name="noneDisplay">
-         <string>Please select node</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_Isocenter">
-        <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
-        </property>
+      <item row="7" column="0">
+       <widget class="QCheckBox" name="checkBox_InversePlanning">
         <property name="text">
-         <string>Isocenter:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_PlanSegmentation">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string>Structure set:</string>
+         <string>Inverse Treatment Planning?</string>
         </property>
        </widget>
       </item>
@@ -319,8 +326,181 @@
     </widget>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_Output">
-     <property name="text">
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_Beams" native="true">
+     <property name="text" stdset="0">
+      <string>Beams</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <item row="1" column="0">
+       <widget class="qMRMLBeamsTableView" name="BeamsTableView" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QPushButton" name="pushButton_AddBeam">
+          <property name="minimumSize">
+           <size>
+            <width>112</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Add beam</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../qSlicerExternalBeamPlanningModule.qrc">
+            <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_RemoveBeam">
+          <property name="minimumSize">
+           <size>
+            <width>112</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Remove beam</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../qSlicerExternalBeamPlanningModule.qrc">
+            <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_Objectives" native="true">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text" stdset="0">
+      <string>Objectives</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_5">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <item row="1" column="0">
+       <widget class="qMRMLObjectivesTableWidget" name="ObjectivesTableWidget" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <item>
+         <widget class="QPushButton" name="pushButton_AddObjective">
+          <property name="minimumSize">
+           <size>
+            <width>112</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Add objective</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../qSlicerExternalBeamPlanningModule.qrc">
+            <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_RemoveObjective">
+          <property name="minimumSize">
+           <size>
+            <width>112</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Remove objective</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../qSlicerExternalBeamPlanningModule.qrc">
+            <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_Output" native="true">
+     <property name="text" stdset="0">
       <string>Output</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
@@ -347,22 +527,22 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume">
-        <property name="nodeTypes">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseVolume" native="true">
+        <property name="nodeTypes" stdset="0">
          <stringlist>
           <string>vtkMRMLScalarVolumeNode</string>
          </stringlist>
         </property>
-        <property name="showChildNodeTypes">
+        <property name="showChildNodeTypes" stdset="0">
          <bool>false</bool>
         </property>
-        <property name="baseName">
+        <property name="baseName" stdset="0">
          <string>TotalDose</string>
         </property>
-        <property name="noneEnabled">
+        <property name="noneEnabled" stdset="0">
          <bool>true</bool>
         </property>
-        <property name="noneDisplay">
+        <property name="noneDisplay" stdset="0">
          <string>Create new output dose volume</string>
         </property>
        </widget>
@@ -375,8 +555,8 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseROI">
-        <property name="nodeTypes">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_DoseROI" native="true">
+        <property name="nodeTypes" stdset="0">
          <stringlist>
           <string>vtkMRMLMarkupsROINode</string>
          </stringlist>
@@ -384,18 +564,64 @@
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="label_DoseGridSpacing">
+      <widget class="QLabel" name="label_DoseGridSpacing">
         <property name="text">
-         <string>Dose grid spacing:</string>
+        <string>Dose grid spacing:</string>
         </property>
-       </widget>
+      </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLineEdit" name="lineEdit_DoseGridSpacing">
-        <property name="text">
-         <string>1,1,1</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="horizontalLayout_DoseGrid">
+        <item>
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridSpacingX">
+          <property name="value">
+            <number>5</number>
+          </property>
+          <property name="minimum">
+            <number>0.01</number>
+          </property>
+          <property name="maximum">
+            <number>100</number>
+          </property>
+          </widget>
+        </item>
+        <item>
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridSpacingY">
+          <property name="value">
+            <number>5</number>
+          </property>
+          <property name="minimum">
+            <number>0.01</number>
+          </property>
+          <property name="maximum">
+            <number>100</number>
+          </property>
+          </widget>
+        </item>
+        <item>
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridSpacingZ">
+          <property name="value">
+            <number>5</number>
+          </property>
+          <property name="minimum">
+            <number>0.01</number>
+          </property>
+          <property name="maximum">
+            <number>100</number>
+          </property>
+          </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_UseCTGridForDoseGridSpacing">
+          <property name="toolTip">
+           <string>Uses CT grid spacing for dose grid spacing</string>
+          </property>
+          <property name="text">
+           <string>use ct grid</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -469,89 +695,41 @@
     </layout>
    </item>
    <item>
-    <widget class="ctkCollapsibleButton" name="CollapsibleButton_Beams">
-     <property name="text">
-      <string>Beams</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <property name="leftMargin">
-       <number>4</number>
-      </property>
-      <property name="topMargin">
-       <number>4</number>
-      </property>
-      <property name="rightMargin">
-       <number>4</number>
-      </property>
-      <property name="bottomMargin">
-       <number>4</number>
-      </property>
-      <property name="spacing">
-       <number>4</number>
-      </property>
-      <item row="1" column="0">
-       <widget class="qMRMLBeamsTableView" name="BeamsTableView">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_6">
-        <item>
-         <widget class="QPushButton" name="pushButton_AddBeam">
-          <property name="minimumSize">
-           <size>
-            <width>112</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Add beam</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../qSlicerExternalBeamPlanningModule.qrc">
-            <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_RemoveBeam">
-          <property name="minimumSize">
-           <size>
-            <width>112</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Remove beam</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../qSlicerExternalBeamPlanningModule.qrc">
-            <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_Optimization">
+     <item>
+      <widget class="QLabel" name="label_OptimizationStatus">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Status Information here</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::PlainText</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="comboBox_PlanOptimizer">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_OptimizePlan">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Optimize Plan</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

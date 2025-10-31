@@ -18,9 +18,8 @@
 
 ==============================================================================*/
 
-// Dose engines includes
+// ExternalBeamPlanning includes
 #include "qSlicerDoseEngineLogic.h"
-
 #include "qSlicerDoseEnginePluginHandler.h"
 #include "qSlicerAbstractDoseEngine.h"
 
@@ -248,6 +247,64 @@ QString qSlicerDoseEngineLogic::calculateDose(vtkMRMLRTPlanNode* planNode)
   }
 
   progress = 1.0;
+  emit progressUpdated(progress);
+
+  return QString();
+}
+
+//---------------------------------------------------------------------------
+QString qSlicerDoseEngineLogic::calculateDoseInfluenceMatrix(vtkMRMLRTPlanNode* planNode)
+{
+  QString errorMessage("");
+  if (!planNode || !planNode->GetScene())
+  {
+      errorMessage = QString("Invalid MRML scene or RT plan node");
+      qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+      return errorMessage;
+  }
+
+  // Get selected dose engine
+  qSlicerAbstractDoseEngine* selectedEngine =
+      qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(planNode->GetDoseEngineName());
+  if (!selectedEngine)
+  {
+      QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
+      qCritical() << Q_FUNC_INFO << ": " << errorString;
+      return errorMessage;
+  }
+
+  // Calculate dose for each beam under the plan
+  std::vector<vtkMRMLRTBeamNode*> beams;
+  planNode->GetBeams(beams);
+  int numberOfBeams = beams.size();
+  int currentBeamIndex = 0;
+  double progress = 0.0;
+
+  for (std::vector<vtkMRMLRTBeamNode*>::iterator beamIt = beams.begin(); beamIt != beams.end(); ++beamIt, ++currentBeamIndex)
+  {
+    vtkMRMLRTBeamNode* beamNode = (*beamIt);
+    if (beamNode)
+    {
+      progress = (double)currentBeamIndex / (numberOfBeams + 1);
+      emit progressUpdated(progress);
+
+      // Calculate dose for current beam
+      errorMessage = selectedEngine->calculateDoseInfluenceMatrix(beamNode);
+      if (!errorMessage.isEmpty())
+      {
+        qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+        return errorMessage;
+      }
+    }
+    else
+    {
+      errorMessage = QString("Invalid beam!");
+      qCritical() << Q_FUNC_INFO << ": " << errorMessage;
+      return errorMessage;
+    }
+  }
+
+  progress = (double)numberOfBeams / (numberOfBeams + 1);
   emit progressUpdated(progress);
 
   return QString();

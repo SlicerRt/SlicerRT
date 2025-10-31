@@ -22,6 +22,10 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerMarkupsModuleMRML
   vtkSlicerBeamsModuleMRML
   vtkSlicerBeamsModuleLogic
+  vtkSlicer${MODULE_NAME}ModuleMRML
+  MRMLCore
+  ${ITK_LIBRARIES}
+  ${VTK_LIBRARIES}
   )
 
 #-----------------------------------------------------------------------------

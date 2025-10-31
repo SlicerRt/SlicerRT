@@ -22,10 +22,11 @@
 #ifndef __qSlicerExternalBeamPlanningModuleWidget_h
 #define __qSlicerExternalBeamPlanningModuleWidget_h
 
+// ExternalBeamPlanning includes
+#include "qSlicerExternalBeamPlanningModuleExport.h"
+
 // SlicerQt includes
 #include "qSlicerAbstractModuleWidget.h"
-
-#include "qSlicerExternalBeamPlanningModuleExport.h"
 
 class qSlicerExternalBeamPlanningModuleWidgetPrivate;
 class vtkMRMLNode;
@@ -76,6 +77,9 @@ protected slots:
   void isocenterCoordinatesChanged(double* isocenterCoordinates);
   void centerViewToIsocenterClicked();
 
+  void ionPlanFlagCheckboxStateChanged(int state);
+  void inversePlanningCheckboxStateChanged(int state);
+
   /// Update isocenter controls from isocenter markups fiducial
   void updateIsocenterPosition();
 
@@ -85,20 +89,34 @@ protected slots:
   // Output section
   void doseVolumeNodeChanged(vtkMRMLNode*);
   void doseROINodeChanged(vtkMRMLNode*);
-  void doseGridSpacingChanged(const QString &);
+  void doseGridSpacingComponentChanged(int index, double value);
+  void doseGridSpacingXComponentChanged(double value);
+  void doseGridSpacingYComponentChanged(double value);
+  void doseGridSpacingZComponentChanged(double value);
+  void useCTGridForDoseGridSpacingClicked();
   
   // Calculation buttons
   void calculateDoseClicked();
   void calculateWEDClicked();
   void clearDoseClicked();
 
+  // Dose Optimization buttons
+  void PlanOptimizerChanged(const QString&);
+  void optimizePlanClicked();
+
   // Beams section
   void addBeamClicked();
   void removeBeamClicked();
 
+  // ObjectiveTable
+  void addObjectiveClicked();
+  void removeObjectiveClicked();
+  void saveAvailableObjectives();
+
   // Update functions
   void onLogicModified();
   void onProgressUpdated(double progress);
+  void onOptimizerProgressInfoUpdated(QString info);
 
 protected:
   void setup() override;
@@ -107,6 +125,9 @@ protected:
 
   // Populate dose engines combobox from registered dose engines
   void updateDoseEngines();
+
+  // Populate optimization engine combobox
+  void updatePlanOptimizers();
 
 protected:
   QScopedPointer<qSlicerExternalBeamPlanningModuleWidgetPrivate> d_ptr;

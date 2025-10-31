@@ -1,0 +1,20 @@
+from .AbstractScriptedPlanOptimizer import *
+
+# Add plan optimizer name to the list of scripted optimizers.
+# ExternalBeamPlanning module will instantiate the optimizer class and register
+try:
+  slicer.modules.planoptimizernames
+except AttributeError:
+  slicer.modules.planoptimizernames=[]
+
+import importlib
+import traceback
+planOptimizerNames = [
+  "pyRadPlanPlanOptimizer"
+  ]
+for planOptimizerName in planOptimizerNames:
+  try:
+    m=importlib.import_module("PlanOptimizers."+planOptimizerName)
+    slicer.modules.planoptimizernames.extend([planOptimizerName])
+  except Exception as e:
+    print('ERROR: ' + traceback.format_exc())

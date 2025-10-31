@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -31,6 +31,7 @@
 
 // SegmentationCore includes
 #include "vtkOrientedImageData.h"
+#include <vtkSmartPointer.h>
 
 class vtkCollection;
 class vtkMRMLMarkupsFiducialNode;
@@ -62,7 +63,9 @@ public:
     /// Fired if beam is removed
     BeamRemoved,
     /// Fired if dose engine is changed
-    DoseEngineChanged
+    DoseEngineChanged,
+    /// Fired if optimization engine is changed
+    PlanOptimizerChanged
   };
 
 public:
@@ -70,22 +73,22 @@ public:
   vtkTypeMacro(vtkMRMLRTPlanNode, vtkMRMLFolderDisplayNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  /// Create instance of a GAD node. 
+  /// Create instance of a GAD node.
   vtkMRMLNode* CreateNodeInstance() override;
 
-  /// Set node attributes from name/value pairs 
+  /// Set node attributes from name/value pairs
   void ReadXMLAttributes(const char** atts) override;
 
-  /// Write this node's information to a MRML file in XML format. 
+  /// Write this node's information to a MRML file in XML format.
   void WriteXML(ostream& of, int indent) override;
 
-  /// Copy the node's attributes to this object 
+  /// Copy the node's attributes to this object
   void Copy(vtkMRMLNode *node) override;
 
   /// Copy node content (excludes basic data, such a name and node reference)
   vtkMRMLCopyContentMacro(vtkMRMLRTPlanNode);
 
-  /// Get unique node XML tag name (like Volume, Model) 
+  /// Get unique node XML tag name (like Volume, Model)
   const char* GetNodeTagName() override { return "RTPlan"; };
 
   /// Handles events registered in the observer manager
@@ -193,13 +196,26 @@ public:
   /// Set dose engine name (and invoke setting the default beam parameters for the new engine)
   void SetDoseEngineName(const char* engineName);
 
+  // Get optimization engine name
+  vtkGetStringMacro(PlanOptimizerName);
+  /// Set optimization engine name
+  void SetPlanOptimizerName(const char* optimizerName);
+
   /// Get prescription dose
   vtkGetMacro(RxDose, double);
   /// Set prescription dose
   vtkSetMacro(RxDose, double);
 
-  vtkSetVector3Macro(DoseGrid, double);
-  vtkGetVector3Macro(DoseGrid, double);
+  /// Get dose grid spacing
+  vtkGetVector3Macro(DoseGridSpacing, double);
+  /// Set dose grid spacing
+  vtkSetVector3Macro(DoseGridSpacing, double);
+
+  /// Set dose grid in one coordinate
+  void SetDoseGridSpacingComponent(int index, double value);
+
+  /// Set dose grid to ct grid
+  void SetDoseGridSpacingToCTGridSpacing();
 
   /// Get flag for ion plan
   vtkGetMacro( IonPlanFlag, bool);
@@ -241,9 +257,12 @@ protected:
   /// Name of the selected dose engine
   char* DoseEngineName{ nullptr };
 
-  ///TODO: Allow user to specify dose volume resolution different from reference volume
-  /// (currently output dose volume has the same spacing as the reference anatomy)
-  double DoseGrid[3]{ 0, 0, 0 };
+  /// Name of the selected plan optimizer
+  char* PlanOptimizerName{ nullptr };
+
+  /// Allows user to specify dose volume resolution different from reference volume
+  //TODO: Explain here why this is defined in the plan node as well as the beam node
+  double DoseGridSpacing[3]{ 5.0, 5.0, 5.0 };
 
   /// Flag, indicates that a plan node is an ion plan node
   bool IonPlanFlag{ false };
