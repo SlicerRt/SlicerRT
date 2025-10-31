@@ -886,6 +886,11 @@ bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double center[3])
   }
 
   double* centerRas = segmentationNode->GetSegmentCenterRAS(this->TargetSegmentID);
+  if (!centerRas)
+  {
+    vtkErrorMacro("ComputeTargetVolumeCenter: No target segment center");
+    return false;
+  }
   center[0] = centerRas[0];
   center[1] = centerRas[1];
   center[2] = centerRas[2];
