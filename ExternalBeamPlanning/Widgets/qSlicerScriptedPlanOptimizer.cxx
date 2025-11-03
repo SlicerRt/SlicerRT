@@ -205,7 +205,7 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
       PyList_SetItem(pyList, i, pyDict);
     }
   }
-  
+
   PyObject* arguments = PyTuple_New(3);
   PyTuple_SET_ITEM(arguments, 0, vtkPythonUtil::GetObjectFromPointer(planNode));
   PyTuple_SET_ITEM(arguments, 1, pyList);
@@ -226,7 +226,7 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
     return QString();
   }
 
-  return PyString_AsString(result);
+  return PyUnicode_AsUTF8(result);
 }
 
 //-----------------------------------------------------------------------------
