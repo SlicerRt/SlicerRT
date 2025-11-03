@@ -256,7 +256,7 @@ QString qSlicerScriptedDoseEngine::calculateDoseInfluenceMatrixUsingEngine(vtkMR
     return QString();
   }
 
-  return PyString_AsString(result);
+  return PyUnicode_AsUTF8(result);
 }
 
 //-----------------------------------------------------------------------------
