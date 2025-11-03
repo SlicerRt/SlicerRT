@@ -242,6 +242,13 @@ void qMRMLObjectivesTableWidget::updateObjectivesTable()
     return;
   }
 
+  if (!d->PlanNode->GetSegmentationNode())
+  {
+    d->setMessage("No segmentation node selected in the plan node.");
+    d->ObjectivesTable->blockSignals(false);
+    return;
+  }
+
   qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(d->PlanNode->GetPlanOptimizerName());
   if (!selectedEngine)
   {
@@ -401,6 +408,8 @@ void qMRMLObjectivesTableWidget::onPlanNodeReferenceModified()
 
     // Update segmentation node observer
     this->setSegmentationNode(segmentationNode);
+
+    this->updateObjectivesTable();
   }
 }
 
