@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -46,7 +46,7 @@ public:
   ~qSlicerExternalBeamPlanningModule() override;
 
   qSlicerGetTitleMacro(QTMODULE_TITLE);
-  
+
   /// Help to use the module
   QString helpText()const override;
 
@@ -69,7 +69,7 @@ public:
   QStringList associatedNodeTypes()const override;
 
 protected:
-  /// Initialize the module. Register the volumes reader/writer
+  /// Initialize the module
   void setup() override;
 
   /// Create and return the logic associated to this module

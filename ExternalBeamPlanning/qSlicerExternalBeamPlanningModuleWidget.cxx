@@ -12,8 +12,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 
-  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre 
-  and was supported by Cancer Care Ontario (CCO)'s ACRU program 
+  This file was originally developed by Kevin Wang, Princess Margaret Cancer Centre
+  and was supported by Cancer Care Ontario (CCO)'s ACRU program
   with funds provided by the Ontario Ministry of Health and Long-Term Care
   and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).
 
@@ -25,7 +25,7 @@
 
 // Slicer includes
 #include <qSlicerApplication.h>
-#include <qSlicerLayoutManager.h> 
+#include <qSlicerLayoutManager.h>
 #include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
 #include <qSlicerAbstractCoreModule.h>
@@ -41,18 +41,22 @@
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkSlicerBeamsModuleLogic.h"
 
-// ExternalBeamPlanning includes
-#include "vtkSlicerExternalBeamPlanningModuleLogic.h"
+// ExternalBeamPlanning MRML and logic includes
 #include "vtkMRMLRTObjectiveNode.h"
-#include "qSlicerDoseEnginePluginHandler.h"
+#include "vtkSlicerExternalBeamPlanningModuleLogic.h"
+
+// ExternalBeamPlanning Widgets includes
 #include "qSlicerAbstractDoseEngine.h"
-#include "qSlicerDoseEngineLogic.h"
-#include "qSlicerPlanOptimizerPluginHandler.h"
-#include "qSlicerAbstractPlanOptimizer.h"
-#include "qSlicerPlanOptimizerLogic.h"
-#include "qSlicerObjectivePluginHandler.h"
 #include "qSlicerAbstractObjective.h"
+#include "qSlicerAbstractPlanOptimizer.h"
+#include "qSlicerDoseEngineLogic.h"
+#include "qSlicerDoseEnginePluginHandler.h"
+#include "qSlicerMockDoseEngine.h"
+#include "qSlicerMockPlanOptimizer.h"
 #include "qSlicerObjectiveLogic.h"
+#include "qSlicerObjectivePluginHandler.h"
+#include "qSlicerPlanOptimizerLogic.h"
+#include "qSlicerPlanOptimizerPluginHandler.h"
 
 // MRML includes
 #include <vtkMRMLScalarVolumeNode.h>
@@ -113,21 +117,24 @@ qSlicerExternalBeamPlanningModuleWidgetPrivate::qSlicerExternalBeamPlanningModul
 //-----------------------------------------------------------------------------
 qSlicerExternalBeamPlanningModuleWidgetPrivate::~qSlicerExternalBeamPlanningModuleWidgetPrivate()
 {
-  //TODO: Leak?
-  //if (this->DoseEngineLogic)
-  //{
-  //  delete this->DoseEngineLogic;
-  //  this->DoseEngineLogic = nullptr;
-  //}
+  if (this->DoseEngineLogic)
+  {
+    delete this->DoseEngineLogic;
+    this->DoseEngineLogic = nullptr;
+  }
+  if (this->PlanOptimizerLogic)
+  {
+    delete this->PlanOptimizerLogic;
+    this->PlanOptimizerLogic = nullptr;
+  }
 }
 
 //-----------------------------------------------------------------------------
-vtkSlicerExternalBeamPlanningModuleLogic*
-qSlicerExternalBeamPlanningModuleWidgetPrivate::logic() const
+vtkSlicerExternalBeamPlanningModuleLogic* qSlicerExternalBeamPlanningModuleWidgetPrivate::logic() const
 {
   Q_Q(const qSlicerExternalBeamPlanningModuleWidget);
   return vtkSlicerExternalBeamPlanningModuleLogic::SafeDownCast(q->logic());
-} 
+}
 
 //-----------------------------------------------------------------------------
 // qSlicerExternalBeamPlanningModuleWidget methods
@@ -173,12 +180,76 @@ void qSlicerExternalBeamPlanningModuleWidget::onSceneImportedEvent()
 {
   this->onEnter();
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::enter()
 {
   this->onEnter();
   this->Superclass::enter();
+
+  //
+  // Register dose engines and optimizers if not already done
+  //
+
+  // Inline function for determining if a dose engine is already registered by class name
+  auto isDoseEngineRegistered = [](const QString& className) -> bool
+    {
+      QList<qSlicerAbstractDoseEngine*> registeredEngines = qSlicerDoseEnginePluginHandler::instance()->registeredDoseEngines();
+      for (qSlicerAbstractDoseEngine* engine : registeredEngines)
+      {
+        if (engine->metaObject()->className() == className)
+        {
+          return true;
+        }
+      }
+      return false;
+    };
+  // Register built-in C++ dose engines
+  if (!isDoseEngineRegistered("qSlicerMockDoseEngine"))
+  {
+    qSlicerDoseEnginePluginHandler::instance()->registerDoseEngine(new qSlicerMockDoseEngine());
+  }
+
+  // Python engines
+  // (otherwise it would be the responsibility of the module that embeds the dose engine)
+  PythonQt::init();
+  PythonQtObjectPtr context = PythonQt::self()->getMainModule();
+  context.evalScript( QString(
+    "from DoseEngines import * \n"
+    "import qSlicerExternalBeamPlanningModuleWidgetsPythonQt as engines \n"
+    "import traceback \n"
+    "import logging \n"
+    "try: \n"
+    "  slicer.modules.doseEngineNames \n"
+    "except AttributeError: \n"
+    "  slicer.modules.doseEngineNames = [] \n"
+    "for engineName in slicer.modules.doseEngineNames: \n"
+    "  try: \n"
+    "    exec(\"{0}Instance = engines.qSlicerScriptedDoseEngine(None); {0}Instance.setPythonSource({0}.__file__.replace('\\\\\\\\','/')); {0}Instance.self().register()\".format(engineName)) \n"
+    "  except Exception: \n"
+    "    logging.error(traceback.format_exc()) \n") );
+
+  // Register optimizers
+  qSlicerPlanOptimizerPluginHandler::instance()->registerPlanOptimizer(new qSlicerMockPlanOptimizer());
+
+  // Python optimizers
+  // (otherwise it would be the responsibility of the module that embeds the plan optimizer)
+  context.evalScript( QString(
+    "from PlanOptimizers import * \n"
+    "import qSlicerExternalBeamPlanningModuleWidgetsPythonQt as optimizers \n"
+    "import traceback \n"
+    "import logging \n"
+    "try: \n"
+    "  slicer.modules.planOptimizerNames \n"
+    "except AttributeError: \n"
+    "  slicer.modules.planOptimizerNames=[] \n"
+    "for optimizerName in slicer.modules.planOptimizerNames: \n"
+    "  try: \n"
+    "    exec(\"{0}Instance = optimizers.qSlicerScriptedPlanOptimizer(None); {0}Instance.setPythonSource({0}.__file__.replace('\\\\\\\\','/')); {0}Instance.self().register()\".format(optimizerName)) \n"
+    "  except Exception: \n"
+    "    logging.error(traceback.format_exc()) \n") );
 }
+
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::onEnter()
 {
@@ -251,7 +322,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   //{
   //  qWarning() << Q_FUNC_INFO << ": MatlabDoseCalculation module is not found";
   //}
-  
+
   // Make connections
   connect( d->MRMLNodeComboBox_RtPlan, SIGNAL(currentNodeChanged(vtkMRMLNode*)), this, SLOT(setPlanNode(vtkMRMLNode*)) );
 
@@ -332,7 +403,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
   // Enable GUI only if a plan node is selected
   d->CollapsibleButton_PlanParameters->setEnabled(planNode);
   d->CollapsibleButton_Beams->setEnabled(planNode);
-  
+
   if (!planNode)
   {
     return;
@@ -898,7 +969,7 @@ void qSlicerExternalBeamPlanningModuleWidget::ionPlanFlagCheckboxStateChanged(in
     qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
     return;
   }
-    
+
   // delete all beams
   planNode->RemoveAllBeams();
 
@@ -914,7 +985,7 @@ void qSlicerExternalBeamPlanningModuleWidget::ionPlanFlagCheckboxStateChanged(in
       (*engineIt)->updateBeamParametersForIonPlan(state);
     }
   }
-  
+
   this->updateDoseEngines();
 
   // set ion plan flag in plan
@@ -966,7 +1037,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
 
   //Check if Inverse Planning is selected
   bool inversePlanning = d->checkBox_InversePlanning->isChecked();
-  
+
   //Skip update if inverse planning is not active and all registered engines are already in the combobox
   qSlicerDoseEnginePluginHandler::DoseEngineListType engines =
     qSlicerDoseEnginePluginHandler::instance()->registeredDoseEngines();
@@ -981,7 +1052,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
   for (qSlicerDoseEnginePluginHandler::DoseEngineListType::iterator engineIt = engines.begin();
     engineIt != engines.end(); ++engineIt)
   {
-    // Check if ion plan or inverse planning is active and if yes skip engines that can't do it  
+    // Check if ion plan or inverse planning is active and if yes skip engines that can't do it
     if ((ionPlan && !(*engineIt)->canDoIonPlan()) || (inversePlanning && !(*engineIt)->isInverse()))
     {
         continue;
@@ -1246,7 +1317,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
   }
-  
+
   // Create and select output dose volume if missing
   if (!d->checkBox_InversePlanning->isChecked() && !planNode->GetOutputTotalDoseVolumeNode())
   {
@@ -1413,7 +1484,6 @@ void qSlicerExternalBeamPlanningModuleWidget::PlanOptimizerChanged(const QString
     return;
   }
 
-  /**/
   if (planNode->GetPlanOptimizerName() && !text.compare(planNode->GetPlanOptimizerName()))
   {
     return;
@@ -1432,7 +1502,7 @@ void qSlicerExternalBeamPlanningModuleWidget::PlanOptimizerChanged(const QString
   planNode->DisableModifiedEventOn();
   planNode->SetPlanOptimizerName(selectedEngine->name().toUtf8().constData());
   planNode->DisableModifiedEventOff();
-  
+
   selectedEngine->setAvailableObjectives();
   d->ObjectivesTableWidget->deleteObjectivesTable();
 }
@@ -1508,7 +1578,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
   // Is this the right place for this?
   d->logic()->GetExternalBeamPlanningNode()->SetGantryAngle(d->SliderWidget_GantryAngle->value());
 
-  // OK, we're good to go (well, not really, but let's pretend). 
+  // OK, we're good to go (well, not really, but let's pretend).
   // Do the actual computation in the logic object
   d->logic()->ComputeWED();
 

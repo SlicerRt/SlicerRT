@@ -1,6 +1,3 @@
-import os
-import vtk, qt, ctk, slicer
-import logging
 from DoseEngines import *
 
 class MockPythonDoseEngine(AbstractScriptedDoseEngine):

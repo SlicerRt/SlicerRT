@@ -83,7 +83,10 @@ protected:
   QScopedPointer<qSlicerBeamsModuleWidgetPrivate> d_ptr;
 
 protected:
+  /// Initialize the module
   void setup() override;
+
+  /// Run when the module is opened
   void onEnter();
 
 private:

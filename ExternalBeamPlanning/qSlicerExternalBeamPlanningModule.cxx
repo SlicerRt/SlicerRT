@@ -31,23 +31,8 @@
 #include "qSlicerExternalBeamPlanningModuleWidget.h"
 #include "vtkSlicerExternalBeamPlanningModuleLogic.h"
 
-// Widgets includes
-#include "qSlicerDoseEnginePluginHandler.h"
-#include "qSlicerMockDoseEngine.h"
-#include "qSlicerPlanOptimizerPluginHandler.h"
-#include "qSlicerMockPlanOptimizer.h"
-
 // SlicerRT includes
 #include "vtkSlicerBeamsModuleLogic.h"
-
-// PythonQt includes
-#include "PythonQt.h"
-
-//-----------------------------------------------------------------------------
-#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
-#include <QtPlugin>
-Q_EXPORT_PLUGIN2(qSlicerExternalBeamPlanningModule, qSlicerExternalBeamPlanningModule);
-#endif
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
@@ -137,57 +122,10 @@ void qSlicerExternalBeamPlanningModule::setup()
   {
     qCritical() << Q_FUNC_INFO << ": Beams module is not found";
   }
-
-  // Register dose engines
-  qSlicerDoseEnginePluginHandler::instance()->registerDoseEngine(new qSlicerMockDoseEngine());
-
-  // Python engines
-  // (otherwise it would be the responsibility of the module that embeds the dose engine)
-  PythonQt::init();
-  PythonQtObjectPtr context = PythonQt::self()->getMainModule();
-  context.evalScript( QString(
-    "from DoseEngines import * \n"
-    "import qSlicerExternalBeamPlanningModuleWidgetsPythonQt as engines \n"
-    "import traceback \n"
-    "import logging \n"
-    "try: \n"
-    "  slicer.modules.doseenginenames \n"
-    "except AttributeError: \n"
-    "  slicer.modules.doseenginenames=[] \n"
-    "for engineName in slicer.modules.doseenginenames: \n"
-    "  try: \n"
-    "    exec(\"{0}Instance = engines.qSlicerScriptedDoseEngine(None);{0}Instance.setPythonSource({0}.__file__.replace('\\\\\\\\','/'));{0}Instance.self().register()\".format(engineName)) \n"
-    "  except Exception as e: \n"
-    "    logging.error(traceback.format_exc()) \n") );
-  
-  
-  //Register optimizers
-  qSlicerPlanOptimizerPluginHandler::instance()->registerPlanOptimizer(new qSlicerMockPlanOptimizer());
-
-  // Python optimizers
-  // (otherwise it would be the responsibility of the module that embeds the plan optimizer)
-  //PythonQt::init();
-  //PythonQtObjectPtr context = PythonQt::self()->getMainModule();
-  context.evalScript(QString(
-    "from PlanOptimizers import * \n"
-    "import qSlicerExternalBeamPlanningModuleWidgetsPythonQt as optimizers \n"
-    "import traceback \n"
-    "import logging \n"
-    "try: \n"
-    "  slicer.modules.planoptimizernames \n"
-    "except AttributeError: \n"
-    "  slicer.modules.planoptimizernames=[] \n"
-    "for optimizerName in slicer.modules.planoptimizernames: \n"
-    "  try: \n"
-    "    exec(\"{0}Instance = optimizers.qSlicerScriptedPlanOptimizer(None);{0}Instance.setPythonSource({0}.__file__.replace('\\\\\\\\','/'));{0}Instance.self().register()\".format(optimizerName)) \n"
-    "  except Exception as e: \n"
-    "    logging.error(traceback.format_exc()) \n"));
-
-  }
-
+}
 
 //-----------------------------------------------------------------------------
-qSlicerAbstractModuleRepresentation * qSlicerExternalBeamPlanningModule::createWidgetRepresentation()
+qSlicerAbstractModuleRepresentation* qSlicerExternalBeamPlanningModule::createWidgetRepresentation()
 {
   return new qSlicerExternalBeamPlanningModuleWidget;
 }

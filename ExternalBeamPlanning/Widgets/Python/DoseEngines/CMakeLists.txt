@@ -7,7 +7,7 @@ configure_file(
 #-----------------------------------------------------------------------------
 set(DoseEngines_PYTHON_SCRIPTS
   AbstractScriptedDoseEngine
-  # MockPythonDoseEngine
+  MockPythonDoseEngine
   # EGSnrcUtil
   # OrthovoltageDoseEngineUtil
   # OrthovoltageDoseEngine

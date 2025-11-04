@@ -89,12 +89,12 @@ bool qSlicerDoseEnginePluginHandler::registerDoseEngine(qSlicerAbstractDoseEngin
 {
   if (engineToRegister == nullptr)
   {
-    qCritical() << Q_FUNC_INFO << ": Invalid dose engine to register!";
+    qCritical() << Q_FUNC_INFO << ": Invalid dose engine to register";
     return false;
   }
   if (engineToRegister->name().isEmpty())
   {
-    qCritical() << Q_FUNC_INFO << ": Dose engine cannot be registered with empty name!";
+    qCritical() << Q_FUNC_INFO << ": Dose engine cannot be registered with empty name";
     return false;
   }
 
@@ -131,7 +131,7 @@ if (name.isEmpty())
     }
   }
 
-  qWarning() << Q_FUNC_INFO << ": Engine named '" << name << "' cannot be found!";
+  qWarning() << Q_FUNC_INFO << ": Engine named '" << name << "' cannot be found";
   return nullptr;
 }
 

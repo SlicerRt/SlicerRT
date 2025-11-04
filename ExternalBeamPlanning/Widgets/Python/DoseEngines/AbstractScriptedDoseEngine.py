@@ -16,7 +16,7 @@ class AbstractScriptedDoseEngine():
         > scriptedEngine = engines.qSlicerScriptedDoseEngine(None)
         > scriptedEngine.setPythonSource(MyEngine.filePath)
         > scriptedEngine.self().register()
-        If engine name is added to slicer.modules.doseenginenames
+        If engine name is added to slicer.modules.doseEngineNames
         list then the above instantiation and registration steps are not necessary,
         as the ExternalBeamPlanning module do all these.
 
