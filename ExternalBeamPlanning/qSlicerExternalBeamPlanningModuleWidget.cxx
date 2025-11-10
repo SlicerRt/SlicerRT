@@ -229,6 +229,9 @@ void qSlicerExternalBeamPlanningModuleWidget::enter()
     "  except Exception: \n"
     "    logging.error(traceback.format_exc()) \n") );
 
+  // Register the Beams module's beam parameters tab widget to the dose engines
+  qSlicerAbstractDoseEngine::registerBeamParametersTabWidget(qSlicerAbstractDoseEngine::beamParametersTabWidgetFromBeamsModule());
+
   // Register optimizers
   qSlicerPlanOptimizerPluginHandler::instance()->registerPlanOptimizer(new qSlicerMockPlanOptimizer());
 
@@ -380,9 +383,6 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
 
   // Set status text to initial instruction
   d->label_CalculateDoseStatus->setText("Add plan and beam to start planning");
-
-  // Register the Beams module's beam parameters tab widget to the dose engines (do it here because of how the dependencies are set)
-  qSlicerAbstractDoseEngine::registerBeamParametersTabWidget(qSlicerAbstractDoseEngine::beamParametersTabWidgetFromBeamsModule());
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
