@@ -112,7 +112,7 @@
        <string>OP</string>
       </property>
       <property name="toolTip">
-       <string>Overlap Priority (Smaller number overlaps higher number)</string>
+       <string>Overlap Priority (0: target, 50: non-target)</string>
       </property>
      </column>
      <column>

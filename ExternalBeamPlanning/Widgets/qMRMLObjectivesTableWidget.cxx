@@ -242,6 +242,13 @@ void qMRMLObjectivesTableWidget::updateObjectivesTable()
     return;
   }
 
+  if (!d->PlanNode->GetSegmentationNode())
+  {
+    d->setMessage("No segmentation node selected in the plan node.");
+    d->ObjectivesTable->blockSignals(false);
+    return;
+  }
+
   qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(d->PlanNode->GetPlanOptimizerName());
   if (!selectedEngine)
   {
@@ -401,6 +408,8 @@ void qMRMLObjectivesTableWidget::onPlanNodeReferenceModified()
 
     // Update segmentation node observer
     this->setSegmentationNode(segmentationNode);
+
+    this->updateObjectivesTable();
   }
 }
 
@@ -817,13 +826,6 @@ void qMRMLObjectivesTableWidget::onSegmentChanged(int row)
     qCritical() << Q_FUNC_INFO << ": Invalid segmentation node";
     return;
   }
-  vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(segmentID.toStdString());
-  if (!segment)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid segment!";
-    return;
-  }
-  QString segmentName = segment->GetName();
 
   // Set segmentation in objectiveNode
   this->currentObjectiveNodes[row]->SetSegmentationAndSegmentID(segmentationNode, segmentID.toStdString().c_str());
@@ -833,7 +835,7 @@ void qMRMLObjectivesTableWidget::onSegmentChanged(int row)
 
   // Find other rows with the same segment and update their overlap priority
   int newValue = this->findOverlapPriorityValueOfSegment(row);
-  this->updateOverlapPriorityForSegment(segmentName, newValue);
+  this->updateOverlapPriorityForSegment(segmentID, newValue);
 }
 
 //------------------------------------------------------------------------------
@@ -849,15 +851,9 @@ void qMRMLObjectivesTableWidget::onOverlapPriorityChanged(int newValue, vtkMRMLR
     qCritical() << Q_FUNC_INFO << ": Invalid segmentation node";
     return;
   }
-  vtkSegment* segment = segmentationNode->GetSegmentation()->GetSegment(objectiveNode->GetSegmentID());
-  if (!segment)
-  {
-    qCritical() << Q_FUNC_INFO << ": Invalid segment!";
-    return;
-  }
-  QString segmentName = segment->GetName();
+  QString segmentID = objectiveNode->GetSegmentID();
 
-  this->updateOverlapPriorityForSegment(segmentName, newValue);
+  this->updateOverlapPriorityForSegment(segmentID, newValue);
 }
 
 //------------------------------------------------------------------------------
@@ -884,13 +880,29 @@ int qMRMLObjectivesTableWidget::findOverlapPriorityValueOfSegment(int row)
 {
   Q_D(qMRMLObjectivesTableWidget);
   QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
-  QString segmentName = segmentationsDropdown->currentText();
+  QString segmentID = segmentationsDropdown->currentData().toString();
 
-  // Get default value from segmentation
-  vtkSegmentation* segmentation = d->PlanNode->GetSegmentationNode()->GetSegmentation();
-  int newValue = segmentation->GetSegmentIndex(segmentation->GetSegmentIdBySegmentName(segmentName.toStdString()));
+  // Get default value for overlap priority from optimizer or segmentation
+  vtkMRMLRTPlanNode* planNode = d->PlanNode;
+  if (!planNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid plan node";
+    return 0;
+  }
+  qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
 
-  // Get overlap priority of first segment with same name
+  int newValue;
+
+  if (segmentID == planNode->GetTargetSegmentID())
+  {
+    newValue = 0;
+  }
+  else
+  {
+    newValue = 50;
+  }
+
+  // Get overlap priority of first segment with same ID
   for (int i = 0; i < d->ObjectivesTable->rowCount(); ++i)
   {
     if (i == row)
@@ -900,7 +912,7 @@ int qMRMLObjectivesTableWidget::findOverlapPriorityValueOfSegment(int row)
     else
     {
       QComboBox* currentSegmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(i, d->columnIndex("Segments")));
-      if (currentSegmentationsDropdown && currentSegmentationsDropdown->currentText() == segmentName)
+      if (currentSegmentationsDropdown && currentSegmentationsDropdown->currentData().toString() == segmentID)
       {
         newValue = qobject_cast<QSpinBox*>(d->ObjectivesTable->cellWidget(i, d->columnIndex("OverlapPriority")))->value();
         break;
@@ -911,14 +923,14 @@ int qMRMLObjectivesTableWidget::findOverlapPriorityValueOfSegment(int row)
 }
 
 //------------------------------------------------------------------------------
-void qMRMLObjectivesTableWidget::updateOverlapPriorityForSegment(const QString& segmentName, int newValue)
+void qMRMLObjectivesTableWidget::updateOverlapPriorityForSegment(const QString& segmentID, int newValue)
 {
   Q_D(qMRMLObjectivesTableWidget);
 
   for (int row = 0; row < d->ObjectivesTable->rowCount(); ++row)
   {
     QComboBox* segmentationsDropdown = qobject_cast<QComboBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("Segments")));
-    if (segmentationsDropdown && segmentationsDropdown->currentText() == segmentName)
+    if (segmentationsDropdown && segmentationsDropdown->currentData().toString() == segmentID)
     {
       QSpinBox* spinBox = qobject_cast<QSpinBox*>(d->ObjectivesTable->cellWidget(row, d->columnIndex("OverlapPriority")));
       if (spinBox && spinBox->value() != newValue)

@@ -97,11 +97,12 @@ public slots:
   /// Called when parameter is changed in table and updates value in objectiveNode's attributes
   void onParameterChanged(std::string name, std::string value, vtkMRMLRTObjectiveNode* objectiveNode);
 
-  /// Finds overlap priority of the same segment already present in the table and otherwise uses segment index
+  /// Finds overlap priority of the same segment already present in the table and otherwise uses
+  /// default value (0:target, 50:non-target)
   int findOverlapPriorityValueOfSegment(int row);
 
-  /// Updates the overlap priority for all rows with the given segment name
-  void updateOverlapPriorityForSegment(const QString& segmentName, int newValue);
+  /// Updates the overlap priority for all rows with the given segment ID
+  void updateOverlapPriorityForSegment(const QString& segmentID, int newValue);
 
   /// Updates the objectiveNodes in the plan optimizer according to the current objectives in the table
   void setObjectivesInPlanOptimizer();
