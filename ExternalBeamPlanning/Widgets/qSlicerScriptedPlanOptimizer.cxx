@@ -122,8 +122,11 @@ bool qSlicerScriptedPlanOptimizer::setPythonSource(const QString newPythonSource
   PyObject * main_module = PyImport_AddModule("__main__");
   PyObject * global_dict = PyModule_GetDict(main_module);
 
+  // Prefix module name with "PlanOptimizers." for correct Python module import, without it the import would not work
+  QByteArray fullModuleName = "PlanOptimizers." + moduleName.toUtf8();
+
   // Get a reference (or create if needed) the <moduleName> python module
-  PyObject * module = PyImport_AddModule(moduleName.toUtf8());
+  PyObject * module = PyImport_AddModule(fullModuleName.constData());
 
   // Get a reference to the python module class to instantiate
   PythonQtObjectPtr classToInstantiate;
