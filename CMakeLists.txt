@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.20.6...3.22.6 FATAL_ERROR)
 
 #-----------------------------------------------------------------------------
 set(EXTENSION_NAME SlicerRT)
