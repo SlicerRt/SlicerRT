@@ -44,4 +44,3 @@ class AbstractScriptedDoseEngine():
     handler = qSlicerExternalBeamPlanningModuleWidgetsPythonQt.qSlicerDoseEnginePluginHandler()
     engineHandlerSingleton = handler.instance()
     engineHandlerSingleton.registerDoseEngine(self.scriptedEngine)
-    self.defineBeamParameters()
