@@ -21,6 +21,7 @@ set(EXTENSION_STATUS "Beta")
 set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 set(EXTENSION_BUILD_SUBDIRECTORY inner-build)
 set(EXTENSION_BUILDS_IPOPT OFF)
+set(EXTENSION_BUILDS_ADAPTIVE_CPP OFF) # Whether to build AdaptiveCpp external project
 
 set(SUPERBUILD_TOPLEVEL_PROJECT inner)
 
@@ -147,6 +148,10 @@ if(EXTENSION_BUILDS_IPOPT)
   if(DEFINED Ipopt_DIR)
     list(APPEND EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS "${Ipopt_DIR};Ipopt;RuntimeLibraries;/")
   endif()
+endif()
+
+if((LINUX OR APPLE) AND EXTENSION_BUILDS_ADAPTIVE_CPP)
+  list(APPEND EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS "${AdaptiveCpp_DIR};AdaptiveCpp;RuntimeLibraries;/")
 endif()
 
 set(${EXTENSION_NAME}_CPACK_INSTALL_CMAKE_PROJECTS "${EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS}" CACHE STRING "List of external projects to install" FORCE)
