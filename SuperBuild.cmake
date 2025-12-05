@@ -22,6 +22,21 @@ set(${proj}_DEPENDS
   vtkIECTransformLogic
   )
 
+# Add linear equation solver dependencies (MUMPS, HSL) if enabled and on UNIX
+if(EXTENSION_BUILDS_IPOPT AND UNIX)
+  list(APPEND ${proj}_DEPENDS
+    Mumps
+    HSL
+  )
+endif()
+
+# Add optimization dependencies Ipopt if enabled
+if(EXTENSION_BUILDS_IPOPT)
+  list(APPEND ${proj}_DEPENDS
+    Ipopt
+  )
+endif()
+
 ExternalProject_Include_Dependencies(${proj}
   PROJECT_VAR proj
   SUPERBUILD_VAR ${EXTENSION_NAME}_SUPERBUILD
@@ -52,6 +67,10 @@ ExternalProject_Add(${proj}
     # Superbuild
     -D${EXTENSION_NAME}_SUPERBUILD:BOOL=OFF
     -DEXTENSION_SUPERBUILD_BINARY_DIR:PATH=${${EXTENSION_NAME}_BINARY_DIR}
+    -DIpopt_INCLUDE_DIR:PATH=${Ipopt_INCLUDE_DIR}
+    -DIpopt_LIBRARY_DIR:PATH=${Ipopt_LIBRARY_DIR}
+    -DIpopt_DLL_DIR:PATH=${Ipopt_DLL_DIR}
+    -DIpopt_DLL:FILEPATH=${Ipopt_DLL}
   DEPENDS
     ${${proj}_DEPENDS}
   )
