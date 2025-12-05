@@ -20,6 +20,7 @@ set(EXTENSION_SCREENSHOTURLS "https://www.slicer.org/slicerWiki/images/8/87/Slic
 set(EXTENSION_STATUS "Beta")
 set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 set(EXTENSION_BUILD_SUBDIRECTORY inner-build)
+set(EXTENSION_BUILDS_IPOPT OFF)
 
 set(SUPERBUILD_TOPLEVEL_PROJECT inner)
 
@@ -52,6 +53,12 @@ endif()
 # Extension dependencies
 find_package(Slicer COMPONENTS ConfigurePrerequisites REQUIRED)
 project(SlicerRT)
+
+# Enable Fortran for MUMPS/LAPACK support in external projects (if optimization is enabled)
+if(EXTENSION_BUILDS_IPOPT AND UNIX)
+  enable_language(Fortran)
+endif()
+
 find_package(Slicer REQUIRED)
 include(${Slicer_USE_FILE})
 mark_as_superbuild(Slicer_DIR)
@@ -128,6 +135,20 @@ endif()
 #-----------------------------------------------------------------------------
 set(EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS)
 list(APPEND EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS "${vtkIECTransformLogic_DIR};vtkIECTransformLogic;RuntimeLibraries;/")
+
+# Add optimization runtime libraries if enabled
+if(EXTENSION_BUILDS_IPOPT)
+  if(DEFINED Mumps_DIR AND UNIX)
+    list(APPEND EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS "${Mumps_DIR};Mumps;RuntimeLibraries;/")
+  endif()
+  if(DEFINED HSL_DIR AND UNIX)
+    list(APPEND EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS "${HSL_DIR};HSL;RuntimeLibraries;/")
+  endif()
+  if(DEFINED Ipopt_DIR)
+    list(APPEND EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS "${Ipopt_DIR};Ipopt;RuntimeLibraries;/")
+  endif()
+endif()
+
 set(${EXTENSION_NAME}_CPACK_INSTALL_CMAKE_PROJECTS "${EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS}" CACHE STRING "List of external projects to install" FORCE)
 list(APPEND CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_BINARY_DIR};${EXTENSION_NAME};ALL;/")
 list(APPEND CPACK_INSTALL_CMAKE_PROJECTS "${${EXTENSION_NAME}_CPACK_INSTALL_CMAKE_PROJECTS}")
