@@ -44,8 +44,9 @@ class vtkMatrix4x4;
 class vtkPolyData;
 class vtkVector3d;
 
-class vtkMRMLRoomsEyeViewNode;
+class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLModelNode;
+class vtkMRMLRoomsEyeViewNode;
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
 class VTK_SLICER_ROOMSEYEVIEW_LOGIC_EXPORT vtkSlicerRoomsEyeViewModuleLogic : public vtkSlicerModuleLogic
@@ -66,14 +67,14 @@ public:
     ApplicatorHolder,
     ElectronApplicator,
     LastPartType
-    }; 
+    };
 
   static const char* ORIENTATION_MARKER_MODEL_NODE_NAME;
   static const char* TREATMENT_MACHINE_DESCRIPTOR_FILE_PATH_ATTRIBUTE_NAME;
   static unsigned long MAX_TRIANGLE_NUMBER_PRODUCT_FOR_COLLISIONS;
 
 public:
-  static vtkSlicerRoomsEyeViewModuleLogic *New();
+  static vtkSlicerRoomsEyeViewModuleLogic* New();
   vtkTypeMacro(vtkSlicerRoomsEyeViewModuleLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -115,13 +116,21 @@ public:
   void UpdateTableTopEccentricRotationToPatientSupportRotationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
   /// Update TableTopToTableTopEccentricRotation based on all three table top translations
   void UpdateTableTopToTableTopEccentricRotationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
- 
+
   /// Update orientation marker based on the current transforms
   vtkMRMLModelNode* UpdateTreatmentOrientationMarker(vtkMRMLRoomsEyeViewNode* parameterNode);
 
   /// Check for collisions between pieces of linac model using vtkCollisionDetectionFilter
   /// \return string indicating whether collision occurred
   std::string CheckForCollisions(vtkMRMLRoomsEyeViewNode* parameterNode);
+
+  /// Automatically place the table center point fiducial to the posterior center of the patient body segment
+  void AutoPlaceTableCenterPointFiducialFromPatientBodySegment(vtkMRMLRoomsEyeViewNode* parameterNode);
+
+  /// Update observers on the table center point fiducial node
+  void UpdateTableCenterPointObservers(vtkMRMLRoomsEyeViewNode* parameterNode);
+  /// Handle table center point changed event
+  void OnTableCenterPointChanged(vtkMRMLMarkupsFiducialNode* tableCenterFiducialNode);
 
 // Get treatment machine properties from descriptor file
 public:

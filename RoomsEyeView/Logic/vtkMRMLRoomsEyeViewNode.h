@@ -28,6 +28,7 @@
 #include "vtkSlicerRoomsEyeViewModuleLogicExport.h"
 
 class vtkMRMLLinearTransformNode;
+class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLSegmentationNode;
 class vtkMRMLRTBeamNode;
 
@@ -39,19 +40,19 @@ public:
   vtkTypeMacro(vtkMRMLRoomsEyeViewNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  /// Create instance of a GAD node. 
+  /// Create instance of a GAD node.
   vtkMRMLNode* CreateNodeInstance() override;
 
-  /// Set node attributes from name/value pairs 
+  /// Set node attributes from name/value pairs
   void ReadXMLAttributes( const char** atts) override;
 
-  /// Write this node's information to a MRML file in XML format. 
+  /// Write this node's information to a MRML file in XML format.
   void WriteXML(ostream& of, int indent) override;
 
-  /// Copy the node's attributes to this object 
+  /// Copy the node's attributes to this object
   void Copy(vtkMRMLNode *node) override;
 
-  /// Get unique node XML tag name (like Volume, Model) 
+  /// Get unique node XML tag name (like Volume, Model)
   const char* GetNodeTagName() override { return "RoomsEyeView"; };
 
 public:
@@ -73,7 +74,7 @@ public:
   vtkMRMLLinearTransformNode* GetLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode();
   void SetAndObserveLeftImagingPanelToLeftImagingPanelFixedReferenceIsocenterTransformNode(vtkMRMLLinearTransformNode* node);
 
-  vtkMRMLLinearTransformNode* GetLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode(); 
+  vtkMRMLLinearTransformNode* GetLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode();
   void SetAndObserveLeftImagingPanelFixedReferenceIsocenterToLeftImagingPanelRotatedTransformNode(vtkMRMLLinearTransformNode* node);
 
   vtkMRMLLinearTransformNode* GetLeftImagingPanelRotatedToGantryTransformNode();
@@ -105,13 +106,16 @@ public:
 
   vtkMRMLLinearTransformNode* GetTableTopToTableTopEccentricRotationTransformNode();
   void SetAndObservePatientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode(vtkMRMLLinearTransformNode* node);
-  
+
   vtkMRMLLinearTransformNode* GetTableTopEccentricRotationToPatientSupportTransformNode();
   void SetAndObserveTableTopToTableTopEccentricRotationTransformNode(vtkMRMLLinearTransformNode* node);
 
   vtkMRMLLinearTransformNode* GetPatientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode();
   void SetAndObserveTableTopEccentricRotationToPatientSupportTransformNode(vtkMRMLLinearTransformNode* node);
- 
+
+  vtkMRMLMarkupsFiducialNode* GetTableCenterPointFiducialNode();
+  void SetAndObserveTableCenterPointFiducialNode(vtkMRMLMarkupsFiducialNode* node);
+
   /// Get beam node
   vtkMRMLRTBeamNode* GetBeamNode();
   /// Set and observe beam node
@@ -170,16 +174,28 @@ protected:
   /// Path to the treatment machine descriptor JSON file
   char* TreatmentMachineDescriptorFilePath;
 
+  /// Enable/disable collision detection
   bool CollisionDetectionEnabled;
 
-  /// TODO:
+  /// Gantry rotation angle in degrees
   double GantryRotationAngle;
+  /// Collimator rotation angle in degrees
   double CollimatorRotationAngle;
-  double ImagingPanelMovement;
+  /// Patient support rotation angle in degrees
   double PatientSupportRotationAngle;
+  /// Table top vertical displacement in mm
+
   double VerticalTableTopDisplacement;
+  /// Table top longitudinal displacement in mm
   double LongitudinalTableTopDisplacement;
+  /// Table top lateral displacement in mm
   double LateralTableTopDisplacement;
+
+  /// Imaging panel movement
+  /// (custom range currently only supporting Varian TrueBeam: -68.5 to 0 rotation, then 0 to 500 translation outwards)
+  double ImagingPanelMovement;
+
+  /// Additional model displacement parameters //TODO: Currently not used
   double AdditionalModelVerticalDisplacement;
   double AdditionalModelLongitudinalDisplacement;
   double AdditionalModelLateralDisplacement;

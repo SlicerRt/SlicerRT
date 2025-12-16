@@ -58,7 +58,7 @@ public:
     CalculateDoseUsingEngineMethod,
     CalculateDoseInfluenceMatrixUsingEngineMethod,
     UpdateBeamParametersForIonPlan
-    };
+  };
 
   mutable qSlicerPythonCppAPI PythonCppAPI;
 
@@ -107,14 +107,14 @@ bool qSlicerScriptedDoseEngine::setPythonSource(const QString newPythonSource)
   Q_D(qSlicerScriptedDoseEngine);
 
   if (!Py_IsInitialized())
-    {
+  {
     return false;
-    }
+  }
 
   if (!newPythonSource.endsWith(".py") && !newPythonSource.endsWith(".pyc"))
-    {
+  {
     return false;
-    }
+  }
 
   // Extract moduleName from the provided filename
   QString moduleName = QFileInfo(newPythonSource).baseName();
@@ -122,9 +122,9 @@ bool qSlicerScriptedDoseEngine::setPythonSource(const QString newPythonSource)
   // In case the engine is within the main module file
   QString className = moduleName;
   if (!moduleName.endsWith("Engine"))
-    {
+  {
     className.append("Engine");
-    }
+  }
 
   // Get a reference to the main module and global dictionary
   PyObject * main_module = PyImport_AddModule("__main__");
@@ -139,25 +139,25 @@ bool qSlicerScriptedDoseEngine::setPythonSource(const QString newPythonSource)
   // Get a reference to the python module class to instantiate
   PythonQtObjectPtr classToInstantiate;
   if (PyObject_HasAttrString(module, className.toUtf8()))
-    {
+  {
     classToInstantiate.setNewRef(PyObject_GetAttrString(module, className.toUtf8()));
-    }
+  }
   if (!classToInstantiate)
-    {
+  {
     PythonQtObjectPtr local_dict;
     local_dict.setNewRef(PyDict_New());
     if (!qSlicerScriptedUtils::loadSourceAsModule(moduleName, newPythonSource, global_dict, local_dict))
-      {
+    {
       return false;
-      }
-    if (PyObject_HasAttrString(module, className.toUtf8()))
-      {
-      classToInstantiate.setNewRef(PyObject_GetAttrString(module, className.toUtf8()));
-      }
     }
+    if (PyObject_HasAttrString(module, className.toUtf8()))
+    {
+      classToInstantiate.setNewRef(PyObject_GetAttrString(module, className.toUtf8()));
+    }
+  }
 
   if (!classToInstantiate)
-    {
+  {
     PythonQt::self()->handleError();
     PyErr_SetString(PyExc_RuntimeError,
                     QString("qSlicerScriptedDoseEngine::setPythonSource - "
@@ -165,23 +165,22 @@ bool qSlicerScriptedDoseEngine::setPythonSource(const QString newPythonSource)
                             "class %1 was not found in %2").arg(className).arg(newPythonSource).toUtf8());
     PythonQt::self()->handleError();
     return false;
-    }
+  }
 
   d->PythonCppAPI.setObjectName(className);
 
   PyObject* self = d->PythonCppAPI.instantiateClass(this, className, classToInstantiate);
   if (!self)
-    {
+  {
     return false;
-    }
+  }
 
   d->PythonSource = newPythonSource;
 
-  if (!qSlicerScriptedUtils::setModuleAttribute(
-        "slicer", className, self))
-    {
+  if (!qSlicerScriptedUtils::setModuleAttribute("slicer", className, self))
+  {
     qCritical() << "Failed to set" << ("slicer." + className);
-    }
+  }
 
   return true;
 }
@@ -229,10 +228,10 @@ QString qSlicerScriptedDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* b
 
   // Parse result
   if (!PyUnicode_Check(result))
-    {
+  {
     qWarning() << d->PythonSource << ": qSlicerScriptedDoseEngine: Function 'calculateDoseUsingEngine' is expected to return a string!";
     return QString();
-    }
+  }
 
   return PyUnicode_AsUTF8(result);
 }

@@ -510,6 +510,11 @@ void qMRMLBeamsTableView::onBeamModified(vtkObject* caller, void* callData)
   {
     QString beamNodeID = d->BeamsTable->item(row, d->columnIndex("Number"))->data(IDRole).toString();
     vtkMRMLRTBeamNode* currentBeamNode = vtkMRMLRTBeamNode::SafeDownCast(beamNode->GetScene()->GetNodeByID(beamNodeID.toLatin1().constData()));
+    // If we could not get the beam node, then it means that the beam was removed from the scene, so we do not need to update the table
+    if (currentBeamNode == nullptr)
+    {
+      continue;
+    }
     if (beamNumber == currentBeamNode->GetBeamNumber())
     {
       foundRow = row;

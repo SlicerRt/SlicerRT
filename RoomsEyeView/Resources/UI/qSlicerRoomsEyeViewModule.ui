@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>345</width>
-    <height>490</height>
+    <width>373</width>
+    <height>544</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -296,8 +296,8 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="qMRMLSegmentSelectorWidget" name="SegmentSelectorWidget_PatientBody" native="true">
-        <property name="noneEnabled" stdset="0">
+       <widget class="qMRMLSegmentSelectorWidget" name="SegmentSelectorWidget_PatientBody">
+        <property name="noneEnabled">
          <bool>true</bool>
         </property>
        </widget>
@@ -310,21 +310,6 @@
      <property name="leftMargin">
       <number>4</number>
      </property>
-     <item row="1" column="1">
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Beam" native="true">
-       <property name="nodeTypes" stdset="0">
-        <stringlist>
-         <string>vtkMRMLRTBeamNode</string>
-        </stringlist>
-       </property>
-       <property name="noneEnabled" stdset="0">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QComboBox" name="TreatmentMachineComboBox"/>
-     </item>
      <item row="0" column="0">
       <widget class="QLabel" name="label_2">
        <property name="text">
@@ -339,14 +324,41 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet" native="true">
-       <property name="nodeTypes" stdset="0">
+     <item row="1" column="1">
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_Beam">
+       <property name="nodeTypes">
         <stringlist>
-         <string>vtkMRMLRoomsEyeViewNode</string>
+         <string>vtkMRMLRTBeamNode</string>
         </stringlist>
        </property>
+       <property name="noneEnabled">
+        <bool>true</bool>
+       </property>
       </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QComboBox" name="TreatmentMachineComboBox"/>
+     </item>
+     <item row="3" column="0" colspan="2">
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Fix 3D camera in 'fixed reference' frame:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="FixedCameraCheckBox">
+         <property name="toolTip">
+          <string>If enabled, the treatment machine will stay fixed in 3D while adjusting machine transforms. Otherwise, the camera will be fixed in RAS and the patient stays still.</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item row="2" column="1">
       <widget class="QPushButton" name="LoadTreatmentMachineButton">
@@ -355,10 +367,12 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="0" colspan="2">
-      <widget class="QCheckBox" name="FixedCameraCheckBox">
-       <property name="text">
-        <string>Fix 3D camera in FixedReference frame</string>
+     <item row="0" column="1">
+      <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ParameterSet">
+       <property name="nodeTypes">
+        <stringlist>
+         <string>vtkMRMLRoomsEyeViewNode</string>
+        </stringlist>
        </property>
       </widget>
      </item>
@@ -367,17 +381,6 @@
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>ctkCollapsibleButton</class>
-   <extends>QWidget</extends>
-   <header>ctkCollapsibleButton.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ctkSliderWidget</class>
-   <extends>QWidget</extends>
-   <header>ctkSliderWidget.h</header>
-  </customwidget>
   <customwidget>
    <class>qMRMLNodeComboBox</class>
    <extends>QWidget</extends>
@@ -401,6 +404,17 @@
    <extends>qMRMLWidget</extends>
    <header>qMRMLSegmentSelectorWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkCollapsibleButton</class>
+   <extends>QWidget</extends>
+   <header>ctkCollapsibleButton.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkSliderWidget</class>
+   <extends>QWidget</extends>
+   <header>ctkSliderWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -428,7 +442,7 @@
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>398</x>
+     <x>372</x>
      <y>3</y>
     </hint>
     <hint type="destinationlabel">
@@ -448,8 +462,8 @@
      <y>2</y>
     </hint>
     <hint type="destinationlabel">
-     <x>329</x>
-     <y>118</y>
+     <x>360</x>
+     <y>218</y>
     </hint>
    </hints>
   </connection>
