@@ -13,7 +13,8 @@ import traceback
 engineNames = [
   "MockPythonDoseEngine",
   # "OrthovoltageDoseEngine",
-  "pyRadPlanEngine"
+  "pyRadPlanEngine",
+  "TopasDoseEngine"
   ]
 print(f'Registering dose engines: {engineNames}')
 for engineName in engineNames:

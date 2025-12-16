@@ -12,6 +12,7 @@ set(DoseEngines_PYTHON_SCRIPTS
   # OrthovoltageDoseEngineUtil
   # OrthovoltageDoseEngine
   pyRadPlanEngine
+  TopasDoseEngine
   )
 
 set(DoseEngines_PYTHON_RESOURCES
