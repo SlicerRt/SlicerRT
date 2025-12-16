@@ -424,13 +424,25 @@ QString qSlicerDoseEngineLogic::createAccumulatedDose(vtkMRMLRTPlanNode* planNod
       qCritical() << Q_FUNC_INFO << ": Failed to get default dose color table!";
     }
 
-    // Set window level based on prescription dose
+    // Set window level and threshold based on prescription dose, falling back to actual max if they differ by >20%
     double rxDose = planNode->GetRxDose();
+    double windowMax = rxDose;
+    if (totalDoseVolumeNode->GetImageData())
+    {
+      double scalarRange[2] = {0.0, 0.0};
+      totalDoseVolumeNode->GetImageData()->GetScalarRange(scalarRange);
+      double maxDose = scalarRange[1];
+      if (rxDose > 0.0 && std::abs(maxDose - rxDose) / rxDose > 0.20)
+      {
+        windowMax = maxDose;
+      }
+    }
+
     doseScalarVolumeDisplayNode->AutoWindowLevelOff();
-    doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, rxDose);
+    doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, windowMax);
 
     // Set threshold to hide very low dose values
-    doseScalarVolumeDisplayNode->SetLowerThreshold(0.05 * rxDose);
+    doseScalarVolumeDisplayNode->SetLowerThreshold(0.05 * windowMax);
     doseScalarVolumeDisplayNode->ApplyThresholdOn();
   }
   else

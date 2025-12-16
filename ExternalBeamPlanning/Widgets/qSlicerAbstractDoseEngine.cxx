@@ -435,13 +435,26 @@ void qSlicerAbstractDoseEngine::addResultDose(vtkMRMLScalarVolumeNode* resultDos
     vtkMRMLRTPlanNode* planNode = beamNode->GetParentPlanNode();
     if (planNode)
     {
-      // Set window level based on prescription dose
       double rxDose = planNode->GetRxDose();
+
+      // Set window level and threshold based on prescription dose, falling back to actual max if they differ by >20%
+      double windowMax = rxDose * 1.1;
+      if (resultDose->GetImageData())
+      {
+        double scalarRange[2] = {0.0, 0.0};
+        resultDose->GetImageData()->GetScalarRange(scalarRange);
+        double maxDose = scalarRange[1];
+        if (rxDose > 0.0 && std::abs(maxDose - rxDose) / rxDose > 0.20)
+        {
+          windowMax = maxDose * 1.1;
+        }
+      }
+
       doseScalarVolumeDisplayNode->AutoWindowLevelOff();
-      doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, rxDose*1.1);
+      doseScalarVolumeDisplayNode->SetWindowLevelMinMax(0.0, windowMax);
 
       // Set threshold to hide very low dose values
-      doseScalarVolumeDisplayNode->SetLowerThreshold(0.05 * rxDose);
+      doseScalarVolumeDisplayNode->SetLowerThreshold(0.05 * windowMax);
       doseScalarVolumeDisplayNode->ApplyThresholdOn();
     }
     else
