@@ -39,6 +39,7 @@
 #include <qSlicerLayoutManager.h>
 #include <qSlicerIOManager.h>
 #include <qSlicerDataDialog.h>
+#include <qSlicerMarkupsPlaceWidget.h>
 #include <qSlicerSaveDataDialog.h>
 #include <qSlicerSubjectHierarchyFolderPlugin.h>
 #include <qSlicerSubjectHierarchyPluginHandler.h>
@@ -47,29 +48,32 @@
 #include <qMRMLThreeDView.h>
 
 // MRML includes
-#include <vtkMRMLScene.h>
-#include <vtkMRMLLinearTransformNode.h>
-#include <vtkMRMLDisplayNode.h>
-#include <vtkMRMLModelNode.h>
-#include <vtkMRMLSegmentationNode.h>
 #include <vtkMRMLCameraNode.h>
-#include <vtkMRMLViewNode.h>
+#include <vtkMRMLDisplayNode.h>
+#include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLMarkupsFiducialNode.h>
+#include <vtkMRMLModelNode.h>
+#include <vtkMRMLScene.h>
+#include <vtkMRMLSegmentationNode.h>
 #include <vtkMRMLSliceNode.h>
-#include <vtkMRMLTransformNode.h>
 #include <vtkMRMLSubjectHierarchyNode.h>
+#include <vtkMRMLTransformNode.h>
+#include <vtkMRMLViewNode.h>
 
 // Qt includes
+#include <QAction>
 #include <QDebug>
 #include <QDir>
 #include <QFileDialog>
 
 // CTK includes
+#include <ctkColorPickerButton.h>
 #include <ctkMessageBox.h>
 #include <ctkSliderWidget.h>
 
 // VTK includes
 #include <vtkCamera.h>
-#include "vtkCollisionDetectionFilter.h"
+#include <vtkCollisionDetectionFilter.h>
 #include <vtkPolyData.h>
 #include <vtkMatrix4x4.h>
 #include <vtkTransform.h>
@@ -314,6 +318,13 @@ void qSlicerRoomsEyeViewModuleWidget::setParameterNode(vtkMRMLNode *node)
     {
       paramNode->SetPatientBodySegmentID(d->SegmentSelectorWidget_PatientBody->currentSegmentID().toUtf8().constData());
     }
+    // If body is selected, then initialize the table center point fiducial node
+    if (paramNode->GetPatientBodySegmentationNode() && paramNode->GetPatientBodySegmentID())
+    {
+      //TODO: Only auto-place the fiducial if the user has not changed it manually
+      d->logic()->AutoPlaceTableCenterPointFiducialFromPatientBodySegment(paramNode);
+      d->logic()->UpdateTableCenterPointObservers(paramNode);
+    }
   }
 
   this->updateWidgetFromMRML();
@@ -448,8 +459,7 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamNodeChanged(vtkMRMLNode* node)
   for (std::vector<vtkMRMLNode*>::iterator beamIt=beamNodes.begin(); beamIt!=beamNodes.end(); ++beamIt)
   {
     vtkMRMLRTBeamNode* currentBeamNode = vtkMRMLRTBeamNode::SafeDownCast(*beamIt);
-    shNode->SetItemDisplayVisibility(
-      shNode->GetItemByDataNode(currentBeamNode), (currentBeamNode == beamNode ? 1 : 0) );
+    shNode->SetItemDisplayVisibility(shNode->GetItemByDataNode(currentBeamNode), (currentBeamNode == beamNode ? 1 : 0) );
   }
 
   if (!beamNode)
@@ -528,6 +538,9 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientBodySegmentChanged(QString segmen
   paramNode->DisableModifiedEventOn();
   paramNode->SetPatientBodySegmentID(segmentID.toUtf8().constData());
   paramNode->DisableModifiedEventOff();
+
+  // Automatically place table center point fiducial to the posterior center of the patient body segment
+  d->logic()->AutoPlaceTableCenterPointFiducialFromPatientBodySegment(paramNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -818,7 +831,7 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientSupportRotationSliderValueChanged
 
   // Update IEC transform
   d->logic()->UpdatePatientSupportRotationToFixedReferenceTransform(paramNode);
-  beamsLogic->UpdateRASRelatedTransforms(d->logic()->GetIECLogic(), d->currentPlanNode(paramNode));
+  beamsLogic->UpdateFixedReferenceToRASTransform(d->logic()->GetIECLogic(), d->currentPlanNode(paramNode), paramNode->GetTableCenterPointFiducialNode());
 
   // Update beam parameter
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(paramNode->GetBeamNode());
@@ -864,7 +877,7 @@ void qSlicerRoomsEyeViewModuleWidget::onVerticalTableTopDisplacementSliderValueC
 
   d->logic()->UpdatePatientSupportToPatientSupportRotationTransform(paramNode);
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  beamsLogic->UpdateRASRelatedTransforms(d->logic()->GetIECLogic(), d->currentPlanNode(paramNode));
+  beamsLogic->UpdateFixedReferenceToRASTransform(d->logic()->GetIECLogic(), d->currentPlanNode(paramNode), paramNode->GetTableCenterPointFiducialNode());
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -893,7 +906,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLongitudinalTableTopDisplacementSliderVa
   paramNode->DisableModifiedEventOff();
 
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  beamsLogic->UpdateRASRelatedTransforms(d->logic()->GetIECLogic(), d->currentPlanNode(paramNode));
+  beamsLogic->UpdateFixedReferenceToRASTransform(d->logic()->GetIECLogic(), d->currentPlanNode(paramNode), paramNode->GetTableCenterPointFiducialNode());
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -924,7 +937,7 @@ void qSlicerRoomsEyeViewModuleWidget::onLateralTableTopDisplacementSliderValueCh
   paramNode->DisableModifiedEventOff();
 
   d->logic()->UpdateTableTopToTableTopEccentricRotationTransform(paramNode);
-  beamsLogic->UpdateRASRelatedTransforms(d->logic()->GetIECLogic(), d->currentPlanNode(paramNode));
+  beamsLogic->UpdateFixedReferenceToRASTransform(d->logic()->GetIECLogic(), d->currentPlanNode(paramNode), paramNode->GetTableCenterPointFiducialNode());
 
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
@@ -1079,8 +1092,7 @@ void qSlicerRoomsEyeViewModuleWidget::setFixedReferenceCameraEnabled(bool toggle
 
   // Get FixedReference -> RAS transform node
   vtkMRMLLinearTransformNode* fixedReferenceToRasTransformNode = d->logic()->GetTransformNodeBetween(
-    vtkIECTransformLogic::FixedReference,
-    vtkIECTransformLogic::RAS);
+    vtkIECTransformLogic::FixedReference, vtkIECTransformLogic::RAS);
 
   vtkNew<vtkMatrix4x4> fixedReferenceToRasTransformMatrix;
   fixedReferenceToRasTransformMatrix->Identity();

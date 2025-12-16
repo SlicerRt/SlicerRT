@@ -27,6 +27,7 @@
 // MRML includes
 #include <vtkMRMLScene.h>
 #include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLSegmentationNode.h>
 
 // VTK includes
@@ -64,6 +65,7 @@ static const char* TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_RE
 
 static const char* BEAM_REFERENCE_ROLE = "beamRef";
 static const char* PATIENT_BODY_SEGMENTATION_REFERENCE_ROLE = "patientBodySegmentationRef";
+static const char* TABLE_CENTER_POINT_REFERENCE_ROLE = "tableCenterPointRef";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLRoomsEyeViewNode);
@@ -108,7 +110,7 @@ void vtkMRMLRoomsEyeViewNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLFloatMacro(LateralTableTopDisplacement, LateralTableTopDisplacement);
   vtkMRMLWriteXMLStringMacro(PatientBodySegmentID, PatientBodySegmentID);
   vtkMRMLWriteXMLStringMacro(TreatmentMachineDescriptorFilePath, TreatmentMachineDescriptorFilePath);
-  vtkMRMLWriteXMLEndMacro(); 
+  vtkMRMLWriteXMLEndMacro();
 }
 
 //----------------------------------------------------------------------------
@@ -128,7 +130,7 @@ void vtkMRMLRoomsEyeViewNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLFloatMacro(LateralTableTopDisplacement, LateralTableTopDisplacement);
   vtkMRMLReadXMLStringMacro(PatientBodySegmentID, PatientBodySegmentID);
   vtkMRMLReadXMLStringMacro(TreatmentMachineDescriptorFilePath, TreatmentMachineDescriptorFilePath);
-  vtkMRMLReadXMLEndMacro(); 
+  vtkMRMLReadXMLEndMacro();
 
   this->EndModify(disabledModify);
 
@@ -155,7 +157,7 @@ void vtkMRMLRoomsEyeViewNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCopyFloatMacro(LateralTableTopDisplacement);
   vtkMRMLCopyStringMacro(PatientBodySegmentID);
   vtkMRMLCopyStringMacro(TreatmentMachineDescriptorFilePath);
-  vtkMRMLCopyEndMacro(); 
+  vtkMRMLCopyEndMacro();
 
   this->EndModify(disabledModify);
 }
@@ -176,7 +178,7 @@ void vtkMRMLRoomsEyeViewNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintFloatMacro(LateralTableTopDisplacement);
   vtkMRMLPrintStringMacro(PatientBodySegmentID);
   vtkMRMLPrintStringMacro(TreatmentMachineDescriptorFilePath);
-  vtkMRMLPrintEndMacro(); 
+  vtkMRMLPrintEndMacro();
 }
 
 //----------------------------------------------------------------------------
@@ -517,6 +519,24 @@ void vtkMRMLRoomsEyeViewNode::SetAndObserveTableTopEccentricRotationToPatientSup
   }
 
   this->SetNodeReferenceID(TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLMarkupsFiducialNode* vtkMRMLRoomsEyeViewNode::GetTableCenterPointFiducialNode()
+{
+  return vtkMRMLMarkupsFiducialNode::SafeDownCast(this->GetNodeReference(TABLE_CENTER_POINT_REFERENCE_ROLE));
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRoomsEyeViewNode::SetAndObserveTableCenterPointFiducialNode(vtkMRMLMarkupsFiducialNode* node)
+{
+  if (node && this->Scene != node->GetScene())
+  {
+    vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
+    return;
+  }
+
+  this->SetNodeReferenceID(TABLE_CENTER_POINT_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------
