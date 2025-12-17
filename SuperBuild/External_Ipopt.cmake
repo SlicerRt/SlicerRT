@@ -109,6 +109,11 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   set(EP_C_FLAGS "${ep_common_c_flags}")
   set(EP_CXX_FLAGS "${ep_common_cxx_flags}")
 
+  # Set up linker flags as variables
+  set(MUMPS_LFLAGS "-L${Mumps_DIR}/lib -lcoinmumps -lmetis -llapack -lblas -lgfortran -lm -lquadmath -lpthread")
+  # Uncomment the following lines when HSL is available:
+  # set(HSL_LFLAGS "-L${HSL_DIR}/lib -lcoinhsl -lmetis -llapack -lblas -lgfortran -lm -lquadmath -lpthread")
+
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
     GIT_REPOSITORY "${${CMAKE_PROJECT_NAME}_${proj}_GIT_REPOSITORY}"
@@ -129,10 +134,11 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
         --prefix=<INSTALL_DIR>
         --enable-shared=no
         --enable-static=yes
-        --with-mumps-incdir=${Mumps_DIR}/include
-        --with-mumps-lib=${Mumps_DIR}/lib/libcoinmumps.a
-        --with-hsl-incdir=${HSL_DIR}/include
-        --with-hsl-lib=${HSL_DIR}/lib/libcoinhsl.a
+        --with-mumps-cflags=-I${Mumps_DIR}/include/coin-or/mumps
+        --with-mumps-lflags=${MUMPS_LFLAGS}
+        # Uncomment the following lines when HSL is available:
+        # --with-hsl-cflags=-I${HSL_DIR}/include/coin-or
+        # --with-hsl-lflags=${HSL_LFLAGS}
         --disable-linear-solver-loader
     BUILD_COMMAND $(MAKE)
     INSTALL_COMMAND $(MAKE) install
