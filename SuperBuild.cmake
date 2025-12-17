@@ -20,7 +20,6 @@ set(proj ${SUPERBUILD_TOPLEVEL_PROJECT})
 set(${proj}_DEPENDS
   Plastimatch
   vtkIECTransformLogic
-  AdaptiveCpp
   )
 
 # Add linear equation solver dependencies (MUMPS, HSL) if enabled and on UNIX
@@ -35,6 +34,13 @@ endif()
 if(EXTENSION_BUILDS_IPOPT)
   list(APPEND ${proj}_DEPENDS
     Ipopt
+  )
+endif()
+
+if(EXTENSION_BUILDS_ADAPTIVE_CPP AND UNIX)
+  list(APPEND ${proj}_DEPENDS
+    CLI11
+    AdaptiveCpp
   )
 endif()
 

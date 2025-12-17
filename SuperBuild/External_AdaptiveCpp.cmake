@@ -5,6 +5,7 @@ set(${proj}_DEPENDS "")
 if(DEFINED Slicer_SOURCE_DIR)
   list(APPEND ${proj}_DEPENDS
     VTK
+    CLI11
     )
 endif()
 
@@ -92,17 +93,23 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       # Enable the core SYCL functionality
       -DADAPTIVECPP_ENABLE_STDPAR:BOOL=ON
       -DADAPTIVECPP_ENABLE_OPENMP_BACKENDS:BOOL=ON
-      # Disable potentially problematic features for a superbuild
+      # Enable GPU backends based on available hardware
       -DADAPTIVECPP_WITH_ROCM_BACKEND:BOOL=OFF
-      -DADAPTIVECPP_WITH_CUDA_BACKEND:BOOL=OFF
+      -DADAPTIVECPP_WITH_CUDA_BACKEND:BOOL=ON
       -DADAPTIVECPP_WITH_LEVEL_ZERO_BACKEND:BOOL=OFF
+      # Set correct CUDA paths for Ubuntu package installation
+      -DCUDAToolkit_ROOT:PATH=/usr/lib/cuda
+      -DCUDAToolkit_BIN_DIR:PATH=/usr/bin
+      -DCUDAToolkit_INCLUDE_DIR:PATH=/usr/include
+      -DCUDAToolkit_LIBRARY_ROOT:PATH=/usr/lib/cuda
+      -DCUDAToolkit_LIBRARY_DIR:PATH=/usr/lib/x86_64-linux-gnu
       ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS}
       ${PYTHON_VARS}
-    INSTALL_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build . --target install
     DEPENDS
       ${${proj}_DEPENDS}
     )
-  set(${proj}_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
+  set(${proj}_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
 
 else()
   ExternalProject_Add_Empty(${proj} DEPENDS ${${proj}_DEPENDS})
