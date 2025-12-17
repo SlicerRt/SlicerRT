@@ -3,4 +3,6 @@ if(Slicer_USE_PYTHONQT)
 endif()
 
 # Add C++ tests
-add_subdirectory(Cxx)
+if(EXTENSION_BUILDS_IPOPT OR (EXTENSION_BUILDS_ADAPTIVE_CPP AND NOT WIN32))
+  add_subdirectory(Cxx)
+endif()

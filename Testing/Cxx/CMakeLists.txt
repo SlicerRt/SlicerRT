@@ -167,3 +167,51 @@ if(EXTENSION_BUILDS_IPOPT)
 else()
   message(STATUS "Ipopt test skipped. Enable with EXTENSION_BUILDS_IPOPT=ON")
 endif()
+
+# AdaptiveCpp testing
+if(EXTENSION_BUILDS_ADAPTIVE_CPP AND NOT WIN32)
+
+  # Find required packages
+  find_package(AdaptiveCpp CONFIG REQUIRED HINTS ${AdaptiveCpp_DIR})
+  find_package(CLI11 CONFIG REQUIRED HINTS ${CLI11_DIR})
+
+  # Create the test executable
+  add_executable(basic_SYCL_test basic_SYCL_test.cpp)
+
+  # Link libraries
+  target_link_libraries(basic_SYCL_test PRIVATE CLI11::CLI11)
+
+  # Add SYCL support
+  add_sycl_to_target(TARGET basic_SYCL_test SOURCES basic_SYCL_test.cpp)
+
+  # Set output directory to match other SlicerRT binaries
+  set_target_properties(basic_SYCL_test PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${Slicer_CLIMODULES_BIN_DIR}
+  )
+
+  # Add tests
+  add_test(
+    NAME AdaptiveCpp_basic_cpu_test
+    COMMAND basic_SYCL_test --DeviceName cpu
+  )
+
+  add_test(
+    NAME AdaptiveCpp_basic_gpu_test
+    COMMAND basic_SYCL_test --DeviceName gpu
+  )
+
+  # Set test properties to handle potential GPU unavailability gracefully
+  set_tests_properties(AdaptiveCpp_basic_cpu_test PROPERTIES
+    LABELS "AdaptiveCpp;CPU"
+    TIMEOUT 60
+  )
+
+  set_tests_properties(AdaptiveCpp_basic_gpu_test PROPERTIES
+    LABELS "AdaptiveCpp;GPU"
+    TIMEOUT 60
+    # GPU test might fail if no GPU available - that's OK
+    SKIP_RETURN_CODE 255
+  )
+
+endif()
+
