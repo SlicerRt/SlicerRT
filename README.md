@@ -13,7 +13,7 @@ SlicerRT is a radiation therapy toolkit for 3D Slicer, containing generic RT fea
 - Dose analysis
   - [Dose volume histogram](Docs/user_guide/modules/DoseVolumeHistogram.md)
   - [Dose accumulation](Docs/user_guide/modules/DoseAccumulation.md)
-  - [Dose comparison (Gamma dose similarity index)]Docs/user_guide/modules/DoseComparison.md)
+  - [Dose comparison (Gamma dose similarity index)](Docs/user_guide/modules/DoseComparison.md)
   - [Isodose line and surface display](Docs/user_guide/modules/Isodose.md)
 - Contour analysis
   - [Segment comparison (Dice Similarity Coefficient, Hausdorff distances)](Docs/user_guide/modules/SegmentComparison.md)
