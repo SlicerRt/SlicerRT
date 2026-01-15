@@ -71,6 +71,7 @@ public:
   {
     QString name;
     QMap<QString, QVariant> parameters;
+    bool isConstraint = false;
   };
 
 signals:
