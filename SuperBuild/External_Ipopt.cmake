@@ -1,20 +1,18 @@
 set(proj Ipopt)
 
 # IPOPT - Interior Point Optimizer
-# Ipopt is configured with both MUMPS and HSL linear solvers for optimal performance.
+# UNIX: Built from source using autotools with system LAPACK/BLAS.
+#   Linear solvers:
+#   - MUMPS: statically linked, built automatically
+#   - HSL (MA27/MA57/MA77/MA86/MA97): two options:
+#       (a) Compile in: set EXTENSION_HSL_SOURCE_DIR to your Coin-HSL source
+#           (free academic license: https://licences.stfc.ac.uk/product/coin-hsl)
+#       (b) Runtime load: set LD_LIBRARY_PATH to a directory containing libhsl.so
+#           (e.g. https://www.hsl.rl.ac.uk/download/MA57/3.11.3/), no rebuild needed
 #
-# UNIX: This configuration supports Linux and macOS systems
-# and uses autotools build system with system LAPACK/BLAS libraries.
-#
-# Included Linear Solvers:
-# - MUMPS: Open-source, automatically downloaded and built
-# - HSL (Harwell Subroutines Library): High-performance solvers
-#   * Requires manual download due to licensing (free for academic use)
-#   * Download from: https://licences.stfc.ac.uk/product/coin-hsl
-#   * Extract to 'coinhsl' directory in HSL source tree
-#   * HSL provides MA27, MA57, MA77, MA86, MA97 solvers
-#
-# WINDOWS: Prebuilt binaries are downloaded and extracted, MUMPS included.
+# WINDOWS: Prebuilt binaries downloaded from COIN-OR releases (MUMPS included).
+#   HSL: place libhsl.dll directory in EXTENSION_HSL_DLL_DIR; the linear solver
+#   loader in ipopt-3.dll will find it automatically at runtime.
 #
 # For more information see: https://coin-or.github.io/Ipopt/INSTALL.html
 
@@ -53,6 +51,16 @@ if(WIN32)
   set(${proj}_DLL_DIR "${IPOPT_WIN_REAL_DIR}/bin")
   set(${proj}_DLL "${IPOPT_WIN_REAL_DIR}/bin/ipopt-3.dll")
 
+  # Copy HSL DLL alongside ipopt-3.dll so the linear solver loader finds it at runtime.
+  # This runs as a build-time step (after install) because the bin/ directory is
+  # populated by ExternalProject, not available at CMake configure time.
+  if(EXTENSION_USES_HSL)
+    ExternalProject_Add_Step(${proj} copy_hsl_dlls
+      COMMAND ${CMAKE_COMMAND} -E copy_directory "${EXTENSION_HSL_DLL_DIR}" "${IPOPT_WIN_REAL_DIR}/bin"
+      DEPENDEES install
+    )
+  endif()
+
   # Cache variables for downstream use
   set(Ipopt_DIR "${${proj}_DIR}" CACHE PATH "Ipopt root directory")
   set(Ipopt_INCLUDE_DIR "${${proj}_INCLUDE_DIR}" CACHE PATH "Ipopt include directory")
@@ -66,11 +74,11 @@ endif()
 
 # Set dependency list
 set(${proj}_DEPENDS "")
-if(DEFINED Slicer_SOURCE_DIR)
-  list(APPEND ${proj}_DEPENDS
-    Mumps
-    HSL
-    )
+if(EXTENSION_BUILDS_IPOPT AND UNIX)
+  list(APPEND ${proj}_DEPENDS Mumps)
+  if(EXTENSION_USES_HSL)
+    list(APPEND ${proj}_DEPENDS HSL)
+  endif()
 endif()
 
 # Include dependent projects if any
@@ -109,10 +117,17 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   set(EP_C_FLAGS "${ep_common_c_flags}")
   set(EP_CXX_FLAGS "${ep_common_cxx_flags}")
 
-  # Set up linker flags as variables
+  # Set up linker flags
   set(MUMPS_LFLAGS "-L${Mumps_DIR}/lib -lcoinmumps -lmetis -llapack -lblas -lgfortran -lm -lquadmath -lpthread")
-  # Uncomment the following lines when HSL is available:
-  # set(HSL_LFLAGS "-L${HSL_DIR}/lib -lcoinhsl -lmetis -llapack -lblas -lgfortran -lm -lquadmath -lpthread")
+
+  set(IPOPT_HSL_CONFIGURE_ARGS "")
+  if(EXTENSION_USES_HSL)
+    set(HSL_LFLAGS "-L${HSL_DIR}/lib -lcoinhsl -llapack -lblas -lgfortran -lm -lquadmath -lpthread")
+    set(IPOPT_HSL_CONFIGURE_ARGS
+      "--with-hsl-cflags=-I${HSL_DIR}/include/coin-or"
+      "--with-hsl-lflags=${HSL_LFLAGS}"
+    )
+  endif()
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
@@ -136,10 +151,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
         --enable-static=yes
         --with-mumps-cflags=-I${Mumps_DIR}/include/coin-or/mumps
         --with-mumps-lflags=${MUMPS_LFLAGS}
-        # Uncomment the following lines when HSL is available:
-        # --with-hsl-cflags=-I${HSL_DIR}/include/coin-or
-        # --with-hsl-lflags=${HSL_LFLAGS}
-        --disable-linear-solver-loader
+        ${IPOPT_HSL_CONFIGURE_ARGS}
     BUILD_COMMAND $(MAKE)
     INSTALL_COMMAND $(MAKE) install
     DEPENDS

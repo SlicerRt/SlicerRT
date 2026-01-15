@@ -21,6 +21,21 @@ set(EXTENSION_STATUS "Beta")
 set(EXTENSION_DEPENDS "NA") # Specified as a space separated list or 'NA' if any
 set(EXTENSION_BUILD_SUBDIRECTORY inner-build)
 set(EXTENSION_BUILDS_IPOPT OFF)
+set(EXTENSION_HSL_SOURCE_DIR "") # Linux/macOS: path to Coin-HSL source; get from https://licences.stfc.ac.uk/product/coin-hsl
+set(EXTENSION_HSL_DLL_DIR "")   # Windows: path to directory containing libhsl.dll from the same Coin-HSL download
+if(WIN32)
+  if(EXTENSION_HSL_DLL_DIR AND EXISTS "${EXTENSION_HSL_DLL_DIR}")
+    set(EXTENSION_USES_HSL ON)
+  else()
+    set(EXTENSION_USES_HSL OFF)
+  endif()
+else()
+  if(EXTENSION_HSL_SOURCE_DIR AND EXISTS "${EXTENSION_HSL_SOURCE_DIR}")
+    set(EXTENSION_USES_HSL ON)
+  else()
+    set(EXTENSION_USES_HSL OFF)
+  endif()
+endif()
 set(EXTENSION_BUILDS_ADAPTIVE_CPP OFF) # Whether to build AdaptiveCpp external project
 
 set(SUPERBUILD_TOPLEVEL_PROJECT inner)

@@ -24,10 +24,10 @@ set(${proj}_DEPENDS
 
 # Add linear equation solver dependencies (MUMPS, HSL) if enabled and on UNIX
 if(EXTENSION_BUILDS_IPOPT AND UNIX)
-  list(APPEND ${proj}_DEPENDS
-    Mumps
-    HSL
-  )
+  list(APPEND ${proj}_DEPENDS Mumps)
+  if(EXTENSION_USES_HSL)
+    list(APPEND ${proj}_DEPENDS HSL)
+  endif()
 endif()
 
 # Add optimization dependencies Ipopt if enabled

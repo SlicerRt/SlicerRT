@@ -3,25 +3,31 @@ set(proj HSL)
 # HSL (Harwell Subroutines Library) - High-performance linear solvers for Ipopt
 # HSL can provide better performance than MUMPS for some optimization problems
 #
-# Note: HSL requires manual download of source code due to licensing restrictions
-# This configuration assumes you have obtained HSL sources from:
-# https://licences.stfc.ac.uk/product/coin-hsl
+# Two ways to use HSL on Linux — no license redistribution is possible either way:
 #
-# Instructions:
-# 1. Download the Coin-HSL archive from the link above
-# 2. Extract it to a 'coinhsl' directory in the HSL source directory
-# 3. The build system will automatically detect and use the HSL solvers
+# Option A — Runtime (no rebuild needed):
+#   1. Get libhsl.so from STFC (e.g. https://www.hsl.rl.ac.uk/download/MA57/3.11.3/)
+#   2. export LD_LIBRARY_PATH=/path/to/libhsl.so/dir:$LD_LIBRARY_PATH
+#   3. Set Ipopt option linear_solver=ma57 (or ma27/ma97) at runtime
+#
+# Option B — Compiled in (self-contained build, all HSL solvers):
+#   1. Download Coin-HSL source from https://licences.stfc.ac.uk/product/coin-hsl
+#   2. Extract the archive (gives a directory with MA27/MA57/MA77/MA86/MA97 source)
+#   3. cmake -DEXTENSION_HSL_SOURCE_DIR=/path/to/extracted/coinhsl ...
+#      The build system copies the source and compiles it automatically.
 
-# HSL requires optimization flag to be enabled and Unix-like system
-if(NOT EXTENSION_BUILDS_IPOPT)
-  message(STATUS "HSL build skipped. Enable with EXTENSION_BUILDS_IPOPT=ON")
+if(NOT EXTENSION_BUILDS_IPOPT OR NOT EXTENSION_USES_HSL)
+  message(STATUS "HSL build skipped. Enable with EXTENSION_BUILDS_IPOPT=ON and EXTENSION_USES_HSL=ON")
   ExternalProject_Add_Empty(${proj} DEPENDS "")
   mark_as_superbuild(${proj}_DIR:PATH)
   return()
 endif()
 
 if(WIN32)
-  message(WARNING "HSL build is only supported on Unix-like systems (Linux, macOS). Skipping on Windows.")
+  message(STATUS "HSL source build is not supported on Windows. "
+    "To use HSL on Windows, obtain libhsl.dll from https://licences.stfc.ac.uk/product/coin-hsl. "
+    "Option A (no rebuild): copy libhsl.dll next to ipopt-3.dll in the Slicer install directory. "
+    "Option B (automated, requires rebuild): set EXTENSION_HSL_DLL_DIR to the directory containing libhsl.dll.")
   ExternalProject_Add_Empty(${proj} DEPENDS "")
   mark_as_superbuild(${proj}_DIR:PATH)
   return()
@@ -77,6 +83,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     SOURCE_DIR ${EP_SOURCE_DIR}
     BINARY_DIR ${EP_BINARY_DIR}
     INSTALL_DIR ${EP_INSTALL_DIR}
+    PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory "${EXTENSION_HSL_SOURCE_DIR}" <SOURCE_DIR>/coinhsl
     CONFIGURE_COMMAND
       ${CMAKE_COMMAND} -E env
         CC=${CMAKE_C_COMPILER}
