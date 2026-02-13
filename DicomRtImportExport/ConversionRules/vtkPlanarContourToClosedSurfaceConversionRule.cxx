@@ -28,6 +28,7 @@
 #include <vtkImageDilateErode3D.h>
 #include <vtkImageStencil.h>
 #include <vtkLine.h>
+#include <vtkMarchingCubes.h>
 #include <vtkMarchingSquares.h>
 #include <vtkPlane.h>
 #include <vtkPolyDataToImageStencil.h>
@@ -39,12 +40,15 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkUnstructuredGrid.h>
 #include <vtkVersion.h> // For VTK_VERSION_*
+#include <vtkWindowedSincPolyDataFilter.h>
 
 // vtkAddon includes
 #include <vtkAddonMathUtilities.h>
 
 // STD includes
 #include <algorithm>
+#include <cmath>
+#include <cstring>
 
 // SegmentationCore includes
 #if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
@@ -82,8 +86,9 @@ vtkPlanarContourToClosedSurfaceConversionRule::vtkPlanarContourToClosedSurfaceCo
   this->ImagePadding[1] = 4;
   this->ImagePadding[2] = 0;
 
-  this->ConversionParameters->SetParameter(this->GetDefaultSliceThicknessParameterName(), "0.0",
-    "Default thickness for contours if slice spacing cannot be calculated.");
+  this->ConversionParameters->SetParameter(this->GetDefaultSliceThicknessParameterName(), "2.0",
+    "Default thickness (mm) for contours if slice spacing cannot be calculated.\n"
+    "Used for single-slice structures or when the referenced image series is not available.");
   this->ConversionParameters->SetParameter(this->GetEndCappingParameterName(), "1",
     "Create end cap to close surface inside contours on the top and bottom of the structure.\n"
     "0 = leave contours open on surface exterior.\n"
@@ -162,9 +167,19 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
     return false;
   }
 
-  // Copy the contours so that we can make modifications without affecting the original
-  vtkSmartPointer<vtkPolyData> inputContoursCopy = vtkSmartPointer<vtkPolyData>::New();
+  if (planarContoursPolyData->GetNumberOfLines() == 0)
+  {
+    return true;
+  }
 
+  // -----------------------------------------------------------------------
+  // Rasterization-based conversion: fill each contour on its slice into a
+  // binary volume, then extract a closed surface using marching cubes.
+  // This avoids the inter-slice triangulation artifacts of the previous
+  // dynamic programming approach.
+  // -----------------------------------------------------------------------
+
+  // Transform contours so that contour normals are aligned with the Z axis.
   vtkSmartPointer<vtkMatrix4x4> contourToRASMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
   this->CalculateContourTransform(planarContoursPolyData, contourToRASMatrix);
 
@@ -174,170 +189,267 @@ bool vtkPlanarContourToClosedSurfaceConversionRule::Convert(vtkDataObject* sourc
   transformRASToContoursFilter->SetInputData(planarContoursPolyData);
   transformRASToContoursFilter->SetTransform(transformRASToContours);
   transformRASToContoursFilter->Update();
-  inputContoursCopy->DeepCopy(transformRASToContoursFilter->GetOutput());
 
-  // Make sure the contours are in the right order.
-  this->SortContours(inputContoursCopy);
+  vtkSmartPointer<vtkPolyData> alignedContours = vtkSmartPointer<vtkPolyData>::New();
+  alignedContours->DeepCopy(transformRASToContoursFilter->GetOutput());
 
-  // remove keyholes from the lines
-  this->FixKeyholes(inputContoursCopy, 0.001, 3);
+  // Get the contour spacing and bounding box.
+  double contourSpacing = this->GetSpacingBetweenLines(alignedContours);
+  double bounds[6] = { 0, 0, 0, 0, 0, 0 };
+  alignedContours->GetBounds(bounds);
 
-  // set all lines to be counter-clockwise
-  this->SetLinesCounterClockwise(inputContoursCopy);
-
-  vtkSmartPointer<vtkPoints> outputPoints = inputContoursCopy->GetPoints();
-  vtkSmartPointer<vtkCellArray> outputLines = inputContoursCopy->GetLines();
-  vtkSmartPointer<vtkCellArray> outputPolygons = vtkSmartPointer<vtkCellArray>::New(); // Triangles should be added to this
-
-  // Total number of lines in the contours
-  int numberOfLines = inputContoursCopy->GetNumberOfLines();
-
-  double spacing = this->GetSpacingBetweenLines(inputContoursCopy);
-
-  std::vector<vtkSmartPointer<vtkPointLocator> > pointLocators(numberOfLines);
-  std::vector<vtkSmartPointer<vtkIdList> > linePointIdLists(numberOfLines);
+  // -----------------------------------------------------------------------
+  // Step 1: Group contours by unique Z value (with tolerance).
+  // -----------------------------------------------------------------------
+  int numberOfLines = alignedContours->GetNumberOfLines();
+  std::vector<double> contourZValues(numberOfLines);
   for (int lineIndex = 0; lineIndex < numberOfLines; ++lineIndex)
   {
-    vtkSmartPointer<vtkLine> currentLine = vtkSmartPointer<vtkLine>::New();
-    currentLine->DeepCopy(inputContoursCopy->GetCell(lineIndex));
-    linePointIdLists[lineIndex] = currentLine->GetPointIds();
-    vtkSmartPointer<vtkPolyData> linePolyData = vtkSmartPointer<vtkPolyData>::New();
-    linePolyData->SetPoints(currentLine->GetPoints());
-    pointLocators[lineIndex] = vtkSmartPointer<vtkPointLocator>::New();
-    pointLocators[lineIndex]->SetDataSet(linePolyData);
-    pointLocators[lineIndex]->BuildLocator();
+    double cellBounds[6] = { 0, 0, 0, 0, 0, 0 };
+    alignedContours->GetCell(lineIndex)->GetBounds(cellBounds);
+    contourZValues[lineIndex] = (cellBounds[4] + cellBounds[5]) / 2.0;
   }
 
-  // Vector of booleans to determine which lines are triangulated from above and from below.
-  std::vector< bool > lineTriganulatedToAbove(numberOfLines);
-  std::vector< bool > lineTriganulatedToBelow(numberOfLines);
-  for (int i = 0; i < numberOfLines; ++i)
+  struct ContourGroup
   {
-    lineTriganulatedToAbove[i] = false;
-    lineTriganulatedToBelow[i] = false;
-  }
-
-  // Get two consecutive planes.
-  vtkIdType firstLineOnPlane1Index = 0; // pointer to first line on plane 1.
-  int numberOfLinesInPlane1 = this->GetNumberOfLinesOnPlane(inputContoursCopy, 0, spacing);
-
-  // Loop through all of the contours in the polydata
-  while (firstLineOnPlane1Index + numberOfLinesInPlane1 < numberOfLines)
+    double z;
+    std::vector<int> lineIndices;
+  };
+  std::vector<ContourGroup> groups;
   {
-    vtkIdType firstLineOnPlane2Index = firstLineOnPlane1Index + numberOfLinesInPlane1; // pointer to first line on plane 2
-    int numberOfLinesInPlane2 = this->GetNumberOfLinesOnPlane(inputContoursCopy, firstLineOnPlane2Index, spacing); // number of lines on plane 2
-
-    // initialize overlaps lists. - list of list
-    // Each internal list represents a line from the plane and will store the pointers to the overlap lines
-
-    // List of Overlaps for lines that overlap with other lines from plane 1 and 2
-    std::vector< std::vector< vtkIdType > > plane1Overlaps(numberOfLinesInPlane1);
-    std::vector< std::vector< vtkIdType > > plane2Overlaps(numberOfLinesInPlane2);
-
-    // Loop through the lines in the first plane
-    for (int line1Index = 0; line1Index < numberOfLinesInPlane1; ++line1Index)
+    std::vector<std::pair<double, int>> sorted;
+    sorted.reserve(numberOfLines);
+    for (int i = 0; i < numberOfLines; ++i)
     {
-      vtkSmartPointer<vtkLine> line1 = vtkSmartPointer<vtkLine>::New();
-      line1->DeepCopy(inputContoursCopy->GetCell(firstLineOnPlane1Index + line1Index));
+      sorted.push_back({ contourZValues[i], i });
+    }
+    std::sort(sorted.begin(), sorted.end());
 
-      // Loop through the lines in the second plane
-      for (int line2Index = 0; line2Index < numberOfLinesInPlane2; ++line2Index)
+    const double zTol = 0.05; // mm tolerance for co-planar grouping
+    for (const auto& p : sorted)
+    {
+      if (groups.empty() || std::abs(p.first - groups.back().z) > zTol)
       {
-        vtkSmartPointer<vtkLine> line2 = vtkSmartPointer<vtkLine>::New();
-        line2->DeepCopy(inputContoursCopy->GetCell(firstLineOnPlane2Index + line2Index));
+        ContourGroup g;
+        g.z = p.first;
+        g.lineIndices.push_back(p.second);
+        groups.push_back(g);
+      }
+      else
+      {
+        groups.back().lineIndices.push_back(p.second);
+      }
+    }
+  }
 
-        // If the two lines overlap, then add them to the lists
-        if (this->DoLinesOverlap(line1, line2))
-        {
-          // line from plane 1 overlaps with line from plane 2
-          plane1Overlaps[line1Index].push_back(firstLineOnPlane2Index + line2Index);
-          plane2Overlaps[line2Index].push_back(firstLineOnPlane1Index + line1Index);
-        }
+  int numGroups = static_cast<int>(groups.size());
+  if (numGroups == 0)
+  {
+    return true;
+  }
+
+  // -----------------------------------------------------------------------
+  // Step 2: Compute isotropic image spacing for smooth 3D surface.
+  // -----------------------------------------------------------------------
+  double xRange = bounds[1] - bounds[0];
+  double yRange = bounds[3] - bounds[2];
+  double maxRange = std::max(xRange, yRange);
+
+  // Target ~256 voxels across the largest XY dimension, clamped to [0.5, 2.0] mm.
+  double isoSpacing = maxRange / 256.0;
+  isoSpacing = std::max(isoSpacing, 0.5);
+  isoSpacing = std::min(isoSpacing, 2.0);
+
+  double xyPad = 3.0 * isoSpacing;
+  double zPad = contourSpacing;
+  double origin[3] = {
+    bounds[0] - xyPad,
+    bounds[2] - xyPad,
+    groups.front().z - zPad
+  };
+
+  int dimsX = static_cast<int>(std::ceil((bounds[1] + xyPad - origin[0]) / isoSpacing)) + 1;
+  int dimsY = static_cast<int>(std::ceil((bounds[3] + xyPad - origin[1]) / isoSpacing)) + 1;
+  int dimsZ = static_cast<int>(std::ceil((groups.back().z + zPad - origin[2]) / isoSpacing)) + 2;
+  int sliceSize = dimsX * dimsY;
+
+  // -----------------------------------------------------------------------
+  // Step 3: Rasterize each contour group into a cached 2D binary slice.
+  //         All contours on the same Z plane are combined using even-odd
+  //         fill, so nested contours correctly create holes.
+  // -----------------------------------------------------------------------
+  std::vector<std::vector<unsigned char>> sliceFills(numGroups);
+  for (int gi = 0; gi < numGroups; ++gi)
+  {
+    sliceFills[gi].resize(sliceSize, 0);
+
+    vtkNew<vtkPoints> pts;
+    vtkNew<vtkCellArray> lines;
+    for (int lineIdx : groups[gi].lineIndices)
+    {
+      vtkCell* cell = alignedContours->GetCell(lineIdx);
+      if (!cell || cell->GetNumberOfPoints() < 3)
+      {
+        continue;
+      }
+      vtkIdType nPts = cell->GetNumberOfPoints();
+      lines->InsertNextCell(nPts);
+      for (vtkIdType i = 0; i < nPts; ++i)
+      {
+        double pt[3];
+        cell->GetPoints()->GetPoint(i, pt);
+        vtkIdType pid = pts->InsertNextPoint(pt[0], pt[1], 0.0);
+        lines->InsertCellPoint(pid);
       }
     }
 
-    // Loop through all of the lines in the first plane
-    for (int line1Index = firstLineOnPlane1Index; line1Index < firstLineOnPlane1Index + numberOfLinesInPlane1; ++line1Index)
+    vtkNew<vtkPolyData> poly2d;
+    poly2d->SetPoints(pts);
+    poly2d->SetLines(lines);
+
+    int ext2d[6] = { 0, dimsX - 1, 0, dimsY - 1, 0, 0 };
+    double org2d[3] = { origin[0], origin[1], 0.0 };
+    double sp2d[3] = { isoSpacing, isoSpacing, 1.0 };
+
+    vtkNew<vtkImageData> sliceImg;
+    sliceImg->SetSpacing(sp2d);
+    sliceImg->SetExtent(ext2d);
+    sliceImg->SetOrigin(org2d);
+    sliceImg->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+    std::memset(sliceImg->GetScalarPointer(), 0, sliceSize);
+
+    vtkNew<vtkPolyDataToImageStencil> stencilFilter;
+    stencilFilter->SetInputData(poly2d);
+    stencilFilter->SetOutputSpacing(sp2d);
+    stencilFilter->SetOutputOrigin(org2d);
+    stencilFilter->SetOutputWholeExtent(ext2d);
+    stencilFilter->Update();
+
+    vtkNew<vtkImageStencil> stencil;
+    stencil->SetInputData(sliceImg);
+    stencil->SetStencilConnection(stencilFilter->GetOutputPort());
+    stencil->ReverseStencilOn();
+    stencil->SetBackgroundValue(1);
+    stencil->Update();
+
+    unsigned char* src = static_cast<unsigned char*>(stencil->GetOutput()->GetScalarPointer());
+    std::memcpy(sliceFills[gi].data(), src, sliceSize);
+  }
+
+  // -----------------------------------------------------------------------
+  // Step 4: Build a float volume with isotropic voxels. Between contour
+  //         slices, linearly interpolate the binary fills to create smooth
+  //         shape transitions (shape-based interpolation).
+  //         This eliminates the staircase/blocky artifacts in Z.
+  // -----------------------------------------------------------------------
+  double imgSp[3] = { isoSpacing, isoSpacing, isoSpacing };
+  int ext[6] = { 0, dimsX - 1, 0, dimsY - 1, 0, dimsZ - 1 };
+
+  vtkNew<vtkImageData> floatVolume;
+  floatVolume->SetSpacing(imgSp);
+  floatVolume->SetExtent(ext);
+  floatVolume->SetOrigin(origin);
+  floatVolume->AllocateScalars(VTK_FLOAT, 1);
+  size_t totalVoxels = static_cast<size_t>(dimsX) * dimsY * dimsZ;
+  float* volData = static_cast<float*>(floatVolume->GetScalarPointer());
+  std::memset(volData, 0, totalVoxels * sizeof(float));
+
+  for (int z = 0; z < dimsZ; ++z)
+  {
+    double wz = origin[2] + z * isoSpacing;
+    float* dst = volData + static_cast<size_t>(z) * sliceSize;
+
+    // Find the contour group just below and just above this Z.
+    int belowIdx = -1;
+    int aboveIdx = -1;
+    for (int gi = 0; gi < numGroups; ++gi)
     {
-      vtkSmartPointer<vtkLine> line1 = vtkSmartPointer<vtkLine>::New();
-      line1->DeepCopy(inputContoursCopy->GetCell(line1Index));
-
-      std::vector<vtkSmartPointer<vtkPointLocator> > overlap1PointLocators(plane1Overlaps[line1Index - firstLineOnPlane1Index].size());
-      std::vector<vtkSmartPointer<vtkIdList> > overlap1PointIds(plane1Overlaps[line1Index - firstLineOnPlane1Index].size());
-
-      // Loop through all of the lines in the second plane that overlap with the current line in the first plane
-      for (size_t overlapIndex = 0; overlapIndex < plane1Overlaps[line1Index - firstLineOnPlane1Index].size(); ++overlapIndex) // lines on plane 2 that overlap with line 1
+      if (groups[gi].z <= wz + 0.001)
       {
-        vtkIdType j = plane1Overlaps[line1Index - firstLineOnPlane1Index][overlapIndex];
-        overlap1PointLocators[overlapIndex] = pointLocators[j];
-        overlap1PointIds[overlapIndex] = linePointIdLists[j];
+        belowIdx = gi;
       }
-
-      // Loop through all of the lines in the second plane that overlap with the current line in the first plane
-      for (size_t overlapIndex = 0; overlapIndex < plane1Overlaps[line1Index - firstLineOnPlane1Index].size(); ++overlapIndex) // lines on plane 2 that overlap with line 1
+    }
+    for (int gi = numGroups - 1; gi >= 0; --gi)
+    {
+      if (groups[gi].z >= wz - 0.001)
       {
-        vtkIdType line2Index = plane1Overlaps[line1Index - firstLineOnPlane1Index][overlapIndex];
-
-        vtkSmartPointer<vtkLine> line2 = vtkSmartPointer<vtkLine>::New();
-        line2->DeepCopy(inputContoursCopy->GetCell(line2Index));
-
-        std::vector<vtkSmartPointer<vtkPointLocator> > overlap2PointLocators(plane2Overlaps[line2Index - firstLineOnPlane2Index].size());
-        std::vector<vtkSmartPointer<vtkIdList> > overlap2PointIds(plane2Overlaps[line2Index - firstLineOnPlane2Index].size());
-
-        for (size_t i = 0; i < plane2Overlaps[line2Index - firstLineOnPlane2Index].size(); ++i)
-        {
-          int j = plane2Overlaps[line2Index - firstLineOnPlane2Index][i];
-          overlap2PointLocators[i] = pointLocators[j];
-          overlap2PointIds[i] = linePointIdLists[j];
-        }
-
-        // Get the portion of line 1 that is close to line 2,
-        vtkSmartPointer<vtkLine> dividedLine1 = vtkSmartPointer<vtkLine>::New();
-        this->Branch(inputContoursCopy, line1, line2Index, plane1Overlaps[line1Index - firstLineOnPlane1Index], overlap1PointLocators, overlap1PointIds, dividedLine1);
-        vtkSmartPointer<vtkIdList> dividedPointsInLine1 = dividedLine1->GetPointIds();
-        int numberOfdividedPointsInLine1 = dividedLine1->GetNumberOfPoints();
-
-        // Get the portion of line 2 that is close to line 1.
-        vtkSmartPointer<vtkLine> dividedLine2 = vtkSmartPointer<vtkLine>::New();
-        this->Branch(inputContoursCopy, line2, line1Index, plane2Overlaps[line2Index - firstLineOnPlane2Index], overlap2PointLocators, overlap2PointIds, dividedLine2);
-        vtkSmartPointer<vtkIdList> dividedPointsInLine2 = dividedLine2->GetPointIds();
-        int numberOfdividedPointsInLine2 = dividedLine2->GetNumberOfPoints();
-
-        if (numberOfdividedPointsInLine1 > 1 && numberOfdividedPointsInLine2 > 1)
-        {
-          lineTriganulatedToAbove[line1Index] = true;
-          lineTriganulatedToBelow[line2Index] = true;
-          this->TriangulateBetweenContours(inputContoursCopy, dividedPointsInLine1, dividedPointsInLine2, outputPolygons);
-        }
-
+        aboveIdx = gi;
       }
     }
 
-    // Advance the points
-    firstLineOnPlane1Index = firstLineOnPlane2Index;
-    numberOfLinesInPlane1 = numberOfLinesInPlane2;
+    if (belowIdx < 0 && aboveIdx < 0)
+    {
+      continue;
+    }
+
+    if (belowIdx >= 0 && aboveIdx >= 0 && belowIdx != aboveIdx)
+    {
+      // Between two contour slices: linear interpolation.
+      double z1 = groups[belowIdx].z;
+      double z2 = groups[aboveIdx].z;
+      float t = static_cast<float>((wz - z1) / (z2 - z1));
+      t = std::max(0.0f, std::min(1.0f, t));
+      const auto& fill1 = sliceFills[belowIdx];
+      const auto& fill2 = sliceFills[aboveIdx];
+      for (int i = 0; i < sliceSize; ++i)
+      {
+        dst[i] = (1.0f - t) * fill1[i] + t * fill2[i];
+      }
+    }
+    else
+    {
+      // At or beyond the outermost contour: use nearest, within half spacing.
+      int gi = (belowIdx >= 0) ? belowIdx : aboveIdx;
+      double dist = std::abs(wz - groups[gi].z);
+      if (dist > contourSpacing * 0.55)
+      {
+        continue;
+      }
+      const auto& fill = sliceFills[gi];
+      for (int i = 0; i < sliceSize; ++i)
+      {
+        dst[i] = static_cast<float>(fill[i]);
+      }
+    }
   }
 
-  // Triangulate all contours which are exposed.
-  if (vtkVariant(this->GetConversionParameter(this->GetEndCappingParameterName())).ToInt() != EndCappingModes::None)
-  {
-    this->EndCapping(inputContoursCopy, outputPolygons, lineTriganulatedToAbove, lineTriganulatedToBelow);
-  }
+  // -----------------------------------------------------------------------
+  // Step 5: Extract closed surface using marching cubes on the float volume.
+  // -----------------------------------------------------------------------
+  vtkNew<vtkMarchingCubes> marchingCubes;
+  marchingCubes->SetInputData(floatVolume);
+  marchingCubes->SetValue(0, 0.5);
+  marchingCubes->ComputeNormalsOn();
+  marchingCubes->Update();
 
-  // Initialize the output data.
-  closedSurfacePolyData->SetPoints(outputPoints);
-  //closedSurfacePolyData->SetLines(outputLines); // Do not include lines in poly data for nicer visualization
-  closedSurfacePolyData->SetPolys(outputPolygons);
+  // Smooth the surface to polish any remaining voxelization artifacts.
+  vtkNew<vtkWindowedSincPolyDataFilter> smoother;
+  smoother->SetInputConnection(marchingCubes->GetOutputPort());
+  smoother->SetNumberOfIterations(25);
+  smoother->BoundarySmoothingOff();
+  smoother->FeatureEdgeSmoothingOff();
+  smoother->SetFeatureAngle(120.0);
+  smoother->SetPassBand(0.01);
+  smoother->NonManifoldSmoothingOn();
+  smoother->NormalizeCoordinatesOn();
+  smoother->Update();
 
+  // Transform back to RAS coordinates.
   vtkSmartPointer<vtkTransform> transformContoursToRAS = vtkSmartPointer<vtkTransform>::New();
   transformContoursToRAS->SetMatrix(contourToRASMatrix);
   transformContoursToRAS->Inverse();
 
   vtkNew<vtkTransformPolyDataFilter> transformPolyDataToRASFilter;
-  transformPolyDataToRASFilter->SetInputData(closedSurfacePolyData);
+  transformPolyDataToRASFilter->SetInputConnection(smoother->GetOutputPort());
   transformPolyDataToRASFilter->SetTransform(transformContoursToRAS);
   transformPolyDataToRASFilter->Update();
-  closedSurfacePolyData->DeepCopy(transformPolyDataToRASFilter->GetOutput());
+
+  // Clean up the output mesh.
+  vtkNew<vtkCleanPolyData> cleanFilter;
+  cleanFilter->SetInputConnection(transformPolyDataToRASFilter->GetOutputPort());
+  cleanFilter->Update();
+
+  closedSurfacePolyData->DeepCopy(cleanFilter->GetOutput());
 
   return true;
 }
@@ -438,7 +550,7 @@ void vtkPlanarContourToClosedSurfaceConversionRule::TriangulateBetweenContours(v
   }
 
   // Initialize the first column in the table.
-  vtkIdType currentPointIdLine1 = this->GetNextLocation(startLine1PointId, numberOfPointsInLine2, line1Closed);
+  vtkIdType currentPointIdLine1 = this->GetNextLocation(startLine1PointId, numberOfPointsInLine1, line1Closed);
   for (int line1PointIndex = 1; line1PointIndex < numberOfPointsInLine1; ++line1PointIndex)
   {
     double currentPointLine1[3] = { 0,0,0 }; // current point on line 1
@@ -933,7 +1045,9 @@ int vtkPlanarContourToClosedSurfaceConversionRule::GetNumberOfLinesOnPlane(vtkPo
 
   int numberOfLines = inputROIPoints->GetNumberOfLines();
 
-  double contourPlaneThreshold = 0.1*spacing;
+  // Use a minimum threshold to handle the case where spacing is zero or very small,
+  // which would otherwise make co-planar detection fail due to floating-point precision.
+  double contourPlaneThreshold = std::max(0.1 * spacing, 0.01);
   double lineZ = (inputROIPoints->GetCell(originalLineIndex)->GetBounds()[4] + inputROIPoints->GetCell(originalLineIndex)->GetBounds()[5]) / 2.0; // z-value
   vtkIdType currentLineId = originalLineIndex + 1;
 
@@ -1098,6 +1212,15 @@ void vtkPlanarContourToClosedSurfaceConversionRule::EndCapping(vtkPolyData* inpu
   int numberOfLines = inputROIPoints->GetNumberOfLines();
   double lineSpacing = this->GetSpacingBetweenLines(inputROIPoints);
 
+  // Guard against zero or near-zero spacing which would produce degenerate end cap geometry
+  const double minimumEndCapSpacing = 0.01; // mm
+  if (std::abs(lineSpacing) < minimumEndCapSpacing)
+  {
+    vtkWarningMacro("EndCapping: Line spacing is near zero (" << lineSpacing << " mm). "
+      "Skipping end capping to avoid degenerate geometry.");
+    return;
+  }
+
   // Loop through all of the lines in the polydata
   for (int currentLineIndex = 0; currentLineIndex < numberOfLines; ++currentLineIndex)
   {
@@ -1184,6 +1307,14 @@ double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtk
 {
   double defaultSliceThickness = this->ConversionParameters->GetValueAsDouble(this->GetDefaultSliceThicknessParameterName());
 
+  // Use a reasonable minimum fallback if the default slice thickness parameter is zero or negative.
+  // A value of 0.0 produces degenerate end cap geometry (caps at same Z as contour).
+  const double minimumSliceThickness = 1.0; // 1.0 mm fallback
+  if (defaultSliceThickness <= 0.0)
+  {
+    defaultSliceThickness = minimumSliceThickness;
+  }
+
   if (!inputROIPoints)
   {
     vtkErrorMacro("GetSpacingBetweenLines: Invalid vtkPolyData");
@@ -1191,7 +1322,8 @@ double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtk
   }
   if (inputROIPoints->GetNumberOfCells() < 2)
   {
-    vtkErrorMacro("GetSpacingBetweenLines: Input polydata has less than two cells! Unable to calculate spacing.");
+    vtkWarningMacro("GetSpacingBetweenLines: Input polydata has less than two cells."
+      " Unable to calculate spacing, using default slice thickness: " << defaultSliceThickness << " mm.");
     return defaultSliceThickness;
   }
 
@@ -1232,6 +1364,8 @@ double vtkPlanarContourToClosedSurfaceConversionRule::GetSpacingBetweenLines(vtk
 
   if (distances.size() == 0)
   {
+    // All contours are on the same plane (single-slice structure or multiple contours on same slice).
+    // Use the default slice thickness so that end caps produce valid (non-degenerate) geometry.
     return defaultSliceThickness;
   }
 
