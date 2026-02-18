@@ -223,7 +223,7 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
   }
 
   // Parse result
-  if (!PyFloat_Check(result))
+  if (!PyUnicode_Check(result))
   {
     qWarning() << d->PythonSource << ": qSlicerScriptedPlanOptimizer: Function 'optimizePlanUsingOptimizer' is expected to return a string!";
     return QString();

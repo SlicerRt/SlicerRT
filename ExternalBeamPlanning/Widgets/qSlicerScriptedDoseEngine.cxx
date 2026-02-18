@@ -228,7 +228,7 @@ QString qSlicerScriptedDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* b
     }
 
   // Parse result
-  if (!PyFloat_Check(result))
+  if (!PyUnicode_Check(result))
     {
     qWarning() << d->PythonSource << ": qSlicerScriptedDoseEngine: Function 'calculateDoseUsingEngine' is expected to return a string!";
     return QString();
@@ -253,7 +253,7 @@ QString qSlicerScriptedDoseEngine::calculateDoseInfluenceMatrixUsingEngine(vtkMR
   }
 
   // Parse result
-  if (!PyFloat_Check(result))
+  if (!PyUnicode_Check(result))
   {
     qWarning() << d->PythonSource << ": qSlicerScriptedDoseEngine: Function 'calculateDoseInfluenceMatrixUsingEngine' is expected to return a string!";
     return QString();
