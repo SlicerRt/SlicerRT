@@ -66,12 +66,14 @@ endif()
 
 # Set dependency list
 set(${proj}_DEPENDS "")
-if(DEFINED Slicer_SOURCE_DIR)
+if(EXTENSION_BUILDS_IPOPT AND UNIX)
   list(APPEND ${proj}_DEPENDS
     Mumps
     HSL
     )
 endif()
+
+message(STATUS "Ipopt dependencies: ${${proj}_DEPENDS}")
 
 # Include dependent projects if any
 ExternalProject_Include_Dependencies(${proj} PROJECT_VAR proj)
@@ -113,6 +115,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   set(MUMPS_LFLAGS "-L${Mumps_DIR}/lib -lcoinmumps -lmetis -llapack -lblas -lgfortran -lm -lquadmath -lpthread")
   # Uncomment the following lines when HSL is available:
   # set(HSL_LFLAGS "-L${HSL_DIR}/lib -lcoinhsl -lmetis -llapack -lblas -lgfortran -lm -lquadmath -lpthread")
+  message("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ Mumps_DIR: ${Mumps_DIR}")
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
