@@ -492,6 +492,9 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
       planNode->SetIonPlanFlag(true);
     }
 
+    // Set inverse flag according to plan
+    d->checkBox_InversePlanning->setChecked(planNode->GetInverseFlag());
+
     // Set input segmentation and reference volume if specified by DICOM
     vtkIdType planShItemID = shNode->GetItemByDataNode(planNode);
     if (!planShItemID)
@@ -1000,24 +1003,31 @@ void qSlicerExternalBeamPlanningModuleWidget::inversePlanningCheckboxStateChange
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  //TODO: should we write the inverse planning flag to the plan node?
+  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!planNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
+    return;
+  }
+
+  if (d->checkBox_InversePlanning->isChecked())
+  {
+    d->pushButton_OptimizePlan->setEnabled(true);
+    planNode->SetInverseFlag(true);
+    d->CollapsibleButton_Objectives->setEnabled(true);
+  }
+  else
+  {
+    d->pushButton_OptimizePlan->setEnabled(false);
+    planNode->SetInverseFlag(false);
+    d->CollapsibleButton_Objectives->setEnabled(false);
+  }
 
   // Update dose engines
   this->updateDoseEngines();
 
   // Update Optimization engines
   this->updatePlanOptimizers();
-
-  if (d->checkBox_InversePlanning->isChecked())
-  {
-      d->pushButton_OptimizePlan->setEnabled(true);
-   d->CollapsibleButton_Objectives->setEnabled(true);
-  }
-  else
-  {
-      d->pushButton_OptimizePlan->setEnabled(false);
-   d->CollapsibleButton_Objectives->setEnabled(false);
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1152,9 +1162,6 @@ void qSlicerExternalBeamPlanningModuleWidget::updatePlanOptimizers()
   // Apply engine selection (signals are blocked, plus if first index has been selected and it has
   // not been applied, then it needs to be done now)
   this->PlanOptimizerChanged(d->comboBox_PlanOptimizer->currentText());
-
-  // Update beam parameter tab visibility
-  //d->PlanOptimizerLogic->applyDoseEngineInPlan(planNode);
 
   d->comboBox_PlanOptimizer->blockSignals(false);
 }

@@ -217,6 +217,11 @@ public:
   /// Set dose grid to ct grid
   void SetDoseGridSpacingToCTGridSpacing();
 
+  /// Get flag for inverse plan
+  vtkGetMacro(InverseFlag, bool);
+  /// Set flag for inverse plan
+  vtkSetMacro(InverseFlag, bool);
+
   /// Get flag for ion plan
   vtkGetMacro( IonPlanFlag, bool);
   /// Set flag for ion plan
@@ -263,6 +268,9 @@ protected:
   /// Allows user to specify dose volume resolution different from reference volume
   //TODO: Explain here why this is defined in the plan node as well as the beam node
   double DoseGridSpacing[3]{ 5.0, 5.0, 5.0 };
+
+  /// Flag, indicates that a plan node is currently doing inverse planning
+  bool InverseFlag{ false };
 
   /// Flag, indicates that a plan node is an ion plan node
   bool IonPlanFlag{ false };
