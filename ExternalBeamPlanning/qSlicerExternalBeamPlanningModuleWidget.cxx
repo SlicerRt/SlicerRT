@@ -493,7 +493,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setPlanNode(vtkMRMLNode* node)
     }
 
     // Set inverse flag according to plan
-    d->checkBox_InversePlanning->setChecked(planNode->GetInverseFlag());
+    d->checkBox_InversePlanning->setChecked(planNode->GetInversePlanFlag());
 
     // Set input segmentation and reference volume if specified by DICOM
     vtkIdType planShItemID = shNode->GetItemByDataNode(planNode);
@@ -1011,7 +1011,7 @@ void qSlicerExternalBeamPlanningModuleWidget::inversePlanningCheckboxStateChange
   }
 
   d->pushButton_OptimizePlan->setEnabled(state);
-  planNode->SetInverseFlag(state);
+  planNode->SetInversePlanFlag(state);
   d->CollapsibleButton_Objectives->setEnabled(state);
 
   // Update dose engines
