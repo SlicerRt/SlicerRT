@@ -12,6 +12,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkPlanarContourToClosedSurfaceConversionRule.cxx
   vtkPlanarContourToClosedSurfaceConversionRule.h
+  vtkPlanarContourToClosedSurfaceByRasterizationConversionRule.cxx
+  vtkPlanarContourToClosedSurfaceByRasterizationConversionRule.h
   vtkPlanarContourToRibbonModelConversionRule.cxx
   vtkPlanarContourToRibbonModelConversionRule.h
   vtkRibbonModelToBinaryLabelmapConversionRule.cxx
