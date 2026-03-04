@@ -164,9 +164,23 @@ void qMRMLBeamParametersTabWidget::setBeamNode(vtkMRMLNode* node)
   Q_D(qMRMLBeamParametersTabWidget);
 
   vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(node);
+  vtkMRMLRTPlanNode* oldPlanNode = nullptr;
+  if (d->BeamNode)
+  {
+    oldPlanNode = d->BeamNode->GetParentPlanNode();
+  }
+  vtkMRMLRTPlanNode* planNode = nullptr;
+  if (beamNode)
+  {
+    planNode = beamNode->GetParentPlanNode();
+  }
 
   // Connect display modified event to population of the table
   qvtkReconnect( d->BeamNode, beamNode, vtkCommand::ModifiedEvent,
+                 this, SLOT( updateWidgetFromMRML() ) );
+
+  // Connect inverse plan flag modified event to population of the table (for enabling/disabling unused geometry and MLC parameters)
+  qvtkReconnect( oldPlanNode, planNode, vtkMRMLRTPlanNode::InversePlanFlagChanged,
                  this, SLOT( updateWidgetFromMRML() ) );
 
   d->BeamNode = beamNode;
@@ -404,7 +418,7 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
 
   // For inverse plans
   vtkMRMLRTPlanNode* planNode = d->BeamNode->GetParentPlanNode();
-  bool inversePlan = planNode->GetInverseFlag();
+  bool inversePlan = planNode->GetInversePlanFlag();
 
   d->doubleSpinBox_SAD->setEnabled(!inversePlan);
   d->RangeWidget_XJawsPosition->setEnabled(!inversePlan);

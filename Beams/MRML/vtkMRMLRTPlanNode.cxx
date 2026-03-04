@@ -959,3 +959,13 @@ void vtkMRMLRTPlanNode::SetDoseGridSpacingToCTGridSpacing()
   this->SetDoseGridSpacingComponent(1, spacing[1]);
   this->SetDoseGridSpacingComponent(2, spacing[2]);
 }
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::SetInversePlanFlag(bool InversePlanFlag)
+{
+  this->InversePlanFlag = InversePlanFlag;
+
+  // Invoke events
+  this->Modified();
+  this->InvokeEvent(vtkMRMLRTPlanNode::InversePlanFlagChanged, this);
+}

@@ -65,7 +65,9 @@ public:
     /// Fired if dose engine is changed
     DoseEngineChanged,
     /// Fired if optimization engine is changed
-    PlanOptimizerChanged
+    PlanOptimizerChanged,
+    /// Fired if optimization engine is changed
+    InversePlanFlagChanged
   };
 
 public:
@@ -218,9 +220,9 @@ public:
   void SetDoseGridSpacingToCTGridSpacing();
 
   /// Get flag for inverse plan
-  vtkGetMacro(InverseFlag, bool);
+  vtkGetMacro(InversePlanFlag, bool);
   /// Set flag for inverse plan
-  vtkSetMacro(InverseFlag, bool);
+  void SetInversePlanFlag(bool InversePlanFlag);
 
   /// Get flag for ion plan
   vtkGetMacro( IonPlanFlag, bool);
@@ -270,7 +272,7 @@ protected:
   double DoseGridSpacing[3]{ 5.0, 5.0, 5.0 };
 
   /// Flag, indicates that a plan node is currently doing inverse planning
-  bool InverseFlag{ false };
+  bool InversePlanFlag{ false };
 
   /// Flag, indicates that a plan node is an ion plan node
   bool IonPlanFlag{ false };
