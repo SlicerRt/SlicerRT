@@ -1010,18 +1010,9 @@ void qSlicerExternalBeamPlanningModuleWidget::inversePlanningCheckboxStateChange
     return;
   }
 
-  if (d->checkBox_InversePlanning->isChecked())
-  {
-    d->pushButton_OptimizePlan->setEnabled(true);
-    planNode->SetInverseFlag(true);
-    d->CollapsibleButton_Objectives->setEnabled(true);
-  }
-  else
-  {
-    d->pushButton_OptimizePlan->setEnabled(false);
-    planNode->SetInverseFlag(false);
-    d->CollapsibleButton_Objectives->setEnabled(false);
-  }
+  d->pushButton_OptimizePlan->setEnabled(state);
+  planNode->SetInverseFlag(state);
+  d->CollapsibleButton_Objectives->setEnabled(state);
 
   // Update dose engines
   this->updateDoseEngines();

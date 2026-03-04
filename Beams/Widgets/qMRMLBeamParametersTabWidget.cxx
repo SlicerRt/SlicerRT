@@ -404,22 +404,13 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
 
   // For inverse plans
   vtkMRMLRTPlanNode* planNode = d->BeamNode->GetParentPlanNode();
-  if (planNode->GetInverseFlag())
-  {
-    d->doubleSpinBox_SAD->setEnabled(false);
-    d->RangeWidget_XJawsPosition->setEnabled(false);
-    d->RangeWidget_YJawsPosition->setEnabled(false);
-    d->SliderWidget_CollimatorAngle->setEnabled(false);
-    d->tabMultiLeafCollimator->setEnabled(false);
-  }
-  else
-  {
-    d->doubleSpinBox_SAD->setEnabled(true);
-    d->RangeWidget_XJawsPosition->setEnabled(true);
-    d->RangeWidget_YJawsPosition->setEnabled(true);
-    d->SliderWidget_CollimatorAngle->setEnabled(true);
-    d->tabMultiLeafCollimator->setEnabled(true);
-  }
+  bool inversePlan = planNode->GetInverseFlag();
+
+  d->doubleSpinBox_SAD->setEnabled(!inversePlan);
+  d->RangeWidget_XJawsPosition->setEnabled(!inversePlan);
+  d->RangeWidget_YJawsPosition->setEnabled(!inversePlan);
+  d->SliderWidget_CollimatorAngle->setEnabled(!inversePlan);
+  d->tabMultiLeafCollimator->setEnabled(!inversePlan);
 }
 
 //-----------------------------------------------------------------------------
