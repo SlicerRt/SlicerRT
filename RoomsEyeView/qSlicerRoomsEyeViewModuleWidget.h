@@ -32,6 +32,7 @@
 
 class qSlicerRoomsEyeViewModuleWidgetPrivate;
 class vtkMRMLNode;
+class vtkMRMLRoomsEyeViewNode;
 
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
 class Q_SLICER_QTMODULES_ROOMSEYEVIEW_EXPORT qSlicerRoomsEyeViewModuleWidget :
@@ -80,6 +81,7 @@ protected slots:
   void onVerticalTableTopDisplacementSliderValueChanged(double);
   void onLongitudinalTableTopDisplacementSliderValueChanged(double);
   void onLateralTableTopDisplacementSliderValueChanged(double);
+  void onMovePatientWithTableTopCheckBoxToggled(bool);
 
   void onBeamsEyeViewButtonClicked();
 
@@ -90,6 +92,8 @@ protected slots:
   void onLogicModified();
 
 protected:
+  void applyTableTopPositionFromBodySegment(vtkMRMLRoomsEyeViewNode* paramNode);
+
   QScopedPointer<qSlicerRoomsEyeViewModuleWidgetPrivate> d_ptr;
 
 protected:

@@ -65,7 +65,7 @@ static const char* TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_RE
 
 static const char* BEAM_REFERENCE_ROLE = "beamRef";
 static const char* PATIENT_BODY_SEGMENTATION_REFERENCE_ROLE = "patientBodySegmentationRef";
-static const char* TABLE_CENTER_POINT_REFERENCE_ROLE = "tableCenterPointRef";
+static const char* TABLE_TOP_CENTER_POINT_REFERENCE_ROLE = "tableTopCenterPointRef";
 
 //------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLRoomsEyeViewNode);
@@ -82,6 +82,12 @@ vtkMRMLRoomsEyeViewNode::vtkMRMLRoomsEyeViewNode()
   , VerticalTableTopDisplacement(0.0)
   , LongitudinalTableTopDisplacement(0.0)
   , LateralTableTopDisplacement(0.0)
+  , LateralTableTopDisplacementMin(-250.0)
+  , LateralTableTopDisplacementMax(250.0)
+  , LongitudinalTableTopDisplacementMin(0.0)
+  , LongitudinalTableTopDisplacementMax(1000.0)
+  , VerticalTableTopDisplacementMin(-500.0)
+  , VerticalTableTopDisplacementMax(299.0)
 {
   this->SetSingletonTag("IEC");
 }
@@ -521,22 +527,22 @@ void vtkMRMLRoomsEyeViewNode::SetAndObserveTableTopEccentricRotationToPatientSup
   this->SetNodeReferenceID(TABLETOPECCENTRICROTATION_TO_PATIENTSUPPORT_TRANSFORM_NODE_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
+
 //----------------------------------------------------------------------------
-vtkMRMLMarkupsFiducialNode* vtkMRMLRoomsEyeViewNode::GetTableCenterPointFiducialNode()
+vtkMRMLMarkupsFiducialNode* vtkMRMLRoomsEyeViewNode::GetTableTopCenterPointFiducialNode()
 {
-  return vtkMRMLMarkupsFiducialNode::SafeDownCast(this->GetNodeReference(TABLE_CENTER_POINT_REFERENCE_ROLE));
+  return vtkMRMLMarkupsFiducialNode::SafeDownCast(this->GetNodeReference(TABLE_TOP_CENTER_POINT_REFERENCE_ROLE));
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLRoomsEyeViewNode::SetAndObserveTableCenterPointFiducialNode(vtkMRMLMarkupsFiducialNode* node)
+void vtkMRMLRoomsEyeViewNode::SetAndObserveTableTopCenterPointFiducialNode(vtkMRMLMarkupsFiducialNode* node)
 {
   if (node && this->Scene != node->GetScene())
   {
     vtkErrorMacro("Cannot set reference: the referenced and referencing node are not in the same scene");
     return;
   }
-
-  this->SetNodeReferenceID(TABLE_CENTER_POINT_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
+  this->SetNodeReferenceID(TABLE_TOP_CENTER_POINT_REFERENCE_ROLE, (node ? node->GetID() : nullptr));
 }
 
 //----------------------------------------------------------------------------

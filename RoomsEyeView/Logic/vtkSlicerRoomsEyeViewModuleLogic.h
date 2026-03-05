@@ -117,6 +117,14 @@ public:
   /// Update TableTopToTableTopEccentricRotation based on all three table top translations
   void UpdateTableTopToTableTopEccentricRotationTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
 
+  /// Set up / refresh observers on the TableTopCenter fiducial node so that moving it drives the table top sliders
+  void UpdateTableTopCenterObservers(vtkMRMLRoomsEyeViewNode* parameterNode);
+
+  /// Compute the lateral/longitudinal/vertical displacements required to bring the table top center
+  /// to the current TableTopCenter fiducial position, and apply them to the parameter node.
+  /// Clamps each axis to the corresponding min/max stored in the parameter node.
+  void UpdateTableTopDisplacementFromTableTopCenter(vtkMRMLRoomsEyeViewNode* parameterNode);
+
   /// Update orientation marker based on the current transforms
   vtkMRMLModelNode* UpdateTreatmentOrientationMarker(vtkMRMLRoomsEyeViewNode* parameterNode);
 
@@ -124,13 +132,32 @@ public:
   /// \return string indicating whether collision occurred
   std::string CheckForCollisions(vtkMRMLRoomsEyeViewNode* parameterNode);
 
-  /// Automatically place the table center point fiducial to the posterior center of the patient body segment
-  void AutoPlaceTableCenterPointFiducialFromPatientBodySegment(vtkMRMLRoomsEyeViewNode* parameterNode);
+  /// Update observers on the plan's POI markups fiducial node
+  void UpdatePlanPOIObservers(vtkMRMLRoomsEyeViewNode* parameterNode);
+  /// Handle plan POI fiducial changed event
+  void OnPlanPOIChanged(vtkMRMLMarkupsFiducialNode* poiMarkupsFiducialNode);
 
-  /// Update observers on the table center point fiducial node
-  void UpdateTableCenterPointObservers(vtkMRMLRoomsEyeViewNode* parameterNode);
-  /// Handle table center point changed event
-  void OnTableCenterPointChanged(vtkMRMLMarkupsFiducialNode* tableCenterFiducialNode);
+  /// Update the FixedReference-to-RAS transform, respecting the MovePatientWithTableTop flag.
+  /// When MovePatientWithTableTop is false, the table top displacement is not factored into the
+  /// machine position (the machine is positioned based on the POI only).
+  void UpdateFixedReferenceToRASTransform(vtkMRMLRoomsEyeViewNode* parameterNode);
+
+  /// Set whether table top displacement should reposition the entire machine (true) or only
+  /// move the table top within the IEC hierarchy (false, default).
+  void SetMovePatientWithTableTop(bool movePatientWithTableTop) { this->MovePatientWithTableTop = movePatientWithTableTop; }
+
+  /// Set the table top displacement baseline used when MovePatientWithTableTop is true.
+  /// The effective displacement applied to the RAS transform is (current - baseline), so that
+  /// the patient does not jump when the mode is first enabled.
+  void SetTableTopBaseline(double lateral, double longitudinal, double vertical)
+  {
+    this->TableTopBaselineLateral = lateral;
+    this->TableTopBaselineLongitudinal = longitudinal;
+    this->TableTopBaselineVertical = vertical;
+  }
+  double GetTableTopBaselineLateral()      const { return this->TableTopBaselineLateral; }
+  double GetTableTopBaselineLongitudinal() const { return this->TableTopBaselineLongitudinal; }
+  double GetTableTopBaselineVertical()     const { return this->TableTopBaselineVertical; }
 
 // Get treatment machine properties from descriptor file
 public:
@@ -173,6 +200,11 @@ public:
   vtkMRMLLinearTransformNode* GetTransformNodeBetween(
     vtkIECTransformLogic::CoordinateSystemIdentifier fromFrame, vtkIECTransformLogic::CoordinateSystemIdentifier toFrame);
 
+  /// Calculate the table top center point (posterior-center of patient body segment bounds) in RAS coordinates.
+  /// \param tableTopCenterRAS Output array of 3 doubles. Only written on success.
+  /// \return true on success, false if segmentation/segment is not set or bounds are invalid.
+  bool CalculateTableTopCenterFromPatientBodySegment(vtkMRMLRoomsEyeViewNode* parameterNode, double tableTopCenterRAS[3]);
+
 protected:
   /// Get patient body closed surface poly data from segmentation node and segment selection in the parameter node
   bool GetPatientBodyPolyData(vtkMRMLRoomsEyeViewNode* parameterNode, vtkPolyData* patientBodyPolyData);
@@ -183,6 +215,10 @@ protected:
 protected:
   vtkIECTransformLogic* IECLogic;
   vtkSlicerBeamsModuleLogic* BeamsLogic{nullptr};
+  bool MovePatientWithTableTop{false};
+  double TableTopBaselineLateral{0.0};
+  double TableTopBaselineLongitudinal{0.0};
+  double TableTopBaselineVertical{0.0};
 
   vtkCollisionDetectionFilter* GantryPatientCollisionDetection;
   vtkCollisionDetectionFilter* GantryTableTopCollisionDetection;
