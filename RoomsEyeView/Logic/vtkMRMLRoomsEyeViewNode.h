@@ -113,8 +113,8 @@ public:
   vtkMRMLLinearTransformNode* GetPatientSupportScaledTranslatedToTableTopVerticalTranslationTransformNode();
   void SetAndObserveTableTopEccentricRotationToPatientSupportTransformNode(vtkMRMLLinearTransformNode* node);
 
-  vtkMRMLMarkupsFiducialNode* GetTableCenterPointFiducialNode();
-  void SetAndObserveTableCenterPointFiducialNode(vtkMRMLMarkupsFiducialNode* node);
+  vtkMRMLMarkupsFiducialNode* GetTableTopCenterPointFiducialNode();
+  void SetAndObserveTableTopCenterPointFiducialNode(vtkMRMLMarkupsFiducialNode* node);
 
   /// Get beam node
   vtkMRMLRTBeamNode* GetBeamNode();
@@ -161,6 +161,21 @@ public:
   vtkGetMacro(LateralTableTopDisplacement, double);
   vtkSetMacro(LateralTableTopDisplacement, double);
 
+  vtkGetMacro(LateralTableTopDisplacementMin, double);
+  vtkSetMacro(LateralTableTopDisplacementMin, double);
+  vtkGetMacro(LateralTableTopDisplacementMax, double);
+  vtkSetMacro(LateralTableTopDisplacementMax, double);
+
+  vtkGetMacro(LongitudinalTableTopDisplacementMin, double);
+  vtkSetMacro(LongitudinalTableTopDisplacementMin, double);
+  vtkGetMacro(LongitudinalTableTopDisplacementMax, double);
+  vtkSetMacro(LongitudinalTableTopDisplacementMax, double);
+
+  vtkGetMacro(VerticalTableTopDisplacementMin, double);
+  vtkSetMacro(VerticalTableTopDisplacementMin, double);
+  vtkGetMacro(VerticalTableTopDisplacementMax, double);
+  vtkSetMacro(VerticalTableTopDisplacementMax, double);
+
 protected:
   vtkMRMLRoomsEyeViewNode();
   ~vtkMRMLRoomsEyeViewNode();
@@ -183,13 +198,16 @@ protected:
   double CollimatorRotationAngle;
   /// Patient support rotation angle in degrees
   double PatientSupportRotationAngle;
-  /// Table top vertical displacement in mm
-
   double VerticalTableTopDisplacement;
-  /// Table top longitudinal displacement in mm
   double LongitudinalTableTopDisplacement;
-  /// Table top lateral displacement in mm
   double LateralTableTopDisplacement;
+
+  double LateralTableTopDisplacementMin;
+  double LateralTableTopDisplacementMax;
+  double LongitudinalTableTopDisplacementMin;
+  double LongitudinalTableTopDisplacementMax;
+  double VerticalTableTopDisplacementMin;
+  double VerticalTableTopDisplacementMax;
 
   /// Imaging panel movement
   /// (custom range currently only supporting Varian TrueBeam: -68.5 to 0 rotation, then 0 to 500 translation outwards)

@@ -69,14 +69,24 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="0" column="0">
+      <item row="0" column="0" colspan="2">
+       <widget class="QCheckBox" name="MovePatientWithTableTopCheckBox">
+        <property name="text">
+         <string>Move patient with table top</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
          <string>Gantry angle:</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
+      <item row="2" column="1">
        <widget class="ctkSliderWidget" name="CollimatorRotationSlider">
         <property name="minimum">
          <double>0.000000000000000</double>
@@ -92,7 +102,7 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
+      <item row="1" column="1">
        <widget class="ctkSliderWidget" name="GantryRotationSlider">
         <property name="minimum">
          <double>-180.000000000000000</double>
@@ -105,21 +115,21 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="0">
+      <item row="8" column="0">
        <widget class="QLabel" name="labelImagingPanel">
         <property name="text">
          <string>Imaging panel:</string>
         </property>
        </widget>
       </item>
-      <item row="6" column="0">
+      <item row="7" column="0">
        <widget class="QLabel" name="LateralTableTopDisplacementLabel">
         <property name="text">
          <string>Table top (lateral):</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="4" column="1">
        <widget class="ctkSliderWidget" name="PatientSupportRotationSlider">
         <property name="minimum">
          <double>-180.000000000000000</double>
@@ -135,7 +145,7 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="6" column="1">
        <widget class="ctkSliderWidget" name="LongitudinalTableTopDisplacementSlider">
         <property name="minimum">
          <double>0.000000000000000</double>
@@ -151,7 +161,7 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
+      <item row="7" column="1">
        <widget class="ctkSliderWidget" name="LateralTableTopDisplacementSlider">
         <property name="minimum">
          <double>-230.000000000000000</double>
@@ -167,28 +177,28 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
+      <item row="5" column="0">
        <widget class="QLabel" name="VerticalTableTopDisplacementLabel">
         <property name="text">
          <string>Table top (vertical):</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
+      <item row="4" column="0">
        <widget class="QLabel" name="PatientSupportRotationLabel">
         <property name="text">
          <string>Patient support rotation:</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="6" column="0">
        <widget class="QLabel" name="LongitudinalTableTopDisplacementLabel">
         <property name="text">
          <string>Table top (longitudinal):</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="5" column="1">
        <widget class="ctkSliderWidget" name="VerticalTableTopDisplacementSlider">
         <property name="minimum">
          <double>-500.000000000000000</double>
@@ -204,14 +214,14 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
+      <item row="2" column="0">
        <widget class="QLabel" name="label_6">
         <property name="text">
          <string>Collimator angle:</string>
         </property>
        </widget>
       </item>
-      <item row="7" column="1">
+      <item row="8" column="1">
        <widget class="ctkSliderWidget" name="ImagingPanelMovementSlider">
         <property name="minimum">
          <double>-68.500000000000000</double>
