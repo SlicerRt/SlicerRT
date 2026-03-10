@@ -1701,6 +1701,26 @@ const char* vtkSlicerRoomsEyeViewModuleLogic::GetTreatmentMachinePartTypeAsStrin
 }
 
 //---------------------------------------------------------------------------
+void vtkSlicerRoomsEyeViewModuleLogic::SetTreatmentMachinePartsOpacityForBeamsEyeView(
+  vtkMRMLRoomsEyeViewNode* parameterNode, double opacity)
+{
+  if (!parameterNode
+    || !parameterNode->GetTreatmentMachineDescriptorFilePath()
+    || strlen(parameterNode->GetTreatmentMachineDescriptorFilePath()) == 0)
+  {
+    return;
+  }
+  for (TreatmentMachinePartType part : { Gantry, Collimator, TableTop })
+  {
+    vtkMRMLModelNode* model = this->Internal->GetTreatmentMachinePartModelNode(parameterNode, part);
+    if (model && model->GetDisplayNode())
+    {
+      model->GetDisplayNode()->SetOpacity(opacity);
+    }
+  }
+}
+
+//---------------------------------------------------------------------------
 std::string vtkSlicerRoomsEyeViewModuleLogic::GetNameForPartType(std::string partType)
 {
   rapidjson::Value& partObject = this->Internal->GetTreatmentMachinePart(partType);

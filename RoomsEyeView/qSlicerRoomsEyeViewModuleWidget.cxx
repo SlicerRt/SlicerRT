@@ -469,6 +469,8 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamNodeChanged(vtkMRMLNode* node)
   // Trigger update of transforms based on selected beam
   beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
 
+  this->setMachinePartsOpacityForBeamsEyeView(1.0);
+
   // Sync gantry angle slider from the selected beam
   d->GantryRotationSlider->setValue(beamNode->GetGantryAngle());
 
@@ -794,6 +796,13 @@ void qSlicerRoomsEyeViewModuleWidget::loadTreatmentMachineFromFile(QString descr
   d->LateralTableTopDisplacementSlider->setEnabled(true);
   d->ImagingPanelMovementSlider->setEnabled(true);
 
+  // If a beam is already selected, sync the gantry (and related) sliders from it
+  vtkMRMLRTBeamNode* selectedBeamNode = paramNode ? vtkMRMLRTBeamNode::SafeDownCast(paramNode->GetBeamNode()) : nullptr;
+  if (selectedBeamNode)
+  {
+    d->GantryRotationSlider->setValue(selectedBeamNode->GetGantryAngle());
+  }
+
   // Hide controls that do not have corresponding parts loaded
   bool imagingPanelsLoaded = (std::find(loadedParts.begin(), loadedParts.end(), vtkSlicerRoomsEyeViewModuleLogic::ImagingPanelLeft) != loadedParts.end() ||
       std::find(loadedParts.begin(), loadedParts.end(), vtkSlicerRoomsEyeViewModuleLogic::ImagingPanelRight) != loadedParts.end());
@@ -879,6 +888,7 @@ void qSlicerRoomsEyeViewModuleWidget::onGantryRotationSliderValueChanged(double 
     beamNode->SetGantryAngle(value);
   }
 
+  this->setMachinePartsOpacityForBeamsEyeView(1.0);
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
   d->getLayoutManager()->resumeRender();
@@ -1097,6 +1107,14 @@ void qSlicerRoomsEyeViewModuleWidget::onMovePatientWithTableTopCheckBoxToggled(b
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerRoomsEyeViewModuleWidget::setMachinePartsOpacityForBeamsEyeView(double opacity)
+{
+  Q_D(qSlicerRoomsEyeViewModuleWidget);
+  vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
+  d->logic()->SetTreatmentMachinePartsOpacityForBeamsEyeView(paramNode, opacity);
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
 {
   //TODO: Move feature to beams module
@@ -1155,6 +1173,8 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
     }
     cameraNode->SetViewUp(vup);
   }
+
+  this->setMachinePartsOpacityForBeamsEyeView(0.1);
 
   //TODO: Oblique slice updating real-time based on beam geometry
   //vtkMRMLSliceNode* redSliceNode = redSliceWidget->mrmlSliceNode();
