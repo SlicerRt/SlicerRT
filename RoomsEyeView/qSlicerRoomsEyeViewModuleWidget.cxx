@@ -1156,8 +1156,6 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
     cameraNode->SetViewUp(vup);
   }
 
-  cameraNode->GetCamera()->Elevation(-(d->GantryRotationSlider->value()));
-
   //TODO: Oblique slice updating real-time based on beam geometry
   //vtkMRMLSliceNode* redSliceNode = redSliceWidget->mrmlSliceNode();
   //redSliceNode->SetSliceVisible(1);
