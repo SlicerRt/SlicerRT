@@ -93,6 +93,8 @@ protected slots:
 
 protected:
   void applyTableTopPositionFromBodySegment(vtkMRMLRoomsEyeViewNode* paramNode);
+  /// Set opacity of the gantry, collimator, and table top models.
+  void setMachinePartsOpacityForBeamsEyeView(double opacity);
 
   QScopedPointer<qSlicerRoomsEyeViewModuleWidgetPrivate> d_ptr;
 

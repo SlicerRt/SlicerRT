@@ -175,6 +175,9 @@ public:
   /// Valid states are "Disabled" (not loaded), "Active" (loaded and collisions computed), "Passive" (loaded but no collisions).
   std::string GetStateForPartType(std::string partType);
 
+  /// Set the opacity of the gantry, collimator, and table top models (used for beam's eye view).
+  void SetTreatmentMachinePartsOpacityForBeamsEyeView(vtkMRMLRoomsEyeViewNode* parameterNode, double opacity);
+
 // Set/get methods
 public:
   /// Get part type as string
