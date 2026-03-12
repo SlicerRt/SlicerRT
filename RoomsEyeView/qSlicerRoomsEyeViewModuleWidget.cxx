@@ -461,6 +461,8 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamNodeChanged(vtkMRMLNode* node)
     shNode->SetItemDisplayVisibility(shNode->GetItemByDataNode(currentBeamNode), (currentBeamNode == beamNode ? 1 : 0) );
   }
 
+  this->setMachinePartsOpacityForBeamsEyeView(1.0);
+
   if (!beamNode)
   {
     return;
@@ -468,8 +470,6 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamNodeChanged(vtkMRMLNode* node)
 
   // Trigger update of transforms based on selected beam
   beamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
-
-  this->setMachinePartsOpacityForBeamsEyeView(1.0);
 
   // Sync gantry angle slider from the selected beam
   d->GantryRotationSlider->setValue(beamNode->GetGantryAngle());
