@@ -39,6 +39,9 @@
 #include <vtkTransform.h>
 #include <vtkMatrix4x4.h>
 
+// STD includes
+#include <iostream>
+
 
 //----------------------------------------------------------------------------
 /// Get all linear transforms from the scene that are not identity, and are not beam transform nodes

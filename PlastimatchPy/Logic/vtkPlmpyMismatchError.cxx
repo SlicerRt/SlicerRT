@@ -24,6 +24,8 @@
 #include "vtkImageData.h"
 #include "vtkPoints.h"
 
+#include <iostream>
+
 //------------------------------------------------------------------------------
 
 vtkStandardNewMacro(vtkPlmpyMismatchError);

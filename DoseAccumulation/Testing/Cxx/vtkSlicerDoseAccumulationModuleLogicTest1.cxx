@@ -49,6 +49,9 @@
   #include "itkFactoryRegistration.h"
 #endif
 
+// STD includes
+#include <iostream>
+
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
 

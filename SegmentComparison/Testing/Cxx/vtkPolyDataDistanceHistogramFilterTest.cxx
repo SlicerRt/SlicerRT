@@ -15,6 +15,9 @@
 #include <vtkTable.h>
 #include <vtkVariantArray.h>
 
+// STD includes
+#include <iostream>
+
 //-----------------------------------------------------------------------------
 int vtkPolyDataDistanceHistogramFilterTest( int argc, char* argv[] )
 {

@@ -63,6 +63,9 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkVector.h>
 
+// STD includes
+#include <iostream>
+
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
 

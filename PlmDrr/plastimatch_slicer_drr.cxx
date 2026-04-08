@@ -17,6 +17,9 @@
 ==============================================================================*/
 
 
+// STD includes
+#include <iostream>
+
 // ITK includes
 #include <itkImage.h>
 #include <itkImageFileReader.h>
