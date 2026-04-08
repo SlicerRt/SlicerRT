@@ -40,6 +40,9 @@
 // ITK includes
 #include "itkFactoryRegistration.h"
 
+// STD includes
+#include <iostream>
+
 // VTKSYS includes
 #include <vtksys/SystemTools.hxx>
 

@@ -54,6 +54,9 @@
 #include <QDebug>
 #include <QStringList>
 
+// STD includes
+#include <iostream>
+
 //----------------------------------------------------------------------------
 qSlicerPlmProtonDoseEngine::qSlicerPlmProtonDoseEngine(QObject* parent)
   : qSlicerAbstractDoseEngine(parent)

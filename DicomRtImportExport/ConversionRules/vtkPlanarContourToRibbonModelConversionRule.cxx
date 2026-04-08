@@ -23,6 +23,9 @@
 
 // VTK includes
 #include <vtkObjectFactory.h>
+
+// STD includes
+#include <iostream>
 #include <vtkVector.h>
 #include <vtkPolyData.h>
 #include <vtkCell.h>

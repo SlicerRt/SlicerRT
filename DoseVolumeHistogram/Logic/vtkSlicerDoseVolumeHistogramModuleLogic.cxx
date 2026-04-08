@@ -75,6 +75,7 @@
 #include <vtksys/SystemTools.hxx>
 
 // STD includes
+#include <iostream>
 #include <set>
 
 // Slicer includes

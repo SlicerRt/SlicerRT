@@ -47,6 +47,9 @@
 #include "itk_image_load.h"
 #include "itk_image_type.h"
 
+// STD includes
+#include <iostream>
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPlmpyVectorFieldAnalysis);
 

@@ -62,6 +62,9 @@
 #include "vtkSlicerApplicationLogic.h"
 #include <vtkSlicerVersionConfigure.h>
 
+// STD includes
+#include <iostream>
+
 //---------------------------------------------------------------------------
 const char* vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_GAMMA_VOLUME_IDENTIFIER_ATTRIBUTE_NAME = "DoseComparison.GammaVolume"; // Identifier
 const char* vtkSlicerDoseComparisonModuleLogic::DOSECOMPARISON_DEFAULT_GAMMA_COLOR_TABLE_FILE_NAME = "Gamma_ColorTable.ctbl";
