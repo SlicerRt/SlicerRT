@@ -95,11 +95,11 @@ void vtkPlmpyVectorFieldAnalysis::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 void vtkPlmpyVectorFieldAnalysis::RunJacobian()
 {
   //TODO: Use VTK info/warning/error macro instead of cout
-  cout << "started RunJacobian from C++ module\n";
+  std::cout << "started RunJacobian from C++ module\n";
   if ( this->VFImageID == nullptr )
   {
-    cout << "ERRROR: nullptr input VF";
-  } 
+    std::cout << "ERRROR: nullptr input VF";
+  }
 
   // vtk to itk transform derived from vtkSlicerRtCommon.txx
   vtkMRMLVectorVolumeNode* VFImage = vtkMRMLVectorVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->VFImageID));
@@ -113,16 +113,16 @@ void vtkPlmpyVectorFieldAnalysis::RunJacobian()
     return;
   }
 
-  cout << "got image data";
+  std::cout << "got image data";
 
   vtkSmartPointer<vtkImageExport> imageExport = vtkSmartPointer<vtkImageExport>::New();
   imageExport->SetInputData(inVolume);
 
-  cout << "gone past set input";
+  std::cout << "gone past set input";
 
   imageExport->Update();
 
-  cout << "gone past Update";
+  std::cout << "gone past Update";
 
   //--
   vtkSmartPointer<vtkMatrix4x4> rasToWorldTransformMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
