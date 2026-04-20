@@ -31,6 +31,19 @@ set(MODULE_INCLUDE_DIRECTORIES
   ${qSlicerBeamsModuleWidgets_INCLUDE_DIRS}
   )
 
+if(EXTENSION_BUILDS_IPOPT)
+  if(WIN32)
+    list(APPEND MODULE_INCLUDE_DIRECTORIES "${Ipopt_INCLUDE_DIR}")
+  else()
+    find_path(_ipopt_inc IpIpoptApplication.hpp
+      PATHS ${Ipopt_DIR}/include/coin-or ${CMAKE_BINARY_DIR}/Ipopt-install/include/coin-or
+      NO_DEFAULT_PATH)
+    if(_ipopt_inc)
+      list(APPEND MODULE_INCLUDE_DIRECTORIES "${_ipopt_inc}")
+    endif()
+  endif()
+endif()
+
 set(MODULE_SRCS
   qSlicer${MODULE_NAME}Module.cxx
   qSlicer${MODULE_NAME}Module.h
@@ -76,6 +89,11 @@ slicerMacroBuildLoadableModule(
   RESOURCES ${MODULE_RESOURCES}
   # WITH_GENERIC_TESTS # TODO: enable this when module directories are properly added in the slicerMacroBuildScriptedModule macro
   )
+
+#-----------------------------------------------------------------------------
+if(EXTENSION_BUILDS_IPOPT)
+  target_compile_definitions(qSlicer${MODULE_NAME}Module PRIVATE EXTENSION_BUILDS_IPOPT)
+endif()
 
 #-----------------------------------------------------------------------------
 if(BUILD_TESTING)

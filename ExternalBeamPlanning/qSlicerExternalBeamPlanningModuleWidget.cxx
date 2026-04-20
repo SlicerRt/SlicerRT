@@ -53,6 +53,9 @@
 #include "qSlicerDoseEnginePluginHandler.h"
 #include "qSlicerMockDoseEngine.h"
 #include "qSlicerMockPlanOptimizer.h"
+#if defined(EXTENSION_BUILDS_IPOPT)
+#include "qSlicerIpoptOptimizer.h"
+#endif
 #include "qSlicerObjectiveLogic.h"
 #include "qSlicerObjectivePluginHandler.h"
 #include "qSlicerPlanOptimizerLogic.h"
@@ -234,6 +237,9 @@ void qSlicerExternalBeamPlanningModuleWidget::enter()
 
   // Register optimizers
   qSlicerPlanOptimizerPluginHandler::instance()->registerPlanOptimizer(new qSlicerMockPlanOptimizer());
+#if defined(EXTENSION_BUILDS_IPOPT)
+  qSlicerPlanOptimizerPluginHandler::instance()->registerPlanOptimizer(new qSlicerIpoptOptimizer());
+#endif
 
   // Python optimizers
   // (otherwise it would be the responsibility of the module that embeds the plan optimizer)

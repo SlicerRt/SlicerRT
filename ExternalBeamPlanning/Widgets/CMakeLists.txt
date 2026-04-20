@@ -68,6 +68,30 @@ set(${KIT}_SRCS
   qSlicerObjectiveLogic.h
   qSlicerSquaredDeviationObjective.cxx
   qSlicerSquaredDeviationObjective.h
+  qSlicerSquaredOverdosingObjective.cxx
+  qSlicerSquaredOverdosingObjective.h
+  qSlicerSquaredUnderdosingObjective.cxx
+  qSlicerSquaredUnderdosingObjective.h
+  qSlicerMeanDoseObjective.cxx
+  qSlicerMeanDoseObjective.h
+  qSlicerEUDObjective.cxx
+  qSlicerEUDObjective.h
+  qSlicerMaxDVHObjective.cxx
+  qSlicerMaxDVHObjective.h
+  qSlicerMinDVHObjective.cxx
+  qSlicerMinDVHObjective.h
+  qSlicerDVHUtils.h
+  # Constraints
+  qSlicerAbstractConstraint.cxx
+  qSlicerAbstractConstraint.h
+  qSlicerMinMaxDoseConstraint.cxx
+  qSlicerMinMaxDoseConstraint.h
+  qSlicerMinMaxDVHConstraint.cxx
+  qSlicerMinMaxDVHConstraint.h
+  qSlicerMinMaxEUDConstraint.cxx
+  qSlicerMinMaxEUDConstraint.h
+  qSlicerMinMaxMeanDoseConstraint.cxx
+  qSlicerMinMaxMeanDoseConstraint.h
   # Widgets
   qMRMLObjectivesTableWidget.cxx
   qMRMLObjectivesTableWidget.h
@@ -90,6 +114,7 @@ set_source_files_properties(
   qSlicerAbstractDoseEngine.h
   qSlicerAbstractPlanOptimizer.h
   qSlicerAbstractObjective.h
+  qSlicerAbstractConstraint.h
   WRAP_EXCLUDE
   )
 
@@ -108,6 +133,17 @@ set(${KIT}_MOC_SRCS
   qSlicerObjectivePluginHandler.h
   qSlicerObjectiveLogic.h
   qSlicerSquaredDeviationObjective.h
+  qSlicerSquaredOverdosingObjective.h
+  qSlicerSquaredUnderdosingObjective.h
+  qSlicerMeanDoseObjective.h
+  qSlicerEUDObjective.h
+  qSlicerMaxDVHObjective.h
+  qSlicerMinDVHObjective.h
+  qSlicerAbstractConstraint.h
+  qSlicerMinMaxDoseConstraint.h
+  qSlicerMinMaxDVHConstraint.h
+  qSlicerMinMaxEUDConstraint.h
+  qSlicerMinMaxMeanDoseConstraint.h
   qMRMLObjectivesTableWidget.h
 )
 
@@ -234,6 +270,18 @@ SlicerMacroBuildModuleWidgets(
   RESOURCES ${${KIT}_RESOURCES}
   WRAP_PYTHONQT
   )
+
+# Deploy IPOPT DLLs next to the module widgets library so Slicer can load it
+if(EXTENSION_BUILDS_IPOPT AND WIN32 AND DEFINED Ipopt_DLL_DIR)
+  file(GLOB IPOPT_DLLS "${Ipopt_DLL_DIR}/*.dll")
+  foreach(DLL_FILE ${IPOPT_DLLS})
+    add_custom_command(TARGET ${KIT} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${DLL_FILE}"
+        "$<TARGET_FILE_DIR:${KIT}>"
+    )
+  endforeach()
+endif()
 
 #-----------------------------------------------------------------------------
 if(Slicer_USE_PYTHONQT)
