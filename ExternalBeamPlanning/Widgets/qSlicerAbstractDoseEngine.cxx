@@ -149,8 +149,13 @@ void qSlicerAbstractDoseEngine::setCanDoIonPlan(bool canDoIonPlan)
 //----------------------------------------------------------------------------
 void qSlicerAbstractDoseEngine::registerBeamParametersTabWidget(qMRMLBeamParametersTabWidget* tabWidget)
 {
-  qSlicerAbstractDoseEngine::m_BeamParametersTabWidgets.insert(tabWidget);
+  // Check if this tab widget has already been registered
+  if (qSlicerAbstractDoseEngine::m_BeamParametersTabWidgets.contains(tabWidget))
+  {
+    return;
+  }
 
+  qSlicerAbstractDoseEngine::m_BeamParametersTabWidgets.insert(tabWidget);
   // Make sure beam parameters specified by engines are defined in the tab widget
   qSlicerDoseEnginePluginHandler::DoseEngineListType engines =
     qSlicerDoseEnginePluginHandler::instance()->registeredDoseEngines();
