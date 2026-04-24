@@ -30,6 +30,7 @@
 #include "vtkRibbonModelToBinaryLabelmapConversionRule.h"
 #include "vtkPlanarContourToRibbonModelConversionRule.h"
 #include "vtkPlanarContourToClosedSurfaceConversionRule.h"
+#include "vtkPlanarContourToClosedSurfaceByRasterizationConversionRule.h"
 #include "vtkClosedSurfaceToFractionalLabelmapConversionRule.h"
 #include "vtkFractionalLabelmapToClosedSurfaceConversionRule.h"
 
@@ -2461,6 +2462,8 @@ void vtkSlicerDicomRtImportExportModuleLogic::RegisterNodes()
     vtkSmartPointer<vtkPlanarContourToRibbonModelConversionRule>::New() );
   vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
     vtkSmartPointer<vtkPlanarContourToClosedSurfaceConversionRule>::New() );
+  vtkSegmentationConverterFactory::GetInstance()->RegisterConverterRule(
+    vtkSmartPointer<vtkPlanarContourToClosedSurfaceByRasterizationConversionRule>::New() );
 
 }
 
