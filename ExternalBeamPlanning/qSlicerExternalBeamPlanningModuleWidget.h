@@ -119,6 +119,21 @@ protected slots:
   void onProgressUpdated(double progress);
   void onOptimizerProgressInfoUpdated(QString info);
 
+#if defined(EXTENSION_BUILDS_IPOPT)
+  // IPOPT Advanced Settings slots
+  void ipoptMaxIterChanged(int value);
+  void ipoptMaxRestoIterChanged(int value);
+  void ipoptMaxCpuTimeChanged(double value);
+  void ipoptTolChanged();
+  void ipoptAcceptableTolChanged();
+  void ipoptAcceptableIterChanged(int value);
+  void ipoptMuStrategyChanged(const QString& value);
+  void ipoptHessianApproximationChanged(const QString& value);
+  void ipoptLbfgsHistoryChanged(int value);
+  void ipoptPrintLevelChanged(int value);
+  void ipoptLinearSolverChanged(const QString& value);
+#endif
+
 protected:
   void setup() override;
   void enter() override;

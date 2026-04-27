@@ -196,8 +196,6 @@ if(EXTENSION_BUILDS_IPOPT)
 
     # Add additional system libraries that IPOPT might need on Unix
     if(UNIX)
-      list(APPEND ${KIT}_TARGET_LIBRARIES gfortran quadmath gcc_s)
-
       # Find and link required dependencies
       find_library(DL_LIBRARY dl)
       if(DL_LIBRARY)
@@ -227,7 +225,6 @@ if(EXTENSION_BUILDS_IPOPT)
         PATHS
           ${CMAKE_BINARY_DIR}/Mumps-install/lib
           ${Mumps_DIR}/lib
-        NO_DEFAULT_PATH
       )
       if(METIS_LIBRARY)
         list(APPEND ${KIT}_TARGET_LIBRARIES ${METIS_LIBRARY})
@@ -243,6 +240,9 @@ if(EXTENSION_BUILDS_IPOPT)
       if(BLAS_LIBRARY)
         list(APPEND ${KIT}_TARGET_LIBRARIES ${BLAS_LIBRARY})
       endif()
+
+      # gfortran runtime must come after all Fortran static libs (IPOPT, MUMPS)
+      list(APPEND ${KIT}_TARGET_LIBRARIES gfortran quadmath gcc_s)
     endif()
   endif()
 endif()

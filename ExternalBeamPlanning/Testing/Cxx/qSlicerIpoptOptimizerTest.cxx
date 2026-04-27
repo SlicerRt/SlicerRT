@@ -110,6 +110,7 @@ int main(int argc, char* argv[])
         std::cout << "✗ Rosenbrock optimization failed with status: " << result_rb.status << std::endl;
         return 1;
     }
+    // For a more advanced interactive test with proton patients, please check out https://github.com/SebastiaanBreedveld/TROTS/tree/master/SlicerRT_import
 
     std::cout << "\n✓ All tests passed successfully!" << std::endl;
     return 0;
