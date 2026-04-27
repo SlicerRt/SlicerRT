@@ -100,6 +100,19 @@ public:
     double weight;
   };
   std::vector<StructureTerm> structureTerms;
+
+  struct ConstraintTerm {
+    Eigen::SparseMatrix<double> D;
+    QString constraintType;  // "MaxDose" or "MinDose"
+    double bound;
+    double smoothingT;
+  };
+  std::vector<ConstraintTerm> constraintTerms;
+
+  // Sparse Jacobian pattern set from Python via setConstraintJacobianSparsity().
+  // Empty → fall back to dense m×n pattern.
+  std::vector<std::pair<int,int>> jacSparsityPattern;
+  int numJacNonzeros = 0;
 };
 
 //-----------------------------------------------------------------------------
@@ -110,6 +123,13 @@ private:
   qSlicerIpoptOptimizerPrivate* d;
   Array x0;
   int n;
+
+  // Best-iterate tracking: save the iterate with the lowest constraint violation
+  // seen during optimization. Returned instead of the final iterate when the
+  // solver exits without converging (e.g. max iterations exceeded).
+  Array   bestX;
+  double  bestInfPr = std::numeric_limits<double>::max();
+  Array   lastEvalX;  // x seen in the most recent eval_f call
 
 public:
   IpoptProblem(qSlicerIpoptOptimizerPrivate* dPtr, const Array& initialPoint)
@@ -124,7 +144,7 @@ public:
   {
     n = this->n;
     m = d->numConstraints;
-    nnz_jac_g = m * n;  // dense Jacobian
+    nnz_jac_g = (d->numJacNonzeros > 0) ? d->numJacNonzeros : m * n;
     nnz_h_lag = 0;      // limited-memory BFGS — no explicit Hessian
     index_style = TNLP::C_STYLE;
     return true;
@@ -168,8 +188,21 @@ public:
       return false;
     }
 
-    Array xvec(x, x + n);
-    obj_value = d->objectiveFunction(xvec);
+    lastEvalX.assign(x, x + n);
+    obj_value = d->objectiveFunction(lastEvalX);
+    return true;
+  }
+
+  virtual bool intermediate_callback(AlgorithmMode mode, Index iter,
+    Number obj_value, Number inf_pr, Number inf_du, Number mu, Number d_norm,
+    Number regularization_size, Number alpha_du, Number alpha_pr,
+    Index ls_trials, const IpoptData* ip_data,
+    IpoptCalculatedQuantities* ip_cq) override
+  {
+    if (inf_pr < bestInfPr && !lastEvalX.empty()) {
+      bestInfPr = inf_pr;
+      bestX     = lastEvalX;
+    }
     return true;
   }
 
@@ -208,14 +241,16 @@ public:
   {
     if (m == 0) return true;
     if (values == nullptr) {
-      // Return sparsity structure — dense: row i, col j → entry i*n+j
-      Index k = 0;
-      for (Index i = 0; i < m; i++)
-        for (Index j = 0; j < n; j++) {
-          iRow[k] = i;
-          jCol[k] = j;
-          ++k;
+      if (!d->jacSparsityPattern.empty()) {
+        for (Index k = 0; k < nele_jac; ++k) {
+          iRow[k] = static_cast<Index>(d->jacSparsityPattern[k].first);
+          jCol[k] = static_cast<Index>(d->jacSparsityPattern[k].second);
         }
+      } else {
+        Index k = 0;
+        for (Index i = 0; i < m; i++)
+          for (Index j = 0; j < n; j++) { iRow[k] = i; jCol[k] = j; ++k; }
+      }
     } else {
       if (!d->constraintJacobianFunction) return false;
       Array xvec(x, x + n);
@@ -232,7 +267,11 @@ public:
                                 Number obj_value, const IpoptData* ip_data,
                                 IpoptCalculatedQuantities* ip_cq) override
   {
-    d->lastResult.solution = Array(x, x + n);
+    // Use the best iterate (lowest constraint violation) rather than the final
+    // iterate, which may be worse when the solver exits at max iterations.
+    bool converged = (status == SUCCESS || status == STOP_AT_ACCEPTABLE_POINT);
+    bool useBest   = !converged && !bestX.empty();
+    d->lastResult.solution = useBest ? bestX : Array(x, x + n);
     d->lastResult.final_objective_value = obj_value;
     d->lastResult.status = static_cast<ApplicationReturnStatus>(status);
     d->lastResult.success = (status == SUCCESS || status == STOP_AT_ACCEPTABLE_POINT);
@@ -333,6 +372,19 @@ void qSlicerIpoptOptimizer::setGradientFunction(GradientFunction func)
   d->gradientFunction = func;
 }
 
+//-----------------------------------------------------------------------------
+void qSlicerIpoptOptimizer::setConstraintJacobianSparsity(const QList<int>& iRow,
+                                                           const QList<int>& jCol)
+{
+  Q_D(qSlicerIpoptOptimizer);
+  d->jacSparsityPattern.clear();
+  const int n = qMin(iRow.size(), jCol.size());
+  d->jacSparsityPattern.reserve(n);
+  for (int k = 0; k < n; ++k)
+    d->jacSparsityPattern.emplace_back(iRow[k], jCol[k]);
+  d->numJacNonzeros = static_cast<int>(d->jacSparsityPattern.size());
+}
+
 
 //-----------------------------------------------------------------------------
 void qSlicerIpoptOptimizer::addStructureTerm(
@@ -358,12 +410,42 @@ void qSlicerIpoptOptimizer::addStructureTerm(
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerIpoptOptimizer::addStructureConstraint(
+  const QList<double>& data, const QList<int>& rowInd, const QList<int>& colInd,
+  int nVoxels, int nBixels, const QString& constraintType, double bound, double smoothingT)
+{
+  Q_D(qSlicerIpoptOptimizer);
+
+  using Triplet = Eigen::Triplet<double>;
+  std::vector<Triplet> triplets;
+  triplets.reserve(data.size());
+  for (int k = 0; k < data.size(); ++k)
+    triplets.emplace_back(rowInd[k], colInd[k], data[k]);
+
+  qSlicerIpoptOptimizerPrivate::ConstraintTerm term;
+  term.D.resize(nVoxels, nBixels);
+  term.D.setFromTriplets(triplets.begin(), triplets.end());
+  term.constraintType = constraintType;
+  term.bound          = bound;
+  term.smoothingT     = smoothingT;
+
+  d->constraintTerms.push_back(std::move(term));
+}
+
+//-----------------------------------------------------------------------------
 void qSlicerIpoptOptimizer::clearStructureTerms()
 {
   Q_D(qSlicerIpoptOptimizer);
   d->structureTerms.clear();
-  d->objectiveFunction = nullptr;
-  d->gradientFunction  = nullptr;
+  d->constraintTerms.clear();
+  d->objectiveFunction          = nullptr;
+  d->gradientFunction           = nullptr;
+  d->constraintFunction         = nullptr;
+  d->constraintJacobianFunction = nullptr;
+  d->constraintBoundsFunction   = nullptr;
+  d->numConstraints             = 0;
+  d->jacSparsityPattern.clear();
+  d->numJacNonzeros             = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -419,6 +501,10 @@ qSlicerIpoptOptimizer::Result qSlicerIpoptOptimizer::solveProblem(const Array& x
             double diff = dose[i] - t.bound;
             f += diff * diff;
           }
+        } else if (t.objectiveType == "MeanDose") {
+          double meanDose = dose.sum() / dose.size();
+          double diff = meanDose - t.bound;
+          if (diff > 0.0) f = diff * diff * dose.size(); // pre-multiply by n; /n below cancels
         }
         total += t.weight * f / dose.size();
       }
@@ -447,6 +533,11 @@ qSlicerIpoptOptimizer::Result qSlicerIpoptOptimizer::solveProblem(const Array& x
         } else if (t.objectiveType == "SquaredDeviation") {
           for (int i = 0; i < dose.size(); ++i)
             gDose[i] = 2.0 * (dose[i] - t.bound);
+        } else if (t.objectiveType == "MeanDose") {
+          double meanDose = dose.sum() / dose.size();
+          double diff = meanDose - t.bound;
+          if (diff > 0.0)
+            gDose = Eigen::VectorXd::Constant(dose.size(), 2.0 * diff); // ∂/∂dose_i = 2*(mean-bound); /n below gives correct chain rule
         }
         grad += t.weight * (t.D.transpose() * gDose) / dose.size();
       }
@@ -454,8 +545,139 @@ qSlicerIpoptOptimizer::Result qSlicerIpoptOptimizer::solveProblem(const Array& x
     };
   }
 
+  // Auto-wire constraints from constraintTerms when present
+  if (!d->constraintTerms.empty())
+  {
+    auto sharedCon = std::make_shared<std::vector<qSlicerIpoptOptimizerPrivate::ConstraintTerm>>(
+      d->constraintTerms);
+
+    int numCon = static_cast<int>(d->constraintTerms.size());
+    d->numConstraints = numCon;
+
+    d->constraintBoundsFunction = [sharedCon, numCon]()
+      -> std::pair<qSlicerIpoptOptimizer::Array, qSlicerIpoptOptimizer::Array>
+    {
+      qSlicerIpoptOptimizer::Array lb(numCon, -1e19);
+      qSlicerIpoptOptimizer::Array ub(numCon,  1e19);
+      for (int i = 0; i < numCon; ++i)
+      {
+        const auto& t = (*sharedCon)[i];
+        if (t.constraintType == "MaxDose") { lb[i] = 0.0; ub[i] = t.bound; }
+        else                               { lb[i] = t.bound; }  // MinDose
+      }
+      return {lb, ub};
+    };
+
+    // g_i(w) = logsumexp( D_i·w, T)          for MaxDose  → constrained ≤ bound
+    // g_i(w) = −logsumexp(−D_i·w, T)         for MinDose  → constrained ≥ bound
+    d->constraintFunction = [sharedCon](const qSlicerIpoptOptimizer::Array& w)
+      -> qSlicerIpoptOptimizer::Array
+    {
+      Eigen::VectorXd wv = Eigen::Map<const Eigen::VectorXd>(w.data(), w.size());
+      qSlicerIpoptOptimizer::Array g;
+      g.reserve(sharedCon->size());
+      for (const auto& t : *sharedCon)
+      {
+        Eigen::VectorXd dose = t.D * wv;
+        if (t.constraintType == "MinDose") dose = -dose;
+        // numerically stable logsumexp
+        double dmax = dose.maxCoeff();
+        double sum  = 0.0;
+        for (int j = 0; j < dose.size(); ++j)
+          sum += std::exp((dose[j] - dmax) / t.smoothingT);
+        double val = dmax + t.smoothingT * std::log(sum);
+        g.push_back(t.constraintType == "MinDose" ? -val : val);
+      }
+      return g;
+    };
+
+    // If no sparsity pattern was set from Python, auto-compute it from D non-zeros.
+    if (d->jacSparsityPattern.empty())
+    {
+      for (int ci = 0; ci < numCon; ++ci)
+      {
+        const auto& t = (*sharedCon)[ci];
+        for (int j = 0; j < t.D.outerSize(); ++j)
+          if (t.D.outerIndexPtr()[j] < t.D.outerIndexPtr()[j + 1])
+            d->jacSparsityPattern.emplace_back(ci, j);
+      }
+      d->numJacNonzeros = static_cast<int>(d->jacSparsityPattern.size());
+    }
+
+    // Sparse Jacobian: for each (ci, j) in pattern, value = D_ci.col(j) · softmax(±dose_ci)
+    auto sharedPat = std::make_shared<std::vector<std::pair<int,int>>>(d->jacSparsityPattern);
+    d->constraintJacobianFunction = [sharedCon, sharedPat](const qSlicerIpoptOptimizer::Array& w)
+      -> qSlicerIpoptOptimizer::Array
+    {
+      Eigen::VectorXd wv = Eigen::Map<const Eigen::VectorXd>(w.data(), w.size());
+      qSlicerIpoptOptimizer::Array vals(sharedPat->size());
+      int curCi = -1;
+      Eigen::VectorXd softw;
+      for (int k = 0; k < static_cast<int>(sharedPat->size()); ++k)
+      {
+        int ci = (*sharedPat)[k].first;
+        int j  = (*sharedPat)[k].second;
+        if (ci != curCi)
+        {
+          const auto& t = (*sharedCon)[ci];
+          Eigen::VectorXd dose = t.D * wv;
+          if (t.constraintType == "MinDose") dose = -dose;
+          double dmax = dose.maxCoeff();
+          Eigen::VectorXd expv(dose.size());
+          for (int v = 0; v < dose.size(); ++v)
+            expv[v] = std::exp((dose[v] - dmax) / t.smoothingT);
+          softw = expv / expv.sum();
+          curCi = ci;
+        }
+        vals[k] = (*sharedCon)[ci].D.col(j).dot(softw);
+      }
+      return vals;
+    };
+  }
+
+  // Match matRad's x0 initialization exactly:
+  //   doseTarget = max dose parameter across all target structures
+  //   V          = union of all target voxels (SquaredUnderdosing + MinDose)
+  //   scale      = doseTarget / mean(D_allTargets * ones)
+  //   x0         = scale * ones
+  // Reference: matRad_fluenceOptimization.m lines 99-122, 312-314
+  Array startX0 = x0;
+  {
+    int n = static_cast<int>(x0.size());
+    Eigen::VectorXd wOnes = Eigen::VectorXd::Ones(n);
+    double doseTarget = 0.0;
+    std::vector<double> allTargetDoses;
+
+    for (const auto& t : d->structureTerms)
+    {
+      if (t.objectiveType == "SquaredUnderdosing")
+      {
+        doseTarget = std::max(doseTarget, t.bound);
+        Eigen::VectorXd dose = t.D * wOnes;
+        allTargetDoses.insert(allTargetDoses.end(), dose.data(), dose.data() + dose.size());
+      }
+    }
+    for (const auto& t : d->constraintTerms)
+    {
+      if (t.constraintType == "MinDose")
+      {
+        doseTarget = std::max(doseTarget, t.bound);
+        Eigen::VectorXd dose = t.D * wOnes;
+        allTargetDoses.insert(allTargetDoses.end(), dose.data(), dose.data() + dose.size());
+      }
+    }
+
+    if (doseTarget > 0.0 && !allTargetDoses.empty())
+    {
+      double meanTargetDose = std::accumulate(allTargetDoses.begin(), allTargetDoses.end(), 0.0)
+                              / static_cast<double>(allTargetDoses.size());
+      if (meanTargetDose > 0.0)
+        startX0.assign(n, doseTarget / meanTargetDose);
+    }
+  }
+
   // Create and validate IPOPT problem
-  SmartPtr<IpoptProblem> nlp = d->validateIpoptProblem(x0);
+  SmartPtr<IpoptProblem> nlp = d->validateIpoptProblem(startX0);
   if (IsNull(nlp)) {
     Result result;
     result.success = false;
@@ -541,19 +763,28 @@ void qSlicerIpoptOptimizer::setOption(const QString& key, const QVariant& value)
   Q_D(qSlicerIpoptOptimizer);
 
 
-  // Handle individual option setting
-  if (key == "print_level") {
-    d->options.print_level = value.toInt();
-  } else if (key == "tol") {
-    d->options.tol = value.toDouble();
-  } else if (key == "max_iter") {
-    d->options.max_iter = value.toInt();
-  } else if (key == "max_cpu_time") {
-    d->options.max_cpu_time = value.toDouble();
-  } else if (key == "acceptable_tol") {
-    d->options.acceptable_tol = value.toDouble();
-  }
-  // Add more option handling as needed
+  if      (key == "print_level")                d->options.print_level = value.toInt();
+  else if (key == "tol")                         d->options.tol = value.toDouble();
+  else if (key == "dual_inf_tol")               d->options.dual_inf_tol = value.toDouble();
+  else if (key == "constr_viol_tol")            d->options.constr_viol_tol = value.toDouble();
+  else if (key == "compl_inf_tol")              d->options.compl_inf_tol = value.toDouble();
+  else if (key == "acceptable_iter")            d->options.acceptable_iter = value.toInt();
+  else if (key == "acceptable_tol")             d->options.acceptable_tol = value.toDouble();
+  else if (key == "acceptable_constr_viol_tol") d->options.acceptable_constr_viol_tol = value.toDouble();
+  else if (key == "acceptable_dual_inf_tol")    d->options.acceptable_dual_inf_tol = value.toDouble();
+  else if (key == "acceptable_compl_inf_tol")   d->options.acceptable_compl_inf_tol = value.toDouble();
+  else if (key == "acceptable_obj_change_tol")  d->options.acceptable_obj_change_tol = value.toDouble();
+  else if (key == "max_iter")                    d->options.max_iter = value.toInt();
+  else if (key == "max_resto_iter")              d->options.max_resto_iter = value.toInt();
+  else if (key == "max_cpu_time")               d->options.max_cpu_time = value.toDouble();
+  else if (key == "mu_strategy")                d->options.mu_strategy = value.toString();
+  else if (key == "hessian_approximation")      d->options.hessian_approximation = value.toString();
+  else if (key == "limited_memory_max_history") d->options.limited_memory_max_history = value.toInt();
+  else if (key == "limited_memory_initialization") d->options.limited_memory_initialization = value.toString();
+  else if (key == "linear_solver")              d->options.linear_solver = value.toString();
+  else if (key == "print_user_options")         d->options.print_user_options = value.toString();
+  else if (key == "print_options_documentation") d->options.print_options_documentation = value.toString();
+  else if (key == "print_timing_statistics")    d->options.print_timing_statistics = value.toString();
 }
 
 //-----------------------------------------------------------------------------
@@ -989,7 +1220,10 @@ QString qSlicerIpoptOptimizer::optimizePlanUsingOptimizer(
 
   // ── Step 4: solve ──
   emit progressInfoUpdated("Starting IPOPT optimization...");
-  Array w0(totalBixels, 1.0 / totalBixels); // uniform initial fluence
+
+  // Scale initial weights so the mean dose in the most demanding MinDose
+  Array w0(totalBixels, 1.0 / totalBixels);
+
   Result result = solveProblem(w0);
   if (!result.success)
     return QString("IPOPT solver did not converge (status %1)").arg(result.status);

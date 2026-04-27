@@ -101,9 +101,15 @@ public slots:
   void setMaxIterations(int maxIter);
   void setMaxTime(double maxTime);
   void setAbsoluteObjectiveTolerance(double tol);
+  void setOption(const QString& key, const QVariant& value);
 
   void setObjectiveFunction(ObjectiveFunction func);
   void setGradientFunction(GradientFunction func);
+
+  /// Set the sparse Jacobian pattern from Python as (iRow, jCol) pairs in
+  /// row-major order. When set before solve(), C++ computes Jacobian values
+  /// only for these entries instead of the full dense m×n matrix.
+  void setConstraintJacobianSparsity(const QList<int>& iRow, const QList<int>& jCol);
 
   /// Python-friendly interface: build the objective from per-structure D matrices.
   /// Call clearStructureTerms(), then addStructureTerm() once per structure,
@@ -120,6 +126,19 @@ public slots:
   void addStructureTerm(const QList<double>& data, const QList<int>& rowInd,
                         const QList<int>& colInd, int nVoxels, int nBixels,
                         const QString& objectiveType, double bound, double weight);
+
+  /// Python-friendly interface: add a hard dose constraint enforced by IPOPT.
+  /// Uses a logsumexp smooth approximation (one constraint row per call).
+  ///
+  /// \param constraintType "MaxDose" → D·w ≤ bound (max dose limit)
+  ///                       "MinDose" → D·w ≥ bound (min dose coverage)
+  /// \param smoothingT     Logsumexp temperature (Gy). Smaller = tighter
+  ///                       approximation. Default 1e-3 matches the value used
+  ///                       by qSlicerMinMaxDoseConstraint and matRad.
+  void addStructureConstraint(const QList<double>& data, const QList<int>& rowInd,
+                               const QList<int>& colInd, int nVoxels, int nBixels,
+                               const QString& constraintType, double bound,
+                               double smoothingT = 1e-3);
   void clearStructureTerms();
 
   /// Python-friendly solve: runs IPOPT and returns true on success.
@@ -132,7 +151,6 @@ public:
 
   Options getOptions() const;
   void setOptions(const Options& options);
-  void setOption(const QString& key, const QVariant& value);
 
   Result getLastResult() const;
 
