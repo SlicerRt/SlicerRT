@@ -541,19 +541,28 @@ void qSlicerIpoptOptimizer::setOption(const QString& key, const QVariant& value)
   Q_D(qSlicerIpoptOptimizer);
 
 
-  // Handle individual option setting
-  if (key == "print_level") {
-    d->options.print_level = value.toInt();
-  } else if (key == "tol") {
-    d->options.tol = value.toDouble();
-  } else if (key == "max_iter") {
-    d->options.max_iter = value.toInt();
-  } else if (key == "max_cpu_time") {
-    d->options.max_cpu_time = value.toDouble();
-  } else if (key == "acceptable_tol") {
-    d->options.acceptable_tol = value.toDouble();
-  }
-  // Add more option handling as needed
+  if      (key == "print_level")                d->options.print_level = value.toInt();
+  else if (key == "tol")                         d->options.tol = value.toDouble();
+  else if (key == "dual_inf_tol")               d->options.dual_inf_tol = value.toDouble();
+  else if (key == "constr_viol_tol")            d->options.constr_viol_tol = value.toDouble();
+  else if (key == "compl_inf_tol")              d->options.compl_inf_tol = value.toDouble();
+  else if (key == "acceptable_iter")            d->options.acceptable_iter = value.toInt();
+  else if (key == "acceptable_tol")             d->options.acceptable_tol = value.toDouble();
+  else if (key == "acceptable_constr_viol_tol") d->options.acceptable_constr_viol_tol = value.toDouble();
+  else if (key == "acceptable_dual_inf_tol")    d->options.acceptable_dual_inf_tol = value.toDouble();
+  else if (key == "acceptable_compl_inf_tol")   d->options.acceptable_compl_inf_tol = value.toDouble();
+  else if (key == "acceptable_obj_change_tol")  d->options.acceptable_obj_change_tol = value.toDouble();
+  else if (key == "max_iter")                    d->options.max_iter = value.toInt();
+  else if (key == "max_resto_iter")              d->options.max_resto_iter = value.toInt();
+  else if (key == "max_cpu_time")               d->options.max_cpu_time = value.toDouble();
+  else if (key == "mu_strategy")                d->options.mu_strategy = value.toString();
+  else if (key == "hessian_approximation")      d->options.hessian_approximation = value.toString();
+  else if (key == "limited_memory_max_history") d->options.limited_memory_max_history = value.toInt();
+  else if (key == "limited_memory_initialization") d->options.limited_memory_initialization = value.toString();
+  else if (key == "linear_solver")              d->options.linear_solver = value.toString();
+  else if (key == "print_user_options")         d->options.print_user_options = value.toString();
+  else if (key == "print_options_documentation") d->options.print_options_documentation = value.toString();
+  else if (key == "print_timing_statistics")    d->options.print_timing_statistics = value.toString();
 }
 
 //-----------------------------------------------------------------------------
