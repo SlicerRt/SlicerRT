@@ -73,6 +73,10 @@ public:
   /// \sa canDoIonPlan
   void setCanDoIonPlan(bool isInverse) override;
 
+  /// Set the body segment support bool
+  /// \sa supportsBodySegment
+  void setSupportsBodySegment(bool supportsBodySegment);
+
 // Dose calculation related functions (API functions to call from the subclass)
 protected:
   /// Calculate dose for a single beam. Called by \sa CalculateDose that performs actions generic

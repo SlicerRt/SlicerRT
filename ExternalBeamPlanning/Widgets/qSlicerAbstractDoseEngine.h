@@ -48,6 +48,7 @@ class Q_SLICER_MODULE_EXTERNALBEAMPLANNING_WIDGETS_EXPORT qSlicerAbstractDoseEng
   Q_PROPERTY(QString name READ name WRITE setName)
   Q_PROPERTY(bool isInverse READ isInverse WRITE setIsInverse)
   Q_PROPERTY(bool canDoIonPlan READ canDoIonPlan WRITE setCanDoIonPlan)
+  Q_PROPERTY(bool supportsBodySegment READ supportsBodySegment WRITE setSupportsBodySegment)
 
 public:
   /// Maximum Gray value for visualization window/level of the newly created per-beam dose volumes
@@ -78,6 +79,12 @@ public:
 
   /// Set ion planing capabilities
   virtual void setCanDoIonPlan(bool canDoIonPlan);
+
+  /// Body segment support
+  bool supportsBodySegment()const;
+
+  /// Set body segment support
+  virtual void setSupportsBodySegment(bool supportsBodySegment);
 
 // Dose calculation related functions
 public:
@@ -289,6 +296,10 @@ protected:
   /// Can the dose engine do ion plan? (i.e. it is able to calculate a dose for ion beams)
   /// Is false by default, but can be set in the dose engine constructor
   bool m_CanDoIonPlan = false;
+
+  /// Does the dose engine support body segment? (i.e. uses specified body segment for dose calculation)
+  /// Is false by default, but can be set in the dose engine constructor
+  bool m_SupportsBodySegment = false;
 
   /// List of registered tab widgets. Static so that it is common to all engines.
   static QSet<qMRMLBeamParametersTabWidget*> m_BeamParametersTabWidgets;

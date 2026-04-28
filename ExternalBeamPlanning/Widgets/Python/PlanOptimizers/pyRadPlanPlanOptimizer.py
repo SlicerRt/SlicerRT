@@ -22,20 +22,20 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     """
 
     from pyRadPlan.optimization.objectives import get_available_objectives
-    availableObjectives_dict = {}
+    availableObjectivesDict = {}
 
-    for obj_name, obj_class in get_available_objectives().items():
-      obj_instance = obj_class()
-      parameter_dict = {}
-      parameterNames = obj_instance.parameter_names
-      parameterDefaultValues = obj_instance.parameters
+    for objName, objClass in get_available_objectives().items():
+      objInstance = objClass()
+      parameterDict = {}
+      parameterNames = objInstance.parameter_names
+      parameterDefaultValues = objInstance.parameters
       for i in range(len(parameterNames)):
-          parameter_dict[parameterNames[i]] = {
+          parameterDict[parameterNames[i]] = {
               "default": parameterDefaultValues[i],
           }
-      availableObjectives_dict[obj_name] = parameter_dict
+      availableObjectivesDict[objName] = parameterDict
 
-    return availableObjectives_dict
+    return availableObjectivesDict
 
   #------------------------------------------------------------------------------
   def optimizePlanUsingOptimizer(self, planNode, objectives, resultOptimizationVolumeNode):
@@ -48,57 +48,65 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     from pyRadPlan.dij import Dij, compose_beam_dijs
     from pyRadPlan.optimization.objectives import get_objective
 
-    logging.basicConfig(level=logging.INFO)
 
     ########################### Get objectives from Slicer objectives table ##############################
-    objectives_dict = {}
+    objectivesDict = {}
 
     # Loop through all objectives in the Slicer objectives table
-    for node_dict in objectives:
+    for nodeDict in objectives:
 
       # Get objective node
-      objective_node = node_dict['ObjectiveNode']
-      if not objective_node:
+      objectiveNode = nodeDict['ObjectiveNode']
+      if not objectiveNode:
         raise ValueError("Objective node is not set. Please select an objective node in the Slicer objectives table.")
 
       # Get segmentation
-      segmentationNode = objective_node.GetSegmentationNode()
+      segmentationNode = objectiveNode.GetSegmentationNode()
       if not segmentationNode:
         raise ValueError("Segmentation node is not set for objective node. Please select a segmentation node in the Slicer objectives table.")
-      segmentID = objective_node.GetSegmentID()
+      segmentID = objectiveNode.GetSegmentID()
       if not segmentID:
         raise ValueError("Segment ID is not set for objective node. Please select a segment in the Slicer objectives table.")
       segmentName = segmentationNode.GetSegmentation().GetSegment(segmentID).GetName()
 
       # Get objective information
-      objective_info = {
-        'objectiveName': objective_node.GetName(),
-        'overlapPriority': objective_node.GetAttribute('overlapPriority'),
-        'penalty': objective_node.GetAttribute('penalty'),
-        'parameters': {name: objective_node.GetAttribute(name) for name in objective_node.GetAttributeNames() if name != 'overlapPriority' and name != 'penalty'}
+      objectiveInfo = {
+        'objectiveName': objectiveNode.GetName(),
+        'overlapPriority': objectiveNode.GetAttribute('overlapPriority'),
+        'penalty': objectiveNode.GetAttribute('penalty'),
+        'parameters': {name: objectiveNode.GetAttribute(name) for name in objectiveNode.GetAttributeNames() if name != 'overlapPriority' and name != 'penalty'}
       }
 
       # Save objectives for each segmentation
-      if segmentName not in objectives_dict:
-        objectives_dict[segmentName] = [objective_info]
+      if segmentName not in objectivesDict:
+        objectivesDict[segmentName] = [objectiveInfo]
       else:
-        objectives_dict[segmentName].append(objective_info)
+        objectivesDict[segmentName].append(objectiveInfo)
 
+    msg = "Objectives extracted from Slicer objectives table:\n"
+    for segmentName, objectivesList in objectivesDict.items():
+        msg += f"  Segment: {segmentName}\n"
+        for objectiveInfo in objectivesList:
+            msg += f"    Objective: {objectiveInfo['objectiveName']}\n"
+            msg += f"      Overlap Priority: {objectiveInfo['overlapPriority']}\n"
+            msg += f"      Penalty: {objectiveInfo['penalty']}\n"
+            msg += f"      Parameters: {objectiveInfo['parameters']}\n"
+    logging.info(msg)
 
     ###################################### Get overlap priorites #########################################
-    overlap_priority_dict = {}
+    overlapPriorityDict = {}
 
-    # Extract overlap priorities from objectives_dict (saved for each objective, but needed for each VOI)
-    for voi_name, objectives_list in objectives_dict.items():
+    # Extract overlap priorities from objectivesDict (saved for each objective, but needed for each VOI)
+    for voiName, objectivesList in objectivesDict.items():
 
       # Take first overlap priority for each VOI
-      overlap_priority = objectives_list[0]['overlapPriority']
-      overlap_priority_dict[voi_name] = overlap_priority
+      overlapPriority = objectivesList[0]['overlapPriority']
+      overlapPriorityDict[voiName] = overlapPriority
 
       # Check if all objectives for this VOI have the same overlap priority
-      for objective in objectives_list:
-        if objective['overlapPriority'] != overlap_priority:
-          raise ValueError(f"Overlap priorities do not match for VOI '{voi_name}' in objectives table. All objectives for a VOI must have the same overlap priority.")
+      for objective in objectivesList:
+        if objective['overlapPriority'] != overlapPriority:
+          raise ValueError(f"Overlap priorities do not match for VOI '{voiName}' in objectives table. All objectives for a VOI must have the same overlap priority.")
 
 
     ############################ Get dose influence matrices from beam nodes #############################
@@ -106,26 +114,26 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
     # Get beams in plan
     numberOfBeams = planNode.GetNumberOfBeams()
-    beam_names = []
-    tried_beam_index = 0
-    while (len(beam_names) < numberOfBeams):
+    beamNames = []
+    triedBeamIndex = 0
+    while (len(beamNames) < numberOfBeams):
       try:
-        beam = planNode.GetBeamByNumber(tried_beam_index)
-        beam_names.append(beam.GetName())
-        tried_beam_index += 1
+        beam = planNode.GetBeamByNumber(triedBeamIndex)
+        beamNames.append(beam.GetName())
+        triedBeamIndex += 1
       except:
-        tried_beam_index += 1
+        triedBeamIndex += 1
 
     # Get dij of each beam
-    dij_list = []
-    beam_index = 0
-    for beam_name in beam_names:
+    dijList = []
+    beamIndex = 0
+    for beamName in beamNames:
 
-      beam_index += 1
-      self.scriptedPlanOptimizer.progressInfoUpdated("get dijs ("+ str(beam_index) + "/" + str(numberOfBeams) + ")")
+      beamIndex += 1
+      self.scriptedPlanOptimizer.progressInfoUpdated("get dijs ("+ str(beamIndex) + "/" + str(numberOfBeams) + ")")
 
-      beamNode = planNode.GetBeamByName(beam_name)
-      print('current beam: ', beam_name)
+      beamNode = planNode.GetBeamByName(beamName)
+      logging.info(f"Processing beam: {beamName}")
 
       # Prepare the ct
       ct = prepareCt(beamNode)
@@ -134,70 +142,70 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
       cst = prepareCst(beamNode, ct)
 
       # Prepare the plan configuration
-      pln = preparePln(beamNode, ct, dose_grid_from_beamNode=True)
+      pln = preparePln(beamNode, ct, doseGridFromBeamNode=True)
 
       # Generate Steering Geometry ("stf")
       stf = generate_stf(ct, cst, pln)
 
       # Get Dose Influence Matrix (coo_matrix)
-      field_data = beamNode.GetDoseInfluenceMatrixFieldData()
-      data = np.array(field_data.GetArray('Data'), dtype=np.float32)
-      indices = np.array(field_data.GetArray('Indices'), dtype=np.int32)
-      indptr = np.array(field_data.GetArray('Indptr'), dtype=np.int32)
+      fieldData = beamNode.GetDoseInfluenceMatrixFieldData()
+      data = np.array(fieldData.GetArray('Data'), dtype=np.float32)
+      indices = np.array(fieldData.GetArray('Indices'), dtype=np.int32)
+      indptr = np.array(fieldData.GetArray('Indptr'), dtype=np.int32)
 
       # Convert to csc_matrix
-      num_of_cols = len(indptr) - 1
-      number_of_voxels = pln.prop_dose_calc['dose_grid'].num_voxels
-      dose_influence_matrix = csc_matrix((data, indices, indptr), shape=(number_of_voxels, num_of_cols))
+      numOfCols = len(indptr) - 1
+      numberOfVoxels = pln.prop_dose_calc['dose_grid'].num_voxels
+      doseInfluenceMatrix = csc_matrix((data, indices, indptr), shape=(numberOfVoxels, numOfCols))
 
       # Create Dij object
       dij = Dij(
         dose_grid=pln.prop_dose_calc['dose_grid'],
         ct_grid=ct.grid,
-        physical_dose=dose_influence_matrix,
+        physical_dose=doseInfluenceMatrix,
         num_of_beams = 1,
         beam_num=stf.bixel_beam_index_map,
         ray_num=stf.bixel_ray_index_per_beam_map,
         bixel_num=stf.bixel_index_per_beam_map
       )
 
-      dij_list.append(dij)
+      dijList.append(dij)
 
     # Compose dij from all beams
-    if len(dij_list) > 1:
-      dij = compose_beam_dijs(dij_list)
+    if len(dijList) > 1:
+      dij = compose_beam_dijs(dijList)
     else:
-      dij = dij_list[0]
+      dij = dijList[0]
 
 
     ########################### Update overlap priorities & objectives in cst ############################
     for voi in cst.vois:
 
-      if voi.name in objectives_dict:
+      if voi.name in objectivesDict:
         voi.objectives = []
 
         # Set overlap priority for VOI
-        voi.overlap_priority = overlap_priority_dict[voi.name]
+        voi.overlap_priority = overlapPriorityDict[voi.name]
 
-        for i in range(len(objectives_dict[voi.name])):
-          objective_name = objectives_dict[voi.name][i]['objectiveName']
-          objective_parameters = objectives_dict[voi.name][i]['parameters']
+        for i in range(len(objectivesDict[voi.name])):
+          objectiveName = objectivesDict[voi.name][i]['objectiveName']
+          objectiveParameters = objectivesDict[voi.name][i]['parameters']
 
           # Get instance of objective function from pyRadPlan
-          objective_instance = get_objective(objective_name)
+          objectiveInstance = get_objective(objectiveName)
 
           # Set penalty (called "priority" in pyRadPlan) for objective function
-          objective_instance.priority = objectives_dict[voi.name][i]['penalty']
+          objectiveInstance.priority = objectivesDict[voi.name][i]['penalty']
 
           # Set parameters for objective function
-          for parameter in objective_instance.parameter_names:
-            if parameter in objective_parameters:
+          for parameter in objectiveInstance.parameter_names:
+            if parameter in objectiveParameters:
               # TODO: type check
-              setattr(objective_instance, parameter, objective_parameters[parameter])
+              setattr(objectiveInstance, parameter, objectiveParameters[parameter])
             else:
-              print(f"Parameter {parameter} not found in objectives table.")
-              print(f"Using default value: {getattr(objective_instance, parameter)}")
-          voi.objectives.append(objective_instance)
+              logging.warning(f"Parameter {parameter} not found in objectives table. "
+                              f"Using default value: {getattr(objectiveInstance, parameter)}")
+          voi.objectives.append(objectiveInstance)
 
 
     ########################################## Optimize dose #############################################
@@ -212,41 +220,44 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     ##################################### Visualize dose in Slicer #######################################
     self.scriptedPlanOptimizer.progressInfoUpdated("visualize dose")
 
-    total_dose = result["physical_dose"]
+    # Get global variables for dose volume node naming and hierarchy placement
+    shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
+    planItemID = shNode.GetItemByDataNode(planNode)
+    rxDose = planNode.GetRxDose()
 
-    # TODO: directly get dose per beam from overlay=result.beam_quantities["physical_dose"][0].distribution (once result_gui is merged)
-    # Now: manually get dose per beam and create a new volume node for each beam
-    for i in range(planNode.GetNumberOfBeams()):
-      mask = (dij.beam_num == i)
-      fluence_for_beam = np.zeros_like(fluence)
-      fluence_for_beam[mask] = fluence[mask]
-      result_for_beam = dij.compute_result_ct_grid(fluence_for_beam)
-      dose_per_beam = result_for_beam["physical_dose"]
+    # Get dose for each and beam
+    if (planNode.GetNumberOfBeams() > 1):
+      for i, beamName in enumerate(beamNames):
+        # Create a new volume node for each beam
+        beamDoseVolumeNodeName = f'{planNode.GetName()}_pyRadPlanOptimized_physicalDose_{beamName}'
+        beamDoseVolumeNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeNode", beamDoseVolumeNodeName)
+        displayNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeDisplayNode")
+        beamDoseVolumeNode.SetAndObserveDisplayNodeID(displayNode.GetID())
+        sitkUtils.PushVolumeToSlicer(result['physical_dose_beam'][i], beamDoseVolumeNode)
 
-      # Create a new volume node for each beam
-      beamDoseVolumeNodeName = f'{planNode.GetName()}_pyRadOptimizedDose_Beam_{i+1}'
-      beamDoseVolumeNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeNode", beamDoseVolumeNodeName)
-      displayNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeDisplayNode")
-      beamDoseVolumeNode.SetAndObserveDisplayNodeID(displayNode.GetID())
+        # Place under the plan in the hierarchy
+        itemID = shNode.GetItemByDataNode(beamDoseVolumeNode)
+        shNode.SetItemParent(itemID, planItemID)
 
-      sitkUtils.PushVolumeToSlicer(dose_per_beam, beamDoseVolumeNode)
+        # Tag & trigger re-evaluation as dose volume
+        shNode.SetItemAttribute(itemID, 'DoseUnitName', "Gy")
+        shNode.SetItemAttribute(itemID, 'DoseUnitValue', "1.0")
+        beamDoseVolumeNode.SetAttribute("DicomRtImport.DoseVolume", "1")
+        shNode.RequestOwnerPluginSearch(itemID)
+        shNode.ItemModified(itemID)
 
-      # Set colormap
-      rxDose = planNode.GetRxDose()
-      displayNode = beamDoseVolumeNode.GetDisplayNode()
-      displayNode.SetAndObserveColorNodeID("vtkMRMLColorTableNodeDose_ColorTable_Relative")
-      displayNode.AutoWindowLevelOn()
-      displayNode.SetLowerThreshold(0.05*rxDose)
-      displayNode.ApplyThresholdOn()
+        # Set colormap
+        displayNode.SetAndObserveColorNodeID("vtkMRMLColorTableNodeDose_ColorTable_Relative")
+        displayNode.AutoWindowLevelOn()
+        displayNode.SetLowerThreshold(0.05*rxDose)
+        displayNode.ApplyThresholdOn()
 
-    # Push total dose to volumeNode in Slicer
-    sitkUtils.PushVolumeToSlicer(total_dose, targetNode = resultOptimizationVolumeNode)
-
-    # Set name of result volume node
+    # Push total dose to volumeNode in Slicer, set name & overlay on CT
+    sitkUtils.PushVolumeToSlicer(result["physical_dose"], targetNode = resultOptimizationVolumeNode)
     try:
       resultOptimizationVolumeNodeName = planNode.GetOutputTotalDoseVolumeNode().GetName()
     except AttributeError:
-      resultOptimizationVolumeNodeName = str(planNode.GetName())+"_pyRadOptimizedDose"
+      resultOptimizationVolumeNodeName = str(planNode.GetName())+"_pyRadPlanOptimized_physicalDose"
     resultOptimizationVolumeNode.SetName(resultOptimizationVolumeNodeName)
 
     return str()

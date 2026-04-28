@@ -180,6 +180,11 @@ public:
   /// Set target segment ID
   vtkSetStringMacro(TargetSegmentID);
 
+  /// Get body segment ID
+  vtkGetStringMacro(BodySegmentID);
+  /// Set body segment ID
+  vtkSetStringMacro(BodySegmentID);
+
   /// Get isocenter specification
   vtkGetMacro(IsocenterSpecification, vtkMRMLRTPlanNode::IsocenterSpecificationType);
 
@@ -253,6 +258,9 @@ protected:
 
   /// Target segment ID in target segmentation node
   char* TargetSegmentID{ nullptr };
+
+  /// Body segment ID in segmentation node
+  char* BodySegmentID{ nullptr };
 
   /// Isocenter specification determining whether it can be an arbitrary point or
   /// always calculated to be at the center of the target structure
