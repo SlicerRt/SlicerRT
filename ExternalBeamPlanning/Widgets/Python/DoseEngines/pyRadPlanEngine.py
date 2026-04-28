@@ -16,6 +16,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
     scriptedEngine.name = 'pyRadPlan'
     scriptedEngine.isInverse = True #pyRadPlan has Inverse planning capabilities, i.e., it can compute a dose influence matrix
     scriptedEngine.canDoIonPlan = True
+    scriptedEngine.supportsBodySegment = True
     AbstractScriptedDoseEngine.__init__(self, scriptedEngine)
 
   #------------------------------------------------------------------------------
@@ -35,15 +36,15 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
   #------------------------------------------------------------------------------
   def updateBeamParametersForIonPlan(self, isIonPlanActive):
     if isIonPlanActive:
-      available_radiation_modes = ["protons", "carbons"]
-      parameter_label = "radiation mode (ion)"
+      availableRadiationModes = ["protons", "carbons"]
+      parameterLabel = "radiation mode (ion)"
     else:
-      available_radiation_modes = ["photons", "protons", "carbons"]
-      parameter_label = "radiation mode"
+      availableRadiationModes = ["photons", "protons", "carbons"]
+      parameterLabel = "radiation mode"
     
     self.scriptedEngine.updateBeamParameterComboBox(
-    "pyRadPlan parameters", "radiationMode", parameter_label,
-    "comment", available_radiation_modes, 0)
+    "pyRadPlan parameters", "radiationMode", parameterLabel,
+    "comment", availableRadiationModes, 0)
 
   #------------------------------------------------------------------------------
   def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):
@@ -54,39 +55,37 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
       calc_dose_influence
     )
 
-    logging.basicConfig(level=logging.INFO)
-
 
     ##################################### Prepare data structures ########################################
     # Prepare the ct
-    t_start = time.time()
+    tStart = time.time()
     ct = prepareCt(beamNode)
-    t_end = time.time()
-    print(f"Time to prepare CT: {t_end - t_start}")
+    tEnd = time.time()
+    logging.info(f"Time to prepare CT: {tEnd - tStart}")
 
     # Prepare the cst (segmentations)
-    t_start = time.time()
+    tStart = time.time()
     cst = prepareCst(beamNode, ct)
-    t_end = time.time()
-    print(f"Time to prepare CST: {t_end - t_start}")
+    tEnd = time.time()
+    logging.info(f"Time to prepare CST: {tEnd - tStart}")
 
     # Prepare the plan configuration
-    t_start = time.time()
+    tStart = time.time()
     pln = preparePln(beamNode, ct)
-    t_end = time.time()
-    print(f"Time to prepare PLN: {t_end - t_start}")
+    tEnd = time.time()
+    logging.info(f"Time to prepare PLN: {tEnd - tStart}")
 
     # Generate Steering Geometry ("stf")
-    t_start = time.time()
+    tStart = time.time()
     stf = generate_stf(ct, cst, pln)
-    t_end = time.time()
-    print(f"Time to generate STF: {t_end - t_start}")
+    tEnd = time.time()
+    logging.info(f"Time to generate STF: {tEnd - tStart}")
 
     # Calculate Dose Influence Matrix ("dij")
-    t_start = time.time()
+    tStart = time.time()
     dij = calc_dose_influence(ct, cst, stf, pln)
-    t_end = time.time()
-    print(f"Time to calculate Dij: {t_end - t_start}")
+    tEnd = time.time()
+    logging.info(f"Time to calculate Dij: {tEnd - tStart}")
 
 
     ##################################### Visualize dose in Slicer #######################################
@@ -100,7 +99,7 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
     # Push total dose to volumeNode in Slicer, set name & overlay on CT
     sitkUtils.PushVolumeToSlicer(totalDose, targetNode = resultDoseVolumeNode)
-    resultDoseNodeName = str(planNode.GetName())+"_pyRadDose_" + beamNode.GetName()
+    resultDoseNodeName = str(planNode.GetName())+"_pyRadPlanDose_" + beamNode.GetName()
     resultDoseVolumeNode.SetName(resultDoseNodeName)
     slicer.util.setSliceViewerLayers(background=referenceVolumeNode, foreground=resultDoseVolumeNode)
     slicer.util.setSliceViewerLayers(foregroundOpacity=1)
@@ -116,52 +115,50 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
       calc_dose_influence
     )
 
-    logging.basicConfig(level=logging.INFO)
 
-        
     ##################################### Prepare data structures ########################################
     # Prepare the ct
-    t_start = time.time()
+    tStart = time.time()
     ct = prepareCt(beamNode)
-    t_end = time.time()
-    print(f"Time to prepare CT: {t_end - t_start}")
+    tEnd = time.time()
+    logging.info(f"Time to prepare CT: {tEnd - tStart}")
 
     # Prepare the cst (segmentations)
-    t_start = time.time()
-    cst = prepareCst(beamNode, ct)
-    t_end = time.time()
-    print(f"Time to prepare CST: {t_end - t_start}")
+    tStart = time.time()
+    cst = prepareCst(beamNode, ct, needBody=True)
+    tEnd = time.time()
+    logging.info(f"Time to prepare CST: {tEnd - tStart}")
 
     # Prepare the plan configuration
-    t_start = time.time()
+    tStart = time.time()
     pln = preparePln(beamNode, ct)
-    t_end = time.time()
-    print(f"Time to prepare PLN: {t_end - t_start}")
+    tEnd = time.time()
+    logging.info(f"Time to prepare PLN: {tEnd - tStart}")
 
     # Generate Steering Geometry ("stf")
-    t_start = time.time()
+    tStart = time.time()
     stf = generate_stf(ct, cst, pln)
-    t_end = time.time()
-    print(f"Time to generate STF: {t_end - t_start}")
+    tEnd = time.time()
+    logging.info(f"Time to generate STF: {tEnd - tStart}")
 
     # Calculate Dose Influence Matrix ("dij")
-    t_start = time.time()
+    tStart = time.time()
     dij = calc_dose_influence(ct, cst, stf, pln)
-    t_end = time.time()
-    print(f"Time to calculate Dij: {t_end - t_start}")
+    tEnd = time.time()
+    logging.info(f"Time to calculate Dij: {tEnd - tStart}")
 
 
     ###################################### Store dose in beamNode ########################################
 
     # Optimize storage such that we don't have multiple instances in memory
     # we use a coo matrix here as it is the most efficient way to get the matrix into slicer
-    dose_matrix = coo_matrix(dij.physical_dose.flat[0])
+    doseMatrix = coo_matrix(dij.physical_dose.flat[0])
 
     beamNode.SetDoseInfluenceMatrixFromTriplets(
-      dose_matrix.shape[0], dose_matrix.shape[1],
-      dose_matrix.row,
-      dose_matrix.col,
-      dose_matrix.data,
+      doseMatrix.shape[0], doseMatrix.shape[1],
+      doseMatrix.row,
+      doseMatrix.col,
+      doseMatrix.data,
       dij.dose_grid.dimensions, #set dimensions of dose grid in beamNode for which the dose influence matrix is defined
       dij.dose_grid.resolution_vector #set spacing of dose grid in beamNode for which the dose influence matrix is defined
     )

@@ -294,12 +294,12 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
   context.evalScript(QString(
     "try:\n"
     " import pyRadPlan\n"
-    " assert pyRadPlan.__version__ == '0.2.8'\n"
+    " assert pyRadPlan.__version__ == '0.3.1'\n"
     "except (ImportError, AttributeError, AssertionError):\n"
     " if slicer.util.confirmOkCancelDisplay("
-    "   'This module requires pyRadPlan.\\nClick OK to install it now. Slicer will automatically restart.'\n"
+    "   'This module requires pyRadPlan (version 0.3.1).\\nClick OK to install it now. Slicer will automatically restart.'\n"
     " ):\n"
-    "   slicer.util.pip_install('pyRadPlan==0.2.8')\n"
+    "   slicer.util.pip_install('pyRadPlan==0.3.1')\n"
     "   slicer.app.restart()\n"));
 }
 
@@ -341,6 +341,8 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
 
   connect( d->MRMLSegmentSelectorWidget_TargetStructure, SIGNAL(currentSegmentChanged(QString)), this, SLOT(targetSegmentChanged(const QString&)) );
   connect( d->checkBox_IsocenterAtTargetCenter, SIGNAL(stateChanged(int)), this, SLOT(isocenterAtTargetCenterCheckboxStateChanged(int)));
+
+  connect(d->MRMLSegmentSelectorWidget_BodyStructure, SIGNAL(currentSegmentChanged(QString)), this, SLOT(bodySegmentChanged(const QString&)));
 
   connect( d->checkBox_InversePlanning, SIGNAL(stateChanged(int)), this, SLOT(inversePlanningCheckboxStateChanged(int)));
 
@@ -429,6 +431,10 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
   // Set target segment
   d->MRMLSegmentSelectorWidget_TargetStructure->setCurrentNode(planNode->GetSegmentationNode());
   d->MRMLSegmentSelectorWidget_TargetStructure->setCurrentSegmentID(planNode->GetTargetSegmentID());
+
+  // Set body segment
+  d->MRMLSegmentSelectorWidget_BodyStructure->setCurrentNode(planNode->GetSegmentationNode());
+  d->MRMLSegmentSelectorWidget_BodyStructure->setCurrentSegmentID(planNode->GetBodySegmentID());
 
   // Update isocenter specification
   d->checkBox_IsocenterAtTargetCenter->setChecked(planNode->GetIsocenterSpecification() == vtkMRMLRTPlanNode::CenterOfTarget);
@@ -624,8 +630,9 @@ void qSlicerExternalBeamPlanningModuleWidget::segmentationNodeChanged(vtkMRMLNod
   planNode->SetAndObserveSegmentationNode(vtkMRMLSegmentationNode::SafeDownCast(node));
   planNode->DisableModifiedEventOff();
 
-  // Set segmentation node to target selector
+  // Set segmentation node to target and body selector
   d->MRMLSegmentSelectorWidget_TargetStructure->setCurrentNode(node);
+  d->MRMLSegmentSelectorWidget_BodyStructure->setCurrentNode(node);
 }
 
 //-----------------------------------------------------------------------------
@@ -854,6 +861,30 @@ void qSlicerExternalBeamPlanningModuleWidget::targetSegmentChanged(const QString
       firstBeamNode->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamTransformModified);
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::bodySegmentChanged(const QString& segment)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  if (!this->mrmlScene())
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid scene";
+    return;
+  }
+
+  vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
+  if (!planNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": Invalid RT plan node";
+    return;
+  }
+
+  // Set body segment ID
+  planNode->DisableModifiedEventOn();
+  planNode->SetBodySegmentID(segment.toUtf8().constData());
+  planNode->DisableModifiedEventOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -1187,6 +1218,8 @@ void qSlicerExternalBeamPlanningModuleWidget::doseEngineChanged(const QString &t
   planNode->DisableModifiedEventOn();
   planNode->SetDoseEngineName(selectedEngine->name().toUtf8().constData());
   planNode->DisableModifiedEventOff();
+
+  d->MRMLSegmentSelectorWidget_BodyStructure->setEnabled(selectedEngine->supportsBodySegment());
 }
 
 //-----------------------------------------------------------------------------

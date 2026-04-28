@@ -67,6 +67,7 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 vtkMRMLRTPlanNode::~vtkMRMLRTPlanNode()
 {
   this->SetTargetSegmentID(nullptr);
+  this->SetBodySegmentID(nullptr);
   this->SetDoseEngineName(nullptr);
   this->SetPlanOptimizerName(nullptr);
 }
@@ -80,6 +81,7 @@ void vtkMRMLRTPlanNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLBeginMacro(of);
   vtkMRMLWriteXMLIntMacro(NextBeamNumber, NextBeamNumber);
   vtkMRMLWriteXMLStringMacro(TargetSegmentID, TargetSegmentID);
+  vtkMRMLWriteXMLStringMacro(BodySegmentID, BodySegmentID);
   vtkMRMLWriteXMLStringMacro(DoseEngineName, DoseEngineName);
   vtkMRMLWriteXMLStringMacro(PlanOptimizerName, PlanOptimizerName);
   vtkMRMLWriteXMLFloatMacro(RxDose, RxDose);
@@ -98,6 +100,7 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLBeginMacro(atts);
   vtkMRMLReadXMLIntMacro(NextBeamNumber, NextBeamNumber);
   vtkMRMLReadXMLStringMacro(TargetSegmentID, TargetSegmentID);
+  vtkMRMLReadXMLStringMacro(BodySegmentID, BodySegmentID);
   vtkMRMLReadXMLStringMacro(DoseEngineName, DoseEngineName);
   vtkMRMLReadXMLStringMacro(PlanOptimizerName, PlanOptimizerName);
   vtkMRMLReadXMLFloatMacro(RxDose, RxDose);
@@ -124,6 +127,7 @@ void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
 
   vtkMRMLCopyBeginMacro(node);
   vtkMRMLCopyStringMacro(TargetSegmentID);
+  vtkMRMLCopyStringMacro(BodySegmentID);
   vtkMRMLCopyIntMacro(IsocenterSpecification);
   vtkMRMLCopyIntMacro(NextBeamNumber);
   vtkMRMLCopyStringMacro(DoseEngineName);
@@ -164,6 +168,7 @@ void vtkMRMLRTPlanNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*/)
   vtkMRMLCopyBeginMacro(node);
   vtkMRMLCopyFloatMacro(RxDose);
   vtkMRMLCopyStringMacro(TargetSegmentID);
+  vtkMRMLCopyStringMacro(BodySegmentID);
   vtkMRMLCopyIntMacro(IsocenterSpecification);
   vtkMRMLCopyIntMacro(NextBeamNumber);
   vtkMRMLCopyStringMacro(DoseEngineName);
@@ -181,6 +186,7 @@ void vtkMRMLRTPlanNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintBeginMacro(os, indent);
   vtkMRMLPrintIntMacro(NextBeamNumber);
   vtkMRMLPrintStringMacro(TargetSegmentID);
+  vtkMRMLPrintStringMacro(BodySegmentID);
   vtkMRMLPrintStringMacro(DoseEngineName);
   vtkMRMLPrintStringMacro(PlanOptimizerName);
   vtkMRMLPrintFloatMacro(RxDose);
