@@ -38,7 +38,9 @@
 #include <QDebug>
 #include <QKeyEvent>
 #include <QStringList>
+#include <QCheckBox>
 #include <QComboBox>
+#include <QHBoxLayout>
 #include <QLineEdit>
 #include <QSpinBox>
 
@@ -97,10 +99,12 @@ void qMRMLObjectivesTableWidgetPrivate::init()
   this->setMessage(QString());
 
   // Set table header properties
-  this->ColumnLabels << "Number" << "ObjectiveName" << "Segments" << "OverlapPriority" << "Penalty" << "Parameters";
-  this->ObjectivesTable->setHorizontalHeaderLabels(
-    QStringList() << "#" << "Objective" << "Segments" << "OP" << "p" << "Parameters");
+  this->ColumnLabels << "Number" << "IsConstraint" << "ObjectiveName" << "Segments" << "OverlapPriority" << "Penalty" << "Parameters";
   this->ObjectivesTable->setColumnCount(this->ColumnLabels.size());
+  this->ObjectivesTable->setHorizontalHeaderLabels(
+    QStringList() << "#" << "C" << "Objective" << "Segments" << "OP" << "p" << "Parameters");
+  this->ObjectivesTable->horizontalHeaderItem(this->columnIndex("IsConstraint"))
+    ->setToolTip("Constraint (check to show constraints instead of objectives)");
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
   this->ObjectivesTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
@@ -437,15 +441,39 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
     return;
   }
 
-  // Objectives (Combo Box)
+  // IsConstraint checkbox — disabled if this optimizer has no constraints
+  QCheckBox* constraintCheckBox = new QCheckBox();
+  bool hasConstraints = std::any_of(availableObjectives.begin(), availableObjectives.end(),
+    [](const qSlicerAbstractPlanOptimizer::ObjectiveStruct& o) { return o.isConstraint; });
+  constraintCheckBox->setToolTip("Check to show constraints instead of objectives");
+  d->ObjectivesTable->setCellWidget(row, d->columnIndex("IsConstraint"), constraintCheckBox);
+  d->ObjectivesTable->setColumnHidden(d->columnIndex("IsConstraint"), !hasConstraints);
+
+  // Objectives (Combo Box) — initially populated with objectives only
   QComboBox* objectivesDropdown = new QComboBox();
-  for (auto objective : availableObjectives)
+  auto repopulateObjectiveDropdown = [availableObjectives](QComboBox* combo, bool isConstraint)
   {
-    QVariant var;
-    var.setValue(objective);
-    objectivesDropdown->addItem(objective.name, var);
-  }
+    combo->blockSignals(true);
+    combo->clear();
+    for (const auto& obj : availableObjectives)
+    {
+      if (obj.isConstraint == isConstraint)
+      {
+        QVariant var;
+        var.setValue(obj);
+        combo->addItem(obj.name, var);
+      }
+    }
+    combo->blockSignals(false);
+  };
+  repopulateObjectiveDropdown(objectivesDropdown, false);
   d->ObjectivesTable->setCellWidget(row, d->columnIndex("ObjectiveName"), objectivesDropdown);
+
+  connect(constraintCheckBox, &QCheckBox::toggled, this, [this, row, objectivesDropdown, repopulateObjectiveDropdown](bool checked)
+  {
+    repopulateObjectiveDropdown(objectivesDropdown, checked);
+    this->onObjectiveChanged(row);
+  });
   connect(objectivesDropdown, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this, row]
   {
     this->onObjectiveChanged(row);
@@ -745,6 +773,11 @@ void qMRMLObjectivesTableWidget::onObjectiveChanged(int row)
   }
   objectiveNode->SetName(objectiveStruct.name.toStdString().c_str());
   objectiveNode->SetSegmentationAndSegmentID(segmentationNode, segmentID.toStdString().c_str());
+
+  QCheckBox* constraintCheckBox = qobject_cast<QCheckBox*>(
+    d->ObjectivesTable->cellWidget(row, d->columnIndex("IsConstraint")));
+  bool isConstraint = constraintCheckBox && constraintCheckBox->isChecked();
+  objectiveNode->SetAttribute("isConstraint", isConstraint ? "true" : "false");
 
   // Create overlap priority SpinBox
   int overlapPriorityValue = this->findOverlapPriorityValueOfSegment(row);
