@@ -211,6 +211,12 @@ void qSlicerScriptedDoseEngine::setCanDoIonPlan(bool canDoIonPlan)
 }
 
 //-----------------------------------------------------------------------------
+void qSlicerScriptedDoseEngine::setSupportsBodySegment(bool supportsBodySegment)
+{
+  this->m_SupportsBodySegment = supportsBodySegment;
+}
+
+//-----------------------------------------------------------------------------
 QString qSlicerScriptedDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamNode, vtkMRMLScalarVolumeNode* resultDoseVolumeNode)
 {
   Q_D(const qSlicerScriptedDoseEngine);

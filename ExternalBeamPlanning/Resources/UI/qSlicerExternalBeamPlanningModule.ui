@@ -32,7 +32,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <property name="sizeConstraint">
-      <enum>QLayout::SetFixedSize</enum>
+      <enum>QLayout::SizeConstraint::SetFixedSize</enum>
      </property>
      <item>
       <widget class="QLabel" name="label_RTPlanNode">
@@ -53,7 +53,7 @@
      <item>
       <widget class="QCheckBox" name="checkBox_IonPlanFlag">
        <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
+        <enum>Qt::LayoutDirection::LeftToRight</enum>
        </property>
        <property name="text">
         <string>Ion plan</string>
@@ -68,32 +68,41 @@
       <string>Plan parameters</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <property name="leftMargin">
-       <number>4</number>
-      </property>
-      <property name="topMargin">
-       <number>4</number>
-      </property>
-      <property name="rightMargin">
-       <number>4</number>
-      </property>
-      <property name="bottomMargin">
-       <number>4</number>
-      </property>
-      <property name="spacing">
-       <number>4</number>
-      </property>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_Isocenter">
-        <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
-        </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_ReferenceVolume">
         <property name="text">
-         <string>Isocenter:</string>
+         <string>Reference volume:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item row="0" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume" native="true">
+        <property name="nodeTypes" stdset="0">
+         <stringlist>
+          <string>vtkMRMLScalarVolumeNode</string>
+         </stringlist>
+        </property>
+        <property name="showChildNodeTypes" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="noneEnabled" stdset="0">
+         <bool>true</bool>
+        </property>
+        <property name="addEnabled" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="removeEnabled" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="noneDisplay" stdset="0">
+         <string>Please select node</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
        <widget class="QLabel" name="label_PlanSegmentation">
         <property name="enabled">
          <bool>true</bool>
@@ -103,7 +112,54 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
+      <item row="1" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanSegmentation" native="true">
+        <property name="nodeTypes" stdset="0">
+         <stringlist>
+          <string>vtkMRMLSegmentationNode</string>
+         </stringlist>
+        </property>
+        <property name="noneEnabled" stdset="0">
+         <bool>true</bool>
+        </property>
+        <property name="noneDisplay" stdset="0">
+         <string>Please select node</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_POIs">
+        <property name="text">
+         <string>Points of interest:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanPOIs" native="true">
+        <property name="nodeTypes" stdset="0">
+         <stringlist>
+          <string>vtkMRMLMarkupsFiducialNode</string>
+         </stringlist>
+        </property>
+        <property name="addEnabled" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="removeEnabled" stdset="0">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_Isocenter">
+        <property name="frameShape">
+         <enum>QFrame::Shape::NoFrame</enum>
+        </property>
+        <property name="text">
+         <string>Isocenter:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
          <widget class="qMRMLCoordinatesWidget" name="MRMLCoordinatesWidget_IsocenterCoordinates" native="true">
@@ -128,130 +184,30 @@
         </item>
        </layout>
       </item>
-      <item row="1" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_ReferenceVolume" native="true">
-        <property name="nodeTypes" stdset="0">
-         <stringlist>
-          <string>vtkMRMLScalarVolumeNode</string>
-         </stringlist>
-        </property>
-        <property name="showChildNodeTypes" stdset="0">
-         <bool>false</bool>
-        </property>
-        <property name="noneEnabled" stdset="0">
-         <bool>true</bool>
-        </property>
-        <property name="addEnabled" stdset="0">
-         <bool>false</bool>
-        </property>
-        <property name="removeEnabled" stdset="0">
-         <bool>false</bool>
-        </property>
-        <property name="noneDisplay" stdset="0">
-         <string>Please select node</string>
+      <item row="4" column="0">
+       <widget class="QCheckBox" name="checkBox_InversePlanning">
+        <property name="text">
+         <string>Inverse Treatment Planning?</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanPOIs" native="true">
-        <property name="nodeTypes" stdset="0">
-         <stringlist>
-          <string>vtkMRMLMarkupsFiducialNode</string>
-         </stringlist>
-        </property>
-        <property name="addEnabled" stdset="0">
-         <bool>false</bool>
-        </property>
-        <property name="removeEnabled" stdset="0">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_PlanSegmentation" native="true">
-        <property name="nodeTypes" stdset="0">
-         <stringlist>
-          <string>vtkMRMLSegmentationNode</string>
-         </stringlist>
-        </property>
-        <property name="noneEnabled" stdset="0">
-         <bool>true</bool>
-        </property>
-        <property name="noneDisplay" stdset="0">
-         <string>Please select node</string>
-        </property>
-       </widget>
-      </item>
-      <item row="9" column="0" colspan="2">
-       <layout class="QGridLayout" name="gridLayout_4">
-        <property name="horizontalSpacing">
-         <number>12</number>
-        </property>
-        <property name="verticalSpacing">
-         <number>4</number>
-        </property>
-        <item row="0" column="4">
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <property name="spacing">
-           <number>8</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Isocenter at target center:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="checkBox_IsocenterAtTargetCenter">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="1" column="4">
-         <layout class="QHBoxLayout" name="horizontalLayout_7">
-          <item>
-           <widget class="QLabel" name="label_RxDose">
-            <property name="text">
-             <string>Rx dose (Gy):</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QDoubleSpinBox" name="doubleSpinBox_RxDose">
-            <property name="maximum">
-             <double>200.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>1.000000000000000</double>
-            </property>
-            <property name="value">
-             <double>1.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="0" column="1" rowspan="2">
-         <layout class="QHBoxLayout" name="horizontalLayout_9">
+      <item row="5" column="0" colspan="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_9">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
              <widget class="QLabel" name="label_TargetVolume">
               <property name="text">
                <string>Target volume:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_BodyVolume">
+              <property name="text">
+               <string>Body volume:</string>
               </property>
              </widget>
             </item>
@@ -283,6 +239,22 @@
              </widget>
             </item>
             <item>
+             <widget class="qMRMLSegmentSelectorWidget" name="MRMLSegmentSelectorWidget_BodyStructure" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="noneEnabled" stdset="0">
+               <bool>true</bool>
+              </property>
+              <property name="segmentationNodeSelectorVisible" stdset="0">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QComboBox" name="comboBox_DoseEngine">
               <property name="sizePolicy">
                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -296,31 +268,65 @@
           </item>
          </layout>
         </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <property name="spacing">
+             <number>8</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Isocenter at target center:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkBox_IsocenterAtTargetCenter">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QLabel" name="label_RxDose">
+              <property name="text">
+               <string>Rx dose (Gy):</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="doubleSpinBox_RxDose">
+              <property name="maximum">
+               <double>200.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
        </layout>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_ReferenceVolume">
-        <property name="text">
-         <string>Reference volume:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_POIs">
-        <property name="text">
-         <string>Points of interest:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0">
-       <widget class="QCheckBox" name="checkBox_InversePlanning">
-        <property name="text">
-         <string>Inverse Treatment Planning?</string>
-        </property>
-       </widget>
       </item>
      </layout>
     </widget>
@@ -378,7 +384,7 @@
         <item>
          <spacer name="horizontalSpacer_3">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -466,7 +472,7 @@
         <item>
          <spacer name="horizontalSpacer_4">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -564,52 +570,52 @@
        </widget>
       </item>
       <item row="2" column="0">
-      <widget class="QLabel" name="label_DoseGridSpacing">
+       <widget class="QLabel" name="label_DoseGridSpacing">
         <property name="text">
-        <string>Dose grid spacing:</string>
+         <string>Dose grid spacing:</string>
         </property>
-      </widget>
+       </widget>
       </item>
       <item row="2" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_DoseGrid">
         <item>
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridSpacingX">
-          <property name="value">
-            <number>5</number>
-          </property>
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridSpacingX">
           <property name="minimum">
-            <number>0.01</number>
+           <double>0.000000000000000</double>
           </property>
           <property name="maximum">
-            <number>100</number>
+           <double>100.000000000000000</double>
           </property>
-          </widget>
+          <property name="value">
+           <double>5.000000000000000</double>
+          </property>
+         </widget>
         </item>
         <item>
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridSpacingY">
-          <property name="value">
-            <number>5</number>
-          </property>
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridSpacingY">
           <property name="minimum">
-            <number>0.01</number>
+           <double>0.000000000000000</double>
           </property>
           <property name="maximum">
-            <number>100</number>
+           <double>100.000000000000000</double>
           </property>
-          </widget>
+          <property name="value">
+           <double>5.000000000000000</double>
+          </property>
+         </widget>
         </item>
         <item>
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridSpacingZ">
-          <property name="value">
-            <number>5</number>
-          </property>
+         <widget class="QDoubleSpinBox" name="doubleSpinBox_DoseGridSpacingZ">
           <property name="minimum">
-            <number>0.01</number>
+           <double>0.000000000000000</double>
           </property>
           <property name="maximum">
-            <number>100</number>
+           <double>100.000000000000000</double>
           </property>
-          </widget>
+          <property name="value">
+           <double>5.000000000000000</double>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="pushButton_UseCTGridForDoseGridSpacing">
@@ -629,7 +635,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,0,0">
      <property name="sizeConstraint">
-      <enum>QLayout::SetFixedSize</enum>
+      <enum>QLayout::SizeConstraint::SetFixedSize</enum>
      </property>
      <item>
       <widget class="QLabel" name="label_CalculateDoseStatus">
@@ -641,7 +647,6 @@
        </property>
        <property name="font">
         <font>
-         <weight>75</weight>
          <bold>true</bold>
         </font>
        </property>
@@ -700,7 +705,6 @@
       <widget class="QLabel" name="label_OptimizationStatus">
        <property name="font">
         <font>
-         <weight>75</weight>
          <bold>true</bold>
         </font>
        </property>
@@ -708,7 +712,7 @@
         <string>Status Information here</string>
        </property>
        <property name="textFormat">
-        <enum>Qt::PlainText</enum>
+        <enum>Qt::TextFormat::PlainText</enum>
        </property>
       </widget>
      </item>
@@ -907,6 +911,22 @@
   <connection>
    <sender>qSlicerExternalBeamPlanningModule</sender>
    <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>MRMLSegmentSelectorWidget_BodyStructure</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>182</x>
+     <y>3</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>182</x>
+     <y>192</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qSlicerExternalBeamPlanningModule</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
    <receiver>MRMLCoordinatesWidget_IsocenterCoordinates</receiver>
    <slot>setMRMLScene(vtkMRMLScene*)</slot>
    <hints>
@@ -921,4 +941,7 @@
    </hints>
   </connection>
  </connections>
+ <slots>
+  <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+ </slots>
 </ui>

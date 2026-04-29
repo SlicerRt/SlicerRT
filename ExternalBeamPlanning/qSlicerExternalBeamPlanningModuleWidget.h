@@ -73,6 +73,7 @@ protected slots:
   void poisMarkupsNodeChanged(vtkMRMLNode*);
 
   void targetSegmentChanged(const QString& segment);
+  void bodySegmentChanged(const QString& segment);
   void isocenterAtTargetCenterCheckboxStateChanged(int state);
   void isocenterCoordinatesChanged(double* isocenterCoordinates);
   void centerViewToIsocenterClicked();
