@@ -27,10 +27,10 @@ def prepareCst(beamNode, ct, needBody=False):
   segmentationNode = planNode.GetSegmentationNode()
   segmentation = segmentationNode.GetSegmentation()
 
-  if planNode.GetTargetSegmentID() == "":
-    raise ValueError("No target segment selected in plan node. Please select a target segment and try again.")
-  if planNode.GetTargetSegmentID() == planNode.GetBodySegmentID():
-    raise ValueError("Target segment and body segment are the same. Please select a different target segment or body segment and try again.")
+  if planNode.GetTargetSegmentIDs() == "":
+    raise ValueError("No target segments selected in plan node. Please select target segments and try again.")
+  if planNode.GetBodySegmentID() in planNode.GetTargetSegmentIDs().split('|'):
+    raise ValueError("Body segment is also a target segment. Please select a different target segment or body segment and try again.")
 
   # Get arrays for all segments in segmentation node (convert to binary labelmap if necessary)
   segmentArrays = getSegmentArrays(segmentationNode, referenceVolumeNode)
@@ -43,7 +43,7 @@ def prepareCst(beamNode, ct, needBody=False):
     voiType = 'OAR'
     if id == planNode.GetBodySegmentID():
       voiType = 'EXTERNAL'
-    if id == planNode.GetTargetSegmentID(): # overwrite if also selected as body
+    if id in planNode.GetTargetSegmentIDs().split('|'):
       voiType = 'TARGET'
     voi = create_voi(voi_type=voiType, name=segmentName, ct_image=ct, mask=segmentArray)
     vois.append(voi)

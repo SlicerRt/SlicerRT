@@ -339,7 +339,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   connect( d->MRMLCoordinatesWidget_IsocenterCoordinates, SIGNAL(coordinatesChanged(double*)), this, SLOT(isocenterCoordinatesChanged(double *)));
   connect( d->pushButton_CenterViewToIsocenter, SIGNAL(clicked()), this, SLOT(centerViewToIsocenterClicked()) );
 
-  connect( d->MRMLSegmentSelectorWidget_TargetStructure, SIGNAL(currentSegmentChanged(QString)), this, SLOT(targetSegmentChanged(const QString&)) );
+  connect( d->MRMLSegmentSelectorWidget_TargetStructure, SIGNAL(segmentSelectionChanged(QStringList)), this, SLOT(targetSegmentsChanged(QStringList)) );
   connect( d->checkBox_IsocenterAtTargetCenter, SIGNAL(stateChanged(int)), this, SLOT(isocenterAtTargetCenterCheckboxStateChanged(int)));
 
   connect(d->MRMLSegmentSelectorWidget_BodyStructure, SIGNAL(currentSegmentChanged(QString)), this, SLOT(bodySegmentChanged(const QString&)));
@@ -428,9 +428,11 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
     d->MRMLNodeComboBox_DoseVolume->setCurrentNode(planNode->GetOutputTotalDoseVolumeNode());
   }
 
-  // Set target segment
+  // Set target segments
   d->MRMLSegmentSelectorWidget_TargetStructure->setCurrentNode(planNode->GetSegmentationNode());
-  d->MRMLSegmentSelectorWidget_TargetStructure->setCurrentSegmentID(planNode->GetTargetSegmentID());
+  QString ids(planNode->GetTargetSegmentIDs());
+  d->MRMLSegmentSelectorWidget_TargetStructure->setSelectedSegmentIDs(ids.split("|", Qt::SkipEmptyParts));
+
 
   // Set body segment
   d->MRMLSegmentSelectorWidget_BodyStructure->setCurrentNode(planNode->GetSegmentationNode());
@@ -824,7 +826,7 @@ void qSlicerExternalBeamPlanningModuleWidget::useCTGridForDoseGridSpacingClicked
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::targetSegmentChanged(const QString& segment)
+void qSlicerExternalBeamPlanningModuleWidget::targetSegmentsChanged(const QStringList& targetSegmentIDs)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -843,7 +845,7 @@ void qSlicerExternalBeamPlanningModuleWidget::targetSegmentChanged(const QString
 
   // Set target segment ID
   planNode->DisableModifiedEventOn();
-  planNode->SetTargetSegmentID(segment.toUtf8().constData());
+  planNode->SetTargetSegmentIDs(targetSegmentIDs.join("|").toUtf8().constData());
   planNode->DisableModifiedEventOff();
 
   if (planNode->GetIsocenterSpecification() == vtkMRMLRTPlanNode::CenterOfTarget)

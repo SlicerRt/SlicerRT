@@ -1042,15 +1042,14 @@ void qMRMLBeamParametersTabWidget::calculateMLCPositionClicked()
   }
   vtkMRMLSegmentationNode* segmentationNode = planNode->GetSegmentationNode();
   vtkMRMLScalarVolumeNode* volumeNode = planNode->GetReferenceVolumeNode();
-  const char* targetID = planNode->GetTargetSegmentID();
 
-  if (!segmentationNode || !volumeNode || !targetID)
+  if (!segmentationNode || !volumeNode)
   {
     qCritical() << Q_FUNC_INFO << ": No segmentation, reference volume or target id data!";
     return;
   }
 
-  vtkPolyData* targetPoly = segmentationNode->GetClosedSurfaceInternalRepresentation(std::string(targetID));
+  vtkPolyData* targetPoly = planNode->GetTargetClosedSurface();
   if (targetPoly)
   {
     vtkMRMLMarkupsCurveNode* convexHullCurve = d->MLCPositionLogic->CalculatePositionConvexHullCurve( d->BeamNode, targetPoly);

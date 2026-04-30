@@ -200,7 +200,7 @@
             <item>
              <widget class="QLabel" name="label_TargetVolume">
               <property name="text">
-               <string>Target volume:</string>
+               <string>Target volumes:</string>
               </property>
              </widget>
             </item>
@@ -235,6 +235,9 @@
               </property>
               <property name="segmentationNodeSelectorVisible" stdset="0">
                <bool>false</bool>
+              </property>
+              <property name="multiSelection" stdset="0">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
