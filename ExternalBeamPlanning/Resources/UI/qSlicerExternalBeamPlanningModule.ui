@@ -505,6 +505,291 @@
     </widget>
    </item>
    <item>
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton_IpoptAdvancedSettings" native="true">
+     <property name="text" stdset="0">
+      <string>IPOPT Advanced Settings</string>
+     </property>
+     <property name="collapsed" stdset="0">
+      <bool>true</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_IpoptSettings">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_Ipopt_max_iter">
+        <property name="text">
+         <string>Max iterations:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="spinBox_Ipopt_max_iter">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>1000000</number>
+        </property>
+        <property name="value">
+         <number>10000</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_Ipopt_max_cpu_time">
+        <property name="text">
+         <string>Max CPU time (s):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QDoubleSpinBox" name="doubleSpinBox_Ipopt_max_cpu_time">
+        <property name="minimum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>86400.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>60.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>3600.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_Ipopt_tol">
+        <property name="text">
+         <string>NLP tolerance:</string>
+        </property>
+        <property name="toolTip">
+         <string>Overall NLP convergence tolerance (tol). Enter in scientific notation, e.g. 1e-10.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="lineEdit_Ipopt_tol">
+        <property name="text">
+         <string>1e-10</string>
+        </property>
+        <property name="toolTip">
+         <string>Overall NLP convergence tolerance (tol). Enter in scientific notation, e.g. 1e-10.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_Ipopt_acceptable_tol">
+        <property name="text">
+         <string>Acceptable tolerance:</string>
+        </property>
+        <property name="toolTip">
+         <string>Relaxed convergence tolerance used with acceptable_iter (acceptable_tol). Enter in scientific notation, e.g. 1e-06.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="lineEdit_Ipopt_acceptable_tol">
+        <property name="text">
+         <string>1e-06</string>
+        </property>
+        <property name="toolTip">
+         <string>Relaxed convergence tolerance used with acceptable_iter (acceptable_tol). Enter in scientific notation, e.g. 1e-06.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_Ipopt_acceptable_iter">
+        <property name="text">
+         <string>Acceptable iterations:</string>
+        </property>
+        <property name="toolTip">
+         <string>Number of consecutive acceptable-tolerance iterations before declaring convergence (acceptable_iter).</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QSpinBox" name="spinBox_Ipopt_acceptable_iter">
+        <property name="toolTip">
+         <string>Number of consecutive acceptable-tolerance iterations before declaring convergence (acceptable_iter).</string>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>1000</number>
+        </property>
+        <property name="value">
+         <number>5</number>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_Ipopt_mu_strategy">
+        <property name="text">
+         <string>Mu strategy:</string>
+        </property>
+        <property name="toolTip">
+         <string>Barrier parameter update strategy: adaptive (recommended) or monotone (mu_strategy).</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QComboBox" name="comboBox_Ipopt_mu_strategy">
+        <property name="toolTip">
+         <string>Barrier parameter update strategy: adaptive (recommended) or monotone (mu_strategy).</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>adaptive</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>monotone</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_Ipopt_hessian_approximation">
+        <property name="text">
+         <string>Hessian approximation:</string>
+        </property>
+        <property name="toolTip">
+         <string>Hessian approximation method: limited-memory L-BFGS (default) or exact second derivatives (hessian_approximation).</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QComboBox" name="comboBox_Ipopt_hessian_approximation">
+        <property name="toolTip">
+         <string>Hessian approximation method: limited-memory L-BFGS (default) or exact second derivatives (hessian_approximation).</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>limited-memory</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>exact</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="label_Ipopt_lbfgs_history">
+        <property name="text">
+         <string>L-BFGS history size:</string>
+        </property>
+        <property name="toolTip">
+         <string>Number of past iterates kept in L-BFGS memory (limited_memory_max_history). Only used when hessian_approximation is limited-memory.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QSpinBox" name="spinBox_Ipopt_lbfgs_history">
+        <property name="toolTip">
+         <string>Number of past iterates kept in L-BFGS memory (limited_memory_max_history). Only used when hessian_approximation is limited-memory.</string>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>100</number>
+        </property>
+        <property name="value">
+         <number>20</number>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLabel" name="label_Ipopt_max_resto_iter">
+        <property name="text">
+         <string>Max restoration iterations:</string>
+        </property>
+        <property name="toolTip">
+         <string>Maximum number of iterations in the restoration phase (max_resto_iter).</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QSpinBox" name="spinBox_Ipopt_max_resto_iter">
+        <property name="toolTip">
+         <string>Maximum number of iterations in the restoration phase (max_resto_iter).</string>
+        </property>
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>1000000</number>
+        </property>
+        <property name="value">
+         <number>2000</number>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QLabel" name="label_Ipopt_print_level">
+        <property name="text">
+         <string>Print level:</string>
+        </property>
+        <property name="toolTip">
+         <string>IPOPT output verbosity: 0 = silent, 5 = default, 12 = maximum (print_level).</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="1">
+       <widget class="QSpinBox" name="spinBox_Ipopt_print_level">
+        <property name="toolTip">
+         <string>IPOPT output verbosity: 0 = silent, 5 = default, 12 = maximum (print_level).</string>
+        </property>
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>12</number>
+        </property>
+        <property name="value">
+         <number>5</number>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0">
+       <widget class="QLabel" name="label_Ipopt_linear_solver">
+        <property name="text">
+         <string>Linear solver:</string>
+        </property>
+        <property name="toolTip">
+         <string>Linear solver used for IPOPT interior-point steps (linear_solver). Available solvers depend on the build.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="1">
+       <widget class="QComboBox" name="comboBox_Ipopt_linear_solver">
+        <property name="toolTip">
+         <string>Linear solver used for IPOPT interior-point steps (linear_solver). Available solvers depend on the build.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="ctkCollapsibleButton" name="CollapsibleButton_Output" native="true">
      <property name="text" stdset="0">
       <string>Output</string>

@@ -14,6 +14,28 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${qSlicerBeamsModuleWidgets_INCLUDE_DIRS}
   )
 
+# Add IPOPT include directories if IPOPT support is enabled
+if(EXTENSION_BUILDS_IPOPT)
+  # Find IPOPT installation
+  if(WIN32)
+    # Windows uses prebuilt binaries
+    set(IPOPT_INCLUDE_DIRS "${Ipopt_INCLUDE_DIR}")
+  else()
+    # Unix systems use built libraries
+    find_path(IPOPT_INCLUDE_DIRS
+      NAMES IpIpoptApplication.hpp
+      PATHS
+        ${Ipopt_DIR}/include/coin-or
+        ${CMAKE_BINARY_DIR}/Ipopt-install/include/coin-or
+      NO_DEFAULT_PATH
+    )
+  endif()
+
+  if(IPOPT_INCLUDE_DIRS)
+    list(APPEND ${KIT}_INCLUDE_DIRECTORIES ${IPOPT_INCLUDE_DIRS})
+  endif()
+endif()
+
 set(${KIT}_SRCS
   # Dose engines
   qSlicerAbstractDoseEngine.cxx
@@ -46,10 +68,42 @@ set(${KIT}_SRCS
   qSlicerObjectiveLogic.h
   qSlicerSquaredDeviationObjective.cxx
   qSlicerSquaredDeviationObjective.h
+  qSlicerSquaredOverdosingObjective.cxx
+  qSlicerSquaredOverdosingObjective.h
+  qSlicerSquaredUnderdosingObjective.cxx
+  qSlicerSquaredUnderdosingObjective.h
+  qSlicerMeanDoseObjective.cxx
+  qSlicerMeanDoseObjective.h
+  qSlicerEUDObjective.cxx
+  qSlicerEUDObjective.h
+  qSlicerMaxDVHObjective.cxx
+  qSlicerMaxDVHObjective.h
+  qSlicerMinDVHObjective.cxx
+  qSlicerMinDVHObjective.h
+  qSlicerDVHUtils.h
+  # Constraints
+  qSlicerAbstractConstraint.cxx
+  qSlicerAbstractConstraint.h
+  qSlicerMinMaxDoseConstraint.cxx
+  qSlicerMinMaxDoseConstraint.h
+  qSlicerMinMaxDVHConstraint.cxx
+  qSlicerMinMaxDVHConstraint.h
+  qSlicerMinMaxEUDConstraint.cxx
+  qSlicerMinMaxEUDConstraint.h
+  qSlicerMinMaxMeanDoseConstraint.cxx
+  qSlicerMinMaxMeanDoseConstraint.h
   # Widgets
   qMRMLObjectivesTableWidget.cxx
   qMRMLObjectivesTableWidget.h
   )
+
+# Add IPOPT optimizer sources if IPOPT support is enabled
+if(EXTENSION_BUILDS_IPOPT)
+  list(APPEND ${KIT}_SRCS
+    qSlicerIpoptOptimizer.cxx
+    qSlicerIpoptOptimizer.h
+    )
+endif()
 
 set(${KIT}_UI_SRCS
   )
@@ -60,6 +114,7 @@ set_source_files_properties(
   qSlicerAbstractDoseEngine.h
   qSlicerAbstractPlanOptimizer.h
   qSlicerAbstractObjective.h
+  qSlicerAbstractConstraint.h
   WRAP_EXCLUDE
   )
 
@@ -78,8 +133,26 @@ set(${KIT}_MOC_SRCS
   qSlicerObjectivePluginHandler.h
   qSlicerObjectiveLogic.h
   qSlicerSquaredDeviationObjective.h
+  qSlicerSquaredOverdosingObjective.h
+  qSlicerSquaredUnderdosingObjective.h
+  qSlicerMeanDoseObjective.h
+  qSlicerEUDObjective.h
+  qSlicerMaxDVHObjective.h
+  qSlicerMinDVHObjective.h
+  qSlicerAbstractConstraint.h
+  qSlicerMinMaxDoseConstraint.h
+  qSlicerMinMaxDVHConstraint.h
+  qSlicerMinMaxEUDConstraint.h
+  qSlicerMinMaxMeanDoseConstraint.h
   qMRMLObjectivesTableWidget.h
 )
+
+# Add IPOPT optimizer to MOC sources if IPOPT support is enabled
+if(EXTENSION_BUILDS_IPOPT)
+  list(APPEND ${KIT}_MOC_SRCS
+    qSlicerIpoptOptimizer.h
+    )
+endif()
 
 set(${KIT}_UI_SRCS
   UI/qMRMLObjectivesTableWidget.ui
@@ -101,6 +174,78 @@ set(${KIT}_TARGET_LIBRARIES
   vtkSlicerExternalBeamPlanningModuleMRML
   qSlicerBeamsModuleWidgets
   )
+
+# Add IPOPT libraries if IPOPT support is enabled
+if(EXTENSION_BUILDS_IPOPT)
+  if(WIN32)
+    # Windows uses prebuilt binaries
+    set(IPOPT_LIBRARIES "${Ipopt_LIBRARY_DIR}/ipopt.dll.lib")
+  else()
+    # Unix systems use built libraries
+    find_library(IPOPT_LIBRARIES
+      NAMES ipopt libipopt
+      PATHS
+        ${Ipopt_DIR}/lib
+        ${CMAKE_BINARY_DIR}/Ipopt-install/lib
+      NO_DEFAULT_PATH
+    )
+  endif()
+
+  if(IPOPT_LIBRARIES)
+    list(APPEND ${KIT}_TARGET_LIBRARIES ${IPOPT_LIBRARIES})
+
+    # Add additional system libraries that IPOPT might need on Unix
+    if(UNIX)
+      # Find and link required dependencies
+      find_library(DL_LIBRARY dl)
+      if(DL_LIBRARY)
+        list(APPEND ${KIT}_TARGET_LIBRARIES ${DL_LIBRARY})
+      endif()
+
+      find_library(M_LIBRARY m)
+      if(M_LIBRARY)
+        list(APPEND ${KIT}_TARGET_LIBRARIES ${M_LIBRARY})
+      endif()
+
+      # MUMPS library (coinmumps is the COIN-OR wrapped version)
+      find_library(MUMPS_LIBRARY
+        NAMES coinmumps libcoinmumps
+        PATHS
+          ${CMAKE_BINARY_DIR}/Mumps-install/lib
+          ${Mumps_DIR}/lib
+        NO_DEFAULT_PATH
+      )
+      if(MUMPS_LIBRARY)
+        list(APPEND ${KIT}_TARGET_LIBRARIES ${MUMPS_LIBRARY})
+      endif()
+
+      # Also need METIS (required by MUMPS)
+      find_library(METIS_LIBRARY
+        NAMES metis libmetis
+        PATHS
+          ${CMAKE_BINARY_DIR}/Mumps-install/lib
+          ${Mumps_DIR}/lib
+      )
+      if(METIS_LIBRARY)
+        list(APPEND ${KIT}_TARGET_LIBRARIES ${METIS_LIBRARY})
+      endif()
+
+      # BLAS and LAPACK (required by MUMPS)
+      find_library(LAPACK_LIBRARY lapack)
+      if(LAPACK_LIBRARY)
+        list(APPEND ${KIT}_TARGET_LIBRARIES ${LAPACK_LIBRARY})
+      endif()
+
+      find_library(BLAS_LIBRARY blas)
+      if(BLAS_LIBRARY)
+        list(APPEND ${KIT}_TARGET_LIBRARIES ${BLAS_LIBRARY})
+      endif()
+
+      # gfortran runtime must come after all Fortran static libs (IPOPT, MUMPS)
+      list(APPEND ${KIT}_TARGET_LIBRARIES gfortran quadmath gcc_s)
+    endif()
+  endif()
+endif()
 
 set(${KIT}_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
@@ -125,6 +270,18 @@ SlicerMacroBuildModuleWidgets(
   RESOURCES ${${KIT}_RESOURCES}
   WRAP_PYTHONQT
   )
+
+# Deploy IPOPT DLLs next to the module widgets library so Slicer can load it
+if(EXTENSION_BUILDS_IPOPT AND WIN32 AND DEFINED Ipopt_DLL_DIR)
+  file(GLOB IPOPT_DLLS "${Ipopt_DLL_DIR}/*.dll")
+  foreach(DLL_FILE ${IPOPT_DLLS})
+    add_custom_command(TARGET ${KIT} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${DLL_FILE}"
+        "$<TARGET_FILE_DIR:${KIT}>"
+    )
+  endforeach()
+endif()
 
 #-----------------------------------------------------------------------------
 if(Slicer_USE_PYTHONQT)

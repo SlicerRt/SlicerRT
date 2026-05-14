@@ -66,7 +66,7 @@ endif()
 
 # Set dependency list
 set(${proj}_DEPENDS "")
-if(DEFINED Slicer_SOURCE_DIR)
+if(EXTENSION_BUILDS_IPOPT AND UNIX)
   list(APPEND ${proj}_DEPENDS
     Mumps
     HSL
