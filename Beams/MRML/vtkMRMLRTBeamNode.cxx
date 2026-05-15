@@ -265,6 +265,11 @@ void vtkMRMLRTBeamNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::CreateDefaultDisplayNodes()
 {
+  if (vtkMRMLModelDisplayNode::SafeDownCast(this->GetDisplayNode()) != nullptr)
+  {
+    return;  // Display node already exists
+  }
+
   // Create default model display node
   Superclass::CreateDefaultDisplayNodes();
 
