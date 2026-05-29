@@ -163,15 +163,13 @@ def getSegmentArrays(segmentationNode, referenceVolumeNode):
       cheapestPath = vtkSegmentationCore.vtkSegmentationConverter.GetCheapestPath(paths)
       success = segmentation.CreateRepresentation(RIBBON_MODEL, cheapestPath)
       logging.info(f"Planar contour source detected. Conversion to Ribbon model {'succeeded' if success else 'FAILED'}")
-      segmentation.SetSourceRepresentationName(RIBBON_MODEL)
+      sourceRep = RIBBON_MODEL  # query next path from here; source representation is NOT changed
 
     paths = vtkSegmentationCore.vtkSegmentationConversionPaths()
-    converter.GetPossibleConversions(segmentation.GetSourceRepresentationName(), LABELMAP, paths)
+    converter.GetPossibleConversions(sourceRep, LABELMAP, paths)
     cheapestPath = vtkSegmentationCore.vtkSegmentationConverter.GetCheapestPath(paths)
     success = segmentation.CreateRepresentation(LABELMAP, cheapestPath)
-    logging.info(f"Conversion from {segmentation.GetSourceRepresentationName()} source to binary labelmap {'succeeded' if success else 'FAILED'}")
-    segmentation.SetSourceRepresentationName(LABELMAP)
-    logging.info("Setting source representation to binary labelmap for future conversions\n")
+    logging.info(f"Conversion from {sourceRep} to binary labelmap {'succeeded' if success else 'FAILED'}")
 
   segmentArrays = {}
   for id in segmentation.GetSegmentIDs():
