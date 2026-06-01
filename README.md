@@ -116,7 +116,8 @@ C. Pinter, A. Lasso, A. Wang, D. Jaffray and G. Fichtinger, ["SlicerRT – Radia
 
 # Acknowledgments
 
-SlicerRT development is currently funded by CANARIE.
 SlicerRT was originally created via funding by Cancer Care Ontario and the Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO) to provide free, open-source toolset for radiotherapy and related image-guided interventions.
+Between 2017 and 2022, SlicerRT development was funded by CANARIE, Canada's national research and education network, as part of its Research Software Program. 
+In 2022, 2024 and 2025, specific SlicerRT developments: collision detection, IEC transform logic and Monte Carlo simulation integration were funded by the Conselleria de Educación, Investigación, Cultura y Deporte (Generalitat Valenciana), Spain, under grant number CDEIGENT/2019/011. IFIC (CSIC-UV) is supported by the Severo Ochoa Center of Excellence grant CEX2023-001292-S funded by MICIU/AEI.
 
 Former SlicerRT modules integrated to Slicer core: Subject hierarchy, Transform visualizer, DICOM-RT export (as improved DICOM export function), Segmentations, Segment Editor.
