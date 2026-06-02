@@ -172,25 +172,12 @@ vtkMRMLCameraNode* qSlicerRoomsEyeViewModuleWidgetPrivate::get3DViewCameraNode()
   }
 
   qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
-  vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
-
-  // Get camera node for view
-  vtkCollection* cameras = q->mrmlScene()->GetNodesByClass("vtkMRMLCameraNode");
-  vtkMRMLCameraNode* cameraNode = nullptr;
-  for (int i = 0; i < cameras->GetNumberOfItems(); i++)
-  {
-    cameraNode = vtkMRMLCameraNode::SafeDownCast(cameras->GetItemAsObject(i));
-    std::string viewUniqueName = std::string(viewNode->GetNodeTagName()) + cameraNode->GetLayoutName();
-    if (viewUniqueName == viewNode->GetID())
-    {
-      break;
-    }
-  }
+  vtkMRMLCameraNode* cameraNode = threeDView->cameraNode();
   if (!cameraNode)
   {
-    qCritical() << Q_FUNC_INFO << "Failed to find camera for view " << (viewNode ? viewNode->GetID() : "(null)");
+    qCritical() << Q_FUNC_INFO << "Failed to find camera for view "
+                << (threeDView->mrmlViewNode() ? threeDView->mrmlViewNode()->GetID() : "(null)");
   }
-  cameras->Delete();
   return cameraNode;
 }
 
