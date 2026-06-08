@@ -84,6 +84,7 @@ protected slots:
   void onMovePatientWithTableTopCheckBoxToggled(bool);
 
   void onBeamsEyeViewButtonClicked();
+  void onBeamsEyeViewCameraInteraction();
 
   void onBeamNodeChanged(vtkMRMLNode*);
   void onPatientBodySegmentationNodeChanged(vtkMRMLNode*);

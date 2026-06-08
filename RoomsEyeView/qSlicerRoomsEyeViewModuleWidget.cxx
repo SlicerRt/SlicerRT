@@ -77,6 +77,7 @@
 #include <vtkPolyData.h>
 #include <vtkMatrix4x4.h>
 #include <vtkTransform.h>
+#include <vtkWeakPointer.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup SlicerRt_QtModules_RoomsEyeView
@@ -95,6 +96,10 @@ public:
   vtkMRMLRTPlanNode* currentPlanNode(vtkMRMLRoomsEyeViewNode* paramNode);
 
   bool ModuleWindowInitialized;
+
+  // 3D view camera that the Beam's Eye View button positioned and is being watched
+  // for user interaction (moving the camera away cancels the Beam's Eye View)
+  vtkWeakPointer<vtkMRMLCameraNode> BeamsEyeViewCameraNode;
 };
 
 //-----------------------------------------------------------------------------
@@ -844,6 +849,7 @@ void qSlicerRoomsEyeViewModuleWidget::onCollimatorRotationSliderValueChanged(dou
     beamNode->SetCollimatorAngle(value);
   }
 
+  this->setMachinePartsOpacityForBeamsEyeView(1.0);
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
   d->getLayoutManager()->resumeRender();
@@ -940,6 +946,7 @@ void qSlicerRoomsEyeViewModuleWidget::onPatientSupportRotationSliderValueChanged
     }
   }
 
+  this->setMachinePartsOpacityForBeamsEyeView(1.0);
   this->checkForCollisions();
   this->updateTreatmentOrientationMarker();
   d->getLayoutManager()->resumeRender();
@@ -1163,12 +1170,33 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
 
   this->setMachinePartsOpacityForBeamsEyeView(0.1);
 
+  // Watch the positioned camera; if the user moves it away (rotates, pans, zooms the
+  // 3D view), the current viewpoint is no longer the beam's eye view, so restore the
+  // machine parts opacity
+  qvtkReconnect(d->BeamsEyeViewCameraNode.GetPointer(), cameraNode, vtkMRMLCameraNode::CameraInteractionEvent,
+    this, SLOT(onBeamsEyeViewCameraInteraction()));
+  d->BeamsEyeViewCameraNode = cameraNode;
+
   //TODO: Oblique slice updating real-time based on beam geometry
   //vtkMRMLSliceNode* redSliceNode = redSliceWidget->mrmlSliceNode();
   //redSliceNode->SetSliceVisible(1);
 
   //TODO: Camera roll also needs to be set to keep the field of view aligned with the beam's field
   //redSliceNode->SetWidgetNormalLockedToCamera(cameraNode->GetCamera()->GetID);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewCameraInteraction()
+{
+  Q_D(qSlicerRoomsEyeViewModuleWidget);
+
+  // The user moved the camera away from the positioned beam's eye viewpoint,
+  // so the lowered machine parts opacity no longer applies
+  this->setMachinePartsOpacityForBeamsEyeView(1.0);
+
+  qvtkDisconnect(d->BeamsEyeViewCameraNode.GetPointer(), vtkMRMLCameraNode::CameraInteractionEvent,
+    this, SLOT(onBeamsEyeViewCameraInteraction()));
+  d->BeamsEyeViewCameraNode = nullptr;
 }
 
 //-----------------------------------------------------------------------------
