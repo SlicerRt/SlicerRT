@@ -1174,7 +1174,10 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateGantryToFixedReferenceTransform(vtk
 
   this->IECLogic->UpdateGantryToFixedReferenceTransform(parameterNode->GetGantryRotationAngle());
   vtkMRMLLinearTransformNode* gantryToFixedReferenceTransformNode = this->GetTransformNodeBetween(vtkIECTransformLogic::Gantry, vtkIECTransformLogic::FixedReference);
-  gantryToFixedReferenceTransformNode->Modified(); // Modified call is needed because it does not update display in app
+  if (gantryToFixedReferenceTransformNode)
+  {
+    gantryToFixedReferenceTransformNode->Modified(); // Modified call is needed because it does not update display in app
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -1188,7 +1191,10 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateCollimatorToGantryTransform(vtkMRML
 
   this->IECLogic->UpdateCollimatorToGantryTransform(parameterNode->GetCollimatorRotationAngle());
   vtkMRMLLinearTransformNode* collimatorToGantryTransformNode = this->GetTransformNodeBetween(vtkIECTransformLogic::Collimator, vtkIECTransformLogic::Gantry);
-  collimatorToGantryTransformNode->Modified(); // Modified call is needed because it does not update display in app
+  if (collimatorToGantryTransformNode)
+  {
+    collimatorToGantryTransformNode->Modified(); // Modified call is needed because it does not update display in app
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1361,7 +1367,10 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportRotationToFixedRefere
 
   this->IECLogic->UpdatePatientSupportRotationToFixedReferenceTransform(parameterNode->GetPatientSupportRotationAngle());
   vtkMRMLLinearTransformNode* patientSupportRotationToFixedReferenceTransformNode = this->GetTransformNodeBetween(vtkIECTransformLogic::PatientSupportRotation, vtkIECTransformLogic::FixedReference);
-  patientSupportRotationToFixedReferenceTransformNode->Modified(); // Modified call is needed because it does not update display in app
+  if (patientSupportRotationToFixedReferenceTransformNode)
+  {
+    patientSupportRotationToFixedReferenceTransformNode->Modified(); // Modified call is needed because it does not update display in app
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1407,8 +1416,11 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdatePatientSupportToPatientSupportRotat
 
   vtkMRMLLinearTransformNode* patientSupportToPatientSupportRotationTransformNode =
     this->GetTransformNodeBetween(vtkIECTransformLogic::PatientSupport, vtkIECTransformLogic::PatientSupportRotation);
-  patientSupportToPatientSupportRotationTransformNode->SetAndObserveTransformToParent(patientSupportScalingTransform);
-  patientSupportToPatientSupportRotationTransformNode->Modified(); // Modified call is needed because it does not update display in app
+  if (patientSupportToPatientSupportRotationTransformNode)
+  {
+    patientSupportToPatientSupportRotationTransformNode->SetAndObserveTransformToParent(patientSupportScalingTransform);
+    patientSupportToPatientSupportRotationTransformNode->Modified(); // Modified call is needed because it does not update display in app
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1433,7 +1445,10 @@ void vtkSlicerRoomsEyeViewModuleLogic::UpdateTableTopToTableTopEccentricRotation
     0.0, 0.0); // pitch and roll not yet exposed in parameter node
   vtkMRMLLinearTransformNode* tableTopToTableTopEccentricRotationTransformNode =
     this->GetTransformNodeBetween(vtkIECTransformLogic::TableTop, vtkIECTransformLogic::TableTopEccentricRotation);
-  tableTopToTableTopEccentricRotationTransformNode->Modified(); // Modified call is needed because it does not update display in app
+  if (tableTopToTableTopEccentricRotationTransformNode)
+  {
+    tableTopToTableTopEccentricRotationTransformNode->Modified(); // Modified call is needed because it does not update display in app
+  }
 }
 
 //-----------------------------------------------------------------------------

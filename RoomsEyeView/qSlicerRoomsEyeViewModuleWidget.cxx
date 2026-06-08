@@ -90,6 +90,7 @@ public:
   qSlicerRoomsEyeViewModuleWidgetPrivate(qSlicerRoomsEyeViewModuleWidget& object);
   ~qSlicerRoomsEyeViewModuleWidgetPrivate()  = default;
   vtkSmartPointer<vtkSlicerRoomsEyeViewModuleLogic> logic() const;
+  qMRMLThreeDView* get3DView() const;
   vtkMRMLCameraNode* get3DViewCameraNode() const;
   qMRMLLayoutManager* getLayoutManager() const;
 
@@ -164,11 +165,8 @@ vtkMRMLRTPlanNode* qSlicerRoomsEyeViewModuleWidgetPrivate::currentPlanNode(vtkMR
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLCameraNode* qSlicerRoomsEyeViewModuleWidgetPrivate::get3DViewCameraNode() const
+qMRMLThreeDView* qSlicerRoomsEyeViewModuleWidgetPrivate::get3DView() const
 {
-  Q_Q(const qSlicerRoomsEyeViewModuleWidget);
-
-  // Get 3D view node
   qSlicerApplication* slicerApplication = qSlicerApplication::application();
   qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
   if (!layoutManager->threeDViewCount())
@@ -176,7 +174,44 @@ vtkMRMLCameraNode* qSlicerRoomsEyeViewModuleWidgetPrivate::get3DViewCameraNode()
     return nullptr;
   }
 
-  qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
+  // Some extensions (for example ones adding virtual reality or hologram
+  // display support) introduce their own kind of 3D-like view; Slicer's standard 3D
+  // view recognizes those as views of its own type as well, and quietly creates an
+  // additional, normally hidden, view for them.
+  // To make sure the correct view is the one selected, this first asks the layout
+  // manager which 3D view is currently active, and if that is not available, falls
+  // back to the first view that went through the normal layout setup - the hidden
+  // views added by other extensions never go through that setup, so this reliably
+  // picks the right one.
+  vtkMRMLViewNode* activeViewNode = layoutManager->activeMRMLThreeDViewNode();
+  if (activeViewNode)
+  {
+    qMRMLThreeDWidget* widget = layoutManager->threeDWidget(QString(activeViewNode->GetLayoutName()));
+    if (widget)
+    {
+      return widget->threeDView();
+    }
+  }
+  for (int i = 0; i < layoutManager->threeDViewCount(); ++i)
+  {
+    qMRMLThreeDWidget* widget = layoutManager->threeDWidget(i);
+    if (widget && widget->threeDView()->mrmlViewNode() && widget->threeDView()->mrmlViewNode()->IsMappedInLayout())
+    {
+      return widget->threeDView();
+    }
+  }
+  return nullptr;
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLCameraNode* qSlicerRoomsEyeViewModuleWidgetPrivate::get3DViewCameraNode() const
+{
+  qMRMLThreeDView* threeDView = this->get3DView();
+  if (!threeDView)
+  {
+    return nullptr;
+  }
+
   vtkMRMLCameraNode* cameraNode = threeDView->cameraNode();
   if (!cameraNode)
   {
@@ -1166,6 +1201,7 @@ void qSlicerRoomsEyeViewModuleWidget::onBeamsEyeViewButtonClicked()
       cameraNode->GetCamera()->SetFocalPoint(isocenter);
     }
     cameraNode->SetViewUp(vup);
+    cameraNode->ResetClippingRange();
   }
 
   this->setMachinePartsOpacityForBeamsEyeView(0.1);
@@ -1242,9 +1278,11 @@ void qSlicerRoomsEyeViewModuleWidget::updateTreatmentOrientationMarker()
   vtkMRMLRoomsEyeViewNode* paramNode = vtkMRMLRoomsEyeViewNode::SafeDownCast(d->MRMLNodeComboBox_ParameterSet->currentNode());
 
   // Get 3D view node
-  qSlicerApplication* slicerApplication = qSlicerApplication::application();
-  qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
-  qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
+  qMRMLThreeDView* threeDView = d->get3DView();
+  if (!threeDView)
+  {
+    return;
+  }
   vtkMRMLViewNode* viewNode = threeDView->mrmlViewNode();
 
   // Update orientation marker if shown
