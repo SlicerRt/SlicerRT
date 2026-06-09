@@ -430,8 +430,12 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
 
   // Set target segments
   d->MRMLSegmentSelectorWidget_TargetStructure->setCurrentNode(planNode->GetSegmentationNode());
-  QString ids(planNode->GetTargetSegmentIDs());
-  d->MRMLSegmentSelectorWidget_TargetStructure->setSelectedSegmentIDs(ids.split("|", Qt::SkipEmptyParts));
+  QStringList targetSegmentIDs;
+  for (const std::string& id : planNode->GetTargetSegmentIDs())
+  {
+    targetSegmentIDs << QString::fromStdString(id);
+  }
+  d->MRMLSegmentSelectorWidget_TargetStructure->setSelectedSegmentIDs(targetSegmentIDs);
 
 
   // Set body segment
@@ -826,7 +830,7 @@ void qSlicerExternalBeamPlanningModuleWidget::useCTGridForDoseGridSpacingClicked
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::targetSegmentsChanged(const QStringList& targetSegmentIDs)
+void qSlicerExternalBeamPlanningModuleWidget::targetSegmentsChanged(QStringList targetSegmentIDs)
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
@@ -845,7 +849,12 @@ void qSlicerExternalBeamPlanningModuleWidget::targetSegmentsChanged(const QStrin
 
   // Set target segment ID
   planNode->DisableModifiedEventOn();
-  planNode->SetTargetSegmentIDs(targetSegmentIDs.join("|").toUtf8().constData());
+  std::vector<std::string> ids;
+  for (const QString& id : targetSegmentIDs)
+  {
+    ids.push_back(id.toStdString());
+  }
+  planNode->SetTargetSegmentIDs(ids);
   planNode->DisableModifiedEventOff();
 
   if (planNode->GetIsocenterSpecification() == vtkMRMLRTPlanNode::CenterOfTarget)
