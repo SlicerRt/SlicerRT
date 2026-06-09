@@ -324,7 +324,7 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
   vtkMRMLRTIonBeamNode* ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(d->BeamNode);
   if (d->BeamNode && !ionBeamNode)
   {
-    connect( d->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), this, SLOT(sourceDistanceChanged(double)) );
+    connect( d->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), this, SLOT(sourceDistanceChanged(double)), Qt::UniqueConnection );
     disconnect( d->doubleSpinBox_VSADx, SIGNAL(valueChanged(double)), this, SLOT(virtualSourceAxisXDistanceChanged(double)) );
     disconnect( d->doubleSpinBox_VSADy, SIGNAL(valueChanged(double)), this, SLOT(virtualSourceAxisYDistanceChanged(double)) );
     // rename some labels
@@ -354,8 +354,8 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
   else if (ionBeamNode)
   {
     disconnect( d->doubleSpinBox_SAD, SIGNAL(valueChanged(double)), this, SLOT(sourceDistanceChanged(double)) );
-    connect( d->doubleSpinBox_VSADx, SIGNAL(valueChanged(double)), this, SLOT(virtualSourceAxisXDistanceChanged(double)) );
-    connect( d->doubleSpinBox_VSADy, SIGNAL(valueChanged(double)), this, SLOT(virtualSourceAxisYDistanceChanged(double)) );
+    connect( d->doubleSpinBox_VSADx, SIGNAL(valueChanged(double)), this, SLOT(virtualSourceAxisXDistanceChanged(double)), Qt::UniqueConnection );
+    connect( d->doubleSpinBox_VSADy, SIGNAL(valueChanged(double)), this, SLOT(virtualSourceAxisYDistanceChanged(double)), Qt::UniqueConnection );
 
     // Check for ScanSpot table and enable combo box
     if (vtkMRMLTableNode* scanspotTable = ionBeamNode->GetScanSpotTableNode())
