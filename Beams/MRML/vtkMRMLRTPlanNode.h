@@ -187,9 +187,9 @@ public:
   void SetAndObserveSegmentationNode(vtkMRMLSegmentationNode* node);
 
   /// Get target segment ID
-  vtkGetStringMacro(TargetSegmentIDs);
+  std::vector<std::string> GetTargetSegmentIDs();
   /// Set target segment ID
-  vtkSetStringMacro(TargetSegmentIDs);
+  void SetTargetSegmentIDs(std::vector<std::string> targetSegmentIDs);
 
   /// Get body segment ID
   vtkGetStringMacro(BodySegmentID);
@@ -267,8 +267,8 @@ protected:
   /// Prescription dose (Gy)
   double RxDose{ 1.0 };
 
-  /// Target segment IDs in target segmentation node as pipe-separated list (e.g., "segment1|segment2|segment3")
-  char* TargetSegmentIDs{ nullptr };
+  /// Target segment IDs in target segmentation node
+  std::vector<std::string> TargetSegmentIDs;
 
   /// Body segment ID in segmentation node
   char* BodySegmentID{ nullptr };

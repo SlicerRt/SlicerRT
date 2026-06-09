@@ -70,7 +70,7 @@ vtkMRMLRTPlanNode::vtkMRMLRTPlanNode()
 //----------------------------------------------------------------------------
 vtkMRMLRTPlanNode::~vtkMRMLRTPlanNode()
 {
-  this->SetTargetSegmentIDs(nullptr);
+  this->TargetSegmentIDs.clear();
   this->SetBodySegmentID(nullptr);
   this->SetDoseEngineName(nullptr);
   this->SetPlanOptimizerName(nullptr);
@@ -84,7 +84,7 @@ void vtkMRMLRTPlanNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
   vtkMRMLWriteXMLBeginMacro(of);
   vtkMRMLWriteXMLIntMacro(NextBeamNumber, NextBeamNumber);
-  vtkMRMLWriteXMLStringMacro(TargetSegmentIDs, TargetSegmentIDs);
+  vtkMRMLWriteXMLStdStringVectorMacro(TargetSegmentIDs, TargetSegmentIDs, std::vector);
   vtkMRMLWriteXMLStringMacro(BodySegmentID, BodySegmentID);
   vtkMRMLWriteXMLStringMacro(DoseEngineName, DoseEngineName);
   vtkMRMLWriteXMLStringMacro(PlanOptimizerName, PlanOptimizerName);
@@ -103,7 +103,7 @@ void vtkMRMLRTPlanNode::ReadXMLAttributes(const char** atts)
   // Read all MRML node attributes from two arrays of names and values
   vtkMRMLReadXMLBeginMacro(atts);
   vtkMRMLReadXMLIntMacro(NextBeamNumber, NextBeamNumber);
-  vtkMRMLReadXMLStringMacro(TargetSegmentIDs, TargetSegmentIDs);
+  vtkMRMLReadXMLStdStringVectorMacro(TargetSegmentIDs, TargetSegmentIDs, std::vector);
   vtkMRMLReadXMLStringMacro(BodySegmentID, BodySegmentID);
   vtkMRMLReadXMLStringMacro(DoseEngineName, DoseEngineName);
   vtkMRMLReadXMLStringMacro(PlanOptimizerName, PlanOptimizerName);
@@ -130,7 +130,7 @@ void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
   this->DisableModifiedEventOn();
 
   vtkMRMLCopyBeginMacro(node);
-  vtkMRMLCopyStringMacro(TargetSegmentIDs);
+  vtkMRMLCopyStdStringVectorMacro(TargetSegmentIDs, std::vector);
   vtkMRMLCopyStringMacro(BodySegmentID);
   vtkMRMLCopyIntMacro(IsocenterSpecification);
   vtkMRMLCopyIntMacro(NextBeamNumber);
@@ -171,7 +171,7 @@ void vtkMRMLRTPlanNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*/)
 
   vtkMRMLCopyBeginMacro(node);
   vtkMRMLCopyFloatMacro(RxDose);
-  vtkMRMLCopyStringMacro(TargetSegmentIDs);
+  vtkMRMLCopyStdStringVectorMacro(TargetSegmentIDs, std::vector);
   vtkMRMLCopyStringMacro(BodySegmentID);
   vtkMRMLCopyIntMacro(IsocenterSpecification);
   vtkMRMLCopyIntMacro(NextBeamNumber);
@@ -189,7 +189,7 @@ void vtkMRMLRTPlanNode::PrintSelf(ostream& os, vtkIndent indent)
 
   vtkMRMLPrintBeginMacro(os, indent);
   vtkMRMLPrintIntMacro(NextBeamNumber);
-  vtkMRMLPrintStringMacro(TargetSegmentIDs);
+  vtkMRMLPrintStdStringVectorMacro(TargetSegmentIDs, std::vector);
   vtkMRMLPrintStringMacro(BodySegmentID);
   vtkMRMLPrintStringMacro(DoseEngineName);
   vtkMRMLPrintStringMacro(PlanOptimizerName);
@@ -459,6 +459,18 @@ bool vtkMRMLRTPlanNode::SetIsocenterPosition(double isocenter[3])
   fiducialNode->SetNthControlPointPosition(ISOCENTER_FIDUCIAL_INDEX, isocenter);
 
   return true;
+}
+
+//----------------------------------------------------------------------------
+std::vector<std::string> vtkMRMLRTPlanNode::GetTargetSegmentIDs()
+{
+  return this->TargetSegmentIDs;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLRTPlanNode::SetTargetSegmentIDs(std::vector<std::string> targetSegmentIDs)
+{
+  this->TargetSegmentIDs = targetSegmentIDs;
 }
 
 //----------------------------------------------------------------------------
@@ -818,7 +830,7 @@ void vtkMRMLRTPlanNode::SetIsocenterSpecification(int isocenterSpec)
 //----------------------------------------------------------------------------
 void vtkMRMLRTPlanNode::SetIsocenterToTargetCenter()
 {
-  if (!this->TargetSegmentIDs)
+  if (this->TargetSegmentIDs.empty())
   {
     vtkErrorMacro("SetIsocenterToTargetCenter: Unable to set isocenter to target segment as no target segment defined in beam " << this->Name);
     return;
@@ -844,13 +856,13 @@ void vtkMRMLRTPlanNode::SetIsocenterToTargetCenter()
 vtkSmartPointer<vtkPolyData> vtkMRMLRTPlanNode::GetTargetClosedSurface()
 {
   vtkMRMLSegmentationNode* segmentationNode = this->GetSegmentationNode();
-  QStringList targetSegmentIDs = QString(this->TargetSegmentIDs).split("|", Qt::SkipEmptyParts);
+  std::vector<std::string> targetSegmentIDs = this->TargetSegmentIDs;
 
   // Return closed surface of the single target segment if only one segment specified
   if (targetSegmentIDs.size() == 1)
   {
     return segmentationNode->GetClosedSurfaceInternalRepresentation(
-      targetSegmentIDs[0].toStdString());
+      targetSegmentIDs[0]);
   }
 
   // Get merged labelmap
@@ -880,7 +892,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetTargetOrientedImageD
     return nullptr;
   }
 
-  QStringList targetSegmentIDs = QString(this->TargetSegmentIDs).split("|", Qt::SkipEmptyParts);
+  std::vector<std::string> targetSegmentIDs = this->TargetSegmentIDs;
 
   if (targetSegmentIDs.empty())
   {
@@ -891,16 +903,18 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetTargetOrientedImageD
   // Return labelmap of the single target segment if only one segment specified (no need to merge)
   if (targetSegmentIDs.size() == 1)
   {
-    return this->GetSingleTargetOrientedImageData(targetSegmentIDs[0]);
+    return this->GetSingleTargetOrientedImageData(QString::fromStdString(targetSegmentIDs[0]));
   }
 
   // Get segment IDs as string array
   vtkSmartPointer<vtkStringArray> segmentIDs = vtkSmartPointer<vtkStringArray>::New();
-  for (const QString& id : targetSegmentIDs)
+  for (const std::string id : targetSegmentIDs)
   {
-    segmentIDs->InsertNextValue(id.toUtf8().constData());
+    if (!id.empty())
+    {
+      segmentIDs->InsertNextValue(id);
+    }
   }
-
   // Make sure binary labelmap representation exists
   if (!segmentationNode->GetSegmentation()->ContainsRepresentation(
     vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
@@ -939,7 +953,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetSingleTargetOriented
     return targetOrientedImageData;
   }
 
-  if (!this->TargetSegmentIDs)
+  if (this->TargetSegmentIDs.empty())
   {
     vtkErrorMacro("GetTargetOrientedImageData: No target segment specified");
     return targetOrientedImageData;
@@ -954,7 +968,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetSingleTargetOriented
   if (segmentation->ContainsRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
   {
 #if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
-    segmentationNode->GetBinaryLabelmapRepresentation(this->TargetSegmentID, targetOrientedImageData);
+    segmentationNode->GetBinaryLabelmapRepresentation(segmentID.toStdString(), targetOrientedImageData);
 #else
     targetOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
     targetOrientedImageData->DeepCopy(vtkOrientedImageData::SafeDownCast(
@@ -1003,21 +1017,21 @@ bool vtkMRMLRTPlanNode::ComputeTargetVolumeCenter(double center[3])
     vtkErrorMacro("ComputeTargetVolumeCenter: Failed to get target segmentation node");
     return false;
   }
-  if (!this->TargetSegmentIDs)
+  if (this->TargetSegmentIDs.empty())
   {
     vtkErrorMacro("ComputeTargetVolumeCenter: No target segments specified");
     return false;
   }
 
-  QStringList targetSegmentIDs = QString(this->TargetSegmentIDs).split("|", Qt::SkipEmptyParts);
+  std::vector<std::string> targetSegmentIDs = this->TargetSegmentIDs;
 
   int count = 0;
-  for (const QString& segmentID : targetSegmentIDs)
+  for (std::string segmentID : targetSegmentIDs)
   {
-    double* centerRas = segmentationNode->GetSegmentCenterRAS(segmentID.toUtf8().constData());
+    double* centerRas = segmentationNode->GetSegmentCenterRAS(segmentID);
     if (!centerRas)
     {
-      vtkErrorMacro("ComputeTargetVolumeCenter: Failed to get center of segment with ID " << segmentID.toUtf8().constData());
+      vtkErrorMacro("ComputeTargetVolumeCenter: Failed to get center of segment with ID " << segmentID);
       return false;
     }
     center[0] += centerRas[0];

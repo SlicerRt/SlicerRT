@@ -72,7 +72,7 @@ protected slots:
   void segmentationNodeChanged(vtkMRMLNode*);
   void poisMarkupsNodeChanged(vtkMRMLNode*);
 
-  void targetSegmentsChanged(const QStringList& targetSegmentIDs);
+  void targetSegmentsChanged(QStringList targetSegmentIDs);
   void bodySegmentChanged(const QString& segment);
   void isocenterAtTargetCenterCheckboxStateChanged(int state);
   void isocenterCoordinatesChanged(double* isocenterCoordinates);
