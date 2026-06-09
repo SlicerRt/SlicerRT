@@ -507,6 +507,10 @@ void vtkMRMLRTBeamNode::SetCouchAngle(double angle)
 //----------------------------------------------------------------------------
 void vtkMRMLRTBeamNode::SetSAD(double sad)
 {
+  if (this->SAD == sad)
+  {
+    return;
+  }
   this->SAD = sad;
   this->Modified();
   this->InvokeCustomModifiedEvent(vtkMRMLRTBeamNode::BeamGeometryModified);
