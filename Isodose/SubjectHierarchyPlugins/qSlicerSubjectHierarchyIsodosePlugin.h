@@ -66,12 +66,12 @@ public:
 
   /// Set display color of an owned subject hierarchy item
   /// \param color Display color to set
-  /// \param terminologyMetaData Map containing terminology meta data
-  void setDisplayColor(vtkIdType itemID, QColor color, QMap<int, QVariant> terminologyMetaData) override;
+  /// \param terminologyMetadata Terminology meta data
+  void setDisplayColor(vtkIdType itemID, QColor color, const qSlicerTerminologyMetadata& terminologyMetadata = qSlicerTerminologyMetadata()) override;
 
   /// Get display color of an owned subject hierarchy item
-  /// \param terminologyMetaData Output map containing terminology meta data
-  QColor getDisplayColor(vtkIdType itemID, QMap<int, QVariant> &terminologyMetaData)const override;
+  /// \param terminologyMetadata Output terminology meta data
+  QColor getDisplayColor(vtkIdType itemID, qSlicerTerminologyMetadata& terminologyMetadata) const override;
 
 protected:
   QScopedPointer<qSlicerSubjectHierarchyIsodosePluginPrivate> d_ptr;
