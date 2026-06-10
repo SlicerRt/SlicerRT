@@ -53,6 +53,10 @@
 #include "qSlicerDoseEnginePluginHandler.h"
 #include "qSlicerMockDoseEngine.h"
 #include "qSlicerMockPlanOptimizer.h"
+#if defined(EXTENSION_BUILDS_IPOPT)
+#include "qSlicerIpoptOptimizer.h"
+#include "IpLinearSolvers.h"
+#endif
 #include "qSlicerObjectiveLogic.h"
 #include "qSlicerObjectivePluginHandler.h"
 #include "qSlicerPlanOptimizerLogic.h"
@@ -234,6 +238,9 @@ void qSlicerExternalBeamPlanningModuleWidget::enter()
 
   // Register optimizers
   qSlicerPlanOptimizerPluginHandler::instance()->registerPlanOptimizer(new qSlicerMockPlanOptimizer());
+#if defined(EXTENSION_BUILDS_IPOPT)
+  qSlicerPlanOptimizerPluginHandler::instance()->registerPlanOptimizer(new qSlicerIpoptOptimizer());
+#endif
 
   // Python optimizers
   // (otherwise it would be the responsibility of the module that embeds the plan optimizer)
@@ -370,6 +377,44 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   // Plan Optimization
   connect( d->comboBox_PlanOptimizer, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(PlanOptimizerChanged(const QString&)));
   connect( d->pushButton_OptimizePlan, SIGNAL(clicked()), this, SLOT(optimizePlanClicked()));
+
+#if defined(EXTENSION_BUILDS_IPOPT)
+  // IPOPT Advanced Settings — hidden until the IPOPT optimizer is selected
+  d->CollapsibleButton_IpoptAdvancedSettings->setVisible(false);
+  connect(d->spinBox_Ipopt_max_iter,               SIGNAL(valueChanged(int)),           this, SLOT(ipoptMaxIterChanged(int)));
+  connect(d->spinBox_Ipopt_max_resto_iter,         SIGNAL(valueChanged(int)),           this, SLOT(ipoptMaxRestoIterChanged(int)));
+  connect(d->doubleSpinBox_Ipopt_max_cpu_time,     SIGNAL(valueChanged(double)),        this, SLOT(ipoptMaxCpuTimeChanged(double)));
+  connect(d->lineEdit_Ipopt_tol,                   SIGNAL(editingFinished()),           this, SLOT(ipoptTolChanged()));
+  connect(d->lineEdit_Ipopt_acceptable_tol,        SIGNAL(editingFinished()),           this, SLOT(ipoptAcceptableTolChanged()));
+  connect(d->spinBox_Ipopt_acceptable_iter,        SIGNAL(valueChanged(int)),           this, SLOT(ipoptAcceptableIterChanged(int)));
+  connect(d->comboBox_Ipopt_mu_strategy,           SIGNAL(currentTextChanged(QString)), this, SLOT(ipoptMuStrategyChanged(QString)));
+  connect(d->comboBox_Ipopt_hessian_approximation, SIGNAL(currentTextChanged(QString)), this, SLOT(ipoptHessianApproximationChanged(QString)));
+  connect(d->spinBox_Ipopt_lbfgs_history,          SIGNAL(valueChanged(int)),           this, SLOT(ipoptLbfgsHistoryChanged(int)));
+  connect(d->spinBox_Ipopt_print_level,            SIGNAL(valueChanged(int)),           this, SLOT(ipoptPrintLevelChanged(int)));
+  connect(d->comboBox_Ipopt_linear_solver,         SIGNAL(currentTextChanged(QString)), this, SLOT(ipoptLinearSolverChanged(QString)));
+
+  {
+    // Query IPOPT at runtime for which solvers are actually available.
+    // buildinonly=0: include solvers loadable from shared libs (e.g. HSL).
+    // buildinonly=1: only solvers statically linked into the binary.
+    IpoptLinearSolver available = IpoptGetAvailableLinearSolvers(1);
+    QComboBox* cb = d->comboBox_Ipopt_linear_solver;
+    cb->blockSignals(true);
+    cb->clear();
+    if (available & IPOPTLINEARSOLVER_MUMPS)      cb->addItem("mumps");
+    if (available & IPOPTLINEARSOLVER_PARDISOMKL) cb->addItem("pardisomkl");
+    if (available & IPOPTLINEARSOLVER_PARDISO)    cb->addItem("pardiso");
+    if (available & IPOPTLINEARSOLVER_MA27)       cb->addItem("ma27");
+    if (available & IPOPTLINEARSOLVER_MA57)       cb->addItem("ma57");
+    if (available & IPOPTLINEARSOLVER_MA77)       cb->addItem("ma77");
+    if (available & IPOPTLINEARSOLVER_MA86)       cb->addItem("ma86");
+    if (available & IPOPTLINEARSOLVER_MA97)       cb->addItem("ma97");
+    if (available & IPOPTLINEARSOLVER_SPRAL)      cb->addItem("spral");
+    if (available & IPOPTLINEARSOLVER_WSMP)       cb->addItem("wsmp");
+    if (cb->count() == 0)                         cb->addItem("mumps"); // fallback
+    cb->blockSignals(false);
+  }
+#endif
 
   // Objective Table
   connect(d->pushButton_AddObjective, SIGNAL(clicked()), this, SLOT(addObjectiveClicked()));
@@ -1534,6 +1579,10 @@ void qSlicerExternalBeamPlanningModuleWidget::PlanOptimizerChanged(const QString
   planNode->SetPlanOptimizerName(selectedEngine->name().toUtf8().constData());
   planNode->DisableModifiedEventOff();
 
+#if defined(EXTENSION_BUILDS_IPOPT)
+  d->CollapsibleButton_IpoptAdvancedSettings->setVisible(text == qSlicerIpoptOptimizer::NAME);
+#endif
+
   selectedEngine->setAvailableObjectives();
   d->ObjectivesTableWidget->deleteObjectivesTable();
 }
@@ -1661,3 +1710,102 @@ void qSlicerExternalBeamPlanningModuleWidget::saveAvailableObjectives()
   qSlicerAbstractPlanOptimizer* selectedEngine =
     qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
 }
+
+#if defined(EXTENSION_BUILDS_IPOPT)
+//-----------------------------------------------------------------------------
+// IPOPT Advanced Settings slot implementations
+//-----------------------------------------------------------------------------
+
+namespace {
+  qSlicerIpoptOptimizer* getIpoptOptimizer()
+  {
+    return qobject_cast<qSlicerIpoptOptimizer*>(
+      qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(qSlicerIpoptOptimizer::NAME));
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::ipoptMaxIterChanged(int value)
+{
+  if (qSlicerIpoptOptimizer* opt = getIpoptOptimizer())
+    opt->setOption("max_iter", value);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::ipoptMaxRestoIterChanged(int value)
+{
+  if (qSlicerIpoptOptimizer* opt = getIpoptOptimizer())
+    opt->setOption("max_resto_iter", value);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::ipoptMaxCpuTimeChanged(double value)
+{
+  if (qSlicerIpoptOptimizer* opt = getIpoptOptimizer())
+    opt->setOption("max_cpu_time", value);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::ipoptTolChanged()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  bool ok;
+  double val = d->lineEdit_Ipopt_tol->text().toDouble(&ok);
+  if (ok)
+    if (qSlicerIpoptOptimizer* opt = getIpoptOptimizer())
+      opt->setOption("tol", val);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::ipoptAcceptableTolChanged()
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  bool ok;
+  double val = d->lineEdit_Ipopt_acceptable_tol->text().toDouble(&ok);
+  if (ok)
+    if (qSlicerIpoptOptimizer* opt = getIpoptOptimizer())
+      opt->setOption("acceptable_tol", val);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::ipoptAcceptableIterChanged(int value)
+{
+  if (qSlicerIpoptOptimizer* opt = getIpoptOptimizer())
+    opt->setOption("acceptable_iter", value);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::ipoptMuStrategyChanged(const QString& value)
+{
+  if (qSlicerIpoptOptimizer* opt = getIpoptOptimizer())
+    opt->setOption("mu_strategy", value);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::ipoptHessianApproximationChanged(const QString& value)
+{
+  if (qSlicerIpoptOptimizer* opt = getIpoptOptimizer())
+    opt->setOption("hessian_approximation", value);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::ipoptLbfgsHistoryChanged(int value)
+{
+  if (qSlicerIpoptOptimizer* opt = getIpoptOptimizer())
+    opt->setOption("limited_memory_max_history", value);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::ipoptPrintLevelChanged(int value)
+{
+  if (qSlicerIpoptOptimizer* opt = getIpoptOptimizer())
+    opt->setOption("print_level", value);
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::ipoptLinearSolverChanged(const QString& value)
+{
+  if (qSlicerIpoptOptimizer* opt = getIpoptOptimizer())
+    opt->setOption("linear_solver", value);
+}
+#endif
