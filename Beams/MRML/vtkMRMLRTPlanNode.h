@@ -33,6 +33,9 @@
 #include "vtkOrientedImageData.h"
 #include <vtkSmartPointer.h>
 
+// Qt includes
+#include <QString>
+
 class vtkCollection;
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLRTBeamNode;
@@ -100,8 +103,16 @@ public:
   /// Get subject hierarchy item associated with this node. Create if missing
   vtkIdType GetPlanSubjectHierarchyItemID();
 
-  /// Get target segment as a labelmap oriented image data
+
+  /// Get target segment as a closed surface poly data.
+  /// If multiple target segments are specified, then they are merged and returned as a single surface.
+  vtkSmartPointer<vtkPolyData> GetTargetClosedSurface();
+
+  /// Get merged target segment as a labelmap oriented image data
   vtkSmartPointer<vtkOrientedImageData> GetTargetOrientedImageData();
+
+  /// Get target segment as a labelmap oriented image data
+  vtkSmartPointer<vtkOrientedImageData> GetSingleTargetOrientedImageData(QString segmentID);
 
   /// Add given beam node to plan
   void AddBeam(vtkMRMLRTBeamNode* beam);
@@ -176,9 +187,9 @@ public:
   void SetAndObserveSegmentationNode(vtkMRMLSegmentationNode* node);
 
   /// Get target segment ID
-  vtkGetStringMacro(TargetSegmentID);
+  std::vector<std::string> GetTargetSegmentIDs();
   /// Set target segment ID
-  vtkSetStringMacro(TargetSegmentID);
+  void SetTargetSegmentIDs(std::vector<std::string> targetSegmentIDs);
 
   /// Get body segment ID
   vtkGetStringMacro(BodySegmentID);
@@ -256,8 +267,8 @@ protected:
   /// Prescription dose (Gy)
   double RxDose{ 1.0 };
 
-  /// Target segment ID in target segmentation node
-  char* TargetSegmentID{ nullptr };
+  /// Target segment IDs in target segmentation node
+  std::vector<std::string> TargetSegmentIDs;
 
   /// Body segment ID in segmentation node
   char* BodySegmentID{ nullptr };

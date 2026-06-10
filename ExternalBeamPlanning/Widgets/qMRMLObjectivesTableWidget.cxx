@@ -893,7 +893,9 @@ int qMRMLObjectivesTableWidget::findOverlapPriorityValueOfSegment(int row)
 
   int newValue;
 
-  if (segmentID == planNode->GetTargetSegmentID())
+  std::vector<std::string> targetSegmentIDs = planNode->GetTargetSegmentIDs();
+
+  if (std::find(targetSegmentIDs.begin(), targetSegmentIDs.end(), segmentID.toStdString()) != targetSegmentIDs.end())
   {
     newValue = 0;
   }
