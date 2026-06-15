@@ -224,12 +224,14 @@ def createAndLoadBodySegment(planNode, cst):
     # Add new segment directly as binary labelmap
     logging.info("Adding body segment to segmentation in Slicer.")
     LABELMAP = vtkSegmentationCore.vtkSegmentationConverter.GetSegmentationBinaryLabelmapRepresentationName()
-    maskArray = sitk.GetArrayFromImage(bodyMask)
+    tempVolumeNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeNode", "__tempBody__")
+    sitkUtils.PushVolumeToSlicer(bodyMask, tempVolumeNode)
+    orientedImageData = slicer.vtkSlicerSegmentationsModuleLogic.CreateOrientedImageDataFromVolumeNode(tempVolumeNode)
+    slicer.mrmlScene.RemoveNode(tempVolumeNode)
     newSegmentID = segmentation.AddEmptySegment("", bodySegmentName)
-    slicer.util.updateSegmentBinaryLabelmapFromArray(
-        maskArray, segmentationNode, newSegmentID, referenceVolumeNode
-    )
-    segmentation.SetSourceRepresentationName(LABELMAP)
+    newSegment = segmentation.GetSegment(newSegmentID)
+    newSegment.AddRepresentation(LABELMAP, orientedImageData)
+    segmentationNode.Modified()
 
     # Set body segment ID in plan node
     planNode.SetBodySegmentID(newSegmentID)
