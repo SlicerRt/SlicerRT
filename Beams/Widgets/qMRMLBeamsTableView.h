@@ -37,6 +37,7 @@ class qMRMLBeamsTableViewPrivate;
 class vtkMRMLNode;
 class QTableWidgetItem;
 class QItemSelection;
+class vtkMRMLCameraNode;
 
 /// \ingroup SlicerRt_QtModules_Beams_Widgets
 class Q_SLICER_MODULE_BEAMS_WIDGETS_EXPORT qMRMLBeamsTableView : public qMRMLWidget
@@ -92,6 +93,12 @@ protected slots:
 
   /// Handle clone button click. Creates clone of the beam for which the button was clicked
   void onCloneButtonClicked();
+
+  /// Handle BEV button click. Shows beam's eye view for the beam for which the button was clicked
+  void onBEVButtonClicked();
+
+  /// Get camera node for the 3D view
+  vtkMRMLCameraNode* get3DViewCameraNode();
 
   /// Update beam table according to the plan node
   void updateBeamTable();

@@ -37,6 +37,17 @@
 // SlicerQt includes
 #include "qSlicerApplication.h"
 
+#include "qMRMLThreeDView.h"
+#include "qMRMLThreeDWidget.h"
+#include "qSlicerLayoutManager.h"
+#include <vtkMRMLCameraNode.h>
+#include <vtkTransform.h>
+#include <vtkMatrix4x4.h>
+#include "vtkMRMLCameraNode.h"
+#include "vtkMRMLViewNode.h"
+#include "vtkMRMLTransformNode.h"
+#include "vtkCamera.h"
+
 #define ID_PROPERTY "ID"
 
 //-----------------------------------------------------------------------------
@@ -83,7 +94,7 @@ void qMRMLBeamsTableViewPrivate::init()
   this->setMessage(QString());
 
   // Set table header properties
-  this->ColumnLabels << "Number" << "Name" << "Gantry" << "Weight" << "Edit" << "Clone";
+  this->ColumnLabels << "Number" << "Name" << "Gantry" << "Weight" << "Edit" << "Clone" << "BEV";
   this->BeamsTable->setHorizontalHeaderLabels(
     QStringList() << "#" << "Name" << "Gantry" << "Weight" << "" );
   this->BeamsTable->setColumnCount(this->ColumnLabels.size());
@@ -282,6 +293,14 @@ void qMRMLBeamsTableView::updateBeamTable()
     cloneButton->setProperty(ID_PROPERTY, beamNode->GetID());
     connect(cloneButton, SIGNAL(clicked()), this, SLOT(onCloneButtonClicked()));
     d->BeamsTable->setCellWidget(row, d->columnIndex("Clone"), cloneButton);
+
+    // BEV button
+    QPushButton* bevButton = new QPushButton("BEV");
+    bevButton->setMaximumWidth(52);
+    bevButton->setToolTip("Show Beam's Eye View");
+    bevButton->setProperty(ID_PROPERTY, beamNode->GetID());
+    connect(bevButton, SIGNAL(clicked()), this, SLOT(onBEVButtonClicked()));
+    d->BeamsTable->setCellWidget(row, d->columnIndex("BEV"), bevButton);
 }
 
   // Unblock signals
@@ -403,6 +422,91 @@ void qMRMLBeamsTableView::onCloneButtonClicked()
 
   // Clone beam node in its parent plan
   beamNode->RequestCloning();
+}
+
+//------------------------------------------------------------------------------
+void qMRMLBeamsTableView::onBEVButtonClicked()
+{
+  Q_D(qMRMLBeamsTableView);
+  QPushButton* senderButton = qobject_cast<QPushButton*>(sender());
+  if (!senderButton || !d->PlanNode || !d->PlanNode->GetScene())
+  {
+    return;
+  }
+
+  QString beamNodeID = senderButton->property(ID_PROPERTY).toString();
+  vtkMRMLRTBeamNode* beamNode = vtkMRMLRTBeamNode::SafeDownCast(
+    d->PlanNode->GetScene()->GetNodeByID(beamNodeID.toUtf8().constData()));
+  if (!beamNode)
+  {
+    return;
+  }
+
+  // Get 3D view node camera
+  vtkMRMLCameraNode* cameraNode = this->get3DViewCameraNode();
+  if (!cameraNode)
+  {
+    return;
+  }
+
+  double sourcePosition[3] = { 0.0, 0.0, 0.0 };
+  double isocenter[3] = { 0.0, 0.0, 0.0 };
+
+  if (beamNode->GetSourcePosition(sourcePosition))
+  {
+    vtkMRMLTransformNode* beamTransformNode = beamNode->GetParentTransformNode();
+    vtkTransform* beamTransform = nullptr;
+    vtkNew<vtkMatrix4x4> mat;
+    mat->Identity();
+
+    if (beamTransformNode)
+    {
+      beamTransform = vtkTransform::SafeDownCast(beamTransformNode->GetTransformToParent());
+      beamTransform->GetMatrix(mat);
+    }
+    else
+    {
+      qCritical() << Q_FUNC_INFO << "Beam transform node is invalid";
+      return;
+    }
+
+    double viewUpVector[4] = { -1., 0., 0., 0. }; // beam negative X-axis
+    double vup[4];
+
+    mat->MultiplyPoint(viewUpVector, vup);
+
+    cameraNode->GetCamera()->SetPosition(sourcePosition);
+    if (beamNode->GetPlanIsocenterPosition(isocenter))
+    {
+      cameraNode->GetCamera()->SetFocalPoint(isocenter);
+    }
+    cameraNode->SetViewUp(vup);
+  }
+
+  //this->setMachinePartsOpacityForBeamsEyeView(0.1);
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLCameraNode* qMRMLBeamsTableView::get3DViewCameraNode()
+{
+  Q_D(qMRMLBeamsTableView);
+
+  // Get 3D view node
+  qSlicerApplication* slicerApplication = qSlicerApplication::application();
+  qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
+  if (!layoutManager->threeDViewCount())
+  {
+    return nullptr;
+  }
+
+  qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
+  vtkMRMLCameraNode* cameraNode = threeDView->cameraNode();
+  if (!cameraNode)
+  {
+    qCritical() << Q_FUNC_INFO << "Failed to find camera for view "
+      << (threeDView->mrmlViewNode() ? threeDView->mrmlViewNode()->GetID() : "(null)");
+  }
+  return cameraNode;
 }
 
 //-----------------------------------------------------------------------------

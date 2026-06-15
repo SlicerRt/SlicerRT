@@ -78,7 +78,7 @@
       <bool>true</bool>
      </property>
      <property name="columnCount">
-      <number>7</number>
+      <number>8</number>
      </property>
      <attribute name="horizontalHeaderDefaultSectionSize">
       <number>64</number>
@@ -113,6 +113,11 @@
      <column>
       <property name="text">
        <string>Weight</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string/>
       </property>
      </column>
      <column>
