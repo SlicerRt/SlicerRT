@@ -34,6 +34,7 @@
 #include <ctkVTKObject.h>
 
 class qMRMLBeamsTableViewPrivate;
+class qMRMLThreeDView;
 class vtkMRMLNode;
 class QTableWidgetItem;
 class QItemSelection;
@@ -96,6 +97,9 @@ protected slots:
 
   /// Handle BEV button click. Shows beam's eye view for the beam for which the button was clicked
   void onBEVButtonClicked();
+
+  /// Get the active (or first mapped) 3D view
+  qMRMLThreeDView* get3DView();
 
   /// Get camera node for the 3D view
   vtkMRMLCameraNode* get3DViewCameraNode();

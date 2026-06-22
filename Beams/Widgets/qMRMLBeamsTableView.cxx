@@ -487,11 +487,8 @@ void qMRMLBeamsTableView::onBEVButtonClicked()
 }
 
 //-----------------------------------------------------------------------------
-vtkMRMLCameraNode* qMRMLBeamsTableView::get3DViewCameraNode()
+qMRMLThreeDView* qMRMLBeamsTableView::get3DView()
 {
-  Q_D(qMRMLBeamsTableView);
-
-  // Get 3D view node
   qSlicerApplication* slicerApplication = qSlicerApplication::application();
   qSlicerLayoutManager* layoutManager = slicerApplication->layoutManager();
   if (!layoutManager->threeDViewCount())
@@ -499,7 +496,38 @@ vtkMRMLCameraNode* qMRMLBeamsTableView::get3DViewCameraNode()
     return nullptr;
   }
 
-  qMRMLThreeDView* threeDView = layoutManager->threeDWidget(0)->threeDView();
+  // Prefer the active 3D view, hidden views added by other extensions never
+  // go through the normal layout setup, so the active view is more reliable
+  // than index 0.
+  vtkMRMLViewNode* activeViewNode = layoutManager->activeMRMLThreeDViewNode();
+  if (activeViewNode)
+  {
+    qMRMLThreeDWidget* widget = layoutManager->threeDWidget(QString(activeViewNode->GetLayoutName()));
+    if (widget)
+    {
+      return widget->threeDView();
+    }
+  }
+  for (int i = 0; i < layoutManager->threeDViewCount(); ++i)
+  {
+    qMRMLThreeDWidget* widget = layoutManager->threeDWidget(i);
+    if (widget && widget->threeDView()->mrmlViewNode() && widget->threeDView()->mrmlViewNode()->IsMappedInLayout())
+    {
+      return widget->threeDView();
+    }
+  }
+  return nullptr;
+}
+
+//-----------------------------------------------------------------------------
+vtkMRMLCameraNode* qMRMLBeamsTableView::get3DViewCameraNode()
+{
+  qMRMLThreeDView* threeDView = this->get3DView();
+  if (!threeDView)
+  {
+    return nullptr;
+  }
+
   vtkMRMLCameraNode* cameraNode = threeDView->cameraNode();
   if (!cameraNode)
   {
