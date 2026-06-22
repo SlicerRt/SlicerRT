@@ -130,7 +130,7 @@ void vtkMRMLRTPlanNode::Copy(vtkMRMLNode *anode)
   this->DisableModifiedEventOn();
 
   vtkMRMLCopyBeginMacro(node);
-  vtkMRMLCopyStdStringVectorMacro(TargetSegmentIDs, std::vector);
+  vtkMRMLCopyStdStringVectorMacro(TargetSegmentIDs);
   vtkMRMLCopyStringMacro(BodySegmentID);
   vtkMRMLCopyIntMacro(IsocenterSpecification);
   vtkMRMLCopyIntMacro(NextBeamNumber);
@@ -171,7 +171,7 @@ void vtkMRMLRTPlanNode::CopyContent(vtkMRMLNode *anode, bool deepCopy/*=true*/)
 
   vtkMRMLCopyBeginMacro(node);
   vtkMRMLCopyFloatMacro(RxDose);
-  vtkMRMLCopyStdStringVectorMacro(TargetSegmentIDs, std::vector);
+  vtkMRMLCopyStdStringVectorMacro(TargetSegmentIDs);
   vtkMRMLCopyStringMacro(BodySegmentID);
   vtkMRMLCopyIntMacro(IsocenterSpecification);
   vtkMRMLCopyIntMacro(NextBeamNumber);
