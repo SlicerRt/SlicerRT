@@ -29,6 +29,7 @@
 #include <vtkWeakPointer.h>
 
 // Qt includes
+#include <QCoreApplication>
 #include <QDebug>
 #include <QKeyEvent>
 #include <QStringList>
@@ -96,7 +97,8 @@ void qMRMLBeamsTableViewPrivate::init()
   // Set table header properties
   this->ColumnLabels << "Number" << "Name" << "Gantry" << "Weight" << "Edit" << "Clone" << "BEV";
   this->BeamsTable->setHorizontalHeaderLabels(
-    QStringList() << "#" << "Name" << "Gantry" << "Weight" << "" );
+    QStringList() << qMRMLBeamsTableView::tr("#") << qMRMLBeamsTableView::tr("Name")
+      << qMRMLBeamsTableView::tr("Gantry") << qMRMLBeamsTableView::tr("Weight") << "" );
   this->BeamsTable->setColumnCount(this->ColumnLabels.size());
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
@@ -279,25 +281,25 @@ void qMRMLBeamsTableView::updateBeamTable()
     d->BeamsTable->setItem(row, d->columnIndex("Weight"), beamWeightItem);
 
     // Edit button
-    QPushButton* editButton = new QPushButton("Edit");
+    QPushButton* editButton = new QPushButton(tr("Edit"));
     editButton->setMaximumWidth(52);
-    editButton->setToolTip("Show beam details in Beams module");
+    editButton->setToolTip(tr("Show beam details in Beams module"));
     editButton->setProperty(ID_PROPERTY, beamNode->GetID());
     connect(editButton, SIGNAL(clicked()), this, SLOT(onEditButtonClicked()));
     d->BeamsTable->setCellWidget(row, d->columnIndex("Edit"), editButton);
 
     // Clone button
-    QPushButton* cloneButton = new QPushButton("Clone");
+    QPushButton* cloneButton = new QPushButton(tr("Clone"));
     cloneButton->setMaximumWidth(52);
-    cloneButton->setToolTip("Create a copy of this beam");
+    cloneButton->setToolTip(tr("Create a copy of this beam"));
     cloneButton->setProperty(ID_PROPERTY, beamNode->GetID());
     connect(cloneButton, SIGNAL(clicked()), this, SLOT(onCloneButtonClicked()));
     d->BeamsTable->setCellWidget(row, d->columnIndex("Clone"), cloneButton);
 
     // BEV button
-    QPushButton* bevButton = new QPushButton("BEV");
+    QPushButton* bevButton = new QPushButton(tr("BEV"));
     bevButton->setMaximumWidth(52);
-    bevButton->setToolTip("Show Beam's Eye View");
+    bevButton->setToolTip(tr("Show Beam's Eye View"));
     bevButton->setProperty(ID_PROPERTY, beamNode->GetID());
     connect(bevButton, SIGNAL(clicked()), this, SLOT(onBEVButtonClicked()));
     d->BeamsTable->setCellWidget(row, d->columnIndex("BEV"), bevButton);

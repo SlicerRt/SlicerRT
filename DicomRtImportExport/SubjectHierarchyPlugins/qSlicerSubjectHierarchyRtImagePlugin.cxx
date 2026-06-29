@@ -125,7 +125,7 @@ double qSlicerSubjectHierarchyRtImagePlugin::canOwnSubjectHierarchyItem(vtkIdTyp
 //---------------------------------------------------------------------------
 const QString qSlicerSubjectHierarchyRtImagePlugin::roleForPlugin()const
 {
-  return "RT image";
+  return /*no tr*/ "RT image";
 }
 
 //---------------------------------------------------------------------------

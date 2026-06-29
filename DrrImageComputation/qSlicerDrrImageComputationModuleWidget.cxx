@@ -164,7 +164,14 @@ void qSlicerDrrImageComputationModuleWidget::setup()
   this->Superclass::setup();
 
   d->TableWidget_ProjectedPointsCoordinates->setColumnCount( PROJECTED_POINT_COLUMNS );
-  d->TableWidget_ProjectedPointsCoordinates->setHorizontalHeaderLabels( QStringList() << tr("Original label") << tr("R") << tr("A") << tr("S") \
+  d->TableWidget_ProjectedPointsCoordinates->setHorizontalHeaderLabels( QStringList()
+    << tr("Original label")
+    //: right
+    << tr("R")
+    //: anterior
+    << tr("A")
+    //: superior
+    << tr("S")
     << tr("Width") << tr("Height") << tr("Column") << tr("Row") << tr("Status") );
   d->TableWidget_ProjectedPointsCoordinates->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
   d->TableWidget_ProjectedPointsCoordinates->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
@@ -782,7 +789,14 @@ void qSlicerDrrImageComputationModuleWidget::onMarkupsNodeChanged()
   vtkMRMLMarkupsFiducialNode* markupsNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(d->SimpleMarkupsWidget_PointCoordinates->currentNode());
 
   d->TableWidget_ProjectedPointsCoordinates->clear();
-  d->TableWidget_ProjectedPointsCoordinates->setHorizontalHeaderLabels( QStringList() << tr("Original label") << tr("R") << tr("A") << tr("S") \
+  d->TableWidget_ProjectedPointsCoordinates->setHorizontalHeaderLabels( QStringList()
+    << tr("Original label")
+    //: right
+    << tr("R")
+    //: anterior
+    << tr("A")
+    //: superior
+    << tr("S")
     << tr("Width") << tr("Height") << tr("Column") << tr("Row") << tr("Status") );
 
   d->PushButton_ClearProjectedTableWidget->setEnabled(false);
@@ -862,7 +876,14 @@ void qSlicerDrrImageComputationModuleWidget::onProjectMarkupsControlPointsClicke
 
   d->TableWidget_ProjectedPointsCoordinates->setColumnCount(PROJECTED_POINT_COLUMNS);
   d->TableWidget_ProjectedPointsCoordinates->setRowCount(list.size());
-  d->TableWidget_ProjectedPointsCoordinates->setHorizontalHeaderLabels( QStringList() << tr("Original label") << tr("R") << tr("A") << tr("S") \
+  d->TableWidget_ProjectedPointsCoordinates->setHorizontalHeaderLabels( QStringList()
+    << tr("Original label")
+    //: right
+    << tr("R")
+    //: anterior
+    << tr("A")
+    //: superior
+    << tr("S")
     << tr("Width") << tr("Height") << tr("Column") << tr("Row") << tr("Status") );
   d->TableWidget_ProjectedPointsCoordinates->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
   d->TableWidget_ProjectedPointsCoordinates->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
@@ -883,10 +904,12 @@ void qSlicerDrrImageComputationModuleWidget::onProjectMarkupsControlPointsClicke
 
     if (!d->CheckPointWithinVolumeBounds(ctVolumeNode, pointPos))
     {
-      d->TableWidget_ProjectedPointsCoordinates->setItem(projectedRowCount, PROJECTED_POINT_STATUS_COLUMN, new QTableWidgetItem(tr("Point is out of volume bounds!")));
+      QString outOfBoundsMsg = tr("Point is out of volume bounds!");
+      d->TableWidget_ProjectedPointsCoordinates->setItem(projectedRowCount, PROJECTED_POINT_STATUS_COLUMN, new QTableWidgetItem(outOfBoundsMsg));
       if (projectionTable)
       {
-        projectionTable->SetValue(projectedRowCount, PROJECTED_POINT_STATUS_COLUMN, "Point is out of volume bounds!");
+        std::string strMsg = outOfBoundsMsg.toStdString();
+        projectionTable->SetValue(projectedRowCount, PROJECTED_POINT_STATUS_COLUMN, strMsg.c_str());
       }
       projectedRowCount++;
       continue;
@@ -970,7 +993,14 @@ void qSlicerDrrImageComputationModuleWidget::onClearProjectedTableClicked()
   }
   d->TableWidget_ProjectedPointsCoordinates->clear();
   d->TableWidget_ProjectedPointsCoordinates->setRowCount(0);
-  d->TableWidget_ProjectedPointsCoordinates->setHorizontalHeaderLabels( QStringList() << tr("Original label") << tr("R") << tr("A") << tr("S") \
+  d->TableWidget_ProjectedPointsCoordinates->setHorizontalHeaderLabels( QStringList()
+    << tr("Original label")
+    //: right
+    << tr("R")
+    //: anterior
+    << tr("A")
+    //: superior
+    << tr("S")
     << tr("Width") << tr("Height") << tr("Column") << tr("Row") << tr("Status") );
   d->PushButton_ProjectControlPoints->setEnabled(true);
   d->PushButton_ClearProjectedTableWidget->setEnabled(false);

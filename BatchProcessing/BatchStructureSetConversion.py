@@ -8,6 +8,8 @@ import sys
 import logging
 from DICOMLib import DICOMUtils
 
+from slicer.i18n import tr as _
+
 slicer.exit_when_finished = True
 
 # ------------------------------------------------------------------------------
@@ -17,14 +19,14 @@ slicer.exit_when_finished = True
 class BatchStructureSetConversion(ScriptedLoadableModule):
     def __init__(self, parent):
         ScriptedLoadableModule.__init__(self, parent)
-        parent.title = "Batch Structure Set Conversion"
-        parent.categories = ["Testing.SlicerRT Tests"]
+        parent.title = _("Batch Structure Set Conversion")
+        parent.categories = [_("Testing.SlicerRT Tests")]
         parent.dependencies = ["DicomRtImportExport", "Segmentations"]
         parent.contributors = ["Csaba Pinter (Queen's)"]
-        parent.helpText = """
+        parent.helpText = _("""
     This is a module for converting DICOM structure set to labelmaps and saving them to disk.
-    """
-        parent.acknowledgementText = """This file was originally developed by Csaba Pinter, PerkLab, Queen's University and was supported through the Applied Cancer Research Unit program of Cancer Care Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care"""  # replace with organization, grant and thanks.
+    """)
+        parent.acknowledgementText = _("""This file was originally developed by Csaba Pinter, PerkLab, Queen's University and was supported through the Applied Cancer Research Unit program of Cancer Care Ontario with funds provided by the Ontario Ministry of Health and Long-Term Care""")  # replace with organization, grant and thanks.
         self.parent = parent
 
         # Add this test to the SelfTest module's list for discovery when the module

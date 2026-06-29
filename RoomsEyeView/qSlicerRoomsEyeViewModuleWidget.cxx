@@ -402,9 +402,9 @@ void qSlicerRoomsEyeViewModuleWidget::setup()
   ioManager->registerDialog(new qSlicerSaveDataDialog(this));
 
   // Add treatment machine options
-  d->TreatmentMachineComboBox->addItem("Varian TrueBeam STx", "VarianTrueBeamSTx");
-  d->TreatmentMachineComboBox->addItem("Siemens Artiste", "SiemensArtiste");
-  d->TreatmentMachineComboBox->addItem("From file...", "FromFile");
+  d->TreatmentMachineComboBox->addItem(tr("Varian TrueBeam STx"), "VarianTrueBeamSTx");
+  d->TreatmentMachineComboBox->addItem(tr("Siemens Artiste"), "SiemensArtiste");
+  d->TreatmentMachineComboBox->addItem(tr("From file..."), "FromFile");
 
   //
   // Make connections
@@ -660,8 +660,8 @@ void qSlicerRoomsEyeViewModuleWidget::onLoadTreatmentMachineButtonClicked()
   if (!treatmentMachineType.compare("FromFile"))
   {
     // Ask user for descriptor JSON file if load from file option is selected
-    descriptorFilePath = QFileDialog::getOpenFileName( this, "Select treatment machine descriptor JSON file...",
-      QString(), "Json files (*.json);; All files (*)" );
+    descriptorFilePath = QFileDialog::getOpenFileName( this, tr("Select treatment machine descriptor JSON file..."),
+      QString(), tr("Json files (*.json);; All files (*)") );
   }
   else //TODO: Currently support two default types in addition to loading file. Need to rethink the module
   {
@@ -756,17 +756,17 @@ void qSlicerRoomsEyeViewModuleWidget::loadTreatmentMachineFromFile(QString descr
   bool collisionDetectionDisabled = false;
   if (d->logic()->GetGantryTableTopCollisionDetection()->GetInputData(0) == nullptr)
   {
-    disabledCollisionDetectionMessage.append("Gantry-TableTop\n");
+    disabledCollisionDetectionMessage.append(tr("Gantry-TableTop\n"));
     collisionDetectionDisabled = true;
   }
   if (d->logic()->GetGantryPatientSupportCollisionDetection()->GetInputData(0) == nullptr)
   {
-    disabledCollisionDetectionMessage.append("Gantry-PatientSupport\n");
+    disabledCollisionDetectionMessage.append(tr("Gantry-PatientSupport\n"));
     collisionDetectionDisabled = true;
   }
   if (d->logic()->GetCollimatorTableTopCollisionDetection()->GetInputData(0) == nullptr)
   {
-    disabledCollisionDetectionMessage.append("Collimator-TableTop\n");
+    disabledCollisionDetectionMessage.append(tr("Collimator-TableTop\n"));
     collisionDetectionDisabled = true;
   }
   disabledCollisionDetectionMessage.append(tr("\nWhat would you like to do?"));
@@ -1246,7 +1246,7 @@ void qSlicerRoomsEyeViewModuleWidget::checkForCollisions()
     return;
   }
 
-  d->CollisionDetectionStatusLabel->setText(QString::fromStdString("Calculating collisions..."));
+  d->CollisionDetectionStatusLabel->setText(tr("Calculating collisions..."));
   d->CollisionDetectionStatusLabel->setStyleSheet("color: black");
   QApplication::processEvents();
 

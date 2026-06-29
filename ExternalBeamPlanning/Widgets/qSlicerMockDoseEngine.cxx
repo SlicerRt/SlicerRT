@@ -61,7 +61,7 @@ void qSlicerMockDoseEngine::defineBeamParameters()
 {
   // Noise level parameter
   this->addBeamParameterSpinBox(
-    "Mock dose", "NoiseRange", "Noise range (% of Rx):", "Range of noise added to the prescription dose (+- half of the percentage of the Rx dose)",
+    tr("Mock dose"), "NoiseRange", tr("Noise range (% of Rx):"), tr("Range of noise added to the prescription dose (+- half of the percentage of the Rx dose)"),
     0.0, 99.99, 10.0, 1.0, 2 );
 }
 
@@ -70,7 +70,7 @@ QString qSlicerMockDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamN
 {
   if (!beamNode)
   {
-    QString errorMessage("Invalid beam node");
+    QString errorMessage(tr("Invalid beam node"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
@@ -78,7 +78,7 @@ QString qSlicerMockDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamN
   vtkMRMLScalarVolumeNode* referenceVolumeNode = parentPlanNode->GetReferenceVolumeNode();
   if (!parentPlanNode || !referenceVolumeNode || !resultDoseVolumeNode)
   {
-    QString errorMessage("Unable to access reference volume");
+    QString errorMessage(tr("Unable to access reference volume"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
@@ -101,7 +101,7 @@ QString qSlicerMockDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamN
 
   if (!beamImageData)
   {
-    QString errorMessage("Unable to create beam image!");
+    QString errorMessage(tr("Unable to create beam image!"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
@@ -115,7 +115,7 @@ QString qSlicerMockDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* beamN
   if ( beamImageData->GetNumberOfPoints() != protonDoseImageData->GetNumberOfPoints()
     || beamImageData->GetScalarType() != VTK_UNSIGNED_CHAR )
   {
-    QString errorMessage("Geometrical discrepancy between beam and dose");
+    QString errorMessage(tr("Geometrical discrepancy between beam and dose"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }

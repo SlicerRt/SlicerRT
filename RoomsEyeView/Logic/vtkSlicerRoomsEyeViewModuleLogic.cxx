@@ -33,6 +33,7 @@
 
 // MRML includes
 #include <vtkMRMLDisplayNode.h>
+#include <vtkMRMLI18N.h>
 #include <vtkMRMLLinearTransformNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
 #include <vtkMRMLModelNode.h>
@@ -1572,7 +1573,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
   if (!parameterNode)
   {
     vtkErrorMacro("CheckForCollisions: Invalid parameter set node");
-    return "Invalid parameters";
+    return vtkMRMLTr("vtkSlicerRoomsEyeViewModuleLogic", "Invalid parameters");
   }
   if (!parameterNode->GetCollisionDetectionEnabled())
   {
@@ -1594,7 +1595,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
   if ( !gantryToFixedReferenceTransformNode || !patientSupportToPatientSupportRotationTransformNode
     || !collimatorToGantryTransformNode || !tableTopToTableTopEccentricRotationTransformNode )
   {
-    statusString = "Failed to access IEC transforms";
+    statusString = vtkMRMLTr("vtkSlicerRoomsEyeViewModuleLogic", "Failed to access IEC transforms");
     vtkErrorMacro("CheckForCollisions: " + statusString);
     return statusString;
   }
@@ -1621,7 +1622,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
     || !vtkMRMLTransformNode::IsGeneralTransformLinear(collimatorToRasGeneralTransform, collimatorToRasTransform)
     || !vtkMRMLTransformNode::IsGeneralTransformLinear(tableTopToRasGeneralTransform, tableTopToRasTransform) )
   {
-    statusString = "Non-linear transform detected";
+    statusString = vtkMRMLTr("vtkSlicerRoomsEyeViewModuleLogic", "Non-linear transform detected");
     vtkErrorMacro("CheckForCollisions: " + statusString);
     return statusString;
   }
@@ -1641,7 +1642,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
     this->GantryTableTopCollisionDetection->Update();
     if (this->GantryTableTopCollisionDetection->GetNumberOfContacts() > 0)
     {
-      statusString = statusString + "Collision between gantry and table top\n";
+      statusString = statusString + vtkMRMLTr("vtkSlicerRoomsEyeViewModuleLogic", "Collision between gantry and table top\n");
     }
   }
 
@@ -1652,7 +1653,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
     this->GantryPatientSupportCollisionDetection->Update();
     if (this->GantryPatientSupportCollisionDetection->GetNumberOfContacts() > 0)
     {
-      statusString = statusString + "Collision between gantry and patient support\n";
+      statusString = statusString + vtkMRMLTr("vtkSlicerRoomsEyeViewModuleLogic", "Collision between gantry and patient support\n");
     }
   }
 
@@ -1663,7 +1664,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
     this->CollimatorTableTopCollisionDetection->Update();
     if (this->CollimatorTableTopCollisionDetection->GetNumberOfContacts() > 0)
     {
-      statusString = statusString + "Collision between collimator and table top\n";
+      statusString = statusString + vtkMRMLTr("vtkSlicerRoomsEyeViewModuleLogic", "Collision between collimator and table top\n");
     }
   }
 
@@ -1678,7 +1679,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
       this->GantryPatientCollisionDetection->Update();
       if (this->GantryPatientCollisionDetection->GetNumberOfContacts() > 0)
       {
-        statusString = statusString + "Collision between gantry and patient\n";
+        statusString = statusString + vtkMRMLTr("vtkSlicerRoomsEyeViewModuleLogic", "Collision between gantry and patient\n");
       }
     }
 
@@ -1689,7 +1690,7 @@ std::string vtkSlicerRoomsEyeViewModuleLogic::CheckForCollisions(vtkMRMLRoomsEye
       this->CollimatorPatientCollisionDetection->Update();
       if (this->CollimatorPatientCollisionDetection->GetNumberOfContacts() > 0)
       {
-        statusString = statusString + "Collision between collimator and patient\n";
+        statusString = statusString + vtkMRMLTr("vtkSlicerRoomsEyeViewModuleLogic", "Collision between collimator and patient\n");
       }
     }
   }

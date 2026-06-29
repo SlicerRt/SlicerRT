@@ -134,7 +134,7 @@ double qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::canOwnSubjectHierarchyI
 //---------------------------------------------------------------------------
 const QString qSlicerSubjectHierarchyDoseVolumeHistogramPlugin::roleForPlugin()const
 {
-  return "Dose volume histogram";
+  return /*no tr*/ "Dose volume histogram";
 }
 
 //---------------------------------------------------------------------------

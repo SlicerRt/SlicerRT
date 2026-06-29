@@ -7,6 +7,8 @@ from DoseEngines import OrthovoltageDoseEngineUtil
 from DoseEngines import EGSnrcUtil
 from SegmentEditorEffects import SegmentEditorMaskVolumeEffect
 
+from slicer.i18n import translate
+
 #------------------------------------------------------------------------------
 #
 # OrthovoltageDoseEngine
@@ -57,32 +59,32 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     ##########################################
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "CtcreateExecFilePath", "Ctcreate executable file path:",
-    "Enter file path of the ctcreate executable", ctcreateExecFilePath)
+    translate("DoseEngines.OrthovoltageDoseEngine", "Generate ctcreate phantom"), "CtcreateExecFilePath", translate("DoseEngines.OrthovoltageDoseEngine", "Ctcreate executable file path:"),
+    translate("DoseEngines.OrthovoltageDoseEngine", "Enter file path of the ctcreate executable"), ctcreateExecFilePath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "CtcreateOutputPath", "Ctcreate output file path:",
-    "Enter file path to store ctcreate phantom and related files", ctcreateOutputPath)
+    translate("DoseEngines.OrthovoltageDoseEngine", "Generate ctcreate phantom"), "CtcreateOutputPath", translate("DoseEngines.OrthovoltageDoseEngine", "Ctcreate output file path:"),
+    translate("DoseEngines.OrthovoltageDoseEngine", "Enter file path to store ctcreate phantom and related files"), ctcreateOutputPath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "ROIName", "ROI node name for cropping image (optional):",
-    "Enter name of ROI, if you wish to crop CT image which will be converted to ctcreate phantom format. \
-    If no ROI entered, will use image bounds from original CT image volume", "")
+    translate("DoseEngines.OrthovoltageDoseEngine", "Generate ctcreate phantom"), "ROIName", translate("DoseEngines.OrthovoltageDoseEngine", "ROI node name for cropping image (optional):"),
+    translate("DoseEngines.OrthovoltageDoseEngine", "Enter name of ROI, if you wish to crop CT image which will be converted to ctcreate phantom format. \
+    If no ROI entered, will use image bounds from original CT image volume"), "")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "SliceThicknessX", "Slice thickness (mm) in X direction (optional):",
-    "Enter desired slice thickness in X direction for output ctcreate phantom. If not x,y,z slice \
-    thickness not provided, will use same thickness from original CT image volume", "")
+    translate("DoseEngines.OrthovoltageDoseEngine", "Generate ctcreate phantom"), "SliceThicknessX", translate("DoseEngines.OrthovoltageDoseEngine", "Slice thickness (mm) in X direction (optional):"),
+    translate("DoseEngines.OrthovoltageDoseEngine", "Enter desired slice thickness in X direction for output ctcreate phantom. If not x,y,z slice \
+    thickness not provided, will use same thickness from original CT image volume"), "")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "SliceThicknessY", "Slice thickness (mm) in Y direction (optional):",
-    "Enter desired slice thickness in Y direction for output ctcreate phantom. If not x,y,z slice \
-    thickness not provided, will use same thickness from original CT image volume", "")
+    translate("DoseEngines.OrthovoltageDoseEngine", "Generate ctcreate phantom"), "SliceThicknessY", translate("DoseEngines.OrthovoltageDoseEngine", "Slice thickness (mm) in Y direction (optional):"),
+    translate("DoseEngines.OrthovoltageDoseEngine", "Enter desired slice thickness in Y direction for output ctcreate phantom. If not x,y,z slice \
+    thickness not provided, will use same thickness from original CT image volume"), "")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Generate ctcreate phantom", "SliceThicknessZ", "Slice thickness (mm) in Z direction (optional):",
-    "Enter desired slice thickness in Z direction for output ctcreate phantom. If not x,y,z slice \
-    thickness not provided, will use same thickness from original CT image volume", "")
+    translate("DoseEngines.OrthovoltageDoseEngine", "Generate ctcreate phantom"), "SliceThicknessZ", translate("DoseEngines.OrthovoltageDoseEngine", "Slice thickness (mm) in Z direction (optional):"),
+    translate("DoseEngines.OrthovoltageDoseEngine", "Enter desired slice thickness in Z direction for output ctcreate phantom. If not x,y,z slice \
+    thickness not provided, will use same thickness from original CT image volume"), "")
 
     defaultMaterials = [
       {
@@ -95,138 +97,138 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
       }
     ]
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Generate ctcreate phantom", "Materials", "Materials:",
-      "JSON string containing all of the material names and ramp values.", json.dumps(defaultMaterials))
+      translate("DoseEngines.OrthovoltageDoseEngine", "Generate ctcreate phantom"), "Materials", translate("DoseEngines.OrthovoltageDoseEngine", "Materials:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "JSON string containing all of the material names and ramp values."), json.dumps(defaultMaterials))
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Generate ctcreate phantom", "LowerBound", "Lower bound:",
-      "Lower CT number for the first medium in the ramp.", "-1024")
+      translate("DoseEngines.OrthovoltageDoseEngine", "Generate ctcreate phantom"), "LowerBound", translate("DoseEngines.OrthovoltageDoseEngine", "Lower bound:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "Lower CT number for the first medium in the ramp."), "-1024")
 
     ##########################################
     # Orthovoltage dose parameters tab
     ##########################################
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Orthovoltage dose", "SimulationTitle", "Simulation title:",
-    "Enter a title for the DOSXYZNrc simulation", "DOSXYZnrc simulation")
+    translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "SimulationTitle", translate("DoseEngines.OrthovoltageDoseEngine", "Simulation title:"),
+    translate("DoseEngines.OrthovoltageDoseEngine", "Enter a title for the DOSXYZNrc simulation"), "DOSXYZnrc simulation")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Orthovoltage dose", "PhaseSpaceFilePath", "Phase space file path:",
-    "Enter full path to phase space file", phaseSpaceFilePath)
+    translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "PhaseSpaceFilePath", translate("DoseEngines.OrthovoltageDoseEngine", "Phase space file path:"),
+    translate("DoseEngines.OrthovoltageDoseEngine", "Enter full path to phase space file"), phaseSpaceFilePath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Orthovoltage dose", "ECut", "Global electron cutoff energy - ECUT (MeV):",
-    "Select global electron cutoff energy (MeV)", "0.512")
+    translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "ECut", translate("DoseEngines.OrthovoltageDoseEngine", "Global electron cutoff energy - ECUT (MeV):"),
+    translate("DoseEngines.OrthovoltageDoseEngine", "Select global electron cutoff energy (MeV)"), "0.512")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Orthovoltage dose", "PCut", "Global photon cutoff energy - PCUT (MeV):",
-    "Select global electron cutoff energy (MeV)", "0.001")
+    translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "PCut", translate("DoseEngines.OrthovoltageDoseEngine", "Global photon cutoff energy - PCUT (MeV):"),
+    translate("DoseEngines.OrthovoltageDoseEngine", "Select global electron cutoff energy (MeV)"), "0.001")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Orthovoltage dose", "IncidentBeamSize", "Incident beam size (cm):",
-    "SBEAM SIZE is the side of a square field in cm. The default value for \
+    translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "IncidentBeamSize", translate("DoseEngines.OrthovoltageDoseEngine", "Incident beam size (cm):"),
+    translate("DoseEngines.OrthovoltageDoseEngine", "SBEAM SIZE is the side of a square field in cm. The default value for \
     BEAM SIZE is 100 cm. When phase-space particles are read from a data file \
     or reconstructed by a multiple-source model, DOSXYZnrcwill check their \
     positions and discard those that fall outside of the specified field. \
-    Use with caution.", "100.0")
+    Use with caution."), "100.0")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-    "Orthovoltage dose", "DistanceSourceToIsocenter", "Distance from source to isocenter (cm):",
-    "Enter absolute distance from source to isocenter (cm):", "0")
+    translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "DistanceSourceToIsocenter", translate("DoseEngines.OrthovoltageDoseEngine", "Distance from source to isocenter (cm):"),
+    translate("DoseEngines.OrthovoltageDoseEngine", "Enter absolute distance from source to isocenter (cm):"), "0")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "MedSur", "Surrounding medium:",
-      "Medium number for the region outside the phantom. Default = 0 (vacuum)", "0")
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "MedSur", translate("DoseEngines.OrthovoltageDoseEngine", "Surrounding medium:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "Medium number for the region outside the phantom. Default = 0 (vacuum)"), "0")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "NumHistories", "Number of histories:",
-      "Number of histories to use for simulation", "129796480")
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "NumHistories", translate("DoseEngines.OrthovoltageDoseEngine", "Number of histories:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "Number of histories to use for simulation"), "129796480")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "Inseed1", "Random number generator seed 1:",
-      "The random number generator used requires 2 seeds between 1 and \
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "Inseed1", translate("DoseEngines.OrthovoltageDoseEngine", "Random number generator seed 1:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "The random number generator used requires 2 seeds between 1 and \
       31328 and 1 and 30081 respectively.  For each different pair of \
       seeds, an independent random number sequence is generated.  Once \
       the seeds are used to establish the state of the generator, the \
-      \"seeds\" output in log files etc. are really just pointers between 1 and 98.",
+      \"seeds\" output in log files etc. are really just pointers between 1 and 98."),
       "33")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "Inseed2", "Random number generator seed 2:",
-      "The random number generator used requires 2 seeds between 1 and \
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "Inseed2", translate("DoseEngines.OrthovoltageDoseEngine", "Random number generator seed 2:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "The random number generator used requires 2 seeds between 1 and \
       31328 and 1 and 30081 respectively.  For each different pair of \
       seeds, an independent random number sequence is generated.  Once \
       the seeds are used to establish the state of the generator, the \
-      \"seeds\" output in log files etc. are really just pointers between 1 and 98.",
+      \"seeds\" output in log files etc. are really just pointers between 1 and 98."),
       "97")
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "DosxyznrcFolderPath", "Dosxyznrc folder path:",
-      "Enter file path to dosxyznrc folder", dosxyznrcFolderPath)
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "DosxyznrcFolderPath", translate("DoseEngines.OrthovoltageDoseEngine", "Dosxyznrc folder path:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "Enter file path to dosxyznrc folder"), dosxyznrcFolderPath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "DosxyznrcExecFilePath", "Dosxyznrc executable file path:",
-      "Enter file path to dosxyznrc executable", dosxyznrcExecFilePath)
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "DosxyznrcExecFilePath", translate("DoseEngines.OrthovoltageDoseEngine", "Dosxyznrc executable file path:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "Enter file path to dosxyznrc executable"), dosxyznrcExecFilePath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "PegsFilePath", "Path to pegs4 data file:",
-      "Enter file path to .pegs5dat file", pegsFilePath)
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "PegsFilePath", translate("DoseEngines.OrthovoltageDoseEngine", "Path to pegs4 data file:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "Enter file path to .pegs5dat file"), pegsFilePath)
 
     self.runCTCreateAndDoseXYZnrcIndex = 0
     self.runCTCreateOnlyIndex = 1
     self.runDOSXYZnrcOnlyIndex = 2
     self.scriptedEngine.addBeamParameterComboBox(
-      "Orthovoltage dose", "RunCTCreateDOSXYZnrc", "Run ctcreate and DOSXYZnrc",
-      "Choose if only one, or both ctcreate and DOSXYZnrc should be run", ["ctcreate and DOSXYZnrc", "ctcreate only", "DOSXYZnrc only"], self.runCTCreateAndDoseXYZnrcIndex)
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "RunCTCreateDOSXYZnrc", translate("DoseEngines.OrthovoltageDoseEngine", "Run ctcreate and DOSXYZnrc"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "Choose if only one, or both ctcreate and DOSXYZnrc should be run"), [translate("DoseEngines.OrthovoltageDoseEngine", "ctcreate and DOSXYZnrc"), translate("DoseEngines.OrthovoltageDoseEngine", "ctcreate only"), translate("DoseEngines.OrthovoltageDoseEngine", "DOSXYZnrc only")], self.runCTCreateAndDoseXYZnrcIndex)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "ExistingCtcreatePath", "Existing ctcreate file path (DOSXYZnrc only):",
-      "Enter file path for existing ctcreate phantom and related files. Required if only running DOSXYZnrc.", "")
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "ExistingCtcreatePath", translate("DoseEngines.OrthovoltageDoseEngine", "Existing ctcreate file path (DOSXYZnrc only):"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "Enter file path for existing ctcreate phantom and related files. Required if only running DOSXYZnrc."), "")
 
     self.scriptedEngine.addBeamParameterCheckBox(
-      "Orthovoltage dose", "ZeroAirDose", "Enable dose in air:",
-      "If checked, sets dose in air to zero", True)
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "ZeroAirDose", translate("DoseEngines.OrthovoltageDoseEngine", "Enable dose in air:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "If checked, sets dose in air to zero"), True)
 
     self.scriptedEngine.addBeamParameterCheckBox(
-      "Orthovoltage dose", "IReject", "Enable electron range rejection:",
-      "If checked, enables electron range reject, which speeds up the simulation\
-      Use ESAVE_GLOBAL threshold for cutoff particle energy cutoff", False)
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "IReject", translate("DoseEngines.OrthovoltageDoseEngine", "Enable electron range rejection:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "If checked, enables electron range reject, which speeds up the simulation\
+      Use ESAVE_GLOBAL threshold for cutoff particle energy cutoff"), False)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "ESaveGlobal", "E save global (MeV):",
-      "Energy (MeV) below which charged particle will be considered for range rejection", 0)
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "ESaveGlobal", translate("DoseEngines.OrthovoltageDoseEngine", "E save global (MeV):"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "Energy (MeV) below which charged particle will be considered for range rejection"), 0)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "NRcycl", "Number of times to recycle each particle:",
-      "Number of times to recycle each particle.\n\
-      Each particle in the phase space file is used a total of NRCYCL+1 times before going on to the next particle.", 0)
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "NRcycl", translate("DoseEngines.OrthovoltageDoseEngine", "Number of times to recycle each particle:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "Number of times to recycle each particle.\n\
+      Each particle in the phase space file is used a total of NRCYCL+1 times before going on to the next particle."), 0)
 
     self.scriptedEngine.addBeamParameterCheckBox(
-      "Orthovoltage dose", "IHowFarLess", "Enable HOWFARLESS algorithm:",
-      "If checked, enables 'HOWFARLESS' algorithm for transport in a homogeneous phantom.", False)
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "IHowFarLess", translate("DoseEngines.OrthovoltageDoseEngine", "Enable HOWFARLESS algorithm:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "If checked, enables 'HOWFARLESS' algorithm for transport in a homogeneous phantom."), False)
 
     self.scriptedEngine.addBeamParameterCheckBox(
-      "Orthovoltage dose", "IDBS", "Enable directional bremsstrahlung splitting:",
-      "If checked, enables directional bremsstrahlung splitting (DBS).", True)
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "IDBS", translate("DoseEngines.OrthovoltageDoseEngine", "Enable directional bremsstrahlung splitting:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "If checked, enables directional bremsstrahlung splitting (DBS)."), True)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "RDBS", "DBS splitting radius (cm):",
-      "DBS splitting radius used in BEAMnrc simulation (cm).\n\
-      Set to 0 to disable this option. Only needed if DBS is enabled.", 10)
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "RDBS", translate("DoseEngines.OrthovoltageDoseEngine", "DBS splitting radius (cm):"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "DBS splitting radius used in BEAMnrc simulation (cm).\n\
+      Set to 0 to disable this option. Only needed if DBS is enabled."), 10)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "SSDDBS", "DBS SSD (cm):",
-      "SSD at which r_dbs is defined in the BEAM sim. (cm).\n\
-      Only needed if DBS is enabled.", 20)
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "SSDDBS", translate("DoseEngines.OrthovoltageDoseEngine", "DBS SSD (cm):"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "SSD at which r_dbs is defined in the BEAM sim. (cm).\n\
+      Only needed if DBS is enabled."), 20)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "ZDBS", "DBS Z (cm):",
-       "Z in the BEAMnrc run where the phase space source was scored (cm).\n\
-      Only needed if DBS is enabled.", 20)
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "ZDBS", translate("DoseEngines.OrthovoltageDoseEngine", "DBS Z (cm):"),
+       translate("DoseEngines.OrthovoltageDoseEngine", "Z in the BEAMnrc run where the phase space source was scored (cm).\n\
+      Only needed if DBS is enabled."), 20)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      "Orthovoltage dose", "EraseOutsideSegment", "Erase outside segment:",
-      "If specified, causes the dose volume to be erased outside of the segment with the specified name.", "")
+      translate("DoseEngines.OrthovoltageDoseEngine", "Orthovoltage dose"), "EraseOutsideSegment", translate("DoseEngines.OrthovoltageDoseEngine", "Erase outside segment:"),
+      translate("DoseEngines.OrthovoltageDoseEngine", "If specified, causes the dose volume to be erased outside of the segment with the specified name."), "")
 
   #------------------------------------------------------------------------------
   #TODO: Add a path parameter type using the CTK path selector that saves the selections to Application Settings
@@ -484,7 +486,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     logging.info("DOSXYZ output (last paragraph): \n" + outStr[outStr.rfind('\n\n')+2:])
     if err is not None and str(err) != '':
       logging.error("DOSXYZ error: \n" + str(err))
-      return "DOSXYZ error! Please check the log"
+      return translate("DoseEngines.OrthovoltageDoseEngine", "DOSXYZ error! Please check the log")
 
     # Read output 3ddose file into result dose volume
     dosXyznrcOutputFileName = dosXyznrcSessionFilePrefix + ".3ddose"
@@ -492,7 +494,7 @@ class OrthovoltageDoseEngine(AbstractScriptedDoseEngine):
     loadedVolumeNode = slicer.util.loadNodeFromFile(dosXyznrcOutputFilePath, 'DosxyzNrc3dDoseFile', {})
     if loadedVolumeNode is None:
       logging.error("Failed to load result dose file {} for session using DOSXYZnrc input file {}".format(dosXyznrcOutputFilePath, dosXyznrcInputFileName))
-      return "Failed to load result dose file! Please check the log"
+      return translate("DoseEngines.OrthovoltageDoseEngine", "Failed to load result dose file! Please check the log")
 
     resultDoseVolumeNode.CopyOrientation(loadedVolumeNode)
     doseImageDataCopy = vtk.vtkImageData()

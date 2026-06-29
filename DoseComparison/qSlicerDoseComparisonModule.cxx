@@ -18,9 +18,6 @@
 
 ==============================================================================*/
 
-// Slicer includes
-#include <qSlicerCoreApplication.h>
-
 // SubjectHierarchy Plugins includes
 #include "qSlicerSubjectHierarchyPluginHandler.h"
 #include "qSlicerSubjectHierarchyGammaPlugin.h"
@@ -68,21 +65,21 @@ qSlicerDoseComparisonModule::~qSlicerDoseComparisonModule() = default;
 //-----------------------------------------------------------------------------
 QString qSlicerDoseComparisonModule::helpText()const
 {
-  return QString("This module computes and displays dose comparison metrics. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/DoseComparison\">%1/Documentation/%2.%3/Modules/DoseComparison</a><br>").arg(
-    qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
+  return tr("This module computes and displays dose comparison metrics. "
+    "For more information see <a href=\"%1\">%1</a><br>").arg(
+    "https://github.com/SlicerRt/SlicerRT/blob/master/Docs/user_guide/modules/DoseComparison.md");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerDoseComparisonModule::acknowledgementText()const
 {
-  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
+  return tr("This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).");
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerDoseComparisonModule::categories() const
 {
-  return QStringList() << "Radiotherapy";
+  return QStringList() << tr("Radiotherapy");
 }
 
 //-----------------------------------------------------------------------------

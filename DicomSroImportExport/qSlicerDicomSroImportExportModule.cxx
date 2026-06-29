@@ -23,7 +23,6 @@
 #include <QDebug> 
 
 // Slicer includes
-#include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
 
 // ExtensionTemplate Logic includes
@@ -69,15 +68,15 @@ qSlicerDicomSroImportExportModule::~qSlicerDicomSroImportExportModule() = defaul
 //-----------------------------------------------------------------------------
 QString qSlicerDicomSroImportExportModule::helpText()const
 {
-  return QString("The DicomSroImportExport module enables importing and loading DICOM Spatial Registration Objects into the Slicer DICOM database and the Slicer scene, and exporting transformations as DICOM SROs. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/DicomSroImport\">%1/Documentation/%2.%3/Modules/Models</a><br>").arg(
-    this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
+  return tr("The DicomSroImportExport module enables importing and loading DICOM Spatial Registration Objects into the Slicer DICOM database and the Slicer scene, and exporting transformations as DICOM SROs. "
+    "For more information see <a href=\"%1\">%1</a><br>").arg(
+    "https://github.com/SlicerRt/SlicerRT/blob/master/Docs/user_guide/modules/DicomSroImportExport.md");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerDicomSroImportExportModule::acknowledgementText()const
 {
-  return "This work was funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO), and CANARIE.";
+  return tr("This work was funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO), and CANARIE.");
 }
 
 //-----------------------------------------------------------------------------
@@ -97,7 +96,7 @@ QIcon qSlicerDicomSroImportExportModule::icon()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerDicomSroImportExportModule::categories()const
 {
-  return QStringList() << "Radiotherapy";
+  return QStringList() << tr("Radiotherapy");
 }
 
 //-----------------------------------------------------------------------------

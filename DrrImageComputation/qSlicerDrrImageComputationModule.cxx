@@ -70,14 +70,14 @@ qSlicerDrrImageComputationModule::~qSlicerDrrImageComputationModule()
 //-----------------------------------------------------------------------------
 QString qSlicerDrrImageComputationModule::helpText() const
 {
-  return "This is a loadable module that calculates a digitally " \
-  "reconstructed radiograph (DRR) using the plastimatch reconstruct library.";
+  return tr("This is a loadable module that calculates a digitally " \
+  "reconstructed radiograph (DRR) using the plastimatch reconstruct library.");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerDrrImageComputationModule::acknowledgementText() const
 {
-  return "This work was supported by Slicer Community.";
+  return tr("This work was supported by Slicer Community.");
 }
 
 //-----------------------------------------------------------------------------
@@ -97,7 +97,7 @@ QIcon qSlicerDrrImageComputationModule::icon() const
 //-----------------------------------------------------------------------------
 QStringList qSlicerDrrImageComputationModule::categories() const
 {
-  return QStringList() << "Radiotherapy";
+  return QStringList() << tr("Radiotherapy");
 }
 
 //-----------------------------------------------------------------------------

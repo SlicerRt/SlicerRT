@@ -387,8 +387,8 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   connect(d->lineEdit_Ipopt_tol,                   SIGNAL(editingFinished()),           this, SLOT(ipoptTolChanged()));
   connect(d->lineEdit_Ipopt_acceptable_tol,        SIGNAL(editingFinished()),           this, SLOT(ipoptAcceptableTolChanged()));
   connect(d->spinBox_Ipopt_acceptable_iter,        SIGNAL(valueChanged(int)),           this, SLOT(ipoptAcceptableIterChanged(int)));
-  connect(d->comboBox_Ipopt_mu_strategy,           SIGNAL(currentTextChanged(QString)), this, SLOT(ipoptMuStrategyChanged(QString)));
-  connect(d->comboBox_Ipopt_hessian_approximation, SIGNAL(currentTextChanged(QString)), this, SLOT(ipoptHessianApproximationChanged(QString)));
+  connect(d->comboBox_Ipopt_mu_strategy,           SIGNAL(currentIndexChanged(int)),    this, SLOT(ipoptMuStrategyChanged(int)));
+  connect(d->comboBox_Ipopt_hessian_approximation, SIGNAL(currentIndexChanged(int)),    this, SLOT(ipoptHessianApproximationChanged(int)));
   connect(d->spinBox_Ipopt_lbfgs_history,          SIGNAL(valueChanged(int)),           this, SLOT(ipoptLbfgsHistoryChanged(int)));
   connect(d->spinBox_Ipopt_print_level,            SIGNAL(valueChanged(int)),           this, SLOT(ipoptPrintLevelChanged(int)));
   connect(d->comboBox_Ipopt_linear_solver,         SIGNAL(currentTextChanged(QString)), this, SLOT(ipoptLinearSolverChanged(QString)));
@@ -414,6 +414,25 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
     if (cb->count() == 0)                         cb->addItem("mumps"); // fallback
     cb->blockSignals(false);
   }
+
+  {
+    // Populate with translatable display text; the literal IPOPT option value is stored
+    // as item data and read back via currentData() in the slots below (see currentIndexChanged
+    // connections above), so the UI language cannot affect what gets passed to IPOPT.
+    QComboBox* muCb = d->comboBox_Ipopt_mu_strategy;
+    muCb->blockSignals(true);
+    muCb->clear();
+    muCb->addItem(tr("adaptive"), QString("adaptive"));
+    muCb->addItem(tr("monotone"), QString("monotone"));
+    muCb->blockSignals(false);
+
+    QComboBox* hessianCb = d->comboBox_Ipopt_hessian_approximation;
+    hessianCb->blockSignals(true);
+    hessianCb->clear();
+    hessianCb->addItem(tr("limited-memory"), QString("limited-memory"));
+    hessianCb->addItem(tr("exact"), QString("exact"));
+    hessianCb->blockSignals(false);
+  }
 #endif
 
   // Objective Table
@@ -429,7 +448,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   d->MRMLNodeComboBox_DoseROI->setVisible(false);
 
   // Set status text to initial instruction
-  d->label_CalculateDoseStatus->setText("Add plan and beam to start planning");
+  d->label_CalculateDoseStatus->setText(tr("Add plan and beam to start planning"));
 
   // Handle scene change event if occurs
   qvtkConnect( d->logic(), vtkCommand::ModifiedEvent, this, SLOT( onLogicModified() ) );
@@ -1152,7 +1171,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updateDoseEngines()
   if (d->comboBox_DoseEngine->count() == 0)
   {
       //qCritical() << Q_FUNC_INFO << ": No dose engines available";
-      d->comboBox_DoseEngine->addItem("No dose engines available");
+      d->comboBox_DoseEngine->addItem(tr("No dose engines available"));
       d->comboBox_DoseEngine->setCurrentIndex(0);
       d->comboBox_DoseEngine->setDisabled(true);
       return;
@@ -1217,7 +1236,7 @@ void qSlicerExternalBeamPlanningModuleWidget::updatePlanOptimizers()
   if (d->comboBox_PlanOptimizer->count() == 0)
   {
     //qCritical() << Q_FUNC_INFO << ": No dose engines available";
-    d->comboBox_PlanOptimizer->addItem("No optimizers available");
+    d->comboBox_PlanOptimizer->addItem(tr("No optimizers available"));
     d->comboBox_PlanOptimizer->setCurrentIndex(0);
     d->comboBox_PlanOptimizer->setDisabled(true);
     return;
@@ -1382,7 +1401,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  d->label_CalculateDoseStatus->setText("Starting dose calculation...");
+  d->label_CalculateDoseStatus->setText(tr("Starting dose calculation..."));
 
   if (!this->mrmlScene())
   {
@@ -1399,7 +1418,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
   {
-    QString errorString("No RT plan node selected");
+    QString errorString(tr("No RT plan node selected"));
     d->label_CalculateDoseStatus->setText(errorString);
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
@@ -1442,7 +1461,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     qSlicerDoseEnginePluginHandler::instance()->doseEngineByName(planNode->GetDoseEngineName());
   if (!selectedEngine)
   {
-    QString errorString = QString("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
+    QString errorString = tr("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
     d->label_CalculateDoseStatus->setText(errorString);
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
@@ -1451,7 +1470,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   // If inverse planning is selected, we do a sanity check for the dose engine capabilities
   if (d->checkBox_InversePlanning->isChecked() && !selectedEngine->isInverse())
   {
-    QString errorString = QString("Selected Dose Engine %1 can't do dose influence matrix calculation!").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
+    QString errorString = tr("Selected Dose Engine %1 can't do dose influence matrix calculation!").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
     d->label_CalculateDoseStatus->setText(errorString);
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
@@ -1461,26 +1480,26 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   QString errorMessage;
   if (d->checkBox_InversePlanning->isChecked())
   {
-    QString message = QString("Starting dose influence matrix calculation...");
+    QString message = tr("Starting dose influence matrix calculation...");
     qDebug() << Q_FUNC_INFO << ": " << message;
     errorMessage = d->DoseEngineLogic->calculateDoseInfluenceMatrix(planNode);
   }
   else
   {
-    QString message = QString("Starting forward dose calculation...");
+    QString message = tr("Starting forward dose calculation...");
     qDebug() << Q_FUNC_INFO << ": " << message;
     errorMessage = d->DoseEngineLogic->calculateDose(planNode);
   }
 
   if (errorMessage.isEmpty())
   {
-    QString message = QString("Dose calculated successfully in %1 s").arg(time.elapsed()/1000.0);
+    QString message = tr("Dose calculated successfully in %1 s").arg(time.elapsed()/1000.0);
     qDebug() << Q_FUNC_INFO << ": " << message;
     d->label_CalculateDoseStatus->setText(message);
   }
   else
   {
-    QString message = QString("ERROR: %1").arg(errorMessage);
+    QString message = tr("ERROR: %1").arg(errorMessage);
     qCritical() << Q_FUNC_INFO << ": " << message;
     d->label_CalculateDoseStatus->setText(message);
   }
@@ -1493,7 +1512,7 @@ void qSlicerExternalBeamPlanningModuleWidget::optimizePlanClicked()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  d->label_OptimizationStatus->setText("Starting optimization...");
+  d->label_OptimizationStatus->setText(tr("Starting optimization..."));
 
   if (!this->mrmlScene())
   {
@@ -1510,7 +1529,7 @@ void qSlicerExternalBeamPlanningModuleWidget::optimizePlanClicked()
   vtkMRMLRTPlanNode* planNode = vtkMRMLRTPlanNode::SafeDownCast(d->MRMLNodeComboBox_RtPlan->currentNode());
   if (!planNode)
   {
-    QString errorString("No RT plan node selected");
+    QString errorString(tr("No RT plan node selected"));
     d->label_OptimizationStatus->setText(errorString);
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
@@ -1527,7 +1546,7 @@ void qSlicerExternalBeamPlanningModuleWidget::optimizePlanClicked()
     qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
   if (!selectedEngine)
   {
-    QString errorString = QString("Unable to access plan optimizer with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
+    QString errorString = tr("Unable to access plan optimizer with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
     d->label_OptimizationStatus->setText(errorString);
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
@@ -1538,20 +1557,20 @@ void qSlicerExternalBeamPlanningModuleWidget::optimizePlanClicked()
 
   if (d->checkBox_InversePlanning->isChecked())
   {
-    QString message = QString("Starting optimization...");
+    QString message = tr("Starting optimization...");
     qDebug() << Q_FUNC_INFO << ": " << message;
     errorMessage = d->PlanOptimizerLogic->optimizePlan(planNode);
   }
 
   if (errorMessage.isEmpty())
   {
-    QString message = QString("Optimization calculated successfully in %1 s").arg(time.elapsed() / 1000.0);
+    QString message = tr("Optimization calculated successfully in %1 s").arg(time.elapsed() / 1000.0);
     qDebug() << Q_FUNC_INFO << ": " << message;
     d->label_OptimizationStatus->setText(message);
   }
   else
   {
-    QString message = QString("ERROR: %1").arg(errorMessage);
+    QString message = tr("ERROR: %1").arg(errorMessage);
     qCritical() << Q_FUNC_INFO << ": " << message;
     d->label_OptimizationStatus->setText(message);
   }
@@ -1606,9 +1625,9 @@ void qSlicerExternalBeamPlanningModuleWidget::onProgressUpdated(double progress)
   int progressPercent = (int)(progress * 100.0);
   QString progressMessage;
   if (d->checkBox_InversePlanning->isChecked())
-    progressMessage = QString("Dose influence matrix calculation in progress: %1 %").arg(progressPercent);
+    progressMessage = tr("Dose influence matrix calculation in progress: %1 %").arg(progressPercent);
   else
-    progressMessage = QString("Dose calculation in progress: %1 %").arg(progressPercent);
+    progressMessage = tr("Dose calculation in progress: %1 %").arg(progressPercent);
   d->label_CalculateDoseStatus->setText(progressMessage);
   QApplication::processEvents();
 }
@@ -1628,7 +1647,7 @@ void qSlicerExternalBeamPlanningModuleWidget::onOptimizerProgressInfoUpdated(QSt
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
   QString progressMessage;
-  progressMessage = QString("Optimization in progress: ") + info;
+  progressMessage = tr("Optimization in progress: ") + info;
   d->label_OptimizationStatus->setText(progressMessage);
   QApplication::processEvents();
 }
@@ -1638,7 +1657,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
 {
   Q_D(qSlicerExternalBeamPlanningModuleWidget);
 
-  d->label_CalculateDoseStatus->setText("Starting WED calculation...");
+  d->label_CalculateDoseStatus->setText(tr("Starting WED calculation..."));
 
   if (!this->mrmlScene())
   {
@@ -1659,7 +1678,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
   vtkMRMLScalarVolumeNode* referenceVolume = planNode->GetReferenceVolumeNode();
   if (!referenceVolume)
   {
-    d->label_CalculateDoseStatus->setText("No reference image");
+    d->label_CalculateDoseStatus->setText(tr("No reference image"));
     return;
   }
 
@@ -1673,7 +1692,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateWEDClicked()
   // Do the actual computation in the logic object
   d->logic()->ComputeWED();
 
-  d->label_CalculateDoseStatus->setText("WED calculation done.");
+  d->label_CalculateDoseStatus->setText(tr("WED calculation done."));
   QApplication::restoreOverrideCursor();
 #endif
 }
@@ -1786,15 +1805,21 @@ void qSlicerExternalBeamPlanningModuleWidget::ipoptAcceptableIterChanged(int val
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::ipoptMuStrategyChanged(const QString& value)
+void qSlicerExternalBeamPlanningModuleWidget::ipoptMuStrategyChanged(int index)
 {
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  Q_UNUSED(index);
+  QString value = d->comboBox_Ipopt_mu_strategy->currentData().toString();
   if (qSlicerIpoptOptimizer* opt = getIpoptOptimizer())
     opt->setOption("mu_strategy", value);
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerExternalBeamPlanningModuleWidget::ipoptHessianApproximationChanged(const QString& value)
+void qSlicerExternalBeamPlanningModuleWidget::ipoptHessianApproximationChanged(int index)
 {
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+  Q_UNUSED(index);
+  QString value = d->comboBox_Ipopt_hessian_approximation->currentData().toString();
   if (qSlicerIpoptOptimizer* opt = getIpoptOptimizer())
     opt->setOption("hessian_approximation", value);
 }

@@ -41,6 +41,7 @@
 #include "vtkMRMLSubjectHierarchyConstants.h"
 
 // MRML includes
+#include <vtkMRMLI18N.h>
 #include <vtkMRMLLayoutNode.h>
 #include <vtkMRMLPlotSeriesNode.h>
 #include <vtkMRMLPlotChartNode.h>
@@ -176,7 +177,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
 {
   if (!this->GetMRMLScene() || !parameterNode)
   {
-    std::string errorMessage("Invalid MRML scene or parameter set node");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Invalid MRML scene or parameter set node");
     vtkErrorMacro("ComputeDvh: " << errorMessage);
     return errorMessage;
   }
@@ -186,7 +187,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   vtkMRMLScalarVolumeNode* doseVolumeNode = parameterNode->GetDoseVolumeNode();
   if ( !segmentationNode || !doseVolumeNode )
   {
-    std::string errorMessage("Both segmentation node and dose volume node need to be set");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Both segmentation node and dose volume node need to be set");
     vtkErrorMacro("ComputeDvh: " << errorMessage);
     return errorMessage;
   }
@@ -217,7 +218,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     vtkSlicerSegmentationsModuleLogic::CreateOrientedImageDataFromVolumeNode(doseVolumeNode) );
   if (!doseImageData.GetPointer())
   {
-    std::string errorMessage("Failed to get image data from dose volume");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Failed to get image data from dose volume");
     vtkErrorMacro("ComputeDvh: " << errorMessage);
     return errorMessage;
   }
@@ -266,7 +267,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     // If conversion failed and there is no binary labelmap in the segmentation, then cannot calculate DVH
     if (!segmentationCopy->ContainsRepresentation(representationName) )
     {
-      std::string errorMessage("Unable to acquire binary labelmap from segmentation");
+      std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Unable to acquire binary labelmap from segmentation");
       vtkErrorMacro("ComputeDvh: " << errorMessage);
       return errorMessage;
     }
@@ -294,7 +295,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
         currentSegment->GetRepresentation(representationName) );
       if (!currentLabelmap)
       {
-        std::string errorMessage("Representation missing after converting with automatic oversampling factor");
+        std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Representation missing after converting with automatic oversampling factor");
         vtkErrorMacro("ComputeDvh: " << errorMessage);
         return errorMessage;
       }
@@ -322,7 +323,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
     if ( !vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
       doseImageData, fixedOversampledDoseVolume, fixedOversampledDoseVolume, true ) )
     {
-      std::string errorMessage("Failed to resample dose volume");
+      std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Failed to resample dose volume");
       vtkErrorMacro("ComputeDvh: " << errorMessage);
       return errorMessage;
     }
@@ -363,7 +364,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
 
     if (!segmentLabelmap)
     {
-      std::string errorMessage("Failed to get labelmap for segments");
+      std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Failed to get labelmap for segments");
       vtkErrorMacro("ComputeDvh: " << errorMessage);
       return errorMessage;
     }
@@ -382,7 +383,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
       double backgroundValue[4] = {minimumValue, minimumValue, minimumValue, 0.0};
       if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, segmentLabelmap, useFractionalLabelmap, backgroundValue))
       {
-        std::string errorMessage("Failed to apply parent transformation to segment");
+        std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Failed to apply parent transformation to segment");
         vtkErrorMacro("ComputeDvh: " << errorMessage);
         return errorMessage;
       }
@@ -395,7 +396,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
       if ( !vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
         segmentLabelmap, fixedOversampledDoseVolume, segmentLabelmap, useFractionalLabelmap, false, nullptr, minimumValue ) )
       {
-        std::string errorMessage("Failed to resample segment binary labelmap");
+        std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Failed to resample segment binary labelmap");
         vtkErrorMacro("ComputeDvh: " << errorMessage);
         return errorMessage;
       }
@@ -415,7 +416,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
       if ( !vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(
         doseImageData, segmentLabelmap, oversampledDoseVolume, this->UseLinearInterpolationForDoseVolume ) )
       {
-        std::string errorMessage("Failed to resample dose volume");
+        std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Failed to resample dose volume");
         vtkErrorMacro("ComputeDvh: " << errorMessage);
         return errorMessage;
       }
@@ -462,19 +463,19 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
 {
   if (!this->GetMRMLScene() || !parameterNode)
   {
-    std::string errorMessage("Invalid MRML scene or parameter set node");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Invalid MRML scene or parameter set node");
     vtkErrorMacro("ComputeDvh: " << errorMessage);
     return errorMessage;
   }
   if (!segmentLabelmap)
   {
-    std::string errorMessage("Invalid segment labelmap");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Invalid segment labelmap");
     vtkErrorMacro("ComputeDvh: " << errorMessage);
     return errorMessage;
   }
   if (!oversampledDoseVolume)
   {
-    std::string errorMessage("Invalid oversampled dose volume");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Invalid oversampled dose volume");
     vtkErrorMacro("ComputeDvh: " << errorMessage);
     return errorMessage;
   }
@@ -482,7 +483,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   vtkMRMLScalarVolumeNode* doseVolumeNode = parameterNode->GetDoseVolumeNode();
   if ( !segmentationNode || !doseVolumeNode )
   {
-    std::string errorMessage("Both segmentation node and dose volume node need to be set");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Both segmentation node and dose volume node need to be set");
     vtkErrorMacro("ComputeDvh: " << errorMessage);
     return errorMessage;
   }
@@ -498,7 +499,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   {
     if (parameterNode->GetUseFractionalLabelmap())
     {
-      std::string errorMessage("Dose surface histogram is not currently supported for fractional labelmaps");
+      std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Dose surface histogram is not currently supported for fractional labelmaps");
       vtkErrorMacro("ComputeDvh: " << errorMessage);
       return errorMessage;
     }
@@ -574,7 +575,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   structureStencil->GetExtent(stencilExtent);
   if (stencilExtent[1]-stencilExtent[0] <= 0 || stencilExtent[3]-stencilExtent[2] <= 0 || stencilExtent[5]-stencilExtent[4] <= 0)
   {
-    std::string errorMessage("Invalid stenciled dose volume");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Invalid stenciled dose volume");
     vtkErrorMacro("ComputeDvh: " << errorMessage);
     return errorMessage;
   }
@@ -600,7 +601,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   // Report error if there are no voxels in the stenciled dose volume (no non-zero voxels in the resampled labelmap)
   if (structureStat->GetVoxelCount() < 1)
   {
-    std::string errorMessage("Dose volume and the structure do not overlap"); // User-friendly error to help troubleshooting
+    std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Dose volume and the structure do not overlap"); // User-friendly error to help troubleshooting
     vtkErrorMacro("ComputeDvh: " << errorMessage);
     return errorMessage;
   }
@@ -660,7 +661,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   }
   else
   {
-    std::string errorMessage("Failed to find metrics table row for structure " + segmentName);
+    std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Failed to find metrics table row for structure ") + segmentName;
     vtkErrorMacro("ComputeDvh: " << errorMessage);
     return errorMessage;
   }
@@ -717,7 +718,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   {
     if (rangeMin<0)
     {
-      std::string errorMessage("The dose volume contains negative dose values");
+      std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "The dose volume contains negative dose values");
       vtkErrorMacro("ComputeDvh: " << errorMessage);
       return errorMessage;
     }
@@ -759,11 +760,13 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   vtkTable* table = tableNode->GetTable();
   int numberOfRows = numSamples + (insertPointAtOrigin?1:0);
   vtkNew<vtkDoubleArray> columnDose;
-  columnDose->SetName(isDoseVolume ? "Dose" : "Intensity");
+  // no tr (column name is used as a lookup key in SetXColumnName/SetYColumnName below;
+  // it must stay stable regardless of UI language)
+  columnDose->SetName(isDoseVolume ? /*no tr*/ "Dose" : /*no tr*/ "Intensity");
   columnDose->SetNumberOfTuples(numberOfRows);
   table->AddColumn(columnDose);
   vtkNew<vtkDoubleArray> columnVolume;
-  columnVolume->SetName("Volume");
+  columnVolume->SetName(/*no tr*/ "Volume");
   columnVolume->SetNumberOfTuples(numberOfRows);
   table->AddColumn(columnVolume);
   table->SetNumberOfRows(numberOfRows);
@@ -817,7 +820,7 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::ComputeDvh(vtkMRMLDoseVolum
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
   if (!shNode)
   {
-    std::string errorMessage("Failed to access subject hierarchy node");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Failed to access subject hierarchy node");
     vtkErrorMacro("ComputeDvh: " << errorMessage);
     return errorMessage;
   }
@@ -947,35 +950,37 @@ vtkMRMLPlotSeriesNode* vtkSlicerDoseVolumeHistogramModuleLogic::AddDvhToChart(vt
     {
       std::string doseUnitName = shNode->GetAttributeFromItemAncestor(
         doseShItemID, vtkSlicerRtCommon::DICOMRTIMPORT_DOSE_UNIT_NAME_ATTRIBUTE_NAME, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
-      doseAxisName = std::string("Dose [") + (doseUnitName.empty() ? "?" : doseUnitName) + "]";
+      doseAxisName = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Dose") + std::string(" [") + (doseUnitName.empty() ? "?" : doseUnitName) + "]";
     }
     else
     {
       vtkErrorMacro("AddDvhToChart: Invalid subject hierarchy node for dose volume");
-      doseAxisName = std::string("Dose");
+      doseAxisName = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Dose");
     }
 
     const char* doseSurfaceHistogramIdentifier = tableNode->GetAttribute(DVH_SURFACE_ATTRIBUTE_NAME.c_str());
     if (doseSurfaceHistogramIdentifier)
     {
-      chartTitle = "Dose Surface Histogram";
+      chartTitle = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Dose Surface Histogram");
     }
     else
     {
-      chartTitle = "Dose Volume Histogram";
+      chartTitle = vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Dose Volume Histogram");
     }
   }
   else
   {
-    doseAxisName="Intensity";
-    chartTitle="Intensity Volume Histogram";
+    doseAxisName=vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Intensity");
+    chartTitle=vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Intensity Volume Histogram");
   }
 
   chartNode->SetTitle(chartTitle.c_str());
   chartNode->SetXAxisTitle(doseAxisName.c_str());
-  plotSeriesNode->SetXColumnName(doseIdentifier ? "Dose" : "Intensity");
-  chartNode->SetYAxisTitle("Fractional volume [%]");
-  plotSeriesNode->SetYColumnName("Volume");
+  // no tr (column name is a lookup key into the table, must match the untranslated
+  // name set in ComputeDvh above regardless of UI language)
+  plotSeriesNode->SetXColumnName(doseIdentifier ? /*no tr*/ "Dose" : /*no tr*/ "Intensity");
+  chartNode->SetYAxisTitle(vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Fractional volume [%]").c_str());
+  plotSeriesNode->SetYColumnName(/*no tr*/ "Volume");
   plotSeriesNode->SetPlotType(vtkMRMLPlotSeriesNode::PlotTypeScatter);
   plotSeriesNode->SetMarkerStyle(vtkMRMLPlotSeriesNode::MarkerStyleNone);
 
@@ -1841,11 +1846,11 @@ vtkCollection* vtkSlicerDoseVolumeHistogramModuleLogic::ReadCsvToTableNode(std::
   {
     vtkNew<vtkTable> structureDvhTable;
     vtkNew<vtkDoubleArray> columnDose;
-    columnDose->SetName("Dose");
+    columnDose->SetName(vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Dose").c_str());
     columnDose->SetNumberOfTuples(lineNumber);
     structureDvhTable->AddColumn(columnDose);
     vtkNew<vtkDoubleArray> columnVolume;
-    columnVolume->SetName("Volume");
+    columnVolume->SetName(vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Volume").c_str());
     columnVolume->SetNumberOfTuples(lineNumber);
     structureDvhTable->AddColumn(columnVolume);
     structureDvhTable->SetNumberOfRows(lineNumber);
@@ -1947,10 +1952,10 @@ std::string vtkSlicerDoseVolumeHistogramModuleLogic::AssembleDoseMetricName(vtkM
 
   // Assemble metric name
   std::string valueType = ( !doseUnitName.empty()
-    ? (DVH_METRIC_DOSE_POSTFIX + " (" + doseUnitName + ")")
-    : (DVH_METRIC_INTENSITY_POSTFIX) );
+    ? (vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", DVH_METRIC_DOSE_POSTFIX.c_str()) + " (" + doseUnitName + ")")
+    : (vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", DVH_METRIC_INTENSITY_POSTFIX.c_str())) );
   std::ostringstream metricNameStream;
-  metricNameStream << doseMetricAttributeNamePrefix << valueType;
+  metricNameStream << vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", doseMetricAttributeNamePrefix.c_str()) << valueType;
 
   return metricNameStream.str();
 }
@@ -1986,7 +1991,7 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::InitializeMetricsTable(vtkMRMLDose
 
   // Add default columns
   vtkSmartPointer<vtkBitArray> visColumn = vtkSmartPointer<vtkBitArray>::New();
-  visColumn->SetName("Show");
+  visColumn->SetName(vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Show").c_str());
   metricsTableNode->AddColumn(visColumn);
 
   // Observe visualization column changes to show/hide DVH
@@ -1998,13 +2003,13 @@ void vtkSlicerDoseVolumeHistogramModuleLogic::InitializeMetricsTable(vtkMRMLDose
   visColumn->AddObserver(vtkCommand::ModifiedEvent, callbackCommand.GetPointer(), 1.0);
 
   vtkAbstractArray* structureNameColumn = metricsTableNode->AddColumn();
-  structureNameColumn->SetName(DVH_METRIC_STRUCTURE.c_str());
+  structureNameColumn->SetName(vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", DVH_METRIC_STRUCTURE.c_str()).c_str());
 
   vtkAbstractArray* volumeNameColumn = metricsTableNode->AddColumn();
-  volumeNameColumn->SetName("Volume name");
+  volumeNameColumn->SetName(vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", "Volume name").c_str());
 
   vtkAbstractArray* volumeCcColumn = metricsTableNode->AddColumn();
-  volumeCcColumn->SetName(DVH_METRIC_TOTAL_VOLUME_CC.c_str());
+  volumeCcColumn->SetName(vtkMRMLTr("vtkSlicerDoseVolumeHistogramModuleLogic", DVH_METRIC_TOTAL_VOLUME_CC.c_str()).c_str());
 
   vtkAbstractArray* meanDoseColumn = metricsTableNode->AddColumn();
   meanDoseColumn->SetName(meanDoseMetricName.c_str());

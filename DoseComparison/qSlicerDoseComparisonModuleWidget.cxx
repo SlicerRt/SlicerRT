@@ -280,7 +280,7 @@ void qSlicerDoseComparisonModuleWidget::setup()
   d->setupUi(this);
   this->Superclass::setup();
 
-  d->label_Warning->setText("");
+  d->label_Warning->setText(QString());
 
   d->SegmentSelectorWidget_Mask->setNoneEnabled(true);
 
@@ -691,7 +691,7 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
     return;
   }
 
-  d->label_Warning->setText("");
+  d->label_Warning->setText(QString());
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
@@ -700,7 +700,7 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
   d->GammaProgressDialog = new QProgressDialog((QWidget*)qSlicerApplication::application()->mainWindow());
   d->GammaProgressDialog->setModal(true);
   d->GammaProgressDialog->setMinimumDuration(150);
-  d->GammaProgressDialog->setLabelText("Computing gamma dose difference...");
+  d->GammaProgressDialog->setLabelText(tr("Computing gamma dose difference..."));
   d->GammaProgressDialog->show();
   QApplication::processEvents();
 
@@ -713,7 +713,7 @@ void qSlicerDoseComparisonModuleWidget::applyClicked()
   if (paramNode->GetResultsValid())
   {
     d->lineEdit_PassFraction->setText(
-      QString("%1 %").arg(paramNode->GetPassFractionPercent(),0,'f',2) );
+      tr("%1 %").arg(paramNode->GetPassFractionPercent(),0,'f',2) );
   }
 
   qvtkDisconnect( d->logic(), vtkSlicerRtCommon::ProgressUpdated, this, SLOT( onProgressUpdated(vtkObject*,void*,unsigned long,void*) ) );
@@ -762,7 +762,7 @@ void qSlicerDoseComparisonModuleWidget::checkDoseVolumeAttributes()
   }
   else
   {
-    d->label_Warning->setText("");
+    d->label_Warning->setText(QString());
   }
 }
 

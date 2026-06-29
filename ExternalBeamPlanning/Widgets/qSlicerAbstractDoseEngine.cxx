@@ -182,14 +182,14 @@ QString qSlicerAbstractDoseEngine::calculateDose(vtkMRMLRTBeamNode* beamNode)
 {
   if (!beamNode)
   {
-    QString errorMessage("Invalid beam node");
+    QString errorMessage(tr("Invalid beam node"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
   if (!parentPlanNode)
   {
-    QString errorMessage = QString("Unable to access parent node for beam %1").arg(beamNode->GetName());
+    QString errorMessage = tr("Unable to access parent node for beam %1").arg(beamNode->GetName());
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
@@ -198,14 +198,14 @@ QString qSlicerAbstractDoseEngine::calculateDose(vtkMRMLRTBeamNode* beamNode)
   vtkMRMLScalarVolumeNode* referenceVolumeNode = parentPlanNode->GetReferenceVolumeNode();
   if (!referenceVolumeNode)
   {
-    QString errorMessage("Unable to access reference volume");
+    QString errorMessage(tr("Unable to access reference volume"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(beamNode->GetScene());
   if (!shNode)
   {
-    QString errorMessage("Failed to access subject hierarchy node");
+    QString errorMessage(tr("Failed to access subject hierarchy node"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
@@ -253,21 +253,21 @@ QString qSlicerAbstractDoseEngine::calculateDoseInfluenceMatrix(vtkMRMLRTBeamNod
 {
   if (!this->isInverse())
   {
-    QString errorMessage("Dose engine lacks functionality for calculating a dose influence matrix for inverse planning");
+    QString errorMessage(tr("Dose engine lacks functionality for calculating a dose influence matrix for inverse planning"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
-    
+
   if (!beamNode)
   {
-    QString errorMessage("Invalid beam node");
+    QString errorMessage(tr("Invalid beam node"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
   if (!parentPlanNode)
   {
-    QString errorMessage = QString("Unable to access parent node for beam %1").arg(beamNode->GetName());
+    QString errorMessage = tr("Unable to access parent node for beam %1").arg(beamNode->GetName());
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
@@ -276,14 +276,14 @@ QString qSlicerAbstractDoseEngine::calculateDoseInfluenceMatrix(vtkMRMLRTBeamNod
   vtkMRMLScalarVolumeNode* referenceVolumeNode = parentPlanNode->GetReferenceVolumeNode();
   if (!referenceVolumeNode)
   {
-    QString errorMessage("Unable to access reference volume");
+    QString errorMessage(tr("Unable to access reference volume"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(beamNode->GetScene());
   if (!shNode)
   {
-    QString errorMessage("Failed to access subject hierarchy node");
+    QString errorMessage(tr("Failed to access subject hierarchy node"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }

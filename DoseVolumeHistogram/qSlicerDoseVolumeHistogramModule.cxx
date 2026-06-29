@@ -23,7 +23,6 @@
 #include "qSlicerSubjectHierarchyDoseVolumeHistogramPlugin.h"
 
 // Slicer includes
-#include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
 
 // ExtensionTemplate Logic includes
@@ -69,15 +68,15 @@ qSlicerDoseVolumeHistogramModule::~qSlicerDoseVolumeHistogramModule() = default;
 //-----------------------------------------------------------------------------
 QString qSlicerDoseVolumeHistogramModule::helpText()const
 {
-  return QString("This module computes dose volume histogram (DVH) and metrics from a dose map and segmentation. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/DoseVolumeHistogram\">%1/Documentation/%2.%3/Modules/DoseVolumeHistogram</a><br>").arg(
-    this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
+  return tr("This module computes dose volume histogram (DVH) and metrics from a dose map and segmentation. "
+    "For more information see <a href=\"%1\">%1</a><br>").arg(
+    "https://github.com/SlicerRt/SlicerRT/blob/master/Docs/user_guide/modules/DoseVolumeHistogram.md");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerDoseVolumeHistogramModule::acknowledgementText()const
 {
-  return "This work was funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO), and CANARIE.";
+  return tr("This work was funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO), and CANARIE.");
 }
 
 //-----------------------------------------------------------------------------
@@ -98,7 +97,7 @@ void qSlicerDoseVolumeHistogramModule::setup()
 //-----------------------------------------------------------------------------
 QStringList qSlicerDoseVolumeHistogramModule::categories() const
 {
-  return QStringList() << "Radiotherapy";
+  return QStringList() << tr("Radiotherapy");
 }
 
 //-----------------------------------------------------------------------------

@@ -26,6 +26,7 @@
 #include "vtkSlicerRtCommon.h"
 
 // MRML includes
+#include <vtkMRMLI18N.h>
 #include <vtkMRMLModelNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLScene.h>
@@ -356,7 +357,7 @@ void vtkSlicerPlanarImageModuleLogic::CreateModelForPlanarImage(vtkMRMLPlanarIma
     vtkErrorMacro("CreateModelForPlanarImage: Missing displayed model reference in parameter set node for planar image '" << planarImageVolume->GetName() << "'!");
     return;
   }
-  displayedModelNode->SetDescription("Model displaying a planar image");
+  displayedModelNode->SetDescription(vtkMRMLTr("vtkSlicerPlanarImageModuleLogic", "Model displaying a planar image").c_str());
 
   // Create display node for the model
   vtkMRMLModelDisplayNode* displayedModelDisplayNode = vtkMRMLModelDisplayNode::SafeDownCast(displayedModelNode->GetDisplayNode());

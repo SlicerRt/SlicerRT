@@ -19,7 +19,6 @@
 ==============================================================================*/
 
 // Slicer includes
-#include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
 
 // PlanarImage Logic includes
@@ -62,7 +61,7 @@ qSlicerPlanarImageModule::qSlicerPlanarImageModule(QObject* _parent)
 //-----------------------------------------------------------------------------
 QStringList qSlicerPlanarImageModule::categories()const
 {
-  return QStringList() << "Radiotherapy";
+  return QStringList() << tr("Radiotherapy");
 }
 
 //-----------------------------------------------------------------------------
@@ -71,15 +70,13 @@ qSlicerPlanarImageModule::~qSlicerPlanarImageModule() = default;
 //-----------------------------------------------------------------------------
 QString qSlicerPlanarImageModule::helpText()const
 {
-  return QString("This module displays and handles planar images (single-slice volumes) as textured models. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/PlanarImage\">%1/Documentation/%2.%3/Modules/PlanarImage</a><br>").arg(
-    qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
+  return tr("This module displays and handles planar images (single-slice volumes) as textured models.");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerPlanarImageModule::acknowledgementText()const
 {
-  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
+  return tr("This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).");
 }
 
 //-----------------------------------------------------------------------------

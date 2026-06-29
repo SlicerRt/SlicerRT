@@ -5,6 +5,8 @@ from DoseEngines import AbstractScriptedDoseEngine
 from Python.TopasDoseEngineUtil import TopasDoseEngineUtil
 import logging
 
+from slicer.i18n import translate
+
 #------------------------------------------------------------------------------
 #
 # TopasDoseEngine
@@ -40,69 +42,69 @@ class TopasDoseEngine(AbstractScriptedDoseEngine):
   #------------------------------------------------------------------------------
   def defineBeamParameters(self):
     """Define beam parameters that can be configured"""
-    tabName = "Topas parameters"
+    tabName = translate("DoseEngines.TopasDoseEngine", "Topas parameters")
 
     # Radiation mode (beam particle)
     self.scriptedEngine.addBeamParameterComboBox(
-      tabName, 'radiationMode', 'Radiation mode',
-      'Particle type used for the simulation',
+      tabName, 'radiationMode', translate("DoseEngines.TopasDoseEngine", "Radiation mode"),
+      translate("DoseEngines.TopasDoseEngine", "Particle type used for the simulation"),
       ['proton', 'neutron', 'gamma', 'e-', 'e+'], 0)
 
     # Energy parameter
     self.scriptedEngine.addBeamParameterSpinBox(
-      tabName, 'energy', 'Beam energy',
-      'Energy of the beam in MeV',
+      tabName, 'energy', translate("DoseEngines.TopasDoseEngine", "Beam energy"),
+      translate("DoseEngines.TopasDoseEngine", "Energy of the beam in MeV"),
       1.0, 250.0, 100.0, 1.0, 1)
 
     # Number of histories parameter
     self.scriptedEngine.addBeamParameterSpinBox(
-      tabName, 'numberOfHistories', 'Number of particles',
-      'Number of particles to simulate (more particles = better statistics but slower)',
+      tabName, 'numberOfHistories', translate("DoseEngines.TopasDoseEngine", "Number of particles"),
+      translate("DoseEngines.TopasDoseEngine", "Number of particles to simulate (more particles = better statistics but slower)"),
       100000, 100000000, 1000000, 500000, 0)
 
     # ParticlesPerHistory: downsampling factor — histories/spot = spot_MU / ParticlesPerHistory
     # Values < 1 increase histories (better statistics); values > 1 decrease them (faster)
     self.scriptedEngine.addBeamParameterSpinBox(
-      tabName, 'particlesPerHistory', 'Particles per history',
-      'Downsampling factor for TsRTIonSource. Values < 1 increase histories per spot for better statistics.',
+      tabName, 'particlesPerHistory', translate("DoseEngines.TopasDoseEngine", "Particles per history"),
+      translate("DoseEngines.TopasDoseEngine", "Downsampling factor for TsRTIonSource. Values < 1 increase histories per spot for better statistics."),
       0.0001, 10000000.0, 1.0, 0.1, 4)
 
     self.scriptedEngine.addBeamParameterSpinBox(
-      tabName, 'numberOfThreads', 'Number of threads',
-      'Number of CPU threads for the TOPAS simulation',
+      tabName, 'numberOfThreads', translate("DoseEngines.TopasDoseEngine", "Number of threads"),
+      translate("DoseEngines.TopasDoseEngine", "Number of CPU threads for the TOPAS simulation"),
       1, 64, os.cpu_count() or 1, 1, 0)
 
     # Path parameters
     self.scriptedEngine.addBeamParameterLineEdit(
-      tabName, 'topasDirectory', 'TOPAS directory:',
-      'Path to the TOPAS installation directory', self.topasDirectoryPath)
+      tabName, 'topasDirectory', translate("DoseEngines.TopasDoseEngine", "TOPAS directory:"),
+      translate("DoseEngines.TopasDoseEngine", "Path to the TOPAS installation directory"), self.topasDirectoryPath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      tabName, 'topasBinary', 'TOPAS binary:',
-      'Path to the TOPAS executable', self.topasBinaryPath)
+      tabName, 'topasBinary', translate("DoseEngines.TopasDoseEngine", "TOPAS binary:"),
+      translate("DoseEngines.TopasDoseEngine", "Path to the TOPAS executable"), self.topasBinaryPath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      tabName, 'g4DataDirectory', 'Geant4 data directory:',
-      'Path to the Geant4 data directory (G4DATAFILES)', self.g4dataPath)
+      tabName, 'g4DataDirectory', translate("DoseEngines.TopasDoseEngine", "Geant4 data directory:"),
+      translate("DoseEngines.TopasDoseEngine", "Path to the Geant4 data directory (G4DATAFILES)"), self.g4dataPath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      tabName, 'rtIonPlanFile', 'RT Ion Plan file (optional):',
-      'Path to a DICOM RT Ion Plan file for TsRTIonSource. Leave empty to use the simple beam source.',
+      tabName, 'rtIonPlanFile', translate("DoseEngines.TopasDoseEngine", "RT Ion Plan file (optional):"),
+      translate("DoseEngines.TopasDoseEngine", "Path to a DICOM RT Ion Plan file for TsRTIonSource. Leave empty to use the simple beam source."),
       self.rtIonPlanFilePath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      tabName, 'schneiderMaterialFile', 'Schneider material file (optional):',
-      'Path to a custom HU-to-material Schneider table. Leave empty to use the bundled default '
-      '(a good default, but not the most up to date).',
+      tabName, 'schneiderMaterialFile', translate("DoseEngines.TopasDoseEngine", "Schneider material file (optional):"),
+      translate("DoseEngines.TopasDoseEngine", "Path to a custom HU-to-material Schneider table. Leave empty to use the bundled default "
+      "(a good default, but not the most up to date)."),
       self.schneiderMaterialFilePath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      tabName, 'machineDescriptionFile', 'Machine description file (.table, optional):',
-      'Path to a custom TOPAS dicom-interface PBS machine description (.table) file '
-      '(see https://github.com/topasmc/dicom-interface/wiki/using-machine-description-file). '
-      'Overrides the treatment machine read from the RT Ion Plan DICOM. Only generic PBS '
-      '.table files are supported here, not compiled-in machine models. Leave empty to use '
-      'the machine read from DICOM.',
+      tabName, 'machineDescriptionFile', translate("DoseEngines.TopasDoseEngine", "Machine description file (.table, optional):"),
+      translate("DoseEngines.TopasDoseEngine", "Path to a custom TOPAS dicom-interface PBS machine description (.table) file "
+      "(see https://github.com/topasmc/dicom-interface/wiki/using-machine-description-file). "
+      "Overrides the treatment machine read from the RT Ion Plan DICOM. Only generic PBS "
+      ".table files are supported here, not compiled-in machine models. Leave empty to use "
+      "the machine read from DICOM."),
       self.machineDescriptionFilePath)
 
   #------------------------------------------------------------------------------

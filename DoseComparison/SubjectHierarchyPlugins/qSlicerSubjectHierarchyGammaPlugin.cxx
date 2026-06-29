@@ -121,7 +121,7 @@ double qSlicerSubjectHierarchyGammaPlugin::canOwnSubjectHierarchyItem(vtkIdType 
 //---------------------------------------------------------------------------
 const QString qSlicerSubjectHierarchyGammaPlugin::roleForPlugin()const
 {
-  return "Gamma dose comparison volume";
+  return /*no tr*/ "Gamma dose comparison volume";
 }
 
 //---------------------------------------------------------------------------

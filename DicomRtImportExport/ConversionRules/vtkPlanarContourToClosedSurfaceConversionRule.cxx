@@ -82,6 +82,7 @@ vtkPlanarContourToClosedSurfaceConversionRule::vtkPlanarContourToClosedSurfaceCo
   this->ImagePadding[1] = 4;
   this->ImagePadding[2] = 0;
 
+  // no tr (this description is written into the .seg.nrrd segmentation file)
   this->ConversionParameters->SetParameter(this->GetDefaultSliceThicknessParameterName(), "0.0",
     "Default thickness for contours if slice spacing cannot be calculated.");
   this->ConversionParameters->SetParameter(this->GetEndCappingParameterName(), "1",

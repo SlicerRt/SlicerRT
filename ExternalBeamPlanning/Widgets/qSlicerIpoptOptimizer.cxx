@@ -743,7 +743,7 @@ qSlicerIpoptOptimizer::Result qSlicerIpoptOptimizer::solveProblem(const Array& x
 
   // Emit completion signal
   emit optimizationCompleted(result.success,
-    result.success ? "Optimization completed successfully" : "Optimization failed");
+    result.success ? tr("Optimization completed successfully") : tr("Optimization failed"));
 
   return result;
 }
@@ -959,20 +959,20 @@ QString qSlicerIpoptOptimizer::optimizePlanUsingOptimizer(
   vtkMRMLScalarVolumeNode* resultOptimizationVolumeNode)
 {
   if (!planNode || !resultOptimizationVolumeNode)
-    return "Invalid plan or result volume node";
+    return tr("Invalid plan or result volume node");
   if (objectives.empty())
-    return "No objectives defined";
+    return tr("No objectives defined");
 
   vtkMRMLScalarVolumeNode* refVol = planNode->GetReferenceVolumeNode();
   if (!refVol)
-    return "No reference volume on plan";
+    return tr("No reference volume on plan");
 
   // ── Step 1: collect beams and build combined D (numVoxels × totalBixels) ──
 
   std::vector<vtkMRMLRTBeamNode*> beams;
   planNode->GetBeams(beams);
   if (beams.empty())
-    return "No beams in plan";
+    return tr("No beams in plan");
 
   // Use dose grid from first beam; fall back to reference volume if not set.
   int doseGridDim[3] = {0, 0, 0};
@@ -1027,7 +1027,7 @@ QString qSlicerIpoptOptimizer::optimizePlanUsingOptimizer(
   {
     const SparseD& Di = beam->GetDoseInfluenceMatrix();
     if (Di.rows() == 0 || Di.cols() == 0)
-      return QString("Dose influence matrix empty for beam '%1'. "
+      return tr("Dose influence matrix empty for beam '%1'. "
                      "Run dose calculation first.").arg(beam->GetName());
     for (int k = 0; k < Di.outerSize(); ++k)
       for (SparseD::InnerIterator it(Di, k); it; ++it)
@@ -1097,7 +1097,7 @@ QString qSlicerIpoptOptimizer::optimizePlanUsingOptimizer(
   scene->RemoveNode(doseGridVolNode);
 
   if (structObjs.empty() && structConstraints.empty())
-    return "No valid objectives or constraints could be configured";
+    return tr("No valid objectives or constraints could be configured");
 
   // ── Step 3: wire IPOPT objective and gradient as lambdas ──
   // f(w) = Σ_i penalty_i * f_i( D[struct_i, :] * w )
@@ -1226,14 +1226,14 @@ QString qSlicerIpoptOptimizer::optimizePlanUsingOptimizer(
   }
 
   // ── Step 4: solve ──
-  emit progressInfoUpdated("Starting IPOPT optimization...");
+  emit progressInfoUpdated(tr("Starting IPOPT optimization..."));
 
   // Scale initial weights so the mean dose in the most demanding MinDose
   Array w0(totalBixels, 1.0 / totalBixels);
 
   Result result = solveProblem(w0);
   if (!result.success)
-    return QString("IPOPT solver did not converge (status %1)").arg(result.status);
+    return tr("IPOPT solver did not converge (status %1)").arg(result.status);
 
   // ── Step 5: compute and store result dose volume ──
   Eigen::VectorXd wOpt = Eigen::Map<Eigen::VectorXd>(
@@ -1252,6 +1252,6 @@ QString qSlicerIpoptOptimizer::optimizePlanUsingOptimizer(
   resultOptimizationVolumeNode->SetName(
     (std::string(planNode->GetName()) + "_IpoptOptimizedDose").c_str());
 
-  emit progressInfoUpdated("IPOPT optimization complete.");
+  emit progressInfoUpdated(tr("IPOPT optimization complete."));
   return QString(); // empty = success
 }

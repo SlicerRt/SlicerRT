@@ -2,6 +2,7 @@ import os
 import vtk, qt, ctk, slicer
 from DICOMLib import DICOMPlugin
 import logging
+from slicer.i18n import tr as _
 
 #
 # This is the plugin to handle translation of DICOM RT objects
@@ -47,7 +48,7 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
           # Convert to Qt loadable to pass it back
           qtLoadable = slicer.qSlicerDICOMLoadable()
           qtLoadable.copyFromVtkLoadable(vtkLoadable)
-          qtLoadable.tooltip = 'Valid RT object in selection'
+          qtLoadable.tooltip = _('Valid RT object in selection')
           qtLoadable.selected = True
           loadables.append(qtLoadable)
 
@@ -103,7 +104,7 @@ class DicomRtImportExportPluginClass(DICOMPlugin):
     if exportable is not None:
       # Set common properties for RT exportable
       exportable.name = self.loadType
-      exportable.tooltip = "Create DICOM files from RT study"
+      exportable.tooltip = _("Create DICOM files from RT study")
       exportable.subjectHierarchyItemID = subjectHierarchyItemID
       exportable.pluginClass = self.__module__
       # Define common required tags and default values
@@ -136,19 +137,19 @@ class DicomRtImportExportPlugin:
   as a loadable scripted module
   """
   def __init__(self, parent):
-    parent.title = "DICOM RT Import-Export Plugin"
-    parent.categories = ["Developer Tools.DICOM Plugins"]
+    parent.title = _("DICOM RT Import-Export Plugin")
+    parent.categories = [_("Developer Tools.DICOM Plugins")]
     parent.dependencies = []
     parent.contributors = "Csaba Pinter (Queen's), Andras Lasso (Queen's), Kevin Wang (UHN, Toronto)"
-    parent.helpText = """
+    parent.helpText = _("""
     Plugin to the DICOM Module to parse and load RT entities from DICOM files.
     No module interface here, only in the DICOM module
-    """
-    parent.acknowledgementText = """
+    """)
+    parent.acknowledgementText = _("""
     This DICOM Plugin was developed by
     Csaba Pinter, PerkLab, Queen's University, Kingston, ON, CA
     and was funded by OCAIRO, CCO/CINO
-    """
+    """)
 
     # don't show this module - it only appears in the DICOM module
     parent.hidden = True

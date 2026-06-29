@@ -125,7 +125,7 @@ double qSlicerSubjectHierarchyIsodosePlugin::canOwnSubjectHierarchyItem(vtkIdTyp
 //---------------------------------------------------------------------------
 const QString qSlicerSubjectHierarchyIsodosePlugin::roleForPlugin()const
 {
-  return "Isodose surface";
+  return /*no tr*/ "Isodose surface";
 }
 
 //---------------------------------------------------------------------------

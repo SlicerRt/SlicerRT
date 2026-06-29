@@ -35,6 +35,7 @@
 #include <vtkWeakPointer.h>
 
 // Qt includes
+#include <QCoreApplication>
 #include <QDebug>
 #include <QKeyEvent>
 #include <QStringList>
@@ -102,9 +103,20 @@ void qMRMLObjectivesTableWidgetPrivate::init()
   this->ColumnLabels << "Number" << "IsConstraint" << "ObjectiveName" << "Segments" << "OverlapPriority" << "Penalty" << "Parameters";
   this->ObjectivesTable->setColumnCount(this->ColumnLabels.size());
   this->ObjectivesTable->setHorizontalHeaderLabels(
-    QStringList() << "#" << "C" << "Objective" << "Segments" << "OP" << "p" << "Parameters");
+    QStringList()
+      //: number
+      << qMRMLObjectivesTableWidget::tr("#")
+      //: abbreviation for "Constraint"
+      << qMRMLObjectivesTableWidget::tr("C")
+      << qMRMLObjectivesTableWidget::tr("Objective")
+      << qMRMLObjectivesTableWidget::tr("Segments")
+      //: abbreviation for "Overlap Priority"
+      << qMRMLObjectivesTableWidget::tr("OP")
+      //: abbreviation for "Penalty"
+      << qMRMLObjectivesTableWidget::tr("p")
+      << qMRMLObjectivesTableWidget::tr("Parameters"));
   this->ObjectivesTable->horizontalHeaderItem(this->columnIndex("IsConstraint"))
-    ->setToolTip("Constraint (check to show constraints instead of objectives)");
+    ->setToolTip(qMRMLObjectivesTableWidget::tr("Constraint (check to show constraints instead of objectives)"));
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
   this->ObjectivesTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
@@ -240,7 +252,7 @@ void qMRMLObjectivesTableWidget::updateObjectivesTable()
   // Check selection validity
   if (!d->PlanNode)
   {
-    d->setMessage("No plan node selected.");
+    d->setMessage(tr("No plan node selected."));
     d->ObjectivesTable->setRowCount(0);
     d->ObjectivesTable->blockSignals(false);
     return;
@@ -248,7 +260,7 @@ void qMRMLObjectivesTableWidget::updateObjectivesTable()
 
   if (!d->PlanNode->GetSegmentationNode())
   {
-    d->setMessage("No segmentation node selected in the plan node.");
+    d->setMessage(tr("No segmentation node selected in the plan node."));
     d->ObjectivesTable->blockSignals(false);
     return;
   }
@@ -256,7 +268,7 @@ void qMRMLObjectivesTableWidget::updateObjectivesTable()
   qSlicerAbstractPlanOptimizer* selectedEngine = qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(d->PlanNode->GetPlanOptimizerName());
   if (!selectedEngine)
   {
-    d->setMessage("No valid plan optimizer selected in the plan node.");
+    d->setMessage(tr("No valid plan optimizer selected in the plan node."));
     d->ObjectivesTable->setRowCount(0);
     d->ObjectivesTable->blockSignals(false);
     return;
@@ -445,7 +457,7 @@ void qMRMLObjectivesTableWidget::onObjectiveAdded()
   QCheckBox* constraintCheckBox = new QCheckBox();
   bool hasConstraints = std::any_of(availableObjectives.begin(), availableObjectives.end(),
     [](const qSlicerAbstractPlanOptimizer::ObjectiveStruct& o) { return o.isConstraint; });
-  constraintCheckBox->setToolTip("Check to show constraints instead of objectives");
+  constraintCheckBox->setToolTip(tr("Check to show constraints instead of objectives"));
   d->ObjectivesTable->setCellWidget(row, d->columnIndex("IsConstraint"), constraintCheckBox);
   d->ObjectivesTable->setColumnHidden(d->columnIndex("IsConstraint"), !hasConstraints);
 

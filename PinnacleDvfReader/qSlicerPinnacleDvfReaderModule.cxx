@@ -67,7 +67,7 @@ qSlicerPinnacleDvfReaderModule::~qSlicerPinnacleDvfReaderModule() = default;
 //-----------------------------------------------------------------------------
 QString qSlicerPinnacleDvfReaderModule::helpText()const
 {
-  QString help = QString(
+  QString help = tr(
     "The PinnacleDvfReader module enables importing and loading .DVF files into Slicer.<br>"
     "The PinnacleDvfReader module is hidden and therefore does not require an application.<br>");
   return help;
@@ -76,7 +76,7 @@ QString qSlicerPinnacleDvfReaderModule::helpText()const
 //-----------------------------------------------------------------------------
 QString qSlicerPinnacleDvfReaderModule::acknowledgementText()const
 {
-  QString acknowledgement = QString(
+  QString acknowledgement = tr(
     "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).");
   return acknowledgement;
 }
@@ -108,7 +108,7 @@ void qSlicerPinnacleDvfReaderModule::setup()
     qSlicerCoreApplication::application()->coreIOManager();
   ioManager->registerIO(new qSlicerPinnacleDvfReaderPlugin(PinnacleDvfReaderLogic,this));
   ioManager->registerIO(new qSlicerNodeWriter(
-    "Dvf", QString("Pinnacle DVF"),
+    "Dvf", QString("PinnacleDVF") /*no tr*/,
     QStringList() << "vtkMRMLGridTransformNode", true, this));
 }
 

@@ -620,9 +620,7 @@ void qSlicerIsodoseModuleWidget::setReferenceDoseValue(double value)
 //-----------------------------------------------------------------------------
 QString qSlicerIsodoseModuleWidget::generateNewIsodoseLevel() const
 {
-  QString newIsodoseLevelBase("New level");
-  QString newIsodoseLevel(newIsodoseLevelBase);
-  return newIsodoseLevel;
+  return tr("New level");
 }
 
 //------------------------------------------------------------------------------
@@ -798,7 +796,7 @@ void qSlicerIsodoseModuleWidget::updateScalarBarsFromSelectedColorTable()
   bool relativeRepresentation = d->IsodoseNode->GetRelativeRepresentationFlag();
 
   // Get dose unit name and assemble scalar bar title
-  std::string scalarBarTitle("Isolevels");
+  std::string scalarBarTitle(tr("Isolevels").toStdString());
   switch (doseUnits)
   {
   case vtkMRMLIsodoseNode::Gy:

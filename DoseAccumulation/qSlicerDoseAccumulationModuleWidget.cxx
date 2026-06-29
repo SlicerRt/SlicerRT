@@ -279,7 +279,7 @@ void qSlicerDoseAccumulationModuleWidget::referenceDoseVolumeNodeChanged(vtkMRML
   this->updateButtonsState();
 
   d->label_Warning->setVisible(!paramNode->GetReferenceDoseVolumeNode() || !vtkSlicerRtCommon::IsDoseVolumeNode(paramNode->GetReferenceDoseVolumeNode()));
-  d->label_Warning->setText(QString("Volume is not a dose volume!"));
+  d->label_Warning->setText(tr("Volume is not a dose volume!"));
 }
 
 //-----------------------------------------------------------------------------
@@ -584,7 +584,7 @@ void qSlicerDoseAccumulationModuleWidget::checkDoseUnitsInSelectedVolumes()
   }
 
   d->label_Warning->setVisible( doseUnits.count() > 1 );
-  d->label_Warning->setText(QString("Dose units do not match!"));
+  d->label_Warning->setText(tr("Dose units do not match!"));
 }
 
 //-----------------------------------------------------------------------------

@@ -41,6 +41,7 @@
 #endif
 
 // MRML includes
+#include <vtkMRMLI18N.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLTableNode.h>
 #include <vtkMRMLScene.h>
@@ -104,7 +105,7 @@ std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmV
 {
   if (!parameterNode || !this->Logic->GetMRMLScene())
   {
-    std::string errorMessage("Invalid MRML scene or parameter set node");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogicPrivate", "Invalid MRML scene or parameter set node");
     vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
     return errorMessage;
   }
@@ -117,13 +118,13 @@ std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmV
 
   if (!referenceSegmentationNode || !referenceSegmentID)
   {
-    std::string errorMessage("Invalid reference segment selection");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogicPrivate", "Invalid reference segment selection");
     vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
     return errorMessage;
   }
   if (!compareSegmentationNode || !compareSegmentID)
   {
-    std::string errorMessage("Invalid compare segment selection");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogicPrivate", "Invalid compare segment selection");
     vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
     return errorMessage;
   }
@@ -133,7 +134,7 @@ std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmV
   vtkSmartPointer<vtkOrientedImageData> referenceSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
   if (!referenceSegmentationNode->GetBinaryLabelmapRepresentation(referenceSegmentID, referenceSegmentLabelmap))
   {
-    std::string errorMessage("Failed to get binary labelmap from reference segment: " + std::string(referenceSegmentID));
+    std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogicPrivate", "Failed to get binary labelmap from reference segment: ") + std::string(referenceSegmentID);
     vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
     return errorMessage;
   }
@@ -141,7 +142,7 @@ std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmV
   vtkSmartPointer<vtkOrientedImageData> compareSegmentLabelmap = vtkSmartPointer<vtkOrientedImageData>::New();
   if (!compareSegmentationNode->GetBinaryLabelmapRepresentation(compareSegmentID, compareSegmentLabelmap))
   {
-    std::string errorMessage("Failed to get binary labelmap from reference segment: " + std::string(compareSegmentID));
+    std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogicPrivate", "Failed to get binary labelmap from reference segment: ") + std::string(compareSegmentID);
     vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
     return errorMessage;
   }
@@ -152,13 +153,13 @@ std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmV
   {
     if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(referenceSegmentationNode, referenceSegmentLabelmap))
     {
-      std::string errorMessage("Failed to apply parent transformation to compare segment!");
+      std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogicPrivate", "Failed to apply parent transformation to compare segment!");
       vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
       return errorMessage;
     }
     if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(compareSegmentationNode, compareSegmentLabelmap))
     {
-      std::string errorMessage("Failed to apply parent transformation to reference segment!");
+      std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogicPrivate", "Failed to apply parent transformation to reference segment!");
       vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
       return errorMessage;
     }
@@ -171,7 +172,7 @@ std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmV
   plmRefSegmentLabelmap = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(referenceSegmentLabelmap);
   if (!plmRefSegmentLabelmap)
   {
-    std::string errorMessage("Failed to convert reference segment labelmap into Plm_image");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogicPrivate", "Failed to convert reference segment labelmap into Plm_image");
     vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
     return errorMessage;
   }
@@ -179,7 +180,7 @@ std::string vtkSlicerSegmentComparisonModuleLogicPrivate::GetInputSegmentsAsPlmV
   plmCmpSegmentLabelmap = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(compareSegmentLabelmap);
   if (!plmCmpSegmentLabelmap)
   {
-    std::string errorMessage("Failed to convert compare segment labelmap into Plm_image");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogicPrivate", "Failed to convert compare segment labelmap into Plm_image");
     vtkErrorMacro("GetInputSegmentsAsPlmVolumes: " << errorMessage);
     return errorMessage;
   }
@@ -305,13 +306,13 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics(vtkMRML
 
   if (!parameterNode || !this->GetMRMLScene())
   {
-    std::string errorMessage("Invalid MRML scene or parameter set node");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "Invalid MRML scene or parameter set node");
     vtkErrorMacro("ComputeDiceStatistics: " << errorMessage);
     return errorMessage;
   }
   if (!parameterNode->GetReferenceSegmentationNode() || !parameterNode->GetCompareSegmentationNode())
   {
-    std::string errorMessage("Invalid input segment selection");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "Invalid input segment selection");
     vtkErrorMacro("ComputeDiceStatistics: " << errorMessage);
     return errorMessage;
   }
@@ -327,7 +328,7 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics(vtkMRML
   std::string inputToPlmResult = this->LogicPrivate->GetInputSegmentsAsPlmVolumes(parameterNode, plmRefSegmentLabelmap, plmCmpSegmentLabelmap, checkpointItkConvertStart);
   if (!inputToPlmResult.empty())
   {
-    std::string errorMessage("Error occurred during ITK conversion");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "Error occurred during ITK conversion");
     vtkErrorMacro("ComputeDiceStatistics: " << errorMessage);
     return errorMessage;
   }
@@ -381,25 +382,26 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeDiceStatistics(vtkMRML
     tableNode->SetUseColumnTitleAsColumnHeader(true);
     tableNode->RemoveAllColumns();
     vtkStringArray* header = vtkStringArray::SafeDownCast(tableNode->AddColumn());
-    header->SetName("Metric name");
+    // no tr (these strings are written into the exported file and may be parsed by other tools)
+    header->SetName(/*no tr*/ "Metric name");
     // Add input information to the table so that they appear in the exported file
-    header->InsertNextValue("Reference segmentation");
-    header->InsertNextValue("Reference segment");
-    header->InsertNextValue("Compare segmentation");
-    header->InsertNextValue("Compare segment");
+    header->InsertNextValue(/*no tr*/ "Reference segmentation");
+    header->InsertNextValue(/*no tr*/ "Reference segment");
+    header->InsertNextValue(/*no tr*/ "Compare segmentation");
+    header->InsertNextValue(/*no tr*/ "Compare segment");
     // Dice results
-    header->InsertNextValue("Dice coefficient");
-    header->InsertNextValue("True positives (%)");
-    header->InsertNextValue("True negatives (%)");
-    header->InsertNextValue("False positives (%)");
-    header->InsertNextValue("False negatives (%)");
-    header->InsertNextValue("Reference center");
-    header->InsertNextValue("Compare center");
-    header->InsertNextValue("Reference volume (cc)");
-    header->InsertNextValue("Compare volume (cc)");
+    header->InsertNextValue(/*no tr*/ "Dice coefficient");
+    header->InsertNextValue(/*no tr*/ "True positives (%)");
+    header->InsertNextValue(/*no tr*/ "True negatives (%)");
+    header->InsertNextValue(/*no tr*/ "False positives (%)");
+    header->InsertNextValue(/*no tr*/ "False negatives (%)");
+    header->InsertNextValue(/*no tr*/ "Reference center");
+    header->InsertNextValue(/*no tr*/ "Compare center");
+    header->InsertNextValue(/*no tr*/ "Reference volume (cc)");
+    header->InsertNextValue(/*no tr*/ "Compare volume (cc)");
 
     vtkStringArray* column = vtkStringArray::SafeDownCast(tableNode->AddColumn());
-    column->SetName("Metric value");
+    column->SetName(/*no tr*/ "Metric value");
 
     int row = 0;
     vtkMRMLSegmentationNode* referenceSegmentationNode = parameterNode->GetReferenceSegmentationNode();
@@ -449,13 +451,13 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeHausdorffDistances(vtk
 
   if (!parameterNode || !this->GetMRMLScene())
   {
-    std::string errorMessage("Invalid MRML scene or parameter set node");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "Invalid MRML scene or parameter set node");
     vtkErrorMacro("ComputeHausdorffDistances: " << errorMessage);
     return errorMessage;
   }
   if (!parameterNode->GetReferenceSegmentationNode() || !parameterNode->GetCompareSegmentationNode())
   {
-    std::string errorMessage("Invalid input segment selection");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "Invalid input segment selection");
     vtkErrorMacro("ComputeHausdorffDistances: " << errorMessage);
     return errorMessage;
   }
@@ -471,7 +473,7 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeHausdorffDistances(vtk
   std::string inputToPlmResult = this->LogicPrivate->GetInputSegmentsAsPlmVolumes(parameterNode, plmRefSegmentLabelmap, plmCmpSegmentLabelmap, checkpointItkConvertStart);
   if (!inputToPlmResult.empty())
   {
-    std::string errorMessage("Error occurred during ITK conversion");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "Error occurred during ITK conversion");
     vtkErrorMacro("ComputeHausdorffDistances: " << errorMessage);
     return errorMessage;
   }
@@ -503,19 +505,19 @@ std::string vtkSlicerSegmentComparisonModuleLogic::ComputeHausdorffDistances(vtk
     tableNode->SetUseColumnTitleAsColumnHeader(true);
     tableNode->RemoveAllColumns();
     vtkStringArray* header = vtkStringArray::SafeDownCast(tableNode->AddColumn());
-    header->SetName("Metric name");
+    header->SetName(vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "Metric name").c_str());
     // Add input information to the table so that they appear in the exported file
-    header->InsertNextValue("Reference segmentation");
-    header->InsertNextValue("Reference segment");
-    header->InsertNextValue("Compare segmentation");
-    header->InsertNextValue("Compare segment");
+    header->InsertNextValue(vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "Reference segmentation"));
+    header->InsertNextValue(vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "Reference segment"));
+    header->InsertNextValue(vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "Compare segmentation"));
+    header->InsertNextValue(vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "Compare segment"));
     // Hausdorff results
-    header->InsertNextValue("Maximum (mm)");
-    header->InsertNextValue("Average (mm)");
-    header->InsertNextValue("95% (mm)");
+    header->InsertNextValue(vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "Maximum (mm)"));
+    header->InsertNextValue(vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "Average (mm)"));
+    header->InsertNextValue(vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "95% (mm)"));
 
     vtkStringArray* column = vtkStringArray::SafeDownCast(tableNode->AddColumn());
-    column->SetName("Metric value");
+    column->SetName(vtkMRMLTr("vtkSlicerSegmentComparisonModuleLogic", "Metric value").c_str());
 
     int row = 0;
     vtkMRMLSegmentationNode* referenceSegmentationNode = parameterNode->GetReferenceSegmentationNode();

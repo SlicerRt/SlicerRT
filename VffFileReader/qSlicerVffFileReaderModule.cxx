@@ -64,7 +64,7 @@ qSlicerVffFileReaderModule::~qSlicerVffFileReaderModule() = default;
 //-----------------------------------------------------------------------------
 QString qSlicerVffFileReaderModule::helpText()const
 {
-  QString help = QString(
+  QString help = tr(
     "The VffFileReader module enables importing and loading VFF files into Slicer.<br>"
     "The VffFileReader module is hidden and therefore does not require an application.<br>");
   return help;
@@ -73,7 +73,7 @@ QString qSlicerVffFileReaderModule::helpText()const
 //-----------------------------------------------------------------------------
 QString qSlicerVffFileReaderModule::acknowledgementText()const
 {
-  QString acknowledgement = QString(
+  QString acknowledgement = tr(
     "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).");
   return acknowledgement;
 }

@@ -3,6 +3,8 @@ import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 
+from slicer.i18n import tr as _
+
 #
 # PlmMismatchError
 #
@@ -10,16 +12,16 @@ from slicer.ScriptedLoadableModule import *
 class PlmMismatchError(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Landmark Mismatch Error"
-    self.parent.categories = ["Plastimatch.DIR Validation"]
+    self.parent.title = _("Landmark Mismatch Error")
+    self.parent.categories = [_("Plastimatch.DIR Validation")]
     self.parent.dependencies = []
     self.parent.contributors = ["Gregory Sharp (MGH)"]
-    self.parent.helpText = """
+    self.parent.helpText = _("""
     This is an example of scripted loadable module bundled in an extension.
-    """
-    self.parent.acknowledgementText = """
+    """)
+    self.parent.acknowledgementText = _("""
     This file was originally developed by Greg Sharp, Massachusetts General Hospital, and was partially funded by NIH grant 2-U54-EB005149.
-    """ # replace with organization, grant and thanks.
+    """) # replace with organization, grant and thanks.
 
 class PlmMismatchErrorWidgetLogicIO: 
   def __init__(self):
@@ -61,7 +63,7 @@ class PlmMismatchErrorWidget(ScriptedLoadableModuleWidget):
 
     ### Parameters Area
     inputCollapsibleButton = ctk.ctkCollapsibleButton()
-    inputCollapsibleButton.text = "Input"
+    inputCollapsibleButton.text = _("Input")
     self.layout.addWidget(inputCollapsibleButton)
 
     # Layout within the dummy collapsible button
@@ -77,8 +79,8 @@ class PlmMismatchErrorWidget(ScriptedLoadableModuleWidget):
     self.fixedLandmarks.showHidden = False
     self.fixedLandmarks.renameEnabled = True
     self.fixedLandmarks.setMRMLScene( slicer.mrmlScene )
-    self.fixedLandmarks.setToolTip( "Landmarks on fixed image." )
-    inputFormLayout.addRow("Fixed landmarks: ", self.fixedLandmarks)
+    self.fixedLandmarks.setToolTip( _("Landmarks on fixed image.") )
+    inputFormLayout.addRow(_("Fixed landmarks: "), self.fixedLandmarks)
 
     # fixed landmarks (directory input)
     self.fixedLandmarksDirectory = ctk.ctkDirectoryButton()
@@ -95,8 +97,8 @@ class PlmMismatchErrorWidget(ScriptedLoadableModuleWidget):
     self.movingLandmarks.showHidden = False
     self.movingLandmarks.showChildNodeTypes = False
     self.movingLandmarks.setMRMLScene( slicer.mrmlScene )
-    self.movingLandmarks.setToolTip( "Landmarks on moving image." )
-    inputFormLayout.addRow("Moving landmarks: ", self.movingLandmarks)
+    self.movingLandmarks.setToolTip( _("Landmarks on moving image.") )
+    inputFormLayout.addRow(_("Moving landmarks: "), self.movingLandmarks)
 
     self.view = qt.QTableView()
     self.view.sortingEnabled = True
@@ -108,14 +110,14 @@ class PlmMismatchErrorWidget(ScriptedLoadableModuleWidget):
     inputFormLayout.addRow("", self.movingLandmarksDirectory) 
 
     # Apply Button
-    self.applyButton = qt.QPushButton("Apply")
-    self.applyButton.toolTip = "Run the algorithm."
+    self.applyButton = qt.QPushButton(_("Apply"))
+    self.applyButton.toolTip = _("Run the algorithm.")
     self.applyButton.enabled = True
     self.layout.addWidget(self.applyButton)
 
     ### Output Area
     outputCollapsibleButton = ctk.ctkCollapsibleButton()
-    outputCollapsibleButton.text = "Output statistics"
+    outputCollapsibleButton.text = _("Output statistics")
     self.layout.addWidget(outputCollapsibleButton)
 
     # Layout within the dummy collapsible button
@@ -125,23 +127,23 @@ class PlmMismatchErrorWidget(ScriptedLoadableModuleWidget):
     buttonLayout = qt.QHBoxLayout()
     self.averageError = qt.QLineEdit()
     self.averageErrorValue = 1
-    self.averageError.setToolTip( "Average landmark separation" )
+    self.averageError.setToolTip( _("Average landmark separation") )
     buttonLayout.addWidget(self.averageError)
-    outputFormLayout.addRow("Average error:", buttonLayout)
-     
+    outputFormLayout.addRow(_("Average error:"), buttonLayout)
+
     buttonLayout = qt.QHBoxLayout()
     self.Variance = qt.QLineEdit()
     self.VarianceValue = 1
-    self.Variance.setToolTip( "Variance" )
+    self.Variance.setToolTip( _("Variance") )
     buttonLayout.addWidget(self.Variance)
-    outputFormLayout.addRow("Variance:", buttonLayout)
+    outputFormLayout.addRow(_("Variance:"), buttonLayout)
 
     buttonLayout = qt.QHBoxLayout()
     self.stDev = qt.QLineEdit()
     self.stDevValue = 1
-    self.stDev.setToolTip( "Standard deviation" )
+    self.stDev.setToolTip( _("Standard deviation") )
     buttonLayout.addWidget(self.stDev)
-    outputFormLayout.addRow("Standard deviation:", buttonLayout)
+    outputFormLayout.addRow(_("Standard deviation:"), buttonLayout)
 
     # model and view for stats table
     self.view = qt.QTableView()
@@ -198,8 +200,8 @@ class PlmMismatchErrorWidget(ScriptedLoadableModuleWidget):
       row += 1
     #done!
     #self.view.setColumnWidth(0,30)
-    self.model.setHeaderData(0,1,"Landmark")
-    self.model.setHeaderData(1,1,"dist, mm")
+    self.model.setHeaderData(0,1,_("Landmark"))
+    self.model.setHeaderData(1,1,_("dist, mm"))
 
   def populateDistances(self):
     if not self.logic:

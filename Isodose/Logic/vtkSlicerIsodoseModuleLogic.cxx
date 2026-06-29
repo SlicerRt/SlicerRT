@@ -36,6 +36,7 @@
 
 // MRML includes
 #include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLI18N.h>
 #include <vtkMRMLColorLegendDisplayNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelNode.h>
@@ -977,14 +978,14 @@ void vtkSlicerIsodoseModuleLogic::SetColorLegendDefaults(vtkMRMLIsodoseNode* par
   // Check that range is valid for dose and relative dose
   // Set dose unit name
   std::string doseUnits = "Gy";
-  std::string title = "Isolevels, ";
+  std::string title = vtkMRMLTr("vtkSlicerIsodoseModuleLogic", "Isolevels, ");
   switch (parameterNode->GetDoseUnits())
   {
   case vtkMRMLIsodoseNode::Gy:
     break;
   case vtkMRMLIsodoseNode::Relative:
     doseUnits = "%";
-    title = "Relative isolevels, ";
+    title = vtkMRMLTr("vtkSlicerIsodoseModuleLogic", "Relative isolevels, ");
     break;
   case vtkMRMLIsodoseNode::Unknown:
   default:
@@ -996,7 +997,7 @@ void vtkSlicerIsodoseModuleLogic::SetColorLegendDefaults(vtkMRMLIsodoseNode* par
   if (parameterNode->GetRelativeRepresentationFlag())
   {
     doseUnits = "%";
-    title = "Relative isolevels, ";
+    title = vtkMRMLTr("vtkSlicerIsodoseModuleLogic", "Relative isolevels, ");
   }
   title += doseUnits;
 

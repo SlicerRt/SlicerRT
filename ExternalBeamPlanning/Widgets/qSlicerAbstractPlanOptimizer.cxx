@@ -104,7 +104,7 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
 {
   if (!planNode)
   {
-    QString errorMessage = QString("Invalid Plan Node");
+    QString errorMessage = tr("Invalid Plan Node");
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
@@ -113,14 +113,14 @@ QString qSlicerAbstractPlanOptimizer::optimizePlan(vtkMRMLRTPlanNode* planNode)
   vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();
   if (!referenceVolumeNode)
   {
-    QString errorMessage("Unable to access reference volume");
+    QString errorMessage(tr("Unable to access reference volume"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(planNode->GetScene());
   if (!shNode)
   {
-    QString errorMessage("Failed to access subject hierarchy node");
+    QString errorMessage(tr("Failed to access subject hierarchy node"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
