@@ -43,6 +43,9 @@
 // SlicerRT DrrImageComputation MRML includes
 #include <vtkMRMLDrrImageComputationNode.h>
 
+// MRML includes
+#include <vtkMRMLI18N.h>
+
 // SlicerRT Beams Logic includes
 #include <vtkSlicerBeamsModuleLogic.h>
 
@@ -933,10 +936,10 @@ vtkMRMLMarkupsFiducialNode* vtkSlicerDrrImageComputationLogic::CreateFiducials(v
     vtkVector3d p2( -1. * y + offset[0], -1. * x + offset[1], -distance); // (0,0)
     vtkVector3d p3( -1. * y + offset[0], 0.0, -distance); // vup
 
-    pointsMarkupsNode->AddControlPoint( p0, "Imager center");
-    pointsMarkupsNode->AddControlPoint( p1, "n");
-    pointsMarkupsNode->AddControlPoint( p2, "(0,0)");
-    pointsMarkupsNode->AddControlPoint( p3, "VUP");
+    pointsMarkupsNode->AddControlPoint( p0, /*no tr*/ "Imager center");
+    pointsMarkupsNode->AddControlPoint( p1, /*no tr*/ "n"); // point along the imaging plane normal direction
+    pointsMarkupsNode->AddControlPoint( p2, /*no tr*/ "(0,0)"); // origin of the 2D pixel coordinate system
+    pointsMarkupsNode->AddControlPoint( p3, /*no tr*/ "VUP"); // view-up vector reference point
 
     if (vtkMRMLRTBeamNode* beamNode = parameterNode->GetBeamNode())
     {
@@ -1113,7 +1116,7 @@ vtkMRMLScalarVolumeNode* vtkSlicerDrrImageComputationLogic::ComputePlastimatchDR
   if (drrVolumeNode->GetImageData() && drrVolumeNode->GetSpacing())
   {
     // Set more user friendly DRR image name
-    std::string drrName = scene->GenerateUniqueName(std::string("DRR : ") + std::string(beamNode->GetName()));
+    std::string drrName = scene->GenerateUniqueName(vtkMRMLTr("vtkSlicerDrrImageComputationLogic", "DRR: ") + std::string(beamNode->GetName()));
     drrVolumeNode->SetName(drrName.c_str());
 
     // Create parameter node name, and observe calculated drr volume
@@ -2037,7 +2040,7 @@ vtkMRMLTableNode* vtkSlicerDrrImageComputationLogic::CreateProjectionsTableNode(
     return nullptr;
   }
 
-  std::string name = std::string("DRR : ") + ctInputVolume->GetName() + "_MarkupsProjectionData";
+  std::string name = vtkMRMLTr("vtkSlicerDrrImageComputationLogic", "DRR: ") + ctInputVolume->GetName() + "_MarkupsProjectionData";
   vtkMRMLTableNode* tableNode = vtkMRMLTableNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLTableNode", name.c_str()));
 
   vtkTable* table = tableNode->GetTable();
@@ -2049,47 +2052,50 @@ vtkMRMLTableNode* vtkSlicerDrrImageComputationLogic::CreateProjectionsTableNode(
 
   // Column 0; Original label name
   vtkNew<vtkStringArray> originLabelString;
-  originLabelString->SetName("Original label");
+  originLabelString->SetName(vtkMRMLTr("vtkSlicerDrrImageComputationLogic", "Original label").c_str());
   table->AddColumn(originLabelString);
 
   // Column 1; R
   vtkNew<vtkDoubleArray> rPosition;
-  rPosition->SetName("R");
+  //: right
+  rPosition->SetName(vtkMRMLTr("vtkSlicerDrrImageComputationLogic", "R").c_str());
   table->AddColumn(rPosition);
 
   // Column 2; A
   vtkNew<vtkDoubleArray> aPosition;
-  aPosition->SetName("A");
+  //: anterior
+  aPosition->SetName(vtkMRMLTr("vtkSlicerDrrImageComputationLogic", "A").c_str());
   table->AddColumn(aPosition);
 
   // Column 3; S
   vtkNew<vtkDoubleArray> sPosition;
-  sPosition->SetName("S");
+  //: superior
+  sPosition->SetName(vtkMRMLTr("vtkSlicerDrrImageComputationLogic", "S").c_str());
   table->AddColumn(sPosition);
 
   // Column 4; Width
   vtkNew<vtkDoubleArray> widthOffset;
-  widthOffset->SetName("Width");
+  widthOffset->SetName(vtkMRMLTr("vtkSlicerDrrImageComputationLogic", "Width").c_str());
   table->AddColumn(widthOffset);
 
   // Column 5; Height
   vtkNew<vtkDoubleArray> heigthOffset;
-  heigthOffset->SetName("Height");
+  heigthOffset->SetName(vtkMRMLTr("vtkSlicerDrrImageComputationLogic", "Height").c_str());
   table->AddColumn(heigthOffset);
 
   // Column 6; Column
   vtkNew<vtkIntArray> columnOffset;
-  columnOffset->SetName("Column");
+  columnOffset->SetName(vtkMRMLTr("vtkSlicerDrrImageComputationLogic", "Column").c_str());
   table->AddColumn(columnOffset);
 
   // Column 7; Row
   vtkNew<vtkIntArray> rowOffset;
-  rowOffset->SetName("Row");
+  rowOffset->SetName(vtkMRMLTr("vtkSlicerDrrImageComputationLogic", "Row").c_str());
   table->AddColumn(rowOffset);
 
   // Column 8; Status string
   vtkNew<vtkStringArray> statusString;
-  statusString->SetName("Status");
+  statusString->SetName(vtkMRMLTr("vtkSlicerDrrImageComputationLogic", "Status").c_str());
   table->AddColumn(statusString);
 
   return tableNode;

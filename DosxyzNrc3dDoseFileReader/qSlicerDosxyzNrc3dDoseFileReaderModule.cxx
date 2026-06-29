@@ -66,7 +66,7 @@ qSlicerDosxyzNrc3dDoseFileReaderModule::~qSlicerDosxyzNrc3dDoseFileReaderModule(
 //-----------------------------------------------------------------------------
 QString qSlicerDosxyzNrc3dDoseFileReaderModule::helpText()const
 {
-  QString help = QString(
+  QString help = tr(
     "The DosxyzNrc3dDoseFileReader module enables importing and loading .3ddose files into Slicer.<br>"
     "The DosxyzNrc3dDoseFileReader module is hidden and therefore does not require an application.<br>");
   return help;
@@ -75,7 +75,7 @@ QString qSlicerDosxyzNrc3dDoseFileReaderModule::helpText()const
 //-----------------------------------------------------------------------------
 QString qSlicerDosxyzNrc3dDoseFileReaderModule::acknowledgementText()const
 {
-  QString acknowledgement = QString(
+  QString acknowledgement = tr(
     "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).");
   return acknowledgement;
 }

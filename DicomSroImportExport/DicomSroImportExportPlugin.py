@@ -2,6 +2,7 @@ import os
 import vtk, qt, ctk, slicer
 from DICOMLib import DICOMPlugin
 import logging
+from slicer.i18n import tr as _
 
 #
 # This is the plugin to handle translation of spatial registration object
@@ -46,7 +47,7 @@ class DicomSroImportExportPluginClass(DICOMPlugin):
           # Convert to Qt loadable to pass it back
           qtLoadable = slicer.qSlicerDICOMLoadable()
           qtLoadable.copyFromVtkLoadable(vtkLoadable)
-          qtLoadable.tooltip = 'Valid REG object in selection'
+          qtLoadable.tooltip = _('Valid REG object in selection')
           qtLoadable.selected = True
           loadables.append(qtLoadable)
 
@@ -90,7 +91,7 @@ class DicomSroImportExportPluginClass(DICOMPlugin):
     # Define type-specific required tags and default values
     exportable.setTag('Modality', 'REG')
     exportable.name = self.loadType
-    exportable.tooltip = "Create DICOM file from registration result"
+    exportable.tooltip = _("Create DICOM file from registration result")
     exportable.subjectHierarchyItemID = subjectHierarchyItemID
     exportable.pluginClass = self.__module__
     # Define common required tags and default values
@@ -105,13 +106,13 @@ class DicomSroImportExportPluginClass(DICOMPlugin):
       shn = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
       transformNode = shn.GetItemDataNode(exportable.subjectHierarchyItemID)
       if transformNode is None or not transformNode.IsA('vtkMRMLTransformNode'):
-        return 'Invalid transform node in exportable (ItemID:' + str(exportable.subjectHierarchyItemID)
+        return _('Invalid transform node in exportable (ItemID:') + str(exportable.subjectHierarchyItemID)
 
       # Get moving and fixed volumes involved in the registration
       movingVolumeNode = transformNode.GetNodeReference(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole())
       fixedVolumeNode = transformNode.GetNodeReference(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole())
       if movingVolumeNode is None or fixedVolumeNode is None:
-        currentError = 'Failed to find moving and/or fixed image for transform ' + transformNode.GetName()
+        currentError = _('Failed to find moving and/or fixed image for transform ') + transformNode.GetName()
         logging.error(currentError + '. These references are needed in order to export the transform into DICOM SRO. Please make sure the transform is created by a registration module.')
         errorMessage += currentError + '\n'
         continue
@@ -129,7 +130,7 @@ class DicomSroImportExportPluginClass(DICOMPlugin):
       sroExporter.SetOutputDirectory(exportable.directory)
       success = sroExporter.DoExport()
       if success != 0:
-        currentError = 'Failed to export transform node to DICOM SRO: ' + transformNode.GetName()
+        currentError = _('Failed to export transform node to DICOM SRO: ') + transformNode.GetName()
         logging.error(currentError)
         errorMessage += currentError + '\n'
         continue
@@ -146,20 +147,20 @@ class DicomSroImportExportPlugin:
   as a loadable scripted module
   """
   def __init__(self, parent):
-    parent.title = "DICOM Spatial Registration Object Plugin"
-    parent.categories = ["Developer Tools.DICOM Plugins"]
+    parent.title = _("DICOM Spatial Registration Object Plugin")
+    parent.categories = [_("Developer Tools.DICOM Plugins")]
     parent.contributors = ["Kevin Wang (RMP, PMH), Csaba Pinter (Queen's)"]
-    parent.helpText = """
+    parent.helpText = _("""
     Plugin to the DICOM Module to parse and load spatial registration
     from DICOM files.
     No module interface here, only in the DICOM module
-    """
-    parent.acknowledgementText = """
+    """)
+    parent.acknowledgementText = _("""
     This DICOM Plugin was developed by
     Kevin Wang, RMP, PMH and
     Csaba Pinter, PerkLab, Queen's University, Kingston, ON, CA
     and was funded by OCAIRO, CCO's ACCU program, and CANARIE
-    """
+    """)
 
     # don't show this module - it only appears in the DICOM module
     parent.hidden = True

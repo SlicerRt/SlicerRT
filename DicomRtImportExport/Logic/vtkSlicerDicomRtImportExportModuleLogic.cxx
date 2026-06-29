@@ -84,6 +84,7 @@
 
 // MRML includes
 #include <vtkMRMLColorTableNode.h>
+#include <vtkMRMLI18N.h>
 #include <vtkMRMLMarkupsCurveNode.h>
 #include <vtkMRMLModelDisplayNode.h>
 #include <vtkMRMLModelHierarchyNode.h>
@@ -790,16 +791,16 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadRtPlan(vtkSlicerD
     scene->AddNode(doseReferencesTableNode);
 
     doseReferencesTableNode->SetUseColumnTitleAsColumnHeader(true);
-    doseReferencesTableNode->SetColumnDescription("Description", "Dose Reference Description");
-    doseReferencesTableNode->SetColumnDescription("Structure Type", "Dose Reference Structure Type");
-    doseReferencesTableNode->SetColumnDescription("Reference Type", "Dose Reference Type");
-    doseReferencesTableNode->SetColumnDescription("Target Min. Dose", "Target/Organ Minimum Dose (in Gy)");
-    doseReferencesTableNode->SetColumnDescription("Target Prescription Dose", "Target Prescription Dose (in Gy)");
-    doseReferencesTableNode->SetColumnDescription("Target Max. Dose", "Target/Organ Maximum Dose (in Gy)");
-    doseReferencesTableNode->SetColumnDescription("Target Underdose Frac.", "Target Underdose Volume Fraction (in %)");
-    doseReferencesTableNode->SetColumnDescription("Weight", "Constraint Weight");
-    doseReferencesTableNode->SetColumnDescription("Organ Max. Dose", "Organ at Risk Maximum Dose (in Gy)");
-    doseReferencesTableNode->SetColumnDescription("Organ Overdose Frac.", "Organ at Risk Overdose Volume Fraction (in %)");
+    doseReferencesTableNode->SetColumnDescription("Description", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Dose Reference Description").c_str());
+    doseReferencesTableNode->SetColumnDescription("Structure Type", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Dose Reference Structure Type").c_str());
+    doseReferencesTableNode->SetColumnDescription("Reference Type", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Dose Reference Type").c_str());
+    doseReferencesTableNode->SetColumnDescription("Target Min. Dose", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Target/Organ Minimum Dose (in Gy)").c_str());
+    doseReferencesTableNode->SetColumnDescription("Target Prescription Dose", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Target Prescription Dose (in Gy)").c_str());
+    doseReferencesTableNode->SetColumnDescription("Target Max. Dose", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Target/Organ Maximum Dose (in Gy)").c_str());
+    doseReferencesTableNode->SetColumnDescription("Target Underdose Frac.", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Target Underdose Volume Fraction (in %)").c_str());
+    doseReferencesTableNode->SetColumnDescription("Weight", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Constraint Weight").c_str());
+    doseReferencesTableNode->SetColumnDescription("Organ Max. Dose", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Organ at Risk Maximum Dose (in Gy)").c_str());
+    doseReferencesTableNode->SetColumnDescription("Organ Overdose Frac.", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Organ at Risk Overdose Volume Fraction (in %)").c_str());
 
     vtkSmartPointer< vtkTable > doseTable = vtkSmartPointer< vtkTable >::Take(table);
     doseReferencesTableNode->SetAndObserveTable(doseTable);
@@ -2026,9 +2027,9 @@ vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateMu
     table->SetValue(size, 2, 0.); // side "2" set last unused value to zero
 
     tableNode->SetUseColumnTitleAsColumnHeader(true);
-    tableNode->SetColumnDescription("Boundary", "Leaf pair boundary");
-    tableNode->SetColumnDescription("1", "Leaf position on the side \"1\"");
-    tableNode->SetColumnDescription("2", "Leaf position on the side \"2\"");
+    tableNode->SetColumnDescription("Boundary", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Leaf pair boundary").c_str());
+    tableNode->SetColumnDescription("1", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Leaf position on the side \"1\"").c_str());
+    tableNode->SetColumnDescription("2", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Leaf position on the side \"2\"").c_str());
     return tableNode;
   }
   else
@@ -2081,9 +2082,9 @@ vtkMRMLTableNode* vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::CreateSc
       table->SetValue(row, 2, weights[row]);
     }
     tableNode->SetUseColumnTitleAsColumnHeader(true);
-    tableNode->SetColumnDescription("X", "Scan spot positions X");
-    tableNode->SetColumnDescription("Y", "Scan spot positions Y");
-    tableNode->SetColumnDescription("Weight", "Scan spot meterset weights");
+    tableNode->SetColumnDescription("X", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Scan spot positions X").c_str());
+    tableNode->SetColumnDescription("Y", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Scan spot positions Y").c_str());
+    tableNode->SetColumnDescription("Weight", vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Scan spot meterset weights").c_str());
     return tableNode;
   }
   else
@@ -2617,21 +2618,21 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   vtkMRMLScene* mrmlScene = this->GetMRMLScene();
   if (!mrmlScene)
   {
-    error = "MRML scene not valid";
+    error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "MRML scene not valid");
     vtkErrorMacro("ExportDicomRTStudy: " + error);
     return error;
   }
   vtkMRMLSubjectHierarchyNode* shNode = vtkMRMLSubjectHierarchyNode::GetSubjectHierarchyNode(this->GetMRMLScene());
   if (!shNode)
   {
-    error = "Failed to access subject hierarchy node";
+    error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Failed to access subject hierarchy node");
     vtkErrorMacro("ExportDicomRTStudy: " + error);
     return error;
   }
 
   if (exportables->GetNumberOfItems() < 1)
   {
-    error = "Exportable list contains no exportables";
+    error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Exportable list contains no exportables");
     vtkErrorMacro("ExportDicomRTStudy: " + error);
     return error;
   }
@@ -2759,7 +2760,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   // Make sure there is an image node.  Don't check for struct / dose, as those are optional
   if (!imageNode)
   {
-    error = "Must export the primary anatomical (CT/MR) image";
+    error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Must export the primary anatomical (CT/MR) image");
     vtkErrorMacro("ExportDicomRTStudy: " + error);
     return error;
   }
@@ -2790,7 +2791,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   vtkSmartPointer<vtkOrientedImageData> imageOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
   if (!vtkSlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(imageNode, imageOrientedImageData))
   {
-    error = "Failed to convert anatomical image " + std::string(imageNode->GetName()) + " to oriented image data";
+    error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Failed to convert anatomical image ") + std::string(imageNode->GetName()) + vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", " to oriented image data");
     vtkErrorMacro("ExportDicomRTStudy: " + error);
     return error;
   }
@@ -2811,7 +2812,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
   Plm_image::Pointer plm_img = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(imageOrientedImageData);
   if (plm_img->dim(0) * plm_img->dim(1) * plm_img->dim(2) == 0)
   {
-    error = "Failed to convert anatomical (CT/MR) image to Plastimatch format";
+    error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Failed to convert anatomical (CT/MR) image to Plastimatch format");
     vtkErrorMacro("ExportDicomRTStudy: " + error);
     return error;
   }
@@ -2823,7 +2824,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     vtkSmartPointer<vtkOrientedImageData> doseOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
     if (!vtkSlicerRtCommon::ConvertVolumeNodeToVtkOrientedImageData(doseNode, doseOrientedImageData))
     {
-      error = "Failed to convert dose volume " + std::string(doseNode->GetName()) + " to oriented image data";
+      error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Failed to convert dose volume ") + std::string(doseNode->GetName()) + vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", " to oriented image data");
       vtkErrorMacro("ExportDicomRTStudy: " + error);
       return error;
     }
@@ -2844,7 +2845,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     Plm_image::Pointer dose_img = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(doseOrientedImageData);
     if (dose_img->dim(0) * dose_img->dim(1) * dose_img->dim(2) == 0)
     {
-      error = "Failed to convert dose volume to Plastimatch format";
+      error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Failed to convert dose volume to Plastimatch format");
       vtkErrorMacro("ExportDicomRTStudy: " + error);
       return error;
     }
@@ -2862,7 +2863,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
       if ( !segmentationNode->GetSegmentation()->CreateRepresentation(
         vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName() ) )
       {
-        error = "Failed to get binary labelmap representation from segmentation " + std::string(segmentationNode->GetName());
+        error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Failed to get binary labelmap representation from segmentation ") + std::string(segmentationNode->GetName());
         vtkErrorMacro("ExportDicomRTStudy: " + error);
         return error;
       }
@@ -2885,7 +2886,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
 #endif
         if (!binaryLabelmap)
         {
-          error = "Failed to get binary labelmap representation from segment " + segmentID;
+          error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Failed to get binary labelmap representation from segment ") + segmentID;
           vtkErrorMacro("ExportDicomRTStudy: " + error);
           return error;
         }
@@ -2898,7 +2899,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
         {
           if (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(segmentationNode, binaryLabelmapCopy))
           {
-            std::string errorMessage("Failed to apply parent transformation to exported segment");
+            std::string errorMessage(vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Failed to apply parent transformation to exported segment"));
             vtkErrorMacro("ExportDicomRTStudy: " << errorMessage);
             return errorMessage;
           }
@@ -2909,7 +2910,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
         {
           if (!vtkOrientedImageDataResample::ResampleOrientedImageToReferenceOrientedImage(binaryLabelmapCopy, imageOrientedImageData, binaryLabelmapCopy))
           {
-            error = "Failed to resample segment " + segmentID + " to match anatomical image geometry";
+            error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Failed to resample segment ") + segmentID + vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", " to match anatomical image geometry");
             vtkErrorMacro("ExportDicomRTStudy: " + error);
             return error;
           }
@@ -2919,7 +2920,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
         Plm_image::Pointer plmStructure = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(binaryLabelmapCopy);
         if (!plmStructure)
         {
-          error = "Failed to convert segment labelmap " + segmentID + " to Plastimatch image";
+          error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Failed to convert segment labelmap ") + segmentID + vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", " to Plastimatch image");
           vtkErrorMacro("ExportDicomRTStudy: " + error);
           return error;
         }
@@ -2938,7 +2939,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
       if ( !segmentationNode->GetSegmentation()->CreateRepresentation(
         vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName() ) )
       {
-        error = "Failed to get closed surface representation from segmentation " + std::string(segmentationNode->GetName());
+        error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Failed to get closed surface representation from segmentation ") + std::string(segmentationNode->GetName());
         vtkErrorMacro("ExportDicomRTStudy: " + error);
         return error;
       }
@@ -2974,7 +2975,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
           segment->GetRepresentation(vtkSegmentationConverter::GetSegmentationClosedSurfaceRepresentationName()) );
         if (!closedSurfacePolyData)
         {
-          error = "Failed to get closed surface representation from segment " + segmentID;
+          error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Failed to get closed surface representation from segment ") + segmentID;
           vtkErrorMacro("ExportDicomRTStudy: " + error);
           return error;
         }
@@ -3046,7 +3047,7 @@ std::string vtkSlicerDicomRtImportExportModuleLogic::ExportDicomRTStudy(vtkColle
     }
     else
     {
-      error = "Structure set contains unsupported master representation";
+      error = vtkMRMLTr("vtkSlicerDicomRtImportExportModuleLogic", "Structure set contains unsupported master representation");
       vtkErrorMacro("ExportDicomRTStudy: " + error);
       return error;
     }

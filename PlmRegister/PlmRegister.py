@@ -4,6 +4,8 @@ from slicer.ScriptedLoadableModule import *
 import RegistrationLib
 import logging
 
+from slicer.i18n import tr as _
+
 #########################################################
 #
 #
@@ -27,16 +29,16 @@ comment = """
 class PlmRegister(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Plastimatch"
-    self.parent.categories = ["Plastimatch"]
+    self.parent.title = _("Plastimatch")
+    self.parent.categories = [_("Plastimatch")]
     self.parent.dependencies = []
     self.parent.contributors = ["Gregory Sharp (MGH)"]
-    self.parent.helpText = """
+    self.parent.helpText = _("""
     This is an example of scripted loadable module bundled in an extension.
-    """
-    self.parent.acknowledgementText = """
+    """)
+    self.parent.acknowledgementText = _("""
     This file was originally developed by Greg Sharp, Nadya Shusharina, and Paolo Zaffino and was partially funded by NIH grant 2-U54-EB005149.
-    """ # replace with organization, grant and thanks.
+    """) # replace with organization, grant and thanks.
     self.hidden = True
 
 
@@ -61,8 +63,8 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
   # generic settings that can (should) be overridden by the subclass
 
   # displayed for the user to select the registration
-  name = "Plastimatch"
-  tooltip = "B-spline deformable registration with landmark and regularization"
+  name = _("Plastimatch")
+  tooltip = _("B-spline deformable registration with landmark and regularization")
 
   stages = ["","","","",""] # transaltion gridsearch, translation, bspline1, bspline2, bspline3
 
@@ -104,7 +106,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
 
     # Main collapsible bar
     self.collapsibleButton = ctk.ctkCollapsibleButton()
-    self.collapsibleButton.text = "Plastimatch Registration"
+    self.collapsibleButton.text = _("Plastimatch Registration")
     plmRegisterFormLayout = qt.QFormLayout()
     self.collapsibleButton.setLayout(plmRegisterFormLayout)
     self.widgets.append(self.collapsibleButton)
@@ -116,20 +118,21 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     for cost in self.costFunctions:
       self.costFunctionButtons[cost] = qt.QRadioButton()
       self.costFunctionButtons[cost].text = cost
-      self.costFunctionButtons[cost].setToolTip("Register using %s cost function." % cost)
+      self.costFunctionButtons[cost].setToolTip(_("Register using %s cost function.") % cost)
       buttonLayout.addWidget(self.costFunctionButtons[cost])
     self.costFunctionButtons[self.costFunction].checked = True
-    plmRegisterFormLayout.addRow("Cost function:", buttonLayout)
+    plmRegisterFormLayout.addRow(_("Cost function:"), buttonLayout)
 
     # Pre-alignment
     buttonLayout = qt.QHBoxLayout()
     self.prealignmentComboBox = qt.QComboBox()
+    # no tr (currentText is compared against these literal values in runOneIteration)
     self.prealignmentComboBox.insertItem (1, "None")
     self.prealignmentComboBox.insertItem (2, "Local")
     self.prealignmentComboBox.insertItem (3, "Global")
-    self.prealignmentComboBox.setToolTip("Pre-alignment method\nEither none, global, or local")
+    self.prealignmentComboBox.setToolTip(_("Pre-alignment method\nEither none, global, or local"))
     buttonLayout.addWidget(self.prealignmentComboBox)
-    plmRegisterFormLayout.addRow("Pre-alignment:", buttonLayout)
+    plmRegisterFormLayout.addRow(_("Pre-alignment:"), buttonLayout)
 
     # Number of stages
     buttonLayout = qt.QHBoxLayout()
@@ -137,9 +140,9 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.numstagesComboBox.insertItem (1, "1")
     self.numstagesComboBox.insertItem (2, "2")
     self.numstagesComboBox.insertItem (3, "3")
-    self.numstagesComboBox.setToolTip("Choose number of stages\nUse more stages for slower, more precise registration.")
+    self.numstagesComboBox.setToolTip(_("Choose number of stages\nUse more stages for slower, more precise registration."))
     buttonLayout.addWidget(self.numstagesComboBox)
-    plmRegisterFormLayout.addRow("B-Spline stages:", buttonLayout)
+    plmRegisterFormLayout.addRow(_("B-Spline stages:"), buttonLayout)
 
     # Output transform
     self.outputTransformComboBox = slicer.qMRMLNodeComboBox()
@@ -151,17 +154,17 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     self.outputTransformComboBox.showHidden = False
     self.outputTransformComboBox.showChildNodeTypes = False
     self.outputTransformComboBox.setMRMLScene( slicer.mrmlScene )
-    plmRegisterFormLayout.addRow("Output transform:",
+    plmRegisterFormLayout.addRow(_("Output transform:"),
                                  self.outputTransformComboBox)
 
     # Apply button
-    self.applyButton = qt.QPushButton("Click to start registration!")
+    self.applyButton = qt.QPushButton(_("Click to start registration!"))
     self.applyButton.setStyleSheet("background-color: #FFFF99")
     self.applyButton.connect('clicked(bool)', self.onApply)
     plmRegisterFormLayout.addWidget(self.applyButton)
 
     # Stop button
-    self.stopButton = qt.QPushButton("Click to stop registration!")
+    self.stopButton = qt.QPushButton(_("Click to stop registration!"))
     self.stopButton.setStyleSheet("background-color: #FF3232")
     self.stopButton.connect('clicked(bool)', self.onStop)
     plmRegisterFormLayout.addWidget(self.stopButton)
@@ -171,155 +174,155 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     plmRegisterFormLayout.addWidget(self.statusLabel)
 
     # Stage 1
-    self.stage1Box = qt.QGroupBox("Stage 1")
+    self.stage1Box = qt.QGroupBox(_("Stage 1"))
     self.stage1Box.setLayout(qt.QFormLayout())
 
     # Iterations
     buttonLayout = qt.QHBoxLayout()
     self.stage1_iterationsLineEdit = qt.QLineEdit()
     self.stage1_iterationsLineEdit.setText('40')
-    self.stage1_iterationsLineEdit.setToolTip( "Maximum number of iterations" )
+    self.stage1_iterationsLineEdit.setToolTip( _("Maximum number of iterations") )
     self.stage1_iterationsLineEdit.connect('textChanged(QString)', self.parameterStage1IsChanged)
     buttonLayout.addWidget(self.stage1_iterationsLineEdit)
-    self.stage1Box.layout().addRow("Iterations:", buttonLayout)
+    self.stage1Box.layout().addRow(_("Iterations:"), buttonLayout)
 
     # Subsampling rate
     buttonLayout = qt.QHBoxLayout()
     self.stage1_subsamplingLineEdit = qt.QLineEdit()
     self.stage1_subsamplingLineEdit.setText('4 4 2')
-    self.stage1_subsamplingLineEdit.setToolTip( "Subsampling rate" )
+    self.stage1_subsamplingLineEdit.setToolTip( _("Subsampling rate") )
     self.stage1_subsamplingLineEdit.connect('textChanged(QString)', self.parameterStage1IsChanged)
     buttonLayout.addWidget(self.stage1_subsamplingLineEdit)
-    self.stage1Box.layout().addRow("Subsampling rate (vox):", buttonLayout)
+    self.stage1Box.layout().addRow(_("Subsampling rate (vox):"), buttonLayout)
 
     # Grid spacing
     buttonLayout = qt.QHBoxLayout()
     self.stage1_gridSpacingLineEdit = qt.QLineEdit()
     self.stage1_gridSpacingLineEdit.setText('100')
-    self.stage1_gridSpacingLineEdit.setToolTip( "Set B-spline grid spacing" )
+    self.stage1_gridSpacingLineEdit.setToolTip( _("Set B-spline grid spacing") )
     self.stage1_gridSpacingLineEdit.connect('textChanged(QString)', self.parameterStage1IsChanged)
     buttonLayout.addWidget(self.stage1_gridSpacingLineEdit)
-    self.stage1Box.layout().addRow("Grid size (mm):", buttonLayout)
+    self.stage1Box.layout().addRow(_("Grid size (mm):"), buttonLayout)
 
     # Regularization
     buttonLayout = qt.QHBoxLayout()
     self.stage1_regularizationLineEdit = qt.QLineEdit()
     self.stage1_regularizationLineEdit.setText('0.1')
-    self.stage1_regularizationLineEdit.setToolTip("Set Regularization penalty term")
+    self.stage1_regularizationLineEdit.setToolTip(_("Set Regularization penalty term"))
     self.stage1_regularizationLineEdit.connect('textChanged(QString)', self.parameterStage1IsChanged)
     buttonLayout.addWidget(self.stage1_regularizationLineEdit)
-    self.stage1Box.layout().addRow("Regularization:", buttonLayout)
+    self.stage1Box.layout().addRow(_("Regularization:"), buttonLayout)
 
     # Landmark penalty
     buttonLayout = qt.QHBoxLayout()
     self.stage1_landmarkPenaltyLineEdit = qt.QLineEdit()
     self.stage1_landmarkPenaltyLineEdit.setText('10')
-    self.stage1_landmarkPenaltyLineEdit.setToolTip("Set landmark distance penalty term")
+    self.stage1_landmarkPenaltyLineEdit.setToolTip(_("Set landmark distance penalty term"))
     self.stage1_landmarkPenaltyLineEdit.connect('textChanged(QString)', self.parameterStage1IsChanged)
     buttonLayout.addWidget(self.stage1_landmarkPenaltyLineEdit)
-    self.stage1Box.layout().addRow("Landmark penalty:", buttonLayout)
+    self.stage1Box.layout().addRow(_("Landmark penalty:"), buttonLayout)
 
     plmRegisterFormLayout.addRow(self.stage1Box)
 
     # Stage 2
-    self.stage2Box = qt.QGroupBox("Stage 2")
+    self.stage2Box = qt.QGroupBox(_("Stage 2"))
     self.stage2Box.setLayout(qt.QFormLayout())
 
     # Iterations
     buttonLayout = qt.QHBoxLayout()
     self.stage2_iterationsLineEdit = qt.QLineEdit()
     self.stage2_iterationsLineEdit.setText('20')
-    self.stage2_iterationsLineEdit.setToolTip( "Maximum number of iterations" )
+    self.stage2_iterationsLineEdit.setToolTip( _("Maximum number of iterations") )
     self.stage2_iterationsLineEdit.connect('textChanged(QString)', self.parameterStage2IsChanged)
     buttonLayout.addWidget(self.stage2_iterationsLineEdit)
-    self.stage2Box.layout().addRow("Iterations:", buttonLayout)
+    self.stage2Box.layout().addRow(_("Iterations:"), buttonLayout)
 
     # Subsampling rate
     buttonLayout = qt.QHBoxLayout()
     self.stage2_subsamplingLineEdit = qt.QLineEdit()
     self.stage2_subsamplingLineEdit.setText('2 2 1')
-    self.stage2_subsamplingLineEdit.setToolTip( "Subsampling rate" )
+    self.stage2_subsamplingLineEdit.setToolTip( _("Subsampling rate") )
     self.stage2_subsamplingLineEdit.connect('textChanged(QString)', self.parameterStage2IsChanged)
     buttonLayout.addWidget(self.stage2_subsamplingLineEdit)
-    self.stage2Box.layout().addRow("Subsampling rate (vox):", buttonLayout)
+    self.stage2Box.layout().addRow(_("Subsampling rate (vox):"), buttonLayout)
 
     # Grid spacing
     buttonLayout = qt.QHBoxLayout()
     self.stage2_gridSpacingLineEdit = qt.QLineEdit()
     self.stage2_gridSpacingLineEdit.setText('50')
-    self.stage2_gridSpacingLineEdit.setToolTip( "Set B-spline grid spacing" )
+    self.stage2_gridSpacingLineEdit.setToolTip( _("Set B-spline grid spacing") )
     self.stage2_gridSpacingLineEdit.connect('textChanged(QString)', self.parameterStage2IsChanged)
     buttonLayout.addWidget(self.stage2_gridSpacingLineEdit)
-    self.stage2Box.layout().addRow("Grid size (mm):", buttonLayout)
+    self.stage2Box.layout().addRow(_("Grid size (mm):"), buttonLayout)
 
     # Regularization
     buttonLayout = qt.QHBoxLayout()
     self.stage2_regularizationLineEdit = qt.QLineEdit()
     self.stage2_regularizationLineEdit.setText('0.1')
-    self.stage2_regularizationLineEdit.setToolTip("Set Regularization penalty term")
+    self.stage2_regularizationLineEdit.setToolTip(_("Set Regularization penalty term"))
     self.stage2_regularizationLineEdit.connect('textChanged(QString)', self.parameterStage2IsChanged)
     buttonLayout.addWidget(self.stage2_regularizationLineEdit)
-    self.stage2Box.layout().addRow("Regularization:", buttonLayout)
+    self.stage2Box.layout().addRow(_("Regularization:"), buttonLayout)
 
     # Landmark penalty
     buttonLayout = qt.QHBoxLayout()
     self.stage2_landmarkPenaltyLineEdit = qt.QLineEdit()
     self.stage2_landmarkPenaltyLineEdit.setText('10')
-    self.stage2_landmarkPenaltyLineEdit.setToolTip("Set landmark distance penalty term")
+    self.stage2_landmarkPenaltyLineEdit.setToolTip(_("Set landmark distance penalty term"))
     self.stage2_landmarkPenaltyLineEdit.connect('textChanged(QString)', self.parameterStage2IsChanged)
     buttonLayout.addWidget(self.stage2_landmarkPenaltyLineEdit)
-    self.stage2Box.layout().addRow("Landmark penalty:", buttonLayout)
+    self.stage2Box.layout().addRow(_("Landmark penalty:"), buttonLayout)
 
     plmRegisterFormLayout.addRow(self.stage2Box)
 
     # Stage 3
-    self.stage3Box = qt.QGroupBox("Stage 3")
+    self.stage3Box = qt.QGroupBox(_("Stage 3"))
     self.stage3Box.setLayout(qt.QFormLayout())
 
     # Iterations
     buttonLayout = qt.QHBoxLayout()
     self.stage3_iterationsLineEdit = qt.QLineEdit()
     self.stage3_iterationsLineEdit.setText('10')
-    self.stage3_iterationsLineEdit.setToolTip( "Maximum number of iterations" )
+    self.stage3_iterationsLineEdit.setToolTip( _("Maximum number of iterations") )
     self.stage3_iterationsLineEdit.connect('textChanged(QString)', self.parameterStage3IsChanged)
     buttonLayout.addWidget(self.stage3_iterationsLineEdit)
-    self.stage3Box.layout().addRow("Iterations:", buttonLayout)
+    self.stage3Box.layout().addRow(_("Iterations:"), buttonLayout)
 
     # Subsampling rate
     buttonLayout = qt.QHBoxLayout()
     self.stage3_subsamplingLineEdit = qt.QLineEdit()
     self.stage3_subsamplingLineEdit.setText('1 1 1')
-    self.stage3_subsamplingLineEdit.setToolTip( "Subsampling rate" )
+    self.stage3_subsamplingLineEdit.setToolTip( _("Subsampling rate") )
     self.stage3_subsamplingLineEdit.connect('textChanged(QString)', self.parameterStage3IsChanged)
     buttonLayout.addWidget(self.stage3_subsamplingLineEdit)
-    self.stage3Box.layout().addRow("Subsampling rate (vox):", buttonLayout)
+    self.stage3Box.layout().addRow(_("Subsampling rate (vox):"), buttonLayout)
 
     # Grid spacing
     buttonLayout = qt.QHBoxLayout()
     self.stage3_gridSpacingLineEdit = qt.QLineEdit()
     self.stage3_gridSpacingLineEdit.setText('30')
-    self.stage3_gridSpacingLineEdit.setToolTip( "Set B-spline grid spacing" )
+    self.stage3_gridSpacingLineEdit.setToolTip( _("Set B-spline grid spacing") )
     self.stage3_gridSpacingLineEdit.connect('textChanged(QString)', self.parameterStage3IsChanged)
     buttonLayout.addWidget(self.stage3_gridSpacingLineEdit)
-    self.stage3Box.layout().addRow("Grid size (mm):", buttonLayout)
+    self.stage3Box.layout().addRow(_("Grid size (mm):"), buttonLayout)
 
     # Regularization
     buttonLayout = qt.QHBoxLayout()
     self.stage3_regularizationLineEdit = qt.QLineEdit()
     self.stage3_regularizationLineEdit.setText('0.1')
-    self.stage3_regularizationLineEdit.setToolTip("Set Regularization penalty term")
+    self.stage3_regularizationLineEdit.setToolTip(_("Set Regularization penalty term"))
     self.stage3_regularizationLineEdit.connect('textChanged(QString)', self.parameterStage3IsChanged)
     buttonLayout.addWidget(self.stage3_regularizationLineEdit)
-    self.stage3Box.layout().addRow("Regularization:", buttonLayout)
+    self.stage3Box.layout().addRow(_("Regularization:"), buttonLayout)
 
     # Landmark penalty
     buttonLayout = qt.QHBoxLayout()
     self.stage3_landmarkPenaltyLineEdit = qt.QLineEdit()
     self.stage3_landmarkPenaltyLineEdit.setText('10')
-    self.stage3_landmarkPenaltyLineEdit.setToolTip("Set landmark distance penalty term")
+    self.stage3_landmarkPenaltyLineEdit.setToolTip(_("Set landmark distance penalty term"))
     self.stage3_landmarkPenaltyLineEdit.connect('textChanged(QString)', self.parameterStage3IsChanged)
     buttonLayout.addWidget(self.stage3_landmarkPenaltyLineEdit)
-    self.stage3Box.layout().addRow("Landmark penalty:", buttonLayout)
+    self.stage3Box.layout().addRow(_("Landmark penalty:"), buttonLayout)
 
     plmRegisterFormLayout.addRow(self.stage3Box)
 
@@ -458,7 +461,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
   def InitializeRegistration(self):
     import os, sys, vtk
 
-    self.statusLabel.setText("Working...")
+    self.statusLabel.setText(_("Working..."))
     self.statusLabel.repaint()
     self.statusLabel.repaint()
 
@@ -513,7 +516,7 @@ class PlmRegisterPlugin(RegistrationLib.RegistrationPlugin):
     # later.  But for now, let's wait for it to complete.
     #self.reg.StartRegistration ()
     self.reg.RunRegistration ()
-    self.statusLabel.setText("Done.")
+    self.statusLabel.setText(_("Done."))
 
     #TODO: WHY DOESN'T THIS WORK?
     # Here we want to send the B-Spline transform to Slicer.

@@ -18,9 +18,6 @@
 
 ==============================================================================*/
 
-// Slicer includes
-#include <qSlicerCoreApplication.h>
-
 // SegmentComparison Logic includes
 #include <vtkSlicerSegmentComparisonModuleLogic.h>
 
@@ -64,21 +61,21 @@ qSlicerSegmentComparisonModule::~qSlicerSegmentComparisonModule() = default;
 //-----------------------------------------------------------------------------
 QString qSlicerSegmentComparisonModule::helpText()const
 {
-  return QString("This module computes segment similarity metrics. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/SegmentComparison\">%1/Documentation/%2.%3/Modules/SegmentComparison</a><br>").arg(
-    this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
+  return tr("This module computes segment similarity metrics. "
+    "For more information see <a href=\"%1\">%1</a><br>").arg(
+    "https://github.com/SlicerRt/SlicerRT/blob/master/Docs/user_guide/modules/SegmentComparison.md");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerSegmentComparisonModule::acknowledgementText()const
 {
-  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
+  return tr("This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).");
 }
 
 //-----------------------------------------------------------------------------
 QStringList qSlicerSegmentComparisonModule::categories() const
 {
-  return QStringList() << "Radiotherapy";
+  return QStringList() << tr("Radiotherapy");
 }
 
 //-----------------------------------------------------------------------------

@@ -26,7 +26,6 @@
 #include <QtPlugin>
 
 // Slicer includes
-#include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
 
 // RoomsEyeView includes
@@ -67,7 +66,7 @@ qSlicerRoomsEyeViewModule::qSlicerRoomsEyeViewModule(QObject* _parent)
 //-----------------------------------------------------------------------------
 QStringList qSlicerRoomsEyeViewModule::categories()const
 {
-  return QStringList() << "Radiotherapy";
+  return QStringList() << tr("Radiotherapy");
 }
 
 //-----------------------------------------------------------------------------
@@ -82,15 +81,13 @@ QStringList qSlicerRoomsEyeViewModule::dependencies()const
 //-----------------------------------------------------------------------------
 QString qSlicerRoomsEyeViewModule::helpText()const
 {
-  return QString("This module loads and visualizes treatment machines, and calculates collisions between its parts and the patient."
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/RoomsEyeView\">%1/Documentation/%2.%3/Modules/RoomsEyeView</a><br>").arg(
-    this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
+  return tr("This module loads and visualizes treatment machines, and calculates collisions between its parts and the patient.");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerRoomsEyeViewModule::acknowledgementText()const
 {
-  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).\n\nThe collision detection module was partly supported by Conselleria de Educación, Investigación, Cultura y Deporte (Generalitat Valenciana), Spain under grant number CDEIGENT/2019/011.";
+  return tr("This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).\n\nThe collision detection module was partly supported by Conselleria de Educación, Investigación, Cultura y Deporte (Generalitat Valenciana), Spain under grant number CDEIGENT/2019/011.");
 }
 
 //-----------------------------------------------------------------------------

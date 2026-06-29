@@ -43,7 +43,7 @@ public:
   vtkSegmentationConverterRule* CreateRuleInstance() override;
 
   /// Human-readable name of the converter rule
-  const char* GetName() override { return "Ribbon model to binary labelmap"; };
+  const char* GetName() override { return /*no tr*/ "Ribbon model to binary labelmap"; };
   
   /// Human-readable name of the source representation
   const char* GetSourceRepresentationName() override { return vtkSlicerRtCommon::SEGMENTATION_RIBBON_MODEL_REPRESENTATION_NAME; };

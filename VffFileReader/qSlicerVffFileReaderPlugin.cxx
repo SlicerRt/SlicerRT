@@ -72,7 +72,7 @@ vtkSlicerVffFileReaderLogic* qSlicerVffFileReaderPlugin::logic()const
 //-----------------------------------------------------------------------------
 QString qSlicerVffFileReaderPlugin::description()const
 {
-  return "Vff";
+  return tr("Vff");
 }
 
 //-----------------------------------------------------------------------------
@@ -84,7 +84,7 @@ qSlicerIO::IOFileType qSlicerVffFileReaderPlugin::fileType()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerVffFileReaderPlugin::extensions()const
 {
-  return QStringList() << "Vff (*.vff)";
+  return QStringList() << tr("Vff (*.vff)");
 }
 
 //-----------------------------------------------------------------------------

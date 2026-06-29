@@ -1,4 +1,5 @@
 from DoseEngines import *
+from slicer.i18n import translate
 
 class MockPythonDoseEngine(AbstractScriptedDoseEngine):
   """ Mock python dose engine to test python interface for External Beam Planning
@@ -10,7 +11,7 @@ class MockPythonDoseEngine(AbstractScriptedDoseEngine):
 
   def defineBeamParameters(self):
     self.scriptedEngine.addBeamParameterSpinBox(
-    "Mock python dose", "NoiseRange", "Noise range (% of Rx):", "Range of noise added to the prescription dose (+- half of the percentage of the Rx dose)",
+    translate("DoseEngines.MockPythonDoseEngine", "Mock python dose"), "NoiseRange", translate("DoseEngines.MockPythonDoseEngine", "Noise range (% of Rx):"), translate("DoseEngines.MockPythonDoseEngine", "Range of noise added to the prescription dose (+- half of the percentage of the Rx dose)"),
     0.0, 99.99, 10.0, 1.0, 2 )
 
   def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):

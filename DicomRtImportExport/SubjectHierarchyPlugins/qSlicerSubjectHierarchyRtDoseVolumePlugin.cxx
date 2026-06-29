@@ -94,11 +94,11 @@ void qSlicerSubjectHierarchyRtDoseVolumePluginPrivate::init()
 {
   Q_Q(qSlicerSubjectHierarchyRtDoseVolumePlugin);
 
-  this->ConvertToRtDoseVolumeAction = new QAction("Convert to RT dose volume...",q);
+  this->ConvertToRtDoseVolumeAction = new QAction(qSlicerSubjectHierarchyRtDoseVolumePlugin::tr("Convert to RT dose volume..."),q);
   QObject::connect(this->ConvertToRtDoseVolumeAction, SIGNAL(triggered()), q, SLOT(convertCurrentNodeToRtDoseVolume()));
-  this->CreateIsodoseAction = new QAction("Create isodose surfaces...",q);
+  this->CreateIsodoseAction = new QAction(qSlicerSubjectHierarchyRtDoseVolumePlugin::tr("Create isodose surfaces..."),q);
   QObject::connect(this->CreateIsodoseAction, SIGNAL(triggered()), q, SLOT(createIsodoseForCurrentItem()));
-  this->CalculateDvhAction = new QAction("Calculate DVH...",q);
+  this->CalculateDvhAction = new QAction(qSlicerSubjectHierarchyRtDoseVolumePlugin::tr("Calculate DVH..."),q);
   QObject::connect(this->CalculateDvhAction, SIGNAL(triggered()), q, SLOT(calculateDvhForCurrentItem()));
 }
 
@@ -167,7 +167,7 @@ double qSlicerSubjectHierarchyRtDoseVolumePlugin::canOwnSubjectHierarchyItem(vtk
 //---------------------------------------------------------------------------
 const QString qSlicerSubjectHierarchyRtDoseVolumePlugin::roleForPlugin()const
 {
-  return "RT dose volume";
+  return /*no tr*/ "RT dose volume";
 }
 
 //-----------------------------------------------------------------------------
@@ -324,7 +324,7 @@ void qSlicerSubjectHierarchyRtDoseVolumePlugin::convertCurrentNodeToRtDoseVolume
   vtkIdType studyItemID = shNode->GetItemAncestorAtLevel(currentItemID, vtkMRMLSubjectHierarchyConstants::GetDICOMLevelStudy());
   if (!studyItemID)
   {
-    QString message("The volume must be under a study in order to be converted to dose. Please drag&drop the volume under a study. If there is no study, it can be created under a subject. Consult the help window for more details.");
+    QString message(tr("The volume must be under a study in order to be converted to dose. Please drag&drop the volume under a study. If there is no study, it can be created under a subject. Consult the help window for more details."));
     qCritical() << Q_FUNC_INFO << ": Failed to find study item among the ancestors of current item '" << shNode->GetItemName(currentItemID).c_str() << "'! " << message;
     QMessageBox::warning(nullptr, tr("Failed to convert volume to dose"), message);
     return;

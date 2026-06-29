@@ -18,9 +18,6 @@
 
 ==============================================================================*/
 
-// Slicer includes
-#include <qSlicerCoreApplication.h>
-
 // DoseAccumulation Logic includes
 #include <vtkSlicerDoseAccumulationModuleLogic.h>
 
@@ -61,7 +58,7 @@ qSlicerDoseAccumulationModule::qSlicerDoseAccumulationModule(QObject* _parent)
 //-----------------------------------------------------------------------------
 QStringList qSlicerDoseAccumulationModule::categories()const
 {
-  return QStringList() << "Radiotherapy";
+  return QStringList() << tr("Radiotherapy");
 }
 
 //-----------------------------------------------------------------------------
@@ -70,15 +67,15 @@ qSlicerDoseAccumulationModule::~qSlicerDoseAccumulationModule() = default;
 //-----------------------------------------------------------------------------
 QString qSlicerDoseAccumulationModule::helpText()const
 {
-  return QString("This module accumulates the multiple dose distribution maps into one dose map. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/DoseAccumulation\">%1/Documentation/%2.%3/Modules/DoseAccumulation</a><br>").arg(
-    this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
+  return tr("This module accumulates the multiple dose distribution maps into one dose map. "
+    "For more information see <a href=\"%1\">%1</a><br>").arg(
+    "https://github.com/SlicerRt/SlicerRT/blob/master/Docs/user_guide/modules/DoseAccumulation.md");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerDoseAccumulationModule::acknowledgementText()const
 {
-  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
+  return tr("This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).");
 }
 
 //-----------------------------------------------------------------------------

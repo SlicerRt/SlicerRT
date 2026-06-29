@@ -61,13 +61,13 @@ qSlicerPlastimatchPyModule::~qSlicerPlastimatchPyModule() = default;
 //-----------------------------------------------------------------------------
 QString qSlicerPlastimatchPyModule::helpText()const
 {
-  return "This module facilitates python access of numerous Plastimatch functions.";
+  return tr("This module facilitates python access of numerous Plastimatch functions.");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerPlastimatchPyModule::acknowledgementText()const
 {
-  return "This work was was partially funded by NIH grant 3P41RR013218-12S1";
+  return tr("This work was was partially funded by NIH grant 3P41RR013218-12S1");
 }
 
 //-----------------------------------------------------------------------------
@@ -82,7 +82,7 @@ QStringList qSlicerPlastimatchPyModule::contributors()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerPlastimatchPyModule::categories() const
 {
-  return QStringList() << "Plastimatch.Utilities";
+  return QStringList() << tr("Plastimatch.Utilities");
 }
 
 //-----------------------------------------------------------------------------

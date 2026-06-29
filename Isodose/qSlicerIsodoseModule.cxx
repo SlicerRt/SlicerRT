@@ -20,7 +20,6 @@
 ==============================================================================*/
 
 // SlicerQt includes
-#include <qSlicerCoreApplication.h>
 #include <qSlicerModuleManager.h>
 
 // SubjectHierarchy Plugins includes
@@ -73,7 +72,7 @@ qSlicerIsodoseModule::qSlicerIsodoseModule(QObject* _parent)
 //-----------------------------------------------------------------------------
 QStringList qSlicerIsodoseModule::categories()const
 {
-  return QStringList() << "Radiotherapy";
+  return QStringList() << tr("Radiotherapy");
 }
 
 //-----------------------------------------------------------------------------
@@ -82,15 +81,15 @@ qSlicerIsodoseModule::~qSlicerIsodoseModule() = default;
 //-----------------------------------------------------------------------------
 QString qSlicerIsodoseModule::helpText()const
 {
-  return QString("This module generates iso dose surface models using user defined dose levels. "
-    "For more information see <a href=\"%1/Documentation/%2.%3/Modules/Isodose\">%1/Documentation/%2.%3/Modules/Isodose</a><br>").arg(
-    this->slicerWikiUrl()).arg(qSlicerCoreApplication::application()->majorVersion()).arg(qSlicerCoreApplication::application()->minorVersion());
+  return tr("This module generates iso dose surface models using user defined dose levels. "
+    "For more information see <a href=\"%1\">%1</a><br>").arg(
+    "https://github.com/SlicerRt/SlicerRT/blob/master/Docs/user_guide/modules/Isodose.md");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerIsodoseModule::acknowledgementText()const
 {
-  return "This work was funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO), and CANARIE.";
+  return tr("This work was funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO), and CANARIE.");
 }
 
 //-----------------------------------------------------------------------------

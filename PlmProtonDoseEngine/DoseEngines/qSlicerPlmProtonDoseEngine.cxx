@@ -75,16 +75,16 @@ void qSlicerPlmProtonDoseEngine::defineBeamParameters()
   // Energy tab
 
   this->addBeamParameterSpinBox(
-    "Energy", "ProximalMargin", "Proximal margin (mm):", "",
+    tr("Energy"), "ProximalMargin", tr("Proximal margin (mm):"), "",
     0.0, 50.0, 5.0, 1.0, 2 );
   this->addBeamParameterSpinBox(
-    "Energy", "DistalMargin", "Distal margin (mm):", "",
+    tr("Energy"), "DistalMargin", tr("Distal margin (mm):"), "",
     0.0, 50.0, 5.0, 1.0, 2 );
 
   QStringList beamLineTypeOptions;
-  beamLineTypeOptions << "Active scanning" << "Passive scattering";
+  beamLineTypeOptions << tr("Active scanning") << tr("Passive scattering");
   this->addBeamParameterComboBox(
-    "Energy", "BeamLineTypeActive", "Beam line type:", "",
+    tr("Energy"), "BeamLineTypeActive", tr("Beam line type:"), "",
     beamLineTypeOptions, 0 );
 
   //TODO: Attribute name not consistent with label (ManualEnergyLimits vs Energy prescription)
@@ -92,51 +92,51 @@ void qSlicerPlmProtonDoseEngine::defineBeamParameters()
   QStringList dependentParameters;
   dependentParameters << "MinimumEnergy" << "MaximumEnergy";
   this->addBeamParameterCheckBox(
-    "Energy", "ManualEnergyLimits", "Energy prescription:", "", false, dependentParameters);
+    tr("Energy"), "ManualEnergyLimits", tr("Energy prescription:"), "", false, dependentParameters);
 
   this->addBeamParameterSpinBox(
-    "Energy", "MinimumEnergy", "Minimum energy (MeV):", "",
+    tr("Energy"), "MinimumEnergy", tr("Minimum energy (MeV):"), "",
     0.0, 99.99, 0.0, 1.0, 2 );
   this->addBeamParameterSpinBox(
-    "Energy", "MaximumEnergy", "Maximum energy (MeV):", "",
+    tr("Energy"), "MaximumEnergy", tr("Maximum energy (MeV):"), "",
     0.0, 99.99, 0.0, 1.0, 2 );
 
   // Beam model tab
 
   //TODO: Attribute name not consistent with label (ApertureOffset vs Aperture distance)
   this->addBeamParameterSpinBox(
-    "Beam model", "ApertureOffset", "Aperture distance (mm):", "",
+    tr("Beam model"), "ApertureOffset", tr("Aperture distance (mm):"), "",
     1.0, 10000.0, 1500.0, 100.0, 2 );
 
   QStringList algorithmOptions;
-  algorithmOptions << "Ray tracer" << "Pencil beam";
+  algorithmOptions << tr("Ray tracer") << tr("Pencil beam");
   this->addBeamParameterComboBox(
-    "Beam model", "Algorithm", "Dose calculation algorithm:", "",
+    tr("Beam model"), "Algorithm", tr("Dose calculation algorithm:"), "",
     algorithmOptions, 0 );
 
   this->addBeamParameterSpinBox(
-    "Beam model", "PencilBeamResolution", "Pencil beam spacing at isocenter (mm):", "",
+    tr("Beam model"), "PencilBeamResolution", tr("Pencil beam spacing at isocenter (mm):"), "",
     0.1, 99.99, 2.0, 1.0, 2 );
   this->addBeamParameterSpinBox(
-    "Beam model", "RangeCompensatorSmearingRadius", "Smearing radius (mm):", "",
+    tr("Beam model"), "RangeCompensatorSmearingRadius", tr("Smearing radius (mm):"), "",
     0.0, 99.99, 5.0, 1.0, 2 );
   this->addBeamParameterSpinBox(
-    "Beam model", "SourceSize", "Source size (mm):", "",
+    tr("Beam model"), "SourceSize", tr("Source size (mm):"), "",
     0.0, 50.0, 0.0, 1.0, 2 );
   this->addBeamParameterSpinBox(
-    "Beam model", "EnergyResolution", "Energy resolution (MeV):", "",
+    tr("Beam model"), "EnergyResolution", tr("Energy resolution (MeV):"), "",
     1.0, 5.0, 5.0, 1.0, 2 );
   this->addBeamParameterSpinBox(
-    "Beam model", "EnergySpread", "Energy spread (MeV):", "",
+    tr("Beam model"), "EnergySpread", tr("Energy spread (MeV):"), "",
     0.0, 99.99, 1.0, 1.0, 2 );
   this->addBeamParameterSpinBox(
-    "Beam model", "StepLength", "Step length:", "",
+    tr("Beam model"), "StepLength", tr("Step length:"), "",
     0.0, 99.99, 2.0, 1.0, 2 );
 
   this->addBeamParameterCheckBox(
-    "Beam model", "KanematsuGottschalk", "Kanematsu-Gottschalk patient scattering:", "", false);
+    tr("Beam model"), "KanematsuGottschalk", tr("Kanematsu-Gottschalk patient scattering:"), "", false);
   this->addBeamParameterCheckBox(
-    "Beam model", "RangeCompensatorHighland", "Highland model for range compensator:", "", false);
+    tr("Beam model"), "RangeCompensatorHighland", tr("Highland model for range compensator:"), "", false);
 }
 
 //---------------------------------------------------------------------------
@@ -145,20 +145,20 @@ QString qSlicerPlmProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* 
   vtkMRMLRTPlanNode* parentPlanNode = beamNode->GetParentPlanNode();
   if (!parentPlanNode)
   {
-    QString errorMessage = QString("Unable to access parent node for beam %1").arg(beamNode->GetName());
+    QString errorMessage = tr("Unable to access parent node for beam %1").arg(beamNode->GetName());
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   vtkMRMLScalarVolumeNode* referenceVolumeNode = parentPlanNode->GetReferenceVolumeNode();
   if (!referenceVolumeNode)
   {
-    QString errorMessage("Unable to access reference volume");
+    QString errorMessage(tr("Unable to access reference volume"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   if (!resultDoseVolumeNode)
   {
-    QString errorMessage("Invalid result dose volume");
+    QString errorMessage(tr("Invalid result dose volume"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
@@ -169,14 +169,14 @@ QString qSlicerPlmProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* 
   vtkSmartPointer<vtkOrientedImageData> targetLabelmap = parentPlanNode->GetTargetOrientedImageData();
   if (targetLabelmap.GetPointer() == nullptr)
   {
-    QString errorMessage("Failed to access target labelmap");
+    QString errorMessage(tr("Failed to access target labelmap"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
   Plm_image::Pointer targetPlmVolume = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(targetLabelmap);
   if (!targetPlmVolume)
   {
-    QString errorMessage("Failed to convert segment labelmap");
+    QString errorMessage(tr("Failed to convert segment labelmap"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
@@ -197,7 +197,7 @@ QString qSlicerPlmProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* 
   double isocenter[3] = {0.0, 0.0, 0.0};
   if (!beamNode->GetPlanIsocenterPosition(isocenter))
   {
-    QString errorMessage("Failed to get isocenter position");
+    QString errorMessage(tr("Failed to get isocenter position"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
@@ -330,7 +330,7 @@ QString qSlicerPlmProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* 
     double apertureOffset = this->doubleParameter(beamNode, "ApertureOffset");
     if (beamNode->GetSAD() < 0 || beamNode->GetSAD() < apertureOffset)
     {
-      QString errorMessage = QString("SAD (=%1) must be positive and greater than aperture offset (%2)").arg(beamNode->GetSAD()).arg(apertureOffset);
+      QString errorMessage = tr("SAD (=%1) must be positive and greater than aperture offset (%2)").arg(beamNode->GetSAD()).arg(apertureOffset);
       qCritical() << Q_FUNC_INFO << ": " << errorMessage;
       return errorMessage;
     }
@@ -423,7 +423,7 @@ QString qSlicerPlmProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* 
   }
   catch (std::exception& ex)
   {
-    QString errorMessage("Plastimatch exception happened! See log for details");
+    QString errorMessage(tr("Plastimatch exception happened! See log for details"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage << ": " << ex.what();
     return errorMessage;
   }
@@ -435,7 +435,7 @@ QString qSlicerPlmProtonDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* 
   }
   catch (std::exception& ex)
   {
-    QString errorMessage("Plastimatch exception happened! See log for details");
+    QString errorMessage(tr("Plastimatch exception happened! See log for details"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage << ": " << ex.what();
     return errorMessage;
   }

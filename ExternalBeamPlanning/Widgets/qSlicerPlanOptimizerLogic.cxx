@@ -77,7 +77,7 @@ QString qSlicerPlanOptimizerLogic::optimizePlan(vtkMRMLRTPlanNode* planNode)
   QString errorMessage("");
   if (!planNode || !planNode->GetScene())
   {
-    errorMessage = QString("Invalid MRML scene or RT plan node");
+    errorMessage = tr("Invalid MRML scene or RT plan node");
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
@@ -87,14 +87,14 @@ QString qSlicerPlanOptimizerLogic::optimizePlan(vtkMRMLRTPlanNode* planNode)
     qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
   if (!selectedEngine)
   {
-    QString errorString = QString("Unable to access optimizer with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
+    QString errorString = tr("Unable to access optimizer with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return errorMessage;
   }
 
   connect(selectedEngine, SIGNAL(progressInfoUpdated(QString)), this, SIGNAL(progressInfoUpdated(QString)));
 
-  emit progressInfoUpdated("starting");
+  emit progressInfoUpdated(tr("starting"));
 
   errorMessage = selectedEngine->optimizePlan(planNode);
   if (!errorMessage.isEmpty())
@@ -169,7 +169,7 @@ void qSlicerPlanOptimizerLogic::applyPlanOptimizerInPlan(vtkObject* nodeObject)
     qSlicerPlanOptimizerPluginHandler::instance()->PlanOptimizerByName(planNode->GetPlanOptimizerName());
   if (!selectedEngine)
   {
-    QString errorString = QString("Unable to access plan optimizer with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
+    QString errorString = tr("Unable to access plan optimizer with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
     qCritical() << Q_FUNC_INFO << ": " << errorString;
     return;
   }

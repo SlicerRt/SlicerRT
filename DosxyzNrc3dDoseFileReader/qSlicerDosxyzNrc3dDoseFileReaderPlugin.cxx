@@ -73,7 +73,7 @@ vtkSlicerDosxyzNrc3dDoseFileReaderLogic* qSlicerDosxyzNrc3dDoseFileReaderPlugin:
 //-----------------------------------------------------------------------------
 QString qSlicerDosxyzNrc3dDoseFileReaderPlugin::description()const
 {
-  return "DosxyzNrc3dDose";
+  return tr("DosxyzNrc3dDose");
 }
 
 //-----------------------------------------------------------------------------
@@ -85,7 +85,7 @@ qSlicerIO::IOFileType qSlicerDosxyzNrc3dDoseFileReaderPlugin::fileType()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerDosxyzNrc3dDoseFileReaderPlugin::extensions()const
 {
-  return QStringList() << "DosxyzNrc3dDose (*.3ddose)";
+  return QStringList() << tr("DosxyzNrc3dDose (*.3ddose)");
 }
 
 //-----------------------------------------------------------------------------

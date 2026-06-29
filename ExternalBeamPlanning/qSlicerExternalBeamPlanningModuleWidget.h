@@ -127,8 +127,8 @@ protected slots:
   void ipoptTolChanged();
   void ipoptAcceptableTolChanged();
   void ipoptAcceptableIterChanged(int value);
-  void ipoptMuStrategyChanged(const QString& value);
-  void ipoptHessianApproximationChanged(const QString& value);
+  void ipoptMuStrategyChanged(int index);
+  void ipoptHessianApproximationChanged(int index);
   void ipoptLbfgsHistoryChanged(int value);
   void ipoptPrintLevelChanged(int value);
   void ipoptLinearSolverChanged(const QString& value);

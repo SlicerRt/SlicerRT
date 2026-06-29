@@ -3,6 +3,8 @@ import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 
+from slicer.i18n import tr as _
+
 #
 # PlmVectorFieldAnalysis
 #
@@ -10,16 +12,16 @@ from slicer.ScriptedLoadableModule import *
 class PlmVectorFieldAnalysis(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Vector Field Analysis"
-    self.parent.categories = ["Plastimatch.DIR Validation"]
+    self.parent.title = _("Vector Field Analysis")
+    self.parent.categories = [_("Plastimatch.DIR Validation")]
     self.parent.dependencies = []
     self.parent.contributors = ["Gregory Sharp (MGH)"]
-    self.parent.helpText = """
+    self.parent.helpText = _("""
     This is an example of scripted loadable module bundled in an extension.
-    """
-    self.parent.acknowledgementText = """
+    """)
+    self.parent.acknowledgementText = _("""
     This file was originally developed by Greg Sharp, Massachusetts General Hospital, and was partially funded by NIH grant 2-U54-EB005149.
-    """ # replace with organization, grant and thanks.
+    """) # replace with organization, grant and thanks.
 
 #
 # Class for bidirectional data transfer between Widget (GUI) and Logic
@@ -56,7 +58,7 @@ class PlmVectorFieldAnalysisWidget(ScriptedLoadableModuleWidget):
 
     ### Input Area
     inputCollapsibleButton = ctk.ctkCollapsibleButton()
-    inputCollapsibleButton.text = "Input"
+    inputCollapsibleButton.text = _("Input")
     self.layout.addWidget(inputCollapsibleButton)
 
     # Layout within the dummy collapsible button
@@ -71,8 +73,8 @@ class PlmVectorFieldAnalysisWidget(ScriptedLoadableModuleWidget):
     self.vfMRMLSelector.noneEnabled = True
     self.vfMRMLSelector.showHidden = False
     self.vfMRMLSelector.setMRMLScene( slicer.mrmlScene )
-    self.vfMRMLSelector.setToolTip( "Pick the input to the algorithm." )
-    inputFormLayout.addRow("Vector Field image: ", self.vfMRMLSelector)
+    self.vfMRMLSelector.setToolTip( _("Pick the input to the algorithm.") )
+    inputFormLayout.addRow(_("Vector Field image: "), self.vfMRMLSelector)
 
     # variables
     self.minJacobianValue = 1
@@ -81,7 +83,7 @@ class PlmVectorFieldAnalysisWidget(ScriptedLoadableModuleWidget):
     # vf image (directory input)
     self.vfInputDirectory = ctk.ctkDirectoryButton()
     self.vfInputDirectory.directory = qt.QDir.homePath()
-    inputFormLayout.addRow("Input Directory:", self.vfInputDirectory)
+    inputFormLayout.addRow(_("Input Directory:"), self.vfInputDirectory)
 
     # Fixed image (for geometry info)
     self.fixedImage = slicer.qMRMLNodeComboBox()
@@ -91,18 +93,18 @@ class PlmVectorFieldAnalysisWidget(ScriptedLoadableModuleWidget):
     self.fixedImage.addEnabled = False
     self.fixedImage.renameEnabled = True
     self.fixedImage.noneEnabled = True
-    self.fixedImage.setToolTip( "Output image of Jacobian matrix.vtkSlicerPlastimatchModuleLogicPython" )
-    inputFormLayout.addRow("Fixed image (for geometry info): ", self.fixedImage)
+    self.fixedImage.setToolTip( _("Output image of Jacobian matrix.vtkSlicerPlastimatchModuleLogicPython") )
+    inputFormLayout.addRow(_("Fixed image (for geometry info): "), self.fixedImage)
 
     # Apply Button
-    self.applyButton = qt.QPushButton("Apply")
-    self.applyButton.toolTip = "Run the algorithm."
+    self.applyButton = qt.QPushButton(_("Apply"))
+    self.applyButton.toolTip = _("Run the algorithm.")
     self.applyButton.enabled = True
     self.layout.addWidget(self.applyButton)
     
     ### Output Area
     outputCollapsibleButton = ctk.ctkCollapsibleButton()
-    outputCollapsibleButton.text = "Output"
+    outputCollapsibleButton.text = _("Output")
     self.layout.addWidget(outputCollapsibleButton)
 
     # Layout within the dummy collapsible button
@@ -115,8 +117,8 @@ class PlmVectorFieldAnalysisWidget(ScriptedLoadableModuleWidget):
     self.outputJacobian.addEnabled = True
     self.outputJacobian.renameEnabled = True
     #self.outputJacobian.layout().addWidget(self.outputSelector)
-    self.outputJacobian.setToolTip( "Output image of Jacobian matrix.vtkSlicerPlastimatchModuleLogicPython" )
-    outputFormLayout.addRow("Jacobian image: ", self.outputJacobian)
+    self.outputJacobian.setToolTip( _("Output image of Jacobian matrix.vtkSlicerPlastimatchModuleLogicPython") )
+    outputFormLayout.addRow(_("Jacobian image: "), self.outputJacobian)
 
     # output directory selector
 #    self.outputDirectory = ctk.ctkDirectoryButton()
@@ -126,15 +128,15 @@ class PlmVectorFieldAnalysisWidget(ScriptedLoadableModuleWidget):
     # output statistics
     buttonLayout = qt.QHBoxLayout()
     self.minJacobian = qt.QLineEdit()
-    self.minJacobian.setToolTip( "Minimum value of Jacobian matrix" ) 
+    self.minJacobian.setToolTip( _("Minimum value of Jacobian matrix") )
     buttonLayout.addWidget(self.minJacobian)
-    outputFormLayout.addRow("Minimum Jacobian:", buttonLayout)
+    outputFormLayout.addRow(_("Minimum Jacobian:"), buttonLayout)
 
     buttonLayout = qt.QHBoxLayout()
     self.maxJacobian = qt.QLineEdit()
-    self.maxJacobian.setToolTip( "Maximum value of Jacobian matrix" ) 
+    self.maxJacobian.setToolTip( _("Maximum value of Jacobian matrix") )
     buttonLayout.addWidget(self.maxJacobian)
-    outputFormLayout.addRow("Maximum Jacobian:", buttonLayout)    
+    outputFormLayout.addRow(_("Maximum Jacobian:"), buttonLayout)
 
     # connections
     self.applyButton.connect('clicked(bool)', self.onJacobianApply)

@@ -29,6 +29,7 @@
 // MRML includes
 //#include <vtkMRMLMarkupsFiducialNode.h> //TODO: Includes commented out due to obsolete methods, see below
 //#include <vtkMRMLLinearTransformNode.h>
+#include <vtkMRMLI18N.h>
 #include <vtkMRMLScalarVolumeNode.h>
 //#include <vtkMRMLScalarVolumeDisplayNode.h>
 //#include <vtkMRMLDoubleArrayNode.h>
@@ -369,7 +370,7 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(vtkMRM
 {
   if ( !this->GetMRMLScene() || !planNode )
   {
-    std::string errorMessage("Invalid MRML scene or RT plan node");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerExternalBeamPlanningModuleLogic", "Invalid MRML scene or RT plan node");
     vtkErrorMacro("ComputeDoseByMatlab: " << errorMessage);
     return errorMessage;
   }
@@ -403,7 +404,7 @@ std::string vtkSlicerExternalBeamPlanningModuleLogic::ComputeDoseByMatlab(vtkMRM
   this->GetMRMLScene()->RemoveNode(cmdNode);
 #endif
 
-  return "Matlab dose engine unavailable";
+  return vtkMRMLTr("vtkSlicerExternalBeamPlanningModuleLogic", "Matlab dose engine unavailable");
 }
 
 //---------------------------------------------------------------------------

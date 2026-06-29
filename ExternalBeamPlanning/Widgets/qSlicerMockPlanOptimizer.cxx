@@ -58,7 +58,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
   vtkMRMLScalarVolumeNode* referenceVolumeNode = planNode->GetReferenceVolumeNode();  
   if (!planNode || !referenceVolumeNode || !resultOptimizationVolumeNode)  
   {  
-    QString errorMessage("Unable to access reference volume");  
+    QString errorMessage(tr("Unable to access reference volume"));
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;  
     return errorMessage;  
   }  
@@ -86,20 +86,20 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
   for (int i = 0; i < planNode->GetNumberOfBeams(); i++)  
   {  
     // Update progress
-    QString info = "Beam " + QString::number(i+1) + "/" + QString::number(planNode->GetNumberOfBeams());
+    QString info = tr("Beam %1/%2").arg(i+1).arg(planNode->GetNumberOfBeams());
     this->progressInfoUpdated(info);
     
     vtkMRMLRTBeamNode* beamNode = planNode->GetBeamByName(beamNames[i]);  
     if (!beamNode)
     {
-      QString errorMessage("Invalid beam node");
+      QString errorMessage(tr("Invalid beam node"));
       qCritical() << Q_FUNC_INFO << ": " << errorMessage;
       return errorMessage;
     }
-    vtkMRMLRTBeamNode::DoseInfluenceMatrixType doseInfluenceMatrix = beamNode->GetDoseInfluenceMatrix();  
-    if (doseInfluenceMatrix.rows() == 0 || doseInfluenceMatrix.cols() == 0)  
-    {  
-      QString errorMessage("Dose influence matrix is empty");  
+    vtkMRMLRTBeamNode::DoseInfluenceMatrixType doseInfluenceMatrix = beamNode->GetDoseInfluenceMatrix();
+    if (doseInfluenceMatrix.rows() == 0 || doseInfluenceMatrix.cols() == 0)
+    {
+      QString errorMessage(tr("Dose influence matrix is empty"));
       qCritical() << Q_FUNC_INFO << ": " << errorMessage;  
       return errorMessage;  
     }  
@@ -175,13 +175,13 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
       resampledDoseImageData->DeepCopy(resliceFilter->GetOutput());
       if (!resampledDoseImageData || resampledDoseImageData->GetNumberOfPoints() == 0)
       {
-        QString errorMessage("Dose resampling failed or resulted in empty data");
+        QString errorMessage(tr("Dose resampling failed or resulted in empty data"));
         qCritical() << Q_FUNC_INFO << ": " << errorMessage;
         return errorMessage;
       }
       if (resampledDoseImageData->GetNumberOfPoints() != totalDoseImageData->GetNumberOfPoints())
       {
-        QString errorMessage("Number of points in resampled dose and total dose don't match! (Should match referenceVolume.)");
+        QString errorMessage(tr("Number of points in resampled dose and total dose don't match! (Should match referenceVolume.)"));
         qCritical() << Q_FUNC_INFO << ": " << errorMessage;
         return errorMessage;
       }
@@ -190,7 +190,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
       float* dosePtr = static_cast<float*>(resampledDoseImageData->GetScalarPointer());
       if (!totalDosePtr || !dosePtr)
       {
-        QString errorMessage("Invalid pointer in total or resampled beam dose data!");
+        QString errorMessage(tr("Invalid pointer in total or resampled beam dose data!"));
         qCritical() << Q_FUNC_INFO << ": " << errorMessage;
         return errorMessage;
       }
@@ -204,7 +204,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
       // No resampling needed, use original dose image data
       if (doseImageData->GetNumberOfPoints() != totalDoseImageData->GetNumberOfPoints())
       {
-        QString errorMessage("Number of points in dose and total dose don't match! (Should match referenceVolume.)");
+        QString errorMessage(tr("Number of points in dose and total dose don't match! (Should match referenceVolume.)"));
         qCritical() << Q_FUNC_INFO << ": " << errorMessage;
         return errorMessage;
       }
@@ -213,7 +213,7 @@ QString qSlicerMockPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNode* 
       float* dosePtr = static_cast<float*>(doseImageData->GetScalarPointer());
       if (!totalDosePtr || !dosePtr)
       {
-        QString errorMessage("Invalid pointer in total dose or beam dose data!");
+        QString errorMessage(tr("Invalid pointer in total dose or beam dose data!"));
         qCritical() << Q_FUNC_INFO << ": " << errorMessage;
         return errorMessage;
       }

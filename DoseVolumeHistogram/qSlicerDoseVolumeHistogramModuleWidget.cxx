@@ -252,7 +252,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::updateWidgetFromMRML()
   d->checkBox_DoseSurfaceHistogram->setChecked(paramNode->GetDoseSurfaceHistogram());
   d->pushButton_ShowHideLegend->setChecked(paramNode->GetChartNode()->GetLegendVisibility());
   d->pushButton_ShowHideLegend->setText(
-    paramNode->GetChartNode()->GetLegendVisibility() ? "Hide legend" : "Show legend" );
+    paramNode->GetChartNode()->GetLegendVisibility() ? tr("Hide legend") : tr("Show legend") );
 
   // Set metrics table to table view
   if (d->MRMLTableView->mrmlTableNode() != paramNode->GetMetricsTableNode())
@@ -478,7 +478,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::computeDvhClicked()
   d->ConvertProgressDialog = new QProgressDialog(qSlicerApplication::application()->mainWindow());
   d->ConvertProgressDialog->setModal(true);
   d->ConvertProgressDialog->setMinimumDuration(150);
-  d->ConvertProgressDialog->setLabelText("Computing DVH for all selected segments...");
+  d->ConvertProgressDialog->setLabelText(tr("Computing DVH for all selected segments..."));
   d->ConvertProgressDialog->show();
   QApplication::processEvents();
 
@@ -529,7 +529,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportDvhToCsvClicked()
   // User selects file and format
   QString selectedFilter;
 
-  QString fileName = QFileDialog::getSaveFileName( nullptr, QString( tr( "Save DVH values to file" ) ), tr(""), QString( tr( "CSV comma separated values ( *.csv );;TSV tab separated values ( *.tsv )" ) ), &selectedFilter );
+  QString fileName = QFileDialog::getSaveFileName( nullptr, QString( tr( "Save DVH values to file" ) ), QString(), QString( tr( "CSV comma separated values ( *.csv );;TSV tab separated values ( *.tsv )" ) ), &selectedFilter );
   if (fileName.isNull())
   {
     return;
@@ -557,7 +557,7 @@ void qSlicerDoseVolumeHistogramModuleWidget::exportMetricsToCsv()
   // User selects file and format
   QString selectedFilter;
 
-  QString fileName = QFileDialog::getSaveFileName( nullptr, QString( tr( "Save DVH metrics to file" ) ), tr(""), QString( tr( "CSV comma separated values ( *.csv );;TSV tab separated values ( *.tsv )" ) ), &selectedFilter );
+  QString fileName = QFileDialog::getSaveFileName( nullptr, QString( tr( "Save DVH metrics to file" ) ), QString(), QString( tr( "CSV comma separated values ( *.csv );;TSV tab separated values ( *.tsv )" ) ), &selectedFilter );
   if (fileName.isNull())
   {
     return;
@@ -899,5 +899,5 @@ void qSlicerDoseVolumeHistogramModuleWidget::showHideLegendClicked(bool checked)
   }
 
   paramNode->GetChartNode()->SetLegendVisibility(checked);
-  d->pushButton_ShowHideLegend->setText(checked ? "Hide legend" : "Show legend");
+  d->pushButton_ShowHideLegend->setText(checked ? tr("Hide legend") : tr("Show legend"));
 }

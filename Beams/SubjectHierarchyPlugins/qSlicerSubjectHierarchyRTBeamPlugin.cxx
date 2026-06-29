@@ -135,7 +135,7 @@ double qSlicerSubjectHierarchyRTBeamPlugin::canOwnSubjectHierarchyItem(vtkIdType
 //---------------------------------------------------------------------------
 const QString qSlicerSubjectHierarchyRTBeamPlugin::roleForPlugin()const
 {
-  return "RT beam";
+  return /*no tr*/ "RT beam";
 }
 
 //---------------------------------------------------------------------------

@@ -51,13 +51,13 @@ qSlicerPlmProtonDoseEngineModule::~qSlicerPlmProtonDoseEngineModule() = default;
 //-----------------------------------------------------------------------------
 QString qSlicerPlmProtonDoseEngineModule::helpText() const
 {
-  return "This is a hidden module providing the Plastimatch proton dose engine";
+  return tr("This is a hidden module providing the Plastimatch proton dose engine");
 }
 
 //-----------------------------------------------------------------------------
 QString qSlicerPlmProtonDoseEngineModule::acknowledgementText() const
 {
-  return "This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).";
+  return tr("This work is part of SparKit project, funded by Cancer Care Ontario (CCO)'s ACRU program and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO).");
 }
 
 //-----------------------------------------------------------------------------
@@ -74,7 +74,7 @@ QStringList qSlicerPlmProtonDoseEngineModule::contributors() const
 //-----------------------------------------------------------------------------
 QStringList qSlicerPlmProtonDoseEngineModule::categories() const
 {
-  return QStringList() << "Radiotherapy";
+  return QStringList() << tr("Radiotherapy");
 }
 
 //-----------------------------------------------------------------------------

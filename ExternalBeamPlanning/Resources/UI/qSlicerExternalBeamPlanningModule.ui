@@ -665,16 +665,6 @@
         <property name="toolTip">
          <string>Barrier parameter update strategy: adaptive (recommended) or monotone (mu_strategy).</string>
         </property>
-        <item>
-         <property name="text">
-          <string>adaptive</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>monotone</string>
-         </property>
-        </item>
        </widget>
       </item>
       <item row="6" column="0">
@@ -692,16 +682,6 @@
         <property name="toolTip">
          <string>Hessian approximation method: limited-memory L-BFGS (default) or exact second derivatives (hessian_approximation).</string>
         </property>
-        <item>
-         <property name="text">
-          <string>limited-memory</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>exact</string>
-         </property>
-        </item>
        </widget>
       </item>
       <item row="7" column="0">

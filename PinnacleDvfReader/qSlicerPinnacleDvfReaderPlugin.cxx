@@ -72,7 +72,7 @@ vtkSlicerPinnacleDvfReaderLogic* qSlicerPinnacleDvfReaderPlugin::logic()const
 //-----------------------------------------------------------------------------
 QString qSlicerPinnacleDvfReaderPlugin::description()const
 {
-  return "Dvf";
+  return tr("Dvf");
 }
 
 //-----------------------------------------------------------------------------
@@ -84,7 +84,7 @@ qSlicerIO::IOFileType qSlicerPinnacleDvfReaderPlugin::fileType()const
 //-----------------------------------------------------------------------------
 QStringList qSlicerPinnacleDvfReaderPlugin::extensions()const
 {
-  return QStringList() << "Dvf (*.dvf)";
+  return QStringList() << tr("Dvf (*.dvf)");
 }
 
 //-----------------------------------------------------------------------------

@@ -4,6 +4,8 @@ import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 
+from slicer.i18n import tr as _
+
 #
 # ------------------------------------------------------------------------------
 # DvhComparison
@@ -12,11 +14,11 @@ from slicer.ScriptedLoadableModule import *
 class DvhComparison(ScriptedLoadableModule):
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "DVH Comparison"
-    self.parent.categories = ["Radiotherapy"]
+    self.parent.title = _("DVH Comparison")
+    self.parent.categories = [_("Radiotherapy")]
     self.parent.dependencies = ["DoseVolumeHistogram"]
     self.parent.contributors = ["Kyle Sunderland (Queen's University), Csaba Pinter (Queen's University)"]
-    self.parent.helpText = """This module compares two Dose Volume Histograms from corresponding Table nodes."""
+    self.parent.helpText = _("""This module compares two Dose Volume Histograms from corresponding Table nodes.""")
     self.parent.acknowledgementText = """ """
     iconPath = os.path.join(os.path.dirname(self.parent.path), 'Resources/Icons', self.moduleName+'.png')
     parent.icon = qt.QIcon(iconPath)
@@ -46,7 +48,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     # Parameter Combobox
     #
     self.parameterSelector = slicer.qMRMLNodeComboBox()
-    self.parameterLabel = qt.QLabel("  Parameter set: ")
+    self.parameterLabel = qt.QLabel(_("Parameter set: "))
     self.parameterSelector.nodeTypes = ["vtkMRMLScriptedModuleNode"]
     self.parameterSelector.removeEnabled = False
     self.parameterSelector.showHidden = True
@@ -60,7 +62,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     # Input Area
     #
     inputCollapsibleButton = ctk.ctkCollapsibleButton()
-    inputCollapsibleButton.text = "Input"
+    inputCollapsibleButton.text = _("Input")
     self.layout.addWidget(inputCollapsibleButton)
 
     # Layout within the dummy collapsible button
@@ -74,7 +76,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     self.dvh1Selector.addAttribute("vtkMRMLTableNode", "DoseVolumeHistogram.DVH")
     self.dvh1Selector.removeEnabled = False
     self.dvh1Selector.setMRMLScene( slicer.mrmlScene )
-    inputFormLayout.addRow("DVH 1: ", self.dvh1Selector)
+    inputFormLayout.addRow(_("DVH 1: "), self.dvh1Selector)
 
     #
     # Input second DVH selector
@@ -84,7 +86,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     self.dvh1Selector.addAttribute("vtkMRMLTableNode", "DoseVolumeHistogram.DVH")
     self.dvh2Selector.removeEnabled = False
     self.dvh2Selector.setMRMLScene( slicer.mrmlScene )
-    inputFormLayout.addRow("DVH 2: ", self.dvh2Selector)
+    inputFormLayout.addRow(_("DVH 2: "), self.dvh2Selector)
 
     #
     # Input the dose volume
@@ -94,12 +96,12 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     self.doseVolumeSelector.addAttribute("vtkMRMLScalarVolumeNode", "DicomRtImport.DoseVolume")
     self.doseVolumeSelector.removeEnabled = False
     self.doseVolumeSelector.setMRMLScene( slicer.mrmlScene )
-    inputFormLayout.addRow("Dose Volume: ", self.doseVolumeSelector)
+    inputFormLayout.addRow(_("Dose Volume: "), self.doseVolumeSelector)
 
     #
     # Dose volume only check box
     #
-    self.showDoseVolumeOnlyCheckbox = qt.QCheckBox("Show dose volume only")
+    self.showDoseVolumeOnlyCheckbox = qt.QCheckBox(_("Show dose volume only"))
     self.showDoseVolumeOnlyCheckbox.setChecked(2)
     inputFormLayout.addWidget(self.showDoseVolumeOnlyCheckbox)
 
@@ -110,7 +112,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     self.volumeDifferenceSpinbox.setValue(1.0)
     self.volumeDifferenceSpinbox.setDecimals(1)
     self.volumeDifferenceSpinbox.setSingleStep(0.1)
-    inputFormLayout.addRow("Volume difference criterion: ", self.volumeDifferenceSpinbox)
+    inputFormLayout.addRow(_("Volume difference criterion: "), self.volumeDifferenceSpinbox)
 
     #
     # Dose to agreement criterion spin box
@@ -119,12 +121,12 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     self.doseToAgreementSpinbox.setValue(1.0)
     self.doseToAgreementSpinbox.setDecimals(1)
     self.doseToAgreementSpinbox.setSingleStep(0.1)
-    inputFormLayout.addRow("Dose to agreement criterion: ", self.doseToAgreementSpinbox)
+    inputFormLayout.addRow(_("Dose to agreement criterion: "), self.doseToAgreementSpinbox)
 
     #
     # Compute button
     #
-    self.computeButton = qt.QPushButton("Compute")
+    self.computeButton = qt.QPushButton(_("Compute"))
     self.computeButtonLayout = qt.QVBoxLayout()
     self.computeButtonLayout.addStrut(100)
     self.computeButtonLayout.setAlignment(2)
@@ -138,7 +140,7 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
     # Output Area
     #
     outputCollapsibleButton = ctk.ctkCollapsibleButton()
-    outputCollapsibleButton.text = "Output"
+    outputCollapsibleButton.text = _("Output")
     self.layout.addWidget(outputCollapsibleButton)
 
     # Layout within the dummy collapsible button
@@ -146,13 +148,13 @@ class DvhComparisonWidget(ScriptedLoadableModuleWidget):
 
     self.agreementAcceptanceOutput = qt.QLineEdit()
     self.agreementAcceptanceOutput.setReadOnly(True)
-    outputFormLayout.addRow("Agreement acceptance %: ", self.agreementAcceptanceOutput)
+    outputFormLayout.addRow(_("Agreement acceptance %: "), self.agreementAcceptanceOutput)
 
     #
     # Visualize Area
     #
     visualizeCollapsibleButton = ctk.ctkCollapsibleButton()
-    visualizeCollapsibleButton.text = "Visualize"
+    visualizeCollapsibleButton.text = _("Visualize")
     sizePolicy = qt.QSizePolicy()
     sizePolicy.setHorizontalPolicy(qt.QSizePolicy.Preferred)
     sizePolicy.setVerticalPolicy(qt.QSizePolicy.Expanding)

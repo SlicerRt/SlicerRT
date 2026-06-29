@@ -147,7 +147,7 @@ double qSlicerSubjectHierarchyRTPlanPlugin::canOwnSubjectHierarchyItem(vtkIdType
 //---------------------------------------------------------------------------
 const QString qSlicerSubjectHierarchyRTPlanPlugin::roleForPlugin()const
 {
-  return "RT plan";
+  return /*no tr*/ "RT plan";
 }
 
 //---------------------------------------------------------------------------

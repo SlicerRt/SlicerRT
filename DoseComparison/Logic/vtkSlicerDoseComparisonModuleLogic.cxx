@@ -36,6 +36,7 @@
 #include "vtkClosedSurfaceToBinaryLabelmapConversionRule.h"
 
 // MRML includes
+#include <vtkMRMLI18N.h>
 #include <vtkMRMLScalarVolumeNode.h>
 #include <vtkMRMLScalarVolumeDisplayNode.h>
 #include <vtkMRMLTransformNode.h>
@@ -218,7 +219,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
     vtkSegment* maskSegment = maskSegmentation->GetSegment(maskSegmentID);
     if (!maskSegment)
     {
-      std::string errorMessage("Failed to get mask segment");
+      std::string errorMessage = vtkMRMLTr("vtkSlicerDoseComparisonModuleLogic", "Failed to get mask segment");
       vtkErrorMacro("ComputeGammaDoseDifference: " << errorMessage);
       return errorMessage;
     }
@@ -235,7 +236,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
     segmentationCopy->CopySegmentFromSegmentation(maskSegmentation, maskSegmentID);
     if (!segmentationCopy->CreateRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
     {
-      std::string errorMessage("Failed to create binary labelmap representation for mask segment");
+      std::string errorMessage = vtkMRMLTr("vtkSlicerDoseComparisonModuleLogic", "Failed to create binary labelmap representation for mask segment");
       vtkErrorMacro("ComputeGammaDoseDifference: " << errorMessage);
       return errorMessage;
     }
@@ -252,7 +253,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
     if ( maskSegmentationNode->GetParentTransformNode()
       && (!vtkSlicerSegmentationsModuleLogic::ApplyParentTransformToOrientedImageData(maskSegmentationNode, maskSegmentLabelmap)) )
     {
-      std::string errorMessage("Failed to apply parent transform on mask segment");
+      std::string errorMessage = vtkMRMLTr("vtkSlicerDoseComparisonModuleLogic", "Failed to apply parent transform on mask segment");
       vtkErrorMacro("ComputeGammaDoseDifference: " << errorMessage);
       return errorMessage;
     }
@@ -261,7 +262,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
     maskVolume = PlmCommon::ConvertVtkOrientedImageDataToPlmImage(maskSegmentLabelmap);
     if (!maskVolume)
     {
-      std::string errorMessage("Failed to convert mask segment labelmap into Plm_image");
+      std::string errorMessage = vtkMRMLTr("vtkSlicerDoseComparisonModuleLogic", "Failed to convert mask segment labelmap into Plm_image");
       vtkErrorMacro("ComputeGammaDoseDifference: " << errorMessage);
       return errorMessage;
     }
@@ -302,7 +303,7 @@ std::string vtkSlicerDoseComparisonModuleLogic::ComputeGammaDoseDifference(vtkMR
   vtkMRMLScalarVolumeNode* gammaVolumeNode = parameterNode->GetGammaVolumeNode();
   if (gammaVolumeNode == nullptr)
   {
-    std::string errorMessage("Invalid gamma volume node in parameter set node");
+    std::string errorMessage = vtkMRMLTr("vtkSlicerDoseComparisonModuleLogic", "Invalid gamma volume node in parameter set node");
     vtkErrorMacro("ComputeGammaDoseDifference: " << errorMessage);
     return errorMessage;
   }
@@ -409,7 +410,7 @@ void vtkSlicerDoseComparisonModuleLogic::CreateDefaultGammaColorTable()
   gammaColorTable->GetLookupTable()->ForceBuild();
   gammaColorTable->SetNamesFromColors();
   gammaColorTable->SaveWithSceneOff();
-  gammaColorTable->SetDescription("Goes from green to red, passing through the colors of the rainbow in between in reverse. Useful for a colorful display of a difference volume");
+  gammaColorTable->SetDescription(vtkMRMLTr("vtkSlicerDoseComparisonModuleLogic", "Goes from green to red, passing through the colors of the rainbow in between in reverse. Useful for a colorful display of a difference volume").c_str());
 
   this->GetMRMLScene()->AddNode(gammaColorTable);
   this->SetDefaultGammaColorTableNodeId(gammaColorTable->GetID());
