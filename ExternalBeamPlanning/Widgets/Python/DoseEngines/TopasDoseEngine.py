@@ -24,7 +24,7 @@ class TopasDoseEngine(AbstractScriptedDoseEngine):
     self.topasBinaryPath = ''       # Path to TOPAS binary executable
     self.g4dataPath = ''            # Path to Geant4 data directory
     self.rtIonPlanFilePath = ''     # Optional: Path to RT Ion Plan DICOM file for TsRTIonSource
-    self.schneiderMaterialFilePath = ''  # Optional: Path to a custom HU-to-material Schneider table
+    self.HUtoMaterialFilePath = ''  # Optional: Path to a custom HU-to-material table
     self.machineDescriptionFilePath = ''  # Optional: Path to a custom TOPAS dicom-interface PBS machine description (.table) file
 
     # Load paths from application settings
@@ -91,10 +91,10 @@ class TopasDoseEngine(AbstractScriptedDoseEngine):
       self.rtIonPlanFilePath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
-      tabName, 'schneiderMaterialFile', 'Schneider material file (optional):',
-      'Path to a custom HU-to-material Schneider table. Leave empty to use the bundled default '
-      '(a good default, but not the most up to date).',
-      self.schneiderMaterialFilePath)
+      tabName, 'HUtoMaterialFile', 'HU to material file (optional):',
+      'Path to a custom HU-to-material table. Leave empty to use the bundled default '
+      '(historical Schneider et al. 2000, https://doi.org/10.1088/0031-9155/45/2/314).',
+      self.HUtoMaterialFilePath)
 
     self.scriptedEngine.addBeamParameterLineEdit(
       tabName, 'machineDescriptionFile', 'Machine description file (.table, optional):',
@@ -113,7 +113,7 @@ class TopasDoseEngine(AbstractScriptedDoseEngine):
     self.topasBinaryPath = settings.value('TopasDoseEngine/TopasBinary', self.topasBinaryPath)
     self.g4dataPath = settings.value('TopasDoseEngine/G4DataDirectory', self.g4dataPath)
     self.rtIonPlanFilePath = settings.value('TopasDoseEngine/RTIonPlanFile', self.rtIonPlanFilePath)
-    self.schneiderMaterialFilePath = settings.value('TopasDoseEngine/SchneiderMaterialFile', self.schneiderMaterialFilePath)
+    self.HUtoMaterialFilePath = settings.value('TopasDoseEngine/HUtoMaterialFile', self.HUtoMaterialFilePath)
     self.machineDescriptionFilePath = settings.value('TopasDoseEngine/MachineDescriptionFile', self.machineDescriptionFilePath)
 
   #------------------------------------------------------------------------------
@@ -124,18 +124,18 @@ class TopasDoseEngine(AbstractScriptedDoseEngine):
     settings.setValue('TopasDoseEngine/TopasBinary', self.topasBinaryPath)
     settings.setValue('TopasDoseEngine/G4DataDirectory', self.g4dataPath)
     settings.setValue('TopasDoseEngine/RTIonPlanFile', self.rtIonPlanFilePath)
-    settings.setValue('TopasDoseEngine/SchneiderMaterialFile', self.schneiderMaterialFilePath)
+    settings.setValue('TopasDoseEngine/HUtoMaterialFile', self.HUtoMaterialFilePath)
     settings.setValue('TopasDoseEngine/MachineDescriptionFile', self.machineDescriptionFilePath)
 
   #------------------------------------------------------------------------------
-  def resolveSchneiderMaterialFile(self, planNode, beamNode):
-    """Resolve the Schneider material file to use for this beam.
+  def resolveHUtoMaterialFile(self, planNode, beamNode):
+    """Resolve the HU to material file to use for this beam.
 
     If the current beam doesn't have one set, fall back to any other beam in the same plan
     that does — a custom HU-to-material file selected on one beam should apply to all beams,
     not just the one it was typed into.
     """
-    ownValue = self.scriptedEngine.parameter(beamNode, 'schneiderMaterialFile')
+    ownValue = self.scriptedEngine.parameter(beamNode, 'HUtoMaterialFile')
     if ownValue:
       return ownValue
     beams = vtk.vtkCollection()
@@ -144,7 +144,7 @@ class TopasDoseEngine(AbstractScriptedDoseEngine):
       otherBeamNode = beams.GetItemAsObject(i)
       if otherBeamNode.GetID() == beamNode.GetID():
         continue
-      otherValue = self.scriptedEngine.parameter(otherBeamNode, 'schneiderMaterialFile')
+      otherValue = self.scriptedEngine.parameter(otherBeamNode, 'HUtoMaterialFile')
       if otherValue:
         return otherValue
     return ownValue
@@ -153,7 +153,7 @@ class TopasDoseEngine(AbstractScriptedDoseEngine):
   def resolveMachineDescriptionFile(self, planNode, beamNode):
     """Resolve the machine description file to use for this beam.
 
-    Mirrors resolveSchneiderMaterialFile: a machine description file selected on one
+    Mirrors resolveHUtoMaterialFile: a machine description file selected on one
     beam should apply to all beams in the plan, not just the one it was typed into.
     """
     ownValue = self.scriptedEngine.parameter(beamNode, 'machineDescriptionFile')
@@ -207,7 +207,7 @@ class TopasDoseEngine(AbstractScriptedDoseEngine):
       topasBinaryPath = self.scriptedEngine.parameter(beamNode, 'topasBinary')
       g4dataPath = self.scriptedEngine.parameter(beamNode, 'g4DataDirectory')
       rtIonPlanFilePath = self.scriptedEngine.parameter(beamNode, 'rtIonPlanFile')
-      schneiderMaterialFilePath = self.resolveSchneiderMaterialFile(planNode, beamNode)
+      HUtoMaterialFilePath = self.resolveHUtoMaterialFile(planNode, beamNode)
       machineDescriptionFilePath = self.resolveMachineDescriptionFile(planNode, beamNode)
 
       # Persist paths to application settings so they survive session restarts
@@ -215,11 +215,11 @@ class TopasDoseEngine(AbstractScriptedDoseEngine):
       self.topasBinaryPath = topasBinaryPath
       self.g4dataPath = g4dataPath
       self.rtIonPlanFilePath = rtIonPlanFilePath
-      self.schneiderMaterialFilePath = schneiderMaterialFilePath
+      self.HUtoMaterialFilePath = HUtoMaterialFilePath
       self.machineDescriptionFilePath = machineDescriptionFilePath
       self.savePathsInApplicationSettings()
 
-      beamProperties['schneiderMaterialFile'] = schneiderMaterialFilePath
+      beamProperties['HUtoMaterialFile'] = HUtoMaterialFilePath
       beamProperties['machineDescriptionFile'] = machineDescriptionFilePath
 
       logging.info(f"Custom beam parameters: energy={beamProperties['energy']} MeV, "

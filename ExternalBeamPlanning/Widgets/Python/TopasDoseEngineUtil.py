@@ -153,12 +153,12 @@ class TopasDoseEngineUtil:
     # TROTS-compatible Schneider HU table resource: adds SchneiderUseVariableDensityMaterials
     # (continuous per-voxel density instead of 25 discrete bins), 0.4 mm particle cuts,
     # and the DensityCorrection calibration factor from the TROTS pipeline.
-    # A user-supplied file (beamProperties['schneiderMaterialFile']) overrides this bundled
+    # A user-supplied file (beamProperties['HUtoMaterialFile']) overrides this bundled
     # default, since the bundled table is a reasonable but somewhat dated starting point.
-    _schneiderFilePath = beamProperties.get('schneiderMaterialFile') or ''
-    if not _schneiderFilePath or not os.path.exists(_schneiderFilePath):
-      _schneiderFilePath = os.path.join(os.path.dirname(__file__), 'Resources', 'HUtoMaterialSchneider.txt')
-    includeFilePathTopas = TopasDoseEngineUtil.winToWslPath(_schneiderFilePath)
+    _HUtoMaterialFilePath = beamProperties.get('HUtoMaterialFile') or ''
+    if not _HUtoMaterialFilePath or not os.path.exists(_HUtoMaterialFilePath):
+      _HUtoMaterialFilePath = os.path.join(os.path.dirname(__file__), 'Resources', 'HUtoMaterialSchneider.txt')
+    includeFilePathTopas = TopasDoseEngineUtil.winToWslPath(_HUtoMaterialFilePath)
 
     # A user-supplied machine description file overrides the machine name normally read by
     # TsRTIonSource/TsRTIonComponents from the RT Ion Plan DICOM (InstitutionName:TreatmentMachineName).
@@ -347,7 +347,6 @@ class TopasDoseEngineUtil:
         f.write('sv:Ge/Patient/DicomModalityTags = 1 "CT"\n')
         if _hasDoseGrid:
           f.write(f's:Ge/Patient/CloneRTDoseGridFrom = "{_rtdoseFilePathTopas}"\n')
-        f.write('s:Ge/Patient/ImagingtoMaterialConverter = "Schneider"\n')
         f.write('d:Ge/Patient/TransX = 0. mm\n')
         f.write('d:Ge/Patient/TransY = 0. mm\n')
         f.write('d:Ge/Patient/TransZ = 0. mm\n')
@@ -431,7 +430,6 @@ class TopasDoseEngineUtil:
         f.write('s:Ge/Patient/Parent             = "World"\n')
         f.write(f's:Ge/Patient/DicomDirectory    = "{dicomDirectoryTopas}"\n')
         f.write('sv:Ge/Patient/DicomModalityTags = 1 "CT"\n')
-        f.write('s:Ge/Patient/ImagingtoMaterialConverter = "Schneider"\n')
         f.write('d:Ge/Patient/TransX = 0. mm\n')
         f.write('d:Ge/Patient/TransY = 0. mm\n')
         f.write('d:Ge/Patient/TransZ = 0. mm\n')
