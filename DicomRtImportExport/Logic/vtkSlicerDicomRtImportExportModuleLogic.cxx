@@ -1490,6 +1490,10 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
     {
       proxyIonBeamNode->SetAndObserveRangeShifterNode(proxyRangeShifterNode);
       proxyRangeShifterNode->SetAndObserveParentBeamNode(proxyIonBeamNode);
+      // Rebuild geometry now that the parent beam is known; the first build (triggered when the
+      // proxy was synchronized to the sequence browser above) ran before the parent was set and
+      // silently produced empty polydata.
+      proxyRangeShifterNode->UpdateGeometry();
       rsShId = shNode->GetItemByDataNode(proxyRangeShifterNode);
     }
 
