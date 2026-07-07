@@ -52,6 +52,9 @@
      </item>
      <item>
       <widget class="QCheckBox" name="checkBox_IonPlanFlag">
+       <property name="toolTip">
+        <string>Indicates that the plan uses the DICOM RT Ion Plan module. This covers both proton beams and other ion beams (e.g. carbon), so it is checked automatically for proton plans as well. Only dose engines that support ion plans (including proton-only engines) are offered below when this is checked.</string>
+       </property>
        <property name="layoutDirection">
         <enum>Qt::LayoutDirection::LeftToRight</enum>
        </property>

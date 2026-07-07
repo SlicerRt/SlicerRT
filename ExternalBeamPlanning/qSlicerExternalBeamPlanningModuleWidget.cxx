@@ -188,11 +188,12 @@ void qSlicerExternalBeamPlanningModuleWidget::onSceneImportedEvent()
 //-----------------------------------------------------------------------------
 void qSlicerExternalBeamPlanningModuleWidget::enter()
 {
-  this->onEnter();
-  this->Superclass::enter();
-
   //
-  // Register dose engines and optimizers if not already done
+  // Register dose engines and optimizers if not already done.
+  // This needs to happen before onEnter(), which populates the dose engine and plan optimizer
+  // combo boxes from the registered lists; otherwise the first time this module is entered, the
+  // combo boxes are populated before any engine has been registered and appear empty until the
+  // module is entered a second time.
   //
 
   // Inline function for determining if a dose engine is already registered by class name
@@ -258,6 +259,9 @@ void qSlicerExternalBeamPlanningModuleWidget::enter()
     "    exec(\"{0}Instance = optimizers.qSlicerScriptedPlanOptimizer(None); {0}Instance.setPythonSource({0}.__file__.replace('\\\\\\\\','/')); {0}Instance.self().register()\".format(optimizerName)) \n"
     "  except Exception: \n"
     "    logging.error(traceback.format_exc()) \n") );
+
+  this->onEnter();
+  this->Superclass::enter();
 }
 
 //-----------------------------------------------------------------------------
@@ -1060,8 +1064,15 @@ void qSlicerExternalBeamPlanningModuleWidget::ionPlanFlagCheckboxStateChanged(in
     return;
   }
 
-  // delete all beams
-  planNode->RemoveAllBeams();
+  // Only remove the beams if the ion plan flag is actually changing. This handler also runs when
+  // the checkbox is being silently synced to a plan's already-persisted flag (e.g. right after
+  // loading a plan from DICOM), in which case the existing beams must be left alone (see issue #333)
+  bool ionPlanFlagChanged = (planNode->GetIonPlanFlag() != static_cast<bool>(state));
+  if (ionPlanFlagChanged)
+  {
+    // delete all beams
+    planNode->RemoveAllBeams();
+  }
 
   // update beam parameters for ion plan
   qSlicerDoseEnginePluginHandler::DoseEngineListType engines =
