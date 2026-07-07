@@ -17,6 +17,7 @@ class TopasDoseEngine(AbstractScriptedDoseEngine):
   #------------------------------------------------------------------------------
   def __init__(self, scriptedEngine):
     scriptedEngine.name = 'Topas'
+    scriptedEngine.canDoIonPlan = True  # TOPAS supports proton beams, which DICOM RT Ion Plan classifies as an ion plan
     AbstractScriptedDoseEngine.__init__(self, scriptedEngine)
 
     # Define initial defaults for parameters that are stored in application settings
