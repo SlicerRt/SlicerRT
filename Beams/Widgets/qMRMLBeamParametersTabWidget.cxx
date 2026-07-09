@@ -418,6 +418,10 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
 
   // For inverse plans
   vtkMRMLRTPlanNode* planNode = d->BeamNode->GetParentPlanNode();
+  if (!planNode)
+  {
+    return;
+  }
   bool inversePlan = planNode->GetInversePlanFlag();
 
   d->doubleSpinBox_SAD->setEnabled(!inversePlan);

@@ -392,6 +392,14 @@ vtkMRMLRTPlanNode* vtkMRMLRTBeamNode::GetParentPlanNode()
     return nullptr;
   }
 
+  // The beam may be transiently absent from the subject hierarchy (e.g. while it is being
+  // removed from the scene and a reentrant GUI refresh queries it in the meantime).
+  // Check silently first so this expected, non-error condition is not logged as one.
+  if (shNode->GetItemByDataNode(this) == vtkMRMLSubjectHierarchyNode::INVALID_ITEM_ID)
+  {
+    return nullptr;
+  }
+
   return vtkMRMLRTPlanNode::SafeDownCast(shNode->GetParentDataNode(this));
 }
 
