@@ -244,6 +244,14 @@ void vtkMRMLRTIonRangeShifterNode::CreateRangeShifterPolyData(vtkPolyData* range
   if (!ionBeamNode)
   {
     vtkErrorMacro("CreateRangeShifterPolyData: Invalid parent ion beam node");
+    // Clear stale/never-built geometry and hide the model so an orphaned range shifter
+    // (e.g. its parent beam was removed) cannot poison 3D view auto-centering with
+    // leftover or empty-but-visible bounds.
+    rangeShifterModelPolyData->Initialize();
+    if (vtkMRMLDisplayNode* displayNode = this->GetDisplayNode())
+    {
+      displayNode->VisibilityOff();
+    }
     return;
   }
   double isoToRsDistance = ionBeamNode->GetIsocenterToRangeShifterDistance();
