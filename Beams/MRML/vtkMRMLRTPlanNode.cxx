@@ -22,6 +22,8 @@
 // Beams includes
 #include "vtkMRMLRTPlanNode.h"
 #include "vtkMRMLRTBeamNode.h"
+#include "vtkMRMLRTIonBeamNode.h"
+#include "vtkMRMLRTIonRangeShifterNode.h"
 
 // MRML includes
 #include <vtkMRMLModelNode.h>
@@ -728,6 +730,18 @@ void vtkMRMLRTPlanNode::RemoveBeam(vtkMRMLRTBeamNode* beamNode)
 
   // Fire beam added event (do it first so that operations can be performed with beam while exists)
   this->InvokeEvent(vtkMRMLRTPlanNode::BeamRemoved, (void*)beamNode->GetID());
+
+  // Remove range shifter node exclusively owned by an ion beam. Otherwise it is left behind in the
+  // scene with no parent beam, which breaks 3D view auto-centering.
+  vtkMRMLRTIonBeamNode* ionBeamNode = vtkMRMLRTIonBeamNode::SafeDownCast(beamNode);
+  if (ionBeamNode)
+  {
+    vtkMRMLRTIonRangeShifterNode* rangeShifterNode = ionBeamNode->GetRangeShifterNode();
+    if (rangeShifterNode)
+    {
+      this->GetScene()->RemoveNode(rangeShifterNode);
+    }
+  }
 
   // Remove beam node from the scene. The subject hierarchy item will automatically be removed
   this->GetScene()->RemoveNode(beamNode);
