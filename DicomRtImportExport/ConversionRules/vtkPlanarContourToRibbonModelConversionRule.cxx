@@ -25,6 +25,7 @@
 #include <vtkObjectFactory.h>
 
 // STD includes
+#include <algorithm>
 #include <iostream>
 #include <vtkVector.h>
 #include <vtkPolyData.h>
@@ -253,9 +254,15 @@ bool vtkPlanarContourToRibbonModelConversionRule::ComputePlaneForContour(vtkPoin
   {
     for (int pointIndex=0; pointIndex<numberOfPoints-2; ++pointIndex)
     {
-      contourPoints->GetPoint(pointIndex, firstPointArray);
-      contourPoints->GetPoint(pointIndex+1, secondPointArray);
-      contourPoints->GetPoint(pointIndex+2, thirdPointArray);
+      // The point number counted here is relative to this contour alone, but the underlying point list
+      // holds every contour's points one after another. That relative number has to be converted to its
+      // real position in the shared list before use; skipping that conversion silently reads whichever
+      // contour's points happen to occupy those early positions (in practice, the very first contour in
+      // the structure), so the plane ends up being computed from an unrelated contour's coordinates
+      // instead of this one's.
+      contourPoints->GetPoint(currentContourPointIds->GetId(pointIndex), firstPointArray);
+      contourPoints->GetPoint(currentContourPointIds->GetId(pointIndex+1), secondPointArray);
+      contourPoints->GetPoint(currentContourPointIds->GetId(pointIndex+2), thirdPointArray);
       firstPlanePoint = vtkVector3d(firstPointArray[0], firstPointArray[1], firstPointArray[2]);
       secondPlanePoint = vtkVector3d(secondPointArray[0], secondPointArray[1], secondPointArray[2]);
       thirdPlanePoint = vtkVector3d(thirdPointArray[0], thirdPointArray[1], thirdPointArray[2]);
@@ -372,6 +379,12 @@ double vtkPlanarContourToRibbonModelConversionRule::ComputeContourPlaneSpacing(v
     orderedContourPlanes[planesIt->second] = planesIt->first;
   }
 
+  // Relative tolerance for downgrading inconsistency messages to debug level: deviations smaller than
+  // 0.1% of the total contour span cannot be avoided due to the limited precision of DICOM decimal strings,
+  // so they do not warrant a warning
+  double totalContourSpan = orderedContourPlanes.empty() ? 0.0 : (orderedContourPlanes.rbegin()->first - orderedContourPlanes.begin()->first);
+  double relativeSpacingTolerance = std::max(EPSILON, 0.001 * totalContourSpan);
+
   // Compute distances between adjacent planes
   std::map< double, vtkSmartPointer<vtkPlane> >::iterator orderedPlanesIt;
   double previousDistance = 0.0;
@@ -395,7 +408,14 @@ double vtkPlanarContourToRibbonModelConversionRule::ComputeContourPlaneSpacing(v
         if ( !AreEqualWithTolerance(currentDistance, distanceBetweenContourPlanes)
           && consistentPlaneSpacing ) // Only prompt the warning once
         {
-          vtkWarningMacro("ComputeContourPlaneSpacing: Contour does not have consistent plane spacing (" << currentDistance << " != " << distanceBetweenContourPlanes << "). Using majority spacing value.");
+          if (fabs(currentDistance - distanceBetweenContourPlanes) < relativeSpacingTolerance)
+          {
+            vtkDebugMacro("ComputeContourPlaneSpacing: Contour does not have consistent plane spacing (" << currentDistance << " != " << distanceBetweenContourPlanes << "). Using majority spacing value.");
+          }
+          else
+          {
+            vtkWarningMacro("ComputeContourPlaneSpacing: Contour does not have consistent plane spacing (" << currentDistance << " != " << distanceBetweenContourPlanes << "). Using majority spacing value.");
+          }
           consistentPlaneSpacing = false;
         }
       } // If non-zero
@@ -408,7 +428,22 @@ double vtkPlanarContourToRibbonModelConversionRule::ComputeContourPlaneSpacing(v
   {
     std::string message("");
     distanceBetweenContourPlanes = MajorityValue(planeSpacingValues, message);
-    vtkWarningMacro("ComputeContourPlaneSpacing: Inconsistent plane spacing. Details:\n" << message << "Used contour spacing: " << distanceBetweenContourPlanes);
+
+    // Only warn if any spacing value deviates from the majority by more than the relative tolerance;
+    // smaller deviations are expected due to DICOM decimal string precision limits and are not actionable
+    double maxDeviation = 0.0;
+    for (std::vector<double>::const_iterator valueIt = planeSpacingValues.begin(); valueIt != planeSpacingValues.end(); ++valueIt)
+    {
+      maxDeviation = std::max(maxDeviation, fabs(*valueIt - distanceBetweenContourPlanes));
+    }
+    if (maxDeviation < relativeSpacingTolerance)
+    {
+      vtkDebugMacro("ComputeContourPlaneSpacing: Inconsistent plane spacing. Details:\n" << message << "Used contour spacing: " << distanceBetweenContourPlanes);
+    }
+    else
+    {
+      vtkWarningMacro("ComputeContourPlaneSpacing: Inconsistent plane spacing. Details:\n" << message << "Used contour spacing: " << distanceBetweenContourPlanes);
+    }
   }
 
   return distanceBetweenContourPlanes;
