@@ -74,7 +74,7 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   revLogic->SetBeamsLogic(beamsLogic);
   revLogic->BuildRoomsEyeViewTransformHierarchy();
 
-  int expectedNumberOfLinearTransformNodes = 13;
+  int expectedNumberOfLinearTransformNodes = 15;
   int numberOfLinearTransformNodes = mrmlScene->GetNumberOfNodesByClass("vtkMRMLLinearTransformNode");
   if (numberOfLinearTransformNodes != expectedNumberOfLinearTransformNodes)
   {
@@ -606,6 +606,12 @@ int vtkSlicerRoomsEyeViewLogicTest1(int vtkNotUsed(argc), char* vtkNotUsed(argv)
   //TODO: Test code to print all non-identity transforms (useful to add more test cases)
   //std::cout << "ZZZ after collimator angle 90:" << std::endl;
   //PrintLinearTransformNodeMatrices(mrmlScene, false, true);
+
+  // Release scene references so no nodes are left dangling at exit
+  beamsLogic->SetMRMLScene(nullptr);
+  revLogic->SetBeamsLogic(nullptr);
+  revLogic->SetMRMLScene(nullptr);
+  mrmlScene->Clear(1);
 
   std::cout << "REV logic test passed" << std::endl;
   return EXIT_SUCCESS;
