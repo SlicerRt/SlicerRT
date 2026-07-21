@@ -152,18 +152,11 @@ endif()
 set(EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS)
 list(APPEND EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS "${vtkIECTransformLogic_DIR};vtkIECTransformLogic;RuntimeLibraries;/")
 
-# Add optimization runtime libraries if enabled
-if(EXTENSION_BUILDS_IPOPT)
-  if(DEFINED Mumps_DIR AND UNIX)
-    list(APPEND EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS "${Mumps_DIR};Mumps;RuntimeLibraries;/")
-  endif()
-  if(DEFINED HSL_DIR AND UNIX)
-    list(APPEND EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS "${HSL_DIR};HSL;RuntimeLibraries;/")
-  endif()
-  if(DEFINED Ipopt_DIR)
-    list(APPEND EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS "${Ipopt_DIR};Ipopt;RuntimeLibraries;/")
-  endif()
-endif()
+# Note: Mumps/HSL/Ipopt are built via autotools (Unix) or downloaded as a prebuilt zip
+# (Windows), so none of them are CMake build trees with a cmake_install.cmake script.
+# They cannot be registered via CPACK_INSTALL_CMAKE_PROJECTS (CPack fails trying to run
+# a nonexistent install script for them); their runtime files are installed directly by
+# the modules that consume them instead (see ExternalBeamPlanning/Widgets/CMakeLists.txt).
 
 if((LINUX OR APPLE) AND EXTENSION_BUILDS_ADAPTIVE_CPP)
   list(APPEND EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS "${AdaptiveCpp_DIR};AdaptiveCpp;RuntimeLibraries;/")
