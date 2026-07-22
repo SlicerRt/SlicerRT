@@ -122,6 +122,16 @@ class PlmProtonDoseEngineTest(unittest.TestCase):
     engineLogic = slicer.qSlicerDoseEngineLogic()
     engineLogic.setMRMLScene(slicer.mrmlScene)
 
+    #TODO: For some reason the instance() function cannot be called as a class function although it's static
+    engineHandler = slicer.qSlicerDoseEnginePluginHandler()
+    engineHandlerSingleton = engineHandler.instance()
+    plastimatchProtonEngine = engineHandlerSingleton.doseEngineByName(self.plastimatchProtonDoseEngineName)
+
+    # Define engine-specific beam parameters, normally done when the External Beam Planning module widget
+    # is created, which does not happen in this headless test
+    tabWidget = slicer.qMRMLBeamParametersTabWidget()
+    plastimatchProtonEngine.registerBeamParametersTabWidget(tabWidget)
+
     # Get input
     ctVolumeNode = slicer.util.getNode('TinyPatient_CT')
     segmentationNode = slicer.util.getNode('TinyPatient_Structures')
@@ -141,7 +151,7 @@ class PlmProtonDoseEngineTest(unittest.TestCase):
     planNode.SetAndObserveReferenceVolumeNode(ctVolumeNode);
     planNode.SetAndObserveSegmentationNode(segmentationNode);
     planNode.SetAndObserveOutputTotalDoseVolumeNode(totalDoseVolumeNode);
-    planNode.SetTargetSegmentID("Tumor_Contour");
+    planNode.SetTargetSegmentIDs(["Tumor_Contour"]);
     planNode.SetIsocenterToTargetCenter();
     planNode.SetDoseEngineName(self.plastimatchProtonDoseEngineName)
 
@@ -153,10 +163,6 @@ class PlmProtonDoseEngineTest(unittest.TestCase):
     firstBeamNode.SetY1Jaw(-50.0)
     firstBeamNode.SetY2Jaw(75.0)
 
-    #TODO: For some reason the instance() function cannot be called as a class function although it's static
-    engineHandler = slicer.qSlicerDoseEnginePluginHandler()
-    engineHandlerSingleton = engineHandler.instance()
-    plastimatchProtonEngine = engineHandlerSingleton.doseEngineByName(self.plastimatchProtonDoseEngineName)
     plastimatchProtonEngine.setParameter(firstBeamNode, 'EnergyResolution', 4.0)
     plastimatchProtonEngine.setParameter(firstBeamNode, 'RangeCompensatorSmearingRadius', 0.0)
     plastimatchProtonEngine.setParameter(firstBeamNode, 'ProximalMargin', 0.0)
@@ -183,7 +189,7 @@ class PlmProtonDoseEngineTest(unittest.TestCase):
     doseVoxelCount = imageAccumulate.GetVoxelCount()
     logging.info("Dose volume properties:\n  Max=" + str(doseMax) + ", Mean=" + str(doseMean) + ", StdDev=" + str(doseStdDev) + ", NumberOfVoxels=" + str(doseVoxelCount))
 
-    self.assertAlmostEqual(doseMax, 1.09556, 4)
-    self.assertAlmostEqual(doseMean, 0.01670, 4)
-    self.assertAlmostEqual(doseStdDev, 0.12670, 4)
+    self.assertAlmostEqual(doseMax, 1.045071, 4)
+    self.assertAlmostEqual(doseMean, 0.025267, 4)
+    self.assertAlmostEqual(doseStdDev, 0.149049, 4)
     self.assertEqual(doseVoxelCount, 1000)

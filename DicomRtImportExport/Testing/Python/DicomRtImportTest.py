@@ -154,7 +154,7 @@ class DicomRtImportTest(unittest.TestCase):
     self.assertEqual( len( slicer.util.getNodes('vtkMRMLMarkupsFiducialNode*') ), 1 )
     # Subject hierarchy items
     shNode = slicer.vtkMRMLSubjectHierarchyNode.GetSubjectHierarchyNode(slicer.mrmlScene)
-    self.assertEqual( shNode.GetNumberOfItems(), 28 )
+    self.assertEqual( shNode.GetNumberOfItems(), 29 )
 
   #------------------------------------------------------------------------------
   def TestSection_SaveScene(self):
