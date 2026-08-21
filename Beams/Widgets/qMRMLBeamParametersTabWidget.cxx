@@ -243,22 +243,22 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
     d->CoordinatesWidget_Isocenter->setEnabled(false);
   }
 
-  // Check for MLC table and enable combo box
-  if (vtkMRMLTableNode* mlcTable = d->BeamNode->GetMultiLeafCollimatorTableNode())
+  // The parameters tab widget is a plain tab container and never gets a scene of its own, so
+  // the leaf collimator table selector has to be handed the beam's scene here. It has to be
+  // filled even when the beam has no table yet, otherwise a table can never be picked for such
+  // a beam. Read the beam's current table before touching the selector: handing it a scene
+  // refills it and makes it report the empty entry as the selected one, which the selection
+  // handler would write straight back into the beam and drop an already assigned table.
+  vtkMRMLTableNode* mlcTable = d->BeamNode->GetMultiLeafCollimatorTableNode();
   {
-    d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setMRMLScene(mlcTable->GetScene());
+    const QSignalBlocker blocker(d->MRMLNodeComboBox_MLCBoundaryAndPositionTable);
+    d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setMRMLScene(d->BeamNode->GetScene());
     d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setCurrentNode(mlcTable);
-    d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setEnabled(true);
-    d->pushButton_UpdateMLCBoundary->setEnabled(true);
-    d->doubleSpinBox_DistanceMLC->setEnabled(true);
   }
-  else
-  {
-    d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setCurrentNode(nullptr);
-    d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setEnabled(false);
-    d->pushButton_UpdateMLCBoundary->setEnabled(false);
-    d->doubleSpinBox_DistanceMLC->setEnabled(false);
-  }
+  d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setEnabled(true);
+  d->pushButton_UpdateMLCBoundary->setEnabled(mlcTable != nullptr);
+  d->pushButton_CalculateMLCPosition->setEnabled(mlcTable != nullptr);
+  d->doubleSpinBox_DistanceMLC->setEnabled(mlcTable != nullptr);
 
   // Update engine-specific values
   foreach (QWidget* tabWidget, d->BeamParametersTabWidgets)
@@ -357,17 +357,12 @@ void qMRMLBeamParametersTabWidget::updateWidgetFromMRML()
     connect( d->doubleSpinBox_VSADx, SIGNAL(valueChanged(double)), this, SLOT(virtualSourceAxisXDistanceChanged(double)), Qt::UniqueConnection );
     connect( d->doubleSpinBox_VSADy, SIGNAL(valueChanged(double)), this, SLOT(virtualSourceAxisYDistanceChanged(double)), Qt::UniqueConnection );
 
-    // Check for ScanSpot table and enable combo box
-    if (vtkMRMLTableNode* scanspotTable = ionBeamNode->GetScanSpotTableNode())
-    {
-      d->MRMLNodeComboBox_ScanSpotParametersTable->setMRMLScene(scanspotTable->GetScene());
-      d->MRMLNodeComboBox_ScanSpotParametersTable->setCurrentNode(scanspotTable);
-    }
-    else
-    {
-      d->MRMLNodeComboBox_ScanSpotParametersTable->setCurrentNode(nullptr);
-      d->MRMLNodeComboBox_ScanSpotParametersTable->setEnabled(false);
-    }
+    // Same as the MLC table selector above: the scan spot selector needs the beam's scene
+    // before a scan spot table exists, otherwise none can ever be selected. The has-a-table
+    // branch also never enabled the combo box, so it stayed disabled even for imported plans.
+    d->MRMLNodeComboBox_ScanSpotParametersTable->setMRMLScene(ionBeamNode->GetScene());
+    d->MRMLNodeComboBox_ScanSpotParametersTable->setEnabled(true);
+    d->MRMLNodeComboBox_ScanSpotParametersTable->setCurrentNode(ionBeamNode->GetScanSpotTableNode());
 
     // rename some labels
     d->label_DistanceMLC->setText(tr("Isocenter to MLC distance (mm):"));
@@ -892,9 +887,6 @@ void qMRMLBeamParametersTabWidget::mlcBoundaryAndPositionTableNodeChanged(vtkMRM
 {
   Q_D(qMRMLBeamParametersTabWidget);
 
-  d->pushButton_UpdateMLCBoundary->setEnabled(node);
-  d->pushButton_CalculateMLCPosition->setEnabled(node);
-
   if (!d->MLCPositionLogic)
   {
     qCritical() << Q_FUNC_INFO << ": MLC position calculation logic is invalid!";
@@ -915,7 +907,9 @@ void qMRMLBeamParametersTabWidget::mlcBoundaryAndPositionTableNodeChanged(vtkMRM
   {
     d->BeamNode->SetAndObserveMultiLeafCollimatorTableNode(nullptr);
   }
-  d->BeamNode->UpdateGeometry();
+
+  // Assigning the table announces a geometry change on the beam, which rebuilds the beam model
+  // and refreshes this tab, so neither has to be triggered here.
 
   // GCS FIX TODO *** Come back to this later ***
   Q_UNUSED(node);
@@ -963,6 +957,12 @@ void qMRMLBeamParametersTabWidget::generateMLCboundaryClicked()
     return;
   }
 
+  if (!d->BeamNode)
+  {
+    qCritical() << Q_FUNC_INFO << ": No current beam node!";
+    return;
+  }
+
   bool mlcType = d->radioButton_MLCX->isChecked();
   int nofPairs = static_cast<int>(d->SliderWidget_NumberOfLeafPairs->value());
   double leafPairSize = d->SliderWidget_LeafPairBoundarySize->value();
@@ -970,23 +970,31 @@ void qMRMLBeamParametersTabWidget::generateMLCboundaryClicked()
 
   vtkMRMLTableNode* mlcTable = d->MLCPositionLogic->CreateMultiLeafCollimatorTableNodeBoundaryData(
     mlcType, nofPairs, leafPairSize, offset);
-  if (mlcTable)
-  {
-    const char* beamName = d->BeamNode->GetName();
-    const char* mlcName = mlcTable->GetName();
-    std::string newName = std::string(mlcName) + ": " + beamName;
-    mlcTable->SetName(newName.c_str());
-    // enable MRML combobox if it was disabled
-    d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->setEnabled(true);
-  }
-  else
+  if (!mlcTable)
   {
     qCritical() << Q_FUNC_INFO << ": Unable to create MLC boundary data table!";
+    return;
   }
+
+  const char* beamName = d->BeamNode->GetName();
+  const char* mlcName = mlcTable->GetName();
+  std::string newName = std::string(mlcName) + ": " + beamName;
+  mlcTable->SetName(newName.c_str());
+
+  // Project the leaf boundaries onto the isocenter plane before the table is handed to the
+  // beam. The projection writes into the underlying table without announcing a change, so a
+  // beam built beforehand would keep showing the unprojected boundaries.
   if (!d->checkBox_ParallelBeam->isChecked())
   {
     d->MLCPositionLogic->CalculateLeavesProjection( d->BeamNode, mlcTable);
   }
+
+  // Assign the table to the beam directly rather than by driving the selector, which only
+  // works once the selector has a scene and quietly does nothing before that. Assigning it
+  // announces a change on the beam, which rebuilds the beam model and refreshes this tab,
+  // selector and buttons included.
+  d->BeamNode->SetAndObserveMultiLeafCollimatorTableNode(mlcTable);
+  d->MLCPositionLogic->SetParentForMultiLeafCollimatorTableNode(d->BeamNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -1007,19 +1015,39 @@ void qMRMLBeamParametersTabWidget::updateMLCboundaryClicked()
 
   vtkMRMLNode* node = d->MRMLNodeComboBox_MLCBoundaryAndPositionTable->currentNode();
   vtkMRMLTableNode* mlcTableNode = vtkMRMLTableNode::SafeDownCast(node);
-  if (mlcTableNode)
-  {
-    d->MLCPositionLogic->UpdateMultiLeafCollimatorTableNodeBoundaryData( mlcTableNode,
-    mlcType, nofPairs, leafPairSize, offset);
-  }
-  else
+  if (!mlcTableNode)
   {
     qCritical() << Q_FUNC_INFO << ": Unable to update MLC boundary data table!";
+    return;
   }
+
+  // Gather the whole edit into a single change announcement. Renaming the node on its own
+  // would otherwise announce the table while the boundaries are still unprojected, rebuilding
+  // the beam twice and once from half-finished data.
+  int wasModifying = mlcTableNode->StartModify();
+
+  d->MLCPositionLogic->UpdateMultiLeafCollimatorTableNodeBoundaryData( mlcTableNode,
+    mlcType, nofPairs, leafPairSize, offset);
+
+  // The update resets the node name to the bare table type, which strips the beam name that
+  // was appended to it when the table was generated. Put it back.
+  if (d->BeamNode)
+  {
+    const char* beamName = d->BeamNode->GetName();
+    const char* mlcName = mlcTableNode->GetName();
+    std::string newName = std::string(mlcName) + ": " + beamName;
+    mlcTableNode->SetName(newName.c_str());
+  }
+
   if (!d->checkBox_ParallelBeam->isChecked())
   {
     d->MLCPositionLogic->CalculateLeavesProjection( d->BeamNode, mlcTableNode);
   }
+
+  // The boundary values are written straight into the underlying table, which does not
+  // announce a change by itself, so the beam would stay built from the old boundaries.
+  mlcTableNode->Modified();
+  mlcTableNode->EndModify(wasModifying);
 }
 
 //-----------------------------------------------------------------------------

@@ -91,6 +91,8 @@ namespace
 
 const char* MLCX_BOUNDARYANDPOSITION = "MLCX_BoundaryAndPosition";
 const char* MLCY_BOUNDARYANDPOSITION = "MLCY_BoundaryAndPosition";
+// Position given to both leaves of a pair that is shut, as used for a newly generated table
+const double MLC_LEAF_CLOSED_POSITION = -20.0;
 
 } // namespace
 
@@ -248,12 +250,21 @@ vtkMRMLMarkupsCurveNode* vtkSlicerMLCPositionLogic::CalculatePositionConvexHullC
     }
 
     delete [] xyCoordinates;
+
+    // The curve is a by-product of the leaf position calculation rather than something to
+    // look at or edit, so it is created hidden. It stays under the beam in the subject
+    // hierarchy, where it can be switched visible to inspect the computed opening.
+    curveNode->CreateDefaultDisplayNodes();
+    curveNode->SetDisplayVisibility(0);
+
     return curveNode.GetPointer();
   }
   else
   {
+    // Taking the node out of the scene releases the reference the scene held. The one held
+    // here is released on the way out of this function, so it must not be released by hand
+    // as well, which would free the node twice.
     this->GetMRMLScene()->RemoveNode(curveNode);
-    curveNode->Delete();
     return nullptr;
   }
 }
@@ -446,15 +457,11 @@ bool vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPosition( vtkMRMLTab
     return false;
   }
 
-  size_t nofLeafPairs = 0;
-  if (mlcTableNode)
-  {
-    nofLeafPairs = mlcTableNode->GetNumberOfRows() - 1;
-    if (nofLeafPairs <= 0)
-    {
-      nofLeafPairs = 0;
-    }
-  }
+  // A table holds one boundary value more than it has leaf pairs. Subtracting that one before
+  // checking the count would turn an empty table into a huge number of pairs rather than none,
+  // since the count is kept in a value that cannot go negative.
+  vtkIdType nofRows = mlcTableNode->GetNumberOfRows();
+  size_t nofLeafPairs = (nofRows > 1) ? static_cast<size_t>(nofRows - 1) : 0;
 
   double curveBounds[4] = {};
   if (!nofLeafPairs || !CalculateCurveBoundary(curveNode, curveBounds))
@@ -464,6 +471,16 @@ bool vtkSlicerMLCPositionLogic::CalculateMultiLeafCollimatorPosition( vtkMRMLTab
   }
 
   vtkTable* mlcTable = mlcTableNode->GetTable();
+
+  // Close every leaf pair before opening the ones the new outline calls for. Only the pairs
+  // covering the outline are given positions below, so pairs opened for an outline calculated
+  // earlier would otherwise stay open and the opening would end up covering the old target
+  // and the new one together instead of just the target currently selected.
+  for (size_t leafPair = 0; leafPair < nofLeafPairs; ++leafPair)
+  {
+    mlcTable->SetValue(leafPair, 1, MLC_LEAF_CLOSED_POSITION);
+    mlcTable->SetValue(leafPair, 2, MLC_LEAF_CLOSED_POSITION);
+  }
 
   int leafPairStart = -1, leafPairEnd = -1;
   FindLeafPairRangeIndexes(curveBounds, mlcTable, leafPairStart, leafPairEnd);
