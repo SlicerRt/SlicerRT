@@ -87,6 +87,16 @@ mark_as_superbuild(SLICERRT_ENABLE_EXPERIMENTAL_MODULES)
 option(SLICERRT_DOCUMENTATION "Enable the building of the SlicerRt documentation via doxygen." OFF)
 
 #-----------------------------------------------------------------------------
+# Plastimatch is not built for WebAssembly (3D Slicer in a web browser). The modules that need it
+# are left out without it.
+set(SLICERRT_USE_PLASTIMATCH_DEFAULT ON)
+if(EMSCRIPTEN)
+  set(SLICERRT_USE_PLASTIMATCH_DEFAULT OFF)
+endif()
+option(SLICERRT_USE_PLASTIMATCH "Build Plastimatch and the modules that use it." ${SLICERRT_USE_PLASTIMATCH_DEFAULT})
+mark_as_superbuild(SLICERRT_USE_PLASTIMATCH)
+
+#-----------------------------------------------------------------------------
 # SuperBuild setup
 option(${EXTENSION_NAME}_SUPERBUILD "Build ${EXTENSION_NAME} and the projects it depends on." ON)
 mark_as_advanced(${EXTENSION_NAME}_SUPERBUILD)
