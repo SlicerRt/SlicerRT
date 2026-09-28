@@ -18,9 +18,13 @@ set(proj ${SUPERBUILD_TOPLEVEL_PROJECT})
 
 # Project dependencies
 set(${proj}_DEPENDS
-  Plastimatch
   vtkIECTransformLogic
   )
+if(SLICERRT_USE_PLASTIMATCH)
+  list(APPEND ${proj}_DEPENDS
+    Plastimatch
+    )
+endif()
 
 # Add linear equation solver dependencies (MUMPS, HSL) if enabled and on UNIX
 if(EXTENSION_BUILDS_IPOPT AND UNIX)
