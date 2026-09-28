@@ -25,10 +25,15 @@ SET (SlicerRtCommon_SRCS
   vtkSlicerAutoWindowLevelLogic.h
   vtkFractionalImageAccumulate.cxx
   vtkFractionalImageAccumulate.h
-  vtkSlicerDicomReaderBase.cxx
-  vtkSlicerDicomReaderBase.h
-  vtkSlicerDicomReaderBase.txx
   )
+# The DICOM reader base classes are DCMTK's; without DICOM support there is no DCMTK
+if(Slicer_BUILD_DICOM_SUPPORT)
+  list(APPEND SlicerRtCommon_SRCS
+    vtkSlicerDicomReaderBase.cxx
+    vtkSlicerDicomReaderBase.h
+    vtkSlicerDicomReaderBase.txx
+    )
+endif()
 
 SET (SlicerRtCommon_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${Slicer_Libs_INCLUDE_DIRS} ${vtkSegmentationCore_INCLUDE_DIRS} CACHE INTERNAL "" FORCE)
 
