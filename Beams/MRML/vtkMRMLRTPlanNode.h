@@ -33,9 +33,6 @@
 #include "vtkOrientedImageData.h"
 #include <vtkSmartPointer.h>
 
-// Qt includes
-#include <QString>
-
 class vtkCollection;
 class vtkMRMLMarkupsFiducialNode;
 class vtkMRMLRTBeamNode;
@@ -112,7 +109,7 @@ public:
   vtkSmartPointer<vtkOrientedImageData> GetTargetOrientedImageData();
 
   /// Get target segment as a labelmap oriented image data
-  vtkSmartPointer<vtkOrientedImageData> GetSingleTargetOrientedImageData(QString segmentID);
+  vtkSmartPointer<vtkOrientedImageData> GetSingleTargetOrientedImageData(const std::string& segmentID);
 
   /// Add given beam node to plan
   void AddBeam(vtkMRMLRTBeamNode* beam);

@@ -48,10 +48,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkVariant.h>
 
-// Qt includes
-#include <QString>
-#include <QStringList>
-
 //------------------------------------------------------------------------------
 const char* vtkMRMLRTPlanNode::ISOCENTER_FIDUCIAL_NAME = "Isocenter";
 const int vtkMRMLRTPlanNode::ISOCENTER_FIDUCIAL_INDEX = 0;
@@ -984,7 +980,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetTargetOrientedImageD
   // Return labelmap of the single target segment if only one segment specified (no need to merge)
   if (targetSegmentIDs.size() == 1)
   {
-    return this->GetSingleTargetOrientedImageData(QString::fromStdString(targetSegmentIDs[0]));
+    return this->GetSingleTargetOrientedImageData(targetSegmentIDs[0]);
   }
 
   // Get segment IDs as string array
@@ -1017,7 +1013,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetTargetOrientedImageD
 }
 
 //----------------------------------------------------------------------------
-vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetSingleTargetOrientedImageData(QString segmentID)
+vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetSingleTargetOrientedImageData(const std::string& segmentID)
 {
   vtkSmartPointer<vtkOrientedImageData> targetOrientedImageData;
   vtkMRMLSegmentationNode* segmentationNode = this->GetSegmentationNode();
@@ -1039,7 +1035,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetSingleTargetOriented
     vtkErrorMacro("GetTargetOrientedImageData: No target segment specified");
     return targetOrientedImageData;
   }
-  vtkSegment* segment = segmentation->GetSegment(segmentID.toStdString());
+  vtkSegment* segment = segmentation->GetSegment(segmentID);
   if (!segment)
   {
     vtkErrorMacro("GetTargetOrientedImageData: Failed to get segment");
@@ -1049,7 +1045,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetSingleTargetOriented
   if (segmentation->ContainsRepresentation(vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName()))
   {
 #if Slicer_VERSION_MAJOR >= 5 || (Slicer_VERSION_MAJOR >= 4 && Slicer_VERSION_MINOR >= 11)
-    segmentationNode->GetBinaryLabelmapRepresentation(segmentID.toStdString(), targetOrientedImageData);
+    segmentationNode->GetBinaryLabelmapRepresentation(segmentID, targetOrientedImageData);
 #else
     targetOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::New();
     targetOrientedImageData->DeepCopy(vtkOrientedImageData::SafeDownCast(
@@ -1061,7 +1057,7 @@ vtkSmartPointer<vtkOrientedImageData> vtkMRMLRTPlanNode::GetSingleTargetOriented
     // Need to convert
     targetOrientedImageData = vtkSmartPointer<vtkOrientedImageData>::Take(vtkOrientedImageData::SafeDownCast(
       vtkSlicerSegmentationsModuleLogic::CreateRepresentationForOneSegment(
-        segmentation, segmentID.toStdString(), vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName())));
+        segmentation, segmentID, vtkSegmentationConverter::GetSegmentationBinaryLabelmapRepresentationName())));
     if (!targetOrientedImageData.GetPointer())
     {
       std::string errorMessage("Failed to convert target segment into binary labelmap");
