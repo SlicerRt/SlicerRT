@@ -1372,17 +1372,12 @@ bool vtkSlicerDicomRtImportExportModuleLogic::vtkInternal::LoadDynamicBeamSequen
           isocenter = rtReader->GetBeamControlPointIsocenterPositionRas(dicomBeamNumber, 0);
         }
 
-        // Update beam transform without translation to isocenter
+        // Update beam transform. This already places the beam at the isocenter, because the
+        // isocenter translation is applied inside the IEC transform chain. Do not translate
+        // again here, otherwise the beam and its range shifter end up at twice the isocenter
+        // offset, far from the patient.
         beamsLogic->UpdateTransformForBeam(beamSequenceNode->GetSequenceScene(), beamNode, transformNode, isocenter);
 
-        vtkTransform* transform = vtkTransform::SafeDownCast(transformNode->GetTransformToParent());
-        if (isocenter)
-        {
-          // Actual translation to isocenter
-          transform->Translate(isocenter[0], isocenter[1], isocenter[2]);
-          transformNode->Modified();
-        }
-    
         transformSequenceNode->SetDataNodeAtValue(transformNode, std::to_string(controlPointIndex));
       }
     }
