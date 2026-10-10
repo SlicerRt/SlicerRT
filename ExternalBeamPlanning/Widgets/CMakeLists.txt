@@ -281,6 +281,14 @@ if(EXTENSION_BUILDS_IPOPT AND WIN32 AND DEFINED Ipopt_DLL_DIR)
         "$<TARGET_FILE_DIR:${KIT}>"
     )
   endforeach()
+
+  # Also install the DLLs for packaging. Ipopt is a prebuilt zip on Windows (not a CMake
+  # build tree), so it cannot be registered via CPACK_INSTALL_CMAKE_PROJECTS; install it
+  # as part of this module instead.
+  install(DIRECTORY "${Ipopt_DLL_DIR}/"
+    DESTINATION ${Slicer_INSTALL_QTLOADABLEMODULES_BIN_DIR}
+    COMPONENT RuntimeLibraries
+    FILES_MATCHING PATTERN "*.dll")
 endif()
 
 #-----------------------------------------------------------------------------
