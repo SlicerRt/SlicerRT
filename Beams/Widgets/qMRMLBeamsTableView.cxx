@@ -303,7 +303,7 @@ void qMRMLBeamsTableView::updateBeamTable()
     QPushButton* bevButton = new QPushButton(tr("BEV"));
     bevButton->setMaximumWidth(52);
     bevButton->setToolTip(tr("Show Beam's Eye View"));
-    bevButton->setProperty(ID_PROPERTY, beamNode->GetID());
+    bevButton->setProperty(ID_PROPERTY, qSlicerUtils::safeQStringFromUtf8Ptr(beamNode->GetID()));
     connect(bevButton, SIGNAL(clicked()), this, SLOT(onBEVButtonClicked()));
     d->BeamsTable->setCellWidget(row, d->columnIndex("BEV"), bevButton);
 }
