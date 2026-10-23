@@ -33,6 +33,8 @@
 // ITK includes
 #include <itkeigen/Eigen/SparseCore>
 
+#include "qSlicerEigenMetaTypes.h"
+
 class qSlicerAbstractObjectivePrivate;
 class vtkMRMLNode;
 class vtkMRMLRTObjectiveNode;
@@ -99,7 +101,5 @@ public:
  /// Compute gradient of the objective function for the given dose matrix
     Q_INVOKABLE virtual DoseType computeDoseObjectiveGradient(const DoseType&) = 0;
 };
-
-Q_DECLARE_METATYPE(qSlicerAbstractObjective::DoseType)
 
 #endif
