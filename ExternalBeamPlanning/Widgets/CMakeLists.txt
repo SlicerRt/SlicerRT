@@ -81,6 +81,7 @@ set(${KIT}_SRCS
   qSlicerMinDVHObjective.cxx
   qSlicerMinDVHObjective.h
   qSlicerDVHUtils.h
+  qSlicerEigenMetaTypes.h
   # Constraints
   qSlicerAbstractConstraint.cxx
   qSlicerAbstractConstraint.h

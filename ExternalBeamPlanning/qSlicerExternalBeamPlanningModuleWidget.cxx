@@ -75,7 +75,7 @@
 
 // Qt includes
 #include <QDebug>
-#include <QTime>
+#include <QElapsedTimer>
 #include <QItemSelection>
 #include <QMessageBox>
 #include <QSignalBlocker>
@@ -358,7 +358,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
 
   connect( d->checkBox_InversePlanning, SIGNAL(stateChanged(int)), this, SLOT(inversePlanningCheckboxStateChanged(int)));
 
-  connect( d->comboBox_DoseEngine, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(doseEngineChanged(const QString&)) );
+  connect( d->comboBox_DoseEngine, SIGNAL(currentTextChanged(const QString&)), this, SLOT(doseEngineChanged(const QString&)) );
   connect( d->doubleSpinBox_RxDose, SIGNAL(valueChanged(double)), this, SLOT(rxDoseChanged(double)) );
 
   // Output section
@@ -380,7 +380,7 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   connect( d->pushButton_ClearDose, SIGNAL(clicked()), this, SLOT(clearDoseClicked()) );
 
   // Plan Optimization
-  connect( d->comboBox_PlanOptimizer, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(PlanOptimizerChanged(const QString&)));
+  connect( d->comboBox_PlanOptimizer, SIGNAL(currentTextChanged(const QString&)), this, SLOT(PlanOptimizerChanged(const QString&)));
   connect( d->pushButton_OptimizePlan, SIGNAL(clicked()), this, SLOT(optimizePlanClicked()));
 
 #if defined(EXTENSION_BUILDS_IPOPT)
@@ -1488,7 +1488,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
   }
 
   // Start timer
-  QTime time;
+  QElapsedTimer time;
   time.start();
   // Set busy cursor
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -1530,7 +1530,7 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
 
   if (errorMessage.isEmpty())
   {
-    QString message = tr("Dose calculated successfully in %1 s").arg(time.elapsed()/1000.0);
+    QString message = tr("Dose calculated successfully in %1 s").arg(static_cast<double>(time.elapsed()/1000.0));
     qDebug() << Q_FUNC_INFO << ": " << message;
     d->label_CalculateDoseStatus->setText(message);
   }
@@ -1573,7 +1573,7 @@ void qSlicerExternalBeamPlanningModuleWidget::optimizePlanClicked()
   }
 
   // Start timer
-  QTime time;
+  QElapsedTimer time;
   time.start();
   // Set busy cursor
   QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -1601,7 +1601,7 @@ void qSlicerExternalBeamPlanningModuleWidget::optimizePlanClicked()
 
   if (errorMessage.isEmpty())
   {
-    QString message = tr("Optimization calculated successfully in %1 s").arg(time.elapsed() / 1000.0);
+    QString message = tr("Optimization calculated successfully in %1 s").arg(static_cast<double>(time.elapsed() / 1000.0));
     qDebug() << Q_FUNC_INFO << ": " << message;
     d->label_OptimizationStatus->setText(message);
   }

@@ -9,6 +9,7 @@
 #include <QString>
 
 #include <itkeigen/Eigen/Dense>
+#include "qSlicerEigenMetaTypes.h"
 
 /// \ingroup SlicerRt_QtModules_ExternalBeamPlanning
 /// \brief Abstract base class for dose constraint functions used in plan optimization.
