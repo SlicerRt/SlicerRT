@@ -33,7 +33,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   ExternalProject_SetIfNotDefined(
     ${CMAKE_PROJECT_NAME}_${proj}_GIT_TAG
-    "c2f802812ea9914894efde50fee1e99bdc98455f" # Branch slicerrt-1.10.0-2024.10.30-5036f97b
+    "4df47e4613640e9501876fecb3e3a45a3a531d1d" # Branch slicerrt-1.10.0-2024.10.30-5036f97b
     QUIET
     )
 
