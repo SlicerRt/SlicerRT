@@ -257,15 +257,18 @@ void vtkMRMLRTIonRangeShifterNode::CreateRangeShifterPolyData(vtkPolyData* range
   double isoToRsDistance = ionBeamNode->GetIsocenterToRangeShifterDistance();
   double wet = ionBeamNode->GetRangeShifterWET();
   const char* setting = ionBeamNode->GetRangeShifterSetting();
-  double beamAxisOffset = 0.; // in/out beam offset
-  if (setting && (!std::strcmp(setting, "OUT") || !std::strcmp(setting, "0")))
+
+  // Reflect the range shifter setting through transparency rather than by shifting the model
+  // sideways off the beam axis. The previous sideways shift pushed a retracted range shifter
+  // outside the field of view and skewed the 3D view automatic centering. The model now always
+  // stays on the beam axis; when the range shifter is retracted it is drawn nearly transparent,
+  // and when it is inserted it keeps its normal semi-transparent appearance.
+  bool rangeShifterRetracted = setting && (!std::strcmp(setting, "OUT") || !std::strcmp(setting, "0"));
+  if (vtkMRMLDisplayNode* displayNode = this->GetDisplayNode())
   {
-    beamAxisOffset = -200.; // out of the beam
+    displayNode->SetOpacity(rangeShifterRetracted ? 0.05 : 0.3);
   }
-  else if (setting && (!std::strcmp(setting, "IN") || !std::strcmp(setting, "1")))
-  {
-    beamAxisOffset = 0.; // into the beam
-  }
+
   if (isoToRsDistance <= 0.)
   {
     vtkErrorMacro("CreateRangeShifterPolyData: Invalid isocenter to range shifter distance");
@@ -275,7 +278,7 @@ void vtkMRMLRTIonRangeShifterNode::CreateRangeShifterPolyData(vtkPolyData* range
   if (wet > 0)
   {
     vtkNew< vtkCubeSource > rs;
-    rs->SetBounds( -100., 100., beamAxisOffset + -100., beamAxisOffset + 100., isoToRsDistance, isoToRsDistance + wet);
+    rs->SetBounds( -100., 100., -100., 100., isoToRsDistance, isoToRsDistance + wet);
     rs->Update();
     rangeShifterModelPolyData->DeepCopy(rs->GetOutput());
   }
@@ -284,10 +287,10 @@ void vtkMRMLRTIonRangeShifterNode::CreateRangeShifterPolyData(vtkPolyData* range
     vtkNew<vtkPoints> points;
     vtkNew<vtkCellArray> cellArray;
 
-    points->InsertPoint( 0, -100., beamAxisOffset + -100., isoToRsDistance);
-    points->InsertPoint( 1, -100., beamAxisOffset + 100., isoToRsDistance);
-    points->InsertPoint( 2, 100., beamAxisOffset + 100., isoToRsDistance);
-    points->InsertPoint( 3, 100., beamAxisOffset + -100., isoToRsDistance);
+    points->InsertPoint( 0, -100., -100., isoToRsDistance);
+    points->InsertPoint( 1, -100., 100., isoToRsDistance);
+    points->InsertPoint( 2, 100., 100., isoToRsDistance);
+    points->InsertPoint( 3, 100., -100., isoToRsDistance);
 
     cellArray->InsertNextCell(4);
     cellArray->InsertCellPoint(0);
