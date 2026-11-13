@@ -5,7 +5,7 @@ import logging
 import time
 from scipy.sparse import coo_matrix
 from DoseEngines import *
-from Python.PyRadPlanUtils import prepareCt, prepareCst, preparePln
+from Python.PyRadPlanUtils import prepareCt, prepareCst, preparePln, PyRadPlanProgressLogger
 
 from slicer.i18n import translate
 
@@ -56,10 +56,13 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
 
   #------------------------------------------------------------------------------
   def _runWithLog(self, calculation, beamNode, description):
-    with self.forwardLogging(_FORWARDED_LOGGERS):
+    from pyRadPlan.core import observe_reports
+
+    with self.forwardLogging(_FORWARDED_LOGGERS) as logHandler:
       try:
         logger.info(f"Starting pyRadPlan {description} for beam '{beamNode.GetName()}'")
-        return calculation(beamNode)
+        with observe_reports(PyRadPlanProgressLogger(self.log, flush=logHandler.flush)):
+          return calculation(beamNode)
       except Exception as e:
         # Traceback goes to the dose calculation log and the error log
         logger.exception(f"pyRadPlan {description} failed")
