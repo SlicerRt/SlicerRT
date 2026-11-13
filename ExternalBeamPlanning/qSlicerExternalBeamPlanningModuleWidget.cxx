@@ -76,6 +76,7 @@
 // Qt includes
 #include <QDebug>
 #include <QElapsedTimer>
+#include <QFontDatabase>
 #include <QItemSelection>
 #include <QMessageBox>
 #include <QSignalBlocker>
@@ -306,12 +307,12 @@ void qSlicerExternalBeamPlanningModuleWidget::onEnter()
   context.evalScript(QString(
     "try:\n"
     " import pyRadPlan\n"
-    " assert pyRadPlan.__version__ == '0.3.1'\n"
+    " assert pyRadPlan.__version__ == '0.8.0'\n"
     "except (ImportError, AttributeError, AssertionError):\n"
     " if slicer.util.confirmOkCancelDisplay("
-    "   'This module requires pyRadPlan (version 0.3.1).\\nClick OK to install it now. Slicer will automatically restart.'\n"
+    "   'This module requires pyRadPlan (version 0.8.0).\\nClick OK to install it now. Slicer will automatically restart.'\n"
     " ):\n"
-    "   slicer.util.pip_install('pyRadPlan==0.3.1')\n"
+    "   slicer.util.pip_install('pyRadPlan==0.8.0')\n"
     "   slicer.app.restart()\n"));
 }
 
@@ -383,9 +384,12 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   connect( d->comboBox_PlanOptimizer, SIGNAL(currentTextChanged(const QString&)), this, SLOT(PlanOptimizerChanged(const QString&)));
   connect( d->pushButton_OptimizePlan, SIGNAL(clicked()), this, SLOT(optimizePlanClicked()));
 
+  // IPOPT Advanced Settings: always shown, but only accessible when the IPOPT optimizer is selected
+  // (never accessible if SlicerRT is built without IPOPT), see PlanOptimizerChanged
 #if defined(EXTENSION_BUILDS_IPOPT)
-  // IPOPT Advanced Settings — hidden until the IPOPT optimizer is selected
-  d->CollapsibleButton_IpoptAdvancedSettings->setVisible(false);
+  this->setIpoptAdvancedSettingsEnabled(false,
+    tr("IPOPT advanced settings are only used by the '%1' optimizer").arg(qSlicerIpoptOptimizer::NAME));
+
   connect(d->spinBox_Ipopt_max_iter,               SIGNAL(valueChanged(int)),           this, SLOT(ipoptMaxIterChanged(int)));
   connect(d->spinBox_Ipopt_max_resto_iter,         SIGNAL(valueChanged(int)),           this, SLOT(ipoptMaxRestoIterChanged(int)));
   connect(d->doubleSpinBox_Ipopt_max_cpu_time,     SIGNAL(valueChanged(double)),        this, SLOT(ipoptMaxCpuTimeChanged(double)));
@@ -438,6 +442,9 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
     hessianCb->addItem(tr("exact"), QString("exact"));
     hessianCb->blockSignals(false);
   }
+#else
+  this->setIpoptAdvancedSettingsEnabled(false,
+    tr("IPOPT is not available: SlicerRT was built without IPOPT support (EXTENSION_BUILDS_IPOPT)"));
 #endif
 
   // Objective Table
@@ -447,6 +454,12 @@ void qSlicerExternalBeamPlanningModuleWidget::setup()
   // Connect to progress event
   connect( d->DoseEngineLogic, SIGNAL(progressUpdated(double)), this, SLOT(onProgressUpdated(double)) );
   connect( d->PlanOptimizerLogic, SIGNAL(progressInfoUpdated(QString)), this, SLOT(onOptimizerProgressInfoUpdated(QString)) );
+  connect( d->PlanOptimizerLogic, SIGNAL(logMessageAdded(QString)), this, SLOT(onOptimizerLogMessageAdded(QString)) );
+  connect( d->DoseEngineLogic, SIGNAL(logMessageAdded(QString)), this, SLOT(onDoseEngineLogMessageAdded(QString)) );
+
+  // Calculation logs
+  d->plainTextEdit_OptimizationLog->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+  d->plainTextEdit_DoseCalculationLog->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
 
   // Hide non-functional items //TODO:
   d->label_DoseROI->setVisible(false);
@@ -474,6 +487,8 @@ void qSlicerExternalBeamPlanningModuleWidget::updateWidgetFromMRML()
   // Enable GUI only if a plan node is selected
   d->CollapsibleButton_PlanParameters->setEnabled(planNode);
   d->CollapsibleButton_Beams->setEnabled(planNode);
+  d->CollapsibleButton_DoseCalculation->setEnabled(planNode);
+  d->CollapsibleButton_Optimization->setEnabled(planNode && planNode->GetInversePlanFlag());
 
   if (!planNode)
   {
@@ -1155,7 +1170,7 @@ void qSlicerExternalBeamPlanningModuleWidget::inversePlanningCheckboxStateChange
 
   d->pushButton_OptimizePlan->setEnabled(state);
   planNode->SetInversePlanFlag(state);
-  d->CollapsibleButton_Objectives->setEnabled(state);
+  d->CollapsibleButton_Optimization->setEnabled(state);
 
   // Update dose engines
   this->updateDoseEngines();
@@ -1513,32 +1528,45 @@ void qSlicerExternalBeamPlanningModuleWidget::calculateDoseClicked()
     return;
   }
 
+  // Start a fresh log for this run
+  d->plainTextEdit_DoseCalculationLog->clear();
+  d->CollapsibleButton_DoseCalculationLog->setCollapsed(false);
+  d->pushButton_CalculateDose->setEnabled(false);
+
   // Calculate dose
   QString errorMessage;
   if (d->checkBox_InversePlanning->isChecked())
   {
     QString message = tr("Starting dose influence matrix calculation...");
     qDebug() << Q_FUNC_INFO << ": " << message;
+    this->onDoseEngineLogMessageAdded(tr("Starting dose influence matrix calculation of plan '%1' using %2")
+      .arg(QString::fromUtf8(planNode->GetName())).arg(selectedEngine->name()));
     errorMessage = d->DoseEngineLogic->calculateDoseInfluenceMatrix(planNode);
   }
   else
   {
     QString message = tr("Starting forward dose calculation...");
     qDebug() << Q_FUNC_INFO << ": " << message;
+    this->onDoseEngineLogMessageAdded(tr("Starting dose calculation of plan '%1' using %2")
+      .arg(QString::fromUtf8(planNode->GetName())).arg(selectedEngine->name()));
     errorMessage = d->DoseEngineLogic->calculateDose(planNode);
   }
+
+  d->pushButton_CalculateDose->setEnabled(true);
 
   if (errorMessage.isEmpty())
   {
     QString message = tr("Dose calculated successfully in %1 s").arg(static_cast<double>(time.elapsed()/1000.0));
     qDebug() << Q_FUNC_INFO << ": " << message;
     d->label_CalculateDoseStatus->setText(message);
+    d->plainTextEdit_DoseCalculationLog->appendPlainText(message);
   }
   else
   {
     QString message = tr("ERROR: %1").arg(errorMessage);
     qCritical() << Q_FUNC_INFO << ": " << message;
     d->label_CalculateDoseStatus->setText(message);
+    d->plainTextEdit_DoseCalculationLog->appendPlainText(message);
   }
 
   QApplication::restoreOverrideCursor();
@@ -1596,7 +1624,15 @@ void qSlicerExternalBeamPlanningModuleWidget::optimizePlanClicked()
   {
     QString message = tr("Starting optimization...");
     qDebug() << Q_FUNC_INFO << ": " << message;
+
+    // Start a fresh log for this run
+    d->plainTextEdit_OptimizationLog->clear();
+    d->CollapsibleButton_OptimizationLog->setCollapsed(false);
+    this->onOptimizerLogMessageAdded(tr("Starting optimization of plan '%1' using %2")
+      .arg(QString::fromUtf8(planNode->GetName())).arg(selectedEngine->name()));
+    d->pushButton_OptimizePlan->setEnabled(false);
     errorMessage = d->PlanOptimizerLogic->optimizePlan(planNode);
+    d->pushButton_OptimizePlan->setEnabled(true);
   }
 
   if (errorMessage.isEmpty())
@@ -1604,12 +1640,14 @@ void qSlicerExternalBeamPlanningModuleWidget::optimizePlanClicked()
     QString message = tr("Optimization calculated successfully in %1 s").arg(static_cast<double>(time.elapsed() / 1000.0));
     qDebug() << Q_FUNC_INFO << ": " << message;
     d->label_OptimizationStatus->setText(message);
+    d->plainTextEdit_OptimizationLog->appendPlainText(message);
   }
   else
   {
     QString message = tr("ERROR: %1").arg(errorMessage);
     qCritical() << Q_FUNC_INFO << ": " << message;
     d->label_OptimizationStatus->setText(message);
+    d->plainTextEdit_OptimizationLog->appendPlainText(message);
   }
 
   QApplication::restoreOverrideCursor();
@@ -1647,7 +1685,9 @@ void qSlicerExternalBeamPlanningModuleWidget::PlanOptimizerChanged(const QString
   planNode->DisableModifiedEventOff();
 
 #if defined(EXTENSION_BUILDS_IPOPT)
-  d->CollapsibleButton_IpoptAdvancedSettings->setVisible(text == qSlicerIpoptOptimizer::NAME);
+  bool ipoptSelected = (text == qSlicerIpoptOptimizer::NAME);
+  this->setIpoptAdvancedSettingsEnabled(ipoptSelected, ipoptSelected ? QString()
+    : tr("IPOPT advanced settings are only used by the '%1' optimizer").arg(qSlicerIpoptOptimizer::NAME));
 #endif
 
   selectedEngine->setAvailableObjectives();
@@ -1686,6 +1726,39 @@ void qSlicerExternalBeamPlanningModuleWidget::onOptimizerProgressInfoUpdated(QSt
   QString progressMessage;
   progressMessage = tr("Optimization in progress: ") + info;
   d->label_OptimizationStatus->setText(progressMessage);
+  QApplication::processEvents();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::setIpoptAdvancedSettingsEnabled(bool enabled, const QString& disabledReason)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  d->CollapsibleButton_IpoptAdvancedSettings->setEnabled(enabled);
+  d->CollapsibleButton_IpoptAdvancedSettings->setToolTip(enabled ? QString() : disabledReason);
+  if (!enabled)
+  {
+    d->CollapsibleButton_IpoptAdvancedSettings->setCollapsed(true);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::onDoseEngineLogMessageAdded(QString message)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  d->plainTextEdit_DoseCalculationLog->appendPlainText(message);
+  // Dose calculation runs in the main thread, so process events to repaint the log while it is running
+  QApplication::processEvents();
+}
+
+//-----------------------------------------------------------------------------
+void qSlicerExternalBeamPlanningModuleWidget::onOptimizerLogMessageAdded(QString message)
+{
+  Q_D(qSlicerExternalBeamPlanningModuleWidget);
+
+  d->plainTextEdit_OptimizationLog->appendPlainText(message);
+  // Optimization runs in the main thread, so process events to repaint the log while it is running
   QApplication::processEvents();
 }
 

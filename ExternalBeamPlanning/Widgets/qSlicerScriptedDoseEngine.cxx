@@ -229,7 +229,8 @@ QString qSlicerScriptedDoseEngine::calculateDoseUsingEngine(vtkMRMLRTBeamNode* b
   if (!result)
     {
     qCritical() << d->PythonSource << ": clone: Failed to call mandatory calculateDoseUsingEngine method! If it is implemented, please see python output for errors.";
-    return QString();
+    // Return an error, otherwise a Python exception would be reported as a successful dose calculation
+    return tr("Python dose engine failed. See the dose calculation log or the error log for details.");
     }
 
   // Parse result
@@ -254,7 +255,8 @@ QString qSlicerScriptedDoseEngine::calculateDoseInfluenceMatrixUsingEngine(vtkMR
   if (!result)
   {
     qCritical() << d->PythonSource << ": clone: Failed to call mandatory calculateDoseInfluenceMatrixUsingEngine method! If it is implemented, please see python output for errors.";
-    return QString();
+    // Return an error, otherwise a Python exception would be reported as a successful calculation
+    return tr("Python dose engine failed. See the dose calculation log or the error log for details.");
   }
 
   // Parse result

@@ -5,6 +5,12 @@ from scipy.sparse import csc_matrix
 from PlanOptimizers import *
 from Python.PyRadPlanUtils import prepareCt, prepareCst, preparePln
 
+# Module logger, so messages can be forwarded to the optimization log
+logger = logging.getLogger(__name__)
+
+# Loggers whose output is shown in the optimization log
+_FORWARDED_LOGGERS = ["pyRadPlan", "Python.PyRadPlanUtils"]
+
 class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
   """ pyRadPlan Optimizer for SlicerRT External Beam Planning Module.
   """
@@ -13,6 +19,8 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
   def __init__(self, scriptedEngine):
     scriptedEngine.name = 'pyRadPlan'
     AbstractScriptedPlanOptimizer.__init__(self, scriptedEngine)
+    self._logHandler = None
+    self._logIterations = False
 
   #------------------------------------------------------------------------------
   def setAvailableObjectives(self):
@@ -39,12 +47,89 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
   #------------------------------------------------------------------------------
   def optimizePlanUsingOptimizer(self, planNode, objectives, resultOptimizationVolumeNode):
+    with self.forwardLogging(_FORWARDED_LOGGERS) as logHandler:
+      self._logHandler = logHandler
+      try:
+        return self._optimizePlan(planNode, objectives, resultOptimizationVolumeNode)
+      except Exception as e:
+        # Traceback goes to the optimization log and the error log
+        logger.exception("pyRadPlan optimization failed")
+        return f"pyRadPlan optimization failed: {e}"
+      finally:
+        self._logHandler = None
+
+  #------------------------------------------------------------------------------
+  def _onPyRadPlanReport(self, report):
+    """
+    Observer for pyRadPlan progress and status reports, e.g. after each solver iteration.
+    """
+
+    from pyRadPlan.core import StatusReport, ProgressReport
+
+    if isinstance(report, StatusReport):
+      data = report.data
+      if "iteration" in data:
+        info = f"optimize fluence (iteration {data['iteration']}"
+        if "objective" in data:
+          info += f", objective {data['objective']:.4g}"
+        info += ")"
+        self.progressInfo(info)
+        if self._logIterations:
+          # The solver does not log its iterations itself (e.g. ipax), so log the reported values
+          values = ", ".join(f"{key} = {value:.4g}" if isinstance(value, float) else f"{key} = {value}"
+                             for key, value in data.items() if key != "iteration")
+          self.log(f"Iteration {data['iteration']}: {values}")
+    elif isinstance(report, ProgressReport):
+      level = report.leaf
+      if level is not None:
+        info = level.name
+        if level.total:
+          info += f" ({level.current}/{level.total})"
+        self.progressInfo(info)
+
+    # Forward solver output captured by a worker thread since the last report
+    if self._logHandler is not None:
+      self._logHandler.flush()
+
+  #------------------------------------------------------------------------------
+  @staticmethod
+  def _checkSolver(pln):
+    """
+    Log which solver pyRadPlan uses.
+    Returns True if the solver does not log its iterations itself.
+    """
+
+    from pyRadPlan.optimization.solvers import get_available_solvers
+
+    availableSolvers = list(get_available_solvers())
+    solver = pln.prop_opt.get("solver", "ipopt")  # default solver of pyRadPlan
+    solverConfig = {"name": solver} if isinstance(solver, str) else solver
+    if not isinstance(solverConfig, dict):
+      return True  # solver instance with unknown output
+
+    solverName = solverConfig.get("name")
+    if solverName not in availableSolvers:
+      # pyRadPlan falls back to the first available solver
+      fallbackSolver = availableSolvers[0] if availableSolvers else None
+      logger.warning(f"Solver '{solverName}' is not available (available: {availableSolvers}). "
+                     f"pyRadPlan will use '{fallbackSolver}' instead.")
+      solverName = fallbackSolver
+    else:
+      logger.info(f"Using solver '{solverName}' (available: {availableSolvers})")
+
+    # Only SciPy logs its iterations itself. IPOPT prints them to the console, which is not visible
+    # in Slicer, and its output_mode "logging" is not used, as it can freeze Slicer on Windows.
+    return solverName != "scipy"
+
+  #------------------------------------------------------------------------------
+  def _optimizePlan(self, planNode, objectives, resultOptimizationVolumeNode):
     import sitkUtils
     import SimpleITK as sitk
     from pyRadPlan import (
       generate_stf,
       fluence_optimization,
     )
+    from pyRadPlan.core import observe_reports
     from pyRadPlan.dij import Dij, compose_beam_dijs
     from pyRadPlan.optimization.objectives import get_objective
 
@@ -91,7 +176,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             msg += f"      Overlap Priority: {objectiveInfo['overlapPriority']}\n"
             msg += f"      Penalty: {objectiveInfo['penalty']}\n"
             msg += f"      Parameters: {objectiveInfo['parameters']}\n"
-    logging.info(msg)
+    logger.info(msg)
 
     ###################################### Get overlap priorites #########################################
     overlapPriorityDict = {}
@@ -110,7 +195,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
 
     ############################ Get dose influence matrices from beam nodes #############################
-    self.scriptedPlanOptimizer.progressInfoUpdated("get dijs")
+    self.progressInfo("get dijs")
 
     # Get beams in plan
     numberOfBeams = planNode.GetNumberOfBeams()
@@ -130,10 +215,10 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     for beamName in beamNames:
 
       beamIndex += 1
-      self.scriptedPlanOptimizer.progressInfoUpdated("get dijs ("+ str(beamIndex) + "/" + str(numberOfBeams) + ")")
+      self.progressInfo("get dijs ("+ str(beamIndex) + "/" + str(numberOfBeams) + ")")
 
       beamNode = planNode.GetBeamByName(beamName)
-      logging.info(f"Processing beam: {beamName}")
+      logger.info(f"Processing beam: {beamName}")
 
       # Prepare the ct
       ct = prepareCt(beamNode)
@@ -203,22 +288,29 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
               # TODO: type check
               setattr(objectiveInstance, parameter, objectiveParameters[parameter])
             else:
-              logging.warning(f"Parameter {parameter} not found in objectives table. "
+              logger.warning(f"Parameter {parameter} not found in objectives table. "
                               f"Using default value: {getattr(objectiveInstance, parameter)}")
           voi.objectives.append(objectiveInstance)
 
 
     ########################################## Optimize dose #############################################
-    self.scriptedPlanOptimizer.progressInfoUpdated("optimize fluence")
+    self.progressInfo("optimize fluence")
+    logger.info("Starting fluence optimization")
 
-    fluence = fluence_optimization(ct, cst, stf, dij, pln)
+    self._logIterations = self._checkSolver(pln)
+
+    optInfo = {}
+    with observe_reports(self._onPyRadPlanReport):
+      fluence = fluence_optimization(ct, cst, stf, dij, pln, opt_info=optInfo)
+
+    logger.info(f"Fluence optimization finished: {optInfo.get('result_info', {})}")
 
     # Result
     result = dij.compute_result_ct_grid(fluence)
 
 
     ##################################### Visualize dose in Slicer #######################################
-    self.scriptedPlanOptimizer.progressInfoUpdated("visualize dose")
+    self.progressInfo("visualize dose")
 
     # Get global variables for dose volume node naming and hierarchy placement
     shNode = slicer.mrmlScene.GetSubjectHierarchyNode()

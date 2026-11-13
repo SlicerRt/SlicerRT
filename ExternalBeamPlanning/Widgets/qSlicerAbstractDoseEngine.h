@@ -285,6 +285,11 @@ private:
   /// Show/hide all engine-specific beam parameters in the beam parameters tab widget in Beams module
   void setBeamParametersVisible(bool visible);
 
+signals:
+  /// Detailed message for the dose calculation log (e.g. calculation steps, warnings).
+  /// Python dose engines can route their logging output here, see AbstractScriptedDoseEngine.forwardLogging
+  void logMessageAdded(QString message);
+
 protected:
   /// Name of the engine. Must be set in dose engine constructor
   QString m_Name;
