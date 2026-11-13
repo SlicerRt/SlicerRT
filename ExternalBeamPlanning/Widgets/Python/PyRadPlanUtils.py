@@ -240,3 +240,39 @@ def createAndLoadBodySegment(planNode, cst):
     planNode.SetBodySegmentID(newSegmentID)
     segmentationNode.GetDisplayNode().SetSegmentOpacity3D(newSegmentID, 0.2)
     logger.info(f"Body segment '{bodySegmentName}' (ID: {newSegmentID}) added successfully as binary labelmap.\n")
+
+
+#------------------------------------------------------------------------------
+class PyRadPlanProgressLogger:
+  """
+  Observer for pyRadPlan progress reports (pyRadPlan.core.observe_reports) that logs the progress
+  of nested levels in steps of stepPercent, e.g. "Beam 1/2, Ray 120/400 (30%)".
+  """
+
+  def __init__(self, log, stepPercent=10, flush=None):
+    self.log = log
+    self.stepPercent = stepPercent
+    self.flush = flush
+    self._lastLoggedPercent = {}
+
+  def __call__(self, report):
+    from pyRadPlan.core import ProgressReport
+
+    if isinstance(report, ProgressReport) and report.leaf is not None:
+      leaf = report.leaf
+      outerLevels = report.levels[:-1]
+      fraction = leaf.fraction
+      if fraction is not None:
+        percent = int(fraction * 100) // self.stepPercent * self.stepPercent
+        # Separate bookkeeping for each run of the inner level (e.g. rays of each beam)
+        key = tuple((level.name, level.current) for level in outerLevels) + (leaf.name,)
+        if self._lastLoggedPercent.get(key) != percent:
+          self._lastLoggedPercent[key] = percent
+          prefix = "".join(
+            f"{level.name} {min(level.current + 1, level.total) if level.total else level.current + 1}/{level.total or '?'}, "
+            for level in outerLevels)
+          self.log(f"{prefix}{leaf.name} {leaf.current}/{leaf.total} ({percent}%)")
+
+    # Forward log messages queued by worker threads
+    if self.flush is not None:
+      self.flush()
