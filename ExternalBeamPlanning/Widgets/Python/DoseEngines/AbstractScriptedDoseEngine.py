@@ -1,5 +1,7 @@
 import os
+from contextlib import contextmanager
 import vtk, qt, ctk, slicer, logging
+from Python.LogForwarding import forwardLogging
 
 #
 # Abstract class of python scripted dose engines
@@ -31,12 +33,27 @@ class AbstractScriptedDoseEngine():
         class qSlicerScriptedDoseEngine) using the adaptor accessor:
         > self.scriptedEngine.addResultDose()
 
+      3. Write messages to the dose calculation log of the module
+        > self.log("message")
+        Python logging output of the engine module (and optionally of further loggers,
+        e.g. pyRadPlanEngine) can be forwarded too:
+        > with self.forwardLogging():
+        >   logging.getLogger(__name__).info("message")
+
       An example for a generic engine is the MockPythonDoseEngine
 
   """
 
   def __init__(self, scriptedEngine):
     self.scriptedEngine = scriptedEngine
+
+  def log(self, message):
+    self.scriptedEngine.logMessageAdded(str(message))
+
+  @contextmanager
+  def forwardLogging(self, loggerNames=(), level=logging.INFO):
+    with forwardLogging(self.log, [self.__class__.__module__] + list(loggerNames), level) as handler:
+      yield handler
 
   def register(self):
     import qSlicerExternalBeamPlanningModuleWidgetsPythonQt
