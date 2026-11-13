@@ -9,6 +9,12 @@ from Python.PyRadPlanUtils import prepareCt, prepareCst, preparePln
 
 from slicer.i18n import translate
 
+# Module logger, so messages can be forwarded to the dose calculation log
+logger = logging.getLogger(__name__)
+
+# Loggers whose output is shown in the dose calculation log
+_FORWARDED_LOGGERS = ["pyRadPlan", "Python.PyRadPlanUtils"]
+
 class pyRadPlanEngine(AbstractScriptedDoseEngine):
   """ pyRadPlan dose engine for SlicerRT External Beam Planning Module.
   """
@@ -49,7 +55,26 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
     translate("DoseEngines.pyRadPlanEngine", "comment"), availableRadiationModes, 0)
 
   #------------------------------------------------------------------------------
+  def _runWithLog(self, calculation, beamNode, description):
+    with self.forwardLogging(_FORWARDED_LOGGERS):
+      try:
+        logger.info(f"Starting pyRadPlan {description} for beam '{beamNode.GetName()}'")
+        return calculation(beamNode)
+      except Exception as e:
+        # Traceback goes to the dose calculation log and the error log
+        logger.exception(f"pyRadPlan {description} failed")
+        return f"pyRadPlan {description} failed for beam '{beamNode.GetName()}': {e}"
+
+  #------------------------------------------------------------------------------
   def calculateDoseUsingEngine(self, beamNode, resultDoseVolumeNode):
+    return self._runWithLog(lambda beam: self._calculateDose(beam, resultDoseVolumeNode), beamNode, "dose calculation")
+
+  #------------------------------------------------------------------------------
+  def calculateDoseInfluenceMatrixUsingEngine(self, beamNode):
+    return self._runWithLog(self._calculateDoseInfluenceMatrix, beamNode, "dose influence matrix calculation")
+
+  #------------------------------------------------------------------------------
+  def _calculateDose(self, beamNode, resultDoseVolumeNode):
 
     #################################### Import pyRadPlan libraries ######################################
     from pyRadPlan import (
@@ -63,31 +88,31 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
     tStart = time.time()
     ct = prepareCt(beamNode)
     tEnd = time.time()
-    logging.info(f"Time to prepare CT: {tEnd - tStart}")
+    logger.info(f"Time to prepare CT: {tEnd - tStart}")
 
     # Prepare the cst (segmentations)
     tStart = time.time()
     cst = prepareCst(beamNode, ct)
     tEnd = time.time()
-    logging.info(f"Time to prepare CST: {tEnd - tStart}")
+    logger.info(f"Time to prepare CST: {tEnd - tStart}")
 
     # Prepare the plan configuration
     tStart = time.time()
     pln = preparePln(beamNode, ct)
     tEnd = time.time()
-    logging.info(f"Time to prepare PLN: {tEnd - tStart}")
+    logger.info(f"Time to prepare PLN: {tEnd - tStart}")
 
     # Generate Steering Geometry ("stf")
     tStart = time.time()
     stf = generate_stf(ct, cst, pln)
     tEnd = time.time()
-    logging.info(f"Time to generate STF: {tEnd - tStart}")
+    logger.info(f"Time to generate STF: {tEnd - tStart}")
 
     # Calculate Dose Influence Matrix ("dij")
     tStart = time.time()
     dij = calc_dose_influence(ct, cst, stf, pln)
     tEnd = time.time()
-    logging.info(f"Time to calculate Dij: {tEnd - tStart}")
+    logger.info(f"Time to calculate Dij: {tEnd - tStart}")
 
 
     ##################################### Visualize dose in Slicer #######################################
@@ -109,8 +134,8 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
     return str() #return empty string to indicate success
     
   #------------------------------------------------------------------------------
-  def calculateDoseInfluenceMatrixUsingEngine(self, beamNode):
-        
+  def _calculateDoseInfluenceMatrix(self, beamNode):
+
     #################################### Import pyRadPlan libraries ######################################
     from pyRadPlan import (
       generate_stf,
@@ -123,31 +148,31 @@ class pyRadPlanEngine(AbstractScriptedDoseEngine):
     tStart = time.time()
     ct = prepareCt(beamNode)
     tEnd = time.time()
-    logging.info(f"Time to prepare CT: {tEnd - tStart}")
+    logger.info(f"Time to prepare CT: {tEnd - tStart}")
 
     # Prepare the cst (segmentations)
     tStart = time.time()
     cst = prepareCst(beamNode, ct, needBody=True)
     tEnd = time.time()
-    logging.info(f"Time to prepare CST: {tEnd - tStart}")
+    logger.info(f"Time to prepare CST: {tEnd - tStart}")
 
     # Prepare the plan configuration
     tStart = time.time()
     pln = preparePln(beamNode, ct)
     tEnd = time.time()
-    logging.info(f"Time to prepare PLN: {tEnd - tStart}")
+    logger.info(f"Time to prepare PLN: {tEnd - tStart}")
 
     # Generate Steering Geometry ("stf")
     tStart = time.time()
     stf = generate_stf(ct, cst, pln)
     tEnd = time.time()
-    logging.info(f"Time to generate STF: {tEnd - tStart}")
+    logger.info(f"Time to generate STF: {tEnd - tStart}")
 
     # Calculate Dose Influence Matrix ("dij")
     tStart = time.time()
     dij = calc_dose_influence(ct, cst, stf, pln)
     tEnd = time.time()
-    logging.info(f"Time to calculate Dij: {tEnd - tStart}")
+    logger.info(f"Time to calculate Dij: {tEnd - tStart}")
 
 
     ###################################### Store dose in beamNode ########################################

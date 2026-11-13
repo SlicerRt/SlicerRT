@@ -89,21 +89,24 @@ QString qSlicerPlanOptimizerLogic::optimizePlan(vtkMRMLRTPlanNode* planNode)
   {
     QString errorString = tr("Unable to access optimizer with name %1").arg(planNode->GetPlanOptimizerName() ? planNode->GetPlanOptimizerName() : "nullptr");
     qCritical() << Q_FUNC_INFO << ": " << errorString;
-    return errorMessage;
+    return errorString;
   }
 
   connect(selectedEngine, SIGNAL(progressInfoUpdated(QString)), this, SIGNAL(progressInfoUpdated(QString)));
+  connect(selectedEngine, SIGNAL(logMessageAdded(QString)), this, SIGNAL(logMessageAdded(QString)));
 
   emit progressInfoUpdated(tr("starting"));
 
   errorMessage = selectedEngine->optimizePlan(planNode);
+
+  disconnect(selectedEngine, SIGNAL(progressInfoUpdated(QString)), this, SIGNAL(progressInfoUpdated(QString)));
+  disconnect(selectedEngine, SIGNAL(logMessageAdded(QString)), this, SIGNAL(logMessageAdded(QString)));
+
   if (!errorMessage.isEmpty())
   {
     qCritical() << Q_FUNC_INFO << ": " << errorMessage;
     return errorMessage;
   }
-
-  disconnect(selectedEngine, SIGNAL(progressInfoUpdated(QString)), this, SIGNAL(progressInfoUpdated(QString)));
 
   return QString();
 }

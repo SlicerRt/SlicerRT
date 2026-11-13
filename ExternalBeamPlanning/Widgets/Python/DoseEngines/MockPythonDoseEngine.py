@@ -19,7 +19,9 @@ class MockPythonDoseEngine(AbstractScriptedDoseEngine):
     mockEngine = engines.qSlicerMockDoseEngine()
 
     # Set parameter for C++ mock engine so that it is used with this beam node
-    mockEngine.setParameter( beamNode, "NoiseRange", self.scriptedEngine.doubleParameter(beamNode, "NoiseRange") )
+    noiseRange = self.scriptedEngine.doubleParameter(beamNode, "NoiseRange")
+    mockEngine.setParameter( beamNode, "NoiseRange", noiseRange )
+    self.log(f"Calculating mock dose with noise range {noiseRange}% of Rx")
 
     # Call C++ mock engine to calculate mock dose
     return mockEngine.calculateDoseUsingEngine(beamNode, resultDoseVolumeNode)

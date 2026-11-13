@@ -5,6 +5,9 @@ import sitkUtils
 import SimpleITK as sitk
 import vtkSegmentationCorePython as vtkSegmentationCore
 
+# Module logger, so messages can be forwarded to the dose calculation and optimization logs
+logger = logging.getLogger(__name__)
+
 #------------------------------------------------------------------------------
 def prepareCt(beamNode):
   from pyRadPlan.ct import create_ct
@@ -76,11 +79,11 @@ def preparePln(beamNode, ct, doseGridFromBeamNode=False):
     doseGridDimensions = beamNode.GetDoseGridDim()
     # Check if dose influence matrix is available in beamNode
     if beamNode.GetDoseInfluenceMatrixFieldData() is None:
-      logging.warning("No dose influence matrix found in beamNode. Using planNode's dose grid spacing.")
+      logger.warning("No dose influence matrix found in beamNode. Using planNode's dose grid spacing.")
       doseGridSpacing = planNode.GetDoseGridSpacing()
     # Check if dose grid spacing was set in beamNode (default: {-1, -1, -1})
     if doseGridSpacing[0] < 0 or doseGridSpacing[1] < 0 or doseGridSpacing[2] < 0 :
-      logging.warning("Dose grid spacing in beamNode is invalid. Using planNode's dose grid spacing.")
+      logger.warning("Dose grid spacing in beamNode is invalid. Using planNode's dose grid spacing.")
       doseGridSpacing = planNode.GetDoseGridSpacing()
     doseGrid = ct.grid.model_copy().resample(target_resolution=doseGridSpacing)
     # Set new dose grid spacing in planNode if necessary
@@ -88,7 +91,7 @@ def preparePln(beamNode, ct, doseGridFromBeamNode=False):
       planNode.SetDoseGridSpacing(doseGridSpacing)
     # Check if dose grid dimensions match for doseGrid dimensions in beamNode
     if (doseGrid.dimensions != doseGridDimensions):
-      logging.warning("Dose grid dimensions in beamNode do not match the calculated dose grid dimensions.")
+      logger.warning("Dose grid dimensions in beamNode do not match the calculated dose grid dimensions.")
   else:
     doseGrid = ct.grid.copy().resample(target_resolution=planNode.GetDoseGridSpacing())
 
@@ -152,7 +155,7 @@ def getSegmentArrays(segmentationNode, referenceVolumeNode):
 
   firstSegment = segmentation.GetSegment(segmentation.GetSegmentIDs()[0])
   if firstSegment.GetRepresentation(LABELMAP) is None:
-    logging.info(f"\nBinary labelmap not found for segmentation {segmentationNode.GetName()}, converting...")
+    logger.info(f"\nBinary labelmap not found for segmentation {segmentationNode.GetName()}, converting...")
 
     converter = vtkSegmentationCore.vtkSegmentationConverter()
     sourceRep = segmentation.GetSourceRepresentationName()
@@ -162,14 +165,14 @@ def getSegmentArrays(segmentationNode, referenceVolumeNode):
       converter.GetPossibleConversions(PLANAR_CONTOUR, RIBBON_MODEL, paths)
       cheapestPath = vtkSegmentationCore.vtkSegmentationConverter.GetCheapestPath(paths)
       success = segmentation.CreateRepresentation(RIBBON_MODEL, cheapestPath)
-      logging.info(f"Planar contour source detected. Conversion to Ribbon model {'succeeded' if success else 'FAILED'}")
+      logger.info(f"Planar contour source detected. Conversion to Ribbon model {'succeeded' if success else 'FAILED'}")
       sourceRep = RIBBON_MODEL  # query next path from here; source representation is NOT changed
 
     paths = vtkSegmentationCore.vtkSegmentationConversionPaths()
     converter.GetPossibleConversions(sourceRep, LABELMAP, paths)
     cheapestPath = vtkSegmentationCore.vtkSegmentationConverter.GetCheapestPath(paths)
     success = segmentation.CreateRepresentation(LABELMAP, cheapestPath)
-    logging.info(f"Conversion from {sourceRep} to binary labelmap {'succeeded' if success else 'FAILED'}")
+    logger.info(f"Conversion from {sourceRep} to binary labelmap {'succeeded' if success else 'FAILED'}")
 
   segmentArrays = {}
   for id in segmentation.GetSegmentIDs():
@@ -210,7 +213,7 @@ def createAndLoadBodySegment(planNode, cst):
     msg = ("No body segment selected in plan node.\n\n"
       "Create a body segment named '{}' from the current structure set?").format(bodySegmentName)
     if not slicer.util.confirmOkCancelDisplay(msg):
-      logging.info("Body segment creation canceled by user.")
+      logger.info("Body segment creation canceled by user.")
       return cst
     
     cst.create_body_seg(voi_type="EXTERNAL", name=bodySegmentName)
@@ -222,7 +225,7 @@ def createAndLoadBodySegment(planNode, cst):
         break
     
     # Add new segment directly as binary labelmap
-    logging.info("Adding body segment to segmentation in Slicer.")
+    logger.info("Adding body segment to segmentation in Slicer.")
     LABELMAP = vtkSegmentationCore.vtkSegmentationConverter.GetSegmentationBinaryLabelmapRepresentationName()
     tempVolumeNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeNode", "__tempBody__")
     sitkUtils.PushVolumeToSlicer(bodyMask, tempVolumeNode)
@@ -236,4 +239,4 @@ def createAndLoadBodySegment(planNode, cst):
     # Set body segment ID in plan node
     planNode.SetBodySegmentID(newSegmentID)
     segmentationNode.GetDisplayNode().SetSegmentOpacity3D(newSegmentID, 0.2)
-    logging.info(f"Body segment '{bodySegmentName}' (ID: {newSegmentID}) added successfully as binary labelmap.\n")
+    logger.info(f"Body segment '{bodySegmentName}' (ID: {newSegmentID}) added successfully as binary labelmap.\n")

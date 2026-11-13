@@ -219,7 +219,8 @@ QString qSlicerScriptedPlanOptimizer::optimizePlanUsingOptimizer(vtkMRMLRTPlanNo
   if (!result)
   {
     qCritical() << d->PythonSource << ": clone: Failed to call mandatory optimizePlanUsingOptimizer method! If it is implemented, please see python output for errors.";
-    return QString();
+    // Return an error, otherwise a Python exception would be reported as a successful optimization
+    return tr("Python plan optimizer failed. See the optimization log or the error log for details.");
   }
 
   // Parse result

@@ -75,7 +75,11 @@ public:
   };
 
 signals:
+  /// Short status text shown next to the Optimize button (e.g. current stage)
   void progressInfoUpdated(QString info);
+  /// Detailed message for the optimization log (e.g. solver iterations, warnings).
+  /// Python optimizers can route their logging output here, see AbstractScriptedPlanOptimizer.forwardLogging
+  void logMessageAdded(QString message);
 
 // Optimization calculation related functions
 public:

@@ -118,6 +118,14 @@ protected slots:
   void onLogicModified();
   void onProgressUpdated(double progress);
   void onOptimizerProgressInfoUpdated(QString info);
+  void onOptimizerLogMessageAdded(QString message);
+  void onDoseEngineLogMessageAdded(QString message);
+
+protected:
+  /// Enable/disable IPOPT Advanced Settings
+  void setIpoptAdvancedSettingsEnabled(bool enabled, const QString& disabledReason);
+
+protected slots:
 
 #if defined(EXTENSION_BUILDS_IPOPT)
   // IPOPT Advanced Settings slots

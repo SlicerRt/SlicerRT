@@ -53,6 +53,26 @@
 // Qt includes
 #include <QDebug>
 
+namespace
+{
+/// Forwards the log messages of a dose engine through the logic while the object exists,
+/// so that the connection is removed on early returns
+class DoseEngineLogForwarder
+{
+public:
+  DoseEngineLogForwarder(qSlicerAbstractDoseEngine* engine, qSlicerDoseEngineLogic* logic)
+    : Connection(QObject::connect(engine, &qSlicerAbstractDoseEngine::logMessageAdded, logic, &qSlicerDoseEngineLogic::logMessageAdded))
+  {
+  }
+  ~DoseEngineLogForwarder()
+  {
+    QObject::disconnect(this->Connection);
+  }
+private:
+  QMetaObject::Connection Connection;
+};
+} // namespace
+
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_SubjectHierarchy
 class qSlicerDoseEngineLogicPrivate
@@ -201,8 +221,10 @@ QString qSlicerDoseEngineLogic::calculateDose(vtkMRMLRTPlanNode* planNode)
   {
     QString errorString = tr("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
     qCritical() << Q_FUNC_INFO << ": " << errorString;
-    return errorMessage;
+    return errorString;
   }
+
+  DoseEngineLogForwarder logForwarder(selectedEngine, this);
 
   // Calculate dose for each beam under the plan
   std::vector<vtkMRMLRTBeamNode*> beams;
@@ -218,6 +240,8 @@ QString qSlicerDoseEngineLogic::calculateDose(vtkMRMLRTPlanNode* planNode)
     {
       progress = (double)currentBeamIndex / (numberOfBeams+1);
       emit progressUpdated(progress);
+
+      emit logMessageAdded(tr("Beam '%1' (%2/%3)").arg(QString::fromUtf8(beamNode->GetName())).arg(currentBeamIndex + 1).arg(numberOfBeams));
 
       // Calculate dose for current beam
       errorMessage = selectedEngine->calculateDose(beamNode);
@@ -239,6 +263,7 @@ QString qSlicerDoseEngineLogic::calculateDose(vtkMRMLRTPlanNode* planNode)
   emit progressUpdated(progress);
 
   // Accumulate calculated per-beam dose distributions into the total dose volume
+  emit logMessageAdded(tr("Accumulating dose of %1 beam(s)").arg(numberOfBeams));
   errorMessage = this->createAccumulatedDose(planNode);
   if (!errorMessage.isEmpty())
   {
@@ -270,8 +295,10 @@ QString qSlicerDoseEngineLogic::calculateDoseInfluenceMatrix(vtkMRMLRTPlanNode* 
   {
       QString errorString = tr("Unable to access dose engine with name %1").arg(planNode->GetDoseEngineName() ? planNode->GetDoseEngineName() : "nullptr");
       qCritical() << Q_FUNC_INFO << ": " << errorString;
-      return errorMessage;
+      return errorString;
   }
+
+  DoseEngineLogForwarder logForwarder(selectedEngine, this);
 
   // Calculate dose for each beam under the plan
   std::vector<vtkMRMLRTBeamNode*> beams;
@@ -287,6 +314,8 @@ QString qSlicerDoseEngineLogic::calculateDoseInfluenceMatrix(vtkMRMLRTPlanNode* 
     {
       progress = (double)currentBeamIndex / (numberOfBeams + 1);
       emit progressUpdated(progress);
+
+      emit logMessageAdded(tr("Beam '%1' (%2/%3)").arg(QString::fromUtf8(beamNode->GetName())).arg(currentBeamIndex + 1).arg(numberOfBeams));
 
       // Calculate dose for current beam
       errorMessage = selectedEngine->calculateDoseInfluenceMatrix(beamNode);

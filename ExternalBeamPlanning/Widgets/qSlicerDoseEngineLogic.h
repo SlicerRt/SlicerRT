@@ -81,6 +81,8 @@ signals:
   /// Signals for dose calculation progress update
   /// \param progress Value between 0 and 1
   void progressUpdated(double progress);
+  /// Detailed message from the dose engine or the logic for the dose calculation log
+  void logMessageAdded(QString message);
 
 public slots:
   /// Called when the dose engine of a plan is changed.

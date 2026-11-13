@@ -65,6 +65,8 @@ signals:
   /// Signals for optimization progress update
   /// \param progress Value between 0 and 1
   void progressInfoUpdated(QString info);
+  /// Detailed message from the optimizer for the optimization log
+  void logMessageAdded(QString message);
 
 public slots:
   /// Called when the optimizer of a plan is changed.
