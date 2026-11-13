@@ -5,6 +5,12 @@ from scipy.sparse import csc_matrix
 from PlanOptimizers import *
 from Python.PyRadPlanUtils import prepareCt, prepareCst, preparePln
 
+# Module logger, so messages can be forwarded to the optimization log
+logger = logging.getLogger(__name__)
+
+# Loggers whose output is shown in the optimization log
+_FORWARDED_LOGGERS = ["pyRadPlan", "Python.PyRadPlanUtils"]
+
 class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
   """ pyRadPlan Optimizer for SlicerRT External Beam Planning Module.
   """
@@ -39,6 +45,16 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
   #------------------------------------------------------------------------------
   def optimizePlanUsingOptimizer(self, planNode, objectives, resultOptimizationVolumeNode):
+    with self.forwardLogging(_FORWARDED_LOGGERS):
+      try:
+        return self._optimizePlan(planNode, objectives, resultOptimizationVolumeNode)
+      except Exception as e:
+        # Traceback goes to the optimization log and the error log
+        logger.exception("pyRadPlan optimization failed")
+        return f"pyRadPlan optimization failed: {e}"
+
+  #------------------------------------------------------------------------------
+  def _optimizePlan(self, planNode, objectives, resultOptimizationVolumeNode):
     import sitkUtils
     import SimpleITK as sitk
     from pyRadPlan import (
@@ -91,7 +107,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
             msg += f"      Overlap Priority: {objectiveInfo['overlapPriority']}\n"
             msg += f"      Penalty: {objectiveInfo['penalty']}\n"
             msg += f"      Parameters: {objectiveInfo['parameters']}\n"
-    logging.info(msg)
+    logger.info(msg)
 
     ###################################### Get overlap priorites #########################################
     overlapPriorityDict = {}
@@ -110,7 +126,7 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
 
 
     ############################ Get dose influence matrices from beam nodes #############################
-    self.scriptedPlanOptimizer.progressInfoUpdated("get dijs")
+    self.progressInfo("get dijs")
 
     # Get beams in plan
     numberOfBeams = planNode.GetNumberOfBeams()
@@ -130,10 +146,10 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
     for beamName in beamNames:
 
       beamIndex += 1
-      self.scriptedPlanOptimizer.progressInfoUpdated("get dijs ("+ str(beamIndex) + "/" + str(numberOfBeams) + ")")
+      self.progressInfo("get dijs ("+ str(beamIndex) + "/" + str(numberOfBeams) + ")")
 
       beamNode = planNode.GetBeamByName(beamName)
-      logging.info(f"Processing beam: {beamName}")
+      logger.info(f"Processing beam: {beamName}")
 
       # Prepare the ct
       ct = prepareCt(beamNode)
@@ -203,22 +219,25 @@ class pyRadPlanPlanOptimizer(AbstractScriptedPlanOptimizer):
               # TODO: type check
               setattr(objectiveInstance, parameter, objectiveParameters[parameter])
             else:
-              logging.warning(f"Parameter {parameter} not found in objectives table. "
+              logger.warning(f"Parameter {parameter} not found in objectives table. "
                               f"Using default value: {getattr(objectiveInstance, parameter)}")
           voi.objectives.append(objectiveInstance)
 
 
     ########################################## Optimize dose #############################################
-    self.scriptedPlanOptimizer.progressInfoUpdated("optimize fluence")
+    self.progressInfo("optimize fluence")
+    logger.info("Starting fluence optimization")
 
     fluence = fluence_optimization(ct, cst, stf, dij, pln)
+
+    logger.info("Fluence optimization finished")
 
     # Result
     result = dij.compute_result_ct_grid(fluence)
 
 
     ##################################### Visualize dose in Slicer #######################################
-    self.scriptedPlanOptimizer.progressInfoUpdated("visualize dose")
+    self.progressInfo("visualize dose")
 
     # Get global variables for dose volume node naming and hierarchy placement
     shNode = slicer.mrmlScene.GetSubjectHierarchyNode()

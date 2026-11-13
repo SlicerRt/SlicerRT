@@ -1,5 +1,7 @@
 import os
+from contextlib import contextmanager
 import vtk, qt, ctk, slicer, logging
+from Python.LogForwarding import forwardLogging
 
 #
 # Abstract class of python scripted dose PlanOptimizers
@@ -31,12 +33,32 @@ class AbstractScriptedPlanOptimizer():
         class qSlicerScriptedDosePlanOptimizer) using the adaptor accessor:
         > self.scriptedPlanOptimizer.addResultDose()
 
-      An example for a generic PlanOptimizer is the MockPythonDosePlanOptimizer
+      3. Show status text next to the Optimize button and write messages to the
+        optimization log of the module
+        > self.progressInfo("status")
+        > self.log("message")
+        Python logging output of the optimizer module (and optionally of further loggers,
+        e.g. pyRadPlanPlanOptimizer) can be forwarded too:
+        > with self.forwardLogging():
+        >   logging.getLogger(__name__).info("message")
+
+      An example for a PlanOptimizer is the pyRadPlanPlanOptimizer
 
   """
 
   def __init__(self, scriptedPlanOptimizer):
     self.scriptedPlanOptimizer = scriptedPlanOptimizer
+
+  def progressInfo(self, info):
+    self.scriptedPlanOptimizer.progressInfoUpdated(info)
+
+  def log(self, message):
+    self.scriptedPlanOptimizer.logMessageAdded(str(message))
+
+  @contextmanager
+  def forwardLogging(self, loggerNames=(), level=logging.INFO):
+    with forwardLogging(self.log, [self.__class__.__module__] + list(loggerNames), level) as handler:
+      yield handler
 
   def register(self):
     import qSlicerExternalBeamPlanningModuleWidgetsPythonQt
