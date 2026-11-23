@@ -89,6 +89,20 @@ public:
   /// \return List of parts that were successfully set up.
   std::vector<TreatmentMachinePartType> SetupTreatmentMachineModels(
     vtkMRMLRoomsEyeViewNode* parameterNode, bool forceEnableCollisionDetection=false);
+  /// Load and set up the treatment machine of the descriptor file of the parameter node, as LoadTreatmentMachine, from
+  /// Python (the wrapping cannot return the list of part types).
+  /// \return Number of parts that were successfully set up.
+  int LoadTreatmentMachineAndGetNumberOfParts(vtkMRMLRoomsEyeViewNode* parameterNode)
+  {
+    return static_cast<int>(this->LoadTreatmentMachine(parameterNode).size());
+  }
+  /// Set up the treatment machine models, as SetupTreatmentMachineModels, from Python.
+  /// \return Number of parts that were successfully set up.
+  int SetupTreatmentMachineModelsAndGetNumberOfParts(
+    vtkMRMLRoomsEyeViewNode* parameterNode, bool forceEnableCollisionDetection=false)
+  {
+    return static_cast<int>(this->SetupTreatmentMachineModels(parameterNode, forceEnableCollisionDetection).size());
+  }
   /// Create or get transforms taking part in the IEC logic and additional devices, and build the transform hierarchy
   void BuildRoomsEyeViewTransformHierarchy();
 
